@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/spf13/cast"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
@@ -206,7 +207,7 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -224,6 +225,12 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -236,6 +243,12 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -270,6 +283,12 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -283,6 +302,12 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["RunAs"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -295,6 +320,12 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -385,6 +416,11 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -483,7 +519,7 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 	)
 	_ = auxOut
 	_ = refs
@@ -500,6 +536,12 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -512,6 +554,12 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -536,6 +584,12 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -549,6 +603,12 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -561,6 +621,12 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			err = y7s.DecodeScalar(n, "workflowID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["WorkflowID"] = envoyx.Ref{
 				ResourceType: "corteza::automation:workflow",
@@ -627,6 +693,11 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -776,7 +847,7 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 // Envoy config unmarshal logic
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
-func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.EnvoyConfig) {
 	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "skipif", "skip":

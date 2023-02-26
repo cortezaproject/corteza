@@ -22,10 +22,6 @@ var (
 		"corteza::compose:page":   true,
 		"corteza::compose:record": true,
 
-		"corteza::federation:exposed-module": true,
-		"corteza::federation:module-mapping": true,
-
-		"corteza::federation:shared-module":  true,
 		"corteza::compose:record-datasource": true,
 	}
 

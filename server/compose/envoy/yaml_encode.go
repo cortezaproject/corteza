@@ -42,7 +42,10 @@ func (e YamlEncoder) encodeChartConfigC(ctx context.Context, p envoyx.EncodePara
 		}
 	}
 
-	return reports, nil
+	return y7s.MakeMap(
+		"reports", reports,
+		"colorScheme", cfg.ColorScheme,
+	)
 }
 
 func (e YamlEncoder) encodeModuleFieldsC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, mod *types.Module, fields types.ModuleFieldSet) (_ any, err error) {
@@ -210,11 +213,12 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		break
 	}
 
-	return
+	return b, nil
 }
 
-func (e YamlEncoder) cleanupPageblockRecordList(b types.PageBlock) (_ types.PageBlock) {
-	rawFF, has := b.Options["fields"]
+func (e YamlEncoder) cleanupPageblockRecordList(b types.PageBlock) (out types.PageBlock) {
+	out = b
+	rawFF, has := out.Options["fields"]
 	if !has {
 		return
 	}
@@ -236,7 +240,7 @@ func (e YamlEncoder) cleanupPageblockRecordList(b types.PageBlock) (_ types.Page
 		}
 	}
 
-	b.Options["fields"] = retFF
+	out.Options["fields"] = retFF
 
 	return b
 }

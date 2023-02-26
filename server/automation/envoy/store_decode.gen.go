@@ -163,32 +163,38 @@ func (d StoreDecoder) decodeWorkflow(ctx context.Context, s store.Storer, dl dal
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"OwnedBy": envoyx.Ref{
+			}
+		}
+		if r.OwnedBy > 0 {
+			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			},
-			// Handle references
-			"RunAs": envoyx.Ref{
+			}
+		}
+		if r.RunAs > 0 {
+			refs["RunAs"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.RunAs),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
@@ -232,32 +238,38 @@ func (d StoreDecoder) decodeTrigger(ctx context.Context, s store.Storer, dl dal.
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"OwnedBy": envoyx.Ref{
+			}
+		}
+		if r.OwnedBy > 0 {
+			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
-			// Handle references
-			"WorkflowID": envoyx.Ref{
+			}
+		}
+		if r.WorkflowID > 0 {
+			refs["WorkflowID"] = envoyx.Ref{
 				ResourceType: "corteza::automation:workflow",
 				Identifiers:  envoyx.MakeIdentifiers(r.WorkflowID),
-			},
+			}
 		}
 
 		var scope envoyx.Scope

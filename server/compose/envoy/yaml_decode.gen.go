@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/spf13/cast"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
@@ -231,7 +232,7 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -283,17 +284,16 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 			break
 
 		case "namespaceid", "namespace", "namespace_id", "ns":
-			// Handle field alias
-			//
-			// @todo consider adding an is empty check before overwriting
-			err = y7s.DecodeScalar(n, "namespaceID", &r.NamespaceID)
-			if err != nil {
-				return err
-			}
 			// Handle references
 			err = y7s.DecodeScalar(n, "namespaceID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["NamespaceID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:namespace",
@@ -398,6 +398,11 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -533,7 +538,7 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -566,17 +571,16 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 			break
 
 		case "namespaceid", "namespace", "namespace_id", "ns", "ns_id":
-			// Handle field alias
-			//
-			// @todo consider adding an is empty check before overwriting
-			err = y7s.DecodeScalar(n, "namespaceID", &r.NamespaceID)
-			if err != nil {
-				return err
-			}
 			// Handle references
 			err = y7s.DecodeScalar(n, "namespaceID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["NamespaceID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:namespace",
@@ -703,6 +707,11 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -827,7 +836,7 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -892,6 +901,12 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 			err = y7s.DecodeScalar(n, "moduleID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["ModuleID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:module",
@@ -1025,6 +1040,11 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1144,7 +1164,7 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1328,6 +1348,11 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1482,7 +1507,7 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1533,11 +1558,17 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 
 			break
 
-		case "moduleid":
+		case "moduleid", "module":
 			// Handle references
 			err = y7s.DecodeScalar(n, "moduleID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["ModuleID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:module",
@@ -1546,11 +1577,17 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 
 			break
 
-		case "namespaceid":
+		case "namespaceid", "namespace":
 			// Handle references
 			err = y7s.DecodeScalar(n, "namespaceID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["NamespaceID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:namespace",
@@ -1560,17 +1597,16 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 			break
 
 		case "selfid", "parent":
-			// Handle field alias
-			//
-			// @todo consider adding an is empty check before overwriting
-			err = y7s.DecodeScalar(n, "selfID", &r.SelfID)
-			if err != nil {
-				return err
-			}
 			// Handle references
 			err = y7s.DecodeScalar(n, "selfID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["SelfID"] = envoyx.Ref{
 				ResourceType: "corteza::compose:page",
@@ -1699,6 +1735,11 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1868,7 +1909,7 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 // Envoy config unmarshal logic
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
-func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.EnvoyConfig) {
 	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "skipif", "skip":

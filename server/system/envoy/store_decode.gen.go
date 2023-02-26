@@ -263,12 +263,14 @@ func (d StoreDecoder) decodeApplication(ctx context.Context, s store.Storer, dl 
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"OwnerID": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.OwnerID > 0 {
+			refs["OwnerID"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
@@ -328,27 +330,32 @@ func (d StoreDecoder) decodeApigwRoute(ctx context.Context, s store.Storer, dl d
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"Group": envoyx.Ref{
+			}
+		}
+		if r.Group > 0 {
+			refs["Group"] = envoyx.Ref{
 				ResourceType: "corteza::system:apigw-group",
 				Identifiers:  envoyx.MakeIdentifiers(r.Group),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
@@ -414,27 +421,32 @@ func (d StoreDecoder) decodeApigwFilter(ctx context.Context, s store.Storer, dl 
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"Route": envoyx.Ref{
+			}
+		}
+		if r.Route > 0 {
+			refs["Route"] = envoyx.Ref{
 				ResourceType: "corteza::system:apigw-route",
 				Identifiers:  envoyx.MakeIdentifiers(r.Route),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
@@ -491,37 +503,37 @@ func (d StoreDecoder) decodeAuthClient(ctx context.Context, s store.Storer, dl d
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"OwnedBy": envoyx.Ref{
+			}
+		}
+		if r.OwnedBy > 0 {
+			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		refs = envoyx.MergeRefs(refs, d.decodeAuthClientRefs(r))
 
 		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: types.AuthClientResourceType,
-			Identifiers:  ii,
-		}
 
 		out = append(out, &envoyx.Node{
 			Resource: r,
@@ -579,30 +591,29 @@ func (d StoreDecoder) decodeQueue(ctx context.Context, s store.Storer, dl dal.Fu
 			r.Queue,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: types.QueueResourceType,
-			Identifiers:  ii,
-		}
 
 		out = append(out, &envoyx.Node{
 			Resource: r,
@@ -656,27 +667,32 @@ func (d StoreDecoder) decodeReport(ctx context.Context, s store.Storer, dl dal.F
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"OwnedBy": envoyx.Ref{
+			}
+		}
+		if r.OwnedBy > 0 {
+			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
@@ -737,6 +753,8 @@ func (d StoreDecoder) decodeRole(ctx context.Context, s store.Storer, dl dal.Ful
 			r.ID,
 		)
 
+		// Handle references
+		// Omit any non-defined values
 		refs := map[string]envoyx.Ref{}
 
 		var scope envoyx.Scope
@@ -797,12 +815,14 @@ func (d StoreDecoder) decodeTemplate(ctx context.Context, s store.Storer, dl dal
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"OwnerID": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.OwnerID > 0 {
+			refs["OwnerID"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
-			},
+			}
 		}
 
 		var scope envoyx.Scope
@@ -863,6 +883,8 @@ func (d StoreDecoder) decodeUser(ctx context.Context, s store.Storer, dl dal.Ful
 			r.ID,
 		)
 
+		// Handle references
+		// Omit any non-defined values
 		refs := map[string]envoyx.Ref{}
 
 		var scope envoyx.Scope
@@ -923,22 +945,26 @@ func (d StoreDecoder) decodeDalConnection(ctx context.Context, s store.Storer, d
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		refs = envoyx.MergeRefs(refs, d.decodeDalConnectionRefs(r))
@@ -1001,22 +1027,26 @@ func (d StoreDecoder) decodeDalSensitivityLevel(ctx context.Context, s store.Sto
 			r.ID,
 		)
 
-		refs := map[string]envoyx.Ref{
-			// Handle references
-			"CreatedBy": envoyx.Ref{
+		// Handle references
+		// Omit any non-defined values
+		refs := map[string]envoyx.Ref{}
+		if r.CreatedBy > 0 {
+			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			},
-			// Handle references
-			"DeletedBy": envoyx.Ref{
+			}
+		}
+		if r.DeletedBy > 0 {
+			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			},
-			// Handle references
-			"UpdatedBy": envoyx.Ref{
+			}
+		}
+		if r.UpdatedBy > 0 {
+			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			},
+			}
 		}
 
 		var scope envoyx.Scope

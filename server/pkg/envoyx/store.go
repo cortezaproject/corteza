@@ -1,8 +1,10 @@
 package envoyx
 
-import "context"
+import (
+	"context"
+)
 
-func (svc *service) decodeStore(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
+func (svc *Service) decodeStore(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
 	var aux NodeSet
 	for _, d := range svc.decoders[DecodeTypeStore] {
 		aux, err = d.Decode(ctx, p)
@@ -15,7 +17,7 @@ func (svc *service) decodeStore(ctx context.Context, p DecodeParams) (nn NodeSet
 	return
 }
 
-func (svc *service) encodeStore(ctx context.Context, dg *depGraph, p EncodeParams) (err error) {
+func (svc *Service) encodeStore(ctx context.Context, dg *DepGraph, p EncodeParams) (err error) {
 	// Prepping
 	//
 	// @note this is ok for now but if we add things like importing into

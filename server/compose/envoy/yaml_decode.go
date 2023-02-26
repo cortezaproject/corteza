@@ -169,7 +169,7 @@ func getPageBlockCalendarRefs(b types.PageBlock, index int) (refs map[string]env
 		}
 
 		refs[fmt.Sprintf("Blocks.%d.Options.feeds.%d.ModuleID", index, j)] = envoyx.Ref{
-			ResourceType: types.ChartResourceType,
+			ResourceType: types.ModuleResourceType,
 			Identifiers:  envoyx.MakeIdentifiers(id),
 		}
 	}
@@ -190,7 +190,7 @@ func getPageBlockMetricRefs(b types.PageBlock, index int) (refs map[string]envoy
 		}
 
 		refs[fmt.Sprintf("Blocks.%d.Options.metrics.%d.ModuleID", index, j)] = envoyx.Ref{
-			ResourceType: types.ChartResourceType,
+			ResourceType: types.ModuleResourceType,
 			Identifiers:  envoyx.MakeIdentifiers(id),
 		}
 	}

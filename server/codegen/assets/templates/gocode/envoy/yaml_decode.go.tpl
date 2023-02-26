@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	"golang.org/x/text/language"
+	"github.com/spf13/cast"
 	"gopkg.in/yaml.v3"
 
 {{- range .imports }}
@@ -245,7 +246,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 		auxOut envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		{{- if .rbac }}
 		rbacNodes envoyx.NodeSet
 		{{- end }}
@@ -293,7 +294,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 		"{{ $l }}"{{if not (eq $i (sub (len $identKeys) 1))}},{{end}}
 		{{- end}}:
 
-			{{- if and $attr.envoy.yaml.identKeyAlias (gt (len $attr.envoy.yaml.identKeyAlias) 0) }}
+			{{- if and $attr.envoy.yaml.identKeyAlias (gt (len $attr.envoy.yaml.identKeyAlias) 0) (not (eq $attr.dal.type "Ref")) }}
 				// Handle field alias
 				//
 				// @todo consider adding an is empty check before overwriting
@@ -317,6 +318,12 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 				err = y7s.DecodeScalar(n, "{{ $attr.ident }}", &auxNodeValue)
 				if err != nil {
 					return err
+				}
+
+				// Omit if not defined
+				tmp := cast.ToString(auxNodeValue)
+				if tmp == "0" || tmp == "" {
+					break
 				}
 				refs["{{ $attr.expIdent }}"] = envoyx.Ref{
 					ResourceType: "{{ $attr.dal.refModelResType }}",
@@ -513,6 +520,11 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -694,7 +706,7 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 // Envoy config unmarshal logic
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
-func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.EnvoyConfig) {
 	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "skipif", "skip":

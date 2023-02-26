@@ -8,7 +8,7 @@ import (
 
 [...schema.#codegen] &
 [
-  for cmp in app.corteza.components {
+  for cmp in app.corteza.components if !cmp.envoy.omit {
     template: "gocode/envoy/yaml_decode.go.tpl"
     output:   "\(cmp.ident)/envoy/yaml_decode.gen.go"
     payload: {
@@ -22,7 +22,7 @@ import (
       resources: [ for res in cmp.resources { res }]
     }
   },
-  for cmp in app.corteza.components {
+  for cmp in app.corteza.components if !cmp.envoy.omit {
     template: "gocode/envoy/store_decode.go.tpl"
     output:   "\(cmp.ident)/envoy/store_decode.gen.go"
     payload: {
@@ -36,7 +36,7 @@ import (
       resources: [ for res in cmp.resources { res }]
     }
   },
-  for cmp in app.corteza.components {
+  for cmp in app.corteza.components if !cmp.envoy.omit {
     template: "gocode/envoy/store_encode.go.tpl"
     output:   "\(cmp.ident)/envoy/store_encode.gen.go"
     payload: {
@@ -50,7 +50,7 @@ import (
       resources: [ for res in cmp.resources { res }]
     }
   },
-  for cmp in app.corteza.components {
+  for cmp in app.corteza.components if !cmp.envoy.omit {
     template: "gocode/envoy/yaml_encode.go.tpl"
     output:   "\(cmp.ident)/envoy/yaml_encode.gen.go"
     payload: {
@@ -72,7 +72,7 @@ import (
     payload: {
       package: "envoyx"
 
-      components: [for cmp in app.corteza.components {
+      components: [for cmp in app.corteza.components if !cmp.envoy.omit {
         ident: cmp.ident,
         resources: cmp.resources
       }]
@@ -85,7 +85,7 @@ import (
     payload: {
       package: "envoyx"
 
-      components: [for cmp in app.corteza.components {
+      components: [for cmp in app.corteza.components if !cmp.envoy.omit {
         ident: cmp.ident,
         resources: cmp.resources
       }]

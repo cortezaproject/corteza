@@ -36,6 +36,9 @@ application: {
 					store: {
 						omitRefFilter: true
 					}
+					yaml: {
+						identKeyAlias: ["owner"]
+					}
 				}
 			}
 			created_at: schema.SortableTimestampNowField

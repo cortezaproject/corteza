@@ -70,6 +70,8 @@ func (d *auxYamlDoc) unmarshalAuthClientSecurityNode(r *types.AuthClient, n *yam
 }
 
 func roleSliceToRefs(k string, n *yaml.Node) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref, len(n.Content))
+
 	i := 0
 	y7s.EachSeq(n, func(n *yaml.Node) error {
 		refs[fmt.Sprintf("%s.%d", k, i)] = envoyx.Ref{

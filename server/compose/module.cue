@@ -56,7 +56,7 @@ module: {
 				omitGetter: true
 				envoy: {
 					yaml: {
-						customEncoder: true
+						omitEncoder: true
 					}
 				}
 			}
