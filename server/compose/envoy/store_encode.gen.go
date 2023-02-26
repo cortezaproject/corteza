@@ -616,6 +616,10 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 		}
 	}
 
+	// Custom resource sanitization before saving.
+	// This can be used to cleanup arbitrary config fields.
+	e.sanitizeModuleFieldBeforeSave(n.Resource.(*types.ModuleField))
+
 	// Flush to the DB
 	err = store.UpsertComposeModuleField(ctx, s, n.Resource.(*types.ModuleField))
 	if err != nil {

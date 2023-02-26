@@ -177,6 +177,8 @@ import (
 		// referencing this resource
 		identKeys: [...string] | *([identKeyLabel]+identKeyAlias)
 
+		omitEncoder: bool | *false
+
 		extendedResourcePostProcess: bool | *false
 		extendedResourceDecoders: [...{
 			ident: string
@@ -215,5 +217,8 @@ import (
 		// extendedDecoder is called after the built-in which you can use
 		// to append additional nodes into.
 		extendedDecoder: bool | *false
+
+		// the resource calls a sanitizer function before saving to the database
+		sanitizeBeforeSave: bool | *false
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (nvyx *service) decodeUri(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
+func (nvyx *Service) decodeUri(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
 	aUri, ok := p.Params["uri"]
 	if !ok {
 		err = fmt.Errorf("cannot decode URI: no uri parameter provided")
@@ -48,7 +48,7 @@ func (nvyx *service) decodeUri(ctx context.Context, p DecodeParams) (nn NodeSet,
 	}
 }
 
-func (nvyx *service) encodeIo(ctx context.Context, dg *depGraph, p EncodeParams) (err error) {
+func (nvyx *Service) encodeIo(ctx context.Context, dg *DepGraph, p EncodeParams) (err error) {
 	for rt, nn := range NodesByResourceType(dg.Roots()...) {
 		for _, se := range nvyx.encoders[EncodeTypeIo] {
 			err = se.Encode(ctx, p, rt, OmitPlaceholderNodes(nn...), dg)
@@ -61,7 +61,7 @@ func (nvyx *service) encodeIo(ctx context.Context, dg *depGraph, p EncodeParams)
 	return
 }
 
-func (nvyx *service) decodeDirectory(ctx context.Context, p DecodeParams, path string) (nn NodeSet, err error) {
+func (nvyx *Service) decodeDirectory(ctx context.Context, p DecodeParams, path string) (nn NodeSet, err error) {
 	return nn, filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func (nvyx *service) decodeDirectory(ctx context.Context, p DecodeParams, path s
 	})
 }
 
-func (nvyx *service) decodeFile(ctx context.Context, p DecodeParams, path string) (nn NodeSet, err error) {
+func (nvyx *Service) decodeFile(ctx context.Context, p DecodeParams, path string) (nn NodeSet, err error) {
 	var aux NodeSet
 	f, err := os.Open(path)
 	if err != nil {

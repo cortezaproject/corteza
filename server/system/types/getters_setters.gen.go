@@ -190,7 +190,7 @@ func (r *ApigwFilter) GetValue(name string, pos uint) (any, error) {
 		return r.Kind, nil
 	case "ref", "Ref":
 		return r.Ref, nil
-	case "route", "Route":
+	case "route", "Route", "ApigwRouteID":
 		return r.Route, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
@@ -221,7 +221,7 @@ func (r *ApigwFilter) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Kind)
 	case "ref", "Ref":
 		return cast2.String(value, &r.Ref)
-	case "route", "Route":
+	case "route", "Route", "ApigwRouteID":
 		return cast2.Uint64(value, &r.Route)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)

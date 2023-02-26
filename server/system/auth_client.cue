@@ -92,7 +92,6 @@ auth_client: {
 	}
 
 	envoy: {
-		scoped: true
 		yaml: {
 			supportMappedInput: true
 			mappedField: "Handle"

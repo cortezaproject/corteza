@@ -127,14 +127,17 @@ func OmitPlaceholderNodes(nn ...*Node) (out NodeSet) {
 	return
 }
 
-func MergeRefs(a, b map[string]Ref) (c map[string]Ref) {
+func MergeRefs(a map[string]Ref, bb ...map[string]Ref) (c map[string]Ref) {
 	c = make(map[string]Ref)
 
 	for k, v := range a {
 		c[k] = v
 	}
-	for k, v := range b {
-		c[k] = v
+
+	for _, b := range bb {
+		for k, v := range b {
+			c[k] = v
+		}
 	}
 
 	return
@@ -185,6 +188,20 @@ func (r Ref) ResourceFilter() (out map[string]ResourceFilter) {
 	}
 
 	return
+}
+
+func (a Ref) Equals(b Ref) bool {
+	if a.ResourceType != b.ResourceType {
+		return false
+	}
+	if !a.Scope.Equals(b.Scope) {
+		return false
+	}
+	if !a.Identifiers.HasIntersection(b.Identifiers) {
+		return false
+	}
+
+	return true
 }
 
 func (a Scope) Equals(b Scope) bool {

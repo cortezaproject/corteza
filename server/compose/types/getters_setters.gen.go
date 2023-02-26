@@ -106,6 +106,9 @@ func (r *Chart) SetValue(name string, pos uint, value any) (err error) {
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 
+	default:
+		return r.setValue(name, pos, value)
+
 	}
 	return nil
 }
@@ -209,6 +212,9 @@ func (r *ModuleField) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Bool(value, &r.Required)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
+
+	default:
+		return r.setValue(name, pos, value)
 
 	}
 	return nil
@@ -317,6 +323,9 @@ func (r *Page) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Bool(value, &r.Visible)
 	case "weight", "Weight":
 		return cast2.Int(value, &r.Weight)
+
+	default:
+		return r.setValue(name, pos, value)
 
 	}
 	return nil

@@ -102,6 +102,10 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 			return
 		}
 
+	default:
+		// When this encoder doesn't handle any node it shouldn't write anything;
+		// this just removes the need for an extra check at the end.
+		return
 	}
 
 	return yaml.NewEncoder(w).Encode(out)
@@ -211,10 +215,6 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	if err != nil {
 		return
 	}
-	auxFields, err := e.encodeModuleFieldsC(ctx, p, tt, node, res, res.Fields)
-	if err != nil {
-		return
-	}
 
 	auxNamespaceID, err := e.encodeRef(p, res.NamespaceID, "NamespaceID", node, tt)
 	if err != nil {
@@ -229,7 +229,6 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 		"config", res.Config,
 		"createdAt", auxCreatedAt,
 		"deletedAt", auxDeletedAt,
-		"fields", auxFields,
 		"handle", res.Handle,
 		"moduleID", res.ID,
 		"meta", res.Meta,
@@ -245,7 +244,21 @@ func (e YamlEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, no
 	var aux *yaml.Node
 	_ = aux
 
-	aux, err = e.encodeModuleFields(ctx, p, tt.ChildrenForResourceType(node, types.ModuleFieldResourceType), tt)
+	// When processing module fields, we need to filter out the ones that
+	// don't belong to this module
+	//
+	// @todo offload this to dependency resolution; this is a hack
+	children := tt.ChildrenForResourceType(node, types.ModuleFieldResourceType)
+
+	var proc envoyx.NodeSet
+	selfRef := node.ToRef()
+	for _, c := range children {
+		if c.References["ModuleID"].Equals(selfRef) {
+			proc = append(proc, c)
+		}
+	}
+
+	aux, err = e.encodeModuleFields(ctx, p, proc, tt)
 	if err != nil {
 		return
 	}
@@ -528,7 +541,7 @@ func (e YamlEncoder) encodeTimestamp(p envoyx.EncodeParams, t time.Time) (any, e
 		return nil, nil
 	}
 
-	tz := p.Config.PreferredTimezone
+	tz := p.Encoder.PreferredTimezone
 	if tz != "" {
 		tzL, err := time.LoadLocation(tz)
 		if err != nil {
@@ -537,7 +550,7 @@ func (e YamlEncoder) encodeTimestamp(p envoyx.EncodeParams, t time.Time) (any, e
 		t = t.In(tzL)
 	}
 
-	ly := p.Config.PreferredTimeLayout
+	ly := p.Encoder.PreferredTimeLayout
 	if ly == "" {
 		ly = time.RFC3339
 	}
@@ -563,7 +576,7 @@ func (e YamlEncoder) encodeRef(p envoyx.EncodeParams, id uint64, field string, n
 		return id, nil
 	}
 
-	return node.Identifiers.FriendlyIdentifier(), nil
+	return parent.Identifiers.FriendlyIdentifier(), nil
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //

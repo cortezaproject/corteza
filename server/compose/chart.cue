@@ -10,6 +10,8 @@ chart: {
 	]
 
 	model: {
+		defaultSetter: true
+
 		ident: "compose_chart"
 		attributes: {
 			id: schema.IdField & {

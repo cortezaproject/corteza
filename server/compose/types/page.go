@@ -343,6 +343,55 @@ func (p *Page) encodeRecordListButtons(bb []interface{}, blockID uint64) (out lo
 	return
 }
 
+func (p *Page) setValue(name string, pos uint, value any) (err error) {
+	pp := strings.Split(name, ".")
+	switch pp[0] {
+	case "Blocks":
+		return p.Blocks[cast.ToUint(pp[1])].setValue(strings.Join(pp[2:], "."), pos, value)
+	}
+
+	return
+}
+
+func (b *PageBlock) setValue(name string, pos uint, value any) (err error) {
+	pp := strings.Split(name, ".")
+
+	switch pp[0] {
+	case "Options":
+		return b.setOptionValue(pp[1:], pos, value)
+	}
+
+	return
+}
+
+func (b *PageBlock) setOptionValue(path []string, pos uint, value any) (err error) {
+	switch path[0] {
+	case "feeds":
+		// Get the feed on the correct index in the correct type
+		feed := (b.Options["feeds"].([]any))[cast.ToInt(path[1])].(map[string]any)
+
+		// Getthe feed options in the correct type
+		options := feed["options"].(map[string]any)
+
+		// Set the value
+		options["moduleID"] = cast.ToString(value)
+
+	case "metrics":
+		// Get the metric on the correct index in the correct type
+		metric := (b.Options["metrics"].([]any))[cast.ToInt(path[1])].(map[string]any)
+
+		metric["moduleID"] = cast.ToString(value)
+
+	case "moduleID", "ModuleID":
+		b.Options["moduleID"] = cast.ToString(value)
+
+	case "chartID", "ChartID":
+		b.Options["chartID"] = cast.ToString(value)
+	}
+
+	return
+}
+
 // FindByHandle finds page by it's handle
 func (set PageSet) FindByHandle(handle string) *Page {
 	for i := range set {

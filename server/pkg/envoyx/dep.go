@@ -1,12 +1,12 @@
 package envoyx
 
 type (
-	// depGraph provides a collection of optionally connected subgraphs
+	// DepGraph provides a collection of optionally connected subgraphs
 	//
 	// Each subgraph is dedicated for a specific node scope.
 	// A subgraph with scoped nodes may be connected to the subgraph with no
 	// defined scope.
-	depGraph struct {
+	DepGraph struct {
 		graphs []*depSubgraph
 	}
 
@@ -37,7 +37,7 @@ type (
 //
 // We firstly group the nodes by scope, then build a subgraph for each scope,
 // and lastly merge the subgraphs into a single graph.
-func BuildDepGraph(nn ...*Node) (out *depGraph) {
+func BuildDepGraph(nn ...*Node) (out *DepGraph) {
 	scopes := scopeNodes(nn...)
 
 	aux := make([]*depSubgraph, 0, len(scopes))
@@ -224,8 +224,8 @@ func buildDepSubgraph(nn NodeSet) (out *depSubgraph) {
 // The subgraphs can be connected in case a scoped node would reference a
 // unscoped node (unscoped nodes can not reference scoped nodes, nor can nodes
 // from different scopes -- unneeded and removes some complexity).
-func buildDepGraph(gg ...*depSubgraph) (out *depGraph) {
-	out = &depGraph{
+func buildDepGraph(gg ...*depSubgraph) (out *DepGraph) {
+	out = &DepGraph{
 		graphs: make([]*depSubgraph, 0, len(gg)),
 	}
 
@@ -283,7 +283,7 @@ func buildDepGraph(gg ...*depSubgraph) (out *depGraph) {
 //
 // For the most part, these are all resources with no parent resources.
 // If all resources define parents, then some home brew logic is ran
-func (g depGraph) Roots() (out NodeSet) {
+func (g DepGraph) Roots() (out NodeSet) {
 	for _, sg := range g.graphs {
 		out = append(out, sg.Roots()...)
 	}
@@ -291,7 +291,7 @@ func (g depGraph) Roots() (out NodeSet) {
 }
 
 // ParentForRef returns a parent node of n which matches ref (nil if none)
-func (g depGraph) ParentForRef(n *Node, ref Ref) (out *Node) {
+func (g DepGraph) ParentForRef(n *Node, ref Ref) (out *Node) {
 	for _, sg := range g.graphs {
 		out = sg.ParentForRef(n, ref)
 		if out != nil {
@@ -302,7 +302,7 @@ func (g depGraph) ParentForRef(n *Node, ref Ref) (out *Node) {
 }
 
 // ChildrenForResourceType returns child nodes of n which match the resource type
-func (g depGraph) ChildrenForResourceType(n *Node, rt string) (out NodeSet) {
+func (g DepGraph) ChildrenForResourceType(n *Node, rt string) (out NodeSet) {
 	for _, sg := range g.graphs {
 		out = sg.ChildrenForResourceType(n, rt)
 		if out != nil {
@@ -313,7 +313,7 @@ func (g depGraph) ChildrenForResourceType(n *Node, rt string) (out NodeSet) {
 }
 
 // Children returns all child nodes of n
-func (g depGraph) Children(n *Node) (out NodeSet) {
+func (g DepGraph) Children(n *Node) (out NodeSet) {
 	for _, sg := range g.graphs {
 		out = sg.Children(n)
 		if out != nil {
@@ -324,7 +324,7 @@ func (g depGraph) Children(n *Node) (out NodeSet) {
 }
 
 // MissingRegs returns a slice of all refs that are requested but not found in the graph
-func (g depGraph) MissingRefs() (out []map[string]Ref) {
+func (g DepGraph) MissingRefs() (out []map[string]Ref) {
 	for _, sg := range g.graphs {
 		for _, n := range sg.nodes {
 			if len(n.missingReferences) == 0 {
@@ -337,7 +337,7 @@ func (g depGraph) MissingRefs() (out []map[string]Ref) {
 	return
 }
 
-func (g depGraph) allNodes() (out []*depNode) {
+func (g DepGraph) allNodes() (out []*depNode) {
 	for _, sg := range g.graphs {
 		out = append(out, sg.nodes...)
 	}
