@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	"github.com/cortezaproject/corteza/server/system/types"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/spf13/cast"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
 )
@@ -298,7 +299,7 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -320,11 +321,17 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 
 			break
 
-		case "ownerid":
+		case "ownerid", "owner":
 			// Handle references
 			err = y7s.DecodeScalar(n, "ownerID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["OwnerID"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -407,6 +414,11 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -540,7 +552,7 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -558,6 +570,12 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -571,6 +589,12 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -583,6 +607,12 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			err = y7s.DecodeScalar(n, "group", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["Group"] = envoyx.Ref{
 				ResourceType: "corteza::system:apigw-group",
@@ -606,6 +636,12 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -696,6 +732,11 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -794,7 +835,7 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 	)
 	_ = auxOut
 	_ = refs
@@ -811,6 +852,12 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -823,6 +870,12 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -847,6 +900,12 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["Route"] = envoyx.Ref{
 				ResourceType: "corteza::system:apigw-route",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -859,6 +918,12 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -925,6 +990,11 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1024,7 +1094,7 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1042,6 +1112,12 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1054,6 +1130,12 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -1088,6 +1170,12 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1120,6 +1208,12 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1151,15 +1245,6 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 	})
 	if err != nil {
 		return
-	}
-
-	// Define the scope
-	//
-	// This resource is scoped with no parent resources so this resource is the
-	// root itself (generally the namespace -- the only currently supported scenario).
-	scope = envoyx.Scope{
-		ResourceType: types.AuthClientResourceType,
-		Identifiers:  ii,
 	}
 
 	// Apply the scope to all of the references of the same type
@@ -1210,6 +1295,11 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1228,8 +1318,6 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 		ResourceType: types.AuthClientResourceType,
 		Identifiers:  ii,
 		References:   refs,
-
-		Scope: scope,
 
 		Config: envoyConfig,
 	}
@@ -1329,7 +1417,7 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1347,6 +1435,12 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1359,6 +1453,12 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -1393,6 +1493,12 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1424,15 +1530,6 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 	})
 	if err != nil {
 		return
-	}
-
-	// Define the scope
-	//
-	// This resource is scoped with no parent resources so this resource is the
-	// root itself (generally the namespace -- the only currently supported scenario).
-	scope = envoyx.Scope{
-		ResourceType: types.QueueResourceType,
-		Identifiers:  ii,
 	}
 
 	// Apply the scope to all of the references of the same type
@@ -1483,6 +1580,11 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1501,8 +1603,6 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 		ResourceType: types.QueueResourceType,
 		Identifiers:  ii,
 		References:   refs,
-
-		Scope: scope,
 
 		Config: envoyConfig,
 	}
@@ -1602,7 +1702,7 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1620,6 +1720,12 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1632,6 +1738,12 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -1666,6 +1778,12 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -1678,6 +1796,12 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -1760,6 +1884,11 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -1877,7 +2006,7 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -1983,6 +2112,11 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -2100,7 +2234,7 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -2137,6 +2271,12 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 			err = y7s.DecodeScalar(n, "ownerID", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["OwnerID"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -2219,6 +2359,11 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -2336,7 +2481,7 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -2461,6 +2606,11 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -2578,7 +2728,7 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 		rbacNodes   envoyx.NodeSet
 	)
 	_ = auxOut
@@ -2596,6 +2746,12 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -2608,6 +2764,12 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -2641,6 +2803,12 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -2723,6 +2891,11 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -2840,7 +3013,7 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 		auxOut      envoyx.NodeSet
 		nestedNodes envoyx.NodeSet
 		scope       envoyx.Scope
-		envoyConfig envoyx.NodeConfig
+		envoyConfig envoyx.EnvoyConfig
 	)
 	_ = auxOut
 	_ = refs
@@ -2857,6 +3030,12 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 			if err != nil {
 				return err
 			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
 			refs["CreatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
@@ -2869,6 +3048,12 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 			err = y7s.DecodeScalar(n, "deletedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["DeletedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -2902,6 +3087,12 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 			err = y7s.DecodeScalar(n, "updatedBy", &auxNodeValue)
 			if err != nil {
 				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
 			}
 			refs["UpdatedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
@@ -2968,6 +3159,11 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 			}
 
 			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
 				a.References[f] = ref
 			}
 		}
@@ -3117,7 +3313,7 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 // Envoy config unmarshal logic
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
-func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.NodeConfig) {
+func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.EnvoyConfig) {
 	y7s.EachMap(n, func(k, v *yaml.Node) (err error) {
 		switch strings.ToLower(k.Value) {
 		case "skipif", "skip":

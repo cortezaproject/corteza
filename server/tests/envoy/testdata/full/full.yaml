@@ -1,0 +1,178 @@
+namespace:
+  test_ns_1:
+    name: Test Namespace 1
+    enabled: true
+
+    modules:
+      test_ns_1_mod_1:
+        name: Test Namespace 1 Module 1
+        fields:
+          test_ns_1_mod_1_f1:
+            title: Test Namespace 1 Module 1 Field 1
+          test_ns_1_mod_1_f2:
+            title: Test Namespace 1 Module 1 Field 2
+            kind: Number
+
+      test_ns_1_mod_2:
+        name: Test Namespace 1 Module 2
+        fields:
+          test_ns_1_mod_2_f1:
+            title: Test Namespace 1 Module 2 Field 1
+            kind: Record
+            options:
+              module: test_ns_1_mod_1
+          test_ns_1_mod_2_f2:
+            title: Test Namespace 1 Module 2 Field 2
+            kind: Record
+            options:
+              module: test_ns_1_mod_2
+
+    charts:
+      test_ns_1_chart_1:
+        name: Test Namespace 1 Chart 1
+        config:
+          reports:
+            - filter: true
+              module: test_ns_1_mod_1
+            - filter: true
+              module: test_ns_1_mod_2
+
+    pages:
+      test_ns_1_page_1:
+        title: Test Namespace 1 Page 1
+        visible: true
+        blocks:
+          - title: Test Namespace 1 Page 1 Block 1
+            kind: RecordList
+            options:
+              module: test_ns_1_mod_1
+          - title: Test Namespace 1 Page 1 Block 2
+            kind: Automation
+            # @todo
+            # options:
+
+          - title: Test Namespace 1 Page 1 Block 3
+            kind: RecordOrganizer
+            options:
+              module: test_ns_1_mod_1
+
+          - title: Test Namespace 1 Page 1 Block 4
+            kind: Chart
+            options:
+              chart: test_ns_1_chart_1
+
+          - title: Test Namespace 1 Page 1 Block 5
+            kind: Calendar
+            options:
+              feeds:
+                - options:
+                    module: test_ns_1_mod_1
+
+          - title: Test Namespace 1 Page 1 Block 6
+            kind: Metric
+            options:
+              metrics:
+                - module: test_ns_1_mod_1
+
+          - title: Test Namespace 1 Page 1 Block 7
+            kind: Comment
+            options:
+              module: test_ns_1_mod_1
+        pages:
+          test_ns_1_record_page_1:
+            title: Test Namespace 1 Record Page 1
+            module: test_ns_1_mod_1
+
+application:
+  test_app_1:
+    enabled: true
+    owner: test_user_1
+
+endpoints:
+  /test/endpoint/1:
+    method: GET
+    enabled: true
+    createdBy: test_user_1
+    updatedBy: test_user_1
+    filters:
+      - ref: r1
+        kind: prefilter
+        enabled: true
+        createdBy: test_user_1
+        updatedBy: test_user_1
+
+authclient:
+  test_authclient_1:
+    secret: 123123
+    security:
+      impersonateUser: test_user_1
+      permittedRoles:
+        - test_role_1
+      prohibitedRoles:
+        - test_role_2
+      forcedRoles:
+        - test_role_3
+    ownedBy: test_user_1
+    createdBy: test_user_1
+    updatedBy: test_user_1
+
+queue:
+  test_queue_1:
+    consumer: workflow
+    createdBy: test_user_1
+    updatedBy: test_user_1
+
+report:
+  test_report_1:
+    meta:
+      name: Test Report 1
+      Description: Test Report 1 Description
+    ownedBy: test_user_1
+    createdBy: test_user_1
+    updatedBy: test_user_1
+
+role:
+  test_role_1:
+    name: Test Role 1
+  test_role_2:
+    name: Test Role 2
+  test_role_3:
+    name: Test Role 3
+
+template:
+  test_template_1:
+    meta:
+      short: Test Template 1
+      description: Test Template 1 Description
+    ownerID: test_user_1
+
+user:
+  test_user_1:
+    name: Test User 1
+    email: test_user_1@example.com
+    emailConfirmed: true
+
+connection:
+  test_connection_1:
+    meta:
+      name: Test Connection 1
+    createdBy: test_user_1
+    updatedBy: test_user_1
+
+sensitivity_level:
+  test_sensitivity_level_1:
+    meta:
+      name: Test Sensitivity Level 1
+      description: Test sensitivity Level 1 Description
+    createdBy: test_user_1
+    updatedBy: test_user_1
+
+workflow:
+  test_workflow_1:
+    enabled: true
+    meta:
+      name: Test Workflow 1
+    triggers:
+      - enabled: true
+        stepID: 12
+        resourceType: corteza::compose:namespace

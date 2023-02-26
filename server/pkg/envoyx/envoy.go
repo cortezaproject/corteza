@@ -9,7 +9,7 @@ import (
 )
 
 type (
-	service struct {
+	Service struct {
 		decoders map[decodeType][]Decoder
 
 		encoders  map[encodeType][]Encoder
@@ -90,7 +90,7 @@ type (
 )
 
 var (
-	global *service
+	global *Service
 
 	ex = expr.NewParser()
 )
@@ -112,17 +112,17 @@ const (
 )
 
 // New initializes a new Envoy service
-func New() *service {
-	return &service{}
+func New() *Service {
+	return &Service{}
 }
 
 // SetGlobal sets the global envoy service
-func SetGlobal(n *service) {
+func SetGlobal(n *Service) {
 	global = n
 }
 
-// Service gets the global envoy service
-func Service() *service {
+// Global gets the global envoy service
+func Global() *Service {
 	if global == nil {
 		panic("global service not defined")
 	}
@@ -131,7 +131,7 @@ func Service() *service {
 }
 
 // Decode returns a set of envoy Nodes based on the given decode params
-func (svc *service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
+func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
 	err = p.validate()
 	if err != nil {
 		return
@@ -149,20 +149,25 @@ func (svc *service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err
 	return
 }
 
-func (svc *service) Bake(ctx context.Context, p EncodeParams, nodes ...*Node) (err error) {
+func (svc *Service) Bake(ctx context.Context, p EncodeParams, nodes ...*Node) (gg *DepGraph, err error) {
 	err = svc.bakeEnvoyConfig(p.Envoy, nodes...)
 	if err != nil {
 		return
 	}
 
 	err = svc.bakeExpressions(nodes...)
+	if err != nil {
+		return
+	}
+
+	gg = BuildDepGraph(nodes...)
 	return
 }
 
 // Encode encodes Corteza resources bases on the provided encode params
 //
 // use the BuildDepGraph function to build the default dependency graph.
-func (svc *service) Encode(ctx context.Context, p EncodeParams, dg *depGraph) (err error) {
+func (svc *Service) Encode(ctx context.Context, p EncodeParams, dg *DepGraph) (err error) {
 	err = p.validate()
 	if err != nil {
 		return
@@ -179,21 +184,33 @@ func (svc *service) Encode(ctx context.Context, p EncodeParams, dg *depGraph) (e
 	return
 }
 
-func (svc *service) AddDecoder(t decodeType, dd ...Decoder) {
+func (svc *Service) AddDecoder(t decodeType, dd ...Decoder) {
 	if svc.decoders == nil {
 		svc.decoders = make(map[decodeType][]Decoder)
 	}
 	svc.decoders[t] = append(svc.decoders[t], dd...)
 }
 
-func (svc *service) AddEncoder(t encodeType, ee ...Encoder) {
+func (svc *Service) AddEncoder(t encodeType, ee ...Encoder) {
 	if svc.encoders == nil {
 		svc.encoders = make(map[encodeType][]Encoder)
 	}
+	if svc.preparers == nil {
+		svc.preparers = make(map[encodeType][]Preparer)
+	}
 	svc.encoders[t] = append(svc.encoders[t], ee...)
+
+	for _, e := range ee {
+		p, ok := e.(Preparer)
+		if !ok {
+			continue
+		}
+
+		svc.preparers[t] = append(svc.preparers[t], p)
+	}
 }
 
-func (svc *service) AddPreparer(t encodeType, pp ...Preparer) {
+func (svc *Service) AddPreparer(t encodeType, pp ...Preparer) {
 	if svc.preparers == nil {
 		svc.preparers = make(map[encodeType][]Preparer)
 	}
@@ -242,7 +259,7 @@ func CastMergeAlg(v string) (mergeAlg mergeAlg) {
 	return
 }
 
-func (svc *service) bakeEnvoyConfig(dft EnvoyConfig, nodes ...*Node) (err error) {
+func (svc *Service) bakeEnvoyConfig(dft EnvoyConfig, nodes ...*Node) (err error) {
 	for _, n := range nodes {
 		n.Config = svc.mergeEnvoyConfigs(n.Config, dft)
 	}
@@ -250,7 +267,7 @@ func (svc *service) bakeEnvoyConfig(dft EnvoyConfig, nodes ...*Node) (err error)
 	return
 }
 
-func (svc *service) bakeExpressions(nodes ...*Node) (err error) {
+func (svc *Service) bakeExpressions(nodes ...*Node) (err error) {
 	for _, n := range nodes {
 		if n.Config.SkipIf == "" {
 			continue
@@ -265,7 +282,7 @@ func (svc *service) bakeExpressions(nodes ...*Node) (err error) {
 	return
 }
 
-func (svc *service) mergeEnvoyConfigs(a, b EnvoyConfig) (c EnvoyConfig) {
+func (svc *Service) mergeEnvoyConfigs(a, b EnvoyConfig) (c EnvoyConfig) {
 	c = a
 	if c.MergeAlg == OnConflictDefault {
 		c.MergeAlg = b.MergeAlg

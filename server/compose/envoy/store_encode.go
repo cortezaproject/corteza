@@ -39,6 +39,10 @@ func (e StoreEncoder) setModuleFieldDefaults(res *types.ModuleField) (err error)
 		res.CreatedAt = time.Now()
 	}
 
+	if res.Kind == "" {
+		res.Kind = "String"
+	}
+
 	// Update validator ID
 	maxValidatorID := uint64(0)
 	for _, v := range res.Expressions.Validators {
@@ -54,6 +58,11 @@ func (e StoreEncoder) setModuleFieldDefaults(res *types.ModuleField) (err error)
 		}
 	}
 
+	return
+}
+
+func (e StoreEncoder) sanitizeModuleFieldBeforeSave(f *types.ModuleField) (err error) {
+	delete(f.Options, "module")
 	return
 }
 
@@ -89,10 +98,11 @@ func (e StoreEncoder) setPageDefaults(res *types.Page) (err error) {
 		}
 	}
 
-	for _, b := range res.Blocks {
+	for i, b := range res.Blocks {
 		if b.BlockID == 0 {
 			b.BlockID = maxPageBlockID + 1
 			maxPageBlockID++
+			res.Blocks[i] = b
 		}
 	}
 

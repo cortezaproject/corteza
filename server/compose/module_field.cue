@@ -11,6 +11,8 @@ moduleField: {
 	]
 
 	model: {
+		defaultSetter: true
+
 		ident: "compose_module_field"
 		attributes: {
 			id: schema.IdField & {
@@ -139,6 +141,7 @@ moduleField: {
 			handleField: ""
 			customFilterBuilder: true
 			extendedRefDecoder: true
+			sanitizeBeforeSave: true
 		}
 	}
 

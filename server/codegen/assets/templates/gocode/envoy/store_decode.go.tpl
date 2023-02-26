@@ -190,17 +190,19 @@ func (d StoreDecoder) decode{{.expIdent}}(ctx context.Context, s store.Storer, d
 	{{- end }}
 		)
 
-	refs := map[string]envoyx.Ref{
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
 	{{- range .model.attributes -}}
 		{{- if eq .dal.type "Ref" }}
-		// Handle references
-		"{{ .expIdent }}": envoyx.Ref{
-			ResourceType: "{{ .dal.refModelResType }}",
-			Identifiers: envoyx.MakeIdentifiers(r.{{.expIdent}}),
-		},
+		if r.{{.expIdent}} > 0 {
+			refs["{{ .expIdent }}"] = envoyx.Ref{
+				ResourceType: "{{ .dal.refModelResType }}",
+				Identifiers: envoyx.MakeIdentifiers(r.{{.expIdent}}),
+			}
+		}
 		{{- end }}
 	{{- end }}
-	}
 
 	{{ if .envoy.store.extendedRefDecoder }}
 	refs = envoyx.MergeRefs(refs, d.decode{{.expIdent}}Refs(r))
