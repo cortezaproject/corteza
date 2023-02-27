@@ -36,6 +36,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 
     case "corteza::{{$rootCmp.ident}}:{{.ident}}":
+      scope := Scope{}
     {{$res := .}}
     {{range $i, $p := .parents}}
       if gRef(pp, {{$i}}) == "" {
@@ -48,9 +49,17 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
         {{ end }}
 
         {{ if eq $p.handle $cmp.ident }}
-          out["{{$i}}"] = Ref{
+          {{ if and (eq $rootCmp.ident "compose") (eq $i 0) }}
+          aux := gRef(pp, {{ $i }})
+          if aux != "" {
+            scope.ResourceType = "corteza::compose:namespace"
+            scope.Identifiers = MakeIdentifiers(aux)
+          }
+          {{ end }}
+          out["Path.{{$i}}"] = Ref{
             ResourceType: "{{$cmp.fqrt}}",
             Identifiers:  MakeIdentifiers(gRef(pp, {{ $i }})),
+            Scope: scope,
           }
           {{break}}
         {{ end }}
@@ -60,9 +69,14 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
     if gRef(pp, {{len .parents}}) == "" {
       return
     }
-    out["{{len .parents}}"] = Ref{
+    {{if eq .ident "namespace"}}
+    scope.ResourceType = "{{.fqrt}}"
+    scope.Identifiers = MakeIdentifiers(gRef(pp, {{len .parents}}))
+    {{end}}
+    out["Path.{{len .parents}}"] = Ref{
       ResourceType: "{{.fqrt}}",
       Identifiers:  MakeIdentifiers(gRef(pp, {{len .parents}})),
+      Scope: scope,
     }
 
   {{ end }}

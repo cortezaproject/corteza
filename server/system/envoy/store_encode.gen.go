@@ -131,9 +131,9 @@ func (e StoreEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt stri
 
 	case types.DalSensitivityLevelResourceType:
 		return e.encodeDalSensitivityLevels(ctx, p, s, nodes, tree)
+	default:
+		return e.encode(ctx, p, s, rt, nodes, tree)
 	}
-
-	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
