@@ -73,8 +73,14 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 			return
 		}
 	default:
-		// When this encoder doesn't handle any node it shouldn't write anything;
-		// this just removes the need for an extra check at the end.
+		out, err = e.encode(ctx, out, p, rt, nodes, tt)
+		if err != nil {
+			return
+		}
+	}
+
+	// Don't output nil values since that will produce broken yaml docs
+	if out == nil {
 		return
 	}
 

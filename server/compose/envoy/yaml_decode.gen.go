@@ -127,29 +127,6 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			}
 			return err
 
-		// Access control nodes
-		case "allow":
-			aux, err = unmarshalAllowNode(v)
-			d.nodes = append(d.nodes, aux...)
-			if err != nil {
-				return err
-			}
-
-		case "deny":
-			aux, err = unmarshalDenyNode(v)
-			d.nodes = append(d.nodes, aux...)
-			if err != nil {
-				return err
-			}
-
-		// Resource translation nodes
-		case "locale", "translation", "translations", "i18n":
-			aux, err = unmarshalLocaleNode(v)
-			d.nodes = append(d.nodes, aux...)
-			if err != nil {
-				return err
-			}
-
 		// Offload to custom handlers
 		default:
 			aux, err = d.unmarshalYAML(kv, v)
@@ -1803,10 +1780,28 @@ func unmarshalDenyNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 
 func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	if y7s.IsMapping(n.Content[1]) {
-		return unmarshalNestedRBACNode(n, acc)
+		out, err = unmarshalNestedRBACNode(n, acc)
+		if err != nil {
+			return
+		}
+	} else {
+		out, err = unmarshalFlatRBACNode(n, acc)
+		if err != nil {
+			return
+		}
 	}
 
-	return unmarshalFlatRBACNode(n, acc)
+	for _, o := range out {
+		for _, r := range o.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			o.Scope = r.Scope
+			break
+		}
+	}
+
+	return
 }
 
 // unmarshalNestedRBACNode handles RBAC rules when they are nested inside a resource
@@ -1827,25 +1822,28 @@ func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err e
 func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	// Handles role
 	return out, y7s.EachMap(n, func(role, perm *yaml.Node) error {
-		// Handles operation
-		return y7s.EachMap(perm, func(res, op *yaml.Node) error {
-			out = append(out, &envoyx.Node{
-				Resource: &rbac.Rule{
-					Resource:  res.Value,
-					Operation: op.Value,
-					Access:    acc,
-				},
-				ResourceType: rbac.RuleResourceType,
-				References: envoyx.MergeRefs(
-					map[string]envoyx.Ref{"RoleID": {
-						// Providing resource type as plain text to reduce cross component references
-						ResourceType: "corteza::system:role",
-						Identifiers:  envoyx.MakeIdentifiers(role.Value),
-					}},
-					envoyx.SplitResourceIdentifier(res.Value),
-				),
+		// Handles operations
+		return y7s.EachMap(perm, func(res, ops *yaml.Node) error {
+			// Handle operation (one RBAC rule per op)
+			return y7s.EachSeq(ops, func(op *yaml.Node) error {
+				out = append(out, &envoyx.Node{
+					Resource: &rbac.Rule{
+						Resource:  res.Value,
+						Operation: op.Value,
+						Access:    acc,
+					},
+					ResourceType: rbac.RuleResourceType,
+					References: envoyx.MergeRefs(
+						map[string]envoyx.Ref{"RoleID": {
+							// Providing resource type as plain text to reduce cross component references
+							ResourceType: "corteza::system:role",
+							Identifiers:  envoyx.MakeIdentifiers(role.Value),
+						}},
+						envoyx.SplitResourceIdentifier(res.Value),
+					),
+				})
+				return nil
 			})
-			return nil
 		})
 	})
 }

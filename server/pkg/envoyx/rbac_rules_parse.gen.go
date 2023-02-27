@@ -8,12 +8,11 @@ package envoyx
 
 import (
 	"fmt"
-	"strings"
-
 	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	federationTypes "github.com/cortezaproject/corteza/server/federation/types"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"strings"
 )
 
 // Parse generates resource setting logic for each resource

@@ -64,6 +64,18 @@ func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
 	return out
 }
 
+func (set RuleSet) FilterOperation(op string) (out RuleSet) {
+	out = make(RuleSet, 0, len(set))
+
+	for _, s := range set {
+		if s.Operation == op {
+			out = append(out, s)
+		}
+	}
+
+	return out
+}
+
 // FilterResource returns rules that match given list of resources
 // Wildcards are not used!
 //
@@ -117,7 +129,7 @@ func (u *Rule) setValue(name string, pos uint, v any) (err error) {
 	pp := strings.Split(name, ".")
 
 	switch pp[0] {
-	case "resource", "Resource":
+	case "resource", "Resource", "Path", "path":
 		ix, err := strconv.ParseUint(pp[1], 10, 64)
 		if err != nil {
 			return err

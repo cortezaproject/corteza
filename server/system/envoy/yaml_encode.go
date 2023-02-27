@@ -3,12 +3,207 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"gopkg.in/yaml.v3"
 )
+
+type (
+	// Wrapper to avoid constant type casting for role nodes
+	rbacRuleWrap struct {
+		node *envoyx.Node
+		rule *rbac.Rule
+	}
+
+	// Wrapper to keep role and rules together
+	rbacRuleRoleWrap struct {
+		rules    []rbacRuleWrap
+		roleNode *envoyx.Node
+		role     *types.Role
+	}
+)
+
+func (e YamlEncoder) encode(ctx context.Context, base *yaml.Node, p envoyx.EncodeParams, rt string, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	switch rt {
+	case rbac.RuleResourceType:
+		return e.encodeRbacRules(ctx, base, p, nodes, tt)
+	}
+
+	return
+}
+
+func (e YamlEncoder) encodeRbacRules(ctx context.Context, base *yaml.Node, p envoyx.EncodeParams, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	err = e.resolveRulePathDeps(ctx, tt, nodes)
+	if err != nil {
+		return
+	}
+
+	// Batch by access (allow, deny)
+	allows := make([]rbacRuleWrap, 0, len(nodes))
+	denies := make([]rbacRuleWrap, 0, len(nodes))
+	for _, n := range nodes {
+		r := n.Resource.(*rbac.Rule)
+		if r.Access == rbac.Allow {
+			allows = append(allows, rbacRuleWrap{
+				node: n,
+				rule: r,
+			})
+		} else {
+			denies = append(denies, rbacRuleWrap{
+				node: n,
+				rule: r,
+			})
+		}
+	}
+
+	// Encode allows
+	var aux *yaml.Node
+	aux, err = e.encodeRbacRulesByRole(p, allows, tt)
+	if err != nil {
+		return
+	}
+	out = base
+	out, err = y7s.AddMap(out, "allow", aux)
+	if err != nil {
+		return
+	}
+
+	// Encode denies
+	aux, err = e.encodeRbacRulesByRole(p, denies, tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out, "deny", aux)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (e YamlEncoder) encodeRbacRulesByRole(p envoyx.EncodeParams, rules []rbacRuleWrap, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	// Batch by role; make sure to keep the multiple identifier thing in mind
+	byRole := make(map[string]rbacRuleRoleWrap)
+	for _, r := range rules {
+		role := r.node.References["RoleID"]
+		aux := rbacRuleRoleWrap{}
+		ok := false
+
+		// Check if an identifier already exists
+		for _, ident := range role.Identifiers.Slice {
+			aux, ok = byRole[ident]
+			if ok {
+				break
+			}
+		}
+
+		// If not, create a new entry and resolve the role
+		if !ok {
+			aux.roleNode = tt.ParentForRef(r.node, role)
+			if aux.roleNode != nil {
+				aux.role = aux.roleNode.Resource.(*types.Role)
+			}
+		}
+
+		// Add the rule to the batch and update potentially missing identifiers
+		aux.rules = append(aux.rules, r)
+		for _, ident := range role.Identifiers.Slice {
+			byRole[ident] = aux
+		}
+	}
+
+	// Encode
+	var aux *yaml.Node
+	for _, r := range byRole {
+		aux, err = e.encodeRbacRulesByResource(p, r.rules)
+		if err != nil {
+			return
+		}
+
+		out, err = y7s.AddMap(out,
+			r.roleNode.Identifiers.FriendlyIdentifier(), aux,
+		)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (e YamlEncoder) encodeRbacRulesByResource(p envoyx.EncodeParams, rules []rbacRuleWrap) (out *yaml.Node, err error) {
+	byResource := make(map[string][]rbacRuleWrap)
+
+	// Batch
+	for _, r := range rules {
+		byResource[r.rule.Resource] = append(byResource[r.rule.Resource], r)
+	}
+
+	// Encode
+	var aux *yaml.Node
+	for resource, rules := range byResource {
+		aux, err = e.encodeRbacRuleOperations(p, rules)
+		if err != nil {
+			return
+		}
+
+		out, err = y7s.AddMap(out, resource, aux)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (e YamlEncoder) encodeRbacRuleOperations(p envoyx.EncodeParams, rules []rbacRuleWrap) (out *yaml.Node, err error) {
+	ops, _ := y7s.MakeSeq()
+
+	for _, r := range rules {
+		ops, err = y7s.AddSeq(ops, r.rule.Operation)
+		if err != nil {
+			return
+		}
+	}
+
+	return ops, nil
+}
+
+func (e YamlEncoder) resolveRulePathDeps(ctx context.Context, tt envoyx.Traverser, nodes envoyx.NodeSet) (err error) {
+	for _, n := range nodes {
+
+		var auxIdent string
+		for fieldLabel, ref := range n.References {
+			// Only resolve path refs; others are done later on
+			if !strings.Contains(fieldLabel, "Path.") {
+				continue
+			}
+
+			rn := tt.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("missing node for ref %v", ref)
+				return
+			}
+
+			auxIdent = rn.Identifiers.FriendlyIdentifier()
+			if auxIdent == "" || auxIdent == "0" {
+				err = fmt.Errorf("related resource doesn't provide an ID")
+				return
+			}
+
+			err = n.Resource.SetValue(fieldLabel, 0, auxIdent)
+			if err != nil {
+				return
+			}
+		}
+	}
+
+	return
+}
 
 func (e YamlEncoder) encodeAuthClientSecurityC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, ac *types.AuthClient, sec *types.AuthClientSecurity) (_ any, err error) {
 	sqPermittedRoles, err := e.encodeRoleSlice(n, tt, "Security.PermittedRoles", sec.PermittedRoles)
