@@ -83,9 +83,9 @@ func (e StoreEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt stri
 
 	case types.TriggerResourceType:
 		return e.encodeTriggers(ctx, p, s, nodes, tree)
+	default:
+		return e.encode(ctx, p, s, rt, nodes, tree)
 	}
-
-	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //

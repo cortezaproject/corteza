@@ -89,9 +89,9 @@ func (e StoreEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt stri
 	case types.{{.expIdent}}ResourceType:
 		return e.encode{{.expIdent}}s(ctx, p, s, nodes, tree)
 {{ end -}}
+	default:
+		return e.encode(ctx, p, s, rt, nodes, tree)
 	}
-
-	return
 }
 
 {{- range .resources }}
