@@ -2568,11 +2568,37 @@ export default class System {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  // Undismiss reminder
+  async reminderUndismiss (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      reminderID,
+    } = (a as KV) || {}
+    if (!reminderID) {
+      throw Error('field reminderID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.reminderUndismissEndpoint({
+        reminderID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
   reminderDismissEndpoint (a: KV): string {
     const {
       reminderID,
     } = a || {}
     return `/reminder/${reminderID}/dismiss`
+  }
+
+  reminderUndismissEndpoint (a: KV): string {
+    const {
+      reminderID,
+    } = a || {}
+    return `/reminder/${reminderID}/undismiss`
   }
 
   // Snooze reminder

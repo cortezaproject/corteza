@@ -89,10 +89,16 @@ export default {
       this.edit = null
     },
 
-    onDismiss (r) {
-      this.$SystemAPI.reminderDismiss(r).then(() => {
-        this.fetchReminders()
-      })
+    onDismiss (r, value) {
+      if (value) {
+        this.$SystemAPI.reminderDismiss(r).then(() => {
+          this.fetchReminders()
+        })
+      } else {
+        this.$SystemAPI.reminderUndismiss(r).then(() => {
+          this.fetchReminders()
+        })
+      }
     },
 
     onDelete (r) {
