@@ -5,11 +5,26 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
 func (e StoreEncoder) prepare(ctx context.Context, p envoyx.EncodeParams, s store.Storer, rt string, nn envoyx.NodeSet) (err error) {
+	switch rt {
+	case rbac.RuleResourceType:
+		return e.prepareRbacRule(ctx, p, s, nn)
+	}
+
+	return
+}
+
+func (e StoreEncoder) encode(ctx context.Context, p envoyx.EncodeParams, s store.Storer, rt string, nn envoyx.NodeSet, tree envoyx.Traverser) (err error) {
+	switch rt {
+	case rbac.RuleResourceType:
+		return e.encodeRbacRules(ctx, p, s, nn, tree)
+	}
+
 	return
 }
 

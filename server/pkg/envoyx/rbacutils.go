@@ -69,7 +69,7 @@ func RBACRulesForNodes(rr rbac.RuleSet, nn ...*Node) (rules NodeSet, err error) 
 				ref.Scope = n.Scope
 
 				// @todo make the thing not a pointer
-				rf[fmt.Sprintf("Resource.%d", i)] = *ref
+				rf[fmt.Sprintf("Path.%d", i)] = *ref
 			}
 
 			// Ref to the rule
@@ -93,7 +93,7 @@ func RBACRulesForNodes(rr rbac.RuleSet, nn ...*Node) (rules NodeSet, err error) 
 			if dups[r.RoleID][r.Resource] == nil {
 				dups[r.RoleID][r.Resource] = make(map[string]bool)
 			}
-			dups[r.RoleID][r.Resource][r.Resource] = true
+			dups[r.RoleID][r.Resource][r.Operation] = true
 		}
 	}
 
