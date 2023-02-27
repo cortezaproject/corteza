@@ -51,18 +51,19 @@
         id="resource-list"
         ref="resourceList"
         head-variant="light"
+        :fields="_fields"
+        :items="_items"
+        :sort-by.sync="sorting.sortBy"
+        :sort-desc.sync="sorting.sortDesc"
+        :sticky-header="stickyHeader"
+        :tbody-tr-class="tableRowClasses"
         hover
         responsive
         show-empty
         no-sort-reset
         no-local-sorting
         :primary-key="primaryKey"
-        :sort-by.sync="sorting.sortBy"
-        :sort-desc.sync="sorting.sortDesc"
-        :items="_items"
-        :fields="_fields"
-        :tbody-tr-class="tableRowClasses"
-        class="mb-0"
+        class="mh-100 h-100 mb-0"
         @sort-changed="pagination.page = 1"
         @row-clicked="$emit('row-clicked', $event)"
       >
@@ -137,7 +138,7 @@
         </div>
 
         <b-button-group
-          v-if="!hidePagination"
+          v-if="showPagination"
         >
           <b-button
             :disabled="!hasPrevPage"
@@ -227,6 +228,10 @@ export default {
     },
 
     hidePagination: {
+      type: Boolean,
+    },
+
+    stickyHeader: {
       type: Boolean,
     },
 
@@ -321,6 +326,10 @@ export default {
     hasNextPage () {
       return !!this.pagination.nextPage
     },
+
+    showPagination () {
+      return !this.hidePagination && (this.hasPrevPage || this.hasNextPage)
+    }
   },
 
   methods: {

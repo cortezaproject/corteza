@@ -1,103 +1,95 @@
 <template>
-  <div class="py-3">
+  <b-container
+    fluid="xl"
+    class="d-flex flex-column py-3"
+  >
     <portal to="topbar-title">
       {{ $t('navigation.page') }}
     </portal>
 
-    <b-container fluid="xl">
-      <b-row no-gutters>
-        <b-col>
-          <b-card
-            no-body
-            class="shadow-sm"
-          >
-            <b-card-header
-              header-bg-variant="white"
-              class="py-3"
+    <b-card
+      no-body
+      class="shadow-sm h-100"
+    >
+      <b-card-header
+        header-bg-variant="white"
+        class="border-bottom"
+      >
+        <b-row
+          no-gutters
+          class="justify-content-between wrap-with-vertical-gutters"
+        >
+          <div class="flex-grow-1">
+            <b-input-group
+              v-if="namespace.canCreatePage"
+              class="h-100"
             >
-              <b-row
-                no-gutters
-                class="justify-content-between wrap-with-vertical-gutters"
-              >
-                <div class="flex-grow-1">
-                  <b-input-group
-                    v-if="namespace.canCreatePage"
-                    class="h-100"
-                  >
-                    <b-input
-                      id="name"
-                      v-model="page.title"
-                      data-test-id="input-name"
-                      required
-                      type="text"
-                      class="h-100"
-                      :placeholder="$t('newPlaceholder')"
-                    />
-                    <b-input-group-append>
-                      <b-button
-                        data-test-id="button-create-page"
-                        type="submit"
-                        variant="primary"
-                        size="lg"
-                        @click="handleAddPageFormSubmit"
-                      >
-                        {{ $t('createLabel') }}
-                      </b-button>
-                    </b-input-group-append>
-                  </b-input-group>
-                </div>
-                <div class="d-flex justify-content-sm-end flex-grow-1">
-                  <c-permissions-button
-                    v-if="namespace.canGrant"
-                    :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
-                    class="btn-lg"
-                    :button-label="$t('label.permissions')"
-                    button-variant="light"
-                  />
-                </div>
-              </b-row>
-            </b-card-header>
-            <b-row
-              class="pages-list-header border-top align-content-center"
-              no-gutters
-            >
-              <b-col
-                cols="12"
-                class="pl-4"
-              >
-                <span class="font-weight-bold">
-                  {{ $t('newPlaceholder') }}
-                </span>
-                <span class="text-muted font-italic ml-3">
-                  {{ $t('instructions') }}
-                </span>
-              </b-col>
-            </b-row>
-
-            <div
-              v-if="processing"
-              class="text-center text-muted m-5"
-            >
-              <div>
-                <b-spinner
-                  class="align-middle m-2"
-                />
-              </div>
-              {{ $t('loading') }}
-            </div>
-
-            <page-tree
-              v-else
-              v-model="tree"
-              :namespace="namespace"
-              class="pb-2"
-              @reorder="handleReorder"
+              <b-input
+                id="name"
+                v-model="page.title"
+                data-test-id="input-name"
+                required
+                type="text"
+                class="h-100"
+                :placeholder="$t('newPlaceholder')"
+              />
+              <b-input-group-append>
+                <b-button
+                  data-test-id="button-create-page"
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  @click="handleAddPageFormSubmit"
+                >
+                  {{ $t('createLabel') }}
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </div>
+          <div class="d-flex justify-content-sm-end flex-grow-1">
+            <c-permissions-button
+              v-if="namespace.canGrant"
+              :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
+              class="btn-lg"
+              :button-label="$t('label.permissions')"
+              button-variant="light"
             />
-          </b-card>
-        </b-col>
-      </b-row>
-    </b-container>
-  </div>
+          </div>
+        </b-row>
+        <b-row
+          class="align-content-center mt-2"
+        >
+          <b-col
+            cols="12"
+          >
+            <span class="text-muted font-italic">
+              {{ $t('instructions') }}
+            </span>
+          </b-col>
+        </b-row>
+      </b-card-header>
+
+      <div
+        v-if="processing"
+        class="text-center text-muted m-5"
+      >
+        <div>
+          <b-spinner
+            class="align-middle m-2"
+          />
+        </div>
+        {{ $t('loading') }}
+      </div>
+
+      <page-tree
+        v-else
+        v-model="tree"
+        :namespace="namespace"
+        class="card overflow-auto"
+        @reorder="handleReorder"
+      />
+    </b-card>
+  </b-container>
 </template>
 
 <script>
@@ -170,7 +162,7 @@ export default {
 //!important usage to over-ride library styling
 $input-height: 42px;
 $content-height: 48px;
-$blank-li-height: 5px;
+$blank-li-height: 10px;
 $left-padding: 5px;
 $border-color: $light;
 $hover-color: $gray-200;
@@ -181,6 +173,10 @@ $dropping-color: $secondary;
 }
 
 .sortable-tree {
+  .content {
+    height: 0px !important;
+  }
+
   ul {
     .content {
       height: 100% !important;
@@ -199,6 +195,10 @@ $dropping-color: $secondary;
 
     &.blank-li {
       height: $blank-li-height !important;
+
+      .sortable-tree {
+        max-height: 100%;
+      }
 
       &:nth-last-of-type(1)::before {
         border-left-color: white !important;

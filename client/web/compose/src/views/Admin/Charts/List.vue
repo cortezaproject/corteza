@@ -1,106 +1,108 @@
 <template>
-  <div class="py-3">
+  <b-container
+    fluid="xl"
+    class="d-flex flex-column py-3"
+  >
     <portal to="topbar-title">
       {{ $t('navigation.chart') }}
     </portal>
 
-    <b-container fluid="xl">
-      <b-row no-gutters>
-        <b-col>
-          <c-resource-list
-            :primary-key="primaryKey"
-            :filter="filter"
-            :sorting="sorting"
-            :pagination="pagination"
-            :fields="tableFields"
-            :items="chartList"
-            :translations="{
-              searchPlaceholder: $t('chart.searchPlaceholder'),
-              notFound: $t('general:resourceList.notFound'),
-              noItems: $t('general:resourceList.noItems'),
-              loading: $t('general:label.loading'),
-              showingPagination: 'general:resourceList.pagination.showing',
-              singlePluralPagination: 'general:resourceList.pagination.single',
-              prevPagination: $t('general:resourceList.pagination.prev'),
-              nextPagination: $t('general:resourceList.pagination.next'),
-            }"
-            clickable
-            @search="filterList"
-            @row-clicked="handleRowClicked"
+    <c-resource-list
+      :primary-key="primaryKey"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :fields="tableFields"
+      :items="chartList"
+      :translations="{
+        searchPlaceholder: $t('chart.searchPlaceholder'),
+        notFound: $t('general:resourceList.notFound'),
+        noItems: $t('general:resourceList.noItems'),
+        loading: $t('general:label.loading'),
+        showingPagination: 'general:resourceList.pagination.showing',
+        singlePluralPagination: 'general:resourceList.pagination.single',
+        prevPagination: $t('general:resourceList.pagination.prev'),
+        nextPagination: $t('general:resourceList.pagination.next'),
+      }"
+      clickable
+      sticky-header
+      class="h-100"
+      @search="filterList"
+      @row-clicked="handleRowClicked"
+    >
+      <template #header>
+        <div
+          class="wrap-with-vertical-gutters"
+        >
+          <b-dropdown
+            v-if="namespace.canCreateChart"
+            variant="primary"
+            size="lg"
+            class="float-left mr-1"
+            :text="$t('chart.add')"
           >
-            <template #header>
-              <div
-                class="wrap-with-vertical-gutters"
-              >
-                <b-dropdown
-                  v-if="namespace.canCreateChart"
-                  variant="primary"
-                  size="lg"
-                  class="float-left mr-1"
-                  :text="$t('chart.add')"
-                >
-                  <b-dropdown-item-button
-                    variant="dark"
-                    @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })"
-                  >
-                    {{ $t('chart.addGeneric') }}
-                  </b-dropdown-item-button>
-                  <b-dropdown-item-button
-                    variant="dark"
-                    @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })"
-                  >
-                    {{ $t('chart.addFunnel') }}
-                  </b-dropdown-item-button>
-                  <b-dropdown-item-button
-                    variant="dark"
-                    @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })"
-                  >
-                    {{ $t('chart.addGauge') }}
-                  </b-dropdown-item-button>
-                </b-dropdown>
+            <b-dropdown-item-button
+              variant="dark"
+              @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })"
+            >
+              {{ $t('chart.addGeneric') }}
+            </b-dropdown-item-button>
+            <b-dropdown-item-button
+              variant="dark"
+              @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })"
+            >
+              {{ $t('chart.addFunnel') }}
+            </b-dropdown-item-button>
+            <b-dropdown-item-button
+              variant="dark"
+              @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })"
+            >
+              {{ $t('chart.addGauge') }}
+            </b-dropdown-item-button>
+          </b-dropdown>
 
-                <import
-                  v-if="namespace.canCreateChart"
-                  :namespace="namespace"
-                  type="chart"
-                  class="float-left mr-1"
-                  @importSuccessful="onImportSuccessful"
-                />
+          <import
+            v-if="namespace.canCreateChart"
+            :namespace="namespace"
+            type="chart"
+            class="float-left mr-1"
+            @importSuccessful="onImportSuccessful"
+          />
 
-                <export
-                  :list="charts"
-                  type="chart"
-                  class="float-left mr-1"
-                />
-                <c-permissions-button
-                  v-if="namespace.canGrant"
-                  :resource="`corteza::compose:chart/${namespace.namespaceID}/*`"
-                  :button-label="$t('general.label.permissions')"
-                  button-variant="light"
-                  class="btn-lg"
-                />
-              </div>
-            </template>
+          <export
+            :list="charts"
+            type="chart"
+            class="float-left mr-1"
+          />
+          <c-permissions-button
+            v-if="namespace.canGrant"
+            :resource="`corteza::compose:chart/${namespace.namespaceID}/*`"
+            :button-label="$t('general.label.permissions')"
+            button-variant="light"
+            class="btn-lg"
+          />
+        </div>
+      </template>
 
-            <template #actions="{ item: c }">
-              <c-permissions-button
-                v-if="c.canGrant"
-                :title="c.name || c.handle || c.chartID"
-                :target="c.name || c.handle || c.chartID"
-                :resource="`corteza::compose:chart/${namespace.namespaceID}/${c.chartID}`"
-                link
-                class="btn px-2"
-              />
-            </template>
+      <template #actions="{ item: c }">
+        <b-button-group>
+          <c-permissions-button
+            v-if="c.canGrant"
+            :title="c.name || c.handle || c.chartID"
+            :target="c.name || c.handle || c.chartID"
+            :resource="`corteza::compose:chart/${namespace.namespaceID}/${c.chartID}`"
+            :tooltip="$t('permissions:resources.compose.chart.tooltip')"
+            button-variant="outline-light"
+            class="text-dark d-print-none border-0"
+          />
+        </b-button-group>
+      </template>
 
-            <template #changedAt="{ item }">
-              {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
-            </template>
-          </c-resource-list>
-        </b-col>
-      </b-row>
-    </b-container>
-  </div>
+      <template #changedAt="{ item }">
+        {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
+      </template>
+    </c-resource-list>
+  </b-container>
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
