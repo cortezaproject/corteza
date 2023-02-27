@@ -31,6 +31,75 @@ func (e YamlEncoder) encode(ctx context.Context, base *yaml.Node, p envoyx.Encod
 	switch rt {
 	case rbac.RuleResourceType:
 		return e.encodeRbacRules(ctx, base, p, nodes, tt)
+	case types.ResourceTranslationResourceType:
+		return e.encodeResourceTranslations(ctx, base, p, nodes, tt)
+	}
+
+	return
+}
+
+func (e YamlEncoder) encodeResourceTranslations(ctx context.Context, base *yaml.Node, p envoyx.EncodeParams, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	err = e.resolveRulePathDeps(ctx, tt, nodes)
+	if err != nil {
+		return
+	}
+
+	byLang := make(map[string][]*envoyx.Node)
+
+	for _, n := range nodes {
+		byLang[n.Resource.(*types.ResourceTranslation).Lang.String()] = append(byLang[n.Resource.(*types.ResourceTranslation).Lang.String()], n)
+	}
+
+	out = base
+
+	var aux *yaml.Node
+	for lang, nodes := range byLang {
+		aux, err = e.encodeResourceTranslationsByResource(p, nodes, tt)
+		if err != nil {
+			return
+		}
+
+		out, err = y7s.AddMap(out, lang, aux)
+		if err != nil {
+			return
+		}
+	}
+
+	return y7s.MakeMap("locale", out)
+}
+
+func (e YamlEncoder) encodeResourceTranslationsByResource(p envoyx.EncodeParams, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	byResource := make(map[string][]*envoyx.Node)
+
+	for _, n := range nodes {
+		byResource[n.Resource.(*types.ResourceTranslation).Resource] = append(byResource[n.Resource.(*types.ResourceTranslation).Resource], n)
+	}
+
+	var aux *yaml.Node
+	for resource, nodes := range byResource {
+		aux, err = e.encodeResourceTranslationsKv(p, nodes, tt)
+		if err != nil {
+			return
+		}
+
+		out, err = y7s.AddMap(out, resource, aux)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (e YamlEncoder) encodeResourceTranslationsKv(p envoyx.EncodeParams, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	out, _ = y7s.MakeMap()
+
+	for _, n := range nodes {
+		rt := n.Resource.(*types.ResourceTranslation)
+		out, err = y7s.AddMap(out, rt.K, rt.Message)
+		if err != nil {
+			return
+		}
 	}
 
 	return
