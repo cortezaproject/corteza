@@ -6,7 +6,7 @@
       :data="{children:list}"
       tag="ul"
       mixin-parent-key="parent"
-      class="list-group pb-3"
+      class="list-group"
       @changePosition="handleChangePosition"
     >
       <template
