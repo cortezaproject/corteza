@@ -1,6 +1,7 @@
 <template>
-  <div
-    class="d-flex w-100 overflow-auto"
+  <b-container
+    fluid="xl"
+    class="d-flex flex-column py-3"
   >
     <portal to="topbar-title">
       {{ $t('title') }}
@@ -22,81 +23,87 @@
       </b-btn>
     </portal>
 
-    <b-container
-      class="ns-wrapper"
-      fluid="xl"
+    <c-resource-list
+      data-test-id="table-namespaces-list"
+      :primary-key="primaryKey"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :fields="namespacesFields"
+      :items="namespaceList"
+      :translations="{
+        searchPlaceholder: $t('namespace:searchPlaceholder'),
+        notFound: $t('general:resourceList.notFound'),
+        noItems: $t('general:resourceList.noItems'),
+        loading: $t('general:label.loading'),
+        showingPagination: 'general:resourceList.pagination.showing',
+        singlePluralPagination: 'general:resourceList.pagination.single',
+        prevPagination: $t('general:resourceList.pagination.prev'),
+        nextPagination: $t('general:resourceList.pagination.next'),
+      }"
+      clickable
+      sticky-header
+      class="h-100"
+      @search="filterList"
+      @row-clicked="handleRowClicked"
     >
-      <b-row
-        class="my-3"
-        no-gutters
-      >
-        <c-resource-list
-          :primary-key="primaryKey"
-          :filter="filter"
-          :sorting="sorting"
-          :pagination="pagination"
-          :fields="namespacesFields"
-          :items="namespaceList"
-          :translations="{
-            searchPlaceholder: $t('namespace:searchPlaceholder'),
-            notFound: $t('general:resourceList.notFound'),
-            noItems: $t('general:resourceList.noItems'),
-            loading: $t('general:label.loading'),
-            showingPagination: 'general:resourceList.pagination.showing',
-            singlePluralPagination: 'general:resourceList.pagination.single',
-            prevPagination: $t('general:resourceList.pagination.prev'),
-            nextPagination: $t('general:resourceList.pagination.next'),
-          }"
-          clickable
-          class="h-100 w-100"
-          @search="filterList"
-          @row-clicked="handleRowClicked"
+      <template #header>
+        <div
+          class="wrap-with-vertical-gutters"
         >
-          <template #header>
-            <div
-              class="wrap-with-vertical-gutters"
-            >
-              <b-btn
-                v-if="canCreate"
-                data-test-id="button-create"
-                :to="{ name: 'namespace.create' }"
-                variant="primary"
-                size="lg"
-                class="mr-1 float-left"
-              >
-                {{ $t('toolbar.buttons.create') }}
-              </b-btn>
+          <b-btn
+            v-if="canCreate"
+            data-test-id="button-create"
+            :to="{ name: 'namespace.create' }"
+            variant="primary"
+            size="lg"
+            class="mr-1 float-left"
+          >
+            {{ $t('toolbar.buttons.create') }}
+          </b-btn>
 
-              <importer-modal
-                v-if="canImport"
-                class="mr-1 float-left"
-                @imported="onImported"
-                @failed="onFailed"
-              />
+          <importer-modal
+            v-if="canImport"
+            class="mr-1 float-left"
+            @imported="onImported"
+            @failed="onFailed"
+          />
 
-              <c-permissions-button
-                v-if="canGrant"
-                resource="corteza::compose:namespace/*"
-                button-variant="light"
-                :button-label="$t('toolbar.buttons.permissions')"
-                class="btn-lg float-left"
-              />
-            </div>
-          </template>
+          <c-permissions-button
+            v-if="canGrant"
+            resource="corteza::compose:namespace/*"
+            button-variant="light"
+            :button-label="$t('toolbar.buttons.permissions')"
+            class="btn-lg float-left"
+          />
+        </div>
+      </template>
 
-          <template #enabled="{ item }">
-            <font-awesome-icon
-              :icon="['fas', item.enabled ? 'check' : 'times']"
-            />
-          </template>
+      <template #enabled="{ item }">
+        <font-awesome-icon
+          :icon="['fas', item.enabled ? 'check' : 'times']"
+        />
+      </template>
 
-          <template #changedAt="{ item }">
-            {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
-          </template>
-        </c-resource-list>
-      </b-row>
-    </b-container>
-  </div>
+      <template #changedAt="{ item }">
+        {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
+      </template>
+
+      <template #actions="{ item: n }">
+        <b-button-group>
+          <c-permissions-button
+            v-if="n.canGrant"
+            :title="n.name || n.slug || n.namespaceID"
+            :target="n.name || n.slug || n.namespaceID"
+            :resource="`corteza::compose:namespace/${n.namespaceID}`"
+            :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
+            button-variant="outline-light"
+            class="text-dark d-print-none border-0"
+          />
+        </b-button-group>
+      </template>
+    </c-resource-list>
+  </b-container>
 </template>
 <script>
 import { mapGetters } from 'vuex'
@@ -120,10 +127,6 @@ export default {
   data () {
     return {
       primaryKey: 'namespaceID',
-
-      pagination: {
-        limit: 13,
-      },
 
       filter: {
         query: '',

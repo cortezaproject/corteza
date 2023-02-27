@@ -38,6 +38,7 @@ resources:
     chart:
       all: all charts
       specific: chart "{{target}}"
+      tooltip: Chart permissions
       operations:
         delete:
           description: 'Default: deny'
