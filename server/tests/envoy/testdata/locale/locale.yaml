@@ -1,0 +1,20 @@
+namespace:
+  test_ns_1:
+    name: Test Namespace 1
+    modules:
+      test_mod_1:
+        name: Test Module 1
+
+locale:
+  en:
+    corteza::compose:namespace/test_ns_1:
+      res_tr_1: res_tr_1_text
+      res_tr_2: res_tr_2_text
+    corteza::compose:module/test_ns_1/test_mod_1:
+      res_tr_3: res_tr_3_text
+  de:
+    corteza::compose:namespace/test_ns_1:
+      res_tr_1: res_tr_1_text
+      res_tr_2: res_tr_2_text
+    corteza::compose:module/test_ns_1/test_mod_1:
+      res_tr_3: res_tr_3_text

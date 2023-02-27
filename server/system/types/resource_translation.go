@@ -2,9 +2,11 @@ package types
 
 import (
 	"database/sql/driver"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/cast2"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"golang.org/x/text/language"
@@ -72,6 +74,30 @@ func (a *ResourceTranslation) Compare(b *locale.ResourceTranslation) bool {
 	return strings.EqualFold(a.K, b.Key) && a.Lang.Tag.String() == b.Lang
 }
 
+func (rt *ResourceTranslation) setValue(name string, pos uint, v any) (err error) {
+	pp := strings.Split(name, ".")
+
+	switch pp[0] {
+	case "resource", "Resource", "Path", "path":
+		ix, err := strconv.ParseUint(pp[1], 10, 64)
+		if err != nil {
+			return err
+		}
+
+		res := strings.Split(rt.Resource, "/")
+
+		aux := ""
+		err = cast2.String(v, &aux)
+
+		// +1 bacause the first bit is the resource
+		res[ix+1] = aux
+		rt.Resource = strings.Join(res, "/")
+		return err
+	}
+
+	return
+}
+
 func (set ResourceTranslationSet) New(bb locale.ResourceTranslationSet) (out ResourceTranslationSet) {
 outer:
 	for _, b := range bb {
@@ -104,6 +130,24 @@ func (set ResourceTranslationSet) Old(bb locale.ResourceTranslationSet) (out [][
 				out = append(out, [2]*ResourceTranslation{a, &aux})
 				break
 			}
+		}
+	}
+	return
+}
+
+func (set ResourceTranslationSet) FilterLanguage(tag language.Tag) (out ResourceTranslationSet) {
+	for _, a := range set {
+		if a.Lang.Tag == tag {
+			out = append(out, a)
+		}
+	}
+	return
+}
+
+func (set ResourceTranslationSet) FilterKey(key string) (out ResourceTranslationSet) {
+	for _, a := range set {
+		if a.K == key {
+			out = append(out, a)
 		}
 	}
 	return
