@@ -41,7 +41,7 @@ func RBACRulesForNodes(rr rbac.RuleSet, nn ...*Node) (rules NodeSet, err error) 
 			// @todo move over to that generated function
 			rulePath := splitResourcePath(r.Resource)
 
-			if !isPathSubset(rulePath, resPath) {
+			if !isPathSubset(rulePath, resPath, true) {
 				// Mismatch; skip
 				continue
 			}
@@ -104,7 +104,7 @@ func splitResourcePath(p string) []string {
 	return strings.Split(p, "/")[1:]
 }
 
-func isPathSubset(rulePath, resPath []string) bool {
+func isPathSubset(rulePath, resPath []string, wildcards bool) bool {
 	if len(rulePath) == 0 && len(resPath) == 0 {
 		return true
 	}
@@ -115,7 +115,7 @@ func isPathSubset(rulePath, resPath []string) bool {
 	}
 
 	for i := 0; i < len(resPath); i++ {
-		if rulePath[i] == "*" {
+		if wildcards && rulePath[i] == "*" {
 			// Rule matches everything from now on; if we got this far, we're good
 			return true
 		}

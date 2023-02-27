@@ -126,6 +126,7 @@ func cleanup(t *testing.T) {
 		store.TruncateDalConnections(ctx, defaultStore),
 		store.TruncateDalSensitivityLevels(ctx, defaultStore),
 		store.TruncateRbacRules(ctx, defaultStore),
+		store.TruncateResourceTranslations(ctx, defaultStore),
 
 		store.TruncateAutomationWorkflows(ctx, defaultStore),
 		store.TruncateAutomationTriggers(ctx, defaultStore),

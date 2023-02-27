@@ -11,6 +11,8 @@ resource_translation: {
 	}
 
 	model: {
+		defaultSetter: true
+
 		// lengths for the lang, resource fields are now a bit shorter
 		// Reason for that is supported index length in MySQL
 		attributes: {
