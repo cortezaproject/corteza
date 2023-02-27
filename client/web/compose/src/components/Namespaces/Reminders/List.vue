@@ -23,8 +23,7 @@
       <b-form-checkbox
         data-test-id="checkbox-dismiss-reminder"
         :checked="!!r.dismissedAt"
-        :disabled="!!r.dismissedAt"
-        @change="$emit('dismiss', r)"
+        @change="$emit('dismiss', r, $event)"
       >
         <span
           data-test-id="span-reminder-title"
