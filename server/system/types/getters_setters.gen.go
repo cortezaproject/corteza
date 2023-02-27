@@ -530,6 +530,9 @@ func (r *ResourceTranslation) SetValue(name string, pos uint, value any) (err er
 	case "updatedBy", "UpdatedBy":
 		return cast2.Uint64(value, &r.UpdatedBy)
 
+	default:
+		return r.setValue(name, pos, value)
+
 	}
 	return nil
 }

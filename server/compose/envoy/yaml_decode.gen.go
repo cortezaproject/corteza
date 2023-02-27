@@ -1882,16 +1882,17 @@ func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, e
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
-	return out, y7s.EachMap(n, func(lang, loc *yaml.Node) error {
+	err = y7s.EachMap(n, func(lang, loc *yaml.Node) error {
 		langTag := systemTypes.Lang{Tag: language.Make(lang.Value)}
 
 		return y7s.EachMap(loc, func(res, kv *yaml.Node) error {
 			return y7s.EachMap(kv, func(k, msg *yaml.Node) error {
 				out = append(out, &envoyx.Node{
 					Resource: &systemTypes.ResourceTranslation{
-						Lang:    langTag,
-						K:       k.Value,
-						Message: msg.Value,
+						Resource: res.Value,
+						Lang:     langTag,
+						K:        k.Value,
+						Message:  msg.Value,
 					},
 					// Providing resource type as plain text to reduce cross component references
 					ResourceType: "corteza::system:resource-translation",
@@ -1901,6 +1902,21 @@ func unmarshalLocaleNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 			})
 		})
 	})
+	if err != nil {
+		return
+	}
+
+	for _, o := range out {
+		for _, r := range o.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			o.Scope = r.Scope
+			break
+		}
+	}
+
+	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
