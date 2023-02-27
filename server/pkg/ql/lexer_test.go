@@ -34,7 +34,8 @@ func TestScanner_ScanSimple(t *testing.T) {
 
 		// Identifiers
 		{s: `foo`, tok: IDENT, lit: `foo`},
-		{s: `Zx12_3U_-`, tok: IDENT, lit: `Zx12_3U_`},
+		{s: `Zx12_3U_`, tok: IDENT, lit: `Zx12_3U_`},
+		{s: `Zx12-3U`, tok: IDENT, lit: `Zx12-3U`},
 
 		// Parenthesis
 		{s: `(`, tok: PARENTHESIS_OPEN, lit: `(`},

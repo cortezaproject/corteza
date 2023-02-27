@@ -74,7 +74,7 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isLetter(ch) && !isDigit(ch) && ch != '_' {
+		} else if !isLetter(ch) && !isDigit(ch) && ch != '_' && ch != '-' {
 			s.unread()
 			break
 		} else {
