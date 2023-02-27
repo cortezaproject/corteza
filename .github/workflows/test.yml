@@ -1,4 +1,4 @@
-name: "Test server"
+name: "Test on main branch push"
 
 # These jobs can be tested with nektos/act tool
 # https://github.com/nektos/act
@@ -17,7 +17,59 @@ env:
   GO_VERSION: 1.19
   GOFLAGS: -mod=readonly
 
+  NODE_VERSION: 16
+
 jobs:
+  lib-test:
+    name: "Library test (${{ matrix.lib }})"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        lib: [ "js", "vue" ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+      - uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-${{ matrix.lib }}
+      - name: "Setup YARN"
+        run: npm install -g yarn @vue/cli-service
+      - name: "Install dependencies"
+        working-directory: lib/${{ matrix.lib }}
+        run: yarn install
+      - name: "Run all tests"
+        working-directory: lib/${{ matrix.lib }}
+        run: yarn test:unit
+
+  client-web-test:
+    name: "Web client test (${{ matrix.app }})"
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+      - name: "Setup YARN"
+        working-directory: client/web/${{ matrix.app }}
+        run: npm install -g yarn @vue/cli-service
+      - name: "Cache"
+        uses: actions/cache@v3
+        if: ${{ !env.ACT }}
+        with:
+          path: ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.OS }}-node-
+      - name: "Dependencies"
+        working-directory: client/web/${{ matrix.app }}
+        run: make dep
+      - name: "Tests"
+        working-directory: client/web/${{ matrix.app }}
+        run: make test
+
   server-test:
     name: "Server tests"
     runs-on: ubuntu-20.04
@@ -41,9 +93,10 @@ jobs:
         run: make test.integration
 
   notify:
+    if: failure()
     name: "Send matrix testing notification"
     runs-on: ubuntu-20.04
-    needs: [ server-test ]
+    needs: [ server-test, client-web-test, lib-test ]
     steps:
       - name: "Send message via Matrix on failed tests"
         if: ${{ !env.ACT && failure() }}
@@ -54,4 +107,4 @@ jobs:
           token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
           channel: ${{ secrets.MATRIX_ROOM_ID }}
           message: |
-            # Corteza **${GITHUB_REF##*/}** server tests have failed
+            # Corteza **${GITHUB_REF##*/}** tests have failed
