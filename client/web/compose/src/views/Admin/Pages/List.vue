@@ -85,7 +85,7 @@
         v-else
         v-model="tree"
         :namespace="namespace"
-        class="card overflow-auto"
+        class="card overflow-auto h-100"
         @reorder="handleReorder"
       />
     </b-card>
