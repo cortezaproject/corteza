@@ -54,7 +54,7 @@ import { getDate, setDate, getTime, setTime } from './lib/index.ts'
 export default {
   props: {
     value: {
-      type: String,
+      type: [String, Date],
       required: false,
     },
 
@@ -137,7 +137,7 @@ export default {
   background-color: white;
 }
 
-@media (min-width: 992px) { 
+@media (min-width: 992px) {
   .c-input-date-time {
     min-width: 250px;
   }

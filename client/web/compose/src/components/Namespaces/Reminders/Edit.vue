@@ -20,7 +20,7 @@
 
       <b-form-group :label="$t('reminder.edit.titleLabel')">
         <b-form-input
-          v-model="title"
+          v-model="reminder.payload.title"
           data-test-id="input-title"
           required
           :placeholder="$t('reminder.edit.titlePlaceholder')"
@@ -29,7 +29,7 @@
 
       <b-form-group :label="$t('reminder.edit.notesLabel')">
         <b-form-textarea
-          v-model="notes"
+          v-model="reminder.payload.notes"
           data-test-id="textarea-notes"
           :placeholder="$t('reminder.edit.notesPlaceholder')"
           rows="6"
@@ -133,11 +133,6 @@ export default {
       default: () => ({}),
     },
 
-    myID: {
-      type: String,
-      required: true,
-    },
-
     users: {
       type: Array,
       required: true,
@@ -151,38 +146,11 @@ export default {
 
       // Do this, so we don't edit the original object
       reminder: undefined,
-      assignees: [{ userID: this.myID }],
+      assignees: [{ userID: this.$auth.user.userID }],
     }
   },
 
   computed: {
-    title: {
-      get () {
-        return (this.reminder.payload || {}).title
-      },
-      set (v) {
-        this.updPayload('title', v)
-      },
-    },
-
-    notes: {
-      get () {
-        return (this.reminder.payload || {}).notes
-      },
-      set (v) {
-        this.updPayload('notes', v)
-      },
-    },
-
-    remindAt: {
-      get () {
-        return (this.reminder.payload || {}).remindAt || null
-      },
-      set (v) {
-        this.updPayload('remindAt', v)
-      },
-    },
-
     recordViewer () {
       const { params } = this.reminder.payload.link || {}
       return params ? { name: 'page.record', params } : undefined
@@ -201,14 +169,6 @@ export default {
   },
 
   methods: {
-    // Helper to handle undefined fields
-    updPayload (f, v) {
-      if (!this.reminder.payload) {
-        this.$set(this.reminder, 'payload', {})
-      }
-      this.$set(this.reminder.payload, f, v)
-    },
-
     searchUsers: _.debounce(function (query) {
       this.processingUsers = true
 
@@ -220,7 +180,7 @@ export default {
     }, 300),
 
     getUserLabel ({ userID, email, name, username }) {
-      if (userID === this.myID) {
+      if (userID === this.$auth.user.userID) {
         return this.$t('reminder.edit.assigneePlaceholder')
       }
 

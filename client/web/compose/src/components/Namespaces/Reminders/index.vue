@@ -12,11 +12,10 @@
     <edit
       v-else
       :edit="edit"
-      :my-i-d="$auth.user.userID"
       :users="users"
       class="flex-fill"
       @dismiss="onDismiss"
-      @back="edit = undefined"
+      @back="onCancel()"
       @save="onSave"
     />
   </div>
@@ -78,13 +77,12 @@ export default {
 
     onSave (r) {
       const endpoint = r.reminderID && r.reminderID !== NoID ? 'reminderUpdate' : 'reminderCreate'
-      this.$SystemAPI[endpoint](r).then(r => {
-        this.edit = undefined
-        this.fetchReminders()
+      this.$SystemAPI[endpoint](r).then(() => {
+        return this.fetchReminders()
+      }).then(() => {
+        this.onCancel()
         this.$Reminder.prefetch()
       })
-
-      this.onCancel()
     },
 
     onCancel () {
@@ -104,8 +102,8 @@ export default {
       })
     },
 
-    fetchReminders () {
-      this.$SystemAPI.reminderList({
+    async fetchReminders () {
+      return this.$SystemAPI.reminderList({
         assignedTo: this.$auth.user.userID,
         limit: 0,
       }).then(({ set: reminders = [] }) => {
