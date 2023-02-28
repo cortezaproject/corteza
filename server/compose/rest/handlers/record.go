@@ -29,6 +29,7 @@ type (
 		Create(context.Context, *request.RecordCreate) (interface{}, error)
 		Read(context.Context, *request.RecordRead) (interface{}, error)
 		Update(context.Context, *request.RecordUpdate) (interface{}, error)
+		Patch(context.Context, *request.RecordPatch) (interface{}, error)
 		BulkDelete(context.Context, *request.RecordBulkDelete) (interface{}, error)
 		Delete(context.Context, *request.RecordDelete) (interface{}, error)
 		Undelete(context.Context, *request.RecordUndelete) (interface{}, error)
@@ -51,6 +52,7 @@ type (
 		Create              func(http.ResponseWriter, *http.Request)
 		Read                func(http.ResponseWriter, *http.Request)
 		Update              func(http.ResponseWriter, *http.Request)
+		Patch               func(http.ResponseWriter, *http.Request)
 		BulkDelete          func(http.ResponseWriter, *http.Request)
 		Delete              func(http.ResponseWriter, *http.Request)
 		Undelete            func(http.ResponseWriter, *http.Request)
@@ -224,6 +226,22 @@ func NewRecord(h RecordAPI) *Record {
 
 			api.Send(w, r, value)
 		},
+		Patch: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordPatch()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Patch(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		BulkDelete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRecordBulkDelete()
@@ -368,6 +386,7 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/", h.Create)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Read)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Update)
+		r.Patch("/namespace/{namespaceID}/module/{moduleID}/record/", h.Patch)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/", h.BulkDelete)
 		r.Delete("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/undelete", h.Undelete)

@@ -17,7 +17,7 @@ type (
 
 		Create(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
 		Update(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
-		Bulk(ctx context.Context, oo ...*types.RecordBulkOperation) (types.RecordSet, *types.RecordValueErrorSet, error)
+		Bulk(ctx context.Context, skipFailed bool, oo ...*types.RecordBulkOperation) ([]types.RecordBulkOperationResult, error)
 		Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, filter string) (out any, err error)
 
 		Validate(ctx context.Context, rec *types.Record) error

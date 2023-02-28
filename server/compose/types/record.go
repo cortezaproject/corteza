@@ -19,10 +19,20 @@ type (
 	OperationType string
 
 	RecordBulkOperation struct {
-		Record    *Record
+		Record      *Record
+		RecordID    uint64
+		NamespaceID uint64
+		ModuleID    uint64
+
 		LinkBy    string
 		Operation OperationType
 		ID        string
+	}
+	RecordBulkOperationResult struct {
+		Record           *Record
+		Error            error
+		ValueError       *RecordValueErrorSet
+		DuplicationError *RecordValueErrorSet
 	}
 
 	RecordBulk struct {
@@ -96,6 +106,7 @@ const (
 	OperationTypeCreate OperationType = "create"
 	OperationTypeUpdate OperationType = "update"
 	OperationTypeDelete OperationType = "delete"
+	OperationTypePatch  OperationType = "patch"
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
