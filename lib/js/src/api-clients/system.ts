@@ -2568,6 +2568,13 @@ export default class System {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  reminderDismissEndpoint (a: KV): string {
+    const {
+      reminderID,
+    } = a || {}
+    return `/reminder/${reminderID}/dismiss`
+  }
+
   // Undismiss reminder
   async reminderUndismiss (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
@@ -2585,13 +2592,6 @@ export default class System {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  reminderDismissEndpoint (a: KV): string {
-    const {
-      reminderID,
-    } = a || {}
-    return `/reminder/${reminderID}/dismiss`
   }
 
   reminderUndismissEndpoint (a: KV): string {
