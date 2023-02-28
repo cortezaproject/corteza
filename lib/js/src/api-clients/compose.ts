@@ -1655,6 +1655,42 @@ export default class Compose {
     return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}`
   }
 
+  // Partially update record values
+  async recordPatch (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      moduleID,
+      records,
+      values,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!moduleID) {
+      throw Error('field moduleID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.recordPatchEndpoint({
+        namespaceID, moduleID,
+      }),
+    }
+    cfg.data = {
+      records,
+      values,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordPatchEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      moduleID,
+    } = a || {}
+    return `/namespace/${namespaceID}/module/${moduleID}/record/`
+  }
+
   // Delete record row from module section
   async recordBulkDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
