@@ -82,7 +82,7 @@ func (d mysqlDialect) JsonExtractUnquote(jsonDoc exp.Expression, pp ...any) (_ e
 // JSON_CONTAINS(v, '"needle"', '$.f2')
 //
 // This approach is not optimal, but it is the only way to make it work
-func (d mysqlDialect) JsonArrayContains(needle, haystack exp.Expression) (_ exp.Expression, err error) {
+func (d mysqlDialect) JsonArrayContains(needle, haystack exp.Expression, _ string) (_ exp.Expression, err error) {
 	return exp.NewSQLFunctionExpression("JSON_CONTAINS", haystack, needle), nil
 }
 

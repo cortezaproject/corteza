@@ -64,8 +64,16 @@ func (d postgresDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (ex
 //
 // single-value field = multi-value field / plain
 // v->'f1'->0 <@ (v->'f0')::JSONB
-func (d postgresDialect) JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error) {
-	return exp.NewLiteralExpression("(?)::JSONB <@ (?)::JSONB", needle, haystack), nil
+//
+// Timestamp field must to cast into text
+// TO_JSONB('value') <@ TO_JSONB(v->'f0')
+func (d postgresDialect) JsonArrayContains(needle, haystack exp.Expression, nodeRef string) (exp.Expression, error) {
+	switch nodeRef {
+	case "TIMESTAMP":
+		return exp.NewLiteralExpression("TO_JSONB(?) <@ TO_JSONB(?)", needle, haystack), nil
+	default:
+		return exp.NewLiteralExpression("(?)::jsonb <@ TO_JSONB(?)::jsonb", needle, haystack), nil
+	}
 }
 
 func (d postgresDialect) TableCodec(m *dal.Model) drivers.TableCodec {

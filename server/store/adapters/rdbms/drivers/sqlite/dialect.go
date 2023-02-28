@@ -79,7 +79,7 @@ func (sqliteDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Ex
 //
 // Unfortunately SQLite converts boolean values into 0 and 1 when decoding from
 // JSON and we need a special handler for that.
-func (sqliteDialect) JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error) {
+func (sqliteDialect) JsonArrayContains(needle, haystack exp.Expression, _ string) (exp.Expression, error) {
 	// @todo should be implemented using native SQLite capabilties and
 	//       not through custom JSON_ARRAY_CONTAINS function
 	return exp.NewLiteralExpression("JSON_ARRAY_CONTAINS(?, ?)", needle, haystack), nil

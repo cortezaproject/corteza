@@ -45,7 +45,7 @@ type (
 		// Literal values need to be JSON docs!
 		//
 		// @todo recheck if we really need JsonArrayContains on Dialect interface
-		JsonArrayContains(needle, haystack exp.Expression) (exp.Expression, error)
+		JsonArrayContains(needle, haystack exp.Expression, nodeRef string) (exp.Expression, error)
 
 		// AttributeCast prepares complex SQL expression that verifies
 		// arbitrary string value in the db and casts it to b used in
@@ -110,16 +110,15 @@ func OpHandlerNotIn(d Dialect, n *ql.ASTNode, args ...exp.Expression) (expr exp.
 }
 
 func opHandlerIn(d Dialect, n *ql.ASTNode, negate bool, args ...exp.Expression) (expr exp.Expression, err error) {
-	if len(n.Args) == 2 && n.Args[1] != nil && n.Args[1].Meta["dal.Attribute"] != nil && n.Args[1].Meta["dal.Attribute"].(*dal.Attribute).MultiValue {
+	// @todo: this needs to be refactor to handle json extraction for different types depending on the node layers
+	if len(n.Args) == 2 && n.Args[1] != nil && (n.Args[1].Meta["dal.Attribute"] != nil && n.Args[1].Meta["dal.Attribute"].(*dal.Attribute).MultiValue) || n.Args[1].Ref == "TIMESTAMP" {
+		nodeRef := n.Args[1].Ref
 		// if right-side argument is multi-value attribute,
 		// then we need to adjust the arguments a bit:
 		// 1) left side, if it is a value, is encoded as JSON
 		// 2)            if ref we access JSON encoded value
 		//
 		// right side, access JSON encoded array of values.
-		//
-		//
-		//
 		//
 		for a := range n.Args {
 			left := a == 0
@@ -180,7 +179,7 @@ func opHandlerIn(d Dialect, n *ql.ASTNode, negate bool, args ...exp.Expression) 
 			}
 		}
 
-		expr, err = d.JsonArrayContains(args[0], args[1])
+		expr, err = d.JsonArrayContains(args[0], args[1], nodeRef)
 		if err != nil {
 			return
 		}

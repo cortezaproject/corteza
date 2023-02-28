@@ -287,7 +287,7 @@ func (i *iterator) collectCursorValues(r dal.ValueGetter) (_ *filter.PagingCurso
 	}
 
 	if len(pKeys) == 0 {
-		//return nil, fmt.Errorf("can not construct cursor without primary key attributes")
+		// return nil, fmt.Errorf("can not construct cursor without primary key attributes")
 	}
 
 	for _, c := range i.sorting {

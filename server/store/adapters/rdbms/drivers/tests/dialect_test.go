@@ -69,6 +69,7 @@ func TestJSONOp(t *testing.T) {
 			contains, err := conn.dialect.JsonArrayContains(
 				exp.NewLiteralExpression("?", val),
 				a2e(attr),
+				"",
 			)
 			req.NoError(err)
 
