@@ -1,8 +1,9 @@
 <template>
-  <div>
+  <div class="d-flex flex-column h-100">
     <list
       v-if="!edit"
       :reminders="reminders"
+      class="flex-fill"
       @edit="onEdit"
       @dismiss="onDismiss"
       @delete="onDelete"
@@ -13,6 +14,9 @@
       :edit="edit"
       :my-i-d="$auth.user.userID"
       :users="users"
+      class="flex-fill"
+      @dismiss="onDismiss"
+      @back="edit = undefined"
       @save="onSave"
     />
   </div>
@@ -73,11 +77,9 @@ export default {
     },
 
     onSave (r) {
-      let h = 'reminderCreate'
-      if (r.reminderID && r.reminderID !== NoID) {
-        h = 'reminderUpdate'
-      }
-      this.$SystemAPI[h](r).then(r => {
+      const endpoint = r.reminderID && r.reminderID !== NoID ? 'reminderUpdate' : 'reminderCreate'
+      this.$SystemAPI[endpoint](r).then(r => {
+        this.edit = undefined
         this.fetchReminders()
         this.$Reminder.prefetch()
       })
@@ -86,23 +88,18 @@ export default {
     },
 
     onCancel () {
-      this.edit = null
+      this.edit = undefined
     },
 
-    onDismiss (r, value) {
-      if (value) {
-        this.$SystemAPI.reminderDismiss(r).then(() => {
-          this.fetchReminders()
-        })
-      } else {
-        this.$SystemAPI.reminderUndismiss(r).then(() => {
-          this.fetchReminders()
-        })
-      }
+    onDismiss ({ reminderID }, value) {
+      const endpoint = value ? 'reminderDismiss' : 'reminderUndismiss'
+      this.$SystemAPI[endpoint]({ reminderID }).then(() => {
+        this.fetchReminders()
+      })
     },
 
-    onDelete (r) {
-      this.$SystemAPI.reminderDelete(r).then(() => {
+    onDelete ({ reminderID }) {
+      this.$SystemAPI.reminderDelete({ reminderID }).then(() => {
         this.fetchReminders()
       })
     },
