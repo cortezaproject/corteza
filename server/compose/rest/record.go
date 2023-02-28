@@ -238,6 +238,12 @@ func (ctrl *Record) Patch(ctx context.Context, req *request.RecordPatch) (interf
 
 	oo := make([]*types.RecordBulkOperation, 0)
 
+	counters := make(map[string]uint)
+	for _, v := range req.Values {
+		v.Place = counters[v.Name]
+		counters[v.Name]++
+	}
+
 	for _, r := range req.Records {
 		oo = append(oo, &types.RecordBulkOperation{
 			RecordID:    cast.ToUint64(r),
