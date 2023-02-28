@@ -218,13 +218,11 @@ export default {
   methods: {
     createBlocks () {
       this.fields.forEach(f => {
-        const block = new compose.PageBlockRecord()
         const options = {
           moduleID: this.$attrs.moduleID,
           fields: f,
         }
-        block.options = options
-        this.blocks.push(block)
+        this.blocks.push(new compose.PageBlockRecord({ options }))
       })
     },
 

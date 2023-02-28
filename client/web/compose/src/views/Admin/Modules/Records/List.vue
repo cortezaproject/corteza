@@ -109,7 +109,7 @@ export default {
     fields = fields.length ? fields : this.module.fields
 
     // Init block
-    this.block = new compose.PageBlockRecordList({
+    const block = new compose.PageBlockRecordList({
       blockIndex: 0,
       options: {
         moduleID: this.$attrs.moduleID,
@@ -126,14 +126,19 @@ export default {
         showDeletedRecordsOption: true,
         presort: 'createdAt DESC',
         enableRecordPageNavigation: true,
-        // Set allrecords configuration
-        allRecords: true,
         hideConfigureFieldsButton: false,
-        rowViewUrl: 'admin.modules.record.view',
-        rowEditUrl: 'admin.modules.record.edit',
-        rowCreateUrl: 'admin.modules.record.create',
       },
     })
+
+    block.options = {
+      ...block.options,
+      allRecords: true,
+      rowViewUrl: 'admin.modules.record.view',
+      rowEditUrl: 'admin.modules.record.edit',
+      rowCreateUrl: 'admin.modules.record.create',
+    }
+
+    this.block = block
 
     // If the page changed we need to clear the record pagination since its not relevant anymore
     if (this.recordPaginationUsable) {
