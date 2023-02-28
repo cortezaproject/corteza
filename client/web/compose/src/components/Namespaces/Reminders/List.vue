@@ -66,8 +66,7 @@
           >
             <b-button
               v-if="r.payload.link"
-              :disabled="!recordViewer()"
-              :to="recordViewer(r.payload.link.params)"
+              :to="recordViewer(r.payload.link)"
               :title="$t('reminder.recordPageLink')"
               variant="outline-light"
               class="d-flex align-items-center py-2 text-primary border-0"
@@ -150,8 +149,8 @@ export default {
       return fmt.fullDateTime(remindAt)
     },
 
-    recordViewer (params) {
-      return { name: 'page.record', params }
+    recordViewer ({ params } = {}) {
+      return params ? { name: 'page.record', params } : undefined
     },
   },
 }
