@@ -1098,8 +1098,8 @@ export default {
     createReminder (record) {
       // Determine initial reminder title
       const { recordID, values = {} } = record
-      const tField = ((this.options.fields || []).find(({ name }) => !!values[name]) || {}).name
-      const title = values[tField]
+      const { name, isMulti } = (this.options.fields || []).find(({ name }) => !!values[name]) || {}
+      const title = isMulti ? values[name].join(', ') : values[name]
 
       const resource = `compose:record:${recordID}`
       const payload = {

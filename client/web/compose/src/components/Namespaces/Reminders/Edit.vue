@@ -1,94 +1,121 @@
 <template>
-  <div>
-    <b-list-group-item class="flex-column align-items-start px-2 py-2 border-0">
-      <b-form
-        class="import-form"
-        @submit.prevent
-      >
-        <b-form-group :label="$t('reminder.edit.titleLabel')">
-          <b-form-input
-            v-model="title"
-            data-test-id="input-title"
-            required
-            type="text"
-            :placeholder="$t('reminder.edit.titlePlaceholder')"
-          />
-        </b-form-group>
-
-        <b-form-group :label="$t('reminder.edit.notesLabel')">
-          <b-form-textarea
-            v-model="notes"
-            data-test-id="textarea-notes"
-            :placeholder="$t('reminder.edit.notesPlaceholder')"
-            rows="6"
-            max-rows="10"
-          />
-        </b-form-group>
-
-        <b-form-group :label="$t('reminder.edit.remindAtLabel')">
-          <b-form-select
-            v-model="remindAt"
-            data-test-id="select-remind-at"
-            :options="remindAtPresets"
-          />
-        </b-form-group>
-
-        <b-form-group :label="$t('reminder.edit.assigneeLabel')">
-          <vue-select
-            v-model="assignedTo"
-            data-test-id="select-assignee"
-            :options="assignees"
-            option-value="userID"
-            option-text="label"
-            :placeholder="$t('field.kind.user.suggestionPlaceholder')"
-            class="bg-white"
-            @search="searchAssignees"
-          />
-        </b-form-group>
-
-        <b-form-group
-          v-if="reminder.payload.link"
-          :label="$t('reminder.routesTo')"
+  <div
+    class="d-flex flex-column w-100 pb-2"
+  >
+    <b-form
+      v-if="reminder"
+      class="p-2 text-primary"
+      @submit.prevent
+    >
+      <b-form-group v-if="reminder.reminderID !== '0'">
+        <b-form-checkbox
+          :checked="!!reminder.dismissedAt"
+          switch
+          class="mt-2"
+          @change="$emit('dismiss', reminder, $event)"
         >
-          <b-input-group>
-            <b-form-input
-              v-model="reminder.payload.link.label"
-              data-test-id="input-link"
-            />
+          {{ $t('reminder.dismissed') }}
+        </b-form-checkbox>
+      </b-form-group>
 
-            <b-input-group-append>
-              <b-button
-                :disabled="!recordViewer"
-                :to="recordViewer(reminder.payload.link.params)"
-                :title="$t('label.recordPageLink')"
-                variant="light"
-                class="d-flex align-items-center"
-              >
-                <font-awesome-icon :icon="['fas', 'external-link-alt']" />
-              </b-button>
-            </b-input-group-append>
-          </b-input-group>
-        </b-form-group>
-      </b-form>
-    </b-list-group-item>
-    <div class="position-sticky text-center bg-white py-1 fixed-bottom">
-      <b-button
-        data-test-id="button-save"
-        variant="outline-primary"
-        class="px-2"
-        @click="save"
+      <b-form-group :label="$t('reminder.edit.titleLabel')">
+        <b-form-input
+          v-model="title"
+          data-test-id="input-title"
+          required
+          :placeholder="$t('reminder.edit.titlePlaceholder')"
+        />
+      </b-form-group>
+
+      <b-form-group :label="$t('reminder.edit.notesLabel')">
+        <b-form-textarea
+          v-model="notes"
+          data-test-id="textarea-notes"
+          :placeholder="$t('reminder.edit.notesPlaceholder')"
+          rows="6"
+          max-rows="10"
+        />
+      </b-form-group>
+
+      <b-form-group :label="$t('reminder.edit.remindAtLabel')">
+        <c-input-date-time
+          v-model="reminder.remindAt"
+          data-test-id="select-remind-at"
+          :labels="{
+            clear: $t('label.clear'),
+            none: $t('label.none'),
+            now: $t('label.now'),
+            today: $t('label.today'),
+          }"
+        />
+      </b-form-group>
+
+      <b-form-group :label="$t('reminder.edit.assigneeLabel')">
+        <vue-select
+          v-model="reminder.assignedTo"
+          data-test-id="select-assignee"
+          :options="assignees"
+          :get-option-label="getUserLabel"
+          :loading="processingUsers"
+          :placeholder="$t('field.kind.user.suggestionPlaceholder')"
+          :reduce="user => user.userID"
+          option-value="userID"
+          class="bg-white"
+          @search="searchUsers"
+        />
+      </b-form-group>
+
+      <b-form-group
+        v-if="reminder.payload.link"
+        :label="$t('reminder.routesTo')"
       >
-        {{ $t('label.save') }}
-      </b-button>
-    </div>
+        <b-input-group>
+          <b-form-input
+            v-model="reminder.payload.link.label"
+            data-test-id="input-link"
+          />
+
+          <b-input-group-append>
+            <b-button
+              :disabled="!recordViewer"
+              :to="recordViewer"
+              :title="$t('reminder.recordPageLink')"
+              variant="light"
+              class="d-flex align-items-center text-primary"
+            >
+              <font-awesome-icon :icon="['far', 'file-alt']" />
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
+      </b-form-group>
+
+      <div class="text-center py-1">
+        <b-button
+          data-test-id="button-save"
+          variant="outline-primary"
+          @click="$emit('save', reminder)"
+        >
+          {{ $t('label.save') }}
+        </b-button>
+      </div>
+    </b-form>
+
+    <b-button
+      variant="outline-light"
+      class="text-primary mt-auto border-0"
+      @click="$emit('back')"
+    >
+      {{ $t('label.back') }}
+    </b-button>
   </div>
 </template>
 
 <script>
 import _ from 'lodash'
-import moment from 'moment'
 import { VueSelect } from 'vue-select'
 import { system } from '@cortezaproject/corteza-js'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputDateTime } = components
 
 export default {
   i18nOptions: {
@@ -97,6 +124,7 @@ export default {
 
   components: {
     VueSelect,
+    CInputDateTime,
   },
   props: {
     edit: {
@@ -119,97 +147,60 @@ export default {
 
   data () {
     return {
+      processingUsers: false,
+
       // Do this, so we don't edit the original object
-      reminder: {},
-      assignees: [{ userID: this.myID, label: this.$t('reminder.edit.assigneePlaceholder') }],
+      reminder: undefined,
+      assignees: [{ userID: this.myID }],
     }
   },
 
   computed: {
     title: {
-      get: function () {
+      get () {
         return (this.reminder.payload || {}).title
       },
-      set: function (v) {
+      set (v) {
         this.updPayload('title', v)
       },
     },
 
     notes: {
-      get: function () {
+      get () {
         return (this.reminder.payload || {}).notes
       },
-      set: function (v) {
+      set (v) {
         this.updPayload('notes', v)
       },
     },
 
     remindAt: {
-      get: function () {
+      get () {
         return (this.reminder.payload || {}).remindAt || null
       },
-      set: function (v) {
+      set (v) {
         this.updPayload('remindAt', v)
       },
     },
 
-    assignedTo: {
-      get: function () {
-        return this.assignees.find(({ userID }) => userID === this.reminder.assignedTo)
-      },
-      set: function (user) {
-        let userID
-        if (user) {
-          userID = user.userID
-        }
-        this.$set(this.reminder, 'assignedTo', userID)
-      },
-    },
-
-    remindAtPresets () {
-      return [
-        { value: null, text: this.$t('reminder.edit.remindAtNone') },
-        { value: 1000 * 60 * 1, text: this.$t('label.timeMinute', { t: 1 }) },
-        { value: 1000 * 60 * 5, text: this.$t('label.timeMinute', { t: 5 }) },
-        { value: 1000 * 60 * 15, text: this.$t('label.timeMinute', { t: 15 }) },
-        { value: 1000 * 60 * 30, text: this.$t('label.timeMinute', { t: 30 }) },
-        { value: 1000 * 60 * 60 * 1, text: this.$t('label.timeHour', { t: 1 }) },
-        { value: 1000 * 60 * 60 * 2, text: this.$t('label.timeHour', { t: 2 }) },
-        { value: 1000 * 60 * 60 * 24, text: this.$t('label.timeHour', { t: 24 }) },
-      ]
+    recordViewer () {
+      const { params } = this.reminder.payload.link || {}
+      return params ? { name: 'page.record', params } : undefined
     },
   },
 
   watch: {
     edit: {
-      handler: function () {
-        this.reminder = new system.Reminder(this.edit)
-      },
-      deep: true,
       immediate: true,
+      deep: true,
+      handler (edit) {
+        this.reminder = new system.Reminder(edit)
+        this.searchUsers()
+      },
     },
   },
 
   methods: {
-    recordViewer (params) {
-      return params ? { name: 'page.record', params } : undefined
-    },
-
-    save () {
-      // @todo support for updating times
-      let r = {}
-      if (this.remindAt) {
-        r.remindAt = moment().add(this.remindAt, 'ms').toISOString()
-      }
-
-      r = {
-        ...this.reminder,
-        ...r,
-      }
-
-      this.$emit('save', r)
-    },
-
     // Helper to handle undefined fields
     updPayload (f, v) {
       if (!this.reminder.payload) {
@@ -218,22 +209,23 @@ export default {
       this.$set(this.reminder.payload, f, v)
     },
 
-    searchAssignees (query) {
-      if (query) {
-        this.debouncedSearch(this, query)
-      }
-    },
+    searchUsers: _.debounce(function (query) {
+      this.processingUsers = true
 
-    debouncedSearch: _.debounce((vm, query) => {
-      vm.$SystemAPI.userList({ query }).then(({ set }) => {
-        vm.assignees = set.map(({ userID, name: label }) => {
-          if (userID === vm.myID) {
-            return { userID, label: vm.$t('reminder.edit.assigneePlaceholder') }
-          }
-          return { userID, label }
-        })
+      this.$SystemAPI.userList({ query, limit: 15 }).then(({ set = [] }) => {
+        this.assignees = set
+      }).finally(() => {
+        this.processingUsers = false
       })
     }, 300),
+
+    getUserLabel ({ userID, email, name, username }) {
+      if (userID === this.myID) {
+        return this.$t('reminder.edit.assigneePlaceholder')
+      }
+
+      return name || username || email || `<@${userID}>`
+    },
   },
 }
 </script>

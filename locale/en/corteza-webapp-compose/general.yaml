@@ -55,7 +55,6 @@ label:
   processing: Processing...
   record: Record
   recordPage: Record page
-  recordPageLink: View record
   field: Field
   remove: Remove
   removeDefault: Remove default
@@ -88,17 +87,22 @@ placeholder:
 reminder:
   add: Add a new reminder
   dismiss: Dismiss
+  dismissed: Dismissed
+  undismiss: Undismiss
+  delete: Delete reminder
+  recordPageLink: View record
   edit:
+    label: Edit reminder
     assigneeLabel: Assignee
     assigneePlaceholder: Myself (default)
     notesLabel: Notes
     notesPlaceholder: Notes
-    remindAtLabel: Notify me
+    remindAtLabel: Remind me at
     remindAtNone: Never
     titleLabel: Title
     titlePlaceholder: Title
   listLabel: Reminders
-  routesTo: 'Includes link to:'
+  routesTo: Label for page link
   snooze: Snooze
 tooltip:
   dragAndDrop: Drag and drop to change order
