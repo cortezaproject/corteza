@@ -1,6 +1,6 @@
 <template>
   <div
-    class="h-100 pl-1"
+    class="h-100"
   >
     <div
       class="text-center bg-white py-2 sticky-top"
@@ -16,76 +16,88 @@
     </div>
 
     <div
-      v-for="r in sortedReminders"
+      v-for="(r, i) in sortedReminders"
       :key="r.reminderID"
-      class="d-flex align-items-center mb-1 overflow-auto"
     >
-      <b-form-checkbox
-        data-test-id="checkbox-dismiss-reminder"
-        :checked="!!r.dismissedAt"
-        @change="$emit('dismiss', r, $event)"
+      <hr v-if="r.dismissedAt && sortedReminders[i - 1] ? !sortedReminders[i - 1].dismissedAt : false ">
+
+      <div
+        class="d-flex flex-row flex-nowrap align-items-center mb-2 overflow-auto border card"
       >
-        <span
+        <b-form-checkbox
+          v-b-tooltip.hover.left.350
+          data-test-id="checkbox-dismiss-reminder"
+          :checked="!!r.dismissedAt"
+          switch
+          :title="$t(`reminder.${!!r.dismissedAt ? 'undismiss' : 'dismiss'}`)"
+          class="my-2 ml-2"
+          @change="$emit('dismiss', r, $event)"
+        />
+
+        <div
           data-test-id="span-reminder-title"
           class="text-break"
           :style="`${!!r.dismissedAt ? 'text-decoration: line-through;' : ''}`"
         >
           {{ r.payload.title || r.link || rlLabel(r) || r.linkLabel }}
-        </span>
-      </b-form-checkbox>
+        </div>
 
-      <div
-        class="ml-auto"
-      >
-        <font-awesome-icon
-          v-if="r.snoozeCount"
-          data-test-id="icon-snoozed-reminder"
-          :icon="['far', 'clock']"
-          class="ml-1"
-        />
-
-        <font-awesome-icon
-          v-else-if="r.remindAt"
-          v-b-tooltip.hover
-          data-test-id="icon-remind-at"
-          :title="makeTooltip(r)"
-          :icon="['far', 'bell']"
-          class="ml-1"
-        />
-
-        <b-button
-          v-if="r.payload.link"
-          :disabled="!recordViewer()"
-          :to="recordViewer(r.payload.link.params)"
-          :title="$t('label.recordPageLink')"
-          variant="link"
-          class="p-0 ml-2"
-        >
-          <font-awesome-icon :icon="['fas', 'external-link-alt']" />
-        </b-button>
-
-        <b-button
-          data-test-id="button-edit-reminder"
-          variant="link"
-          class="p-1 ml-2"
-          @click="$emit('edit', r)"
+        <div
+          class="d-flex align-items-center text-primary ml-auto px-2"
         >
           <font-awesome-icon
-            :icon="['far', 'edit']"
-            class="text-primary"
+            v-if="r.snoozeCount"
+            data-test-id="icon-snoozed-reminder"
+            :title="makeTooltip(r)"
+            :icon="['far', 'clock']"
+            class="m-2"
           />
-        </b-button>
 
-        <b-button
-          data-test-id="button-delete-reminder"
-          variant="link"
-          class="text-dark p-1"
-          @click.prevent="$emit('delete', r)"
-        >
           <font-awesome-icon
-            :icon="['far', 'trash-alt']"
+            v-if="r.remindAt"
+            data-test-id="icon-remind-at"
+            :title="makeTooltip(r)"
+            :icon="['far', 'bell']"
+            class="m-2"
           />
-        </b-button>
+
+          <b-button-group
+            size="sm"
+          >
+            <b-button
+              v-if="r.payload.link"
+              :disabled="!recordViewer()"
+              :to="recordViewer(r.payload.link.params)"
+              :title="$t('reminder.recordPageLink')"
+              variant="outline-light"
+              class="d-flex align-items-center py-2 text-primary border-0"
+            >
+              <font-awesome-icon :icon="['far', 'file-alt']" />
+            </b-button>
+
+            <b-button
+              data-test-id="button-edit-reminder"
+              variant="outline-light"
+              :title="$t('reminder.edit.label')"
+              class="d-flex align-items-center py-2 text-primary border-0"
+              @click="$emit('edit', r)"
+            >
+              <font-awesome-icon :icon="['far', 'edit']" />
+            </b-button>
+
+            <b-button
+              data-test-id="button-delete-reminder"
+              variant="outline-light"
+              :title="$t('reminder.delete')"
+              class="d-flex align-items-center py-2 text-danger border-0"
+              @click.prevent="$emit('delete', r)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+              />
+            </b-button>
+          </b-button-group>
+        </div>
       </div>
     </div>
   </div>
@@ -124,19 +136,20 @@ export default {
     },
 
     stdSort (a, b) {
-      if (!a.remindAt) {
+      if (!a.dismissedAt) {
         return -1
       }
-      if (!b.remindAt) {
+      if (!b.dismissedAt) {
         return 0
       }
 
-      return a.remindAt - b.remindAt
+      return a.dismissedAt - b.dismissedAt
     },
 
     makeTooltip ({ remindAt }) {
       return fmt.fullDateTime(remindAt)
     },
+
     recordViewer (params) {
       return { name: 'page.record', params }
     },
