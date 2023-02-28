@@ -570,6 +570,26 @@ func RecordActionDelete(props ...*recordActionProps) *recordAction {
 	return a
 }
 
+// RecordActionPatch returns "compose:record.patch" action
+//
+// This function is auto-generated.
+//
+func RecordActionPatch(props ...*recordActionProps) *recordAction {
+	a := &recordAction{
+		timestamp: time.Now(),
+		resource:  "compose:record",
+		action:    "patch",
+		log:       "patched {{record}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // RecordActionUndelete returns "compose:record.undelete" action
 //
 // This function is auto-generated.

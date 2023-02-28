@@ -319,6 +319,28 @@ type (
 		Records types.RecordBulkSet
 	}
 
+	RecordPatch struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// Records POST parameter
+		//
+		// Records to update
+		Records []string
+
+		// Values POST parameter
+		//
+		// Fields to update and their values
+		Values types.RecordValueSet
+	}
+
 	RecordBulkDelete struct {
 		// NamespaceID PATH parameter
 		//
@@ -1587,6 +1609,108 @@ func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "recordID")
 		r.RecordID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewRecordPatch request
+func NewRecordPatch() *RecordPatch {
+	return &RecordPatch{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"moduleID":    r.ModuleID,
+		"records":     r.Records,
+		"values":      r.Values,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordPatch) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordPatch) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordPatch) GetRecords() []string {
+	return r.Records
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordPatch) GetValues() types.RecordValueSet {
+	return r.Values
+}
+
+// Fill processes request and fills internal variables
+func (r *RecordPatch) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["records[]"]; ok && len(val) > 0  {
+		//    r.Records, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		//if val, ok := req.Form["values[]"]; ok && len(val) > 0  {
+		//    r.Values, err = types.RecordValueSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

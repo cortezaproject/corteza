@@ -804,6 +804,14 @@ endpoints:
       - { name: ownedBy, type: "uint64",                title: Record Owner }
       - { name: meta,    type: "map[string]any",        title: Record meta-data, parser: payload.ParseMeta }
       - { name: records, type: "types.RecordBulkSet",   title: Records }
+  - name: patch
+    method: PATCH
+    title: Partially update record values
+    path: "/"
+    parameters:
+      post:
+      - { name: records, type: "[]string", title: Records to update }
+      - { name: values, type: "types.RecordValueSet", title: Fields to update and their values }
   - name: bulkDelete
     method: DELETE
     title: Delete record row from module section
