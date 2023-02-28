@@ -1123,19 +1123,48 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 func (svc record) patch(ctx context.Context, upd *types.Record, values types.RecordValueSet) (rec *types.Record, dd *types.RecordValueErrorSet, err error) {
 	var (
 		old *types.Record
+		m   *types.Module
 	)
 
 	if upd.ID == 0 {
 		return nil, dd, RecordErrInvalidID()
 	}
 
-	_, _, old, err = loadRecordCombo(ctx, svc.store, svc.dal, upd.NamespaceID, upd.ModuleID, upd.ID)
+	_, m, old, err = loadRecordCombo(ctx, svc.store, svc.dal, upd.NamespaceID, upd.ModuleID, upd.ID)
 	if err != nil {
 		return
 	}
 
 	// Create an update version from the old
+	//
+	// In case the record has any multi-value fields, they need to be removed
+	// since they'll be replaced with new ones.
 	upd = old.Clone()
+	// - figure out what fields are multi value
+	mvFields := make(map[string]bool)
+	for _, f := range m.Fields {
+		if f.Multi {
+			mvFields[f.Name] = true
+		}
+	}
+	// - figure out what fields need to be truncated (if a multi value field is not)
+	//   present in the payload, it should not be truncated
+	truncate := make(map[string]bool)
+	for _, v := range values {
+		if mvFields[v.Name] {
+			truncate[v.Name] = true
+		}
+	}
+	// - truncate updated multi value fields
+	newValues := types.RecordValueSet{}
+	for _, v := range upd.Values {
+		if truncate[v.Name] {
+			continue
+		}
+		newValues = append(newValues, v)
+	}
+	upd.Values = newValues
+
 	for _, v := range values {
 		err = upd.SetValue(v.Name, v.Place, v.Value)
 		if err != nil {
