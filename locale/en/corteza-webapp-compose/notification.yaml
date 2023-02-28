@@ -90,7 +90,9 @@ record:
   deleteFailed: Could not delete record
   undeleteFailed: Could not undelete record
   deleteBulkFailed: Could not delete selected records
+  deleteBulkRecordUpdateFailed: Could not update selected records
   deleteBulkSuccess: Successfully deleted selected records
+  bulkRecordUpdateSuccess: Successfully updated selected records
   undeleteBulkFailed: Could not restore selected records
   undeleteBulkSuccess: Successfully restored selected records
   invalidOwnerVar: Can not use ${ownerID} variable in non-record pages

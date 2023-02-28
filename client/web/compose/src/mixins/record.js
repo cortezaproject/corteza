@@ -262,6 +262,48 @@ export default {
         })
     }, 500),
 
+    handleBulkUpdateSelectedRecords: throttle(function () {
+      const { moduleID, namespaceID } = this.module
+      const values = this.record.values.toJSON()
+      const records = this.selectedRecords
+      this.processing = true
+
+      return this
+        .dispatchUiEvent('beforeFormSubmit')
+        .then(() => this.$ComposeAPI.recordPatch({ moduleID, namespaceID, records, values }))
+        .catch(err => {
+          const { details = undefined } = err
+          if (!!details && Array.isArray(details) && details.length > 0) {
+            this.errors = new validator.Validated()
+            this.errors.push(...details)
+
+            throw new Error(this.$t('notification:record.validationErrors'))
+          }
+
+          throw err
+        })
+        .then(({ records }) => {
+          return records[0]
+        })
+        .then((record) => {
+          this.updatePrompts()
+          return record
+        })
+        .then((record) => {
+          if (record.valueErrors && record.valueErrors.set) {
+            this.toastWarning(this.$t('notification:record.validationWarnings'))
+          } else {
+            this.toastSuccess(this.$t('notification:record.bulkRecordUpdateSuccess'))
+            this.onReset()
+            this.onModalHide()
+          }
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkRecordUpdateFailed')))
+        .finally(() => {
+          this.processing = false
+        })
+    }, 500),
+
     /**
      * Validates record and dispatches onFormSubmitError
      *

@@ -55,6 +55,8 @@ interface Options {
 
   // Ordered list of buttons to display in the block
   selectionButtons: Array<Button>;
+
+  bulkRecordEditEnabled: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -101,6 +103,8 @@ const defaults: Readonly<Options> = Object.freeze({
   selectionButtons: [],
   refreshRate: 0,
   showRefresh: false,
+
+  bulkRecordEditEnabled: true
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -156,6 +160,7 @@ export class PageBlockRecordList extends PageBlock {
       'draggable',
       'linkToParent',
       'showRefresh',
+      'bulkRecordEditEnabled'
     )
 
     if (o.selectionButtons) {

@@ -263,6 +263,9 @@
         <b-form-checkbox v-model="options.allowExport">
           {{ $t('recordList.export.allow') }}
         </b-form-checkbox>
+        <b-form-checkbox v-model="options.bulkRecordEditEnabled">
+          {{ $t('recordList.record.enableBulkRecordEdit') }}
+        </b-form-checkbox>
       </b-form-group>
 
       <b-form-group

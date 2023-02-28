@@ -128,7 +128,7 @@
             </b-button>
           </div>
 
-          <div class="ml-auto">
+          <div class="d-flex align-items-center ml-auto mr-2">
             <automation-buttons
               class="d-inline m-0"
               :buttons="options.selectionButtons"
@@ -137,11 +137,20 @@
               v-bind="$props"
               @refresh="refresh()"
             />
+
+            <bulk-edit-modal
+              v-if="options.bulkRecordEditEnabled && canUpdateSelectedRecords"
+              :module="recordListModule"
+              :namespace="namespace"
+              :selected-records="selected"
+              class="ml-1"
+            />
+
             <template v-if="canDeleteSelectedRecords && !areAllRowsDeleted">
               <c-input-confirm
                 v-if="!inlineEditing"
                 :tooltip="$t('recordList.tooltip.deleteSelected')"
-                class="ml-2"
+                class="mr-1"
                 @confirmed="handleDeleteSelectedRecords()"
               />
               <b-button
@@ -682,6 +691,7 @@ import { components, url } from '@cortezaproject/corteza-vue'
 import draggable from 'vuedraggable'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
+import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/BulkEdit'
 
 const { CInputSearch } = components
 
@@ -700,6 +710,7 @@ export default {
     RecordListFilter,
     ColumnPicker,
     CInputSearch,
+    BulkEditModal,
   },
 
   extends: base,
@@ -888,6 +899,10 @@ export default {
 
     canDeleteSelectedRecords () {
       return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canDeleteRecord).length
+    },
+
+    canUpdateSelectedRecords () {
+      return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canUpdateRecord).length
     },
 
     canUndeleteSelectedRecords () {
@@ -1579,6 +1594,10 @@ export default {
         this.isRecordPermissionButtonVisible(record),
         this.isDeleteActionVisible(record),
       ].some(v => v)
+    },
+
+    onBulkUpdateSuccessful () {
+      this.refresh(true)
     },
   },
 }
