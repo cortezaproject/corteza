@@ -3,6 +3,7 @@ package envoyx
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -55,6 +56,10 @@ type (
 	Decoder interface {
 		// Decode returns a set of Nodes extracted based on the provided definition
 		Decode(ctx context.Context, p DecodeParams) (out NodeSet, err error)
+	}
+
+	canCheckFile interface {
+		CanFile(f *os.File) bool
 	}
 
 	DecodeParams struct {
@@ -131,7 +136,7 @@ func Global() *Service {
 }
 
 // Decode returns a set of envoy Nodes based on the given decode params
-func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
+func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nodes NodeSet, providers []Provider, err error) {
 	err = p.validate()
 	if err != nil {
 		return
@@ -141,7 +146,8 @@ func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err
 	case DecodeTypeURI:
 		return svc.decodeUri(ctx, p)
 	case DecodeTypeStore:
-		return svc.decodeStore(ctx, p)
+		nodes, err = svc.decodeStore(ctx, p)
+		return
 	default:
 		err = fmt.Errorf("unsupported decoder type %s", p.Type)
 	}
@@ -149,7 +155,7 @@ func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nn NodeSet, err
 	return
 }
 
-func (svc *Service) Bake(ctx context.Context, p EncodeParams, nodes ...*Node) (gg *DepGraph, err error) {
+func (svc *Service) Bake(ctx context.Context, p EncodeParams, providers []Provider, nodes ...*Node) (gg *DepGraph, err error) {
 	err = svc.bakeEnvoyConfig(p.Envoy, nodes...)
 	if err != nil {
 		return
@@ -159,6 +165,8 @@ func (svc *Service) Bake(ctx context.Context, p EncodeParams, nodes ...*Node) (g
 	if err != nil {
 		return
 	}
+
+	svc.bakeProviders(providers, nodes...)
 
 	gg = BuildDepGraph(nodes...)
 	return
@@ -280,6 +288,10 @@ func (svc *Service) bakeExpressions(nodes ...*Node) (err error) {
 	}
 
 	return
+}
+
+func (svc *Service) bakeProviders(providers []Provider, nodes ...*Node) {
+	SetDecoderSources(nodes, providers...)
 }
 
 func (svc *Service) mergeEnvoyConfigs(a, b EnvoyConfig) (c EnvoyConfig) {

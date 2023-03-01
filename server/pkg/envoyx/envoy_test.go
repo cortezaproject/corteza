@@ -30,7 +30,7 @@ func TestBake(t *testing.T) {
 				SkipIf:   "true",
 			},
 		}
-		_, err := (&Service{}).Bake(ctx, EncodeParams{Envoy: EnvoyConfig{MergeAlg: OnConflictPanic, SkipIf: "false"}}, a, b, c)
+		_, err := (&Service{}).Bake(ctx, EncodeParams{Envoy: EnvoyConfig{MergeAlg: OnConflictPanic, SkipIf: "false"}}, nil, a, b, c)
 		req.NoError(err)
 
 		req.Equal(OnConflictPanic, a.Config.MergeAlg)
@@ -57,7 +57,7 @@ func TestBake(t *testing.T) {
 			},
 		}
 
-		_, err := (&Service{}).Bake(ctx, EncodeParams{}, a, b)
+		_, err := (&Service{}).Bake(ctx, EncodeParams{}, nil, a, b)
 		req.NoError(err)
 
 		req.Nil(a.Config.SkipIfEval)
