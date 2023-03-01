@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex flex-column w-100 pb-2"
+    class="d-flex flex-column w-100"
   >
     <b-form
       v-if="reminder"
