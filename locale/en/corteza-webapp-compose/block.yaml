@@ -354,6 +354,7 @@ recordList:
     perPage: Records per page
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
     prefilterHideSearch: Hide search box
+    filterHide: Hide filtering
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232
     presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported

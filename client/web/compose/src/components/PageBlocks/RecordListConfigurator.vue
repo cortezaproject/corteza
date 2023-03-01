@@ -179,6 +179,9 @@
         <b-form-checkbox v-model="options.hideSearch">
           {{ $t('recordList.record.prefilterHideSearch') }}
         </b-form-checkbox>
+        <b-form-checkbox v-model="options.hideFiltering">
+          {{ $t('recordList.record.filterHide') }}
+        </b-form-checkbox>
       </b-form-group>
 
       <b-form-group

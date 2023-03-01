@@ -226,7 +226,7 @@
                     class="d-flex"
                   >
                     <record-list-filter
-                      v-if="field.filterable"
+                      v-if="!options.hideFiltering && field.filterable"
                       class="d-print-none"
                       :target="block.blockID"
                       :selected-field="field.moduleField"
