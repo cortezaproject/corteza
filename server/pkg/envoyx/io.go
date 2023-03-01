@@ -7,9 +7,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/csv"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/json"
 )
 
-func (nvyx *Service) decodeUri(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
+func (svc *Service) decodeUri(ctx context.Context, p DecodeParams) (nodes NodeSet, providers []Provider, err error) {
 	aUri, ok := p.Params["uri"]
 	if !ok {
 		err = fmt.Errorf("cannot decode URI: no uri parameter provided")
@@ -31,16 +34,19 @@ func (nvyx *Service) decodeUri(ctx context.Context, p DecodeParams) (nn NodeSet,
 	case "file":
 		fileInfo, err := os.Stat(rest)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if fileInfo.IsDir() {
 			// decode whole directory
-			return nvyx.decodeDirectory(ctx, p, rest)
+			return svc.decodeDirectory(ctx, p, rest)
 		}
 
 		// decode specific file
-		return nvyx.decodeFile(ctx, p, rest)
+		var base string
+		bits := strings.Split(rest, string(os.PathSeparator))
+		base = strings.Join(bits[0:len(bits)-1], string(os.PathSeparator))
+		return svc.decodeFile(ctx, p, base, rest)
 
 	default:
 		err = fmt.Errorf("unsupported URI protocol %s", proto)
@@ -61,8 +67,9 @@ func (nvyx *Service) encodeIo(ctx context.Context, dg *DepGraph, p EncodeParams)
 	return
 }
 
-func (nvyx *Service) decodeDirectory(ctx context.Context, p DecodeParams, path string) (nn NodeSet, err error) {
-	return nn, filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
+func (nvyx *Service) decodeDirectory(ctx context.Context, p DecodeParams, path string) (nodes NodeSet, providers []Provider, err error) {
+	basePath := path
+	return nodes, providers, filepath.Walk(path, func(path string, info fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -72,17 +79,18 @@ func (nvyx *Service) decodeDirectory(ctx context.Context, p DecodeParams, path s
 			return nil
 		}
 
-		aux, err := nvyx.decodeFile(ctx, p, path)
+		auxNodes, auxProviders, err := nvyx.decodeFile(ctx, p, basePath, path)
 		if err != nil {
 			return err
 		}
 
-		nn = append(nn, aux...)
+		nodes = append(nodes, auxNodes...)
+		providers = append(providers, auxProviders...)
 		return nil
 	})
 }
 
-func (nvyx *Service) decodeFile(ctx context.Context, p DecodeParams, path string) (nn NodeSet, err error) {
+func (nvyx *Service) decodeFile(ctx context.Context, p DecodeParams, basePath, path string) (nodes NodeSet, providers []Provider, err error) {
 	var aux NodeSet
 	f, err := os.Open(path)
 	if err != nil {
@@ -93,16 +101,43 @@ func (nvyx *Service) decodeFile(ctx context.Context, p DecodeParams, path string
 	p.Params["stream"] = f
 
 	for _, d := range nvyx.decoders[DecodeTypeURI] {
+		if cc, ok := d.(canCheckFile); ok {
+			if !cc.CanFile(f) {
+				continue
+			}
+		}
+
 		aux, err = d.Decode(ctx, p)
 		if err != nil {
 			return
 		}
-		nn = append(nn, aux...)
+		nodes = append(nodes, aux...)
 
 		_, err = f.Seek(0, 0)
 		if err != nil {
 			return
 		}
+	}
+
+	providerIdent := strings.Replace(f.Name(), basePath, "", -1)
+	providerIdent = strings.TrimLeft(providerIdent, "/")
+
+	if csv.CanDecodeFile(f) || csv.CanDecodeExt(f.Name()) {
+		f.Seek(0, 0)
+		aux, err := csv.Decoder(f, providerIdent)
+		if err != nil {
+			return nil, nil, err
+		}
+		providers = append(providers, aux)
+	}
+
+	if json.CanDecodeFile(f) || json.CanDecodeExt(f.Name()) {
+		f.Seek(0, 0)
+		aux, err := json.Decoder(f, providerIdent)
+		if err != nil {
+			return nil, nil, err
+		}
+		providers = append(providers, aux)
 	}
 
 	return

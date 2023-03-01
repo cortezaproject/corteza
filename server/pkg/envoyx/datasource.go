@@ -6,6 +6,7 @@ type (
 	Provider interface {
 		Next(ctx context.Context, out map[string]string) (more bool, err error)
 		Reset(ctx context.Context) error
+		SetIdent(string)
 		Ident() string
 	}
 
