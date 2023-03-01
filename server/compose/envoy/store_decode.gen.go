@@ -9,6 +9,7 @@ package envoy
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
@@ -53,6 +54,11 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 	)
 	wrappedFilters := make([]filterWrap, 0, len(p.Filter))
 	for rt, f := range p.Filter {
+		// Handle resources that don't belong to this decoder
+		if !strings.HasPrefix(rt, "corteza::compose") {
+			continue
+		}
+
 		wrappedFilters = append(wrappedFilters, filterWrap{rt: rt, f: f})
 	}
 

@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
@@ -33,6 +34,19 @@ type (
 		nodes envoyx.NodeSet
 	}
 )
+
+func (d YamlDecoder) CanFile(f *os.File) (ok bool) {
+	// @todo improve/expand
+	return d.canExt(f.Name())
+}
+
+func (d YamlDecoder) canExt(name string) (ok bool) {
+	var (
+		pt  = strings.Split(name, ".")
+		ext = strings.TrimSpace(pt[len(pt)-1])
+	)
+	return ext == "yaml" || ext == "yml"
+}
 
 // Decode returns a set of envoy nodes based on the provided params
 //
