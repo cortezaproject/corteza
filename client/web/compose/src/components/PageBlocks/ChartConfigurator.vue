@@ -12,7 +12,6 @@
           :reduce="option => option.chartID"
           label="name"
           append-to-body
-          label-f
           class="chart-selector bg-white"
           @input="chartSelected"
         />
