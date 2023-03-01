@@ -181,3 +181,7 @@ func (ip *iteratorProvider) Reset(ctx context.Context) (err error) {
 func (ip *iteratorProvider) Ident() (out string) {
 	return
 }
+
+// @todo consider omitting these from the interface since they're not always needed
+func (ip *iteratorProvider) SetIdent(string) {
+}

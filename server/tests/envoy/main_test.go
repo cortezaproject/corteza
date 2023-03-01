@@ -130,10 +130,26 @@ func cleanup(t *testing.T) {
 
 		store.TruncateAutomationWorkflows(ctx, defaultStore),
 		store.TruncateAutomationTriggers(ctx, defaultStore),
+
+		truncateRecords(ctx),
 	)
 	if err != nil {
 		t.Fatalf("failed to decode scenario data: %v", err)
 	}
+}
+
+func truncateRecords(ctx context.Context) error {
+	models, err := defaultDal.SearchModels(ctx)
+	if err != nil {
+		return err
+	}
+	for _, model := range models {
+		err = defaultDal.Truncate(ctx, model.ToFilter(), nil)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func collect(ee ...error) error {
@@ -167,5 +183,8 @@ func initSvc(ctx context.Context) {
 		composeEnvoy.StoreEncoder{},
 		systemEnvoy.StoreEncoder{},
 		automationEnvoy.StoreEncoder{},
+	)
+	defaultEnvoy.AddEncoder(envoyx.EncodeTypeIo,
+		composeEnvoy.CsvEncoder{},
 	)
 }

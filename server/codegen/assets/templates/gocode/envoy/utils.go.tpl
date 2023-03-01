@@ -29,6 +29,5 @@ var (
   // pass removes everything
   superNeedyResources = map[string]bool{
     "corteza::compose:module-field": true,
-    "corteza::compose:record-datasource": true,
   }
 )

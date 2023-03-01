@@ -189,6 +189,7 @@ func (d StoreDecoder) decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref)
 
 func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, rt string, refs map[string]*envoyx.Node, rf envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
 	switch rt {
+	// @todo consider hooking into the regular record resource type as well
 	case ComposeRecordDatasourceAuxType:
 		return d.decodeRecordDatasource(ctx, s, dl, refs, rf)
 	}
@@ -237,6 +238,11 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 	ou := &RecordDatasource{
 		provider: &iteratorProvider{iter: iter},
 		refToID:  make(map[string]uint64),
+		// @todo consider providing defaults from the outside
+		mapping: datasourceMapping{
+			KeyField:    []string{"id"},
+			Defaultable: true,
+		},
 	}
 
 	rr := map[string]envoyx.Ref{

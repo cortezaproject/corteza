@@ -43,7 +43,7 @@ func TestRbacImportExport(t *testing.T) {
 
 	t.Run("initial import", func(t *testing.T) {
 		t.Run("parse configs", func(t *testing.T) {
-			nodes, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
+			nodes, _, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
 				Type: envoyx.DecodeTypeURI,
 				Params: map[string]any{
 					"uri": "file://testdata/rbac",
@@ -59,7 +59,7 @@ func TestRbacImportExport(t *testing.T) {
 					"storer": defaultStore,
 					"dal":    defaultDal,
 				},
-			}, nodes...)
+			}, nil, nodes...)
 			req.NoError(err)
 		})
 
@@ -87,7 +87,7 @@ func TestRbacImportExport(t *testing.T) {
 	var rules envoyx.NodeSet
 	t.Run("export", func(t *testing.T) {
 		t.Run("export from DB", func(t *testing.T) {
-			nodes, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
+			nodes, _, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
 				Type: envoyx.DecodeTypeStore,
 				Params: map[string]any{
 					"storer": defaultStore,
@@ -124,7 +124,7 @@ func TestRbacImportExport(t *testing.T) {
 					"storer": defaultStore,
 					"dal":    defaultDal,
 				},
-			}, nodes...)
+			}, nil, nodes...)
 			req.NoError(err)
 		})
 
@@ -143,7 +143,7 @@ func TestRbacImportExport(t *testing.T) {
 
 	t.Run("second import", func(t *testing.T) {
 		t.Run("yaml parse", func(t *testing.T) {
-			nodes, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
+			nodes, _, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
 				Type: envoyx.DecodeTypeURI,
 				Params: map[string]any{
 					"uri": fmt.Sprintf("file://%s", auxFile.Name()),
@@ -159,7 +159,7 @@ func TestRbacImportExport(t *testing.T) {
 					"storer": defaultStore,
 					"dal":    defaultDal,
 				},
-			}, nodes...)
+			}, nil, nodes...)
 			req.NoError(err)
 		})
 

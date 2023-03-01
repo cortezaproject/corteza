@@ -1,6 +1,7 @@
-package csv
+package json
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -94,6 +95,11 @@ func (d *decoder) Cleanup() error {
 	return os.Remove(d.src.Name())
 }
 
+// SetIdent overwrites the system defined identifier
+func (d *decoder) SetIdent(ident string) {
+	d.ident = ident
+}
+
 // Ident returns the assigned identifier
 func (d *decoder) Ident() string {
 	return d.ident
@@ -105,13 +111,13 @@ func (d *decoder) Fields() []string {
 }
 
 // Reset resets the decoder to the start
-func (d *decoder) Reset() error {
+func (d *decoder) Reset(_ context.Context) error {
 	_, err := d.src.Seek(0, 0)
 	return err
 }
 
 // Next returns the field: value mapping for the next row
-func (d *decoder) Next(out map[string]string) (more bool, err error) {
+func (d *decoder) Next(_ context.Context, out map[string]string) (more bool, err error) {
 	err = d.reader.Decode(&out)
 	if err == io.EOF {
 		return false, nil
