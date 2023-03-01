@@ -57,7 +57,7 @@ func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (id
 	rd.applyMapping(rd.rowCache, out)
 
 	for _, k := range rd.mapping.KeyField {
-		ident = append(ident, out[k])
+		ident = append(ident, rd.rowCache[k])
 	}
 
 	return
