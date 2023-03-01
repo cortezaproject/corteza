@@ -93,6 +93,11 @@ func (d *decoder) Cleanup() error {
 	return os.Remove(d.src.Name())
 }
 
+// SetIdent overwrites the system defined identifier
+func (d *decoder) SetIdent(ident string) {
+	d.ident = ident
+}
+
 // Ident returns the assigned identifier
 func (d *decoder) Ident() string {
 	return d.ident
