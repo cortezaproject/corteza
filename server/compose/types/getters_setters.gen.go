@@ -337,11 +337,11 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
-	case "createdBy", "CreatedBy":
+	case "createdBy", "CreatedBy", "created_by":
 		return r.CreatedBy, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
-	case "deletedBy", "DeletedBy":
+	case "deletedBy", "DeletedBy", "deleted_by":
 		return r.DeletedBy, nil
 	case "id", "ID":
 		return r.ID, nil
@@ -351,13 +351,13 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 		return r.ModuleID, nil
 	case "namespaceID", "NamespaceID":
 		return r.NamespaceID, nil
-	case "ownedBy", "OwnedBy":
+	case "ownedBy", "OwnedBy", "owned_by":
 		return r.OwnedBy, nil
 	case "revision", "Revision":
 		return r.Revision, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
-	case "updatedBy", "UpdatedBy":
+	case "updatedBy", "UpdatedBy", "updated_by":
 		return r.UpdatedBy, nil
 
 	default:
@@ -371,11 +371,11 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
-	case "createdBy", "CreatedBy":
+	case "createdBy", "CreatedBy", "created_by":
 		return cast2.Uint64(value, &r.CreatedBy)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
-	case "deletedBy", "DeletedBy":
+	case "deletedBy", "DeletedBy", "deleted_by":
 		return cast2.Uint64(value, &r.DeletedBy)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
@@ -385,13 +385,13 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.ModuleID)
 	case "namespaceID", "NamespaceID":
 		return cast2.Uint64(value, &r.NamespaceID)
-	case "ownedBy", "OwnedBy":
+	case "ownedBy", "OwnedBy", "owned_by":
 		return cast2.Uint64(value, &r.OwnedBy)
 	case "revision", "Revision":
 		return cast2.Uint(value, &r.Revision)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
-	case "updatedBy", "UpdatedBy":
+	case "updatedBy", "UpdatedBy", "updated_by":
 		return cast2.Uint64(value, &r.UpdatedBy)
 
 	default:

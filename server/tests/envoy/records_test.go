@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strconv"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
@@ -12,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
@@ -194,6 +196,146 @@ func TestRecordsImportExport(t *testing.T) {
 
 		assertRecordState(ctx, t, defaultStore, defaultDal, req)
 	})
+}
+
+func TestRecordsXrefs(t *testing.T) {
+	var (
+		ctx       = context.Background()
+		req       = require.New(t)
+		nodes     envoyx.NodeSet
+		providers []envoyx.Provider
+		gg        *envoyx.DepGraph
+		err       error
+	)
+	_ = gg
+
+	cleanup(t)
+
+	t.Run("parse configs", func(t *testing.T) {
+		nodes, providers, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
+			Type: envoyx.DecodeTypeURI,
+			Params: map[string]any{
+				"uri": "file://testdata/records/cross_ref",
+			},
+		})
+		req.NoError(err)
+	})
+
+	t.Run("bake", func(t *testing.T) {
+		gg, err = defaultEnvoy.Bake(ctx, envoyx.EncodeParams{
+			Type: envoyx.EncodeTypeStore,
+			Params: map[string]any{
+				"storer": defaultStore,
+				"dal":    defaultDal,
+			},
+		}, providers, nodes...)
+		req.NoError(err)
+	})
+
+	t.Run("import into DB", func(t *testing.T) {
+		err = defaultEnvoy.Encode(ctx, envoyx.EncodeParams{
+			Type: envoyx.EncodeTypeStore,
+			Params: map[string]any{
+				"storer": defaultStore,
+				"dal":    defaultDal,
+			},
+		}, gg)
+		req.NoError(err)
+	})
+
+	ns, err := store.LookupComposeNamespaceBySlug(ctx, defaultStore, "test_ns")
+	req.NoError(err)
+
+	modParent, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, defaultStore, ns.ID, "mod_parent")
+	req.NoError(err)
+
+	modChild, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, defaultStore, ns.ID, "mod_child")
+	req.NoError(err)
+
+	parentRecords, _, err := dalutils.ComposeRecordsList(ctx, defaultDal, modParent, types.RecordFilter{})
+	req.NoError(err)
+
+	compareValues(req, parentRecords[0].Values, types.RecordValueSet{{Name: "name", Value: "Jane Doe"}, {Name: "code", Value: "3124"}})
+	compareValues(req, parentRecords[1].Values, types.RecordValueSet{{Name: "name", Value: "Ana Banana"}, {Name: "code", Value: "4153"}})
+	compareValues(req, parentRecords[2].Values, types.RecordValueSet{{Name: "name", Value: "Qwerty"}, {Name: "code", Value: "83172"}})
+
+	childRecords, _, err := dalutils.ComposeRecordsList(ctx, defaultDal, modChild, types.RecordFilter{})
+	req.NoError(err)
+
+	compareValues(req, childRecords[0].Values, types.RecordValueSet{{Name: "user_name", Value: "Daniel Adams", Ref: 0}, {Name: "parent", Value: strconv.FormatUint(parentRecords[0].ID, 10), Ref: parentRecords[0].ID}, {Name: "alt", Value: strconv.FormatUint(childRecords[2].ID, 10), Ref: childRecords[2].ID}})
+	compareValues(req, childRecords[1].Values, types.RecordValueSet{{Name: "user_name", Value: "Jane Alex", Ref: 0}, {Name: "parent", Value: strconv.FormatUint(parentRecords[1].ID, 10), Ref: parentRecords[1].ID}, {Name: "alt", Value: strconv.FormatUint(childRecords[0].ID, 10), Ref: childRecords[0].ID}})
+	compareValues(req, childRecords[2].Values, types.RecordValueSet{{Name: "user_name", Value: "Fish", Ref: 0}, {Name: "parent", Value: strconv.FormatUint(parentRecords[2].ID, 10), Ref: parentRecords[2].ID}, {Name: "alt", Value: strconv.FormatUint(childRecords[1].ID, 10), Ref: childRecords[1].ID}})
+}
+
+func TestRecordsUserRefs(t *testing.T) {
+	var (
+		ctx       = context.Background()
+		req       = require.New(t)
+		nodes     envoyx.NodeSet
+		providers []envoyx.Provider
+		gg        *envoyx.DepGraph
+		err       error
+	)
+	_ = gg
+
+	cleanup(t)
+
+	t.Run("parse configs", func(t *testing.T) {
+		nodes, providers, err = defaultEnvoy.Decode(ctx, envoyx.DecodeParams{
+			Type: envoyx.DecodeTypeURI,
+			Params: map[string]any{
+				"uri": "file://testdata/records/user_ref",
+			},
+		})
+		req.NoError(err)
+	})
+
+	t.Run("bake", func(t *testing.T) {
+		gg, err = defaultEnvoy.Bake(ctx, envoyx.EncodeParams{
+			Type: envoyx.EncodeTypeStore,
+			Params: map[string]any{
+				"storer": defaultStore,
+				"dal":    defaultDal,
+			},
+		}, providers, nodes...)
+		req.NoError(err)
+	})
+
+	t.Run("import into DB", func(t *testing.T) {
+		err = defaultEnvoy.Encode(ctx, envoyx.EncodeParams{
+			Type: envoyx.EncodeTypeStore,
+			Params: map[string]any{
+				"storer": defaultStore,
+				"dal":    defaultDal,
+			},
+		}, gg)
+		req.NoError(err)
+	})
+
+	ns, err := store.LookupComposeNamespaceBySlug(ctx, defaultStore, "test_ns")
+	req.NoError(err)
+
+	mod, err := store.LookupComposeModuleByNamespaceIDHandle(ctx, defaultStore, ns.ID, "test_mod")
+	req.NoError(err)
+
+	rr, _, err := dalutils.ComposeRecordsList(ctx, defaultDal, mod, types.RecordFilter{})
+	req.NoError(err)
+
+	uu, _, err := store.SearchUsers(ctx, defaultStore, systemTypes.UserFilter{})
+	req.NoError(err)
+
+	usr0 := uu[0]
+	usr1 := uu[1]
+	usr2 := uu[2]
+	usrx := uu[3]
+
+	compareValues(req, rr[0].Values, types.RecordValueSet{{Name: "name", Value: "Jane Doe"}, {Name: "code", Value: "3124"}, {Name: "rel_user", Value: strconv.FormatUint(usr0.ID, 10), Ref: usr0.ID}})
+	compareValues(req, rr[1].Values, types.RecordValueSet{{Name: "name", Value: "Ana Banana"}, {Name: "code", Value: "4153"}, {Name: "rel_user", Value: strconv.FormatUint(usr1.ID, 10), Ref: usr1.ID}})
+	compareValues(req, rr[2].Values, types.RecordValueSet{{Name: "name", Value: "Qwerty"}, {Name: "code", Value: "83172"}, {Name: "rel_user", Value: strconv.FormatUint(usr2.ID, 10), Ref: usr2.ID}})
+
+	req.Equal(usrx.ID, rr[0].CreatedBy)
+	req.Equal(usrx.ID, rr[1].CreatedBy)
+	req.Equal(usrx.ID, rr[2].CreatedBy)
 }
 
 func assertRecordState(ctx context.Context, t *testing.T, s store.Storer, dl dal.FullService, req *require.Assertions) {

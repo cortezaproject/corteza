@@ -312,6 +312,17 @@ func (g DepGraph) ChildrenForResourceType(n *Node, rt string) (out NodeSet) {
 	return
 }
 
+func (g DepGraph) NodeForRef(ref Ref) (out *Node) {
+	aux := make([]*Node, 0, 10)
+	for _, sg := range g.graphs {
+		for _, n := range sg.nodes {
+			aux = append(aux, n.Node)
+		}
+	}
+
+	return NodeForRef(ref, aux...)
+}
+
 // Children returns all child nodes of n
 func (g DepGraph) Children(n *Node) (out NodeSet) {
 	for _, sg := range g.graphs {

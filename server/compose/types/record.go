@@ -208,21 +208,26 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 	}
 
 	rv := &RecordValue{Name: name, Place: pos}
-	var auxv string
 
-	switch aux := value.(type) {
-	case *time.Time:
-		auxv = aux.Format(time.RFC3339)
+	if cv, ok := value.(*RecordValue); ok {
+		rv = cv
+	} else {
+		var auxv string
+		switch aux := value.(type) {
+		case *time.Time:
+			auxv = aux.Format(time.RFC3339)
 
-	case time.Time:
-		auxv = aux.Format(time.RFC3339)
+		case time.Time:
+			auxv = aux.Format(time.RFC3339)
 
-	default:
-		auxv, err = cast.ToStringE(aux)
-	}
+		default:
+			auxv, err = cast.ToStringE(aux)
+		}
+		if err != nil {
+			return
+		}
 
-	if err != nil {
-		return
+		rv.Value = auxv
 	}
 
 	// Try to utilize the module when possible
@@ -237,7 +242,6 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 		}
 	}
 
-	rv.Value = auxv
 	r.Values = r.Values.Set(rv)
 
 	return
