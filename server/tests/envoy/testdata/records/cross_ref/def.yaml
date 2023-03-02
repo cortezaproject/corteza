@@ -1,0 +1,49 @@
+namespace:
+  test_ns:
+    name: Test Namespace
+    modules:
+      mod_parent:
+        name: Test Namespace Module Parent
+        fields:
+          name:
+            title: Name
+          code:
+            title: Code
+            kind: Number
+        source:
+          - from: parent_records.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: name
+                field: name
+              - column: code
+                field: code
+      mod_child:
+        name: Test Namespace Module Child
+        fields:
+          user_name:
+            title: User Name
+          parent:
+            title: Parent
+            kind: Record
+            options:
+              module: mod_parent
+          alt:
+            title: alt
+            kind: Record
+            options:
+              module: mod_child
+        source:
+          - from: child_records.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: user_name
+                field: user_name
+              - column: parent
+                field: parent
+              - column: alt
+                field: alt

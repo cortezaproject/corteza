@@ -28,7 +28,8 @@ type (
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder     struct{}
 	documentContext struct {
-		references map[string]string
+		references  map[string]string
+		parentIdent envoyx.Identifiers
 	}
 	auxYamlDoc struct {
 		nodes envoyx.NodeSet
@@ -319,6 +320,9 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Handle global namespace reference which can be provided as the doc. context
 	//
 	// @todo this is a temporary solution and should be extended when the document
@@ -605,6 +609,9 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Handle global namespace reference which can be provided as the doc. context
 	//
@@ -961,6 +968,9 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Handle global namespace reference which can be provided as the doc. context
 	//
 	// @todo this is a temporary solution and should be extended when the document
@@ -1212,6 +1222,9 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Handle global namespace reference which can be provided as the doc. context
 	//
@@ -1642,6 +1655,9 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Handle global namespace reference which can be provided as the doc. context
 	//

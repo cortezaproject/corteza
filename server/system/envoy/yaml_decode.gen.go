@@ -28,7 +28,8 @@ type (
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder     struct{}
 	documentContext struct {
-		references map[string]string
+		references  map[string]string
+		parentIdent envoyx.Identifiers
 	}
 	auxYamlDoc struct {
 		nodes envoyx.NodeSet
@@ -380,6 +381,9 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -690,6 +694,9 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -955,6 +962,9 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
@@ -1261,6 +1271,9 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -1545,6 +1558,9 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
@@ -1850,6 +1866,9 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -2077,6 +2096,9 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
@@ -2325,6 +2347,9 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -2571,6 +2596,9 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
@@ -2857,6 +2885,9 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -3124,6 +3155,9 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {

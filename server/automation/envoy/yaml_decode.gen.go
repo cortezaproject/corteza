@@ -28,7 +28,8 @@ type (
 	// which are then managed by envoy and imported via an encoder.
 	YamlDecoder     struct{}
 	documentContext struct {
-		references map[string]string
+		references  map[string]string
+		parentIdent envoyx.Identifiers
 	}
 	auxYamlDoc struct {
 		nodes envoyx.NodeSet
@@ -351,6 +352,9 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 		return
 	}
 
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
 		if ref.ResourceType != scope.ResourceType {
@@ -635,6 +639,9 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
