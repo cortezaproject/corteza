@@ -30,6 +30,9 @@ type (
 
 		// Children returns all of the children of the provided node
 		Children(*Node) NodeSet
+
+		// NodeForRef returns the node which matches the provided ref
+		NodeForRef(Ref) *Node
 	}
 
 	Preparer interface {
@@ -77,6 +80,7 @@ type (
 		Encoder EncoderConfig
 	}
 	EncoderConfig struct {
+		DefaultUserID       uint64
 		PreferredTimeLayout string
 		PreferredTimezone   string
 	}

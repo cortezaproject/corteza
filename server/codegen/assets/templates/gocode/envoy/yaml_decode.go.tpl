@@ -30,6 +30,7 @@ type (
 	YamlDecoder struct{}
 	documentContext struct {
 		references map[string]string
+		parentIdent envoyx.Identifiers
 	}
 	auxYamlDoc  struct {
 		nodes envoyx.NodeSet
@@ -392,6 +393,9 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 	if err != nil {
 		return
 	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
 
 	{{ if eq $cmpIdent "compose" }}
 	// Handle global namespace reference which can be provided as the doc. context

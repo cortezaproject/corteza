@@ -433,7 +433,7 @@ func (d *auxYamlDoc) unmarshalSourceExtendedNode(dctx documentContext, n *yaml.N
 		},
 
 		ResourceType: ComposeRecordDatasourceAuxType,
-		Identifiers:  envoyx.MakeIdentifiers(r.SourceIdent),
+		Identifiers:  dctx.parentIdent,
 	}
 	auxN.References, auxN.Scope = d.procMappingRefs(r.References)
 	out = append(out, auxN)
