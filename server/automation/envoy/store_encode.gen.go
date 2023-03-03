@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -24,6 +25,11 @@ type (
 	//
 	// @todo consider having a different encoder for the DAL resources
 	StoreEncoder struct{}
+)
+
+const (
+	paramsKeyStorer = "storer"
+	paramsKeyDAL    = "dal"
 )
 
 // Prepare performs some initial processing on the resource before it can be encoded
@@ -105,6 +111,7 @@ func (e StoreEncoder) prepareWorkflow(ctx context.Context, p envoyx.EncodeParams
 	existing := make(map[int]types.Workflow, len(nn))
 	err = e.matchupWorkflows(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing Workflows")
 		return
 	}
 
@@ -133,7 +140,7 @@ func (e StoreEncoder) prepareWorkflow(ctx context.Context, p envoyx.EncodeParams
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -190,28 +197,36 @@ func (e StoreEncoder) encodeWorkflows(ctx context.Context, p envoyx.EncodeParams
 func (e StoreEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Flush to the DB
 	err = store.UpsertAutomationWorkflow(ctx, s, n.Resource.(*types.Workflow))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert Workflow")
 		return
 	}
 
@@ -220,12 +235,20 @@ func (e StoreEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams,
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
+			}
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	return
@@ -291,6 +314,7 @@ func (e StoreEncoder) prepareTrigger(ctx context.Context, p envoyx.EncodeParams,
 	existing := make(map[int]types.Trigger, len(nn))
 	err = e.matchupTriggers(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing Triggers")
 		return
 	}
 
@@ -319,7 +343,7 @@ func (e StoreEncoder) prepareTrigger(ctx context.Context, p envoyx.EncodeParams,
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -376,28 +400,36 @@ func (e StoreEncoder) encodeTriggers(ctx context.Context, p envoyx.EncodeParams,
 func (e StoreEncoder) encodeTrigger(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Flush to the DB
 	err = store.UpsertAutomationTrigger(ctx, s, n.Resource.(*types.Trigger))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert Trigger")
 		return
 	}
 
@@ -406,12 +438,20 @@ func (e StoreEncoder) encodeTrigger(ctx context.Context, p envoyx.EncodeParams, 
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
+			}
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	return
@@ -464,15 +504,15 @@ func (e StoreEncoder) matchupTriggers(ctx context.Context, s store.Storer, uu ma
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 func (e *StoreEncoder) grabStorer(p envoyx.EncodeParams) (s store.Storer, err error) {
-	auxs, ok := p.Params["storer"]
+	auxs, ok := p.Params[paramsKeyStorer]
 	if !ok {
-		err = fmt.Errorf("storer not defined")
+		err = errors.Errorf("store encoder expects a store conforming to store.Storer interface")
 		return
 	}
 
 	s, ok = auxs.(store.Storer)
 	if !ok {
-		err = fmt.Errorf("invalid storer provided")
+		err = errors.Errorf("store encoder expects a store conforming to store.Storer interface")
 		return
 	}
 
@@ -493,6 +533,5 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	}
 
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
-
 	return
 }

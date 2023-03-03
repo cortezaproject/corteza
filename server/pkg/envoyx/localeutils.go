@@ -47,9 +47,14 @@ func ResourceTranslationsForNodes(tt types.ResourceTranslationSet, nn ...*Node) 
 
 			// Parse the path so we can process it further
 			// @todo make a generic function for RBAC rules and res. tr.
-			_, res, path, err := ParseRule(r.Resource)
+			localeRt, res, path, err := ParseRule(r.Resource)
 			if err != nil {
 				return nil, err
+			}
+
+			if localeRt != n.ResourceType {
+				// Resource type missmatch; skip
+				continue
 			}
 
 			// Get the refs
