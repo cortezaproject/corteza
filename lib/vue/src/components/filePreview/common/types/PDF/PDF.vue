@@ -77,7 +77,7 @@ export default {
     maxPages: {
       required: false,
       type: Number,
-      default: 5,
+      default: 25,
     },
 
     initialScale: {
