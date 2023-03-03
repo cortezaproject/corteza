@@ -6,7 +6,6 @@ import (
 	"strings"
 	"context"
 	"io"
-	"fmt"
 	"os"
 
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
@@ -16,6 +15,7 @@ import (
 	"golang.org/x/text/language"
 	"github.com/spf13/cast"
 	"gopkg.in/yaml.v3"
+	"github.com/pkg/errors"
 
 {{- range .imports }}
     "{{ . }}"
@@ -35,6 +35,10 @@ type (
 	auxYamlDoc  struct {
 		nodes envoyx.NodeSet
 	}
+)
+
+const (
+	paramsKeyStream = "stream"
 )
 
 func (d YamlDecoder) CanFile(f *os.File) (ok bool) {
@@ -65,6 +69,7 @@ func (d YamlDecoder) Decode(ctx context.Context, p envoyx.DecodeParams) (out env
 	doc := &auxYamlDoc{}
 	err = yaml.NewDecoder(r).Decode(doc)
 	if err != nil {
+		err = errors.Wrap(err, "{{$cmpIdent}} yaml decoder: failed to decode document")
 		return
 	}
 
@@ -96,12 +101,14 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			if y7s.IsMapping(v) {
 				aux, err = d.unmarshal{{.expIdent}}Map(dctx, v)
 				d.nodes = append(d.nodes, aux...)
-				return err
 			}
 	{{- end }}
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshal{{.expIdent}}Seq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
+			}
+			if err != nil {
+				err = errors.Wrap(err, "failed to unmarshal {{.ident}}")
 			}
 			return err
 {{ end }}
@@ -112,14 +119,14 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			aux, err = unmarshalAllowNode(v)
 			d.nodes = append(d.nodes, aux...)
 			if err != nil {
-				return err
+				err = errors.Wrap(err, "failed to unmarshal node: RBAC allow")
 			}
 
 		case "deny":
 			aux, err = unmarshalDenyNode(v)
 			d.nodes = append(d.nodes, aux...)
 			if err != nil {
-				return err
+				err = errors.Wrap(err, "failed to unmarshal node: RBAC deny")
 			}
 
 		// Resource translation nodes
@@ -127,7 +134,7 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			aux, err = unmarshalLocaleNode(v)
 			d.nodes = append(d.nodes, aux...)
 			if err != nil {
-				return err
+				err = errors.Wrap(err, "failed to unmarshal node: locale")
 			}
 	{{ end }}
 
@@ -136,7 +143,7 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			aux, err = d.unmarshalYAML(kv, v)
 			d.nodes = append(d.nodes, aux...)
 			if err != nil {
-				return err
+				err = errors.Wrap(err, "failed to unmarshal node")
 			}
 		}
 		return nil
@@ -783,7 +790,7 @@ func (d *auxYamlDoc) decodeEnvoyConfig(n *yaml.Node) (out envoyx.EnvoyConfig) {
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 func (d YamlDecoder) getReader(ctx context.Context, p envoyx.DecodeParams) (r io.Reader, err error) {
-	aux, ok := p.Params["stream"]
+	aux, ok := p.Params[paramsKeyStream]
 	if ok {
 		r, ok = aux.(io.Reader)
 		if ok {
@@ -792,7 +799,7 @@ func (d YamlDecoder) getReader(ctx context.Context, p envoyx.DecodeParams) (r io
 	}
 
 	// @todo consider adding support for managing files from a location
-	err = fmt.Errorf("YAML decoder expects a stream conforming to io.Reader interface")
+	err = errors.Errorf("YAML decoder expects a stream conforming to io.Reader interface")
 	return
 }
 

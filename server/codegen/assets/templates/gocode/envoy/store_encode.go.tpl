@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/pkg/errors"
 {{- range .imports }}
     "{{ . }}"
 {{- end }}
@@ -22,6 +23,11 @@ type (
 	//
 	// @todo consider having a different encoder for the DAL resources
 	StoreEncoder struct{}
+)
+
+const (
+	paramsKeyStorer = "storer"
+	paramsKeyDAL = "dal"
 )
 
 {{ $rootRes := .resources }}
@@ -116,6 +122,7 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 	existing := make(map[int]types.{{.expIdent}}, len(nn))
 	err = e.matchup{{.expIdent}}s(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing {{.expIdent}}s")
 		return
 	}
 
@@ -144,7 +151,7 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -201,23 +208,30 @@ func (e StoreEncoder) encode{{.expIdent}}s(ctx context.Context, p envoyx.EncodeP
 func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	{{ if .envoy.store.sanitizeBeforeSave }}
@@ -229,6 +243,7 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
   // Flush to the DB
 	err = store.Upsert{{.store.expIdent}}(ctx, s, n.Resource.(*types.{{.expIdent}}))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert {{.expIdent}}")
 		return
 	}
 
@@ -238,47 +253,56 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 	//
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
-  {{/*
+	{{/*
 		@note this setup will not duplicate encode calls since we only take the
-		      most specific parent resource.
+					most specific parent resource.
 	*/}}
 	{{ $extendedEncoder := .envoy.store.extendedEncoder}}
 	{{ if $extendedEncoder }}
 	nested := make(envoyx.NodeSet, 0, 10)
 	{{ end }}
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
-		{{- range $cmp := $rootRes }}
-			{{ if $cmp.envoy.omit }}
-				{{continue}}
-			{{ end }}
-			{{ if not $cmp.parents }}
-				{{continue}}
-			{{ end }}
-
-			{{ $p := index $cmp.parents (sub (len $cmp.parents) 1)}}
-				{{ if not (eq $p.handle $a.ident) }}
+			switch rt {
+			{{- range $cmp := $rootRes }}
+				{{ if $cmp.envoy.omit }}
+					{{continue}}
+				{{ end }}
+				{{ if not $cmp.parents }}
 					{{continue}}
 				{{ end }}
 
-			case types.{{$cmp.expIdent}}ResourceType:
-				err = e.encode{{$cmp.expIdent}}s(ctx, p, s, nn, tree)
-				if err != nil {
-					return
-				}
-				{{ if $extendedEncoder }}
-				nested = append(nested, nn...)
-				{{ end }}
+				{{ $p := index $cmp.parents (sub (len $cmp.parents) 1)}}
+					{{ if not (eq $p.handle $a.ident) }}
+						{{continue}}
+					{{ end }}
 
-		{{- end }}
+				case types.{{$cmp.expIdent}}ResourceType:
+					err = e.encode{{$cmp.expIdent}}s(ctx, p, s, nn, tree)
+					if err != nil {
+						return
+					}
+					{{ if $extendedEncoder }}
+					nested = append(nested, nn...)
+					{{ end }}
+
+			{{- end }}
+			}
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	{{ if .envoy.store.extendedEncoder }}
 	err = e.encode{{.expIdent}}Extend(ctx, p, s, n, nested, tree)
 	if err != nil {
+		err = errors.Wrap(err, "post encode logic failed with errors")
 		return
 	}
 	{{ end }}
@@ -286,6 +310,7 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 	{{ if .envoy.store.extendedSubResources }}
 	err = e.encode{{.expIdent}}ExtendSubResources(ctx, p, s, n, tree)
 	if err != nil {
+		err = errors.Wrap(err, "failed to encode extended sub resources")
 		return
 	}
 	{{ end }}
@@ -349,15 +374,15 @@ func (e StoreEncoder) matchup{{.expIdent}}s(ctx context.Context, s store.Storer,
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 func (e *StoreEncoder) grabStorer(p envoyx.EncodeParams) (s store.Storer, err error) {
-	auxs, ok := p.Params["storer"]
+	auxs, ok := p.Params[paramsKeyStorer]
 	if !ok {
-		err = fmt.Errorf("storer not defined")
+		err = errors.Errorf("store encoder expects a store conforming to store.Storer interface")
 		return
 	}
 
 	s, ok = auxs.(store.Storer)
 	if !ok {
-		err = fmt.Errorf("invalid storer provided")
+		err = errors.Errorf("store encoder expects a store conforming to store.Storer interface")
 		return
 	}
 
@@ -378,6 +403,5 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	}
 
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
-
 	return
 }

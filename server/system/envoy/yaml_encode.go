@@ -254,13 +254,13 @@ func (e YamlEncoder) resolveRulePathDeps(ctx context.Context, tt envoyx.Traverse
 
 			rn := tt.ParentForRef(n, ref)
 			if rn == nil {
-				err = fmt.Errorf("missing node for ref %v", ref)
+				err = fmt.Errorf("parent reference %v not found", ref)
 				return
 			}
 
 			auxIdent = rn.Identifiers.FriendlyIdentifier()
 			if auxIdent == "" || auxIdent == "0" {
-				err = fmt.Errorf("related resource doesn't provide an ID")
+				err = fmt.Errorf("parent reference does not provide an identifier")
 				return
 			}
 
@@ -292,9 +292,10 @@ func (e YamlEncoder) encodeAuthClientSecurityC(ctx context.Context, p envoyx.Enc
 
 	var impersonateUser string
 	if _, ok := n.References["Security.ImpersonateUser.UserID"]; ok {
-		node := tt.ParentForRef(n, n.References["Security.ImpersonateUser.UserID"])
+		usrRef := n.References["Security.ImpersonateUser.UserID"]
+		node := tt.ParentForRef(n, usrRef)
 		if node == nil {
-			err = fmt.Errorf("node not found @todo error")
+			err = fmt.Errorf("invalid user reference %v: user does not exist", usrRef)
 			return
 		}
 		impersonateUser = n.Identifiers.FriendlyIdentifier()
@@ -312,9 +313,10 @@ func (e YamlEncoder) encodeRoleSlice(n *envoyx.Node, tt envoyx.Traverser, k stri
 	sq, _ := y7s.MakeSeq()
 
 	for i := range rr {
-		node := tt.ParentForRef(n, n.References[fmt.Sprintf("%s.%d.RoleID", k, i)])
+		roleRef := n.References[fmt.Sprintf("%s.%d.RoleID", k, i)]
+		node := tt.ParentForRef(n, roleRef)
 		if node == nil {
-			err = fmt.Errorf("node not found @todo error")
+			err = fmt.Errorf("invalid user reference %v: user does not exist", roleRef)
 			return
 		}
 

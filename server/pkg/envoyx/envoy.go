@@ -78,6 +78,11 @@ type (
 		Params  map[string]any
 		Envoy   EnvoyConfig
 		Encoder EncoderConfig
+
+		// @note these are only used by records since v1 did just that
+		DeferOk  func()
+		DeferNok func(error) error
+		Defer    func()
 	}
 	EncoderConfig struct {
 		DefaultUserID       uint64
