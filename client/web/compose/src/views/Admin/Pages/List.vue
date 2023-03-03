@@ -174,7 +174,7 @@ $dropping-color: $secondary;
 
 .sortable-tree {
   .content {
-    height: 0px !important;
+    height: 0 !important;
   }
 
   ul {

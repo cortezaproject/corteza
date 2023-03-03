@@ -405,11 +405,13 @@ recordList:
     openInModal: Open records in a modal
     linkToParent: Link to parent record
     tooltip:
-      clone: Clone record
-      edit: Edit record
-      undelete: Undelete record
+      clone: Clone
+      edit: Edit
+      delete: Delete
+      restore: Restore
       reminder: Reminder
-      view: View record
+      view: View
+      permissions: Permissions
     recordDisplayOptions: Record display options
   recordPage: record page
   refField:
