@@ -57,13 +57,13 @@ func (e StoreEncoder) encodeResourceTranslation(ctx context.Context, p envoyx.En
 	for fieldLabel, ref := range n.References {
 		rn := tree.ParentForRef(n, ref)
 		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
+			err = fmt.Errorf("parent reference %v not found", ref)
 			return
 		}
 
 		auxID = rn.Resource.GetID()
 		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
+			err = fmt.Errorf("parent reference does not provide an identifier")
 			return
 		}
 

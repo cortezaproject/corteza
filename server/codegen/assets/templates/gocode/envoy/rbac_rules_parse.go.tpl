@@ -41,6 +41,11 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		}
 	}
 
+	// @todo this is to support res. tr. resources also.
+	//       Split it into a separate function and remove this.
+	if !strings.HasPrefix(resourceType, "corteza::") {
+		resourceType = "corteza::" + resourceType
+	}
 
 	// make the resource provide the slice of parent resources we should nest under
 	switch resourceType {

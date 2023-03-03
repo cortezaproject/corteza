@@ -82,7 +82,7 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 }
 
 func (e CsvEncoder) getWriter(p envoyx.EncodeParams) (out io.Writer, err error) {
-	aux, ok := p.Params["writer"]
+	aux, ok := p.Params[paramsKeyWriter]
 	if ok {
 		out, ok = aux.(io.Writer)
 		if ok {

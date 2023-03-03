@@ -148,47 +148,68 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 	)
 	for {
 		ident, more, err = ds.Next(ctx, auxRec)
-		if err != nil || !more {
-			break
-		}
-		rec, err = maykr(ctx, auxRec)
 		if err != nil {
 			return
 		}
-
-		// Do these at the end so they can't be overwritten
-		rec.NamespaceID = ns.ID
-		rec.ModuleID = mod.ID
-		rec.CreatedAt = time.Now()
-		rec.OwnedBy = service.CalcRecordOwner(0, rec.OwnedBy, p.Encoder.DefaultUserID)
-		rec.ID, err = ds.ResolveRefS(ident...)
-		if err != nil {
-			return err
+		if !more {
+			break
 		}
 
-		// Standard record processing
-		rec.Values.SetUpdatedFlag(true)
-		//
-		rve = service.RecordValueUpdateOpCheck(ctx, nil, mod, rec.Values)
-		if !rve.IsValid() {
-			return rve
-		}
-		//
-		rve = service.RecordPreparer(ctx, s, rvSanitizer, rvValidator, rvFormatter, mod, &rec)
-		if !rve.IsValid() {
-			return rve
-		}
-
-		ax := rec
-		records = append(records, &ax)
-
-		if len(records) > recordBatchMaxChunk {
-			err = dalutils.ComposeRecordCreate(ctx, dl, mod, records...)
+		err = func() (err error) {
+			rec, err = maykr(ctx, auxRec)
 			if err != nil {
 				return
 			}
 
-			records = make(types.RecordSet, 0, recordBatchMaxChunk/2)
+			// Do these at the end so they can't be overwritten
+			rec.NamespaceID = ns.ID
+			rec.ModuleID = mod.ID
+			rec.CreatedAt = time.Now()
+			rec.OwnedBy = service.CalcRecordOwner(0, rec.OwnedBy, p.Encoder.DefaultUserID)
+			rec.ID, err = ds.ResolveRefS(ident...)
+			if err != nil {
+				return err
+			}
+
+			// Standard record processing
+			rec.Values.SetUpdatedFlag(true)
+			//
+			rve = service.RecordValueUpdateOpCheck(ctx, nil, mod, rec.Values)
+			if !rve.IsValid() {
+				return rve
+			}
+			//
+			rve = service.RecordPreparer(ctx, s, rvSanitizer, rvValidator, rvFormatter, mod, &rec)
+			if !rve.IsValid() {
+				return rve
+			}
+
+			ax := rec
+			records = append(records, &ax)
+
+			if len(records) > recordBatchMaxChunk {
+				err = dalutils.ComposeRecordCreate(ctx, dl, mod, records...)
+				if err != nil {
+					return
+				}
+
+				records = make(types.RecordSet, 0, recordBatchMaxChunk/2)
+			}
+			return
+		}()
+
+		if p.Defer != nil {
+			p.Defer()
+		}
+		if err != nil {
+			if p.DeferNok != nil {
+				err = p.DeferNok(err)
+			}
+			if err != nil {
+				return
+			}
+		} else if p.DeferOk != nil {
+			p.DeferOk()
 		}
 	}
 

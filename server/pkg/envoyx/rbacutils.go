@@ -52,13 +52,19 @@ func RBACRulesForNodes(rr rbac.RuleSet, nn ...*Node) (rules NodeSet, err error) 
 			}
 
 			// Parse the path so we can process it further
-			_, res, path, err := ParseRule(r.Resource)
+			ruleRt, res, path, err := ParseRule(r.Resource)
 			if err != nil {
 				return nil, err
 			}
 
+			if ruleRt != n.ResourceType {
+				// Type missmatch; skip
+				continue
+			}
+
 			// Get the refs
 			rf := make(map[string]Ref, 2)
+
 			for i, ref := range append(path, res) {
 				// Whenever you'd use a wildcard, it will produce a nil so it
 				// needs to be skipped
