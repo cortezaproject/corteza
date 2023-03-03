@@ -80,7 +80,8 @@ export default {
       this.page.blocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
           const p = new Promise((resolve) => {
-            this.$root.$emit(`record-line:collect:${this.page.pageID}-${(this.record || {}).recordID || '0'}-${index}`, resolve)
+            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID || NoID, b.blockID].map(v => v || NoID).join('-')
+            this.$root.$emit(`record-line:collect:${recordListUniqueID}`, resolve)
           })
 
           queue.push(p)

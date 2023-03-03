@@ -198,7 +198,7 @@
           hover
           responsive
           sticky-header
-          class="border-top mh-100 h-100 mb-0"
+          class="record-list-table border-top mh-100 h-100 mb-0"
         >
           <b-thead>
             <b-tr :variant="showingDeletedRecords ? 'warning' : ''">
@@ -220,11 +220,12 @@
               <b-th v-if="isFederated" />
 
               <b-th
-                v-for="field in fields"
+                v-for="(field, fieldIndex) in fields"
                 :key="field.key"
                 sticky-column
-                class="pr-0"
+                :colspan="fieldIndex === (fields.length - 1) ? 2 : 1"
                 :style="{
+                  'padding-right': fieldIndex === (fields.length - 1) ? '15px' : '',
                   cursor: field.sortable ? 'pointer' : 'default',
                 }"
                 @click="handleSort(field)"
@@ -281,8 +282,6 @@
                   </div>
                 </div>
               </b-th>
-
-              <b-th />
             </b-tr>
           </b-thead>
 
@@ -302,20 +301,20 @@
             >
               <b-td
                 v-if="options.draggable && inlineEditing"
-                class="align-middle pr-0"
+                class="pr-0"
                 @click.stop
               >
                 <font-awesome-icon
                   v-b-tooltip.hover
                   :icon="['fas', 'bars']"
                   :title="$t('general.tooltip.dragAndDrop')"
-                  class="handle text-light"
+                  class="handle text-light my-1"
                 />
               </b-td>
 
               <b-td
                 v-if="options.selectable"
-                class="align-middle pr-0 d-print-none"
+                class="pr-0 d-print-none"
                 @click.stop
               >
                 <b-form-checkbox
@@ -378,114 +377,143 @@
               </b-td>
 
               <b-td
-                class="text-right"
+                class="actions px-1"
                 @click.stop
               >
-                <b-button-group
-                  v-if="inlineEditing"
-                  size="sm"
-                  class="ml-auto"
+                <b-dropdown
+                  v-if="areActionsVisible(item.r)"
+                  boundary="scrollParent"
+                  variant="outline-light"
+                  toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+                  no-caret
+                  dropleft
+                  menu-class="m-0"
                 >
-                  <b-button
-                    v-if="showCloneRecordButton"
-                    :title="$t('recordList.record.tooltip.clone')"
-                    variant="outline-light"
-                    class="d-flex align-items-center text-primary d-print-none border-0"
-                    @click="handleCloneInline(item.r)"
-                  >
+                  <template #button-content>
                     <font-awesome-icon
-                      :icon="['far', 'clone']"
+                      :icon="['fas', 'ellipsis-v']"
                     />
-                  </b-button>
+                  </template>
+                  <template v-if="inlineEditing">
+                    <b-dropdown-item
+                      v-if="isCloneRecordActionVisible"
+                      @click="handleCloneInline(item.r)"
+                    >
+                      <font-awesome-icon
+                        :icon="['far', 'clone']"
+                        class="text-primary"
+                      />
+                      {{ $t('recordList.record.tooltip.clone') }}
+                    </b-dropdown-item>
 
-                  <b-button
-                    v-if="item.r.deletedAt"
-                    :title="$t('recordList.record.tooltip.undelete')"
-                    variant="outline-light"
-                    class="d-flex align-items-center border-0 text-dark d-print-none"
-                    @click.prevent="handleRestoreInline(item, index)"
+                    <b-dropdown-item
+                      v-if="isInlineRestoreActionVisible(item.r)"
+                      @click.prevent="handleRestoreInline(item, index)"
+                    >
+                      <font-awesome-icon
+                        :icon="['fa', 'trash-restore']"
+                        class="text-warning"
+                      />
+                      {{ $t('recordList.record.tooltip.restore') }}
+                    </b-dropdown-item>
+
+                    <!-- The user should be able to delete the record if it's not yet saved -->
+                    <b-dropdown-item
+                      v-else-if="isInlineDeleteActionVisible(item.r)"
+
+                      @click.prevent="handleDeleteInline(item, index)"
+                    >
+                      <font-awesome-icon
+                        :icon="['far', 'trash-alt']"
+                        class="text-danger"
+                      />
+                      {{ $t('recordList.record.tooltip.delete') }}
+                    </b-dropdown-item>
+                  </template>
+
+                  <template
+                    v-else
                   >
-                    <font-awesome-icon
-                      :icon="['fa', 'trash-restore']"
-                    />
-                  </b-button>
+                    <b-dropdown-item
+                      v-if="isViewRecordActionVisible(item.r)"
+                      :to="{ name: options.rowViewUrl || 'page.record', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                    >
+                      <font-awesome-icon
+                        :icon="['far', 'file-alt']"
+                        class="text-primary"
+                      />
+                      {{ $t('recordList.record.tooltip.view') }}
+                    </b-dropdown-item>
 
-                  <!-- The user should be able to delete the record if it's not yet saved -->
-                  <b-button
-                    v-else-if="(item.r.canDeleteRecord || item.r.recordID === '0') && !item.r.deletedAt"
-                    variant="outline-light"
-                    class="d-flex align-items-center border-0 show-when-hovered text-danger d-print-none"
-                    @click.prevent="handleDeleteInline(item, index)"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'trash-alt']"
-                    />
-                  </b-button>
-                </b-button-group>
+                    <b-dropdown-item
+                      v-if="isEditRecordActionVisible(item.r)"
+                      :to="{ name: options.rowEditUrl || 'page.record.edit', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                    >
+                      <font-awesome-icon
+                        :icon="['far', 'edit']"
+                        class="text-primary"
+                      />
+                      {{ $t('recordList.record.tooltip.edit') }}
+                    </b-dropdown-item>
 
-                <b-button-group
-                  v-if="!inlineEditing"
-                  size="sm"
-                  class="ml-auto"
-                >
-                  <b-button
-                    v-if="!options.hideRecordViewButton && item.r.canReadRecord && (options.rowViewUrl || recordPageID)"
-                    :title="$t('recordList.record.tooltip.view')"
-                    variant="outline-light"
-                    class="d-flex align-items-center text-primary d-print-none border-0"
-                    :to="{ name: options.rowViewUrl || 'page.record', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'eye']"
-                    />
-                  </b-button>
+                    <b-dropdown-item
+                      v-if="isCloneRecordActionVisible"
+                      :to="{ name: options.rowCreateUrl || 'page.record.create', params: { pageID: recordPageID, values: item.r.values }, query: null }"
+                    >
+                      <font-awesome-icon
+                        :icon="['far', 'clone']"
+                        class="text-primary"
+                      />
+                      {{ $t('recordList.record.tooltip.clone') }}
+                    </b-dropdown-item>
 
-                  <b-button
-                    v-if="!options.hideRecordEditButton && item.r.canUpdateRecord && (options.rowEditUrl || recordPageID)"
-                    :title="$t('recordList.record.tooltip.edit')"
-                    :to="{ name: options.rowEditUrl || 'page.record.edit', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
-                    variant="outline-light"
-                    class="d-flex align-items-center text-primary d-print-none border-0"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'edit']"
-                    />
-                  </b-button>
+                    <b-dropdown-item
+                      v-if="isReminderActionVisible"
+                      @click.prevent="createReminder(item.r)"
+                    >
+                      <font-awesome-icon
+                        :icon="['far', 'bell']"
+                        class="text-primary"
+                      />
+                      {{ $t('recordList.record.tooltip.reminder') }}
+                    </b-dropdown-item>
 
-                  <b-button
-                    v-if="showCloneRecordButton"
-                    :title="$t('recordList.record.tooltip.clone')"
-                    variant="outline-light"
-                    :to="{ name: options.rowCreateUrl || 'page.record.create', params: { pageID: recordPageID, values: item.r.values }, query: null }"
-                    class="d-flex align-items-center text-primary d-print-none border-0"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'clone']"
-                    />
-                  </b-button>
+                    <b-dropdown-item
+                      v-if="isRecordPermissionButtonVisible(item.r)"
+                      link-class="p-0"
+                      variant="light"
+                    >
+                      <c-permissions-button
+                        :resource="`corteza::compose:record/${item.r.namespaceID}/${item.r.moduleID}/${item.r.recordID}`"
+                        :target="item.r.recordID"
+                        :title="item.r.recordID"
+                        :button-label="$t('recordList.record.tooltip.permissions')"
+                        button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                      />
+                    </b-dropdown-item>
 
-                  <b-button
-                    v-if="!options.hideRecordReminderButton"
-                    :title="$t('recordList.record.tooltip.reminder')"
-                    variant="outline-light"
-                    class="d-flex align-items-center text-primary d-print-none border-0"
-                    @click.prevent="createReminder(item.r)"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'bell']"
-                    />
-                  </b-button>
-
-                  <c-permissions-button
-                    v-if="item.r.canGrant && !options.hideRecordPermissionsButton"
-                    :resource="`corteza::compose:record/${item.r.namespaceID}/${item.r.moduleID}/${item.r.recordID}`"
-                    :target="item.r.recordID"
-                    :title="item.r.recordID"
-                    :tooltip="$t('permissions:resources.compose.record.tooltip')"
-                    button-variant="outline-light"
-                    class="d-flex align-items-center text-dark d-print-none border-0"
-                  />
-                </b-button-group>
+                    <b-dropdown-item
+                      v-if="isDeleteActionVisible(item.r)"
+                      link-class="p-0"
+                      @click.prevent
+                    >
+                      <c-input-confirm
+                        borderless
+                        variant="link"
+                        size="md"
+                        button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                        class="w-100"
+                        @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
+                      >
+                        <font-awesome-icon
+                          :icon="['far', 'trash-alt']"
+                          class="text-danger"
+                        />
+                        {{ $t('recordList.record.tooltip.delete') }}
+                      </c-input-confirm>
+                    </b-dropdown-item>
+                  </template>
+                </b-dropdown>
               </b-td>
             </b-tr>
           </draggable>
@@ -737,24 +765,12 @@ export default {
       pages: 'page/set',
     }),
 
-    loaderCollSpan () {
-      // 2 for right side actions
-      let base = this.fields.length + 2
-      if (this.options.draggable && this.inlineEditing) base++
-      if (this.options.selectable) base++
-      return base
-    },
-
     isFederated () {
       return Object.keys(this.recordListModule.labels || {}).includes('federation')
     },
 
     showFooter () {
       return !this.options.hidePaging && !this.inlineEditing
-    },
-
-    hasRightActions () {
-      return this.editing
     },
 
     getPagination () {
@@ -893,8 +909,12 @@ export default {
       return undefined
     },
 
-    showCloneRecordButton () {
-      return !this.options.hideRecordCloneButton && this.recordListModule.canCreateRecord && (this.options.rowCreateUrl || this.recordPageID)
+    isCloneRecordActionVisible () {
+      return !this.options.hideRecordCloneButton && this.recordListModule.canCreateRecord && (this.options.rowCreateUrl || this.recordPageID || this.inlineEditing)
+    },
+
+    isReminderActionVisible () {
+      return !this.options.hideRecordReminderButton
     },
   },
 
@@ -965,8 +985,8 @@ export default {
     destroyEvents () {
       this.$root.$off(`record-line:collect:${this.uniqueID}`)
       this.$root.$off(`page-block:validate:${this.uniqueID}`)
-      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
       this.$root.$off(`drill-down-recordList:${this.uniqueID}`)
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
     },
 
     onFilter (filter = []) {
@@ -1345,13 +1365,13 @@ export default {
       }
     },
 
-    handleDeleteSelectedRecords () {
-      if (this.selected.length === 0) {
+    handleDeleteSelectedRecords (selected = this.selected) {
+      if (selected.length === 0) {
         return
       }
 
       if (this.inlineEditing) {
-        const sel = new Set(this.selected)
+        const sel = new Set(selected)
         for (let i = 0; i < this.items.length; i++) {
           if (sel.has(this.items[i].id)) {
             this.handleDeleteInline(this.items[i], i)
@@ -1366,15 +1386,15 @@ export default {
 
         // filter deletable records from the selected list
         const recordIDs = this.items
-          .filter(({ id, r }) => r.canDeleteRecord && this.selected.includes(id))
+          .filter(({ id, r }) => r.canDeleteRecord && selected.includes(id))
           .map(({ id }) => id)
 
         this.processing = true
 
         this.$ComposeAPI
           .recordBulkDelete({ moduleID, namespaceID, recordIDs })
+          .then(() => this.refresh(true))
           .then(() => {
-            this.refresh(true)
             this.toastSuccess(this.$t('notification:record.deleteBulkSuccess'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkFailed')))
@@ -1385,7 +1405,7 @@ export default {
     },
 
     refresh (resetPagination = false) {
-      this.pullRecords(resetPagination)
+      return this.pullRecords(resetPagination)
     },
 
     /**
@@ -1517,12 +1537,54 @@ export default {
       this.drillDownFilter = drillDownFilter
       this.pullRecords(true)
     },
+
+    isInlineRestoreActionVisible ({ deletedAt }) {
+      return !!deletedAt
+    },
+
+    isInlineDeleteActionVisible ({ recordID, canDeleteRecord, deletedAt }) {
+      return !deletedAt && (canDeleteRecord || recordID === NoID)
+    },
+
+    isViewRecordActionVisible ({ canReadRecord }) {
+      return !this.options.hideRecordViewButton && canReadRecord && (this.options.rowViewUrl || this.recordPageID)
+    },
+
+    isEditRecordActionVisible ({ canUpdateRecord }) {
+      return !this.options.hideRecordEditButton && canUpdateRecord && (this.options.rowEditUrl || this.recordPageID)
+    },
+
+    isRecordPermissionButtonVisible ({ canGrant }) {
+      return canGrant && !this.options.hideRecordPermissionsButton
+    },
+
+    isDeleteActionVisible ({ canDeleteRecord }) {
+      return canDeleteRecord
+    },
+
+    areActionsVisible (record) {
+      if (this.inlineEditing) {
+        return [
+          this.isCloneRecordActionVisible,
+          this.isInlineDeleteActionVisible(record),
+          this.isInlineRestoreActionVisible(record),
+        ].some(v => v)
+      }
+
+      return [
+        this.isCloneRecordActionVisible,
+        this.isReminderActionVisible,
+        this.isViewRecordActionVisible(record),
+        this.isEditRecordActionVisible(record),
+        this.isRecordPermissionButtonVisible(record),
+        this.isDeleteActionVisible(record),
+      ].some(v => v)
+    },
   },
 }
 </script>
 
 <style lang="scss" scoped>
-
 .handle {
   cursor: grab;
 }
@@ -1540,5 +1602,25 @@ th .required::after {
   width: 10px;
   height: 16px;
   overflow: hidden;
+}
+
+tr:hover td.actions {
+  opacity: 1;
+  background-color: $gray-200;
+  visibility: visible;
+}
+</style>
+
+<style lang="scss">
+.record-list-table .actions {
+  position: sticky;
+  right: 0;
+  opacity: 0;
+  transition: opacity 0.25s;
+  width: 1%;
+
+  .regular-font {
+    font-family: $font-regular !important;
+  }
 }
 </style>

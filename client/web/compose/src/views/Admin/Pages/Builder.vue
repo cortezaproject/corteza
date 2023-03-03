@@ -430,6 +430,7 @@ export default {
     deleteBlock (index) {
       this.blocks.splice(index, 1)
       this.page.blocks = this.blocks
+      this.unsavedBlocks.add(index)
     },
 
     updatePageBlockGrid (blocks) {
@@ -472,7 +473,8 @@ export default {
       this.blocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
           const p = new Promise((resolve) => {
-            this.$root.$emit(`page-block:validate:${this.page.pageID}-${(this.record || {}).recordID || NoID}-${index}`, resolve)
+            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID || NoID, b.blockID].map(v => v || NoID).join('-')
+            this.$root.$emit(`page-block:validate:${recordListUniqueID}`, resolve)
           })
 
           queue.push(p)
