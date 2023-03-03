@@ -3,10 +3,10 @@ package dal
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"io"
 	"sort"
-
-	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"strconv"
 )
 
 type (
@@ -391,20 +391,23 @@ func (xs *linkLeft) sortLeftRows() (err error) {
 			return false
 		}
 
-		// Prepare the data
-		leftRowA := xs.leftRows[i]
-		leftRowB := xs.leftRows[j]
-
-		leftRelBufferA, _, err = xs.getRelatedBuffer(leftRowA)
-		if err != nil {
-			return false
-		}
-		leftRelBufferB, _, err = xs.getRelatedBuffer(leftRowB)
-		if err != nil {
-			return false
-		}
-
 		for _, s := range xs.filter.OrderBy() {
+			// Prepare the data
+			leftRowA := xs.leftRows[i]
+			leftRowB := xs.leftRows[j]
+
+			leftRowA = convertStringToIntForColumn(s.Column, leftRowA)
+			leftRowB = convertStringToIntForColumn(s.Column, leftRowB)
+
+			leftRelBufferA, _, err = xs.getRelatedBuffer(leftRowA)
+			if err != nil {
+				return false
+			}
+			leftRelBufferB, _, err = xs.getRelatedBuffer(leftRowB)
+			if err != nil {
+				return false
+			}
+
 			if !xs.isRightSortAttr(s.Column) {
 				// This bit here orders based on the left attributes
 				less, skip := evalCmpResult(compareGetters(leftRowA, leftRowB, leftRowA.counters, leftRowB.counters, s.Column), s)
@@ -488,4 +491,15 @@ func (xs *linkLeft) collectPrimaryAttributes() (out []string) {
 	}
 
 	return
+}
+
+// convertStringToIntForColumn converts the string value that have numeric data in the specified column
+// and updates the Row value datatype to int, if the conversion is successful
+func convertStringToIntForColumn(column string, row *Row) *Row {
+	if strValue, ok := row.values[column][0].(string); ok {
+		if rowVal, err := strconv.Atoi(strValue); err == nil {
+			row.values[column][0] = rowVal
+		}
+	}
+	return row
 }
