@@ -8,13 +8,13 @@ package envoy
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,6 +22,10 @@ type (
 	// YamlEncoder is responsible for encoding Corteza resources into
 	// a YAML supported format
 	YamlEncoder struct{}
+)
+
+const (
+	paramsKeyWriter = "writer"
 )
 
 // Encode encodes the given Corteza resources into some YAML supported format
@@ -312,7 +316,6 @@ func (e YamlEncoder) encodeTimestampNil(p envoyx.EncodeParams, t *time.Time) (an
 		return nil, nil
 	}
 
-	// @todo timestamp encoding format
 	return e.encodeTimestamp(p, *t)
 }
 
@@ -333,7 +336,7 @@ func (e YamlEncoder) encodeRef(p envoyx.EncodeParams, id uint64, field string, n
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 func (e YamlEncoder) getWriter(p envoyx.EncodeParams) (out io.Writer, err error) {
-	aux, ok := p.Params["writer"]
+	aux, ok := p.Params[paramsKeyWriter]
 	if ok {
 		out, ok = aux.(io.Writer)
 		if ok {
@@ -342,6 +345,6 @@ func (e YamlEncoder) getWriter(p envoyx.EncodeParams) (out io.Writer, err error)
 	}
 
 	// @todo consider adding support for managing files from a location
-	err = fmt.Errorf("YAML encoder expects a writer conforming to io.Writer interface")
+	err = errors.Errorf("YAML encoder expects a writer conforming to io.Writer interface")
 	return
 }

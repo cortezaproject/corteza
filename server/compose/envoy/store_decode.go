@@ -210,14 +210,14 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 	// Get the refs
 	namespaceNode, ok = refs["NamespaceID"]
 	if !ok {
-		err = fmt.Errorf("namespace ref not found")
+		err = fmt.Errorf("missing NamespaceID reference")
 		return
 	}
 	namespace = namespaceNode.Resource.(*types.Namespace)
 
 	moduleNode, ok = refs["ModuleID"]
 	if !ok {
-		err = fmt.Errorf("module ref not found")
+		err = fmt.Errorf("missing ModuleID reference")
 		return
 	}
 	module = moduleNode.Resource.(*types.Module)
@@ -249,21 +249,6 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 		"NamespaceID": namespaceNode.ToRef(),
 		"ModuleID":    moduleNode.ToRef(),
 	}
-
-	// @todo add refs based on module fields
-	// for _, f := range module.Fields {
-	// 	if f.Kind != "Record" {
-	// 		continue
-	// 	}
-
-	// 	rr[fmt.Sprintf("%s.module", f.Name)] = r
-	// 	rr[fmt.Sprintf("%s.datasource", f.Name)] = envoyx.Ref{
-	// 		ResourceType: ComposeRecordDatasourceAuxType,
-	// 		Identifiers:  r.Identifiers,
-	// 		Scope:        r.Scope,
-	// 		Optional:     true,
-	// 	}
-	// }
 
 	out = append(out, &envoyx.Node{
 		Datasource:   ou,

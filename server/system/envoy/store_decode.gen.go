@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -74,178 +75,192 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 	// lives easier.
 	refNodes := make([]map[string]*envoyx.Node, len(p.Filter))
 	refRefs := make([]map[string]envoyx.Ref, len(p.Filter))
-	for i, a := range wrappedFilters {
-		if len(a.f.Refs) == 0 {
-			continue
+	err = func() (err error) {
+		for i, a := range wrappedFilters {
+			if len(a.f.Refs) == 0 {
+				continue
+			}
+
+			auxr := make(map[string]*envoyx.Node, len(a.f.Refs))
+			auxa := make(map[string]envoyx.Ref)
+			for field, ref := range a.f.Refs {
+				f := ref.ResourceFilter()
+				aux, err := d.decode(ctx, s, dl, envoyx.DecodeParams{
+					Type:   envoyx.DecodeTypeStore,
+					Filter: f,
+				})
+				if err != nil {
+					return err
+				}
+
+				// @todo consider changing this.
+				//       Currently it's required because the .decode may return some
+				//       nested nodes as well.
+				//       Consider a flag or a new function.
+				aux = envoyx.NodesForResourceType(ref.ResourceType, aux...)
+				if len(aux) == 0 {
+					return fmt.Errorf("invalid reference %v", ref)
+				}
+				if len(aux) > 1 {
+					return fmt.Errorf("ambiguous reference: too many resources returned %v", a.f)
+				}
+
+				auxr[field] = aux[0]
+				auxa[field] = aux[0].ToRef()
+			}
+
+			refNodes[i] = auxr
+			refRefs[i] = auxa
 		}
-
-		auxr := make(map[string]*envoyx.Node, len(a.f.Refs))
-		auxa := make(map[string]envoyx.Ref)
-		for field, ref := range a.f.Refs {
-			f := ref.ResourceFilter()
-			aux, err := d.decode(ctx, s, dl, envoyx.DecodeParams{
-				Type:   envoyx.DecodeTypeStore,
-				Filter: f,
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			// @todo consider changing this.
-			//       Currently it's required because the .decode may return some
-			//       nested nodes as well.
-			//       Consider a flag or a new function.
-			aux = envoyx.NodesForResourceType(ref.ResourceType, aux...)
-			if len(aux) == 0 {
-				return nil, fmt.Errorf("invalid reference %v", ref)
-			}
-			if len(aux) > 1 {
-				return nil, fmt.Errorf("ambiguous reference: too many resources returned %v", a.f)
-			}
-
-			auxr[field] = aux[0]
-			auxa[field] = aux[0].ToRef()
-		}
-
-		refNodes[i] = auxr
-		refRefs[i] = auxa
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to decode node references")
+		return
 	}
 
-	var aux envoyx.NodeSet
-	for i, wf := range wrappedFilters {
-		switch wf.rt {
-		case types.ApplicationResourceType:
-			aux, err = d.decodeApplication(ctx, s, dl, d.makeApplicationFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+	err = func() (err error) {
+		var aux envoyx.NodeSet
+		for i, wf := range wrappedFilters {
+			switch wf.rt {
+			case types.ApplicationResourceType:
+				aux, err = d.decodeApplication(ctx, s, dl, d.makeApplicationFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.ApigwRouteResourceType:
-			aux, err = d.decodeApigwRoute(ctx, s, dl, d.makeApigwRouteFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.ApigwRouteResourceType:
+				aux, err = d.decodeApigwRoute(ctx, s, dl, d.makeApigwRouteFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.ApigwFilterResourceType:
-			aux, err = d.decodeApigwFilter(ctx, s, dl, d.makeApigwFilterFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.ApigwFilterResourceType:
+				aux, err = d.decodeApigwFilter(ctx, s, dl, d.makeApigwFilterFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.AuthClientResourceType:
-			aux, err = d.decodeAuthClient(ctx, s, dl, d.makeAuthClientFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.AuthClientResourceType:
+				aux, err = d.decodeAuthClient(ctx, s, dl, d.makeAuthClientFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.QueueResourceType:
-			aux, err = d.decodeQueue(ctx, s, dl, d.makeQueueFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.QueueResourceType:
+				aux, err = d.decodeQueue(ctx, s, dl, d.makeQueueFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.ReportResourceType:
-			aux, err = d.decodeReport(ctx, s, dl, d.makeReportFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.ReportResourceType:
+				aux, err = d.decodeReport(ctx, s, dl, d.makeReportFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.RoleResourceType:
-			aux, err = d.decodeRole(ctx, s, dl, d.makeRoleFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.RoleResourceType:
+				aux, err = d.decodeRole(ctx, s, dl, d.makeRoleFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.TemplateResourceType:
-			aux, err = d.decodeTemplate(ctx, s, dl, d.makeTemplateFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.TemplateResourceType:
+				aux, err = d.decodeTemplate(ctx, s, dl, d.makeTemplateFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.UserResourceType:
-			aux, err = d.decodeUser(ctx, s, dl, d.makeUserFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.UserResourceType:
+				aux, err = d.decodeUser(ctx, s, dl, d.makeUserFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.DalConnectionResourceType:
-			aux, err = d.decodeDalConnection(ctx, s, dl, d.makeDalConnectionFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.DalConnectionResourceType:
+				aux, err = d.decodeDalConnection(ctx, s, dl, d.makeDalConnectionFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		case types.DalSensitivityLevelResourceType:
-			aux, err = d.decodeDalSensitivityLevel(ctx, s, dl, d.makeDalSensitivityLevelFilter(scopedNodes[i], refNodes[i], wf.f))
-			if err != nil {
-				return
-			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
+			case types.DalSensitivityLevelResourceType:
+				aux, err = d.decodeDalSensitivityLevel(ctx, s, dl, d.makeDalSensitivityLevelFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 
-		default:
-			aux, err = d.extendDecoder(ctx, s, dl, wf.rt, refNodes[i], wf.f)
-			if err != nil {
-				return
+			default:
+				aux, err = d.extendDecoder(ctx, s, dl, wf.rt, refNodes[i], wf.f)
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
 			}
-			for _, a := range aux {
-				a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
-				a.References = envoyx.MergeRefs(a.References, refRefs[i])
-			}
-			out = append(out, aux...)
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to decode filters")
+		return
 	}
 
 	return

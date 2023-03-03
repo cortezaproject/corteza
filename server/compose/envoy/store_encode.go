@@ -2,7 +2,6 @@ package envoy
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/compose/service"
@@ -10,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/pkg/errors"
 )
 
 func (e StoreEncoder) encode(ctx context.Context, p envoyx.EncodeParams, s store.Storer, rt string, nn envoyx.NodeSet, tree envoyx.Traverser) (err error) {
@@ -177,15 +177,16 @@ func (e StoreEncoder) encodeModuleExtendSubResources(ctx context.Context, p envo
 }
 
 func (e *StoreEncoder) grabDal(p envoyx.EncodeParams) (dl dal.FullService, err error) {
-	auxs, ok := p.Params["dal"]
+	auxs, ok := p.Params[paramsKeyDAL]
 	if !ok {
-		err = fmt.Errorf("dal not defined")
+		err = errors.Errorf("store encoder expects a dal conforming to dal.FullService interface")
 		return
 	}
 
 	dl, ok = auxs.(dal.FullService)
 	if !ok {
-		err = fmt.Errorf("invalid dal provided")
+		err = errors.Errorf("store encoder expects a dal conforming to dal.FullService interface")
+
 		return
 	}
 

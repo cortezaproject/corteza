@@ -8,11 +8,12 @@ package envoyx
 
 import (
 	"fmt"
+	"strings"
+
 	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	federationTypes "github.com/cortezaproject/corteza/server/federation/types"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
-	"strings"
 )
 
 // Parse generates resource setting logic for each resource
@@ -43,6 +44,12 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		if path[p] != "*" && path[p-1] == "*" {
 			return "", nil, nil, fmt.Errorf("invalid path wildcard combination for '%s'", res)
 		}
+	}
+
+	// @todo this is to support res. tr. resources also.
+	//       Split it into a separate function and remove this.
+	if !strings.HasPrefix(resourceType, "corteza::") {
+		resourceType = "corteza::" + resourceType
 	}
 
 	// make the resource provide the slice of parent resources we should nest under

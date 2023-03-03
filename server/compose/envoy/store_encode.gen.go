@@ -16,6 +16,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/pkg/errors"
 )
 
 type (
@@ -24,6 +25,11 @@ type (
 	//
 	// @todo consider having a different encoder for the DAL resources
 	StoreEncoder struct{}
+)
+
+const (
+	paramsKeyStorer = "storer"
+	paramsKeyDAL    = "dal"
 )
 
 // Prepare performs some initial processing on the resource before it can be encoded
@@ -120,6 +126,7 @@ func (e StoreEncoder) prepareChart(ctx context.Context, p envoyx.EncodeParams, s
 	existing := make(map[int]types.Chart, len(nn))
 	err = e.matchupCharts(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing Charts")
 		return
 	}
 
@@ -148,7 +155,7 @@ func (e StoreEncoder) prepareChart(ctx context.Context, p envoyx.EncodeParams, s
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -205,28 +212,36 @@ func (e StoreEncoder) encodeCharts(ctx context.Context, p envoyx.EncodeParams, s
 func (e StoreEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Flush to the DB
 	err = store.UpsertComposeChart(ctx, s, n.Resource.(*types.Chart))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert Chart")
 		return
 	}
 
@@ -235,12 +250,20 @@ func (e StoreEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, s 
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
+			}
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	return
@@ -306,6 +329,7 @@ func (e StoreEncoder) prepareModule(ctx context.Context, p envoyx.EncodeParams, 
 	existing := make(map[int]types.Module, len(nn))
 	err = e.matchupModules(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing Modules")
 		return
 	}
 
@@ -334,7 +358,7 @@ func (e StoreEncoder) prepareModule(ctx context.Context, p envoyx.EncodeParams, 
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -391,28 +415,36 @@ func (e StoreEncoder) encodeModules(ctx context.Context, p envoyx.EncodeParams, 
 func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Flush to the DB
 	err = store.UpsertComposeModule(ctx, s, n.Resource.(*types.Module))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert Module")
 		return
 	}
 
@@ -423,29 +455,39 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 
 	nested := make(envoyx.NodeSet, 0, 10)
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
-		case types.ModuleFieldResourceType:
-			err = e.encodeModuleFields(ctx, p, s, nn, tree)
-			if err != nil {
-				return
+			case types.ModuleFieldResourceType:
+				err = e.encodeModuleFields(ctx, p, s, nn, tree)
+				if err != nil {
+					return
+				}
+
+				nested = append(nested, nn...)
+
 			}
-
-			nested = append(nested, nn...)
-
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	err = e.encodeModuleExtend(ctx, p, s, n, nested, tree)
 	if err != nil {
+		err = errors.Wrap(err, "post encode logic failed with errors")
 		return
 	}
 
 	err = e.encodeModuleExtendSubResources(ctx, p, s, n, tree)
 	if err != nil {
+		err = errors.Wrap(err, "failed to encode extended sub resources")
 		return
 	}
 
@@ -512,6 +554,7 @@ func (e StoreEncoder) prepareModuleField(ctx context.Context, p envoyx.EncodePar
 	existing := make(map[int]types.ModuleField, len(nn))
 	err = e.matchupModuleFields(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing ModuleFields")
 		return
 	}
 
@@ -540,7 +583,7 @@ func (e StoreEncoder) prepareModuleField(ctx context.Context, p envoyx.EncodePar
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -597,23 +640,30 @@ func (e StoreEncoder) encodeModuleFields(ctx context.Context, p envoyx.EncodePar
 func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Custom resource sanitization before saving.
@@ -623,6 +673,7 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 	// Flush to the DB
 	err = store.UpsertComposeModuleField(ctx, s, n.Resource.(*types.ModuleField))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert ModuleField")
 		return
 	}
 
@@ -631,12 +682,20 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
+			}
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	return
@@ -702,6 +761,7 @@ func (e StoreEncoder) prepareNamespace(ctx context.Context, p envoyx.EncodeParam
 	existing := make(map[int]types.Namespace, len(nn))
 	err = e.matchupNamespaces(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing Namespaces")
 		return
 	}
 
@@ -730,7 +790,7 @@ func (e StoreEncoder) prepareNamespace(ctx context.Context, p envoyx.EncodeParam
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -787,28 +847,36 @@ func (e StoreEncoder) encodeNamespaces(ctx context.Context, p envoyx.EncodeParam
 func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Flush to the DB
 	err = store.UpsertComposeNamespace(ctx, s, n.Resource.(*types.Namespace))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert Namespace")
 		return
 	}
 
@@ -817,30 +885,38 @@ func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
-		case types.ChartResourceType:
-			err = e.encodeCharts(ctx, p, s, nn, tree)
-			if err != nil {
-				return
+			case types.ChartResourceType:
+				err = e.encodeCharts(ctx, p, s, nn, tree)
+				if err != nil {
+					return
+				}
+
+			case types.ModuleResourceType:
+				err = e.encodeModules(ctx, p, s, nn, tree)
+				if err != nil {
+					return
+				}
+
+			case types.PageResourceType:
+				err = e.encodePages(ctx, p, s, nn, tree)
+				if err != nil {
+					return
+				}
+
 			}
-
-		case types.ModuleResourceType:
-			err = e.encodeModules(ctx, p, s, nn, tree)
-			if err != nil {
-				return
-			}
-
-		case types.PageResourceType:
-			err = e.encodePages(ctx, p, s, nn, tree)
-			if err != nil {
-				return
-			}
-
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	return
@@ -906,6 +982,7 @@ func (e StoreEncoder) preparePage(ctx context.Context, p envoyx.EncodeParams, s 
 	existing := make(map[int]types.Page, len(nn))
 	err = e.matchupPages(ctx, s, existing, nn)
 	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing Pages")
 		return
 	}
 
@@ -934,7 +1011,7 @@ func (e StoreEncoder) preparePage(ctx context.Context, p envoyx.EncodeParams, s 
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = fmt.Errorf("resource already exists")
+				err = fmt.Errorf("resource %v already exists, n.Identifiers.Slice")
 				return
 
 			case envoyx.OnConflictReplace:
@@ -991,28 +1068,36 @@ func (e StoreEncoder) encodePages(ctx context.Context, p envoyx.EncodeParams, s 
 func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("missing node for ref %v", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("related resource doesn't provide an ID")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to set dependency references")
+		return
 	}
 
 	// Flush to the DB
 	err = store.UpsertComposePage(ctx, s, n.Resource.(*types.Page))
 	if err != nil {
+		err = errors.Wrap(err, "failed to upsert Page")
 		return
 	}
 
@@ -1021,12 +1106,20 @@ func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s s
 	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
 	//       the root function calls?
 
-	for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
-		nn = envoyx.OmitPlaceholderNodes(nn...)
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
 
-		switch rt {
+			switch rt {
 
+			}
 		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
 	}
 
 	return
@@ -1080,15 +1173,15 @@ func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[i
 // // // // // // // // // // // // // // // // // // // // // // // // //
 
 func (e *StoreEncoder) grabStorer(p envoyx.EncodeParams) (s store.Storer, err error) {
-	auxs, ok := p.Params["storer"]
+	auxs, ok := p.Params[paramsKeyStorer]
 	if !ok {
-		err = fmt.Errorf("storer not defined")
+		err = errors.Errorf("store encoder expects a store conforming to store.Storer interface")
 		return
 	}
 
 	s, ok = auxs.(store.Storer)
 	if !ok {
-		err = fmt.Errorf("invalid storer provided")
+		err = errors.Errorf("store encoder expects a store conforming to store.Storer interface")
 		return
 	}
 
@@ -1109,6 +1202,5 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	}
 
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
-
 	return
 }
