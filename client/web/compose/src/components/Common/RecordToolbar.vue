@@ -1,7 +1,7 @@
 <template>
   <b-container
     fluid
-    :class="{'shadow border-top': !showRecordModal}"
+    :class="{ 'shadow border-top': !showRecordModal }"
     class="bg-white p-3"
   >
     <b-row
@@ -62,7 +62,6 @@
       >
         <template
           v-if="module"
-          class="d-flex wrap-with-vertical-gutters align-items-center"
         >
           <c-input-confirm
             v-if="(isCreated && !settings.hideDelete && !isDeleted)"

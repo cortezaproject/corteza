@@ -515,13 +515,14 @@
       #footer
     >
       <b-container
-        ref="footer"
         fluid
         class="m-0 p-2"
-        :class="showingDeletedRecords ? 'bg-warning' : ''"
       >
-        <b-row no-gutters>
-          <b-col class="d-flex justify-content-between align-items-center">
+        <b-row
+          align-v="stretch"
+          no-gutters
+        >
+          <b-col class="d-flex align-items-center justify-content-start">
             <div class="text-truncate">
               <div
                 v-if="options.showTotalCount"
@@ -541,7 +542,12 @@
                 </span>
               </div>
             </div>
+          </b-col>
 
+          <b-col
+            class="d-flex align-items-center justify-content-end"
+            :class="{ 'justify-content-center': options.showDeletedRecordsOption }"
+          >
             <div
               v-if="showPageNavigation"
             >
@@ -612,16 +618,19 @@
                 </b-button>
               </b-button-group>
             </div>
+          </b-col>
 
-            <div v-if="options.showDeletedRecordsOption">
-              <b-button
-                variant="light"
-                class="mx-2 text-nowrap"
-                @click="handleShowDeleted()"
-              >
-                {{ showingDeletedRecords ? $t('recordList.showRecords.existing') : $t('recordList.showRecords.deleted') }}
-              </b-button>
-            </div>
+          <b-col
+            v-if="options.showDeletedRecordsOption"
+            class="d-flex align-items-center justify-content-end"
+          >
+            <b-button
+              variant="outline-light"
+              class="text-primary border-0 text-nowrap"
+              @click="handleShowDeleted()"
+            >
+              {{ showingDeletedRecords ? $t('recordList.showRecords.existing') : $t('recordList.showRecords.deleted') }}
+            </b-button>
           </b-col>
         </b-row>
       </b-container>
