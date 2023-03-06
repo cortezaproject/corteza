@@ -24,7 +24,11 @@ var DefaultMatchTimeout = time.Duration(math.MaxInt64)
 // Regexp is the representation of a compiled regular expression.
 // A Regexp is safe for concurrent use by multiple goroutines.
 type Regexp struct {
-	//timeout when trying to find matches
+	// A match will time out if it takes (approximately) more than
+	// MatchTimeout. This is a safety check in case the match
+	// encounters catastrophic backtracking.  The default value
+	// (DefaultMatchTimeout) causes all time out checking to be
+	// suppressed.
 	MatchTimeout time.Duration
 
 	// read-only after Compile
@@ -121,6 +125,7 @@ const (
 	Debug                                = 0x0080 // "d"
 	ECMAScript                           = 0x0100 // "e"
 	RE2                                  = 0x0200 // RE2 (regexp package) compatibility mode
+	Unicode                              = 0x0400 // "u"
 )
 
 func (re *Regexp) RightToLeft() bool {

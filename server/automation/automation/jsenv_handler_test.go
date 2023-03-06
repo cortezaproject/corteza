@@ -145,6 +145,45 @@ func Test_jsenvHandler(t *testing.T) {
 					Source:    `const b = readRequestBody(input); return b - 1;`,
 				},
 			},
+			{
+				name: "jsenv handler arrow function",
+				exp: &exp{
+					s: ``,
+					i: 41,
+				},
+				params: &jsenvExecuteArgs{
+					hasScope:  true,
+					hasSource: true,
+					Scope:     mustAny(expr.NewAny([]int{39, 2})),
+					Source:    `const foo = (a, b) => { return a + b; }; return foo(input[0], input[1]);`,
+				},
+			},
+			{
+				name: "jsenv handler chaining",
+				exp: &exp{
+					s: ``,
+					i: 102,
+				},
+				params: &jsenvExecuteArgs{
+					hasScope:  true,
+					hasSource: true,
+					Scope:     mustAny(expr.NewAny([]map[string]int{{"foo": 100}, {"foo": 2}})),
+					Source:    `return input.map((a) => a.foo).reduce((acc, val) => acc + val, 0);`,
+				},
+			},
+			{
+				name: "jsenv handler optional chaining",
+				exp: &exp{
+					s: ``,
+					i: 100,
+				},
+				params: &jsenvExecuteArgs{
+					hasScope:  true,
+					hasSource: true,
+					Scope:     mustAny(expr.NewAny(map[string]int{"foo": 100})),
+					Source:    `return input.bar?.baz || input.foo || 13`,
+				},
+			},
 		}
 	)
 
