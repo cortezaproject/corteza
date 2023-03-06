@@ -8,7 +8,7 @@
         label="name"
         class="namespace-selector sticky-top bg-white mt-2"
         :clearable="false"
-        :options="namespaces"
+        :options="filteredNamespaces"
         :value="namespace"
         :selectable="option => option.namespaceID !== namespace.namespaceID"
         :placeholder="$t('pickNamespace')"
@@ -250,6 +250,10 @@ export default {
       }
 
       return []
+    },
+
+    filteredNamespaces () {
+      return this.namespaces.filter(({ enabled }) => enabled)
     },
 
     navItems () {
