@@ -1,6 +1,7 @@
 <template>
   <div
     :class="{ 'text-center': inConfirmation }"
+    class="d-inline-block"
   >
     <template v-if="!inConfirmation">
       <b-button
