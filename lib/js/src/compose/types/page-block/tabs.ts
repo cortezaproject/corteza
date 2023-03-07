@@ -6,6 +6,8 @@ interface Style {
   appearance: string;
   alignment: string;
   fillJustify: string;
+  orientation: string;
+  position: string;
 }
 
 interface Tab {
@@ -21,8 +23,10 @@ interface Options {
 const defaults: Readonly<Options> = Object.freeze({
   style: {
     appearance: 'tabs',
-    alignment: 'left',
-    fillJustify: 'none',
+    alignment: 'center',
+    fillJustify: 'justify',
+    orientation: 'horizontal',
+    position: 'start',
   },
   tabs: [],
 })
@@ -45,7 +49,7 @@ export class PageBlockTab extends PageBlock {
     }
 
     if (o.style) {
-      this.options.style = o.style
+      this.options.style = { ...this.options.style, ...o.style }
     }
   }
 }

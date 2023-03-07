@@ -17,14 +17,14 @@ interface Options {
 }
 
 const defaults: Readonly<Options> = Object.freeze({
-  chartID: NoID,
+  chartID: '',
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
   drillDown: {
     enabled: false,
-    blockID: '',
-  },
+    blockID: ''
+  }
 })
 
 export class PageBlockChart extends PageBlock {

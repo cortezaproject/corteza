@@ -108,6 +108,7 @@
                 :icon="['far', 'copy']"
               />
             </b-button>
+
             <c-input-confirm
               class="ml-1"
               size="md"
@@ -149,7 +150,7 @@
       :visible="showCreator"
       body-class="p-0 border-top-0"
       header-class="p-3 pb-0 border-bottom-0"
-      @ok="$event => updateBlocks()"
+      @ok="updateBlocks()"
       @hide="editor = undefined"
     >
       <configurator
@@ -195,7 +196,6 @@
         <div>
           <b-button
             variant="link"
-            size="md"
             :title="$t('label.cancel')"
             class="text-decoration-none"
             @click="cancel()"
@@ -205,7 +205,6 @@
 
           <b-button
             variant="primary"
-            size="md"
             :title="$t('label.saveAndClose')"
             @click="updateBlocks()"
           >
@@ -221,6 +220,7 @@
         :hide-delete="hideDelete"
         :hide-save="!page.canUpdatePage"
         :disable-clone="disableClone"
+        :disable-save="processing"
         :clone-tooltip="cloneTooltip"
         @save="handleSave()"
         @delete="handleDeletePage"
@@ -275,7 +275,7 @@ import PageBlock from 'corteza-webapp-compose/src/components/PageBlocks'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import Configurator from 'corteza-webapp-compose/src/components/PageBlocks/Configurator'
-import { fetchID } from 'corteza-webapp-compose/src/lib/tabs.js'
+import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
 
 export default {
   i18nOptions: {
@@ -309,12 +309,12 @@ export default {
 
   data () {
     return {
+      processing: false,
+
       editor: undefined,
       page: undefined,
       blocks: [],
-      board: null,
       unsavedBlocks: new Set(),
-      id: null,
     }
   },
 
@@ -501,27 +501,17 @@ export default {
     },
 
     deleteBlock (index) {
-      /**
-       * If the block is tabbed, we need to remove it from the tabs when it is deleted.
-       * We find where it is tabbed then remove it from its tabs.
-       * We don't bother checking if it is actually tabbed because you cannot delete a
-       * manually tabed block that is not added to a Tabs block.
-       */
-      if (this.blocks[index].meta.tabbed) {
-        const whereIsItTabbed = this.blocks.filter((block) => block.kind === 'Tabs' && block.options.tabs.some(({ blockID }) => blockID === fetchID(this.blocks[index])))
-        whereIsItTabbed.forEach((block) => {
+      // If the deleted block is hidden, we need to remove it from the related tabs blocks if it is tabbed.
+      if (this.blocks[index].meta.hidden) {
+        this.blocks.forEach((block) => {
+          if (block.kind !== 'Tabs' || !block.options.tabs.some(({ blockID }) => blockID === fetchID(this.blocks[index]))) return
           block.options.tabs = block.options.tabs.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
         })
       }
 
-      /**
-       * First we get all the tabs that are tabbed in other Tabs blocks.
-       * The reduce eliminates duplicates as we only need reps of what  is tabbed
-       * We check what needs to be freed by comparing allTabs to the tabs of the block
-       * being deleted.
-       */
+      // Changes meta.hidden property to false, for all blocks that were tabbed only in the deleted block
       if (this.blocks[index].kind === 'Tabs') {
-        const allTabs = this.blocks.filter((block) => block.kind === 'Tabs' && fetchID(block) !== fetchID(this.blocks[index]))
+        const tabbedBlocks = this.blocks.filter((block) => block.kind === 'Tabs' && fetchID(block) !== fetchID(this.blocks[index]))
           .map(({ options }) => options.tabs).flat().reduce((unique, o) => {
             if (!unique.some(tab => tab.blockID === o.blockID)) {
               unique.push(o)
@@ -529,9 +519,12 @@ export default {
             return unique
           }, []).map(({ blockID }) => blockID)
 
-        const tobefreed = this.blocks[index].options.tabs.filter(({ blockID }) => !allTabs.includes(blockID))
-        tobefreed.forEach(({ blockID }) => {
-          this.blocks.find((b) => fetchID(b) === blockID).meta.tabbed = false
+        this.blocks[index].options.tabs.forEach(({ blockID }) => {
+          if (tabbedBlocks.includes(blockID)) return
+          const index = this.blocks.findIndex((b) => fetchID(b) === blockID)
+          if (index === -1) return
+          this.blocks[index].meta.hidden = false
+          this.calculateNewBlockPosition(this.blocks[index])
         })
       }
 
@@ -550,10 +543,6 @@ export default {
       this.unsavedBlocks.add(index)
     },
 
-    generateUID () {
-      return Math.random().toString(36).substring(2) + (new Date()).getTime().toString(36)
-    },
-
     updateBlocks (block = this.editor.block) {
       block = compose.PageBlockMaker(block)
       this.page.blocks = this.blocks
@@ -561,17 +550,17 @@ export default {
       if (this.editor.index !== undefined) {
         const oldBlock = this.blocks[this.editor.index]
 
-        if (oldBlock.meta.tabbed === true && this.editor.block.meta.tabbed === false) {
+        if (oldBlock.meta.hidden === true && this.editor.block.meta.hidden === false) {
           this.untabBlock(this.editor.block)
+          this.calculateNewBlockPosition(block)
         }
 
         if (this.editor.block.kind !== block.kind) {
           this.page.blocks.push(block)
-          const tab = {
+          this.$root.$emit('builder-createRequestFulfilled', {
             blockID: fetchID(block),
             title: block.title,
-          }
-          this.$root.$emit('builder-createRequestFulfilled', { tab })
+          })
         } else {
           this.page.blocks.splice(this.editor.index, 1, block)
           this.unsavedBlocks.add(this.editor.index)
@@ -582,9 +571,9 @@ export default {
       }
 
       if (block.kind === 'Tabs') {
-        block.options.tabs = block.options.tabs.filter(t => t.blockID !== null)
         block.options.tabs.forEach((tab) => {
-          this.page.blocks.find(b => fetchID(b) === tab.blockID).meta.tabbed = true
+          if (!tab.blockID) return
+          this.page.blocks.find(b => fetchID(b) === tab.blockID).meta.hidden = true
         })
       }
 
@@ -594,26 +583,32 @@ export default {
     },
 
     cloneBlock (index) {
-      this.appendBlock({ ...this.blocks[index].clone() }, this.$t('notification:page.cloneSuccess'))
+      this.appendBlock(this.blocks[index].clone(), this.$t('notification:page.cloneSuccess'))
     },
 
     appendBlock (block, msg) {
-      if (this.blocks.length) {
-        // ensuring we append the block to the end of the page
-        // eslint-disable-next-line
-          const maxY = this.blocks.map((block) => block.xywh[1]).reduce((acc, val) => {
-          return acc > val ? acc : val
-        }, 0)
-        block.xywh = [0, maxY + 2, 3, 3]
-      }
+      this.calculateNewBlockPosition(block)
+
       this.editor = { index: undefined, block: compose.PageBlockMaker(block) }
       this.updateBlocks()
+
       if (!this.editor) {
         msg && this.toastSuccess(msg)
         return true
       } else {
         msg && this.toastErrorHandler(this.$t('notification:page.duplicateFailed'))
         return false
+      }
+    },
+
+    calculateNewBlockPosition (block) {
+      if (this.blocks.length) {
+        // ensuring we append the block to the end of the page
+        // eslint-disable-next-line
+          const maxY = this.blocks.filter(({ meta }) => !meta.hidden).map((block) => block.xywh[1]).reduce((acc, val) => {
+          return acc > val ? acc : val
+        }, 0)
+        block.xywh = [0, maxY + 2, 3, 3]
       }
     },
 
@@ -645,48 +640,27 @@ export default {
         return
       }
 
+      this.processing = true
+
       this.findPageByID({ namespaceID, pageID: this.pageID, force: true })
         .then(page => {
           // Merge changes
           const mergedPage = new compose.Page({ namespaceID, ...page, blocks: this.blocks })
 
-          this.updatePage(mergedPage).then((page) => {
-            // get the Tabs Block that still has tabs with tempIDs
-            const tabsWithTempIDs = this.page.blocks.filter(b => b.kind === 'Tabs').filter(b => b.options.tabs.some(t => t.blockID.startsWith('tempID-')))
-
-            if (!tabsWithTempIDs.length) return page
-
-            page.blocks.forEach(b => {
-              if (b.kind !== 'Tabs') return
-
-              tabsWithTempIDs.find(t => t.meta.tempID === b.meta.tempID).options.tabs.forEach((t, j) => {
-                if (!t.blockID.startsWith('tempID-')) return false
-
-                // find a block with the same tempID that should be updated by now and get its blockID
-                const updatedBlock = page.blocks.find(block => block.meta.tempID === t.blockID)
-
-                if (!updatedBlock) return false
-
-                const tab = {
-                  // fetchID gets the blockID using the found block
-                  blockID: fetchID(updatedBlock),
-                  title: updatedBlock.title,
-                }
-                b.options.tabs.splice(j, 1, tab)
-              })
-            })
-            return this.updatePage(page)
-          }).then((page) => {
-            this.unsavedBlocks.clear()
-            this.toastSuccess(this.$t('notification:page.saved'))
-            if (closeOnSuccess) {
-              this.$router.push({ name: 'admin.pages' })
-            } else if (previewOnSuccess) {
-              this.$router.push({ name: 'page', params: { pageID: this.pageID } })
-            }
-            this.page = new compose.Page(page)
-          }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
+          return this.updatePage(mergedPage).then(this.updateTabbedBlockIDs)
+        }).then((page) => {
+          this.unsavedBlocks.clear()
+          this.toastSuccess(this.$t('notification:page.saved'))
+          if (closeOnSuccess) {
+            this.$router.push({ name: 'admin.pages' })
+          } else if (previewOnSuccess) {
+            this.$router.push({ name: 'page', params: { pageID: this.pageID } })
+          }
+          this.page = new compose.Page(page)
+        }).finally(() => {
+          this.processing = false
         })
+        .catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 
     validateModuleFieldSelection (module, page) {
@@ -734,8 +708,20 @@ export default {
     },
 
     async copyBlock (index) {
-      const parsedBlock = JSON.stringify(this.blocks[index].clone())
-      navigator.clipboard.writeText(parsedBlock).then(() => {
+      const block = JSON.stringify(this.blocks[index].clone())
+
+      // Change tabbed blockID to use tempID's since they are persisted on save
+      if (block.kind === 'Tabs') {
+        const { tabs = [] } = block.options
+
+        block.options.tabs = tabs.map(b => {
+          const { tempID } = (this.blocks.find(({ blockID }) => blockID === b.blockID) || {}).meta || {}
+          b.blockID = tempID
+          return b
+        })
+      }
+
+      navigator.clipboard.writeText(block).then(() => {
         this.toastSuccess(this.$t('notification:page.copySuccess'))
         this.toastInfo(this.$t('notification:page.blockWaiting'))
         this.$refs.pageBuilder.focus()

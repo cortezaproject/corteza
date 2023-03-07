@@ -13,9 +13,9 @@
       :row-height="50"
       :is-resizable="!!editable"
       :is-draggable="!!editable"
+      :responsive="!editable"
       :cols="columnNumber"
       :margin="[0, 0]"
-      :responsive="!editable"
       :use-css-transforms="false"
       @layout-updated="handleLayoutUpdate"
     >
@@ -23,7 +23,7 @@
         v-for="(item, index) in gridCollection"
       >
         <grid-item
-          v-if="blocks[item.i].meta.tabbed !== true"
+          v-if="!blocks[item.i].meta.hidden"
           :key="item.i"
           ref="items"
           class="grid-item"
@@ -161,7 +161,10 @@ export default {
       deep: true,
       handler (blocks) {
         if (blocks.length === 0) this.$emit('change', [])
-        this.grid = blocks.map(({ xywh: [x, y, w, h] }, i) => ({ i, x, y, w, h }))
+        this.grid = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
+          // To avoid collision with hidden elements
+          return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
+        })
       },
     },
   },

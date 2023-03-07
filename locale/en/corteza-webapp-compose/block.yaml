@@ -123,8 +123,8 @@ general:
     modal: Modal
     fullscreen: Fullscreen
   wrap: Display block as a card
-  tabbed: 
-    label: Tabbed
+  hidden:
+    label: Hidden
   refresh:
     label: Refresh
     auto: Auto refresh
@@ -701,34 +701,39 @@ tabs:
   alertTitle: Set a title for your block
   title: Tabs
   addTab: + Add
+  tab: Tab
   selectBlock: Choose a block
-  noTabs: No tabs have been made
-  noTabsBase: No tabs have been made yet
+  noTabs: No tabs configured
+  noBlock: No block configured
   displayTitle: Display Options
   preview: Live example
   newBlockModal: Add new block
-  form:
-    title: Set a title for your tab
-    placeholder: Tab a block
+  placeholder:
+    block: Select a block to tab
   style:
     appearance:
+      label: Appearance
       tabs: Tabs
       pills: Pills
       small: Small
     alignment:
+      label: Alignment
       left: Left
       center: Center
       right: Right
     fillJustify:
+      label: Fill or Justify
       fill: Fill
-      justified: Justify
+      justify: Justify
       none: None
-    verticalHorizontal:
+    orientation:
+      label: Orientation
       vertical: Vertical
       horizontal: Horizontal
-    tabPosition:
-      top: Top
-      bottom: Bottom
+    position:
+      label: Position
+      start: Start
+      end: End
   table:
     columns:
       title:
@@ -737,13 +742,8 @@ tabs:
         label: Block
   tooltip:
     edit: Edit block
-    changeTab: Change tab
+    editDisabled: Editing tabbed blocks is disabled until you save this block
     addTab: Add tab
-    cancel: Switch to view mode
-    newBlock: Add new block
+    addBlock: Add new block
     delete: Delete tab
-    selectBlock: Select a block to tab
-    move: Move tab
-    title: Tab title
-    tabCondition: You can't make tabs until you add this block
   label: Tabs

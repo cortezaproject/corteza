@@ -7,7 +7,6 @@
         <vue-select
           v-model="block.options.chartID"
           :options="charts"
-          :clearable="true"
           :placeholder="$t('chart.pick')"
           :reduce="option => option.chartID"
           label="name"
