@@ -27,6 +27,10 @@ export default {
       ]
     },
 
+    isAdmin () {
+      return this.$route.name.startsWith('admin')
+    },
+
     isBlockOpened () {
       return this.block.blockID === this.$route.query.blockID
     },

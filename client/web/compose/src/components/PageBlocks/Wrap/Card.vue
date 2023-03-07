@@ -44,6 +44,7 @@
                 :title="isBlockOpened ? '' : $t('general.label.magnify')"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
+                :style="isAdmin ? { 'cursor': 'default', 'background' : 'transparent', 'box-shadow' : 'none' } : {}"
                 @click="$root.$emit('magnify-page-block', isBlockOpened ? undefined : { blockID: block.blockID })"
               >
                 <font-awesome-icon :icon="['fas', isBlockOpened ? 'times' : 'search-plus']" />
