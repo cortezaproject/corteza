@@ -68,9 +68,7 @@ func (mo *mapObject) export(ctx *objectExportCtx) interface{} {
 }
 
 func (mo *mapObject) exportToMap(dst reflect.Value, typ reflect.Type, ctx *objectExportCtx) error {
-	if dst.IsNil() {
-		dst.Set(reflect.MakeMap(typ))
-	}
+	dst.Set(reflect.MakeMap(typ))
 	ctx.putTyped(mo.val, typ, dst.Interface())
 	keyTyp := typ.Key()
 	elemTyp := typ.Elem()
@@ -202,7 +200,7 @@ func (r *Runtime) builtin_newMap(args []Value, newTarget *Object) *Object {
 	o := &Object{runtime: r}
 
 	mo := &mapObject{}
-	mo.class = classMap
+	mo.class = classObject
 	mo.val = o
 	mo.extensible = true
 	o.self = mo
@@ -211,6 +209,10 @@ func (r *Runtime) builtin_newMap(args []Value, newTarget *Object) *Object {
 	if len(args) > 0 {
 		if arg := args[0]; arg != nil && arg != _undefined && arg != _null {
 			adder := mo.getStr("set", nil)
+			adderFn := toMethod(adder)
+			if adderFn == nil {
+				panic(r.NewTypeError("Map.set in missing"))
+			}
 			iter := r.getIterator(arg, nil)
 			i0 := valueInt(0)
 			i1 := valueInt(1)
@@ -222,10 +224,6 @@ func (r *Runtime) builtin_newMap(args []Value, newTarget *Object) *Object {
 					mo.m.set(k, v)
 				})
 			} else {
-				adderFn := toMethod(adder)
-				if adderFn == nil {
-					panic(r.NewTypeError("Map.set in missing"))
-				}
 				iter.iterate(func(item Value) {
 					itemObj := r.toObject(item)
 					k := itemObj.self.getIdx(i0, nil)
@@ -251,11 +249,11 @@ func (r *Runtime) createMapIterator(mapValue Value, kind iterationKind) Value {
 		iter: mapObj.m.newIter(),
 		kind: kind,
 	}
-	mi.class = classMapIterator
+	mi.class = classObject
 	mi.val = o
 	mi.extensible = true
 	o.self = mi
-	mi.prototype = r.global.MapIteratorPrototype
+	mi.prototype = r.getMapIteratorPrototype()
 	mi.init()
 
 	return o
@@ -305,11 +303,21 @@ func (r *Runtime) createMap(val *Object) objectImpl {
 }
 
 func (r *Runtime) createMapIterProto(val *Object) objectImpl {
-	o := newBaseObjectObj(val, r.global.IteratorPrototype, classObject)
+	o := newBaseObjectObj(val, r.getIteratorPrototype(), classObject)
 
 	o._putProp("next", r.newNativeFunc(r.mapIterProto_next, nil, "next", nil, 0), true, false, true)
 	o._putSym(SymToStringTag, valueProp(asciiString(classMapIterator), false, false, true))
 
+	return o
+}
+
+func (r *Runtime) getMapIteratorPrototype() *Object {
+	var o *Object
+	if o = r.global.MapIteratorPrototype; o == nil {
+		o = &Object{runtime: r}
+		r.global.MapIteratorPrototype = o
+		o.self = r.createMapIterProto(o)
+	}
 	return o
 }
 

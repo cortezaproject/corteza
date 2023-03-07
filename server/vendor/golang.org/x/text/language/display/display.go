@@ -85,7 +85,7 @@ func Script(script interface{}) Formatter {
 	return Formatter{scriptFunc, script}
 }
 
-// Script returns a Formatter that renders the name for tag in the current
+// Tag returns a Formatter that renders the name for tag in the current
 // language. tag may be a language.Tag.
 // It renders tag in the default language if no translation for the current
 // language is supported.
