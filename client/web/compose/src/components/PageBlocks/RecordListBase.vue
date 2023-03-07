@@ -112,8 +112,8 @@
         </div>
 
         <div
-          v-if="options.selectable && selected.length"
-          class="d-flex align-items-center mt-1"
+          class="d-none flex-wrap align-items-center mt-1"
+          :class="{ 'd-flex': options.selectable && selected.length }"
         >
           <div
             class="d-flex align-items-baseline my-auto pt-1 text-nowrap h-100"
@@ -128,9 +128,9 @@
             </b-button>
           </div>
 
-          <div class="d-flex align-items-center ml-auto mr-2">
+          <div class="d-flex align-items-center ml-auto">
             <automation-buttons
-              class="d-inline m-0"
+              class="d-inline m-0 mr-2"
               :buttons="options.selectionButtons"
               :module="recordListModule"
               :extra-event-args="{ selected, filter }"
@@ -139,18 +139,17 @@
             />
 
             <bulk-edit-modal
-              v-if="options.bulkRecordEditEnabled && canUpdateSelectedRecords"
+              v-show="options.bulkRecordEditEnabled && canUpdateSelectedRecords"
               :module="recordListModule"
               :namespace="namespace"
               :selected-records="selected"
-              class="ml-1"
+              @save="onBulkUpdate()"
             />
 
             <template v-if="canDeleteSelectedRecords && !areAllRowsDeleted">
               <c-input-confirm
                 v-if="!inlineEditing"
                 :tooltip="$t('recordList.tooltip.deleteSelected')"
-                class="mr-1"
                 @confirmed="handleDeleteSelectedRecords()"
               />
               <b-button
@@ -172,7 +171,6 @@
               <c-input-confirm
                 v-if="!inlineEditing"
                 :tooltip="$t('recordList.tooltip.undeleteSelected')"
-                class="ml-2"
                 @confirmed="handleRestoreSelectedRecords()"
               >
                 <font-awesome-icon
@@ -1596,7 +1594,7 @@ export default {
       ].some(v => v)
     },
 
-    onBulkUpdateSuccessful () {
+    onBulkUpdate () {
       this.refresh(true)
     },
   },
