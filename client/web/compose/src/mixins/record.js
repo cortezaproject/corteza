@@ -262,15 +262,26 @@ export default {
         })
     }, 500),
 
-    handleBulkUpdateSelectedRecords: throttle(function () {
-      const { moduleID, namespaceID } = this.module
-      const values = this.record.values.toJSON()
-      const records = this.selectedRecords
+    handleBulkUpdateSelectedRecords: throttle(function (records) {
       this.processing = true
 
+      const { moduleID, namespaceID } = this.module
+
+      const values = []
+      this.fields.forEach(({ name, isMulti }) => {
+        const value = this.record.values[name] || this.record[name]
+
+        if (!isMulti) {
+          values.push({ name, value: value ? value.toString() : value })
+        } else {
+          value.forEach(v => {
+            values.push({ name, value: v ? v.toString() : v })
+          })
+        }
+      })
+
       return this
-        .dispatchUiEvent('beforeFormSubmit')
-        .then(() => this.$ComposeAPI.recordPatch({ moduleID, namespaceID, records, values }))
+        .$ComposeAPI.recordPatch({ moduleID, namespaceID, records, values })
         .catch(err => {
           const { details = undefined } = err
           if (!!details && Array.isArray(details) && details.length > 0) {
@@ -294,8 +305,8 @@ export default {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
             this.toastSuccess(this.$t('notification:record.bulkRecordUpdateSuccess'))
-            this.onReset()
             this.onModalHide()
+            this.$emit('save')
           }
         })
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkRecordUpdateFailed')))

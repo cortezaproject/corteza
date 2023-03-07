@@ -14,36 +14,30 @@
 
     <b-modal
       :visible="showModal"
-      size="md"
       :title="$t('recordList.bulkRecord.title')"
       body-class="p-0"
-      centered
-      scrollable
       footer-class="d-flex justify-content-between align-items-center"
+      centered
       @hide="onModalHide"
     >
       <b-card class="pt-0">
-        <div
+        <field-editor
           v-for="(field, index) in fields"
           :key="index"
-          class="mb-4"
-        >
-          <field-editor
-            :namespace="namespace"
-            :module="module"
-            :field="field"
-            :errors="fieldErrors(field.name)"
-            :record="record"
-            class="field-editor mb-0"
-          />
-        </div>
+          :namespace="namespace"
+          :module="module"
+          :field="field"
+          :errors="fieldErrors(field.name)"
+          :record="record"
+        />
 
         <hr
           v-if="fields.length"
-          class="mb-4"
+          class="my-4"
         >
 
         <vue-select
+          v-model="selectedField"
           :placeholder="$t('recordList.bulkRecord.searchFields')"
           :get-option-label="getFieldLabel"
           :options="moduleFields"
@@ -76,7 +70,7 @@
           <b-button
             variant="primary"
             :disabled="!fields.length || processing"
-            @click="handleBulkUpdateSelectedRecords()"
+            @click="handleBulkUpdateSelectedRecords(selectedRecords)"
           >
             {{ $t('general.label.save') }}
           </b-button>
@@ -129,6 +123,7 @@ export default {
   data () {
     return {
       showModal: false,
+      selectedField: undefined,
       fields: [],
     }
   },
@@ -143,7 +138,7 @@ export default {
         ...[...this.module.fields].sort((a, b) =>
           (a.label || a.name).localeCompare(b.label || b.name),
         ),
-        ...this.module.systemFields().filter(sf => sf.name === 'ownedBy'),
+        ...this.module.systemFields().filter(({ name }) => name === 'ownedBy'),
       ].filter((field) => this.isFieldEditable(field))
     },
   },
@@ -157,10 +152,6 @@ export default {
       this.showModal = false
     },
 
-    onClose () {
-      this.showModal = false
-    },
-
     getFieldLabel ({ kind, label, name }) {
       return label || name || kind
     },
@@ -169,6 +160,7 @@ export default {
       if (!field) return
 
       this.fields.push(field)
+      this.selectedField = null
     },
 
     onReset () {
@@ -200,3 +192,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.position-initial {
+  position: initial;
+}
+</style>
