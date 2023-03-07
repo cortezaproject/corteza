@@ -1,6 +1,7 @@
 import { merge } from 'lodash'
-import { Apply } from '../../../cast'
+import { Apply, NoID } from '../../../cast'
 import { generateUID } from '../../helpers/idgen'
+import { PageBlockMaker } from './'
 
 interface PageBlockStyleVariants {
   [_: string]: string;
@@ -21,7 +22,7 @@ interface PageBlockStyle {
 }
 
 interface PageBlockMeta {
-  tabbed?: boolean;
+  hidden?: boolean;
   tempID?: string;
 }
 
@@ -41,7 +42,7 @@ export class PageBlock {
   public options = {}
 
   public meta: PageBlockMeta = {
-    tabbed: false,
+    hidden: false,
     tempID: undefined,
   }
 
@@ -102,13 +103,8 @@ export class PageBlock {
     this.meta.tempID = this.meta.tempID || generateUID()
   }
 
-  clone(): PageBlockInput {
-    const clone = new PageBlock()
-    clone.kind = this.kind
-    clone.title = this.title
-    clone.style = merge({}, this.style)
-    clone.options = merge({}, this.options)
-    return clone
+  clone (): PageBlockInput {
+    return PageBlockMaker({ ...this, blockID: NoID, meta: { tempID: '' } })
   }
 }
 

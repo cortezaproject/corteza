@@ -35,7 +35,6 @@ class CalendarOptions {
   public feeds: Array<Feed> = []
   public header: Partial<CalendarOptionsHeader> = {}
   public locale = 'en-gb'
-  public tabbed = false
   public refreshRate = 0
   public showRefresh = false
   public magnifyOption = ''
@@ -76,7 +75,6 @@ export class PageBlockCalendar extends PageBlock {
     )
 
     this.options.locale = o.locale || 'en-gb'
-    this.options.tabbed = o.tabbed || false
   }
 
   /**

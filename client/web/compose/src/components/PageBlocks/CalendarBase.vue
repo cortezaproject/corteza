@@ -75,7 +75,7 @@
       </div>
 
       <div
-        ref="cc"
+        :ref="`cc-${blockIndex}`"
         class="h-100"
       >
         <div
@@ -87,7 +87,7 @@
 
         <full-calendar
           v-show="show && !processing"
-          ref="fc"
+          :ref="`fc-${blockIndex}`"
           :key="key"
           :height="getHeight()"
           :events="events"
@@ -259,7 +259,9 @@ export default {
 
     // Proxy to the FC API
     api () {
-      return this.$refs.fc.getApi()
+      if (this.$refs[`fc-${this.blockIndex}`]) {
+        return this.$refs[`fc-${this.blockIndex}`].getApi()
+      }
     },
 
     /**
@@ -342,8 +344,8 @@ export default {
     },
 
     getHeight () {
-      if (this.$refs.cc) {
-        return this.$refs.cc.clientHeight
+      if (this.$refs[`cc-${this.blockIndex}`]) {
+        return this.$refs[`cc-${this.blockIndex}`].clientHeight
       }
       return 'auto'
     },

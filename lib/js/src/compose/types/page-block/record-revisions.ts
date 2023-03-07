@@ -16,7 +16,6 @@ interface Options {
 
   // referenced fields (records, users) we want to expand
   expRefFields: string[];
-
   refreshRate: number;
   showRefresh: boolean;
   magnifyOption: string;

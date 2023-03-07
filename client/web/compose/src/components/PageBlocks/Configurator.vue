@@ -6,19 +6,10 @@
     card
     lazy
   >
-    <template #tabs-end>
-      <page-translator
-        v-if="page"
-        :page="page"
-        :block.sync="block"
-        :disabled="isNew"
-        button-variant="link"
-      />
-    </template>
-
     <b-tab
       data-test-id="general-tab"
       active
+      title-item-class="order-first"
       :title="$t('general.label.general')"
     >
       <b-row>
@@ -77,6 +68,7 @@
         <b-col
           cols="12"
           sm="6"
+          class="mb-2"
         >
           <b-form-group
             :label="$t('general.headerStyle')"
@@ -102,6 +94,14 @@
             switch
           >
             {{ $t('general.border.show') }}
+          </b-form-checkbox>
+
+          <b-form-checkbox
+            v-if="block.kind !== 'Tabs'"
+            v-model="block.meta.hidden"
+            switch
+          >
+            {{ $t('general.hidden.label') }}
           </b-form-checkbox>
         </b-col>
 
@@ -148,19 +148,6 @@
             />
           </b-form-group>
         </b-col>
-
-        <b-col
-          v-if="showTabOption"
-          cols="12"
-        >
-          <b-form-checkbox
-            v-model="block.meta.tabbed"
-            switch
-            class="mb-2"
-          >
-            {{ $t('general.tabbed.label') }}
-          </b-form-checkbox>
-        </b-col>
       </b-row>
     </b-tab>
 
@@ -170,6 +157,16 @@
       class="mh-tab overflow-auto"
       v-on="$listeners"
     />
+
+    <template #tabs-end>
+      <page-translator
+        v-if="page"
+        :page="page"
+        :block.sync="block"
+        :disabled="isNew"
+        button-variant="link"
+      />
+    </template>
   </b-tabs>
 </template>
 <script>
@@ -227,10 +224,6 @@ export default {
         { value: 'modal', text: this.$t('general.magnifyOptions.modal') },
         { value: 'fullscreen', text: this.$t('general.magnifyOptions.fullscreen') },
       ]
-    },
-
-    showTabOption () {
-      return this.block.kind !== 'Tabs' && this.block.meta !== undefined
     },
   },
 

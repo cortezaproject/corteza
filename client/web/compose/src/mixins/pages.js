@@ -1,4 +1,5 @@
 import { NoID } from '@cortezaproject/corteza-js'
+import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
 
 export default {
   methods: {
@@ -46,21 +47,61 @@ export default {
             newPageTitle = `${this.$t('copyOf')}${this.page.title} (${countDuplicates})`
           }
 
+          // Change tabbed blockID to use tempID's since they are persisted on save
+          const blocks = page.blocks.map(block => {
+            if (block.kind !== 'Tabs') return block
+            const { tabs = [] } = block.options
+
+            block.options.tabs = tabs.map(b => {
+              const { tempID } = (page.blocks.find(({ blockID }) => blockID === b.blockID) || {}).meta || {}
+              b.blockID = tempID
+              return b
+            })
+
+            return block
+          })
+
           page = {
             ...page,
+            blocks,
             pageID: NoID,
             title: newPageTitle,
             handle: '',
           }
 
-          return this.createPage({ namespaceID, ...page })
-        })
-        .then(({ pageID }) => {
+          return this.createPage({ namespaceID, ...page }).then(this.updateTabbedBlockIDs)
+        }).then(({ pageID }) => {
           this.$router.push({ name: this.$route.name, params: { pageID } })
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
     },
 
-  },
+    async updateTabbedBlockIDs (page) {
+      // get the Tabs Block that still has tabs with tempIDs
+      page.blocks.filter(({ kind }) => kind === 'Tabs')
+        .filter(({ options = {} }) => options.tabs.some(({ blockID }) => (blockID || '').startsWith('tempID-')))
+        .forEach(b => {
+          if (b.kind !== 'Tabs') return
 
+          b.options.tabs.forEach((t, j) => {
+            if (!t.blockID.startsWith('tempID-')) return false
+
+            // find a block with the same tempID that should be updated by now and get its blockID
+            const updatedBlock = page.blocks.find(block => block.meta.tempID === t.blockID)
+
+            if (!updatedBlock) return false
+
+            const tab = {
+              // fetchID gets the blockID using the found block
+              blockID: fetchID(updatedBlock),
+              title: updatedBlock.title,
+            }
+
+            b.options.tabs.splice(j, 1, tab)
+          })
+        })
+
+      return this.updatePage(page)
+    },
+  },
 }

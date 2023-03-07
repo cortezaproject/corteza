@@ -1,7 +1,7 @@
 <template>
   <div class="h-100">
     <div
-      class="card bg-transparent h-100"
+      class="card bg-transparent h-100 overflow-hidden"
       :class="blockClass"
     >
       <div

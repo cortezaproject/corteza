@@ -1,59 +1,98 @@
 <template>
-  <b-tab title="Tabs">
-    <div>
-      <h5 class="text-primary">
-        {{ $t('tabs.displayTitle') }}
-      </h5>
+  <b-tab :title="$t('tabs.label')">
+    <h5>
+      {{ $t('tabs.displayTitle') }}
+    </h5>
 
-      <b-row
-        class="mb-3 mt-3 ml-0 mr-0 justify-content-between"
-        no-gutters
+    <b-row
+      class="text-primary"
+      no-gutters
+    >
+      <b-col
+        cols="12"
+        md="4"
       >
-        <b-form-group label="Appearance">
+        <b-form-group :label="$t('tabs.style.appearance.label')">
           <b-form-radio-group
             v-model="block.options.style.appearance"
+            :options="style.appearance"
             buttons
             button-variant="outline-primary"
             size="sm"
-            :options="style.appearance"
           />
         </b-form-group>
+      </b-col>
 
-        <b-form-group label="Alignment">
+      <b-col
+        cols="12"
+        md="4"
+      >
+        <b-form-group :label="$t('tabs.style.orientation.label')">
+          <b-form-radio-group
+            v-model="block.options.style.orientation"
+            :options="style.orientation"
+            buttons
+            button-variant="outline-primary"
+            size="sm"
+          />
+        </b-form-group>
+      </b-col>
+
+      <b-col
+        cols="12"
+        md="4"
+      >
+        <b-form-group :label="$t('tabs.style.position.label')">
+          <b-form-radio-group
+            v-model="block.options.style.position"
+            :options="style.position"
+            buttons
+            button-variant="outline-primary"
+            size="sm"
+          />
+        </b-form-group>
+      </b-col>
+
+      <b-col
+        cols="12"
+        md="4"
+      >
+        <b-form-group :label="$t('tabs.style.alignment.label')">
           <b-form-radio-group
             v-model="block.options.style.alignment"
+            :options="style.alignment"
             buttons
             button-variant="outline-primary"
             size="sm"
-            :options="style.alignment"
           />
         </b-form-group>
-        <b-form-group label="Fill or Justify">
+      </b-col>
+
+      <b-col
+        cols="12"
+        md="4"
+      >
+        <b-form-group :label="$t('tabs.style.fillJustify.label')">
           <b-form-radio-group
             v-model="block.options.style.fillJustify"
+            :options="style.fillJustify"
             buttons
             button-variant="outline-primary"
             size="sm"
-            :options="style.fillJustify"
           />
         </b-form-group>
-      </b-row>
-    </div>
+      </b-col>
+    </b-row>
 
     <div
-      class="d-flex"
+      class="d-flex align-items-center mb-2"
     >
-      <h5
-        class="font-weight-light m-0 p-0 text-primary"
-      >
+      <h5 class="m-0">
         {{ $t('tabs.title') }}
       </h5>
 
       <b-button
         variant="link"
-        size="md"
-        :title="shouldDisableAdd ? $t('tabs.tooltip.tabCondition') : $t('tabs.tooltip.addTab')"
-        :disabled="shouldDisableAdd"
         class="p-0 ml-3 text-decoration-none"
         @click="addTab"
       >
@@ -63,6 +102,7 @@
 
     <b-table-simple
       v-if="block.options.tabs.length"
+      responsive="lg"
       borderless
       small
     >
@@ -95,7 +135,7 @@
           v-for="(tab, index) in block.options.tabs"
           :key="index"
         >
-          <b-td class="handle align-middle">
+          <b-td class="handle align-middle pr-2">
             <font-awesome-icon
               :icon="['fas', 'bars']"
               class="grab m-0 text-light p-0"
@@ -104,67 +144,66 @@
 
           <b-td
             class="align-middle"
-            style="width: 50%"
+            style="width: 50%; min-width: 200px;"
           >
             <b-form-input
               v-model="tab.title"
-              :title="$t('tabs.tooltip.title')"
-              :disabled="!tab.blockID"
-              :placeholder="$t('tabs.form.title')"
             />
           </b-td>
 
           <b-td
             class="align-middle"
-            style="width: 50%"
+            style="width: 50%; min-width: 200px;"
           >
-            <div
-              class="d-flex"
-            >
+            <b-input-group class="d-flex flex-nowrap w-100">
               <vue-select
                 v-model="tab.blockID"
-                :title="$t('tabs.tooltip.selectBlock')"
-                :options="options"
-                :placeholder="$t('tabs.form.placeholder')"
+                :options="blockOptions"
+                :placeholder="$t('tabs.placeholder.block')"
+                :get-option-label="getBlockLabel"
                 :selectable="option => isSelectable(option)"
-                class="block-selector bg-white m-0"
-                append-to-body
-                style="min-width: 95%;"
                 :reduce="option => option.value"
-              >
-                <template #list-footer>
-                  <b-button
-                    id="CreateBlockSelectorTab"
-                    variant="link"
-                    size="sm"
-                    :title="$t('tabs.tooltip.newBlock')"
-                    class="text-decoration-none"
-                    block
-                    @click="showBlockSelector(index)"
-                  >
-                    {{ $t('tabs.addTab') }}
-                  </b-button>
-                </template>
-              </vue-select>
+                :calculate-position="calculatePosition"
+                append-to-body
+                class="block-selector bg-white"
+              />
 
-              <b-button
-                id="popover-edit"
-                size="sm"
-                :disabled="!tab.blockID"
-                :title="$t('tabs.tooltip.edit')"
-                variant="light"
-                @click="editBlock(tab.blockID)"
-              >
-                <font-awesome-icon
-                  :icon="['far', 'edit']"
-                />
-              </b-button>
-            </div>
+              <b-input-group-append>
+                <b-button
+                  v-if="tab.blockID"
+                  id="popover-edit"
+                  size="sm"
+                  variant="light"
+                  :title="blockEditDisabled ? $t('tabs.tooltip.editDisabled') : $t('tabs.tooltip.edit')"
+                  :disabled="blockEditDisabled"
+                  class="d-flex align-items-center justify-content-center"
+                  style="width: 40px;"
+                  @click="editBlock(tab.blockID)"
+                >
+                  <font-awesome-icon
+                    :icon="['far', 'edit']"
+                  />
+                </b-button>
+                <b-button
+                  v-else
+                  size="sm"
+                  variant="light"
+                  :title="$t('tabs.tooltip.addBlock')"
+                  class="d-flex align-items-center justify-content-center"
+                  style="width: 40px;"
+                  @click="showBlockSelector(index)"
+                >
+                  <font-awesome-icon
+                    :icon="['fas', 'plus']"
+                  />
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
           </b-td>
 
           <td
-            class="text-right align-middle pr-2"
-            style="min-width: 100px;"
+            class="text-center align-middle"
+            style="min-width: 80px;"
           >
             <c-input-confirm
               :title="$t('tabs.tooltip.delete')"
@@ -177,7 +216,7 @@
 
     <div
       v-else
-      class="text-center pt-5 pb-5"
+      class="text-center my-4"
     >
       <p>
         {{ $t('tabs.noTabs') }}
@@ -193,7 +232,7 @@
     >
       <new-block-selector
         :record-page="!!module"
-        :disable-kind="['Tabs']"
+        :disabled-kinds="['Tabs']"
         @select="addBlock"
       />
     </b-modal>
@@ -204,7 +243,8 @@
 import base from './base'
 import draggable from 'vuedraggable'
 import { VueSelect } from 'vue-select'
-import { fetchID } from 'corteza-webapp-compose/src/lib/tabs.js'
+import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
+import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
 
 export default {
   i18nOptions: {
@@ -222,42 +262,51 @@ export default {
 
   extends: base,
 
+  mixins: [
+    calculatePosition,
+  ],
+
   data () {
     return {
       activeIndex: null,
       style: {
         appearance: [
-          { text: this.$t('tabs.style.appearance.tabs'), value: 'tabs', disabled: false },
-          { text: this.$t('tabs.style.appearance.pills'), value: 'pills', disabled: false },
-          { text: this.$t('tabs.style.appearance.small'), value: 'small', disabled: false },
+          { text: this.$t('tabs.style.appearance.tabs'), value: 'tabs' },
+          { text: this.$t('tabs.style.appearance.pills'), value: 'pills' },
+          { text: this.$t('tabs.style.appearance.small'), value: 'small' },
         ],
 
         alignment: [
-          { text: this.$t('tabs.style.alignment.left'), value: 'left', disabled: false },
-          { text: this.$t('tabs.style.alignment.center'), value: 'center', disabled: false },
-          { text: this.$t('tabs.style.alignment.right'), value: 'right', disabled: false },
+          { text: this.$t('tabs.style.alignment.left'), value: 'left' },
+          { text: this.$t('tabs.style.alignment.center'), value: 'center' },
+          { text: this.$t('tabs.style.alignment.right'), value: 'right' },
         ],
 
         fillJustify: [
-          { text: this.$t('tabs.style.fillJustify.fill'), value: 'fill', disabled: false },
-          { text: this.$t('tabs.style.fillJustify.justified'), value: 'justified', disabled: false },
-          { text: this.$t('tabs.style.fillJustify.none'), value: 'none', disabled: false },
+          { text: this.$t('tabs.style.fillJustify.fill'), value: 'fill' },
+          { text: this.$t('tabs.style.fillJustify.justify'), value: 'justify' },
+          { text: this.$t('tabs.style.fillJustify.none'), value: 'none' },
+        ],
+
+        orientation: [
+          { text: this.$t('tabs.style.orientation.horizontal'), value: 'horizontal' },
+          { text: this.$t('tabs.style.orientation.vertical'), value: 'vertical' },
+        ],
+
+        position: [
+          { text: this.$t('tabs.style.position.start'), value: 'start' },
+          { text: this.$t('tabs.style.position.end'), value: 'end' },
         ],
       },
-      untabbedBlock: [],
     }
   },
 
   computed: {
-
-    options () {
-      return this.page.blocks.filter(b => b.kind !== 'Tabs').map((b, i) => {
-        // block title is going to look ugly till you save the page. Inevitable.
-        return { value: fetchID(b), label: b.title || `Block-${b.kind}` }
-      })
+    blockOptions () {
+      return this.page.blocks.filter(b => b.kind !== 'Tabs').map(b => ({ ...b, value: fetchID(b) }))
     },
 
-    shouldDisableAdd () {
+    blockEditDisabled () {
       return this.page.blocks.find(b => fetchID(b) === fetchID(this.block)) === undefined
     },
   },
@@ -271,10 +320,8 @@ export default {
   },
 
   methods: {
-    createRequestFulfilled ({ tab }) {
-      if (tab) {
-        this.updateTab(tab, this.activeIndex)
-      }
+    createRequestFulfilled (tab) {
+      this.updateTab(tab, this.activeIndex)
     },
 
     addTab () {
@@ -299,7 +346,7 @@ export default {
 
     addBlock (block) {
       this.$bvModal.hide('createBlockSelectorTab')
-      block.meta.tabbed = true
+      block.meta.hidden = true
       this.$root.$emit('tab-createRequest', block)
     },
 
@@ -310,22 +357,43 @@ export default {
     deleteTab (tabIndex) {
       this.block.options.tabs.splice(tabIndex, 1)
     },
+
+    getBlockLabel ({ title, kind }) {
+      return title || kind
+    },
   },
 }
 </script>
 
 <style lang="scss">
 .block-selector {
+  position: relative;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  width: 1%;
+  margin-bottom: 0;
+
+  &:not(.vs--open) .vs__selected + .vs__search {
+    // force this to not use any space
+    // we still need it to be rendered for the focus
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 0;
+  }
+
   .vs__selected-options {
-    flex-wrap: nowrap;
+    // do not allow growing
+    width: 0;
   }
 
   .vs__selected {
-    max-width: 200px;
-    display: inline-block;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: block;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow: hidden;
   }
 }
 
@@ -333,5 +401,4 @@ export default {
   text-overflow: ellipsis;
   overflow: hidden !important;
 }
-
 </style>
