@@ -758,3 +758,10 @@ tabs:
     addBlock: Add new block
     delete: Delete tab
   label: Tabs
+
+filter:
+  recordFilter: Record filter
+  role: Role
+  filter: Filter
+  title: Title
+  searchRolePlaceholder: Select role to apply filter to

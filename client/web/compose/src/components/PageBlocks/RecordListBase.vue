@@ -24,13 +24,12 @@
         class="py-2 d-print-none"
         fluid
       >
-        <b-row
-          no-gutters
-          class="justify-content-between wrap-with-vertical-gutters"
+        <div
+          class="d-flex flex-wrap justify-content-between wrap-with-vertical-gutters"
         >
-          <div class="text-nowrap flex-grow-1">
+          <div class="text-nowrap">
             <div
-              class="wrap-with-vertical-gutters"
+              class="wrap-with-vertical-gutters flex-wrap"
             >
               <template v-if="recordListModule.canCreateRecord">
                 <template v-if="inlineEditing">
@@ -77,6 +76,25 @@
                 @export="onExport"
               />
 
+              <b-dropdown
+                v-if="options.recordFilters.length"
+                size="lg"
+                variant="light"
+                :text="$t('filter.filter')"
+              >
+                <template
+                  v-for="(dropdown, idx) in options.recordFilters"
+                >
+                  <b-dropdown-item
+                    v-if="checkFilterIsValid(dropdown.roles)"
+                    :key="idx"
+                    @click="updateFilter(dropdown.value, dropdown.title)"
+                  >
+                    {{ dropdown.title }}
+                  </b-dropdown-item>
+                </template>
+              </b-dropdown>
+
               <column-picker
                 v-if="!options.hideConfigureFieldsButton"
                 :module="recordListModule"
@@ -88,20 +106,31 @@
           </div>
           <div
             v-if="!options.hideSearch && !inlineEditing"
-            class="flex-grow-1 w-25"
+            class="w-25"
           >
             <c-input-search
               v-model.trim="query"
               :placeholder="$t('general.label.search')"
             />
           </div>
-        </b-row>
+        </div>
 
         <div
-          v-if="drillDownFilter"
-          class="d-flex justify-content-end mt-1"
+          class="d-flex justify-content-between mt-1"
         >
+          <b-form-tags
+            v-model="selectedFilters"
+            tag-variant="outline-primary"
+            tag-pills
+            input-class="d-none"
+            placeholder=""
+            style="width: fit-content"
+            class="my-2 border-0 p-0"
+            @input="removeFilter"
+          />
+
           <b-button
+            v-if="drillDownFilter"
             variant="outline-light"
             size="sm"
             class="text-nowrap text-primary border-0"
@@ -259,6 +288,7 @@
                       :record-list-filter="recordListFilter"
                       @filter="onFilter"
                     />
+
                     <b-button
                       v-if="field.sortable"
                       variant="link p-0 ml-1"
@@ -801,6 +831,7 @@ export default {
       ctr: 0,
       items: [],
       showingDeletedRecords: false,
+      selectedFilters: [],
     }
   },
 
@@ -965,6 +996,10 @@ export default {
 
     isReminderActionVisible () {
       return !this.options.hideRecordReminderButton
+    },
+
+    authUserRoles () {
+      return this.$auth.user.roles
     },
   },
 
@@ -1666,6 +1701,40 @@ export default {
       }
 
       return !expressions.value
+    },
+
+    updateFilter (filter, title) {
+      const lastFilterIdx = this.recordListFilter.length - 1
+      filter = filter.map((filter) => ({ ...filter, title }))
+
+      if (this.recordListFilter.length) {
+        this.recordListFilter[lastFilterIdx].groupCondition = 'AND'
+      }
+
+      this.recordListFilter = this.recordListFilter.concat(filter)
+      this.selectedFilters.push(title)
+      this.refresh(true)
+    },
+
+    removeFilter (currentFilters) {
+      this.recordListFilter = this.recordListFilter.filter(({ title }) => currentFilters.includes(title))
+      this.refresh(true)
+    },
+
+    checkFilterIsValid (filterRoles) {
+      if (!filterRoles.length) return true
+
+      let result = false
+
+      for (let i = 0; i < filterRoles.length; i++) {
+        const role = filterRoles[i]
+        if (this.authUserRoles.includes(role)) {
+          result = true
+          break
+        }
+      }
+
+      return result
     },
   },
 }
