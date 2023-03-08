@@ -58,6 +58,7 @@ interface Options {
 
   bulkRecordEditEnabled: boolean;
   inlineRecordEditEnabled: boolean;
+  recordFilters: Array<Record<string, any>>
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -107,6 +108,7 @@ const defaults: Readonly<Options> = Object.freeze({
 
   bulkRecordEditEnabled: true,
   inlineRecordEditEnabled: false
+  recordFilters: []
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -128,6 +130,10 @@ export class PageBlockRecordList extends PageBlock {
 
     if (o.fields) {
       this.options.fields = o.fields
+    }
+
+    if (o.recordFilters) {
+      this.options.recordFilters = o.recordFilters
     }
 
     if (o.editFields) {

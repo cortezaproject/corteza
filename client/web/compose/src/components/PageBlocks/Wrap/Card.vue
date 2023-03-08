@@ -67,7 +67,6 @@
 
       <div
         v-if="toolbarSet"
-        class="overflow-hidden"
       >
         <slot
           name="toolbar"

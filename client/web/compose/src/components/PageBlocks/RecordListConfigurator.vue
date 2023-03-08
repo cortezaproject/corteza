@@ -246,6 +246,98 @@
             </b-form-group>
           </b-col>
         </b-row>
+
+        <b-row>
+          <b-col>
+          <b-form-group
+            breakpoint="md"
+            :label="$t('filter.recordFilter')"
+          >
+            <b-table-simple
+              v-if="recordListModule && recordListModule.fields.length"
+              borderless
+            >
+              <thead>
+                <tr>
+                  <th>
+                    {{ $t('filter.role') }}
+                  </th>
+                  <th>
+                    {{ $t('filter.title') }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(filter, index) in options.recordFilters"
+                  :key="index"
+                >
+                  <td>
+                    <vue-select
+                      v-model="filter.roles"
+                      :options="roleOptions"
+                      :reduce="role => role.roleID"
+                      :get-option-label="getRoleLabel"
+                      append-to-body
+                      :placeholder="$t('filter.searchRolePlaceholder')"
+                      multiple
+                      class="bg-white"
+                    />
+                  </td>
+                  <td>
+                    <b-input-group>
+                      <b-form-input
+                        v-model="filter.title"
+                        placeholder="Title"
+                        type="text"
+                        class="h-100"
+                      />
+                      <b-input-group-append>
+                        <b-button
+                          variant="light"
+                          class="d-flex align-items-center"
+                        >
+                          <record-list-filter
+                            class="d-print-none"
+                            :target="`record-filter-${index}`"
+                            :namespace="namespace"
+                            :module="recordListModule"
+                            :selected-field="recordListModule.fields[0]"
+                            :record-list-filter="filter.value"
+                            @filter="(filter) => onFilter(filter, index)"
+                          />
+                        </b-button>
+                        <b-button
+                          variant="light"
+                          class="d-flex align-items-center"
+                        >
+                          <c-input-confirm
+                            button-class="text-right"
+                            @confirmed="options.recordFilters.splice(index, 1)"
+                          />
+                        </b-button>
+                      </b-input-group-append>
+                    </b-input-group>
+                  </td>
+                </tr>
+              </tbody>
+            </b-table-simple>
+
+            <b-button
+              variant="primary"
+              class="d-flex align-items-center px-0 text-decoration-none"
+              @click="addNewRecordListFilter"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'plus']"
+                size="sm"
+                class="mr-1"
+              />
+              {{ $t('general.label.add') }}
+            </b-button>
+          </b-form-group>
+          </b-col>
+        </b-row>
       </div>
       <hr>
 
@@ -610,9 +702,11 @@
 <script>
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
+import { VueSelect } from 'vue-select'
 import base from './base'
 import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
+import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
 const { CInputPresort, CInputCheckbox } = components
 
@@ -628,6 +722,8 @@ export default {
     FieldPicker,
     CInputPresort,
     CInputCheckbox,
+    RecordListFilter,
+    VueSelect,
   },
 
   extends: base,
@@ -638,6 +734,7 @@ export default {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
+      roleOptions: [],
     }
   },
 
@@ -778,5 +875,38 @@ export default {
       this.options.editFields = this.options.editFields.filter(a => fields.some(b => a.name === b.name))
     },
   },
+
+  mounted () {
+    this.fetchRoles()
+  },
+
+  methods: {
+    getRoleLabel ({ name }) {
+      return name
+    },
+
+    async fetchRoles () {
+      this.$SystemAPI.roleList().then(({ set: roles = [] }) => {
+        this.roleOptions = roles
+      })
+    },
+
+    onFilter (filter = [], index) {
+      this.options.recordFilters[index].value = filter
+    },
+
+    addNewRecordListFilter () {
+      this.options.recordFilters.push({
+        title: '',
+        value: [],
+      })
+    },
+  },
 }
 </script>
+
+<style>
+.w-fit {
+  width: fit-content;
+}
+</style>
