@@ -3,68 +3,90 @@
     <b-tab
       data-test-id="record-list-configurator"
       :title="$t('recordList.label')"
+      no-body
     >
-      <b-form-group
-        class="form-group"
-        :label="$t('general.module')"
+      <div
+        class="px-3"
       >
-        <b-form-select
-          v-model="options.moduleID"
-          :options="moduleOptions"
-          text-field="name"
-          value-field="moduleID"
-          required
-        />
-        <b-form-text class="text-secondary small">
-          <i18next
-            path="recordList.moduleFootnote"
-            tag="label"
-          >
-            <router-link :to="{ name: 'admin.pages'}">
-              {{ $t('recordList.recordPage') }}
-            </router-link>
-          </i18next>
-        </b-form-text>
-      </b-form-group>
-
-      <b-form-group
-        v-if="recordListModule"
-        :label="$t('module:general.fields')"
-        label-class="pb-0"
-      >
-        <label class="text-secondary small pb-1">
-          {{ $t('recordList.moduleFieldsFootnote') }}
-        </label>
-
-        <field-picker
-          :module="recordListModule"
-          :fields.sync="options.fields"
-          style="max-height: 40vh;"
-        />
-      </b-form-group>
-
-      <b-form-group
-        v-if="recordListModule"
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-      >
-        <b-form-checkbox
-          v-model="options.editable"
-          :disabled="disableInlineEditor"
+        <h5
+          class="pt-3"
         >
-          {{ $t('recordList.record.inlineEditorAllow') }}
-        </b-form-checkbox>
-      </b-form-group>
+          {{ $t('recordList.record.generalLabel') }}
+        </h5>
+        <b-row>
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              class="form-group text-primary"
+              variant="primary"
+              :label="$t('general.module')"
+            >
+              <b-form-select
+                v-model="options.moduleID"
+                :options="moduleOptions"
+                text-field="name"
+                value-field="moduleID"
+                required
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              v-if="recordListModule"
+              :label="$t('recordList.record.inlineEditorAllow')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.editable"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+
+        <b-row>
+          <b-col
+            cols="12"
+          >
+            <b-form-group
+              v-if="recordListModule"
+              :label="$t('module:general.fields')"
+              label-class="pb-0 text-primary"
+            >
+              <label class="text-secondary small pb-1">
+                {{ $t('recordList.moduleFieldsFootnote') }}
+              </label>
+
+              <field-picker
+                :module="recordListModule"
+                :fields.sync="options.fields"
+                style="max-height: 40vh;"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
+      <hr>
 
       <div
         v-if="options.editable"
+        class="px-3 pt-3"
       >
+        <h5>
+          {{ $t('recordList.record.inlineEditor') }}
+        </h5>
+
         <b-form-group
           v-if="recordListModule && options.editable"
           :label="$t('recordList.editFields')"
-          label-size="lg"
-          class="mb-0"
+          class="mb-0 text-primary"
         >
           <field-picker
             :module="recordListModule"
@@ -75,250 +97,448 @@
           />
         </b-form-group>
 
-        <b-form-group
-          horizontal
-          :label-cols="3"
-          breakpoint="md"
-          :label="$t('recordList.refField.label')"
+        <b-row
+          class="mt-3"
         >
-          <b-form-select
-            v-model="options.refField"
-            required
+          <b-col
+            cols="12"
+            md="6"
           >
-            <option :value="undefined">
-              {{ $t('general.label.none') }}
-            </option>
-            <option
-              v-for="field in parentFields"
-              :key="field.fieldID"
-              :value="field.name"
+            <b-form-group
+              :label="$t('recordList.refField.label')"
+              class="text-primary"
             >
-              {{ field.name }}
-            </option>
-          </b-form-select>
-          <b-form-text class="text-secondary small">
-            {{ $t('recordList.refField.footnote') }}
-          </b-form-text>
-        </b-form-group>
+              <b-form-select
+                v-model="options.refField"
+                required
+              >
+                <option :value="undefined">
+                  {{ $t('general.label.none') }}
+                </option>
 
-        <b-form-group
-          horizontal
-          :label-cols="3"
-          breakpoint="md"
-          :label="$t('recordList.positionField.label')"
-        >
-          <b-form-select v-model="options.positionField">
-            <option :value="undefined">
-              {{ $t('general.label.none') }}
-            </option>
-            <option
-              v-for="field in positionFields"
-              :key="field.fieldID"
-              :value="field.name"
+                <option
+                  v-for="field in parentFields"
+                  :key="field.fieldID"
+                  :value="field.name"
+                >
+                  {{ field.name }}
+                </option>
+              </b-form-select>
+
+              <b-form-text class="text-secondary small">
+                {{ $t('recordList.refField.footnote') }}
+              </b-form-text>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('recordList.positionField.label')"
+              class="text-primary"
             >
-              {{ field.label || field.name }}
-            </option>
-          </b-form-select>
-          <b-form-text class="text-secondary small">
-            {{ $t('recordList.positionField.footnote') }}
-          </b-form-text>
-        </b-form-group>
+              <b-form-select v-model="options.positionField">
+                <option :value="undefined">
+                  {{ $t('general.label.none') }}
+                </option>
 
-        <b-form-group
-          v-if="options.positionField"
-          horizontal
-          :label-cols="3"
-          breakpoint="md"
-        >
-          <b-form-checkbox v-model="options.draggable">
-            {{ $t('recordList.record.draggable') }}
-          </b-form-checkbox>
-        </b-form-group>
+                <option
+                  v-for="field in positionFields"
+                  :key="field.fieldID"
+                  :value="field.name"
+                >
+                  {{ field.label || field.name }}
+                </option>
+              </b-form-select>
+
+              <b-form-text class="text-secondary small">
+                {{ $t('recordList.positionField.footnote') }}
+              </b-form-text>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+          >
+            <b-form-group
+              v-if="options.positionField"
+              :label="$t('recordList.record.draggable')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.draggable"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
       </div>
+      <hr v-if="options.editable">
 
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        :label="$t('recordList.record.newLabel')"
+      <div
+        class="px-3"
       >
-        <b-form-checkbox v-model="options.hideAddButton">
-          {{ $t('recordList.record.hideAddButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox v-model="options.hideImportButton">
-          {{ $t('recordList.record.hideImportButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-if="onRecordPage"
-          v-model="options.linkToParent"
-        >
-          {{ $t('recordList.record.linkToParent') }}
-        </b-form-checkbox>
-      </b-form-group>
+        <h5 class="mb-3">
+          {{ $t('recordList.record.prefilterLabel') }}
+        </h5>
 
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        :label="$t('recordList.record.prefilterLabel')"
-      >
-        <b-form-textarea
-          v-model="options.prefilter"
-          :placeholder="$t('recordList.record.prefilterPlaceholder')"
-        />
-        <b-form-text>
-          <i18next
-            path="recordList.record.prefilterFootnote"
-            tag="label"
+        <b-row>
+          <b-col
+            cols="12"
+            md="6"
           >
-            <code>${recordID}</code>
-            <code>${ownerID}</code>
-            <code>${userID}</code>
-          </i18next>
-        </b-form-text>
-        <b-form-checkbox v-model="options.hideSearch">
-          {{ $t('recordList.record.prefilterHideSearch') }}
-        </b-form-checkbox>
-        <b-form-checkbox v-model="options.hideFiltering">
-          {{ $t('recordList.record.filterHide') }}
-        </b-form-checkbox>
-      </b-form-group>
+            <b-form-group
+              :label="$t('recordList.record.filterHide')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.hideFiltering"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
 
-      <b-form-group
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('recordList.record.prefilterHideSearch')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.hideSearch"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+
+        <b-row>
+          <b-col>
+            <b-form-group
+              :label="$t('recordList.record.prefilterCommand')"
+              class="text-primary"
+            >
+              <b-form-textarea
+                v-model="options.prefilter"
+                :placeholder="$t('recordList.record.prefilterPlaceholder')"
+              />
+              <b-form-text>
+                <i18next
+                  path="recordList.record.prefilterFootnote"
+                  tag="label"
+                >
+                  <code>${recordID}</code>
+
+                  <code>${ownerID}</code>
+
+                  <code>${userID}</code>
+                </i18next>
+              </b-form-text>
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
+      <hr>
+
+      <div
         v-if="!options.positionField"
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        :label="$t('recordList.record.presortLabel')"
+        class="px-3"
       >
-        <c-input-presort
-          v-model="options.presort"
-          :fields="recordListModuleFields"
-          :labels="{
-            add: $t('general:label.add'),
-            ascending: $t('general:label.ascending'),
-            descending: $t('general:label.descending'),
-            none: $t('general:label.none'),
-            placeholder: $t('recordList.record.presortPlaceholder'),
-            footnote: $t('recordList.record.presortFootnote'),
-            toggleInput: $t('recordList.record.presortToggleInput'),
-          }"
-          allow-text-input
-          class="mb-2"
-        />
-        <b-form-checkbox v-model="options.hideSorting">
-          {{ $t('recordList.record.presortHideSort') }}
-        </b-form-checkbox>
-      </b-form-group>
+        <h5 class="mb-3">
+          {{ $t('recordList.record.presortLabel') }}
+        </h5>
+        <b-row class="mb-3">
+          <b-col>
+            <b-form-group
+              :label="$t('recordList.record.presortHideSort')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.hideSorting"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
 
-      <b-form-group
+        <b-row>
+          <b-col>
+            <b-form-group
+              :label="$t('recordList.record.presortInputLabel')"
+              class="text-primary"
+            >
+              <c-input-presort
+                v-model="options.presort"
+                :fields="recordListModuleFields"
+                :labels="{
+                  add: $t('general:label.add'),
+                  ascending: $t('general:label.ascending'),
+                  descending: $t('general:label.descending'),
+                  none: $t('general:label.none'),
+                  placeholder: $t('recordList.record.presortPlaceholder'),
+                  footnote: $t('recordList.record.presortFootnote'),
+                  toggleInput: $t('recordList.record.presortToggleInput'),
+                }"
+                allow-text-input
+                class="mb-2"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
+      <hr v-if="!options.positionField">
+
+      <div
         v-if="!options.editable"
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        :label="$t('recordList.record.perPage')"
+        class="px-3"
       >
-        <b-form-input
-          v-model.number="options.perPage"
-          data-test-id="input-records-per-page"
-          type="number"
-          class="mb-2"
-        />
-        <b-form-checkbox
-          v-model="options.hidePaging"
-          data-test-id="hide-pagination"
-        >
-          {{ $t('recordList.record.hidePaging') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-if="!options.hidePaging"
-          v-model="options.fullPageNavigation"
-          data-test-id="hide-page-navigation"
-        >
-          {{ $t('recordList.record.fullPageNavigation') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-if="!options.hidePaging"
-          v-model="options.showTotalCount"
-          data-test-id="show-total-record-count"
-        >
-          {{ $t('recordList.record.showTotalCount') }}
-        </b-form-checkbox>
-        <b-form-checkbox v-model="options.showDeletedRecordsOption">
-          {{ $t('recordList.record.showDeletedRecordsOption') }}
-        </b-form-checkbox>
-      </b-form-group>
+        <h5 class="mb-3">
+          {{ $t('recordList.record.pagingLabel') }}
+        </h5>
 
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        class="mt-4"
-      >
-        <b-form-checkbox
-          v-model="options.enableRecordPageNavigation"
+        <b-row
+          class="mb-3"
         >
-          {{ $t('recordList.enableRecordPageNavigation') }}
-        </b-form-checkbox>
-        <b-form-checkbox v-model="options.allowExport">
-          {{ $t('recordList.export.allow') }}
-        </b-form-checkbox>
-        <b-form-checkbox v-model="options.bulkRecordEditEnabled">
-          {{ $t('recordList.record.enableBulkRecordEdit') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('recordList.record.hidePaging')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.hideSorting"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
 
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        class="mt-4"
-      >
-        <b-form-checkbox v-model="options.selectable">
-          {{ $t('recordList.selectable') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              v-if="!options.editable"
+              horizontal
+              breakpoint="md"
+              :label="$t('recordList.record.perPage')"
+              class="text-primary"
+            >
+              <b-form-input
+                v-model.number="options.perPage"
+                data-test-id="input-records-per-page"
+                type="number"
+                class="mb-2"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
 
-      <b-form-group
-        :label="$t('recordList.record.recordDisplayOptions')"
-        :label-cols="3"
-        breakpoint="md"
-        horizontal
-      >
-        <b-form-select
-          v-model="options.recordDisplayOption"
-          :options="recordDisplayOptions"
-        />
-      </b-form-group>
+        <div>
+          <h6 class="text-primary mb-3">
+            {{ $t('recordList.record.pagingOptions') }}
+          </h6>
 
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-        class="mt-4"
+          <b-row>
+            <b-col
+              v-if="!options.hidePaging"
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
+                :label="$t('recordList.record.fullPageNavigation')"
+                class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.fullPageNavigation"
+                  switch
+                  :labels="checkboxLabel"
+                  data-test-id="hide-page-navigation"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
+                :label="$t('recordList.enableRecordPageNavigation')"
+                class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.enableRecordPageNavigation"
+                  switch
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+        </div>
+      </div>
+      <hr v-if="!options.editable">
+
+      <div
+        class="px-3"
       >
-        <b-form-checkbox v-model="options.hideRecordReminderButton">
-          {{ $t('recordList.hideRecordReminderButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox v-model="options.hideRecordCloneButton">
-          {{ $t('recordList.hideRecordCloneButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="options.hideRecordEditButton"
+        <h5 class="mb-3">
+          {{ $t('recordList.record.newLabel') }}
+        </h5>
+        <b-row
+          class="justify-content-between"
         >
-          {{ $t('recordList.hideRecordEditButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="options.hideRecordViewButton"
-        >
-          {{ $t('recordList.hideRecordViewButton') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="options.hideRecordPermissionsButton"
-        >
-          {{ $t('recordList.hideRecordPermissionsButton') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-col
+            cols="12"
+            lg="4"
+          >
+            <b-form-group
+              :label="$t('recordList.record.hideAddButton')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.hideAddButton"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="4"
+          >
+            <b-form-group
+              :label="$t('recordList.record.hideImportButton')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.hideImportButton"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            v-if="onRecordPage"
+            cols="12"
+            lg="4"
+          >
+            <b-form-group
+              :label="$t('recordList.record.linkToParent')"
+              class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.linkToParent"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
+      <hr>
+
+      <div
+        class="px-3"
+      >
+        <h5 class="text-primary">
+          {{ $t('recordList.record.moreOptions') }}
+        </h5>
+
+        <b-row>
+          <b-col
+            cols="12"
+            lg="4"
+          >
+            <b-form-group class="text-primary">
+              <b-form-checkbox
+                v-model="options.hideRecordViewButton"
+              >
+                {{ $t('recordList.hideRecordViewButton') }}
+              </b-form-checkbox>
+
+              <b-form-checkbox
+                v-model="options.hideRecordEditButton"
+              >
+                {{ $t('recordList.hideRecordEditButton') }}
+              </b-form-checkbox>
+
+              <b-form-checkbox v-model="options.hideRecordCloneButton">
+                {{ $t('recordList.hideRecordCloneButton') }}
+              </b-form-checkbox>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="4"
+          >
+            <b-form-group class="text-primary">
+              <b-form-checkbox v-model="options.showDeletedRecordsOption">
+                {{ $t('recordList.record.showDeletedRecordsOption') }}
+              </b-form-checkbox>
+
+              <b-form-checkbox
+                v-model="options.hideRecordPermissionsButton"
+              >
+                {{ $t('recordList.hideRecordPermissionsButton') }}
+              </b-form-checkbox>
+
+              <b-form-checkbox v-model="options.hideRecordReminderButton">
+                {{ $t('recordList.hideRecordReminderButton') }}
+              </b-form-checkbox>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="4"
+          >
+            <b-form-group class="text-primary">
+              <b-form-checkbox v-model="options.allowExport">
+                {{ $t('recordList.export.allow') }}
+              </b-form-checkbox>
+
+              <b-form-checkbox v-model="options.selectable">
+                {{ $t('recordList.selectable') }}
+              </b-form-checkbox>
+
+              <b-form-checkbox
+                v-if="!options.hidePaging"
+                v-model="options.showTotalCount"
+                data-test-id="show-total-record-count"
+              >
+                {{ $t('recordList.record.showTotalCount') }}
+              </b-form-checkbox>
+            </b-form-group>
+          </b-col>
+        </b-row>
+
+        <b-row>
+          <b-col cols="4">
+            <b-form-group
+              :label="$t('recordList.record.recordDisplayOptions')"
+              class="text-primary"
+            >
+              <b-form-select
+                v-model="options.recordDisplayOption"
+                :options="recordDisplayOptions"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
     </b-tab>
 
     <automation-tab
@@ -328,6 +548,7 @@
     />
   </div>
 </template>
+
 <script>
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
@@ -335,7 +556,7 @@ import base from './base'
 import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputPresort } = components
+const { CInputPresort, CInputCheckbox } = components
 
 export default {
   i18nOptions: {
@@ -348,9 +569,19 @@ export default {
     AutomationTab,
     FieldPicker,
     CInputPresort,
+    CInputCheckbox,
   },
 
   extends: base,
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+    }
+  },
 
   computed: {
     ...mapGetters({

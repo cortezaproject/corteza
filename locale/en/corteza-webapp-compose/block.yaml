@@ -390,25 +390,30 @@ recordList:
   record:
     draggable: Can drag & drop records to order them
     fullPageNavigation: Full page navigation
-    hideAddButton: Hide add record button
-    hideImportButton: Hide import record button
-    hidePaging: Hide paging
-    inlineEditor: Inline editor
-    inlineEditorAllow: Allow inline record editing
+    hideAddButton: The button 'Add Record' is hidden
+    hideImportButton: The button 'Import Record' is hidden
+    pagingLabel: Paging
+    pagingOptions: Paging Options
+    moreOptions: More Options
+    hidePaging: User will be able to use Paging
+    inlineEditor: Inline Options
+    inlineEditorAllow: Allow in-line record editing on module fields
     inlineEditorFootnote: Only one inline editor with the same module can be present the same page
     newLabel: New records
     noPermission: No permission to read record
     perPage: Records per page
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
-    prefilterHideSearch: Hide search box
-    filterHide: Hide filtering
-    prefilterLabel: Prefilter records
+    prefilterHideSearch: Users are able to search the record list
+    filterHide: Users will see a prefiltered record list
+    prefilterLabel: Filtering
+    generalLabel: General Settings
+    prefilterCommand: Prefilter
     prefilterPlaceholder: field1 = 1 AND field2 = 232
     presortFootnote: Simplified SQL condition (ORDER BY ...) syntax is supported
     presortToggleInput: Toggle input type
-    enableBulkRecordEdit: Enable bulk record edit
-    presortHideSort: Hide sorting
-    presortLabel: Presort records
+    presortHideSort: Users will be able to sort the list
+    presortLabel: Sorting
+    presortInputLabel: Presort
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
     showDeletedRecordsOption: Show option to see deleted records
