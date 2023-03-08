@@ -66,7 +66,7 @@
           }"
         />
       </template>
-      <router-view />
+      <router-view class="overflow-hidden" />
     </main>
 
     <c-prompts />
