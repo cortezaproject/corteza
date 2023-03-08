@@ -4,28 +4,47 @@
       data-test-id="record-list-configurator"
       :title="$t('recordList.label')"
     >
-      <b-form-group
-        class="form-group"
-        :label="$t('general.module')"
-      >
-        <b-form-select
-          v-model="options.moduleID"
-          :options="moduleOptions"
-          text-field="name"
-          value-field="moduleID"
-          required
-        />
-        <b-form-text class="text-secondary small">
-          <i18next
-            path="recordList.moduleFootnote"
-            tag="label"
+      <b-row>
+        <b-col>
+          <b-form-group
+            class="form-group"
+            :label="$t('general.module')"
           >
-            <router-link :to="{ name: 'admin.pages'}">
-              {{ $t('recordList.recordPage') }}
-            </router-link>
-          </i18next>
-        </b-form-text>
-      </b-form-group>
+            <b-form-select
+              v-model="options.moduleID"
+              :options="moduleOptions"
+              text-field="name"
+              value-field="moduleID"
+              required
+            />
+            <b-form-text class="text-secondary small">
+              <i18next
+                path="recordList.moduleFootnote"
+                tag="label"
+              >
+                <router-link :to="{ name: 'admin.pages'}">
+                  {{ $t('recordList.recordPage') }}
+                </router-link>
+              </i18next>
+            </b-form-text>
+          </b-form-group>
+        </b-col>
+
+        <b-col>
+          <b-form-group
+            v-if="recordListModule"
+            horizontal
+            breakpoint="md"
+          >
+            <b-form-checkbox
+              v-model="options.editable"
+              :disabled="disableInlineEditor"
+            >
+              {{ $t('recordList.record.inlineEditorAllow') }}
+            </b-form-checkbox>
+          </b-form-group>
+        </b-col>
+      </b-row>
 
       <b-form-group
         v-if="recordListModule"
@@ -43,19 +62,7 @@
         />
       </b-form-group>
 
-      <b-form-group
-        v-if="recordListModule"
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
-      >
-        <b-form-checkbox
-          v-model="options.editable"
-          :disabled="disableInlineEditor"
-        >
-          {{ $t('recordList.record.inlineEditorAllow') }}
-        </b-form-checkbox>
-      </b-form-group>
+      <hr>
 
       <div
         v-if="options.editable"
@@ -136,9 +143,10 @@
         </b-form-group>
       </div>
 
+      <hr>
+
       <b-form-group
         horizontal
-        :label-cols="3"
         breakpoint="md"
         :label="$t('recordList.record.newLabel')"
       >
@@ -156,9 +164,10 @@
         </b-form-checkbox>
       </b-form-group>
 
+      <hr>
+
       <b-form-group
         horizontal
-        :label-cols="3"
         breakpoint="md"
         :label="$t('recordList.record.prefilterLabel')"
       >
@@ -184,10 +193,11 @@
         </b-form-checkbox>
       </b-form-group>
 
+      <hr>
+
       <b-form-group
         v-if="!options.positionField"
         horizontal
-        :label-cols="3"
         breakpoint="md"
         :label="$t('recordList.record.presortLabel')"
       >
@@ -211,10 +221,11 @@
         </b-form-checkbox>
       </b-form-group>
 
+      <hr>
+
       <b-form-group
         v-if="!options.editable"
         horizontal
-        :label-cols="3"
         breakpoint="md"
         :label="$t('recordList.record.perPage')"
       >
@@ -251,7 +262,6 @@
 
       <b-form-group
         horizontal
-        :label-cols="3"
         breakpoint="md"
         class="mt-4"
       >
@@ -267,7 +277,6 @@
 
       <b-form-group
         horizontal
-        :label-cols="3"
         breakpoint="md"
         class="mt-4"
       >
@@ -278,7 +287,6 @@
 
       <b-form-group
         :label="$t('recordList.record.recordDisplayOptions')"
-        :label-cols="3"
         breakpoint="md"
         horizontal
       >
@@ -290,7 +298,6 @@
 
       <b-form-group
         horizontal
-        :label-cols="3"
         breakpoint="md"
         class="mt-4"
       >
