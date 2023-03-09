@@ -141,7 +141,11 @@ func newHelper(t *testing.T) helper {
 
 	h.cUser.SetRoles(h.roleID)
 	helpers.UpdateRBAC(h.roleID)
+
 	h.mockPermissionsWithAccess()
+
+	// minimal permission to reload service
+	helpers.AllowMe(h, types.ComponentRbacResource(), "apigw-routes.search")
 
 	var err error
 	ctx := context.Background()

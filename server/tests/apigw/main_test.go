@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
 
@@ -17,7 +18,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/api/server"
 	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/cortezaproject/corteza/server/pkg/envoy"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/directory"
@@ -26,8 +26,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/label"
-	ltype "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/rest"
@@ -89,12 +87,24 @@ func InitTestApp() {
 		// Sys routes for route management tests
 		r.Group(rest.MountRoutes())
 
+		apigwConfig := types.Config{}
+		apigwConfig.Enabled = true
+		apigwConfig.Profiler.Enabled = true
+		apigwConfig.Profiler.Global = true
+
+		var (
+			t         *testing.T
+			ctx, h, s = setup(nil)
+		)
+
+		// prep rbac for first service load
+		loadRbacRules(ctx, s, t, h)
+
 		// API gw routes
-		apigw.Setup(types.Config{Enabled: true, Profiler: struct {
-			Enabled bool
-			Global  bool
-		}{Enabled: true, Global: true}}, service.DefaultLogger, service.DefaultStore)
+		apigw.Setup(apigwConfig, service.DefaultLogger, service.DefaultApigwRoute, service.DefaultApigwFilter)
+
 		err := apigw.Service().Reload(ctx)
+
 		if err != nil {
 			panic(err)
 		}
@@ -135,11 +145,6 @@ func (h helper) MyRole() uint64 {
 	return h.roleID
 }
 
-// Returns context w/ security details
-func (h helper) secCtx() context.Context {
-	return auth.SetIdentityToContext(context.Background(), h.cUser)
-}
-
 // apitest basics, initialize, set handler, add auth
 func (h helper) apiInit() *apitest.APITest {
 	InitTestApp()
@@ -153,6 +158,7 @@ func (h helper) apiInit() *apitest.APITest {
 
 func setupScenario(t *testing.T) (context.Context, helper, store.Storer) {
 	ctx, h, s := setup(t)
+
 	loadScenario(ctx, s, t, h)
 	loadRbacRules(ctx, s, t, h)
 	_ = apigw.Service().Reload(ctx)
@@ -162,6 +168,7 @@ func setupScenario(t *testing.T) (context.Context, helper, store.Storer) {
 
 func loadRbacRules(ctx context.Context, s store.Storer, t *testing.T, h helper) {
 	helpers.AllowMeWorkflowSearch(h)
+	helpers.AllowMeApigwSearch(h)
 }
 
 func setup(t *testing.T) (context.Context, helper, store.Storer) {
@@ -185,15 +192,6 @@ func (h helper) noError(err error) {
 	}
 
 	h.a.NoError(err)
-}
-
-func (h helper) setLabel(res label.LabeledResource, name, value string) {
-	h.a.NoError(store.UpsertLabel(h.secCtx(), service.DefaultStore, &ltype.Label{
-		Kind:       res.LabelResourceKind(),
-		ResourceID: res.LabelResourceID(),
-		Name:       name,
-		Value:      value,
-	}))
 }
 
 func loadScenario(ctx context.Context, s store.Storer, t *testing.T, h helper) {

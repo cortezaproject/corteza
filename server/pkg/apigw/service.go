@@ -14,16 +14,19 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw/profiler"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/registry"
 	"github.com/cortezaproject/corteza/server/pkg/apigw/types"
-	f "github.com/cortezaproject/corteza/server/pkg/filter"
-	st "github.com/cortezaproject/corteza/server/system/types"
+
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
 
 type (
-	storer interface {
-		SearchApigwRoutes(ctx context.Context, f st.ApigwRouteFilter) (st.ApigwRouteSet, st.ApigwRouteFilter, error)
-		SearchApigwFilters(ctx context.Context, f st.ApigwFilterFilter) (st.ApigwFilterSet, st.ApigwFilterFilter, error)
+	routeServicer interface {
+		LoadRoute(context.Context, string, string) ([]*types.Route, error)
+		LoadRoutes(context.Context) ([]*types.Route, error)
+	}
+
+	filterServicer interface {
+		LoadFilters(context.Context, uint64) ([]*types.RouteFilter, error)
 	}
 
 	apigw struct {
@@ -32,7 +35,9 @@ type (
 		routes []*route
 		mx     *chi.Mux
 		pr     *profiler.Profiler
-		storer storer
+
+		rs routeServicer
+		fs filterServicer
 
 		cfg types.Config
 	}
@@ -48,15 +53,15 @@ func Service() *apigw {
 }
 
 // Setup handles the singleton service
-func Setup(cfg types.Config, log *zap.Logger, storer storer) {
+func Setup(cfg types.Config, log *zap.Logger, rs routeServicer, fs filterServicer) {
 	if apiGw != nil {
 		return
 	}
 
-	apiGw = New(cfg, log, storer)
+	apiGw = New(cfg, log, rs, fs)
 }
 
-func New(cfg types.Config, logger *zap.Logger, storer storer) *apigw {
+func New(cfg types.Config, logger *zap.Logger, rs routeServicer, fs filterServicer) *apigw {
 	var (
 		pr = profiler.New()
 	)
@@ -65,11 +70,12 @@ func New(cfg types.Config, logger *zap.Logger, storer storer) *apigw {
 	reg.Preload()
 
 	return &apigw{
-		log:    logger.Named("http.apigw"),
-		storer: storer,
-		reg:    reg,
-		pr:     pr,
-		cfg:    cfg,
+		log: logger.Named("http.apigw"),
+		rs:  rs,
+		fs:  fs,
+		reg: reg,
+		pr:  pr,
+		cfg: cfg,
 	}
 }
 
@@ -116,7 +122,7 @@ func (s *apigw) Reload(ctx context.Context) (err error) {
 
 	for _, r := range s.routes {
 		// Register route handler on endpoint & method
-		s.mx.Method(r.method, r.endpoint, r)
+		s.mx.Method(r.Method, r.Endpoint, r)
 	}
 
 	// handling missed hits
@@ -159,7 +165,7 @@ func (s *apigw) ReloadEndpoint(ctx context.Context, method, endpoint string) (er
 
 	for _, r := range routes {
 		// Register route handler on endpoint & method
-		s.mx.Method(r.method, r.endpoint, r)
+		s.mx.Method(r.Method, r.Endpoint, r)
 	}
 
 	// Make sure to append newly registered routes
@@ -206,18 +212,19 @@ func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
 			log  = s.log.With(zap.String("route", r.String()))
 			pipe = pipeline.NewPipeline(log, chain.NewDefault())
 
-			regFilters []*st.ApigwFilter
+			regFilters []*types.RouteFilter
 		)
 
 		// pipeline needs to know how to handle
 		// async processers
-		pipe.Async(r.meta.async)
+		pipe.Async(r.Meta.Async)
 
 		r.cfg = s.cfg
 		r.log = log
 		r.pr = s.pr
 
-		regFilters, err = s.loadFilters(ctx, r.ID)
+		regFilters, err = s.fs.LoadFilters(ctx, r.ID)
+
 		if err != nil {
 			log.Error("could not load filters for route", zap.Error(err))
 			continue
@@ -228,7 +235,7 @@ func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
 
 			// make sure there is only one postfilter
 			// on async routes
-			if r.meta.async && rf.Kind == string(types.PostFilter) {
+			if r.Meta.Async && rf.Kind == string(types.PostFilter) {
 				flog.Debug("not registering filter for async route")
 				continue
 			}
@@ -247,7 +254,7 @@ func (s *apigw) PrepRoutes(ctx context.Context, routes ...*route) {
 
 		// add default postfilter on async
 		// routes if not present
-		if r.meta.async {
+		if r.Meta.Async {
 			log.Info("registering default postfilter", zap.Error(err))
 
 			pipe.Add(&pipeline.Worker{
@@ -272,7 +279,7 @@ func (s *apigw) AppendRoutes(routes ...*route) {
 			if routes == nil {
 				return ""
 			}
-			return r.method + r.endpoint
+			return r.Method + r.Endpoint
 		}
 	)
 
@@ -298,8 +305,6 @@ func (s *apigw) AppendRoutes(routes ...*route) {
 		}
 		s.routes = append(s.routes, r)
 	}
-
-	return
 }
 
 func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
@@ -315,7 +320,7 @@ func (s *apigw) NotFound(_ context.Context, method, endpoint string) {
 	s.mx.Method(method, endpoint, defaultResponse)
 }
 
-func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker, err error) {
+func (s *apigw) registerFilter(f *types.RouteFilter, r *route) (ff *pipeline.Worker, err error) {
 	handler, err := s.reg.Get(f.Ref)
 
 	if err != nil {
@@ -337,7 +342,7 @@ func (s *apigw) registerFilter(f *st.ApigwFilter, r *route) (ff *pipeline.Worker
 	}
 
 	ff = &pipeline.Worker{
-		Async:   r.meta.async && f.Kind == string(types.Processer),
+		Async:   r.Meta.Async && f.Kind == string(types.Processer),
 		Handler: handler.Handler(),
 		Name:    handler.String(),
 		Type:    types.FilterKind(f.Kind),
@@ -374,73 +379,43 @@ func (s *apigw) UpdateSettings(ctx context.Context, cfg types.Config) {
 }
 
 func (s *apigw) loadRoutes(ctx context.Context) (rr []*route, err error) {
-	var (
-		routes st.ApigwRouteSet
-		agwf   = st.ApigwRouteFilter{
-			Deleted:  f.StateExcluded,
-			Disabled: f.StateExcluded,
-		}
-	)
+	routes, err := s.rs.LoadRoutes(ctx)
 
-	routes, _, err = s.storer.SearchApigwRoutes(ctx, agwf)
 	if err != nil {
 		return
 	}
 
-	for _, r := range routes {
-		route := &route{
-			ID:       r.ID,
-			endpoint: r.Endpoint,
-			method:   r.Method,
-			meta: routeMeta{
-				debug: r.Meta.Debug,
-				async: r.Meta.Async,
-			},
-		}
-
-		rr = append(rr, route)
-	}
+	rr = mapRoute(routes)
 
 	return
 }
 
 func (s *apigw) loadRoute(ctx context.Context, method, endpoint string) (rr []*route, err error) {
-	var (
-		routes st.ApigwRouteSet
-		agwf   = st.ApigwRouteFilter{
-			Endpoint: endpoint,
-			Method:   method,
-			Deleted:  f.StateExcluded,
-			Disabled: f.StateExcluded,
-		}
-	)
+	routes, err := s.rs.LoadRoute(ctx, method, endpoint)
 
-	routes, _, err = s.storer.SearchApigwRoutes(ctx, agwf)
 	if err != nil {
 		return
 	}
 
-	for _, r := range routes {
-		rr = append(rr, &route{
-			ID:       r.ID,
-			endpoint: r.Endpoint,
-			method:   r.Method,
-			meta: routeMeta{
-				debug: r.Meta.Debug,
-				async: r.Meta.Async,
-			},
-		})
-	}
+	rr = mapRoute(routes)
 
 	return
 }
 
-func (s *apigw) loadFilters(ctx context.Context, route uint64) (ff []*st.ApigwFilter, err error) {
-	ff, _, err = s.storer.SearchApigwFilters(ctx, st.ApigwFilterFilter{
-		RouteID:  route,
-		Deleted:  f.StateExcluded,
-		Disabled: f.StateExcluded,
-	})
+func mapRoute(routes []*types.Route) (rr []*route) {
+	for _, r := range routes {
+		route := &route{}
+
+		route.ID = r.ID
+		route.Endpoint = r.Endpoint
+		route.Method = r.Method
+		route.Meta = types.RouteMeta{
+			Debug: r.Meta.Debug,
+			Async: r.Meta.Async,
+		}
+
+		rr = append(rr, route)
+	}
 
 	return
 }

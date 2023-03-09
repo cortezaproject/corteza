@@ -152,6 +152,9 @@ func TestApigwRouteSearch_forbidden(t *testing.T) {
 	h.createRouteWithFilter("test1", "")
 	h.createRouteWithFilter("test2", "")
 
+	// revert the applied allow permission to be able to load service
+	helpers.DenyMe(h, types.ComponentRbacResource(), "apigw-routes.search")
+
 	h.apiInit().
 		Get(fmt.Sprintf("/apigw/route/")).
 		Header("Accept", "application/json").

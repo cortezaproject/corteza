@@ -431,7 +431,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		c.Proxy.OutboundTimeout = sysService.CurrentSettings.Apigw.Proxy.OutboundTimeout
 
 		// Initialize API GW bits
-		apigw.Setup(c, app.Log, app.Store)
+		apigw.Setup(c, app.Log, sysService.DefaultApigwRoute, sysService.DefaultApigwFilter)
 	}
 
 	if app.Opt.Federation.Enabled {
@@ -574,7 +574,9 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 		updateApigwSettings(ctx, sysService.CurrentSettings)
 
-		// // Reload routes
+		// reload routes
+		ctx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 		if err = apigw.Service().Reload(ctx); err != nil {
 			return fmt.Errorf("could not initialize api gateway services: %w", err)
 		}

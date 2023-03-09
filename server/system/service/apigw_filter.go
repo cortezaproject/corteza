@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	agtypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	at "github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/store"
@@ -17,7 +18,19 @@ type (
 		actionlog actionlog.Recorder
 		store     store.Storer
 		ac        routeAccessController
-		route     *apigwRoute
+		route     ApigwRouteService
+	}
+
+	ApigwFilterService interface {
+		FindByID(context.Context, uint64) (q *types.ApigwFilter, err error)
+		Create(context.Context, *types.ApigwFilter) (*types.ApigwFilter, error)
+		Update(context.Context, *types.ApigwFilter) (*types.ApigwFilter, error)
+		DeleteByID(context.Context, uint64) error
+		UndeleteByID(context.Context, uint64) error
+		Search(context.Context, types.ApigwFilterFilter) (types.ApigwFilterSet, types.ApigwFilterFilter, error)
+		DefFilter(context.Context, string) (interface{}, error)
+		DefProxyAuth(context.Context) (interface{}, error)
+		LoadFilters(context.Context, uint64) ([]*at.RouteFilter, error)
 	}
 )
 
@@ -313,6 +326,35 @@ func (svc *apigwFilter) Search(ctx context.Context, filter types.ApigwFilterFilt
 	}()
 
 	return r, f, svc.recordAction(ctx, aProps, ApigwFilterActionSearch, err)
+}
+
+func (svc *apigwFilter) LoadFilters(ctx context.Context, route uint64) (ff []*at.RouteFilter, err error) {
+
+	f, _, err := svc.Search(ctx, types.ApigwFilterFilter{
+		RouteID:  route,
+		Deleted:  filter.StateExcluded,
+		Disabled: filter.StateExcluded,
+	})
+
+	if err != nil {
+		return
+	}
+
+	for _, r := range f {
+		filter := &at.RouteFilter{
+			ID:      r.ID,
+			Route:   r.Route,
+			Weight:  r.Weight,
+			Ref:     r.Ref,
+			Kind:    r.Kind,
+			Enabled: r.Enabled,
+			Params:  at.RouteFilterParams(r.Params),
+		}
+
+		ff = append(ff, filter)
+	}
+
+	return
 }
 
 func (svc *apigwFilter) DefFilter(ctx context.Context, kind string) (l interface{}, err error) {

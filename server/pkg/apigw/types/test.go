@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	st "github.com/cortezaproject/corteza/server/system/types"
 )
 
 type (
@@ -22,11 +20,6 @@ type (
 	MockHandler struct {
 		Foo      string `json:"foo"`
 		Handler_ HandlerFunc
-	}
-
-	MockStorer struct {
-		F func(context.Context, st.ApigwFilterFilter) (st.ApigwFilterSet, st.ApigwFilterFilter, error)
-		R func(context.Context, st.ApigwRouteFilter) (st.ApigwRouteSet, st.ApigwRouteFilter, error)
 	}
 
 	MockRoundTripper func(*http.Request) (*http.Response, error)
@@ -57,14 +50,6 @@ func (h MockHandler) Meta() FilterMeta {
 	return FilterMeta{
 		Name: "return mocked filter metadata",
 	}
-}
-
-func (td MockStorer) SearchApigwRoutes(ctx context.Context, f st.ApigwRouteFilter) (s st.ApigwRouteSet, ff st.ApigwRouteFilter, err error) {
-	return td.R(ctx, f)
-}
-
-func (td MockStorer) SearchApigwFilters(ctx context.Context, f st.ApigwFilterFilter) (s st.ApigwFilterSet, ff st.ApigwFilterFilter, err error) {
-	return td.F(ctx, f)
 }
 
 func (h MockErrorHandler) Handler() ErrorHandlerFunc {

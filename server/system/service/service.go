@@ -87,8 +87,8 @@ var (
 	DefaultRenderer            TemplateService
 	DefaultResourceTranslation ResourceTranslationService
 	DefaultQueue               *queue
-	DefaultApigwRoute          *apigwRoute
-	DefaultApigwFilter         *apigwFilter
+	DefaultApigwRoute          ApigwRouteService
+	DefaultApigwFilter         ApigwFilterService
 	DefaultApigwProfiler       *apigwProfiler
 	DefaultReport              *report
 	DefaultDataPrivacy         *dataPrivacy

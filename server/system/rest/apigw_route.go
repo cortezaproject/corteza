@@ -12,7 +12,7 @@ import (
 
 type (
 	ApigwRoute struct {
-		svc routeService
+		svc service.ApigwRouteService
 		ac  apiGwRouteAccessController
 	}
 
@@ -27,15 +27,6 @@ type (
 	routeSetPayload struct {
 		Filter types.ApigwRouteFilter `json:"filter"`
 		Set    []*routePayload        `json:"set"`
-	}
-
-	routeService interface {
-		FindByID(ctx context.Context, ID uint64) (*types.ApigwRoute, error)
-		Create(ctx context.Context, new *types.ApigwRoute) (*types.ApigwRoute, error)
-		Update(ctx context.Context, upd *types.ApigwRoute) (*types.ApigwRoute, error)
-		DeleteByID(ctx context.Context, ID uint64) error
-		UndeleteByID(ctx context.Context, ID uint64) error
-		Search(ctx context.Context, filter types.ApigwRouteFilter) (types.ApigwRouteSet, types.ApigwRouteFilter, error)
 	}
 
 	apiGwRouteAccessController interface {

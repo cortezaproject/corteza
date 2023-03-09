@@ -12,7 +12,7 @@ import (
 
 type (
 	ApigwFilter struct {
-		svc filterService
+		svc service.ApigwFilterService
 		ac  templateAccessController
 	}
 
@@ -23,18 +23,6 @@ type (
 	functionSetPayload struct {
 		Filter types.ApigwFilterFilter `json:"filter"`
 		Set    []*functionPayload      `json:"set"`
-	}
-
-	filterService interface {
-		FindByID(ctx context.Context, ID uint64) (*types.ApigwFilter, error)
-		Search(ctx context.Context, filter types.ApigwFilterFilter) (types.ApigwFilterSet, types.ApigwFilterFilter, error)
-		Create(ctx context.Context, new *types.ApigwFilter) (*types.ApigwFilter, error)
-		Update(ctx context.Context, upd *types.ApigwFilter) (*types.ApigwFilter, error)
-		DeleteByID(ctx context.Context, ID uint64) error
-		UndeleteByID(ctx context.Context, ID uint64) error
-
-		DefFilter(context.Context, string) (interface{}, error)
-		DefProxyAuth(context.Context) (interface{}, error)
 	}
 )
 

@@ -77,6 +77,11 @@ func AllowMeWorkflowSearch(mrg myRoleGetter) {
 	AllowMe(mrg, automationTypes.WorkflowRbacResource(0), "triggers.search")
 }
 
+func AllowMeApigwSearch(mrg myRoleGetter) {
+	AllowMe(mrg, types.ComponentRbacResource(), "apigw-routes.search")
+	AllowMe(mrg, types.ApigwRouteRbacResource(0), "read")
+}
+
 func AllowMeModuleSearch(mrg myRoleGetter) {
 	AllowMe(mrg, composeTypes.NamespaceRbacResource(0), "modules.search")
 	AllowMe(mrg, composeTypes.ModuleRbacResource(0, 0), "read")

@@ -7,7 +7,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 
+	at "github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -27,6 +29,18 @@ type (
 		CanReadApigwRoute(context.Context, *types.ApigwRoute) bool
 		CanUpdateApigwRoute(context.Context, *types.ApigwRoute) bool
 		CanDeleteApigwRoute(context.Context, *types.ApigwRoute) bool
+	}
+
+	ApigwRouteService interface {
+		FindByID(ctx context.Context, ID uint64) (*types.ApigwRoute, error)
+		Create(ctx context.Context, new *types.ApigwRoute) (*types.ApigwRoute, error)
+		Update(ctx context.Context, upd *types.ApigwRoute) (*types.ApigwRoute, error)
+		DeleteByID(ctx context.Context, ID uint64) error
+		UndeleteByID(ctx context.Context, ID uint64) error
+		Search(ctx context.Context, filter types.ApigwRouteFilter) (types.ApigwRouteSet, types.ApigwRouteFilter, error)
+
+		LoadRoute(context.Context, string, string) ([]*at.Route, error)
+		LoadRoutes(context.Context) ([]*at.Route, error)
 	}
 )
 
@@ -259,6 +273,56 @@ func (svc *apigwRoute) Search(ctx context.Context, filter types.ApigwRouteFilter
 	}()
 
 	return r, f, svc.recordAction(ctx, aProps, ApigwRouteActionSearch, err)
+}
+
+func (svc *apigwRoute) loadRoutes(ctx context.Context, f types.ApigwRouteFilter) (rr []*at.Route, err error) {
+	routes, _, err := svc.Search(ctx, f)
+
+	if err != nil {
+		return
+	}
+
+	for _, r := range routes {
+		route := &at.Route{
+			ID:       r.ID,
+			Endpoint: r.Endpoint,
+			Method:   r.Method,
+			Meta: at.RouteMeta{
+				Debug: r.Meta.Debug,
+				Async: r.Meta.Async,
+			},
+		}
+
+		rr = append(rr, route)
+	}
+
+	return
+}
+
+func (svc *apigwRoute) LoadRoutes(ctx context.Context) (rr []*at.Route, err error) {
+	var (
+		agwf = types.ApigwRouteFilter{
+			Deleted:  filter.StateExcluded,
+			Disabled: filter.StateExcluded,
+		}
+	)
+
+	rr, err = svc.loadRoutes(ctx, agwf)
+	return
+}
+
+func (svc *apigwRoute) LoadRoute(ctx context.Context, method, endpoint string) (rr []*at.Route, err error) {
+	var (
+		agwf = types.ApigwRouteFilter{
+			Endpoint: endpoint,
+			Method:   method,
+			Deleted:  filter.StateExcluded,
+			Disabled: filter.StateExcluded,
+		}
+	)
+
+	rr, err = svc.loadRoutes(ctx, agwf)
+	return
 }
 
 func loadApigwRoute(ctx context.Context, s store.ApigwRoutes, ID uint64) (res *types.ApigwRoute, err error) {

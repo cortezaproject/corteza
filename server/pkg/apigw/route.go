@@ -15,10 +15,7 @@ import (
 
 type (
 	route struct {
-		ID       uint64
-		endpoint string
-		method   string
-		meta     routeMeta
+		types.Route
 
 		cfg types.Config
 		log *zap.Logger
@@ -26,11 +23,6 @@ type (
 
 		handler    http.Handler
 		errHandler types.ErrorHandlerFunc
-	}
-
-	routeMeta struct {
-		debug bool
-		async bool
 	}
 )
 
@@ -90,5 +82,5 @@ func (r route) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r route) String() string {
-	return fmt.Sprintf("%s %s", r.method, r.endpoint)
+	return fmt.Sprintf("%s %s", r.Method, r.Endpoint)
 }

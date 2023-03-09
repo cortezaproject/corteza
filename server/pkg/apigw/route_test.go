@@ -91,8 +91,10 @@ func Test_pl(t *testing.T) {
 			}
 
 			route := &route{
-				method:     tc.method,
-				endpoint:   tc.endpoint,
+				Route: types.Route{
+					Method:   tc.method,
+					Endpoint: tc.endpoint,
+				},
 				log:        zap.NewNop(),
 				handler:    pipe.Handler(),
 				errHandler: pipe.Error(),
