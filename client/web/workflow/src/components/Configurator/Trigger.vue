@@ -453,7 +453,6 @@ export default {
 
     eventChanged () {
       this.item.triggers.constraints = []
-      this.addConstraint()
       this.$root.$emit('change-detected')
       this.updateDefaultName()
     },

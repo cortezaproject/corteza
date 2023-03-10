@@ -18,7 +18,11 @@
           v-for="(c, index) in trigger.item.constraints"
           :key="index"
         >
-          {{ c.name[0].toUpperCase() + c.name.slice(1).toLowerCase() }} {{ c.op }} "{{ c.values.join(' or ') }}"
+          <template
+            v-if="c.name"
+          >
+            {{ c.name[0].toUpperCase() + c.name.slice(1).toLowerCase() }} {{ c.op }} "{{ c.values.join(' or ') }}"
+          </template>
           <code
             v-if="index < trigger.item.constraints.length - 1"
           >
