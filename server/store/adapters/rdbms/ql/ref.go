@@ -280,6 +280,12 @@ var (
 				return exp.NewSQLFunctionExpression("MAX", args[0])
 			},
 		},
+
+		"std": {
+			HandlerE: func(args ...exp.Expression) (exp.Expression, error) {
+				return nil, fmt.Errorf("STD function not supported on this database")
+			},
+		},
 	}
 )
 
@@ -302,6 +308,10 @@ func (ee ExprHandlerMap) RefHandler(n *ql.ASTNode, args ...exp.Expression) (exp.
 
 	if ee[r] == nil {
 		return nil, fmt.Errorf("unknown ref %q", r)
+	}
+
+	if ee[r].Handler != nil && ee[r].HandlerE != nil {
+		panic("invalid ql ref definition: both Handler and HandlerE are set")
 	}
 
 	if ee[r].Handler != nil {

@@ -238,7 +238,7 @@ func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr e
 		return drivers.OpHandlerNotIn(d, n, args...)
 	}
 
-	return ql.DefaultRefHandler(n, args...)
+	return ref2exp.RefHandler(n, args...)
 }
 
 func (d mysqlDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err error) {
