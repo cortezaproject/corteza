@@ -2,11 +2,13 @@
   <div>
     <b-tab :title="$t('navigation.label')">
       <div class="mb-3">
-        <h5 class="text-primary">
+        <h5>
           {{ $t("navigation.displayOptions") }}
         </h5>
 
-        <b-row class="justify-content-between">
+        <b-row
+          class="justify-content-between text-primary"
+        >
           <b-col
             cols="12"
             sm="4"
@@ -14,19 +16,22 @@
           >
             <b-form-group
               horizontal
+              variant="primary"
               :label="$t('navigation.appearance')"
             >
               <b-form-radio-group
                 v-model="options.display.appearance"
                 buttons
-                button-variant="outline-secondary"
+                button-variant="outline-primary"
                 :options="appearanceOptions"
+                size="sm"
               />
             </b-form-group>
           </b-col>
 
           <b-col
-            sm="4"
+            cols="12"
+            md="4"
             class="mb-2 mb-sm-0"
           >
             <b-form-group
@@ -36,15 +41,16 @@
               <b-form-radio-group
                 v-model="options.display.fillJustify"
                 buttons
-                button-variant="outline-secondary"
-
+                button-variant="outline-primary"
                 :options="fillJustifyOptions"
+                size="sm"
               />
             </b-form-group>
           </b-col>
 
           <b-col
-            sm="4"
+            cols="12"
+            md="4"
             class="mb-2 mb-sm-0"
           >
             <b-form-group
@@ -54,34 +60,23 @@
               <b-form-radio-group
                 v-model="options.display.alignment"
                 buttons
-                button-variant="outline-secondary"
+                button-variant="outline-primary"
                 :options="alignmentOptions"
+                size="sm"
               />
             </b-form-group>
           </b-col>
         </b-row>
       </div>
 
+      <hr class="my-2">
+
       <div class="mb-3 mt-2">
         <div class="d-flex align-items-center mb-4">
           <h5 class="text-primary mb-0">
             {{ $t("navigation.navigationItems") }}
           </h5>
-
-          <b-button
-            variant="link"
-            class="d-flex align-items-center text-decoration-none"
-            @click="addNavigationItem"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'plus']"
-              size="sm"
-              class="mr-1"
-            />
-            {{ $t("navigation.add") }}
-          </b-button>
         </div>
-
         <div class="mt-3">
           <draggable
             v-model="block.options.navigationItems"
@@ -96,20 +91,25 @@
 
               <b-table-simple
                 borderless
+                responsive="lg"
+                small
               >
                 <thead>
                   <tr>
                     <th style="width: auto;" />
-                    <th>
+                    <th style="min-width: 200px;">
                       {{ $t("navigation.type") }}
                     </th>
-                    <th>
+                    <th style="min-width: 200px;">
                       {{ $t("navigation.color") }}
                     </th>
-                    <th>
+                    <th style="min-width: 200px;">
                       {{ $t("navigation.background") }}
                     </th>
-                    <th class="text-center">
+                    <th
+                      class="text-center"
+                      style="min-width: 200px;"
+                    >
                       {{ $t("navigation.enabled") }}
                     </th>
                     <th style="width: auto; min-width: 100px;" />
@@ -120,7 +120,7 @@
                     <td class="align-middle">
                       <font-awesome-icon
                         :icon="['fas', 'bars']"
-                        class="grab text-grey"
+                        class="grab text-light"
                       />
                     </td>
                     <td class="align-middle">
@@ -171,6 +171,30 @@
               </b-table-simple>
             </div>
           </draggable>
+
+          <div
+            v-if="!block.options.navigationItems.length"
+            class="text-center my-4"
+          >
+            <p>
+              {{ $t('navigation.noNavigationItems') }}
+            </p>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center mb-4">
+          <b-button
+            variant="primary"
+            class="d-flex align-items-center text-decoration-none"
+            @click="addNavigationItem"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'plus']"
+              size="sm"
+              class="mr-1"
+            />
+            {{ $t("navigation.add") }}
+          </b-button>
         </div>
       </div>
     </b-tab>
@@ -244,7 +268,7 @@ export default {
         compose.PageBlockNavigation.makeNavigationItem({
           type: 'compose',
           options: {
-            backgroundColor: '#ffffff',
+            backgroundColor: '',
             item: {
               align: 'bottom',
               target: 'sameTab',

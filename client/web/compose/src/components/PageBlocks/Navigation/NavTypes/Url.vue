@@ -45,3 +45,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+th,
+td {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+</style>

@@ -84,20 +84,14 @@
       </b-col>
     </b-row>
 
+    <hr class="my-2">
+
     <div
       class="d-flex align-items-center mb-2"
     >
       <h5 class="m-0">
         {{ $t('tabs.title') }}
       </h5>
-
-      <b-button
-        variant="link"
-        class="p-0 ml-3 text-decoration-none"
-        @click="addTab"
-      >
-        {{ $t('tabs.addTab') }}
-      </b-button>
     </div>
 
     <b-table-simple
@@ -222,6 +216,14 @@
         {{ $t('tabs.noTabs') }}
       </p>
     </div>
+
+    <b-button
+      variant="primary"
+      class="text-decoration-none"
+      @click="addTab"
+    >
+      {{ $t('tabs.addTab') }}
+    </b-button>
 
     <b-modal
       id="createBlockSelectorTab"

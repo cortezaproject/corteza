@@ -18,9 +18,9 @@ interface Options {
 
 const defaults: Readonly<Options> = Object.freeze({
   display: {
-    appearance: 'tabs',
+    appearance: 'pills',
     alignment: 'center',
-    fillJustify: 'justify',
+    fillJustify: 'fill',
   },
   navigationItems: [],
   magnifyOption: '',

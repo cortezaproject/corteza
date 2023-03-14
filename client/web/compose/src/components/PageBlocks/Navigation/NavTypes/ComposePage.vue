@@ -9,7 +9,7 @@
         />
       </b-form-group>
     </td>
-    <td>
+    <td style="width: 50%; min-width: 200px;">
       <b-form-group :label="$t('navigation.composePage')">
         <vue-select
           key="pageID"
@@ -18,6 +18,7 @@
           :options="tree"
           append-to-body
           label="title"
+          :calculate-position="calculatePosition"
           :reduce="f => f.pageID"
           :calculate-position="calculatePosition"
           option-value="pageID"
@@ -60,6 +61,7 @@ import base from './base'
 
 import { VueSelect } from 'vue-select'
 import { compose } from '@cortezaproject/corteza-js'
+import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
 
 export default {
   components: {
@@ -67,6 +69,10 @@ export default {
   },
 
   extends: base,
+
+  mixins: [
+    calculatePosition,
+  ],
 
   props: {
     namespace: {
@@ -114,3 +120,45 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+
+.block-selector {
+  position: relative;
+
+  &:not(.vs--open) .vs__selected + .vs__search {
+    // force this to not use any space
+    // we still need it to be rendered for the focus
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 0;
+  }
+
+  .vs__selected-options {
+    // do not allow growing
+    width: 0;
+  }
+
+  .vs__selected {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+}
+
+.vs__dropdown-menu .vs__dropdown-option {
+  text-overflow: ellipsis;
+  overflow: hidden !important;
+}
+
+th,
+td {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+</style>
