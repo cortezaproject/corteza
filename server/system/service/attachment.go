@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -269,12 +270,12 @@ func (svc attachment) CreateAvatarInitialsAttachment(ctx context.Context, initia
 	dc.SetHexColor(bgColor)
 	dc.Clear()
 
-	// Get the font face properties
-	fontBytes, err := os.ReadFile(svc.opt.AvatarInitialsFontPath)
+	fontBytes, err := svc.processFontsFile()
 	if err != nil {
-		fmt.Println(err.Error())
+		return nil, err
 	}
 
+	// Get the font face properties
 	f, _ := truetype.Parse(fontBytes)
 
 	face := truetype.NewFace(f, &truetype.Options{
@@ -520,4 +521,29 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	att.PreviewUrl = svc.files.Preview(att.ID, meta.Extension)
 
 	return svc.files.Save(att.PreviewUrl, buf)
+}
+
+// processFontsFile validates the file path provided in the AVATAR_INITIALS_FONT_PATH environment variable,
+// It checks if the file exists and has the correct file extension, then reads and returns the file content
+func (svc attachment) processFontsFile() (fontBytes []byte, err error) {
+	aux, err := filepath.Glob(svc.opt.AvatarInitialsFontPath)
+	if err != nil {
+		return nil, err
+	}
+	if aux == nil || len(aux) != 1 {
+		return nil, errors.New("font file not found, please ensure that the correct AVATAR_INITIALS_FONT_PATH is set")
+	}
+
+	ext := strings.ToLower(filepath.Ext(aux[0]))
+
+	if ext != ".ttf" {
+		return nil, errors.New("invalid font file extension, please provide a truetype font (.ttf) file")
+	}
+
+	fontBytes, err = os.ReadFile(aux[0])
+	if err != nil {
+		return nil, err
+	}
+
+	return fontBytes, nil
 }

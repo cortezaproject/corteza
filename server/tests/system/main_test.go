@@ -99,6 +99,7 @@ func InitTestApp() {
 
 			sm = request.NewSessionManager(service.DefaultStore, app.Opt.Auth, service.DefaultLogger)
 
+			app.Opt.Attachment.AvatarInitialsFontPath = "../../auth/assets/public/fonts/poppins/Poppins-Regular.ttf"
 			return nil
 		})
 
