@@ -46,7 +46,7 @@ func Test_profileForm(t *testing.T) {
 	authHandlers.UserService = userService
 	authReq = prepareClientAuthReq(authHandlers, req, user)
 
-	avatarUrl := fmt.Sprintf("/api/system/attachment/avatar/%d/original/%s", user.Meta.AvatarID, types.AttachmentKindAvatar)
+	avatarUrl := fmt.Sprintf("//system/attachment/avatar/%d/original/%s", user.Meta.AvatarID, types.AttachmentKindAvatar)
 
 	userForm := map[string]string{
 		"email":             user.Email,
@@ -123,7 +123,7 @@ func Test_profileFormProc(t *testing.T) {
 				"name":             "name",
 				"initialBgColor":   "",
 				"initialTextColor": "",
-				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+				"avatarUrl":        "//system/attachment/avatar/0/original/avatar",
 			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
@@ -154,7 +154,7 @@ func Test_profileFormProc(t *testing.T) {
 				"name":             "name",
 				"initialBgColor":   "",
 				"initialTextColor": "",
-				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+				"avatarUrl":        "//system/attachment/avatar/0/original/avatar",
 			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
@@ -185,7 +185,7 @@ func Test_profileFormProc(t *testing.T) {
 				"name":             "name",
 				"initialBgColor":   "",
 				"initialTextColor": "",
-				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+				"avatarUrl":        "//system/attachment/avatar/0/original/avatar",
 			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
@@ -216,7 +216,7 @@ func Test_profileFormProc(t *testing.T) {
 				"name":             "name",
 				"initialBgColor":   "",
 				"initialTextColor": "",
-				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+				"avatarUrl":        "//system/attachment/avatar/0/original/avatar",
 			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
@@ -247,7 +247,7 @@ func Test_profileFormProc(t *testing.T) {
 				"name":             "name",
 				"initialBgColor":   "",
 				"initialTextColor": "",
-				"avatarUrl":        "/api/system/attachment/avatar/0/original/avatar",
+				"avatarUrl":        "//system/attachment/avatar/0/original/avatar",
 			},
 			fn: func(_ *settings.Settings) {
 				req.PostForm.Add("handle", "handle")
