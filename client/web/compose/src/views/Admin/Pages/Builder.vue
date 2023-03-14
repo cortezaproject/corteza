@@ -262,6 +262,10 @@
         </template>
       </editor-toolbar>
     </portal>
+
+    <magnification-modal
+      :namespace="namespace"
+    />
   </div>
 </template>
 
@@ -276,6 +280,7 @@ import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToo
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import Configurator from 'corteza-webapp-compose/src/components/PageBlocks/Configurator'
 import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
+import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 
 export default {
   i18nOptions: {
@@ -289,6 +294,7 @@ export default {
     PageBlock,
     EditorToolbar,
     PageTranslator,
+    MagnificationModal,
   },
 
   mixins: [

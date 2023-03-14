@@ -71,7 +71,6 @@
 
     <magnification-modal
       :namespace="namespace"
-      :page="page"
     />
   </div>
 </template>

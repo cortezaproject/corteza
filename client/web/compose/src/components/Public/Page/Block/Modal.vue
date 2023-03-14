@@ -99,18 +99,20 @@ export default {
   },
 
   created () {
-    this.$root.$on('magnify-page-block', ({ blockID, block } = {}) => {
-      this.customBlock = block
-      blockID = blockID || (block || {}).blockID
-      this.$router.push({ query: { ...this.$route.query, blockID } })
-    })
+    this.$root.$on('magnify-page-block', this.magnifyPageBlock)
   },
 
-  beforeDestroy () {
-    this.$root.$off('magnify-page-block')
+  destroyed () {
+    this.$root.$off('magnify-page-block', this.magnifyPageBlock)
   },
 
   methods: {
+    magnifyPageBlock ({ blockID, block } = {}) {
+      this.customBlock = block
+      blockID = blockID || (block || {}).blockID
+      this.$router.push({ query: { ...this.$route.query, blockID } })
+    },
+
     loadModal (blockID) {
       // Get data from route
       const { recordID: paramsRecordID, pageID } = this.$route.params
