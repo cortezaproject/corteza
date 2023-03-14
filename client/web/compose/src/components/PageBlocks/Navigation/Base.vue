@@ -20,14 +20,15 @@
           :disabled="!navItem.options.enabled"
           :style="{ order: index, color: navItem.options.textColor, background: navItem.options.backgroundColor, justifyContent: options.display.alignment }"
           :link-attrs="{ style: `color: ${navItem.options.textColor}` }"
+          :href="generateHrefAttributeLink(navItem)"
+          :to="generateToAttributeLink(navItem)"
           :target="selectTargetOption(navItem.options.item.target)"
-          :href="redirectForNavItem(navItem)"
           class="d-flex align-items-center"
         >
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
             <b-button
               :id="`dropdown-popover-${index}-${block.blockID}`"
-              class="text-decoration-none"
+              class="text-decoration-none p-0"
               variant="link"
               :style="{ color: navItem.options.textColor, background: navItem.options.backgroundColor }"
             >
@@ -101,6 +102,7 @@
     </div>
   </wrap>
 </template>
+
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
@@ -141,17 +143,28 @@ export default {
       return navItem.options.item.label
     },
 
-    redirectForNavItem (navItem) {
-      if (navItem.type === 'dropdown' || this.isComposeDropdownPage(navItem)) {
+    generateToAttributeLink (navItem) {
+      if (['dropdown', 'text-section'].includes(navItem.type) || this.isComposeDropdownPage(navItem)) {
         return
-      } else if (navItem.type === 'compose') {
-        const slug = this.$route.params.slug
-        const pageID = navItem.options.item.pageID
-
-        return `ns/${slug}/pages/${pageID}`
       }
 
-      return navItem.options.item.url
+      let url = ''
+
+      if (navItem.type === 'compose') {
+        const pageID = navItem.options.item.pageID
+
+        url = this.$router.resolve({ name: 'page', params: { pageID } }).href
+      }
+
+      return url
+    },
+
+    generateHrefAttributeLink (navItem) {
+      if (['dropdown', 'text-section'].includes(navItem.type) || this.isComposeDropdownPage(navItem)) {
+        return
+      }
+
+      return navItem.type === 'url' ? navItem.options.item.url : ''
     },
   },
 }

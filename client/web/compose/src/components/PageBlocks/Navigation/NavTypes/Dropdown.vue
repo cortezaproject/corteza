@@ -24,7 +24,7 @@
             <b-form-radio-group
               v-model="options.item.align"
               buttons
-              button-variant="outline-secondary"
+              button-variant="outline-primary"
               size="sm"
               :options="aligns"
             />
@@ -32,23 +32,10 @@
         </th>
       </div>
 
-      <div class="d-flex align-items-center mb-4 mb-3 px-3">
+      <div class="mb-4 mb-3 px-3">
         <h6 class="text-primary mb-0">
           {{ $t("navigation.dropdownItems") }}
         </h6>
-
-        <b-button
-          variant="link"
-          class="text-decoration-none"
-          @click="options.item.dropdown.items.push({ text: '', url: '', target: 'sameTab' })"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'plus']"
-            size="sm"
-            class="mr-1"
-          />
-          {{ $t("navigation.add") }}
-        </b-button>
       </div>
 
       <div class="px-3">
@@ -120,6 +107,21 @@
           </tr>
         </table>
       </div>
+
+      <div class="mb-4 mb-3 px-3">
+        <b-button
+          variant="primary"
+          class="text-decoration-none"
+          @click="options.item.dropdown.items.push({ text: '', url: '', target: 'sameTab' })"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'plus']"
+            size="sm"
+            class="mr-1"
+          />
+          {{ $t("navigation.addDropdown") }}
+        </b-button>
+      </div>
     </td>
   </tr>
 </template>
@@ -146,3 +148,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+th,
+td {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+</style>
