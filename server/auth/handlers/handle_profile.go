@@ -3,9 +3,11 @@ package handlers
 import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
+	"strings"
 )
 
 func (h *AuthHandlers) profileForm(req *request.AuthReq) (err error) {
@@ -32,7 +34,7 @@ func (h *AuthHandlers) profileForm(req *request.AuthReq) (err error) {
 		}
 	}
 
-	avatarUrl = fmt.Sprintf("%sapi/system/attachment/avatar/%d/original/%s", GetLinks().Base, u.Meta.AvatarID, types.AttachmentKindAvatar)
+	avatarUrl = fmt.Sprintf("%s/system/attachment/avatar/%d/original/%s", getApiFullPath(), u.Meta.AvatarID, types.AttachmentKindAvatar)
 
 	if form := req.PopKV(); len(form) > 0 {
 		req.Data["form"] = form
@@ -137,7 +139,7 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 		return nil
 	}
 
-	avatarUrl := fmt.Sprintf("%sapi/system/attachment/avatar/%d/original/%s", GetLinks().Base, u.Meta.AvatarID, types.AttachmentKindAvatar)
+	avatarUrl := fmt.Sprintf("%s/system/attachment/avatar/%d/original/%s", getApiFullPath(), u.Meta.AvatarID, types.AttachmentKindAvatar)
 	switch {
 	case
 		service.UserErrInvalidID().Is(err),
@@ -171,4 +173,8 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 		h.Log.Error("unhandled error", zap.Error(err))
 		return err
 	}
+}
+
+func getApiFullPath() (path string) {
+	return fmt.Sprintf("/%s", strings.TrimPrefix(options.CleanBase(options.HttpServer().BaseUrl, options.HttpServer().ApiBaseUrl), "/"))
 }

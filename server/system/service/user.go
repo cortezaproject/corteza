@@ -431,7 +431,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return UserErrInvalidEmail()
 		}
 
-		if u, err = svc.FindByID(ctx, upd.ID); err != nil {
+		if u, err = loadUser(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
 
@@ -461,7 +461,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		}
 
 		if err = svc.generateUserAvatarInitial(ctx, u); err != nil {
-			return err
+			return
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.UserBeforeUpdate(upd, u)); err != nil {
@@ -1073,6 +1073,10 @@ func (svc user) UploadAvatar(ctx context.Context, userID uint64, upload *multipa
 			return
 		}
 
+		if !svc.ac.CanUpdateUser(ctx, u) {
+			return UserErrNotAllowedToUpdate()
+		}
+
 		if u.Meta.AvatarID != 0 {
 			if err = svc.att.DeleteByID(ctx, u.Meta.AvatarID); err != nil {
 				return
@@ -1234,6 +1238,10 @@ func (svc user) GenerateAvatar(ctx context.Context, userID uint64, bgColor strin
 	err = func() (err error) {
 		if u, err = loadUser(ctx, svc.store, userID); err != nil {
 			return
+		}
+
+		if !svc.ac.CanUpdateUser(ctx, u) {
+			return UserErrNotAllowedToUpdate()
 		}
 
 		u.Meta.AvatarColor = initialColor
