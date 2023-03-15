@@ -3,9 +3,11 @@ package store
 import (
 	"context"
 	"strconv"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/revisions"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
@@ -297,13 +299,54 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 		n.res.Res = res
 	}
 
-	var model *dal.Model
+	var (
+		model *dal.Model
+		con   = pl.dal.GetConnectionByID(0)
+	)
+
 	// convert module to model and assume compose_record for default ident
 	if model, err = service.ModuleToModel(ns, res, "compose_record"); err != nil {
 		return
 	}
+	model.ConnectionID = con.ID
 
-	model.ConnectionID = pl.dal.GetConnectionByID(0).ID
+	// @note code copied from the service/module.go
+
+	// Set base constraints
+	if model.Ident == "compose_record" {
+		model.Constraints = map[string][]any{
+			"moduleID":    {res.ID},
+			"namespaceID": {res.NamespaceID},
+		}
+	}
+
+	// replace all partition replacement pairs
+	rpl := strings.NewReplacer("{{module}}", res.Handle, "{{namespace}}", ns.Slug)
+	model.Ident = rpl.Replace(model.Ident)
+
+	// @todo validate ident with connection's ident validator
+
+	// Create the revisions model if enabled
+	if res.Config.RecordRevisions.Enabled {
+		rModel := revisions.Model()
+
+		// reuse the connection from the module
+		rModel.ConnectionID = con.ID
+		rModel.Resource = model.Resource
+		rModel.ResourceID = NextID()
+
+		if rModel.Ident = res.Config.RecordRevisions.Ident; rModel.Ident == "" {
+			rModel.Ident = "compose_record_revisions"
+		}
+
+		rModel.Ident = rpl.Replace(rModel.Ident)
+
+		// @todo validate ident with connection's ident validator
+
+		if err = pl.dal.ReplaceModel(ctx, rModel); err != nil {
+			return
+		}
+	}
 
 	if err = pl.dal.ReplaceModel(ctx, model); err != nil {
 		return
