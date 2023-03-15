@@ -21,6 +21,21 @@
     >
       {{ $t('kind.file.view.showName') }}
     </b-form-checkbox>
+
+    <b-form-checkbox
+      v-model="options.enablePreview"
+      class="mb-3"
+    >
+      {{ $t('kind.file.view.enablePreview') }}
+    </b-form-checkbox>
+
+    <b-form-checkbox
+      v-model="options.enableDownload"
+      class="mb-3"
+    >
+      {{ $t('kind.file.view.enableDownload') }}
+    </b-form-checkbox>
+
     <uploader
       :endpoint="endpoint"
       :max-filesize="$s('compose.Page.Attachments.MaxSize', 100)"

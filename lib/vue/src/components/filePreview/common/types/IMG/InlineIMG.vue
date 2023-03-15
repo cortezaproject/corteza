@@ -1,5 +1,5 @@
 <template>
-  <div class="inline">
+  <div class="inline h-100">
     <img
       ref="image"
       :key="src"
@@ -90,7 +90,7 @@ div {
   }
 
   &.inline {
-    img {
+    img:not(.disable-zoom-cursor) {
       cursor: zoom-in;
     }
   }

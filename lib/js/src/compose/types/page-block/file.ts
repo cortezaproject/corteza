@@ -15,6 +15,8 @@ interface Options {
   margin?: number;
   backgroundColor?: string;
   magnifyOption: string;
+  enablePreview?: boolean;
+  enableDownload?: boolean;
 }
 
 const PageBlockFileDefaultMode = 'list'
@@ -40,7 +42,9 @@ const defaults: Readonly<Options> = Object.freeze({
   borderRadius: undefined,
   margin: undefined,
   backgroundColor: undefined,
-  magnifyOption: ''
+  magnifyOption: '',
+  enablePreview: true,
+  enableDownload: true
 })
 
 export class PageBlockFile extends PageBlock {
@@ -60,7 +64,7 @@ export class PageBlockFile extends PageBlock {
       this.options.attachments = o.attachments
     }
 
-    Apply(this.options, o, Boolean, 'hideFileName')
+    Apply(this.options, o, Boolean, 'hideFileName', 'enablePreview', 'enableDownload')
     Apply(this.options, o, String, 'backgroundColor', 'magnifyOption')
     Apply(this.options, o, Number, 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin')
 
