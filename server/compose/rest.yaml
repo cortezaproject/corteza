@@ -587,7 +587,7 @@ endpoints:
         required: false
         title: Parent ID
       - type: bool
-        name: default
+        name: primary
         required: false
         title: Default layouts
       - type: string

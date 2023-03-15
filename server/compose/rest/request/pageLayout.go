@@ -58,10 +58,10 @@ type (
 		// Parent ID
 		ParentID uint64 `json:",string"`
 
-		// Default GET parameter
+		// Primary GET parameter
 		//
 		// Default layouts
-		Default bool
+		Primary bool
 
 		// Query GET parameter
 		//
@@ -321,7 +321,7 @@ func (r PageLayoutList) Auditable() map[string]interface{} {
 		"pageID":      r.PageID,
 		"moduleID":    r.ModuleID,
 		"parentID":    r.ParentID,
-		"default":     r.Default,
+		"primary":     r.Primary,
 		"query":       r.Query,
 		"handle":      r.Handle,
 		"labels":      r.Labels,
@@ -352,8 +352,8 @@ func (r PageLayoutList) GetParentID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutList) GetDefault() bool {
-	return r.Default
+func (r PageLayoutList) GetPrimary() bool {
+	return r.Primary
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -405,8 +405,8 @@ func (r *PageLayoutList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["default"]; ok && len(val) > 0 {
-			r.Default, err = payload.ParseBool(val[0]), nil
+		if val, ok := tmp["primary"]; ok && len(val) > 0 {
+			r.Primary, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

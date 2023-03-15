@@ -70,7 +70,7 @@ type (
 		NamespaceID uint64 `json:"namespaceID,string"`
 		PageID      uint64 `json:"pageID,string,omitempty"`
 		ModuleID    uint64 `json:"moduleID,string,omitempty"`
-		Default     bool   `json:"default,omitempty"`
+		Primary     bool   `json:"primary,omitempty"`
 		Handle      string `json:"handle"`
 		Name        string `json:"name"`
 		Query       string `json:"query"`
