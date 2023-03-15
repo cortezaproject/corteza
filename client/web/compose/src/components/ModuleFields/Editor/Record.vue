@@ -171,7 +171,6 @@ import { debounce } from 'lodash'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapActions, mapGetters } from 'vuex'
 import { VueSelect } from 'vue-select'
-import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import Pagination from '../Common/Pagination.vue'
 
@@ -186,10 +185,6 @@ export default {
   },
 
   extends: base,
-
-  mixins: [
-    calculatePosition,
-  ],
 
   data () {
     return {

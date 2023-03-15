@@ -83,6 +83,7 @@
               :placeholder="$t('searchFields')"
               :get-option-label="getOptionLabel"
               :options="filterFieldOptions(rule)"
+              :calculate-position="calculatePosition"
               class="bg-white"
             />
 

@@ -19,6 +19,7 @@
           append-to-body
           label="title"
           :reduce="f => f.pageID"
+          :calculate-position="calculatePosition"
           option-value="pageID"
           option-text="title"
           class="bg-white"

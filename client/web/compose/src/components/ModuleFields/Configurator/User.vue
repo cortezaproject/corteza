@@ -19,6 +19,7 @@
         :close-on-select="false"
         append-to-body
         :placeholder="$t('kind.user.roles.placeholder')"
+        :calculate-position="calculatePosition"
         multiple
         label="name"
         class="bg-white"
