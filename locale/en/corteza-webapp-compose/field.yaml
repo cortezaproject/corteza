@@ -48,6 +48,8 @@ kind:
       margin: Margin
       unitType: Unit type
       px: px
+      enableDownload: Enable download
+      enablePreview: Enable preview
   number:
     exampleFormat: Format
     exampleInput: Input

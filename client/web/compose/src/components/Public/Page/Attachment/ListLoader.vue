@@ -96,12 +96,12 @@
 
     <div
       v-else
-      class="single gallery"
+      class="single gallery h-100"
     >
       <div
         v-for="(a) in files"
         :key="a.attachmentID"
-        class="my-2"
+        class="my-2 mx-auto h-100"
       >
         <c-preview-inline
           v-if="canPreview(a)"
@@ -111,6 +111,9 @@
           :name="a.name"
           :alt="a.name"
           :preview-style="{ width: 'unset', ...inlineCustomStyles(a) }"
+          :preview-class="[
+            !previewOptions.enablePreview ? 'disable-zoom-cursor' : ''
+          ]"
           :labels="previewLabels"
           @openPreview="openLightbox({ ...a, ...$event })"
         />
@@ -205,7 +208,7 @@ export default {
 
   computed: {
     inlineUrl () {
-      return (a) => (this.ext(a) === 'pdf' ? a.download : a.previewUrl)
+      return (a) => (this.ext(a) === 'pdf' ? a.download : (this.previewOptions.enablePreview ? a.previewUrl : a.url))
     },
 
     previewLabels () {
@@ -287,7 +290,10 @@ export default {
     },
 
     openLightbox (e) {
-      this.$root.$emit('showAttachmentsModal', e)
+      if (this.previewOptions.enablePreview) {
+        const { enableDownload } = this.previewOptions
+        this.$root.$emit('showAttachmentsModal', { ...e, enableDownload })
+      }
     },
 
     deleteAttachment (index) {
@@ -339,6 +345,10 @@ export default {
 
       if (this.ext(a) === 'image') {
         return {
+          ...((!this.previewOptions.enablePreview || height === '0' || width === '0') && {
+            height: '100%',
+            width: '100%',
+          }),
           ...(height && { height: `${height}px` }),
           ...(width && { width: `${width}px` }),
           ...(maxHeight && { maxHeight: `${maxHeight}px` }),

@@ -1,6 +1,6 @@
 <template>
-  <div class="inline">
-    <main>
+  <div class="inline h-100">
+    <main class="h-100">
       <component
         :is="previewType"
         v-bind="$attrs"

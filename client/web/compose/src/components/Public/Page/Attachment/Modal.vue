@@ -16,7 +16,7 @@
     </p>
 
     <a
-      v-if="attachment"
+      v-if="attachment && attachment.enableDownload"
       slot="header.right"
       :href="(attachment || {}).download"
     >
@@ -71,7 +71,7 @@ export default {
 
   created () {
     window.addEventListener('keyup', this.onKeyUp)
-    this.$root.$on('showAttachmentsModal', ({ url, download, name, document = undefined, meta }) => {
+    this.$root.$on('showAttachmentsModal', ({ url, download, name, document = undefined, meta, enableDownload }) => {
       this.attachment = {
         document,
         download,
@@ -79,6 +79,7 @@ export default {
         src: url,
         name: name,
         caption: name,
+        enableDownload,
       }
     })
   },
