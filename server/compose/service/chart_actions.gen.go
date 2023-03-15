@@ -55,7 +55,6 @@ var (
 // setChart updates chartActionProps's chart
 //
 // This function is auto-generated.
-//
 func (p *chartActionProps) setChart(chart *types.Chart) *chartActionProps {
 	p.chart = chart
 	return p
@@ -64,7 +63,6 @@ func (p *chartActionProps) setChart(chart *types.Chart) *chartActionProps {
 // setChanged updates chartActionProps's changed
 //
 // This function is auto-generated.
-//
 func (p *chartActionProps) setChanged(changed *types.Chart) *chartActionProps {
 	p.changed = changed
 	return p
@@ -73,7 +71,6 @@ func (p *chartActionProps) setChanged(changed *types.Chart) *chartActionProps {
 // setFilter updates chartActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *chartActionProps) setFilter(filter *types.ChartFilter) *chartActionProps {
 	p.filter = filter
 	return p
@@ -82,7 +79,6 @@ func (p *chartActionProps) setFilter(filter *types.ChartFilter) *chartActionProp
 // setNamespace updates chartActionProps's namespace
 //
 // This function is auto-generated.
-//
 func (p *chartActionProps) setNamespace(namespace *types.Namespace) *chartActionProps {
 	p.namespace = namespace
 	return p
@@ -91,7 +87,6 @@ func (p *chartActionProps) setNamespace(namespace *types.Namespace) *chartAction
 // Serialize converts chartActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p chartActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -129,7 +124,6 @@ func (p chartActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p chartActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -234,7 +228,6 @@ func (p chartActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *chartAction) String() string {
 	var props = &chartActionProps{}
 
@@ -262,7 +255,6 @@ func (e *chartAction) ToAction() *actionlog.Action {
 // ChartActionSearch returns "compose:chart.search" action
 //
 // This function is auto-generated.
-//
 func ChartActionSearch(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -282,7 +274,6 @@ func ChartActionSearch(props ...*chartActionProps) *chartAction {
 // ChartActionLookup returns "compose:chart.lookup" action
 //
 // This function is auto-generated.
-//
 func ChartActionLookup(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -302,7 +293,6 @@ func ChartActionLookup(props ...*chartActionProps) *chartAction {
 // ChartActionCreate returns "compose:chart.create" action
 //
 // This function is auto-generated.
-//
 func ChartActionCreate(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -322,7 +312,6 @@ func ChartActionCreate(props ...*chartActionProps) *chartAction {
 // ChartActionUpdate returns "compose:chart.update" action
 //
 // This function is auto-generated.
-//
 func ChartActionUpdate(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -342,7 +331,6 @@ func ChartActionUpdate(props ...*chartActionProps) *chartAction {
 // ChartActionDelete returns "compose:chart.delete" action
 //
 // This function is auto-generated.
-//
 func ChartActionDelete(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -362,7 +350,6 @@ func ChartActionDelete(props ...*chartActionProps) *chartAction {
 // ChartActionUndelete returns "compose:chart.undelete" action
 //
 // This function is auto-generated.
-//
 func ChartActionUndelete(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -382,7 +369,6 @@ func ChartActionUndelete(props ...*chartActionProps) *chartAction {
 // ChartActionReorder returns "compose:chart.reorder" action
 //
 // This function is auto-generated.
-//
 func ChartActionReorder(props ...*chartActionProps) *chartAction {
 	a := &chartAction{
 		timestamp: time.Now(),
@@ -405,9 +391,7 @@ func ChartActionReorder(props ...*chartActionProps) *chartAction {
 
 // ChartErrGeneric returns "compose:chart.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrGeneric(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -441,9 +425,7 @@ func ChartErrGeneric(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotFound returns "compose:chart.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotFound(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -475,9 +457,7 @@ func ChartErrNotFound(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNamespaceNotFound returns "compose:chart.namespaceNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNamespaceNotFound(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -509,9 +489,7 @@ func ChartErrNamespaceNotFound(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrModuleNotFound returns "compose:chart.moduleNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrModuleNotFound(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -543,9 +521,7 @@ func ChartErrModuleNotFound(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrInvalidID returns "compose:chart.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrInvalidID(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -577,9 +553,7 @@ func ChartErrInvalidID(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrInvalidHandle returns "compose:chart.invalidHandle" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrInvalidHandle(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -611,9 +585,7 @@ func ChartErrInvalidHandle(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrHandleNotUnique returns "compose:chart.handleNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrHandleNotUnique(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -647,9 +619,7 @@ func ChartErrHandleNotUnique(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrStaleData returns "compose:chart.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrStaleData(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -681,9 +651,7 @@ func ChartErrStaleData(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrInvalidNamespaceID returns "compose:chart.invalidNamespaceID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrInvalidNamespaceID(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -715,9 +683,7 @@ func ChartErrInvalidNamespaceID(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToRead returns "compose:chart.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToRead(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -751,9 +717,7 @@ func ChartErrNotAllowedToRead(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToSearch returns "compose:chart.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToSearch(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -787,9 +751,7 @@ func ChartErrNotAllowedToSearch(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToReadNamespace returns "compose:chart.notAllowedToReadNamespace" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToReadNamespace(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -823,9 +785,7 @@ func ChartErrNotAllowedToReadNamespace(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToCreate returns "compose:chart.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToCreate(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -859,9 +819,7 @@ func ChartErrNotAllowedToCreate(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToUpdate returns "compose:chart.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToUpdate(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -895,9 +853,7 @@ func ChartErrNotAllowedToUpdate(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToDelete returns "compose:chart.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToDelete(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -931,9 +887,7 @@ func ChartErrNotAllowedToDelete(mm ...*chartActionProps) *errors.Error {
 
 // ChartErrNotAllowedToUndelete returns "compose:chart.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ChartErrNotAllowedToUndelete(mm ...*chartActionProps) *errors.Error {
 	var p = &chartActionProps{}
 	if len(mm) > 0 {
@@ -973,7 +927,6 @@ func ChartErrNotAllowedToUndelete(mm ...*chartActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc chart) recordAction(ctx context.Context, props *chartActionProps, actionFn func(...*chartActionProps) *chartAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
