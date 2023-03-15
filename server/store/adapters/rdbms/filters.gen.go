@@ -84,6 +84,9 @@ type (
 		// optional composePage filter function called after the generated function
 		ComposePage func(*Store, composeType.PageFilter) ([]goqu.Expression, composeType.PageFilter, error)
 
+		// optional composePageLayout filter function called after the generated function
+		ComposePageLayout func(*Store, composeType.PageLayoutFilter) ([]goqu.Expression, composeType.PageLayoutFilter, error)
+
 		// optional credential filter function called after the generated function
 		Credential func(*Store, systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
 
@@ -676,6 +679,52 @@ func ComposePageFilter(d drivers.Dialect, f composeType.PageFilter) (ee []goqu.E
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 			goqu.C("title").ILike("%"+f.Query+"%"),
 			goqu.C("description").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// ComposePageLayoutFilter returns logical expressions
+//
+// This function is called from Store.QueryComposePageLayouts() and can be extended
+// by setting Store.Filters.ComposePageLayout. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ComposePageLayoutFilter(d drivers.Dialect, f composeType.PageLayoutFilter) (ee []goqu.Expression, _ composeType.PageLayoutFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if f.NamespaceID > 0 {
+		ee = append(ee, goqu.C("rel_namespace").Eq(f.NamespaceID))
+	}
+
+	if f.ModuleID > 0 {
+		ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
+	}
+
+	if f.PageID > 0 {
+		ee = append(ee, goqu.C("rel_page").Eq(f.PageID))
+	}
+
+	if f.ModuleID > 0 {
+		ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
 		))
 	}
 

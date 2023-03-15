@@ -66,3 +66,13 @@ func (r *ComposePage) EncodeTranslations() ([]*ResourceTranslation, error) {
 	return append(out, tmp...), err
 
 }
+func (r *ComposePageLayout) EncodeTranslations() ([]*ResourceTranslation, error) {
+	out := make([]*ResourceTranslation, 0, 10)
+
+	rr := r.Res.EncodeTranslations()
+	rr.SetLanguage(defaultLanguage)
+	res, ref, pp := r.ResourceTranslationParts()
+	out = append(out, NewResourceTranslation(systemTypes.FromLocale(rr), res, ref, pp...))
+
+	return out, nil
+}

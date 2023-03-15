@@ -28,6 +28,7 @@ const (
 	ModuleFieldResourceTranslationType = "compose:module-field"
 	NamespaceResourceTranslationType   = "compose:namespace"
 	PageResourceTranslationType        = "compose:page"
+	PageLayoutResourceTranslationType  = "compose:page-layout"
 )
 
 var (
@@ -355,6 +356,44 @@ func (r *Page) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	})
 
 	out = append(out, r.encodeTranslations()...)
+
+	return out
+}
+
+// ResourceTranslation returns string representation of Locale resource for PageLayout by calling PageLayoutResourceTranslation fn
+//
+// Locale resource is in "compose:page-layout/..." format
+//
+// This function is auto-generated
+func (r PageLayout) ResourceTranslation() string {
+	return PageLayoutResourceTranslation(r.NamespaceID, r.PageID, r.ID)
+}
+
+// PageLayoutResourceTranslation returns string representation of Locale resource for PageLayout
+//
+// Locale resource is in the compose:page-layout/... format
+//
+// This function is auto-generated
+func PageLayoutResourceTranslation(NamespaceID uint64, PageID uint64, ID uint64) string {
+	cpts := []interface{}{
+		PageLayoutResourceTranslationType,
+		strconv.FormatUint(NamespaceID, 10),
+		strconv.FormatUint(PageID, 10),
+		strconv.FormatUint(ID, 10),
+	}
+
+	return fmt.Sprintf(PageLayoutResourceTranslationTpl(), cpts...)
+}
+
+func PageLayoutResourceTranslationTpl() string {
+	return "%s/%s/%s/%s"
+}
+
+func (r *PageLayout) DecodeTranslations(tt locale.ResourceTranslationIndex) {
+}
+
+func (r *PageLayout) EncodeTranslations() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{}
 
 	return out
 }
