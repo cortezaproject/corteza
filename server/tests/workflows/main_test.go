@@ -71,6 +71,7 @@ func TestMain(m *testing.M) {
 		app.Opt.ActionLog.WorkflowFunctionsEnabled = true
 		defStore = app.Store
 		eventbus.Set(eventBus)
+		app.Opt.Attachment.AvatarInitialsFontPath = "../../auth/assets/public/fonts/poppins/Poppins-Regular.ttf"
 		return nil
 	})
 
