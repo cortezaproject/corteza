@@ -5,6 +5,13 @@ import { Module } from '../module'
 import { Button } from './types'
 
 const kind = 'RecordList'
+
+interface FilterPreset {
+  name: string;
+  filter: unknown[];
+  roles: string[];
+}
+
 interface Options {
   moduleID: string;
   prefilter: string;
@@ -58,7 +65,7 @@ interface Options {
 
   bulkRecordEditEnabled: boolean;
   inlineRecordEditEnabled: boolean;
-  recordFilters: Array<Record<string, any>>
+  filterPresets: FilterPreset[];
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -107,8 +114,8 @@ const defaults: Readonly<Options> = Object.freeze({
   showRefresh: false,
 
   bulkRecordEditEnabled: true,
-  inlineRecordEditEnabled: false
-  recordFilters: []
+  inlineRecordEditEnabled: false,
+  filterPresets: []
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -132,8 +139,8 @@ export class PageBlockRecordList extends PageBlock {
       this.options.fields = o.fields
     }
 
-    if (o.recordFilters) {
-      this.options.recordFilters = o.recordFilters
+    if (o.filterPresets) {
+      this.options.filterPresets = o.filterPresets
     }
 
     if (o.editFields) {

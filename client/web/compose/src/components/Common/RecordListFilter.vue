@@ -3,8 +3,9 @@
     <b-button
       :id="popoverTarget"
       :title="$t('recordList.filter.title')"
-      variant="link p-0 ml-1"
-      :class="[inFilter ? 'text-primary' : 'text-secondary']"
+      :variant="variant"
+      :class="[inFilter ? 'text-primary' : 'text-secondary', buttonClass]"
+      :style="buttonStyle"
       @click.stop
     >
       <font-awesome-icon :icon="['fas', 'filter']" />
@@ -261,17 +262,35 @@ export default {
       type: Object,
       required: true,
     },
+
     namespace: {
       type: Object,
       required: true,
     },
+
     module: {
       type: Object,
       required: true,
     },
+
     recordListFilter: {
       type: Array,
       required: true,
+    },
+
+    variant: {
+      type: String,
+      default: 'link',
+    },
+
+    buttonClass: {
+      type: String,
+      default: 'p-0',
+    },
+
+    buttonStyle: {
+      type: String,
+      default: '',
     },
   },
 
@@ -500,6 +519,7 @@ export default {
       this.componentFilter = [
         this.createDefaultFilterGroup(),
       ]
+      this.$emit('reset')
 
       this.onSave(false)
     },
@@ -537,40 +557,38 @@ export default {
     },
 
     onOpen () {
-      if (this.recordListFilter.length) {
-        // Create record and fill its values property if value exists
-        this.componentFilter = this.recordListFilter
-          .filter(({ filter = [] }) => filter.some(f => f.name))
-          .map(({ groupCondition, filter = [] }) => {
-            filter = filter.map(({ value, ...f }) => {
-              f.record = new compose.Record(this.mock.module, {})
+      // Create record and fill its values property if value exists
+      this.componentFilter = this.recordListFilter
+        .filter(({ filter = [] }) => filter.some(f => f.name))
+        .map(({ groupCondition, filter = [] }) => {
+          filter = filter.map(({ value, ...f }) => {
+            f.record = new compose.Record(this.mock.module, {})
 
-              if (this.isBetweenOperator(f.operator)) {
-                if (this.getField(f.name).isSystem) {
-                  f.record[`${f.name}-start`] = value.start
-                  f.record[`${f.name}-end`] = value.end
-                } else {
-                  f.record.values[`${f.name}-start`] = value.start
-                  f.record.values[`${f.name}-end`] = value.end
-                }
-
-                const field = this.mock.module.fields.find(field => field.name === f.name)
-
-                this.mock.module.fields.push({ ...field, name: `${f.name}-end` })
-                this.mock.module.fields.push({ ...field, name: `${f.name}-start` })
-              } else if (Object.keys(f.record).includes(f.name)) {
-                // If its a system field add value to root of record
-                f.record[f.name] = value
+            if (this.isBetweenOperator(f.operator)) {
+              if (this.getField(f.name).isSystem) {
+                f.record[`${f.name}-start`] = value.start
+                f.record[`${f.name}-end`] = value.end
               } else {
-                f.record.values[f.name] = value
+                f.record.values[`${f.name}-start`] = value.start
+                f.record.values[`${f.name}-end`] = value.end
               }
 
-              return f
-            })
+              const field = this.mock.module.fields.find(field => field.name === f.name)
 
-            return { groupCondition, filter }
+              this.mock.module.fields.push({ ...field, name: `${f.name}-end` })
+              this.mock.module.fields.push({ ...field, name: `${f.name}-start` })
+            } else if (Object.keys(f.record).includes(f.name)) {
+              // If its a system field add value to root of record
+              f.record[f.name] = value
+            } else {
+              f.record.values[f.name] = value
+            }
+
+            return f
           })
-      }
+
+          return { groupCondition, filter }
+        })
 
       // If no filterGroups, add default
       if (!this.componentFilter.length) {

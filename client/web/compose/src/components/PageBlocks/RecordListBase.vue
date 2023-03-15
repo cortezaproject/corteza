@@ -24,12 +24,13 @@
         class="py-2 d-print-none"
         fluid
       >
-        <div
-          class="d-flex flex-wrap justify-content-between wrap-with-vertical-gutters"
+        <b-row
+          no-gutters
+          class="justify-content-between wrap-with-vertical-gutters"
         >
-          <div class="text-nowrap">
+          <div class="text-nowrap flex-grow-1">
             <div
-              class="wrap-with-vertical-gutters flex-wrap"
+              class="wrap-with-vertical-gutters"
             >
               <template v-if="recordListModule.canCreateRecord">
                 <template v-if="inlineEditing">
@@ -77,20 +78,22 @@
               />
 
               <b-dropdown
-                v-if="options.recordFilters.length"
+                v-if="options.filterPresets.length"
                 size="lg"
                 variant="light"
-                :text="$t('filter.filter')"
+                right
+                :text="$t('recordList.filter.filters.label')"
               >
                 <template
-                  v-for="(dropdown, idx) in options.recordFilters"
+                  v-for="(f, idx) in options.filterPresets"
                 >
                   <b-dropdown-item
-                    v-if="checkFilterIsValid(dropdown.roles)"
+                    v-if="f.name && isUserRoleMember(f.roles)"
                     :key="idx"
-                    @click="updateFilter(dropdown.value, dropdown.title)"
+                    :disabled="activeFilters.includes(f.name)"
+                    @click="updateFilter(f.filter, f.name)"
                   >
-                    {{ dropdown.title }}
+                    {{ f.name }}
                   </b-dropdown-item>
                 </template>
               </b-dropdown>
@@ -113,27 +116,37 @@
               :placeholder="$t('general.label.search')"
             />
           </div>
-        </div>
+        </b-row>
 
         <div
-          class="d-flex justify-content-between mt-1"
+          v-if="activeFilters.length || drillDownFilter"
+          class="d-flex mt-2"
         >
-          <b-form-tags
-            v-model="selectedFilters"
-            tag-variant="outline-primary"
-            tag-pills
-            input-class="d-none"
-            placeholder=""
-            style="width: fit-content"
-            class="my-2 border-0 p-0"
-            @input="removeFilter"
-          />
+          <div
+            v-if="activeFilters.length"
+            class="d-flex align-items-center flex-wrap"
+          >
+            <span class="mr-1">
+              {{ $t('recordList.filter.filters.active') }}
+            </span>
+            <b-form-tags
+              v-model="activeFilters"
+              tag-variant="secondary"
+              tag-pills
+              size="lg"
+              input-class="d-none"
+              tag-class="align-items-center"
+              class="filter-tags border-0 p-0"
+              style="width: fit-content"
+              @input="removeFilter"
+            />
+          </div>
 
           <b-button
             v-if="drillDownFilter"
             variant="outline-light"
             size="sm"
-            class="text-nowrap text-primary border-0"
+            class="ml-auto text-nowrap text-primary border-0"
             @click="setDrillDownFilter(undefined)"
           >
             {{ $t('recordList.drillDown.filter.remove') }}
@@ -280,13 +293,14 @@
                   >
                     <record-list-filter
                       v-if="!options.hideFiltering && field.filterable"
-                      class="d-print-none"
                       :target="uniqueID"
                       :selected-field="field.moduleField"
                       :namespace="namespace"
                       :module="recordListModule"
                       :record-list-filter="recordListFilter"
+                      class="d-print-none ml-1"
                       @filter="onFilter"
+                      @reset="activeFilters = []"
                     />
 
                     <b-button
@@ -831,7 +845,7 @@ export default {
       ctr: 0,
       items: [],
       showingDeletedRecords: false,
-      selectedFilters: [],
+      activeFilters: [],
     }
   },
 
@@ -1703,38 +1717,28 @@ export default {
       return !expressions.value
     },
 
-    updateFilter (filter, title) {
+    updateFilter (filter, name) {
       const lastFilterIdx = this.recordListFilter.length - 1
-      filter = filter.map((filter) => ({ ...filter, title }))
+      filter = filter.map((filter) => ({ ...filter, name }))
 
       if (this.recordListFilter.length) {
         this.recordListFilter[lastFilterIdx].groupCondition = 'AND'
       }
 
       this.recordListFilter = this.recordListFilter.concat(filter)
-      this.selectedFilters.push(title)
+      this.activeFilters.push(name)
       this.refresh(true)
     },
 
     removeFilter (currentFilters) {
-      this.recordListFilter = this.recordListFilter.filter(({ title }) => currentFilters.includes(title))
+      this.recordListFilter = this.recordListFilter.filter(({ name }) => !name || currentFilters.includes(name))
       this.refresh(true)
     },
 
-    checkFilterIsValid (filterRoles) {
-      if (!filterRoles.length) return true
+    isUserRoleMember (roles) {
+      if (!roles.length) return true
 
-      let result = false
-
-      for (let i = 0; i < filterRoles.length; i++) {
-        const role = filterRoles[i]
-        if (this.authUserRoles.includes(role)) {
-          result = true
-          break
-        }
-      }
-
-      return result
+      return roles.some(roleID => this.authUserRoles.includes(roleID))
     },
   },
 }
