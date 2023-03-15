@@ -97,6 +97,17 @@ func ParseResourceTranslation(res string) (string, *Ref, []*Ref, error) {
 		)
 		return composeTypes.PageResourceTranslationType, ref, pp, err
 
+	case composeTypes.PageLayoutResourceTranslationType:
+		if len(path) != 3 {
+			return "", nil, nil, fmt.Errorf("expecting 3 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := ComposePageLayoutResourceTranslationReferences(
+			path[0],
+			path[1],
+			path[2],
+		)
+		return composeTypes.PageLayoutResourceTranslationType, ref, pp, err
+
 	}
 
 	// return unhandled resource as-is

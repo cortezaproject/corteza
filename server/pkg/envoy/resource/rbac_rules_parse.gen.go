@@ -187,6 +187,17 @@ func ParseRule(res string) (string, *Ref, []*Ref, error) {
 		)
 		return resourceType, ref, pp, err
 
+	case composeTypes.PageLayoutResourceType:
+		if len(path) != 3 {
+			return "", nil, nil, fmt.Errorf("expecting 3 reference components in path, got %d", len(path))
+		}
+		ref, pp, err := ComposePageLayoutRbacReferences(
+			path[0],
+			path[1],
+			path[2],
+		)
+		return resourceType, ref, pp, err
+
 	case composeTypes.RecordResourceType:
 		if len(path) != 3 {
 			return "", nil, nil, fmt.Errorf("expecting 3 reference components in path, got %d", len(path))

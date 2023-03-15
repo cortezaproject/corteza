@@ -303,6 +303,24 @@ type (
 		DeletedAt   *time.Time             `db:"deleted_at"`
 	}
 
+	// auxComposePageLayout is an auxiliary structure used for transporting to/from RDBMS store
+	auxComposePageLayout struct {
+		ID          uint64                       `db:"id"`
+		Handle      string                       `db:"handle"`
+		PageID      uint64                       `db:"page_id"`
+		ParentID    uint64                       `db:"parent_id"`
+		ModuleID    uint64                       `db:"module_id"`
+		NamespaceID uint64                       `db:"namespace_id"`
+		Meta        *composeType.PageLayoutMeta  `db:"meta"`
+		Primary     bool                         `db:"primary"`
+		Config      composeType.PageLayoutConfig `db:"config"`
+		Blocks      composeType.PageBlocks       `db:"blocks"`
+		OwnedBy     uint64                       `db:"owned_by"`
+		CreatedAt   time.Time                    `db:"created_at"`
+		UpdatedAt   *time.Time                   `db:"updated_at"`
+		DeletedAt   *time.Time                   `db:"deleted_at"`
+	}
+
 	// auxCredential is an auxiliary structure used for transporting to/from RDBMS store
 	auxCredential struct {
 		ID          uint64     `db:"id"`
@@ -1650,6 +1668,71 @@ func (aux *auxComposePage) scan(row scanner) error {
 		&aux.Visible,
 		&aux.Weight,
 		&aux.Description,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+	)
+}
+
+// encodes ComposePageLayout to auxComposePageLayout
+//
+// This function is auto-generated
+func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.PageID = res.PageID
+	aux.ParentID = res.ParentID
+	aux.ModuleID = res.ModuleID
+	aux.NamespaceID = res.NamespaceID
+	aux.Meta = res.Meta
+	aux.Primary = res.Primary
+	aux.Config = res.Config
+	aux.Blocks = res.Blocks
+	aux.OwnedBy = res.OwnedBy
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes ComposePageLayout from auxComposePageLayout
+//
+// This function is auto-generated
+func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) {
+	res = new(composeType.PageLayout)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.PageID = aux.PageID
+	res.ParentID = aux.ParentID
+	res.ModuleID = aux.ModuleID
+	res.NamespaceID = aux.NamespaceID
+	res.Meta = aux.Meta
+	res.Primary = aux.Primary
+	res.Config = aux.Config
+	res.Blocks = aux.Blocks
+	res.OwnedBy = aux.OwnedBy
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxComposePageLayout fields
+//
+// This function is auto-generated
+func (aux *auxComposePageLayout) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.PageID,
+		&aux.ParentID,
+		&aux.ModuleID,
+		&aux.NamespaceID,
+		&aux.Meta,
+		&aux.Primary,
+		&aux.Config,
+		&aux.Blocks,
+		&aux.OwnedBy,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

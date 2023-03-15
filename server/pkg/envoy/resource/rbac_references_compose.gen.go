@@ -90,6 +90,25 @@ func ComposePageRbacReferences(namespaceID string, page string) (res *Ref, pp []
 	return
 }
 
+// ComposePageLayoutRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func ComposePageLayoutRbacReferences(namespaceID string, pageID string, pageLayout string) (res *Ref, pp []*Ref, err error) {
+	if namespaceID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
+	}
+	if pageID != "*" {
+		pp = append(pp, &Ref{ResourceType: types.PageResourceType, Identifiers: MakeIdentifiers(pageID)})
+	}
+	if pageLayout != "*" {
+		res = &Ref{ResourceType: types.PageLayoutResourceType, Identifiers: MakeIdentifiers(pageLayout)}
+	}
+
+	return
+}
+
 // ComposeRecordRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped

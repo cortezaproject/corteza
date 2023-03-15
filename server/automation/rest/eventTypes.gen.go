@@ -877,6 +877,349 @@ func getEventTypeDefinitions() []eventTypeDef {
 		},
 
 		{
+			ResourceType: "compose:page-layout",
+			EventType:    "onManual",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:page-layout",
+			EventType:    "beforeCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:page-layout",
+			EventType:    "beforeUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:page-layout",
+			EventType:    "beforeDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:page-layout",
+			EventType:    "afterCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:page-layout",
+			EventType:    "afterUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "compose:page-layout",
+			EventType:    "afterDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "pageLayout",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldPageLayout",
+					Type:      "",
+					Immutable: true,
+				},
+
+				{
+					Name:      "namespace",
+					Type:      "ComposeNamespace",
+					Immutable: true,
+				},
+
+				{
+					Name:      "selected",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "namespace.handle",
+				},
+
+				{
+					Name: "namespace.name",
+				},
+
+				{
+					Name: "pageLayout.handle",
+				},
+
+				{
+					Name: "pageLayout.name",
+				},
+			},
+		},
+
+		{
 			ResourceType: "compose:record",
 			EventType:    "onManual",
 			Properties: []eventTypePropertyDef{

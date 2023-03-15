@@ -141,6 +141,7 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.ModuleFieldRbacResource(0, 0, 0)),
 		rbac.NewResource(types.NamespaceRbacResource(0)),
 		rbac.NewResource(types.PageRbacResource(0, 0)),
+		rbac.NewResource(types.PageLayoutRbacResource(0, 0, 0)),
 		rbac.NewResource(types.RecordRbacResource(0, 0, 0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
@@ -696,6 +697,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacNamespaceResourceValidator(r, oo...)
 	case types.PageResourceType:
 		return rbacPageResourceValidator(r, oo...)
+	case types.PageLayoutResourceType:
+		return rbacPageLayoutResourceValidator(r, oo...)
 	case types.RecordResourceType:
 		return rbacRecordResourceValidator(r, oo...)
 	case types.ComponentResourceType:
@@ -755,6 +758,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadPage(ctx, svc.store, ids[0], ids[1])
+	case types.PageLayoutResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.PageLayoutRbacResource(0, 0, 0)), nil
+		}
+
+		return loadPageLayout(ctx, svc.store, ids[0], ids[1], ids[2])
 	case types.RecordResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.RecordRbacResource(0, 0, 0)), nil
@@ -813,6 +822,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"update": true,
 			"delete": true,
 		}
+	case types.PageLayoutResourceType:
+		return map[string]bool{}
 	case types.RecordResourceType:
 		return map[string]bool{
 			"read":             true,
@@ -1056,6 +1067,53 @@ func rbacPageResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for page resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacPageLayoutResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacPageLayoutResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.PageLayoutResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for pageLayout resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.PageLayoutResourceType):], sep), sep)
+		prc = []string{
+			"NamespaceID",
+			"PageID",
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for pageLayout resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

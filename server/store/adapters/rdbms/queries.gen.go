@@ -2079,6 +2079,130 @@ var (
 		}
 	}
 
+	// composePageLayoutTable represents composePageLayouts store table
+	//
+	// This value is auto-generated
+	composePageLayoutTable = goqu.T("compose_page_layout")
+
+	// composePageLayoutSelectQuery assembles select query for fetching composePageLayouts
+	//
+	// This function is auto-generated
+	composePageLayoutSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"page_id",
+			"parent_id",
+			"rel_module",
+			"rel_namespace",
+			"meta",
+			"primary",
+			"config",
+			"blocks",
+			"owned_by",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(composePageLayoutTable)
+	}
+
+	// composePageLayoutInsertQuery assembles query inserting composePageLayouts
+	//
+	// This function is auto-generated
+	composePageLayoutInsertQuery = func(d goqu.DialectWrapper, res *composeType.PageLayout) *goqu.InsertDataset {
+		return d.Insert(composePageLayoutTable).
+			Rows(goqu.Record{
+				"id":            res.ID,
+				"handle":        res.Handle,
+				"page_id":       res.PageID,
+				"parent_id":     res.ParentID,
+				"rel_module":    res.ModuleID,
+				"rel_namespace": res.NamespaceID,
+				"meta":          res.Meta,
+				"primary":       res.Primary,
+				"config":        res.Config,
+				"blocks":        res.Blocks,
+				"owned_by":      res.OwnedBy,
+				"created_at":    res.CreatedAt,
+				"updated_at":    res.UpdatedAt,
+				"deleted_at":    res.DeletedAt,
+			})
+	}
+
+	// composePageLayoutUpsertQuery assembles (insert+on-conflict) query for replacing composePageLayouts
+	//
+	// This function is auto-generated
+	composePageLayoutUpsertQuery = func(d goqu.DialectWrapper, res *composeType.PageLayout) *goqu.InsertDataset {
+		var target = `,id`
+
+		return composePageLayoutInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":        res.Handle,
+						"page_id":       res.PageID,
+						"parent_id":     res.ParentID,
+						"rel_module":    res.ModuleID,
+						"rel_namespace": res.NamespaceID,
+						"meta":          res.Meta,
+						"primary":       res.Primary,
+						"config":        res.Config,
+						"blocks":        res.Blocks,
+						"owned_by":      res.OwnedBy,
+						"created_at":    res.CreatedAt,
+						"updated_at":    res.UpdatedAt,
+						"deleted_at":    res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// composePageLayoutUpdateQuery assembles query for updating composePageLayouts
+	//
+	// This function is auto-generated
+	composePageLayoutUpdateQuery = func(d goqu.DialectWrapper, res *composeType.PageLayout) *goqu.UpdateDataset {
+		return d.Update(composePageLayoutTable).
+			Set(goqu.Record{
+				"handle":        res.Handle,
+				"page_id":       res.PageID,
+				"parent_id":     res.ParentID,
+				"rel_module":    res.ModuleID,
+				"rel_namespace": res.NamespaceID,
+				"meta":          res.Meta,
+				"primary":       res.Primary,
+				"config":        res.Config,
+				"blocks":        res.Blocks,
+				"owned_by":      res.OwnedBy,
+				"created_at":    res.CreatedAt,
+				"updated_at":    res.UpdatedAt,
+				"deleted_at":    res.DeletedAt,
+			}).
+			Where(composePageLayoutPrimaryKeys(res))
+	}
+
+	// composePageLayoutDeleteQuery assembles delete query for removing composePageLayouts
+	//
+	// This function is auto-generated
+	composePageLayoutDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(composePageLayoutTable).Where(ee...)
+	}
+
+	// composePageLayoutDeleteQuery assembles delete query for removing composePageLayouts
+	//
+	// This function is auto-generated
+	composePageLayoutTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(composePageLayoutTable)
+	}
+
+	// composePageLayoutPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	composePageLayoutPrimaryKeys = func(res *composeType.PageLayout) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// credentialTable represents credentials store table
 	//
 	// This value is auto-generated

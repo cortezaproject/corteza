@@ -62,6 +62,7 @@ type (
 		ComposeModuleFields
 		ComposeNamespaces
 		ComposePages
+		ComposePageLayouts
 		Credentials
 		DalConnections
 		DalSensitivityLevels
@@ -326,6 +327,20 @@ type (
 		LookupComposePageByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (*composeType.Page, error)
 		LookupComposePageByID(ctx context.Context, id uint64) (*composeType.Page, error)
 		ReorderComposePages(ctx context.Context, namespace_id uint64, parent_id uint64, page_ids []uint64) error
+	}
+
+	ComposePageLayouts interface {
+		SearchComposePageLayouts(ctx context.Context, f composeType.PageLayoutFilter) (composeType.PageLayoutSet, composeType.PageLayoutFilter, error)
+		CreateComposePageLayout(ctx context.Context, rr ...*composeType.PageLayout) error
+		UpdateComposePageLayout(ctx context.Context, rr ...*composeType.PageLayout) error
+		UpsertComposePageLayout(ctx context.Context, rr ...*composeType.PageLayout) error
+		DeleteComposePageLayout(ctx context.Context, rr ...*composeType.PageLayout) error
+
+		DeleteComposePageLayoutByID(ctx context.Context, id uint64) error
+		TruncateComposePageLayouts(ctx context.Context) error
+		LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (*composeType.PageLayout, error)
+		LookupComposePageLayoutByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (*composeType.PageLayout, error)
+		LookupComposePageLayoutByID(ctx context.Context, id uint64) (*composeType.PageLayout, error)
 	}
 
 	Credentials interface {
@@ -1831,6 +1846,78 @@ func LookupComposePageByID(ctx context.Context, s ComposePages, id uint64) (*com
 // This function is auto-generated
 func ReorderComposePages(ctx context.Context, s ComposePages, namespace_id uint64, parent_id uint64, page_ids []uint64) error {
 	return s.ReorderComposePages(ctx, namespace_id, parent_id, page_ids)
+}
+
+// SearchComposePageLayouts returns all matching ComposePageLayouts from store
+//
+// This function is auto-generated
+func SearchComposePageLayouts(ctx context.Context, s ComposePageLayouts, f composeType.PageLayoutFilter) (composeType.PageLayoutSet, composeType.PageLayoutFilter, error) {
+	return s.SearchComposePageLayouts(ctx, f)
+}
+
+// CreateComposePageLayout creates one or more ComposePageLayouts in store
+//
+// This function is auto-generated
+func CreateComposePageLayout(ctx context.Context, s ComposePageLayouts, rr ...*composeType.PageLayout) error {
+	return s.CreateComposePageLayout(ctx, rr...)
+}
+
+// UpdateComposePageLayout updates one or more (existing) ComposePageLayouts in store
+//
+// This function is auto-generated
+func UpdateComposePageLayout(ctx context.Context, s ComposePageLayouts, rr ...*composeType.PageLayout) error {
+	return s.UpdateComposePageLayout(ctx, rr...)
+}
+
+// UpsertComposePageLayout creates new or updates existing one or more ComposePageLayouts in store
+//
+// This function is auto-generated
+func UpsertComposePageLayout(ctx context.Context, s ComposePageLayouts, rr ...*composeType.PageLayout) error {
+	return s.UpsertComposePageLayout(ctx, rr...)
+}
+
+// DeleteComposePageLayout deletes one or more ComposePageLayouts from store
+//
+// This function is auto-generated
+func DeleteComposePageLayout(ctx context.Context, s ComposePageLayouts, rr ...*composeType.PageLayout) error {
+	return s.DeleteComposePageLayout(ctx, rr...)
+}
+
+// DeleteComposePageLayoutByID deletes one or more ComposePageLayouts from store
+//
+// This function is auto-generated
+func DeleteComposePageLayoutByID(ctx context.Context, s ComposePageLayouts, id uint64) error {
+	return s.DeleteComposePageLayoutByID(ctx, id)
+}
+
+// TruncateComposePageLayouts Deletes all ComposePageLayouts from store
+//
+// This function is auto-generated
+func TruncateComposePageLayouts(ctx context.Context, s ComposePageLayouts) error {
+	return s.TruncateComposePageLayouts(ctx)
+}
+
+// LookupComposePageLayoutByNamespaceIDHandle searches for page layour by handle (case-insensitive)
+//
+// This function is auto-generated
+func LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, s ComposePageLayouts, namespaceID uint64, handle string) (*composeType.PageLayout, error) {
+	return s.LookupComposePageLayoutByNamespaceIDHandle(ctx, namespaceID, handle)
+}
+
+// LookupComposePageLayoutByNamespaceIDModuleID searches for page layour by moduleID
+//
+// This function is auto-generated
+func LookupComposePageLayoutByNamespaceIDModuleID(ctx context.Context, s ComposePageLayouts, namespaceID uint64, moduleID uint64) (*composeType.PageLayout, error) {
+	return s.LookupComposePageLayoutByNamespaceIDModuleID(ctx, namespaceID, moduleID)
+}
+
+// LookupComposePageLayoutByID searches for compose page layour by ID
+//
+// It returns compose page layour even if deleted
+//
+// This function is auto-generated
+func LookupComposePageLayoutByID(ctx context.Context, s ComposePageLayouts, id uint64) (*composeType.PageLayout, error) {
+	return s.LookupComposePageLayoutByID(ctx, id)
 }
 
 // SearchCredentials returns all matching Credentials from store
