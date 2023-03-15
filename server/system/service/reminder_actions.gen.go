@@ -55,7 +55,6 @@ var (
 // setReminder updates reminderActionProps's reminder
 //
 // This function is auto-generated.
-//
 func (p *reminderActionProps) setReminder(reminder *types.Reminder) *reminderActionProps {
 	p.reminder = reminder
 	return p
@@ -64,7 +63,6 @@ func (p *reminderActionProps) setReminder(reminder *types.Reminder) *reminderAct
 // setNew updates reminderActionProps's new
 //
 // This function is auto-generated.
-//
 func (p *reminderActionProps) setNew(new *types.Reminder) *reminderActionProps {
 	p.new = new
 	return p
@@ -73,7 +71,6 @@ func (p *reminderActionProps) setNew(new *types.Reminder) *reminderActionProps {
 // setUpdated updates reminderActionProps's updated
 //
 // This function is auto-generated.
-//
 func (p *reminderActionProps) setUpdated(updated *types.Reminder) *reminderActionProps {
 	p.updated = updated
 	return p
@@ -82,7 +79,6 @@ func (p *reminderActionProps) setUpdated(updated *types.Reminder) *reminderActio
 // setFilter updates reminderActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *reminderActionProps) setFilter(filter *types.ReminderFilter) *reminderActionProps {
 	p.filter = filter
 	return p
@@ -91,7 +87,6 @@ func (p *reminderActionProps) setFilter(filter *types.ReminderFilter) *reminderA
 // Serialize converts reminderActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p reminderActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -135,7 +130,6 @@ func (p reminderActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p reminderActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -252,7 +246,6 @@ func (p reminderActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *reminderAction) String() string {
 	var props = &reminderActionProps{}
 
@@ -280,7 +273,6 @@ func (e *reminderAction) ToAction() *actionlog.Action {
 // ReminderActionSearch returns "system:reminder.search" action
 //
 // This function is auto-generated.
-//
 func ReminderActionSearch(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -300,7 +292,6 @@ func ReminderActionSearch(props ...*reminderActionProps) *reminderAction {
 // ReminderActionLookup returns "system:reminder.lookup" action
 //
 // This function is auto-generated.
-//
 func ReminderActionLookup(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -320,7 +311,6 @@ func ReminderActionLookup(props ...*reminderActionProps) *reminderAction {
 // ReminderActionCreate returns "system:reminder.create" action
 //
 // This function is auto-generated.
-//
 func ReminderActionCreate(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -340,7 +330,6 @@ func ReminderActionCreate(props ...*reminderActionProps) *reminderAction {
 // ReminderActionUpdate returns "system:reminder.update" action
 //
 // This function is auto-generated.
-//
 func ReminderActionUpdate(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -360,7 +349,6 @@ func ReminderActionUpdate(props ...*reminderActionProps) *reminderAction {
 // ReminderActionDelete returns "system:reminder.delete" action
 //
 // This function is auto-generated.
-//
 func ReminderActionDelete(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -380,7 +368,6 @@ func ReminderActionDelete(props ...*reminderActionProps) *reminderAction {
 // ReminderActionDismiss returns "system:reminder.dismiss" action
 //
 // This function is auto-generated.
-//
 func ReminderActionDismiss(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -400,7 +387,6 @@ func ReminderActionDismiss(props ...*reminderActionProps) *reminderAction {
 // ReminderActionUndismiss returns "system:reminder.undismiss" action
 //
 // This function is auto-generated.
-//
 func ReminderActionUndismiss(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -420,7 +406,6 @@ func ReminderActionUndismiss(props ...*reminderActionProps) *reminderAction {
 // ReminderActionSnooze returns "system:reminder.snooze" action
 //
 // This function is auto-generated.
-//
 func ReminderActionSnooze(props ...*reminderActionProps) *reminderAction {
 	a := &reminderAction{
 		timestamp: time.Now(),
@@ -443,9 +428,7 @@ func ReminderActionSnooze(props ...*reminderActionProps) *reminderAction {
 
 // ReminderErrGeneric returns "system:reminder.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrGeneric(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -479,9 +462,7 @@ func ReminderErrGeneric(mm ...*reminderActionProps) *errors.Error {
 
 // ReminderErrNotFound returns "system:reminder.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrNotFound(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -513,9 +494,7 @@ func ReminderErrNotFound(mm ...*reminderActionProps) *errors.Error {
 
 // ReminderErrInvalidID returns "system:reminder.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrInvalidID(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -547,9 +526,7 @@ func ReminderErrInvalidID(mm ...*reminderActionProps) *errors.Error {
 
 // ReminderErrNotAllowedToAssign returns "system:reminder.notAllowedToAssign" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrNotAllowedToAssign(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -581,9 +558,7 @@ func ReminderErrNotAllowedToAssign(mm ...*reminderActionProps) *errors.Error {
 
 // ReminderErrNotAllowedToDismiss returns "system:reminder.notAllowedToDismiss" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrNotAllowedToDismiss(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -615,9 +590,7 @@ func ReminderErrNotAllowedToDismiss(mm ...*reminderActionProps) *errors.Error {
 
 // ReminderErrNotAllowedToUndismiss returns "system:reminder.notAllowedToUndismiss" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrNotAllowedToUndismiss(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -649,9 +622,7 @@ func ReminderErrNotAllowedToUndismiss(mm ...*reminderActionProps) *errors.Error 
 
 // ReminderErrNotAllowedToRead returns "system:reminder.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
 	var p = &reminderActionProps{}
 	if len(mm) > 0 {
@@ -689,7 +660,6 @@ func ReminderErrNotAllowedToRead(mm ...*reminderActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc reminder) recordAction(ctx context.Context, props *reminderActionProps, actionFn func(...*reminderActionProps) *reminderAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
