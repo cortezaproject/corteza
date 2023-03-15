@@ -37,6 +37,63 @@ var (
 
 type (
 	// Internal API interface
+	PageLayoutListNamespace struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID GET parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+
+		// ModuleID GET parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// ParentID GET parameter
+		//
+		// Parent ID
+		ParentID uint64 `json:",string"`
+
+		// Primary GET parameter
+		//
+		// Default layouts
+		Primary bool
+
+		// Query GET parameter
+		//
+		// Search query
+		Query string
+
+		// Handle GET parameter
+		//
+		// Search by handle
+		Handle string
+
+		// Labels GET parameter
+		//
+		// Labels
+		Labels map[string]string
+
+		// Limit GET parameter
+		//
+		// Limit
+		Limit uint
+
+		// PageCursor GET parameter
+		//
+		// Page cursor
+		PageCursor string
+
+		// Sort GET parameter
+		//
+		// Sort items
+		Sort string
+	}
+
 	PageLayoutList struct {
 		// NamespaceID PATH parameter
 		//
@@ -308,6 +365,172 @@ type (
 		Translations locale.ResourceTranslationSet
 	}
 )
+
+// NewPageLayoutListNamespace request
+func NewPageLayoutListNamespace() *PageLayoutListNamespace {
+	return &PageLayoutListNamespace{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+		"moduleID":    r.ModuleID,
+		"parentID":    r.ParentID,
+		"primary":     r.Primary,
+		"query":       r.Query,
+		"handle":      r.Handle,
+		"labels":      r.Labels,
+		"limit":       r.Limit,
+		"pageCursor":  r.PageCursor,
+		"sort":        r.Sort,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetParentID() uint64 {
+	return r.ParentID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetPrimary() bool {
+	return r.Primary
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetQuery() string {
+	return r.Query
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetHandle() string {
+	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetLabels() map[string]string {
+	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetLimit() uint {
+	return r.Limit
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetPageCursor() string {
+	return r.PageCursor
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutListNamespace) GetSort() string {
+	return r.Sort
+}
+
+// Fill processes request and fills internal variables
+func (r *PageLayoutListNamespace) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["pageID"]; ok && len(val) > 0 {
+			r.PageID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["moduleID"]; ok && len(val) > 0 {
+			r.ModuleID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["parentID"]; ok && len(val) > 0 {
+			r.ParentID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["primary"]; ok && len(val) > 0 {
+			r.Primary, err = payload.ParseBool(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["query"]; ok && len(val) > 0 {
+			r.Query, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["handle"]; ok && len(val) > 0 {
+			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["labels[]"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["labels"]; ok {
+			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["limit"]; ok && len(val) > 0 {
+			r.Limit, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["pageCursor"]; ok && len(val) > 0 {
+			r.PageCursor, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
 
 // NewPageLayoutList request
 func NewPageLayoutList() *PageLayoutList {

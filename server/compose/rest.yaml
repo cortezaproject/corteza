@@ -554,7 +554,7 @@ endpoints:
 - title: Page Layouts
   description: Compose page layouts
   entrypoint: pageLayout
-  path: "/namespace/{namespaceID}/page/{pageID}/layout"
+  path: "/namespace/{namespaceID}"
   authentication: []
   imports:
     - sqlxTypes github.com/jmoiron/sqlx/types
@@ -567,16 +567,60 @@ endpoints:
       name: namespaceID
       required: true
       title: Namespace ID
-    - type: uint64
-      name: pageID
-      required: true
-      title: Page ID
   apis:
-  - name: list
+  - name: listNamespace
     method: GET
-    path: "/"
+    path: "/page-layout"
     title: List available page layouts
     parameters:
+      get:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
+      - type: uint64
+        name: moduleID
+        required: false
+        title: Module ID
+      - type: uint64
+        name: parentID
+        required: false
+        title: Parent ID
+      - type: bool
+        name: primary
+        required: false
+        title: Default layouts
+      - type: string
+        name: query
+        required: false
+        title: Search query
+      - type: string
+        name: handle
+        required: false
+        title: Search by handle
+      - type: map[string]string
+        name: labels
+        title: Labels
+        parser: label.ParseStrings
+      - type: uint
+        name: limit
+        title: Limit
+      - type: string
+        name: pageCursor
+        title: Page cursor
+      - type: string
+        name: sort
+        title: Sort items
+  - name: list
+    method: GET
+    path: "/page/{pageID}/layout/"
+    title: List available page layouts
+    parameters:
+      path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       get:
       - type: uint64
         name: moduleID
@@ -614,8 +658,13 @@ endpoints:
   - name: create
     method: POST
     title: Create page layout
-    path: "/"
+    path: "/page/{pageID}/layout/"
     parameters:
+      path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       post:
       - type: uint64
         name: parentID
@@ -655,11 +704,15 @@ endpoints:
         required: false
         title: OwnedBy
   - name: read
-    path: "/{pageLayoutID}"
+    path: "/page/{pageID}/layout/{pageLayoutID}"
     method: GET
     title: Get page details
     parameters:
       path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       - type: uint64
         name: pageLayoutID
         required: true
@@ -668,9 +721,13 @@ endpoints:
   - name: update
     method: POST
     title: Update page
-    path: "/{pageLayoutID}"
+    path: "/page/{pageID}/layout/{pageLayoutID}"
     parameters:
       path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       - type: uint64
         name: pageLayoutID
         required: true
@@ -714,27 +771,39 @@ endpoints:
         required: false
         title: OwnedBy
   - name: delete
-    path: "/{pageLayoutID}"
+    path: "/page/{pageID}/layout/{pageLayoutID}"
     method: DELETE
     title: Delete page layout
     parameters:
       path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       - { type: uint64, name: pageLayoutID, required: true, title: Page layout ID }
       get:
       - { type: string, name: strategy, title: "Page delete strategy (abort, force, rebase, cascade)" }
   - name: undelete
-    path: "/{pageLayoutID}/undelete"
+    path: "/page/{pageID}/layout/{pageLayoutID}/undelete"
     method: POST
     title: Undelete soft deleted Delete page layout
     parameters:
       path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       - { type: uint64, name: pageLayoutID, required: true, title: Page layout ID }
   - name: listTranslations
     method: GET
     title: List page layout translation
-    path: "/{pageLayoutID}/translation"
+    path: "/page/{pageID}/layout/{pageLayoutID}/translation"
     parameters:
       path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       - type: uint64
         name: pageLayoutID
         required: true
@@ -742,9 +811,13 @@ endpoints:
   - name: updateTranslations
     method: PATCH
     title: Update page layout translation
-    path: "/{pageLayoutID}/translation"
+    path: "/page/{pageID}/layout/{pageLayoutID}/translation"
     parameters:
       path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
       - type: uint64
         name: pageLayoutID
         required: true

@@ -82,6 +82,32 @@ func (ctrl *PageLayout) List(ctx context.Context, r *request.PageLayoutList) (in
 	return ctrl.makeFilterPayload(ctx, set, filter, err)
 }
 
+func (ctrl *PageLayout) ListNamespace(ctx context.Context, r *request.PageLayoutListNamespace) (interface{}, error) {
+	var (
+		err error
+		f   = types.PageLayoutFilter{
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			PageID:      r.PageID,
+			Labels:      r.Labels,
+
+			Handle: r.Handle,
+			Query:  r.Query,
+		}
+	)
+
+	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
+		return nil, err
+	}
+
+	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
+	set, filter, err := ctrl.pageLayout.Find(ctx, f)
+	return ctrl.makeFilterPayload(ctx, set, filter, err)
+}
+
 func (ctrl *PageLayout) Create(ctx context.Context, r *request.PageLayoutCreate) (interface{}, error) {
 	var (
 		err    error
