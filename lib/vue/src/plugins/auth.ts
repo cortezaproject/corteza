@@ -40,8 +40,8 @@ interface OAuth2TokenResponse {
   access_token: string;
   refresh_token: string;
   expires_in: number;
-  
-  roles?: string;
+
+  roles?: string[];
   name?: string;
   handle?: string;
   email?: string;
@@ -574,7 +574,7 @@ export class Auth {
       name: oa2tkn.name,
       handle: oa2tkn.handle,
       email: oa2tkn.email,
-      roles: oa2tkn.roles ? [oa2tkn.roles] : [],
+      roles: oa2tkn.roles || [],
     })
 
     if (oa2tkn.preferred_language) {

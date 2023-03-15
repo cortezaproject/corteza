@@ -249,93 +249,98 @@
 
         <b-row>
           <b-col>
-          <b-form-group
-            breakpoint="md"
-            :label="$t('filter.recordFilter')"
-          >
-            <b-table-simple
-              v-if="recordListModule && recordListModule.fields.length"
-              borderless
+            <b-form-group
+              :label="$t('recordList.filter.presets')"
             >
-              <thead>
-                <tr>
-                  <th>
-                    {{ $t('filter.role') }}
-                  </th>
-                  <th>
-                    {{ $t('filter.title') }}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr
-                  v-for="(filter, index) in options.recordFilters"
-                  :key="index"
-                >
-                  <td>
-                    <vue-select
-                      v-model="filter.roles"
-                      :options="roleOptions"
-                      :reduce="role => role.roleID"
-                      :get-option-label="getRoleLabel"
-                      append-to-body
-                      :placeholder="$t('filter.searchRolePlaceholder')"
-                      multiple
-                      class="bg-white"
+              <b-table-simple
+                v-if="recordListModule"
+                borderless
+                small
+                responsive="lg"
+                class="mb-1"
+              >
+                <b-thead>
+                  <b-tr>
+                    <b-th
+                      class="text-primary"
+                      style="min-width: 300px;"
+                    >
+                      {{ $t('recordList.filter.name.label') }}
+                    </b-th>
+                    <b-th
+                      class="text-primary"
+                      style="width: 45%; min-width: 250px;"
+                    >
+                      {{ $t('recordList.filter.role.label') }}
+                    </b-th>
+
+                    <b-th
+                      style="width: 100px;"
                     />
-                  </td>
-                  <td>
-                    <b-input-group>
-                      <b-form-input
-                        v-model="filter.title"
-                        placeholder="Title"
-                        type="text"
-                        class="h-100"
-                      />
-                      <b-input-group-append>
-                        <b-button
-                          variant="light"
-                          class="d-flex align-items-center"
-                        >
+                  </b-tr>
+                </b-thead>
+                <b-tbody>
+                  <b-tr
+                    v-for="(filter, index) in options.filterPresets"
+                    :key="index"
+                  >
+                    <b-td>
+                      <b-input-group>
+                        <b-form-input
+                          v-model="filter.name"
+                          :placeholder="$t('recordList.filter.name.placeholder')"
+                        />
+
+                        <b-input-group-append class="border-0">
                           <record-list-filter
                             class="d-print-none"
                             :target="`record-filter-${index}`"
                             :namespace="namespace"
                             :module="recordListModule"
                             :selected-field="recordListModule.fields[0]"
-                            :record-list-filter="filter.value"
+                            :record-list-filter="filter.filter"
+                            variant="primary"
+                            button-class="px-2 pt-2 text-white"
+                            button-style="padding-bottom: calc(0.5rem - 2px);"
                             @filter="(filter) => onFilter(filter, index)"
                           />
-                        </b-button>
-                        <b-button
-                          variant="light"
-                          class="d-flex align-items-center"
-                        >
-                          <c-input-confirm
-                            button-class="text-right"
-                            @confirmed="options.recordFilters.splice(index, 1)"
-                          />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
-                  </td>
-                </tr>
-              </tbody>
-            </b-table-simple>
+                        </b-input-group-append>
+                      </b-input-group>
+                    </b-td>
 
-            <b-button
-              variant="primary"
-              class="d-flex align-items-center px-0 text-decoration-none"
-              @click="addNewRecordListFilter"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'plus']"
+                    <b-td>
+                      <vue-select
+                        v-model="filter.roles"
+                        :options="roleOptions"
+                        :get-option-label="getRoleLabel"
+                        :placeholder="$t('recordList.filter.role.placeholder')"
+                        :reduce="role => role.roleID"
+                        append-to-body
+                        multiple
+                        class="bg-white"
+                      />
+                    </b-td>
+
+                    <b-td
+                      class="text-center align-middle pr-2"
+                    >
+                      <c-input-confirm
+                        @confirmed="options.filterPresets.splice(index, 1)"
+                      />
+                    </b-td>
+                  </b-tr>
+                </b-tbody>
+              </b-table-simple>
+
+              <b-button
+                variant="primary"
                 size="sm"
-                class="mr-1"
-              />
-              {{ $t('general.label.add') }}
-            </b-button>
-          </b-form-group>
+                class="ml-1"
+                @click="addFilterPreset"
+              >
+                {{ $t('recordList.filter.addFilter') }}
+              </b-button>
+            </b-form-group>
           </b-col>
         </b-row>
       </div>
@@ -887,18 +892,19 @@ export default {
 
     async fetchRoles () {
       this.$SystemAPI.roleList().then(({ set: roles = [] }) => {
-        this.roleOptions = roles
+        this.roleOptions = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
       })
     },
 
     onFilter (filter = [], index) {
-      this.options.recordFilters[index].value = filter
+      this.options.filterPresets[index].filter = filter
     },
 
-    addNewRecordListFilter () {
-      this.options.recordFilters.push({
-        title: '',
-        value: [],
+    addFilterPreset () {
+      this.options.filterPresets.push({
+        name: '',
+        filter: [],
+        roles: [],
       })
     },
   },

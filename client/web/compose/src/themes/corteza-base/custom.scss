@@ -278,6 +278,11 @@ input[type="search"]::-webkit-search-cancel-button {
     border-radius: 1rem;
   }
 }
+
+.b-form-tag {
+  align-items: center !important;
+}
+
 // Supporting CSS to improve print-to-PDF option
 @media print {
   @page {
