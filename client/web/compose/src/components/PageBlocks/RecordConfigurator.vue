@@ -103,6 +103,7 @@
                 :selectable="option => isSelectable(option)"
                 :get-option-label="getOptionLabel"
                 :reduce="option => option.isSystem ? option.name : option.fieldID"
+                :calculate-position="calculatePosition"
                 class="field-selector bg-white"
               />
             </b-td>

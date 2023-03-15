@@ -78,24 +78,20 @@
               />
 
               <b-dropdown
-                v-if="options.filterPresets.length"
+                v-if="filterPresets.length"
                 size="lg"
                 variant="light"
                 right
                 :text="$t('recordList.filter.filters.label')"
               >
-                <template
-                  v-for="(f, idx) in options.filterPresets"
+                <b-dropdown-item
+                  v-for="(f, idx) in filterPresets"
+                  :key="idx"
+                  :disabled="activeFilters.includes(f.name)"
+                  @click="updateFilter(f.filter, f.name)"
                 >
-                  <b-dropdown-item
-                    v-if="f.name && isUserRoleMember(f.roles)"
-                    :key="idx"
-                    :disabled="activeFilters.includes(f.name)"
-                    @click="updateFilter(f.filter, f.name)"
-                  >
-                    {{ f.name }}
-                  </b-dropdown-item>
-                </template>
+                  {{ f.name }}
+                </b-dropdown-item>
               </b-dropdown>
 
               <column-picker
@@ -1010,6 +1006,10 @@ export default {
 
     isReminderActionVisible () {
       return !this.options.hideRecordReminderButton
+    },
+
+    filterPresets () {
+      return this.options.filterPresets.filter(({ name, roles }) => name && this.isUserRoleMember(roles))
     },
 
     authUserRoles () {

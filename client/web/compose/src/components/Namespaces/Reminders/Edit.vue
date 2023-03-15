@@ -58,6 +58,7 @@
           :get-option-label="getUserLabel"
           :loading="processingUsers"
           :placeholder="$t('field.kind.user.suggestionPlaceholder')"
+          :calculate-position="calculatePosition"
           :reduce="user => user.userID"
           option-value="userID"
           class="bg-white"

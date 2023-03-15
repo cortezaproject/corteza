@@ -37,6 +37,7 @@
               :placeholder="$t('progress.module.select')"
               :options="modules"
               :reduce="m => m.moduleID"
+              :calculate-position="calculatePosition"
               class="bg-white"
             />
           </b-form-group>
@@ -77,6 +78,7 @@
                 :placeholder="$t('progress.field.select')"
                 :options="valueModuleFields"
                 :reduce="f => f.name"
+                :calculate-position="calculatePosition"
                 class="bg-white"
                 @input="fieldChanged($event, options.value)"
               />
@@ -97,6 +99,7 @@
                 :placeholder="$t('progress.aggregate.select')"
                 :options="aggregationOperations"
                 :reduce="a => a.operation"
+                :calculate-position="calculatePosition"
                 class="bg-white"
               />
             </b-form-group>
@@ -141,6 +144,7 @@
               :placeholder="$t('progress.module.select')"
               :options="modules"
               :reduce="m => m.moduleID"
+              :calculate-position="calculatePosition"
               class="bg-white"
             />
           </b-form-group>
@@ -181,6 +185,7 @@
                 :placeholder="$t('progress.field.select')"
                 :options="minValueModuleFields"
                 :reduce="f => f.name"
+                :calculate-position="calculatePosition"
                 class="bg-white"
                 @input="fieldChanged($event, options.minValue)"
               />
@@ -201,6 +206,7 @@
                 :placeholder="$t('progress.aggregate.select')"
                 :options="aggregationOperations"
                 :reduce="a => a.operation"
+                :calculate-position="calculatePosition"
                 class="bg-white"
               />
             </b-form-group>
@@ -245,6 +251,7 @@
               :placeholder="$t('progress.module.select')"
               :options="modules"
               :reduce="m => m.moduleID"
+              :calculate-position="calculatePosition"
               class="bg-white"
             />
           </b-form-group>
@@ -285,6 +292,7 @@
                 :placeholder="$t('progress.field.select')"
                 :options="maxValueModuleFields"
                 :reduce="f => f.name"
+                :calculate-position="calculatePosition"
                 class="bg-white"
                 @input="fieldChanged($event, options.maxValue)"
               />
@@ -305,6 +313,7 @@
                 :placeholder="$t('progress.aggregate.select')"
                 :options="aggregationOperations"
                 :reduce="a => a.operation"
+                :calculate-position="calculatePosition"
                 class="bg-white"
               />
             </b-form-group>

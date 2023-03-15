@@ -243,7 +243,6 @@
 import base from './base'
 import draggable from 'vuedraggable'
 import { VueSelect } from 'vue-select'
-import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
 import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
 
 export default {
@@ -261,10 +260,6 @@ export default {
   },
 
   extends: base,
-
-  mixins: [
-    calculatePosition,
-  ],
 
   data () {
     return {

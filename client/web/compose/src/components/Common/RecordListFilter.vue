@@ -236,7 +236,6 @@
 import FieldEditor from '../ModuleFields/Editor'
 import { compose, validator } from '@cortezaproject/corteza-js'
 import { VueSelect } from 'vue-select'
-import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
 
 export default {
   i18nOptions: {
@@ -247,10 +246,6 @@ export default {
     FieldEditor,
     VueSelect,
   },
-
-  mixins: [
-    calculatePosition,
-  ],
 
   props: {
     target: {

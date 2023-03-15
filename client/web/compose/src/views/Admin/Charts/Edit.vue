@@ -79,6 +79,7 @@
                         option-value="value"
                         :placeholder="$t('colorScheme.placeholder')"
                         :clearable="true"
+                        :calculate-position="calculatePosition"
                         class="bg-white h-100 w-100"
                       >
                         <template #option="option">

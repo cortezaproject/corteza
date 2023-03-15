@@ -101,7 +101,6 @@
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
 import { VueSelect } from 'vue-select'
 import { compose } from '@cortezaproject/corteza-js'
-import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
 import record from 'corteza-webapp-compose/src/mixins/record.js'
 
 export default {
@@ -117,7 +116,6 @@ export default {
   },
 
   mixins: [
-    calculatePosition,
     record,
   ],
 
