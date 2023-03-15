@@ -106,21 +106,25 @@
       v-if="!settings.hideProfile"
       data-test-id="dropdown-profile"
       data-v-onboarding="profile"
-      size="lg"
       :variant="avatarExists ? 'link' : 'outline-light'"
-      :class="{ 'avatar': avatarExists }"
-      class="nav-user-icon"
-      toggle-class="nav-icon text-decoration-none text-dark rounded-circle border"
-      :style="{
-        'background-image': avatarExists  ? `url(${profileAvatarUrl})` : 'none',
-      }"
-      menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+      :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
+      size="lg"
       right
+      menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
       no-caret
+      class="nav-user-icon"
     >
       <template #button-content>
         <div
-          v-if="!avatarExists"
+          v-if="avatarExists"
+          class="avatar d-flex h-100"
+          :style="{
+            'background-image': avatarExists  ? `url(${profileAvatarUrl})` : 'none',
+          }"
+        />
+
+        <div
+          v-else
           class="d-flex align-items-center justify-content-center"
         >
           <font-awesome-icon
@@ -298,6 +302,9 @@ $nav-user-icon-size: 50px;
 
   &:hover {
     opacity: 0.8;
+    transition: opacity .25s ease-in-out;
+    -moz-transition: opacity .25s ease-in-out;
+    -webkit-transition: opacity .25s ease-in-out;
   }
 }
 
