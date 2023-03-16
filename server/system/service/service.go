@@ -5,12 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/discovery"
-	"github.com/cortezaproject/corteza/server/pkg/valuestore"
-
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
+	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/id"
@@ -20,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/objstore/plain"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/valuestore"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/automation"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -141,9 +140,9 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 			l = zap.NewNop()
 		}
 
-		DefaultResourceActivityLog := discovery.Service(l, c.Discovery, DefaultStore, eventbus.Service())
-		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
-			//(types.User{}).RbacResource(), // @todo user?? suppose to be system:user
+		DefaultResourceActivity := discoveryService.ResourceActivity(l, c.Discovery, DefaultStore, eventbus.Service())
+		err = DefaultResourceActivity.InitResourceActivityLog(ctx, []string{
+			// (types.User{}).RbacResource(), // @todo user?? suppose to be system:user
 			"system:user",
 		})
 		if err != nil {

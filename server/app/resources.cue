@@ -328,7 +328,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 	"resource-activity": {
 		package: {
 			ident: "discovery"
-			import: "github.com/cortezaproject/corteza/server/pkg/discovery/types"
+			import: "github.com/cortezaproject/corteza/server/discovery/types"
 		}
 
 		ident: "resourceActivity"

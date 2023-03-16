@@ -7,9 +7,9 @@ package model
 //
 
 import (
+	discoverytype "github.com/cortezaproject/corteza/server/discovery/types"
 	actionlogtype "github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
-	discoverytype "github.com/cortezaproject/corteza/server/pkg/discovery/types"
 	flagtype "github.com/cortezaproject/corteza/server/pkg/flag/types"
 	labelstype "github.com/cortezaproject/corteza/server/pkg/label/types"
 	rbactype "github.com/cortezaproject/corteza/server/pkg/rbac"

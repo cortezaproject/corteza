@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
+	"go.uber.org/zap"
 )
 
 var (
@@ -18,15 +20,14 @@ var (
 )
 
 // Initialize discovery service
-func Initialize(_ context.Context, opt options.DiscoveryOpt, s store.Storer) (err error) {
-	// @todo maybe move pkg/discovery her or other way around
+func Initialize(_ context.Context, log *zap.Logger, opt options.DiscoveryOpt, s store.Storer) (err error) {
 	DefaultOption = opt
 
 	// we're doing conversion to avoid having
 	// store interface exposed or generated inside app package
 	DefaultStore = s
 
-	DefaultResourceActivity = ResourceActivity()
+	DefaultResourceActivity = ResourceActivity(log, opt, s, eventbus.Service())
 
 	return
 }

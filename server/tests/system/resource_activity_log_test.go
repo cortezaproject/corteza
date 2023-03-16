@@ -2,7 +2,7 @@ package system
 
 import (
 	"context"
-	discoveryType "github.com/cortezaproject/corteza/server/pkg/discovery/types"
+	discoveryType "github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service"

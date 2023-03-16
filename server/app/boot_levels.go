@@ -350,7 +350,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 			log = app.Log
 		}
 
-		//Initialize RBAC subsystem
+		// Initialize RBAC subsystem
 		ac := rbac.NewService(log, app.Store)
 
 		// and (re)load rules from the storage backend
@@ -452,7 +452,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	// Initializing discovery
 	if app.Opt.Discovery.Enabled {
-		err = discoveryService.Initialize(ctx, app.Opt.Discovery, app.Store)
+		err = discoveryService.Initialize(ctx, app.Log, app.Opt.Discovery, app.Store)
 		if err != nil {
 			return fmt.Errorf("could not initialize discovery services: %w", err)
 		}

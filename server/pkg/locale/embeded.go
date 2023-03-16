@@ -1,6 +1,6 @@
 package locale
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // This helps us import translations into corteza-server as a module
 // dependency
 
@@ -9,7 +9,6 @@ import (
 	"io/fs"
 )
 
-//go:embed src/*
 var languages embed.FS
 
 // LoadEmbedded returns embedded translation files
