@@ -72,7 +72,7 @@ func (d postgresDialect) JsonArrayContains(needle, haystack exp.Expression, node
 	case "TIMESTAMP":
 		return exp.NewLiteralExpression("TO_JSONB(?) <@ TO_JSONB(?)", needle, haystack), nil
 	default:
-		return exp.NewLiteralExpression("(?)::jsonb <@ TO_JSONB(?)::jsonb", needle, haystack), nil
+		return exp.NewLiteralExpression("(?)::jsonb <@ (?)::jsonb", needle, haystack), nil
 	}
 }
 
