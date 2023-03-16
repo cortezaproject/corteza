@@ -3,7 +3,7 @@ package feed
 import (
 	"context"
 	"github.com/cortezaproject/corteza/server/discovery/service"
-	"github.com/cortezaproject/corteza/server/pkg/discovery/types"
+	"github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/options"

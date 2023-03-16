@@ -10,9 +10,9 @@ import (
 
 	automationType "github.com/cortezaproject/corteza/server/automation/types"
 	composeType "github.com/cortezaproject/corteza/server/compose/types"
+	discoveryType "github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	discoveryType "github.com/cortezaproject/corteza/server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	labelsType "github.com/cortezaproject/corteza/server/pkg/label/types"
 	systemType "github.com/cortezaproject/corteza/server/system/types"

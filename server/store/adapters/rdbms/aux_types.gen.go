@@ -9,9 +9,9 @@ package rdbms
 import (
 	automationType "github.com/cortezaproject/corteza/server/automation/types"
 	composeType "github.com/cortezaproject/corteza/server/compose/types"
+	discoveryType "github.com/cortezaproject/corteza/server/discovery/types"
 	federationType "github.com/cortezaproject/corteza/server/federation/types"
 	actionlogType "github.com/cortezaproject/corteza/server/pkg/actionlog"
-	discoveryType "github.com/cortezaproject/corteza/server/pkg/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	flagType "github.com/cortezaproject/corteza/server/pkg/flag/types"
 	labelsType "github.com/cortezaproject/corteza/server/pkg/label/types"

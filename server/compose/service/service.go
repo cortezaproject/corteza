@@ -6,14 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/discovery"
-
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/compose/automation"
 	"github.com/cortezaproject/corteza/server/compose/types"
+	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
@@ -122,8 +121,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 			l = zap.NewNop()
 		}
 
-		DefaultResourceActivityLog := discovery.Service(l, c.Discovery, DefaultStore, eventbus.Service())
-		err = DefaultResourceActivityLog.InitResourceActivityLog(ctx, []string{
+		DefaultResourceActivity := discoveryService.ResourceActivity(l, c.Discovery, DefaultStore, eventbus.Service())
+		err = DefaultResourceActivity.InitResourceActivityLog(ctx, []string{
 			(types.Namespace{}).LabelResourceKind(),
 			(types.Module{}).LabelResourceKind(),
 			"compose:record",
