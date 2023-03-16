@@ -7,7 +7,7 @@
     >
       <a
         class="text-primary pointer"
-        @click.stop="openMap"
+        @click.stop="openMap(index)"
       >
         {{ c.lat }}, {{ c.lng }}
         <font-awesome-icon
@@ -39,6 +39,7 @@
           v-for="(marker, i) in localValue"
           :key="i"
           :lat-lng="marker"
+          :opacity="i == localValueIndex ? 1.0 : 0.6"
         />
       </l-map>
     </b-modal>
@@ -62,11 +63,12 @@ export default {
     return {
       map: {
         show: false,
-        zoom: 3,
+        zoom: 14,
         center: [30, 30],
         rotation: 0,
         attribution: '&copy; <a target="_blank" rel="noopener noreferrer" href="http://osm.org/copyright">OpenStreetMap</a>',
       },
+      localValueIndex: undefined,
     }
   },
 
@@ -83,10 +85,10 @@ export default {
   },
 
   methods: {
-    openMap () {
-      const firstCoordinates = this.localValue[0]
-      this.map.center = firstCoordinates && firstCoordinates.length ? firstCoordinates : this.field.options.center
-      this.map.zoom = this.field.options.zoom
+    openMap (i) {
+      this.localValueIndex = i
+      this.map.center = this.localValue[i] || this.field.options.center
+      this.map.zoom = this.localValue[i] ? this.map.zoom : this.field.options.zoom
       this.map.show = true
 
       setTimeout(() => {
