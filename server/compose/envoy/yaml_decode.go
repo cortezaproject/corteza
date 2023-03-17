@@ -339,10 +339,6 @@ func (d *auxYamlDoc) unmarshalModuleFieldExpressionsNode(r *types.ModuleField, n
 	return
 }
 
-func (d *auxYamlDoc) unmarshalYAML(k string, n *yaml.Node) (out envoyx.NodeSet, err error) {
-	return
-}
-
 func (d *auxYamlDoc) postProcessNestedModuleNodes(nn envoyx.NodeSet) (out envoyx.NodeSet, err error) {
 	// Get all references from all module fields
 	refs := make(map[string]envoyx.Ref)
