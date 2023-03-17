@@ -27,11 +27,6 @@ type (
 	StoreEncoder struct{}
 )
 
-const (
-	paramsKeyStorer = "storer"
-	paramsKeyDAL    = "dal"
-)
-
 // Prepare performs some initial processing on the resource before it can be encoded
 //
 // Preparation runs validation, default value initialization, matching with

@@ -25,13 +25,7 @@ type (
 	StoreEncoder struct{}
 )
 
-const (
-	paramsKeyStorer = "storer"
-	paramsKeyDAL = "dal"
-)
-
 {{ $rootRes := .resources }}
-
 
 // Prepare performs some initial processing on the resource before it can be encoded
 //
