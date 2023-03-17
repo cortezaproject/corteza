@@ -16,6 +16,8 @@ import (
 {{- end }}
 )
 
+{{ $rootRes := .resources }}
+
 type (
   // YamlEncoder is responsible for encoding Corteza resources into
   // a YAML supported format
@@ -83,8 +85,6 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 
 	return yaml.NewEncoder(w).Encode(out)
 }
-
-{{ $rootRes := .resources }}
 
 {{- range .resources }}
 	{{- if .envoy.omit}}

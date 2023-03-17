@@ -26,11 +26,28 @@ import (
 type (
 	// YamlDecoder is responsible for decoding YAML documents into Corteza resources
 	// which are then managed by envoy and imported via an encoder.
-	YamlDecoder     struct{}
+	YamlDecoder struct{}
+
+	// documentContext provides a bit of metadata to the decoder such as
+	// root-level reference definitions (such as the namespace)
 	documentContext struct {
-		references  map[string]string
+		// references holds any references defined on the root of the document
+		//
+		// Example of defining a namespace reference:
+		// namespace: test_import_namespace
+		// modules:
+		//   - name: Test Import Module
+		//		 handle: test_import_module
+		references map[string]string
+
+		// parentIdent holds the identifier of the parent resource (if nested).
+		// The parent ident can be handy if the resource requires the info before the
+		// original handling is finished (such as record datasource nodes).
 		parentIdent envoyx.Identifiers
 	}
+
+	// auxYamlDoc is a helper struct that registers custom YAML decoders
+	// to assist the package
 	auxYamlDoc struct {
 		nodes envoyx.NodeSet
 	}
@@ -40,12 +57,14 @@ const (
 	paramsKeyStream = "stream"
 )
 
+// CanFile returns true if the provided file can be decoded with this decoder
 func (d YamlDecoder) CanFile(f *os.File) (ok bool) {
-	// @todo improve/expand
-	return d.canExt(f.Name())
+	// @todo improve this check; for now a simple extension check should do the trick
+	return d.CanExt(f.Name())
 }
 
-func (d YamlDecoder) canExt(name string) (ok bool) {
+// CanExt returns true if the provided file extension can be decoded with this decoder
+func (d YamlDecoder) CanExt(name string) (ok bool) {
 	var (
 		pt  = strings.Split(name, ".")
 		ext = strings.TrimSpace(pt[len(pt)-1])
@@ -58,7 +77,6 @@ func (d YamlDecoder) canExt(name string) (ok bool) {
 // YamlDecoder expects the DecodeParam of `stream` which conforms
 // to the io.Reader interface.
 func (d YamlDecoder) Decode(ctx context.Context, p envoyx.DecodeParams) (out envoyx.NodeSet, err error) {
-	// Get the reader
 	r, err := d.getReader(ctx, p)
 	if err != nil {
 		return
@@ -87,17 +105,19 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 		kv := strings.ToLower(k.Value)
 
 		switch kv {
+		// Decode all resources under the system component
 		case "application", "apps":
 			if y7s.IsMapping(v) {
 				aux, err = d.unmarshalApplicationMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalApplicationSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal application")
+				err = errors.Wrap(err, "failed to unmarshal node: application")
 			}
 			return err
 
@@ -106,22 +126,26 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalApigwRouteMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalApigwRouteSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal apigwRoute")
+				err = errors.Wrap(err, "failed to unmarshal node: apigwRoute")
 			}
 			return err
 
 		case "apigwfilter":
+			// @note apigwFilter doesn't support mapped inputs. This can be
+			//       changed in the .cue definition under the
+			//       .envoy.yaml.supportMappedInput field.
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalApigwFilterSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal apigwFilter")
+				err = errors.Wrap(err, "failed to unmarshal node: apigwFilter")
 			}
 			return err
 
@@ -130,12 +154,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalAuthClientMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalAuthClientSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal authClient")
+				err = errors.Wrap(err, "failed to unmarshal node: authClient")
 			}
 			return err
 
@@ -144,12 +169,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalQueueMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalQueueSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal queue")
+				err = errors.Wrap(err, "failed to unmarshal node: queue")
 			}
 			return err
 
@@ -158,12 +184,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalReportMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalReportSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal report")
+				err = errors.Wrap(err, "failed to unmarshal node: report")
 			}
 			return err
 
@@ -172,12 +199,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalRoleMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalRoleSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal role")
+				err = errors.Wrap(err, "failed to unmarshal node: role")
 			}
 			return err
 
@@ -186,12 +214,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalTemplateMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalTemplateSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal template")
+				err = errors.Wrap(err, "failed to unmarshal node: template")
 			}
 			return err
 
@@ -200,12 +229,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalUserMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalUserSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal user")
+				err = errors.Wrap(err, "failed to unmarshal node: user")
 			}
 			return err
 
@@ -214,12 +244,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalDalConnectionMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalDalConnectionSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal dalConnection")
+				err = errors.Wrap(err, "failed to unmarshal node: dalConnection")
 			}
 			return err
 
@@ -228,16 +259,17 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalDalSensitivityLevelMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalDalSensitivityLevelSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal dalSensitivityLevel")
+				err = errors.Wrap(err, "failed to unmarshal node: dalSensitivityLevel")
 			}
 			return err
 
-		// Access control nodes
+		// Decode access control nodes
 		case "allow":
 			aux, err = unmarshalAllowNode(v)
 			d.nodes = append(d.nodes, aux...)
@@ -260,13 +292,6 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				err = errors.Wrap(err, "failed to unmarshal node: locale")
 			}
 
-		// Offload to custom handlers
-		default:
-			aux, err = d.unmarshalYAML(kv, v)
-			d.nodes = append(d.nodes, aux...)
-			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal node")
-			}
 		}
 		return nil
 	})
