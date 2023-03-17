@@ -9,7 +9,7 @@ namespace:
             title: Test Namespace 1 Module 1 Field 1
           test_ns_1_mod_1_f2:
             title: Test Namespace 1 Module 1 Field 2
-            kind: Number
+            kind: String
         source:
           - from: records.csv
             key: ID
