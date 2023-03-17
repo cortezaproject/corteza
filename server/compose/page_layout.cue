@@ -82,7 +82,7 @@ pageLayout: {
 	filter: {
 		struct: {
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
-			page_id: { goType: "uint64", ident: "pageID", storeIdent: "rel_page" }
+			page_id: { goType: "uint64", ident: "pageID", storeIdent: "page_id" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }
 			default: { goType: "bool", ident: "default" }
 			handle: { goType: "string" }
