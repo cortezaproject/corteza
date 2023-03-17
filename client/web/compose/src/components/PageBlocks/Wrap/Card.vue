@@ -3,7 +3,7 @@
     <b-card
       no-body
       class="h-100 shadow overflow-hidden"
-      :class="blockClass"
+      :class="[blockClass, cardClass]"
     >
       <b-card-header
         v-if="showHeader"
