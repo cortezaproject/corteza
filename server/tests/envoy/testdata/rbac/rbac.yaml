@@ -1,0 +1,33 @@
+namespace:
+  test_ns_1:
+    name: Test Namespace 1
+    modules:
+      test_mod_1:
+        name: Test Module 1
+roles:
+  test_role_1:
+    name: Test Role 1
+  test_role_2:
+    name: Test Role 2
+
+allow:
+  test_role_1:
+    corteza::compose:namespace/*:
+      - op1
+    corteza::compose:namespace/test_ns_1:
+      - op2
+    corteza::compose:module/test_ns_1/*:
+      - op3
+    corteza::compose:module/test_ns_1/test_mod_1:
+      - op4
+
+deny:
+  test_role_2:
+    corteza::compose:namespace/*:
+      - op1
+    corteza::compose:namespace/test_ns_1:
+      - op2
+    corteza::compose:module/test_ns_1/*:
+      - op3
+    corteza::compose:module/test_ns_1/test_mod_1:
+      - op4

@@ -10,6 +10,8 @@ reminder: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			id:     schema.IdField
 			resource: {
@@ -40,6 +42,10 @@ reminder: {
 			"assigned_to": { attribute: "assigned_to" }
 			"resource": { attribute: "resource" }
 		}
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	filter: {

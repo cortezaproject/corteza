@@ -1154,7 +1154,7 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 		models dal.ModelSet
 	)
 
-	models, err = modulesToModelSet(dmm, ns, modules...)
+	models, err = ModulesToModelSet(dmm, ns, modules...)
 	if err != nil {
 		return
 	}
@@ -1170,11 +1170,11 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 }
 
 func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, old, new *types.Module, hasRecords bool) (err error) {
-	oldModel, err := modulesToModelSet(dmm, ns, old)
+	oldModel, err := ModulesToModelSet(dmm, ns, old)
 	if err != nil {
 		return
 	}
-	newModel, err := modulesToModelSet(dmm, ns, new)
+	newModel, err := ModulesToModelSet(dmm, ns, new)
 	if err != nil {
 		return
 	}
@@ -1202,12 +1202,12 @@ func DalModelRemove(ctx context.Context, dmm dalModelManager, mm ...*types.Modul
 	return
 }
 
-// modulesToModelSet takes a modules for a namespace and converts all of them
+// ModulesToModelSet takes a modules for a namespace and converts all of them
 // into a model set for the DAL
 //
 // Ident partition placeholders are replaced here as well alongside
 // with the revision models where revisions are enabled
-func modulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Module) (out dal.ModelSet, err error) {
+func ModulesToModelSet(dmm dalModelManager, ns *types.Namespace, mm ...*types.Module) (out dal.ModelSet, err error) {
 	var (
 		conn  *dal.ConnectionWrap
 		model *dal.Model

@@ -45,6 +45,10 @@ data_privacy_request_comment: {
 		byValue: ["request_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			functions: []

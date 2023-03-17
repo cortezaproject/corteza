@@ -17,6 +17,7 @@ settings: {
 
 	model: {
 		ident: "settings"
+		omitGetterSetter: true
 		attributes: {
 			owned_by:    {
 				goType: "uint64",
@@ -29,6 +30,8 @@ settings: {
 			value:       {
 				goType: "rawJson"
 				dal: { type: "JSON" }
+				omitSetter: true
+				omitGetter: true
 			}
 			updated_by:  schema.AttributeUserRef
 			updated_at:  schema.SortableTimestampField
@@ -53,6 +56,10 @@ settings: {
 		}
 
 		byValue: [ "owned_by" ]
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	store: {

@@ -10,6 +10,7 @@ data_privacy_request: {
 	}
 
 	model: {
+		omitGetterSetter: true
 		attributes: {
 			id: schema.IdField
 
@@ -74,6 +75,10 @@ data_privacy_request: {
 			approve:
 				description: "Approve/Reject data privacy request"
 		}
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	store: {

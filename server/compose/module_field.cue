@@ -11,9 +11,15 @@ moduleField: {
 	]
 
 	model: {
+		defaultSetter: true
+
 		ident: "compose_module_field"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				envoy: {
+					identifier: true
+				}
+			}
 			module_id: {
 			  ident: "moduleID",
 				goType: "uint64",
@@ -33,10 +39,22 @@ moduleField: {
 			options: {
 				goType: "types.ModuleFieldOptions"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
 			}
 			name: {
 				sortable: true
 				dal: {}
+			} & {
+				envoy: {
+					identifier: true
+				}
 			}
 			label: {
 				sortable: true
@@ -45,6 +63,8 @@ moduleField: {
 			config: {
 				goType: "types.ModuleFieldConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			required: {
 				goType: "bool",
@@ -59,10 +79,24 @@ moduleField: {
 			default_value: {
 				goType: "types.RecordValueSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
 			}
 			expressions: {
 				goType: "types.ModuleFieldExpr"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+					}
+				}
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -94,6 +128,21 @@ moduleField: {
 		paging: false
 		sorting: false
 		checkFn: false
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Name"
+			identKeyAlias: ["module_fields", "modulefields", "fields"]
+		}
+		store: {
+			handleField: ""
+			customFilterBuilder: true
+			extendedRefDecoder: true
+			sanitizeBeforeSave: true
+		}
 	}
 
 	rbac: {

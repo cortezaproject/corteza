@@ -2,6 +2,10 @@ package rbac
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/cast2"
 )
 
 type (
@@ -60,6 +64,18 @@ func (set RuleSet) FilterAccess(a Access) (out RuleSet) {
 	return out
 }
 
+func (set RuleSet) FilterOperation(op string) (out RuleSet) {
+	out = make(RuleSet, 0, len(set))
+
+	for _, s := range set {
+		if s.Operation == op {
+			out = append(out, s)
+		}
+	}
+
+	return out
+}
+
 // FilterResource returns rules that match given list of resources
 // Wildcards are not used!
 //
@@ -96,4 +112,55 @@ func DenyRule(id uint64, r, o string) *Rule {
 // InheritRule helper func to create inherit rule
 func InheritRule(id uint64, r, o string) *Rule {
 	return &Rule{id, r, o, Inherit, false}
+}
+
+func (u *Rule) SetValue(name string, pos uint, v any) (err error) {
+	switch name {
+	case "roleID", "RoleID":
+		return cast2.Uint64(v, &u.RoleID)
+	case "resource", "Resource":
+		return cast2.String(v, &u.Resource)
+	default:
+		return u.setValue(name, pos, v)
+	}
+}
+
+func (u *Rule) setValue(name string, pos uint, v any) (err error) {
+	pp := strings.Split(name, ".")
+
+	switch pp[0] {
+	case "resource", "Resource", "Path", "path":
+		ix, err := strconv.ParseUint(pp[1], 10, 64)
+		if err != nil {
+			return err
+		}
+
+		res := strings.Split(u.Resource, "/")
+
+		aux := ""
+		err = cast2.String(v, &aux)
+
+		// +1 bacause the first bit is the resource
+		res[ix+1] = aux
+		u.Resource = strings.Join(res, "/")
+		return err
+	}
+
+	return
+}
+
+func (u *Rule) GetValue(name string, pos uint) (v any, err error) {
+	switch name {
+	case "roleID", "RoleID":
+		return u.RoleID, nil
+	case "resource", "Resource":
+		return u.Resource, nil
+	}
+
+	return
+}
+
+func (r Rule) GetID() uint64 {
+	// The resource does not define an ID field
+	return 0
 }

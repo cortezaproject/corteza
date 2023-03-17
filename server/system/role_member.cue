@@ -38,6 +38,10 @@ role_member: {
 		byValue: [ "user_id", "role_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		api: {
 			lookups: []

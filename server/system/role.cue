@@ -16,6 +16,8 @@ role: {
 			meta: {
 				goType: "*types.RoleMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			archived_at: schema.SortableTimestampNilField
@@ -43,6 +45,15 @@ role: {
 		query: ["handle", "name"]
 		byValue: ["role_id", "name", "handle"]
 		byNilState: ["deleted", "archived"]
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["roles"]
+		}
+		store: {}
 	}
 
 	rbac: {

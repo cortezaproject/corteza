@@ -18,6 +18,8 @@ dal_sensitivity_level: {
 			meta: {
 				goType: "types.DalSensitivityLevelMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -34,13 +36,23 @@ dal_sensitivity_level: {
 
 	filter: {
 		struct: {
-			sensitivity_level_id: {goType: "[]uint64", ident: "sensitivityLevelID", storeIdent: "id"}
+			dal_sensitivity_level_id: {goType: "[]uint64", ident: "dalSensitivityLevelID", storeIdent: "id"}
+			handle: { goType: "string" }
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
-		byValue: ["sensitivity_level_id"]
+		byValue: ["dal_sensitivity_level_id", "handle"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["sensitivity_level"]
+		}
+		store: {}
 	}
 
 	features: {

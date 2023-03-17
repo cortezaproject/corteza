@@ -4,8 +4,9 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -47,6 +48,8 @@ type (
 
 	WorkflowFilter struct {
 		WorkflowID []string `json:"workflowID"`
+
+		Handle string `json:"handle"`
 
 		Query string `json:"query"`
 

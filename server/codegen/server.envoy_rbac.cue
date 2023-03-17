@@ -32,9 +32,9 @@ import (
 [
 	{
 		template: "gocode/envoy/rbac_rules_parse.go.tpl"
-		output:   "pkg/envoy/resource/rbac_rules_parse.gen.go"
+		output:   "pkg/envoyx/rbac_rules_parse.gen.go"
 		payload: {
-			package: "resource"
+			package: "envoyx"
 			imports: [
 				for cmp in app.corteza.components {
 					"\(cmp.ident)Types \"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\""

@@ -23,7 +23,18 @@ user: {
 		  	unique: true,
 		  	ignoreCase: true
 				dal: {}
-
+			}
+			roles: {
+				goType: "[]uint64",
+				store: false
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						omitEncoder: true
+					}
+				}
 			}
 		  name: {
 		  	sortable: true
@@ -34,10 +45,14 @@ user: {
 		  	sortable: true,
 		  	goType: "types.UserKind"
 				dal: { length: 8 }
+				omitSetter: true
+				omitGetter: true
 			}
 		  meta: {
 		  	goType: "*types.UserMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 		  suspended_at: schema.SortableTimestampNilField
 		  created_at: schema.SortableTimestampNowField
@@ -80,6 +95,15 @@ user: {
 		query: ["email", "username", "handle", "name"]
 		byValue: ["user_id", "email", "username", "handle"]
 		byNilState: ["deleted", "suspended"]
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["users", "usr"]
+		}
+		store: {}
 	}
 
 	rbac: {

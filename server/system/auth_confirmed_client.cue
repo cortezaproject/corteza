@@ -13,6 +13,8 @@ auth_confirmed_client: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			user_id: {
 				goType: "uint64",
@@ -40,6 +42,10 @@ auth_confirmed_client: {
 		}
 
 		byValue: ["user_id"]
+	}
+
+	envoy: {
+		omit: true
 	}
 
 

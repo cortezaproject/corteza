@@ -10,15 +10,28 @@ chart: {
 	]
 
 	model: {
+		defaultSetter: true
+
 		ident: "compose_chart"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				envoy: {
+					yaml: {
+						identKeyEncode: "chartID"
+					}
+				}
+			}
 			handle: schema.HandleField
 			namespace_id: {
 			  ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace", "namespace_id", "ns"]
+					}
+				}
 			}
 			name: {
 				sortable: true
@@ -27,6 +40,14 @@ chart: {
 			config: {
 				goType: "types.ChartConfig"
 				dal: {}
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
 		  }
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -59,6 +80,18 @@ chart: {
 		query: ["handle", "name"]
 		byValue: ["handle", "chart_id", "namespace_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["charts", "chrt"]
+		}
+		store: {
+			extendedRefDecoder: true
+		}
 	}
 
 	rbac: {

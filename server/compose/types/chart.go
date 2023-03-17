@@ -165,6 +165,28 @@ func (c Chart) encodeTranslations() (out locale.ResourceTranslationSet) {
 	return
 }
 
+func (c *Chart) setValue(name string, pos uint, value any) (err error) {
+	pp := strings.Split(name, ".")
+
+	switch pp[0] {
+	case "Config":
+		if pp[1] == "Reports" {
+			return c.Config.Reports[cast.ToInt(pp[2])].setValue(pp[3], 0, value)
+		}
+	}
+
+	return
+}
+
+func (r *ChartConfigReport) setValue(name string, pos uint, value any) (err error) {
+	switch name {
+	case "moduleID", "ModuleID":
+		r.ModuleID = cast.ToUint64(value)
+	}
+
+	return
+}
+
 // FindByHandle finds chart by it's handle
 func (set ChartSet) FindByHandle(handle string) *Chart {
 	for i := range set {

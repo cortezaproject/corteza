@@ -42,6 +42,8 @@ moduleMapping: {
 			field_mapping: {
 				goType: "types.ModuleFieldMappingSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 		}
 
@@ -50,6 +52,10 @@ moduleMapping: {
 				attributes: ["federation_module_id", "compose_module_id", "compose_namespace_id" ]
 			}
 		}
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	filter: {

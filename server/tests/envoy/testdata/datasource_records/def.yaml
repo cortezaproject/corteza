@@ -1,0 +1,22 @@
+namespace:
+  test_ns_1:
+    name: Test Namespace 1
+    modules:
+      test_ns_1_mod_1:
+        name: Test Namespace 1 Module 1
+        fields:
+          test_ns_1_mod_1_f1:
+            title: Test Namespace 1 Module 1 Field 1
+          test_ns_1_mod_1_f2:
+            title: Test Namespace 1 Module 1 Field 2
+            kind: String
+        source:
+          - from: records.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: test_ns_1_mod_1_f1
+                field: test_ns_1_mod_1_f1
+              - column: test_ns_1_mod_1_f2
+                field: test_ns_1_mod_1_f2
