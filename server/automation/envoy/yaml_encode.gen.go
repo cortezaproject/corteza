@@ -89,9 +89,7 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 	}
 
 	return yaml.NewEncoder(w).Encode(out)
-}
-
-// // // // // // // // // // // // // // // // // // // // // // // // //
+} // // // // // // // // // // // // // // // // // // // // // // // // //
 // Functions for resource workflow
 // // // // // // // // // // // // // // // // // // // // // // // // //
 

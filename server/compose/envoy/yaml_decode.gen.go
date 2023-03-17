@@ -26,11 +26,28 @@ import (
 type (
 	// YamlDecoder is responsible for decoding YAML documents into Corteza resources
 	// which are then managed by envoy and imported via an encoder.
-	YamlDecoder     struct{}
+	YamlDecoder struct{}
+
+	// documentContext provides a bit of metadata to the decoder such as
+	// root-level reference definitions (such as the namespace)
 	documentContext struct {
-		references  map[string]string
+		// references holds any references defined on the root of the document
+		//
+		// Example of defining a namespace reference:
+		// namespace: test_import_namespace
+		// modules:
+		//   - name: Test Import Module
+		//		 handle: test_import_module
+		references map[string]string
+
+		// parentIdent holds the identifier of the parent resource (if nested).
+		// The parent ident can be handy if the resource requires the info before the
+		// original handling is finished (such as record datasource nodes).
 		parentIdent envoyx.Identifiers
 	}
+
+	// auxYamlDoc is a helper struct that registers custom YAML decoders
+	// to assist the package
 	auxYamlDoc struct {
 		nodes envoyx.NodeSet
 	}
@@ -40,12 +57,14 @@ const (
 	paramsKeyStream = "stream"
 )
 
+// CanFile returns true if the provided file can be decoded with this decoder
 func (d YamlDecoder) CanFile(f *os.File) (ok bool) {
-	// @todo improve/expand
-	return d.canExt(f.Name())
+	// @todo improve this check; for now a simple extension check should do the trick
+	return d.CanExt(f.Name())
 }
 
-func (d YamlDecoder) canExt(name string) (ok bool) {
+// CanExt returns true if the provided file extension can be decoded with this decoder
+func (d YamlDecoder) CanExt(name string) (ok bool) {
 	var (
 		pt  = strings.Split(name, ".")
 		ext = strings.TrimSpace(pt[len(pt)-1])
@@ -58,7 +77,6 @@ func (d YamlDecoder) canExt(name string) (ok bool) {
 // YamlDecoder expects the DecodeParam of `stream` which conforms
 // to the io.Reader interface.
 func (d YamlDecoder) Decode(ctx context.Context, p envoyx.DecodeParams) (out envoyx.NodeSet, err error) {
-	// Get the reader
 	r, err := d.getReader(ctx, p)
 	if err != nil {
 		return
@@ -87,17 +105,19 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 		kv := strings.ToLower(k.Value)
 
 		switch kv {
+		// Decode all resources under the compose component
 		case "chart", "charts", "chrt":
 			if y7s.IsMapping(v) {
 				aux, err = d.unmarshalChartMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalChartSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal chart")
+				err = errors.Wrap(err, "failed to unmarshal node: chart")
 			}
 			return err
 
@@ -106,12 +126,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalModuleMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalModuleSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal module")
+				err = errors.Wrap(err, "failed to unmarshal node: module")
 			}
 			return err
 
@@ -120,12 +141,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalModuleFieldMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalModuleFieldSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal moduleField")
+				err = errors.Wrap(err, "failed to unmarshal node: moduleField")
 			}
 			return err
 
@@ -134,12 +156,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalNamespaceMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalNamespaceSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal namespace")
+				err = errors.Wrap(err, "failed to unmarshal node: namespace")
 			}
 			return err
 
@@ -148,22 +171,16 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				aux, err = d.unmarshalPageMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
+
 			if y7s.IsSeq(v) {
 				aux, err = d.unmarshalPageSeq(dctx, v)
 				d.nodes = append(d.nodes, aux...)
 			}
 			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal page")
+				err = errors.Wrap(err, "failed to unmarshal node: page")
 			}
 			return err
 
-		// Offload to custom handlers
-		default:
-			aux, err = d.unmarshalYAML(kv, v)
-			d.nodes = append(d.nodes, aux...)
-			if err != nil {
-				err = errors.Wrap(err, "failed to unmarshal node")
-			}
 		}
 		return nil
 	})
