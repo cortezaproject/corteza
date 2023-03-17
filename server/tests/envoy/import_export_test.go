@@ -91,6 +91,7 @@ func TestImportExport(t *testing.T) {
 				Type: envoyx.DecodeTypeStore,
 				Params: map[string]any{
 					"storer": defaultStore,
+					"dal":    defaultDal,
 				},
 				Filter: map[string]envoyx.ResourceFilter{
 					types.ChartResourceType:     {},
