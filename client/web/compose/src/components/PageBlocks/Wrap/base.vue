@@ -16,6 +16,12 @@ export default {
       required: false,
       default: true,
     },
+
+    cardClass: {
+      type: String,
+      required: false,
+      default: '',
+    },
   },
 
   computed: {

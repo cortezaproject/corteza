@@ -1,6 +1,7 @@
 <template>
   <wrap
     v-bind="$props"
+    card-class="position-static"
     v-on="$listeners"
   >
     <div
