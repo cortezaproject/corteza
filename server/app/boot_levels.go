@@ -23,6 +23,7 @@ import (
 	apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/http"
@@ -352,6 +353,13 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		ac.Reload(ctx)
 
 		rbac.SetGlobal(ac)
+	}
+
+	if !envoyx.Initialized() {
+		err = app.initEnvoy(ctx, app.Log)
+		if err != nil {
+			return
+		}
 	}
 
 	// Initialize resource translation stuff
