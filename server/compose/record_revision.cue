@@ -7,6 +7,7 @@ import (
 record_revision: {
 	model: {
 		ident: "compose_record_revisions"
+		omitGetterSetter: true
 
 		attributes: {
 			id: schema.IdField
@@ -36,5 +37,9 @@ record_revision: {
 		indexes: {
 			"primary": { attribute: "id" }
 		}
+	}
+
+	envoy: {
+		omit: true
 	}
 }

@@ -26,6 +26,8 @@ session: {
 				sortable: true,
 				goType: "types.SessionStatus"
 				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
+				omitSetter: true
+				omitGetter: true
 			}
 			event_type: {
 				sortable: true,
@@ -40,14 +42,20 @@ session: {
 			input: {
 				goType: "*expr.Vars"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			output: {
 				goType: "*expr.Vars"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			stacktrace: {
 				goType: "types.Stacktrace"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_by: schema.AttributeUserRef
@@ -70,6 +78,10 @@ session: {
 			"suspended_at": { attribute: "suspended_at" }
 			"resource_type": { attribute: "resource_type" }
 		}
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	filter: {

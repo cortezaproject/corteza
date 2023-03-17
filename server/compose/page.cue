@@ -10,6 +10,8 @@ page: {
 	]
 
 	model: {
+		defaultSetter: true
+
 		ident: "compose_page"
 		attributes: {
 			id: schema.IdField
@@ -24,30 +26,60 @@ page: {
 				goType: "uint64",
 				dal: { type: "Ref", refModelResType: "corteza::compose:page" }
 				sortable: true
+				envoy: {
+					store: {
+						filterRefField: "ParentID"
+					}
+					yaml: {
+						identKeyAlias: ["parent"]
+					}
+				}
 			}
 			module_id: {
 				ident: "moduleID",
 				goType: "uint64",
 				storeIdent: "rel_module"
 				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["module"]
+					}
+				}
 			}
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace"]
+					}
+				}
 			}
 
 			config: {
 				goType: "types.PageConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			blocks: {
 				goType: "types.PageBlocks"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						customDecoder: true
+						customEncoder: true
+					}
+				}
 			}
 			children: {
 				goType: "types.PageSet", store: false
+				omitSetter: true
+				omitGetter: true
 			}
 			visible: {
 				goType: "bool"
@@ -56,6 +88,11 @@ page: {
 			weight: {
 				goType: "int", sortable: true
 				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["order"]
+					}
+				}
 			}
 			description: {
 				goType: "string"
@@ -81,6 +118,7 @@ page: {
 
 	filter: {
 		struct: {
+			page_id: { goType: "[]uint64", ident: "pageID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			parent_id: { goType: "uint64", ident: "parentID" }
 			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }
@@ -91,8 +129,29 @@ page: {
 		}
 
 		query: ["handle", "title", "description"]
-		byValue: ["handle", "namespace_id", "module_id"]
+		byValue: ["page_id", "handle", "namespace_id", "module_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["pages", "pg"]
+
+			extendedResourceDecoders: [{
+				ident: "pages"
+				expIdent: "Pages"
+				identKeys: ["children", "pages"]
+				supportMappedInput: true
+				mappedField: "Handle"
+			}]
+		}
+		store: {
+			extendedFilterBuilder: true
+			extendedRefDecoder: true
+		}
 	}
 
 	rbac: {

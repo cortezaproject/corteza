@@ -53,6 +53,10 @@ nodeSync: {
 		byValue: ["node_id", "module_id", "sync_status", "sync_type"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	store: {
 		ident: "federationNodeSync"
 

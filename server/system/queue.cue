@@ -22,10 +22,15 @@ queue: {
 				sortable: true,
 				goType: "string"
 				dal: {}
+				envoy: {
+					identifier: true
+				}
 			}
 			meta: {
 				goType: "types.QueueMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -43,12 +48,25 @@ queue: {
 
 	filter: {
 		struct: {
+			queue_id: {goType: "[]uint64", ident: "queueID", storeIdent: "id"}
 			query: {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
 
 		query: ["queue", "consumer"]
+		byValue: ["queue_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Queue"
+			identKeyAlias: []
+		}
+		store: {
+			handleField: ""
+		}
 	}
 
 	rbac: {

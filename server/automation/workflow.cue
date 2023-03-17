@@ -13,6 +13,8 @@ workflow: {
 			meta: {
 				goType: "*types.WorkflowMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			enabled: {
 				sortable: true,
@@ -30,18 +32,31 @@ workflow: {
 			scope: {
 				goType: "*expr.Vars"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			steps: {
 				goType: "types.WorkflowStepSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			paths: {
 				goType: "types.WorkflowPathSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			issues: {
 				goType: "types.WorkflowIssueSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						omitEncoder: true
+					}
+				}
 			}
 
 			run_as: schema.AttributeUserRef
@@ -60,16 +75,40 @@ workflow: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["workflows"]
+			extendedResourceDecoders: [{
+				ident: "triggers"
+				expIdent: "Triggers"
+				supportMappedInput: false
+				identKeys: ["triggers"]
+			}]
+			extendedResourceEncoders: [{
+				ident: "trigger"
+				expIdent: "Trigger"
+				identKey: "trigger"
+			}]
+		}
+		store: {
+			customFilterBuilder: true
+			extendedDecoder: true
+		}
+	}
+
 	filter: {
 		struct: {
 			workflow_id: { goType: "[]string", ident: "workflowID", storeIdent: "id" }
+			handle: { goType: "string" }
 			sub_workflow: { goType: "filter.State" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 			disabled: { goType: "filter.State", storeIdent: "enabled" }
 		}
 
 		query: ["handle"]
-		byValue: ["workflow_id"]
+		byValue: ["workflow_id", "handle"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

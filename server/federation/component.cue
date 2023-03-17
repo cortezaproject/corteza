@@ -15,6 +15,10 @@ component: schema.#component & {
 		"module-mapping": moduleMapping
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	rbac: operations: {
 		"grant": description:           "Manage federation permissions"
 		"pair": description:            "Pair federation nodes"

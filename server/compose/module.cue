@@ -13,12 +13,24 @@ module: {
 	model: {
 		ident: "compose_module"
 		attributes: {
-			id: schema.IdField
+			id: schema.IdField & {
+				envoy: {
+					yaml: {
+						identKeyEncode: "moduleID"
+					}
+				}
+			}
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace", "namespace_id", "ns", "ns_id"]
+					}
+				}
 			}
 			handle: schema.HandleField
 			name: {
@@ -28,14 +40,25 @@ module: {
 			meta: {
 				goType: "rawJson"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			config: {
 				goType: "types.ModuleConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			fields: {
 				goType: "types.ModuleFieldSet",
 				store: false
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						omitEncoder: true
+					}
+				}
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -64,6 +87,30 @@ module: {
 		query: ["handle", "name"]
 		byValue: ["handle", "module_id", "namespace_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["modules", "mod"]
+
+			extendedResourcePostProcess: true
+			extendedResourceDecoders: [{
+				ident: "source"
+				expIdent: "Source"
+				// @deprecated records is what the old version used
+				identKeys: ["source", "datasource", "records"]
+				supportMappedInput: false
+			}]
+		}
+		store: {
+			extendedEncoder: true
+			extendedSubResources: true
+			extendedFilterBuilder: true
+			extendedDecoder: true
+		}
 	}
 
 	rbac: {

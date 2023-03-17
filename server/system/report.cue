@@ -12,18 +12,26 @@ report: {
 			meta: {
 				goType: "*types.ReportMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			scenarios: {
 				goType: "types.ReportScenarioSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			sources: {
 				goType: "types.ReportDataSourceSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			blocks: {
 				goType: "types.ReportBlockSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			owned_by:   schema.AttributeUserRef
@@ -38,6 +46,15 @@ report: {
 		indexes: {
 			"primary": { attribute: "id" }
 		}
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["reports"]
+		}
+		store: {}
 	}
 
 	filter: {

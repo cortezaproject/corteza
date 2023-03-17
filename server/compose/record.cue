@@ -13,6 +13,9 @@ record: {
 	model: {
 		ident: "compose_record"
 
+		defaultSetter: true
+		defaultGetter: true
+
 		attributes: {
 			id: schema.IdField
 			revision: {
@@ -28,10 +31,14 @@ record: {
 			module: {
 				goType: "*types.Module",
 				store: false
+				omitSetter: true
+				omitGetter: true
 			}
 			values: {
 				goType: "types.RecordValueSet",
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			meta: {
 				goType: "map[string]any",
@@ -47,10 +54,18 @@ record: {
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
-			owned_by:   schema.AttributeUserRef
-			created_by: schema.AttributeUserRef
-			updated_by: schema.AttributeUserRef
-			deleted_by: schema.AttributeUserRef
+			owned_by:   schema.AttributeUserRef & {
+				identAlias: ["ownedBy", "OwnedBy", "owned_by"]
+			}
+			created_by: schema.AttributeUserRef & {
+				identAlias: ["createdBy", "CreatedBy", "created_by"]
+			}
+			updated_by: schema.AttributeUserRef & {
+				identAlias: ["updatedBy", "UpdatedBy", "updated_by"]
+			}
+			deleted_by: schema.AttributeUserRef & {
+				identAlias: ["deletedBy", "DeletedBy", "deleted_by"]
+			}
 		}
 
 		indexes: {
@@ -60,6 +75,11 @@ record: {
 				predicate: "deleted_at IS NULL"
 			}
 		}
+	}
+
+	// @todo tmp
+	envoy: {
+		omit: true
 	}
 
 	filter: {

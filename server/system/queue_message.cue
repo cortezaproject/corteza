@@ -11,6 +11,8 @@ queue_message: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 		  id:        schema.IdField
 		  queue:     {
@@ -28,6 +30,10 @@ queue_message: {
 		indexes: {
 			"primary": { attribute: "id" }
 		}
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	filter: {

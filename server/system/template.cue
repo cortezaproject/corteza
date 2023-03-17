@@ -25,6 +25,8 @@ template: {
 				sortable: true,
 				goType: "types.DocumentType"
 				dal: {}
+				omitSetter: true
+				omitGetter: true
 			}
 			partial: {
 				goType: "bool"
@@ -33,6 +35,8 @@ template: {
 			meta: {
 				goType: "types.TemplateMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			template: {
 				sortable: true,
@@ -71,6 +75,15 @@ template: {
 		query: ["handle", "type"]
 		byValue: ["template_id", "handle", "partial", "type", "owner_id"]
 		byNilState: ["deleted"]
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["templates"]
+		}
+		store: {}
 	}
 
 	rbac: {

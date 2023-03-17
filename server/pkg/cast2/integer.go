@@ -21,3 +21,13 @@ func Uint(in any, out *uint) error {
 	*out = aux
 	return nil
 }
+
+func Int(in any, out *int) error {
+	aux, err := cast.ToIntE(in)
+	if err != nil {
+		return err
+	}
+
+	*out = aux
+	return nil
+}

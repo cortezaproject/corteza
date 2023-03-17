@@ -17,6 +17,10 @@ import (
 
 	fqrt: platform + "::" + handle
 
+	envoy: {
+		omit: bool | *false
+	}
+
 	// All known RBAC operations for this component
 	rbac: #rbacComponent & {
 		operations: {

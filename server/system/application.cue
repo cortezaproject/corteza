@@ -25,11 +25,21 @@ application: {
 			unify: {
 				goType: "*types.ApplicationUnify"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			owner_id:   {
 				schema.AttributeUserRef,
 				storeIdent: "rel_owner",
 				ident: "ownerID"
+				envoy: {
+					store: {
+						omitRefFilter: true
+					}
+					yaml: {
+						identKeyAlias: ["owner"]
+					}
+				}
 			}
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
@@ -58,6 +68,17 @@ application: {
 
 	features: {
 		flags: true
+	}
+
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Name"
+			identKeyAlias: ["apps"]
+		}
+		store: {
+			handleField: "Name"
+		}
 	}
 
 	rbac: {

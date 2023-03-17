@@ -28,6 +28,8 @@ apigw_route: {
 			meta: {
 				goType: "types.ApigwRouteMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			group:    {
 				sortable: true,
@@ -37,6 +39,11 @@ apigw_route: {
 			  	type: "Ref",
 			  	// @todo what does this do?
 			  	refModelResType: "corteza::system:apigw-group"
+				}
+				envoy: {
+					store: {
+						omitRefFilter: true
+					}
 				}
 			}
 
@@ -53,8 +60,32 @@ apigw_route: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Endpoint"
+			identKeyAlias: ["endpoints"]
+			extendedResourceDecoders: [{
+				ident: "filters"
+				expIdent: "Filters"
+				identKeys: ["filters"]
+				supportMappedInput: false
+			}]
+			extendedResourceEncoders: [{
+				ident: "apigwFilter"
+				expIdent: "ApigwFilter"
+				identKey: "filters"
+			}]
+		}
+		store: {
+			handleField: "Endpoint"
+			extendedDecoder: true
+		}
+	}
+
 	filter: {
 		struct: {
+			apigw_route_id: { goType: "[]uint64", ident: "apigwRouteID", storeIdent: "id" }
 			route: {goType: "string", storeIdent: "id"}
 			endpoint: {goType: "string"}
 			method: {goType: "string"}
@@ -63,7 +94,7 @@ apigw_route: {
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		byValue: ["route", "method"]
+		byValue: ["apigw_route_id", "route", "method"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}

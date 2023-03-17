@@ -11,6 +11,8 @@ resource_translation: {
 	}
 
 	model: {
+		defaultSetter: true
+
 		// lengths for the lang, resource fields are now a bit shorter
 		// Reason for that is supported index length in MySQL
 		attributes: {
@@ -18,6 +20,8 @@ resource_translation: {
 			lang: {
 		 		goType: "types.Lang"
 				dal: { type: "Text", length: 32 }
+				omitSetter: true
+				omitGetter: true
 		 	}
 			resource: {
 				dal: { type: "Text", length: 256 }
@@ -48,6 +52,11 @@ resource_translation: {
 				 ]
 		 	}
 		}
+	}
+
+	envoy: {
+		// Special handling for i18n
+		omit: true
 	}
 
 	filter: {

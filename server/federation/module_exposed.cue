@@ -44,6 +44,8 @@ exposedModule: {
 			fields: {
 				goType: "types.ModuleFieldSet"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -69,6 +71,9 @@ exposedModule: {
 		byValue: ["compose_module_id", "compose_namespace_id", "node_id"]
 	}
 
+	envoy: {
+		omit: true
+	}
 
 	rbac: {
 		operations: {

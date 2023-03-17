@@ -13,6 +13,8 @@ auth_session: {
 	}
 
 	model: {
+		omitGetterSetter: true
+
 		attributes: {
 			id: {
 				expIdent: "ID",
@@ -51,6 +53,10 @@ auth_session: {
 		}
 
 		byValue: ["user_id"]
+	}
+
+	envoy: {
+		omit: true
 	}
 
 	store: {

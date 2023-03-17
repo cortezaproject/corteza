@@ -1,0 +1,39 @@
+namespace:
+  test_ns:
+    name: Test Namespace
+    modules:
+      test_mod:
+        name: Test Namespace Module
+        fields:
+          name:
+            title: Name
+          code:
+            title: Code
+            kind: Number
+          rel_user:
+            title: Rel User
+            kind: User
+        source:
+          - from: records.csv
+            key: ID
+            map:
+              - column: ID
+                skip: true
+              - column: name
+                field: name
+              - column: code
+                field: code
+              - column: rel_user
+                field: rel_user
+              - column: created_by
+                field: created_by
+
+user:
+  usr_0:
+    email: usr_0@test.tld
+  usr_1:
+    email: usr_1@test.tld
+  usr_2:
+    email: usr_2@test.tld
+  usr_x:
+    email: usr_x@test.tld

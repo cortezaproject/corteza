@@ -15,6 +15,12 @@ apigw_filter: {
 			route:  {
 				sortable: true, goType: "uint64", storeIdent: "rel_route"
 				dal: { type: "Ref", refModelResType: "corteza::system:apigw-route" }
+				identAlias: ["route", "Route", "ApigwRouteID"]
+				envoy: {
+					store: {
+						omitRefFilter: true
+					}
+				}
 		  }
 			weight: {
 			  sortable: true,
@@ -36,6 +42,8 @@ apigw_filter: {
 			params: {
 				goType: "types.ApigwFilterParams"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			created_at: schema.SortableTimestampNowField
@@ -51,14 +59,25 @@ apigw_filter: {
 		}
 	}
 
+	envoy: {
+		yaml: {
+			supportMappedInput: false
+			omitEncoder: true
+		}
+		store: {
+			handleField: ""
+		}
+	}
+
 	filter: {
 		struct: {
+			apigw_filter_id: {goType: "[]uint64", ident: "apigwFilterID", storeIdent: "id"}
 			route_id: {goType: "uint64", ident: "routeID", storeIdent: "rel_route"}
 			deleted:  {goType: "filter.State", storeIdent: "deleted_at"}
 			disabled: {goType: "filter.State", storeIdent: "enabled"}
 		}
 
-		byValue: ["route_id"]
+		byValue: ["apigw_filter_id", "route_id"]
 		byNilState: ["deleted"]
 		byFalseState: ["disabled"]
 	}
