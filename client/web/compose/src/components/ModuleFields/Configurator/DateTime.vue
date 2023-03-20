@@ -12,20 +12,19 @@
     >
       {{ $t('kind.dateTime.timeOnly') }}
     </b-form-checkbox>
-    <template v-if="!f.options.onlyTime">
-      <b-form-checkbox
-        v-model="f.options.onlyPastValues"
-        :disabled="f.options.onlyFutureValues"
-      >
-        {{ $t('kind.dateTime.pastValuesOnly') }}
-      </b-form-checkbox>
-      <b-form-checkbox
-        v-model="f.options.onlyFutureValues"
-        :disabled="f.options.onlyPastValues"
-      >
-        {{ $t('kind.dateTime.futureValuesOnly') }}
-      </b-form-checkbox>
-    </template>
+
+    <b-form-checkbox
+      v-model="f.options.onlyPastValues"
+      :disabled="f.options.onlyFutureValues"
+    >
+      {{ $t('kind.dateTime.pastValuesOnly') }}
+    </b-form-checkbox>
+    <b-form-checkbox
+      v-model="f.options.onlyFutureValues"
+      :disabled="f.options.onlyPastValues"
+    >
+      {{ $t('kind.dateTime.futureValuesOnly') }}
+    </b-form-checkbox>
 
     <b-form-checkbox v-model="f.options.outputRelative">
       {{ $t('kind.dateTime.relativeOutput') }}
