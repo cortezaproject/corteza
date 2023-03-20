@@ -33,13 +33,14 @@
     <div class="d-flex w-100">
       <b-button
         v-if="field.isMulti"
-        variant="primary"
-        rounded
+        :title="$t('tooltip.openMap')"
+        variant="light"
         class="w-100"
         @click="openMap"
       >
         <font-awesome-icon
           :icon="['fas', 'map-marked-alt']"
+          class="text-primary"
         />
       </b-button>
     </div>
@@ -55,15 +56,31 @@
         <b-form-input
           v-model="localValue[ctx.index].coordinates[0]"
           type="number"
+          step="0.000001"
           number
           :placeholder="$t('latitude')"
         />
         <b-form-input
           v-model="localValue[ctx.index].coordinates[1]"
           type="number"
+          step="0.000001"
           number
           :placeholder="$t('longitude')"
         />
+        <b-input-group-append>
+          <b-button
+            v-if="!field.options.hideCurrentLocationButton"
+            :title="$t('tooltip.useCurrentLocation')"
+            variant="light"
+            class="d-flex align-items-center"
+            @click="useCurrentLocation(ctx.index)"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'location-arrow']"
+              class="text-primary"
+            />
+          </b-button>
+        </b-input-group-append>
       </b-input-group>
     </multi>
 
@@ -72,23 +89,40 @@
         <b-form-input
           v-model="localValue.coordinates[0]"
           type="number"
+          step="0.000001"
           number
           :placeholder="$t('latitude')"
         />
         <b-form-input
           v-model="localValue.coordinates[1]"
           type="number"
+          step="0.000001"
           number
           :placeholder="$t('longitude')"
         />
         <b-input-group-append>
           <b-button
+            :title="$t('tooltip.openMap')"
             variant="light"
-            rounded
+            class="d-flex align-items-center"
             @click="openMap"
           >
             <font-awesome-icon
               :icon="['fas', 'map-marked-alt']"
+              class="text-primary"
+            />
+          </b-button>
+
+          <b-button
+            v-if="!field.options.hideCurrentLocationButton"
+            :title="$t('tooltip.useCurrentLocation')"
+            variant="light"
+            class="d-flex align-items-center"
+            @click="useCurrentLocation()"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'location-arrow']"
+              class="text-primary"
             />
           </b-button>
         </b-input-group-append>
@@ -100,16 +134,11 @@
     <b-modal
       v-model="map.show"
       size="lg"
-      title="Map"
       body-class="p-0"
       hide-header
     >
       <template #modal-footer>
-        <h6
-          class="w-100"
-        >
-          {{ $t('clickToPlaceMarker') }}
-        </h6>
+        {{ $t('clickToPlaceMarker') }}
       </template>
 
       <l-map
@@ -118,6 +147,7 @@
         :center="map.center"
         style="height: 75vh; width: 100%; cursor: pointer;"
         @click="placeMarker"
+        @locationfound="onLocationFound"
       >
         <l-tile-layer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -129,6 +159,19 @@
           :lat-lng="marker"
           @click="removeMarker(i)"
         />
+        <l-control class="leaflet-bar">
+          <a
+            :title="$t('tooltip.goToCurrentLocation')"
+            role="button"
+            class="d-flex justify-content-center align-items-center"
+            @click="goToCurrentLocation"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'location-arrow']"
+              class="text-primary"
+            />
+          </a>
+        </l-control>
       </l-map>
     </b-modal>
   </b-form-group>
@@ -136,11 +179,16 @@
 <script>
 import base from './base'
 import { latLng } from 'leaflet'
+import { LControl } from 'vue2-leaflet'
 
 export default {
   i18nOptions: {
     namespaces: 'field',
     keyPrefix: 'kind.geometry',
+  },
+
+  components: {
+    LControl,
   },
 
   extends: base,
@@ -188,6 +236,10 @@ export default {
     } else {
       this.localValue = JSON.parse(this.value || '{"coordinates":[]}')
     }
+
+    if (this.field.options.prefillWithCurrentLocation) {
+      this.useCurrentLocation()
+    }
   },
 
   methods: {
@@ -210,15 +262,23 @@ export default {
       }
     },
 
-    placeMarker (e) {
-      let { lat = 0, lng = 0 } = e.latlng || {}
-      lat = Math.round(lat * 1e7) / 1e7
-      lng = Math.round(lng * 1e7) / 1e7
+    placeMarker (e, index) {
+      const { lat = 0, lng = 0 } = e.latlng || {}
+      const coords = {
+        coordinates: [
+          Math.round(lat * 1e7) / 1e7,
+          Math.round(lng * 1e7) / 1e7,
+        ],
+      }
 
       if (this.field.isMulti) {
-        this.localValue.push({ coordinates: [lat, lng] })
+        if (index >= 0) {
+          this.localValue.splice(index, 1, coords)
+        } else {
+          this.localValue.push(coords)
+        }
       } else {
-        this.localValue = { coordinates: [lat, lng] }
+        this.localValue = coords
       }
     },
 
@@ -228,6 +288,48 @@ export default {
       } else {
         this.localValue = { coordinates: [] }
       }
+    },
+
+    useCurrentLocation (index) {
+      try {
+        if (!navigator.geolocation) {
+          this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.notSupported'))()
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          ({ coords }) => {
+            const latlng = { lat: coords.latitude, lng: coords.longitude }
+            this.placeMarker({ latlng }, index)
+          },
+          error => {
+            switch (error.code) {
+              case error.PERMISSION_DENIED:
+                this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.permissionDenied'))()
+                break
+              case error.POSITION_UNAVAILABLE:
+                this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.positionUnavailable'))()
+                break
+              case error.TIMEOUT:
+                this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.timeout'))()
+                break
+              default:
+                this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.unknownError'))()
+                break
+            }
+          },
+        )
+      } catch (error) {
+        this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.errorOccurred'))()
+      }
+    },
+
+    goToCurrentLocation () {
+      this.$refs.map.mapObject.locate()
+    },
+
+    onLocationFound ({ latitude, longitude }) {
+      const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
+      this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
   },
 }
