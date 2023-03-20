@@ -57,6 +57,7 @@ interface Options {
   selectionButtons: Array<Button>;
 
   bulkRecordEditEnabled: boolean;
+  inlineRecordEditEnabled: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -72,11 +73,11 @@ const defaults: Readonly<Options> = Object.freeze({
   hidePaging: false,
   hideSorting: false,
   hideFiltering: false,
-  hideRecordReminderButton: true,
-  hideRecordCloneButton: true,
+  hideRecordReminderButton: false,
+  hideRecordCloneButton: false,
   hideRecordEditButton: false,
-  hideRecordViewButton: true,
-  hideRecordPermissionsButton: true,
+  hideRecordViewButton: false,
+  hideRecordPermissionsButton: false,
   enableRecordPageNavigation: false,
   allowExport: false,
   perPage: 20,
@@ -104,7 +105,8 @@ const defaults: Readonly<Options> = Object.freeze({
   refreshRate: 0,
   showRefresh: false,
 
-  bulkRecordEditEnabled: true
+  bulkRecordEditEnabled: true,
+  inlineRecordEditEnabled: false
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -160,7 +162,8 @@ export class PageBlockRecordList extends PageBlock {
       'draggable',
       'linkToParent',
       'showRefresh',
-      'bulkRecordEditEnabled'
+      'bulkRecordEditEnabled',
+      'inlineRecordEditEnabled'
     )
 
     if (o.selectionButtons) {

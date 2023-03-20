@@ -265,10 +265,9 @@ export default {
     handleBulkUpdateSelectedRecords: throttle(function (records) {
       this.processing = true
 
-      const { moduleID, namespaceID } = this.module
-
       const values = []
-      this.fields.forEach(({ name, isMulti }) => {
+      this.fields.forEach(f => {
+        const { name, isMulti } = this.getField(f)
         const value = this.record.values[name] || this.record[name]
 
         if (!isMulti) {
@@ -279,6 +278,8 @@ export default {
           })
         }
       })
+
+      const { moduleID, namespaceID } = this.module
 
       return this
         .$ComposeAPI.recordPatch({ moduleID, namespaceID, records, values })

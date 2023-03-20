@@ -116,7 +116,7 @@ export class Record {
   }
 
   clone (): Record {
-    return new Record(JSON.parse(JSON.stringify(this)))
+    return new Record(this.module, JSON.parse(JSON.stringify(this)))
   }
 
   /**

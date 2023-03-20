@@ -240,13 +240,18 @@ record:
 recordList:
   addRecord: Add
   cancelSelection: Cancel
+  inlineEdit:
+    enabled: Inline value editing enabled
+    button:
+      title: Edit value
+    modal:
+      title: Update record values
   bulkRecord:
     title: Update selected records
-    field: Field
-    value: Value
-    type: Type
-    add: Add
-    searchFields: Select field to update
+    field:
+      add: Add a field to update
+      addAnother: Add another field to update
+      remove: Remove field
     reset: Reset
   drillDown:
     filter:

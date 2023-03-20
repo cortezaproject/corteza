@@ -360,9 +360,10 @@
                   style="min-width: 150px;"
                   @click.stop
                 />
+
                 <div
                   v-else-if="field.moduleField.canReadRecordValue && !field.edit"
-                  class="mb-0"
+                  class="d-flex mb-0"
                   :class="{
                     'field-adjust-offset': inlineEditing,
                   }"
@@ -374,7 +375,24 @@
                     :module="module"
                     :namespace="namespace"
                   />
+                  <div
+                    v-if="options.inlineRecordEditEnabled && field.canEdit"
+                    class="inline-actions ml-auto"
+                  >
+                    <b-button
+                      :title="$t('recordList.inlineEdit.button.title')"
+                      variant="outline-light"
+                      size="sm"
+                      class="text-secondary border-0 ml-1"
+                      @click.stop="editInlineField(item.r, field.key)"
+                    >
+                      <font-awesome-icon
+                        :icon="['fas', 'pen']"
+                      />
+                    </b-button>
+                  </div>
                 </div>
+
                 <i
                   v-else
                   class="text-primary"
@@ -384,7 +402,7 @@
               </b-td>
 
               <b-td
-                class="actions px-1"
+                class="actions px-2"
                 @click.stop
               >
                 <b-dropdown
@@ -543,6 +561,19 @@
           </div>
         </b-table-simple>
       </div>
+
+      <!-- Modal for inline editing -->
+      <bulk-edit-modal
+        v-if="options.inlineRecordEditEnabled"
+        :namespace="namespace"
+        :module="recordListModule"
+        :selected-records="inlineEdit.recordIDs"
+        :selected-fields="inlineEdit.fields"
+        :initial-record="inlineEdit.record"
+        :modal-title="$t('recordList.inlineEdit.modal.title')"
+        open-on-select
+        @save="onInlineEdit()"
+      />
     </template>
 
     <template
@@ -756,6 +787,11 @@ export default {
       },
 
       selected: [],
+      inlineEdit: {
+        fields: [],
+        recordIDs: [],
+        initialRecord: {},
+      },
 
       sortBy: undefined,
       sortDirecton: undefined,
@@ -882,6 +918,7 @@ export default {
         filterable: mf.isFilterable,
         tdClass: 'record-value',
         editable: !!editable.find(f => mf.name === f),
+        canEdit: this.isFieldEditable(mf),
         required: this.inlineEditing && mf.isRequired,
       }))
 
@@ -1597,6 +1634,39 @@ export default {
     onBulkUpdate () {
       this.refresh(true)
     },
+
+    editInlineField (record, field) {
+      this.inlineEdit.fields = [field]
+      this.inlineEdit.record = record.clone()
+      this.inlineEdit.recordIDs.push(record.recordID)
+    },
+
+    onInlineEdit () {
+      this.refresh(true)
+      this.inlineEditRecords = []
+    },
+
+    isFieldEditable (field) {
+      if (!field) return false
+
+      const { canCreateOwnedRecord } = this.recordListModule || {}
+      const { createdAt, canManageOwnerOnRecord } = this.record || {}
+      const { name, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
+
+      if (!canUpdateRecordValue) return false
+
+      if (isSystem) {
+        // Make ownedBy field editable if correct permissions
+        if (name === 'ownedBy') {
+          // If not created we check module permissions, otherwise the canManageOwnerOnRecord
+          return createdAt ? canManageOwnerOnRecord : canCreateOwnedRecord
+        }
+
+        return false
+      }
+
+      return !expressions.value
+    },
   },
 }
 </script>
@@ -1624,12 +1694,28 @@ th .required::after {
 tr:hover td.actions {
   opacity: 1;
   background-color: $gray-200;
-  visibility: visible;
+}
+
+.inline-actions {
+  min-width: 30px;
+  margin-top: -2px;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+td:hover .inline-actions {
+  opacity: 1;
+  background-color: $gray-200;
+
+  button:hover {
+    color: $primary !important;
+  }
 }
 </style>
 
 <style lang="scss">
 .record-list-table .actions {
+  padding-top: 8px;
   position: sticky;
   right: 0;
   opacity: 0;
