@@ -151,11 +151,6 @@ func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter)
 			return err
 		}
 
-		set.Walk(func(p *types.PageLayout) error {
-			preparePageLayoutConfig(svc.pageLayoutSettings, p)
-			return nil
-		})
-
 		// i18n
 		tag := locale.GetAcceptLanguageFromContext(ctx)
 		set.Walk(func(p *types.PageLayout) error {
@@ -223,8 +218,6 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 		// if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
 		// 	return
 		// }
-
-		preparePageLayoutConfig(svc.pageLayoutSettings, new)
 
 		if err = label.Create(ctx, s, new); err != nil {
 			return
@@ -331,8 +324,6 @@ func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Nam
 		// 	return
 		// }
 
-		preparePageLayoutConfig(svc.pageLayoutSettings, res)
-
 		if changes&pageLayoutLabelsChanged > 0 {
 			if err = label.Update(ctx, s, res); err != nil {
 				return
@@ -367,8 +358,6 @@ func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup fun
 		} else if err != nil {
 			return err
 		}
-
-		preparePageLayoutConfig(svc.pageLayoutSettings, p)
 
 		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
@@ -539,24 +528,6 @@ func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, m
 	return pageLayoutChanged, nil
 }
 
-func preparePageLayoutConfig(ss *pageLayoutSettings, p *types.PageLayout) {
-	if p.ModuleID == 0 {
-		p.Config.Buttons = nil
-		return
-	}
-
-	p.Config.Buttons = &types.PageLayoutButtonConfig{}
-	if ss == nil {
-		return
-	}
-	p.Config.Buttons.New.Enabled = !ss.hideNew
-	p.Config.Buttons.Edit.Enabled = !ss.hideEdit
-	p.Config.Buttons.Submit.Enabled = !ss.hideSubmit
-	p.Config.Buttons.Delete.Enabled = !ss.hideDelete
-	p.Config.Buttons.Clone.Enabled = !ss.hideClone
-	p.Config.Buttons.Back.Enabled = !ss.hideBack
-}
-
 func (svc *pageLayout) UpdateConfig(ss *systemTypes.AppSettings) {
 	a := ss.Compose.UI.RecordToolbar
 
@@ -601,8 +572,6 @@ func loadPageLayout(ctx context.Context, s store.ComposePageLayouts, namespaceID
 		// Make sure pageLayout belongs to the right namespace
 		return nil, PageLayoutErrNotFound()
 	}
-
-	preparePageLayoutConfig(nil, res)
 
 	return
 }
