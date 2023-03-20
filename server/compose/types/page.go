@@ -353,6 +353,29 @@ func (p *Page) setValue(name string, pos uint, value any) (err error) {
 	return
 }
 
+func (p *Page) Prune(rt string) {
+	for i := len(p.Blocks) - 1; i >= 0; i-- {
+		b := p.Blocks[i]
+
+		switch b.Kind {
+		// Implement the rest when support is needed
+		case "Automation":
+			if rt != "corteza::automation:workflow" {
+				continue
+			}
+
+			p.removeBlock(i)
+		}
+	}
+}
+
+// Page block utilities
+func (p *Page) removeBlock(i int) {
+	// do the swap remove thing
+	p.Blocks[i] = p.Blocks[len(p.Blocks)-1]
+	p.Blocks = p.Blocks[:len(p.Blocks)-1]
+}
+
 func (b *PageBlock) setValue(name string, pos uint, value any) (err error) {
 	pp := strings.Split(name, ".")
 
