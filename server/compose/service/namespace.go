@@ -13,8 +13,8 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
@@ -22,6 +22,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/gabriel-vasile/mimetype"
 )
 
@@ -36,6 +37,7 @@ type (
 		eventbus eventDispatcher
 		store    store.Storer
 		locale   ResourceTranslationsManagerService
+		envoy    *envoyx.Service
 	}
 
 	namespaceImportSession struct {
@@ -48,7 +50,7 @@ type (
 		CreatedAt time.Time `json:"createdAt"`
 		UpdatedAt time.Time `json:"updatedAt"`
 
-		Resources resource.InterfaceSet `json:"-"`
+		Nodes envoyx.NodeSet `json:"-"`
 	}
 
 	namespaceAccessController interface {
@@ -70,9 +72,9 @@ type (
 
 		Create(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
 		Update(ctx context.Context, namespace *types.Namespace) (*types.Namespace, error)
-		Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
+		Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (envoyx.NodeSet, error)) (ns *types.Namespace, err error)
 		ImportInit(ctx context.Context, f multipart.File, size int64) (namespaceImportSession, error)
-		ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error)
+		ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace) (ns *types.Namespace, err error)
 		DeleteByID(ctx context.Context, namespaceID uint64) error
 	}
 
@@ -103,6 +105,7 @@ func Namespace() *namespace {
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		locale:    DefaultResourceTranslation,
+		envoy:     envoyx.Global(),
 	}
 }
 
@@ -269,7 +272,7 @@ func (svc namespace) Update(ctx context.Context, upd *types.Namespace) (c *types
 	return svc.updater(ctx, upd.ID, NamespaceActionUpdate, svc.handleUpdate(ctx, upd))
 }
 
-func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (resource.InterfaceSet, error), encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.Namespace, decoder func() (envoyx.NodeSet, error)) (ns *types.Namespace, err error) {
 	var (
 		aProps = &namespaceActionProps{namespace: dup}
 	)
@@ -308,7 +311,12 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 		}
 
 		aProps.setNamespace(dup)
-		_, err = svc.envoyRun(ctx, nn, targetNs, dup, encoder)
+		dup, err = svc.envoyRun(ctx, nn, targetNs, dup)
+		if err != nil {
+			return err
+		}
+
+		err = svc.reloadServices(ctx, dup)
 		if err != nil {
 			return err
 		}
@@ -334,6 +342,10 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 		err     error
 		ns      *types.Namespace
 		session namespaceImportSession
+		nodes   envoyx.NodeSet
+
+		esvc = envoyx.Global()
+		nn   envoyx.NodeSet
 	)
 
 	err = func() error {
@@ -363,26 +375,29 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 			return err
 		}
 
-		// decode with Envoy
-		yd := yaml.Decoder()
-		nn := make([]resource.Interface, 0, 10)
-
-		for _, f := range archive.File {
-			if f.FileInfo().IsDir() {
+		for _, zf := range archive.File {
+			if zf.FileInfo().IsDir() {
 				continue
 			}
 
-			a, err := f.Open()
+			f, err := zf.Open()
 			if err != nil {
 				return err
 			}
-			defer a.Close()
+			defer f.Close()
 
-			mm, err := yd.Decode(ctx, a, nil)
+			nn, _, err = esvc.Decode(ctx, envoyx.DecodeParams{
+				Type: envoyx.DecodeTypeIO,
+				Params: map[string]any{
+					"reader": f,
+					"mime":   "text/yaml",
+				},
+			})
 			if err != nil {
 				return err
 			}
-			nn = append(nn, mm...)
+
+			nodes = append(nodes, nn...)
 		}
 
 		// store a session for later
@@ -391,17 +406,15 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 			UserID:    auth.GetIdentityFromContext(ctx).Identity(),
 
 			CreatedAt: *now(),
-			Resources: nn,
+			Nodes:     nodes,
 		}
 
 		// find the ns node
-		for _, n := range nn {
-			if nsn, ok := n.(*resource.ComposeNamespace); ok {
-				ns = nsn.Res
-				break
+		for _, n := range nodes {
+			if n.ResourceType == types.NamespaceResourceType {
+				ns = n.Resource.(*types.Namespace)
 			}
 		}
-
 		if ns == nil {
 			return NamespaceErrImportMissingNamespace()
 		}
@@ -419,7 +432,7 @@ func (svc namespace) ImportInit(ctx context.Context, f multipart.File, size int6
 	return session, svc.recordAction(ctx, aProps, NamespaceActionImportInit, err)
 }
 
-func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
+func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types.Namespace) (ns *types.Namespace, err error) {
 	var (
 		aProps = &namespaceActionProps{namespace: dup}
 	)
@@ -460,7 +473,12 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 
 		aProps.setNamespace(dup)
 
-		newNS, err = svc.envoyRun(ctx, session.Resources, &types.Namespace{ID: session.NamespaceID, Slug: session.Slug, Name: session.Name}, dup, encoder)
+		newNS, err = svc.envoyRun(ctx, session.Nodes, &types.Namespace{ID: session.NamespaceID, Slug: session.Slug, Name: session.Name}, dup)
+		if err != nil {
+			return err
+		}
+
+		err = svc.reloadServices(ctx, newNS)
 		if err != nil {
 			return err
 		}
@@ -721,41 +739,98 @@ func (svc namespace) canImport(ctx context.Context) error {
 	return nil
 }
 
-func (svc namespace) envoyRun(ctx context.Context, resources resource.InterfaceSet, oldNS, newNS *types.Namespace, encoder func(resource.InterfaceSet) error) (ns *types.Namespace, err error) {
-	// Handle renames and references
-	oldNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(oldNS.Slug, oldNS.Name, strconv.FormatUint(oldNS.ID, 10)))
-	newNsRef := resource.MakeRef(types.NamespaceResourceType, resource.MakeIdentifiers(newNS.Slug, newNS.Name))
+func (svc namespace) envoyRun(ctx context.Context, nodes envoyx.NodeSet, oldNS, newNS *types.Namespace) (ns *types.Namespace, err error) {
+	// Get the NS node
+	oldRef := envoyx.Ref{
+		ResourceType: types.NamespaceResourceType,
+		Identifiers:  envoyx.MakeIdentifiers(oldNS.Slug, oldNS.ID),
+		Scope: envoyx.Scope{
+			ResourceType: types.NamespaceResourceType,
+			Identifiers:  envoyx.MakeIdentifiers(oldNS.Slug, oldNS.ID),
+		},
+	}
+	nsNode := envoyx.NodeForRef(oldRef, nodes...)
+	auxNs := nsNode.Resource.(*types.Namespace)
 
-	auxNs := resource.FindComposeNamespace(resources, oldNsRef.Identifiers)
+	// Handle renames and references
 	auxNs.ID = 0
 	auxNs.Name = newNS.Name
 	auxNs.Slug = newNS.Slug
 	newNS = auxNs
 	ns = newNS
 
-	// Correct internal references
-	// - namespace identifiers
-	resources.SearchForIdentifiers(oldNsRef.ResourceType, oldNsRef.Identifiers).Walk(func(r resource.Interface) error {
-		r.ReID(newNsRef.Identifiers)
-		return nil
+	// Change the identifiers and references
+	// - identifiers of the NS node
+	nsNode.Identifiers = envoyx.MakeIdentifiers(newNS.Slug)
+	nsNode.Scope.Identifiers = nsNode.Identifiers
+
+	// - all the child refs
+	for _, n := range nodes {
+		nr := make(map[string]envoyx.Ref)
+		for k, r := range n.References {
+			if r.ResourceType == types.NamespaceResourceType {
+				r.Identifiers = nsNode.Identifiers
+			}
+			if r.Scope.ResourceType == types.NamespaceResourceType {
+				r.Scope = nsNode.Scope
+			}
+			nr[k] = r
+		}
+		n.References = nr
+		if n.Scope.ResourceType == nsNode.Scope.ResourceType {
+			n.Scope = nsNode.Scope
+		}
+	}
+
+	// Get expected placeholder refs
+	// - roles
+	roles, _, err := svc.envoy.Decode(ctx, envoyx.DecodeParams{
+		Type: envoyx.DecodeTypeStore,
+		Params: map[string]any{
+			"storer": svc.store,
+			"dal":    dal.Service(),
+		},
+		Filter: map[string]envoyx.ResourceFilter{
+			systemTypes.RoleResourceType: {},
+		},
 	})
-	// - relations
-	resources.SearchForReferences(oldNsRef).Walk(func(r resource.Interface) error {
-		r.ReRef(resource.RefSet{oldNsRef}, resource.RefSet{newNsRef})
-		return nil
-	})
+	if err != nil {
+		return
+	}
+	for _, r := range roles {
+		r.Placeholder = true
+	}
+	nodes = append(nodes, roles...)
 
 	// run the import
-	err = encoder(resources)
+	gg, err := svc.envoy.Bake(ctx, envoyx.EncodeParams{
+		Type: envoyx.EncodeTypeStore,
+		Params: map[string]any{
+			"storer": svc.store,
+			"dal":    dal.Service(),
+		},
+	}, nil, nodes...)
 	if err != nil {
 		return
 	}
 
+	err = svc.envoy.Encode(ctx, envoyx.EncodeParams{
+		Type: envoyx.EncodeTypeStore,
+		Params: map[string]any{
+			"storer": svc.store,
+			"dal":    dal.Service(),
+		},
+	}, gg)
+
+	return
+}
+
+func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (err error) {
 	// Adjust name res. tr. since we're changing it
 	if err = updateTranslations(ctx, svc.ac, svc.locale, &locale.ResourceTranslation{
-		Resource: auxNs.ResourceTranslation(),
+		Resource: ns.ResourceTranslation(),
 		Key:      types.LocaleKeyNamespaceName.Path,
-		Msg:      locale.SanitizeMessage(auxNs.Name),
+		Msg:      locale.SanitizeMessage(ns.Name),
 	}); err != nil {
 		return
 	}

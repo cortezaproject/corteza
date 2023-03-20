@@ -17,6 +17,10 @@ func ResourceTranslationsForNodes(tt types.ResourceTranslationSet, nn ...*Node) 
 	dups := make(map[types.Lang]map[string]map[string]bool)
 
 	for _, n := range nn {
+		if n.Placeholder {
+			continue
+		}
+
 		c, ok := n.Resource.(localer)
 		if !ok {
 			continue

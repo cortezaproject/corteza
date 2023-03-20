@@ -19,6 +19,10 @@ func RBACRulesForNodes(rr rbac.RuleSet, nn ...*Node) (rules NodeSet, err error) 
 	dups := make(map[uint64]map[string]map[string]bool)
 
 	for _, n := range nn {
+		if n.Placeholder {
+			continue
+		}
+
 		c, ok := n.Resource.(rbacer)
 		if !ok {
 			continue
