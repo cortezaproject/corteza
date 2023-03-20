@@ -150,9 +150,16 @@ func (e StoreEncoder) prepareApplication(ctx context.Context, p envoyx.EncodePar
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Application, len(nn))
-	err = e.matchupApplications(ctx, s, existing, nn)
+	err = e.matchupApplications(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Applications")
 		return
@@ -298,7 +305,7 @@ func (e StoreEncoder) encodeApplication(ctx context.Context, p envoyx.EncodePara
 }
 
 // matchupApplications returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupApplications(ctx context.Context, s store.Storer, uu map[int]types.Application, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupApplications(ctx context.Context, s store.Storer, uu map[int]types.Application, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchApplications(ctx, s, types.ApplicationFilter{})
@@ -317,6 +324,11 @@ func (e StoreEncoder) matchupApplications(ctx context.Context, s store.Storer, u
 	var aux *types.Application
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -352,9 +364,16 @@ func (e StoreEncoder) prepareApigwRoute(ctx context.Context, p envoyx.EncodePara
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.ApigwRoute, len(nn))
-	err = e.matchupApigwRoutes(ctx, s, existing, nn)
+	err = e.matchupApigwRoutes(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing ApigwRoutes")
 		return
@@ -500,7 +519,7 @@ func (e StoreEncoder) encodeApigwRoute(ctx context.Context, p envoyx.EncodeParam
 }
 
 // matchupApigwRoutes returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupApigwRoutes(ctx context.Context, s store.Storer, uu map[int]types.ApigwRoute, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupApigwRoutes(ctx context.Context, s store.Storer, uu map[int]types.ApigwRoute, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchApigwRoutes(ctx, s, types.ApigwRouteFilter{})
@@ -519,6 +538,11 @@ func (e StoreEncoder) matchupApigwRoutes(ctx context.Context, s store.Storer, uu
 	var aux *types.ApigwRoute
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -554,9 +578,16 @@ func (e StoreEncoder) prepareApigwFilter(ctx context.Context, p envoyx.EncodePar
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.ApigwFilter, len(nn))
-	err = e.matchupApigwFilters(ctx, s, existing, nn)
+	err = e.matchupApigwFilters(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing ApigwFilters")
 		return
@@ -702,7 +733,7 @@ func (e StoreEncoder) encodeApigwFilter(ctx context.Context, p envoyx.EncodePara
 }
 
 // matchupApigwFilters returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupApigwFilters(ctx context.Context, s store.Storer, uu map[int]types.ApigwFilter, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupApigwFilters(ctx context.Context, s store.Storer, uu map[int]types.ApigwFilter, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchApigwFilters(ctx, s, types.ApigwFilterFilter{})
@@ -721,6 +752,11 @@ func (e StoreEncoder) matchupApigwFilters(ctx context.Context, s store.Storer, u
 	var aux *types.ApigwFilter
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -756,9 +792,16 @@ func (e StoreEncoder) prepareAuthClient(ctx context.Context, p envoyx.EncodePara
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.AuthClient, len(nn))
-	err = e.matchupAuthClients(ctx, s, existing, nn)
+	err = e.matchupAuthClients(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing AuthClients")
 		return
@@ -904,7 +947,7 @@ func (e StoreEncoder) encodeAuthClient(ctx context.Context, p envoyx.EncodeParam
 }
 
 // matchupAuthClients returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupAuthClients(ctx context.Context, s store.Storer, uu map[int]types.AuthClient, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupAuthClients(ctx context.Context, s store.Storer, uu map[int]types.AuthClient, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchAuthClients(ctx, s, types.AuthClientFilter{})
@@ -924,6 +967,11 @@ func (e StoreEncoder) matchupAuthClients(ctx context.Context, s store.Storer, uu
 	var aux *types.AuthClient
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -959,9 +1007,16 @@ func (e StoreEncoder) prepareQueue(ctx context.Context, p envoyx.EncodeParams, s
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Queue, len(nn))
-	err = e.matchupQueues(ctx, s, existing, nn)
+	err = e.matchupQueues(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Queues")
 		return
@@ -1107,7 +1162,7 @@ func (e StoreEncoder) encodeQueue(ctx context.Context, p envoyx.EncodeParams, s 
 }
 
 // matchupQueues returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupQueues(ctx context.Context, s store.Storer, uu map[int]types.Queue, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupQueues(ctx context.Context, s store.Storer, uu map[int]types.Queue, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchQueues(ctx, s, types.QueueFilter{})
@@ -1127,6 +1182,11 @@ func (e StoreEncoder) matchupQueues(ctx context.Context, s store.Storer, uu map[
 	var aux *types.Queue
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1162,9 +1222,16 @@ func (e StoreEncoder) prepareReport(ctx context.Context, p envoyx.EncodeParams, 
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Report, len(nn))
-	err = e.matchupReports(ctx, s, existing, nn)
+	err = e.matchupReports(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Reports")
 		return
@@ -1310,7 +1377,7 @@ func (e StoreEncoder) encodeReport(ctx context.Context, p envoyx.EncodeParams, s
 }
 
 // matchupReports returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupReports(ctx context.Context, s store.Storer, uu map[int]types.Report, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupReports(ctx context.Context, s store.Storer, uu map[int]types.Report, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchReports(ctx, s, types.ReportFilter{})
@@ -1330,6 +1397,11 @@ func (e StoreEncoder) matchupReports(ctx context.Context, s store.Storer, uu map
 	var aux *types.Report
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1365,9 +1437,16 @@ func (e StoreEncoder) prepareRole(ctx context.Context, p envoyx.EncodeParams, s 
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Role, len(nn))
-	err = e.matchupRoles(ctx, s, existing, nn)
+	err = e.matchupRoles(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Roles")
 		return
@@ -1513,7 +1592,7 @@ func (e StoreEncoder) encodeRole(ctx context.Context, p envoyx.EncodeParams, s s
 }
 
 // matchupRoles returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupRoles(ctx context.Context, s store.Storer, uu map[int]types.Role, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupRoles(ctx context.Context, s store.Storer, uu map[int]types.Role, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchRoles(ctx, s, types.RoleFilter{})
@@ -1533,6 +1612,11 @@ func (e StoreEncoder) matchupRoles(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.Role
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1568,9 +1652,16 @@ func (e StoreEncoder) prepareTemplate(ctx context.Context, p envoyx.EncodeParams
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Template, len(nn))
-	err = e.matchupTemplates(ctx, s, existing, nn)
+	err = e.matchupTemplates(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Templates")
 		return
@@ -1716,7 +1807,7 @@ func (e StoreEncoder) encodeTemplate(ctx context.Context, p envoyx.EncodeParams,
 }
 
 // matchupTemplates returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupTemplates(ctx context.Context, s store.Storer, uu map[int]types.Template, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupTemplates(ctx context.Context, s store.Storer, uu map[int]types.Template, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchTemplates(ctx, s, types.TemplateFilter{})
@@ -1736,6 +1827,11 @@ func (e StoreEncoder) matchupTemplates(ctx context.Context, s store.Storer, uu m
 	var aux *types.Template
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1771,9 +1867,16 @@ func (e StoreEncoder) prepareUser(ctx context.Context, p envoyx.EncodeParams, s 
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.User, len(nn))
-	err = e.matchupUsers(ctx, s, existing, nn)
+	err = e.matchupUsers(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Users")
 		return
@@ -1919,7 +2022,7 @@ func (e StoreEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, s s
 }
 
 // matchupUsers returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupUsers(ctx context.Context, s store.Storer, uu map[int]types.User, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupUsers(ctx context.Context, s store.Storer, uu map[int]types.User, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchUsers(ctx, s, types.UserFilter{})
@@ -1939,6 +2042,11 @@ func (e StoreEncoder) matchupUsers(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.User
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1974,9 +2082,16 @@ func (e StoreEncoder) prepareDalConnection(ctx context.Context, p envoyx.EncodeP
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.DalConnection, len(nn))
-	err = e.matchupDalConnections(ctx, s, existing, nn)
+	err = e.matchupDalConnections(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing DalConnections")
 		return
@@ -2122,7 +2237,7 @@ func (e StoreEncoder) encodeDalConnection(ctx context.Context, p envoyx.EncodePa
 }
 
 // matchupDalConnections returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupDalConnections(ctx context.Context, s store.Storer, uu map[int]types.DalConnection, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupDalConnections(ctx context.Context, s store.Storer, uu map[int]types.DalConnection, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchDalConnections(ctx, s, types.DalConnectionFilter{})
@@ -2142,6 +2257,11 @@ func (e StoreEncoder) matchupDalConnections(ctx context.Context, s store.Storer,
 	var aux *types.DalConnection
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -2177,9 +2297,16 @@ func (e StoreEncoder) prepareDalSensitivityLevel(ctx context.Context, p envoyx.E
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.DalSensitivityLevel, len(nn))
-	err = e.matchupDalSensitivityLevels(ctx, s, existing, nn)
+	err = e.matchupDalSensitivityLevels(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing DalSensitivityLevels")
 		return
@@ -2325,7 +2452,7 @@ func (e StoreEncoder) encodeDalSensitivityLevel(ctx context.Context, p envoyx.En
 }
 
 // matchupDalSensitivityLevels returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupDalSensitivityLevels(ctx context.Context, s store.Storer, uu map[int]types.DalSensitivityLevel, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupDalSensitivityLevels(ctx context.Context, s store.Storer, uu map[int]types.DalSensitivityLevel, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchDalSensitivityLevels(ctx, s, types.DalSensitivityLevelFilter{})
@@ -2345,6 +2472,11 @@ func (e StoreEncoder) matchupDalSensitivityLevels(ctx context.Context, s store.S
 	var aux *types.DalSensitivityLevel
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -2401,5 +2533,15 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	}
 
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
+	return
+}
+
+func (e StoreEncoder) getScopeNodes(ctx context.Context, s store.Storer, nn envoyx.NodeSet) (scopes envoyx.NodeSet, err error) {
+	// Get all requested scopes
+	scopes = make(envoyx.NodeSet, len(nn))
+
+	// @note skipping scope logic since it's currently only supported within
+	//       Compose resources.
+
 	return
 }

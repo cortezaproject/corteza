@@ -127,14 +127,14 @@ func Test_namespace_duplicate(t *testing.T) {
 		checkID(h, mod3.ID)
 
 		h.a.Len(mod1.Fields, 4)
-		h.a.Equal("Record", mod1.Fields[3].Kind)
-		h.a.Equal(mod2.ID, mod1.Fields[3].Options.UInt64("moduleID"))
+		h.a.Equal("Record", mod1.Fields.FindByName("f4").Kind)
+		h.a.Equal(mod2.ID, mod1.Fields.FindByName("f4").Options.UInt64("moduleID"))
 
 		h.a.Len(mod2.Fields, 4)
-		h.a.Equal("Record", mod2.Fields[1].Kind)
-		h.a.Equal(mod2.ID, mod2.Fields[1].Options.UInt64("moduleID"))
-		h.a.Equal("Record", mod2.Fields[3].Kind)
-		h.a.Equal(mod3.ID, mod2.Fields[3].Options.UInt64("moduleID"))
+		h.a.Equal("Record", mod2.Fields.FindByName("f_ref_self").Kind)
+		h.a.Equal(mod2.ID, mod2.Fields.FindByName("f_ref_self").Options.UInt64("moduleID"))
+		h.a.Equal("Record", mod2.Fields.FindByName("f2").Kind)
+		h.a.Equal(mod3.ID, mod2.Fields.FindByName("f2").Options.UInt64("moduleID"))
 
 		h.a.Len(mod3.Fields, 1)
 

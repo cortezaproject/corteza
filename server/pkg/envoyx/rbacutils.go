@@ -45,6 +45,12 @@ func RBACRulesForNodes(rr rbac.RuleSet, nn ...*Node) (rules NodeSet, err error) 
 			// @todo move over to that generated function
 			rulePath := splitResourcePath(r.Resource)
 
+			// Don't handle rules that are not a subset of the resource
+			// @todo this should be handled by the parent probably
+			if len(rulePath) > 0 && rulePath[0] == "*" || rulePath[0] == "" {
+				continue
+			}
+
 			if !isPathSubset(rulePath, resPath, true) {
 				// Mismatch; skip
 				continue
