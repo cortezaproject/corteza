@@ -72,10 +72,9 @@ func (a jwtGenerateArgs) GetSecret() (bool, string, io.Reader) {
 // Generate function Generate JWT
 //
 // expects implementation of generate function:
-//
-//	func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (results *jwtGenerateResults, err error) {
-//	   return
-//	}
+// func (h jwtHandler) generate(ctx context.Context, args *jwtGenerateArgs) (results *jwtGenerateResults, err error) {
+//    return
+// }
 func (h jwtHandler) Generate() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "jwtGenerate",

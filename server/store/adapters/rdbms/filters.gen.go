@@ -706,16 +706,8 @@ func ComposePageLayoutFilter(d drivers.Dialect, f composeType.PageLayoutFilter) 
 		ee = append(ee, goqu.C("rel_namespace").Eq(f.NamespaceID))
 	}
 
-	if f.ModuleID > 0 {
-		ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
-	}
-
 	if f.PageID > 0 {
 		ee = append(ee, goqu.C("page_id").Eq(f.PageID))
-	}
-
-	if f.ModuleID > 0 {
-		ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
 	}
 
 	if len(f.LabeledIDs) > 0 {

@@ -55,6 +55,7 @@ var (
 // setModule updates moduleActionProps's module
 //
 // This function is auto-generated.
+//
 func (p *moduleActionProps) setModule(module *types.Module) *moduleActionProps {
 	p.module = module
 	return p
@@ -63,6 +64,7 @@ func (p *moduleActionProps) setModule(module *types.Module) *moduleActionProps {
 // setChanged updates moduleActionProps's changed
 //
 // This function is auto-generated.
+//
 func (p *moduleActionProps) setChanged(changed *types.Module) *moduleActionProps {
 	p.changed = changed
 	return p
@@ -71,6 +73,7 @@ func (p *moduleActionProps) setChanged(changed *types.Module) *moduleActionProps
 // setFilter updates moduleActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *moduleActionProps) setFilter(filter *types.ModuleFilter) *moduleActionProps {
 	p.filter = filter
 	return p
@@ -79,6 +82,7 @@ func (p *moduleActionProps) setFilter(filter *types.ModuleFilter) *moduleActionP
 // setNamespace updates moduleActionProps's namespace
 //
 // This function is auto-generated.
+//
 func (p *moduleActionProps) setNamespace(namespace *types.Namespace) *moduleActionProps {
 	p.namespace = namespace
 	return p
@@ -87,6 +91,7 @@ func (p *moduleActionProps) setNamespace(namespace *types.Namespace) *moduleActi
 // Serialize converts moduleActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p moduleActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -127,6 +132,7 @@ func (p moduleActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p moduleActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -237,6 +243,7 @@ func (p moduleActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *moduleAction) String() string {
 	var props = &moduleActionProps{}
 
@@ -264,6 +271,7 @@ func (e *moduleAction) ToAction() *actionlog.Action {
 // ModuleActionSearch returns "compose:module.search" action
 //
 // This function is auto-generated.
+//
 func ModuleActionSearch(props ...*moduleActionProps) *moduleAction {
 	a := &moduleAction{
 		timestamp: time.Now(),
@@ -283,6 +291,7 @@ func ModuleActionSearch(props ...*moduleActionProps) *moduleAction {
 // ModuleActionLookup returns "compose:module.lookup" action
 //
 // This function is auto-generated.
+//
 func ModuleActionLookup(props ...*moduleActionProps) *moduleAction {
 	a := &moduleAction{
 		timestamp: time.Now(),
@@ -302,6 +311,7 @@ func ModuleActionLookup(props ...*moduleActionProps) *moduleAction {
 // ModuleActionCreate returns "compose:module.create" action
 //
 // This function is auto-generated.
+//
 func ModuleActionCreate(props ...*moduleActionProps) *moduleAction {
 	a := &moduleAction{
 		timestamp: time.Now(),
@@ -321,6 +331,7 @@ func ModuleActionCreate(props ...*moduleActionProps) *moduleAction {
 // ModuleActionUpdate returns "compose:module.update" action
 //
 // This function is auto-generated.
+//
 func ModuleActionUpdate(props ...*moduleActionProps) *moduleAction {
 	a := &moduleAction{
 		timestamp: time.Now(),
@@ -340,6 +351,7 @@ func ModuleActionUpdate(props ...*moduleActionProps) *moduleAction {
 // ModuleActionDelete returns "compose:module.delete" action
 //
 // This function is auto-generated.
+//
 func ModuleActionDelete(props ...*moduleActionProps) *moduleAction {
 	a := &moduleAction{
 		timestamp: time.Now(),
@@ -359,6 +371,7 @@ func ModuleActionDelete(props ...*moduleActionProps) *moduleAction {
 // ModuleActionUndelete returns "compose:module.undelete" action
 //
 // This function is auto-generated.
+//
 func ModuleActionUndelete(props ...*moduleActionProps) *moduleAction {
 	a := &moduleAction{
 		timestamp: time.Now(),
@@ -381,7 +394,9 @@ func ModuleActionUndelete(props ...*moduleActionProps) *moduleAction {
 
 // ModuleErrGeneric returns "compose:module.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrGeneric(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -415,7 +430,9 @@ func ModuleErrGeneric(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotFound returns "compose:module.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotFound(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -447,7 +464,9 @@ func ModuleErrNotFound(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNamespaceNotFound returns "compose:module.namespaceNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNamespaceNotFound(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -479,7 +498,9 @@ func ModuleErrNamespaceNotFound(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrInvalidID returns "compose:module.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrInvalidID(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -511,7 +532,9 @@ func ModuleErrInvalidID(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrInvalidHandle returns "compose:module.invalidHandle" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrInvalidHandle(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -543,7 +566,9 @@ func ModuleErrInvalidHandle(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrHandleNotUnique returns "compose:module.handleNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrHandleNotUnique(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -577,7 +602,9 @@ func ModuleErrHandleNotUnique(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNameNotUnique returns "compose:module.nameNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNameNotUnique(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -611,7 +638,9 @@ func ModuleErrNameNotUnique(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrFieldNameReserved returns "compose:module.fieldNameReserved" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrFieldNameReserved(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -643,7 +672,9 @@ func ModuleErrFieldNameReserved(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrStaleData returns "compose:module.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrStaleData(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -675,7 +706,9 @@ func ModuleErrStaleData(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrInvalidNamespaceID returns "compose:module.invalidNamespaceID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrInvalidNamespaceID(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -707,7 +740,9 @@ func ModuleErrInvalidNamespaceID(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToRead returns "compose:module.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToRead(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -741,7 +776,9 @@ func ModuleErrNotAllowedToRead(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToSearch returns "compose:module.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToSearch(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -775,7 +812,9 @@ func ModuleErrNotAllowedToSearch(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToReadNamespace returns "compose:module.notAllowedToReadNamespace" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToReadNamespace(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -809,7 +848,9 @@ func ModuleErrNotAllowedToReadNamespace(mm ...*moduleActionProps) *errors.Error 
 
 // ModuleErrNotAllowedToListModules returns "compose:module.notAllowedToListModules" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToListModules(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -843,7 +884,9 @@ func ModuleErrNotAllowedToListModules(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToCreate returns "compose:module.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToCreate(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -877,7 +920,9 @@ func ModuleErrNotAllowedToCreate(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToUpdate returns "compose:module.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToUpdate(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -911,7 +956,9 @@ func ModuleErrNotAllowedToUpdate(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToDelete returns "compose:module.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToDelete(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -945,7 +992,9 @@ func ModuleErrNotAllowedToDelete(mm ...*moduleActionProps) *errors.Error {
 
 // ModuleErrNotAllowedToUndelete returns "compose:module.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleErrNotAllowedToUndelete(mm ...*moduleActionProps) *errors.Error {
 	var p = &moduleActionProps{}
 	if len(mm) > 0 {
@@ -985,6 +1034,7 @@ func ModuleErrNotAllowedToUndelete(mm ...*moduleActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc module) recordAction(ctx context.Context, props *moduleActionProps, actionFn func(...*moduleActionProps) *moduleAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

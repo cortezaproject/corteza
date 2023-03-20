@@ -15,10 +15,10 @@ import:
 props:
   - name: pageLayout
     type: "*types.PageLayout"
-    fields: [ handle, ID, namespaceID, moduleID ]
+    fields: [ handle, ID, namespaceID ]
   - name: changed
     type: "*types.PageLayout"
-    fields: [ handle, ID, namespaceID, moduleID, blocks ]
+    fields: [ handle, ID, namespaceID, blocks ]
   - name: filter
     type: "*types.PageLayoutFilter"
     fields: [ query, handle, primary, namespaceID, sort, limit ]
@@ -40,6 +40,9 @@ actions:
 
   - action: update
     log: "updated {{pageLayout}}"
+
+  - action: reorder
+    log: "reordered {{pageLayout}}"
 
   - action: delete
     log: "deleted {{pageLayout}}"

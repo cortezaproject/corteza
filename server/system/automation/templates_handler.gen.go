@@ -59,10 +59,9 @@ func (a templatesLookupArgs) GetLookup() (bool, uint64, string, *types.Template)
 // Lookup function Template lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h templatesHandler) lookup(ctx context.Context, args *templatesLookupArgs) (results *templatesLookupResults, err error) {
-//	   return
-//	}
+// func (h templatesHandler) lookup(ctx context.Context, args *templatesLookupArgs) (results *templatesLookupResults, err error) {
+//    return
+// }
 func (h templatesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesLookup",
@@ -179,10 +178,9 @@ type (
 // Search function Templates search
 //
 // expects implementation of search function:
-//
-//	func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs) (results *templatesSearchResults, err error) {
-//	   return
-//	}
+// func (h templatesHandler) search(ctx context.Context, args *templatesSearchArgs) (results *templatesSearchResults, err error) {
+//    return
+// }
 func (h templatesHandler) Search() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesSearch",
@@ -356,10 +354,9 @@ type (
 // Each function Templates
 //
 // expects implementation of each function:
-//
-//	func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (results *templatesEachResults, err error) {
-//	   return
-//	}
+// func (h templatesHandler) each(ctx context.Context, args *templatesEachArgs) (results *templatesEachResults, err error) {
+//    return
+// }
 func (h templatesHandler) Each() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesEach",
@@ -464,10 +461,9 @@ type (
 // Create function Template create
 //
 // expects implementation of create function:
-//
-//	func (h templatesHandler) create(ctx context.Context, args *templatesCreateArgs) (results *templatesCreateResults, err error) {
-//	   return
-//	}
+// func (h templatesHandler) create(ctx context.Context, args *templatesCreateArgs) (results *templatesCreateResults, err error) {
+//    return
+// }
 func (h templatesHandler) Create() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesCreate",
@@ -542,10 +538,9 @@ type (
 // Update function Template update
 //
 // expects implementation of update function:
-//
-//	func (h templatesHandler) update(ctx context.Context, args *templatesUpdateArgs) (results *templatesUpdateResults, err error) {
-//	   return
-//	}
+// func (h templatesHandler) update(ctx context.Context, args *templatesUpdateArgs) (results *templatesUpdateResults, err error) {
+//    return
+// }
 func (h templatesHandler) Update() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesUpdate",
@@ -623,10 +618,9 @@ func (a templatesDeleteArgs) GetLookup() (bool, uint64, string, *types.Template)
 // Delete function Template delete
 //
 // expects implementation of delete function:
-//
-//	func (h templatesHandler) delete(ctx context.Context, args *templatesDeleteArgs) (err error) {
-//	   return
-//	}
+// func (h templatesHandler) delete(ctx context.Context, args *templatesDeleteArgs) (err error) {
+//    return
+// }
 func (h templatesHandler) Delete() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesDelete",
@@ -689,10 +683,9 @@ func (a templatesRecoverArgs) GetLookup() (bool, uint64, string, *types.Template
 // Recover function Template recover
 //
 // expects implementation of recover function:
-//
-//	func (h templatesHandler) recover(ctx context.Context, args *templatesRecoverArgs) (err error) {
-//	   return
-//	}
+// func (h templatesHandler) recover(ctx context.Context, args *templatesRecoverArgs) (err error) {
+//    return
+// }
 func (h templatesHandler) Recover() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesRecover",
@@ -771,10 +764,9 @@ func (a templatesRenderArgs) GetLookup() (bool, uint64, string, *types.Template)
 // Render function Template render
 //
 // expects implementation of render function:
-//
-//	func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs) (results *templatesRenderResults, err error) {
-//	   return
-//	}
+// func (h templatesHandler) render(ctx context.Context, args *templatesRenderArgs) (results *templatesRenderResults, err error) {
+//    return
+// }
 func (h templatesHandler) Render() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "templatesRender",

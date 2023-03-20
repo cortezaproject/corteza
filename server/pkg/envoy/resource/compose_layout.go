@@ -133,10 +133,6 @@ func UnpackComposePageLayout(p *types.PageLayout) (*types.PageLayout, *Ref, *Ref
 	var modRef *Ref
 	var parentRef *Ref
 
-	if p.ModuleID != 0 {
-		modRef = MakeModuleRef(p.ModuleID, "", "")
-	}
-
 	return p, modRef, parentRef
 }
 

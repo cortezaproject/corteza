@@ -55,6 +55,7 @@ var (
 // setQueue updates queueActionProps's queue
 //
 // This function is auto-generated.
+//
 func (p *queueActionProps) setQueue(queue *types.Queue) *queueActionProps {
 	p.queue = queue
 	return p
@@ -63,6 +64,7 @@ func (p *queueActionProps) setQueue(queue *types.Queue) *queueActionProps {
 // setNew updates queueActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *queueActionProps) setNew(new *types.Queue) *queueActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *queueActionProps) setNew(new *types.Queue) *queueActionProps {
 // setUpdate updates queueActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *queueActionProps) setUpdate(update *types.Queue) *queueActionProps {
 	p.update = update
 	return p
@@ -79,6 +82,7 @@ func (p *queueActionProps) setUpdate(update *types.Queue) *queueActionProps {
 // setSearch updates queueActionProps's search
 //
 // This function is auto-generated.
+//
 func (p *queueActionProps) setSearch(search *types.QueueFilter) *queueActionProps {
 	p.search = search
 	return p
@@ -87,6 +91,7 @@ func (p *queueActionProps) setSearch(search *types.QueueFilter) *queueActionProp
 // Serialize converts queueActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p queueActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -115,6 +120,7 @@ func (p queueActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p queueActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -200,6 +206,7 @@ func (p queueActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *queueAction) String() string {
 	var props = &queueActionProps{}
 
@@ -227,6 +234,7 @@ func (e *queueAction) ToAction() *actionlog.Action {
 // QueueActionSearch returns "system:queue.search" action
 //
 // This function is auto-generated.
+//
 func QueueActionSearch(props ...*queueActionProps) *queueAction {
 	a := &queueAction{
 		timestamp: time.Now(),
@@ -246,6 +254,7 @@ func QueueActionSearch(props ...*queueActionProps) *queueAction {
 // QueueActionLookup returns "system:queue.lookup" action
 //
 // This function is auto-generated.
+//
 func QueueActionLookup(props ...*queueActionProps) *queueAction {
 	a := &queueAction{
 		timestamp: time.Now(),
@@ -265,6 +274,7 @@ func QueueActionLookup(props ...*queueActionProps) *queueAction {
 // QueueActionCreate returns "system:queue.create" action
 //
 // This function is auto-generated.
+//
 func QueueActionCreate(props ...*queueActionProps) *queueAction {
 	a := &queueAction{
 		timestamp: time.Now(),
@@ -284,6 +294,7 @@ func QueueActionCreate(props ...*queueActionProps) *queueAction {
 // QueueActionUpdate returns "system:queue.update" action
 //
 // This function is auto-generated.
+//
 func QueueActionUpdate(props ...*queueActionProps) *queueAction {
 	a := &queueAction{
 		timestamp: time.Now(),
@@ -303,6 +314,7 @@ func QueueActionUpdate(props ...*queueActionProps) *queueAction {
 // QueueActionDelete returns "system:queue.delete" action
 //
 // This function is auto-generated.
+//
 func QueueActionDelete(props ...*queueActionProps) *queueAction {
 	a := &queueAction{
 		timestamp: time.Now(),
@@ -322,6 +334,7 @@ func QueueActionDelete(props ...*queueActionProps) *queueAction {
 // QueueActionUndelete returns "system:queue.undelete" action
 //
 // This function is auto-generated.
+//
 func QueueActionUndelete(props ...*queueActionProps) *queueAction {
 	a := &queueAction{
 		timestamp: time.Now(),
@@ -344,7 +357,9 @@ func QueueActionUndelete(props ...*queueActionProps) *queueAction {
 
 // QueueErrGeneric returns "system:queue.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrGeneric(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -378,7 +393,9 @@ func QueueErrGeneric(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotFound returns "system:queue.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotFound(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -410,7 +427,9 @@ func QueueErrNotFound(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrInvalidID returns "system:queue.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrInvalidID(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -442,7 +461,9 @@ func QueueErrInvalidID(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrInvalidConsumer returns "system:queue.invalidConsumer" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrInvalidConsumer(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -474,7 +495,9 @@ func QueueErrInvalidConsumer(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrAlreadyExists returns "system:queue.alreadyExists" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrAlreadyExists(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -506,7 +529,9 @@ func QueueErrAlreadyExists(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToCreate returns "system:queue.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToCreate(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -540,7 +565,9 @@ func QueueErrNotAllowedToCreate(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToRead returns "system:queue.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToRead(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -574,7 +601,9 @@ func QueueErrNotAllowedToRead(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToSearch returns "system:queue.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToSearch(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -608,7 +637,9 @@ func QueueErrNotAllowedToSearch(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToUpdate returns "system:queue.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToUpdate(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -642,7 +673,9 @@ func QueueErrNotAllowedToUpdate(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToDelete returns "system:queue.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToDelete(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -676,7 +709,9 @@ func QueueErrNotAllowedToDelete(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToUndelete returns "system:queue.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToUndelete(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -710,7 +745,9 @@ func QueueErrNotAllowedToUndelete(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToWriteTo returns "system:queue.notAllowedToWriteTo" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToWriteTo(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -744,7 +781,9 @@ func QueueErrNotAllowedToWriteTo(mm ...*queueActionProps) *errors.Error {
 
 // QueueErrNotAllowedToReadFrom returns "system:queue.notAllowedToReadFrom" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func QueueErrNotAllowedToReadFrom(mm ...*queueActionProps) *errors.Error {
 	var p = &queueActionProps{}
 	if len(mm) > 0 {
@@ -784,6 +823,7 @@ func QueueErrNotAllowedToReadFrom(mm ...*queueActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc queue) recordAction(ctx context.Context, props *queueActionProps, actionFn func(...*queueActionProps) *queueAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

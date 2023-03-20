@@ -55,6 +55,7 @@ var (
 // setApplication updates applicationActionProps's application
 //
 // This function is auto-generated.
+//
 func (p *applicationActionProps) setApplication(application *types.Application) *applicationActionProps {
 	p.application = application
 	return p
@@ -63,6 +64,7 @@ func (p *applicationActionProps) setApplication(application *types.Application) 
 // setNew updates applicationActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *applicationActionProps) setNew(new *types.Application) *applicationActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *applicationActionProps) setNew(new *types.Application) *applicationActi
 // setUpdate updates applicationActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *applicationActionProps) setUpdate(update *types.Application) *applicationActionProps {
 	p.update = update
 	return p
@@ -79,6 +82,7 @@ func (p *applicationActionProps) setUpdate(update *types.Application) *applicati
 // setFilter updates applicationActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *applicationActionProps) setFilter(filter *types.ApplicationFilter) *applicationActionProps {
 	p.filter = filter
 	return p
@@ -87,6 +91,7 @@ func (p *applicationActionProps) setFilter(filter *types.ApplicationFilter) *app
 // Serialize converts applicationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p applicationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -117,6 +122,7 @@ func (p applicationActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p applicationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -207,6 +213,7 @@ func (p applicationActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *applicationAction) String() string {
 	var props = &applicationActionProps{}
 
@@ -234,6 +241,7 @@ func (e *applicationAction) ToAction() *actionlog.Action {
 // ApplicationActionSearch returns "system:application.search" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionSearch(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -253,6 +261,7 @@ func ApplicationActionSearch(props ...*applicationActionProps) *applicationActio
 // ApplicationActionReorder returns "system:application.reorder" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionReorder(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -272,6 +281,7 @@ func ApplicationActionReorder(props ...*applicationActionProps) *applicationActi
 // ApplicationActionLookup returns "system:application.lookup" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionLookup(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -291,6 +301,7 @@ func ApplicationActionLookup(props ...*applicationActionProps) *applicationActio
 // ApplicationActionCreate returns "system:application.create" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionCreate(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -310,6 +321,7 @@ func ApplicationActionCreate(props ...*applicationActionProps) *applicationActio
 // ApplicationActionUpdate returns "system:application.update" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionUpdate(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -329,6 +341,7 @@ func ApplicationActionUpdate(props ...*applicationActionProps) *applicationActio
 // ApplicationActionDelete returns "system:application.delete" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionDelete(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -348,6 +361,7 @@ func ApplicationActionDelete(props ...*applicationActionProps) *applicationActio
 // ApplicationActionUndelete returns "system:application.undelete" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionUndelete(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -367,6 +381,7 @@ func ApplicationActionUndelete(props ...*applicationActionProps) *applicationAct
 // ApplicationActionFlagManage returns "system:application.flagManage" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionFlagManage(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -386,6 +401,7 @@ func ApplicationActionFlagManage(props ...*applicationActionProps) *applicationA
 // ApplicationActionFlagManageGlobal returns "system:application.flagManageGlobal" action
 //
 // This function is auto-generated.
+//
 func ApplicationActionFlagManageGlobal(props ...*applicationActionProps) *applicationAction {
 	a := &applicationAction{
 		timestamp: time.Now(),
@@ -408,7 +424,9 @@ func ApplicationActionFlagManageGlobal(props ...*applicationActionProps) *applic
 
 // ApplicationErrGeneric returns "system:application.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrGeneric(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -442,7 +460,9 @@ func ApplicationErrGeneric(mm ...*applicationActionProps) *errors.Error {
 
 // ApplicationErrNotFound returns "system:application.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotFound(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -474,7 +494,9 @@ func ApplicationErrNotFound(mm ...*applicationActionProps) *errors.Error {
 
 // ApplicationErrInvalidID returns "system:application.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrInvalidID(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -506,7 +528,9 @@ func ApplicationErrInvalidID(mm ...*applicationActionProps) *errors.Error {
 
 // ApplicationErrNotAllowedToRead returns "system:application.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToRead(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -540,7 +564,9 @@ func ApplicationErrNotAllowedToRead(mm ...*applicationActionProps) *errors.Error
 
 // ApplicationErrNotAllowedToSearch returns "system:application.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToSearch(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -574,7 +600,9 @@ func ApplicationErrNotAllowedToSearch(mm ...*applicationActionProps) *errors.Err
 
 // ApplicationErrNotAllowedToCreate returns "system:application.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToCreate(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -608,7 +636,9 @@ func ApplicationErrNotAllowedToCreate(mm ...*applicationActionProps) *errors.Err
 
 // ApplicationErrNotAllowedToUpdate returns "system:application.notAllowedToUpdate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToUpdate(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -642,7 +672,9 @@ func ApplicationErrNotAllowedToUpdate(mm ...*applicationActionProps) *errors.Err
 
 // ApplicationErrNotAllowedToDelete returns "system:application.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToDelete(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -676,7 +708,9 @@ func ApplicationErrNotAllowedToDelete(mm ...*applicationActionProps) *errors.Err
 
 // ApplicationErrNotAllowedToUndelete returns "system:application.notAllowedToUndelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToUndelete(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -710,7 +744,9 @@ func ApplicationErrNotAllowedToUndelete(mm ...*applicationActionProps) *errors.E
 
 // ApplicationErrNotAllowedToManageFlag returns "system:application.notAllowedToManageFlag" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToManageFlag(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -744,7 +780,9 @@ func ApplicationErrNotAllowedToManageFlag(mm ...*applicationActionProps) *errors
 
 // ApplicationErrNotAllowedToManageFlagGlobal returns "system:application.notAllowedToManageFlagGlobal" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ApplicationErrNotAllowedToManageFlagGlobal(mm ...*applicationActionProps) *errors.Error {
 	var p = &applicationActionProps{}
 	if len(mm) > 0 {
@@ -784,6 +822,7 @@ func ApplicationErrNotAllowedToManageFlagGlobal(mm ...*applicationActionProps) *
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc application) recordAction(ctx context.Context, props *applicationActionProps, actionFn func(...*applicationActionProps) *applicationAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

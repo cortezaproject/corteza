@@ -24,6 +24,7 @@ type (
 		Create(context.Context, *request.PageLayoutCreate) (interface{}, error)
 		Read(context.Context, *request.PageLayoutRead) (interface{}, error)
 		Update(context.Context, *request.PageLayoutUpdate) (interface{}, error)
+		Reorder(context.Context, *request.PageLayoutReorder) (interface{}, error)
 		Delete(context.Context, *request.PageLayoutDelete) (interface{}, error)
 		Undelete(context.Context, *request.PageLayoutUndelete) (interface{}, error)
 		ListTranslations(context.Context, *request.PageLayoutListTranslations) (interface{}, error)
@@ -37,6 +38,7 @@ type (
 		Create             func(http.ResponseWriter, *http.Request)
 		Read               func(http.ResponseWriter, *http.Request)
 		Update             func(http.ResponseWriter, *http.Request)
+		Reorder            func(http.ResponseWriter, *http.Request)
 		Delete             func(http.ResponseWriter, *http.Request)
 		Undelete           func(http.ResponseWriter, *http.Request)
 		ListTranslations   func(http.ResponseWriter, *http.Request)
@@ -126,6 +128,22 @@ func NewPageLayout(h PageLayoutAPI) *PageLayout {
 
 			api.Send(w, r, value)
 		},
+		Reorder: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewPageLayoutReorder()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Reorder(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		Delete: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewPageLayoutDelete()
@@ -201,6 +219,7 @@ func (h PageLayout) MountRoutes(r chi.Router, middlewares ...func(http.Handler) 
 		r.Post("/namespace/{namespaceID}/page/{pageID}/layout/", h.Create)
 		r.Get("/namespace/{namespaceID}/page/{pageID}/layout/{pageLayoutID}", h.Read)
 		r.Post("/namespace/{namespaceID}/page/{pageID}/layout/{pageLayoutID}", h.Update)
+		r.Post("/namespace/{namespaceID}/page/{pageID}/layout/reorder", h.Reorder)
 		r.Delete("/namespace/{namespaceID}/page/{pageID}/layout/{pageLayoutID}", h.Delete)
 		r.Post("/namespace/{namespaceID}/page/{pageID}/layout/{pageLayoutID}/undelete", h.Undelete)
 		r.Get("/namespace/{namespaceID}/page/{pageID}/layout/{pageLayoutID}/translation", h.ListTranslations)

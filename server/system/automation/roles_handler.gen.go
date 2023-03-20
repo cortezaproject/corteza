@@ -64,10 +64,9 @@ func (a rolesLookupArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // Lookup function Role lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h rolesHandler) lookup(ctx context.Context, args *rolesLookupArgs) (results *rolesLookupResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) lookup(ctx context.Context, args *rolesLookupArgs) (results *rolesLookupResults, err error) {
+//    return
+// }
 func (h rolesHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesLookup",
@@ -164,10 +163,9 @@ func (a rolesSearchMembersArgs) GetLookup() (bool, uint64, string, *types.Role) 
 // SearchMembers function Role members search
 //
 // expects implementation of searchMembers function:
-//
-//	func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMembersArgs) (results *rolesSearchMembersResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMembersArgs) (results *rolesSearchMembersResults, err error) {
+//    return
+// }
 func (h rolesHandler) SearchMembers() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesSearchMembers",
@@ -290,10 +288,9 @@ func (a rolesEachMemberArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // EachMember function Iterate over role members
 //
 // expects implementation of eachMember function:
-//
-//	func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs) (results *rolesEachMemberResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs) (results *rolesEachMemberResults, err error) {
+//    return
+// }
 func (h rolesHandler) EachMember() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesEachMember",
@@ -380,10 +377,9 @@ func (a rolesAddMemberArgs) GetUser() (bool, uint64, string, string, *types.User
 // AddMember function Role membership add
 //
 // expects implementation of addMember function:
-//
-//	func (h rolesHandler) addMember(ctx context.Context, args *rolesAddMemberArgs) (err error) {
-//	   return
-//	}
+// func (h rolesHandler) addMember(ctx context.Context, args *rolesAddMemberArgs) (err error) {
+//    return
+// }
 func (h rolesHandler) AddMember() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesAddMember",
@@ -477,10 +473,9 @@ func (a rolesRemoveMemberArgs) GetUser() (bool, uint64, string, string, *types.U
 // RemoveMember function Role membership remove
 //
 // expects implementation of removeMember function:
-//
-//	func (h rolesHandler) removeMember(ctx context.Context, args *rolesRemoveMemberArgs) (err error) {
-//	   return
-//	}
+// func (h rolesHandler) removeMember(ctx context.Context, args *rolesRemoveMemberArgs) (err error) {
+//    return
+// }
 func (h rolesHandler) RemoveMember() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesRemoveMember",
@@ -594,10 +589,9 @@ type (
 // Search function Roles search
 //
 // expects implementation of search function:
-//
-//	func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (results *rolesSearchResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) search(ctx context.Context, args *rolesSearchArgs) (results *rolesSearchResults, err error) {
+//    return
+// }
 func (h rolesHandler) Search() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesSearch",
@@ -787,10 +781,9 @@ type (
 // Each function Roles
 //
 // expects implementation of each function:
-//
-//	func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (results *rolesEachResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) each(ctx context.Context, args *rolesEachArgs) (results *rolesEachResults, err error) {
+//    return
+// }
 func (h rolesHandler) Each() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesEach",
@@ -905,10 +898,9 @@ type (
 // Create function Role creator
 //
 // expects implementation of create function:
-//
-//	func (h rolesHandler) create(ctx context.Context, args *rolesCreateArgs) (results *rolesCreateResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) create(ctx context.Context, args *rolesCreateArgs) (results *rolesCreateResults, err error) {
+//    return
+// }
 func (h rolesHandler) Create() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesCreate",
@@ -983,10 +975,9 @@ type (
 // Update function Role update
 //
 // expects implementation of update function:
-//
-//	func (h rolesHandler) update(ctx context.Context, args *rolesUpdateArgs) (results *rolesUpdateResults, err error) {
-//	   return
-//	}
+// func (h rolesHandler) update(ctx context.Context, args *rolesUpdateArgs) (results *rolesUpdateResults, err error) {
+//    return
+// }
 func (h rolesHandler) Update() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesUpdate",
@@ -1064,10 +1055,9 @@ func (a rolesDeleteArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // Delete function Role delete
 //
 // expects implementation of delete function:
-//
-//	func (h rolesHandler) delete(ctx context.Context, args *rolesDeleteArgs) (err error) {
-//	   return
-//	}
+// func (h rolesHandler) delete(ctx context.Context, args *rolesDeleteArgs) (err error) {
+//    return
+// }
 func (h rolesHandler) Delete() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesDelete",
@@ -1130,10 +1120,9 @@ func (a rolesRecoverArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // Recover function Role recover
 //
 // expects implementation of recover function:
-//
-//	func (h rolesHandler) recover(ctx context.Context, args *rolesRecoverArgs) (err error) {
-//	   return
-//	}
+// func (h rolesHandler) recover(ctx context.Context, args *rolesRecoverArgs) (err error) {
+//    return
+// }
 func (h rolesHandler) Recover() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesRecover",
@@ -1196,10 +1185,9 @@ func (a rolesArchiveArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // Archive function Role archive
 //
 // expects implementation of archive function:
-//
-//	func (h rolesHandler) archive(ctx context.Context, args *rolesArchiveArgs) (err error) {
-//	   return
-//	}
+// func (h rolesHandler) archive(ctx context.Context, args *rolesArchiveArgs) (err error) {
+//    return
+// }
 func (h rolesHandler) Archive() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesArchive",
@@ -1262,10 +1250,9 @@ func (a rolesUnarchiveArgs) GetLookup() (bool, uint64, string, *types.Role) {
 // Unarchive function Role unarchive
 //
 // expects implementation of unarchive function:
-//
-//	func (h rolesHandler) unarchive(ctx context.Context, args *rolesUnarchiveArgs) (err error) {
-//	   return
-//	}
+// func (h rolesHandler) unarchive(ctx context.Context, args *rolesUnarchiveArgs) (err error) {
+//    return
+// }
 func (h rolesHandler) Unarchive() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "rolesUnarchive",

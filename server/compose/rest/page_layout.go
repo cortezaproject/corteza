@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/payload"
 )
 
 type (
@@ -33,6 +34,7 @@ type (
 			Find(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error)
 
 			Create(ctx context.Context, pageLayout *types.PageLayout) (*types.PageLayout, error)
+			Reorder(ctx context.Context, namespaceID uint64, pageID uint64, pageLayoutIDs []uint64) error
 			Update(ctx context.Context, pageLayout *types.PageLayout) (*types.PageLayout, error)
 			DeleteByID(ctx context.Context, namespaceID, pageID, pageLayoutID uint64) error
 			UndeleteByID(ctx context.Context, namespaceID, pageID, pageLayoutID uint64) error
@@ -61,7 +63,6 @@ func (ctrl *PageLayout) List(ctx context.Context, r *request.PageLayoutList) (in
 		err error
 		f   = types.PageLayoutFilter{
 			NamespaceID: r.NamespaceID,
-			ModuleID:    r.ModuleID,
 			PageID:      r.PageID,
 			Labels:      r.Labels,
 
@@ -87,7 +88,6 @@ func (ctrl *PageLayout) ListNamespace(ctx context.Context, r *request.PageLayout
 		err error
 		f   = types.PageLayoutFilter{
 			NamespaceID: r.NamespaceID,
-			ModuleID:    r.ModuleID,
 			PageID:      r.PageID,
 			Labels:      r.Labels,
 
@@ -114,8 +114,8 @@ func (ctrl *PageLayout) Create(ctx context.Context, r *request.PageLayoutCreate)
 		layout = &types.PageLayout{
 			PageID:      r.PageID,
 			ParentID:    r.ParentID,
+			Weight:      r.Weight,
 			NamespaceID: r.NamespaceID,
-			ModuleID:    r.ModuleID,
 			Handle:      r.Handle,
 			Primary:     r.Primary,
 			Meta:        r.Meta,
@@ -155,15 +155,19 @@ func (ctrl *PageLayout) UpdateTranslations(ctx context.Context, r *request.PageL
 	// return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
+func (ctrl *PageLayout) Reorder(ctx context.Context, r *request.PageLayoutReorder) (interface{}, error) {
+	return api.OK(), ctrl.pageLayout.Reorder(ctx, r.NamespaceID, r.PageID, payload.ParseUint64s(r.PageIDs))
+}
+
 func (ctrl *PageLayout) Update(ctx context.Context, r *request.PageLayoutUpdate) (interface{}, error) {
 	var (
 		err error
 		mod = &types.PageLayout{
 			ID:          r.PageLayoutID,
 			PageID:      r.PageID,
+			Weight:      r.Weight,
 			ParentID:    r.ParentID,
 			NamespaceID: r.NamespaceID,
-			ModuleID:    r.ModuleID,
 			Handle:      r.Handle,
 			Primary:     r.Primary,
 			Meta:        r.Meta,

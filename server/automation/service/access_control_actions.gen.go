@@ -52,6 +52,7 @@ var (
 // setRule updates accessControlActionProps's rule
 //
 // This function is auto-generated.
+//
 func (p *accessControlActionProps) setRule(rule *rbac.Rule) *accessControlActionProps {
 	p.rule = rule
 	return p
@@ -60,6 +61,7 @@ func (p *accessControlActionProps) setRule(rule *rbac.Rule) *accessControlAction
 // Serialize converts accessControlActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p accessControlActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -78,6 +80,7 @@ func (p accessControlActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p accessControlActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -126,6 +129,7 @@ func (p accessControlActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *accessControlAction) String() string {
 	var props = &accessControlActionProps{}
 
@@ -153,6 +157,7 @@ func (e *accessControlAction) ToAction() *actionlog.Action {
 // AccessControlActionGrant returns "automation:access_control.grant" action
 //
 // This function is auto-generated.
+//
 func AccessControlActionGrant(props ...*accessControlActionProps) *accessControlAction {
 	a := &accessControlAction{
 		timestamp: time.Now(),
@@ -175,7 +180,9 @@ func AccessControlActionGrant(props ...*accessControlActionProps) *accessControl
 
 // AccessControlErrGeneric returns "automation:access_control.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AccessControlErrGeneric(mm ...*accessControlActionProps) *errors.Error {
 	var p = &accessControlActionProps{}
 	if len(mm) > 0 {
@@ -209,7 +216,9 @@ func AccessControlErrGeneric(mm ...*accessControlActionProps) *errors.Error {
 
 // AccessControlErrNotAllowedToSetPermissions returns "automation:access_control.notAllowedToSetPermissions" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AccessControlErrNotAllowedToSetPermissions(mm ...*accessControlActionProps) *errors.Error {
 	var p = &accessControlActionProps{}
 	if len(mm) > 0 {
@@ -247,6 +256,7 @@ func AccessControlErrNotAllowedToSetPermissions(mm ...*accessControlActionProps)
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc accessControl) recordAction(ctx context.Context, props *accessControlActionProps, actionFn func(...*accessControlActionProps) *accessControlAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

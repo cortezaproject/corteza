@@ -69,10 +69,9 @@ type (
 // Search function Action log search
 //
 // expects implementation of search function:
-//
-//	func (h actionlogHandler) search(ctx context.Context, args *actionlogSearchArgs) (results *actionlogSearchResults, err error) {
-//	   return
-//	}
+// func (h actionlogHandler) search(ctx context.Context, args *actionlogSearchArgs) (results *actionlogSearchResults, err error) {
+//    return
+// }
 func (h actionlogHandler) Search() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "actionlogSearch",
@@ -211,10 +210,9 @@ type (
 // Each function Action log
 //
 // expects implementation of each function:
-//
-//	func (h actionlogHandler) each(ctx context.Context, args *actionlogEachArgs) (results *actionlogEachResults, err error) {
-//	   return
-//	}
+// func (h actionlogHandler) each(ctx context.Context, args *actionlogEachArgs) (results *actionlogEachResults, err error) {
+//    return
+// }
 func (h actionlogHandler) Each() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "actionlogEach",
@@ -315,10 +313,9 @@ type (
 // Record function Record action into action log
 //
 // expects implementation of record function:
-//
-//	func (h actionlogHandler) record(ctx context.Context, args *actionlogRecordArgs) (err error) {
-//	   return
-//	}
+// func (h actionlogHandler) record(ctx context.Context, args *actionlogRecordArgs) (err error) {
+//    return
+// }
 func (h actionlogHandler) Record() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "actionlogRecord",

@@ -670,6 +670,10 @@ endpoints:
         name: parentID
         required: false
         title: ParentID
+      - type: int
+        name: weight
+        required: false
+        title: Weight
       - type: uint64
         name: moduleID
         required: false
@@ -737,6 +741,10 @@ endpoints:
         name: parentID
         required: false
         title: ParentID
+      - type: int
+        name: weight
+        required: false
+        title: Weight
       - type: uint64
         name: moduleID
         required: false
@@ -770,6 +778,21 @@ endpoints:
         name: ownedBy
         required: false
         title: OwnedBy
+  - name: reorder
+    method: POST
+    title: Reorder page layouts
+    path: "/page/{pageID}/layout/reorder"
+    parameters:
+      path:
+      - type: uint64
+        name: pageID
+        required: true
+        title: Page ID
+      post:
+      - type: "[]string"
+        name: pageIDs
+        required: true
+        title: Page ID order
   - name: delete
     path: "/page/{pageID}/layout/{pageLayoutID}"
     method: DELETE
