@@ -28,6 +28,14 @@ field:
 field-datetime:
   valueNotFuture: Past value on future only field
   valueNotPast: Future value on past only field
+field-geometry:
+  geolocationErrors:
+    permissionDenied: User denied the request for geolocation
+    positionUnavailable: Location information is unavailable
+    timeout: The request to get user location timed out
+    unknownError: An unknown error occurred
+    notSupported: Geolocation is not supported by this browser
+    errorOccurred: An error occurred while getting user location
 general:
   composeAccessNotAllowed: Not allowed to access Compose
   error: Error

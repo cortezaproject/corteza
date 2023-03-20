@@ -143,8 +143,14 @@ kind:
     label: Geometry
     latitude: Latitude
     longitude: Longitude
-    clickToPlaceMarker: Click to place a marker or click on a marker to remove it
+    clickToPlaceMarker: Click to place/remove a marker
     initialZoomAndPosition: Set initial map zoom and position
+    prefillWithCurrentLocation: Prefill with current location
+    hideCurrentLocationButton: Hide current location button
+    tooltip:
+      goToCurrentLocation: Go to current location
+      useCurrentLocation: Use current location
+      openMap: Open map
 noPermission: No permission to read field value
 no-items-found: No items found
 options:

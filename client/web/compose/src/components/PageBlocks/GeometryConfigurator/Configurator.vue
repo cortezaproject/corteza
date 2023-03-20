@@ -14,11 +14,25 @@
         @update:zoom="zoomUpdated"
         @update:center="updateCenter"
         @update:bounds="boundsUpdated"
+        @locationfound="onLocationFound"
       >
         <l-tile-layer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           :attribution="map.attribution"
         />
+        <l-control class="leaflet-bar">
+          <a
+            :title="$t('tooltip.goToCurrentLocation')"
+            role="button"
+            class="d-flex justify-content-center align-items-center"
+            @click="goToCurrentLocation"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'location-arrow']"
+              class="text-primary"
+            />
+          </a>
+        </l-control>
       </l-map>
       <b-form-text id="password-help-block">
         {{ $t('geometry.mapHelpText') }}
@@ -130,14 +144,17 @@
 </template>
 
 <script>
-import { latLng } from 'leaflet'
 import base from '../base'
+import { latLng } from 'leaflet'
+import { LControl } from 'vue2-leaflet'
 
 export default {
-  components: {},
-
   i18nOptions: {
     namespaces: 'block',
+  },
+
+  components: {
+    LControl,
   },
 
   extends: base,
@@ -166,6 +183,7 @@ export default {
         return latLng(lat, lng)
       }
     },
+
     updateCenter (coordinates) {
       let { lat = 0, lng = 0 } = coordinates || {}
 
@@ -174,14 +192,17 @@ export default {
 
       this.options.center = [lat, lng]
     },
+
     boundsUpdated (coordinates) {
       this.bounds = coordinates
 
       this.updateBounds(this.options.lockBounds)
     },
+
     zoomUpdated (zoom) {
       this.options.zoomStarting = zoom
     },
+
     updateBounds (value) {
       if (value) {
         const bounds = this.bounds || this.$refs.map.mapObject.getBounds()
@@ -191,6 +212,15 @@ export default {
       } else {
         this.options.bounds = null
       }
+    },
+
+    goToCurrentLocation () {
+      this.$refs.map.mapObject.locate()
+    },
+
+    onLocationFound ({ latitude, longitude }) {
+      const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
+      this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
   },
 }

@@ -25,6 +25,7 @@
           :bounds="map.bounds"
           :max-bounds="map.bounds"
           class="w-100 h-100"
+          @locationfound="onLocationFound"
         >
           <l-tile-layer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -43,6 +44,19 @@
             :lat-lng="marker.value"
             :icon="getIcon(marker)"
           />
+          <l-control class="leaflet-bar">
+            <a
+              :title="$t('tooltip.goToCurrentLocation')"
+              role="button"
+              class="d-flex justify-content-center align-items-center"
+              @click="goToCurrentLocation"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'location-arrow']"
+                class="text-primary"
+              />
+            </a>
+          </l-control>
         </l-map>
       </div>
     </template>
@@ -51,16 +65,17 @@
 
 <script>
 import { divIcon, latLng, latLngBounds } from 'leaflet'
-import {
-  LPolygon,
-} from 'vue2-leaflet'
+import { LPolygon, LControl } from 'vue2-leaflet'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapGetters, mapActions } from 'vuex'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from './base'
 
 export default {
-  components: { LPolygon },
+  components: {
+    LPolygon,
+    LControl,
+  },
 
   extends: base,
 
@@ -227,6 +242,15 @@ export default {
     },
     enableMap () {
       if (this.editable) this.$refs.map.mapObject._handlers.forEach(handler => handler.enable())
+    },
+
+    goToCurrentLocation () {
+      this.$refs.map.mapObject.locate()
+    },
+
+    onLocationFound ({ latitude, longitude }) {
+      const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
+      this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
   },
 }
