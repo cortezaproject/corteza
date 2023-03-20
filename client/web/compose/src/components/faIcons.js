@@ -62,6 +62,7 @@ import {
   faSync,
   faExclamationTriangle,
   faEllipsisV,
+  faLocationArrow,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -172,4 +173,5 @@ library.add(
   faExclamationTriangle,
   faSync,
   faEllipsisV,
+  faLocationArrow,
 )

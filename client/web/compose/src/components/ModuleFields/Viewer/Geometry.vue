@@ -30,6 +30,7 @@
         :zoom="map.zoom"
         :center="map.center"
         style="height: 75vh; width: 100%;"
+        @locationfound="onLocationFound"
       >
         <l-tile-layer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -41,6 +42,19 @@
           :lat-lng="marker"
           :opacity="i == localValueIndex ? 1.0 : 0.6"
         />
+        <l-control class="leaflet-bar">
+          <a
+            :title="$t('tooltip.goToCurrentLocation')"
+            role="button"
+            class="d-flex justify-content-center align-items-center"
+            @click="goToCurrentLocation"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'location-arrow']"
+              class="text-primary"
+            />
+          </a>
+        </l-control>
       </l-map>
     </b-modal>
 
@@ -50,14 +64,19 @@
 <script>
 import base from './base'
 import { latLng } from 'leaflet'
+import { LControl } from 'vue2-leaflet'
 
 export default {
-  extends: base,
-
   i18nOptions: {
     namespaces: 'field',
     keyPrefix: 'kind.geometry',
   },
+
+  components: {
+    LControl,
+  },
+
+  extends: base,
 
   data () {
     return {
@@ -102,6 +121,15 @@ export default {
       if (lat && lng) {
         return latLng(lat, lng)
       }
+    },
+
+    goToCurrentLocation () {
+      this.$refs.map.mapObject.locate()
+    },
+
+    onLocationFound ({ latitude, longitude }) {
+      const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
+      this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
   },
 }
