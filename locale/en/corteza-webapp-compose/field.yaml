@@ -14,7 +14,7 @@ kind:
     dateOnly: Date Only
     futureValuesOnly: Future Value Only
     label: Date and time
-    outputFormat: 'Output format:'
+    outputFormat: Output format
     outputFormatFootnote: See {{0}} for formatting options
     pastValuesOnly: Past Values Only
     relativeOutput: 'Output Relative value (eg: 3 days ago)'
