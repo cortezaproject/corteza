@@ -55,6 +55,7 @@ var (
 // setPageLayout updates pageLayoutActionProps's pageLayout
 //
 // This function is auto-generated.
+//
 func (p *pageLayoutActionProps) setPageLayout(pageLayout *types.PageLayout) *pageLayoutActionProps {
 	p.pageLayout = pageLayout
 	return p
@@ -63,6 +64,7 @@ func (p *pageLayoutActionProps) setPageLayout(pageLayout *types.PageLayout) *pag
 // setChanged updates pageLayoutActionProps's changed
 //
 // This function is auto-generated.
+//
 func (p *pageLayoutActionProps) setChanged(changed *types.PageLayout) *pageLayoutActionProps {
 	p.changed = changed
 	return p
@@ -71,6 +73,7 @@ func (p *pageLayoutActionProps) setChanged(changed *types.PageLayout) *pageLayou
 // setFilter updates pageLayoutActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *pageLayoutActionProps) setFilter(filter *types.PageLayoutFilter) *pageLayoutActionProps {
 	p.filter = filter
 	return p
@@ -79,6 +82,7 @@ func (p *pageLayoutActionProps) setFilter(filter *types.PageLayoutFilter) *pageL
 // setNamespace updates pageLayoutActionProps's namespace
 //
 // This function is auto-generated.
+//
 func (p *pageLayoutActionProps) setNamespace(namespace *types.Namespace) *pageLayoutActionProps {
 	p.namespace = namespace
 	return p
@@ -87,6 +91,7 @@ func (p *pageLayoutActionProps) setNamespace(namespace *types.Namespace) *pageLa
 // Serialize converts pageLayoutActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p pageLayoutActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -96,13 +101,11 @@ func (p pageLayoutActionProps) Serialize() actionlog.Meta {
 		m.Set("pageLayout.handle", p.pageLayout.Handle, true)
 		m.Set("pageLayout.ID", p.pageLayout.ID, true)
 		m.Set("pageLayout.namespaceID", p.pageLayout.NamespaceID, true)
-		m.Set("pageLayout.moduleID", p.pageLayout.ModuleID, true)
 	}
 	if p.changed != nil {
 		m.Set("changed.handle", p.changed.Handle, true)
 		m.Set("changed.ID", p.changed.ID, true)
 		m.Set("changed.namespaceID", p.changed.NamespaceID, true)
-		m.Set("changed.moduleID", p.changed.ModuleID, true)
 		m.Set("changed.blocks", p.changed.Blocks, true)
 	}
 	if p.filter != nil {
@@ -124,6 +127,7 @@ func (p pageLayoutActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p pageLayoutActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -154,13 +158,11 @@ func (p pageLayoutActionProps) Format(in string, err error) string {
 				p.pageLayout.Handle,
 				p.pageLayout.ID,
 				p.pageLayout.NamespaceID,
-				p.pageLayout.ModuleID,
 			),
 		)
 		pairs = append(pairs, "{{pageLayout.handle}}", fns(p.pageLayout.Handle))
 		pairs = append(pairs, "{{pageLayout.ID}}", fns(p.pageLayout.ID))
 		pairs = append(pairs, "{{pageLayout.namespaceID}}", fns(p.pageLayout.NamespaceID))
-		pairs = append(pairs, "{{pageLayout.moduleID}}", fns(p.pageLayout.ModuleID))
 	}
 
 	if p.changed != nil {
@@ -172,14 +174,12 @@ func (p pageLayoutActionProps) Format(in string, err error) string {
 				p.changed.Handle,
 				p.changed.ID,
 				p.changed.NamespaceID,
-				p.changed.ModuleID,
 				p.changed.Blocks,
 			),
 		)
 		pairs = append(pairs, "{{changed.handle}}", fns(p.changed.Handle))
 		pairs = append(pairs, "{{changed.ID}}", fns(p.changed.ID))
 		pairs = append(pairs, "{{changed.namespaceID}}", fns(p.changed.NamespaceID))
-		pairs = append(pairs, "{{changed.moduleID}}", fns(p.changed.ModuleID))
 		pairs = append(pairs, "{{changed.blocks}}", fns(p.changed.Blocks))
 	}
 
@@ -228,6 +228,7 @@ func (p pageLayoutActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *pageLayoutAction) String() string {
 	var props = &pageLayoutActionProps{}
 
@@ -255,6 +256,7 @@ func (e *pageLayoutAction) ToAction() *actionlog.Action {
 // PageLayoutActionSearch returns "compose:page-layout.search" action
 //
 // This function is auto-generated.
+//
 func PageLayoutActionSearch(props ...*pageLayoutActionProps) *pageLayoutAction {
 	a := &pageLayoutAction{
 		timestamp: time.Now(),
@@ -274,6 +276,7 @@ func PageLayoutActionSearch(props ...*pageLayoutActionProps) *pageLayoutAction {
 // PageLayoutActionLookup returns "compose:page-layout.lookup" action
 //
 // This function is auto-generated.
+//
 func PageLayoutActionLookup(props ...*pageLayoutActionProps) *pageLayoutAction {
 	a := &pageLayoutAction{
 		timestamp: time.Now(),
@@ -293,6 +296,7 @@ func PageLayoutActionLookup(props ...*pageLayoutActionProps) *pageLayoutAction {
 // PageLayoutActionCreate returns "compose:page-layout.create" action
 //
 // This function is auto-generated.
+//
 func PageLayoutActionCreate(props ...*pageLayoutActionProps) *pageLayoutAction {
 	a := &pageLayoutAction{
 		timestamp: time.Now(),
@@ -312,6 +316,7 @@ func PageLayoutActionCreate(props ...*pageLayoutActionProps) *pageLayoutAction {
 // PageLayoutActionUpdate returns "compose:page-layout.update" action
 //
 // This function is auto-generated.
+//
 func PageLayoutActionUpdate(props ...*pageLayoutActionProps) *pageLayoutAction {
 	a := &pageLayoutAction{
 		timestamp: time.Now(),
@@ -328,9 +333,30 @@ func PageLayoutActionUpdate(props ...*pageLayoutActionProps) *pageLayoutAction {
 	return a
 }
 
+// PageLayoutActionReorder returns "compose:page-layout.reorder" action
+//
+// This function is auto-generated.
+//
+func PageLayoutActionReorder(props ...*pageLayoutActionProps) *pageLayoutAction {
+	a := &pageLayoutAction{
+		timestamp: time.Now(),
+		resource:  "compose:page-layout",
+		action:    "reorder",
+		log:       "reordered {{pageLayout}}",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // PageLayoutActionDelete returns "compose:page-layout.delete" action
 //
 // This function is auto-generated.
+//
 func PageLayoutActionDelete(props ...*pageLayoutActionProps) *pageLayoutAction {
 	a := &pageLayoutAction{
 		timestamp: time.Now(),
@@ -350,6 +376,7 @@ func PageLayoutActionDelete(props ...*pageLayoutActionProps) *pageLayoutAction {
 // PageLayoutActionUndelete returns "compose:page-layout.undelete" action
 //
 // This function is auto-generated.
+//
 func PageLayoutActionUndelete(props ...*pageLayoutActionProps) *pageLayoutAction {
 	a := &pageLayoutAction{
 		timestamp: time.Now(),
@@ -372,7 +399,9 @@ func PageLayoutActionUndelete(props ...*pageLayoutActionProps) *pageLayoutAction
 
 // PageLayoutErrGeneric returns "compose:page-layout.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrGeneric(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -406,7 +435,9 @@ func PageLayoutErrGeneric(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrNotFound returns "compose:page-layout.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrNotFound(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -438,7 +469,9 @@ func PageLayoutErrNotFound(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrNamespaceNotFound returns "compose:page-layout.namespaceNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrNamespaceNotFound(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -470,7 +503,9 @@ func PageLayoutErrNamespaceNotFound(mm ...*pageLayoutActionProps) *errors.Error 
 
 // PageLayoutErrModuleNotFound returns "compose:page-layout.moduleNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrModuleNotFound(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -502,7 +537,9 @@ func PageLayoutErrModuleNotFound(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrInvalidID returns "compose:page-layout.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrInvalidID(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -534,7 +571,9 @@ func PageLayoutErrInvalidID(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrInvalidHandle returns "compose:page-layout.invalidHandle" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrInvalidHandle(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -566,7 +605,9 @@ func PageLayoutErrInvalidHandle(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrHandleNotUnique returns "compose:page-layout.handleNotUnique" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrHandleNotUnique(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -600,7 +641,9 @@ func PageLayoutErrHandleNotUnique(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrStaleData returns "compose:page-layout.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrStaleData(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -632,7 +675,9 @@ func PageLayoutErrStaleData(mm ...*pageLayoutActionProps) *errors.Error {
 
 // PageLayoutErrInvalidNamespaceID returns "compose:page-layout.invalidNamespaceID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func PageLayoutErrInvalidNamespaceID(mm ...*pageLayoutActionProps) *errors.Error {
 	var p = &pageLayoutActionProps{}
 	if len(mm) > 0 {
@@ -670,6 +715,7 @@ func PageLayoutErrInvalidNamespaceID(mm ...*pageLayoutActionProps) *errors.Error
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc pageLayout) recordAction(ctx context.Context, props *pageLayoutActionProps, actionFn func(...*pageLayoutActionProps) *pageLayoutAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

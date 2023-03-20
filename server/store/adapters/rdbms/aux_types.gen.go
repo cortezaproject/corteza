@@ -309,8 +309,8 @@ type (
 		Handle      string                       `db:"handle"`
 		PageID      uint64                       `db:"page_id"`
 		ParentID    uint64                       `db:"parent_id"`
-		ModuleID    uint64                       `db:"module_id"`
 		NamespaceID uint64                       `db:"namespace_id"`
+		Weight      int                          `db:"weight"`
 		Meta        *composeType.PageLayoutMeta  `db:"meta"`
 		Primary     bool                         `db:"primary"`
 		Config      composeType.PageLayoutConfig `db:"config"`
@@ -1682,8 +1682,8 @@ func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
 	aux.Handle = res.Handle
 	aux.PageID = res.PageID
 	aux.ParentID = res.ParentID
-	aux.ModuleID = res.ModuleID
 	aux.NamespaceID = res.NamespaceID
+	aux.Weight = res.Weight
 	aux.Meta = res.Meta
 	aux.Primary = res.Primary
 	aux.Config = res.Config
@@ -1704,8 +1704,8 @@ func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) 
 	res.Handle = aux.Handle
 	res.PageID = aux.PageID
 	res.ParentID = aux.ParentID
-	res.ModuleID = aux.ModuleID
 	res.NamespaceID = aux.NamespaceID
+	res.Weight = aux.Weight
 	res.Meta = aux.Meta
 	res.Primary = aux.Primary
 	res.Config = aux.Config
@@ -1726,8 +1726,8 @@ func (aux *auxComposePageLayout) scan(row scanner) error {
 		&aux.Handle,
 		&aux.PageID,
 		&aux.ParentID,
-		&aux.ModuleID,
 		&aux.NamespaceID,
+		&aux.Weight,
 		&aux.Meta,
 		&aux.Primary,
 		&aux.Config,

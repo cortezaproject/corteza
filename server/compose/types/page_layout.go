@@ -12,14 +12,14 @@ import (
 
 type (
 	PageLayout struct {
-		ID       uint64 `json:"pageLayoutID,string"`
-		PageID   uint64 `json:"pageID,string"`
-		ParentID uint64 `json:"parentID,string"`
-		Handle   string `json:"handle"`
-		Primary  bool   `json:"primary"`
-
+		ID          uint64 `json:"pageLayoutID,string"`
 		NamespaceID uint64 `json:"namespaceID,string"`
-		ModuleID    uint64 `json:"moduleID,string"`
+		PageID      uint64 `json:"pageID,string"`
+		ParentID    uint64 `json:"parentID,string"`
+		Handle      string `json:"handle"`
+		Primary     bool   `json:"primary"`
+
+		Weight int `json:"weight"`
 
 		Meta *PageLayoutMeta `json:"meta"`
 
@@ -52,24 +52,14 @@ type (
 		Enabled bool   `json:"enabled"`
 	}
 
-	// @todo this will probably expand with a more modular action-like system
-	PageLayoutButtonConfig struct {
-		New    PageLayoutButton `json:"new"`
-		Edit   PageLayoutButton `json:"edit"`
-		Submit PageLayoutButton `json:"submit"`
-		Delete PageLayoutButton `json:"delete"`
-		Clone  PageLayoutButton `json:"clone"`
-		Back   PageLayoutButton `json:"back"`
-	}
-
 	PageLayoutConfig struct {
 		Visibility PageLayoutVisibility `json:"visibility"`
 		Actions    []PageLayoutAction   `json:"actions"`
 	}
 
 	PageLayoutVisibility struct {
-		Expression string
-		Roles      []string
+		Expression string   `json:"expression"`
+		Roles      []string `json:"roles"`
 	}
 
 	PageLayoutAction struct {
@@ -86,7 +76,6 @@ type (
 	PageLayoutFilter struct {
 		NamespaceID uint64 `json:"namespaceID,string"`
 		PageID      uint64 `json:"pageID,string,omitempty"`
-		ModuleID    uint64 `json:"moduleID,string,omitempty"`
 		Primary     bool   `json:"primary,omitempty"`
 		Handle      string `json:"handle"`
 		Name        string `json:"name"`

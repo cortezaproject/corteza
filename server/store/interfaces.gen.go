@@ -339,8 +339,8 @@ type (
 		DeleteComposePageLayoutByID(ctx context.Context, id uint64) error
 		TruncateComposePageLayouts(ctx context.Context) error
 		LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (*composeType.PageLayout, error)
-		LookupComposePageLayoutByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (*composeType.PageLayout, error)
 		LookupComposePageLayoutByID(ctx context.Context, id uint64) (*composeType.PageLayout, error)
+		ReorderComposePageLayouts(ctx context.Context, namespace_id uint64, page_id uint64, page_layout_ids []uint64) error
 	}
 
 	Credentials interface {
@@ -1904,13 +1904,6 @@ func LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, s ComposePa
 	return s.LookupComposePageLayoutByNamespaceIDHandle(ctx, namespaceID, handle)
 }
 
-// LookupComposePageLayoutByNamespaceIDModuleID searches for page layour by moduleID
-//
-// This function is auto-generated
-func LookupComposePageLayoutByNamespaceIDModuleID(ctx context.Context, s ComposePageLayouts, namespaceID uint64, moduleID uint64) (*composeType.PageLayout, error) {
-	return s.LookupComposePageLayoutByNamespaceIDModuleID(ctx, namespaceID, moduleID)
-}
-
 // LookupComposePageLayoutByID searches for compose page layour by ID
 //
 // It returns compose page layour even if deleted
@@ -1918,6 +1911,13 @@ func LookupComposePageLayoutByNamespaceIDModuleID(ctx context.Context, s Compose
 // This function is auto-generated
 func LookupComposePageLayoutByID(ctx context.Context, s ComposePageLayouts, id uint64) (*composeType.PageLayout, error) {
 	return s.LookupComposePageLayoutByID(ctx, id)
+}
+
+// ReorderComposePageLayouts
+//
+// This function is auto-generated
+func ReorderComposePageLayouts(ctx context.Context, s ComposePageLayouts, namespace_id uint64, page_id uint64, page_layout_ids []uint64) error {
+	return s.ReorderComposePageLayouts(ctx, namespace_id, page_id, page_layout_ids)
 }
 
 // SearchCredentials returns all matching Credentials from store

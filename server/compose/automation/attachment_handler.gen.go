@@ -50,10 +50,9 @@ type (
 // Lookup function Attachment lookup
 //
 // expects implementation of lookup function:
-//
-//	func (h attachmentHandler) lookup(ctx context.Context, args *attachmentLookupArgs) (results *attachmentLookupResults, err error) {
-//	   return
-//	}
+// func (h attachmentHandler) lookup(ctx context.Context, args *attachmentLookupArgs) (results *attachmentLookupResults, err error) {
+//    return
+// }
 func (h attachmentHandler) Lookup() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "attachmentLookup",
@@ -145,10 +144,9 @@ func (a attachmentCreateArgs) GetContent() (bool, string, io.Reader, []byte) {
 // Create function Create file and attach it to a resource
 //
 // expects implementation of create function:
-//
-//	func (h attachmentHandler) create(ctx context.Context, args *attachmentCreateArgs) (results *attachmentCreateResults, err error) {
-//	   return
-//	}
+// func (h attachmentHandler) create(ctx context.Context, args *attachmentCreateArgs) (results *attachmentCreateResults, err error) {
+//    return
+// }
 func (h attachmentHandler) Create() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "attachmentCreate",
@@ -247,10 +245,9 @@ type (
 // Delete function Delete attachment
 //
 // expects implementation of delete function:
-//
-//	func (h attachmentHandler) delete(ctx context.Context, args *attachmentDeleteArgs) (err error) {
-//	   return
-//	}
+// func (h attachmentHandler) delete(ctx context.Context, args *attachmentDeleteArgs) (err error) {
+//    return
+// }
 func (h attachmentHandler) Delete() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "attachmentDelete",
@@ -303,10 +300,9 @@ func (a attachmentOpenOriginalArgs) GetAttachment() (bool, uint64, *types.Attach
 // OpenOriginal function Open original attachment
 //
 // expects implementation of openOriginal function:
-//
-//	func (h attachmentHandler) openOriginal(ctx context.Context, args *attachmentOpenOriginalArgs) (results *attachmentOpenOriginalResults, err error) {
-//	   return
-//	}
+// func (h attachmentHandler) openOriginal(ctx context.Context, args *attachmentOpenOriginalArgs) (results *attachmentOpenOriginalResults, err error) {
+//    return
+// }
 func (h attachmentHandler) OpenOriginal() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "attachmentOpenOriginal",
@@ -398,10 +394,9 @@ func (a attachmentOpenPreviewArgs) GetAttachment() (bool, uint64, *types.Attachm
 // OpenPreview function Open attachment preview
 //
 // expects implementation of openPreview function:
-//
-//	func (h attachmentHandler) openPreview(ctx context.Context, args *attachmentOpenPreviewArgs) (results *attachmentOpenPreviewResults, err error) {
-//	   return
-//	}
+// func (h attachmentHandler) openPreview(ctx context.Context, args *attachmentOpenPreviewArgs) (results *attachmentOpenPreviewResults, err error) {
+//    return
+// }
 func (h attachmentHandler) OpenPreview() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "attachmentOpenPreview",

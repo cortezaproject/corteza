@@ -167,6 +167,11 @@ type (
 		// ParentID
 		ParentID uint64 `json:",string"`
 
+		// Weight POST parameter
+		//
+		// Weight
+		Weight int
+
 		// ModuleID POST parameter
 		//
 		// ModuleID
@@ -246,6 +251,11 @@ type (
 		// ParentID
 		ParentID uint64 `json:",string"`
 
+		// Weight POST parameter
+		//
+		// Weight
+		Weight int
+
 		// ModuleID POST parameter
 		//
 		// ModuleID
@@ -285,6 +295,23 @@ type (
 		//
 		// OwnedBy
 		OwnedBy uint64 `json:",string"`
+	}
+
+	PageLayoutReorder struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// PageID PATH parameter
+		//
+		// Page ID
+		PageID uint64 `json:",string"`
+
+		// PageIDs POST parameter
+		//
+		// Page ID order
+		PageIDs []string
 	}
 
 	PageLayoutDelete struct {
@@ -709,6 +736,7 @@ func (r PageLayoutCreate) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"pageID":      r.PageID,
 		"parentID":    r.ParentID,
+		"weight":      r.Weight,
 		"moduleID":    r.ModuleID,
 		"handle":      r.Handle,
 		"primary":     r.Primary,
@@ -733,6 +761,11 @@ func (r PageLayoutCreate) GetPageID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageLayoutCreate) GetParentID() uint64 {
 	return r.ParentID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutCreate) GetWeight() int {
+	return r.Weight
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -798,6 +831,13 @@ func (r *PageLayoutCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["parentID"]; ok && len(val) > 0 {
 				r.ParentID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["weight"]; ok && len(val) > 0 {
+				r.Weight, err = payload.ParseInt(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -880,6 +920,13 @@ func (r *PageLayoutCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["parentID"]; ok && len(val) > 0 {
 			r.ParentID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
+			r.Weight, err = payload.ParseInt(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -1044,6 +1091,7 @@ func (r PageLayoutUpdate) Auditable() map[string]interface{} {
 		"pageID":       r.PageID,
 		"pageLayoutID": r.PageLayoutID,
 		"parentID":     r.ParentID,
+		"weight":       r.Weight,
 		"moduleID":     r.ModuleID,
 		"handle":       r.Handle,
 		"primary":      r.Primary,
@@ -1073,6 +1121,11 @@ func (r PageLayoutUpdate) GetPageLayoutID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageLayoutUpdate) GetParentID() uint64 {
 	return r.ParentID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutUpdate) GetWeight() int {
+	return r.Weight
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1138,6 +1191,13 @@ func (r *PageLayoutUpdate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["parentID"]; ok && len(val) > 0 {
 				r.ParentID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["weight"]; ok && len(val) > 0 {
+				r.Weight, err = payload.ParseInt(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -1220,6 +1280,13 @@ func (r *PageLayoutUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["parentID"]; ok && len(val) > 0 {
 			r.ParentID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["weight"]; ok && len(val) > 0 {
+			r.Weight, err = payload.ParseInt(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -1310,6 +1377,95 @@ func (r *PageLayoutUpdate) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "pageLayoutID")
 		r.PageLayoutID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewPageLayoutReorder request
+func NewPageLayoutReorder() *PageLayoutReorder {
+	return &PageLayoutReorder{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutReorder) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"pageID":      r.PageID,
+		"pageIDs":     r.PageIDs,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutReorder) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutReorder) GetPageID() uint64 {
+	return r.PageID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageLayoutReorder) GetPageIDs() []string {
+	return r.PageIDs
+}
+
+// Fill processes request and fills internal variables
+func (r *PageLayoutReorder) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		//if val, ok := req.Form["pageIDs[]"]; ok && len(val) > 0  {
+		//    r.PageIDs, err = val, nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "pageID")
+		r.PageID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

@@ -796,17 +796,6 @@ var PageLayout = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "ModuleID",
-			Type: &dal.TypeRef{
-				RefAttribute: "id",
-				RefModel: &dal.ModelRef{
-					ResourceType: "corteza::compose:module",
-				},
-			},
-			Store: &dal.CodecAlias{Ident: "rel_module"},
-		},
-
-		&dal.Attribute{
 			Ident: "NamespaceID",
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
@@ -815,6 +804,15 @@ var PageLayout = &dal.Model{
 				},
 			},
 			Store: &dal.CodecAlias{Ident: "rel_namespace"},
+		},
+
+		&dal.Attribute{
+			Ident: "Weight", Sortable: true,
+			Type: &dal.TypeNumber{HasDefault: true,
+				DefaultValue: 0,
+				Precision:    -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"},
+			},
+			Store: &dal.CodecAlias{Ident: "weight"},
 		},
 
 		&dal.Attribute{
@@ -884,17 +882,6 @@ var PageLayout = &dal.Model{
 	},
 
 	Indexes: dal.IndexSet{
-		&dal.Index{
-			Ident: "compose_page_layout_module",
-			Type:  "BTREE",
-
-			Fields: []*dal.IndexField{
-				{
-					AttributeIdent: "ModuleID",
-				},
-			},
-		},
-
 		&dal.Index{
 			Ident: "compose_page_layout_namespace",
 			Type:  "BTREE",

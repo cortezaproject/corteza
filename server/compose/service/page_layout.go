@@ -230,6 +230,32 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 	return new, svc.recordAction(ctx, aProps, PageLayoutActionCreate, err)
 }
 
+func (svc pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, pageLayoutIDs []uint64) (err error) {
+	var (
+		aProps = &pageLayoutActionProps{pageLayout: &types.PageLayout{ID: pageID}}
+		p      *types.Page
+	)
+
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		// Get the page
+		if p, err = store.LookupComposePageByID(ctx, svc.store, pageID); errors.IsNotFound(err) {
+			return PageLayoutErrNotFound()
+		} else if err != nil {
+			return err
+		}
+		_ = p
+
+		// if !svc.ac.CanUpdatePageLayout(ctx, p) {
+		// 	return PageLayoutErrNotAllowedToUpdate()
+		// }
+
+		return store.ReorderComposePageLayouts(ctx, s, namespaceID, pageID, pageLayoutIDs)
+	})
+
+	return svc.recordAction(ctx, aProps, PageLayoutActionReorder, err)
+
+}
+
 func (svc pageLayout) Update(ctx context.Context, upd *types.PageLayout) (c *types.PageLayout, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		ns, res, err := loadPageLayoutCombo(ctx, s, upd.NamespaceID, upd.PageID, upd.ID)
@@ -384,12 +410,6 @@ func (svc pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err
 		}
 	}
 
-	if p.ModuleID > 0 {
-		if e, _ := store.LookupComposePageLayoutByNamespaceIDModuleID(ctx, svc.store, p.NamespaceID, p.ModuleID); e != nil && e.ID != p.ID {
-			return PageLayoutErrModuleNotFound()
-		}
-	}
-
 	return nil
 }
 
@@ -436,11 +456,6 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 
 		if res.NamespaceID != upd.NamespaceID {
 			res.NamespaceID = upd.NamespaceID
-			changes |= pageLayoutChanged
-		}
-
-		if res.ModuleID != upd.ModuleID {
-			res.ModuleID = upd.ModuleID
 			changes |= pageLayoutChanged
 		}
 

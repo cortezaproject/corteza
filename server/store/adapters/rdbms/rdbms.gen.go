@@ -10172,48 +10172,6 @@ func (s *Store) LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, 
 	return aux.decode()
 }
 
-// LookupComposePageLayoutByNamespaceIDModuleID searches for page layour by moduleID
-//
-// This function is auto-generated
-func (s *Store) LookupComposePageLayoutByNamespaceIDModuleID(ctx context.Context, namespaceID uint64, moduleID uint64) (_ *composeType.PageLayout, err error) {
-	var (
-		rows   *sql.Rows
-		aux    = new(auxComposePageLayout)
-		lookup = composePageLayoutSelectQuery(s.Dialect.GOQU()).Where(
-			goqu.I("rel_namespace").Eq(namespaceID),
-			goqu.I("rel_module").Eq(moduleID),
-			stateNilComparison(s.Dialect, "deleted_at", filter.StateExcluded),
-		).Limit(1)
-	)
-
-	rows, err = s.Query(ctx, lookup)
-	if err != nil {
-		return
-	}
-
-	defer func() {
-		closeError := rows.Close()
-		if err == nil {
-			// return error from close
-			err = closeError
-		}
-	}()
-
-	if err = rows.Err(); err != nil {
-		return
-	}
-
-	if !rows.Next() {
-		return nil, store.ErrNotFound.Stack(1)
-	}
-
-	if err = aux.scan(rows); err != nil {
-		return
-	}
-
-	return aux.decode()
-}
-
 // LookupComposePageLayoutByID searches for compose page layour by ID
 //
 // It returns compose page layour even if deleted
@@ -10276,6 +10234,7 @@ func (Store) sortableComposePageLayoutFields() map[string]string {
 		"parentid":   "parent_id",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
+		"weight":     "weight",
 	}
 }
 
@@ -10312,6 +10271,8 @@ func (s *Store) collectComposePageLayoutCursorValues(res *composeType.PageLayout
 					return res.PageID
 				case "parentID":
 					return res.ParentID
+				case "weight":
+					return res.Weight
 				case "createdAt":
 					return res.CreatedAt
 				case "updatedAt":

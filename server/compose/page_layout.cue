@@ -28,17 +28,15 @@ pageLayout: {
 				sortable: true
 			}
 
-			module_id: {
-				ident: "moduleID",
-				goType: "uint64",
-				storeIdent: "rel_module"
-				dal: { type: "Ref", refModelResType: "corteza::compose:module" }
-			}
 			namespace_id: {
 				ident: "namespaceID",
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+			}
+			weight: {
+				goType: "int", sortable: true
+				dal: { type: "Number", default: 0, meta: { "rdbms:type": "integer" } }
 			}
 
 			meta: {
@@ -69,7 +67,6 @@ pageLayout: {
 		indexes: {
 			"primary": { attribute: "id" }
 			"namespace": { attribute: "namespace_id" },
-			"module": { attribute: "module_id" },
 			"page_id": { attribute: "page_id" },
 			"parent_id": { attribute: "parent_id" },
 			"unique_handle": {
@@ -83,14 +80,13 @@ pageLayout: {
 		struct: {
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			page_id: { goType: "uint64", ident: "pageID", storeIdent: "page_id" }
-			module_id: { goType: "uint64", ident: "moduleID", storeIdent: "rel_module" }
 			default: { goType: "bool", ident: "default" }
 			handle: { goType: "string" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 		}
 
 		query: ["handle"]
-		byValue: ["handle", "namespace_id", "module_id", "page_id", "module_id"]
+		byValue: ["handle", "namespace_id", "page_id"]
 		byNilState: ["deleted"]
 	}
 
@@ -122,12 +118,6 @@ pageLayout: {
 						searches for page layour by handle (case-insensitive)
 						"""
 				}, {
-					fields: ["namespace_id", "module_id"]
-					nullConstraint: ["deleted_at"]
-					description: """
-						searches for page layour by moduleID
-						"""
-				}, {
 					fields: ["id"]
 					description: """
 						searches for compose page layour by ID
@@ -135,6 +125,17 @@ pageLayout: {
 						It returns compose page layour even if deleted
 						"""
 				},
+			]
+
+			functions: [
+				{
+					expIdent: "ReorderComposePageLayouts"
+					args: [
+						{ ident: "namespace_id", goType: "uint64" },
+						{ ident: "page_id", goType: "uint64" },
+						{ ident: "page_layout_ids", goType: "[]uint64" }
+					]
+				}
 			]
 		}
 	}

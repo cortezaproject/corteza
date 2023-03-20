@@ -55,6 +55,7 @@ var (
 // setCreated updates moduleMappingActionProps's created
 //
 // This function is auto-generated.
+//
 func (p *moduleMappingActionProps) setCreated(created *types.ModuleMapping) *moduleMappingActionProps {
 	p.created = created
 	return p
@@ -63,6 +64,7 @@ func (p *moduleMappingActionProps) setCreated(created *types.ModuleMapping) *mod
 // setMapping updates moduleMappingActionProps's mapping
 //
 // This function is auto-generated.
+//
 func (p *moduleMappingActionProps) setMapping(mapping *types.ModuleMapping) *moduleMappingActionProps {
 	p.mapping = mapping
 	return p
@@ -71,6 +73,7 @@ func (p *moduleMappingActionProps) setMapping(mapping *types.ModuleMapping) *mod
 // setChanged updates moduleMappingActionProps's changed
 //
 // This function is auto-generated.
+//
 func (p *moduleMappingActionProps) setChanged(changed *types.ModuleMapping) *moduleMappingActionProps {
 	p.changed = changed
 	return p
@@ -79,6 +82,7 @@ func (p *moduleMappingActionProps) setChanged(changed *types.ModuleMapping) *mod
 // setFilter updates moduleMappingActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *moduleMappingActionProps) setFilter(filter *types.ModuleMappingFilter) *moduleMappingActionProps {
 	p.filter = filter
 	return p
@@ -87,6 +91,7 @@ func (p *moduleMappingActionProps) setFilter(filter *types.ModuleMappingFilter) 
 // Serialize converts moduleMappingActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p moduleMappingActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -116,6 +121,7 @@ func (p moduleMappingActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p moduleMappingActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -204,6 +210,7 @@ func (p moduleMappingActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *moduleMappingAction) String() string {
 	var props = &moduleMappingActionProps{}
 
@@ -231,6 +238,7 @@ func (e *moduleMappingAction) ToAction() *actionlog.Action {
 // ModuleMappingActionSearch returns "federation:module_mapping.search" action
 //
 // This function is auto-generated.
+//
 func ModuleMappingActionSearch(props ...*moduleMappingActionProps) *moduleMappingAction {
 	a := &moduleMappingAction{
 		timestamp: time.Now(),
@@ -250,6 +258,7 @@ func ModuleMappingActionSearch(props ...*moduleMappingActionProps) *moduleMappin
 // ModuleMappingActionLookup returns "federation:module_mapping.lookup" action
 //
 // This function is auto-generated.
+//
 func ModuleMappingActionLookup(props ...*moduleMappingActionProps) *moduleMappingAction {
 	a := &moduleMappingAction{
 		timestamp: time.Now(),
@@ -269,6 +278,7 @@ func ModuleMappingActionLookup(props ...*moduleMappingActionProps) *moduleMappin
 // ModuleMappingActionCreate returns "federation:module_mapping.create" action
 //
 // This function is auto-generated.
+//
 func ModuleMappingActionCreate(props ...*moduleMappingActionProps) *moduleMappingAction {
 	a := &moduleMappingAction{
 		timestamp: time.Now(),
@@ -288,6 +298,7 @@ func ModuleMappingActionCreate(props ...*moduleMappingActionProps) *moduleMappin
 // ModuleMappingActionUpdate returns "federation:module_mapping.update" action
 //
 // This function is auto-generated.
+//
 func ModuleMappingActionUpdate(props ...*moduleMappingActionProps) *moduleMappingAction {
 	a := &moduleMappingAction{
 		timestamp: time.Now(),
@@ -307,6 +318,7 @@ func ModuleMappingActionUpdate(props ...*moduleMappingActionProps) *moduleMappin
 // ModuleMappingActionDelete returns "federation:module_mapping.delete" action
 //
 // This function is auto-generated.
+//
 func ModuleMappingActionDelete(props ...*moduleMappingActionProps) *moduleMappingAction {
 	a := &moduleMappingAction{
 		timestamp: time.Now(),
@@ -329,7 +341,9 @@ func ModuleMappingActionDelete(props ...*moduleMappingActionProps) *moduleMappin
 
 // ModuleMappingErrGeneric returns "federation:module_mapping.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrGeneric(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -363,7 +377,9 @@ func ModuleMappingErrGeneric(mm ...*moduleMappingActionProps) *errors.Error {
 
 // ModuleMappingErrNotFound returns "federation:module_mapping.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -395,7 +411,9 @@ func ModuleMappingErrNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 
 // ModuleMappingErrComposeModuleNotFound returns "federation:module_mapping.composeModuleNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrComposeModuleNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -427,7 +445,9 @@ func ModuleMappingErrComposeModuleNotFound(mm ...*moduleMappingActionProps) *err
 
 // ModuleMappingErrComposeNamespaceNotFound returns "federation:module_mapping.composeNamespaceNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrComposeNamespaceNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -459,7 +479,9 @@ func ModuleMappingErrComposeNamespaceNotFound(mm ...*moduleMappingActionProps) *
 
 // ModuleMappingErrFederationModuleNotFound returns "federation:module_mapping.federationModuleNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrFederationModuleNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -491,7 +513,9 @@ func ModuleMappingErrFederationModuleNotFound(mm ...*moduleMappingActionProps) *
 
 // ModuleMappingErrNodeNotFound returns "federation:module_mapping.nodeNotFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrNodeNotFound(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -523,7 +547,9 @@ func ModuleMappingErrNodeNotFound(mm ...*moduleMappingActionProps) *errors.Error
 
 // ModuleMappingErrModuleMappingExists returns "federation:module_mapping.moduleMappingExists" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrModuleMappingExists(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -555,7 +581,9 @@ func ModuleMappingErrModuleMappingExists(mm ...*moduleMappingActionProps) *error
 
 // ModuleMappingErrNotAllowedToMap returns "federation:module_mapping.notAllowedToMap" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func ModuleMappingErrNotAllowedToMap(mm ...*moduleMappingActionProps) *errors.Error {
 	var p = &moduleMappingActionProps{}
 	if len(mm) > 0 {
@@ -595,6 +623,7 @@ func ModuleMappingErrNotAllowedToMap(mm ...*moduleMappingActionProps) *errors.Er
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc moduleMapping) recordAction(ctx context.Context, props *moduleMappingActionProps, actionFn func(...*moduleMappingActionProps) *moduleMappingAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

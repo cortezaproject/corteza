@@ -525,6 +525,7 @@ func (t *HttpRequest) AssignFieldValue(key string, val TypedValue) error {
 //
 // It allows gval lib to access HttpRequest's underlying value (*http.Request)
 // and it's fields
+//
 func (t *HttpRequest) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()

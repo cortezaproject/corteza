@@ -55,6 +55,7 @@ var (
 // setSession updates sessionActionProps's session
 //
 // This function is auto-generated.
+//
 func (p *sessionActionProps) setSession(session *types.Session) *sessionActionProps {
 	p.session = session
 	return p
@@ -63,6 +64,7 @@ func (p *sessionActionProps) setSession(session *types.Session) *sessionActionPr
 // setNew updates sessionActionProps's new
 //
 // This function is auto-generated.
+//
 func (p *sessionActionProps) setNew(new *types.Session) *sessionActionProps {
 	p.new = new
 	return p
@@ -71,6 +73,7 @@ func (p *sessionActionProps) setNew(new *types.Session) *sessionActionProps {
 // setUpdate updates sessionActionProps's update
 //
 // This function is auto-generated.
+//
 func (p *sessionActionProps) setUpdate(update *types.Session) *sessionActionProps {
 	p.update = update
 	return p
@@ -79,6 +82,7 @@ func (p *sessionActionProps) setUpdate(update *types.Session) *sessionActionProp
 // setFilter updates sessionActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *sessionActionProps) setFilter(filter *types.SessionFilter) *sessionActionProps {
 	p.filter = filter
 	return p
@@ -87,6 +91,7 @@ func (p *sessionActionProps) setFilter(filter *types.SessionFilter) *sessionActi
 // Serialize converts sessionActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p sessionActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -110,6 +115,7 @@ func (p sessionActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p sessionActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -185,6 +191,7 @@ func (p sessionActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *sessionAction) String() string {
 	var props = &sessionActionProps{}
 
@@ -212,6 +219,7 @@ func (e *sessionAction) ToAction() *actionlog.Action {
 // SessionActionSearch returns "automation:session.search" action
 //
 // This function is auto-generated.
+//
 func SessionActionSearch(props ...*sessionActionProps) *sessionAction {
 	a := &sessionAction{
 		timestamp: time.Now(),
@@ -231,6 +239,7 @@ func SessionActionSearch(props ...*sessionActionProps) *sessionAction {
 // SessionActionLookup returns "automation:session.lookup" action
 //
 // This function is auto-generated.
+//
 func SessionActionLookup(props ...*sessionActionProps) *sessionAction {
 	a := &sessionAction{
 		timestamp: time.Now(),
@@ -250,6 +259,7 @@ func SessionActionLookup(props ...*sessionActionProps) *sessionAction {
 // SessionActionCreate returns "automation:session.create" action
 //
 // This function is auto-generated.
+//
 func SessionActionCreate(props ...*sessionActionProps) *sessionAction {
 	a := &sessionAction{
 		timestamp: time.Now(),
@@ -269,6 +279,7 @@ func SessionActionCreate(props ...*sessionActionProps) *sessionAction {
 // SessionActionUpdate returns "automation:session.update" action
 //
 // This function is auto-generated.
+//
 func SessionActionUpdate(props ...*sessionActionProps) *sessionAction {
 	a := &sessionAction{
 		timestamp: time.Now(),
@@ -288,6 +299,7 @@ func SessionActionUpdate(props ...*sessionActionProps) *sessionAction {
 // SessionActionDelete returns "automation:session.delete" action
 //
 // This function is auto-generated.
+//
 func SessionActionDelete(props ...*sessionActionProps) *sessionAction {
 	a := &sessionAction{
 		timestamp: time.Now(),
@@ -307,6 +319,7 @@ func SessionActionDelete(props ...*sessionActionProps) *sessionAction {
 // SessionActionUndelete returns "automation:session.undelete" action
 //
 // This function is auto-generated.
+//
 func SessionActionUndelete(props ...*sessionActionProps) *sessionAction {
 	a := &sessionAction{
 		timestamp: time.Now(),
@@ -329,7 +342,9 @@ func SessionActionUndelete(props ...*sessionActionProps) *sessionAction {
 
 // SessionErrGeneric returns "automation:session.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrGeneric(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -363,7 +378,9 @@ func SessionErrGeneric(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrNotFound returns "automation:session.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrNotFound(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -395,7 +412,9 @@ func SessionErrNotFound(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrInvalidID returns "automation:session.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrInvalidID(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -427,7 +446,9 @@ func SessionErrInvalidID(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrStaleData returns "automation:session.staleData" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrStaleData(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -459,7 +480,9 @@ func SessionErrStaleData(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrNotAllowedToRead returns "automation:session.notAllowedToRead" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrNotAllowedToRead(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -493,7 +516,9 @@ func SessionErrNotAllowedToRead(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrNotAllowedToSearch returns "automation:session.notAllowedToSearch" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrNotAllowedToSearch(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -527,7 +552,9 @@ func SessionErrNotAllowedToSearch(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrNotAllowedToDelete returns "automation:session.notAllowedToDelete" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrNotAllowedToDelete(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -561,7 +588,9 @@ func SessionErrNotAllowedToDelete(mm ...*sessionActionProps) *errors.Error {
 
 // SessionErrNotAllowedToManage returns "automation:session.notAllowedToManage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func SessionErrNotAllowedToManage(mm ...*sessionActionProps) *errors.Error {
 	var p = &sessionActionProps{}
 	if len(mm) > 0 {
@@ -601,6 +630,7 @@ func SessionErrNotAllowedToManage(mm ...*sessionActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc session) recordAction(ctx context.Context, props *sessionActionProps, actionFn func(...*sessionActionProps) *sessionAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
