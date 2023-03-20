@@ -117,9 +117,16 @@ func (e StoreEncoder) prepareChart(ctx context.Context, p envoyx.EncodeParams, s
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Chart, len(nn))
-	err = e.matchupCharts(ctx, s, existing, nn)
+	err = e.matchupCharts(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Charts")
 		return
@@ -265,7 +272,7 @@ func (e StoreEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, s 
 }
 
 // matchupCharts returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupCharts(ctx context.Context, s store.Storer, uu map[int]types.Chart, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupCharts(ctx context.Context, s store.Storer, uu map[int]types.Chart, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchComposeCharts(ctx, s, types.ChartFilter{})
@@ -285,6 +292,11 @@ func (e StoreEncoder) matchupCharts(ctx context.Context, s store.Storer, uu map[
 	var aux *types.Chart
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -320,9 +332,16 @@ func (e StoreEncoder) prepareModule(ctx context.Context, p envoyx.EncodeParams, 
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Module, len(nn))
-	err = e.matchupModules(ctx, s, existing, nn)
+	err = e.matchupModules(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Modules")
 		return
@@ -490,7 +509,7 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 }
 
 // matchupModules returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupModules(ctx context.Context, s store.Storer, uu map[int]types.Module, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupModules(ctx context.Context, s store.Storer, uu map[int]types.Module, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchComposeModules(ctx, s, types.ModuleFilter{})
@@ -510,6 +529,11 @@ func (e StoreEncoder) matchupModules(ctx context.Context, s store.Storer, uu map
 	var aux *types.Module
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -545,9 +569,16 @@ func (e StoreEncoder) prepareModuleField(ctx context.Context, p envoyx.EncodePar
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.ModuleField, len(nn))
-	err = e.matchupModuleFields(ctx, s, existing, nn)
+	err = e.matchupModuleFields(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing ModuleFields")
 		return
@@ -697,7 +728,7 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 }
 
 // matchupModuleFields returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupModuleFields(ctx context.Context, s store.Storer, uu map[int]types.ModuleField, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupModuleFields(ctx context.Context, s store.Storer, uu map[int]types.ModuleField, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchComposeModuleFields(ctx, s, types.ModuleFieldFilter{})
@@ -717,6 +748,11 @@ func (e StoreEncoder) matchupModuleFields(ctx context.Context, s store.Storer, u
 	var aux *types.ModuleField
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -752,9 +788,16 @@ func (e StoreEncoder) prepareNamespace(ctx context.Context, p envoyx.EncodeParam
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Namespace, len(nn))
-	err = e.matchupNamespaces(ctx, s, existing, nn)
+	err = e.matchupNamespaces(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Namespaces")
 		return
@@ -918,7 +961,7 @@ func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams
 }
 
 // matchupNamespaces returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupNamespaces(ctx context.Context, s store.Storer, uu map[int]types.Namespace, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupNamespaces(ctx context.Context, s store.Storer, uu map[int]types.Namespace, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{})
@@ -938,6 +981,11 @@ func (e StoreEncoder) matchupNamespaces(ctx context.Context, s store.Storer, uu 
 	var aux *types.Namespace
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -973,9 +1021,16 @@ func (e StoreEncoder) preparePage(ctx context.Context, p envoyx.EncodeParams, s 
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Page, len(nn))
-	err = e.matchupPages(ctx, s, existing, nn)
+	err = e.matchupPages(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Pages")
 		return
@@ -1121,7 +1176,7 @@ func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s s
 }
 
 // matchupPages returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[int]types.Page, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[int]types.Page, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchComposePages(ctx, s, types.PageFilter{})
@@ -1141,6 +1196,11 @@ func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.Page
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1197,5 +1257,90 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	}
 
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
+	return
+}
+
+func (e StoreEncoder) getScopeNodes(ctx context.Context, s store.Storer, nn envoyx.NodeSet) (scopes envoyx.NodeSet, err error) {
+	// Get all requested scopes
+	scopes = make(envoyx.NodeSet, len(nn))
+
+	err = func() (err error) {
+		for i, n := range nn {
+			if n.Scope.ResourceType == "" {
+				continue
+			}
+
+			// For now the scope can only point to namespace so this will do
+			var nn envoyx.NodeSet
+			nn, err = e.decodeNamespace(ctx, s, e.makeNamespaceFilter(nil, nil, envoyx.ResourceFilter{Identifiers: n.Scope.Identifiers}))
+			if err != nil {
+				return
+			}
+			if len(nn) > 1 {
+				err = fmt.Errorf("ambiguous scope %v: matches multiple resources", n.Scope)
+				return
+			}
+
+			// when encoding, it could be missing
+			if len(nn) == 0 {
+				return
+			}
+
+			scopes[i] = nn[0]
+		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to decode node scopes")
+		return
+	}
+
+	return
+}
+
+func (e StoreEncoder) decodeNamespace(ctx context.Context, s store.Storer, f types.NamespaceFilter) (out envoyx.NodeSet, err error) {
+	// @todo this might need to be improved.
+	//       Currently, no resource is vast enough to pose a problem.
+	rr, _, err := store.SearchComposeNamespaces(ctx, s, f)
+	if err != nil {
+		return
+	}
+
+	for _, r := range rr {
+		var n *envoyx.Node
+		n, err = NamespaceToEnvoyNode(r)
+		if err != nil {
+			return
+		}
+		out = append(out, n)
+	}
+
+	return
+}
+
+func (e StoreEncoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter) (out types.NamespaceFilter) {
+	out.Limit = auxf.Limit
+
+	ids, hh := auxf.Identifiers.Idents()
+	_ = ids
+	_ = hh
+
+	out.NamespaceID = ids
+
+	if len(hh) > 0 {
+		out.Slug = hh[0]
+	}
+
+	if scope == nil {
+		return
+	}
+
+	if scope.ResourceType == "" {
+		return
+	}
+
+	// Overwrite it
+	out.NamespaceID = []uint64{scope.Resource.GetID()}
+
 	return
 }

@@ -102,9 +102,16 @@ func (e StoreEncoder) prepareWorkflow(ctx context.Context, p envoyx.EncodeParams
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Workflow, len(nn))
-	err = e.matchupWorkflows(ctx, s, existing, nn)
+	err = e.matchupWorkflows(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Workflows")
 		return
@@ -250,7 +257,7 @@ func (e StoreEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams,
 }
 
 // matchupWorkflows returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupWorkflows(ctx context.Context, s store.Storer, uu map[int]types.Workflow, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupWorkflows(ctx context.Context, s store.Storer, uu map[int]types.Workflow, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchAutomationWorkflows(ctx, s, types.WorkflowFilter{})
@@ -270,6 +277,11 @@ func (e StoreEncoder) matchupWorkflows(ctx context.Context, s store.Storer, uu m
 	var aux *types.Workflow
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -305,9 +317,16 @@ func (e StoreEncoder) prepareTrigger(ctx context.Context, p envoyx.EncodeParams,
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
 
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.Trigger, len(nn))
-	err = e.matchupTriggers(ctx, s, existing, nn)
+	err = e.matchupTriggers(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing Triggers")
 		return
@@ -453,7 +472,7 @@ func (e StoreEncoder) encodeTrigger(ctx context.Context, p envoyx.EncodeParams, 
 }
 
 // matchupTriggers returns an index with indicates what resources already exist
-func (e StoreEncoder) matchupTriggers(ctx context.Context, s store.Storer, uu map[int]types.Trigger, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchupTriggers(ctx context.Context, s store.Storer, uu map[int]types.Trigger, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
 	// @todo might need to do it smarter then this.
 	//       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{})
@@ -472,6 +491,11 @@ func (e StoreEncoder) matchupTriggers(ctx context.Context, s store.Storer, uu ma
 	var aux *types.Trigger
 	var ok bool
 	for i, n := range nn {
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -528,5 +552,15 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	}
 
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
+	return
+}
+
+func (e StoreEncoder) getScopeNodes(ctx context.Context, s store.Storer, nn envoyx.NodeSet) (scopes envoyx.NodeSet, err error) {
+	// Get all requested scopes
+	scopes = make(envoyx.NodeSet, len(nn))
+
+	// @note skipping scope logic since it's currently only supported within
+	//       Compose resources.
+
 	return
 }

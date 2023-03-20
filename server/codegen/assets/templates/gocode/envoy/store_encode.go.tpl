@@ -111,10 +111,17 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 	//       into memory shouldn't hurt too much.
 	// @todo do some benchmarks and potentially implement some smarter check such as
 	//       a bloom filter or something similar.
+	
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
 
 	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
 	existing := make(map[int]types.{{.expIdent}}, len(nn))
-	err = e.matchup{{.expIdent}}s(ctx, s, existing, nn)
+	err = e.matchup{{.expIdent}}s(ctx, s, existing, scopedNodes, nn)
 	if err != nil {
 		err = errors.Wrap(err, "failed to matchup existing {{.expIdent}}s")
 		return
@@ -312,7 +319,7 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 }
 
 // matchup{{.expIdent}}s returns an index with indicates what resources already exist
-func (e StoreEncoder) matchup{{.expIdent}}s(ctx context.Context, s store.Storer, uu map[int]types.{{.expIdent}}, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) matchup{{.expIdent}}s(ctx context.Context, s store.Storer, uu map[int]types.{{.expIdent}}, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
   // @todo might need to do it smarter then this.
   //       Most resources won't really be that vast so this should be acceptable for now.
 	aa, _, err := store.Search{{.store.expIdentPlural}}(ctx, s, types.{{.expIdent}}Filter{})
@@ -339,6 +346,11 @@ func (e StoreEncoder) matchup{{.expIdent}}s(ctx context.Context, s store.Storer,
 	var aux *types.{{.expIdent}}
 	var ok bool
 	for i, n := range nn {
+	scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -399,3 +411,93 @@ func (e *StoreEncoder) runEvals(ctx context.Context, existing bool, n *envoyx.No
 	n.Evaluated.Skip, err = n.Config.SkipIfEval.Test(ctx, aux.(*expr.Vars))
 	return
 }
+
+func (e StoreEncoder) getScopeNodes(ctx context.Context, s store.Storer, nn envoyx.NodeSet) (scopes envoyx.NodeSet, err error) {
+	// Get all requested scopes
+	scopes = make(envoyx.NodeSet, len(nn))
+	{{ if eq .componentIdent "compose" }}
+	err = func() (err error) {
+		for i, n := range nn {
+			if n.Scope.ResourceType == "" {
+				continue
+			}
+
+			// For now the scope can only point to namespace so this will do
+			var nn envoyx.NodeSet
+			nn, err = e.decodeNamespace(ctx, s, e.makeNamespaceFilter(nil, nil, envoyx.ResourceFilter{Identifiers: n.Scope.Identifiers}))
+			if err != nil {
+				return
+			}
+			if len(nn) > 1 {
+				err = fmt.Errorf("ambiguous scope %v: matches multiple resources", n.Scope)
+				return
+			}
+
+			// when encoding, it could be missing
+			if len(nn) == 0 {
+				return
+			}
+
+			scopes[i] = nn[0]
+		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to decode node scopes")
+		return
+	}
+	{{ else }}
+	// @note skipping scope logic since it's currently only supported within
+	//       Compose resources.
+	{{ end }}
+	return
+}
+
+{{ if eq .componentIdent "compose" }}
+func (e StoreEncoder) decodeNamespace(ctx context.Context, s store.Storer, f types.NamespaceFilter) (out envoyx.NodeSet, err error) {
+	// @todo this might need to be improved.
+	//       Currently, no resource is vast enough to pose a problem.
+	rr, _, err := store.SearchComposeNamespaces(ctx, s, f)
+	if err != nil {
+		return
+	}
+
+	for _, r := range rr {
+		var n *envoyx.Node
+		n, err = NamespaceToEnvoyNode(r)
+		if err != nil {
+			return
+		}
+		out = append(out, n)
+	}
+
+	return
+}
+
+func (e StoreEncoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter) (out types.NamespaceFilter) {
+	out.Limit = auxf.Limit
+
+	ids, hh := auxf.Identifiers.Idents()
+	_ = ids
+	_ = hh
+
+	out.NamespaceID = ids
+
+	if len(hh) > 0 {
+		out.Slug = hh[0]
+	}
+
+	if scope == nil {
+		return
+	}
+
+	if scope.ResourceType == "" {
+		return
+	}
+
+	// Overwrite it
+	out.NamespaceID = []uint64{scope.Resource.GetID()}
+
+	return
+}
+{{ end }}
