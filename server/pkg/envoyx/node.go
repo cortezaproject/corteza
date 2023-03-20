@@ -75,6 +75,10 @@ type (
 		//       it can't be fetched from the DB
 		Optional bool
 	}
+
+	prunner interface {
+		Prune(rt string)
+	}
 )
 
 // MakeIdentifiers initializes an Identifiers instance from the given slice
@@ -168,6 +172,19 @@ func (n Node) ToRef() Ref {
 		ResourceType: n.ResourceType,
 		Identifiers:  n.Identifiers,
 		Scope:        n.Scope,
+	}
+}
+
+func (n *Node) Prune(ref Ref) {
+	for k, nodeRef := range n.References {
+		if nodeRef.Equals(ref) {
+			delete(n.References, k)
+		}
+	}
+
+	if pp, ok := n.Resource.(prunner); ok {
+		// @todo improve when needed; for now it's ok
+		pp.Prune(ref.ResourceType)
 	}
 }
 

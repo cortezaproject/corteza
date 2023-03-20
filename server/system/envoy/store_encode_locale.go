@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/pkg/errors"
 )
 
 func (e StoreEncoder) prepareResourceTranslation(ctx context.Context, p envoyx.EncodeParams, s store.Storer, nn envoyx.NodeSet) (err error) {
@@ -54,23 +55,30 @@ func (e StoreEncoder) encodeResourceTranslations(ctx context.Context, p envoyx.E
 func (e StoreEncoder) encodeResourceTranslation(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
 	// Grab dependency references
 	var auxID uint64
-	for fieldLabel, ref := range n.References {
-		rn := tree.ParentForRef(n, ref)
-		if rn == nil {
-			err = fmt.Errorf("parent reference %v not found", ref)
-			return
-		}
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
 
-		auxID = rn.Resource.GetID()
-		if auxID == 0 {
-			err = fmt.Errorf("parent reference does not provide an identifier")
-			return
-		}
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
 
-		err = n.Resource.SetValue(fieldLabel, 0, auxID)
-		if err != nil {
-			return
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
 		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %s", n.ResourceType, n.Resource))
+		return
 	}
 
 	// Flush to the DB

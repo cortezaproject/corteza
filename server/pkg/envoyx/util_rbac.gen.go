@@ -20,6 +20,12 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 	rt := pp[0]
 	pp = pp[1:]
 
+	// @todo this is to support res. tr. resources also.
+	//       Split it into a separate function and remove this.
+	if !strings.HasPrefix(rt, "corteza::") {
+		rt = "corteza::" + rt
+	}
+
 	gRef := func(pp []string, i int) string {
 		if pp[i] == "*" {
 			return ""
@@ -29,7 +35,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 
 	switch rt {
 
-	case "corteza::system:apigwFilter":
+	case "corteza::system:apigw-filter":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -42,7 +48,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:apigwRoute":
+	case "corteza::system:apigw-route":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -81,7 +87,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:authClient":
+	case "corteza::system:auth-client":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -94,7 +100,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:authConfirmedClient":
+	case "corteza::system:auth-confirmed-client":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -107,7 +113,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:authOa2token":
+	case "corteza::system:auth-oa2token":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -120,7 +126,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:authSession":
+	case "corteza::system:auth-session":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -146,7 +152,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:dalConnection":
+	case "corteza::system:dal-connection":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -159,7 +165,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:dalSensitivityLevel":
+	case "corteza::system:dal-sensitivity-level":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -172,7 +178,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:dataPrivacyRequest":
+	case "corteza::system:data-privacy-request":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -185,7 +191,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:dataPrivacyRequestComment":
+	case "corteza::system:data-privacy-request-comment":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -211,7 +217,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:queueMessage":
+	case "corteza::system:queue-message":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -250,7 +256,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:resourceTranslation":
+	case "corteza::system:resource-translation":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -276,7 +282,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:roleMember":
+	case "corteza::system:role-member":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -289,7 +295,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::system:settingValue":
+	case "corteza::system:settings":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -399,7 +405,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::compose:moduleField":
+	case "corteza::compose:module-field":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {
@@ -522,7 +528,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
-	case "corteza::compose:recordRevision":
+	case "corteza::compose:record-revision":
 		scope := Scope{}
 
 		if gRef(pp, 0) == "" {

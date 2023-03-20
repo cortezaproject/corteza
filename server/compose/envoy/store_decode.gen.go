@@ -163,45 +163,55 @@ func (d StoreDecoder) decodeChart(ctx context.Context, s store.Storer, dl dal.Fu
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.NamespaceID > 0 {
-			refs["NamespaceID"] = envoyx.Ref{
-				ResourceType: "corteza::compose:namespace",
-				Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
-			}
+		var n *envoyx.Node
+		n, err = ChartToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-
-		refs = envoyx.MergeRefs(refs, d.decodeChartRefs(r))
-
-		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: refs["NamespaceID"].ResourceType,
-			Identifiers:  refs["NamespaceID"].Identifiers,
-		}
-		for k, ref := range refs {
-			ref.Scope = scope
-			refs[k] = ref
-		}
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ChartResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func ChartToEnvoyNode(r *types.Chart) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.NamespaceID > 0 {
+		refs["NamespaceID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+		}
+	}
+
+	refs = envoyx.MergeRefs(refs, decodeChartRefs(r))
+
+	var scope envoyx.Scope
+
+	scope = envoyx.Scope{
+		ResourceType: refs["NamespaceID"].ResourceType,
+		Identifiers:  refs["NamespaceID"].Identifiers,
+	}
+	for k, ref := range refs {
+		ref.Scope = scope
+		refs[k] = ref
+	}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ChartResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -247,41 +257,12 @@ func (d StoreDecoder) decodeModule(ctx context.Context, s store.Storer, dl dal.F
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.NamespaceID > 0 {
-			refs["NamespaceID"] = envoyx.Ref{
-				ResourceType: "corteza::compose:namespace",
-				Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
-			}
+		var n *envoyx.Node
+		n, err = ModuleToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-
-		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: refs["NamespaceID"].ResourceType,
-			Identifiers:  refs["NamespaceID"].Identifiers,
-		}
-		for k, ref := range refs {
-			ref.Scope = scope
-			refs[k] = ref
-		}
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ModuleResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
 	aux, err := d.extendedModuleDecoder(ctx, s, dl, f, out)
@@ -290,6 +271,45 @@ func (d StoreDecoder) decodeModule(ctx context.Context, s store.Storer, dl dal.F
 	}
 	out = append(out, aux...)
 
+	return
+}
+
+func ModuleToEnvoyNode(r *types.Module) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.NamespaceID > 0 {
+		refs["NamespaceID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	scope = envoyx.Scope{
+		ResourceType: refs["NamespaceID"].ResourceType,
+		Identifiers:  refs["NamespaceID"].Identifiers,
+	}
+	for k, ref := range refs {
+		ref.Scope = scope
+		refs[k] = ref
+	}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ModuleResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -336,45 +356,55 @@ func (d StoreDecoder) decodeModuleField(ctx context.Context, s store.Storer, dl 
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-			r.Name,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.ModuleID > 0 {
-			refs["ModuleID"] = envoyx.Ref{
-				ResourceType: "corteza::compose:module",
-				Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
-			}
+		var n *envoyx.Node
+		n, err = ModuleFieldToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-
-		refs = envoyx.MergeRefs(refs, d.decodeModuleFieldRefs(r))
-
-		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: refs["NamespaceID"].ResourceType,
-			Identifiers:  refs["NamespaceID"].Identifiers,
-		}
-		for k, ref := range refs {
-			ref.Scope = scope
-			refs[k] = ref
-		}
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ModuleFieldResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func ModuleFieldToEnvoyNode(r *types.ModuleField) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+		r.Name,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.ModuleID > 0 {
+		refs["ModuleID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:module",
+			Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
+		}
+	}
+
+	refs = envoyx.MergeRefs(refs, decodeModuleFieldRefs(r))
+
+	var scope envoyx.Scope
+
+	scope = envoyx.Scope{
+		ResourceType: refs["NamespaceID"].ResourceType,
+		Identifiers:  refs["NamespaceID"].Identifiers,
+	}
+	for k, ref := range refs {
+		ref.Scope = scope
+		refs[k] = ref
+	}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ModuleFieldResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -393,33 +423,43 @@ func (d StoreDecoder) decodeNamespace(ctx context.Context, s store.Storer, dl da
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-			r.Slug,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-
-		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: types.NamespaceResourceType,
-			Identifiers:  ii,
+		var n *envoyx.Node
+		n, err = NamespaceToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.NamespaceResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func NamespaceToEnvoyNode(r *types.Namespace) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+		r.Slug,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+
+	var scope envoyx.Scope
+
+	scope = envoyx.Scope{
+		ResourceType: types.NamespaceResourceType,
+		Identifiers:  ii,
+	}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.NamespaceResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -461,57 +501,67 @@ func (d StoreDecoder) decodePage(ctx context.Context, s store.Storer, dl dal.Ful
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.ModuleID > 0 {
-			refs["ModuleID"] = envoyx.Ref{
-				ResourceType: "corteza::compose:module",
-				Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
-			}
+		var n *envoyx.Node
+		n, err = PageToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.NamespaceID > 0 {
-			refs["NamespaceID"] = envoyx.Ref{
-				ResourceType: "corteza::compose:namespace",
-				Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
-			}
-		}
-		if r.SelfID > 0 {
-			refs["SelfID"] = envoyx.Ref{
-				ResourceType: "corteza::compose:page",
-				Identifiers:  envoyx.MakeIdentifiers(r.SelfID),
-			}
-		}
-
-		refs = envoyx.MergeRefs(refs, d.decodePageRefs(r))
-
-		var scope envoyx.Scope
-
-		scope = envoyx.Scope{
-			ResourceType: refs["NamespaceID"].ResourceType,
-			Identifiers:  refs["NamespaceID"].Identifiers,
-		}
-		for k, ref := range refs {
-			ref.Scope = scope
-			refs[k] = ref
-		}
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.PageResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func PageToEnvoyNode(r *types.Page) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.ModuleID > 0 {
+		refs["ModuleID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:module",
+			Identifiers:  envoyx.MakeIdentifiers(r.ModuleID),
+		}
+	}
+	if r.NamespaceID > 0 {
+		refs["NamespaceID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+		}
+	}
+	if r.SelfID > 0 {
+		refs["SelfID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:page",
+			Identifiers:  envoyx.MakeIdentifiers(r.SelfID),
+		}
+	}
+
+	refs = envoyx.MergeRefs(refs, decodePageRefs(r))
+
+	var scope envoyx.Scope
+
+	scope = envoyx.Scope{
+		ResourceType: refs["NamespaceID"].ResourceType,
+		Identifiers:  refs["NamespaceID"].Identifiers,
+	}
+	for k, ref := range refs {
+		ref.Scope = scope
+		refs[k] = ref
+	}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.PageResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 

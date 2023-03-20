@@ -31,7 +31,7 @@ func (d StoreDecoder) extendedApigwRouteDecoder(ctx context.Context, s store.Sto
 	return
 }
 
-func (d StoreDecoder) decodeAuthClientRefs(c *types.AuthClient) (refs map[string]envoyx.Ref) {
+func decodeAuthClientRefs(c *types.AuthClient) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, 4)
 
 	if c.Security.ImpersonateUser > 0 {
@@ -41,14 +41,14 @@ func (d StoreDecoder) decodeAuthClientRefs(c *types.AuthClient) (refs map[string
 		}
 	}
 
-	d.roleSliceToRefs(refs, "Security.PermittedRoles", c.Security.PermittedRoles)
-	d.roleSliceToRefs(refs, "Security.ProhibitedRoles", c.Security.ProhibitedRoles)
-	d.roleSliceToRefs(refs, "Security.ForcedRoles", c.Security.ForcedRoles)
+	roleSliceToRefs(refs, "Security.PermittedRoles", c.Security.PermittedRoles)
+	roleSliceToRefs(refs, "Security.ProhibitedRoles", c.Security.ProhibitedRoles)
+	roleSliceToRefs(refs, "Security.ForcedRoles", c.Security.ForcedRoles)
 
 	return
 }
 
-func (d StoreDecoder) decodeDalConnectionRefs(c *types.DalConnection) (refs map[string]envoyx.Ref) {
+func decodeDalConnectionRefs(c *types.DalConnection) (refs map[string]envoyx.Ref) {
 	if c.Config.Privacy.SensitivityLevelID == 0 {
 		return
 	}
@@ -63,7 +63,7 @@ func (d StoreDecoder) decodeDalConnectionRefs(c *types.DalConnection) (refs map[
 	return
 }
 
-func (d StoreDecoder) roleSliceToRefs(refs map[string]envoyx.Ref, k string, rr []string) {
+func roleSliceToRefs(refs map[string]envoyx.Ref, k string, rr []string) {
 	for i, r := range rr {
 		refs[fmt.Sprintf("%s.%d.RoleID", k, i)] = envoyx.Ref{
 			ResourceType: types.RoleResourceType,

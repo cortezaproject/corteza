@@ -128,60 +128,12 @@ func (d StoreDecoder) decode{{.expIdent}}(ctx context.Context, s store.Storer, d
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-	{{- range .model.attributes -}}
-			{{- if not .envoy.identifier -}}
-				{{continue}}
-			{{ end }}
-			r.{{.expIdent}},
-	{{- end }}
-		)
-
-	// Handle references
-	// Omit any non-defined values
-	refs := map[string]envoyx.Ref{}
-	{{- range .model.attributes -}}
-		{{- if eq .dal.type "Ref" }}
-		if r.{{.expIdent}} > 0 {
-			refs["{{ .expIdent }}"] = envoyx.Ref{
-				ResourceType: "{{ .dal.refModelResType }}",
-				Identifiers: envoyx.MakeIdentifiers(r.{{.expIdent}}),
-			}
+		var n *envoyx.Node
+		n, err = {{.expIdent}}ToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		{{- end }}
-	{{- end }}
-
-	{{ if .envoy.store.extendedRefDecoder }}
-	refs = envoyx.MergeRefs(refs, d.decode{{.expIdent}}Refs(r))
-	{{ end }}
-
-	var scope envoyx.Scope
-	{{if and .envoy.scoped .parents}}
-		scope = envoyx.Scope{
-			ResourceType: refs["{{(index .parents 0).refField}}"].ResourceType,
-			Identifiers:  refs["{{(index .parents 0).refField}}"].Identifiers,
-		}
-		for k, ref := range refs {
-			ref.Scope = scope
-			refs[k] = ref
-		}
-		{{end}}
-		{{if and .envoy.scoped (not .parents)}}
-		scope = envoyx.Scope{
-			ResourceType: types.{{ .expIdent }}ResourceType,
-			Identifiers:  ii,
-		}
-	{{end}}
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.{{.expIdent}}ResourceType,
-			Identifiers:  ii,
-			References: refs,
-			Scope: scope,
-		})
+		out = append(out, n)
 	}
 
 	{{ if .envoy.store.extendedDecoder -}}
@@ -192,6 +144,64 @@ func (d StoreDecoder) decode{{.expIdent}}(ctx context.Context, s store.Storer, d
 	out = append(out, aux...)
 	{{- end }}
 
+	return
+}
+
+func {{.expIdent}}ToEnvoyNode(r *types.{{.expIdent}}) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+{{- range .model.attributes -}}
+		{{- if not .envoy.identifier -}}
+			{{continue}}
+		{{ end }}
+		r.{{.expIdent}},
+{{- end }}
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+{{- range .model.attributes -}}
+	{{- if eq .dal.type "Ref" }}
+	if r.{{.expIdent}} > 0 {
+		refs["{{ .expIdent }}"] = envoyx.Ref{
+			ResourceType: "{{ .dal.refModelResType }}",
+			Identifiers: envoyx.MakeIdentifiers(r.{{.expIdent}}),
+		}
+	}
+	{{- end }}
+{{- end }}
+
+{{ if .envoy.store.extendedRefDecoder }}
+	refs = envoyx.MergeRefs(refs, decode{{.expIdent}}Refs(r))
+{{ end }}
+
+var scope envoyx.Scope
+{{if and .envoy.scoped .parents}}
+	scope = envoyx.Scope{
+		ResourceType: refs["{{(index .parents 0).refField}}"].ResourceType,
+		Identifiers:  refs["{{(index .parents 0).refField}}"].Identifiers,
+	}
+	for k, ref := range refs {
+		ref.Scope = scope
+		refs[k] = ref
+	}
+	{{end}}
+	{{if and .envoy.scoped (not .parents)}}
+	scope = envoyx.Scope{
+		ResourceType: types.{{ .expIdent }}ResourceType,
+		Identifiers:  ii,
+	}
+{{end}}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.{{.expIdent}}ResourceType,
+		Identifiers:  ii,
+		References: refs,
+		Scope: scope,
+	}
 	return
 }
 

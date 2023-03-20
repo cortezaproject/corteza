@@ -128,56 +128,12 @@ func (d StoreDecoder) decodeWorkflow(ctx context.Context, s store.Storer, dl dal
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = WorkflowToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.OwnedBy > 0 {
-			refs["OwnedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			}
-		}
-		if r.RunAs > 0 {
-			refs["RunAs"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.RunAs),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.WorkflowResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
 	aux, err := d.extendedWorkflowDecoder(ctx, s, dl, f, out)
@@ -186,6 +142,60 @@ func (d StoreDecoder) decodeWorkflow(ctx context.Context, s store.Storer, dl dal
 	}
 	out = append(out, aux...)
 
+	return
+}
+
+func WorkflowToEnvoyNode(r *types.Workflow) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.OwnedBy > 0 {
+		refs["OwnedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
+		}
+	}
+	if r.RunAs > 0 {
+		refs["RunAs"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.RunAs),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.WorkflowResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -204,57 +214,67 @@ func (d StoreDecoder) decodeTrigger(ctx context.Context, s store.Storer, dl dal.
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = TriggerToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.OwnedBy > 0 {
-			refs["OwnedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-		if r.WorkflowID > 0 {
-			refs["WorkflowID"] = envoyx.Ref{
-				ResourceType: "corteza::automation:workflow",
-				Identifiers:  envoyx.MakeIdentifiers(r.WorkflowID),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.TriggerResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func TriggerToEnvoyNode(r *types.Trigger) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.OwnedBy > 0 {
+		refs["OwnedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+	if r.WorkflowID > 0 {
+		refs["WorkflowID"] = envoyx.Ref{
+			ResourceType: "corteza::automation:workflow",
+			Identifiers:  envoyx.MakeIdentifiers(r.WorkflowID),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.TriggerResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 

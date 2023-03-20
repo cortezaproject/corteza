@@ -301,6 +301,17 @@ func (g DepGraph) ParentForRef(n *Node, ref Ref) (out *Node) {
 	return
 }
 
+// ParentForRT returns a set of parent nodes matching the resource type
+func (g DepGraph) ParentForRT(n *Node, rt string) (out NodeSet) {
+	for _, sg := range g.graphs {
+		out = sg.ParentForRT(n, rt)
+		if out != nil {
+			return
+		}
+	}
+	return
+}
+
 // ChildrenForResourceType returns child nodes of n which match the resource type
 func (g DepGraph) ChildrenForResourceType(n *Node, rt string) (out NodeSet) {
 	for _, sg := range g.graphs {
@@ -388,6 +399,11 @@ func (g depSubgraph) Roots() (out NodeSet) {
 // ParentForRef returns a parent node of n which matches ref (nil if none)
 func (g depSubgraph) ParentForRef(n *Node, ref Ref) *Node {
 	return NodeForRef(ref, g.parent(n)...)
+}
+
+// ParentForRT returns a set of parent nodes matching the resource type
+func (g depSubgraph) ParentForRT(n *Node, rt string) NodeSet {
+	return NodesForResourceType(rt, g.parent(n)...)
 }
 
 // ChildrenForResourceType returns child nodes of n which match the resource type
