@@ -299,6 +299,13 @@ export default {
       ...[...module.fields].map(f => {
         f.multi = f.isMulti
         f.isMulti = false
+
+        // Disable edge case options
+        if (f.kind === 'DateTime') {
+          f.options.onlyFutureValues = false
+          f.options.onlyPastValues = false
+        }
+
         return f
       }),
       ...this.module.systemFields().map(sf => {
