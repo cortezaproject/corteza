@@ -37,6 +37,8 @@ type (
 	}
 
 	pageLayoutAccessController interface {
+		CanManageResourceTranslations(ctx context.Context) bool
+
 		// @todo...
 	}
 
@@ -215,9 +217,9 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 			return err
 		}
 
-		// if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
-		// 	return
-		// }
+		if err = updateTranslations(ctx, svc.ac, svc.locale, new.EncodeTranslations()...); err != nil {
+			return
+		}
 
 		if err = label.Create(ctx, s, new); err != nil {
 			return
@@ -346,9 +348,9 @@ func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Nam
 			}
 		}
 
-		// if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
-		// 	return
-		// }
+		if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
+			return
+		}
 
 		if changes&pageLayoutLabelsChanged > 0 {
 			if err = label.Update(ctx, s, res); err != nil {

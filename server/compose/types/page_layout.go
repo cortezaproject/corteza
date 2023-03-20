@@ -3,8 +3,11 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"strconv"
+	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -67,6 +70,11 @@ type (
 		Placement string
 		Meta      any
 
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Label string `json:"label"`
+
 		// Kind and Params specify the action's behavior and the parameters it
 		// can use for execution
 		Kind   string
@@ -101,6 +109,45 @@ type (
 func (m PageLayout) Clone() *PageLayout {
 	c := &m
 	return c
+}
+
+func (p *PageLayout) decodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	// @note not doing blocks because they are simply copied from the page's index
+
+	for i, action := range p.Config.Actions {
+		actionID := locale.ContentID(action.ActionID, i)
+		rpl := strings.NewReplacer(
+			"{{actionID}}", strconv.FormatUint(actionID, 10),
+		)
+
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDTitle.Path)); aux != nil {
+			p.Config.Actions[i].Label = aux.Msg
+		}
+	}
+}
+
+func (p *PageLayout) encodeTranslations() (out locale.ResourceTranslationSet) {
+	out = make(locale.ResourceTranslationSet, 0, 8)
+
+	// @note not doing blocks because they are simply copied from the page's index
+
+	// Actions
+	for i, action := range p.Config.Actions {
+		actionID := locale.ContentID(action.ActionID, i)
+		rpl := strings.NewReplacer(
+			"{{actionID}}", strconv.FormatUint(actionID, 10),
+		)
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: p.ResourceTranslation(),
+			Key:      rpl.Replace(LocaleKeyPageLayoutConfigActionsActionIDLabel.Path),
+			Msg:      action.Label,
+		})
+	}
+
+	return
 }
 
 // FindByHandle finds pageLayout by it's handle

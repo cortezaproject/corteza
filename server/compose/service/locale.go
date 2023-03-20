@@ -180,51 +180,6 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 	)
 
 	for _, tag := range svc.locale.Tags() {
-		// Button translations
-		// if res.Config.Buttons != nil {
-		// 	out = append(out, &locale.ResourceTranslation{
-		// 		Resource: res.ResourceTranslation(),
-		// 		Lang:     tag.String(),
-		// 		Key:      types.LocaleKeyPageRecordToolbarNewLabel.Path,
-		// 		Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarNewLabel.Path),
-		// 	})
-
-		// 	out = append(out, &locale.ResourceTranslation{
-		// 		Resource: res.ResourceTranslation(),
-		// 		Lang:     tag.String(),
-		// 		Key:      types.LocaleKeyPageRecordToolbarEditLabel.Path,
-		// 		Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarEditLabel.Path),
-		// 	})
-
-		// 	out = append(out, &locale.ResourceTranslation{
-		// 		Resource: res.ResourceTranslation(),
-		// 		Lang:     tag.String(),
-		// 		Key:      types.LocaleKeyPageRecordToolbarSubmitLabel.Path,
-		// 		Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarSubmitLabel.Path),
-		// 	})
-
-		// 	out = append(out, &locale.ResourceTranslation{
-		// 		Resource: res.ResourceTranslation(),
-		// 		Lang:     tag.String(),
-		// 		Key:      types.LocaleKeyPageRecordToolbarDeleteLabel.Path,
-		// 		Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarDeleteLabel.Path),
-		// 	})
-
-		// 	out = append(out, &locale.ResourceTranslation{
-		// 		Resource: res.ResourceTranslation(),
-		// 		Lang:     tag.String(),
-		// 		Key:      types.LocaleKeyPageRecordToolbarCloneLabel.Path,
-		// 		Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarCloneLabel.Path),
-		// 	})
-
-		// 	out = append(out, &locale.ResourceTranslation{
-		// 		Resource: res.ResourceTranslation(),
-		// 		Lang:     tag.String(),
-		// 		Key:      types.LocaleKeyPageRecordToolbarBackLabel.Path,
-		// 		Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarBackLabel.Path),
-		// 	})
-		// }
-
 		for i, block := range res.Blocks {
 			pbContentID := locale.ContentID(block.BlockID, i)
 			rpl := strings.NewReplacer(
@@ -273,6 +228,31 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 				})
 
 			}
+		}
+	}
+
+	return
+}
+
+func (svc resourceTranslationsManager) pageLayoutExtended(ctx context.Context, res *types.PageLayout) (out locale.ResourceTranslationSet, err error) {
+	var (
+		k types.LocaleKey
+	)
+
+	for _, tag := range svc.locale.Tags() {
+		for i, action := range res.Config.Actions {
+			acContentID := locale.ContentID(action.ActionID, i)
+			rpl := strings.NewReplacer(
+				"{{actionID}}", strconv.FormatUint(acContentID, 10),
+			)
+
+			k = types.LocaleKeyPageLayoutConfigActionsActionIDLabel
+			out = append(out, &locale.ResourceTranslation{
+				Resource: res.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      rpl.Replace(k.Path),
+				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+			})
 		}
 	}
 
@@ -391,6 +371,10 @@ func (svc resourceTranslationsManager) loadNamespace(ctx context.Context, s stor
 
 func (svc resourceTranslationsManager) loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (*types.Page, error) {
 	return loadPage(ctx, s, namespaceID, pageID)
+}
+
+func (svc resourceTranslationsManager) loadPageLayout(ctx context.Context, s store.Storer, namespaceID, pageID, pageLayoutID uint64) (res *types.PageLayout, err error) {
+	return loadPageLayout(ctx, s, namespaceID, pageID, pageLayoutID)
 }
 
 func (svc resourceTranslationsManager) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (*types.Chart, error) {
