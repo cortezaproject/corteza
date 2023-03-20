@@ -63,7 +63,24 @@ type (
 	}
 
 	PageLayoutConfig struct {
-		Buttons *PageLayoutButtonConfig `json:"buttons,omitempty"`
+		Visibility PageLayoutVisibility `json:"visibility"`
+		Actions    []PageLayoutAction   `json:"actions"`
+	}
+
+	PageLayoutVisibility struct {
+		Expression string
+		Roles      []string
+	}
+
+	PageLayoutAction struct {
+		ActionID  uint64 `json:"actionID,string"`
+		Placement string
+		Meta      any
+
+		// Kind and Params specify the action's behavior and the parameters it
+		// can use for execution
+		Kind   string
+		Params any
 	}
 
 	PageLayoutFilter struct {
@@ -108,12 +125,8 @@ func (set PageLayoutSet) FindByHandle(handle string) *PageLayout {
 	return nil
 }
 
-func (bb *PageLayoutConfig) Scan(src any) error { return sql.ParseJSON(src, bb) }
-func (bb PageLayoutConfig) Value() (driver.Value, error) {
-	// We're not saving button config to the DB; no need for it
-	bb.Buttons = nil
-	return json.Marshal(bb)
-}
+func (bb *PageLayoutConfig) Scan(src any) error          { return sql.ParseJSON(src, bb) }
+func (bb PageLayoutConfig) Value() (driver.Value, error) { return json.Marshal(bb) }
 
 func (vv *PageLayoutMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
 func (vv *PageLayoutMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
