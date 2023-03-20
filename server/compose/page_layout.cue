@@ -98,11 +98,19 @@ pageLayout: {
 	}
 
 	locale: {
-		skipSvc: true
-		// extended: true
+		extended: true
 
 		keys: {
-			// @todo
+			name: {
+				path: ["meta", "name"]
+			}
+			description: {
+				path: ["meta", "description"]
+			}
+			actionLabel: {
+				path: ["config", "actions", {part: "actionID", var: true}, "label"]
+				customHandler: true
+			}
 		}
 	}
 

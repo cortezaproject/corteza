@@ -60,6 +60,9 @@ var (
 	LocaleKeyPagePageBlockBlockIDDescription                = LocaleKey{Path: "pageBlock.{{blockID}}.description"}
 	LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel        = LocaleKey{Path: "pageBlock.{{blockID}}.button.{{buttonID}}.label"}
 	LocaleKeyPagePageBlockBlockIDContentBody                = LocaleKey{Path: "pageBlock.{{blockID}}.content.body"}
+	LocaleKeyPageLayoutMetaName                             = LocaleKey{Path: "meta.name"}
+	LocaleKeyPageLayoutMetaDescription                      = LocaleKey{Path: "meta.description"}
+	LocaleKeyPageLayoutConfigActionsActionIDLabel           = LocaleKey{Path: "config.actions.{{actionID}}.label"}
 )
 
 // ResourceTranslation returns string representation of Locale resource for Chart by calling ChartResourceTranslation fn
@@ -390,10 +393,35 @@ func PageLayoutResourceTranslationTpl() string {
 }
 
 func (r *PageLayout) DecodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	if aux = tt.FindByKey(LocaleKeyPageLayoutMetaName.Path); aux != nil {
+		r.Meta.Name = aux.Msg
+	}
+
+	if aux = tt.FindByKey(LocaleKeyPageLayoutMetaDescription.Path); aux != nil {
+		r.Meta.Description = aux.Msg
+	}
+
+	r.decodeTranslations(tt)
 }
 
 func (r *PageLayout) EncodeTranslations() (out locale.ResourceTranslationSet) {
 	out = locale.ResourceTranslationSet{}
+
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyPageLayoutMetaName.Path,
+		Msg:      locale.SanitizeMessage(r.Meta.Name),
+	})
+
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyPageLayoutMetaDescription.Path,
+		Msg:      locale.SanitizeMessage(r.Meta.Description),
+	})
+
+	out = append(out, r.encodeTranslations()...)
 
 	return out
 }
