@@ -501,11 +501,11 @@
             md="6"
           >
             <b-form-group
-              :label="$t('recordList.enableRecordPageNavigation')"
+              :label="$t('recordList.inlineEdit.enabled')"
               label-class="text-primary"
             >
               <c-input-checkbox
-                v-model="options.enableRecordPageNavigation"
+                v-model="options.inlineRecordEditEnabled"
                 switch
                 :labels="checkboxLabel"
               />
@@ -522,6 +522,22 @@
             >
               <c-input-checkbox
                 v-model="options.bulkRecordEditEnabled"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('recordList.enableRecordPageNavigation')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.enableRecordPageNavigation"
                 switch
                 :labels="checkboxLabel"
               />

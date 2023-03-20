@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div class="w-100">
     <!-- Extra empty line is added thanks to white-space: pre-line (multivalue) if we write div in multiple lines  -->
     <!-- eslint-disable-next-line -->
     <div v-if="field.options.display === 'number'" :class="classes">{{ formatted }}</div>
 
-    <div v-else>
+    <template v-else>
       <c-progress
         v-for="(v, i) in formatted"
         :key="i"
@@ -21,7 +21,7 @@
         :class="{ 'mt-2': i }"
         style="height: 1.5rem;"
       />
-    </div>
+    </template>
 
     <errors :errors="errors" />
   </div>

@@ -1,6 +1,7 @@
 <template>
   <div>
     <b-button
+      v-if="!openOnSelect"
       :title="$t('recordList.bulkRecord.title')"
       variant="outline-light"
       class="text-primary border-0"
@@ -14,66 +15,82 @@
 
     <b-modal
       :visible="showModal"
-      :title="$t('recordList.bulkRecord.title')"
+      :title="modalTitle || $t('recordList.bulkRecord.title')"
       body-class="p-0"
-      footer-class="d-flex justify-content-between align-items-center"
+      footer-class="flex-column align-items-stretch"
       centered
       @hide="onModalHide"
     >
-      <b-card class="pt-0">
-        <field-editor
+      <b-card
+        v-if="fields.length"
+        class="pt-0"
+      >
+        <div
           v-for="(field, index) in fields"
-          :key="index"
-          :namespace="namespace"
-          :module="module"
-          :field="field"
-          :errors="fieldErrors(field.name)"
-          :record="record"
-        />
-
-        <hr
-          v-if="fields.length"
-          class="my-4"
+          :key="field.fieldID"
+          class="position-relative"
         >
+          <field-editor
+            :namespace="namespace"
+            :module="module"
+            :field="getField(field)"
+            :errors="fieldErrors(field)"
+            :record="record"
+          />
 
+          <c-input-confirm
+            class="position-absolute"
+            :tooltip="$t('recordList.bulkRecord.field.remove')"
+            style="top: -2px; right: -4.5px; z-index: 2;"
+            @confirmed="fields.splice(index, 1)"
+          />
+        </div>
+      </b-card>
+
+      <template #modal-footer>
         <vue-select
           v-model="selectedField"
-          :placeholder="$t('recordList.bulkRecord.searchFields')"
+          :placeholder="getFieldSelectorPlaceholder"
           :get-option-label="getFieldLabel"
           :options="moduleFields"
           append-to-body
           :calculate-position="calculatePosition"
-          :selectable="option => !selectedFields.includes(option.name)"
+          :selectable="option => !fields.includes(option.name)"
+          :reduce="f => f.name"
           class="bg-white position-relative"
           @input="addField"
         />
-      </b-card>
 
-      <template #modal-footer>
-        <b-button
-          variant="light"
-          :disabled="processing"
-          @click="onReset"
+        <hr class="my-3">
+
+        <div
+          class="d-flex justify-content-between align-items-center"
         >
-          {{ $t('recordList.bulkRecord.reset') }}
-        </b-button>
+          <b-button
+            variant="light"
+            :disabled="processing"
+            @click="onReset"
+          >
+            {{ $t('recordList.bulkRecord.reset') }}
+          </b-button>
 
-        <div>
-          <b-button
-            variant="link"
-            rounded
-            class="text-decoration-none text-primary"
-            @click="onModalHide"
-          >
-            {{ $t('general.label.cancel') }}
-          </b-button>
-          <b-button
-            variant="primary"
-            :disabled="!fields.length || processing"
-            @click="handleBulkUpdateSelectedRecords(selectedRecords)"
-          >
-            {{ $t('general.label.save') }}
-          </b-button>
+          <div>
+            <b-button
+              variant="link"
+              rounded
+              class="text-decoration-none text-primary"
+              @click="onModalHide"
+            >
+              {{ $t('general.label.cancel') }}
+            </b-button>
+            <b-button
+              variant="primary"
+              :disabled="!fields.length || processing"
+              @click="handleBulkUpdateSelectedRecords(selectedRecords)"
+            >
+              {{ $t('general.label.save') }}
+            </b-button>
+          </div>
         </div>
       </template>
     </b-modal>
@@ -109,6 +126,7 @@ export default {
       type: compose.Namespace,
       required: true,
     },
+
     module: {
       type: compose.Module,
       required: true,
@@ -117,6 +135,26 @@ export default {
     selectedRecords: {
       type: Array,
       required: true,
+    },
+
+    selectedFields: {
+      type: Array,
+      default: () => ([]),
+    },
+
+    initialRecord: {
+      type: Object,
+      default: () => ({}),
+    },
+
+    openOnSelect: {
+      type: Boolean,
+      default: false,
+    },
+
+    modalTitle: {
+      type: String,
+      default: '',
     },
   },
 
@@ -129,10 +167,6 @@ export default {
   },
 
   computed: {
-    selectedFields () {
-      return this.fields.map(({ name }) => name)
-    },
-
     moduleFields () {
       return [
         ...[...this.module.fields].sort((a, b) =>
@@ -140,6 +174,32 @@ export default {
         ),
         ...this.module.systemFields().filter(({ name }) => name === 'ownedBy'),
       ].filter((field) => this.isFieldEditable(field))
+    },
+
+    getFieldSelectorPlaceholder () {
+      return this.$t(`recordList.bulkRecord.field.add${this.fields.length ? 'Another' : ''}`)
+    },
+  },
+
+  watch: {
+    selectedRecords: {
+      handler (records) {
+        if (!this.openOnSelect || !records.length) return
+
+        this.record = new compose.Record(this.module, this.initialRecord)
+        this.showModal = true
+      },
+    },
+
+    selectedFields: {
+      handler (fields = []) {
+        if (!fields.length) return
+
+        fields.forEach(f => {
+          if (this.fields.includes(f)) return
+          this.fields.push(f)
+        })
+      },
     },
   },
 
@@ -150,6 +210,10 @@ export default {
   methods: {
     onModalHide () {
       this.showModal = false
+
+      if (this.openOnSelect) {
+        this.fields = []
+      }
     },
 
     getFieldLabel ({ kind, label, name }) {
@@ -164,8 +228,16 @@ export default {
     },
 
     onReset () {
-      this.record = new compose.Record(this.module, {})
+      this.record = new compose.Record(this.module, this.initialRecord)
       this.fields = []
+    },
+
+    getField (fieldName) {
+      const field = this.moduleFields.find(
+        ({ name }) => name === fieldName,
+      )
+
+      return field || {}
     },
 
     isFieldEditable (field) {

@@ -127,6 +127,7 @@ export default {
         presort: 'createdAt DESC',
         enableRecordPageNavigation: true,
         hideConfigureFieldsButton: false,
+        inlineRecordEditEnabled: true,
       },
     })
 
