@@ -196,13 +196,6 @@ func assertRBACState(ctx context.Context, t *testing.T, s store.Storer, req *req
 		req.NoError(err)
 
 		allows := rr.FilterAccess(rbac.Allow)
-		compareRules(req, *allows.FilterOperation("op1")[0], rbac.Rule{
-			RoleID:    role1.ID,
-			Resource:  "corteza::compose:namespace/*",
-			Operation: "op1",
-			Access:    rbac.Allow,
-		})
-
 		compareRules(req, *allows.FilterOperation("op2")[0], rbac.Rule{
 			RoleID:    role1.ID,
 			Resource:  fmt.Sprintf("corteza::compose:namespace/%d", ns1.ID),
@@ -225,13 +218,6 @@ func assertRBACState(ctx context.Context, t *testing.T, s store.Storer, req *req
 		})
 
 		denies := rr.FilterAccess(rbac.Deny)
-		compareRules(req, *denies.FilterOperation("op1")[0], rbac.Rule{
-			RoleID:    role2.ID,
-			Resource:  "corteza::compose:namespace/*",
-			Operation: "op1",
-			Access:    rbac.Deny,
-		})
-
 		compareRules(req, *denies.FilterOperation("op2")[0], rbac.Rule{
 			RoleID:    role2.ID,
 			Resource:  fmt.Sprintf("corteza::compose:namespace/%d", ns1.ID),

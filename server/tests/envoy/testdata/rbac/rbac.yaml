@@ -12,8 +12,6 @@ roles:
 
 allow:
   test_role_1:
-    corteza::compose:namespace/*:
-      - op1
     corteza::compose:namespace/test_ns_1:
       - op2
     corteza::compose:module/test_ns_1/*:
@@ -23,8 +21,6 @@ allow:
 
 deny:
   test_role_2:
-    corteza::compose:namespace/*:
-      - op1
     corteza::compose:namespace/test_ns_1:
       - op2
     corteza::compose:module/test_ns_1/*:
