@@ -487,7 +487,9 @@ export default {
 
     preselectedFields: {
       handler (value) {
-        this.fields = value.filter(f => this.disabledTypes.indexOf(f.kind) < 0)
+        if (!this.fields.length) {
+          this.fields = value.filter(f => this.disabledTypes.indexOf(f.kind) < 0)
+        }
       },
       immediate: true,
     },

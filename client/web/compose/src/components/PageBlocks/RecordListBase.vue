@@ -73,6 +73,7 @@
                 :prefilter="prefilter"
                 :selection="selected"
                 :processing="processing"
+                :preselected-fields="fields.map(({ moduleField }) => moduleField)"
                 class="mr-1 float-left"
                 @export="onExport"
               />
