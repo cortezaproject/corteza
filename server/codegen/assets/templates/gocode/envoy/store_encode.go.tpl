@@ -145,7 +145,7 @@ func (e StoreEncoder) prepare{{.expIdent}}(ctx context.Context, p envoyx.EncodeP
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = errors.New("resource %v already exists, n.Identifiers.Slice")
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
 				return
 
 			case envoyx.OnConflictReplace:
@@ -224,7 +224,7 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 		return
 	}()
 	if err != nil {
-		err = errors.Wrap(err, "failed to set dependency references")
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
 		return
 	}
 

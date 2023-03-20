@@ -118,7 +118,7 @@ func (d StoreDecoder) extendedModuleDecoder(ctx context.Context, s store.Storer,
 	return
 }
 
-func (d StoreDecoder) decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Ref) {
+func decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, len(c.Config.Reports))
 
 	for i, r := range c.Config.Reports {
@@ -135,7 +135,7 @@ func (d StoreDecoder) decodeChartRefs(c *types.Chart) (refs map[string]envoyx.Re
 	return
 }
 
-func (d StoreDecoder) decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
+func decodeModuleFieldRefs(c *types.ModuleField) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, 1)
 
 	refs["NamespaceID"] = envoyx.Ref{
@@ -156,7 +156,7 @@ func (d StoreDecoder) decodeModuleFieldRefs(c *types.ModuleField) (refs map[stri
 	return
 }
 
-func (d StoreDecoder) decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
+func decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, len(p.Blocks)/2)
 
 	for index, b := range p.Blocks {

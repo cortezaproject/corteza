@@ -20,6 +20,12 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 	rt := pp[0]
 	pp = pp[1:]
 
+  // @todo this is to support res. tr. resources also.
+	//       Split it into a separate function and remove this.
+	if !strings.HasPrefix(rt, "corteza::") {
+		rt = "corteza::" + rt
+	}
+
 	gRef := func(pp []string, i int) string {
 		if pp[i] == "*" {
 			return ""
@@ -34,8 +40,7 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
   {{range .resources}}
   	{{ $a := . }}
 
-
-    case "corteza::{{$rootCmp.ident}}:{{.ident}}":
+    case "{{.fqrt}}":
       scope := Scope{}
     {{$res := .}}
     {{range $i, $p := .parents}}

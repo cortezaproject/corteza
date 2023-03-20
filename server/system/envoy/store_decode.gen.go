@@ -229,33 +229,43 @@ func (d StoreDecoder) decodeApplication(ctx context.Context, s store.Storer, dl 
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.OwnerID > 0 {
-			refs["OwnerID"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
-			}
+		var n *envoyx.Node
+		n, err = ApplicationToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ApplicationResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func ApplicationToEnvoyNode(r *types.Application) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.OwnerID > 0 {
+		refs["OwnerID"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ApplicationResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -296,49 +306,12 @@ func (d StoreDecoder) decodeApigwRoute(ctx context.Context, s store.Storer, dl d
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = ApigwRouteToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.Group > 0 {
-			refs["Group"] = envoyx.Ref{
-				ResourceType: "corteza::system:apigw-group",
-				Identifiers:  envoyx.MakeIdentifiers(r.Group),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ApigwRouteResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
 	aux, err := d.extendedApigwRouteDecoder(ctx, s, dl, f, out)
@@ -347,6 +320,53 @@ func (d StoreDecoder) decodeApigwRoute(ctx context.Context, s store.Storer, dl d
 	}
 	out = append(out, aux...)
 
+	return
+}
+
+func ApigwRouteToEnvoyNode(r *types.ApigwRoute) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.Group > 0 {
+		refs["Group"] = envoyx.Ref{
+			ResourceType: "corteza::system:apigw-group",
+			Identifiers:  envoyx.MakeIdentifiers(r.Group),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ApigwRouteResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -387,51 +407,61 @@ func (d StoreDecoder) decodeApigwFilter(ctx context.Context, s store.Storer, dl 
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = ApigwFilterToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.Route > 0 {
-			refs["Route"] = envoyx.Ref{
-				ResourceType: "corteza::system:apigw-route",
-				Identifiers:  envoyx.MakeIdentifiers(r.Route),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ApigwFilterResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func ApigwFilterToEnvoyNode(r *types.ApigwFilter) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.Route > 0 {
+		refs["Route"] = envoyx.Ref{
+			ResourceType: "corteza::system:apigw-route",
+			Identifiers:  envoyx.MakeIdentifiers(r.Route),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ApigwFilterResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -468,54 +498,64 @@ func (d StoreDecoder) decodeAuthClient(ctx context.Context, s store.Storer, dl d
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = AuthClientToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.OwnedBy > 0 {
-			refs["OwnedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		refs = envoyx.MergeRefs(refs, d.decodeAuthClientRefs(r))
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.AuthClientResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func AuthClientToEnvoyNode(r *types.AuthClient) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.OwnedBy > 0 {
+		refs["OwnedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	refs = envoyx.MergeRefs(refs, decodeAuthClientRefs(r))
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.AuthClientResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -556,46 +596,56 @@ func (d StoreDecoder) decodeQueue(ctx context.Context, s store.Storer, dl dal.Fu
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.ID,
-			r.Queue,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = QueueToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.QueueResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func QueueToEnvoyNode(r *types.Queue) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.ID,
+		r.Queue,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.QueueResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -632,52 +682,62 @@ func (d StoreDecoder) decodeReport(ctx context.Context, s store.Storer, dl dal.F
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = ReportToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.OwnedBy > 0 {
-			refs["OwnedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.ReportResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func ReportToEnvoyNode(r *types.Report) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.OwnedBy > 0 {
+		refs["OwnedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.ReportResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -718,28 +778,38 @@ func (d StoreDecoder) decodeRole(ctx context.Context, s store.Storer, dl dal.Ful
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.RoleResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		var n *envoyx.Node
+		n, err = RoleToEnvoyNode(r)
+		if err != nil {
+			return
+		}
+		out = append(out, n)
 	}
 
+	return
+}
+
+func RoleToEnvoyNode(r *types.Role) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.RoleResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -780,34 +850,44 @@ func (d StoreDecoder) decodeTemplate(ctx context.Context, s store.Storer, dl dal
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.OwnerID > 0 {
-			refs["OwnerID"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
-			}
+		var n *envoyx.Node
+		n, err = TemplateToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.TemplateResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func TemplateToEnvoyNode(r *types.Template) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.OwnerID > 0 {
+		refs["OwnerID"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnerID),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.TemplateResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -848,28 +928,38 @@ func (d StoreDecoder) decodeUser(ctx context.Context, s store.Storer, dl dal.Ful
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.UserResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		var n *envoyx.Node
+		n, err = UserToEnvoyNode(r)
+		if err != nil {
+			return
+		}
+		out = append(out, n)
 	}
 
+	return
+}
+
+func UserToEnvoyNode(r *types.User) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.UserResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -910,48 +1000,58 @@ func (d StoreDecoder) decodeDalConnection(ctx context.Context, s store.Storer, d
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = DalConnectionToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		refs = envoyx.MergeRefs(refs, d.decodeDalConnectionRefs(r))
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.DalConnectionResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func DalConnectionToEnvoyNode(r *types.DalConnection) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	refs = envoyx.MergeRefs(refs, decodeDalConnectionRefs(r))
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.DalConnectionResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 
@@ -992,46 +1092,56 @@ func (d StoreDecoder) decodeDalSensitivityLevel(ctx context.Context, s store.Sto
 	}
 
 	for _, r := range rr {
-		// Identifiers
-		ii := envoyx.MakeIdentifiers(
-			r.Handle,
-			r.ID,
-		)
-
-		// Handle references
-		// Omit any non-defined values
-		refs := map[string]envoyx.Ref{}
-		if r.CreatedBy > 0 {
-			refs["CreatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
-			}
+		var n *envoyx.Node
+		n, err = DalSensitivityLevelToEnvoyNode(r)
+		if err != nil {
+			return
 		}
-		if r.DeletedBy > 0 {
-			refs["DeletedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
-			}
-		}
-		if r.UpdatedBy > 0 {
-			refs["UpdatedBy"] = envoyx.Ref{
-				ResourceType: "corteza::system:user",
-				Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
-			}
-		}
-
-		var scope envoyx.Scope
-
-		out = append(out, &envoyx.Node{
-			Resource: r,
-
-			ResourceType: types.DalSensitivityLevelResourceType,
-			Identifiers:  ii,
-			References:   refs,
-			Scope:        scope,
-		})
+		out = append(out, n)
 	}
 
+	return
+}
+
+func DalSensitivityLevelToEnvoyNode(r *types.DalSensitivityLevel) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.CreatedBy > 0 {
+		refs["CreatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.CreatedBy),
+		}
+	}
+	if r.DeletedBy > 0 {
+		refs["DeletedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.DeletedBy),
+		}
+	}
+	if r.UpdatedBy > 0 {
+		refs["UpdatedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.UpdatedBy),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.DalSensitivityLevelResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
 	return
 }
 

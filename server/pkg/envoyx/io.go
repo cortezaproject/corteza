@@ -3,6 +3,7 @@ package envoyx
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -11,6 +12,43 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/csv"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/json"
 )
+
+func (svc *Service) decodeIo(ctx context.Context, p DecodeParams) (nodes NodeSet, providers []Provider, err error) {
+	// Get and validate the reader param
+	r, ok := p.Params["reader"]
+	if !ok {
+		err = fmt.Errorf("cannot decode IO: no reader parameter provided")
+		return
+	}
+	reader, ok := r.(io.Reader)
+	if !ok {
+		err = fmt.Errorf("cannot decode IO: reader should be io.Reader encoded")
+		return
+	}
+
+	// Get and validate the mimetype param
+	_, ok = p.Params["mime"].(string)
+	if !ok {
+		// @todo guess mime type
+		p.Params["mime"] = "text/yaml"
+	}
+
+	// @todo different ext based on mimetype -- currently yaml is the only supported one
+	tmpFileName := "*.yaml"
+	f, err := os.CreateTemp(os.TempDir(), tmpFileName)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	defer os.Remove(f.Name())
+
+	_, err = io.Copy(f, reader)
+	if err != nil {
+		return
+	}
+
+	return svc.decodeFile(ctx, p, os.TempDir(), f.Name())
+}
 
 func (svc *Service) decodeUri(ctx context.Context, p DecodeParams) (nodes NodeSet, providers []Provider, err error) {
 	aUri, ok := p.Params["uri"]
@@ -57,6 +95,11 @@ func (svc *Service) decodeUri(ctx context.Context, p DecodeParams) (nodes NodeSe
 func (nvyx *Service) encodeIo(ctx context.Context, dg *DepGraph, p EncodeParams) (err error) {
 	for rt, nn := range NodesByResourceType(dg.Roots()...) {
 		for _, se := range nvyx.encoders[EncodeTypeIo] {
+			nn = OmitPlaceholderNodes(nn...)
+			if len(nn) == 0 {
+				continue
+			}
+
 			err = se.Encode(ctx, p, rt, OmitPlaceholderNodes(nn...), dg)
 			if err != nil {
 				return

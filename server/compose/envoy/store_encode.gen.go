@@ -150,7 +150,7 @@ func (e StoreEncoder) prepareChart(ctx context.Context, p envoyx.EncodeParams, s
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = errors.New("resource %v already exists, n.Identifiers.Slice")
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
 				return
 
 			case envoyx.OnConflictReplace:
@@ -229,7 +229,7 @@ func (e StoreEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, s 
 		return
 	}()
 	if err != nil {
-		err = errors.Wrap(err, "failed to set dependency references")
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
 		return
 	}
 
@@ -353,7 +353,7 @@ func (e StoreEncoder) prepareModule(ctx context.Context, p envoyx.EncodeParams, 
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = errors.New("resource %v already exists, n.Identifiers.Slice")
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
 				return
 
 			case envoyx.OnConflictReplace:
@@ -432,7 +432,7 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 		return
 	}()
 	if err != nil {
-		err = errors.Wrap(err, "failed to set dependency references")
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
 		return
 	}
 
@@ -578,7 +578,7 @@ func (e StoreEncoder) prepareModuleField(ctx context.Context, p envoyx.EncodePar
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = errors.New("resource %v already exists, n.Identifiers.Slice")
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
 				return
 
 			case envoyx.OnConflictReplace:
@@ -657,7 +657,7 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 		return
 	}()
 	if err != nil {
-		err = errors.Wrap(err, "failed to set dependency references")
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
 		return
 	}
 
@@ -785,7 +785,7 @@ func (e StoreEncoder) prepareNamespace(ctx context.Context, p envoyx.EncodeParam
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = errors.New("resource %v already exists, n.Identifiers.Slice")
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
 				return
 
 			case envoyx.OnConflictReplace:
@@ -864,7 +864,7 @@ func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams
 		return
 	}()
 	if err != nil {
-		err = errors.Wrap(err, "failed to set dependency references")
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
 		return
 	}
 
@@ -1006,7 +1006,7 @@ func (e StoreEncoder) preparePage(ctx context.Context, p envoyx.EncodeParams, s 
 			// In the future, we can pass down the tree and re-do the deps like that
 			switch n.Config.MergeAlg {
 			case envoyx.OnConflictPanic:
-				err = errors.New("resource %v already exists, n.Identifiers.Slice")
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
 				return
 
 			case envoyx.OnConflictReplace:
@@ -1085,7 +1085,7 @@ func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s s
 		return
 	}()
 	if err != nil {
-		err = errors.Wrap(err, "failed to set dependency references")
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
 		return
 	}
 

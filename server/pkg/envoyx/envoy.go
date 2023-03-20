@@ -24,6 +24,9 @@ type (
 		// If no parent is found, nil is returned.
 		ParentForRef(*Node, Ref) *Node
 
+		// ParentForRT returns a set of parent nodes matching the resource type
+		ParentForRT(*Node, string) NodeSet
+
 		// ChildrenForResourceType returns the children of the provided node which
 		// match the provided resource type
 		ChildrenForResourceType(*Node, string) NodeSet
@@ -63,6 +66,10 @@ type (
 
 	canCheckFile interface {
 		CanFile(f *os.File) bool
+	}
+
+	canCheckExt interface {
+		CanExt(name string) bool
 	}
 
 	DecodeParams struct {
@@ -118,6 +125,7 @@ const (
 	// OnConflictMergeRight mergeAlg = "mergeRight"
 
 	DecodeTypeURI   decodeType = "uri"
+	DecodeTypeIO    decodeType = "io"
 	DecodeTypeStore decodeType = "store"
 
 	EncodeTypeURI   encodeType = "uri"
@@ -144,6 +152,10 @@ func Global() *Service {
 	return global
 }
 
+func Initialized() bool {
+	return global != nil
+}
+
 // Decode returns a set of envoy Nodes based on the given decode params
 func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nodes NodeSet, providers []Provider, err error) {
 	err = p.validate()
@@ -154,6 +166,8 @@ func (svc *Service) Decode(ctx context.Context, p DecodeParams) (nodes NodeSet, 
 	switch p.Type {
 	case DecodeTypeURI:
 		return svc.decodeUri(ctx, p)
+	case DecodeTypeIO:
+		return svc.decodeIo(ctx, p)
 	case DecodeTypeStore:
 		nodes, err = svc.decodeStore(ctx, p)
 		return
@@ -241,7 +255,7 @@ func (p DecodeParams) validate() (err error) {
 	case DecodeTypeURI:
 		_, ok := p.Params["uri"]
 		if !ok {
-			return fmt.Errorf("uhoh, no uri provided")
+			return fmt.Errorf("URI decoder expects a uri location parameter")
 		}
 
 	case DecodeTypeStore:

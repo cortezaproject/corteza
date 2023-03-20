@@ -37,6 +37,10 @@ func (e StoreEncoder) setApplicationDefaults(res *types.Application) (err error)
 		res.CreatedAt = time.Now()
 	}
 
+	if res.Unify == nil {
+		res.Unify = &types.ApplicationUnify{}
+	}
+
 	return
 }
 

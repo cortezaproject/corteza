@@ -46,15 +46,15 @@ func (d *auxYamlDoc) unmarshalAuthClientSecurityNode(r *types.AuthClient, n *yam
 			break
 
 		case "permittedroles":
-			refs = envoyx.MergeRefs(refs, roleSliceToRefs("Security.PermittedRoles", v))
+			refs = envoyx.MergeRefs(refs, roleNodeSliceToRefs("Security.PermittedRoles", v))
 			break
 
 		case "prohibitedroles":
-			refs = envoyx.MergeRefs(refs, roleSliceToRefs("Security.ProhibitedRoles", v))
+			refs = envoyx.MergeRefs(refs, roleNodeSliceToRefs("Security.ProhibitedRoles", v))
 			break
 
 		case "forcedroles":
-			refs = envoyx.MergeRefs(refs, roleSliceToRefs("Security.ForcedRoles", v))
+			refs = envoyx.MergeRefs(refs, roleNodeSliceToRefs("Security.ForcedRoles", v))
 			break
 
 		}
@@ -65,7 +65,7 @@ func (d *auxYamlDoc) unmarshalAuthClientSecurityNode(r *types.AuthClient, n *yam
 	return
 }
 
-func roleSliceToRefs(k string, n *yaml.Node) (refs map[string]envoyx.Ref) {
+func roleNodeSliceToRefs(k string, n *yaml.Node) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref, len(n.Content))
 
 	i := 0
