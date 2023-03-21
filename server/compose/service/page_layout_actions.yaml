@@ -84,34 +84,30 @@ errors:
     message: "invalid or missing namespace ID"
     severity: warning
 
-  # - error: notAllowedToRead
-  #   message: "not allowed to read this pageLayout"
-  #   log: "could not read {{pageLayout}}; insufficient permissions"
+  - error: notAllowedToRead
+    message: "not allowed to read this pageLayout"
+    log: "could not read {{pageLayout}}; insufficient permissions"
 
-  # - error: notAllowedToSearch
-  #   message: "not allowed to search or list pageLayouts"
-  #   log: "could not search pageLayouts; insufficient permissions"
+  - error: notAllowedToSearch
+    message: "not allowed to search or list pageLayouts"
+    log: "could not search pageLayouts; insufficient permissions"
 
-  # - error: notAllowedToReadNamespace
-  #   message: "not allowed to read this namespace"
-  #   log: "could not read namespace {{namespace}}; insufficient permissions"
+  - error: notAllowedToListPageLayouts
+    message: "not allowed to list pageLayouts"
+    log: "could not list pageLayouts; insufficient permissions"
 
-  # - error: notAllowedToListPageLayouts
-  #   message: "not allowed to list pageLayouts"
-  #   log: "could not list pageLayouts; insufficient permissions"
+  - error: notAllowedToCreate
+    message: "not allowed to create pageLayouts"
+    log: "could not create pageLayouts; insufficient permissions"
 
-  # - error: notAllowedToCreate
-  #   message: "not allowed to create pageLayouts"
-  #   log: "could not create pageLayouts; insufficient permissions"
+  - error: notAllowedToUpdate
+    message: "not allowed to update this pageLayout"
+    log: "could not update {{pageLayout}}; insufficient permissions"
 
-  # - error: notAllowedToUpdate
-  #   message: "not allowed to update this pageLayout"
-  #   log: "could not update {{pageLayout}}; insufficient permissions"
+  - error: notAllowedToDelete
+    message: "not allowed to delete this pageLayout"
+    log: "could not delete {{pageLayout}}; insufficient permissions"
 
-  # - error: notAllowedToDelete
-  #   message: "not allowed to delete this pageLayout"
-  #   log: "could not delete {{pageLayout}}; insufficient permissions"
-
-  # - error: notAllowedToUndelete
-  #   message: "not allowed to undelete this pageLayout"
-  #   log: "could not undelete {{pageLayout}}; insufficient permissions"
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this pageLayout"
+    log: "could not undelete {{pageLayout}}; insufficient permissions"

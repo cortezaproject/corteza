@@ -560,6 +560,7 @@ func UserActionDeleteAuthSessions(props ...*userActionProps) *userAction {
 // UserActionUploadAvatar returns "system:user.uploadAvatar" action
 //
 // This function is auto-generated.
+//
 func UserActionUploadAvatar(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -579,6 +580,7 @@ func UserActionUploadAvatar(props ...*userActionProps) *userAction {
 // UserActionGenerateAvatar returns "system:user.generateAvatar" action
 //
 // This function is auto-generated.
+//
 func UserActionGenerateAvatar(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -598,6 +600,7 @@ func UserActionGenerateAvatar(props ...*userActionProps) *userAction {
 // UserActionDeleteAvatar returns "system:user.deleteAvatar" action
 //
 // This function is auto-generated.
+//
 func UserActionDeleteAvatar(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -1364,7 +1367,9 @@ func UserErrMaxUserLimitReached(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToDeleteAvatar returns "system:user.notAllowedToDeleteAvatar" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func UserErrNotAllowedToDeleteAvatar(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {

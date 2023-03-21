@@ -140,6 +140,11 @@ type (
 		//
 		// Config JSON
 		Config sqlxTypes.JSONText
+
+		// Meta POST parameter
+		//
+		// Meta
+		Meta *types.PageMeta
 	}
 
 	PageRead struct {
@@ -221,6 +226,11 @@ type (
 		//
 		// Config JSON
 		Config sqlxTypes.JSONText
+
+		// Meta POST parameter
+		//
+		// Meta
+		Meta *types.PageMeta
 	}
 
 	PageReorder struct {
@@ -514,6 +524,7 @@ func (r PageCreate) Auditable() map[string]interface{} {
 		"visible":     r.Visible,
 		"blocks":      r.Blocks,
 		"config":      r.Config,
+		"meta":        r.Meta,
 	}
 }
 
@@ -570,6 +581,11 @@ func (r PageCreate) GetBlocks() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r PageCreate) GetConfig() sqlxTypes.JSONText {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageCreate) GetMeta() *types.PageMeta {
+	return r.Meta
 }
 
 // Fill processes request and fills internal variables
@@ -667,6 +683,18 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
+				r.Meta, err = types.ParsePageMeta(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["meta"]; ok {
+				r.Meta, err = types.ParsePageMeta(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -747,6 +775,18 @@ func (r *PageCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["config"]; ok && len(val) > 0 {
 			r.Config, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParsePageMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParsePageMeta(val)
 			if err != nil {
 				return err
 			}
@@ -870,6 +910,7 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 		"visible":     r.Visible,
 		"blocks":      r.Blocks,
 		"config":      r.Config,
+		"meta":        r.Meta,
 	}
 }
 
@@ -931,6 +972,11 @@ func (r PageUpdate) GetBlocks() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdate) GetConfig() sqlxTypes.JSONText {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetMeta() *types.PageMeta {
+	return r.Meta
 }
 
 // Fill processes request and fills internal variables
@@ -1028,6 +1074,18 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
+				r.Meta, err = types.ParsePageMeta(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["meta"]; ok {
+				r.Meta, err = types.ParsePageMeta(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1108,6 +1166,18 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["config"]; ok && len(val) > 0 {
 			r.Config, err = payload.ParseJSONTextWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParsePageMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParsePageMeta(val)
 			if err != nil {
 				return err
 			}

@@ -622,6 +622,16 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 			}
 		}
 
+		if upd.Meta != nil {
+			if res.Meta.AllowPersonalLayouts != upd.Meta.AllowPersonalLayouts {
+				if res.Meta == nil {
+					res.Meta = &types.PageMeta{}
+					res.Meta.AllowPersonalLayouts = upd.Meta.AllowPersonalLayouts
+					changes |= pageChanged
+				}
+			}
+		}
+
 		if res.Title != upd.Title {
 			res.Title = upd.Title
 			changes |= pageChanged

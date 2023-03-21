@@ -58,6 +58,10 @@ page: {
 				}
 			}
 
+			meta: {
+				goType: "types.PageMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+			}
 			config: {
 				goType: "types.PageConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
@@ -160,6 +164,9 @@ page: {
 			"read": {}
 			"update": {}
 			"delete": {}
+
+			"page-layout.create": description:    "Create page layout on namespace"
+			"page-layouts.search": description:   "List, search or filter page layouts on namespace"
 		}
 	}
 
