@@ -1,4 +1,5 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
+import { Apply } from '../../../cast'
 
 const kind = 'Tabs'
 
@@ -18,6 +19,7 @@ interface Tab {
 interface Options {
   style: Style;
   tabs: Tab[];
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -29,6 +31,7 @@ const defaults: Readonly<Options> = Object.freeze({
     position: 'start',
   },
   tabs: [],
+  magnifyOption: '',
 })
 
 export class PageBlockTab extends PageBlock {
@@ -43,6 +46,8 @@ export class PageBlockTab extends PageBlock {
 
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
+
+    Apply(this.options, o, String, 'magnifyOption')
 
     if (o.tabs) {
       this.options.tabs = o.tabs

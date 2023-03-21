@@ -6,11 +6,13 @@ const kind = 'Nylas'
 interface Options {
   kind: string,
   componentID: string;
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   kind: 'Composer', // Default kind of nylas component
   componentID: '',
+  magnifyOption: '',
 })
 
 export class PageBlockNylas extends PageBlock {
@@ -26,7 +28,7 @@ export class PageBlockNylas extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'kind', 'componentID')
+    Apply(this.options, o, String, 'kind', 'componentID', 'magnifyOption')
   }
 }
 

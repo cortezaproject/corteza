@@ -42,12 +42,14 @@ interface Options {
   metrics: Array<Metric>;
   refreshRate: number;
   showRefresh: boolean;
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   metrics: [],
   refreshRate: 0,
   showRefresh: false,
+  magnifyOption: '',
 })
 
 export class PageBlockMetric extends PageBlock {
@@ -64,6 +66,7 @@ export class PageBlockMetric extends PageBlock {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
+    Apply(this.options, o, String, 'magnifyOption')
     if (o.metrics) {
       this.options.metrics = o.metrics
     }

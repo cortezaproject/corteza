@@ -16,6 +16,7 @@ interface Options {
   zoomMax: number;
   bounds: Bounds | null;
   lockBounds: boolean;
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -27,6 +28,7 @@ const defaults: Readonly<Options> = Object.freeze({
   zoomMax: 18,
   bounds: null,
   lockBounds: false,
+  magnifyOption: '',
 })
 
 export class PageBlockGeometry extends PageBlock {
@@ -49,6 +51,7 @@ export class PageBlockGeometry extends PageBlock {
     this.options.center = (o.center || [])
     this.options.bounds = (o.bounds || null)
 
+    Apply(this.options, o, String, 'magnifyOption')
     Apply(this.options, o, Number, 'zoomStarting', 'zoomMin', 'zoomMax')
     Apply(this.options, o, Boolean, 'lockBounds')
   }
