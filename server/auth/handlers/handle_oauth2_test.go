@@ -146,3 +146,35 @@ func Test_generateIdToken(t *testing.T) {
 	req.NoError(err)
 	req.NotEmpty(signed)
 }
+
+func Test_SubSplitRoles(t *testing.T) {
+	type (
+		exp struct {
+			id string
+			i  string
+			ii []string
+		}
+	)
+	var (
+		req = require.New(t)
+		ti  = &oauth2models.Token{}
+		d   = make(map[string]interface{})
+
+		tii = []exp{
+			{id: "1", i: "1", ii: []string{}},
+			{id: "1 2", i: "1", ii: []string{"2"}},
+			{id: "1 2 33 444", i: "1", ii: []string{"2", "33", "444"}},
+		}
+	)
+
+	for _, v := range tii {
+		ti.SetUserID(v.id)
+		SubSplit(ti, d)
+
+		req.Equal(v.i, d["sub"])
+
+		if _, is := d["roles"]; is {
+			req.Equal(v.ii, d["roles"])
+		}
+	}
+}
