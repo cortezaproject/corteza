@@ -293,6 +293,7 @@ type (
 		SelfID      uint64                 `db:"self_id"`
 		ModuleID    uint64                 `db:"module_id"`
 		NamespaceID uint64                 `db:"namespace_id"`
+		Meta        composeType.PageMeta   `db:"meta"`
 		Config      composeType.PageConfig `db:"config"`
 		Blocks      composeType.PageBlocks `db:"blocks"`
 		Visible     bool                   `db:"visible"`
@@ -1619,6 +1620,7 @@ func (aux *auxComposePage) encode(res *composeType.Page) (_ error) {
 	aux.SelfID = res.SelfID
 	aux.ModuleID = res.ModuleID
 	aux.NamespaceID = res.NamespaceID
+	aux.Meta = res.Meta
 	aux.Config = res.Config
 	aux.Blocks = res.Blocks
 	aux.Visible = res.Visible
@@ -1641,6 +1643,7 @@ func (aux auxComposePage) decode() (res *composeType.Page, _ error) {
 	res.SelfID = aux.SelfID
 	res.ModuleID = aux.ModuleID
 	res.NamespaceID = aux.NamespaceID
+	res.Meta = aux.Meta
 	res.Config = aux.Config
 	res.Blocks = aux.Blocks
 	res.Visible = aux.Visible
@@ -1663,6 +1666,7 @@ func (aux *auxComposePage) scan(row scanner) error {
 		&aux.SelfID,
 		&aux.ModuleID,
 		&aux.NamespaceID,
+		&aux.Meta,
 		&aux.Config,
 		&aux.Blocks,
 		&aux.Visible,

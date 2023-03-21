@@ -118,6 +118,7 @@ func (ctrl *Page) Create(ctx context.Context, r *request.PageCreate) (interface{
 			Visible:     r.Visible,
 			Weight:      r.Weight,
 			Labels:      r.Labels,
+			Meta:        r.Meta,
 		}
 	)
 
@@ -168,6 +169,7 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 			Visible:     r.Visible,
 			Weight:      r.Weight,
 			Labels:      r.Labels,
+			Meta:        r.Meta,
 		}
 	)
 

@@ -642,7 +642,9 @@ func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Err
 
 // AttachmentErrInvalidAvatarFileType returns "system:attachment.invalidAvatarFileType" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidAvatarFileType(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -674,7 +676,9 @@ func AttachmentErrInvalidAvatarFileType(mm ...*attachmentActionProps) *errors.Er
 
 // AttachmentErrInvalidAvatarFileSize returns "system:attachment.invalidAvatarFileSize" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidAvatarFileSize(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -706,7 +710,9 @@ func AttachmentErrInvalidAvatarFileSize(mm ...*attachmentActionProps) *errors.Er
 
 // AttachmentErrInvalidInitialsLength returns "system:attachment.invalidInitialsLength" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidInitialsLength(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {

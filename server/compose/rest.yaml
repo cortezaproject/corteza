@@ -345,6 +345,11 @@ endpoints:
         name: config
         required: false
         title: Config JSON
+      - type: "*types.PageMeta"
+        name: meta
+        required: false
+        title: Meta
+        parser: types.ParsePageMeta
   - name: read
     path: "/{pageID}"
     method: GET
@@ -411,6 +416,11 @@ endpoints:
         name: config
         required: false
         title: Config JSON
+      - type: "*types.PageMeta"
+        name: meta
+        required: false
+        title: Meta
+        parser: types.ParsePageMeta
   - name: reorder
     method: POST
     title: Reorder pages

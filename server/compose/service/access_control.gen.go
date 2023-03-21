@@ -273,6 +273,31 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
+			"type": types.PageResourceType,
+			"any":  types.PageRbacResource(0, 0),
+			"op":   "page-layout.create",
+		},
+		{
+			"type": types.PageResourceType,
+			"any":  types.PageRbacResource(0, 0),
+			"op":   "page-layouts.search",
+		},
+		{
+			"type": types.PageLayoutResourceType,
+			"any":  types.PageLayoutRbacResource(0, 0, 0),
+			"op":   "read",
+		},
+		{
+			"type": types.PageLayoutResourceType,
+			"any":  types.PageLayoutRbacResource(0, 0, 0),
+			"op":   "update",
+		},
+		{
+			"type": types.PageLayoutResourceType,
+			"any":  types.PageLayoutRbacResource(0, 0, 0),
+			"op":   "delete",
+		},
+		{
 			"type": types.RecordResourceType,
 			"any":  types.RecordRbacResource(0, 0, 0),
 			"op":   "read",
@@ -592,6 +617,41 @@ func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool 
 	return svc.can(ctx, "delete", r)
 }
 
+// CanCreatePageLayoutOnPage checks if current user can create page layout on namespace
+//
+// This function is auto-generated
+func (svc accessControl) CanCreatePageLayoutOnPage(ctx context.Context, r *types.Page) bool {
+	return svc.can(ctx, "page-layout.create", r)
+}
+
+// CanSearchPageLayoutsOnPage checks if current user can list, search or filter page layouts on namespace
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchPageLayoutsOnPage(ctx context.Context, r *types.Page) bool {
+	return svc.can(ctx, "page-layouts.search", r)
+}
+
+// CanReadPageLayout checks if current user can read
+//
+// This function is auto-generated
+func (svc accessControl) CanReadPageLayout(ctx context.Context, r *types.PageLayout) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdatePageLayout checks if current user can update
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdatePageLayout(ctx context.Context, r *types.PageLayout) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeletePageLayout checks if current user can delete
+//
+// This function is auto-generated
+func (svc accessControl) CanDeletePageLayout(ctx context.Context, r *types.PageLayout) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanReadRecord checks if current user can read
 //
 // This function is auto-generated
@@ -818,12 +878,18 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.PageResourceType:
 		return map[string]bool{
+			"read":                true,
+			"update":              true,
+			"delete":              true,
+			"page-layout.create":  true,
+			"page-layouts.search": true,
+		}
+	case types.PageLayoutResourceType:
+		return map[string]bool{
 			"read":   true,
 			"update": true,
 			"delete": true,
 		}
-	case types.PageLayoutResourceType:
-		return map[string]bool{}
 	case types.RecordResourceType:
 		return map[string]bool{
 			"read":             true,

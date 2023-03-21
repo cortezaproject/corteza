@@ -29,6 +29,8 @@ type (
 		Config PageConfig `json:"config"`
 		Blocks PageBlocks `json:"blocks"`
 
+		Meta *PageMeta `json:"meta"`
+
 		Children PageSet `json:"children,omitempty"`
 
 		Labels map[string]string `json:"labels,omitempty"`
@@ -71,6 +73,10 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Description string `json:"description,omitempty"`
+	}
+
+	PageMeta struct {
+		AllowPersonalLayouts bool `json:"allowPersonalLayouts"`
 	}
 
 	PageBlockStyle struct {

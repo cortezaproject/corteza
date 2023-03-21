@@ -37,12 +37,16 @@ type (
 	}
 
 	pageLayoutAccessController interface {
-		CanManageResourceTranslations(ctx context.Context) bool
+		CanManageResourceTranslations(context.Context) bool
 
-		// @todo...
+		CanCreatePageLayoutOnPage(context.Context, *types.Page) bool
+		CanSearchPageLayoutsOnPage(context.Context, *types.Page) bool
+		CanReadPageLayout(context.Context, *types.PageLayout) bool
+		CanUpdatePageLayout(context.Context, *types.PageLayout) bool
+		CanDeletePageLayout(context.Context, *types.PageLayout) bool
 	}
 
-	pageLayoutUpdateHandler func(ctx context.Context, ns *types.Namespace, c *types.PageLayout) (pageLayoutChanges, error)
+	pageLayoutUpdateHandler func(ctx context.Context, ns *types.Namespace, pg *types.Page, c *types.PageLayout) (pageLayoutChanges, error)
 	pageLayoutChanges       uint8
 )
 
@@ -98,9 +102,9 @@ func (svc pageLayout) FindByPageLayoutID(ctx context.Context, namespaceID, pageL
 
 func checkPageLayout(ctx context.Context, ac pageLayoutAccessController) func(res *types.PageLayout) (bool, error) {
 	return func(res *types.PageLayout) (bool, error) {
-		// if !ac.CanReadPageLayout(ctx, res) {
-		// 	return false, nil
-		// }
+		if !ac.CanReadPageLayout(ctx, res) {
+			return false, nil
+		}
 
 		return true, nil
 	}
@@ -111,21 +115,22 @@ func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter)
 	var (
 		aProps = &pageLayoutActionProps{filter: &filter}
 		ns     *types.Namespace
+		pg     *types.Page
 	)
 
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = checkPageLayout(ctx, svc.ac)
 
 	err = func() error {
-		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+		ns, pg, err = loadPageCombo(ctx, svc.store, ns.ID, filter.PageID)
 		if err != nil {
 			return err
 		}
 
 		aProps.setNamespace(ns)
-		// if !svc.ac.CanSearchPageLayoutsOnNamespace(ctx, ns) {
-		// 	return PageLayoutErrNotAllowedToSearch()
-		// }
+		if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
+			return PageLayoutErrNotAllowedToSearch()
+		}
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
@@ -172,8 +177,9 @@ func (svc pageLayout) Find(ctx context.Context, filter types.PageLayoutFilter) (
 
 func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types.PageLayout, error) {
 	var (
-		ns     *types.Namespace
 		aProps = &pageLayoutActionProps{pageLayout: new}
+		ns     *types.Namespace
+		pg     *types.Page
 	)
 
 	new.ID = 0
@@ -183,13 +189,16 @@ func (svc pageLayout) Create(ctx context.Context, new *types.PageLayout) (*types
 			return PageLayoutErrInvalidID()
 		}
 
-		if ns, err = loadNamespace(ctx, s, new.NamespaceID); err != nil {
+		if ns, pg, err = loadPageCombo(ctx, s, new.NamespaceID, new.PageID); err != nil {
 			return err
 		}
 
-		// if !svc.ac.CanCreatePageLayoutOnNamespace(ctx, ns) {
-		// 	return PageLayoutErrNotAllowedToCreate()
-		// }
+		// Allow users to manage their personal layouts regardless of RBAC (when enabled)
+		if !svc.ac.CanCreatePageLayoutOnPage(ctx, pg) {
+			if new.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+				return PageLayoutErrNotAllowedToCreate()
+			}
+		}
 
 		aProps.setNamespace(ns)
 
@@ -247,9 +256,11 @@ func (svc pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, p
 		}
 		_ = p
 
-		// if !svc.ac.CanUpdatePageLayout(ctx, p) {
-		// 	return PageLayoutErrNotAllowedToUpdate()
-		// }
+		// @note following the pattern of pages; should probably change this
+		//       on both resources since it doesn't sound right.
+		if !svc.ac.CanCreatePageLayoutOnPage(ctx, p) {
+			return PageLayoutErrNotAllowedToUpdate()
+		}
 
 		return store.ReorderComposePageLayouts(ctx, s, namespaceID, pageID, pageLayoutIDs)
 	})
@@ -260,12 +271,12 @@ func (svc pageLayout) Reorder(ctx context.Context, namespaceID, pageID uint64, p
 
 func (svc pageLayout) Update(ctx context.Context, upd *types.PageLayout) (c *types.PageLayout, err error) {
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, res, err := loadPageLayoutCombo(ctx, s, upd.NamespaceID, upd.PageID, upd.ID)
+		ns, pg, res, err := loadPageLayoutCombo(ctx, s, upd.NamespaceID, upd.PageID, upd.ID)
 		if err != nil {
 			return
 		}
 
-		c, err = svc.updater(ctx, svc.store, ns, res, PageLayoutActionUpdate, svc.handleUpdate(ctx, upd))
+		c, err = svc.updater(ctx, svc.store, ns, pg, res, PageLayoutActionUpdate, svc.handleUpdate(ctx, upd))
 		return
 	})
 
@@ -275,34 +286,35 @@ func (svc pageLayout) Update(ctx context.Context, upd *types.PageLayout) (c *typ
 func (svc pageLayout) DeleteByID(ctx context.Context, namespaceID, pageID, pageLayoutID uint64) error {
 	var (
 		ns  *types.Namespace
+		pg  *types.Page
 		res *types.PageLayout
 	)
 
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// simply delete the pageLayout and ignore the subpageLayouts
-		ns, res, err = loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
+		ns, pg, res, err = loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
 		if err != nil {
 			return
 		}
 
-		_, err = svc.updater(ctx, svc.store, ns, res, PageLayoutActionDelete, svc.handleDelete)
+		_, err = svc.updater(ctx, svc.store, ns, pg, res, PageLayoutActionDelete, svc.handleDelete)
 		return
 	})
 }
 
 func (svc pageLayout) UndeleteByID(ctx context.Context, namespaceID, pageID, pageLayoutID uint64) error {
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		ns, res, err := loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
+		ns, pg, res, err := loadPageLayoutCombo(ctx, s, namespaceID, pageID, pageLayoutID)
 		if err != nil {
 			return
 		}
 
-		_, err = svc.updater(ctx, svc.store, ns, res, PageLayoutActionUpdate, svc.handleUndelete)
+		_, err = svc.updater(ctx, svc.store, ns, pg, res, PageLayoutActionUpdate, svc.handleUndelete)
 		return
 	})
 }
 
-func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
+func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Namespace, pg *types.Page, res *types.PageLayout, action func(...*pageLayoutActionProps) *pageLayoutAction, fn pageLayoutUpdateHandler) (*types.PageLayout, error) {
 	var (
 		changes pageLayoutChanges
 		old     *types.PageLayout
@@ -338,7 +350,7 @@ func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Nam
 			return
 		}
 
-		if changes, err = fn(ctx, ns, res); err != nil {
+		if changes, err = fn(ctx, ns, pg, res); err != nil {
 			return err
 		}
 
@@ -391,9 +403,9 @@ func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup fun
 
 		aProps.setPageLayout(p)
 
-		// if !svc.ac.CanReadPageLayout(ctx, p) {
-		// 	return PageLayoutErrNotAllowedToRead()
-		// }
+		if !svc.ac.CanReadPageLayout(ctx, p) {
+			return PageLayoutErrNotAllowedToRead()
+		}
 
 		if err = label.Load(ctx, svc.store, p); err != nil {
 			return err
@@ -416,7 +428,7 @@ func (svc pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err
 }
 
 func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) pageLayoutUpdateHandler {
-	return func(ctx context.Context, ns *types.Namespace, res *types.PageLayout) (changes pageLayoutChanges, err error) {
+	return func(ctx context.Context, ns *types.Namespace, pg *types.Page, res *types.PageLayout) (changes pageLayoutChanges, err error) {
 		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
 			return pageLayoutUnchanged, PageLayoutErrStaleData()
 		}
@@ -429,9 +441,12 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 			return pageLayoutUnchanged, err
 		}
 
-		// if !svc.ac.CanUpdatePageLayout(ctx, res) {
-		// 	return pageLayoutUnchanged, PageLayoutErrNotAllowedToUpdate()
-		// }
+		// Allow users to manage their personal layouts regardless of RBAC (when enabled)
+		if !svc.ac.CanUpdatePageLayout(ctx, res) {
+			if res.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+				return pageLayoutUnchanged, PageLayoutErrNotAllowedToUpdate()
+			}
+		}
 
 		// Get max blockID for later use
 		blockID := uint64(0)
@@ -517,10 +532,13 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 	}
 }
 
-func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, m *types.PageLayout) (pageLayoutChanges, error) {
-	// if !svc.ac.CanDeletePageLayout(ctx, m) {
-	// 	return pageLayoutUnchanged, PageLayoutErrNotAllowedToDelete()
-	// }
+func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
+	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
+	if !svc.ac.CanDeletePageLayout(ctx, m) {
+		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			return pageLayoutUnchanged, PageLayoutErrNotAllowedToDelete()
+		}
+	}
 
 	if m.DeletedAt != nil {
 		// pageLayout already deleted
@@ -531,10 +549,13 @@ func (svc pageLayout) handleDelete(ctx context.Context, ns *types.Namespace, m *
 	return pageLayoutChanged, nil
 }
 
-func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, m *types.PageLayout) (pageLayoutChanges, error) {
-	// if !svc.ac.CanDeletePageLayout(ctx, m) {
-	// 	return pageLayoutUnchanged, PageLayoutErrNotAllowedToUndelete()
-	// }
+func (svc pageLayout) handleUndelete(ctx context.Context, ns *types.Namespace, pg *types.Page, m *types.PageLayout) (pageLayoutChanges, error) {
+	// Allow users to manage their personal layouts regardless of RBAC (when enabled)
+	if !svc.ac.CanDeletePageLayout(ctx, m) {
+		if m.OwnedBy == 0 || !pg.Meta.AllowPersonalLayouts {
+			return pageLayoutUnchanged, PageLayoutErrNotAllowedToUndelete()
+		}
+	}
 
 	if m.DeletedAt == nil {
 		// pageLayout not deleted
@@ -561,7 +582,7 @@ func (svc *pageLayout) UpdateConfig(ss *systemTypes.AppSettings) {
 func loadPageLayoutCombo(ctx context.Context, s interface {
 	store.ComposePageLayouts
 	store.ComposeNamespaces
-}, namespaceID, pageID, pageLayoutID uint64) (ns *types.Namespace, c *types.PageLayout, err error) {
+}, namespaceID, pageID, pageLayoutID uint64) (ns *types.Namespace, pg *types.Page, c *types.PageLayout, err error) {
 	ns, err = loadNamespace(ctx, s, namespaceID)
 	if err != nil {
 		return

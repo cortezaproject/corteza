@@ -707,6 +707,258 @@ func PageLayoutErrInvalidNamespaceID(mm ...*pageLayoutActionProps) *errors.Error
 	return e
 }
 
+// PageLayoutErrNotAllowedToRead returns "compose:page-layout.notAllowedToRead" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToRead(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to read this pageLayout", nil),
+
+		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not read {{pageLayout}}; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToRead"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageLayoutErrNotAllowedToSearch returns "compose:page-layout.notAllowedToSearch" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToSearch(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to search or list pageLayouts", nil),
+
+		errors.Meta("type", "notAllowedToSearch"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not search pageLayouts; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToSearch"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageLayoutErrNotAllowedToListPageLayouts returns "compose:page-layout.notAllowedToListPageLayouts" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToListPageLayouts(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to list pageLayouts", nil),
+
+		errors.Meta("type", "notAllowedToListPageLayouts"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not list pageLayouts; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToListPageLayouts"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageLayoutErrNotAllowedToCreate returns "compose:page-layout.notAllowedToCreate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToCreate(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to create pageLayouts", nil),
+
+		errors.Meta("type", "notAllowedToCreate"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not create pageLayouts; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToCreate"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageLayoutErrNotAllowedToUpdate returns "compose:page-layout.notAllowedToUpdate" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToUpdate(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to update this pageLayout", nil),
+
+		errors.Meta("type", "notAllowedToUpdate"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not update {{pageLayout}}; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToUpdate"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageLayoutErrNotAllowedToDelete returns "compose:page-layout.notAllowedToDelete" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToDelete(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to delete this pageLayout", nil),
+
+		errors.Meta("type", "notAllowedToDelete"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not delete {{pageLayout}}; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToDelete"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// PageLayoutErrNotAllowedToUndelete returns "compose:page-layout.notAllowedToUndelete" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func PageLayoutErrNotAllowedToUndelete(mm ...*pageLayoutActionProps) *errors.Error {
+	var p = &pageLayoutActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("not allowed to undelete this pageLayout", nil),
+
+		errors.Meta("type", "notAllowedToUndelete"),
+		errors.Meta("resource", "compose:page-layout"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(pageLayoutLogMetaKey{}, "could not undelete {{pageLayout}}; insufficient permissions"),
+		errors.Meta(pageLayoutPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "page-layout.errors.notAllowedToUndelete"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // *********************************************************************************************************************
 // *********************************************************************************************************************
 

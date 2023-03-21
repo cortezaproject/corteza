@@ -97,6 +97,14 @@ pageLayout: {
 		}
 	}
 
+	rbac: {
+		operations: {
+			"read": {}
+			"update": {}
+			"delete": {}
+		}
+	}
+
 	locale: {
 		extended: true
 
