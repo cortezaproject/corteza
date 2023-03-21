@@ -257,7 +257,7 @@ recordList:
   editFields: Editable module fields
   export:
     all: Export all records
-    allow: Allow records export
+    allow: Users will be able to export records
     csv: CSV Export
     dateRange: 'Select date range:'
     query:
@@ -324,7 +324,7 @@ recordList:
   hideRecordPermissionsButton: Hide record permissions button
   hideRecordReminderButton: Hide record reminder button
   hideRecordViewButton: Hide view record button
-  enableRecordPageNavigation: Enable record page navigation
+  enableRecordPageNavigation: Users will be able to navigate to previous/next record
   import:
     dropzoneFileAdded: '{{name}} was uploaded and is ready for import ({{count}} record)'
     dropzoneFileAdded_plural: '{{name}} was uploaded and is ready for import ({{count}} records)'
@@ -390,21 +390,20 @@ recordList:
   record:
     draggable: Can drag & drop records to order them
     fullPageNavigation: Full page navigation
-    hideAddButton: The button 'Add Record' is hidden
-    hideImportButton: The button 'Import Record' is hidden
+    hideAddButton: Users will be able to add new records
+    hideImportButton: Users will be able to import records
     pagingLabel: Paging
     pagingOptions: Paging Options
     moreOptions: More Options
     hidePaging: User will be able to use Paging
     inlineEditor: Inline Options
-    inlineEditorAllow: Allow in-line record editing on module fields
-    inlineEditorFootnote: Only one inline editor with the same module can be present the same page
-    newLabel: New records
+    inlineEditorAllow: Inline record editor
+    recordsLabel: Records
     noPermission: No permission to read record
     perPage: Records per page
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
-    prefilterHideSearch: Users are able to search the record list
-    filterHide: Users will see a prefiltered record list
+    prefilterHideSearch: Users will be able to search the record list
+    filterHide: Users will be able to filter the list
     prefilterLabel: Filtering
     generalLabel: General Settings
     prefilterCommand: Prefilter
@@ -417,10 +416,12 @@ recordList:
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
     showDeletedRecordsOption: Show option to see deleted records
-    openInSameTab: Open records in the same tab
-    openInNewTab: Open records in a new tab
-    openInModal: Open records in a modal
+    openInSameTab: Open record in the same tab
+    openInNewTab: Open record in a new tab
+    openInModal: Open record in a modal
+    enableBulkRecordEdit: Enable bulk record edit
     linkToParent: Link to parent record
+    buttons: Record buttons
     tooltip:
       clone: Clone
       edit: Edit
@@ -429,12 +430,12 @@ recordList:
       reminder: Reminder
       view: View
       permissions: Permissions
-    recordDisplayOptions: Record display options
+    recordDisplayOptions: On record click
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record
     label: Parent field
-  selectable: Enable record selection
+  selectable: Users will be able to select records
   selected: '{{count}} of {{total}} records selected'
   sort:
     tooltip: Sort column
