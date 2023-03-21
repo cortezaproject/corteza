@@ -1,5 +1,6 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
 import { Button } from './types'
+import { Apply } from '../../../cast'
 
 const kind = 'Automation'
 
@@ -12,11 +13,13 @@ interface Options {
   //
   // Default behaviour is to add new buttons automatically.
   sealed: boolean;
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   buttons: [],
   sealed: false,
+  magnifyOption: '',
 })
 
 export class PageBlockAutomation extends PageBlock {
@@ -31,6 +34,8 @@ export class PageBlockAutomation extends PageBlock {
 
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
+
+    Apply(this.options, o, String, 'magnifyOption')
 
     if (o.buttons) {
       this.options.buttons = o.buttons.map(b => new Button(b))

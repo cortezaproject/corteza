@@ -1,5 +1,6 @@
 import { PageBlock, PageBlockInput, Registry } from '../base'
 import NavigationItem, { NavigationItemInput } from './navigation-item'
+import { Apply } from '../../../../cast'
 
 const kind = 'Navigation'
 
@@ -12,6 +13,7 @@ interface DisplayOptions {
 interface Options {
   display: DisplayOptions;
   navigationItems: NavigationItem[];
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -21,6 +23,7 @@ const defaults: Readonly<Options> = Object.freeze({
     fillJustify: 'justify',
   },
   navigationItems: [],
+  magnifyOption: '',
 })
 
 export class PageBlockNavigation extends PageBlock {
@@ -41,6 +44,8 @@ export class PageBlockNavigation extends PageBlock {
     if (o.display) {
       this.options.display = o.display
     }
+
+    Apply(this.options, o, String, 'magnifyOption')
   }
 
   static makeNavigationItem (item?: NavigationItemInput): NavigationItem {

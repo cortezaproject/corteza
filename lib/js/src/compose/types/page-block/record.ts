@@ -1,4 +1,5 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
+import { Apply } from '../../../cast'
 
 const kind = 'Record'
 
@@ -10,11 +11,13 @@ interface FieldCondition {
 interface Options {
   fields: unknown[];
   fieldConditions: FieldCondition[];
+  magnifyOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   fields: [],
   fieldConditions: [],
+  magnifyOption: '',
 })
 
 export class PageBlockRecord extends PageBlock {
@@ -29,6 +32,8 @@ export class PageBlockRecord extends PageBlock {
 
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
+
+    Apply(this.options, o, String, 'magnifyOption')
 
     if (o.fields) {
       this.options.fields = o.fields
