@@ -502,8 +502,9 @@ func (h AuthHandlers) oauth2PublicKeys(w http.ResponseWriter, r *http.Request) {
 func SubSplit(ti oauth2def.TokenInfo, data map[string]interface{}) {
 	userIdWithRoles := strings.SplitN(ti.GetUserID(), " ", 2)
 	data["sub"] = userIdWithRoles[0]
+
 	if len(userIdWithRoles) > 1 {
-		data["roles"] = userIdWithRoles[1]
+		data["roles"] = strings.Split(userIdWithRoles[1], " ")
 	}
 }
 
