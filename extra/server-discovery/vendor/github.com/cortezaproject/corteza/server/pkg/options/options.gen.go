@@ -261,6 +261,13 @@ type (
 		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
 		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
 	}
+
+	AttachmentOpt struct {
+		AvatarMaxFileSize             int64  `env:"ATTACHMENT_AVATAR_MAX_FILE_SIZE"`
+		AvatarInitialsFontPath        string `env:"AVATAR_INITIALS_FONT_PATH"`
+		AvatarInitialsBackgroundColor string `env:"AVATAR_INITIALS_BACKGROUND_COLOR"`
+		AvatarInitialsColor           string `env:"AVATAR_INITIALS_COLOR"`
+	}
 )
 
 // DB initializes and returns a DBOpt with default values
@@ -1043,6 +1050,36 @@ func Discovery() (o *DiscoveryOpt) {
 	o = &DiscoveryOpt{
 		Enabled: false,
 		Debug:   false,
+	}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Attachment initializes and returns a AttachmentOpt with default values
+//
+// This function is auto-generated
+func Attachment() (o *AttachmentOpt) {
+	o = &AttachmentOpt{
+		AvatarMaxFileSize:             1000000,
+		AvatarInitialsFontPath:        "./auth/assets/public/fonts/poppins/Poppins-Regular.ttf",
+		AvatarInitialsBackgroundColor: "#F3F3F3",
+		AvatarInitialsColor:           "#162425",
 	}
 
 	// Custom defaults

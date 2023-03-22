@@ -1,0 +1,19 @@
+types:
+  Namespace:
+    labelResourceType: compose:namespace
+  Attachment: {}
+  Module:
+    labelResourceType: compose:module
+  ModuleField:
+    labelResourceType: compose:module:field
+  Page:
+    labelResourceType: compose:page
+  Chart:
+    labelResourceType: compose:chart
+  Record: {}
+  RecordValue:
+    noIdField: true
+  PrivacyModule:
+    noIdField: true
+  DeDupRule:
+    noIdField: true
