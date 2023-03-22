@@ -20,7 +20,6 @@
           label="title"
           :calculate-position="calculatePosition"
           :reduce="f => f.pageID"
-          :calculate-position="calculatePosition"
           option-value="pageID"
           option-text="title"
           class="bg-white"
