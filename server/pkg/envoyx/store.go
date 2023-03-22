@@ -2,6 +2,7 @@ package envoyx
 
 import (
 	"context"
+	"sort"
 )
 
 func (svc *Service) decodeStore(ctx context.Context, p DecodeParams) (nn NodeSet, err error) {
@@ -33,13 +34,28 @@ func (svc *Service) encodeStore(ctx context.Context, dg *DepGraph, p EncodeParam
 	}
 
 	// Encoding
-	for rt, nn := range NodesByResourceType(dg.Roots()...) {
+	nodes := NodesByResourceType(dg.Roots()...)
+	for _, rt := range svc.sortResourceTypes(nodes) {
+		nn := nodes[rt]
 		for _, se := range svc.encoders[EncodeTypeStore] {
 			err = se.Encode(ctx, p, rt, OmitPlaceholderNodes(nn...), dg)
 			if err != nil {
 				return
 			}
 		}
+	}
+
+	return
+}
+
+func (svc *Service) sortResourceTypes(nn map[string]NodeSet) (out []string) {
+	for rt := range nn {
+		out = append(out, rt)
+	}
+	sort.Strings(out)
+
+	for i, j := 0, len(out)-1; i < j; i, j = i+1, j-1 {
+		out[i], out[j] = out[j], out[i]
 	}
 
 	return
