@@ -133,7 +133,7 @@
               input-class="d-none"
               tag-class="align-items-center"
               class="filter-tags border-0 p-0"
-              style="width: fit-content"
+              style="width: fit-content;"
               @input="removeFilter"
             />
           </div>
