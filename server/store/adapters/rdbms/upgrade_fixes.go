@@ -47,6 +47,7 @@ var (
 		fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup,
 		fix_2022_09_07_changePostgresIdColumnsDatatype,
 		fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings,
+		fix_2023_03_00_migrateComposePageMeta,
 	}
 )
 
@@ -231,6 +232,13 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 	})
 
 	return
+}
+
+func fix_2023_03_00_migrateComposePageMeta(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_record",
+		model.Page.Attributes.FindByIdent("meta"),
+	)
 }
 
 func fix_2022_09_00_extendComposeModuleForPrivacyAndDAL(ctx context.Context, s *Store) (err error) {
