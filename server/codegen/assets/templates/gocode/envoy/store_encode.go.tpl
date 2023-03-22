@@ -202,6 +202,10 @@ func (e StoreEncoder) encode{{.expIdent}}s(ctx context.Context, p envoyx.EncodeP
 		}
 	}
 
+	{{- if .envoy.store.postSetEncoder }}
+	err = e.post{{.expIdent}}sEncode(ctx, p, s, tree, nn)
+	{{end }}
+
 	return
 }
 

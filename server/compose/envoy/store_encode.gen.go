@@ -421,6 +421,7 @@ func (e StoreEncoder) encodeModules(ctx context.Context, p envoyx.EncodeParams, 
 			return
 		}
 	}
+	err = e.postModulesEncode(ctx, p, s, tree, nn)
 
 	return
 }
@@ -496,12 +497,6 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 	err = e.encodeModuleExtend(ctx, p, s, n, nested, tree)
 	if err != nil {
 		err = errors.Wrap(err, "post encode logic failed with errors")
-		return
-	}
-
-	err = e.encodeModuleExtendSubResources(ctx, p, s, n, tree)
-	if err != nil {
-		err = errors.Wrap(err, "failed to encode extended sub resources")
 		return
 	}
 

@@ -203,6 +203,11 @@ import (
 		// enable or disable custom logic after the resource is imported
 		extendedEncoder: bool | *false
 		extendedSubResources: bool | *false
+		// temporary until I figure something better.
+		// the idea here is that after all of the modules (or resources x) are imported
+		// only then we should do something over them (like import records).
+		postSetEncoder: bool | *false
+
 
 		// enable or disable additional custom processing for determining 
 		// resource references

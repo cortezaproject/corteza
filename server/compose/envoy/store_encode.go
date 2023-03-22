@@ -165,15 +165,21 @@ func (e StoreEncoder) encodeModuleExtend(ctx context.Context, p envoyx.EncodePar
 	return dl.ReplaceModel(ctx, models[0])
 }
 
-func (e StoreEncoder) encodeModuleExtendSubResources(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
-	cc := tree.ChildrenForResourceType(n, ComposeRecordDatasourceAuxType)
-
+func (e StoreEncoder) postModulesEncode(ctx context.Context, p envoyx.EncodeParams, s store.Storer, tree envoyx.Traverser, nn envoyx.NodeSet) (err error) {
 	dl, err := e.grabDal(p)
 	if err != nil {
 		return
 	}
 
-	return e.encodeRecordDatasources(ctx, p, s, dl, cc, tree)
+	for _, n := range nn {
+		cc := tree.ChildrenForResourceType(n, ComposeRecordDatasourceAuxType)
+		err = e.encodeRecordDatasources(ctx, p, s, dl, cc, tree)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func (e *StoreEncoder) grabDal(p envoyx.EncodeParams) (dl dal.FullService, err error) {

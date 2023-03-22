@@ -106,8 +106,8 @@ module: {
 			}]
 		}
 		store: {
+			postSetEncoder: true
 			extendedEncoder: true
-			extendedSubResources: true
 			extendedFilterBuilder: true
 			extendedDecoder: true
 		}
