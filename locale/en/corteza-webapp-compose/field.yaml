@@ -151,6 +151,7 @@ kind:
       goToCurrentLocation: Go to current location
       useCurrentLocation: Use current location
       openMap: Open map
+    geosearchInputPlaceholder: Enter address, place or postcode
 noPermission: No permission to read field value
 no-items-found: No items found
 options:
