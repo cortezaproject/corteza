@@ -65,7 +65,7 @@
 <script>
 import base from './base'
 import { compose } from '@cortezaproject/corteza-js'
-import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
+import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
 export default {
   i18nOptions: {

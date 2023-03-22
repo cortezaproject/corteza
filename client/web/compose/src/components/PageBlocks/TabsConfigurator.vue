@@ -245,7 +245,7 @@
 import base from './base'
 import draggable from 'vuedraggable'
 import { VueSelect } from 'vue-select'
-import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
+import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
 export default {
   i18nOptions: {

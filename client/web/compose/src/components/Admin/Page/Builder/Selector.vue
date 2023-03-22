@@ -2,53 +2,99 @@
   <b-container fluid>
     <b-row>
       <b-col
-        cols="4"
+        cols="12"
       >
-        <b-list-group>
-          <b-list-group-item
-            v-for="(type) in types"
-            :key="type.label"
-            :disabled="isOptionDisabled(type)"
-            button
-            @click="$emit('select', type.block)"
-            @mouseover="current = type.image"
-          >
-            {{ type.label }}
-          </b-list-group-item>
-        </b-list-group>
+        <b-button
+          v-for="(type) in types"
+          :key="type.label"
+          :disabled="isOptionDisabled(type)"
+          variant="outline-light"
+          class="mr-2 mb-2 text-dark"
+          @click="$emit('select', type.block)"
+          @mouseover="current = type.image"
+        >
+          {{ type.label }}
+        </b-button>
       </b-col>
       <b-col
-        cols="8"
-        class="my-auto"
+        cols="12"
       >
-        <b-img
-          v-if="current"
-          fluid
-          thumbnail
-          :src="current"
-        />
-      </b-col>
-    </b-row>
-    <b-row
-      class="border-top mt-2"
-    >
-      <b-col>
         <div
-          class="mt-2"
+          class="d-flex"
+          style="height: 300px"
         >
-          {{ $t('selectBlockFootnote') }}
+          <b-img
+            v-if="current"
+            :src="current"
+            center
+            fluid
+            class="mx-auto"
+          />
         </div>
+      </b-col>
+
+      <hr
+        v-if="existingBlocks.length"
+        class="w-100"
+      >
+
+      <b-col
+        v-if="existingBlocks.length"
+        cols="12"
+      >
+        <b-input-group class="d-flex w-100">
+          <vue-select
+            v-model="selectedExistingBlock"
+            :get-option-label="getBlockLabel"
+            :options="existingBlocks"
+            :calculate-position="calculateDropdownPosition"
+            placeholder="Blocks from other layouts"
+            append-to-body
+            class="block-selector bg-white position-relative"
+          />
+
+          <b-input-group-append>
+            <b-button
+              title="Clone block without reference"
+              variant="light"
+              :disabled="!selectedExistingBlock"
+              class="d-flex align-items-center"
+              @click="$emit('select', selectedExistingBlock.clone())"
+            >
+              <font-awesome-icon
+                :icon="['far', 'clone']"
+              />
+            </b-button>
+            <b-button
+              title="Copy block with references"
+              variant="light"
+              :disabled="!selectedExistingBlock"
+              class="d-flex align-items-center"
+              @click="$emit('select', selectedExistingBlock)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'copy']"
+              />
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
       </b-col>
     </b-row>
   </b-container>
 </template>
+
 <script>
-import { compose } from '@cortezaproject/corteza-js'
 import * as images from '../../../../assets/PageBlocks'
+import { VueSelect } from 'vue-select'
+import { compose } from '@cortezaproject/corteza-js'
 
 export default {
   i18nOptions: {
     namespaces: 'block',
+  },
+
+  components: {
+    VueSelect,
   },
 
   props: {
@@ -61,11 +107,19 @@ export default {
       type: Array,
       default: () => [],
     },
+
+    existingBlocks: {
+      type: Array,
+      default: () => [],
+    },
   },
 
   data () {
     return {
       current: undefined,
+
+      selectedExistingBlock: undefined,
+
       types: [
         {
           label: this.$t('automation.label'),
@@ -172,6 +226,50 @@ export default {
     isOptionDisabled (type) {
       return (!this.recordPage && type.recordPageOnly) || this.disabledKinds.includes(type.block.kind)
     },
+
+    getBlockLabel ({ title, kind }) {
+      return title || kind
+    },
   },
 }
 </script>
+
+<style lang="scss">
+.block-selector {
+  position: relative;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  width: 1%;
+  margin-bottom: 0;
+}
+
+.block-selector {
+  &:not(.vs--open) .vs__selected + .vs__search {
+    // force this to not use any space
+    // we still need it to be rendered for the focus
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 0;
+  }
+
+  .vs__selected-options {
+    // do not allow growing
+    width: 0;
+  }
+
+  .vs__selected {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow: hidden;
+  }
+}
+
+.vs__dropdown-menu .vs__dropdown-option {
+  text-overflow: ellipsis;
+  overflow: hidden !important;
+}
+</style>
