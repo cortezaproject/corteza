@@ -3,19 +3,15 @@
     v-bind="$props"
     v-on="$listeners"
   >
-    <div
-      class="p-2 h-100"
-    >
-      <list-loader
-        kind="page"
-        :set="options.attachments"
-        :namespace="namespace"
-        :mode="options.mode"
-        :hide-file-name="options.hideFileName"
-        :preview-options="options"
-        class="h-100"
-      />
-    </div>
+    <list-loader
+      kind="page"
+      :set="options.attachments"
+      :namespace="namespace"
+      :mode="options.mode"
+      :hide-file-name="options.hideFileName"
+      :preview-options="options"
+      class="h-100 px-2"
+    />
   </wrap>
 </template>
 <script>

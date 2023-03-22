@@ -16,7 +16,7 @@
     </p>
 
     <a
-      v-if="attachment && attachment.enableDownload"
+      v-if="attachment.download"
       slot="header.right"
       :href="(attachment || {}).download"
     >

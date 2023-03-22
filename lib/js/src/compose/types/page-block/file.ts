@@ -7,15 +7,15 @@ interface Options {
   mode: string;
   attachments: string[];
   hideFileName: boolean;
-  height?: number;
-  width?: number;
-  maxHeight?: number;
-  maxWidth?: number;
-  borderRadius?: number;
-  margin?: number;
-  backgroundColor?: string;
+  height: string;
+  width: string;
+  maxHeight: string;
+  maxWidth: string;
+  borderRadius: string;
+  margin: string;
+  backgroundColor: string;
   magnifyOption: string;
-  enablePreview?: boolean;
+  clickToView?: boolean;
   enableDownload?: boolean;
 }
 
@@ -35,15 +35,15 @@ const defaults: Readonly<Options> = Object.freeze({
   mode: PageBlockFileDefaultMode,
   attachments: [],
   hideFileName: false,
-  height: undefined,
-  width: undefined,
-  maxHeight: undefined,
-  maxWidth: undefined,
-  borderRadius: undefined,
-  margin: undefined,
-  backgroundColor: undefined,
+  height: '',
+  width: '',
+  maxHeight: '',
+  maxWidth: '',
+  borderRadius: '',
+  margin: 'auto',
+  backgroundColor: '',
   magnifyOption: '',
-  enablePreview: true,
+  clickToView: true,
   enableDownload: true
 })
 
@@ -64,9 +64,8 @@ export class PageBlockFile extends PageBlock {
       this.options.attachments = o.attachments
     }
 
-    Apply(this.options, o, Boolean, 'hideFileName', 'enablePreview', 'enableDownload')
-    Apply(this.options, o, String, 'backgroundColor', 'magnifyOption')
-    Apply(this.options, o, Number, 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin')
+    Apply(this.options, o, Boolean, 'hideFileName', 'clickToView', 'enableDownload')
+    Apply(this.options, o, String, 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor', 'magnifyOption')
 
     if (o.mode) {
       if (PageBlockFileModes.includes(o.mode)) {
