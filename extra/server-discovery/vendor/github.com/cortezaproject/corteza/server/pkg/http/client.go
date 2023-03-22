@@ -10,6 +10,8 @@ import (
 	"net/http/httputil"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 type (
@@ -103,7 +105,7 @@ func (c *Client) Request(method, url string, body interface{}) (*http.Request, e
 
 	req, err := request()
 	if err != nil {
-		return nil, fmt.Errorf("creating request failed: %w", err)
+		return nil, errors.Wrap(err, "creating request failed")
 	}
 	req.Header.Add("Content-Type", "application/json")
 	return req, nil
@@ -145,7 +147,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 		if c.debugLevel == INFO {
 			fmt.Println("HTTP <<< Response error", err)
 		}
-		return nil, fmt.Errorf("request failed: %w", err)
+		return nil, errors.Wrap(err, "request failed")
 	}
 	if c.debugLevel == INFO {
 		fmt.Println("HTTP <<< Response", resp.StatusCode)
@@ -156,7 +158,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 func ToError(resp *http.Response) error {
 	body, err := ioutil.ReadAll(resp.Body)
 	if body == nil || err != nil {
-		return fmt.Errorf("unexpected response (%d, %s)", resp.StatusCode, err)
+		return errors.Errorf("unexpected response (%d, %s)", resp.StatusCode, err)
 	}
-	return fmt.Errorf(string(body))
+	return errors.New(string(body))
 }

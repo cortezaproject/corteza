@@ -1,0 +1,45 @@
+list:
+  columns:
+    action: Action
+    actor: User
+    description: Description
+    requestOrigin: Origin
+    resource: Resource
+    severity: Severity
+    timestamp: Timestamp
+  details:
+    id: 'ID'
+    header: 'Details'
+    timestamp: 'Timestamp'
+    requestOrigin: 'Request Origin'
+    requestID: 'Request ID'
+    actorIPAddr: 'Actor/User'
+    actor: 'User'
+    actorID: 'User ID'
+    severity: 'Severity'
+    resource: 'Resource'
+    action: 'Action'
+    headerAdditional: 'Additional information'
+    description: 'Description'
+    error: 'Error'
+  severity:
+    emergency: 'Emergency'
+    alert: 'Alert'
+    critical: 'Critical'
+    error: 'Error'
+    warning: 'Warning'
+    notice: 'Notice'
+    info: 'Info'
+    debug: 'Debug'
+  filter:
+    action: Action
+    actor: User ID
+    choose-date: Choose a date
+    from: Starting from
+    no-time: No time selected
+    resource: Resource
+    search: Search
+    to: Ending at
+    today: Today
+  loadOlder: Load older actions
+  title: Action log

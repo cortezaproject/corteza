@@ -1,0 +1,42 @@
+editor:
+  new: New
+  title:
+    create: Create sensitivity level
+    edit: Edit sensitivity level
+  info:
+    title: Basic Information
+    handle:
+      label: Handle
+      placeholder: handle (a - z, 0 - 9, underscore, dash)
+      invalid-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
+    name: Name
+    description: Description
+    level: Level {{level}}
+    createdAt: Created at
+    delete: Delete
+    deletedAt: Deleted at
+    undelete: Undelete
+    updatedAt: Updated at
+
+list:
+  title: Sensitivity Levels
+  loading: Loading sensitivity levels
+  new: New
+  columns:
+    actions: ''
+    'meta.name': Name
+    level: Level
+    createdAt: Created
+    state: State
+  rows:
+    filters:
+      deleted: Deleted
+  filterForm:
+    deleted:
+      label: deleted sensitivity levels
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including

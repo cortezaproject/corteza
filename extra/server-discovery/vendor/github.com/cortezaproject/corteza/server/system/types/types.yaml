@@ -1,0 +1,40 @@
+types:
+  AuthClient:
+    labelResourceType: authClient
+  AuthConfirmedClient:
+    noIdField: true
+  AuthOa2token: {}
+  AuthSession:
+    noIdField: true
+  User:
+    labelResourceType: user
+  DalConnection:
+  DalSensitivityLevel:
+  Application:
+    labelResourceType: application
+  Role:
+    labelResourceType: role
+  RoleMember:
+    noIdField: true
+  Credential: {}
+  Reminder: {}
+  Attachment: {}
+  SettingValue:
+    noIdField: true
+  Template:
+    labelResourceType: template
+  ApigwRoute: {}
+  ApigwFilter: {}
+  ApigwProfilerHit:
+    noIdField: true
+  ApigwProfilerAggregation:
+    noIdField: true
+  Report:
+    labelResourceType: report
+  ResourceTranslation: {}
+  Queue: {}
+  QueueMessage:
+    noIdField: true
+  DataPrivacyRequest: {}
+  DataPrivacyRequestComment: {}
+  PrivacyDalConnection:

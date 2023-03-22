@@ -74,7 +74,7 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 	for {
 		if ch := s.read(); ch == eof {
 			break
-		} else if !isLetter(ch) && !isDigit(ch) && ch != '_' {
+		} else if !isLetter(ch) && !isDigit(ch) && ch != '_' && ch != '-' {
 			s.unread()
 			break
 		} else {
@@ -89,7 +89,7 @@ func (TokenConsumerIdent) Consume(s RuneReader) Token {
 		return Token{code: LNULL}
 	case "TRUE", "FALSE":
 		return Token{code: LBOOL, literal: lit}
-	case "IS", "LIKE", "NOT", "AND", "OR", "XOR", "IN", "BETWEEN":
+	case "IS", "LIKE", "NOT", "AND", "OR", "XOR", "IN":
 		return Token{code: OPERATOR, literal: lit}
 	case "DESC", "ASC", "INTERVAL":
 		return Token{code: KEYWORD, literal: lit}

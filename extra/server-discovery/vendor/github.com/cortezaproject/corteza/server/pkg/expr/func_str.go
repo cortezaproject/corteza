@@ -3,6 +3,7 @@ package expr
 import (
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"reflect"
@@ -121,7 +122,7 @@ func join(arr interface{}, sep string) (out string, err error) {
 	// Make an aux string slice so the join operation can use it
 	stv, is := arr.([]TypedValue)
 	if !is {
-		return "", fmt.Errorf("could not cast array to string array")
+		return "", errors.New("could not cast array to string array")
 	}
 
 	aux := make([]string, len(stv))

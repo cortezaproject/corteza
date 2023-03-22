@@ -123,7 +123,6 @@ type (
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
 		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
-		ProvisionSuperUser       string        `env:"AUTH_PROVISION_SUPER_USER"`
 	}
 
 	CorredorOpt struct {
@@ -207,6 +206,10 @@ type (
 	ProvisionOpt struct {
 		Always bool   `env:"PROVISION_ALWAYS"`
 		Path   string `env:"PROVISION_PATH"`
+	}
+
+	SeederOpt struct {
+		LogEnabled bool `env:"SEEDER_LOG_ENABLED"`
 	}
 
 	SentryOpt struct {
@@ -847,6 +850,31 @@ func Provision() (o *ProvisionOpt) {
 		Always: true,
 		Path:   "provision/*",
 	}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Seeder initializes and returns a SeederOpt with default values
+//
+// This function is auto-generated
+func Seeder() (o *SeederOpt) {
+	o = &SeederOpt{}
 
 	// Custom defaults
 	func(o interface{}) {

@@ -1,0 +1,31 @@
+title: Data Privacy Console
+connection-location: Connection Location
+description: 
+  first: The Data Privacy Console enables you to access the overview of your personal data, request data deletion or data export.
+  second: These actions are subject to validation by the DC (Data Controller) of your organization.
+user-options:
+  data-overview:
+    title: Data Overview
+    description: Review your profile information and your personal data stored in Corteza applications
+    button-label: View your data
+  privacy-requests:
+    title: Privacy Requests
+    description: Access, manage or export a list of all your privacy-related (deletion, export, correction) requests
+    button-label: Your privacy requests
+  export:
+    title: Data Export
+    description: Open a new data export request by selecting the data type, date range and outcome file format
+    button-label: Request data export
+  delete:
+    title: Data Deletion
+    description: Request for your selected personal data to be deleted from the system
+    button-label: Request data deletion
+dc-options:
+  privacy-requests:
+    title: Privacy Requests
+    description: Access, manage or export a list of all privacy-related (deletion, export, correction) requests
+    button-label: Incoming privacy requests
+  sensitive-data:
+    title: Sensitive Data
+    description: Overview of all modules with sensitive data fields
+    button-label: List of sensitive data

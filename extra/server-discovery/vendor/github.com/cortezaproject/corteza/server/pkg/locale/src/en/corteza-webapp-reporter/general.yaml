@@ -1,0 +1,27 @@
+label:
+  add: Add
+  and: And
+  ascending: Ascending
+  back: Back
+  clear: Clear
+  delete: Delete
+  descending: Descending
+  loading: Loading
+  name: Name
+  none: None
+  now: Now
+  ok: Ok
+  or: Or
+  openLinkInNewTab: Open link in a new tab
+  save: Save
+  today: Today
+  urlPlaceholder: https://example.tld
+resourceList:
+  notFound: Not found
+  noItems: No items to show
+  pagination:
+    next: Next
+    prev: Previous
+    showing: '{{from}} - {{to}} of {{count}} items'
+    single: One item
+    single_plural: '{{count}} items'

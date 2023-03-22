@@ -1,0 +1,8 @@
+errors:
+  alreadyExists: sensitivity level by that DNS already exists
+  existsEndpoint: sensitivity level with this DNS already exists
+  generic: failed to complete request due to internal error
+  invalidEndpoint: invalid endpoint
+  invalidID: invalid ID
+  notAllowedToManage: not allowed to manage sensitivity level
+  notFound: sensitivity level not found

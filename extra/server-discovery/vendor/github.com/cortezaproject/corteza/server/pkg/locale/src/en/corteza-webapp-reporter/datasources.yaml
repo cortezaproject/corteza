@@ -1,0 +1,23 @@
+
+add: Add
+aggregate: Aggregate
+compose-records: Compose records
+datasource-name: 'Datasource Name...'
+expression: Expression
+group-by: Group by
+label: Label
+module: Module
+name: Name
+namespace: Namespace
+new:
+  label: New label
+  name: New name
+none: None
+prefilter: Prefilter
+primary:
+  column: Primary Column
+  source: Primary Source
+secondary:
+  column: Secondary Column
+  source: Secondary Source
+source: Source
