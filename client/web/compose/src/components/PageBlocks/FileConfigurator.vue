@@ -23,10 +23,10 @@
     </b-form-checkbox>
 
     <b-form-checkbox
-      v-model="options.enablePreview"
+      v-model="options.clickToView"
       class="mb-3"
     >
-      {{ $t('kind.file.view.enablePreview') }}
+      {{ $t('kind.file.view.clickToView') }}
     </b-form-checkbox>
 
     <b-form-checkbox
@@ -68,14 +68,11 @@
         >
           <b-form-group
             :label="$t('kind.file.view.height')"
+            label-class="text-primary"
           >
-            <b-input-group
-              :append="$t('kind.file.view.px')"
-            >
+            <b-input-group>
               <b-form-input
                 v-model="options.height"
-                type="number"
-                number
                 :placeholder="$t('kind.file.view.height')"
               />
             </b-input-group>
@@ -88,14 +85,11 @@
         >
           <b-form-group
             :label="$t('kind.file.view.width')"
+            label-class="text-primary"
           >
-            <b-input-group
-              :append="$t('kind.file.view.px')"
-            >
+            <b-input-group>
               <b-form-input
                 v-model="options.width"
-                type="number"
-                number
                 :placeholder="$t('kind.file.view.width')"
               />
             </b-input-group>
@@ -108,14 +102,11 @@
         >
           <b-form-group
             :label="$t('kind.file.view.maxHeight')"
+            label-class="text-primary"
           >
-            <b-input-group
-              :append="$t('kind.file.view.px')"
-            >
+            <b-input-group>
               <b-form-input
                 v-model="options.maxHeight"
-                type="number"
-                number
                 :placeholder="$t('kind.file.view.maxHeight')"
               />
             </b-input-group>
@@ -128,14 +119,11 @@
         >
           <b-form-group
             :label="$t('kind.file.view.maxWidth')"
+            label-class="text-primary"
           >
-            <b-input-group
-              :append="$t('kind.file.view.px')"
-            >
+            <b-input-group>
               <b-form-input
                 v-model="options.maxWidth"
-                type="number"
-                number
                 :placeholder="$t('kind.file.view.maxWidth')"
               />
             </b-input-group>
@@ -148,14 +136,11 @@
         >
           <b-form-group
             :label="$t('kind.file.view.borderRadius')"
+            label-class="text-primary"
           >
-            <b-input-group
-              :append="$t('kind.file.view.px')"
-            >
+            <b-input-group>
               <b-form-input
                 v-model="options.borderRadius"
-                type="number"
-                number
                 :placeholder="$t('kind.file.view.borderRadius')"
               />
             </b-input-group>
@@ -167,13 +152,15 @@
           md="6"
         >
           <b-form-group
-            :label="$t('kind.file.view.background')"
+            :label="$t('kind.file.view.margin')"
+            label-class="text-primary"
           >
-            <b-form-input
-              v-model="options.backgroundColor"
-              type="color"
-              debounce="300"
-            />
+            <b-input-group>
+              <b-form-input
+                v-model="options.margin"
+                :placeholder="$t('kind.file.view.margin')"
+              />
+            </b-input-group>
           </b-form-group>
         </b-col>
 
@@ -182,18 +169,14 @@
           md="6"
         >
           <b-form-group
-            :label="$t('kind.file.view.margin')"
+            :label="$t('kind.file.view.background')"
+            label-class="text-primary"
           >
-            <b-input-group
-              :append="$t('kind.file.view.px')"
-            >
-              <b-form-input
-                v-model="options.margin"
-                type="number"
-                number
-                :placeholder="$t('kind.file.view.margin')"
-              />
-            </b-input-group>
+            <b-form-input
+              v-model="options.backgroundColor"
+              type="color"
+              debounce="300"
+            />
           </b-form-group>
         </b-col>
       </b-row>

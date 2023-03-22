@@ -49,7 +49,7 @@ kind:
       unitType: Unit type
       px: px
       enableDownload: Enable download
-      enablePreview: Enable preview
+      clickToView: Click to view file
   number:
     exampleFormat: Format
     exampleInput: Input

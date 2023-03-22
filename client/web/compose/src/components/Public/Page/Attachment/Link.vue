@@ -1,7 +1,7 @@
 <template>
   <a
-    v-if="canPreview"
-    :href="attachment.download"
+    v-if="canPreview && attachment.clickToView"
+    :href="attachment.url"
     @click.exact.prevent="openLightbox({ ...attachment, ...$event })"
   >
     <slot>
@@ -10,7 +10,6 @@
   </a>
   <a
     v-else
-    :href="attachment.download"
   >
     <slot>
       {{ attachment.name }}
@@ -33,7 +32,7 @@ export default {
     canPreview () {
       const meta = this.attachment.meta || {}
       const type = (meta.preview || meta.original || {}).mimetype
-      const src = (this.attachment.meta.original && this.attachment.meta.original.ext === 'pdf' ? this.attachment.download : this.attachment.previewUrl)
+      const src = (this.attachment.meta.original && this.attachment.meta.original.ext === 'pdf' ? this.attachment.download : this.attachment.url)
       return canPreview({ type, src, name: this.attachment.name })
     },
   },

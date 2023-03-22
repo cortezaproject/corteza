@@ -44,6 +44,7 @@
             </b-col>
             <div class="col-sm-2 text-right my-auto">
               <a
+                v-if="a.download"
                 :href="a.download"
                 class="px-0 btn text-primary mr-2"
               >
@@ -101,18 +102,19 @@
       <div
         v-for="(a) in files"
         :key="a.attachmentID"
-        class="my-2 mx-auto h-100"
+        class="mx-auto h-100"
       >
         <c-preview-inline
           v-if="canPreview(a)"
-          class="ml-0"
+          class="ml-0 py-2"
           :src="inlineUrl(a)"
           :meta="a.meta"
           :name="a.name"
           :alt="a.name"
           :preview-style="{ width: 'unset', ...inlineCustomStyles(a) }"
           :preview-class="[
-            !previewOptions.enablePreview ? 'disable-zoom-cursor' : ''
+            !previewOptions.clickToView ? 'disable-zoom-cursor' : '',
+
           ]"
           :labels="previewLabels"
           @openPreview="openLightbox({ ...a, ...$event })"
@@ -208,7 +210,7 @@ export default {
 
   computed: {
     inlineUrl () {
-      return (a) => (this.ext(a) === 'pdf' ? a.download : (this.previewOptions.enablePreview ? a.previewUrl : a.url))
+      return (a) => (this.ext(a) === 'pdf' ? a.download : a.url)
     },
 
     previewLabels () {
@@ -269,9 +271,18 @@ export default {
         }))
           .then(() => {
           // Filter out invalid/missing attachments
+            const { clickToView = true, enableDownload = true } = this.previewOptions
+
             this.attachments = att
               .filter(a => !!a)
               .filter(a => typeof a === 'object')
+              .map(a => {
+                return {
+                  ...a,
+                  download: enableDownload ? a.download : undefined,
+                  clickToView,
+                }
+              })
           })
           .finally(() => {
             this.processing = false
@@ -290,10 +301,9 @@ export default {
     },
 
     openLightbox (e) {
-      if (this.previewOptions.enablePreview) {
-        const { enableDownload } = this.previewOptions
-        this.$root.$emit('showAttachmentsModal', { ...e, enableDownload })
-      }
+      if (!this.previewOptions.clickToView) return
+
+      this.$root.$emit('showAttachmentsModal', e)
     },
 
     deleteAttachment (index) {
@@ -334,30 +344,26 @@ export default {
 
     inlineCustomStyles (a) {
       const {
-        height,
         width,
-        maxHeight,
-        maxWidth,
+        height,
         borderRadius,
         backgroundColor,
-        margin,
       } = this.previewOptions
+      let { maxWidth, maxHeight, margin } = this.previewOptions
+
+      maxWidth = maxWidth || '100%'
+      maxHeight = maxHeight || '100%'
+      margin = margin || 'auto'
 
       if (this.ext(a) === 'image') {
         return {
-          ...((!this.previewOptions.enablePreview || height === '0' || width === '0') && {
-            height: '100%',
-            width: '100%',
-          }),
-          ...(height && { height: `${height}px` }),
-          ...(width && { width: `${width}px` }),
-          ...(maxHeight && { maxHeight: `${maxHeight}px` }),
-          ...(maxWidth && { maxWidth: `${maxWidth}px` }),
-          ...(borderRadius && { borderRadius: `${borderRadius}px` }),
-          ...(backgroundColor && { backgroundColor: backgroundColor }),
-          ...(margin && { margin: `${margin}px` }),
-          objectFit: 'cover',
-          objectPosition: 'center',
+          height,
+          width,
+          maxHeight,
+          maxWidth,
+          borderRadius,
+          backgroundColor,
+          margin,
         }
       }
 
