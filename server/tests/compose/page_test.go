@@ -16,7 +16,7 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 	systemService "github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
-	"github.com/steinfletcher/apitest-jsonpath"
+	jsonpath "github.com/steinfletcher/apitest-jsonpath"
 	"github.com/stretchr/testify/require"
 )
 
@@ -29,6 +29,7 @@ func (h helper) repoMakePage(ns *types.Namespace, name string) *types.Page {
 	res := &types.Page{
 		ID:          id.Next(),
 		CreatedAt:   time.Now(),
+		Meta:        &types.PageMeta{},
 		Title:       name,
 		NamespaceID: ns.ID,
 	}
@@ -52,6 +53,7 @@ func (h helper) repoMakeWeightedPage(ns *types.Namespace, name string, weight in
 	res := &types.Page{
 		ID:          id.Next(),
 		CreatedAt:   time.Now(),
+		Meta:        &types.PageMeta{},
 		Title:       name,
 		NamespaceID: ns.ID,
 		Weight:      weight,

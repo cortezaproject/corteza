@@ -293,7 +293,7 @@ type (
 		SelfID      uint64                 `db:"self_id"`
 		ModuleID    uint64                 `db:"module_id"`
 		NamespaceID uint64                 `db:"namespace_id"`
-		Meta        composeType.PageMeta   `db:"meta"`
+		Meta        *composeType.PageMeta  `db:"meta"`
 		Config      composeType.PageConfig `db:"config"`
 		Blocks      composeType.PageBlocks `db:"blocks"`
 		Visible     bool                   `db:"visible"`
