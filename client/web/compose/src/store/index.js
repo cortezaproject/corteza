@@ -4,6 +4,7 @@ import Vuex from 'vuex'
 import namespace from './namespace'
 import module from './module'
 import page from './page'
+import pageLayout from './page-layout'
 import chart from './chart'
 import user from './user'
 import languages from './languages'
@@ -19,6 +20,7 @@ export default new Vuex.Store({
     namespace: namespace(Vue.prototype.$ComposeAPI),
     module: module(Vue.prototype.$ComposeAPI),
     page: page(Vue.prototype.$ComposeAPI),
+    pageLayout: pageLayout(Vue.prototype.$ComposeAPI),
     chart: chart(Vue.prototype.$ComposeAPI),
     user: user(Vue.prototype.$SystemAPI),
     languages: languages(Vue.prototype.$SystemAPI),

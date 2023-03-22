@@ -555,6 +555,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -580,6 +581,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -663,6 +665,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -691,6 +694,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1112,6 +1116,7 @@ export default class Compose {
       namespaceID,
       pageID,
       parentID,
+      weight,
       moduleID,
       handle,
       primary,
@@ -1136,6 +1141,7 @@ export default class Compose {
     }
     cfg.data = {
       parentID,
+      weight,
       moduleID,
       handle,
       primary,
@@ -1199,6 +1205,7 @@ export default class Compose {
       pageID,
       pageLayoutID,
       parentID,
+      weight,
       moduleID,
       handle,
       primary,
@@ -1226,6 +1233,7 @@ export default class Compose {
     }
     cfg.data = {
       parentID,
+      weight,
       moduleID,
       handle,
       primary,
@@ -1245,6 +1253,43 @@ export default class Compose {
       pageLayoutID,
     } = a || {}
     return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
+  }
+
+  // Reorder page layouts
+  async pageLayoutReorder (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageIDs,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageIDs) {
+      throw Error('field pageIDs is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.pageLayoutReorderEndpoint({
+        namespaceID, pageID,
+      }),
+    }
+    cfg.data = {
+      pageIDs,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutReorderEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/reorder`
   }
 
   // Delete page layout

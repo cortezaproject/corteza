@@ -1,5 +1,5 @@
 import { NoID } from '@cortezaproject/corteza-js'
-import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
+import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
 export default {
   methods: {
@@ -78,6 +78,8 @@ export default {
 
     async updateTabbedBlockIDs (page) {
       // get the Tabs Block that still has tabs with tempIDs
+      let updatePage = false
+
       page.blocks.filter(({ kind }) => kind === 'Tabs')
         .filter(({ options = {} }) => options.tabs.some(({ blockID }) => (blockID || '').startsWith('tempID-')))
         .forEach(b => {
@@ -98,8 +100,13 @@ export default {
             }
 
             b.options.tabs.splice(j, 1, tab)
+            updatePage = true
           })
         })
+
+      if (!updatePage) {
+        return page
+      }
 
       return this.updatePage(page)
     },

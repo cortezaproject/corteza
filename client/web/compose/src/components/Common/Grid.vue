@@ -1,37 +1,42 @@
 <template>
   <div
-    v-if="grid.length"
+    v-if="layout.length"
     class="w-100"
     :class="{
-      editable: !!editable,
+      'editable': editable,
       'flex-grow-1 d-flex': isStretchable,
     }"
   >
     <grid-layout
-      class="flex-grow-1 d-flex w-100 h-100"
       :layout.sync="layout"
-      :row-height="50"
-      :is-resizable="!!editable"
-      :is-draggable="!!editable"
-      :responsive="!editable"
+      :col-num="48"
+      :row-height="10"
+      vertical-compact
+      :is-resizable="editable"
+      :is-draggable="editable"
       :cols="columnNumber"
       :margin="[0, 0]"
-      :use-css-transforms="false"
-      @layout-updated="handleLayoutUpdate"
+      :responsive="!editable"
+      use-css-transforms
+      class="flex-grow-1 d-flex w-100 h-100"
     >
       <template
-        v-for="(item, index) in gridCollection"
+        v-for="(item, index) in layout"
       >
         <grid-item
           v-if="!blocks[item.i].meta.hidden"
           :key="item.i"
           ref="items"
+          :i="item.i"
+          :h="item.h"
+          :w="item.w"
+          :x="item.x"
+          :y="item.y"
+          :min-w="6"
+          :min-h="5"
+          :class="{ 'h-100': isStretchable }"
           class="grid-item"
-          :class="{
-            'h-100': isStretchable,
-          }"
           style="touch-action: none;"
-          v-bind="{ ...item }"
           @moved="onBlockUpdated(index)"
           @resized="onBlockUpdated(index)"
         >
@@ -46,6 +51,7 @@
       </template>
     </grid-layout>
   </div>
+
   <div
     v-else
     class="no-builder-grid h-100 pt-5 container text-center"
@@ -57,9 +63,9 @@
 </template>
 
 <script>
-import VueGridLayout from 'vue-grid-layout'
-import { compose } from '@cortezaproject/corteza-js'
+import { GridLayout, GridItem } from 'vue-grid-layout'
 import { throttle } from 'lodash'
+import { compose } from '@cortezaproject/corteza-js'
 
 export default {
   i18nOptions: {
@@ -67,25 +73,25 @@ export default {
   },
 
   components: {
-    GridLayout: VueGridLayout.GridLayout,
-    GridItem: VueGridLayout.GridItem,
+    GridLayout,
+    GridItem,
   },
 
   props: {
-    editable: {
-      type: Boolean,
-    },
-
     blocks: {
       type: Array,
-      required: true,
+      default: () => ([]),
+    },
+
+    editable: {
+      type: Boolean,
     },
   },
 
   data () {
     return {
       // all blocks in vue-grid friendly structure
-      grid: [],
+      layout: [],
 
       // Grid items bounding rect info
       boundingRects: [],
@@ -93,65 +99,19 @@ export default {
   },
 
   computed: {
-    layout: {
-      get () {
-        return this.grid
-      },
-
-      set (layout) {
-        this.grid = layout
-        this.handleLayoutUpdate(layout)
-      },
-    },
-
-    sortedGrid () {
-      return Array.from(this.grid).sort((a, b) => Math.sqrt(a.x * a.x + a.y * a.y) - Math.sqrt(b.x * b.x + b.y * b.y))
+    oneBlockLayout () {
+      return this.blocks.filter(({ meta }) => !meta.hidden).length === 1
     },
 
     isStretchable () {
-      if (this.editable) {
-        // When in-edit mode do not stretch the blocks
-        return false
-      }
-
-      const minHeight = 10
-      let heightCheck = -1
-
-      for (let b = 0; b < this.blocks.length; b++) {
-        const { xywh: [, y, , h] } = this.blocks[b]
-
-        if (y > 0) {
-          // If block is not positioned at the top,
-          // do not try to make it stretchable
-          return false
-        }
-
-        if (heightCheck === -1) {
-          // Set block height for the next check
-          heightCheck = h
-        }
-
-        if (heightCheck !== h && minHeight > h) {
-          // Not full height
-          return false
-        }
-      }
-
-      return true
+      return !this.editable && this.oneBlockLayout
     },
 
     columnNumber () {
-      if (this.grid.length === 1) {
+      if (this.oneBlockLayout) {
         return { lg: 1, md: 1, sm: 1, xs: 1, xxs: 1 }
       }
-      return { lg: 12, md: 12, sm: 1, xs: 1, xxs: 1 }
-    },
-
-    gridCollection () {
-      if (this.grid.length === 1) {
-        return this.sortedGrid
-      }
-      return this.grid
+      return { lg: 48, md: 48, sm: 1, xs: 1, xxs: 1 }
     },
   },
 
@@ -160,8 +120,7 @@ export default {
       immediate: true,
       deep: true,
       handler (blocks) {
-        if (blocks.length === 0) this.$emit('change', [])
-        this.grid = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
+        this.layout = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
           // To avoid collision with hidden elements
           return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
         })
@@ -190,16 +149,11 @@ export default {
         })
     },
 
-    handleLayoutUpdate (layout) {
-      this.$emit('change', layout.map(
-        ({ x, y, w, h, i }) => new compose.PageBlockMaker({ ...this.blocks[i], xywh: [x, y, w, h] }),
-      ))
-      this.recalculateBoundingRect()
-    },
-
-    // emit event when block has been moved or resized
     onBlockUpdated (index) {
       this.$emit('item-updated', index)
+      this.$emit('update:blocks', this.layout.map(
+        ({ x, y, w, h, i }) => new compose.PageBlockMaker({ ...this.blocks[i], xywh: [x, y, w, h] }),
+      ))
     },
   },
 }

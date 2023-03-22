@@ -32,7 +32,7 @@
           style="margin-left:2px;"
         >
           <font-awesome-icon
-            :icon="['fas', 'cogs']"
+            :icon="['far', 'edit']"
           />
         </b-button>
         <namespace-translator

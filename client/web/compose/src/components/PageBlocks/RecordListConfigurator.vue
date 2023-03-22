@@ -829,7 +829,7 @@ export default {
     },
 
     /*
-     Inline record editor is disabled if:
+      Inline record editor is disabled if:
       - An inline record editor for the same module already exists
       - Record list module doesn't have record page (inline record autoselected and disabled)
     */
