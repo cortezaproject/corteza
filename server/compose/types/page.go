@@ -418,6 +418,9 @@ func (set PageSet) FindByHandle(handle string) *Page {
 func (bb *PageBlocks) Scan(src any) error          { return sql.ParseJSON(src, bb) }
 func (bb PageBlocks) Value() (driver.Value, error) { return json.Marshal(bb) }
 
+func (bb *PageMeta) Scan(src any) error          { return sql.ParseJSON(src, bb) }
+func (bb PageMeta) Value() (driver.Value, error) { return json.Marshal(bb) }
+
 // Helper to extract old encoding to new one
 func (b *PageBlock) UnmarshalJSON(data []byte) (err error) {
 	type internalPageBlock PageBlock

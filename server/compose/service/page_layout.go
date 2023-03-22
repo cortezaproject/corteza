@@ -122,7 +122,7 @@ func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter)
 	filter.Check = checkPageLayout(ctx, svc.ac)
 
 	err = func() error {
-		ns, pg, err = loadPageCombo(ctx, svc.store, ns.ID, filter.PageID)
+		ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
 		if err != nil {
 			return err
 		}
