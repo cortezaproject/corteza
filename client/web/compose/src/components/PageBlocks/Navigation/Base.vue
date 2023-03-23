@@ -148,15 +148,15 @@ export default {
         return
       }
 
-      let url = ''
+      let to = ''
 
       if (navItem.type === 'compose') {
         const pageID = navItem.options.item.pageID
 
-        url = this.$router.resolve({ name: 'page', params: { pageID } }).href
+        to = { name: 'page', params: { pageID } }
       }
 
-      return url
+      return to
     },
 
     generateHrefAttributeLink (navItem) {
