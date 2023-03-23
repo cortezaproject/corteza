@@ -77,6 +77,7 @@
                     />
                   </b-form-group>
                 </b-col>
+
                 <b-col
                   cols="12"
                   md="6"
@@ -97,175 +98,182 @@
                     </b-form-invalid-feedback>
                   </b-form-group>
                 </b-col>
-              </b-row>
 
-              <b-form-group
-                :label="$t('label.description')"
-                label-class="text-primary"
-              >
-                <b-form-textarea
-                  v-model="page.description"
-                  data-test-id="input-description"
-                  :placeholder="$t('edit.pageDescription')"
-                  rows="4"
-                />
-              </b-form-group>
-
-              <b-form-group
-                :label="$t('icon.page')"
-                label-class="text-primary"
-              >
-                <img
-                  v-if="icon.src"
-                  :src="pageIcon"
-                  width="50"
-                  heigth="50"
-                  class="d-block"
+                <b-col
+                  cols="12"
                 >
-                <span
-                  v-else
-                  class="d-block"
-                >
-                  {{ $t('icon.not-set') }}
-                </span>
-                <b-button
-                  variant="light"
-                  size="md"
-                  class="mt-2 text-dark"
-                  @click="showIconModal = true"
-                >
-                  {{ $t('icon.set') }}
-                </b-button>
-              </b-form-group>
-
-              <b-form-group
-                v-if="!isRecordPage"
-              >
-                <b-form-checkbox
-                  v-model="page.visible"
-                  data-test-id="checkbox-page-visibility"
-                  switch
-                >
-                  {{ $t('edit.visible') }}
-                </b-form-checkbox>
-              </b-form-group>
-
-              <b-form-group
-                data-test-id="checkbox-show-sub-pages-in-sidebar"
-                class="d-flex"
-              >
-                <b-form-checkbox
-                  v-model="page.config.navItem.expanded"
-                  switch
-                >
-                  {{ $t('showSubPages') }}
-                </b-form-checkbox>
-              </b-form-group>
-
-              <b-modal
-                v-model="showIconModal"
-                :title="$t('icon.configure')"
-                :ok-title="$t('label.saveAndClose')"
-                ok-only
-                size="lg"
-                label-class="text-primary"
-                @show="openIconModal"
-                @close="closeIconModal"
-              >
-                <b-form-group
-                  :label="$t('icon.upload')"
-                  label-class="text-primary"
-                  class="mb-0"
-                >
-                  <uploader
-                    :endpoint="endpoint"
-                    :accepted-files="['image/*']"
-                    :param-name="'icon'"
-                    @uploaded="uploadAttachment"
-                  />
-
                   <b-form-group
-                    :label="$t('url.label')"
+                    :label="$t('label.description')"
                     label-class="text-primary"
-                    class="my-2"
                   >
-                    <b-input-group>
-                      <b-input
-                        v-model="linkUrl"
-                        :disabled="isIconSet"
-                        :style="{ 'cursor': isIconSet ? 'not-allowed' : 'default' }"
-                      />
-                      <b-input-group-append>
-                        <b-button
-                          v-b-modal.logo
-                          :title="$t('tooltip.preview-link')"
-                          :disabled="!linkUrl"
-                          variant="light"
-                          rounded
-                          class="d-flex align-items-center btn-light"
-                        >
-                          <font-awesome-icon :icon="['fas', 'external-link-alt']" />
-                        </b-button>
-                      </b-input-group-append>
-                    </b-input-group>
+                    <b-form-textarea
+                      v-model="page.description"
+                      data-test-id="input-description"
+                      :placeholder="$t('edit.pageDescription')"
+                      rows="4"
+                    />
                   </b-form-group>
-                </b-form-group>
+                </b-col>
 
-                <template v-if="attachments.length > 0">
-                  <hr>
-
+                <b-col
+                  cols="12"
+                  md="6"
+                >
                   <b-form-group
-                    :label="$t('icon.list')"
-                    label-class="text-primary"
+                    label-class="d-flex align-items-center text-primary"
                   >
-                    <div
-                      v-if="processing"
-                      class="d-flex align-items-center justify-content-center h-100"
-                    >
-                      <b-spinner />
-                    </div>
-
-                    <div
-                      v-else
-                      class="d-flex flex-wrap px-2"
-                    >
-                      <div
-                        v-for="a in attachments"
-                        :key="a.attachmentID"
-                        :class="[selectedIconID === a.attachmentID ? 'border-success' : '2px solid']"
-                        class="mt-2 mr-2 p-2 border rounded-circle"
+                    <template #label>
+                      {{ $t('icon.page') }}
+                      <b-button
+                        :title="$t('icon.configure')"
+                        variant="outline-light"
+                        class="d-flex align-items-center px-1 text-primary border-0 ml-1"
+                        @click="openIconModal"
                       >
-                        <img
-                          :src="a.src"
-                          :alt="a.name"
-                          :style="{ 'cursor': !!linkUrl ? 'not-allowed' : 'pointer' }"
-                          class="rounded"
-                          style="height: 2.3em; width: 2.3em;"
-                          @click="toggleSelectedIcon(a.attachmentID)"
-                        >
-                      </div>
-                    </div>
-                  </b-form-group>
-                </template>
-              </b-modal>
+                        <font-awesome-icon
+                          :icon="['fas', 'cog']"
+                        />
+                      </b-button>
+                    </template>
 
-              <b-modal
-                id="logo"
-                hide-header
-                hide-footer
-                centered
-                body-class="p-1"
-              >
-                <b-img
-                  :src="linkUrl"
-                  fluid-grow
-                />
-              </b-modal>
+                    <img
+                      v-if="icon.src"
+                      :src="pageIcon"
+                      width="auto"
+                      height="50"
+                    >
+
+                    <span v-else>
+                      {{ $t('icon.noIcon') }}
+                    </span>
+                  </b-form-group>
+                </b-col>
+
+                <b-col
+                  cols="12"
+                  md="6"
+                >
+                  <b-form-group
+                    :label="$t('edit.otherOptions')"
+                    label-class="text-primary"
+                  >
+                    <b-form-checkbox
+                      v-if="!isRecordPage"
+                      v-model="page.visible"
+                      data-test-id="checkbox-page-visibility"
+                    >
+                      {{ $t('edit.visible') }}
+                    </b-form-checkbox>
+
+                    <b-form-checkbox
+                      v-model="page.config.navItem.expanded"
+                      data-test-id="checkbox-show-sub-pages-in-sidebar"
+                    >
+                      {{ $t('showSubPages') }}
+                    </b-form-checkbox>
+                  </b-form-group>
+                </b-col>
+              </b-row>
             </b-form>
           </b-card>
         </b-col>
       </b-row>
     </b-container>
+
+    <b-modal
+      v-model="showIconModal"
+      :title="$t('icon.configure')"
+      :ok-title="$t('label.saveAndClose')"
+      size="lg"
+      label-class="text-primary"
+      cancel-variant="link"
+      @close="closeIconModal"
+      @ok="saveIconModal"
+    >
+      <b-form-group
+        :label="$t('icon.upload')"
+        label-class="text-primary"
+        class="mb-0"
+      >
+        <uploader
+          :endpoint="endpoint"
+          :accepted-files="['image/*']"
+          :param-name="'icon'"
+          @uploaded="uploadAttachment"
+        />
+
+        <b-form-group
+          :label="$t('url.label')"
+          label-class="text-primary"
+          class="my-2"
+        >
+          <b-input-group>
+            <b-input
+              v-model="linkUrl"
+              :disabled="isIconSet"
+            />
+            <b-input-group-append>
+              <b-button
+                v-b-modal.logo
+                :title="$t('tooltip.preview-link')"
+                :disabled="!linkUrl"
+                variant="light"
+                rounded
+                class="d-flex align-items-center btn-light"
+              >
+                <font-awesome-icon :icon="['fas', 'external-link-alt']" />
+              </b-button>
+            </b-input-group-append>
+          </b-input-group>
+        </b-form-group>
+      </b-form-group>
+
+      <template v-if="attachments.length > 0">
+        <hr>
+
+        <b-form-group
+          :label="$t('icon.list')"
+          label-class="text-primary"
+        >
+          <div
+            v-if="processing"
+            class="d-flex align-items-center justify-content-center h-100"
+          >
+            <b-spinner />
+          </div>
+
+          <div
+            v-else
+            class="d-flex flex-wrap"
+          >
+            <img
+              v-for="a in attachments"
+              :key="a.attachmentID"
+              :src="a.src"
+              :alt="a.name"
+              width="auto"
+              height="50"
+              :class="{ 'selected-icon': selectedAttachmentID === a.attachmentID }"
+              class="rounded pointer mr-2"
+              @click="toggleSelectedIcon(a.attachmentID)"
+            >
+          </div>
+        </b-form-group>
+      </template>
+    </b-modal>
+
+    <b-modal
+      id="logo"
+      hide-header
+      hide-footer
+      centered
+      body-class="p-1"
+    >
+      <b-img
+        :src="linkUrl"
+        fluid-grow
+      />
+    </b-modal>
 
     <portal to="admin-toolbar">
       <editor-toolbar
@@ -345,12 +353,11 @@ export default {
 
   data () {
     return {
-      modulesList: [],
       page: new compose.Page(),
+
       showIconModal: false,
       attachments: [],
-      selectedIconID: '',
-      isSelected: false,
+      selectedAttachmentID: '',
       linkUrl: '',
 
       processing: false,
@@ -410,12 +417,12 @@ export default {
       },
 
       set (icon) {
-        this.page.config.navItem = icon
+        this.page.config.navItem.icon = icon
       },
     },
 
     isIconSet () {
-      return !!this.attachments.find(a => a.attachmentID === this.selectedIconID)
+      return !!this.selectedAttachmentID
     },
 
     pageIcon () {
@@ -430,6 +437,7 @@ export default {
         if (pageID) {
           this.findPageByID({ namespaceID: this.namespace.namespaceID, pageID }).then((page) => {
             this.page = page.clone()
+            return this.fetchAttachments()
           }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
         }
       },
@@ -451,13 +459,15 @@ export default {
        * instructs store layer to add content-language header to the API request
        */
       const resourceTranslationLanguage = this.currentLanguage
-      await this.setIcon().then(icon => { this.page.config.navItem = { icon, expanded: this.page.config.navItem.expanded } })
-      this.updatePage({ namespaceID: this.namespace.namespaceID, ...this.page, resourceTranslationLanguage }).then((page) => {
-        this.page = page.clone()
-        this.toastSuccess(this.$t('notification:page.saved'))
-        if (closeOnSuccess) {
-          this.$router.push({ name: 'admin.pages' })
-        }
+      return this.saveIcon().then(icon => {
+        this.page.config.navItem.icon = icon
+        return this.updatePage({ namespaceID: this.namespace.namespaceID, ...this.page, resourceTranslationLanguage }).then((page) => {
+          this.page = page.clone()
+          this.toastSuccess(this.$t('notification:page.saved'))
+          if (closeOnSuccess) {
+            this.$router.push({ name: 'admin.pages' })
+          }
+        })
       }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 
@@ -471,10 +481,10 @@ export default {
       this.fetchAttachments()
     },
 
-    fetchAttachments () {
+    async fetchAttachments () {
       this.processing = true
 
-      this.$ComposeAPI.iconList({ sort: 'id DESC' })
+      return this.$ComposeAPI.iconList({ sort: 'id DESC' })
         .then(({ set: attachments = [] }) => {
           const baseURL = this.$ComposeAPI.baseURL
           this.attachments = []
@@ -482,12 +492,6 @@ export default {
           if (attachments) {
             attachments.forEach(a => {
               const src = !a.url.includes(baseURL) ? this.makeAttachmentUrl(a.url) : a.url
-              const currSelectedIcon = a.url === this.icon.src
-
-              if (currSelectedIcon) {
-                this.selectedIconID = a.attachmentID
-              }
-
               this.attachments.push({ ...a, src })
             })
           }
@@ -498,63 +502,51 @@ export default {
         })
     },
 
-    async setIcon () {
-      const selectedAttachmentUrl = this.isSelected ? this.attachments.find(att => att.attachmentID === this.selectedIconID).url : ''
-
-      let attachmentType = 'link'
-      let attachmentSource = this.linkUrl
-
-      if (!attachmentSource) {
-        attachmentType = 'attachment'
-        attachmentSource = selectedAttachmentUrl
-      }
-
-      const navItem = {
-        icon: {
-          type: '',
-          src: '',
-        },
-      }
-
-      if (attachmentType && attachmentSource) {
-        await this.$ComposeAPI.pageUpdateIcon({
-          namespaceID: this.namespace.namespaceID,
-          pageID: this.pageID,
-          type: attachmentType,
-          source: attachmentSource,
-        }).then(({ type, src }) => {
-          navItem.icon.type = type
-          navItem.icon.src = src
-        })
-      }
-
-      return !this.icon.src ? navItem.icon : this.icon
+    async saveIcon () {
+      return this.$ComposeAPI.pageUpdateIcon({
+        namespaceID: this.namespace.namespaceID,
+        pageID: this.pageID,
+        type: this.icon.type,
+        source: this.icon.src,
+      })
     },
 
     toggleSelectedIcon (attachmentID = '') {
-      if (!this.linkUrl) {
-        this.isSelected = this.selectedIconID !== attachmentID
-        this.selectedIconID = this.isSelected ? attachmentID : ''
+      this.selectedAttachmentID = this.selectedAttachmentID === attachmentID ? '' : attachmentID
+    },
+
+    openIconModal () {
+      this.linkUrl = this.icon.type === 'link' ? this.icon.src : ''
+      this.selectedAttachmentID = (this.attachments.find(a => a.url === this.icon.src) || {}).attachmentID
+      this.showIconModal = true
+    },
+
+    saveIconModal () {
+      const type = this.selectedAttachmentID ? 'attachment' : 'link'
+
+      let src = this.linkUrl
+      if (this.selectedAttachmentID) {
+        src = (this.attachments.find(({ attachmentID }) => attachmentID === this.selectedAttachmentID) || {}).url
       }
+
+      this.icon = { type, src }
     },
 
     closeIconModal () {
-      this.isSelected = this.icon.src
-      this.selectedIconID = this.isSelected ? this.isIconSet : ''
-      if (this.icon.type === 'link') {
-        this.linkUrl = this.icon.src
-      }
+      this.linkUrl = this.icon.type === 'link' ? this.icon.src : ''
+      this.selectedAttachmentID = (this.attachments.find(a => a.url === this.icon.src) || {}).attachmentID
     },
 
     makeAttachmentUrl (src) {
       return `${this.$ComposeAPI.baseURL}${src}`
     },
 
-    openIconModal () {
-      this.linkUrl = this.icon.type === 'link' ? this.icon.src : ''
-
-      this.fetchAttachments()
-    },
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.selected-icon {
+  outline: 2px solid $success;
+}
+</style>

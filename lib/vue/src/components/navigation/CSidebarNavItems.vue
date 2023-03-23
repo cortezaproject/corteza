@@ -24,7 +24,7 @@
           <template v-else>
             <img
               :src="page.icon"
-              class="rounded-circle mr-1"
+              class="mr-1"
               style="height: 1.5em; width: 1.5em;"
             />
           </template>

@@ -22,14 +22,14 @@ edit:
   create: Create page
   edit: Edit page
   pageDescription: Page description
-  visible: Page visibility
+  visible: Is page visible
+  otherOptions: Other options
 icon:
   configure: Configure page icon
-  not-set: No icon set
+  noIcon: No icon
   page: Page icon
-  set: Set icon
   upload: Upload icon
-  list: List of uploaded icons
+  list: Uploaded icons
 url:
   label: Or add URL to icon
 import: 'Import page(s):'
