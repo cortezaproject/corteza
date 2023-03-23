@@ -147,7 +147,6 @@ export default {
     max-width: 100%;
     overflow: hidden;
   }
-
 }
 
 .vs__dropdown-menu .vs__dropdown-option {
