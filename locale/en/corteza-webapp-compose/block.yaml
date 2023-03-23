@@ -719,6 +719,8 @@ geometry:
     lockBounds: Lock bounds
     topLeft: Bounds top left
     lowerRight: Bounds lower right
+  tooltip:
+      goToCurrentLocation: Go to current location
 
 tabs:
   alertTitle: Set a title for your block

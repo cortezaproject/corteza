@@ -22,7 +22,7 @@
         />
         <l-control class="leaflet-bar">
           <a
-            :title="$t('tooltip.goToCurrentLocation')"
+            :title="$t('geometry.tooltip.goToCurrentLocation')"
             role="button"
             class="d-flex justify-content-center align-items-center"
             @click="goToCurrentLocation"
