@@ -46,7 +46,7 @@
           />
           <l-control class="leaflet-bar">
             <a
-              :title="$t('tooltip.goToCurrentLocation')"
+              :title="$t('geometry.tooltip.goToCurrentLocation')"
               role="button"
               class="d-flex justify-content-center align-items-center"
               @click="goToCurrentLocation"
@@ -72,6 +72,10 @@ import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from './base'
 
 export default {
+  i18nOptions: {
+    namespaces: 'block',
+  },
+
   components: {
     LPolygon,
     LControl,
