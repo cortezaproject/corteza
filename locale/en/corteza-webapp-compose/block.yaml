@@ -719,3 +719,54 @@ geometry:
     lockBounds: Lock bounds
     topLeft: Bounds top left
     lowerRight: Bounds lower right
+
+tabs:
+  alertTitle: Set a title for your block
+  title: Tabs
+  addTab: + Add
+  tab: Tab
+  selectBlock: Choose a block
+  noTabs: No tabs configured
+  noBlock: No block configured
+  displayTitle: Display Options
+  preview: Live example
+  newBlockModal: Add new block
+  placeholder:
+    block: Select a block to tab
+  style:
+    appearance:
+      label: Appearance
+      tabs: Tabs
+      pills: Pills
+      small: Small
+    alignment:
+      label: Alignment
+      left: Left
+      center: Center
+      right: Right
+    fillJustify:
+      label: Fill or Justify
+      fill: Fill
+      justify: Justify
+      none: None
+    orientation:
+      label: Orientation
+      vertical: Vertical
+      horizontal: Horizontal
+    position:
+      label: Position
+      start: Start
+      end: End
+  table:
+    columns:
+      title:
+        label: Title
+      block:
+        label: Block
+  tooltip:
+    edit: Edit block
+    editDisabled: Editing tabbed blocks is disabled until you save this block
+    addTab: Add tab
+    addBlock: Add new block
+    delete: Delete tab
+  label: Tabs
