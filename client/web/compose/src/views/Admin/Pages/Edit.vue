@@ -506,7 +506,7 @@ export default {
       return this.$ComposeAPI.pageUpdateIcon({
         namespaceID: this.namespace.namespaceID,
         pageID: this.pageID,
-        type: this.icon.type,
+        type: this.icon.type || 'link',
         source: this.icon.src,
       })
     },
