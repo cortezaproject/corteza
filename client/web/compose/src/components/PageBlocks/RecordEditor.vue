@@ -118,8 +118,8 @@ export default {
       }
 
       if (!this.options.fields || this.options.fields.length === 0) {
-        // No fields defined in the options, show all (buy system)
-        return this.module.fields.slice().sort((a, b) => a.label.localeCompare(b.label))
+        // No fields defined in the options, show all (but system)
+        return this.module.fields
       }
 
       // Show filtered & ordered list of fields
