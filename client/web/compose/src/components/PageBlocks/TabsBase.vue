@@ -16,7 +16,7 @@
     <b-tabs
       v-else
       card
-      nav-class="bg-white"
+      :nav-class="navClass"
       :nav-wrapper-class="navWrapperClass"
       :content-class="contentClass"
       v-bind="{
@@ -77,13 +77,19 @@ export default {
   components: {
     PageBlockTab: () => import('corteza-webapp-compose/src/components/PageBlocks'),
   },
-
   extends: base,
 
   computed: {
     tabbedBlocks () {
       return this.block.options.tabs.map(({ blockID, title }) => {
-        const block = this.page.blocks.find(b => fetchID(b) === blockID)
+        let block = this.page.blocks.find(b => fetchID(b) === blockID)
+        block = block ? compose.PageBlockMaker(block) : undefined
+
+        // Blocks should display as Plain, to avoid card shadow/border
+        if (block) {
+          block.style.wrap.kind = 'Plain'
+        }
+
         return {
           block: block ? compose.PageBlockMaker(block) : undefined,
           title,
@@ -92,7 +98,13 @@ export default {
     },
 
     contentClass () {
-      return `card overflow-hidden mh-100 ${this.block.options.style.orientation === 'vertical' ? 'd-block' : 'flex-fill'}`
+      return `overflow-hidden mh-100 ${this.block.options.style.orientation === 'vertical' ? 'd-block' : 'flex-fill'}`
+    },
+
+    navClass () {
+      const { orientation } = this.block.options.style
+      const style = orientation === 'vertical' ? 'px-3' : 'px-2'
+      return `bg-white ${style}`
     },
 
     navWrapperClass () {
