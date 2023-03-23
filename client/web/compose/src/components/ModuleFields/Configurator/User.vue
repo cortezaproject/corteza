@@ -19,7 +19,7 @@
         :close-on-select="false"
         append-to-body
         :placeholder="$t('kind.user.roles.placeholder')"
-        :calculate-position="calculatePosition"
+        :calculate-position="calculateDropdownPosition"
         multiple
         label="name"
         class="bg-white"

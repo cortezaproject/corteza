@@ -315,7 +315,7 @@
                         :get-option-label="getRoleLabel"
                         :placeholder="$t('recordList.filter.role.placeholder')"
                         :reduce="role => role.roleID"
-                        :calculate-position="calculatePosition"
+                        :calculate-position="calculateDropdownPosition"
                         append-to-body
                         multiple
                         class="bg-white"

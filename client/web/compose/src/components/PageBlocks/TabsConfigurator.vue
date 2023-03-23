@@ -157,7 +157,7 @@
                 :get-option-label="getBlockLabel"
                 :selectable="option => isSelectable(option)"
                 :reduce="option => option.value"
-                :calculate-position="calculatePosition"
+                :calculate-position="calculateDropdownPosition"
                 append-to-body
                 class="block-selector bg-white"
               />
