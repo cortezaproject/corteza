@@ -9,7 +9,7 @@
           :options="charts"
           :placeholder="$t('chart.pick')"
           :reduce="option => option.chartID"
-          :calculate-position="calculatePosition"
+          :calculate-position="calculateDropdownPosition"
           label="name"
           append-to-body
           class="chart-selector bg-white"
@@ -50,7 +50,7 @@
           :disabled="!options.drillDown.enabled"
           :get-option-label="o => o.title || o.kind"
           :reduce="option => option.blockID"
-          :calculate-position="calculatePosition"
+          :calculate-position="calculateDropdownPosition"
           :clearable="true"
           :placeholder="$t('chart.drillDown.openInModal')"
           append-to-body

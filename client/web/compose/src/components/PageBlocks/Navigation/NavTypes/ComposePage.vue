@@ -18,7 +18,7 @@
           :options="tree"
           append-to-body
           label="title"
-          :calculate-position="calculatePosition"
+          :calculate-position="calculateDropdownPosition"
           :reduce="f => f.pageID"
           option-value="pageID"
           option-text="title"
@@ -60,7 +60,6 @@ import base from './base'
 
 import { VueSelect } from 'vue-select'
 import { compose } from '@cortezaproject/corteza-js'
-import calculatePosition from 'corteza-webapp-compose/src/mixins/vue-select-position'
 
 export default {
   components: {
@@ -68,10 +67,6 @@ export default {
   },
 
   extends: base,
-
-  mixins: [
-    calculatePosition,
-  ],
 
   props: {
     namespace: {

@@ -2,7 +2,7 @@ import { createPopper } from '@popperjs/core'
 
 export default {
   methods: {
-    calculatePosition (dropdownList, component, { width }) {
+    calculateDropdownPosition (dropdownList, component, { width }) {
       /**
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.

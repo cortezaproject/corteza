@@ -12,7 +12,7 @@
         :value="namespace"
         :selectable="option => option.namespaceID !== namespace.namespaceID"
         :placeholder="$t('pickNamespace')"
-        :calculate-position="calculatePosition"
+        :calculate-position="calculateDropdownPosition"
         @option:selected="namespaceSelected"
       >
         <template #list-header>

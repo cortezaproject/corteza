@@ -15,7 +15,7 @@
         :reduce="s => s.connectionID"
         :placeholder="$t('connection.placeholder')"
         :get-option-label="getConnectionLabel"
-        :calculate-position="calculatePosition"
+        :calculate-position="calculateDropdownPosition"
         class="bg-white"
       />
     </b-form-group>

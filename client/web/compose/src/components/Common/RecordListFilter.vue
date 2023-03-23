@@ -72,7 +72,7 @@
                       option-text="label"
                       :reduce="f => f.name"
                       append-to-body
-                      :calculate-position="calculatePosition"
+                      :calculate-position="calculateDropdownPosition"
                       :class="{ 'filter-field-picker': !!filter.name }"
                       class="field-selector bg-white"
                       @input="onChange($event, groupIndex, index)"

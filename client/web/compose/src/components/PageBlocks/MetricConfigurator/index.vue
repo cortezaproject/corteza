@@ -180,7 +180,7 @@
                   :placeholder="$t('metric.edit.metricFieldSelect')"
                   :options="metricFields"
                   :reduce="f => f.name"
-                  :calculate-position="calculatePosition"
+                  :calculate-position="calculateDropdownPosition"
                   class="bg-white"
                 />
               </b-form-group>
@@ -194,7 +194,7 @@
                   :placeholder="$t('metric.edit.metricSelectAggregate')"
                   :options="aggregationOperations"
                   :reduce="a => a.operation"
-                  :calculate-position="calculatePosition"
+                  :calculate-position="calculateDropdownPosition"
                   class="bg-white"
                 />
               </b-form-group>
