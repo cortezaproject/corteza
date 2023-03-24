@@ -24,13 +24,15 @@
 
           <b-input-group-append>
             <b-button
-              variant="secondary"
+              variant="light"
               :disabled="!canUpdate"
+              size="sm"
               :title="$t('builder:tooltip.configure-scenarios')"
               @click="openScenarioConfigurator"
             >
               <font-awesome-icon
                 :icon="['fas', 'cog']"
+                class="text-primary"
               />
             </b-button>
           </b-input-group-append>
@@ -39,7 +41,7 @@
 
       <b-button
         :disabled="!canUpdate"
-        variant="secondary"
+        variant="info"
         size="sm"
         class="mr-1"
         @click="openDatasourceConfigurator"
