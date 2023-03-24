@@ -36,6 +36,7 @@ field-geometry:
     unknownError: An unknown error occurred
     notSupported: Geolocation is not supported by this browser
     errorOccurred: An error occurred while getting user location
+    locationSearchFailed: Location search failed
 general:
   composeAccessNotAllowed: Not allowed to access Compose
   error: Error

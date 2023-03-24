@@ -384,6 +384,8 @@ export default {
             lng: result.raw.lon,
           },
         }))
+      }).catch(() => {
+        this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.locationSearchFailed'))()
       })
     },
   },

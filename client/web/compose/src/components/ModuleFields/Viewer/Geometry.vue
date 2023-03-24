@@ -25,6 +25,27 @@
       hide-header
       hide-footer
     >
+      <div class="geosearch-container">
+        <c-input-search
+          v-model="geoSearch.query"
+          :placeholder="$t('geosearchInputPlaceholder')"
+          :autocomplete="'off'"
+          :debounce="300"
+          @input="onGeoSearch"
+        />
+
+        <div class="geosearch-results">
+          <div
+            v-for="(result, idx) in geoSearch.results"
+            :key="idx"
+            class="geosearch-result"
+            @click="placeGeoSearchMarker(result)"
+          >
+            {{ result.label }}
+          </div>
+        </div>
+      </div>
+
       <l-map
         ref="map"
         :zoom="map.zoom"
@@ -65,6 +86,9 @@
 import base from './base'
 import { latLng } from 'leaflet'
 import { LControl } from 'vue2-leaflet'
+import { OpenStreetMapProvider } from 'leaflet-geosearch'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputSearch } = components
 
 export default {
   i18nOptions: {
@@ -74,6 +98,7 @@ export default {
 
   components: {
     LControl,
+    CInputSearch,
   },
 
   extends: base,
@@ -88,6 +113,12 @@ export default {
         attribution: '&copy; <a target="_blank" rel="noopener noreferrer" href="http://osm.org/copyright">OpenStreetMap</a>',
       },
       localValueIndex: undefined,
+
+      geoSearch: {
+        query: '',
+        provider: new OpenStreetMapProvider(),
+        results: [],
+      },
     }
   },
 
@@ -130,6 +161,31 @@ export default {
     onLocationFound ({ latitude, longitude }) {
       const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
       this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
+    },
+
+    placeGeoSearchMarker (result) {
+      const zoom = this.$refs.map.mapObject._zoom >= 15 ? this.$refs.map.mapObject._zoom : 15
+      this.$refs.map.mapObject.flyTo([result.latlng.lat, result.latlng.lng], zoom, { animate: false })
+      this.geoSearch.results = []
+    },
+
+    onGeoSearch (query) {
+      if (!query) {
+        this.geoSearch.results = []
+        return
+      }
+
+      this.geoSearch.provider.search({ query }).then(results => {
+        this.geoSearch.results = results.map(result => ({
+          ...result,
+          latlng: {
+            lat: result.raw.lat,
+            lng: result.raw.lon,
+          },
+        }))
+      }).catch(() => {
+        this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.locationSearchFailed'))()
+      })
     },
   },
 }
