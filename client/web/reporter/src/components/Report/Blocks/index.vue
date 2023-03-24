@@ -130,14 +130,14 @@ export default {
 
     'block.elements.length': {
       handler (length, oldLength) {
-        if (length) {
+        const addedOrRemoved = length !== oldLength && oldLength
+
+        if (addedOrRemoved) {
           const defaultSize = Math.floor(100 / length)
 
           // Reset sizes to default if element was added or removed
-          const addedOrRemoved = length !== oldLength && oldLength !== undefined
-
           this.block.elements = this.block.elements.map(e => {
-            e.meta.size = !addedOrRemoved && e.meta.size ? e.meta.size : defaultSize
+            e.meta.size = defaultSize
             return e
           })
         }
