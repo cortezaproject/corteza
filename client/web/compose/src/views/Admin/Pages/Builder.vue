@@ -75,39 +75,41 @@
               />
             </div>
 
-            <b-button
-              data-test-id="button-edit"
-              :title="$t('tooltip.edit.block')"
-              variant="outline-light"
-              class="border-0"
-              @click="editBlock(index)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'edit']"
-              />
-            </b-button>
+            <b-button-group>
+              <b-button
+                data-test-id="button-edit"
+                :title="$t('tooltip.edit.block')"
+                variant="outline-light"
+                class="border-0"
+                @click="editBlock(index)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'edit']"
+                />
+              </b-button>
 
-            <b-button
-              :title="$t('tooltip.clone.block')"
-              variant="outline-light"
-              class="border-0"
-              @click="cloneBlock(index)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'clone']"
-              />
-            </b-button>
+              <b-button
+                :title="$t('tooltip.clone.block')"
+                variant="outline-light"
+                class="border-0"
+                @click="cloneBlock(index)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'clone']"
+                />
+              </b-button>
 
-            <b-button
-              :title="$t('tooltip.copy.block')"
-              variant="outline-light"
-              class="border-0"
-              @click="copyBlock(index)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'copy']"
-              />
-            </b-button>
+              <b-button
+                :title="$t('tooltip.copy.block')"
+                variant="outline-light"
+                class="border-0"
+                @click="copyBlock(index)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'copy']"
+                />
+              </b-button>
+            </b-button-group>
 
             <c-input-confirm
               class="ml-1"
