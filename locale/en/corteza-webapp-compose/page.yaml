@@ -66,6 +66,8 @@ tooltip:
     block: Copy block
   clone:
     block: Clone block
+  delete:
+    block: Delete block
   preview-link: Preview link
   saveAsCopy: Cannot duplicate record page
 view: View

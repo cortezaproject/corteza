@@ -112,9 +112,10 @@
             </b-button-group>
 
             <c-input-confirm
-              class="ml-1"
-              size="md"
+              :title="$t('tooltip.delete.block')"
               link
+              size="md"
+              class="ml-1"
               @confirmed="deleteBlock(index)"
             />
           </div>
