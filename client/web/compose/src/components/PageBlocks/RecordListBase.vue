@@ -116,16 +116,14 @@
         </b-row>
 
         <div
-          v-if="activeFilters.length || drillDownFilter"
+          v-if="activeFilters.length || drillDownFilter || options.showDeletedRecordsOption"
           class="d-flex mt-2"
         >
           <div
             v-if="activeFilters.length"
             class="d-flex align-items-center flex-wrap"
           >
-            <span class="mr-1">
-              {{ $t('recordList.filter.filters.active') }}
-            </span>
+            {{ $t('recordList.filter.filters.active') }}
             <b-form-tags
               v-model="activeFilters"
               tag-variant="secondary"
@@ -133,20 +131,20 @@
               size="lg"
               input-class="d-none"
               tag-class="align-items-center"
-              class="filter-tags border-0 p-0"
+              class="filter-tags border-0 p-0 ml-1"
               style="width: fit-content;"
               @input="removeFilter"
             />
           </div>
 
           <b-button
-            v-if="drillDownFilter"
+            v-if="options.showDeletedRecordsOption"
             variant="outline-light"
             size="sm"
-            class="ml-auto text-nowrap text-primary border-0"
-            @click="setDrillDownFilter(undefined)"
+            class="text-primary border-0 text-nowrap ml-auto"
+            @click="handleShowDeleted()"
           >
-            {{ $t('recordList.drillDown.filter.remove') }}
+            {{ showingDeletedRecords ? $t('recordList.showRecords.existing') : $t('recordList.showRecords.deleted') }}
           </b-button>
         </div>
 
@@ -652,92 +650,75 @@
           </b-col>
 
           <b-col
+            v-if="showPageNavigation"
             class="d-flex align-items-center justify-content-end"
-            :class="{ 'justify-content-center': options.showDeletedRecordsOption }"
           >
-            <div
-              v-if="showPageNavigation"
+            <b-pagination
+              v-if="options.fullPageNavigation"
+              data-test-id="pagination"
+              align="right"
+              aria-controls="record-list"
+              class="m-0 d-print-none"
+              pills
+              :value="getPagination.page"
+              :per-page="getPagination.perPage"
+              :total-rows="getPagination.count"
+              @change="goToPage"
             >
-              <b-pagination
-                v-if="options.fullPageNavigation"
-                data-test-id="pagination"
-                align="right"
-                aria-controls="record-list"
-                class="m-0 d-print-none"
-                pills
-                :value="getPagination.page"
-                :per-page="getPagination.perPage"
-                :total-rows="getPagination.count"
-                @change="goToPage"
+              <template #first-text>
+                <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+              </template>
+              <template #prev-text>
+                <font-awesome-icon :icon="['fas', 'angle-left']" />
+              </template>
+              <template #next-text>
+                <font-awesome-icon :icon="['fas', 'angle-right']" />
+              </template>
+              <template #last-text>
+                <font-awesome-icon :icon="['fas', 'angle-double-right']" />
+              </template>
+              <template #elipsis-text>
+                <font-awesome-icon :icon="['fas', 'ellipsis-h']" />
+              </template>
+            </b-pagination>
+
+            <b-button-group v-else>
+              <b-button
+                :disabled="!hasPrevPage"
+                data-test-id="first-page"
+                variant="outline-light"
+                class="d-flex align-items-center justify-content-center text-primary border-0"
+                @click="goToPage()"
               >
-                <template #first-text>
-                  <font-awesome-icon :icon="['fas', 'angle-double-left']" />
-                </template>
-                <template #prev-text>
-                  <font-awesome-icon :icon="['fas', 'angle-left']" />
-                </template>
-                <template #next-text>
-                  <font-awesome-icon :icon="['fas', 'angle-right']" />
-                </template>
-                <template #last-text>
-                  <font-awesome-icon :icon="['fas', 'angle-double-right']" />
-                </template>
-                <template #elipsis-text>
-                  <font-awesome-icon :icon="['fas', 'ellipsis-h']" />
-                </template>
-              </b-pagination>
-
-              <b-button-group v-else>
-                <b-button
-                  :disabled="!hasPrevPage"
-                  data-test-id="first-page"
-                  variant="outline-light"
-                  class="d-flex align-items-center justify-content-center text-primary border-0"
-                  @click="goToPage()"
-                >
-                  <font-awesome-icon :icon="['fas', 'angle-double-left']" />
-                </b-button>
-                <b-button
-                  :disabled="!hasPrevPage"
-                  data-test-id="previous-page"
-                  variant="outline-light"
-                  class="d-flex align-items-center justify-content-center text-primary border-0"
-                  @click="goToPage('prevPage')"
-                >
-                  <font-awesome-icon
-                    :icon="['fas', 'angle-left']"
-                    class="mr-1"
-                  />
-                  {{ $t('recordList.pagination.prev') }}
-                </b-button>
-                <b-button
-                  :disabled="!hasNextPage"
-                  data-test-id="next-page"
-                  variant="outline-light"
-                  class="d-flex align-items-center justify-content-center text-primary border-0"
-                  @click="goToPage('nextPage')"
-                >
-                  {{ $t('recordList.pagination.next') }}
-                  <font-awesome-icon
-                    :icon="['fas', 'angle-right']"
-                    class="ml-1"
-                  />
-                </b-button>
-              </b-button-group>
-            </div>
-          </b-col>
-
-          <b-col
-            v-if="options.showDeletedRecordsOption"
-            class="d-flex align-items-center justify-content-end"
-          >
-            <b-button
-              variant="outline-light"
-              class="text-primary border-0 text-nowrap"
-              @click="handleShowDeleted()"
-            >
-              {{ showingDeletedRecords ? $t('recordList.showRecords.existing') : $t('recordList.showRecords.deleted') }}
-            </b-button>
+                <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+              </b-button>
+              <b-button
+                :disabled="!hasPrevPage"
+                data-test-id="previous-page"
+                variant="outline-light"
+                class="d-flex align-items-center justify-content-center text-primary border-0"
+                @click="goToPage('prevPage')"
+              >
+                <font-awesome-icon
+                  :icon="['fas', 'angle-left']"
+                  class="mr-1"
+                />
+                {{ $t('recordList.pagination.prev') }}
+              </b-button>
+              <b-button
+                :disabled="!hasNextPage"
+                data-test-id="next-page"
+                variant="outline-light"
+                class="d-flex align-items-center justify-content-center text-primary border-0"
+                @click="goToPage('nextPage')"
+              >
+                {{ $t('recordList.pagination.next') }}
+                <font-awesome-icon
+                  :icon="['fas', 'angle-right']"
+                  class="ml-1"
+                />
+              </b-button>
+            </b-button-group>
           </b-col>
         </b-row>
       </b-container>
@@ -1634,6 +1615,10 @@ export default {
     },
 
     setDrillDownFilter (drillDownFilter) {
+      if (drillDownFilter) {
+        this.activeFilters.push(this.$t('recordList.drillDown.filter.label'))
+      }
+
       this.drillDownFilter = drillDownFilter
       this.pullRecords(true)
     },
@@ -1732,6 +1717,10 @@ export default {
     },
 
     removeFilter (currentFilters) {
+      if (this.drillDownFilter && !currentFilters.includes(this.$t('recordList.drillDown.filter.label'))) {
+        this.setDrillDownFilter(undefined)
+      }
+
       this.recordListFilter = this.recordListFilter.filter(({ name }) => !name || currentFilters.includes(name))
       this.refresh(true)
     },
