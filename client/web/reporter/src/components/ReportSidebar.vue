@@ -51,7 +51,7 @@ export default {
       let reports = this.reports
       if (this.query) {
         reports = this.reports.filter(({ reportID, handle, meta: { name = '' } }) => {
-          const reportString = `${reportID}${handle}$name}`.toLowerCase().trim()
+          const reportString = `${reportID}${handle}${name}`.toLowerCase().trim()
           return reportString.indexOf(this.query.toLowerCase().trim()) > -1
         })
       }
