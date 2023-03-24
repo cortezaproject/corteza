@@ -278,8 +278,8 @@ $nav-user-icon-size: 50px;
 }
 
 .nav-user-icon {
-  width: $nav-user-icon-size;
-  height: $nav-user-icon-size;
+  min-width: $nav-user-icon-size;
+  min-height: $nav-user-icon-size;
 }
 
 .header-navigation {
