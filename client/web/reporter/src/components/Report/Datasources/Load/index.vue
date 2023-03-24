@@ -3,11 +3,13 @@
     v-if="step.load"
   >
     <b-form-group
-      :label="$t('datasources:name')"
+      :label="$t('datasources:name-required')"
       label-class="text-primary"
     >
       <b-form-input
         v-model="step.load.name"
+        :state="nameState"
+        :disabled="!creating"
         :placeholder="$t('datasources:datasource-name')"
       />
     </b-form-group>
