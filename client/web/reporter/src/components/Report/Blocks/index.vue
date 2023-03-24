@@ -213,7 +213,7 @@ export default {
               return { ...element, dataframes }
             })
           }).catch((e) => {
-            this.toastErrorHandler(this.$t('notification:report.run-failed'))(e)
+            this.toastErrorHandler(this.$t('notification:report.runFailed'))(e)
           }).finally(() => {
             this.processing = false
           })
@@ -241,7 +241,7 @@ export default {
             .then(({ frames = [] }) => {
               this.block.elements.find(({ elementID }) => elementID === element.elementID).dataframes = frames
             }).catch((e) => {
-              this.toastErrorHandler(this.$t('notification:report.run-failed'))(e)
+              this.toastErrorHandler(this.$t('notification:report.runFailed'))(e)
             })
         }
       }
