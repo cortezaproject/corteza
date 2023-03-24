@@ -133,23 +133,26 @@
 
     <b-modal
       v-model="map.show"
+      :title="label"
       size="lg"
       body-class="p-0"
-      hide-header
     >
       <template #modal-footer>
         {{ $t('clickToPlaceMarker') }}
       </template>
 
       <div class="geosearch-container">
-        <input
-          class="geosearch-input"
+        <c-input-search
+          v-model="geoSearch.query"
           :placeholder="$t('geosearchInputPlaceholder')"
+          :autocomplete="'off'"
+          :debounce="300"
           @input="onGeoSearch"
-        >
+        />
+
         <div class="geosearch-results">
           <div
-            v-for="(result, idx) in searchResults"
+            v-for="(result, idx) in geoSearch.results"
             :key="idx"
             class="geosearch-result"
             @click="placeGeoSearchMarker(result)"
@@ -196,10 +199,11 @@
 </template>
 <script>
 import base from './base'
-import { debounce } from 'lodash'
 import { latLng } from 'leaflet'
 import { LControl } from 'vue2-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputSearch } = components
 
 export default {
   i18nOptions: {
@@ -209,6 +213,7 @@ export default {
 
   components: {
     LControl,
+    CInputSearch,
   },
 
   extends: base,
@@ -225,7 +230,11 @@ export default {
         attribution: '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a>',
       },
 
-      searchResults: [],
+      geoSearch: {
+        query: '',
+        provider: new OpenStreetMapProvider(),
+        results: [],
+      },
     }
   },
 
@@ -302,8 +311,6 @@ export default {
       } else {
         this.localValue = coords
       }
-
-      this.searchResults = []
     },
 
     removeMarker (i) {
@@ -352,73 +359,33 @@ export default {
     },
 
     onLocationFound ({ latitude, longitude }) {
-      const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
+      const zoom = this.$refs.map.mapObject._zoom >= 15 ? this.$refs.map.mapObject._zoom : 15
       this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
 
     placeGeoSearchMarker (result) {
-      this.map.center = [result.latlng.lat, result.latlng.lng]
+      const zoom = this.$refs.map.mapObject._zoom >= 15 ? this.$refs.map.mapObject._zoom : 15
+      this.$refs.map.mapObject.flyTo([result.latlng.lat, result.latlng.lng], zoom, { animate: false })
       this.placeMarker(result)
+      this.geoSearch.results = []
     },
 
-    onGeoSearch: debounce(async function (e) {
-      const provider = new OpenStreetMapProvider()
-      const results = await provider.search({ query: e.target.value })
+    onGeoSearch (query) {
+      if (!query) {
+        this.geoSearch.results = []
+        return
+      }
 
-      this.searchResults = results.map(result => ({
-        ...result,
-        latlng: {
-          lat: result.raw.lat,
-          lng: result.raw.lon,
-        },
-      }))
-    }, 500),
+      this.geoSearch.provider.search({ query }).then(results => {
+        this.geoSearch.results = results.map(result => ({
+          ...result,
+          latlng: {
+            lat: result.raw.lat,
+            lng: result.raw.lon,
+          },
+        }))
+      })
+    },
   },
 }
 </script>
-
-<style>
-.geosearch-container {
-  position: absolute;
-  display: block;
-  height: auto;
-  width: 400px;
-  max-width: 400px;
-  margin: 10px auto 0;
-  cursor: auto;
-  z-index: 10000;
-  border: 2px solid rgba(0,0,0,.2);
-  background-color: #fff;
-  padding: 0 8px;
-  font-size: 12px;
-  padding-bottom: 5px;
-  left: 25%;
-  top: 0px;
-}
-
-.geosearch-input {
-  background-color: #fff;
-  border-radius: 2px;
-  height: 38px;
-  border: none;
-  min-width: 100%;
-  width: 100%;
-  outline: none;
-}
-
-.geosearch-result {
-  border: 1px solid transparent;
-  line-height: 32px;
-  padding: 0 8px;
-  font-size: 12px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.geosearch-result:hover {
-  background-color: #f8f8f8;
-  border-color: #c6c6c6;
-  cursor: pointer;
-}
-</style>

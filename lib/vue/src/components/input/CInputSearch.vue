@@ -12,7 +12,7 @@
       :autocomplete="autocomplete"
       :size="size"
       class="h-100 pr-0 border-light border-right-0 text-truncate bg-white"
-      @input="search"
+      @update="search"
       @keyup.enter="submitQuery"
     />
     <b-input-group-append
