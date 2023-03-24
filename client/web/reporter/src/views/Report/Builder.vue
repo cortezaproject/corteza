@@ -91,34 +91,36 @@
           class="h-100 editable-block"
         >
           <div
-            class="add-element d-flex align-items-center justify-items-between mr-3 mt-3 pr-1"
+            class="toolbox border-0 p-2 m-0 text-light text-center"
           >
-            <b-button
-              variant="link"
-              class="text-light"
-              @click="openDisplayElementSelector(index)"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'plus']"
-                class="h4 mb-0"
-              />
-            </b-button>
+            <b-button-group>
+              <b-button
+                :title="$t('tooltip.edit.block')"
+                variant="outline-light"
+                class="border-0"
+                @click="openDisplayElementSelector(index)"
+              >
+                <font-awesome-icon
+                  :icon="['fas', 'plus']"
+                />
+              </b-button>
 
-            <b-button
-              variant="link"
-              class="text-light"
-              :title="$t('builder:tooltip.edit.block')"
-              @click="editBlock(index)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'edit']"
-                class="h5 mb-0"
-              />
-            </b-button>
+              <b-button
+                :title="$t('builder:tooltip.edit.block')"
+                variant="outline-light"
+                class="border-0"
+                @click="editBlock(index)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'edit']"
+                />
+              </b-button>
+            </b-button-group>
 
             <c-input-confirm
+              link
               size="md"
-              variant="link text-danger"
+              class="ml-1"
               @confirmed="deleteBlock(index)"
             />
           </div>
@@ -916,17 +918,29 @@ export default {
 </script>
 
 <style lang="scss">
-.add-element {
+div.toolbox {
   position: absolute;
-  background-color: #1e2224;
+  background-color: $dark;
   bottom: 0;
   left: 0;
-  z-index: 1021;
-  opacity: 0.5;
+  z-index: 1001;
   border-top-right-radius: 10px;
+  opacity: 0.5;
+  pointer-events: none;
 
   &:hover {
     opacity: 1;
+  }
+
+  & * {
+    pointer-events: auto;
+  }
+}
+
+[dir="rtl"] {
+  div.toolbox {
+    left: 0;
+    right: auto;
   }
 }
 </style>
