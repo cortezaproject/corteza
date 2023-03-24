@@ -283,6 +283,39 @@ input[type="search"]::-webkit-search-cancel-button {
   align-items: center !important;
 }
 
+.geosearch-container {
+  position: absolute;
+  display: block;
+  height: auto;
+  width: 50%;
+  max-width: 400px;
+  cursor: auto;
+  z-index: 10000;
+  left: 25%;
+  top: 10px;
+}
+
+.geosearch-results {
+  margin: 1px;
+  border-radius: 2px;
+  background-color: $white;
+  max-height: 50%;
+  overflow: auto;
+}
+
+.geosearch-result {
+  border-radius: 2px;
+  line-height: 32px;
+  padding: 0 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.geosearch-result:hover {
+  background-color: $gray-200;
+  cursor: pointer;
+}
+
 // Supporting CSS to improve print-to-PDF option
 @media print {
   @page {
