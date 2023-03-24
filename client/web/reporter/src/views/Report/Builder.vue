@@ -95,7 +95,7 @@
           >
             <b-button-group>
               <b-button
-                :title="$t('tooltip.edit.block')"
+                :title="$t('builder:tooltip.add.displayElement')"
                 variant="outline-light"
                 class="border-0"
                 @click="openDisplayElementSelector(index)"
@@ -118,6 +118,7 @@
             </b-button-group>
 
             <c-input-confirm
+              :tooltip="$t('builder:tooltip.delete.block')"
               link
               size="md"
               class="ml-1"

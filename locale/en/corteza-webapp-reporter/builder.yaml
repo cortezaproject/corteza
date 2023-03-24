@@ -7,7 +7,7 @@ block:
   save: Save Block
   title: Block title
   configuration: Block configuration
-datasource: 
+datasource:
   label: Datasource
   types:
     load:
@@ -59,6 +59,10 @@ tooltip:
   edit:
     report: Edit report
     block: Edit block
+  add:
+    displayElement: Add display element
+  delete:
+    block: Delete block
   configure-scenarios: Configure scenarios
 available-columns: Available columns
 selected-columns: Selected columns
