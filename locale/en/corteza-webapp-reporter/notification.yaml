@@ -18,7 +18,7 @@ report:
   deleteFailed: Failed to delete report
   fetchFailed: Failed to fetch report
   listFetchFailed: Failed to fetch reports
-  run-failed: Failed to run report
+  runFailed: Failed to run report
   updateFailed: Failed to update report
   updated: Report updated
   notAllowed:

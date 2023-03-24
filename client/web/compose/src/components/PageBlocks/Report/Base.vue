@@ -100,7 +100,7 @@ export default {
                   dataframes,
                 }
               }).catch((e) => {
-                this.toastErrorHandler(this.$t('notification:report.run-failed'))(e)
+                this.toastErrorHandler(this.$t('notification:report.runFailed'))(e)
               })
           }
         } else {
