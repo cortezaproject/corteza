@@ -5,11 +5,13 @@
     <b-row>
       <b-col>
         <b-form-group
-          :label="$t('datasources:name')"
+          :label="$t('datasources:name-required')"
           label-class="text-primary"
         >
           <b-form-input
             v-model="step.join.name"
+            :disabled="!creating"
+            :state="nameState"
             :placeholder="$t('datasources:datasource-name')"
           />
         </b-form-group>
@@ -102,14 +104,6 @@ export default {
   },
 
   extends: base,
-
-  props: {
-    datasources: {
-      type: Array,
-      required: false,
-      default: () => [],
-    },
-  },
 
   data () {
     return {

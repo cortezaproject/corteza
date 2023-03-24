@@ -14,6 +14,7 @@ label:
   or: Or
   openLinkInNewTab: Open link in a new tab
   save: Save
+  saveAndClose: Save and close
   today: Today
   urlPlaceholder: https://example.tld
   default: Default

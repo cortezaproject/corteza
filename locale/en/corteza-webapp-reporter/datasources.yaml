@@ -7,6 +7,7 @@ expression: Expression
 group-by: Group by
 label: Label
 module: Module
+name-required: Name *
 name: Name
 namespace: Namespace
 new:

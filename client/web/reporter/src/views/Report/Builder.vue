@@ -226,9 +226,10 @@
     <b-modal
       v-model="datasources.showConfigurator"
       :title="$t('builder:datasources.label')"
-      :ok-title="$t('builder:datasources.save')"
+      :ok-title="$t('general:label.saveAndClose')"
       ok-variant="primary"
-      :ok-disabled="datasources.processing"
+      :ok-disabled="datasourceSaveDisabled"
+      cancel-variant="link"
       :cancel-disabled="datasources.processing"
       scrollable
       size="xl"
@@ -259,6 +260,7 @@
             :index="datasources.currentIndex"
             :datasources="datasources.tempItems"
             :step.sync="currentDatasourceStep"
+            :creating="datasources.tempItems[datasources.currentIndex].meta.creating"
           />
         </template>
       </configurator>
@@ -605,6 +607,16 @@ export default {
         { text: this.$t('builder:layout-options.vertical'), value: 'vertical' },
       ]
     },
+
+    datasourceSaveDisabled () {
+      const uniqueDatasources = new Set()
+      const hasDuplicates = this.datasources.tempItems.some(({ step }) => {
+        const name = step[Object.keys(step)].name
+        return !name || uniqueDatasources.size === uniqueDatasources.add(name).size
+      })
+
+      return this.datasources.processing || hasDuplicates
+    },
   },
 
   watch: {
@@ -660,7 +672,7 @@ export default {
         }
       }
 
-      return `${currentIndex}`
+      return `${this.$t('datasources:source')} ${currentIndex}`
     },
 
     openDatasourceSelector () {
@@ -670,7 +682,10 @@ export default {
 
     openDatasourceConfigurator () {
       this.datasources.showConfigurator = true
-      this.datasources.tempItems = cloneDeep(this.reportDatasources)
+      this.datasources.tempItems = cloneDeep(this.reportDatasources).map(ds => {
+        ds.meta.creating = false
+        return ds
+      })
       this.datasources.currentIndex = this.datasources.tempItems.length ? 0 : undefined
     },
 
