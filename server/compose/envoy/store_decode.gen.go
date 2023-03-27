@@ -200,6 +200,12 @@ func ChartToEnvoyNode(r *types.Chart) (node *envoyx.Node, err error) {
 		Identifiers:  refs["NamespaceID"].Identifiers,
 	}
 	for k, ref := range refs {
+		// @todo temporary solution to not needlessly scope resources.
+		//       Optimally, this would be selectively handled by codegen.
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+
 		ref.Scope = scope
 		refs[k] = ref
 	}
@@ -298,6 +304,12 @@ func ModuleToEnvoyNode(r *types.Module) (node *envoyx.Node, err error) {
 		Identifiers:  refs["NamespaceID"].Identifiers,
 	}
 	for k, ref := range refs {
+		// @todo temporary solution to not needlessly scope resources.
+		//       Optimally, this would be selectively handled by codegen.
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+
 		ref.Scope = scope
 		refs[k] = ref
 	}
@@ -393,6 +405,12 @@ func ModuleFieldToEnvoyNode(r *types.ModuleField) (node *envoyx.Node, err error)
 		Identifiers:  refs["NamespaceID"].Identifiers,
 	}
 	for k, ref := range refs {
+		// @todo temporary solution to not needlessly scope resources.
+		//       Optimally, this would be selectively handled by codegen.
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+
 		ref.Scope = scope
 		refs[k] = ref
 	}
@@ -550,6 +568,12 @@ func PageToEnvoyNode(r *types.Page) (node *envoyx.Node, err error) {
 		Identifiers:  refs["NamespaceID"].Identifiers,
 	}
 	for k, ref := range refs {
+		// @todo temporary solution to not needlessly scope resources.
+		//       Optimally, this would be selectively handled by codegen.
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+
 		ref.Scope = scope
 		refs[k] = ref
 	}

@@ -317,6 +317,12 @@ func (aa Identifiers) HasIntersection(bb Identifiers) bool {
 		return true
 	}
 
+	// If the second identifies are empty we can assume that anything has an intersection with them.
+	// This is useful when we want to remove any resource of some type.
+	if len(bb.Slice) == 0 {
+		return true
+	}
+
 	return len(aa.Intersection(bb)) > 0
 }
 
