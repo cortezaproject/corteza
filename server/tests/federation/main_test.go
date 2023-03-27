@@ -55,7 +55,6 @@ func InitTestApp() {
 			service.DefaultStore = app.Store
 
 			eventbus.Set(eventBus)
-			app.Opt.Attachment.AvatarInitialsFontPath = "../../auth/assets/public/fonts/poppins/Poppins-Regular.ttf"
 			return nil
 		})
 

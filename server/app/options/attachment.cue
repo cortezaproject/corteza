@@ -14,7 +14,7 @@ attachment: schema.#optionsGroup & {
 			description:  "Avatar image maximum upload size, default value is 1MB"
 		}
 		avatar_initials_font_path: {
-			defaultValue: "./auth/assets/public/fonts/poppins/Poppins-Regular.ttf"
+			defaultValue: "fonts/Poppins-Regular.ttf"
 			description:  "Avatar initials font file path"
 			env:          "AVATAR_INITIALS_FONT_PATH"
 		}
