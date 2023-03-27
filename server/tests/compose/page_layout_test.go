@@ -20,12 +20,12 @@ func (h helper) clearPageLayouts() {
 	h.noError(store.TruncateComposePageLayouts(context.Background(), service.DefaultStore))
 }
 
-func (h helper) repoMakePageLayout(ns *types.Namespace, pg *types.Page, name string) *types.PageLayout {
+func (h helper) repoMakePageLayout(ns *types.Namespace, pg *types.Page, title string) *types.PageLayout {
 	res := &types.PageLayout{
 		ID:        id.Next(),
 		CreatedAt: time.Now(),
 		Meta: &types.PageLayoutMeta{
-			Name: name,
+			Title: title,
 		},
 		NamespaceID: ns.ID,
 		PageID:      pg.ID,
@@ -56,7 +56,7 @@ func TestPageLayoutRead(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Equal(`$.response.meta.name`, ly.Meta.Name)).
+		Assert(jsonpath.Equal(`$.response.meta.name`, ly.Meta.Title)).
 		Assert(jsonpath.Equal(`$.response.pageLayoutID`, fmt.Sprintf("%d", ly.ID))).
 		End()
 }
@@ -132,7 +132,7 @@ func TestPageLayoutCreate(t *testing.T) {
 
 	res := h.lookupPageLayoutByID(rsp.Response.ID)
 	h.a.NotNil(res)
-	h.a.Equal("some-page-layout", res.Meta.Name)
+	h.a.Equal("some-page-layout", res.Meta.Title)
 }
 
 func TestPageLayoutUpdateForbidden(t *testing.T) {
@@ -178,7 +178,7 @@ func TestPageLayoutUpdate(t *testing.T) {
 
 	ly = h.lookupPageLayoutByID(ly.ID)
 	h.a.NotNil(ly)
-	h.a.Equal("changed-name", ly.Meta.Name)
+	h.a.Equal("changed-name", ly.Meta.Title)
 }
 
 func TestPageLayoutDeleteForbidden(t *testing.T) {
