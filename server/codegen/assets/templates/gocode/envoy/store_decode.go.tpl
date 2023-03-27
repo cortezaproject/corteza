@@ -183,6 +183,12 @@ var scope envoyx.Scope
 		Identifiers:  refs["{{(index .parents 0).refField}}"].Identifiers,
 	}
 	for k, ref := range refs {
+		// @todo temporary solution to not needlessly scope resources.
+		//       Optimally, this would be selectively handled by codegen.
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+
 		ref.Scope = scope
 		refs[k] = ref
 	}
