@@ -278,59 +278,62 @@ func (svc namespace) Clone(ctx context.Context, namespaceID uint64, dup *types.N
 	)
 
 	err = func() error {
-		// Preparation
-		// - target namespace
-		targetNs, err := loadNamespace(ctx, svc.store, namespaceID)
-		if errors.IsNotFound(err) {
-			return NamespaceErrNotFound()
-		} else if err != nil {
-			return err
-		}
-		aProps.setNamespace(targetNs)
-
-		// - destination namespace
-		if dup.Slug != "" {
-			dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
-			if err != nil && err != store.ErrNotFound {
+		err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+			// Preparation
+			// - target namespace
+			targetNs, err := loadNamespace(ctx, s, namespaceID)
+			if errors.IsNotFound(err) {
+				return NamespaceErrNotFound()
+			} else if err != nil {
 				return err
 			}
-			if dstNs != nil {
-				return NamespaceErrHandleNotUnique()
+			aProps.setNamespace(targetNs)
+
+			// - destination namespace
+			if dup.Slug != "" {
+				dstNs, err := store.LookupComposeNamespaceBySlug(ctx, s, dup.Slug)
+				if err != nil && err != store.ErrNotFound {
+					return err
+				}
+				if dstNs != nil {
+					return NamespaceErrHandleNotUnique()
+				}
 			}
-		}
 
-		// Access control
-		if err = svc.canExport(ctx, targetNs); err != nil {
-			return err
-		}
+			// Access control
+			if err = svc.canExport(ctx, targetNs); err != nil {
+				return err
+			}
 
-		// get namespace resources
-		nn, err := decoder()
-		if err != nil {
-			return err
-		}
+			// get namespace resources
+			nn, err := decoder()
+			if err != nil {
+				return err
+			}
 
-		aProps.setNamespace(dup)
-		dup, err = svc.envoyRun(ctx, nn, targetNs, dup)
+			aProps.setNamespace(dup)
+			dup, err = svc.envoyRun(ctx, s, nn, targetNs, dup)
+			if err != nil {
+				return err
+			}
+
+			dup, err = store.LookupComposeNamespaceBySlug(ctx, s, dup.Slug)
+			if err != nil {
+				return err
+			}
+			tag := locale.GetAcceptLanguageFromContext(ctx)
+			dup.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, dup.ResourceTranslation()))
+
+			aProps.setNamespace(dup)
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
 
 		err = svc.reloadServices(ctx, dup)
-		if err != nil {
-			return err
-		}
-
-		dup, err = store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
-		if err != nil {
-			return err
-		}
-		tag := locale.GetAcceptLanguageFromContext(ctx)
-		dup.DecodeTranslations(svc.locale.Locale().ResourceTranslations(tag, dup.ResourceTranslation()))
-
-		aProps.setNamespace(dup)
-
-		return nil
+		return err
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionClone, err)
@@ -437,54 +440,60 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 		aProps = &namespaceActionProps{namespace: dup}
 	)
 
-	err = func() (err error) {
-		// access control
-		if err = svc.canImport(ctx); err != nil {
-			return err
-		}
+	err = func() error {
+		var (
+			newNS *types.Namespace
+		)
 
-		if !handle.IsValid(dup.Slug) {
-			return NamespaceErrInvalidHandle()
-		}
-
-		if dup.Slug != "" {
-			// check for duplicate
-			dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
-			if err != nil && err != store.ErrNotFound {
+		err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+			// access control
+			if err = svc.canImport(ctx); err != nil {
 				return err
 			}
-			if dstNs != nil {
-				return NamespaceErrHandleNotUnique()
+
+			if !handle.IsValid(dup.Slug) {
+				return NamespaceErrInvalidHandle()
 			}
-		}
 
-		// session
-		var (
-			session namespaceImportSession
-			ok      bool
-			newNS   *types.Namespace
-		)
-		if session, ok = namespaceSessionStore[sessionID]; !ok {
-			return NamespaceErrImportSessionNotFound()
-		}
-		defer func() {
-			delete(namespaceSessionStore, sessionID)
-		}()
+			if dup.Slug != "" {
+				// check for duplicate
+				dstNs, err := store.LookupComposeNamespaceBySlug(ctx, svc.store, dup.Slug)
+				if err != nil && err != store.ErrNotFound {
+					return err
+				}
+				if dstNs != nil {
+					return NamespaceErrHandleNotUnique()
+				}
+			}
 
-		aProps.setNamespace(dup)
+			// session
+			var (
+				session namespaceImportSession
+				ok      bool
+			)
+			if session, ok = namespaceSessionStore[sessionID]; !ok {
+				return NamespaceErrImportSessionNotFound()
+			}
+			defer func() {
+				delete(namespaceSessionStore, sessionID)
+			}()
 
-		newNS, err = svc.envoyRun(ctx, session.Nodes, &types.Namespace{ID: session.NamespaceID, Slug: session.Slug, Name: session.Name}, dup)
+			aProps.setNamespace(dup)
+
+			newNS, err = svc.envoyRun(ctx, s, session.Nodes, &types.Namespace{ID: session.NamespaceID, Slug: session.Slug, Name: session.Name}, dup)
+			if err != nil {
+				return err
+			}
+
+			aProps.setNamespace(newNS)
+			return nil
+		})
 		if err != nil {
 			return err
 		}
 
 		err = svc.reloadServices(ctx, newNS)
-		if err != nil {
-			return err
-		}
-
-		aProps.setNamespace(newNS)
-		return nil
+		return err
 	}()
 
 	return dup, svc.recordAction(ctx, aProps, NamespaceActionImportRun, err)
@@ -739,7 +748,7 @@ func (svc namespace) canImport(ctx context.Context) error {
 	return nil
 }
 
-func (svc namespace) envoyRun(ctx context.Context, nodes envoyx.NodeSet, oldNS, newNS *types.Namespace) (ns *types.Namespace, err error) {
+func (svc namespace) envoyRun(ctx context.Context, s store.Storer, nodes envoyx.NodeSet, oldNS, newNS *types.Namespace) (ns *types.Namespace, err error) {
 	// Get the NS node
 	oldRef := envoyx.Ref{
 		ResourceType: types.NamespaceResourceType,
@@ -787,7 +796,7 @@ func (svc namespace) envoyRun(ctx context.Context, nodes envoyx.NodeSet, oldNS, 
 	roles, _, err := svc.envoy.Decode(ctx, envoyx.DecodeParams{
 		Type: envoyx.DecodeTypeStore,
 		Params: map[string]any{
-			"storer": svc.store,
+			"storer": s,
 			"dal":    dal.Service(),
 		},
 		Filter: map[string]envoyx.ResourceFilter{
@@ -806,7 +815,7 @@ func (svc namespace) envoyRun(ctx context.Context, nodes envoyx.NodeSet, oldNS, 
 	gg, err := svc.envoy.Bake(ctx, envoyx.EncodeParams{
 		Type: envoyx.EncodeTypeStore,
 		Params: map[string]any{
-			"storer": svc.store,
+			"storer": s,
 			"dal":    dal.Service(),
 		},
 	}, nil, nodes...)
@@ -817,7 +826,7 @@ func (svc namespace) envoyRun(ctx context.Context, nodes envoyx.NodeSet, oldNS, 
 	err = svc.envoy.Encode(ctx, envoyx.EncodeParams{
 		Type: envoyx.EncodeTypeStore,
 		Params: map[string]any{
-			"storer": svc.store,
+			"storer": s,
 			"dal":    dal.Service(),
 		},
 	}, gg)
