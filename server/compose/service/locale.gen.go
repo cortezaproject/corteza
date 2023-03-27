@@ -287,7 +287,7 @@ func (svc resourceTranslationsManager) PageLayout(ctx context.Context, namespace
 
 	var k types.LocaleKey
 	for _, tag := range svc.locale.Tags() {
-		k = types.LocaleKeyPageLayoutMetaName
+		k = types.LocaleKeyPageLayoutMetaTitle
 		out = append(out, &locale.ResourceTranslation{
 			Resource: res.ResourceTranslation(),
 			Lang:     tag.String(),

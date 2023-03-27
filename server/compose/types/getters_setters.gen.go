@@ -331,6 +331,66 @@ func (r *Page) SetValue(name string, pos uint, value any) (err error) {
 	return nil
 }
 
+func (r PageLayout) GetID() uint64 { return r.ID }
+
+func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "namespaceID", "NamespaceID":
+		return r.NamespaceID, nil
+	case "ownedBy", "OwnedBy":
+		return r.OwnedBy, nil
+	case "pageID", "PageID":
+		return r.PageID, nil
+	case "parentID", "ParentID":
+		return r.ParentID, nil
+	case "primary", "Primary":
+		return r.Primary, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "weight", "Weight":
+		return r.Weight, nil
+
+	}
+	return nil, nil
+}
+
+func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "namespaceID", "NamespaceID":
+		return cast2.Uint64(value, &r.NamespaceID)
+	case "ownedBy", "OwnedBy":
+		return cast2.Uint64(value, &r.OwnedBy)
+	case "pageID", "PageID":
+		return cast2.Uint64(value, &r.PageID)
+	case "parentID", "ParentID":
+		return cast2.Uint64(value, &r.ParentID)
+	case "primary", "Primary":
+		return cast2.Bool(value, &r.Primary)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "weight", "Weight":
+		return cast2.Int(value, &r.Weight)
+
+	}
+	return nil
+}
+
 func (r Record) GetID() uint64 { return r.ID }
 
 func (r *Record) GetValue(name string, pos uint) (any, error) {

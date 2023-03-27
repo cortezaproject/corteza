@@ -504,8 +504,8 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 			}
 		}
 
-		if res.Meta != nil && res.Meta.Name != upd.Meta.Name {
-			res.Meta.Name = upd.Meta.Name
+		if res.Meta != nil && res.Meta.Title != upd.Meta.Title {
+			res.Meta.Title = upd.Meta.Title
 			changes |= pageLayoutChanged
 		}
 

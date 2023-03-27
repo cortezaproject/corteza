@@ -37,7 +37,7 @@ func NewComposePageLayout(pg *types.PageLayout, nsRef, modRef, parentRef *Ref) *
 	r.SetResourceType(types.PageLayoutResourceType)
 	r.Res = pg
 
-	r.AddIdentifier(identifiers(pg.Handle, pg.Meta.Name, pg.ID)...)
+	r.AddIdentifier(identifiers(pg.Handle, pg.Meta.Title, pg.ID)...)
 
 	r.RefNs = r.addRef(nsRef)
 	if modRef != nil {

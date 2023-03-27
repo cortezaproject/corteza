@@ -42,6 +42,8 @@ pageLayout: {
 			meta: {
 				goType: "*types.PageLayoutMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			primary: {
@@ -52,10 +54,14 @@ pageLayout: {
 			config: {
 				goType: "types.PageLayoutConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			blocks: {
 				goType: "types.PageBlocks"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 
 			owned_by:   schema.AttributeUserRef
@@ -90,6 +96,10 @@ pageLayout: {
 		byNilState: ["deleted"]
 	}
 
+	envoy: {
+		omit: true
+	}
+
 	rbac: {
 		operations: {
 			// @todo not sure how RBAC should work here
@@ -109,8 +119,8 @@ pageLayout: {
 		extended: true
 
 		keys: {
-			name: {
-				path: ["meta", "name"]
+			title: {
+				path: ["meta", "title"]
 			}
 			description: {
 				path: ["meta", "description"]

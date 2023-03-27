@@ -61,6 +61,8 @@ page: {
 			meta: {
 				goType: "*types.PageMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
 			}
 			config: {
 				goType: "types.PageConfig"
