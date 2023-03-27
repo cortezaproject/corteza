@@ -122,15 +122,22 @@ func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter)
 	filter.Check = checkPageLayout(ctx, svc.ac)
 
 	err = func() error {
-		ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
-		if err != nil {
-			return err
+		if filter.PageID > 0 {
+			ns, pg, err = loadPageCombo(ctx, svc.store, filter.NamespaceID, filter.PageID)
+			if err != nil {
+				return err
+			}
+			if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
+				return PageLayoutErrNotAllowedToSearch()
+			}
+		} else {
+			ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
+			if err != nil {
+				return err
+			}
 		}
 
 		aProps.setNamespace(ns)
-		if !svc.ac.CanSearchPageLayoutsOnPage(ctx, pg) {
-			return PageLayoutErrNotAllowedToSearch()
-		}
 
 		if len(filter.Labels) > 0 {
 			filter.LabeledIDs, err = label.Search(
