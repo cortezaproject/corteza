@@ -3,10 +3,11 @@ package service
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/assets"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	files "github.com/cortezaproject/corteza/server/pkg/objstore"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
@@ -15,12 +16,12 @@ import (
 	"github.com/edwvee/exiffix"
 	"github.com/fogleman/gg"
 	"github.com/golang/freetype/truetype"
+	"go.uber.org/zap"
 	"golang.org/x/image/font"
 	"image"
 	"image/gif"
 	"io"
 	"net/http"
-	"os"
 	"path"
 	"path/filepath"
 	"strings"
@@ -40,6 +41,7 @@ type (
 		ac        attachmentAccessController
 		store     store.Storer
 		opt       options.AttachmentOpt
+		logger    *zap.Logger
 	}
 
 	attachmentAccessController interface {
@@ -60,13 +62,14 @@ type (
 	}
 )
 
-func Attachment(store files.Store, opt options.AttachmentOpt) *attachment {
+func Attachment(store files.Store, opt options.AttachmentOpt, log *zap.Logger) *attachment {
 	return &attachment{
 		files:     store,
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
 		store:     DefaultStore,
 		opt:       opt,
+		logger:    log.Named("attachment"),
 	}
 }
 
@@ -523,24 +526,24 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 	return svc.files.Save(att.PreviewUrl, buf)
 }
 
-// processFontsFile validates the file path provided in the AVATAR_INITIALS_FONT_PATH environment variable,
-// It checks if the file exists and has the correct file extension, then reads and returns the file content
+// processFontsFile checks if the file exists and has the correct file extension,
+// It validates the file path provided in the AVATAR_INITIALS_FONT_PATH environment variable,
+// then reads and returns the file content
 func (svc attachment) processFontsFile() (fontBytes []byte, err error) {
-	aux, err := filepath.Glob(svc.opt.AvatarInitialsFontPath)
-	if err != nil {
-		return nil, err
-	}
-	if aux == nil || len(aux) != 1 {
-		return nil, errors.New("font file not found, please ensure that the correct AVATAR_INITIALS_FONT_PATH is set")
-	}
-
-	ext := strings.ToLower(filepath.Ext(aux[0]))
-
+	ext := strings.ToLower(filepath.Ext(svc.opt.AvatarInitialsFontPath))
 	if ext != ".ttf" {
-		return nil, errors.New("invalid font file extension, please provide a truetype font (.ttf) file")
+		svc.logger.Error("invalid font file extension, please provide a truetype font (.ttf) file")
+		return
 	}
 
-	fontBytes, err = os.ReadFile(aux[0])
+	assetsFile := assets.Files(svc.logger, "")
+	fontFile, err := assetsFile.Open(svc.opt.AvatarInitialsFontPath)
+	if err != nil {
+		svc.logger.Error(fmt.Sprintf("%s, please ensure that the correct AVATAR_INITIALS_FONT_PATH is set", err.Error()))
+		return nil, errors.New(errors.KindInvalidData, "the path to the font file for generating avatar initials is incorrect or not set")
+	}
+
+	fontBytes, err = io.ReadAll(fontFile)
 	if err != nil {
 		return nil, err
 	}
