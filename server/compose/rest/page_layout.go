@@ -88,7 +88,6 @@ func (ctrl *PageLayout) ListNamespace(ctx context.Context, r *request.PageLayout
 		err error
 		f   = types.PageLayoutFilter{
 			NamespaceID: r.NamespaceID,
-			PageID:      r.PageID,
 			Labels:      r.Labels,
 
 			Handle: r.Handle,
