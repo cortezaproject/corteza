@@ -946,6 +946,10 @@ var PageLayout = &dal.Model{
 				},
 
 				{
+					AttributeIdent: "PageID",
+				},
+
+				{
 					AttributeIdent: "NamespaceID",
 				},
 			},
