@@ -228,6 +228,10 @@ record:
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
     untitled: Untitled
   recordDeleted: This record was deleted
+  recordSelectorDisplayOptions: On record selector click
+  openInSameTab: Open record in the same tab
+  openInNewTab: Open record in a new tab
+  openInModal: Open record in a modal
   fieldConditions:
     label: Field conditions
     action: + Add
@@ -446,6 +450,7 @@ recordList:
       view: View
       permissions: Permissions
     recordDisplayOptions: On record click
+    recordSelectorDisplayOptions: On record selector click
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record

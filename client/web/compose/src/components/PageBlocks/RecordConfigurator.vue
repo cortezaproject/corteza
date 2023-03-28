@@ -136,6 +136,23 @@
           </b-tr>
         </b-tbody>
       </b-table-simple>
+
+      <b-row>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('record.recordSelectorDisplayOptions')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="options.recordSelectorDisplayOption"
+              :options="recordDisplayOptions"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </div>
   </b-tab>
 </template>
@@ -167,6 +184,14 @@ export default {
 
     addRuleDisabled () {
       return this.block.options.fields.filter(f => !f.isRequired).length === this.block.options.fieldConditions.length
+    },
+
+    recordDisplayOptions () {
+      return [
+        { value: 'sameTab', text: this.$t('record.openInSameTab') },
+        { value: 'newTab', text: this.$t('record.openInNewTab') },
+        { value: 'modal', text: this.$t('record.openInModal') },
+      ]
     },
   },
 

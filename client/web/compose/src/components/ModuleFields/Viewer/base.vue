@@ -43,6 +43,11 @@ export default {
       type: Boolean,
       required: false,
     },
+
+    extraOptions: {
+      type: Object,
+      default: () => ({}),
+    },
   },
 
   computed: {

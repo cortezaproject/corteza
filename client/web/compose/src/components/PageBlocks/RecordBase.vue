@@ -45,6 +45,7 @@
           >
             <field-viewer
               v-bind="{ ...$props, field }"
+              :extra-options="options"
             />
           </div>
           <i
