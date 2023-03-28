@@ -5,7 +5,7 @@ editor:
     deletedAt: Deleted at
     enabled: Enabled
     handle: Handle
-    invalid-handle-characters: Should be at least 2 characters long and start with a letter. Can contain only letters, numbers, dashes, underscores and dots
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
     id: ID
     name: Name *
     openBuilder: Open builder
