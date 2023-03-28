@@ -147,6 +147,7 @@ kind:
     initialZoomAndPosition: Set initial map zoom and position
     prefillWithCurrentLocation: Prefill with current location
     hideCurrentLocationButton: Hide current location button
+    hideGeoSearch: Hide location search
     tooltip:
       goToCurrentLocation: Go to current location
       useCurrentLocation: Use current location
