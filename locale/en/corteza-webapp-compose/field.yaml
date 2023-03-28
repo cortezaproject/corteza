@@ -50,6 +50,7 @@ kind:
       px: px
       enableDownload: Enable download
       clickToView: Click to view file
+      description: 'Add unit after value to set it. For example: 50px or 50%'
   number:
     exampleFormat: Format
     exampleInput: Input

@@ -58,6 +58,8 @@
         {{ $t('kind.file.view.previewStyle') }}
       </h5>
 
+      <small>{{ $t('kind.file.view.description' ) }}</small>
+
       <b-row
         align-v="center"
         class="mb-2 mt-2"
@@ -73,7 +75,6 @@
             <b-input-group>
               <b-form-input
                 v-model="options.height"
-                :placeholder="$t('kind.file.view.height')"
               />
             </b-input-group>
           </b-form-group>
@@ -90,7 +91,6 @@
             <b-input-group>
               <b-form-input
                 v-model="options.width"
-                :placeholder="$t('kind.file.view.width')"
               />
             </b-input-group>
           </b-form-group>
@@ -107,7 +107,6 @@
             <b-input-group>
               <b-form-input
                 v-model="options.maxHeight"
-                :placeholder="$t('kind.file.view.maxHeight')"
               />
             </b-input-group>
           </b-form-group>
@@ -124,7 +123,6 @@
             <b-input-group>
               <b-form-input
                 v-model="options.maxWidth"
-                :placeholder="$t('kind.file.view.maxWidth')"
               />
             </b-input-group>
           </b-form-group>
@@ -141,7 +139,6 @@
             <b-input-group>
               <b-form-input
                 v-model="options.borderRadius"
-                :placeholder="$t('kind.file.view.borderRadius')"
               />
             </b-input-group>
           </b-form-group>
@@ -158,7 +155,6 @@
             <b-input-group>
               <b-form-input
                 v-model="options.margin"
-                :placeholder="$t('kind.file.view.margin')"
               />
             </b-input-group>
           </b-form-group>
