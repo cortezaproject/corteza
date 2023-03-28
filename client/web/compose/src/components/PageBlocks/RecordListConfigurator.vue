@@ -507,6 +507,20 @@
               />
             </b-form-group>
           </b-col>
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('recordList.record.recordSelectorDisplayOptions')"
+              label-class="text-primary"
+            >
+              <b-form-select
+                v-model="options.recordSelectorDisplayOption"
+                :options="recordDisplayOptions"
+              />
+            </b-form-group>
+          </b-col>
         </b-row>
 
         <b-row>

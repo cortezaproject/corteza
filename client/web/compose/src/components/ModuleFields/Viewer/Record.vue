@@ -13,7 +13,17 @@
       :class="{ 'd-block': field.options.multiDelimiter === '\n' }"
       @click.stop
     >
+      <a
+        v-if="['modal', 'newTab'].includes(extraOptions.recordSelectorDisplayOption)"
+        href="#"
+        :class="{ 'text-decoration-none default-cursor': !v.to}"
+        @click="(e) => onRecordSelectorClick(e, v.to)"
+      >
+        {{ v.value }}{{ index !== formattedValue.length - 1 ? field.options.multiDelimiter : '' }}
+      </a>
+
       <router-link
+        v-else
         :to="v.to"
         :class="{ 'text-decoration-none default-cursor': !v.to}"
       >
@@ -152,6 +162,19 @@ export default {
           this.processing = false
         }, 300)
       })
+    },
+
+    onRecordSelectorClick (e, route) {
+      e.preventDefault()
+
+      if (this.extraOptions.recordSelectorDisplayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          recordID: route.params.recordID,
+          recordPageID: route.params.pageID,
+        })
+      } else if (this.extraOptions.recordSelectorDisplayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href, '_blank')
+      }
     },
   },
 }

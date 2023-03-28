@@ -413,6 +413,7 @@
                     :record="item.r"
                     :module="module"
                     :namespace="namespace"
+                    :extra-options="options"
                   />
                   <div
                     v-if="options.inlineRecordEditEnabled && field.canEdit"
