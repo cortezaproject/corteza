@@ -313,7 +313,7 @@ export class BaseChart {
     return Object.assign({}, {
       conditions: {},
       meta: {},
-      rotateLabel: '0',
+      rotateLabel: 0,
     })
   }
 
@@ -331,7 +331,7 @@ export class BaseChart {
         axisType: 'linear',
         axisPosition: 'left',
         labelPosition: 'end',
-        rotateLabel: '0',
+        rotateLabel: 0,
       },
       tooltip: {},
       legend: {

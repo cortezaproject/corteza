@@ -40,7 +40,7 @@ edit:
       noItemsFound: No options found
     rotate:
       label: Rotate label
-      description: Labels can be rotated from -90 to 90 degrees. Applied to bar and line charts
+      description: Labels can be rotated from -90 to 90 degrees.
   filter:
     customize: Customize filter
     label: Filters

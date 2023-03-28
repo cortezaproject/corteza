@@ -30,7 +30,7 @@ export interface Dimension {
   default?: string;
   skipMissing?: boolean;
   autoSkip?: boolean;
-  rotateLabel?: string;
+  rotateLabel?: number;
 }
 
 export interface Metric {
@@ -56,7 +56,7 @@ export interface YAxis {
   labelPosition?: string;
   min?: string;
   max?: string;
-  rotateLabel?: string;
+  rotateLabel?: number;
 }
 
 export interface ChartOffset {

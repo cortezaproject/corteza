@@ -150,6 +150,7 @@
               <b-input
                 v-model="d.rotateLabel"
                 type="number"
+                number
               />
             </b-form-group>
           </template>

@@ -120,15 +120,19 @@ export default class Chart extends BaseChart {
 
         options.tooltip.trigger = 'item'
 
-        let lbl =  {}
+        let lbl:any =  {
+          rotate: dimension.rotateLabel ? +dimension.rotateLabel: 0
+        }
 
         if (t?.labelsNextToPartition) {
           lbl = {
+            ...lbl,
             show: true,
             overflow: 'truncate',
           }
         } else {
           lbl = {
+            ...lbl,
             show: fixed,
             position: 'inside',
             align: 'center',
