@@ -115,6 +115,7 @@
 
     <template #metric-options="{ metric }">
       <b-form-group
+        v-if="!['pie', 'doughnut'].includes(metric.type)"
         horizontal
         :label-cols="3"
         class="mt-1"
