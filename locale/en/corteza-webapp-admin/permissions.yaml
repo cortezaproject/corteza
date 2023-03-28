@@ -531,6 +531,8 @@ resources:
       operations:
         delete:
           title: Delete any record
+        undelete:
+          title: Undelete any record
         read:
           title: Read any record
         update:
