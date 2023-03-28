@@ -19,13 +19,15 @@
 
     <b-modal
       v-model="map.show"
+      :title="field.label || field.name"
       size="lg"
-      title="Map"
       body-class="p-0"
-      hide-header
       hide-footer
     >
-      <div class="geosearch-container">
+      <div
+        v-if="!field.options.hideGeoSearch"
+        class="geosearch-container"
+      >
         <c-input-search
           v-model="geoSearch.query"
           :placeholder="$t('geosearchInputPlaceholder')"

@@ -133,7 +133,7 @@
 
     <b-modal
       v-model="map.show"
-      :title="label"
+      :title="field.label || field.name"
       size="lg"
       body-class="p-0"
     >
@@ -141,7 +141,10 @@
         {{ $t('clickToPlaceMarker') }}
       </template>
 
-      <div class="geosearch-container">
+      <div
+        v-if="!field.options.hideGeoSearch"
+        class="geosearch-container"
+      >
         <c-input-search
           v-model="geoSearch.query"
           :placeholder="$t('geosearchInputPlaceholder')"

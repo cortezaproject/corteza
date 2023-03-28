@@ -1,15 +1,22 @@
 <template>
-  <div>
-    <b-form-checkbox v-model="f.options.prefillWithCurrentLocation">
-      {{ $t('prefillWithCurrentLocation') }}
-    </b-form-checkbox>
+  <div class="d-flex flex-column">
+    <b-form-group>
+      <b-form-checkbox v-model="f.options.prefillWithCurrentLocation">
+        {{ $t('prefillWithCurrentLocation') }}
+      </b-form-checkbox>
 
-    <b-form-checkbox v-model="f.options.hideCurrentLocationButton">
-      {{ $t('hideCurrentLocationButton') }}
-    </b-form-checkbox>
+      <b-form-checkbox v-model="f.options.hideCurrentLocationButton">
+        {{ $t('hideCurrentLocationButton') }}
+      </b-form-checkbox>
+
+      <b-form-checkbox v-model="f.options.hideGeoSearch">
+        {{ $t('hideGeoSearch') }}
+      </b-form-checkbox>
+    </b-form-group>
 
     <b-form-group
       :label="$t('initialZoomAndPosition')"
+      label-class="text-primary"
       class="mb-0"
     >
       <l-map
@@ -17,7 +24,7 @@
         :zoom="zoom"
         :center="center"
         class="w-100"
-        style="height: 60vh;"
+        style="height: 50vh;"
         @update:zoom="f.options.zoom = $event"
         @update:center="f.options.center = $event"
         @locationfound="onLocationFound"
