@@ -308,7 +308,8 @@ export default {
     },
 
     getPagination () {
-      const { total = 0, limit = 10, page = 1 } = this.pagination
+      let { total = 0, limit = 10, page = 1 } = this.pagination
+      total = isNaN(total) ? 0 : total
 
       const pagination = {
         from: ((page - 1) * limit) + 1,
