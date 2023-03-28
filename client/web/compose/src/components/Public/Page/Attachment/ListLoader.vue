@@ -119,7 +119,6 @@
         <div v-else>
           <font-awesome-icon
             :icon="['far', 'file-'+ext(a)]"
-            title="Open bookmarks"
           />
         </div>
 
