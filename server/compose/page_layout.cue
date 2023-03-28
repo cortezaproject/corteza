@@ -76,7 +76,7 @@ pageLayout: {
 			"page_id": { attribute: "page_id" },
 			"parent_id": { attribute: "parent_id" },
 			"unique_handle": {
-				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "namespace_id" }]
+				fields: [{ attribute: "handle", modifiers: ["LOWERCASE"] }, { attribute: "page_id" }, { attribute: "namespace_id" }]
 				predicate: "handle != '' AND deleted_at IS NULL"
 			}
 		}

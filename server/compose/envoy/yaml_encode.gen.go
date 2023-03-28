@@ -523,6 +523,7 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 		"description", res.Description,
 		"handle", res.Handle,
 		"id", res.ID,
+		"meta", res.Meta,
 		"moduleID", auxModuleID,
 		"namespaceID", auxNamespaceID,
 		"selfID", auxSelfID,
