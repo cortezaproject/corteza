@@ -67,17 +67,16 @@ export default function (ComposeAPI) {
         })
       },
 
-      async findByID ({ commit, getters }, { namespaceID, pageLayoutID, force = false } = {}) {
+      async findByID ({ commit, getters }, { namespaceID, pageID, pageLayoutID, force = false } = {}) {
         if (!force) {
           const oldItem = getters.getByID(pageLayoutID)
-          if (oldItem) {
-            return new Promise((resolve) => resolve(oldItem))
-          }
+          return new Promise((resolve) => resolve(oldItem))
         }
 
         commit(types.pending)
-        return ComposeAPI.pageLayoutRead({ namespaceID, pageLayoutID }).then(pl => {
+        return ComposeAPI.pageLayoutRead({ namespaceID, pageID, pageLayoutID }).then(pl => {
           const pageLayout = new compose.PageLayout(pl)
+
           commit(types.updateSet, [pageLayout])
           return pageLayout
         }).finally(() => {
@@ -122,7 +121,7 @@ export default function (ComposeAPI) {
         })
       },
 
-      async delete ({ commit, dispatch }, item) {
+      async delete ({ commit }, item) {
         commit(types.pending)
         return ComposeAPI.pageLayoutDelete(item).then(() => {
           commit(types.removeFromSet, [item])

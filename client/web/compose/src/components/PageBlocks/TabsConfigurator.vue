@@ -168,8 +168,7 @@
                   id="popover-edit"
                   size="sm"
                   variant="light"
-                  :title="blockEditDisabled ? $t('tabs.tooltip.editDisabled') : $t('tabs.tooltip.edit')"
-                  :disabled="blockEditDisabled"
+                  :title="$t('tabs.tooltip.edit')"
                   class="d-flex align-items-center justify-content-center"
                   style="width: 40px;"
                   @click="editBlock(tab.blockID)"
@@ -300,11 +299,10 @@ export default {
 
   computed: {
     blockOptions () {
-      return this.page.blocks.filter(b => b.kind !== 'Tabs').map(b => ({ ...b, value: fetchID(b) }))
-    },
-
-    blockEditDisabled () {
-      return this.page.blocks.find(b => fetchID(b) === fetchID(this.block)) === undefined
+      return [
+        ...this.page.blocks.filter(({ blockID, kind }) => kind !== 'Tabs' && !this.blocks.some(b => b.blockID === blockID)),
+        ...this.blocks.filter(b => b.kind !== 'Tabs'),
+      ].map(b => ({ ...b, value: fetchID(b) }))
     },
   },
 

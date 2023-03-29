@@ -258,6 +258,7 @@
 
                           <b-button
                             variant="primary"
+                            :disabled="layout.pageLayoutID === '0'"
                             class="d-flex align-items-center"
                             :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
                           >
@@ -639,7 +640,7 @@ export default {
             return this.fetchAttachments()
           }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
 
-          this.fetchLayouts({ namespaceID, pageID }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+          this.fetchLayouts().catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
         }
       },
     },
@@ -662,8 +663,9 @@ export default {
       deletePageLayout: 'pageLayout/delete',
     }),
 
-    async fetchLayouts (payload) {
-      return this.findLayoutsByPageID(payload).then(layouts => {
+    async fetchLayouts () {
+      const { namespaceID } = this.namespace
+      return this.findLayoutsByPageID({ namespaceID, pageID: this.pageID }).then(layouts => {
         this.layouts = layouts.map(layout => new compose.PageLayout(layout))
       })
     },
@@ -704,16 +706,16 @@ export default {
     },
 
     async handleSaveLayouts () {
-      return Promise.all([
-        ...[...this.deletedLayouts].map(this.deletePageLayout),
-        ...this.layouts.map(layout => {
+      // Delete first so old deleted handles don't interfere with new identical ones
+      return Promise.all([...this.deletedLayouts].map(this.deletePageLayout)).then(() => {
+        return Promise.all(this.layouts.map(layout => {
           if (layout.pageLayoutID === NoID) {
             return this.createPageLayout(layout)
           } else if (layout.meta.updated) {
             return this.updatePageLayout(layout)
           }
-        }),
-      ])
+        }))
+      })
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
@@ -727,7 +729,7 @@ export default {
         this.page.config.navItem.icon = icon
         return this.updatePage({ namespaceID, ...this.page, resourceTranslationLanguage }).then((page) => {
           this.page = page.clone()
-          return this.handleSaveLayouts()
+          return this.handleSaveLayouts().then(this.fetchLayouts)
         })
       }).then(() => {
         this.deletedLayouts = new Set()

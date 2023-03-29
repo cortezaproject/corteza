@@ -836,8 +836,8 @@ export default {
     disableInlineEditor () {
       const thisModuleID = this.options.moduleID
 
-      // Finds another inline editor block with the same recordListModulea as this one
-      const otherInlineWithSameModule = !!this.page.blocks.find(({ kind, options }, index) => {
+      // Finds another inline editor block with the same recordListModule as this one
+      const otherInlineWithSameModule = this.blocks.some(({ kind, options }, index) => {
         if (this.blockIndex !== index) {
           return kind === 'RecordList' && options.editable && options.moduleID === thisModuleID
         }
