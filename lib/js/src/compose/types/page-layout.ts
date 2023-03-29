@@ -66,6 +66,7 @@ export class PageLayout {
 
     Apply(this, pl, CortezaID, 'pageLayoutID', 'namespaceID', 'pageID', 'ownedBy')
     Apply(this, pl, String, 'handle')
+    Apply(this, pl, Number, 'weight')
     Apply(this, pl, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
 
     this.blocks = (pl.blocks || []).map(({ blockID, xywh, meta }) => ({ blockID, xywh, meta }))

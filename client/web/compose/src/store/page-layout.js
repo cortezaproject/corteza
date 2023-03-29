@@ -35,7 +35,7 @@ export default function (ComposeAPI) {
       },
 
       getByPageID (state) {
-        return (ID) => state.set.filter(({ pageID }) => ID === pageID)
+        return (ID) => state.set.filter(({ pageID }) => ID === pageID).sort((a, b) => a.weight - b.weight)
       },
 
       set (state) {
@@ -55,7 +55,7 @@ export default function (ComposeAPI) {
 
         commit(types.loading)
         commit(types.pending)
-        return ComposeAPI.pageLayoutListNamespace({ namespaceID }).then(({ set, filter }) => {
+        return ComposeAPI.pageLayoutListNamespace({ namespaceID, sort: 'weight ASC' }).then(({ set, filter }) => {
           if (set && set.length > 0) {
             commit(types.updateSet, set.map(pl => new compose.PageLayout(pl)))
           }
@@ -91,7 +91,7 @@ export default function (ComposeAPI) {
         }
 
         commit(types.pending)
-        return ComposeAPI.pageLayoutList({ namespaceID, pageID }).then(({ set }) => {
+        return ComposeAPI.pageLayoutList({ namespaceID, pageID, sort: 'weight ASC' }).then(({ set }) => {
           commit(types.updateSet, set.map(pl => new compose.PageLayout(pl)))
           return set
         }).finally(() => {
