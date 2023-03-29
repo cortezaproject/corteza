@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/modern-go/reflect2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -225,9 +226,45 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		b.Options["module"] = node.Identifiers.FriendlyIdentifier()
 		delete(b.Options, "moduleID")
 		break
+
+	case "Progress":
+		err = e.encodeProgressPageblockVal("minValue", index, n, tt, &b)
+		if err != nil {
+			return
+		}
+
+		err = e.encodeProgressPageblockVal("maxValue", index, n, tt, &b)
+		if err != nil {
+			return
+		}
+
+		err = e.encodeProgressPageblockVal("value", index, n, tt, &b)
+		if err != nil {
+			return
+		}
+		break
 	}
 
 	return b, nil
+}
+
+func (e YamlEncoder) encodeProgressPageblockVal(k string, index int, n *envoyx.Node, tt envoyx.Traverser, b *types.PageBlock) (err error) {
+	if reflect2.IsNil(b.Options[k]) {
+		return
+	}
+
+	modRef := n.References[fmt.Sprintf("Blocks.%d.Options.%s.ModuleID", index, k)]
+	node := tt.ParentForRef(n, modRef)
+	if node == nil {
+		err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
+		return
+	}
+
+	opt := b.Options[k].(map[string]any)
+	opt["moduleID"] = node.Identifiers.FriendlyIdentifier()
+	delete(opt, "moduleID")
+
+	return
 }
 
 func (e YamlEncoder) cleanupPageblockRecordList(b types.PageBlock) (out types.PageBlock) {

@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
+	"github.com/modern-go/reflect2"
 	"gopkg.in/yaml.v3"
 )
 
@@ -117,6 +118,9 @@ func (d *auxYamlDoc) unmarshalPageBlocksNode(r *types.Page, n *yaml.Node) (refs 
 
 		case "Comment":
 			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
+
+		case "Progress":
+			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b, index))
 		}
 	}
 
@@ -201,6 +205,49 @@ func getPageBlockMetricRefs(b types.PageBlock, index int) (refs map[string]envoy
 func getPageBlockCommentRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
 	// Same difference
 	return getPageBlockRecordListRefs(b, index)
+}
+
+func getPageBlockProgressRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
+	refs = make(map[string]envoyx.Ref)
+	var aux *envoyx.Ref
+
+	aux = getPageBlockProgressValueRefs(b.Options["minValue"])
+	if aux != nil {
+		refs[fmt.Sprintf("Blocks.%d.Options.minValue.ModuleID", index)] = *aux
+	}
+
+	aux = getPageBlockProgressValueRefs(b.Options["maxValue"])
+	if aux != nil {
+		refs[fmt.Sprintf("Blocks.%d.Options.maxValue.ModuleID", index)] = *aux
+	}
+
+	aux = getPageBlockProgressValueRefs(b.Options["value"])
+	if aux != nil {
+		refs[fmt.Sprintf("Blocks.%d.Options.value.ModuleID", index)] = *aux
+	}
+
+	return
+}
+
+func getPageBlockProgressValueRefs(val any) (ref *envoyx.Ref) {
+	if reflect2.IsNil(val) {
+		return
+	}
+
+	opt, ok := val.(map[string]interface{})
+	if !ok {
+		return
+	}
+
+	id := optString(opt, "module", "moduleID")
+	if id == "" || id == "0" {
+		return
+	}
+
+	return &envoyx.Ref{
+		ResourceType: types.ModuleResourceType,
+		Identifiers:  envoyx.MakeIdentifiers(id),
+	}
 }
 
 func getPageBlockRecordOrganizerRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
