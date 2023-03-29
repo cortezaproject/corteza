@@ -181,6 +181,9 @@ func decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
 
 		case "Comment":
 			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
+
+		case "Progress":
+			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b, index))
 		}
 	}
 

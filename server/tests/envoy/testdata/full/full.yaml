@@ -78,6 +78,11 @@ namespace:
             kind: Comment
             options:
               module: test_ns_1_mod_1
+
+          - title: Test Namespace 1 Page 1 Block 8
+            kind: Progress
+            options:
+              module: test_ns_1_mod_1
         pages:
           test_ns_1_record_page_1:
             title: Test Namespace 1 Record Page 1

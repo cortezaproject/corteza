@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/sql"
+	"github.com/modern-go/reflect2"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
@@ -390,6 +391,16 @@ func (b *PageBlock) setValue(name string, pos uint, value any) (err error) {
 }
 
 func (b *PageBlock) setOptionValue(path []string, pos uint, value any) (err error) {
+	setProgressValue := func(k string) {
+		v := make(map[string]any)
+		if !reflect2.IsNil(b.Options[k]) {
+			v = b.Options[k].(map[string]any)
+		}
+
+		v["moduleID"] = cast.ToString(value)
+		b.Options[k] = v
+	}
+
 	switch path[0] {
 	case "feeds":
 		// Get the feed on the correct index in the correct type
@@ -406,6 +417,15 @@ func (b *PageBlock) setOptionValue(path []string, pos uint, value any) (err erro
 		metric := (b.Options["metrics"].([]any))[cast.ToInt(path[1])].(map[string]any)
 
 		metric["moduleID"] = cast.ToString(value)
+
+	case "minValue":
+		setProgressValue("minValue")
+
+	case "maxValue":
+		setProgressValue("maxValue")
+
+	case "value":
+		setProgressValue("value")
 
 	case "moduleID", "ModuleID":
 		b.Options["moduleID"] = cast.ToString(value)

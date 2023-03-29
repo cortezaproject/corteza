@@ -234,7 +234,7 @@ func assertState(ctx context.Context, t *testing.T, s store.Storer, req *require
 			pg1 := pages.FindByHandle("test_ns_1_page_1")
 			req.NotNil(pg1)
 
-			req.Len(pg1.Blocks, 7)
+			req.Len(pg1.Blocks, 8)
 			// @todo test page block references
 			// spew.Dump(pg1.Blocks)
 
