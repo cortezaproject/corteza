@@ -9,7 +9,12 @@
       slot-scope="{ boundingRect, block, index }"
     >
       <page-block
-        v-bind="{ ...$attrs, block, page, boundingRect, blockIndex: index }"
+        v-bind="{ ...$attrs }"
+        :page="page"
+        :blocks="page.blocks"
+        :block="block"
+        :bounding-rect="boundingRect"
+        :block-index="index"
         class="p-2"
         v-on="$listeners"
       />

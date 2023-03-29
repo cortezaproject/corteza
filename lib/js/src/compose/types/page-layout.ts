@@ -68,7 +68,7 @@ export class PageLayout {
     Apply(this, pl, String, 'handle')
     Apply(this, pl, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
 
-    this.blocks = (pl.blocks || []).map(({ blockID, xywh }) => ({ blockID, xywh }))
+    this.blocks = (pl.blocks || []).map(({ blockID, xywh, meta }) => ({ blockID, xywh, meta }))
 
     if (pl.meta) {
       this.meta = { ...this.meta, ...pl.meta }

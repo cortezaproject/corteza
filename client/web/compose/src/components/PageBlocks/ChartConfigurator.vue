@@ -109,7 +109,7 @@ export default {
     },
 
     drillDownOptions () {
-      return this.page.blocks.filter(({ blockID, kind, options = {} }) => kind === 'RecordList' && blockID !== NoID && options.moduleID === this.selectedChartModuleID)
+      return this.blocks.filter(({ blockID, kind, options = {} }) => kind === 'RecordList' && blockID !== NoID && options.moduleID === this.selectedChartModuleID)
     },
   },
 

@@ -46,6 +46,7 @@
           <vue-select
             v-model="selectedExistingBlock"
             :get-option-label="getBlockLabel"
+            :get-option-key="b => b.blockID"
             :options="existingBlocks"
             :calculate-position="calculateDropdownPosition"
             placeholder="Blocks from other layouts"

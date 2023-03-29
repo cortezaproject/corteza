@@ -149,7 +149,7 @@ export default {
       const { namespaceID } = this.namespace
       this.page.weight = this.tree.length
       this.createPage({ ...this.page, namespaceID }).then(({ pageID }) => {
-        const pageLayout = new compose.PageLayout({ namespaceID, pageID })
+        const pageLayout = new compose.PageLayout({ namespaceID, pageID, meta: { title: 'Primary' } })
         return this.createPageLayout(pageLayout).then(() => {
           this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
         })
