@@ -329,6 +329,7 @@
           v-model="currentLayoutRoles"
           :options="roles.options"
           :loading="roles.processing"
+          placeholder="Pick roles that the layout will be shown to"
           :get-option-label="role => role.name"
           :reduce="role => role.roleID"
           :selectable="role => !currentLayoutRoles.includes(role.roleID)"
@@ -440,6 +441,7 @@
         :hide-delete="hideDelete"
         :hide-save="!page.canUpdatePage"
         :disable-save="disableSave"
+        :processing="processing"
         @clone="handleClone()"
         @delete="handleDeletePage"
         @save="handleSave()"
@@ -516,6 +518,8 @@ export default {
 
   data () {
     return {
+      processing: false,
+
       page: new compose.Page(),
 
       showIconModal: false,
@@ -523,7 +527,6 @@ export default {
       selectedAttachmentID: '',
       linkUrl: '',
 
-      processing: false,
       layouts: [],
 
       layoutEditor: {
@@ -634,13 +637,16 @@ export default {
         this.deletedLayouts = new Set()
 
         if (pageID) {
+          this.processing = true
+
           const { namespaceID } = this.namespace
           this.findPageByID({ namespaceID, pageID }).then((page) => {
             this.page = page.clone()
             return this.fetchAttachments()
-          }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
-
-          this.fetchLayouts().catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+          }).then(this.fetchLayouts)
+            .finally(() => {
+              this.processing = false
+            }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
         }
       },
     },
@@ -718,27 +724,43 @@ export default {
       })
     },
 
+    async handlePageLayoutReorder () {
+      const { namespaceID } = this.namespace
+      const pageIDs = this.layouts.map(({ pageLayoutID }) => pageLayoutID)
+
+      return this.$ComposeAPI.pageLayoutReorder({ namespaceID, pageID: this.pageID, pageIDs }).then(() => {
+        return this.$store.dispatch('pageLayout/load', { namespaceID, clear: true, force: true })
+      })
+    },
+
     handleSave ({ closeOnSuccess = false } = {}) {
+      this.processing = true
+
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
        */
       const resourceTranslationLanguage = this.currentLanguage
       const { namespaceID } = this.namespace
+
       return this.saveIcon().then(icon => {
         this.page.config.navItem.icon = icon
-        return this.updatePage({ namespaceID, ...this.page, resourceTranslationLanguage }).then((page) => {
-          this.page = page.clone()
-          return this.handleSaveLayouts().then(this.fetchLayouts)
-        })
-      }).then(() => {
-        this.deletedLayouts = new Set()
+        return this.updatePage({ namespaceID, ...this.page, resourceTranslationLanguage })
+      }).then(page => {
+        this.page = page.clone()
+        return this.handleSaveLayouts()
+      }).then(this.handlePageLayoutReorder)
+        .then(() => {
+          this.fetchLayouts()
+          this.deletedLayouts = new Set()
 
-        this.toastSuccess(this.$t('notification:page.saved'))
-        if (closeOnSuccess) {
-          this.$router.push({ name: 'admin.pages' })
-        }
-      }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
+          this.toastSuccess(this.$t('notification:page.saved'))
+          if (closeOnSuccess) {
+            this.$router.push({ name: 'admin.pages' })
+          }
+        }).finally(() => {
+          this.processing = false
+        }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 
     handleDeletePage (strategy = 'abort') {
@@ -752,8 +774,6 @@ export default {
     },
 
     async fetchAttachments () {
-      this.processing = true
-
       return this.$ComposeAPI.iconList({ sort: 'id DESC' })
         .then(({ set: attachments = [] }) => {
           const baseURL = this.$ComposeAPI.baseURL
@@ -767,9 +787,6 @@ export default {
           }
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.iconFetchFailed')))
-        .finally(() => {
-          this.processing = false
-        })
     },
 
     async saveIcon () {
