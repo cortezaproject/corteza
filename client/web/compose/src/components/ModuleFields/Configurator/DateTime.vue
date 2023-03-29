@@ -31,6 +31,7 @@
     </b-form-checkbox>
 
     <b-form-group
+      v-if="!f.options.outputRelative"
       :label="$t('kind.dateTime.outputFormat')"
       label-class="text-primary"
       class="mt-2"
