@@ -8,22 +8,25 @@ export type PageLayoutInput = PageLayout | Partial<PageLayout>
 interface PageLayoutConfig {
   visibility: Visibility;
   buttons: {
-    submit: Button;
+    back: Button;
     delete: Button;
     new: Button;
-    edit: Button;
     clone: Button;
-    back: Button;
+    edit: Button;
+    submit: Button;
   };
   actions: Action[];
 }
 
 interface Action {
-  actionID: string;
   kind: string;
   placement: string;
   params: unknown;
-  meta: unknown;
+  meta: ActionMeta;
+}
+
+interface ActionMeta {
+  label: string;
 }
 
 interface Visibility {
@@ -52,12 +55,12 @@ export class PageLayout {
       roles: [],
     },
     buttons: {
-      submit: { enabled: true },
+      back: { enabled: true },
       delete: { enabled: true },
+      clone: { enabled: true },
       new: { enabled: true },
       edit: { enabled: true },
-      clone: { enabled: true },
-      back: { enabled: true },
+      submit: { enabled: true },
     },
     actions: [],
   }
@@ -98,6 +101,19 @@ export class PageLayout {
 
   clone (): PageLayout {
     return new PageLayout(JSON.parse(JSON.stringify(this)))
+  }
+
+  addAction () {
+    this.config.actions.push({
+      kind: 'toLayout',
+      placement: '',
+      params: {
+        pageLayoutID: '',
+      },
+      meta: {
+        label: '',
+      },
+    } as Action)
   }
 
   /**

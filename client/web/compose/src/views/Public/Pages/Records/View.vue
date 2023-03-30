@@ -40,6 +40,12 @@
         :in-editing="inEditing"
         :show-record-modal="showRecordModal"
         :record-navigation="recordNavigation"
+        :hide-back="!layoutButtons.has('back')"
+        :hide-delete="!layoutButtons.has('delete')"
+        :hide-new="!layoutButtons.has('new')"
+        :hide-clone="!layoutButtons.has('clone')"
+        :hide-edit="!layoutButtons.has('edit')"
+        :hide-submit="!layoutButtons.has('submit')"
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
@@ -48,7 +54,20 @@
         @back="handleBack()"
         @submit="handleFormSubmit('page.record')"
         @update-navigation="handleRedirectToPrevOrNext"
-      />
+      >
+        <template #actions>
+          <b-button
+            v-for="(action, index) in layoutActions"
+            :key="index"
+            variant="primary"
+            size="lg"
+            class="ml-2"
+            @click.prevent="determineLayout(action.params.pageLayoutID)"
+          >
+            {{ action.Meta.label }}
+          </b-button>
+        </template>
+      </record-toolbar>
     </portal>
   </div>
 </template>
@@ -114,6 +133,7 @@ export default {
 
       layouts: [],
       layout: undefined,
+      layoutButtons: {},
 
       blocks: [],
     }
@@ -146,11 +166,20 @@ export default {
     recordToolbarLabels () {
       // Use an intermediate object so we can reflect all changes in one go;
       const aux = {}
-      const { buttons = {} } = this.page.config || {}
+      const { config = {} } = this.layout
+      const { buttons = {} } = config
+
       Object.entries(buttons).forEach(([key, { label = '' }]) => {
         aux[key] = label
       })
       return aux
+    },
+
+    layoutActions () {
+      const { config = {} } = this.layout
+      const { actions = [] } = config
+
+      return actions
     },
 
     title () {
@@ -178,6 +207,7 @@ export default {
     'page.pageID': {
       immediate: true,
       handler () {
+        this.layouts = this.getPageLayouts(this.page.pageID)
         this.determineLayout()
       },
     },
@@ -287,15 +317,26 @@ export default {
       }
     },
 
-    determineLayout () {
-      this.layouts = this.getPageLayouts(this.page.pageID)
+    determineLayout (pageLayoutID) {
       this.layout = this.layouts.find(l => {
         const { roles = [] } = l.config.visibility
+
+        if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return
 
         if (!roles.length) return true
 
         return this.$auth.user.roles.some(roleID => roles.includes(roleID))
       })
+
+      const { config = {} } = this.layout
+      const { buttons = [] } = config
+
+      this.layoutButtons = Object.entries(buttons).reduce((acc, [key, value]) => {
+        if (value.enabled) {
+          acc.add(key)
+        }
+        return acc
+      }, new Set())
 
       this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
         const block = this.page.blocks.find(b => b.blockID === blockID)
