@@ -133,8 +133,8 @@ export default {
         blocks,
       })
 
-      this.createPage(page).then(({ pageID, blocks }) => {
-        const pageLayout = new compose.PageLayout({ namespaceID, pageID, blocks, meta: { title: 'Primary' } })
+      this.createPage(page).then(({ pageID, title, blocks }) => {
+        const pageLayout = new compose.PageLayout({ namespaceID, pageID, blocks, meta: { title } })
         return this.createPageLayout(pageLayout)
       }).catch(this.toastErrorHandler(this.$t('notification:module.recordPage.createFailed')))
         .finally(() => {
@@ -166,8 +166,8 @@ export default {
       })
 
       this.createPage(page)
-        .then(({ pageID = NoID, blocks }) => {
-          const pageLayout = new compose.PageLayout({ namespaceID, pageID, blocks, meta: { title: 'Primary' } })
+        .then(({ pageID, title, blocks }) => {
+          const pageLayout = new compose.PageLayout({ namespaceID, pageID, blocks, meta: { title } })
           return Promise.all([
             this.updatePage({ ...this.recordPage, selfID: pageID }),
             this.createPageLayout(pageLayout),

@@ -113,7 +113,7 @@
             class="ml-2"
             @click.prevent="$emit('clone')"
           >
-            {{ labels.clone || $t('label.clone') }}
+            {{ labels.clone || $t('label.saveAsCopy') }}
           </b-button>
 
           <b-button

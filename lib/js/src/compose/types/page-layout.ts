@@ -7,6 +7,14 @@ export type PageLayoutInput = PageLayout | Partial<PageLayout>
 
 interface PageLayoutConfig {
   visibility: Visibility;
+  buttons: {
+    submit: Button;
+    delete: Button;
+    new: Button;
+    edit: Button;
+    clone: Button;
+    back: Button;
+  };
   actions: Action[];
 }
 
@@ -42,6 +50,14 @@ export class PageLayout {
     visibility: {
       expression: '',
       roles: [],
+    },
+    buttons: {
+      submit: { enabled: true },
+      delete: { enabled: true },
+      new: { enabled: true },
+      edit: { enabled: true },
+      clone: { enabled: true },
+      back: { enabled: true },
     },
     actions: [],
   }

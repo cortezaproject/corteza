@@ -69,6 +69,7 @@ import { LPolygon, LControl } from 'vue2-leaflet'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapGetters, mapActions } from 'vuex'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { throttle } from 'lodash'
 import base from './base'
 
 export default {
@@ -133,11 +134,9 @@ export default {
       },
     },
 
-    boundingRect: {
-      handler () {
-        this.loadEvents()
-      },
-    },
+    boundingRect: throttle(function () {
+      this.loadEvents()
+    }, 300),
   },
 
   created () {
@@ -217,6 +216,7 @@ export default {
         this.processing = false
 
         setTimeout(() => {
+          if (!this.$refs.map) return
           this.$refs.map.mapObject.invalidateSize()
         })
       })

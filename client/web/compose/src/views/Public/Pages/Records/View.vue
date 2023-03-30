@@ -21,6 +21,7 @@
       v-bind="$props"
       :errors="errors"
       :record="record"
+      :blocks="blocks"
       :mode="inEditing ? 'editor' : 'base'"
       @reload="loadRecord()"
     />
@@ -51,6 +52,7 @@
     </portal>
   </div>
 </template>
+
 <script>
 import { mapGetters } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
@@ -97,6 +99,7 @@ export default {
       required: false,
       default: '',
     },
+
     // Open record in a modal
     showRecordModal: {
       type: Boolean,
@@ -108,12 +111,18 @@ export default {
     return {
       inEditing: false,
       inCreating: false,
+
+      layouts: [],
+      layout: undefined,
+
+      blocks: [],
     }
   },
 
   computed: {
     ...mapGetters({
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
+      getPageLayouts: 'pageLayout/getByPageID',
     }),
 
     portalTopbarTitle () {
@@ -163,6 +172,13 @@ export default {
       handler () {
         this.record = undefined
         this.loadRecord()
+      },
+    },
+
+    'page.pageID': {
+      immediate: true,
+      handler () {
+        this.determineLayout()
       },
     },
   },
@@ -269,6 +285,23 @@ export default {
           params: { ...this.$route.params, recordID },
         })
       }
+    },
+
+    determineLayout () {
+      this.layouts = this.getPageLayouts(this.page.pageID)
+      this.layout = this.layouts.find(l => {
+        const { roles = [] } = l.config.visibility
+
+        if (!roles.length) return true
+
+        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
+      })
+
+      this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
+        const block = this.page.blocks.find(b => b.blockID === blockID)
+        block.xywh = xywh
+        return block
+      })
     },
   },
 }

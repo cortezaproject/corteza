@@ -304,6 +304,7 @@
       size="lg"
       @ok="updateLayout()"
       @cancel="layoutEditor.layout = undefined"
+      @hide="layoutEditor.layout = undefined"
     >
       <b-form-group
         label="Condition"
@@ -317,6 +318,7 @@
           </b-input-group-prepend>
           <b-form-input
             v-model="layoutEditor.layout.config.visibility.expression"
+            placeholder="When will the layout be shown"
           />
         </b-input-group>
       </b-form-group>
@@ -443,7 +445,7 @@
         :disable-save="disableSave"
         :processing="processing"
         @clone="handleClone()"
-        @delete="handleDeletePage"
+        @delete="handleDeletePage()"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
       >
