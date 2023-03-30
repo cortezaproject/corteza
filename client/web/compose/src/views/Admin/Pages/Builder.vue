@@ -247,13 +247,11 @@
       <editor-toolbar
         :back-link="{name: 'admin.pages'}"
         :hide-save="!page.canUpdatePage"
-        :disable-clone="disableClone"
-        :disable-save="processing"
-        :clone-tooltip="cloneTooltip"
+        :processing="processing"
         @save="handleSaveLayout()"
-        @delete="handleDeleteLayout"
+        @delete="handleDeleteLayout()"
         @saveAndClose="handleSaveLayout({ closeOnSuccess: true })"
-        @clone="handleClone()"
+        @clone="handleCloneLayout()"
       >
         <b-button
           v-if="page.canUpdatePage"
@@ -406,14 +404,6 @@ export default {
       return this.hasChildren || !this.page.canDeletePage || !!this.page.deletedAt
     },
 
-    disableClone () {
-      return !!this.module
-    },
-
-    cloneTooltip () {
-      return this.disableClone ? this.$t('tooltip.saveAsCopy') : ''
-    },
-
     selectableExistingBlocks () {
       return this.page.blocks.filter(({ blockID }) => !this.usedBlocks.some(b => b.blockID === blockID))
     },
@@ -499,6 +489,7 @@ export default {
       loadPages: 'page/load',
       findLayoutByID: 'pageLayout/findByID',
       findLayoutsByPageID: 'pageLayout/findByPageID',
+      createPageLayout: 'pageLayout/create',
       updatePageLayout: 'pageLayout/update',
       deletePageLayout: 'pageLayout/delete',
     }),
@@ -560,35 +551,41 @@ export default {
         })
       }
 
-      // Changes meta.hidden property to false, for all blocks that were tabbed only in the deleted block
-      if (this.blocks[index].kind === 'Tabs') {
-        const tabbedBlocks = this.blocks.filter((block) => block.kind === 'Tabs' && fetchID(block) !== fetchID(this.blocks[index]))
-          .map(({ options }) => options.tabs).flat().reduce((unique, o) => {
-            if (!unique.some(tab => tab.blockID === o.blockID)) {
-              unique.push(o)
-            }
-            return unique
-          }, []).map(({ blockID }) => blockID)
-
-        this.blocks[index].options.tabs.forEach(({ blockID }) => {
-          if (tabbedBlocks.includes(blockID)) return
-          const index = this.blocks.findIndex((b) => fetchID(b) === blockID)
-          if (index === -1) return
-          this.blocks[index].meta.hidden = false
-          this.calculateNewBlockPosition(this.blocks[index])
-        })
-      }
+      const { kind } = this.blocks[index]
 
       this.blocks.splice(index, 1)
+      this.unsavedBlocks.add(index)
+
+      if (kind === 'Tabs') {
+        this.showUntabbedHiddenBlocks()
+      }
 
       if (this.editor) this.editor = undefined
-      this.unsavedBlocks.add(index)
+    },
+
+    // Changes meta.hidden property to false, for all blocks that are hidden but not in a tab
+    showUntabbedHiddenBlocks () {
+      const tabbedBlocks = new Set()
+
+      this.blocks.forEach(block => {
+        if (block.kind !== 'Tabs') return
+
+        block.options.tabs.forEach(({ blockID }) => tabbedBlocks.add(blockID))
+      })
+
+      this.blocks.forEach((block, index) => {
+        if (!block.meta.hidden || tabbedBlocks.has(fetchID(block))) return
+
+        this.blocks[index].meta.hidden = false
+        this.calculateNewBlockPosition(this.blocks[index])
+      })
     },
 
     onBlockUpdated (index) {
       this.unsavedBlocks.add(index)
     },
 
+    // When debugging this, make sure to remove the @hide event handle from the block editor/creator modals
     updateBlocks (block = this.editor.block) {
       block = compose.PageBlockMaker(block)
 
@@ -677,6 +674,30 @@ export default {
       })
     },
 
+    validateModuleFieldSelection (module, page) {
+      // Find all required fields
+      const req = new Set(module.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
+
+      // Check if all required fields are there
+      for (const b of page.blocks) {
+        if (b.kind !== 'Record') {
+          continue
+        }
+
+        // If no fields are in Record block, means all fields are present(default), no need to check
+        if (!b.options || !b.options.fields.length) {
+          return true
+        }
+
+        for (const f of b.options.fields) {
+          req.delete(f.name)
+        }
+      }
+
+      // If required fields are satisfied, then the validation passes
+      return !req.size
+    },
+
     async handleSaveLayout ({ closeOnSuccess = false, previewOnSuccess = false } = {}) {
       const { namespaceID } = this.namespace
 
@@ -750,34 +771,33 @@ export default {
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
     },
 
-    validateModuleFieldSelection (module, page) {
-      // Find all required fields
-      const req = new Set(module.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
+    handleCloneLayout () {
+      this.processing = true
 
-      // Check if all required fields are there
-      for (const b of page.blocks) {
-        if (b.kind !== 'Record') {
-          continue
-        }
-
-        // If no fields are in Record block, means all fields are present(default), no need to check
-        if (!b.options || !b.options.fields.length) {
-          return true
-        }
-
-        for (const f of b.options.fields) {
-          req.delete(f.name)
-        }
+      const layout = {
+        ...this.layout,
+        handle: '',
+        weight: this.layouts.length + 1,
       }
 
-      // If required fields are satisfied, then the validation passes
-      return !req.size
+      layout.meta.title = `${this.$t('copyOf')}${layout.meta.title}`
+
+      this.createPageLayout(this.layout).then(({ layoutID }) => {
+        return this.fetchPageLayouts().then(() => {
+          this.switchLayout(layoutID)
+          this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
+        })
+      }).finally(() => {
+        this.processing = false
+      }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.clone.failed')))
     },
 
     handleDeleteLayout () {
       this.processing = true
 
       this.deletePageLayout({ ...this.layout }).then(() => {
+        return this.fetchPageLayouts()
+      }).then(() => {
         this.setLayout()
         this.toastSuccess(this.$t('notification:page.page-layout.delete.success'))
       }).finally(() => {
@@ -868,9 +888,10 @@ export default {
       const tempBlocks = []
       const { blocks = [] } = this.layout || {}
 
-      blocks.forEach(({ blockID, xywh }) => {
+      blocks.forEach(({ blockID, xywh, meta }) => {
         let block = this.page.blocks.find(b => b.blockID === blockID)
         block.xywh = xywh
+        block.meta.hidden = meta.hidden
         tempBlocks.push(block)
 
         if (block.kind === 'Tabs') {

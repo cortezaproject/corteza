@@ -102,6 +102,9 @@ page:
     save:
       success: Layout saved
       failed: Failed to save layout
+    clone:
+      success: Layout created
+      failed: Failed to clone layout
     delete:
       success: Layout deleted
       failed: Failed to delete layout

@@ -300,7 +300,7 @@ export default {
   computed: {
     blockOptions () {
       return [
-        ...this.page.blocks.filter(({ blockID, kind }) => kind !== 'Tabs' && !this.blocks.some(b => b.blockID === blockID)),
+        ...this.page.blocks.filter(({ blockID, kind }) => kind !== 'Tabs' && !this.blocks.some(b => b.blockID === blockID) && this.options.tabs.some(b => b.blockID === blockID)),
         ...this.blocks.filter(b => b.kind !== 'Tabs'),
       ].map(b => ({ ...b, value: fetchID(b) }))
     },

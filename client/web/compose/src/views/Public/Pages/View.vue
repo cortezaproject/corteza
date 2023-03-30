@@ -177,32 +177,15 @@ export default {
 
     'page.pageID': {
       immediate: true,
-      handler (pageID) {
+      handler () {
+        this.determineLayout()
+
         // If the page changed we need to clear the record pagination since its not relevant anymore
         if (this.recordPaginationUsable) {
           this.setRecordPaginationUsable(false)
         } else {
           this.clearRecordIDs()
         }
-
-        this.layouts = this.getPageLayouts(pageID)
-        this.layout = this.layouts.find(l => {
-          const { roles = [] } = l.config.visibility
-
-          if (!roles.length) return true
-
-          return this.$auth.user.roles.some(roleID => roles.includes(roleID))
-        })
-
-        const { meta = {} } = this.layout || {}
-        const title = meta.title || this.page.title
-        document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
-
-        this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
-          const block = this.page.blocks.find(b => b.blockID === blockID)
-          block.xywh = xywh
-          return block
-        })
       },
     },
   },
@@ -224,6 +207,27 @@ export default {
       setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
       clearRecordIDs: 'ui/clearRecordIDs',
     }),
+
+    determineLayout () {
+      this.layouts = this.getPageLayouts(this.page.pageID)
+      this.layout = this.layouts.find(l => {
+        const { roles = [] } = l.config.visibility
+
+        if (!roles.length) return true
+
+        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
+      })
+
+      const { meta = {} } = this.layout || {}
+      const title = meta.title || this.page.title
+      document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
+
+      this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
+        const block = this.page.blocks.find(b => b.blockID === blockID)
+        block.xywh = xywh
+        return block
+      })
+    },
   },
 }
 </script>
