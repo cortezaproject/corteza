@@ -77,7 +77,6 @@
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
-          :selectable="option => option.selectable"
           class="bg-white w-100"
           :placeholder="placeholder"
           @input="selectChange($event)"
@@ -106,7 +105,6 @@
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
-          :selectable="option => option.selectable"
           class="bg-white w-100"
           :placeholder="placeholder"
           :value="getRecord(ctx.index)"
@@ -147,7 +145,6 @@
         :placeholder="placeholder"
         :filterable="false"
         :searchable="searchable"
-        :selectable="option => option.selectable"
         class="bg-white w-100"
         @search="search"
       >
@@ -308,7 +305,7 @@ export default {
       if (value !== crtValue) {
         if (value) {
           if (index !== undefined) {
-            this.value[index] = value
+            this.value.splice(index, 1, value)
           } else {
             this.value = value
           }
@@ -493,10 +490,6 @@ export default {
           this.$refs.singleSelect._data._value = undefined
         }
       }
-    },
-
-    onOpen () {
-      // this.loadLatest()
     },
 
     goToPage (next = true) {
