@@ -16,9 +16,9 @@
         ref="layoutSelect"
         size="sm"
         :value="layout.pageLayoutID"
+        :options="layouts"
         value-field="pageLayoutID"
         text-field="label"
-        :options="layouts"
         style="width: 300px;"
         @change="switchLayout"
       />

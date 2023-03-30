@@ -212,6 +212,7 @@
                 <draggable
                   v-model="layouts"
                   handle=".handle"
+                  group="layouts"
                   tag="b-tbody"
                 >
                   <tr
@@ -231,7 +232,6 @@
                       <b-form-input
                         v-model="layout.meta.title"
                         :state="layoutTitleState(layout.meta.title)"
-                        @input="layout.meta.updated = true"
                       />
                     </b-td>
 
@@ -242,7 +242,6 @@
                         <b-form-input
                           v-model="layout.handle"
                           :state="layoutHandleState(layout.handle)"
-                          @input="layout.meta.updated = true"
                         />
 
                         <b-input-group-append>
@@ -274,9 +273,8 @@
                       class="text-center align-middle"
                     >
                       <c-input-confirm
-                        :title="$t('tabs.tooltip.delete')"
                         class="ml-2"
-                        @confirmed="deleteLayout(index)"
+                        @confirmed="removeLayout(index)"
                       />
                     </td>
                   </tr>
@@ -306,6 +304,10 @@
       @cancel="layoutEditor.layout = undefined"
       @hide="layoutEditor.layout = undefined"
     >
+      <h5 class="mb-3">
+        Visibility
+      </h5>
+
       <b-form-group
         label="Condition"
         label-class="text-primary"
@@ -340,6 +342,157 @@
           class="bg-white"
         />
       </b-form-group>
+
+      <template v-if="isRecordPage">
+        <hr>
+
+        <h5 class="mb-3">
+          Record toolbar
+        </h5>
+
+        <b-form-group
+          label="Buttons"
+          label-class="text-primary"
+        >
+          <b-form-checkbox
+            v-model="layoutEditor.layout.config.buttons.back.enabled"
+          >
+            Show back button
+          </b-form-checkbox>
+
+          <b-form-checkbox
+            v-model="layoutEditor.layout.config.buttons.delete.enabled"
+          >
+            Show delete button
+          </b-form-checkbox>
+
+          <b-form-checkbox
+            v-model="layoutEditor.layout.config.buttons.clone.enabled"
+          >
+            Show clone button
+          </b-form-checkbox>
+
+          <b-form-checkbox
+            v-model="layoutEditor.layout.config.buttons.new.enabled"
+          >
+            Show new button
+          </b-form-checkbox>
+
+          <b-form-checkbox
+            v-model="layoutEditor.layout.config.buttons.edit.enabled"
+          >
+            Show edit button
+          </b-form-checkbox>
+
+          <b-form-checkbox
+            v-model="layoutEditor.layout.config.buttons.submit.enabled"
+          >
+            Show submit button
+          </b-form-checkbox>
+        </b-form-group>
+
+        <b-form-group
+          label="Actions"
+          label-class="text-primary"
+        >
+          <b-table-simple
+            responsive="lg"
+            borderless
+            small
+          >
+            <b-thead>
+              <tr>
+                <th />
+
+                <th
+                  class="text-primary"
+                  style="width: 25%; min-width: 190px;"
+                >
+                  Label
+                </th>
+
+                <th
+                  class="text-primary"
+                  style="width: 33%; min-width: 240px;"
+                >
+                  Type
+                </th>
+
+                <th
+                  class="text-primary"
+                  style="width: 33%; min-width: 240px;"
+                >
+                  Options
+                </th>
+
+                <th style="min-width: 80px;" />
+              </tr>
+            </b-thead>
+
+            <draggable
+              v-model="layoutEditor.layout.config.actions"
+              handle=".handle"
+              group="actions"
+              tag="b-tbody"
+            >
+              <tr
+                v-for="(action, index) in layoutEditor.layout.config.actions"
+                :key="index"
+              >
+                <b-td class="handle text-center align-middle pr-2">
+                  <font-awesome-icon
+                    :icon="['fas', 'bars']"
+                    class="grab m-0 text-light p-0"
+                  />
+                </b-td>
+
+                <b-td
+                  class="align-middle"
+                >
+                  <b-form-input
+                    v-model="action.meta.label"
+                  />
+                </b-td>
+
+                <b-td
+                  class="align-middle"
+                >
+                  <b-form-select
+                    v-model="action.kind"
+                    :options="actionKindOptions"
+                  />
+                </b-td>
+
+                <b-td
+                  class="align-middle"
+                >
+                  <b-form-select
+                    v-model="action.params.pageLayoutID"
+                    :options="actionLayoutOptions"
+                    value-field="pageLayoutID"
+                    text-field="label"
+                  />
+                </b-td>
+
+                <td
+                  class="text-center align-middle"
+                >
+                  <c-input-confirm
+                    class="ml-2"
+                    @confirmed="removeLayoutAction(index)"
+                  />
+                </td>
+              </tr>
+            </draggable>
+          </b-table-simple>
+          <b-button
+            variant="primary"
+            @click="addLayoutAction"
+          >
+            Add action
+          </b-button>
+        </b-form-group>
+      </template>
     </b-modal>
 
     <b-modal
@@ -536,7 +689,7 @@ export default {
         layout: undefined,
       },
 
-      deletedLayouts: new Set(),
+      removedLayouts: new Set(),
 
       roles: {
         processing: false,
@@ -627,6 +780,20 @@ export default {
         this.$set(this.layoutEditor.layout.config.visibility, 'roles', roles)
       },
     },
+
+    actionKindOptions () {
+      return [
+        { value: 'toLayout', text: 'Go to layout' },
+      ]
+    },
+
+    actionLayoutOptions () {
+      return [
+        { pageLayoutID: '', label: 'No route selected' },
+        ...this.layouts.filter(({ pageLayoutID }) => pageLayoutID !== NoID)
+          .map(({ pageLayoutID, handle, meta }) => ({ pageLayoutID, label: meta.title || handle || pageLayoutID })),
+      ]
+    },
   },
 
   watch: {
@@ -636,7 +803,7 @@ export default {
         this.page = undefined
         this.layouts = []
 
-        this.deletedLayouts = new Set()
+        this.removedLayouts = new Set()
 
         if (pageID) {
           this.processing = true
@@ -674,7 +841,7 @@ export default {
     async fetchLayouts () {
       const { namespaceID } = this.namespace
       return this.findLayoutsByPageID({ namespaceID, pageID: this.pageID }).then(layouts => {
-        this.layouts = layouts.map(layout => new compose.PageLayout(layout))
+        this.layouts = layouts
       })
     },
 
@@ -699,10 +866,10 @@ export default {
       this.layoutEditor.layout = undefined
     },
 
-    deleteLayout (index) {
+    removeLayout (index) {
       const { pageLayoutID } = this.layouts[index] || {}
       if (pageLayoutID !== NoID) {
-        this.deletedLayouts.add(this.layouts[index])
+        this.removedLayouts.add(this.layouts[index])
       }
 
       this.layouts.splice(index, 1)
@@ -710,12 +877,12 @@ export default {
 
     configureLayout (index) {
       this.layoutEditor.index = index
-      this.layoutEditor.layout = { ...this.layouts[index] }
+      this.layoutEditor.layout = new compose.PageLayout(this.layouts[index])
     },
 
     async handleSaveLayouts () {
       // Delete first so old deleted handles don't interfere with new identical ones
-      return Promise.all([...this.deletedLayouts].map(this.deletePageLayout)).then(() => {
+      return Promise.all([...this.removedLayouts].map(this.deletePageLayout)).then(() => {
         return Promise.all(this.layouts.map(layout => {
           if (layout.pageLayoutID === NoID) {
             return this.createPageLayout(layout)
@@ -754,7 +921,7 @@ export default {
       }).then(this.handlePageLayoutReorder)
         .then(() => {
           this.fetchLayouts()
-          this.deletedLayouts = new Set()
+          this.removedLayouts = new Set()
 
           this.toastSuccess(this.$t('notification:page.saved'))
           if (closeOnSuccess) {
@@ -789,6 +956,14 @@ export default {
           }
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.iconFetchFailed')))
+    },
+
+    addLayoutAction () {
+      this.layoutEditor.layout.addAction()
+    },
+
+    removeLayoutAction (index) {
+      this.layoutEditor.layout.config.actions.splice(index, 1)
     },
 
     async saveIcon () {
