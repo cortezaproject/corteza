@@ -147,6 +147,7 @@ page: {
 				supportMappedInput: true
 				mappedField: "Handle"
 			}]
+			extendedResourceRefIdent: "SelfID"
 		}
 		store: {
 			extendedFilterBuilder: true
