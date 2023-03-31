@@ -50,7 +50,7 @@
       class="flex-grow-1 overflow-auto d-flex px-2 w-100"
     >
       <router-view
-        v-if="recordID || isRecordCreatePage"
+        v-if="isRecordPage"
         :namespace="namespace"
         :module="module"
         :page="page"
@@ -117,7 +117,6 @@ export default {
     return {
       layouts: [],
       layout: undefined,
-
       blocks: [],
     }
   },
@@ -128,8 +127,8 @@ export default {
       getPageLayouts: 'pageLayout/getByPageID',
     }),
 
-    isRecordCreatePage () {
-      return this.$route.name === 'page.record.create'
+    isRecordPage () {
+      return this.recordID || this.$route.name === 'page.record.create'
     },
 
     module () {
@@ -150,9 +149,9 @@ export default {
     },
 
     pageTitle () {
-      if (this.page.pageID !== NoID) {
+      if (this.page.pageID !== NoID && this.layout) {
         const { title = '', handle = '' } = this.page
-        const { meta = {} } = this.layout || {}
+        const { meta = {} } = this.layout
         return meta.title || title || handle || this.$t('navigation:noPageTitle')
       }
 
@@ -169,16 +168,16 @@ export default {
   },
 
   watch: {
-    'page.title': {
-      immediate: true,
-      handler (title) {
-      },
-    },
-
     'page.pageID': {
       immediate: true,
       handler () {
-        this.determineLayout()
+        this.layouts = []
+        this.layout = undefined
+        this.blocks = []
+
+        if (!this.isRecordPage) {
+          this.determineLayout()
+        }
 
         // If the page changed we need to clear the record pagination since its not relevant anymore
         if (this.recordPaginationUsable) {
@@ -208,10 +207,41 @@ export default {
       clearRecordIDs: 'ui/clearRecordIDs',
     }),
 
-    determineLayout () {
+    evaluateLayoutExpressions () {
+      const expressions = {}
+      const variables = {
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          userAgent: navigator.userAgent,
+          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
+        },
+        user: this.$auth.user,
+        layout: this.layout || {},
+      }
+
+      this.layouts.forEach(({ pageLayoutID, config }) => {
+        if (!config.visibility.expression) return
+
+        expressions[pageLayoutID] = config.visibility.expression
+      })
+
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(() => {
+        Object.keys(expressions).forEach(key => (expressions[key] = false))
+        return expressions
+      })
+    },
+
+    async determineLayout () {
       this.layouts = this.getPageLayouts(this.page.pageID)
-      this.layout = this.layouts.find(l => {
-        const { roles = [] } = l.config.visibility
+
+      const expressions = await this.evaluateLayoutExpressions()
+
+      // Check layouts for expressions/roles and find the first one that fits
+      this.layout = this.layouts.find(({ pageLayoutID, config = {} }) => {
+        const { expression, roles = [] } = config.visibility
+
+        if (expression && !expressions[pageLayoutID]) return false
 
         if (!roles.length) return true
 

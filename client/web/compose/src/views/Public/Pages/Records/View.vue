@@ -133,8 +133,7 @@ export default {
 
       layouts: [],
       layout: undefined,
-      layoutButtons: {},
-
+      layoutButtons: new Set(),
       blocks: [],
     }
   },
@@ -166,7 +165,7 @@ export default {
     recordToolbarLabels () {
       // Use an intermediate object so we can reflect all changes in one go;
       const aux = {}
-      const { config = {} } = this.layout
+      const { config = {} } = this.layout || {}
       const { buttons = {} } = config
 
       Object.entries(buttons).forEach(([key, { label = '' }]) => {
@@ -176,7 +175,7 @@ export default {
     },
 
     layoutActions () {
-      const { config = {} } = this.layout
+      const { config = {} } = this.layout || {}
       const { actions = [] } = config
 
       return actions
@@ -208,6 +207,9 @@ export default {
       immediate: true,
       handler () {
         this.layouts = this.getPageLayouts(this.page.pageID)
+        this.layout = undefined
+        this.blocks = []
+
         this.determineLayout()
       },
     },
@@ -317,11 +319,42 @@ export default {
       }
     },
 
-    determineLayout (pageLayoutID) {
-      this.layout = this.layouts.find(l => {
-        const { roles = [] } = l.config.visibility
+    evaluateLayoutExpressions () {
+      const expressions = {}
+      const variables = {
+        user: this.$auth.user,
+        record: this.record || {},
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          userAgent: navigator.userAgent,
+          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
+        },
+        layout: this.layout || {},
+      }
 
+      this.layouts.forEach(({ pageLayoutID, config }) => {
+        if (!config.visibility.expression) return
+
+        expressions[pageLayoutID] = config.visibility.expression
+      })
+
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(() => {
+        Object.keys(expressions).forEach(key => (expressions[key] = false))
+        return expressions
+      })
+    },
+
+    async determineLayout (pageLayoutID) {
+      const expressions = await this.evaluateLayoutExpressions()
+
+      // Check layouts for expressions/roles and find the first one that fits
+      this.layout = this.layouts.find(l => {
         if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return
+
+        const { expression, roles = [] } = l.config.visibility
+
+        if (expression && !expressions[l.pageLayoutID]) return false
 
         if (!roles.length) return true
 
