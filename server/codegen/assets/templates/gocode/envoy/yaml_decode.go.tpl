@@ -163,7 +163,6 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			}
 	{{ end }}
 
-	{{ if .envoy.yaml.defaultDecoder }}
 		// Offload to custom handlers
 		default:
 			aux, err = d.unmarshalYAML(kv, v)
@@ -171,7 +170,6 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			if err != nil {
 				err = errors.Wrap(err, "failed to unmarshal node")
 			}
-	{{ end }}
 		}
 		return nil
 	})
@@ -468,7 +466,7 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -561,13 +559,16 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["{{.expIdent}}ID"] = envoyx.Ref{
+			a.References["{{if .envoy.yaml.extendedResourceRefIdent}}{{.envoy.yaml.extendedResourceRefIdent}}{{else}}{{.expIdent}}ID{{end}}"] = envoyx.Ref{
 				ResourceType: types.{{ .expIdent }}ResourceType,
 				Identifiers: ii,
 				Scope: scope,
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -578,6 +579,12 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -609,7 +616,13 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 	}
 	{{- if .rbac }}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 	  // Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -623,6 +636,14 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope: scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 	{{ end }}
@@ -653,12 +674,12 @@ func unmarshalDenyNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 
 func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	if y7s.IsMapping(n.Content[1]) {
-		out, err = unmarshalNestedRBACNode(n, acc)
+		out, err = unmarshalFlatRBACNode(n, acc)
 		if err != nil {
 			return
 		}
 	} else {
-		out, err = unmarshalFlatRBACNode(n, acc)
+		out, err = unmarshalNestedRBACNode(n, acc)
 		if err != nil {
 			return
 		}
@@ -693,7 +714,36 @@ func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err e
 //         - read
 //         - delete
 func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
-  // Handles role
+	return out, y7s.EachMap(n, func(role, op *yaml.Node) error {
+		out = append(out, &envoyx.Node{
+			Resource: &rbac.Rule{
+				Operation: op.Value,
+				Access:    acc,
+			},
+			ResourceType: rbac.RuleResourceType,
+			References: map[string]envoyx.Ref{
+				"RoleID": {
+					// Providing resource type as plain text to reduce cross component references
+					ResourceType: "corteza::system:role",
+					Identifiers:  envoyx.MakeIdentifiers(role.Value),
+				},
+			},
+		})
+		return nil
+	})
+}
+
+// unmarshalFlatRBACNode handles RBAC rules when they are provided on the root level
+//
+// Example:
+//
+// allow:
+//   role1:
+//     corteza::system/:
+//       - users.search
+//       - users.create
+func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
+	// Handles role
 	return out, y7s.EachMap(n, func(role, perm *yaml.Node) error {
 		// Handles operations
 		return y7s.EachMap(perm, func(res, ops *yaml.Node) error {
@@ -718,35 +768,6 @@ func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet,
 				return nil
 			})
 		})
-	})
-}
-
-// unmarshalFlatRBACNode handles RBAC rules when they are provided on the root level
-//
-// Example:
-//
-// allow:
-//   role1:
-//     corteza::system/:
-//       - users.search
-//       - users.create
-func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
-	return out, y7s.EachMap(n, func(role, op *yaml.Node) error {
-		out = append(out, &envoyx.Node{
-			Resource: &rbac.Rule{
-				Operation: op.Value,
-				Access:    acc,
-			},
-			ResourceType: rbac.RuleResourceType,
-			References: map[string]envoyx.Ref{
-				"RoleID": {
-					// Providing resource type as plain text to reduce cross component references
-					ResourceType: "corteza::system:role",
-					Identifiers:  envoyx.MakeIdentifiers(role.Value),
-				},
-			},
-		})
-		return nil
 	})
 }
 

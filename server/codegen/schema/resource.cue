@@ -188,6 +188,7 @@ import (
 			supportMappedInput: bool | *true
 			mappedField: string | *""
 		}] | *[]
+		extendedResourceRefIdent: string | *""
 		// enable or disable offloading unhandled nodes onto a custom default decoder
 		defaultDecoder: bool | *false
 

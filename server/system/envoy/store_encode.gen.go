@@ -274,10 +274,12 @@ func (e StoreEncoder) encodeApplication(ctx context.Context, p envoyx.EncodePara
 	}
 
 	// Flush to the DB
-	err = store.UpsertApplication(ctx, s, n.Resource.(*types.Application))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Application")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertApplication(ctx, s, n.Resource.(*types.Application))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Application")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -324,10 +326,6 @@ func (e StoreEncoder) matchupApplications(ctx context.Context, s store.Storer, u
 	var aux *types.Application
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -488,10 +486,12 @@ func (e StoreEncoder) encodeApigwRoute(ctx context.Context, p envoyx.EncodeParam
 	}
 
 	// Flush to the DB
-	err = store.UpsertApigwRoute(ctx, s, n.Resource.(*types.ApigwRoute))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert ApigwRoute")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertApigwRoute(ctx, s, n.Resource.(*types.ApigwRoute))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert ApigwRoute")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -538,10 +538,6 @@ func (e StoreEncoder) matchupApigwRoutes(ctx context.Context, s store.Storer, uu
 	var aux *types.ApigwRoute
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -702,10 +698,12 @@ func (e StoreEncoder) encodeApigwFilter(ctx context.Context, p envoyx.EncodePara
 	}
 
 	// Flush to the DB
-	err = store.UpsertApigwFilter(ctx, s, n.Resource.(*types.ApigwFilter))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert ApigwFilter")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertApigwFilter(ctx, s, n.Resource.(*types.ApigwFilter))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert ApigwFilter")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -752,10 +750,6 @@ func (e StoreEncoder) matchupApigwFilters(ctx context.Context, s store.Storer, u
 	var aux *types.ApigwFilter
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -916,10 +910,12 @@ func (e StoreEncoder) encodeAuthClient(ctx context.Context, p envoyx.EncodeParam
 	}
 
 	// Flush to the DB
-	err = store.UpsertAuthClient(ctx, s, n.Resource.(*types.AuthClient))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert AuthClient")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertAuthClient(ctx, s, n.Resource.(*types.AuthClient))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert AuthClient")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -967,10 +963,6 @@ func (e StoreEncoder) matchupAuthClients(ctx context.Context, s store.Storer, uu
 	var aux *types.AuthClient
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -1131,10 +1123,12 @@ func (e StoreEncoder) encodeQueue(ctx context.Context, p envoyx.EncodeParams, s 
 	}
 
 	// Flush to the DB
-	err = store.UpsertQueue(ctx, s, n.Resource.(*types.Queue))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Queue")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertQueue(ctx, s, n.Resource.(*types.Queue))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Queue")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -1182,10 +1176,6 @@ func (e StoreEncoder) matchupQueues(ctx context.Context, s store.Storer, uu map[
 	var aux *types.Queue
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -1346,10 +1336,12 @@ func (e StoreEncoder) encodeReport(ctx context.Context, p envoyx.EncodeParams, s
 	}
 
 	// Flush to the DB
-	err = store.UpsertReport(ctx, s, n.Resource.(*types.Report))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Report")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertReport(ctx, s, n.Resource.(*types.Report))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Report")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -1397,10 +1389,6 @@ func (e StoreEncoder) matchupReports(ctx context.Context, s store.Storer, uu map
 	var aux *types.Report
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -1561,10 +1549,12 @@ func (e StoreEncoder) encodeRole(ctx context.Context, p envoyx.EncodeParams, s s
 	}
 
 	// Flush to the DB
-	err = store.UpsertRole(ctx, s, n.Resource.(*types.Role))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Role")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertRole(ctx, s, n.Resource.(*types.Role))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Role")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -1612,10 +1602,6 @@ func (e StoreEncoder) matchupRoles(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.Role
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -1776,10 +1762,12 @@ func (e StoreEncoder) encodeTemplate(ctx context.Context, p envoyx.EncodeParams,
 	}
 
 	// Flush to the DB
-	err = store.UpsertTemplate(ctx, s, n.Resource.(*types.Template))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Template")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertTemplate(ctx, s, n.Resource.(*types.Template))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Template")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -1827,10 +1815,6 @@ func (e StoreEncoder) matchupTemplates(ctx context.Context, s store.Storer, uu m
 	var aux *types.Template
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -1991,10 +1975,12 @@ func (e StoreEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, s s
 	}
 
 	// Flush to the DB
-	err = store.UpsertUser(ctx, s, n.Resource.(*types.User))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert User")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertUser(ctx, s, n.Resource.(*types.User))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert User")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -2042,10 +2028,6 @@ func (e StoreEncoder) matchupUsers(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.User
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -2206,10 +2188,12 @@ func (e StoreEncoder) encodeDalConnection(ctx context.Context, p envoyx.EncodePa
 	}
 
 	// Flush to the DB
-	err = store.UpsertDalConnection(ctx, s, n.Resource.(*types.DalConnection))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert DalConnection")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertDalConnection(ctx, s, n.Resource.(*types.DalConnection))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert DalConnection")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -2257,10 +2241,6 @@ func (e StoreEncoder) matchupDalConnections(ctx context.Context, s store.Storer,
 	var aux *types.DalConnection
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -2421,10 +2401,12 @@ func (e StoreEncoder) encodeDalSensitivityLevel(ctx context.Context, p envoyx.En
 	}
 
 	// Flush to the DB
-	err = store.UpsertDalSensitivityLevel(ctx, s, n.Resource.(*types.DalSensitivityLevel))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert DalSensitivityLevel")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertDalSensitivityLevel(ctx, s, n.Resource.(*types.DalSensitivityLevel))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert DalSensitivityLevel")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -2472,10 +2454,6 @@ func (e StoreEncoder) matchupDalSensitivityLevels(ctx context.Context, s store.S
 	var aux *types.DalSensitivityLevel
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
