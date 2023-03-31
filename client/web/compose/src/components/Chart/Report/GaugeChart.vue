@@ -9,7 +9,7 @@
     <template #dimension-options="{ dimension }">
       <b-form-group
         :label="$t('edit.dimension.gaugeSteps')"
-        :label-cols="3"
+        class="text-primary"
       >
         <b-input-group
           v-for="(step, i) in dimension.meta.steps"
@@ -61,23 +61,39 @@
     </template>
 
     <template #metric-options="{ metric }">
-      <b-form-group
-        :label="$t('edit.metric.fx.label')"
-        :description="$t('edit.metric.fx.description')"
+      <b-row
+        class="text-primary"
       >
-        <b-form-textarea
-          v-model="metric.fx"
-          placeholder="n"
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.metric.fx.label')"
+            :description="$t('edit.metric.fx.description')"
+          >
+            <b-form-textarea
+              v-model="metric.fx"
+              placeholder="n"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-checkbox
-        v-model="metric.fixTooltips"
-        :value="true"
-        :unchecked-value="false"
-      >
-        {{ $t('edit.metric.fixTooltips') }}
-      </b-form-checkbox>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.metric.fixTooltips')"
+          >
+            <c-input-checkbox
+              v-model="metric.fixTooltips"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </template>
   </report-edit>
 </template>
@@ -89,6 +105,8 @@ import { compose, NoID } from '@cortezaproject/corteza-js'
 import base from './base'
 
 export default {
+  name: 'GaugeChart',
+
   i18nOptions: {
     namespaces: 'chart',
   },

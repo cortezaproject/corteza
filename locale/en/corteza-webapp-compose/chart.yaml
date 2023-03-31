@@ -105,12 +105,15 @@ edit:
   module:
     label: Module
     placeholder: Pick a module
+    title: Data Source
   title: Chart builder
   unconfiguredReport: Unconfigured report
   yAxis:
     axisOnRight: Place axis on the right side
     axisScaleFromZero: Always begin axis scale at zero
     label: Y-axis
+    options:
+      label: Options
     rotate:
       label: Rotate labels
       description: Labels can be rotated from -90 to 90 degrees
@@ -166,6 +169,7 @@ import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 name: Chart name *
 handle: Handle
+generalSettings: General settings
 notification:
   loadFailed: Could not load chart
   saveFailed: Could not save this chart

@@ -20,33 +20,60 @@
           noItemsFound: $t('edit.dimension.optionsPicker.noItemsFound'),
         }"
         class="d-flex flex-column"
-        style="max-height: 45vh;"
+        style="height: 100% !important;"
         @update:value="setOptions(index, field, $event)"
       />
     </template>
 
     <template #metric-options="{ metric }">
-      <b-form-group
-        horizontal
-        :label-cols="3"
-        breakpoint="md"
+      <b-row
+        class="text-primary"
       >
-        <b-form-checkbox
-          v-model="metric.cumulative"
+        <b-col
+          cols="12"
+          md="6"
         >
-          {{ $t('edit.metric.cumulative') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="metric.relativeValue"
+          <b-form-group
+            :label="$t('edit.metric.cumulative')"
+          >
+            <c-input-checkbox
+              v-model="metric.cumulative"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
         >
-          {{ $t('edit.metric.relative') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="metric.fixTooltips"
+          <b-form-group
+            :label="$t('edit.metric.relative')"
+          >
+            <c-input-checkbox
+              v-model="metric.relativeValue"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
         >
-          {{ $t('edit.metric.fixTooltips') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            :label="$t('edit.metric.fixTooltips')"
+          >
+            <c-input-checkbox
+              v-model="metric.fixTooltips"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </template>
   </report-edit>
 </template>
@@ -58,6 +85,8 @@ import { components } from '@cortezaproject/corteza-vue'
 const { CItemPicker } = components
 
 export default {
+  name: 'FunnelChart',
+
   components: {
     ReportEdit,
     CItemPicker,

@@ -45,6 +45,15 @@ export default {
     },
   },
 
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+    }
+  },
+
   computed: {
     editReport: {
       get () {
