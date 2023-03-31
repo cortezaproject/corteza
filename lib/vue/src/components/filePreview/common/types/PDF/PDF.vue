@@ -293,8 +293,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$white: white !default;
-$danger: red !default;
+$white: #FFFFFF !default;
+$danger: #E54122 !default;
 
 .doc-msg {
   display: flex;

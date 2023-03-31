@@ -215,7 +215,7 @@ export default {
     },
 
     getIcon (item) {
-      item.circleColor = '#ffffff'
+      item.circleColor = '#FFFFFF'
 
       return divIcon({
         className: 'marker-pin',

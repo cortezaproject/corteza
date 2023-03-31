@@ -43,8 +43,8 @@ export default {
 
     style () {
       return {
-        fill: this.options.color || '#000000',
-        backgroundColor: this.options.backgroundColor || '#ffffff',
+        fill: this.options.color || '#162425',
+        backgroundColor: this.options.backgroundColor || '#FFFFFF',
       }
     },
 

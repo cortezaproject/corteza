@@ -2557,7 +2557,7 @@ export default {
 }
 
 .toolbar {
-  background-color: #F3F3F5 !important;
+  background-color: $gray-200 !important;
   width: 66px;
 }
 

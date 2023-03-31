@@ -504,7 +504,7 @@ export default {
   cursor: not-allowed;
 }
 .active-cell:hover {
-  background-color: #F3F3F5;
+  background-color: $gray-200;
 }
 .rotate {
   transform: rotate(45deg);
@@ -519,7 +519,7 @@ export default {
 <style lang="scss">
 .mode {
   .btn {
-    background-color: #E4E9EF;
+    background-color: $light;
     border: none;
   }
 

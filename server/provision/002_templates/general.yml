@@ -14,10 +14,10 @@ templates:
                 <table width="800" cellspacing="0" cellpadding="0" border="0">
                   <tbody>
                     <tr>
-                      <td width="800" bgcolor="#ffffff" style="color:#3a393c;font-size:14px;line-height:20px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;text-align:left">
+                      <td width="800" bgcolor="#FFFFFF" style="color:#3a393c;font-size:14px;line-height:20px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif;text-align:left">
                         <table width="800" cellspacing="0" cellpadding="0" border="0">
                           <tbody>
-                            <tr style="background-color:#ffffff;height:50px;">
+                            <tr style="background-color:#FFFFFF;height:50px;">
                               <td style="border-bottom:2px solid #568ba2;">
                                 <a href="{{ .BaseURL }}" style="text-decoration:none" target="_blank">
                                   <img src="{{ .Logo }}" style="display: block;margin: 0 auto;padding: 10px;">
@@ -37,7 +37,7 @@ templates:
       </td>
                             </tr>
                             <tr>
-                              <td style="padding:30px;border-top: 1px solid #F3F3F5">
+                              <td style="padding:30px;border-top: 1px solid #F9FAFB">
                                 <p>If you have any questions, please contact <a href="mailto:{{ .SignatureEmail }}" style="color:#568ba2;">{{ .SignatureEmail }}</a>.</p>
                                 <p>Kind regards, <br>
                                 {{ .SignatureName }}</p>

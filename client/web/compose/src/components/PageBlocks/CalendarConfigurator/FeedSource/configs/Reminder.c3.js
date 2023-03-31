@@ -25,7 +25,7 @@ export default {
       props: {
         ...props,
         feed: {
-          options: { color: '#ffff' },
+          options: { color: '#FFFFFF' },
         },
       },
     },

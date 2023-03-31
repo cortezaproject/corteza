@@ -3432,7 +3432,7 @@ pages:
               suffix: k
               transformFx: v=v/1000
               valueStyle:
-                backgroundColor: '#ffffff'
+                backgroundColor: '#FFFFFF'
                 color: '#379cd3'
                 fontSize: "100"
           style:

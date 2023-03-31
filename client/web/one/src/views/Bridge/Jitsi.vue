@@ -260,7 +260,7 @@ main {
     &:hover {
       border: 1px solid $primary;
       background: $primary;
-      color: #ffffff;
+      color: $white;
     }
     &:disabled {
       cursor: not-allowed;

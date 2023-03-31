@@ -396,7 +396,7 @@ export default {
       const m = {
         labelStyle: {},
         valueStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: '#FFFFFF',
         },
       }
       this.metrics.push(m)

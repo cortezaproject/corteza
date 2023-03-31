@@ -8,7 +8,7 @@ import { IsOf } from '../../guards'
 
 const emailStyle = `
 body { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; color: #3A393C; font-family: Verdana,Arial,sans-serif; font-size: 14px; height: 100%; margin: 0; padding: 0; width: 100% !important; }
-table { margin: 20px auto; background: #ffffff; border-collapse: collapse; max-width: 100%; }
+table { margin: 20px auto; background: #FFFFFF; border-collapse: collapse; max-width: 100%; }
 table tr { height: 40px; }
 table td { padding-top: 10px; padding-left: 20px; width:100%; max-width:100%; min-width:100%; width:100%; vertical-align: top; }
 table tbody { border-top: 3px solid #808080; }
