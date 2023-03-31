@@ -63,6 +63,6 @@ export default {
         'font-weight-bold': value,
       }
     }
-  }
+  },
 }
 </script>

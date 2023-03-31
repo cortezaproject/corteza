@@ -1,158 +1,209 @@
 <template>
   <div>
     <!-- Configure source module -->
-    <b-form-group
-      :label="$t('edit.module.label')"
-    >
-      <b-form-select
-        v-model="moduleID"
-        :options="modules"
-        text-field="name"
-        class="mt-1"
-        value-field="moduleID"
-      >
-        <template slot="first">
-          <option
-            :value="undefined"
-          >
-            {{ $t('edit.module.placeholder') }}
-          </option>
-        </template>
-      </b-form-select>
-    </b-form-group>
-
-    <!-- Configure report filters -->
     <div
-      v-if="!!module"
-      class="mt-1"
+      class="px-3"
     >
-      <b-form-group
-        :label="$t('edit.filter.label')"
-      >
-        <b-form-select
-          v-model="report.filter"
-          :options="predefinedFilters"
-          class="mb-2"
+      <h5 class="mb-3">
+        {{ $t('edit.module.title') }}
+      </h5>
+
+      <b-row>
+        <b-col
+          cols="12"
+          md="6"
+          class="text-primary"
         >
-          <template slot="first">
-            <b-form-select-option :value="defaultFilterOption">
-              {{ $t('edit.filter.noFilter') }}
-            </b-form-select-option>
-          </template>
-        </b-form-select>
-
-        <b-form-textarea
-          v-model="report.filter"
-          :placeholder="$t('edit.filter.placeholder')"
-        />
-
-        <b-form-text>
-          <i18next
-            path="edit.filter.footnote"
-            tag="label"
+          <b-form-group
+            :label="$t('edit.module.label')"
           >
-            <code>${recordID}</code>
-            <code>${ownerID}</code>
-            <code>${userID}</code>
-          </i18next>
-        </b-form-text>
-      </b-form-group>
+            <b-form-select
+              v-model="moduleID"
+              :options="modules"
+              text-field="name"
+              value-field="moduleID"
+            >
+              <template slot="first">
+                <option
+                  :value="undefined"
+                >
+                  {{ $t('edit.module.placeholder') }}
+                </option>
+              </template>
+            </b-form-select>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="!!module"
+          cols="12"
+          md="6"
+          class="text-primary"
+        >
+          <b-form-group
+            :label="$t('edit.filter.label')"
+          >
+            <b-form-select
+              v-model="report.filter"
+              :options="predefinedFilters"
+            >
+              <template slot="first">
+                <b-form-select-option :value="defaultFilterOption">
+                  {{ $t('edit.filter.noFilter') }}
+                </b-form-select-option>
+              </template>
+            </b-form-select>
+          </b-form-group>
+        </b-col>
+
+        <!-- Configure report filters -->
+        <b-col
+          v-if="!!module"
+          class="mt-1 text-primary"
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('edit.filter.label')"
+          >
+            <b-form-textarea
+              v-model="report.filter"
+              :placeholder="$t('edit.filter.placeholder')"
+            />
+            <b-form-text>
+              <i18next
+                path="edit.filter.footnote"
+                tag="label"
+              >
+                <code>${recordID}</code>
+                <code>${ownerID}</code>
+                <code>${userID}</code>
+              </i18next>
+            </b-form-text>
+          </b-form-group>
+        </b-col>
+      </b-row>
     </div>
+    <hr v-if="module">
 
     <!-- Configure report dimensions -->
-    <div v-if="!!module">
-      <hr>
-
+    <div
+      v-if="!!module"
+      class="px-3"
+    >
       <fieldset
         v-for="(d, i) in dimensions"
         :key="i"
       >
-        <h4 class="mb-3">
+        <h5 class="mb-3">
           {{ $t('edit.dimension.label') }}
-        </h4>
+        </h5>
 
         <template v-if="usesDimensionsField">
-          <b-form-group
-            horizontal
-            :label-cols="3"
-            breakpoint="md"
-            :label="$t('edit.dimension.fieldLabel')"
+          <b-row
+            class="text-primary"
           >
-            <b-form-select
-              v-model="d.field"
-              :options="dimensionFields"
-              @change="onDimFieldChange($event, d)"
+            <b-col
+              cols="12"
+              md="6"
             >
-              <template slot="first">
-                <option
-                  :value="undefined"
+              <b-form-group
+                :label="$t('edit.dimension.fieldLabel')"
+                class="text-primary"
+              >
+                <b-form-select
+                  v-model="d.field"
+                  :options="dimensionFields"
+                  @change="onDimFieldChange($event, d)"
                 >
-                  {{ $t('edit.dimension.fieldPlaceholder') }}
-                </option>
-              </template>
-            </b-form-select>
-          </b-form-group>
+                  <template slot="first">
+                    <option
+                      :value="undefined"
+                    >
+                      {{ $t('edit.dimension.fieldPlaceholder') }}
+                    </option>
+                  </template>
+                </b-form-select>
+              </b-form-group>
+            </b-col>
 
-          <b-form-group
-            horizontal
-            :label-cols="3"
-            breakpoint="md"
-            :label="$t('edit.dimension.function.label')"
-          >
-            <b-form-select
-              v-model="d.modifier"
-              :disabled="!d.field || !isTemporalField(d.field)"
-              :options="dimensionModifiers"
+            <b-col
+              cols="12"
+              md="6"
             >
-              <template slot="first">
-                <option
-                  :value="undefined"
+              <b-form-group
+                :label="$t('edit.dimension.function.label')"
+                class="text-primary"
+              >
+                <b-form-select
+                  v-model="d.modifier"
+                  :disabled="!d.field || !isTemporalField(d.field)"
+                  :options="dimensionModifiers"
                 >
-                  {{ $t('edit.dimension.function.placeholder') }}
-                </option>
-              </template>
-            </b-form-select>
-          </b-form-group>
+                  <template slot="first">
+                    <option
+                      :value="undefined"
+                    >
+                      {{ $t('edit.dimension.function.placeholder') }}
+                    </option>
+                  </template>
+                </b-form-select>
+              </b-form-group>
+            </b-col>
+          </b-row>
 
           <template v-if="!unSkippable">
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              breakpoint="md"
-            >
-              <b-form-checkbox
-                v-model="d.skipMissing"
+            <b-row>
+              <b-col
+                cols="12"
+                md="6"
               >
-                {{ $t('edit.dimension.skipMissingValues') }}
-              </b-form-checkbox>
-            </b-form-group>
+                <b-form-group
+                  :label="$t('edit.dimension.rotate.label')"
+                  :description="$t('edit.dimension.rotate.description')"
+                  class="text-primary"
+                >
+                  <b-input
+                    v-model="d.rotateLabel"
+                    type="number"
+                    number
+                  />
+                </b-form-group>
+              </b-col>
 
-            <b-form-group
-              v-if="!d.skipMissing"
-              horizontal
-              :label-cols="3"
-              breakpoint="md"
-              :label="$t('edit.dimension.defaultValueLabel')"
-              :description="$t('edit.dimension.defaultValueFootnote')"
-            >
-              <b-form-input
-                v-model="d.default"
-                :type="defaultValueInputType(d)"
-              />
-            </b-form-group>
-            <b-form-group
-              horizontal
-              :label-cols="3"
-              breakpoint="md"
-              :label="$t('edit.dimension.rotate.label')"
-              :description="$t('edit.dimension.rotate.description')"
-            >
-              <b-input
-                v-model="d.rotateLabel"
-                type="number"
-                number
-              />
-            </b-form-group>
+              <b-col
+                cols="12"
+                md="6"
+              >
+                <b-form-group
+                  :label="$t('edit.dimension.skipMissingValues')"
+                  class="text-primary"
+                >
+                  <c-input-checkbox
+                    :value="!!d.skipMissing"
+                    switch
+                    :labels="checkboxLabel"
+                    @change="d.skipMissing = $event"
+                  />
+                </b-form-group>
+              </b-col>
+
+              <b-col
+                v-if="!d.skipMissing"
+                cols="12"
+                md="6"
+              >
+                <b-form-group
+                  :label="$t('edit.dimension.defaultValueLabel')"
+                  :description="$t('edit.dimension.defaultValueFootnote')"
+                  class="text-primary"
+                >
+                  <b-form-input
+                    v-model="d.default"
+                    :type="defaultValueInputType(d)"
+                  />
+                </b-form-group>
+              </b-col>
+            </b-row>
           </template>
         </template>
 
@@ -163,10 +214,15 @@
           :field="getField(d)"
         />
       </fieldset>
+    </div>
+    <hr v-if="!!module">
 
-      <hr>
-
-      <h4 class="d-flex align-items-center mb-3">
+    <!-- Configure report metrics -->
+    <div
+      v-if="!!module"
+      class="px-3"
+    >
+      <h5 class="d-flex align-items-center mb-3">
         {{ $t('edit.metric.title') }}
         <b-button
           v-if="canAddMetric"
@@ -176,9 +232,8 @@
         >
           + {{ $t('edit.metric.add') }}
         </b-button>
-      </h4>
+      </h5>
 
-      <!-- Configure report metrics -->
       <draggable
         class="metrics mb-3"
         :list.sync="metrics"
@@ -208,47 +263,55 @@
             </b-button>
           </h5>
 
-          <b-form-group
-            horizontal
-            :label-cols="3"
-            breakpoint="md"
-            :label="$t('edit.metric.fieldLabel')"
-          >
-            <b-form-select
-              v-model="m.field"
-              :options="metricFields"
-              @change="onMetricFieldChange($event, m)"
+          <b-row>
+            <b-col
+              cols="12"
+              md="6"
             >
-              <template slot="first">
-                <option
-                  :value="undefined"
+              <b-form-group
+                :label="$t('edit.metric.fieldLabel')"
+                class="text-primary"
+              >
+                <b-form-select
+                  v-model="m.field"
+                  :options="metricFields"
+                  @change="onMetricFieldChange($event, m)"
                 >
-                  {{ $t('edit.metric.fieldPlaceholder') }}
-                </option>
-              </template>
-            </b-form-select>
-          </b-form-group>
+                  <template slot="first">
+                    <option
+                      :value="undefined"
+                    >
+                      {{ $t('edit.metric.fieldPlaceholder') }}
+                    </option>
+                  </template>
+                </b-form-select>
+              </b-form-group>
+            </b-col>
 
-          <b-form-group
-            horizontal
-            :label-cols="3"
-            breakpoint="md"
-            :label="$t('edit.metric.function.label')"
-          >
-            <b-form-select
-              v-model="m.aggregate"
-              :disabled="!m.field || m.field === 'count'"
-              :options="metricAggregates"
+            <b-col
+              cols="12"
+              md="6"
             >
-              <template slot="first">
-                <option
-                  :value="undefined"
+              <b-form-group
+                :label="$t('edit.metric.function.label')"
+                class="text-primary"
+              >
+                <b-form-select
+                  v-model="m.aggregate"
+                  :disabled="!m.field || m.field === 'count'"
+                  :options="metricAggregates"
                 >
-                  {{ $t('edit.metric.function.placeholder') }}
-                </option>
-              </template>
-            </b-form-select>
-          </b-form-group>
+                  <template slot="first">
+                    <option
+                      :value="undefined"
+                    >
+                      {{ $t('edit.metric.function.placeholder') }}
+                    </option>
+                  </template>
+                </b-form-select>
+              </b-form-group>
+            </b-col>
+          </b-row>
 
           <slot
             name="metric-options"
@@ -257,15 +320,15 @@
         </fieldset>
       </draggable>
     </div>
+    <hr v-if="!!module && hasAxis">
 
     <template v-if="hasAxis">
-      <hr>
-
       <slot
         name="y-axis"
         :report="editReport"
       />
     </template>
+    <hr v-if="hasAxis">
 
     <slot
       name="additional-config"

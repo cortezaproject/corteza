@@ -724,7 +724,7 @@ import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputPresort, CInputCheckbox } = components
+const { CInputPresort } = components
 
 export default {
   i18nOptions: {
@@ -737,7 +737,6 @@ export default {
     AutomationTab,
     FieldPicker,
     CInputPresort,
-    CInputCheckbox,
     RecordListFilter,
     VueSelect,
   },
