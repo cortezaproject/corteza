@@ -74,6 +74,6 @@ export default {
 
 <style scoped>
 .min-content{
-    max-width: min-content;
+  max-width: min-content;
 }
 </style>

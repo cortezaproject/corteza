@@ -110,7 +110,7 @@ export default class GaugeChart extends BaseChart {
             distance: 0,
             length: 0,
             lineStyle: {
-              color: '#fff',
+              color: '#FFFFFF',
             },
           },
           axisLine: {

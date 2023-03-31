@@ -60,7 +60,7 @@ export class BasicChartOptions extends ChartOptions {
           },
           itemStyle: {
             borderRadius: 5,
-            borderColor: '#fff',
+            borderColor: '#FFFFFF',
             borderWidth: 1,
           },
           emphasis: {

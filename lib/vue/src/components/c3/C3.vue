@@ -156,13 +156,13 @@ export default {
     grid-area: main;
     background-image: linear-gradient(
       135deg,
-      #f3f3f5 21.43%,
-      #ffffff 21.43%,
-      #ffffff 50%,
-      #f3f3f5 50%,
-      #f3f3f5 71.43%,
-      #ffffff 71.43%,
-      #ffffff 100%
+      #F9FAFB 21.43%,
+      #FFFFFF 21.43%,
+      #FFFFFF 50%,
+      #F9FAFB 50%,
+      #F9FAFB 71.43%,
+      #FFFFFF 71.43%,
+      #FFFFFF 100%
     );
     background-size: 35.00px 35.00px;
     overflow: auto;

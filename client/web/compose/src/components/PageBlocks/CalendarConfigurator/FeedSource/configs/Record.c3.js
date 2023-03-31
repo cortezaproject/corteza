@@ -60,7 +60,7 @@ export default {
         ...props,
         feed: {
           options: {
-            color: '#ffff',
+            color: '#FFFFFF',
             moduleID: '5555555',
             prefilter: '',
           },

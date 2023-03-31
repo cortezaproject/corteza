@@ -285,7 +285,7 @@ $nav-user-icon-size: 50px;
 .header-navigation {
   width: 100vw;
   height: $header-height;
-  background-color: #F3F3F5 !important;
+  background-color: #F9FAFB !important;
   padding-left: calc(3.5rem + 6px);
 }
 

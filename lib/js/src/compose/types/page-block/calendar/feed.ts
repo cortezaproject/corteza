@@ -20,7 +20,7 @@ export type FeedInput = Partial<Feed> | Feed | LegacyFeed
 
 const defOptions = {
   moduleID: NoID,
-  color: '#ffffff',
+  color: '#FFFFFF',
   prefilter: '',
 }
 

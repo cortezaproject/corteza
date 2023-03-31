@@ -207,7 +207,7 @@ export default {
 <style lang="scss">
 .editable {
   .grid-item {
-    background-image: linear-gradient(45deg, #f3f3f5 25%, #ffffff 25%, #ffffff 50%, #f3f3f5 50%, #f3f3f5 75%, #ffffff 75%, #ffffff 100%);
+    background-image: linear-gradient(45deg, $gray-200 25%, $white 25%, $white 50%, $gray-200 50%, $gray-200 75%, $white 75%, $white 100%);
     background-size: 28.28px 28.28px;
   }
 }

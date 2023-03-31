@@ -107,8 +107,8 @@ export default {
 
 <style lang="scss" scoped>
 .border {
-  background-color: #FFF;
-  border: 2px solid #E4E9EF;
+  background-color: $white;
+  border: 2px solid $light;
   border-radius: 0.25rem;
 }
 

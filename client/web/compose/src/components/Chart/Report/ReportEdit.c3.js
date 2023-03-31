@@ -5,7 +5,7 @@ const props = {
   report: {
     moduleID: '',
     filter: '',
-    colorScheme: '#fffff',
+    colorScheme: '#FFFFFF',
     metrics: [
       {
         aggregate: 'AVG',

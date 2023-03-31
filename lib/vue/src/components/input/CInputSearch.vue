@@ -120,7 +120,7 @@ export default {
 }
 </script>
 <style lang="scss" scoped>
-$border-color: 2px solid #E4E9EF;
+$border-color: 2px solid #F3F5F7;
 
 input:focus::placeholder {
   color: transparent;

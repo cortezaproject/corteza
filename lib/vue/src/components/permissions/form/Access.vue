@@ -66,7 +66,7 @@ export default {
 <style lang="scss">
 .access {
   .btn {
-    background-color: #E4E9EF;
+    background-color: #F3F5F7;
     border: none;
   }
 

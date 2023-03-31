@@ -191,7 +191,7 @@ $dropping-color: $secondary;
 
   li {
     white-space: nowrap;
-    background: white;
+    background: $white;
 
     &.blank-li {
       height: $blank-li-height !important;
@@ -201,20 +201,20 @@ $dropping-color: $secondary;
       }
 
       &:nth-last-of-type(1)::before {
-        border-left-color: white !important;
+        border-left-color: $white !important;
         height: 0;
       }
     }
 
     &::before {
       top: $content-height / -2 !important;
-      border-left-color: white !important;
+      border-left-color: $white !important;
     }
 
     &::after {
       height: $content-height !important;
       top: $content-height / 2 !important;
-      border-color: #fff !important;
+      border-color: $white !important;
     }
 
     &.parent-li:nth-last-child(2)::before {
@@ -247,7 +247,7 @@ $dropping-color: $secondary;
 
     &.exist-li {
       &::before {
-        border-color: white !important;
+        border-color: $white !important;
       }
 
       .parent-li {

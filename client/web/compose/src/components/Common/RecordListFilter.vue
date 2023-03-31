@@ -652,7 +652,7 @@ export default {
     padding: 0;
     color: #2d2d2d;
     text-align: center;
-    background: white;
+    background: $white;
     border-radius: 0.25rem;
     opacity: 1 !important;
     box-shadow: 0 3px 48px #00000026;
@@ -665,12 +665,12 @@ export default {
 
   .arrow {
     &::before {
-      border-bottom-color: white;
-      border-top-color: white;
+      border-bottom-color: $white;
+      border-top-color: $white;
     }
 
     &::after {
-      border-top-color: white;
+      border-top-color: $white;
     }
   }
 }
@@ -693,7 +693,7 @@ td {
 .btn-add-group {
   &:hover, &:active {
     background-color: $primary !important;
-    color: white !important;
+    color: $white !important;
   }
 }
 </style>

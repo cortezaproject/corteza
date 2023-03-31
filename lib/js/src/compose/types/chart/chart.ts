@@ -157,7 +157,7 @@ export default class Chart extends BaseChart {
           },
           itemStyle: {
             borderRadius: 5,
-            borderColor: '#fff',
+            borderColor: '#FFFFFF',
             borderWidth: 1,
           },
           emphasis: {

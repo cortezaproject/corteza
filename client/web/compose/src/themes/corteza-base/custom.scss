@@ -272,7 +272,7 @@ input[type="search"]::-webkit-search-cancel-button {
 
 .modal-content {
   &.card {
-    background-color: #FFF;
+    background-color: $white;
     background-clip: border-box;
     border: 0 solid rgba(0, 0, 0, 0.125);
     border-radius: 1rem;
