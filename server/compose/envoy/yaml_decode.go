@@ -42,6 +42,8 @@ const (
 	ComposeRecordDatasourceAuxType = "corteza::compose:record-datasource"
 )
 
+func (d *auxYamlDoc) unmarshalYAML(k string, n *yaml.Node) (out envoyx.NodeSet, err error) { return }
+
 func (d *auxYamlDoc) unmarshalChartConfigNode(r *types.Chart, n *yaml.Node) (refs map[string]envoyx.Ref, idents envoyx.Identifiers, err error) {
 	err = y7s.EachMap(n, func(k, v *yaml.Node) error {
 		if k.Value != "reports" {
