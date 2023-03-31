@@ -43,7 +43,7 @@ export default {
               types: [
                 'Vars',
               ],
-              required: true,
+              required: false,
             },
           ],
           results: [],
