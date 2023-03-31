@@ -11,6 +11,43 @@ import (
 )
 
 func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, rt string, nodes map[string]*envoyx.Node, f envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
+	switch rt {
+	case types.SettingValueResourceType:
+		return d.decodeSettingValue(ctx, s, dl, types.SettingsFilter{})
+	}
+	return
+}
+
+func (d StoreDecoder) decodeSettingValue(ctx context.Context, s store.Storer, dl dal.FullService, f types.SettingsFilter) (out envoyx.NodeSet, err error) {
+	// @todo this might need to be improved.
+	//       Currently, no resource is vast enough to pose a problem.
+	rr, _, err := store.SearchSettingValues(ctx, s, f)
+	if err != nil {
+		return
+	}
+
+	for _, r := range rr {
+		var n *envoyx.Node
+		n, err = SettingValueToEnvoyNode(r)
+		if err != nil {
+			return
+		}
+		out = append(out, n)
+	}
+
+	return
+}
+
+func SettingValueToEnvoyNode(r *types.SettingValue) (node *envoyx.Node, err error) {
+	// SettingValues don't have references so it can be omitted
+
+	node = &envoyx.Node{
+		Resource:     r,
+		ResourceType: types.SettingValueResourceType,
+		Identifiers: envoyx.MakeIdentifiers(
+			r.Name,
+		),
+	}
 	return
 }
 

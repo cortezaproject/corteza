@@ -1,9 +1,10 @@
 package types
 
 import (
+	"testing"
+
 	"github.com/jmoiron/sqlx/types"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSettingsKV_Bool(t *testing.T) {
@@ -53,12 +54,12 @@ func TestSettingsKV_Bool(t *testing.T) {
 func TestSettingValueAsString(t *testing.T) {
 	var req = require.New(t)
 
-	req.NoError((&SettingValue{}).SetRawValue(`"string"`), "unable to set value as string")
-	req.NoError((&SettingValue{}).SetRawValue(`false`), "unable to set value as string")
-	req.NoError((&SettingValue{}).SetRawValue(`null`), "unable to set value as string")
-	req.NoError((&SettingValue{}).SetRawValue(`42`), "unable to set value as string")
-	req.NoError((&SettingValue{}).SetRawValue(`3.14`), "unable to set value as string")
-	req.Error((&SettingValue{}).SetRawValue(`error`), "expecting error when not setting JSON")
+	req.NoError((&SettingValue{}).SetRawSetting(`"string"`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawSetting(`false`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawSetting(`null`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawSetting(`42`), "unable to set value as string")
+	req.NoError((&SettingValue{}).SetRawSetting(`3.14`), "unable to set value as string")
+	req.Error((&SettingValue{}).SetRawSetting(`error`), "expecting error when not setting JSON")
 }
 
 func TestSettingValueSet_Upsert(t *testing.T) {
@@ -84,14 +85,14 @@ func TestSettingValueSet_Changed(t *testing.T) {
 		// make string value
 		msv = func(n, v string) *SettingValue {
 			o := &SettingValue{Name: n}
-			_ = o.SetValue(v)
+			_ = o.SetSetting(v)
 			return o
 		}
 
 		// make bool value
 		mbv = func(n string, v bool) *SettingValue {
 			o := &SettingValue{Name: n}
-			_ = o.SetValue(v)
+			_ = o.SetSetting(v)
 			return o
 		}
 

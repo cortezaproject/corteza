@@ -87,12 +87,12 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 			}
 
 			if cmd.Flags().Lookup("as-string").Changed {
-				cli.HandleError(v.SetValue(value))
+				cli.HandleError(v.SetSetting(value))
 			} else {
-				err := v.SetRawValue(value)
+				err := v.SetRawSetting(value)
 				if _, is := err.(*json.SyntaxError); is {
 					// Quote the raw value and re-parse
-					err = v.SetRawValue(`"` + value + `"`)
+					err = v.SetRawSetting(`"` + value + `"`)
 				}
 
 				cli.HandleError(err)
@@ -136,7 +136,7 @@ func Settings(ctx context.Context, app serviceInitializer) *cobra.Command {
 			for k, v := range input {
 				val := &types.SettingValue{Name: k}
 
-				cli.HandleError(val.SetValue(v))
+				cli.HandleError(val.SetSetting(v))
 				vv = append(vv, val)
 			}
 

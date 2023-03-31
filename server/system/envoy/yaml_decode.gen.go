@@ -292,6 +292,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				err = errors.Wrap(err, "failed to unmarshal node: locale")
 			}
 
+		// Offload to custom handlers
+		default:
+			aux, err = d.unmarshalYAML(kv, v)
+			d.nodes = append(d.nodes, aux...)
+			if err != nil {
+				err = errors.Wrap(err, "failed to unmarshal node")
+			}
 		}
 		return nil
 	})

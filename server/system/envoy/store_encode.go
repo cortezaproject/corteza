@@ -16,6 +16,8 @@ func (e StoreEncoder) prepare(ctx context.Context, p envoyx.EncodeParams, s stor
 		return e.prepareRbacRule(ctx, p, s, nn)
 	case types.ResourceTranslationResourceType:
 		return e.prepareResourceTranslation(ctx, p, s, nn)
+	case types.SettingValueResourceType:
+		return e.prepareSetting(ctx, p, s, nn)
 	}
 
 	return
@@ -27,6 +29,8 @@ func (e StoreEncoder) encode(ctx context.Context, p envoyx.EncodeParams, s store
 		return e.encodeRbacRules(ctx, p, s, nn, tree)
 	case types.ResourceTranslationResourceType:
 		return e.encodeResourceTranslations(ctx, p, s, nn, tree)
+	case types.SettingValueResourceType:
+		return e.encodeSettings(ctx, p, s, nn, tree)
 	}
 
 	return
