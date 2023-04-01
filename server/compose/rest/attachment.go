@@ -182,13 +182,13 @@ func makeAttachmentPayload(ctx context.Context, a *types.Attachment, err error) 
 			ext = "jpg"
 		}
 
-		preview = baseURL + fmt.Sprintf("preview.%s", ext)
+		preview = baseURL + fmt.Sprintf("preview.%s", ext) + signParams
 	}
 
 	ap := &attachmentPayload{a}
 
 	ap.Url = baseURL + fmt.Sprintf("original/%s", url.PathEscape(a.Name)) + signParams
-	ap.PreviewUrl = preview + signParams
+	ap.PreviewUrl = preview
 
 	return ap, nil
 }
