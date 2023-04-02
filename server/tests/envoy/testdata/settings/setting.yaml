@@ -1,0 +1,4 @@
+settings:
+  auth.external.enabled: true
+  auth.mail.from-address: info@example.tld
+  auth.internal.enabled: true
