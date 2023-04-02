@@ -352,7 +352,7 @@ func (e StoreEncoder) matchup{{.expIdent}}s(ctx context.Context, s store.Storer,
 	var aux *types.{{.expIdent}}
 	var ok bool
 	for i, n := range nn {
-		{{ if eq .componentIdent "compose" }}
+		{{ if eq .component "compose" }}
 		scope := scopes[i]
 		if scope == nil {
 			continue

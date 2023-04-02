@@ -295,6 +295,11 @@ func (e StoreEncoder) matchupCharts(ctx context.Context, s store.Storer, uu map[
 	var ok bool
 	for i, n := range nn {
 
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -525,6 +530,11 @@ func (e StoreEncoder) matchupModules(ctx context.Context, s store.Storer, uu map
 	var ok bool
 	for i, n := range nn {
 
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -741,6 +751,11 @@ func (e StoreEncoder) matchupModuleFields(ctx context.Context, s store.Storer, u
 	var aux *types.ModuleField
 	var ok bool
 	for i, n := range nn {
+
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -973,6 +988,11 @@ func (e StoreEncoder) matchupNamespaces(ctx context.Context, s store.Storer, uu 
 	var ok bool
 	for i, n := range nn {
 
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
 				aux, ok = idMap[id]
@@ -1185,6 +1205,11 @@ func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.Page
 	var ok bool
 	for i, n := range nn {
+
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
