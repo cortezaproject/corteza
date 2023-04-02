@@ -24,7 +24,7 @@ type (
 
 		Weight int `json:"weight"`
 
-		Meta *PageLayoutMeta `json:"meta"`
+		Meta PageLayoutMeta `json:"meta"`
 
 		Config PageLayoutConfig `json:"config"`
 		Blocks PageBlocks       `json:"blocks"`
@@ -82,12 +82,14 @@ type (
 	}
 
 	PageLayoutFilter struct {
-		NamespaceID uint64 `json:"namespaceID,string"`
-		PageID      uint64 `json:"pageID,string,omitempty"`
-		Primary     bool   `json:"primary,omitempty"`
-		Handle      string `json:"handle"`
-		Name        string `json:"name"`
-		Query       string `json:"query"`
+		PageLayoutID []uint64 `json:"pageLayoutID,string"`
+		NamespaceID  uint64   `json:"namespaceID,string"`
+		PageID       uint64   `json:"pageID,string,omitempty"`
+		ParentID     uint64   `json:"ParentID,string,omitempty"`
+		Primary      bool     `json:"primary,omitempty"`
+		Handle       string   `json:"handle"`
+		Name         string   `json:"name"`
+		Query        string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
 		Labels     map[string]string `json:"labels,omitempty"`
@@ -161,8 +163,8 @@ func (set PageLayoutSet) FindByHandle(handle string) *PageLayout {
 	return nil
 }
 
-func (bb *PageLayoutConfig) Scan(src any) error          { return sql.ParseJSON(src, bb) }
+func (bb *PageLayoutConfig) Scan(src any) error          { return sql.ParseJSON(src, &bb) }
 func (bb PageLayoutConfig) Value() (driver.Value, error) { return json.Marshal(bb) }
 
-func (vv *PageLayoutMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *PageLayoutMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
+func (vv *PageLayoutMeta) Scan(src any) error          { return sql.ParseJSON(src, &vv) }
+func (vv PageLayoutMeta) Value() (driver.Value, error) { return json.Marshal(vv) }

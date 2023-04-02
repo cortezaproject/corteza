@@ -144,7 +144,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta
-		Meta *types.PageMeta
+		Meta types.PageMeta
 	}
 
 	PageRead struct {
@@ -230,7 +230,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta
-		Meta *types.PageMeta
+		Meta types.PageMeta
 	}
 
 	PageReorder struct {
@@ -584,7 +584,7 @@ func (r PageCreate) GetConfig() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageCreate) GetMeta() *types.PageMeta {
+func (r PageCreate) GetMeta() types.PageMeta {
 	return r.Meta
 }
 
@@ -975,7 +975,7 @@ func (r PageUpdate) GetConfig() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdate) GetMeta() *types.PageMeta {
+func (r PageUpdate) GetMeta() types.PageMeta {
 	return r.Meta
 }
 

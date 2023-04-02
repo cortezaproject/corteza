@@ -190,7 +190,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta
-		Meta *types.PageLayoutMeta
+		Meta types.PageLayoutMeta
 
 		// Config POST parameter
 		//
@@ -274,7 +274,7 @@ type (
 		// Meta POST parameter
 		//
 		// Meta
-		Meta *types.PageLayoutMeta
+		Meta types.PageLayoutMeta
 
 		// Config POST parameter
 		//
@@ -784,7 +784,7 @@ func (r PageLayoutCreate) GetPrimary() bool {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutCreate) GetMeta() *types.PageLayoutMeta {
+func (r PageLayoutCreate) GetMeta() types.PageLayoutMeta {
 	return r.Meta
 }
 
@@ -1144,7 +1144,7 @@ func (r PageLayoutUpdate) GetPrimary() bool {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutUpdate) GetMeta() *types.PageLayoutMeta {
+func (r PageLayoutUpdate) GetMeta() types.PageLayoutMeta {
 	return r.Meta
 }
 

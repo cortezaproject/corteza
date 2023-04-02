@@ -2,13 +2,13 @@ package types
 
 import "encoding/json"
 
-func ParsePageLayoutMeta(ss []string) (p *PageLayoutMeta, err error) {
-	p = &PageLayoutMeta{}
+func ParsePageLayoutMeta(ss []string) (p PageLayoutMeta, err error) {
+	p = PageLayoutMeta{}
 	return p, parseStringsInput(ss, &p)
 }
 
-func ParsePageMeta(ss []string) (p *PageMeta, err error) {
-	p = &PageMeta{}
+func ParsePageMeta(ss []string) (p PageMeta, err error) {
+	p = PageMeta{}
 	return p, parseStringsInput(ss, &p)
 }
 

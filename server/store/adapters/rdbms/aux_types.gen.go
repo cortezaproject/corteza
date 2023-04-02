@@ -293,7 +293,7 @@ type (
 		SelfID      uint64                 `db:"self_id"`
 		ModuleID    uint64                 `db:"module_id"`
 		NamespaceID uint64                 `db:"namespace_id"`
-		Meta        *composeType.PageMeta  `db:"meta"`
+		Meta        composeType.PageMeta   `db:"meta"`
 		Config      composeType.PageConfig `db:"config"`
 		Blocks      composeType.PageBlocks `db:"blocks"`
 		Visible     bool                   `db:"visible"`
@@ -312,7 +312,7 @@ type (
 		ParentID    uint64                       `db:"parent_id"`
 		NamespaceID uint64                       `db:"namespace_id"`
 		Weight      int                          `db:"weight"`
-		Meta        *composeType.PageLayoutMeta  `db:"meta"`
+		Meta        composeType.PageLayoutMeta   `db:"meta"`
 		Primary     bool                         `db:"primary"`
 		Config      composeType.PageLayoutConfig `db:"config"`
 		Blocks      composeType.PageBlocks       `db:"blocks"`

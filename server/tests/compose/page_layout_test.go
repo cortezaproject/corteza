@@ -24,7 +24,7 @@ func (h helper) repoMakePageLayout(ns *types.Namespace, pg *types.Page, title st
 	res := &types.PageLayout{
 		ID:        id.Next(),
 		CreatedAt: time.Now(),
-		Meta: &types.PageLayoutMeta{
+		Meta: types.PageLayoutMeta{
 			Title: title,
 		},
 		NamespaceID: ns.ID,
