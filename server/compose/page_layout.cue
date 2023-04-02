@@ -142,6 +142,31 @@ pageLayout: {
 			description: {
 				path: ["meta", "description"]
 			}
+
+			recordToolbarButtonNewLabel: {
+				path: ["config", "buttons", "new", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonEditLabel: {
+				path: ["config", "buttons", "edit", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonSubmitLabel: {
+				path: ["config", "buttons", "submit", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonDeleteLabel: {
+				path: ["config", "buttons", "delete", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonCloneLabel: {
+				path: ["config", "buttons", "clone", "label"]
+				customHandler: true
+			}
+			recordToolbarButtonBackLabel: {
+				path: ["config", "buttons", "back", "label"]
+				customHandler: true
+			}
 			actionLabel: {
 				path: ["config", "actions", {part: "actionID", var: true}, "label"]
 				customHandler: true
