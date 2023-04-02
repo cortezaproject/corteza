@@ -85,7 +85,7 @@ func (ctrl *Settings) Set(ctx context.Context, r *request.SettingsSet) (interfac
 
 		s := &types.SettingValue{Name: r.Key, OwnedBy: r.OwnerID}
 
-		if err = s.SetValue(fmt.Sprintf("attachment:%d", att.ID)); err != nil {
+		if err = s.SetSetting(fmt.Sprintf("attachment:%d", att.ID)); err != nil {
 			return nil, err
 		}
 

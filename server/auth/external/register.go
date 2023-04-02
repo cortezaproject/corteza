@@ -149,7 +149,7 @@ func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.SettingV
 	if enable {
 		err = vv.Walk(func(value *types.SettingValue) error {
 			if strings.HasSuffix(value.Name, ".enabled") {
-				return value.SetValue(true)
+				return value.SetSetting(true)
 			}
 
 			return nil
@@ -160,7 +160,7 @@ func RegisterOidcProvider(ctx context.Context, log *zap.Logger, s store.SettingV
 		}
 
 		v := &types.SettingValue{Name: "auth.external.enabled"}
-		err = v.SetValue(true)
+		err = v.SetSetting(true)
 		if err != nil {
 			return
 		}

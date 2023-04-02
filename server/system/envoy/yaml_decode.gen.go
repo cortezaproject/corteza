@@ -292,6 +292,13 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 				err = errors.Wrap(err, "failed to unmarshal node: locale")
 			}
 
+		// Offload to custom handlers
+		default:
+			aux, err = d.unmarshalYAML(kv, v)
+			d.nodes = append(d.nodes, aux...)
+			if err != nil {
+				err = errors.Wrap(err, "failed to unmarshal node")
+			}
 		}
 		return nil
 	})
@@ -439,7 +446,7 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -480,6 +487,9 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -490,6 +500,12 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -512,7 +528,13 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -526,6 +548,14 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -752,7 +782,7 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -801,6 +831,9 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -811,6 +844,12 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -833,7 +872,13 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -847,6 +892,14 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -1021,7 +1074,7 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -1062,6 +1115,9 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -1072,6 +1128,12 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -1329,7 +1391,7 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -1370,6 +1432,9 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -1380,6 +1445,12 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -1402,7 +1473,13 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -1416,6 +1493,14 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -1617,7 +1702,7 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -1658,6 +1743,9 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -1668,6 +1756,12 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -1690,7 +1784,13 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -1704,6 +1804,14 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -1924,7 +2032,7 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -1965,6 +2073,9 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -1975,6 +2086,12 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -1997,7 +2114,13 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -2011,6 +2134,14 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -2155,7 +2286,7 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -2196,6 +2327,9 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -2206,6 +2340,12 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -2228,7 +2368,13 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -2242,6 +2388,14 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -2405,7 +2559,7 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -2446,6 +2600,9 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -2456,6 +2613,12 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -2478,7 +2641,13 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -2492,6 +2661,14 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -2655,7 +2832,7 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -2696,6 +2873,9 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -2706,6 +2886,12 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -2728,7 +2914,13 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -2742,6 +2934,14 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -2943,7 +3143,7 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -2984,6 +3184,9 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -2994,6 +3197,12 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -3016,7 +3225,13 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 		Config: envoyConfig,
 	}
 	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
 	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
 		// Since the rule belongs to the resource, it will have the same
 		// subset of references as the parent resource.
 		rn.References = envoyx.MergeRefs(rn.References, a.References)
@@ -3030,6 +3245,14 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
 		}
 	}
 
@@ -3214,7 +3437,7 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 
 	// Apply the scope to all of the references of the same type
 	for k, ref := range refs {
-		if ref.ResourceType != scope.ResourceType {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
 			continue
 		}
 		ref.Scope = scope
@@ -3255,6 +3478,9 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 			}
 
 			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
 				ref.Scope = scope
 				a.References[f] = ref
 			}
@@ -3265,6 +3491,12 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 				if strings.Contains(f, ".") {
 					continue
 				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
 				a.References[f] = ref
 			}
 		}
@@ -3308,12 +3540,12 @@ func unmarshalDenyNode(n *yaml.Node) (out envoyx.NodeSet, err error) {
 
 func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	if y7s.IsMapping(n.Content[1]) {
-		out, err = unmarshalNestedRBACNode(n, acc)
+		out, err = unmarshalFlatRBACNode(n, acc)
 		if err != nil {
 			return
 		}
 	} else {
-		out, err = unmarshalFlatRBACNode(n, acc)
+		out, err = unmarshalNestedRBACNode(n, acc)
 		if err != nil {
 			return
 		}
@@ -3348,6 +3580,35 @@ func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err e
 //         - read
 //         - delete
 func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
+	return out, y7s.EachMap(n, func(role, op *yaml.Node) error {
+		out = append(out, &envoyx.Node{
+			Resource: &rbac.Rule{
+				Operation: op.Value,
+				Access:    acc,
+			},
+			ResourceType: rbac.RuleResourceType,
+			References: map[string]envoyx.Ref{
+				"RoleID": {
+					// Providing resource type as plain text to reduce cross component references
+					ResourceType: "corteza::system:role",
+					Identifiers:  envoyx.MakeIdentifiers(role.Value),
+				},
+			},
+		})
+		return nil
+	})
+}
+
+// unmarshalFlatRBACNode handles RBAC rules when they are provided on the root level
+//
+// Example:
+//
+// allow:
+//   role1:
+//     corteza::system/:
+//       - users.search
+//       - users.create
+func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	// Handles role
 	return out, y7s.EachMap(n, func(role, perm *yaml.Node) error {
 		// Handles operations
@@ -3373,35 +3634,6 @@ func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet,
 				return nil
 			})
 		})
-	})
-}
-
-// unmarshalFlatRBACNode handles RBAC rules when they are provided on the root level
-//
-// Example:
-//
-// allow:
-//   role1:
-//     corteza::system/:
-//       - users.search
-//       - users.create
-func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
-	return out, y7s.EachMap(n, func(role, op *yaml.Node) error {
-		out = append(out, &envoyx.Node{
-			Resource: &rbac.Rule{
-				Operation: op.Value,
-				Access:    acc,
-			},
-			ResourceType: rbac.RuleResourceType,
-			References: map[string]envoyx.Ref{
-				"RoleID": {
-					// Providing resource type as plain text to reduce cross component references
-					ResourceType: "corteza::system:role",
-					Identifiers:  envoyx.MakeIdentifiers(role.Value),
-				},
-			},
-		})
-		return nil
 	})
 }
 

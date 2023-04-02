@@ -33,6 +33,8 @@ func (e YamlEncoder) encode(ctx context.Context, base *yaml.Node, p envoyx.Encod
 		return e.encodeRbacRules(ctx, base, p, nodes, tt)
 	case types.ResourceTranslationResourceType:
 		return e.encodeResourceTranslations(ctx, base, p, nodes, tt)
+	case types.SettingValueResourceType:
+		return e.encodeSettingValues(ctx, base, p, nodes, tt)
 	}
 
 	return
@@ -152,6 +154,20 @@ func (e YamlEncoder) encodeRbacRules(ctx context.Context, base *yaml.Node, p env
 	}
 
 	return
+}
+
+func (e YamlEncoder) encodeSettingValues(ctx context.Context, base *yaml.Node, p envoyx.EncodeParams, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	// Setting values don't have any refs
+
+	for _, n := range nodes {
+		sv := n.Resource.(*types.SettingValue)
+		base, err = y7s.AddMap(base, sv.Name, sv.Value)
+		if err != nil {
+			return
+		}
+	}
+
+	return y7s.MakeMap("settings", base)
 }
 
 func (e YamlEncoder) encodeRbacRulesByRole(p envoyx.EncodeParams, rules []rbacRuleWrap, tt envoyx.Traverser) (out *yaml.Node, err error) {

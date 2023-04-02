@@ -25,7 +25,7 @@ func NewSettings(vv map[string]interface{}) *Settings {
 		sv := &types.SettingValue{
 			Name: k,
 		}
-		sv.SetValue(v)
+		sv.SetSetting(v)
 		r.Res = append(r.Res, sv)
 	}
 

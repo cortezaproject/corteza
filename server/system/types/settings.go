@@ -39,17 +39,26 @@ type (
 	SettingsKV map[string]types.JSONText
 )
 
-const (
-	settingsFilterPerPageMax = 100
-)
-
 func MakeSettingValue(name string, value interface{}) *SettingValue {
 	o := &SettingValue{Name: name}
-	_ = o.SetValue(value)
+	_ = o.SetSetting(value)
 	return o
 }
 
-func (v *SettingValue) SetRawValue(str string) error {
+// These functions exist only to satisfy pkg/envoyx interfaces
+func (v *SettingValue) GetID() uint64 {
+	return 0
+}
+func (v *SettingValue) GetValue(string, uint) (any, error) {
+	return nil, fmt.Errorf("unexpected scenario: GetValue not implemented")
+}
+func (v *SettingValue) SetValue(string, uint, any) error {
+	return fmt.Errorf("unexpected scenario: SetValue not implemented")
+}
+
+// -----------------------------------------------------------
+
+func (v *SettingValue) SetRawSetting(str string) error {
 	var dummy interface{}
 	// Test input to be sure we can save it...
 	if err := json.Unmarshal([]byte(str), &dummy); err != nil {
@@ -60,7 +69,7 @@ func (v *SettingValue) SetRawValue(str string) error {
 	return nil
 }
 
-func (v *SettingValue) SetValue(value interface{}) (err error) {
+func (v *SettingValue) SetSetting(value interface{}) (err error) {
 	buf := bytes.Buffer{}
 	enc := json.NewEncoder(&buf)
 	enc.SetEscapeHTML(false)
@@ -115,6 +124,16 @@ func (set SettingValueSet) FilterByPrefix(prefix string) SettingValueSet {
 	}
 
 	return pf
+}
+
+func (set SettingValueSet) FindByName(name string) *SettingValue {
+	for _, v := range set {
+		if v.Name == name {
+			return v
+		}
+	}
+
+	return nil
 }
 
 func (set SettingValueSet) KV() SettingsKV {

@@ -246,10 +246,12 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 	{{ end }}
 
   // Flush to the DB
-	err = store.Upsert{{.store.expIdent}}(ctx, s, n.Resource.(*types.{{.expIdent}}))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert {{.expIdent}}")
-		return
+	if !n.Evaluated.Skip {
+		err = store.Upsert{{.store.expIdent}}(ctx, s, n.Resource.(*types.{{.expIdent}}))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert {{.expIdent}}")
+			return
+		}
 	}
 
 	{{ $a := . }}
@@ -350,10 +352,12 @@ func (e StoreEncoder) matchup{{.expIdent}}s(ctx context.Context, s store.Storer,
 	var aux *types.{{.expIdent}}
 	var ok bool
 	for i, n := range nn {
-	scope := scopes[i]
+		{{ if eq .componentIdent "compose" }}
+		scope := scopes[i]
 		if scope == nil {
 			continue
 		}
+		{{ end }}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {

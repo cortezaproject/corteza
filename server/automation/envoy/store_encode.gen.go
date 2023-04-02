@@ -226,10 +226,12 @@ func (e StoreEncoder) encodeWorkflow(ctx context.Context, p envoyx.EncodeParams,
 	}
 
 	// Flush to the DB
-	err = store.UpsertAutomationWorkflow(ctx, s, n.Resource.(*types.Workflow))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Workflow")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertAutomationWorkflow(ctx, s, n.Resource.(*types.Workflow))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Workflow")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -277,10 +279,6 @@ func (e StoreEncoder) matchupWorkflows(ctx context.Context, s store.Storer, uu m
 	var aux *types.Workflow
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -441,10 +439,12 @@ func (e StoreEncoder) encodeTrigger(ctx context.Context, p envoyx.EncodeParams, 
 	}
 
 	// Flush to the DB
-	err = store.UpsertAutomationTrigger(ctx, s, n.Resource.(*types.Trigger))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Trigger")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertAutomationTrigger(ctx, s, n.Resource.(*types.Trigger))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Trigger")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -491,10 +491,6 @@ func (e StoreEncoder) matchupTriggers(ctx context.Context, s store.Storer, uu ma
 	var aux *types.Trigger
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
