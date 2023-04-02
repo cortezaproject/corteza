@@ -41,6 +41,13 @@ namespace:
       test_ns_1_page_1:
         title: Test Namespace 1 Page 1
         visible: true
+        page_layouts:
+          test_ns_1_page_1_layout_1:
+            meta:
+              title: Test Namespace 1 Page 1 Layout 1
+          test_ns_1_page_1_layout_2:
+            meta:
+              title: Test Namespace 1 Page 1 Layout 2
         blocks:
           - title: Test Namespace 1 Page 1 Block 1
             kind: RecordList
@@ -87,6 +94,13 @@ namespace:
           test_ns_1_record_page_1:
             title: Test Namespace 1 Record Page 1
             module: test_ns_1_mod_1
+            page_layouts:
+              test_ns_1_record_page_1_layout_1:
+                meta:
+                  title: Test Namespace 1 Record Page 1 Layout 1
+              test_ns_1_record_page_1_layout_2:
+                meta:
+                  title: Test Namespace 1 Record Page 1 Layout 2
 
 application:
   test_app_1:

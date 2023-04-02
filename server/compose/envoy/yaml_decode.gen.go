@@ -181,6 +181,21 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 			}
 			return err
 
+		case "pagelayout", "page_layouts", "pagelayouts", "layouts":
+			if y7s.IsMapping(v) {
+				aux, err = d.unmarshalPageLayoutMap(dctx, v)
+				d.nodes = append(d.nodes, aux...)
+			}
+
+			if y7s.IsSeq(v) {
+				aux, err = d.unmarshalPageLayoutSeq(dctx, v)
+				d.nodes = append(d.nodes, aux...)
+			}
+			if err != nil {
+				err = errors.Wrap(err, "failed to unmarshal node: pageLayout")
+			}
+			return err
+
 		// Offload to custom handlers
 		default:
 			aux, err = d.unmarshalYAML(kv, v)
@@ -1432,6 +1447,20 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 			}
 			break
 
+		case "pagelayout", "page_layouts", "pagelayouts", "layouts":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalPageLayoutSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalPageLayoutMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
+
 		}
 
 		// Iterate nested nodes and update their reference to the current resource
@@ -1832,6 +1861,20 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 
 		switch strings.ToLower(k.Value) {
 
+		case "pagelayout", "page_layouts", "pagelayouts", "layouts":
+			if y7s.IsSeq(n) {
+				nestedNodes, err = d.unmarshalPageLayoutSeq(dctx, n)
+				if err != nil {
+					return err
+				}
+			} else {
+				nestedNodes, err = d.unmarshalPageLayoutMap(dctx, n)
+				if err != nil {
+					return err
+				}
+			}
+			break
+
 		case "children", "pages":
 			if y7s.IsSeq(n) {
 				nestedNodes, err = d.unmarshalExtendedPagesSeq(dctx, n)
@@ -1928,6 +1971,360 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 		// @todo consider using a more descriptive identifier for the position
 		//       such as `index-%d`.
 		rn.References["1"] = envoyx.Ref{
+			ResourceType: a.ResourceType,
+			Identifiers:  a.Identifiers,
+			Scope:        scope,
+		}
+
+		for _, r := range rn.References {
+			if r.Scope.IsEmpty() {
+				continue
+			}
+			rn.Scope = r.Scope
+			break
+		}
+	}
+
+	// Put it all together...
+	out = append(out, a)
+	out = append(out, auxOut...)
+	out = append(out, rbacNodes...)
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Functions for resource pageLayout
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+// unmarshalPageLayoutSeq unmarshals PageLayout when provided as a sequence node
+func (d *auxYamlDoc) unmarshalPageLayoutSeq(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachSeq(n, func(n *yaml.Node) error {
+		aux, err = d.unmarshalPageLayoutNode(dctx, n)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
+// unmarshalPageLayoutMap unmarshals PageLayout when provided as a mapping node
+//
+// When map encoded, the map key is used as a preset identifier.
+// The identifier is passed to the node function as a meta node
+func (d *auxYamlDoc) unmarshalPageLayoutMap(dctx documentContext, n *yaml.Node) (out envoyx.NodeSet, err error) {
+	var aux envoyx.NodeSet
+	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
+		aux, err = d.unmarshalPageLayoutNode(dctx, n, k)
+		if err != nil {
+			return err
+		}
+		out = append(out, aux...)
+
+		return nil
+	})
+
+	return
+}
+
+// unmarshalPageLayoutNode is a cookie-cutter function to unmarshal
+// the yaml node into the corresponding Corteza type & Node
+func (d *auxYamlDoc) unmarshalPageLayoutNode(dctx documentContext, n *yaml.Node, meta ...*yaml.Node) (out envoyx.NodeSet, err error) {
+	var r *types.PageLayout
+
+	// @todo we're omitting errors because there will be a bunch due to invalid
+	//       resource field types. This might be a bit unstable as other errors may
+	//       also get ignored.
+	//
+	//       A potential fix would be to firstly unmarshal into an any, check errors
+	//       and then unmarshal into the resource while omitting errors.
+	n.Decode(&r)
+
+	// Identifiers are determined manually when iterating the yaml node.
+	// This is to help assure there are no duplicates and everything
+	// was accounted for especially when working with aliases such as
+	// user_name instead of userName.
+	ii := envoyx.Identifiers{}
+
+	// When a resource supports mapped input, the key is passed as meta which
+	// needs to be registered as an identifier (since it is)
+	if len(meta) > 0 {
+		y7s.DecodeScalar(meta[0], "Handle", &r.Handle)
+		ii = ii.Add(r.Handle)
+	}
+
+	var (
+		refs        = make(map[string]envoyx.Ref)
+		auxOut      envoyx.NodeSet
+		nestedNodes envoyx.NodeSet
+		scope       envoyx.Scope
+		envoyConfig envoyx.EnvoyConfig
+		rbacNodes   envoyx.NodeSet
+	)
+	_ = auxOut
+	_ = refs
+
+	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
+		var auxNodeValue any
+		_ = auxNodeValue
+
+		switch strings.ToLower(k.Value) {
+
+		case "handle":
+			// Handle identifiers
+			err = y7s.DecodeScalar(n, "handle", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+			ii = ii.Add(auxNodeValue)
+
+			break
+
+		case "id":
+			// Handle identifiers
+			err = y7s.DecodeScalar(n, "id", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+			ii = ii.Add(auxNodeValue)
+
+			break
+
+		case "namespaceid", "namespace":
+			// Handle references
+			err = y7s.DecodeScalar(n, "namespaceID", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["NamespaceID"] = envoyx.Ref{
+				ResourceType: "corteza::compose:namespace",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
+		case "ownedby":
+			// Handle references
+			err = y7s.DecodeScalar(n, "ownedBy", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["OwnedBy"] = envoyx.Ref{
+				ResourceType: "corteza::system:user",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
+		case "pageid", "page":
+			// Handle references
+			err = y7s.DecodeScalar(n, "pageID", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["PageID"] = envoyx.Ref{
+				ResourceType: "corteza::compose:page",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
+		case "parentid", "parent":
+			// Handle references
+			err = y7s.DecodeScalar(n, "parentID", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["ParentID"] = envoyx.Ref{
+				ResourceType: "corteza::compose:page-layout",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
+		// Handle RBAC rules
+		case "allow":
+			auxOut, err = unmarshalAllowNode(n)
+			if err != nil {
+				return err
+			}
+			rbacNodes = append(rbacNodes, auxOut...)
+			auxOut = nil
+
+		case "deny":
+			auxOut, err = unmarshalDenyNode(n)
+			if err != nil {
+				return err
+			}
+			rbacNodes = append(rbacNodes, auxOut...)
+			auxOut = nil
+		case "(envoy)":
+			envoyConfig = d.decodeEnvoyConfig(n)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	// Make parent identifiers available through the dctx
+	dctx.parentIdent = ii
+
+	// Handle global namespace reference which can be provided as the doc. context
+	//
+	// @todo this is a temporary solution and should be extended when the document
+	//       context needs to be extended.
+	//       Limit this only to the compose resource since that is the only scenario
+	//       the previous implementation supports.
+	if ref, ok := dctx.references["namespace"]; ok {
+		refs["NamespaceID"] = envoyx.Ref{
+			ResourceType: types.NamespaceResourceType,
+			Identifiers:  envoyx.MakeIdentifiers(ref),
+		}
+	}
+
+	// Define the scope
+	//
+	// This resource is scoped to the first parent (generally the namespace)
+	// when talking about Compose resources (the only supported scenario at the moment).
+	scope = envoyx.Scope{
+		ResourceType: refs["NamespaceID"].ResourceType,
+		Identifiers:  refs["NamespaceID"].Identifiers,
+	}
+
+	// Apply the scope to all of the references of the same type
+	for k, ref := range refs {
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+		ref.Scope = scope
+		refs[k] = ref
+	}
+
+	// Handle any resources that could be inserted under pageLayout such as a module inside a namespace
+	//
+	// This operation is done in the second pass of the document so we have
+	// the complete context of the current resource; such as the identifier,
+	// references, and scope.
+	var auxNestedNodes envoyx.NodeSet
+	err = y7s.EachMap(n, func(k, n *yaml.Node) error {
+		nestedNodes = nil
+
+		switch strings.ToLower(k.Value) {
+
+		}
+
+		// Iterate nested nodes and update their reference to the current resource
+		//
+		// Any reference to the parent resource from the child resource is overwritten
+		// to avoid potential user-error edge cases.
+		for _, a := range nestedNodes {
+			// @note all nested resources fall under the same component and the same scope.
+			//       Simply assign the same scope to all -- if it shouldn't be scoped
+			//       the parent won't have it (saving CPU ticks :)
+			a.Scope = scope
+
+			if a.References == nil {
+				a.References = make(map[string]envoyx.Ref)
+			}
+
+			a.References["PageLayoutID"] = envoyx.Ref{
+				ResourceType: types.PageLayoutResourceType,
+				Identifiers:  ii,
+				Scope:        scope,
+			}
+
+			for f, ref := range a.References {
+				if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+					continue
+				}
+				ref.Scope = scope
+				a.References[f] = ref
+			}
+
+			for f, ref := range refs {
+				// Only inherit root references
+				// @todo improve; this is a hack
+				if strings.Contains(f, ".") {
+					continue
+				}
+
+				// Only assume refs if they're not yet set
+				if _, ok := a.References[f]; ok {
+					continue
+				}
+
+				a.References[f] = ref
+			}
+		}
+		auxNestedNodes = append(auxNestedNodes, nestedNodes...)
+		return nil
+	})
+	if err != nil {
+		return
+	}
+
+	out = append(out, auxNestedNodes...)
+
+	a := &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.PageLayoutResourceType,
+		Identifiers:  ii,
+		References:   refs,
+
+		Scope: scope,
+
+		Config: envoyConfig,
+	}
+	// Update RBAC resource nodes with references regarding the resource
+	rres := r.RbacResource()
+	for _, rn := range rbacNodes {
+		aux := rn.Resource.(*rbac.Rule)
+		if aux.Resource == "" {
+			aux.Resource = rres
+		}
+
+		// Since the rule belongs to the resource, it will have the same
+		// subset of references as the parent resource.
+		rn.References = envoyx.MergeRefs(rn.References, a.References)
+
+		// The RBAC rule's most specific identifier is the resource itself.
+		// Using this we can hardcode it to point to the location after the parent resource.
+		//
+		// @todo consider using a more descriptive identifier for the position
+		//       such as `index-%d`.
+		rn.References["2"] = envoyx.Ref{
 			ResourceType: a.ResourceType,
 			Identifiers:  a.Identifiers,
 			Scope:        scope,

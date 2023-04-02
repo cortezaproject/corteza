@@ -105,6 +105,16 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 		if err != nil {
 			return
 		}
+	case types.PageLayoutResourceType:
+		aux, err = e.encodePageLayouts(ctx, p, nodes, tt)
+		if err != nil {
+			return
+		}
+		// Root level resources are always encoded as a map
+		out, err = y7s.AddMap(out, "pageLayout", aux)
+		if err != nil {
+			return
+		}
 
 	default:
 		out, err = e.encode(ctx, out, p, rt, nodes, tt)
@@ -530,6 +540,102 @@ func (e YamlEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, node
 		"title", res.Title,
 		"updatedAt", auxUpdatedAt,
 		"visible", res.Visible,
+		"weight", res.Weight,
+	)
+	if err != nil {
+		return
+	}
+
+	// Handle nested resources
+	var aux *yaml.Node
+	_ = aux
+
+	aux, err = e.encodePageLayouts(ctx, p, tt.ChildrenForResourceType(node, types.PageLayoutResourceType), tt)
+	if err != nil {
+		return
+	}
+	out, err = y7s.AddMap(out,
+		"pageLayout", aux,
+	)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Functions for resource pageLayout
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (e YamlEncoder) encodePageLayouts(ctx context.Context, p envoyx.EncodeParams, nodes envoyx.NodeSet, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	var aux *yaml.Node
+	for _, n := range nodes {
+		aux, err = e.encodePageLayout(ctx, p, n, tt)
+		if err != nil {
+			return
+		}
+
+		out, err = y7s.AddSeq(out, aux)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// encodePageLayout focuses on the specific resource invoked by the Encode method
+func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams, node *envoyx.Node, tt envoyx.Traverser) (out *yaml.Node, err error) {
+	res := node.Resource.(*types.PageLayout)
+
+	// Pre-compute some map values so we can omit error checking when encoding yaml nodes
+
+	auxCreatedAt, err := e.encodeTimestamp(p, res.CreatedAt)
+	if err != nil {
+		return
+	}
+	auxDeletedAt, err := e.encodeTimestampNil(p, res.DeletedAt)
+	if err != nil {
+		return
+	}
+
+	auxNamespaceID, err := e.encodeRef(p, res.NamespaceID, "NamespaceID", node, tt)
+	if err != nil {
+		return
+	}
+	auxOwnedBy, err := e.encodeRef(p, res.OwnedBy, "OwnedBy", node, tt)
+	if err != nil {
+		return
+	}
+	auxPageID, err := e.encodeRef(p, res.PageID, "PageID", node, tt)
+	if err != nil {
+		return
+	}
+	auxParentID, err := e.encodeRef(p, res.ParentID, "ParentID", node, tt)
+	if err != nil {
+		return
+	}
+
+	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
+	if err != nil {
+		return
+	}
+
+	out, err = y7s.AddMap(out,
+		"blocks", res.Blocks,
+		"config", res.Config,
+		"createdAt", auxCreatedAt,
+		"deletedAt", auxDeletedAt,
+		"handle", res.Handle,
+		"id", res.ID,
+		"meta", res.Meta,
+		"namespaceID", auxNamespaceID,
+		"ownedBy", auxOwnedBy,
+		"pageID", auxPageID,
+		"parentID", auxParentID,
+		"primary", res.Primary,
+		"updatedAt", auxUpdatedAt,
 		"weight", res.Weight,
 	)
 	if err != nil {

@@ -55,6 +55,8 @@ func (e StoreEncoder) Prepare(ctx context.Context, p envoyx.EncodeParams, rt str
 		return e.prepareNamespace(ctx, p, s, nn)
 	case types.PageResourceType:
 		return e.preparePage(ctx, p, s, nn)
+	case types.PageLayoutResourceType:
+		return e.preparePageLayout(ctx, p, s, nn)
 
 	default:
 		return e.prepare(ctx, p, s, rt, nn)
@@ -99,6 +101,9 @@ func (e StoreEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt stri
 
 	case types.PageResourceType:
 		return e.encodePages(ctx, p, s, nodes, tree)
+
+	case types.PageLayoutResourceType:
+		return e.encodePageLayouts(ctx, p, s, nodes, tree)
 	default:
 		return e.encode(ctx, p, s, rt, nodes, tree)
 	}
@@ -1171,6 +1176,12 @@ func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s s
 
 			switch rt {
 
+			case types.PageLayoutResourceType:
+				err = e.encodePageLayouts(ctx, p, s, nn, tree)
+				if err != nil {
+					return
+				}
+
 			}
 		}
 
@@ -1203,6 +1214,224 @@ func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[i
 	}
 
 	var aux *types.Page
+	var ok bool
+	for i, n := range nn {
+
+		scope := scopes[i]
+		if scope == nil {
+			continue
+		}
+
+		for _, idf := range n.Identifiers.Slice {
+			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
+				aux, ok = idMap[id]
+				if ok {
+					uu[i] = *aux
+					// When any identifier matches we can end it
+					break
+				}
+			}
+
+			aux, ok = strMap[idf]
+			if ok {
+				uu[i] = *aux
+				// When any identifier matches we can end it
+				break
+			}
+		}
+	}
+
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Functions for resource pageLayout
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+// preparePageLayout prepares the resources of the given type for encoding
+func (e StoreEncoder) preparePageLayout(ctx context.Context, p envoyx.EncodeParams, s store.Storer, nn envoyx.NodeSet) (err error) {
+	// Grab an index of already existing resources of this type
+	// @note since these resources should be fairly low-volume and existing for
+	//       a short time (and because we batch by resource type); fetching them all
+	//       into memory shouldn't hurt too much.
+	// @todo do some benchmarks and potentially implement some smarter check such as
+	//       a bloom filter or something similar.
+
+	// Get node scopes
+	scopedNodes, err := e.getScopeNodes(ctx, s, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to get scope nodes")
+		return
+	}
+
+	// Initializing the index here (and using a hashmap) so it's not escaped to the heap
+	existing := make(map[int]types.PageLayout, len(nn))
+	err = e.matchupPageLayouts(ctx, s, existing, scopedNodes, nn)
+	if err != nil {
+		err = errors.Wrap(err, "failed to matchup existing PageLayouts")
+		return
+	}
+
+	for i, n := range nn {
+		if n.Resource == nil {
+			panic("unexpected state: cannot call preparePageLayout with nodes without a defined Resource")
+		}
+
+		res, ok := n.Resource.(*types.PageLayout)
+		if !ok {
+			panic("unexpected resource type: node expecting type of pageLayout")
+		}
+
+		existing, hasExisting := existing[i]
+
+		// Run expressions on the nodes
+		err = e.runEvals(ctx, hasExisting, n)
+		if err != nil {
+			return
+		}
+
+		if hasExisting {
+			// On existing, we don't need to re-do identifiers and references; simply
+			// changing up the internal resource is enough.
+			//
+			// In the future, we can pass down the tree and re-do the deps like that
+			switch n.Config.MergeAlg {
+			case envoyx.OnConflictPanic:
+				err = errors.Errorf("resource %v already exists", n.Identifiers.Slice)
+				return
+
+			case envoyx.OnConflictReplace:
+				// Replace; simple ID change should do the trick
+				res.ID = existing.ID
+
+			case envoyx.OnConflictSkip:
+				// Replace the node's resource with the fetched one
+				res = &existing
+
+				// @todo merging
+			}
+		} else {
+			// @todo actually a bottleneck. As per sonyflake docs, it can at most
+			//       generate up to 2**8 (256) IDs per 10ms in a single thread.
+			//       How can we improve this?
+			res.ID = id.Next()
+		}
+
+		// We can skip validation/defaults when the resource is overwritten by
+		// the one already stored (the panic one errors out anyway) since it
+		// should already be ok.
+		if !hasExisting || n.Config.MergeAlg != envoyx.OnConflictSkip {
+			err = e.setPageLayoutDefaults(res)
+			if err != nil {
+				return err
+			}
+
+			err = e.validatePageLayout(res)
+			if err != nil {
+				return err
+			}
+		}
+
+		n.Resource = res
+	}
+
+	return
+}
+
+// encodePageLayouts encodes a set of resource into the database
+func (e StoreEncoder) encodePageLayouts(ctx context.Context, p envoyx.EncodeParams, s store.Storer, nn envoyx.NodeSet, tree envoyx.Traverser) (err error) {
+	for _, n := range nn {
+		err = e.encodePageLayout(ctx, p, s, n, tree)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// encodePageLayout encodes the resource into the database
+func (e StoreEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams, s store.Storer, n *envoyx.Node, tree envoyx.Traverser) (err error) {
+	// Grab dependency references
+	var auxID uint64
+	err = func() (err error) {
+		for fieldLabel, ref := range n.References {
+			rn := tree.ParentForRef(n, ref)
+			if rn == nil {
+				err = fmt.Errorf("parent reference %v not found", ref)
+				return
+			}
+
+			auxID = rn.Resource.GetID()
+			if auxID == 0 {
+				err = fmt.Errorf("parent reference does not provide an identifier")
+				return
+			}
+
+			err = n.Resource.SetValue(fieldLabel, 0, auxID)
+			if err != nil {
+				return
+			}
+		}
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, fmt.Sprintf("failed to set dependency references for %s %v", n.ResourceType, n.Identifiers.Slice))
+		return
+	}
+
+	// Flush to the DB
+	if !n.Evaluated.Skip {
+		err = store.UpsertComposePageLayout(ctx, s, n.Resource.(*types.PageLayout))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert PageLayout")
+			return
+		}
+	}
+
+	// Handle resources nested under it
+	//
+	// @todo how can we remove the OmitPlaceholderNodes call the same way we did for
+	//       the root function calls?
+
+	err = func() (err error) {
+		for rt, nn := range envoyx.NodesByResourceType(tree.Children(n)...) {
+			nn = envoyx.OmitPlaceholderNodes(nn...)
+
+			switch rt {
+
+			}
+		}
+
+		return
+	}()
+	if err != nil {
+		err = errors.Wrap(err, "failed to encode nested resources")
+		return
+	}
+
+	return
+}
+
+// matchupPageLayouts returns an index with indicates what resources already exist
+func (e StoreEncoder) matchupPageLayouts(ctx context.Context, s store.Storer, uu map[int]types.PageLayout, scopes envoyx.NodeSet, nn envoyx.NodeSet) (err error) {
+	// @todo might need to do it smarter then this.
+	//       Most resources won't really be that vast so this should be acceptable for now.
+	aa, _, err := store.SearchComposePageLayouts(ctx, s, types.PageLayoutFilter{})
+	if err != nil {
+		return
+	}
+
+	idMap := make(map[uint64]*types.PageLayout, len(aa))
+	strMap := make(map[string]*types.PageLayout, len(aa))
+
+	for _, a := range aa {
+		strMap[a.Handle] = a
+		idMap[a.ID] = a
+
+	}
+
+	var aux *types.PageLayout
 	var ok bool
 	for i, n := range nn {
 
