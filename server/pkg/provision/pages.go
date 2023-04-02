@@ -2,11 +2,13 @@ package provision
 
 import (
 	"context"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service"
+	systemTypes "github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
 
@@ -25,9 +27,16 @@ func migratePages(ctx context.Context, log *zap.Logger, s store.Storer) (err err
 		crs   *filter.PagingCursor
 		pages types.PageSet
 		auxf  types.PageFilter
+
+		translations systemTypes.ResourceTranslationSet
 	)
 
 	return store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
+		translations, err = getRelevantTranslations(ctx, s)
+		if err != nil {
+			return
+		}
+
 		for {
 			pages, auxf, err = store.SearchComposePages(ctx, s, types.PageFilter{
 				Deleted: filter.StateInclusive,
@@ -42,7 +51,7 @@ func migratePages(ctx context.Context, log *zap.Logger, s store.Storer) (err err
 				break
 			}
 
-			err = migratePageChunk(ctx, s, pages)
+			err = migratePageChunk(ctx, s, translations, pages)
 			if err != nil {
 				return
 			}
@@ -56,7 +65,42 @@ func migratePages(ctx context.Context, log *zap.Logger, s store.Storer) (err err
 	})
 }
 
-func migratePageChunk(ctx context.Context, s store.Storer, pages types.PageSet) (err error) {
+func getRelevantTranslations(ctx context.Context, s store.Storer) (out systemTypes.ResourceTranslationSet, err error) {
+	var (
+		crs  *filter.PagingCursor
+		ll   systemTypes.ResourceTranslationSet
+		auxf systemTypes.ResourceTranslationFilter
+	)
+
+	for {
+		ll, auxf, err = store.SearchResourceTranslations(ctx, s, systemTypes.ResourceTranslationFilter{
+			Paging: filter.Paging{
+				PageCursor: crs,
+			},
+		})
+		if err != nil {
+			return
+		}
+		if len(ll) == 0 {
+			break
+		}
+
+		for _, l := range ll {
+			if strings.HasPrefix(l.K, "recordToolbar.") {
+				out = append(out, l)
+			}
+		}
+
+		crs = auxf.Paging.PageCursor
+		if crs == nil {
+			break
+		}
+	}
+
+	return
+}
+
+func migratePageChunk(ctx context.Context, s store.Storer, translations systemTypes.ResourceTranslationSet, pages types.PageSet) (err error) {
 	n := now()
 	for _, p := range pages {
 
@@ -85,6 +129,14 @@ func migratePageChunk(ctx context.Context, s store.Storer, pages types.PageSet) 
 			DeletedAt: p.DeletedAt,
 		}
 
+		// Translations
+		sr := strings.NewReplacer("recordToolbar", "config.buttons")
+		tt := translations.FilterResource(p.ResourceTranslation())
+		for _, t := range tt {
+			t.K = sr.Replace(t.K)
+			t.Resource = ly.ResourceTranslation()
+		}
+
 		// Blocks
 		for _, b := range p.Blocks {
 			b.XYWH = adjustBlockScale(b.XYWH, 12, 48)
@@ -101,6 +153,11 @@ func migratePageChunk(ctx context.Context, s store.Storer, pages types.PageSet) 
 		}
 
 		err = store.UpsertComposePageLayout(ctx, s, ly)
+		if err != nil {
+			return
+		}
+
+		err = store.UpsertResourceTranslation(ctx, s, tt...)
 		if err != nil {
 			return
 		}
