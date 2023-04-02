@@ -617,6 +617,17 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 
 			break
 
+		case "eventtype", "eventType", "event_type":
+			// Handle field alias
+			//
+			// @todo consider adding an is empty check before overwriting
+			err = y7s.DecodeScalar(n, "eventType", &r.EventType)
+			if err != nil {
+				return err
+			}
+
+			break
+
 		case "id":
 			// Handle identifiers
 			err = y7s.DecodeScalar(n, "id", &auxNodeValue)
@@ -642,6 +653,28 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 			refs["OwnedBy"] = envoyx.Ref{
 				ResourceType: "corteza::system:user",
 				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
+		case "resourcetype", "resourceType", "resource_type":
+			// Handle field alias
+			//
+			// @todo consider adding an is empty check before overwriting
+			err = y7s.DecodeScalar(n, "resourceType", &r.ResourceType)
+			if err != nil {
+				return err
+			}
+
+			break
+
+		case "stepid", "stepID", "step_id":
+			// Handle field alias
+			//
+			// @todo consider adding an is empty check before overwriting
+			err = y7s.DecodeScalar(n, "stepID", &r.StepID)
+			if err != nil {
+				return err
 			}
 
 			break
