@@ -432,6 +432,14 @@ func (b *PageBlock) setOptionValue(path []string, pos uint, value any) (err erro
 
 	case "chartID", "ChartID":
 		b.Options["chartID"] = cast.ToString(value)
+
+	case "buttons":
+		switch path[2] {
+		case "workflowID", "WorkflowID":
+			button := (b.Options["buttons"].([]any))[cast.ToInt(path[1])].(map[string]interface{})
+			button["workflowID"] = cast.ToString(value)
+			delete(button, "workflow")
+		}
 	}
 
 	return
