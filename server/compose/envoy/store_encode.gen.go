@@ -241,10 +241,12 @@ func (e StoreEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, s 
 	}
 
 	// Flush to the DB
-	err = store.UpsertComposeChart(ctx, s, n.Resource.(*types.Chart))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Chart")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertComposeChart(ctx, s, n.Resource.(*types.Chart))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Chart")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -292,10 +294,6 @@ func (e StoreEncoder) matchupCharts(ctx context.Context, s store.Storer, uu map[
 	var aux *types.Chart
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -457,10 +455,12 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 	}
 
 	// Flush to the DB
-	err = store.UpsertComposeModule(ctx, s, n.Resource.(*types.Module))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Module")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertComposeModule(ctx, s, n.Resource.(*types.Module))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Module")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -524,10 +524,6 @@ func (e StoreEncoder) matchupModules(ctx context.Context, s store.Storer, uu map
 	var aux *types.Module
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -692,10 +688,12 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 	e.sanitizeModuleFieldBeforeSave(n.Resource.(*types.ModuleField))
 
 	// Flush to the DB
-	err = store.UpsertComposeModuleField(ctx, s, n.Resource.(*types.ModuleField))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert ModuleField")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertComposeModuleField(ctx, s, n.Resource.(*types.ModuleField))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert ModuleField")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -743,10 +741,6 @@ func (e StoreEncoder) matchupModuleFields(ctx context.Context, s store.Storer, u
 	var aux *types.ModuleField
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -907,10 +901,12 @@ func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams
 	}
 
 	// Flush to the DB
-	err = store.UpsertComposeNamespace(ctx, s, n.Resource.(*types.Namespace))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Namespace")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertComposeNamespace(ctx, s, n.Resource.(*types.Namespace))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Namespace")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -976,10 +972,6 @@ func (e StoreEncoder) matchupNamespaces(ctx context.Context, s store.Storer, uu 
 	var aux *types.Namespace
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {
@@ -1140,10 +1132,12 @@ func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s s
 	}
 
 	// Flush to the DB
-	err = store.UpsertComposePage(ctx, s, n.Resource.(*types.Page))
-	if err != nil {
-		err = errors.Wrap(err, "failed to upsert Page")
-		return
+	if !n.Evaluated.Skip {
+		err = store.UpsertComposePage(ctx, s, n.Resource.(*types.Page))
+		if err != nil {
+			err = errors.Wrap(err, "failed to upsert Page")
+			return
+		}
 	}
 
 	// Handle resources nested under it
@@ -1191,10 +1185,6 @@ func (e StoreEncoder) matchupPages(ctx context.Context, s store.Storer, uu map[i
 	var aux *types.Page
 	var ok bool
 	for i, n := range nn {
-		scope := scopes[i]
-		if scope == nil {
-			continue
-		}
 
 		for _, idf := range n.Identifiers.Slice {
 			if id, err := strconv.ParseUint(idf, 10, 64); err == nil {

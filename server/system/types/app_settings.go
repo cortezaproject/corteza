@@ -603,7 +603,7 @@ func (eap ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
 	for key, value := range pairs {
 		v := &SettingValue{Name: prefix + key}
 
-		if err = v.SetValue(value); err != nil {
+		if err = v.SetSetting(value); err != nil {
 			return
 		}
 

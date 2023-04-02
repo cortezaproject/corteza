@@ -21,6 +21,11 @@ trigger: {
 				goType: "uint64",
 				storeIdent: "rel_step"
 				dal: { type: "ID" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["stepID", "step_id"]
+					}
+				}
 			}
 			enabled: {
 				sortable: true,
@@ -37,11 +42,21 @@ trigger: {
 				sortable: true,
 				goType: "string"
 				dal: { length: 64 }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["resourceType", "resource_type"]
+					}
+				}
 			}
 			event_type: {
 				sortable: true,
 				goType: "string"
 				dal: {}
+				envoy: {
+					yaml: {
+						identKeyAlias: ["eventType", "event_type"]
+					}
+				}
 			}
 			constraints: {
 				goType: "types.TriggerConstraintSet"

@@ -7,14 +7,12 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	se "github.com/cortezaproject/corteza/server/system/envoy"
+	"github.com/cortezaproject/corteza/server/system/types"
 
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/directory"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
-	es "github.com/cortezaproject/corteza/server/pkg/envoy/store"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza/server/store"
 	"go.uber.org/zap"
 )
@@ -31,11 +29,9 @@ func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths st
 	}
 
 	var (
-		yd = yaml.Decoder()
-		nn = make([]resource.Interface, 0, 200)
-		// @todo
-		se  = es.NewStoreEncoder(s, dal.Service(), &es.EncoderConfig{OnExisting: resource.MergeLeft})
-		bld = envoy.NewBuilder(se)
+		nn   envoyx.NodeSet
+		auxN envoyx.NodeSet
+		evy  = envoyx.Global()
 
 		sources = make([]string, 0, 16)
 	)
@@ -53,26 +49,69 @@ func importConfig(ctx context.Context, log *zap.Logger, s store.Storer, paths st
 		log.Info("importing all configs", zap.String("paths", paths))
 		for _, path := range sources {
 			log.Info("provisioning from path", zap.String("path", path))
-			if mm, err := directory.Decode(ctx, path, yd); err != nil {
+			auxN, _, err = evy.Decode(ctx, envoyx.DecodeParams{
+				Type: envoyx.DecodeTypeURI,
+				Params: map[string]any{
+					"uri": "file://" + path,
+				},
+			})
+			if err != nil {
 				return err
-			} else {
-				nn = append(nn, mm...)
 			}
+			nn = append(nn, auxN...)
 		}
 	} else {
-		nn, err = collectUnimportedConfigs(ctx, log, s, sources, yd)
+		nn, err = collectUnimportedConfigs(ctx, log, s, sources, evy)
 		if err != nil {
 			return err
 		}
 	}
 
-	if g, err := bld.Build(ctx, nn...); err != nil {
-		return err
-	} else if err = envoy.Encode(ctx, g, se); err != nil {
+	// Get potentially missing refs
+	//
+	// @todo replace this with getting missing refs and just fetching those.
+	//       For now this is the only scenario so we can get away with this just fine.
+	rr, _, err := store.SearchRoles(ctx, s, types.RoleFilter{})
+	if err != nil {
 		return err
 	}
+	for _, r := range rr {
+		aux, err := se.RoleToEnvoyNode(r)
+		if err != nil {
+			return err
+		}
+		aux.Placeholder = true
+		nn = append(nn, aux)
+	}
+	// ----------------------------------------------------------------------
 
-	return nil
+	return store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
+		ep := envoyx.EncodeParams{
+			Type: envoyx.EncodeTypeStore,
+			Params: map[string]any{
+				"storer": s,
+				"dal":    dal.Service(),
+			},
+			Envoy: envoyx.EnvoyConfig{
+				MergeAlg: envoyx.OnConflictSkip,
+			},
+		}
+
+		gg, err := evy.Bake(ctx, ep,
+			nil,
+			nn...,
+		)
+		if err != nil {
+			return err
+		}
+
+		err = evy.Encode(ctx, ep, gg)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 // canImportConfig checks state of the store and
@@ -82,7 +121,7 @@ func canImportConfig(ctx context.Context, s store.Storer) (bool, error) {
 	return len(rr) == 0, err
 }
 
-func collectUnimportedConfigs(ctx context.Context, log *zap.Logger, s store.Storer, sources []string, dec directory.Decoder) (nn []resource.Interface, err error) {
+func collectUnimportedConfigs(ctx context.Context, log *zap.Logger, s store.Storer, sources []string, evy *envoyx.Service) (nn envoyx.NodeSet, err error) {
 	var (
 		searchPartialDirectories = []uConfig{
 			{dir: "000_base", fn: provisionPartialBase},
@@ -101,7 +140,7 @@ func collectUnimportedConfigs(ctx context.Context, log *zap.Logger, s store.Stor
 				continue
 			}
 
-			if list, e := decodeDirectory(ctx, sources, d.dir, dec); e != nil {
+			if list, e := decodeDirectory(ctx, sources, d.dir, evy); e != nil {
 				return fmt.Errorf("failed to decode  configs: %w", err)
 			} else if len(list) == 0 {
 				log.Error("failed to execute partial config import, directory not found or no configs", zap.String("dir", d.dir))
@@ -125,9 +164,14 @@ func hasSourceDir(sources []string, dir string) (string, bool) {
 	return "", false
 }
 
-func decodeDirectory(ctx context.Context, sources []string, dir string, dec directory.Decoder) (res []resource.Interface, err error) {
+func decodeDirectory(ctx context.Context, sources []string, dir string, evy *envoyx.Service) (res envoyx.NodeSet, err error) {
 	if source, has := hasSourceDir(sources, dir); has {
-		res, err = directory.Decode(ctx, source, dec)
+		res, _, err = evy.Decode(ctx, envoyx.DecodeParams{
+			Type: envoyx.DecodeTypeURI,
+			Params: map[string]any{
+				"uri": "file://" + source,
+			},
+		})
 	}
 
 	return

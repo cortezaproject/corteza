@@ -42,6 +42,8 @@ const (
 	ComposeRecordDatasourceAuxType = "corteza::compose:record-datasource"
 )
 
+func (d *auxYamlDoc) unmarshalYAML(k string, n *yaml.Node) (out envoyx.NodeSet, err error) { return }
+
 func (d *auxYamlDoc) unmarshalChartConfigNode(r *types.Chart, n *yaml.Node) (refs map[string]envoyx.Ref, idents envoyx.Identifiers, err error) {
 	err = y7s.EachMap(n, func(k, v *yaml.Node) error {
 		if k.Value != "reports" {
@@ -259,14 +261,14 @@ func getPageBlockAutomationRefs(b types.PageBlock, index int) (refs map[string]e
 	refs = make(map[string]envoyx.Ref)
 
 	bb, _ := b.Options["buttons"].([]interface{})
-	for _, b := range bb {
+	for buttonIx, b := range bb {
 		button, _ := b.(map[string]interface{})
 		id := optString(button, "workflow", "workflowID")
 		if id == "" || id == "0" {
 			return
 		}
 
-		refs[fmt.Sprintf("Blocks.%d.Options.WorkflowID", index)] = envoyx.Ref{
+		refs[fmt.Sprintf("Blocks.%d.Options.buttons.%d.WorkflowID", index, buttonIx)] = envoyx.Ref{
 			ResourceType: automationTypes.WorkflowResourceType,
 			Identifiers:  envoyx.MakeIdentifiers(id),
 		}
