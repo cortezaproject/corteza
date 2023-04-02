@@ -23,7 +23,6 @@ import (
 	apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
-	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/http"
@@ -293,6 +292,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return nil
 	}
 
+	err = app.initEnvoy(ctx, app.Log)
+	if err != nil {
+		return
+	}
+
 	if err := app.Provision(ctx); err != nil {
 		return err
 	}
@@ -353,13 +357,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		ac.Reload(ctx)
 
 		rbac.SetGlobal(ac)
-	}
-
-	if !envoyx.Initialized() {
-		err = app.initEnvoy(ctx, app.Log)
-		if err != nil {
-			return
-		}
 	}
 
 	// Initialize resource translation stuff
@@ -871,7 +868,7 @@ func applySmtpOptionsToSettings(ctx context.Context, log *zap.Logger, opt option
 	// When settings for the SMTP servers are missing,
 	// we'll try to use one from the options (environmental vars)
 	s := &types.SettingValue{Name: "smtp.servers"}
-	err = s.SetValue([]*types.SmtpServers{optServer})
+	err = s.SetSetting([]*types.SmtpServers{optServer})
 
 	if err != nil {
 		return
@@ -932,7 +929,7 @@ func applyApigwOptionsToSettings(ctx context.Context, log *zap.Logger, opt optio
 func updateSetting(ctx context.Context, path string, val interface{}) (err error) {
 	s := &types.SettingValue{Name: path}
 
-	err = s.SetValue(val)
+	err = s.SetSetting(val)
 
 	if err != nil {
 		return
