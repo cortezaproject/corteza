@@ -2,6 +2,7 @@ namespaces:
   crm:
     (envoy): { onExisting: "skip" }
     name: CRM
+    enabled: true
     allow:
       authenticated:
       - module.create
