@@ -67,8 +67,9 @@ type (
 
 	PageLayoutAction struct {
 		ActionID  uint64 `json:"actionID,string"`
-		Placement string
-		Meta      any
+		Placement string `json:"placement"`
+		Meta      any    `json:"meta"`
+		Enabled   bool   `json:"enabled"`
 
 		// Warning: value of this field is now handled via resource-translation facility
 		//          struct field is kept for the convenience for now since it allows us
@@ -77,8 +78,8 @@ type (
 
 		// Kind and Params specify the action's behavior and the parameters it
 		// can use for execution
-		Kind   string
-		Params any
+		Kind   string `json:"kind"`
+		Params any    `json:"params"`
 	}
 
 	PageLayoutFilter struct {
