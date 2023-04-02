@@ -40,7 +40,7 @@ pageLayout: {
 			}
 
 			meta: {
-				goType: "*types.PageLayoutMeta"
+				goType: "types.PageLayoutMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

@@ -345,7 +345,7 @@ endpoints:
         name: config
         required: false
         title: Config JSON
-      - type: "*types.PageMeta"
+      - type: "types.PageMeta"
         name: meta
         required: false
         title: Meta
@@ -416,7 +416,7 @@ endpoints:
         name: config
         required: false
         title: Config JSON
-      - type: "*types.PageMeta"
+      - type: "types.PageMeta"
         name: meta
         required: false
         title: Meta
@@ -696,7 +696,7 @@ endpoints:
         name: primary
         required: false
         title: Primary
-      - type: "*types.PageLayoutMeta"
+      - type: "types.PageLayoutMeta"
         name: meta
         required: false
         title: Meta
@@ -767,7 +767,7 @@ endpoints:
         name: primary
         required: false
         title: Primary
-      - type: "*types.PageLayoutMeta"
+      - type: "types.PageLayoutMeta"
         name: meta
         required: false
         title: Meta

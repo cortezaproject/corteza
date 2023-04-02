@@ -29,7 +29,7 @@ type (
 		Config PageConfig `json:"config"`
 		Blocks PageBlocks `json:"blocks"`
 
-		Meta *PageMeta `json:"meta"`
+		Meta PageMeta `json:"meta"`
 
 		Children PageSet `json:"children,omitempty"`
 
