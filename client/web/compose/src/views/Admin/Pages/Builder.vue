@@ -888,10 +888,10 @@ export default {
       const tempBlocks = []
       const { blocks = [] } = this.layout || {}
 
-      blocks.forEach(({ blockID, xywh, meta }) => {
+      blocks.forEach(({ blockID, xywh, meta = {} }) => {
         let block = this.page.blocks.find(b => b.blockID === blockID)
         block.xywh = xywh
-        block.meta.hidden = meta.hidden
+        block.meta.hidden = !!meta.hidden
         tempBlocks.push(block)
 
         if (block.kind === 'Tabs') {
