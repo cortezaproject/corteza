@@ -128,6 +128,17 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 				}
 				out = append(out, aux...)
 
+			case types.PageLayoutResourceType:
+				aux, err = d.decodePageLayout(ctx, s, dl, d.makePageLayoutFilter(scopedNodes[i], refNodes[i], wf.f))
+				if err != nil {
+					return
+				}
+				for _, a := range aux {
+					a.Identifiers = a.Identifiers.Merge(wf.f.Identifiers)
+					a.References = envoyx.MergeRefs(a.References, refRefs[i])
+				}
+				out = append(out, aux...)
+
 			default:
 				aux, err = d.extendDecoder(ctx, s, dl, wf.rt, refNodes[i], wf.f)
 				if err != nil {
@@ -626,6 +637,132 @@ func (d StoreDecoder) makePageFilter(scope *envoyx.Node, refs map[string]*envoyx
 	}
 
 	out = d.extendPageFilter(scope, refs, auxf, out)
+	return
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // //
+// Functions for resource pageLayout
+// // // // // // // // // // // // // // // // // // // // // // // // //
+
+func (d StoreDecoder) decodePageLayout(ctx context.Context, s store.Storer, dl dal.FullService, f types.PageLayoutFilter) (out envoyx.NodeSet, err error) {
+	// @todo this might need to be improved.
+	//       Currently, no resource is vast enough to pose a problem.
+	rr, _, err := store.SearchComposePageLayouts(ctx, s, f)
+	if err != nil {
+		return
+	}
+
+	for _, r := range rr {
+		var n *envoyx.Node
+		n, err = PageLayoutToEnvoyNode(r)
+		if err != nil {
+			return
+		}
+		out = append(out, n)
+	}
+
+	return
+}
+
+func PageLayoutToEnvoyNode(r *types.PageLayout) (node *envoyx.Node, err error) {
+	// Identifiers
+	ii := envoyx.MakeIdentifiers(
+		r.Handle,
+		r.ID,
+	)
+
+	// Handle references
+	// Omit any non-defined values
+	refs := map[string]envoyx.Ref{}
+	if r.NamespaceID > 0 {
+		refs["NamespaceID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  envoyx.MakeIdentifiers(r.NamespaceID),
+		}
+	}
+	if r.OwnedBy > 0 {
+		refs["OwnedBy"] = envoyx.Ref{
+			ResourceType: "corteza::system:user",
+			Identifiers:  envoyx.MakeIdentifiers(r.OwnedBy),
+		}
+	}
+	if r.PageID > 0 {
+		refs["PageID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:page",
+			Identifiers:  envoyx.MakeIdentifiers(r.PageID),
+		}
+	}
+	if r.ParentID > 0 {
+		refs["ParentID"] = envoyx.Ref{
+			ResourceType: "corteza::compose:page-layout",
+			Identifiers:  envoyx.MakeIdentifiers(r.ParentID),
+		}
+	}
+
+	var scope envoyx.Scope
+
+	scope = envoyx.Scope{
+		ResourceType: refs["NamespaceID"].ResourceType,
+		Identifiers:  refs["NamespaceID"].Identifiers,
+	}
+	for k, ref := range refs {
+		// @todo temporary solution to not needlessly scope resources.
+		//       Optimally, this would be selectively handled by codegen.
+		if !strings.HasPrefix(ref.ResourceType, "corteza::compose") {
+			continue
+		}
+
+		ref.Scope = scope
+		refs[k] = ref
+	}
+
+	node = &envoyx.Node{
+		Resource: r,
+
+		ResourceType: types.PageLayoutResourceType,
+		Identifiers:  ii,
+		References:   refs,
+		Scope:        scope,
+	}
+	return
+}
+
+func (d StoreDecoder) makePageLayoutFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter) (out types.PageLayoutFilter) {
+	out.Limit = auxf.Limit
+
+	ids, hh := auxf.Identifiers.Idents()
+	_ = ids
+	_ = hh
+
+	out.PageLayoutID = ids
+
+	if len(hh) > 0 {
+		out.Handle = hh[0]
+	}
+
+	// Refs
+	var (
+		ar *envoyx.Node
+		ok bool
+	)
+	_ = ar
+	_ = ok
+
+	ar, ok = refs["NamespaceID"]
+	if ok {
+		out.NamespaceID = ar.Resource.GetID()
+	}
+
+	ar, ok = refs["PageID"]
+	if ok {
+		out.PageID = ar.Resource.GetID()
+	}
+
+	ar, ok = refs["ParentID"]
+	if ok {
+		out.ParentID = ar.Resource.GetID()
+	}
+
 	return
 }
 

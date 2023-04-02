@@ -702,12 +702,20 @@ func ComposePageLayoutFilter(d drivers.Dialect, f composeType.PageLayoutFilter) 
 		ee = append(ee, goqu.C("handle").Eq(f.Handle))
 	}
 
+	if f.ParentID > 0 {
+		ee = append(ee, goqu.C("parent_id").Eq(f.ParentID))
+	}
+
 	if f.NamespaceID > 0 {
 		ee = append(ee, goqu.C("rel_namespace").Eq(f.NamespaceID))
 	}
 
 	if f.PageID > 0 {
 		ee = append(ee, goqu.C("page_id").Eq(f.PageID))
+	}
+
+	if len(f.PageLayoutID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.PageLayoutID))
 	}
 
 	if len(f.LabeledIDs) > 0 {

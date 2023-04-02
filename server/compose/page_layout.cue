@@ -20,12 +20,22 @@ pageLayout: {
 				goType: "uint64",
 				dal: { type: "Ref", refModelResType: "corteza::compose:page" }
 				sortable: true
+				envoy: {
+					yaml: {
+						identKeyAlias: ["page"]
+					}
+				}
 			}
 			parent_id: {
 				ident: "parentID",
 				goType: "uint64",
 				dal: { type: "Ref", refModelResType: "corteza::compose:page-layout" }
 				sortable: true
+				envoy: {
+					yaml: {
+						identKeyAlias: ["parent"]
+					}
+				}
 			}
 
 			namespace_id: {
@@ -33,6 +43,11 @@ pageLayout: {
 				goType: "uint64",
 				storeIdent: "rel_namespace"
 				dal: { type: "Ref", refModelResType: "corteza::compose:namespace" }
+				envoy: {
+					yaml: {
+						identKeyAlias: ["namespace"]
+					}
+				}
 			}
 			weight: {
 				goType: "int", sortable: true
@@ -84,26 +99,28 @@ pageLayout: {
 
 	filter: {
 		struct: {
+			page_layout_id: { goType: "[]uint64", ident: "pageLayoutID", storeIdent: "id" }
 			namespace_id: { goType: "uint64", ident: "namespaceID", storeIdent: "rel_namespace" }
 			page_id: { goType: "uint64", ident: "pageID", storeIdent: "page_id" }
+			parent_id: { goType: "uint64", ident: "parentID", storeIdent: "parent_id" }
 			default: { goType: "bool", ident: "default" }
 			handle: { goType: "string" }
 			deleted: { goType: "filter.State", storeIdent: "deleted_at" }
 		}
 
 		query: ["handle"]
-		byValue: ["handle", "namespace_id", "page_id"]
+		byValue: ["handle", "parent_id", "namespace_id", "page_id", "page_layout_id"]
 		byNilState: ["deleted"]
 	}
 
 	envoy: {
-		omit: true
-	}
-
-	rbac: {
-		operations: {
-			// @todo not sure how RBAC should work here
-			// we'll probably use the page's RBAC whith some bool flags for user-defined ones
+		scoped: true
+		yaml: {
+			supportMappedInput: true
+			mappedField: "Handle"
+			identKeyAlias: ["page_layouts", "pagelayouts", "layouts"]
+		}
+		store: {
 		}
 	}
 

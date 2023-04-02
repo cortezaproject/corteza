@@ -117,6 +117,21 @@ func (e StoreEncoder) validatePage(*types.Page) (err error) {
 	return
 }
 
+func (e StoreEncoder) setPageLayoutDefaults(res *types.PageLayout) (err error) {
+	if res.CreatedAt.IsZero() {
+		res.CreatedAt = time.Now()
+	}
+
+	// @note these pageblocks reference the ones define on the page so nothing
+	//       to do here.
+
+	return
+}
+
+func (e StoreEncoder) validatePageLayout(*types.PageLayout) (err error) {
+	return
+}
+
 func (e StoreEncoder) setRecordDefaults(*types.Record) (err error) {
 	return
 }
