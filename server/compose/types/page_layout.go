@@ -51,13 +51,28 @@ type (
 	}
 
 	PageLayoutButton struct {
-		Label   string `json:"label"`
-		Enabled bool   `json:"enabled"`
+		Enabled bool `json:"enabled"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Label string `json:"label"`
+	}
+
+	PageLayoutButtonConfig struct {
+		New    PageLayoutButton `json:"new"`
+		Edit   PageLayoutButton `json:"edit"`
+		Submit PageLayoutButton `json:"submit"`
+		Delete PageLayoutButton `json:"delete"`
+		Clone  PageLayoutButton `json:"clone"`
+		Back   PageLayoutButton `json:"back"`
 	}
 
 	PageLayoutConfig struct {
 		Visibility PageLayoutVisibility `json:"visibility"`
-		Actions    []PageLayoutAction   `json:"actions"`
+
+		Buttons *PageLayoutButtonConfig `json:"buttons"`
+		Actions []PageLayoutAction      `json:"actions"`
 	}
 
 	PageLayoutVisibility struct {
