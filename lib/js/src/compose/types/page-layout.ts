@@ -20,6 +20,7 @@ interface PageLayoutConfig {
 
 interface Action {
   kind: string;
+  enabled: boolean;
   placement: string;
   params: unknown;
   meta: ActionMeta;
@@ -27,6 +28,9 @@ interface Action {
 
 interface ActionMeta {
   label: string;
+  style: {
+    variant: string;
+  }
 }
 
 interface Visibility {
