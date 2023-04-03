@@ -2,28 +2,58 @@
   <b-tab
     :title="$t('record.label')"
   >
-    <fieldset
-      class="form-group"
-    >
-      <label>
-        {{ $t('general.module') }}
-      </label>
-
-      <input
-        v-if="module"
-        v-model="module.name"
-        class="form-control"
-        type="text"
-        readonly
+    <b-row>
+      <b-col
+        cols="12"
+        md="6"
       >
-    </fieldset>
+        <fieldset
+          class="form-group"
+        >
+          <label>
+            {{ $t('general.module') }}
+          </label>
+
+          <input
+            v-if="module"
+            v-model="module.name"
+            class="form-control"
+            type="text"
+            readonly
+          >
+        </fieldset>
+      </b-col>
+
+      <b-col
+        cols="12"
+        md="6"
+      >
+        <b-form-group
+          :label="$t('record.referenceRecordField')"
+          :description="$t('record.referenceRecordFieldDescription')"
+          label-class="text-primary"
+        >
+          <vue-select
+            v-model="options.referenceField"
+            :options="recordSelectorFields"
+            :get-option-label="getFieldLabel"
+            :placeholder="$t('record.referenceRecordFieldPlaceholder')"
+            :reduce="field => field.fieldID"
+            :calculate-position="calculateDropdownPosition"
+            append-to-body
+            class="bg-white"
+            @input="updateReferenceModule($event, [])"
+          />
+        </b-form-group>
+      </b-col>
+    </b-row>
 
     <b-form-group
       :label="$t('module:general.fields')"
     >
       <field-picker
         v-if="module"
-        :module="module"
+        :module="fieldModule"
         :fields.sync="options.fields"
         style="max-height: 52vh;"
       />
@@ -160,6 +190,8 @@
 import base from './base'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import { VueSelect } from 'vue-select'
+import { mapActions } from 'vuex'
+import { compose } from '@cortezaproject/corteza-js'
 
 export default {
   i18nOptions: {
@@ -174,6 +206,12 @@ export default {
   },
 
   extends: base,
+
+  data () {
+    return {
+      referenceModule: undefined,
+    }
+  },
 
   computed: {
     documentationURL () {
@@ -193,9 +231,26 @@ export default {
         { value: 'modal', text: this.$t('record.openInModal') },
       ]
     },
+    recordSelectorFields () {
+      return this.module.fields.filter(f => f.kind === 'Record' && !f.isMulti)
+    },
+
+    fieldModule () {
+      return (this.options.referenceField && this.referenceModule) ? this.referenceModule : this.module
+    },
+  },
+
+  created () {
+    if (this.options.referenceField) {
+      this.updateReferenceModule(this.options.referenceField, this.options.fields)
+    }
   },
 
   methods: {
+    ...mapActions({
+      findModuleByID: 'module/findByID',
+    }),
+
     addRule () {
       this.options.fieldConditions.push({
         field: undefined,
@@ -213,6 +268,30 @@ export default {
 
     getOptionLabel (option) {
       return option.label || option.name
+    },
+
+    getFieldLabel ({ name, label }) {
+      return label || name
+    },
+
+    updateReferenceModule (fieldID, fields) {
+      if (!fieldID) {
+        this.block.options.fields = []
+        this.block.options.referenceModuleID = undefined
+        return
+      }
+
+      const field = this.recordSelectorFields.find(f => f.fieldID === fieldID)
+      const moduleID = field && field.options && field.options.moduleID
+
+      if (moduleID) {
+        this.findModuleByID({ namespace: this.namespace.namespaceID, moduleID })
+          .then(module => {
+            this.block.options.fields = fields
+            this.block.options.referenceModuleID = module.moduleID
+            this.referenceModule = new compose.Module({ ...module })
+          })
+      }
     },
   },
 }

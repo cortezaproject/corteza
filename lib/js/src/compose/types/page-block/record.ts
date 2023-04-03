@@ -13,7 +13,8 @@ interface Options {
   fieldConditions: FieldCondition[];
   magnifyOption: string;
   recordSelectorDisplayOption: string;
-
+  referenceField?: string;
+  referenceModuleID?: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -21,6 +22,8 @@ const defaults: Readonly<Options> = Object.freeze({
   fieldConditions: [],
   magnifyOption: '',
   recordSelectorDisplayOption: 'sameTab',
+  referenceField: '',
+  referenceModuleID: undefined
 })
 
 export class PageBlockRecord extends PageBlock {
@@ -36,7 +39,7 @@ export class PageBlockRecord extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption')
+    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'referenceField', 'referenceModuleID')
 
     if (o.fields) {
       this.options.fields = o.fields

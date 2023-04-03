@@ -96,6 +96,10 @@ function GetComponent ({ block, mode = defaultMode }) {
 
   const { kind } = block
   for (mode of uniq([capitalize(mode), defaultMode])) {
+    if (mode === 'Editor' && block.options.referenceField && block.options.referenceModuleID) {
+      mode = 'Base'
+    }
+
     const cmpName = kind + mode
     if (Object.hasOwnProperty.call(Registry, cmpName)) {
       return Registry[cmpName]
