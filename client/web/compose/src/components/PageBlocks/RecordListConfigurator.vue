@@ -212,7 +212,6 @@
       </b-form-group>
 
       <b-form-group
-        v-if="!options.editable"
         horizontal
         :label-cols="3"
         breakpoint="md"
@@ -439,7 +438,6 @@ export default {
       if (value) {
         this.options.hideRecordEditButton = true
         this.options.hideRecordViewButton = true
-        this.options.hidePaging = true
         let f = null
         if (this.module && this.module.moduleID) f = this.recordListModule.fields.find(({ options: { moduleID } }) => moduleID === this.module.moduleID)
         this.options.refField = f ? f.name : undefined
