@@ -141,7 +141,7 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 		for _, b := range p.Blocks {
 			b.XYWH = adjustBlockScale(b.XYWH, 12, 48)
 
-			ly.Blocks = append(ly.Blocks, types.PageBlock{
+			ly.Blocks = append(ly.Blocks, types.PageLayoutBlock{
 				BlockID: b.BlockID,
 				XYWH:    b.XYWH,
 			})
@@ -166,14 +166,14 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 	return
 }
 
-func extractPageButtons(p *types.Page) (out *types.PageLayoutButtonConfig) {
+func extractPageButtons(p *types.Page) (out types.PageLayoutButtonConfig) {
 	ss := service.CurrentSettings.Compose.UI.RecordToolbar
 
 	if p.ModuleID == 0 {
 		return
 	}
 
-	out = &types.PageLayoutButtonConfig{}
+	out = types.PageLayoutButtonConfig{}
 	out.New.Enabled = !ss.HideNew
 	out.Edit.Enabled = !ss.HideEdit
 	out.Submit.Enabled = !ss.HideSubmit

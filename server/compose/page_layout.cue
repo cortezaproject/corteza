@@ -73,7 +73,7 @@ pageLayout: {
 				omitGetter: true
 			}
 			blocks: {
-				goType: "types.PageBlocks"
+				goType: "types.PageLayoutBlocks"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true

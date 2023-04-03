@@ -48,81 +48,6 @@ func NewComposePageLayout(pg *types.PageLayout, nsRef, modRef, parentRef *Ref) *
 		r.RefParent = r.addRef(parentRef).Constraint(r.RefNs)
 	}
 
-	var ref *Ref
-	for i, b := range pg.Blocks {
-		switch b.Kind {
-		case "RecordList":
-			ref = r.pbRecordList(b.Options)
-			if ref != nil {
-				r.addRef(ref)
-				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-				r.ModRefs = append(r.ModRefs, ref)
-			}
-
-		case "Automation":
-			bb, _ := b.Options["buttons"].([]interface{})
-			for _, b := range bb {
-				button, _ := b.(map[string]interface{})
-				ref = r.pbAutomation(button)
-				if ref != nil {
-					r.addRef(ref)
-					r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-					r.WfRefs = append(r.WfRefs, ref)
-				}
-			}
-
-		case "RecordOrganizer":
-			ref = r.pbRecordList(b.Options)
-			if ref != nil {
-				r.addRef(ref)
-				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-				r.ModRefs = append(r.ModRefs, ref)
-			}
-
-		case "Chart":
-			ref = r.pbChart(b.Options)
-			if ref != nil {
-				r.addRef(ref)
-				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-				r.RefCharts = append(r.RefCharts, ref)
-			}
-
-		case "Calendar":
-			ff, _ := b.Options["feeds"].([]interface{})
-			for _, f := range ff {
-				feed, _ := f.(map[string]interface{})
-				fOpts, _ := (feed["options"]).(map[string]interface{})
-
-				ref = r.pbCalendar(fOpts)
-				if ref != nil {
-					r.addRef(ref)
-					r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-					r.ModRefs = append(r.ModRefs, ref)
-				}
-			}
-
-		case "Metric":
-			mm, _ := b.Options["metrics"].([]interface{})
-			for _, m := range mm {
-				mops, _ := m.(map[string]interface{})
-				ref = r.pbMetric(mops)
-				if ref != nil {
-					r.addRef(ref)
-					r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-					r.ModRefs = append(r.ModRefs, ref)
-				}
-			}
-
-		case "Comment":
-			ref = r.pbComment(b.Options)
-			if ref != nil {
-				r.addRef(ref.Constraint(r.RefNs))
-				r.BlockRefs[i] = append(r.BlockRefs[i], ref)
-				r.ModRefs = append(r.ModRefs, ref)
-			}
-		}
-	}
-
 	// Initial timestamps
 	r.SetTimestamps(MakeTimestampsCUDA(&pg.CreatedAt, pg.UpdatedAt, pg.DeletedAt, nil))
 
@@ -156,44 +81,6 @@ func (r *ComposePageLayout) ReRef(old RefSet, new RefSet) {
 }
 
 func (r *ComposePageLayout) Prune(ref *Ref) {
-	var auxRef *Ref
-
-outer:
-	for i := len(r.Res.Blocks) - 1; i >= 0; i-- {
-		b := r.Res.Blocks[i]
-
-		switch b.Kind {
-		// Implement the rest when support is needed
-		case "Automation":
-			if b.Options["buttons"] == nil {
-				// In case the block isn't connected to a workflow (placeholder, script)
-				if auxRef == nil {
-					r.removeBlock(i)
-					continue outer
-				}
-			} else {
-				bb, _ := b.Options["buttons"].([]interface{})
-				for _, b := range bb {
-					button, _ := b.(map[string]interface{})
-					auxRef = r.pbAutomation(button)
-
-					// In case the block isn't connected to a workflow (placeholder, script)
-					if auxRef == nil {
-						r.removeBlock(i)
-						continue outer
-					}
-
-					// In case we are removing it
-					if auxRef.equals(ref) {
-						r.ReplaceRef(ref, nil)
-						r.WfRefs = r.WfRefs.replaceRef(ref, nil)
-						r.removeBlock(i)
-						continue outer
-					}
-				}
-			}
-		}
-	}
 }
 
 func (r *ComposePageLayout) SysID() uint64 {

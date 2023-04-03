@@ -315,7 +315,7 @@ type (
 		Meta        composeType.PageLayoutMeta   `db:"meta"`
 		Primary     bool                         `db:"primary"`
 		Config      composeType.PageLayoutConfig `db:"config"`
-		Blocks      composeType.PageBlocks       `db:"blocks"`
+		Blocks      composeType.PageLayoutBlocks `db:"blocks"`
 		OwnedBy     uint64                       `db:"owned_by"`
 		CreatedAt   time.Time                    `db:"created_at"`
 		UpdatedAt   *time.Time                   `db:"updated_at"`
