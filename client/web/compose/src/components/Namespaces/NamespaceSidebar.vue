@@ -13,6 +13,7 @@
         :selectable="option => option.namespaceID !== namespace.namespaceID"
         :placeholder="$t('pickNamespace')"
         :calculate-position="calculateDropdownPosition"
+        :autoscroll="false"
         @option:selected="namespaceSelected"
       >
         <template #list-header>
