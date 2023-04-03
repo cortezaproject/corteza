@@ -8,7 +8,7 @@
     />
 
     <h2
-      class="d-none d-sm-inline-block text-truncate mb-0"
+      class="d-none d-sm-inline-block text-truncate title mb-0"
     >
       <slot name="title" />
     </h2>
@@ -287,6 +287,12 @@ $nav-user-icon-size: 50px;
   height: $header-height;
   background-color: #F3F3F5 !important;
   padding-left: calc(3.5rem + 6px);
+}
+
+.header-navigation .title > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar-dropdown-menu {
