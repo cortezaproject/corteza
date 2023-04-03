@@ -616,7 +616,6 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 	if err != nil {
 		return
 	}
-
 	auxUpdatedAt, err := e.encodeTimestampNil(p, res.UpdatedAt)
 	if err != nil {
 		return
@@ -634,7 +633,6 @@ func (e YamlEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParams
 		"ownedBy", auxOwnedBy,
 		"pageID", auxPageID,
 		"parentID", auxParentID,
-		"primary", res.Primary,
 		"updatedAt", auxUpdatedAt,
 		"weight", res.Weight,
 	)

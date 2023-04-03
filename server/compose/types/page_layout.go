@@ -114,7 +114,6 @@ type (
 		NamespaceID  uint64   `json:"namespaceID,string"`
 		PageID       uint64   `json:"pageID,string,omitempty"`
 		ParentID     uint64   `json:"ParentID,string,omitempty"`
-		Primary      bool     `json:"primary,omitempty"`
 		Handle       string   `json:"handle"`
 		Name         string   `json:"name"`
 		Query        string   `json:"query"`

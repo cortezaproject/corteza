@@ -111,7 +111,6 @@ func (p pageLayoutActionProps) Serialize() actionlog.Meta {
 	if p.filter != nil {
 		m.Set("filter.query", p.filter.Query, true)
 		m.Set("filter.handle", p.filter.Handle, true)
-		m.Set("filter.primary", p.filter.Primary, true)
 		m.Set("filter.namespaceID", p.filter.NamespaceID, true)
 		m.Set("filter.sort", p.filter.Sort, true)
 		m.Set("filter.limit", p.filter.Limit, true)
@@ -191,7 +190,6 @@ func (p pageLayoutActionProps) Format(in string, err error) string {
 			fns(
 				p.filter.Query,
 				p.filter.Handle,
-				p.filter.Primary,
 				p.filter.NamespaceID,
 				p.filter.Sort,
 				p.filter.Limit,
@@ -199,7 +197,6 @@ func (p pageLayoutActionProps) Format(in string, err error) string {
 		)
 		pairs = append(pairs, "{{filter.query}}", fns(p.filter.Query))
 		pairs = append(pairs, "{{filter.handle}}", fns(p.filter.Handle))
-		pairs = append(pairs, "{{filter.primary}}", fns(p.filter.Primary))
 		pairs = append(pairs, "{{filter.namespaceID}}", fns(p.filter.NamespaceID))
 		pairs = append(pairs, "{{filter.sort}}", fns(p.filter.Sort))
 		pairs = append(pairs, "{{filter.limit}}", fns(p.filter.Limit))

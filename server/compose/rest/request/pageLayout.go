@@ -58,11 +58,6 @@ type (
 		// Parent ID
 		ParentID uint64 `json:",string"`
 
-		// Primary GET parameter
-		//
-		// Default layouts
-		Primary bool
-
 		// Query GET parameter
 		//
 		// Search query
@@ -114,11 +109,6 @@ type (
 		//
 		// Parent ID
 		ParentID uint64 `json:",string"`
-
-		// Primary GET parameter
-		//
-		// Default layouts
-		Primary bool
 
 		// Query GET parameter
 		//
@@ -181,11 +171,6 @@ type (
 		//
 		// Handle
 		Handle string
-
-		// Primary POST parameter
-		//
-		// Primary
-		Primary bool
 
 		// Meta POST parameter
 		//
@@ -265,11 +250,6 @@ type (
 		//
 		// Handle
 		Handle string
-
-		// Primary POST parameter
-		//
-		// Primary
-		Primary bool
 
 		// Meta POST parameter
 		//
@@ -405,7 +385,6 @@ func (r PageLayoutListNamespace) Auditable() map[string]interface{} {
 		"pageID":      r.PageID,
 		"moduleID":    r.ModuleID,
 		"parentID":    r.ParentID,
-		"primary":     r.Primary,
 		"query":       r.Query,
 		"handle":      r.Handle,
 		"labels":      r.Labels,
@@ -433,11 +412,6 @@ func (r PageLayoutListNamespace) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageLayoutListNamespace) GetParentID() uint64 {
 	return r.ParentID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r PageLayoutListNamespace) GetPrimary() bool {
-	return r.Primary
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -491,12 +465,6 @@ func (r *PageLayoutListNamespace) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["parentID"]; ok && len(val) > 0 {
 			r.ParentID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["primary"]; ok && len(val) > 0 {
-			r.Primary, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -571,7 +539,6 @@ func (r PageLayoutList) Auditable() map[string]interface{} {
 		"pageID":      r.PageID,
 		"moduleID":    r.ModuleID,
 		"parentID":    r.ParentID,
-		"primary":     r.Primary,
 		"query":       r.Query,
 		"handle":      r.Handle,
 		"labels":      r.Labels,
@@ -599,11 +566,6 @@ func (r PageLayoutList) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageLayoutList) GetParentID() uint64 {
 	return r.ParentID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r PageLayoutList) GetPrimary() bool {
-	return r.Primary
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -651,12 +613,6 @@ func (r *PageLayoutList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["parentID"]; ok && len(val) > 0 {
 			r.ParentID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-		if val, ok := tmp["primary"]; ok && len(val) > 0 {
-			r.Primary, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -739,7 +695,6 @@ func (r PageLayoutCreate) Auditable() map[string]interface{} {
 		"weight":      r.Weight,
 		"moduleID":    r.ModuleID,
 		"handle":      r.Handle,
-		"primary":     r.Primary,
 		"meta":        r.Meta,
 		"config":      r.Config,
 		"blocks":      r.Blocks,
@@ -776,11 +731,6 @@ func (r PageLayoutCreate) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageLayoutCreate) GetHandle() string {
 	return r.Handle
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r PageLayoutCreate) GetPrimary() bool {
-	return r.Primary
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -852,13 +802,6 @@ func (r *PageLayoutCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["primary"]; ok && len(val) > 0 {
-				r.Primary, err = payload.ParseBool(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -941,13 +884,6 @@ func (r *PageLayoutCreate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["primary"]; ok && len(val) > 0 {
-			r.Primary, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -1094,7 +1030,6 @@ func (r PageLayoutUpdate) Auditable() map[string]interface{} {
 		"weight":       r.Weight,
 		"moduleID":     r.ModuleID,
 		"handle":       r.Handle,
-		"primary":      r.Primary,
 		"meta":         r.Meta,
 		"config":       r.Config,
 		"blocks":       r.Blocks,
@@ -1136,11 +1071,6 @@ func (r PageLayoutUpdate) GetModuleID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r PageLayoutUpdate) GetHandle() string {
 	return r.Handle
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r PageLayoutUpdate) GetPrimary() bool {
-	return r.Primary
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1212,13 +1142,6 @@ func (r *PageLayoutUpdate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
-			if val, ok := req.MultipartForm.Value["primary"]; ok && len(val) > 0 {
-				r.Primary, err = payload.ParseBool(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -1301,13 +1224,6 @@ func (r *PageLayoutUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
-
-		if val, ok := req.Form["primary"]; ok && len(val) > 0 {
-			r.Primary, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}

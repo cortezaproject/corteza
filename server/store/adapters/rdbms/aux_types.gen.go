@@ -313,7 +313,6 @@ type (
 		NamespaceID uint64                       `db:"namespace_id"`
 		Weight      int                          `db:"weight"`
 		Meta        composeType.PageLayoutMeta   `db:"meta"`
-		Primary     bool                         `db:"primary"`
 		Config      composeType.PageLayoutConfig `db:"config"`
 		Blocks      composeType.PageLayoutBlocks `db:"blocks"`
 		OwnedBy     uint64                       `db:"owned_by"`
@@ -1689,7 +1688,6 @@ func (aux *auxComposePageLayout) encode(res *composeType.PageLayout) (_ error) {
 	aux.NamespaceID = res.NamespaceID
 	aux.Weight = res.Weight
 	aux.Meta = res.Meta
-	aux.Primary = res.Primary
 	aux.Config = res.Config
 	aux.Blocks = res.Blocks
 	aux.OwnedBy = res.OwnedBy
@@ -1711,7 +1709,6 @@ func (aux auxComposePageLayout) decode() (res *composeType.PageLayout, _ error) 
 	res.NamespaceID = aux.NamespaceID
 	res.Weight = aux.Weight
 	res.Meta = aux.Meta
-	res.Primary = aux.Primary
 	res.Config = aux.Config
 	res.Blocks = aux.Blocks
 	res.OwnedBy = aux.OwnedBy
@@ -1733,7 +1730,6 @@ func (aux *auxComposePageLayout) scan(row scanner) error {
 		&aux.NamespaceID,
 		&aux.Weight,
 		&aux.Meta,
-		&aux.Primary,
 		&aux.Config,
 		&aux.Blocks,
 		&aux.OwnedBy,
