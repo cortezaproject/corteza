@@ -55,16 +55,41 @@
         @submit="handleFormSubmit('page.record')"
         @update-navigation="handleRedirectToPrevOrNext"
       >
-        <template #actions>
+        <template #start-actions>
           <b-button
-            v-for="(action, index) in layoutActions"
+            v-for="(action, index) in layoutActions.filter(a => a.placement === 'start')"
             :key="index"
-            variant="primary"
+            :variant="action.meta.style.variant"
             size="lg"
             class="ml-2"
             @click.prevent="determineLayout(action.params.pageLayoutID)"
           >
-            {{ action.Meta.label }}
+            {{ action.meta.label }}
+          </b-button>
+        </template>
+
+        <template #center-actions>
+          <b-button
+            v-for="(action, index) in layoutActions.filter(a => a.placement === 'center')"
+            :key="index"
+            :variant="action.meta.style.variant"
+            size="lg"
+            @click.prevent="determineLayout(action.params.pageLayoutID)"
+          >
+            {{ action.meta.label }}
+          </b-button>
+        </template>
+
+        <template #end-actions>
+          <b-button
+            v-for="(action, index) in layoutActions.filter(a => a.placement === 'end')"
+            :key="index"
+            :variant="action.meta.style.variant"
+            size="lg"
+            class="ml-2"
+            @click.prevent="determineLayout(action.params.pageLayoutID)"
+          >
+            {{ action.meta.label }}
           </b-button>
         </template>
       </record-toolbar>
@@ -178,7 +203,7 @@ export default {
       const { config = {} } = this.layout || {}
       const { actions = [] } = config
 
-      return actions
+      return actions.filter(({ enabled }) => enabled)
     },
 
     title () {
