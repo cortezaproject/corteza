@@ -832,14 +832,6 @@ var PageLayout = &dal.Model{
 		},
 
 		&dal.Attribute{
-			Ident: "Primary",
-			Type: &dal.TypeBoolean{HasDefault: true,
-				DefaultValue: false,
-			},
-			Store: &dal.CodecAlias{Ident: "primary"},
-		},
-
-		&dal.Attribute{
 			Ident: "Config",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",

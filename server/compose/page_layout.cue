@@ -61,11 +61,6 @@ pageLayout: {
 				omitGetter: true
 			}
 
-			primary: {
-				goType: "bool"
-				dal: { type: "Boolean", default: false }
-			}
-
 			config: {
 				goType: "types.PageLayoutConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }

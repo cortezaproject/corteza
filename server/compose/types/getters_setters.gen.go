@@ -351,8 +351,6 @@ func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
 		return r.PageID, nil
 	case "parentID", "ParentID":
 		return r.ParentID, nil
-	case "primary", "Primary":
-		return r.Primary, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "weight", "Weight":
@@ -380,8 +378,6 @@ func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Uint64(value, &r.PageID)
 	case "parentID", "ParentID":
 		return cast2.Uint64(value, &r.ParentID)
-	case "primary", "Primary":
-		return cast2.Bool(value, &r.Primary)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "weight", "Weight":

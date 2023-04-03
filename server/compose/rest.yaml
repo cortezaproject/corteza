@@ -596,10 +596,6 @@ endpoints:
         name: parentID
         required: false
         title: Parent ID
-      - type: bool
-        name: primary
-        required: false
-        title: Default layouts
       - type: string
         name: query
         required: false
@@ -640,10 +636,6 @@ endpoints:
         name: parentID
         required: false
         title: Parent ID
-      - type: bool
-        name: primary
-        required: false
-        title: Default layouts
       - type: string
         name: query
         required: false
@@ -692,10 +684,6 @@ endpoints:
         name: handle
         required: false
         title: Handle
-      - type: bool
-        name: primary
-        required: false
-        title: Primary
       - type: "types.PageLayoutMeta"
         name: meta
         required: false
@@ -763,10 +751,6 @@ endpoints:
         name: handle
         required: false
         title: Handle
-      - type: bool
-        name: primary
-        required: false
-        title: Primary
       - type: "types.PageLayoutMeta"
         name: meta
         required: false
