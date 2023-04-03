@@ -57,7 +57,6 @@
             </router-link>
             <span class="view d-inline-block">
               <router-link
-                v-if="!hideViewPageButton(item)"
                 data-test-id="button-page-view"
                 :to="pageViewer(item)"
                 class="btn"
@@ -69,17 +68,7 @@
               class="d-none d-md-inline-block edit text-left"
             >
               <router-link
-                v-if="item.moduleID !== '0'"
-                v-b-tooltip.hover.top
-                data-test-id="button-module-edit"
-                :title="moduleName(item)"
-                class="btn text-primary"
-                :to="{ name: 'admin.modules.edit', params: { moduleID: item.moduleID }}"
-              >
-                {{ $t('moduleEdit') }}
-              </router-link>
-              <router-link
-                v-if="item.canUpdatePage && item.moduleID === '0'"
+                v-if="item.canUpdatePage"
                 :to="{name: 'admin.pages.edit', params: { pageID: item.pageID }}"
                 data-test-id="button-page-edit"
                 class="btn text-primary"
@@ -178,12 +167,9 @@ export default {
       return (this.getModuleByID(moduleID) || {}).name
     },
 
-    pageViewer ({ pageID = NoID }) {
-      return { name: 'page', params: { pageID } }
-    },
-
-    hideViewPageButton ({ blocks = {}, moduleID = NoID }) {
-      return blocks && blocks.length >= 1 && moduleID !== NoID
+    pageViewer ({ pageID = NoID, moduleID = NoID }) {
+      const name = moduleID !== NoID ? 'page.record.create' : 'page'
+      return { name, params: { pageID } }
     },
 
     handleChangePosition ({ beforeParent, data, afterParent }) {

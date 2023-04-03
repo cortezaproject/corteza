@@ -26,6 +26,8 @@
           />
           {{ showRecordModal ? $t('label.close') : labels.back || $t('label.back') }}
         </b-button>
+
+        <slot name="start-actions" />
       </b-col>
 
       <b-col
@@ -55,6 +57,8 @@
             <font-awesome-icon :icon="['fas', 'angle-right']" />
           </b-button>
         </b-button-group>
+
+        <slot name="center-actions" />
       </b-col>
 
       <b-col
@@ -116,6 +120,8 @@
             {{ labels.clone || $t('label.saveAsCopy') }}
           </b-button>
 
+          <slot name="end-actions" />
+
           <b-button
             v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
             data-test-id="button-edit"
@@ -162,8 +168,6 @@
               {{ labels.submit || $t('label.save') }}
             </span>
           </b-button>
-
-          <slot name="actions" />
         </template>
       </b-col>
     </b-row>

@@ -34,7 +34,6 @@
         <b-button
           variant="primary"
           :title="$t('tooltip.view')"
-          :disabled="!pageViewer"
           :to="pageViewer"
           class="d-flex align-items-center"
           style="margin-left:2px;"
@@ -299,7 +298,7 @@
       :ok-title="$t('general:label.saveAndClose')"
       ok-variant="primary"
       cancel-variant="link"
-      size="lg"
+      size="xl"
       @ok="updateLayout()"
       @cancel="layoutEditor.layout = undefined"
       @hide="layoutEditor.layout = undefined"
@@ -396,13 +395,13 @@
           label-class="text-primary"
         >
           <b-table-simple
-            responsive="lg"
+            responsive
             borderless
             small
           >
             <b-thead>
               <tr>
-                <th />
+                <th style="width: 1%;" />
 
                 <th
                   class="text-primary"
@@ -413,16 +412,30 @@
 
                 <th
                   class="text-primary"
-                  style="width: 33%; min-width: 240px;"
+                  style="width: 25%; min-width: 240px;"
                 >
-                  Type
+                  Redirect to layout
                 </th>
 
                 <th
+                  style="min-width: 100px;"
                   class="text-primary"
-                  style="width: 33%; min-width: 240px;"
                 >
-                  Options
+                  Variant
+                </th>
+
+                <th
+                  style="min-width: 100px;"
+                  class="text-primary"
+                >
+                  Placement
+                </th>
+
+                <th
+                  style="min-width: 80px;"
+                  class="text-primary text-center"
+                >
+                  Visible
                 </th>
 
                 <th style="min-width: 80px;" />
@@ -458,15 +471,6 @@
                   class="align-middle"
                 >
                   <b-form-select
-                    v-model="action.kind"
-                    :options="actionKindOptions"
-                  />
-                </b-td>
-
-                <b-td
-                  class="align-middle"
-                >
-                  <b-form-select
                     v-model="action.params.pageLayoutID"
                     :options="actionLayoutOptions"
                     value-field="pageLayoutID"
@@ -474,14 +478,41 @@
                   />
                 </b-td>
 
-                <td
-                  class="text-center align-middle"
+                <b-td
+                  class="align-middle"
+                >
+                  <b-form-select
+                    v-model="action.meta.style.variant"
+                    :options="actionVariantOptions"
+                  />
+                </b-td>
+
+                <b-td
+                  class="align-middle"
+                >
+                  <b-form-select
+                    v-model="action.placement"
+                    :options="actionPlacementOptions"
+                  />
+                </b-td>
+
+                <b-td
+                  class="align-middle text-center"
+                >
+                  <b-form-checkbox
+                    v-model="action.enabled"
+                    class="ml-2"
+                  />
+                </b-td>
+
+                <b-td
+                  class="align-middle text-center"
                 >
                   <c-input-confirm
                     class="ml-2"
                     @confirmed="removeLayoutAction(index)"
                   />
-                </td>
+                </b-td>
               </tr>
             </draggable>
           </b-table-simple>
@@ -712,11 +743,9 @@ export default {
     },
 
     pageViewer () {
-      if (this.isRecordPage) {
-        return undefined
-      }
       const { pageID } = this.page
-      return { name: 'page', params: { pageID } }
+      const name = this.isRecordPage ? 'page.record.create' : 'page'
+      return { name, params: { pageID } }
     },
 
     isRecordPage () {
@@ -792,6 +821,27 @@ export default {
         { pageLayoutID: '', label: 'No route selected' },
         ...this.layouts.filter(({ pageLayoutID }) => pageLayoutID !== NoID)
           .map(({ pageLayoutID, handle, meta }) => ({ pageLayoutID, label: meta.title || handle || pageLayoutID })),
+      ]
+    },
+
+    actionPlacementOptions () {
+      return [
+        { value: 'start', text: 'Start' },
+        { value: 'center', text: 'Center' },
+        { value: 'end', text: 'End' },
+      ]
+    },
+
+    actionVariantOptions () {
+      return [
+        { text: this.$t('general:variants.primary'), value: 'primary' },
+        { text: this.$t('general:variants.secondary'), value: 'secondary' },
+        { text: this.$t('general:variants.success'), value: 'success' },
+        { text: this.$t('general:variants.warning'), value: 'warning' },
+        { text: this.$t('general:variants.danger'), value: 'danger' },
+        { text: this.$t('general:variants.info'), value: 'info' },
+        { text: this.$t('general:variants.light'), value: 'light' },
+        { text: this.$t('general:variants.dark'), value: 'dark' },
       ]
     },
   },

@@ -110,12 +110,16 @@ export class PageLayout {
   addAction () {
     this.config.actions.push({
       kind: 'toLayout',
-      placement: '',
+      placement: 'end',
+      enabled: true,
       params: {
         pageLayoutID: '',
       },
       meta: {
         label: '',
+        style: {
+          variant: 'primary'
+        }
       },
     } as Action)
   }

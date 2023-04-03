@@ -151,3 +151,12 @@ resourceList:
 recordNavigation:
   next: Next record
   prev: Previous record
+variants:
+  primary: Primary
+  secondary: Secondary
+  light: Light
+  dark: Dark
+  info: Info
+  success: Success
+  danger: Danger
+  warning: Warning
