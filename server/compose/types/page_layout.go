@@ -24,10 +24,10 @@ type (
 
 		Weight int `json:"weight"`
 
-		Meta PageLayoutMeta `json:"meta"`
+		Meta PageLayoutMeta `json:"meta,omitempty"`
 
 		Config PageLayoutConfig `json:"config"`
-		Blocks PageBlocks       `json:"blocks"`
+		Blocks PageLayoutBlocks `json:"blocks,omitempty"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -36,6 +36,14 @@ type (
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
 		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+	}
+
+	PageLayoutBlocks []PageLayoutBlock
+
+	PageLayoutBlock struct {
+		BlockID uint64         `json:"blockID,string,omitempty"`
+		XYWH    [4]int         `json:"xywh"` // x,y,w,h
+		Meta    map[string]any `json:"meta,omitempty"`
 	}
 
 	PageLayoutMeta struct {
@@ -48,6 +56,8 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Description string `json:"description"`
+
+		Style map[string]any `json:"style,omitempty"`
 	}
 
 	PageLayoutButton struct {
@@ -71,30 +81,32 @@ type (
 	PageLayoutConfig struct {
 		Visibility PageLayoutVisibility `json:"visibility"`
 
-		Buttons *PageLayoutButtonConfig `json:"buttons"`
-		Actions []PageLayoutAction      `json:"actions"`
+		Buttons PageLayoutButtonConfig `json:"buttons"`
+		Actions []PageLayoutAction     `json:"actions,omitempty"`
 	}
 
 	PageLayoutVisibility struct {
 		Expression string   `json:"expression"`
-		Roles      []string `json:"roles"`
+		Roles      []string `json:"roles,omitempty"`
 	}
 
 	PageLayoutAction struct {
-		ActionID  uint64 `json:"actionID,string"`
-		Placement string `json:"placement"`
-		Meta      any    `json:"meta"`
-		Enabled   bool   `json:"enabled"`
-
-		// Warning: value of this field is now handled via resource-translation facility
-		//          struct field is kept for the convenience for now since it allows us
-		//          easy encoding/decoding of the outgoing/incoming values
-		Label string `json:"label"`
+		ActionID  uint64               `json:"actionID,string"`
+		Placement string               `json:"placement"`
+		Meta      PageLayoutActionMeta `json:"meta"`
+		Enabled   bool                 `json:"enabled"`
 
 		// Kind and Params specify the action's behavior and the parameters it
 		// can use for execution
 		Kind   string `json:"kind"`
 		Params any    `json:"params"`
+	}
+
+	PageLayoutActionMeta struct {
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Label string `json:"label"`
 	}
 
 	PageLayoutFilter struct {
@@ -184,3 +196,6 @@ func (bb PageLayoutConfig) Value() (driver.Value, error) { return json.Marshal(b
 
 func (vv *PageLayoutMeta) Scan(src any) error          { return sql.ParseJSON(src, &vv) }
 func (vv PageLayoutMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
+
+func (bb *PageLayoutBlocks) Scan(src any) error          { return sql.ParseJSON(src, bb) }
+func (bb PageLayoutBlocks) Value() (driver.Value, error) { return json.Marshal(bb) }
