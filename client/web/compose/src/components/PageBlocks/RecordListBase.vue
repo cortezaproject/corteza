@@ -105,8 +105,8 @@
             </div>
           </div>
           <div
-            v-if="!options.hideSearch && !inlineEditing"
-            class="w-25"
+            v-if="!options.hideSearch"
+            class="flex-grow-1 w-25"
           >
             <c-input-search
               v-model.trim="query"
@@ -839,7 +839,7 @@ export default {
     },
 
     showFooter () {
-      return !this.options.hidePaging && !this.inlineEditing
+      return !this.options.hidePaging
     },
 
     getPagination () {
@@ -868,7 +868,7 @@ export default {
     },
 
     showPageNavigation () {
-      return this.items.length && !this.options.hidePaging && !this.inlineEditing
+      return this.items.length && !this.options.hidePaging
     },
 
     disableSelectAll () {
@@ -1265,7 +1265,7 @@ export default {
       }
 
       this.prefilter = filter.join(' AND ')
-      const limit = editable ? 0 : perPage
+      const limit = perPage
       this.filter = {
         limit,
         sort,

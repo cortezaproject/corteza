@@ -176,6 +176,7 @@
           </b-col>
         </b-row>
       </div>
+
       <hr v-if="options.editable">
 
       <div
@@ -397,10 +398,7 @@
       </div>
       <hr v-if="!options.positionField">
 
-      <div
-        v-if="!options.editable"
-        class="px-3"
-      >
+      <div class="px-3">
         <h5 class="mb-3">
           {{ $t('recordList.record.pagingLabel') }}
         </h5>
@@ -430,7 +428,6 @@
             md="6"
           >
             <b-form-group
-              v-if="!options.editable"
               horizontal
               breakpoint="md"
               :label="$t('recordList.record.perPage')"
@@ -482,8 +479,6 @@
           </b-col>
         </b-row>
       </div>
-
-      <hr v-if="!options.editable">
 
       <div
         class="px-3"
@@ -873,7 +868,6 @@ export default {
       if (value) {
         this.options.hideRecordEditButton = true
         this.options.hideRecordViewButton = true
-        this.options.hidePaging = true
         let f = null
         if (this.module && this.module.moduleID) f = this.recordListModule.fields.find(({ options: { moduleID } }) => moduleID === this.module.moduleID)
         this.options.refField = f ? f.name : undefined
