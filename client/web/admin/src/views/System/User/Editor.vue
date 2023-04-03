@@ -353,14 +353,7 @@ export default {
       }
 
       return this.$SystemAPI.api().request(cfg).then(response => {
-        if (response.data.error) {
-          return Promise.reject(response.data.error)
-        } else {
-          return response.data.response
-        }
-      }).then(user => {
-        this.user = new system.User(user)
-        this.fetchExternalAuthProviders()
+        this.fetchUser()
       })
     },
 
