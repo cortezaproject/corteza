@@ -217,13 +217,17 @@ export default {
           breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
         },
         user: this.$auth.user,
-        layout: this.layout || {},
+        oldLayout: this.layout,
+        layout: undefined,
       }
 
-      this.layouts.forEach(({ pageLayoutID, config }) => {
+      this.layouts.forEach(layout => {
+        const { config = {} } = layout
         if (!config.visibility.expression) return
 
-        expressions[pageLayoutID] = config.visibility.expression
+        variables.layout = layout
+
+        expressions[layout.pageLayoutID] = config.visibility.expression
       })
 
       return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(() => {
