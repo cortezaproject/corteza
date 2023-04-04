@@ -145,7 +145,7 @@ export default {
       const field = this.moduleDefaultState.fields.find(({ name }) => name === this.f.name)
 
       if (field) {
-        return field.options.options.map(({ value }) => value)
+        return (field.options.options || []).map(({ value }) => value)
       }
 
       return []
