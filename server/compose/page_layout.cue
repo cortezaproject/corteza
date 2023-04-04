@@ -163,7 +163,7 @@ pageLayout: {
 				customHandler: true
 			}
 			actionLabel: {
-				path: ["config", "actions", {part: "actionID", var: true}, "label"]
+				path: ["config", "actions", {part: "actionID", var: true}, "meta", "label"]
 				customHandler: true
 			}
 		}

@@ -2,7 +2,6 @@ package rest
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service"
@@ -144,13 +143,11 @@ func (ctrl *PageLayout) Read(ctx context.Context, r *request.PageLayoutRead) (in
 }
 
 func (ctrl *PageLayout) ListTranslations(ctx context.Context, r *request.PageLayoutListTranslations) (interface{}, error) {
-	return nil, fmt.Errorf("@todo...")
-	// return ctrl.locale.PageLayout(ctx, r.NamespaceID, r.PageLayoutID)
+	return ctrl.locale.PageLayout(ctx, r.NamespaceID, r.PageID, r.PageLayoutID)
 }
 
 func (ctrl *PageLayout) UpdateTranslations(ctx context.Context, r *request.PageLayoutUpdateTranslations) (interface{}, error) {
-	return nil, fmt.Errorf("@todo...")
-	// return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
+	return api.OK(), ctrl.locale.Upsert(ctx, r.Translations)
 }
 
 func (ctrl *PageLayout) Reorder(ctx context.Context, r *request.PageLayoutReorder) (interface{}, error) {

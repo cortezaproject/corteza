@@ -179,7 +179,25 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 		aux []*locale.ResourceTranslation
 	)
 
+	// We need to get page layouts to include them also
+	// @todo refactor the base logic to simplify this; it's suboptimal
+	layouts, _, err := store.SearchComposePageLayouts(ctx, svc.store, types.PageLayoutFilter{
+		NamespaceID: res.NamespaceID,
+		PageID:      res.ID,
+	})
+	if err != nil {
+		return
+	}
+
 	for _, tag := range svc.locale.Tags() {
+		for _, l := range layouts {
+			aux, err = svc.PageLayout(ctx, res.NamespaceID, res.ID, l.ID)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		}
+
 		for i, block := range res.Blocks {
 			pbContentID := locale.ContentID(block.BlockID, i)
 			rpl := strings.NewReplacer(
@@ -240,13 +258,57 @@ func (svc resourceTranslationsManager) pageLayoutExtended(ctx context.Context, r
 	)
 
 	for _, tag := range svc.locale.Tags() {
+		// Standard buttons
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsNewLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsNewLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsEditLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsEditLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsSubmitLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsSubmitLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsDeleteLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsDeleteLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsCloneLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsCloneLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsBackLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsBackLabel.Path),
+		})
+
+		// Actions
 		for i, action := range res.Config.Actions {
 			acContentID := locale.ContentID(action.ActionID, i)
 			rpl := strings.NewReplacer(
 				"{{actionID}}", strconv.FormatUint(acContentID, 10),
 			)
 
-			k = types.LocaleKeyPageLayoutConfigActionsActionIDLabel
+			k = types.LocaleKeyPageLayoutConfigActionsActionIDMetaLabel
 			out = append(out, &locale.ResourceTranslation{
 				Resource: res.ResourceTranslation(),
 				Lang:     tag.String(),

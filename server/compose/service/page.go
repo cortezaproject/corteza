@@ -464,14 +464,6 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 			return err
 		}
 
-		// Get max blockID for later use
-		blockID := uint64(0)
-		for _, b := range res.Blocks {
-			if b.BlockID > blockID {
-				blockID = b.BlockID
-			}
-		}
-
 		old = res.Clone()
 
 		aProps.setNamespace(ns)

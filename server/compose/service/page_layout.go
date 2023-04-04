@@ -334,14 +334,6 @@ func (svc pageLayout) updater(ctx context.Context, s store.Storer, ns *types.Nam
 			return err
 		}
 
-		// Get max blockID for later use
-		blockID := uint64(0)
-		for _, b := range res.Blocks {
-			if b.BlockID > blockID {
-				blockID = b.BlockID
-			}
-		}
-
 		old = res.Clone()
 
 		aProps.setNamespace(ns)
@@ -455,11 +447,11 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 			}
 		}
 
-		// Get max blockID for later use
-		blockID := uint64(0)
-		for _, b := range res.Blocks {
-			if b.BlockID > blockID {
-				blockID = b.BlockID
+		// Get max actionID for later use
+		actionID := uint64(0)
+		for _, a := range res.Config.Actions {
+			if a.ActionID > actionID {
+				actionID = a.ActionID
 			}
 		}
 
@@ -494,11 +486,11 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 		}
 
 		// Assure blockIDs
-		for i, b := range res.Blocks {
-			if b.BlockID == 0 {
-				blockID++
-				b.BlockID = blockID
-				res.Blocks[i] = b
+		for i, a := range res.Config.Actions {
+			if a.ActionID == 0 {
+				actionID++
+				a.ActionID = actionID
+				res.Config.Actions[i] = a
 
 				changes |= pageLayoutChanged
 			}

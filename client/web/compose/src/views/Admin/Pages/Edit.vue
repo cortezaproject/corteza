@@ -27,7 +27,8 @@
 
         <page-translator
           v-if="page"
-          :page="page"
+          :page.sync="page"
+          :page-layouts.sync="layouts"
           style="margin-left:2px;"
         />
 
@@ -247,6 +248,7 @@
                           <b-button
                             variant="light"
                             class="d-flex align-items-center px-3"
+                            style="margin-left:2px;"
                             @click="configureLayout(index)"
                           >
                             <font-awesome-icon
@@ -258,12 +260,17 @@
                             variant="primary"
                             :disabled="layout.pageLayoutID === '0'"
                             class="d-flex align-items-center"
+                            style="margin-left:2px;"
                             :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
                           >
                             <font-awesome-icon
                               :icon="['far', 'edit']"
                             />
                           </b-button>
+                          <page-layout-translator
+                            :page-layout="layout"
+                            style="margin-left:2px;"
+                          />
                         </b-input-group-append>
                       </b-input-group>
                     </b-td>
@@ -664,6 +671,7 @@
 import { mapGetters, mapActions } from 'vuex'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
+import PageLayoutTranslator from 'corteza-webapp-compose/src/components/Admin/PageLayout/PageLayoutTranslator'
 import pages from 'corteza-webapp-compose/src/mixins/pages'
 import Uploader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/Uploader'
 import Draggable from 'vuedraggable'
@@ -681,6 +689,7 @@ export default {
   components: {
     EditorToolbar,
     PageTranslator,
+    PageLayoutTranslator,
     Uploader,
     Draggable,
     VueSelect,

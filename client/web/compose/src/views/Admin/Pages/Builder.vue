@@ -41,6 +41,7 @@
         </b-button>
         <page-translator
           :page.sync="trPage"
+          :page-layout.sync="layout"
           style="margin-left:2px;"
         />
         <b-button

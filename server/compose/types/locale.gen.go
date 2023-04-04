@@ -62,7 +62,7 @@ var (
 	LocaleKeyPageLayoutConfigButtonsDeleteLabel             = LocaleKey{Path: "config.buttons.delete.label"}
 	LocaleKeyPageLayoutConfigButtonsCloneLabel              = LocaleKey{Path: "config.buttons.clone.label"}
 	LocaleKeyPageLayoutConfigButtonsBackLabel               = LocaleKey{Path: "config.buttons.back.label"}
-	LocaleKeyPageLayoutConfigActionsActionIDLabel           = LocaleKey{Path: "config.actions.{{actionID}}.label"}
+	LocaleKeyPageLayoutConfigActionsActionIDMetaLabel       = LocaleKey{Path: "config.actions.{{actionID}}.meta.label"}
 )
 
 // ResourceTranslation returns string representation of Locale resource for Chart by calling ChartResourceTranslation fn
