@@ -3,6 +3,40 @@ pages:
   - handle: Home
     (envoy): { onExisting: "skip" }
     title: Home
+    layouts:
+      - handle: primary
+        meta:
+          title: Home
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 6, 16]
+          - blockID: 2
+            xywh: [6, 0, 3, 6]
+          - blockID: 3
+            xywh: [6, 6, 3, 5]
+          - blockID: 4
+            xywh: [6, 11, 3, 5]
+          - blockID: 5
+            xywh: [9, 0, 3, 6]
+          - blockID: 6
+            xywh: [9, 6, 3, 5]
+          - blockID: 7
+            xywh: [9, 11, 3, 5]
+
     blocks:
     - title: All Cases
       options:
@@ -29,53 +63,72 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 6, 16]
     - title: New cases per month
       options:
         chart: NewCasesByMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 0, 3, 6]
     - title: Cases by priority
       options:
         chart: CasesByPriority
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 6, 3, 5]
     - title: Cases by category
       options:
         chart: CasesByCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 11, 3, 5]
     - title: Closed cases per month
       options:
         chart: ClosedCasesPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 6]
     - title: Cases by status
       options:
         chart: CasesByStatus
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 6, 3, 5]
     - title: Total cost per case category (in $)
       options:
         chart: CostPerCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 11, 3, 5]
     visible: true
   - handle: Cases
     (envoy): { onExisting: "skip" }
     title: Cases
+    layouts:
+      - handle: primary
+        meta:
+          title: Cases
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: All cases
       options:
@@ -103,26 +156,56 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Cases by priority
       options:
         chart: CasesByPriority
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Cases by category
       options:
         chart: CasesByCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleCase
         (envoy): { onExisting: "skip" }
         module: Case
         title: Record page for module "Case"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Case"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+              blocks:
+                - blockID: 1
+                  xywh: [0, 0, 3, 11]
+                - blockID: 2
+                  xywh: [9, 0, 3, 11]
+                - blockID: 3
+                  xywh: [3, 0, 6, 5]
+                - blockID: 4
+                  xywh: [3, 5, 6, 11]
+                - blockID: 5
+                  xywh: [0, 11, 3, 7]
+                - blockID: 6
+                  xywh: [9, 11, 3, 7]
+                - blockID: 7
+                  xywh: [3, 3, 6, 2]
         blocks:
         - title: Case Description
           options:
@@ -138,7 +221,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 11]
         - title: Case Details
           options:
             fields:
@@ -152,7 +234,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 11]
         - title: Case Subject
           options:
             fields:
@@ -161,7 +242,6 @@ pages:
           style:
             variants: {bodyBg: white, border: success, headerBg: white, headerText: success}
           kind: Record
-          xywh: [3, 0, 6, 5]
         - title: Updates
           options:
             fields:
@@ -185,7 +265,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [3, 5, 6, 11]
         - title: Related Attachments
           options:
             fields:
@@ -204,7 +283,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 11, 3, 7]
         - title: Search the Knowledge Base
           options:
             fields:
@@ -225,7 +303,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [9, 11, 3, 7]
         - options:
             buttons:
             - enabled: true
@@ -242,12 +319,33 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [3, 3, 6, 2]
         pages:
           - handle: RecordPageForModuleAttachement
             (envoy): { onExisting: "skip" }
             module: Attachement
             title: Record page for module "Attachement"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Attachement"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                  blocks:
+                    - blockID: 1
+                      xywh: [0, 0, 5, 18]
+
             blocks:
             - title: Attachment Details
               options:
@@ -258,12 +356,37 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 5, 18]
             visible: false
           - handle: RecordPageForModuleUpdate
             (envoy): { onExisting: "skip" }
             module: Update
             title: Record page for module "Update"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Update"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                  blocks:
+                    - blockID: 1
+                      xywh: [0, 0, 8, 18]
+                    - blockID: 2
+                      xywh: [8, 0, 4, 7]
+                    - blockID: 3
+                      xywh: [8, 7, 4, 11]
+
             blocks:
             - title: Content
               options:
@@ -277,7 +400,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 8, 18]
             - title: Notifications
               options:
                 fields:
@@ -287,7 +409,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [8, 0, 4, 7]
             - title: Other Information
               options:
                 fields:
@@ -300,12 +421,33 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [8, 7, 4, 11]
             visible: false
         visible: false
       - handle: AllMyCases
         (envoy): { onExisting: "skip" }
         title: All my cases
+        layouts:
+          - handle: primary
+            meta:
+              title: All my cases
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
+
         blocks:
         - title: All my cases
           options:
@@ -334,11 +476,32 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         visible: true
       - handle: MyNewCases
         (envoy): { onExisting: "skip" }
         title: My new cases
+        layouts:
+          - handle: primary
+            meta:
+              title: My new cases
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
+
         blocks:
         - title: My new cases
           options:
@@ -367,12 +530,37 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         visible: true
     visible: true
   - handle: Accounts
     (envoy): { onExisting: "skip" }
     title: Accounts
+    layouts:
+      - handle: primary
+        meta:
+          title: Accounts
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: Accounts
       options:
@@ -399,26 +587,57 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Total time spent on cases per account (in hours)
       options:
         chart: TimePerAccount
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Total costs of cases per account (in $)
       options:
         chart: CostsPerAccount
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleAccount
         (envoy): { onExisting: "skip" }
         module: Account
         title: Record page for module "Account"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Account"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 12]
+              - blockID: 2
+                xywh: [3, 0, 3, 12]
+              - blockID: 3
+                xywh: [6, 0, 3, 12]
+              - blockID: 4
+                xywh: [9, 0, 3, 30]
+              - blockID: 5
+                xywh: [0, 12, 9, 9]
+              - blockID: 6
+                xywh: [6, 21, 3, 9]
+              - blockID: 7
+                xywh: [0, 21, 6, 9]
+
         blocks:
         - title: Account Detail
           options:
@@ -434,7 +653,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 12]
         - title: Account Address
           options:
             fields:
@@ -448,7 +666,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 12]
         - title: Other Information
           options:
             fields:
@@ -462,7 +679,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 12]
         - title: Twitter Feed
           options:
             fields: []
@@ -470,7 +686,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
-          xywh: [9, 0, 3, 30]
         - title: Cases
           options:
             allowExport: true
@@ -491,7 +706,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 12, 9, 9]
         - title: Contacts
           options:
             allowExport: true
@@ -505,7 +719,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [6, 21, 3, 9]
         - title: Entitlements
           options:
             allowExport: true
@@ -524,11 +737,31 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 21, 6, 9]
         visible: false
       - handle: Contacts
         (envoy): { onExisting: "skip" }
         title: Contacts
+        layouts:
+          - handle: primary
+            meta:
+              title: Contacts
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
         blocks:
         - title: Contacts
           options:
@@ -558,12 +791,41 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleContact
             (envoy): { onExisting: "skip" }
             module: Contact
             title: Record page for module "Contact"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Contact"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 3, 11]
+                  - blockID: 2
+                    xywh: [3, 0, 3, 11]
+                  - blockID: 3
+                    xywh: [6, 0, 3, 11]
+                  - blockID: 4
+                    xywh: [9, 0, 3, 30]
+                  - blockID: 5
+                    xywh: [0, 11, 9, 9]
+
             blocks:
             - title: Personal Data
               options:
@@ -579,7 +841,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 3, 11]
             - title: Contact Address
               options:
                 fields:
@@ -593,7 +854,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [3, 0, 3, 11]
             - title: Other Information
               options:
                 fields:
@@ -604,7 +864,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [6, 0, 3, 11]
             - title: Contact Twitter Feed
               options:
                 fields: []
@@ -612,7 +871,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: SocialFeed
-              xywh: [9, 0, 3, 30]
             - title: Cases related to this Contact
               options:
                 allowExport: true
@@ -632,12 +890,33 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: RecordList
-              xywh: [0, 11, 9, 9]
             visible: false
         visible: true
       - handle: Entitlements
         (envoy): { onExisting: "skip" }
         title: Entitlements
+        layouts:
+          - handle: primary
+            meta:
+              title: Entitlements
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
+
         blocks:
         - title: Entitlements
           options:
@@ -667,12 +946,37 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEntitlement
             (envoy): { onExisting: "skip" }
             module: Entitlement
             title: Record page for module "Entitlement"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Entitlement"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 15]
+                  - blockID: 2
+                    xywh: [8, 0, 4, 15]
+                  - blockID: 3
+                    xywh: [4, 0, 4, 15]
+
             blocks:
             - title: Product Entitlement
               options:
@@ -682,7 +986,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 4, 15]
             - title: Entitlement Status
               description: The data below is automatically loaded using the data
                 on the left, each time when the record is saved. It is not possible
@@ -695,7 +998,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [8, 0, 4, 15]
             - title: Entitlement Data
               description: The date below is loaded from the entitlement template
                 of the product selected on the left upon record creation. It is
@@ -709,13 +1011,38 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [4, 0, 4, 15]
             visible: false
         visible: true
     visible: true
   - handle: Products
     (envoy): { onExisting: "skip" }
     title: Products
+    layouts:
+      - handle: primary
+        meta:
+          title: Products
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: Products
       options:
@@ -744,26 +1071,57 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Time spent per product family (in hours)
       options:
         chart: TimeSpentPerProductFamily
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Cost per product family (in $)
       options:
         chart: CostPerProductFamily
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleProduct
         (envoy): { onExisting: "skip" }
         module: Product
         title: Record page for module "Product"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Product"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 10]
+              - blockID: 2
+                xywh: [9, 0, 3, 10]
+              - blockID: 3
+                xywh: [0, 10, 12, 8]
+              - blockID: 4
+                xywh: [0, 18, 6, 7]
+              - blockID: 5
+                xywh: [6, 18, 6, 7]
+              - blockID: 6
+                xywh: [6, 0, 3, 10]
+              - blockID: 7
+                xywh: [3, 0, 3, 10]
+
         blocks:
         - title: Product Description
           options:
@@ -776,7 +1134,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 10]
         - title: Other Information
           options:
             fields:
@@ -788,7 +1145,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 10]
         - title: Entitlements for this product
           options:
             allowExport: true
@@ -808,7 +1164,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 10, 12, 8]
         - title: Cases related to this product
           options:
             fields:
@@ -824,7 +1179,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 18, 6, 7]
         - title: Knowledge Base items related to this product
           options:
             fields:
@@ -839,7 +1193,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [6, 18, 6, 7]
         - title: Files
           options:
             fields:
@@ -848,7 +1201,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 10]
         - title: Cases totals
           options:
             fields:
@@ -857,11 +1209,31 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 10]
         visible: false
       - handle: EntitlementTemplates
         (envoy): { onExisting: "skip" }
         title: Entitlement Templates
+        layouts:
+          - handle: primary
+            meta:
+              title: Entitlement Templates
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
         blocks:
         - title: Entitlement Templates
           options:
@@ -888,12 +1260,35 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleEntitlementTemplate
             (envoy): { onExisting: "skip" }
             module: EntitlementTemplate
             title: Record page for module "EntitlementTemplate"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "EntitlementTemplate"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 6, 16]
+                  - blockID: 2
+                    xywh: [6, 0, 6, 16]
+
             blocks:
             - title: Entitlement Template
               options:
@@ -907,7 +1302,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 6, 16]
             - title: Products that use this entitlements template
               options:
                 allowExport: true
@@ -925,13 +1319,38 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: RecordList
-              xywh: [6, 0, 6, 16]
             visible: false
         visible: true
     visible: true
   - handle: KnowledgeBase
     (envoy): { onExisting: "skip" }
     title: Knowledge Base
+    layouts:
+      - handle: primary
+        meta:
+          title: Knowledge Base
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: Knowledge Base
       options:
@@ -959,26 +1378,51 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: KB articles per type
       options:
         chart: KnowledgeBaseArticlesPerType
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: KB articles created per day
       options:
         chart: KnowledgeBaseItemsCreatedPerDay
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleKnowledgeBase
         (envoy): { onExisting: "skip" }
         module: KnowledgeBase
         title: Record page for module "Knowledge Base"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Knowledge Base"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [3, 5, 6, 15]
+              - blockID: 2
+                xywh: [9, 0, 3, 20]
+              - blockID: 3
+                xywh: [3, 0, 6, 5]
+              - blockID: 4
+                xywh: [0, 0, 3, 20]
+
         blocks:
         - title: Details
           options:
@@ -988,7 +1432,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 5, 6, 15]
         - title: Cases with this KB Item as Solution
           options:
             fields:
@@ -1003,7 +1446,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [9, 0, 3, 20]
         - title: Title
           options:
             fields:
@@ -1012,7 +1454,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: success}
           kind: Record
-          xywh: [3, 0, 6, 5]
         - title: Details
           options:
             fields:
@@ -1029,12 +1470,37 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 20]
         visible: false
     visible: true
   - handle: Departments
     (envoy): { onExisting: "skip" }
     title: Departments
+    layouts:
+      - handle: primary
+        meta:
+          title: Departments
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: Departments
       options:
@@ -1062,26 +1528,49 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Total time spent per department (in hours)
       options:
         chart: TotalTimeSpentPerDepartment
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Total case costs per department (in $)
       options:
         chart: TotalCostPerDepartment
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleDepartment
         (envoy): { onExisting: "skip" }
         module: Department
         title: Record page for module "Department"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Department"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 6, 6]
+              - blockID: 2
+                xywh: [6, 0, 6, 6]
+              - blockID: 3
+                xywh: [0, 6, 12, 10]
+
         blocks:
         - title: Department details
           options:
@@ -1092,7 +1581,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 6, 6]
         - title: Total time and cost of department related to work on cases
           options:
             fields:
@@ -1102,7 +1590,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 6, 6]
         - title: Case updates related to the department
           options:
             allowExport: true
@@ -1123,12 +1610,71 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 6, 12, 10]
         visible: false
     visible: true
   - handle: Dashboard
     (envoy): { onExisting: "skip" }
     title: Dashboard
+    layouts:
+      - handle: primary
+        meta:
+          title: Dashboard
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [3, 18, 3, 6]
+          - blockID: 2
+            xywh: [0, 18, 3, 6]
+          - blockID: 3
+            xywh: [0, 0, 3, 6]
+          - blockID: 4
+            xywh: [9, 18, 3, 6]
+          - blockID: 5
+            xywh: [6, 24, 3, 6]
+          - blockID: 6
+            xywh: [3, 0, 3, 6]
+          - blockID: 7
+            xywh: [6, 18, 3, 6]
+          - blockID: 8
+            xywh: [6, 0, 3, 6]
+          - blockID: 9
+            xywh: [9, 6, 3, 6]
+          - blockID: 10
+            xywh: [9, 0, 3, 6]
+          - blockID: 11
+            xywh: [3, 24, 3, 6]
+          - blockID: 12
+            xywh: [6, 6, 3, 6]
+          - blockID: 13
+            xywh: [0, 24, 3, 6]
+          - blockID: 14
+            xywh: [6, 12, 3, 6]
+          - blockID: 15
+            xywh: [9, 12, 3, 6]
+          - blockID: 16
+            xywh: [0, 12, 3, 6]
+          - blockID: 17
+            xywh: [3, 12, 3, 6]
+          - blockID: 18
+            xywh: [0, 6, 3, 6]
+          - blockID: 19
+            xywh: [3, 6, 3, 6]
+          - blockID: 20
+            xywh: [9, 24, 3, 6]
+
     blocks:
     - title: Cases by category
       options:
@@ -1136,144 +1682,146 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 18, 3, 6]
     - title: Cases by priority
       options:
         chart: CasesByPriority
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 18, 3, 6]
     - title: New cases per month
       options:
         chart: NewCasesByMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 0, 3, 6]
     - title: Number of active entitlements
       options:
         chart: ActiveEntitlements
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 18, 3, 6]
     - title: Knowledge base articles per type
       options:
         chart: KnowledgeBaseArticlesPerType
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 24, 3, 6]
     - title: Closed cases per month
       options:
         chart: ClosedCasesPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 0, 3, 6]
     - title: Average time spent per case (in hours)
       options:
         chart: AverageTimeSpentPerCase
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 18, 3, 6]
     - title: Total time spent per month  (in hours)
       options:
         chart: TotalTimeSpentPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 0, 3, 6]
     - title: Total cost per case category (in $)
       options:
         chart: CostPerCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 6, 3, 6]
     - title: Total cost per month (in $)
       options:
         chart: TotalCostPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 6]
     - title: Case updates per type
       options:
         chart: CaseUpdatesPerType
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 24, 3, 6]
     - title: Total time spent per category (in hours)
       options:
         chart: TotalTimeSpentPerCategory
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 6, 3, 6]
     - title: Cases by status
       options:
         chart: CasesByStatus
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 24, 3, 6]
     - title: Total time spent per account (in hours)
       options:
         chart: TimePerAccount
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 12, 3, 6]
     - title: Total costs per account (in $)
       options:
         chart: CostsPerAccount
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 12, 3, 6]
     - title: Time spent per product family (in hours)
       options:
         chart: TimeSpentPerProductFamily
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 12, 3, 6]
     - title: Total costs per product family (in $)
       options:
         chart: CostPerProductFamily
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 12, 3, 6]
     - title: Total time spent per department (in hours)
       options:
         chart: TotalTimeSpentPerDepartment
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 6, 3, 6]
     - title: Total cost per department (in $)
       options:
         chart: TotalCostPerDepartment
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [3, 6, 3, 6]
     - title: KB articles created per day
       options:
         chart: KnowledgeBaseItemsCreatedPerDay
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 24, 3, 6]
     visible: true
   - handle: Settings
     (envoy): { onExisting: "skip" }
     title: Settings
+    layouts:
+      - handle: primary
+        meta:
+          title: Settings
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 12, 5]
+
     blocks:
     - title: Settings
       options:
@@ -1293,12 +1841,33 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 12, 5]
     pages:
       - handle: RecordPageForModuleSettings
         (envoy): { onExisting: "skip" }
         module: Settings
         title: Record page for module "Settings"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Settings"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 6, 17]
+
         blocks:
         - title: Settings
           options:
@@ -1311,6 +1880,5 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 6, 17]
         visible: false
     visible: true
