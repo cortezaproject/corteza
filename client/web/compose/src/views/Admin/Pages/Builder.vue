@@ -217,6 +217,13 @@
       </template>
     </b-modal>
 
+    <b-button
+      variant="primary"
+      @click="editBlock(3)"
+    >
+      Edit Block
+    </b-button>
+
     <portal to="admin-toolbar">
       <editor-toolbar
         :back-link="{name: 'admin.pages'}"
@@ -472,6 +479,7 @@ export default {
       // because we are reusing that modal component
       this.updateBlocks()
       this.blocks.find((block, i) => fetchID(block) === blockID && this.editBlock(i))
+      console.log({ blockID }, 'from fulfil')
     },
 
     fulfilCreateRequest (block) {
@@ -507,6 +515,7 @@ export default {
 
     editBlock (index = undefined) {
       this.editor = { index, block: compose.PageBlockMaker(this.blocks[index]) }
+      console.log(this.editor, { index })
     },
 
     deleteBlock (index) {

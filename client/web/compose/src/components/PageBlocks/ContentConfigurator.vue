@@ -1,5 +1,12 @@
 <template>
   <b-tab :title="$t('content.label')">
+    <b-button
+      variant="primary"
+      @click="editBlockTest"
+    >
+      Edit Block
+    </b-button>
+
     <b-form-group>
       <c-rich-text-input
         v-model="options.body"
@@ -29,5 +36,11 @@ export default {
   },
 
   extends: base,
+
+  methods: {
+    editBlockTest () {
+      this.$root.$emit('tab-editRequest', '4' /* Your block ID goes here for manual testing */)
+    },
+  },
 }
 </script>

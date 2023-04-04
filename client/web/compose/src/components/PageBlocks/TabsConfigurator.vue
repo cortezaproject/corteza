@@ -3,7 +3,12 @@
     <h5>
       {{ $t('tabs.displayTitle') }}
     </h5>
-
+    <b-button
+      variant="primary"
+      @click="edit"
+    >
+      Edit Block
+    </b-button>
     <b-row
       class="text-primary"
       no-gutters
@@ -317,6 +322,10 @@ export default {
   },
 
   methods: {
+    edit () {
+      this.$root.$emit('tab-editRequest', '4')
+    },
+
     createRequestFulfilled (tab) {
       this.updateTab(tab, this.activeIndex)
     },
