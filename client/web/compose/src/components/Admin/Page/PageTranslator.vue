@@ -39,6 +39,7 @@ export default {
     pageLayout: {
       type: compose.PageLayout,
       required: false,
+      default: undefined,
     },
 
     block: {
@@ -117,7 +118,7 @@ export default {
             }
 
             if (this.pageLayout) {
-               set = set.filter(({ resource }) => resource.endsWith(`${pageID}`) || resource.endsWith(`/${this.pageLayout.pageLayoutID}`))
+              set = set.filter(({ resource }) => resource.endsWith(`${pageID}`) || resource.endsWith(`/${this.pageLayout.pageLayoutID}`))
             }
 
             return set
