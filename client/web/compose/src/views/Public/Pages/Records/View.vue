@@ -18,6 +18,7 @@
     </portal>
 
     <grid
+      v-if="blocks"
       v-bind="$props"
       :errors="errors"
       :record="record"
@@ -159,7 +160,7 @@ export default {
       layouts: [],
       layout: undefined,
       layoutButtons: new Set(),
-      blocks: [],
+      blocks: undefined,
     }
   },
 
@@ -230,10 +231,11 @@ export default {
 
     'page.pageID': {
       immediate: true,
-      handler () {
+      handler (pageID) {
+        if (pageID === NoID) return
+
         this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
-        this.blocks = []
 
         this.determineLayout()
       },
@@ -389,6 +391,11 @@ export default {
 
         return this.$auth.user.roles.some(roleID => roles.includes(roleID))
       })
+
+      if (!this.layout) {
+        this.toastWarning('No page layout, create one to view the page')
+        return this.$router.go(-1)
+      }
 
       const { config = {} } = this.layout
       const { buttons = [] } = config
