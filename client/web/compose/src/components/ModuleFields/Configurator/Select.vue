@@ -142,13 +142,10 @@ export default {
     },
 
     defaultFieldOptionsState () {
-      const field = this.moduleDefaultState.fields.find(({ name }) => name === this.f.name)
+      const field = this.moduleDefaultState.fields.find(({ name }) => name === this.f.name) || {}
+      const { options = [] } = field.options
 
-      if (field) {
-        return field.options.options.map(({ value }) => value)
-      }
-
-      return []
+      return options.map(({ value }) => value)
     },
   },
 
