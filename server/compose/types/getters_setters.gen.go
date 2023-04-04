@@ -356,6 +356,9 @@ func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
 	case "weight", "Weight":
 		return r.Weight, nil
 
+	default:
+		return r.getValue(name, pos)
+
 	}
 	return nil, nil
 }
@@ -382,6 +385,9 @@ func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "weight", "Weight":
 		return cast2.Int(value, &r.Weight)
+
+	default:
+		return r.setValue(name, pos, value)
 
 	}
 	return nil

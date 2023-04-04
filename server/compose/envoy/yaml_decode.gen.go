@@ -435,10 +435,12 @@ func (d *auxYamlDoc) unmarshalChartNode(dctx documentContext, n *yaml.Node, meta
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ChartID"] = envoyx.Ref{
-				ResourceType: types.ChartResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ChartID"]; !ok {
+				a.References["ChartID"] = envoyx.Ref{
+					ResourceType: types.ChartResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -770,10 +772,12 @@ func (d *auxYamlDoc) unmarshalModuleNode(dctx documentContext, n *yaml.Node, met
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ModuleID"] = envoyx.Ref{
-				ResourceType: types.ModuleResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ModuleID"]; !ok {
+				a.References["ModuleID"] = envoyx.Ref{
+					ResourceType: types.ModuleResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -1129,10 +1133,12 @@ func (d *auxYamlDoc) unmarshalModuleFieldNode(dctx documentContext, n *yaml.Node
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ModuleFieldID"] = envoyx.Ref{
-				ResourceType: types.ModuleFieldResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ModuleFieldID"]; !ok {
+				a.References["ModuleFieldID"] = envoyx.Ref{
+					ResourceType: types.ModuleFieldResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -1477,10 +1483,12 @@ func (d *auxYamlDoc) unmarshalNamespaceNode(dctx documentContext, n *yaml.Node, 
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["NamespaceID"] = envoyx.Ref{
-				ResourceType: types.NamespaceResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["NamespaceID"]; !ok {
+				a.References["NamespaceID"] = envoyx.Ref{
+					ResourceType: types.NamespaceResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -1904,10 +1912,12 @@ func (d *auxYamlDoc) unmarshalPageNode(dctx documentContext, n *yaml.Node, meta 
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["SelfID"] = envoyx.Ref{
-				ResourceType: types.PageResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["SelfID"]; !ok {
+				a.References["SelfID"] = envoyx.Ref{
+					ResourceType: types.PageResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -2258,10 +2268,12 @@ func (d *auxYamlDoc) unmarshalPageLayoutNode(dctx documentContext, n *yaml.Node,
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["PageLayoutID"] = envoyx.Ref{
-				ResourceType: types.PageLayoutResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["PageLayoutID"]; !ok {
+				a.References["PageLayoutID"] = envoyx.Ref{
+					ResourceType: types.PageLayoutResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {

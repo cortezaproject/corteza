@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/cast2"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
@@ -41,8 +42,8 @@ type (
 	PageLayoutBlocks []PageLayoutBlock
 
 	PageLayoutBlock struct {
-		BlockID uint64         `json:"blockID,string,omitempty"`
-		XYWH    [4]int         `json:"xywh"` // x,y,w,h
+		BlockID uint64         `json:"blockID,string,omitempty" yaml:"blockID"`
+		XYWH    [4]int         `json:"xywh" yaml:"xywh"`
 		Meta    map[string]any `json:"meta,omitempty"`
 	}
 
@@ -206,6 +207,22 @@ func (set PageLayoutSet) FindByHandle(handle string) *PageLayout {
 		}
 	}
 
+	return nil
+}
+
+func (r *PageLayout) getValue(name string, pos uint) (any, error) {
+	switch name {
+	case "selfD", "SelfD":
+		return r.PageID, nil
+	}
+	return nil, nil
+}
+func (r *PageLayout) setValue(name string, pos uint, value any) (err error) {
+	switch name {
+	case "selfID", "SelfID":
+		return cast2.Uint64(value, &r.PageID)
+
+	}
 	return nil
 }
 

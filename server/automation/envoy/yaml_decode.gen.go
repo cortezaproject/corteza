@@ -430,10 +430,12 @@ func (d *auxYamlDoc) unmarshalWorkflowNode(dctx documentContext, n *yaml.Node, m
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["WorkflowID"] = envoyx.Ref{
-				ResourceType: types.WorkflowResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["WorkflowID"]; !ok {
+				a.References["WorkflowID"] = envoyx.Ref{
+					ResourceType: types.WorkflowResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -766,10 +768,12 @@ func (d *auxYamlDoc) unmarshalTriggerNode(dctx documentContext, n *yaml.Node, me
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["TriggerID"] = envoyx.Ref{
-				ResourceType: types.TriggerResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["TriggerID"]; !ok {
+				a.References["TriggerID"] = envoyx.Ref{
+					ResourceType: types.TriggerResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
