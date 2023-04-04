@@ -12,6 +12,10 @@ pageLayout: {
 
 	model: {
 		ident: "compose_page_layout"
+
+		defaultGetter: true
+		defaultSetter: true
+
 		attributes: {
 			id: schema.IdField
 			handle: schema.HandleField

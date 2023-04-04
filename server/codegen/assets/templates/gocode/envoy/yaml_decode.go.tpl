@@ -559,10 +559,12 @@ func (d *auxYamlDoc) unmarshal{{ .expIdent }}Node(dctx documentContext, n *yaml.
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["{{if .envoy.yaml.extendedResourceRefIdent}}{{.envoy.yaml.extendedResourceRefIdent}}{{else}}{{.expIdent}}ID{{end}}"] = envoyx.Ref{
-				ResourceType: types.{{ .expIdent }}ResourceType,
-				Identifiers: ii,
-				Scope: scope,
+			if _, ok := a.References["{{if .envoy.yaml.extendedResourceRefIdent}}{{.envoy.yaml.extendedResourceRefIdent}}{{else}}{{.expIdent}}ID{{end}}"]; !ok {
+				a.References["{{if .envoy.yaml.extendedResourceRefIdent}}{{.envoy.yaml.extendedResourceRefIdent}}{{else}}{{.expIdent}}ID{{end}}"] = envoyx.Ref{
+					ResourceType: types.{{ .expIdent }}ResourceType,
+					Identifiers: ii,
+					Scope: scope,
+				}
 			}
 
 			for f, ref := range a.References {
