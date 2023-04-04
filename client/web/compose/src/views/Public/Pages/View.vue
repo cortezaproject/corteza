@@ -29,6 +29,7 @@
           v-if="trPage"
           data-test-id="button-page-translations"
           :page.sync="trPage"
+          :page-layout.sync="layout"
           style="margin-left:2px;"
         />
         <b-button

@@ -145,6 +145,25 @@ func (p *PageLayout) decodeTranslations(tt locale.ResourceTranslationIndex) {
 
 	// @note not doing blocks because they are simply copied from the page's index
 
+	if aux = tt.FindByKey(LocaleKeyPageLayoutConfigButtonsNewLabel.Path); aux != nil {
+		p.Config.Buttons.New.Label = aux.Msg
+	}
+	if aux = tt.FindByKey(LocaleKeyPageLayoutConfigButtonsEditLabel.Path); aux != nil {
+		p.Config.Buttons.Edit.Label = aux.Msg
+	}
+	if aux = tt.FindByKey(LocaleKeyPageLayoutConfigButtonsSubmitLabel.Path); aux != nil {
+		p.Config.Buttons.Submit.Label = aux.Msg
+	}
+	if aux = tt.FindByKey(LocaleKeyPageLayoutConfigButtonsDeleteLabel.Path); aux != nil {
+		p.Config.Buttons.Delete.Label = aux.Msg
+	}
+	if aux = tt.FindByKey(LocaleKeyPageLayoutConfigButtonsCloneLabel.Path); aux != nil {
+		p.Config.Buttons.Clone.Label = aux.Msg
+	}
+	if aux = tt.FindByKey(LocaleKeyPageLayoutConfigButtonsBackLabel.Path); aux != nil {
+		p.Config.Buttons.Back.Label = aux.Msg
+	}
+
 	for i, action := range p.Config.Actions {
 		actionID := locale.ContentID(action.ActionID, i)
 		rpl := strings.NewReplacer(
@@ -152,7 +171,7 @@ func (p *PageLayout) decodeTranslations(tt locale.ResourceTranslationIndex) {
 		)
 
 		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDTitle.Path)); aux != nil {
-			p.Config.Actions[i].Label = aux.Msg
+			p.Config.Actions[i].Meta.Label = aux.Msg
 		}
 	}
 }
@@ -171,8 +190,8 @@ func (p *PageLayout) encodeTranslations() (out locale.ResourceTranslationSet) {
 
 		out = append(out, &locale.ResourceTranslation{
 			Resource: p.ResourceTranslation(),
-			Key:      rpl.Replace(LocaleKeyPageLayoutConfigActionsActionIDLabel.Path),
-			Msg:      action.Label,
+			Key:      rpl.Replace(LocaleKeyPageLayoutConfigActionsActionIDMetaLabel.Path),
+			Msg:      action.Meta.Label,
 		})
 	}
 
