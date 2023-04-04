@@ -48,6 +48,7 @@
     </portal>
 
     <div
+      v-if="blocks"
       class="flex-grow-1 overflow-auto d-flex px-2 w-100"
     >
       <router-view
@@ -118,7 +119,7 @@ export default {
     return {
       layouts: [],
       layout: undefined,
-      blocks: [],
+      blocks: undefined,
     }
   },
 
@@ -171,10 +172,11 @@ export default {
   watch: {
     'page.pageID': {
       immediate: true,
-      handler () {
+      handler (pageID) {
+        if (pageID === NoID) return
+
         this.layouts = []
         this.layout = undefined
-        this.blocks = []
 
         if (!this.isRecordPage) {
           this.determineLayout()
@@ -252,6 +254,11 @@ export default {
 
         return this.$auth.user.roles.some(roleID => roles.includes(roleID))
       })
+
+      if (!this.layout) {
+        this.toastWarning('No page layout, create one to view the page')
+        return this.$router.go(-1)
+      }
 
       const { meta = {} } = this.layout || {}
       const title = meta.title || this.page.title
