@@ -176,6 +176,11 @@ resources:
           specific: Delete record "{{target}}"
           title: Delete records of any module
           all-specific: Delete records of module "{{ target }}"
+        undelete:
+          description: 'Default: deny'
+          specific: Restore record "{{target}}"
+          title: Restore records of any module
+          all-specific: Restore records of module "{{ target }}"
         read:
           description: 'Default: deny'
           specific: Read record "{{target}}"
