@@ -96,7 +96,7 @@ export default {
             const tab = {
               // fetchID gets the blockID using the found block
               blockID: fetchID(updatedBlock),
-              title: updatedBlock.title,
+              title: t.title,
             }
 
             b.options.tabs.splice(j, 1, tab)
