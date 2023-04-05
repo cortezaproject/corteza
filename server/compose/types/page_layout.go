@@ -108,6 +108,8 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Label string `json:"label"`
+
+		Style map[string]any `json:"style,omitempty"`
 	}
 
 	PageLayoutFilter struct {
