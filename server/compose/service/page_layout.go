@@ -418,7 +418,7 @@ func (svc pageLayout) lookup(ctx context.Context, namespaceID uint64, lookup fun
 
 func (svc pageLayout) uniqueCheck(ctx context.Context, p *types.PageLayout) (err error) {
 	if p.Handle != "" {
-		if e, _ := store.LookupComposePageLayoutByNamespaceIDHandle(ctx, svc.store, p.NamespaceID, p.Handle); e != nil && e.ID != p.ID {
+		if e, _ := store.LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx, svc.store, p.NamespaceID, p.PageID, p.Handle); e != nil && e.ID != p.ID {
 			return PageLayoutErrHandleNotUnique()
 		}
 	}

@@ -185,6 +185,12 @@ pageLayout: {
 						searches for page layour by handle (case-insensitive)
 						"""
 				}, {
+					fields: ["namespace_id", "page_id", "handle"]
+					nullConstraint: ["deleted_at"]
+					description: """
+						searches for page layour by handle (case-insensitive)
+						"""
+				}, {
 					fields: ["id"]
 					description: """
 						searches for compose page layour by ID
