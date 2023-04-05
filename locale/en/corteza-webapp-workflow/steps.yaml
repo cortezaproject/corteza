@@ -27,6 +27,7 @@ expressions:
     add-expression: + Add Expression
     expression: Expression
     expression-placeholder: Expression...
+    target: Target
   label: Expressions
   short: Expressions
   tooltip: Define and mutate scope variables
@@ -39,6 +40,7 @@ function:
     option-select: Select an option
     result: Result
     results: Results
+    target: Target
     add-result: + Add result
     search-workflow: Search for a workflow
     select-function: Select function

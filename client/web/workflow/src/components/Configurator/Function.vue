@@ -403,18 +403,19 @@ export default {
       return [
         {
           key: 'target',
-          thClass: 'pl-3 py-2',
+          label: this.$t('steps:function.configurator.target'),
+          thClass: 'pl-3',
           tdClass: 'text-truncate pointer',
         },
         {
           key: 'type',
-          thClass: 'py-2',
+          label: this.$t('steps:function.configurator.type'),
           tdClass: 'text-truncate pointer',
         },
         {
           key: 'expr',
           label: this.$t('steps:function.configurator.result'),
-          thClass: 'pr-3 py-2',
+          thClass: 'mr-3',
           tdClass: 'position-relative pointer',
         },
       ]
