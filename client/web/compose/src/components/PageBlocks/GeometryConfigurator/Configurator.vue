@@ -102,31 +102,6 @@
         md="4"
       >
         <b-form-group
-          label-class="text-primary"
-          :label="$t('geometry.centerLabel')"
-        >
-          <b-input-group>
-            <b-form-input
-              v-model="options.center[0]"
-              type="number"
-              number
-              :placeholder="$t('latitude')"
-            />
-            <b-form-input
-              v-model="options.center[1]"
-              type="number"
-              number
-              :placeholder="$t('longitude')"
-            />
-          </b-input-group>
-        </b-form-group>
-      </b-col>
-
-      <b-col
-        sm="12"
-        md="4"
-      >
-        <b-form-group
           :label="$t('geometry.bounds.lockBounds')"
           class="rounded-left"
         >
