@@ -86,7 +86,7 @@ func getRelevantTranslations(ctx context.Context, s store.Storer) (out systemTyp
 		}
 
 		for _, l := range ll {
-			if strings.HasPrefix(l.K, "recordToolbar.") {
+			if !strings.HasPrefix(l.K, "pageBlock.") {
 				out = append(out, l)
 			}
 		}
@@ -130,11 +130,42 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 		}
 
 		// Translations
-		sr := strings.NewReplacer("recordToolbar", "config.buttons")
 		tt := translations.FilterResource(p.ResourceTranslation())
+
+		// Button translations
+		sr := strings.NewReplacer("recordToolbar", "config.buttons")
 		for _, t := range tt {
+			if !strings.HasPrefix(t.K, "recordToolbar.") {
+				continue
+			}
+
 			t.K = sr.Replace(t.K)
 			t.Resource = ly.ResourceTranslation()
+		}
+
+		// Title, description
+		x := tt.FilterKey(types.LocaleKeyPageTitle.Path)
+		for _, t := range x {
+			tt = append(tt, &systemTypes.ResourceTranslation{
+				ID:        nextID(),
+				Resource:  ly.ResourceTranslation(),
+				K:         types.LocaleKeyPageLayoutMetaTitle.Path,
+				Lang:      t.Lang,
+				Message:   t.Message,
+				CreatedAt: *n,
+			})
+		}
+
+		x = tt.FilterKey(types.LocaleKeyPageDescription.Path)
+		for _, t := range x {
+			tt = append(tt, &systemTypes.ResourceTranslation{
+				ID:        nextID(),
+				Resource:  ly.ResourceTranslation(),
+				K:         types.LocaleKeyPageLayoutMetaDescription.Path,
+				Lang:      t.Lang,
+				Message:   t.Message,
+				CreatedAt: *n,
+			})
 		}
 
 		// Blocks
