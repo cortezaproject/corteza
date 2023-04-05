@@ -147,7 +147,7 @@ export default {
 
 <style lang="css">
 
-.vs__dropdown-menu{
+.vs__dropdown-menu {
   min-width: auto;
 }
 
