@@ -339,6 +339,7 @@ type (
 		DeleteComposePageLayoutByID(ctx context.Context, id uint64) error
 		TruncateComposePageLayouts(ctx context.Context) error
 		LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, namespaceID uint64, handle string) (*composeType.PageLayout, error)
+		LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx context.Context, namespaceID uint64, pageID uint64, handle string) (*composeType.PageLayout, error)
 		LookupComposePageLayoutByID(ctx context.Context, id uint64) (*composeType.PageLayout, error)
 		ReorderComposePageLayouts(ctx context.Context, namespace_id uint64, page_id uint64, page_layout_ids []uint64) error
 	}
@@ -1902,6 +1903,13 @@ func TruncateComposePageLayouts(ctx context.Context, s ComposePageLayouts) error
 // This function is auto-generated
 func LookupComposePageLayoutByNamespaceIDHandle(ctx context.Context, s ComposePageLayouts, namespaceID uint64, handle string) (*composeType.PageLayout, error) {
 	return s.LookupComposePageLayoutByNamespaceIDHandle(ctx, namespaceID, handle)
+}
+
+// LookupComposePageLayoutByNamespaceIDPageIDHandle searches for page layour by handle (case-insensitive)
+//
+// This function is auto-generated
+func LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx context.Context, s ComposePageLayouts, namespaceID uint64, pageID uint64, handle string) (*composeType.PageLayout, error) {
+	return s.LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx, namespaceID, pageID, handle)
 }
 
 // LookupComposePageLayoutByID searches for compose page layour by ID
