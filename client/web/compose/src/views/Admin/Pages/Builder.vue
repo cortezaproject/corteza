@@ -777,7 +777,7 @@ export default {
         weight: this.layouts.length + 1,
       }
 
-      layout.meta.title = `${this.$t('copyOf')}${layout.meta.title}`
+      layout.meta.title = `${layout.meta.title}`
 
       this.createPageLayout(this.layout).then(({ layoutID }) => {
         return this.fetchPageLayouts().then(() => {
@@ -872,7 +872,7 @@ export default {
 
       this.layout = this.layout || this.layouts[0]
       if (!this.layout) {
-        this.toastWarning('No layout, create one to edit it')
+        this.toastWarning('notification:page.page-layout.notFound.edit')
         return this.$router.push(this.pageEditor)
       }
 
