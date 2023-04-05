@@ -165,6 +165,24 @@ resources:
           specific: Update page "{{target}}"
           title: Update any page
 
+    page-layout:
+      all: all page layouts
+      specific: page layout "{{target}}"
+      tooltip: Page layout permissions
+      operations:
+        delete:
+          description: 'Default: deny'
+          specific: Delete page layout "{{target}}"
+          title: Delete any page layout
+        read:
+          description: 'Default: deny'
+          specific: Read page layout "{{target}}"
+          title: Read any page layout
+        update:
+          description: 'Default: deny'
+          specific: Update page layout "{{target}}"
+          title: Update any page layout
+
     record:
       all: all records
       specific: record "{{target}}"

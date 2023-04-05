@@ -48,6 +48,8 @@ label:
   none: None
   now: Now
   ok: Ok
+  page: Page
+  pageLayout: Page layout
   pageBuilder: Page builder
   permissions: Permissions
   private: Private

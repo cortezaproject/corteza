@@ -47,6 +47,48 @@
     </portal>
 
     <b-container fluid="xl">
+      <div
+        class="d-flex align-items-center mt-1 mb-2"
+      >
+        <b-dropdown
+          v-if="page.canGrant || namespace.canGrant"
+          data-test-id="dropdown-permissions"
+          size="lg"
+          variant="light"
+          class="permissions-dropdown mr-1"
+        >
+          <template #button-content>
+            <font-awesome-icon :icon="['fas', 'lock']" />
+            <span>
+              {{ $t('general:label.permissions') }}
+            </span>
+          </template>
+
+          <b-dropdown-item>
+            <c-permissions-button
+              v-if="namespace.canGrant"
+              :title="page.title || page.handle || page.pageID"
+              :target="page.title || page.handle || page.pageID"
+              :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
+              :button-label="$t('general:label.page')"
+              :show-button-icon="false"
+              button-variant="white text-left w-100"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item>
+            <c-permissions-button
+              :title="page.title || page.handle || page.pageID"
+              :target="page.title || page.handle || page.pageID"
+              :resource="`corteza::compose:page-layout/${namespace.namespaceID}/${page.pageID}/*`"
+              :button-label="$t('general:label.pageLayout')"
+              :show-button-icon="false"
+              button-variant="white text-left w-100"
+            />
+          </b-dropdown-item>
+        </b-dropdown>
+      </div>
+
       <b-card
         no-body
         class="shadow-sm"
@@ -193,19 +235,19 @@
 
                     <th
                       class="text-primary"
-                      style="width: 45%; min-width: 200px;"
+                      style="min-width: 300px;"
                     >
                       {{ $t('page-layout.title') }}
                     </th>
 
                     <th
                       class="text-primary"
-                      style="width: 45%; min-width: 200px;"
+                      style="min-width: 300px;"
                     >
                       {{ $t('page-layout.handle') }}
                     </th>
 
-                    <th style="width: 80px;" />
+                    <th style="min-width: 100px;" />
                   </tr>
                 </b-thead>
 
@@ -259,6 +301,7 @@
                           <b-button
                             variant="light"
                             class="d-flex align-items-center px-3"
+                            :title="$t('page-layout.tooltip.configure')"
                             style="margin-left:2px;"
                             @click="configureLayout(index)"
                           >
@@ -270,6 +313,7 @@
                           <b-button
                             variant="primary"
                             :disabled="layout.pageLayoutID === '0'"
+                            :title="$t('page-layout.tooltip.builder')"
                             class="d-flex align-items-center"
                             :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
                           >
@@ -284,20 +328,35 @@
                     <td
                       class="text-center align-middle"
                     >
+                      <c-permissions-button
+                        v-if="page.canGrant && layout.pageLayoutID !== '0'"
+                        button-variant="link"
+                        :title="layout.meta.title || layout.handle || layout.pageLayoutID"
+                        :target="layout.meta.title || layout.handle || layout.pageLayoutID"
+                        :tooltip="$t('permissions:resources.compose.page-layout.tooltip')"
+                        :resource="`corteza::compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`"
+                        class="text-dark px-0 mr-3"
+                      />
+
                       <c-input-confirm
-                        class="ml-2"
                         @confirmed="removeLayout(index)"
                       />
                     </td>
                   </tr>
                 </draggable>
+
+                <tr>
+                  <td />
+                  <td>
+                    <b-button
+                      variant="primary"
+                      @click="addLayout"
+                    >
+                      {{ $t('page-layout.add') }}
+                    </b-button>
+                  </td>
+                </tr>
               </b-table-simple>
-              <b-button
-                variant="primary"
-                @click="addLayout"
-              >
-                {{ $t('page-layout.add') }}
-              </b-button>
             </b-form-group>
           </b-col>
         </b-form-row>
@@ -359,7 +418,7 @@
         <hr>
 
         <h5 class="mb-3">
-          {{ $t('page-layout.recordToolbar') }}
+          {{ $t('page-layout.recordToolbar.label') }}
         </h5>
 
         <b-form-group
@@ -399,7 +458,7 @@
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.submit.enabled"
           >
-            {{ $t('page-layout.recordToolbar.buttons.showEdit') }}
+            {{ $t('page-layout.recordToolbar.buttons.showSave') }}
           </b-form-checkbox>
         </b-form-group>
 
@@ -418,20 +477,20 @@
 
                 <th
                   class="text-primary"
-                  style="width: 25%; min-width: 190px;"
+                  style="min-width: 250px;"
                 >
                   {{ $t('page-layout.recordToolbar.actions.buttonLabel') }}
                 </th>
 
                 <th
                   class="text-primary"
-                  style="width: 25%; min-width: 240px;"
+                  style="min-width: 250px;"
                 >
                   {{ $t('page-layout.recordToolbar.actions.layout.label') }}
                 </th>
 
                 <th
-                  style="min-width: 100px;"
+                  style="min-width: 150px;"
                   class="text-primary"
                 >
                   {{ $t('page-layout.recordToolbar.actions.variant') }}
@@ -528,13 +587,19 @@
                 </b-td>
               </tr>
             </draggable>
+
+            <tr>
+              <td />
+              <td>
+                <b-button
+                  variant="primary"
+                  @click="addLayoutAction"
+                >
+                  {{ $t('page-layout.recordToolbar.actions.add') }}
+                </b-button>
+              </td>
+            </tr>
           </b-table-simple>
-          <b-button
-            variant="primary"
-            @click="addLayoutAction"
-          >
-            Add action
-          </b-button>
         </b-form-group>
       </template>
     </b-modal>
@@ -899,7 +964,7 @@ export default {
 
     async fetchLayouts () {
       const { namespaceID } = this.namespace
-      return this.findLayoutsByPageID({ namespaceID, pageID: this.pageID }).then(layouts => {
+      return this.findLayoutsByPageID({ namespaceID, pageID: this.pageID, force: true }).then(layouts => {
         this.layouts = layouts
       })
     },
@@ -1078,5 +1143,13 @@ export default {
 <style lang="scss" scoped>
 .selected-icon {
   outline: 2px solid $success;
+}
+</style>
+
+<style lang="scss">
+.permissions-dropdown {
+  .dropdown-item {
+    padding: 0;
+  }
 }
 </style>

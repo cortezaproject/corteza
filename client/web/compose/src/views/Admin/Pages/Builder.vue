@@ -872,7 +872,7 @@ export default {
 
       this.layout = this.layout || this.layouts[0]
       if (!this.layout) {
-        this.toastWarning('notification:page.page-layout.notFound.edit')
+        this.toastWarning(this.$t('notification:page.page-layout.notFound.edit'))
         return this.$router.push(this.pageEditor)
       }
 
