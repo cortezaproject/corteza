@@ -79,6 +79,9 @@ namespace:
   imported: Namespace imported
   importFailed: Namespace failed to import
 page:
+  block:
+    calendar:
+      eventFetchFailed: Could not fetch  list of events
   createFailed: Could not create a page
   cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page

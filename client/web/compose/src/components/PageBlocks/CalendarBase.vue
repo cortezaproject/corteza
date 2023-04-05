@@ -352,9 +352,9 @@ export default {
 
     refresh () {
       this.refreshing = true
-      this.api().refetchEvents().then(() => {
-        this.key++
-      })
+      new Promise(resolve => resolve(this.api().refetchEvents()))
+        .then(() => this.key++)
+        .catch(() => this.toastErrorHandler(this.$t('notification:page.block.calendar.eventFetchFailed')))
     },
   },
 }
