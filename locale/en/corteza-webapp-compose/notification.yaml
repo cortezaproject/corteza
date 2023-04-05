@@ -99,6 +99,9 @@ page:
   copyFailed: Could not copy block {{reason}}
   invalidBlock: Not a valid page-block
   page-layout:
+    notFound:
+      edit: No page layout, create one to edit it
+      view: No page layout found, create one to view the page
     save:
       success: Layout saved
       failed: Failed to save layout

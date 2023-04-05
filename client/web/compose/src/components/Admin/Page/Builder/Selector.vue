@@ -49,14 +49,14 @@
             :get-option-key="b => b.blockID"
             :options="existingBlocks"
             :calculate-position="calculateDropdownPosition"
-            placeholder="Blocks from other layouts"
+            :placeholder="$t('selector.selectableBlocks.placeholder')"
             append-to-body
             class="block-selector bg-white position-relative"
           />
 
           <b-input-group-append>
             <b-button
-              title="Clone block without reference"
+              :title="$t('selector.tooltip.clone.noRef')"
               variant="light"
               :disabled="!selectedExistingBlock"
               class="d-flex align-items-center"
@@ -67,7 +67,7 @@
               />
             </b-button>
             <b-button
-              title="Copy block with references"
+              :title="$t('selector.tooltip.clone.ref')"
               variant="light"
               :disabled="!selectedExistingBlock"
               class="d-flex align-items-center"

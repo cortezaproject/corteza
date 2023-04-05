@@ -195,14 +195,14 @@
                       class="text-primary"
                       style="width: 45%; min-width: 200px;"
                     >
-                      Title *
+                      {{ $t('page-layout.title') }}
                     </th>
 
                     <th
                       class="text-primary"
                       style="width: 45%; min-width: 200px;"
                     >
-                      Handle
+                      {{ $t('page-layout.handle') }}
                     </th>
 
                     <th style="width: 80px;" />
@@ -229,10 +229,21 @@
                     <b-td
                       class="align-middle"
                     >
-                      <b-form-input
-                        v-model="layout.meta.title"
-                        :state="layoutTitleState(layout.meta.title)"
-                      />
+                      <b-input-group>
+                        <b-form-input
+                          v-model="layout.meta.title"
+                          :state="layoutTitleState(layout.meta.title)"
+                        />
+
+                        <b-input-group-append>
+                          <page-layout-translator
+                            :page-layout="layout"
+                            :disabled="layout.pageLayoutID === '0'"
+                            highlight-key="meta.title"
+                            button-variant="light"
+                          />
+                        </b-input-group-append>
+                      </b-input-group>
                     </b-td>
 
                     <b-td
@@ -260,17 +271,12 @@
                             variant="primary"
                             :disabled="layout.pageLayoutID === '0'"
                             class="d-flex align-items-center"
-                            style="margin-left:2px;"
                             :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
                           >
                             <font-awesome-icon
                               :icon="['far', 'edit']"
                             />
                           </b-button>
-                          <page-layout-translator
-                            :page-layout="layout"
-                            style="margin-left:2px;"
-                          />
                         </b-input-group-append>
                       </b-input-group>
                     </b-td>
@@ -290,7 +296,7 @@
                 variant="primary"
                 @click="addLayout"
               >
-                Add layout
+                {{ $t('page-layout.add') }}
               </b-button>
             </b-form-group>
           </b-col>
@@ -301,7 +307,7 @@
     <b-modal
       v-if="layoutEditor.layout"
       :visible="!!layoutEditor.layout"
-      title="Configure layout"
+      :title="$t('page-layout.configure', { title: ((layoutEditor.layout || {}).meta || {}).title})"
       :ok-title="$t('general:label.saveAndClose')"
       ok-variant="primary"
       cancel-variant="link"
@@ -311,11 +317,11 @@
       @hide="layoutEditor.layout = undefined"
     >
       <h5 class="mb-3">
-        Visibility
+        {{ $t('page-layout.visibility') }}
       </h5>
 
       <b-form-group
-        label="Condition"
+        :label="$t('page-layout.condition.label')"
         label-class="text-primary"
       >
         <b-input-group>
@@ -326,20 +332,20 @@
           </b-input-group-prepend>
           <b-form-input
             v-model="layoutEditor.layout.config.visibility.expression"
-            placeholder="When will the layout be shown"
+            :placeholder="$t('page-layout.condition.placeholder')"
           />
         </b-input-group>
       </b-form-group>
 
       <b-form-group
-        label="Roles"
+        :label="$t('page-layout.roles.label')"
         label-class="text-primary"
       >
         <vue-select
           v-model="currentLayoutRoles"
           :options="roles.options"
           :loading="roles.processing"
-          placeholder="Pick roles that the layout will be shown to"
+          :placeholder="$t('page-layout.roles.placeholder')"
           :get-option-label="role => role.name"
           :reduce="role => role.roleID"
           :selectable="role => !currentLayoutRoles.includes(role.roleID)"
@@ -353,52 +359,52 @@
         <hr>
 
         <h5 class="mb-3">
-          Record toolbar
+          {{ $t('page-layout.recordToolbar') }}
         </h5>
 
         <b-form-group
-          label="Buttons"
+          :label="$t('page-layout.recordToolbar.buttons.label')"
           label-class="text-primary"
         >
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.back.enabled"
           >
-            Show back button
+            {{ $t('page-layout.recordToolbar.buttons.showBack') }}
           </b-form-checkbox>
 
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.delete.enabled"
           >
-            Show delete button
+            {{ $t('page-layout.recordToolbar.buttons.showDelete') }}
           </b-form-checkbox>
 
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.clone.enabled"
           >
-            Show clone button
+            {{ $t('page-layout.recordToolbar.buttons.showClone') }}
           </b-form-checkbox>
 
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.new.enabled"
           >
-            Show new button
+            {{ $t('page-layout.recordToolbar.buttons.showNew') }}
           </b-form-checkbox>
 
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.edit.enabled"
           >
-            Show edit button
+            {{ $t('page-layout.recordToolbar.buttons.showEdit') }}
           </b-form-checkbox>
 
           <b-form-checkbox
             v-model="layoutEditor.layout.config.buttons.submit.enabled"
           >
-            Show submit button
+            {{ $t('page-layout.recordToolbar.buttons.showEdit') }}
           </b-form-checkbox>
         </b-form-group>
 
         <b-form-group
-          label="Actions"
+          :label="$t('page-layout.recordToolbar.actions.label')"
           label-class="text-primary"
         >
           <b-table-simple
@@ -414,35 +420,35 @@
                   class="text-primary"
                   style="width: 25%; min-width: 190px;"
                 >
-                  Label
+                  {{ $t('page-layout.recordToolbar.actions.buttonLabel') }}
                 </th>
 
                 <th
                   class="text-primary"
                   style="width: 25%; min-width: 240px;"
                 >
-                  Redirect to layout
+                  {{ $t('page-layout.recordToolbar.actions.layout.label') }}
                 </th>
 
                 <th
                   style="min-width: 100px;"
                   class="text-primary"
                 >
-                  Variant
+                  {{ $t('page-layout.recordToolbar.actions.variant') }}
                 </th>
 
                 <th
                   style="min-width: 100px;"
                   class="text-primary"
                 >
-                  Placement
+                  {{ $t('page-layout.recordToolbar.actions.placement.label') }}
                 </th>
 
                 <th
                   style="min-width: 80px;"
                   class="text-primary text-center"
                 >
-                  Visible
+                  {{ $t('page-layout.recordToolbar.actions.visible') }}
                 </th>
 
                 <th style="min-width: 80px;" />
@@ -819,15 +825,9 @@ export default {
       },
     },
 
-    actionKindOptions () {
-      return [
-        { value: 'toLayout', text: 'Go to layout' },
-      ]
-    },
-
     actionLayoutOptions () {
       return [
-        { pageLayoutID: '', label: 'No route selected' },
+        { pageLayoutID: '', label: this.$t('page-layout.recordToolbar.actions.layout.placeholder') },
         ...this.layouts.filter(({ pageLayoutID }) => pageLayoutID !== NoID)
           .map(({ pageLayoutID, handle, meta }) => ({ pageLayoutID, label: meta.title || handle || pageLayoutID })),
       ]
@@ -835,22 +835,22 @@ export default {
 
     actionPlacementOptions () {
       return [
-        { value: 'start', text: 'Start' },
-        { value: 'center', text: 'Center' },
-        { value: 'end', text: 'End' },
+        { value: 'start', text: this.$t('page-layout.recordToolbar.actions.placement.start') },
+        { value: 'center', text: this.$t('page-layout.recordToolbar.actions.placement.center') },
+        { value: 'end', text: this.$t('page-layout.recordToolbar.actions.placement.end') },
       ]
     },
 
     actionVariantOptions () {
       return [
-        { text: this.$t('general:variants.primary'), value: 'primary' },
-        { text: this.$t('general:variants.secondary'), value: 'secondary' },
-        { text: this.$t('general:variants.success'), value: 'success' },
-        { text: this.$t('general:variants.warning'), value: 'warning' },
-        { text: this.$t('general:variants.danger'), value: 'danger' },
-        { text: this.$t('general:variants.info'), value: 'info' },
-        { text: this.$t('general:variants.light'), value: 'light' },
-        { text: this.$t('general:variants.dark'), value: 'dark' },
+        { value: 'primary', text: this.$t('general:variants.primary') },
+        { value: 'secondary', text: this.$t('general:variants.secondary') },
+        { value: 'success', text: this.$t('general:variants.success') },
+        { value: 'warning', text: this.$t('general:variants.warning') },
+        { value: 'danger', text: this.$t('general:variants.danger') },
+        { value: 'info', text: this.$t('general:variants.info') },
+        { value: 'light', text: this.$t('general:variants.light') },
+        { value: 'dark', text: this.$t('general:variants.dark') },
       ]
     },
   },
