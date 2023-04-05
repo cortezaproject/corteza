@@ -96,19 +96,18 @@
       class="text-right align-middle pr-2"
       style="min-width: 100px;"
     >
-      <c-input-confirm
-        :no-prompt="!value.name"
-        class="mr-2"
-        @confirmed="$emit('delete')"
-      />
       <c-permissions-button
         v-if="canGrant && exists"
-        class="text-dark px-0"
+        class="text-dark px-0 mr-2"
         button-variant="link"
         :title="value.label || value.name || value.fieldID"
         :target="value.label || value.name || value.fieldID"
         :tooltip="$t('permissions:resources.compose.module-field.tooltip')"
         :resource="`corteza::compose:module-field/${module.namespaceID}/${module.moduleID}/${value.fieldID}`"
+      />
+
+      <c-input-confirm
+        @confirmed="$emit('delete')"
       />
     </td>
   </tr>

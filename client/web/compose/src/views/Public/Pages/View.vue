@@ -48,7 +48,6 @@
     </portal>
 
     <div
-      v-if="blocks"
       class="flex-grow-1 overflow-auto d-flex px-2 w-100"
     >
       <router-view
@@ -60,7 +59,7 @@
       />
 
       <grid
-        v-else
+        v-else-if="blocks"
         :namespace="namespace"
         :module="module"
         :page="page"
@@ -256,7 +255,7 @@ export default {
       })
 
       if (!this.layout) {
-        this.toastWarning('notification:page.page-layout.notFound.view')
+        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
         return this.$router.go(-1)
       }
 

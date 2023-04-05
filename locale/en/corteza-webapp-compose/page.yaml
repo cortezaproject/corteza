@@ -4,6 +4,9 @@ page-layout:
   add: Add layout
   configure: 'Configure layout - "{{title}}"'
   visibility: Visibility
+  tooltip:
+    configure: Configure layout
+    builder: Open layout in builder
   condition:
     label: Condition
     placeholder: When will the layout be shown
@@ -11,6 +14,7 @@ page-layout:
     label: Roles
     placeholder: Pick roles that the layout will be shown to
   recordToolbar:
+    label: Record toolbar
     buttons:
       label: Buttons
       showBack: Show "Back" button
@@ -21,6 +25,7 @@ page-layout:
       showSave: Show "Save" button
     actions:
       label: Actions
+      add: Add action
       buttonLabel: Label
       variant: Variant
       visible: Visible

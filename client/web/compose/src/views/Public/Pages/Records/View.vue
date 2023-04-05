@@ -393,7 +393,7 @@ export default {
       })
 
       if (!this.layout) {
-        this.toastWarning('notification:page.page-layout.notFound.view')
+        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
         return this.$router.go(-1)
       }
 
