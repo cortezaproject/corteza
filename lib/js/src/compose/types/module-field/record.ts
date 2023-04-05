@@ -12,6 +12,7 @@ interface RecordOptions extends Options {
   queryFields: Array<string>;
   selectType: string;
   multiDelimiter: string;
+  isUniqueMultiValue: boolean;
   prefilter?: string;
 }
 
@@ -23,6 +24,7 @@ const defaults = (): Readonly<RecordOptions> => Object.freeze({
   queryFields: [],
   selectType: '',
   multiDelimiter: '\n',
+  isUniqueMultiValue: false,
   prefilter: undefined,
 })
 
@@ -42,6 +44,7 @@ export class ModuleFieldRecord extends ModuleField {
 
     Apply(this.options, o, CortezaID, 'moduleID')
     Apply(this.options, o, String, 'labelField', 'recordLabelField', 'selectType', 'multiDelimiter', 'prefilter')
+    Apply(this.options, o, Boolean, 'isUniqueMultiValue')
     Apply(this.options, o, (o) => {
       if (!o) {
         return []

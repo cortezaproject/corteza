@@ -107,6 +107,7 @@ kind:
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232
   select:
+    allow-duplicates: Allow duplicates
     label: Select
     optionAdd: Add
     optionLabelPlaceholder: Label

@@ -83,7 +83,17 @@
           v-model="f.options.selectType"
           :options="selectOptions"
           stacked
+          @change="onUpdateIsUniqueMultiValue"
         />
+        <b-form-checkbox
+          v-if="f.options.selectType !== 'multiple'"
+          v-model="f.options.isUniqueMultiValue"
+          :value="false"
+          :unchecked-value="true"
+          class="mt-2"
+        >
+          {{ $t('kind.select.allow-duplicates') }}
+        </b-form-checkbox>
       </b-form-group>
     </b-col>
   </b-row>
@@ -155,6 +165,12 @@ export default {
       if (this.newOption.value) {
         this.f.options.options.push(this.newOption)
         this.newOption = { value: undefined, text: undefined, new: true }
+      }
+    },
+
+    onUpdateIsUniqueMultiValue () {
+      if (this.f.options.selectType === 'multiple') {
+        this.f.options.isUniqueMultiValue = true
       }
     },
   },

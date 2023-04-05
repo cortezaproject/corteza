@@ -308,7 +308,7 @@ export default {
       if (value !== crtValue) {
         if (value) {
           if (index !== undefined) {
-            this.value[index] = value
+            this.value.splice(index, 1, value)
           } else {
             this.value = value
           }
@@ -330,7 +330,9 @@ export default {
       return {
         value: r.recordID,
         label: this.processing ? '' : this.recordValues[r.recordID] || r.recordID,
-        selectable: this.field.isMulti ? !(this.value || []).includes(r.recordID) : this.value !== r.recordID,
+        selectable: this.field.isMulti && !this.field.options.isUniqueMultiValue
+          ? this.value !== r.recordID
+          : !(this.value || []).includes(r.recordID),
       }
     },
 
@@ -493,10 +495,6 @@ export default {
           this.$refs.singleSelect._data._value = undefined
         }
       }
-    },
-
-    onOpen () {
-      // this.loadLatest()
     },
 
     goToPage (next = true) {
