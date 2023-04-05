@@ -511,6 +511,11 @@ func (svc pageLayout) handleUpdate(ctx context.Context, upd *types.PageLayout) p
 			changes |= pageLayoutChanged
 		}
 
+		if !reflect.DeepEqual(res.Meta.Style, upd.Meta.Style) {
+			res.Meta.Style = upd.Meta.Style
+			changes |= pageLayoutChanged
+		}
+
 		if res.Primary != upd.Primary {
 			res.Primary = upd.Primary
 			changes |= pageLayoutChanged
