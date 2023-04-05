@@ -194,7 +194,12 @@ export default {
 
     options () {
       return this.users.map(u => {
-        return { ...u, selectable: this.field.isMulti ? !(this.value || []).includes(u.userID) : this.value !== u.userID }
+        return {
+          ...u,
+          selectable: this.field.isMulti && !this.field.options.isUniqueMultiValue
+            ? this.value !== u.userID
+            : !(this.value || []).includes(u.userID),
+        }
       })
     },
 

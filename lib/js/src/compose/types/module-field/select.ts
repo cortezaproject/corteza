@@ -10,6 +10,7 @@ interface SelectOptions extends Options {
   options: Array<string | { value: string; text?: string }>;
   selectType: string;
   multiDelimiter: string;
+  isUniqueMultiValue: boolean;
 }
 
 const defaults = (): Readonly<SelectOptions> => Object.freeze({
@@ -17,6 +18,7 @@ const defaults = (): Readonly<SelectOptions> => Object.freeze({
   options: [],
   selectType: 'default',
   multiDelimiter: '\n',
+  isUniqueMultiValue: false,
 })
 
 export class ModuleFieldSelect extends ModuleField {
@@ -34,6 +36,7 @@ export class ModuleFieldSelect extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, String, 'selectType', 'multiDelimiter')
+    Apply(this.options, o, Boolean, 'isUniqueMultiValue')
 
     if (o.options) {
       let opt: Array<{ value: string; text: string }> = []

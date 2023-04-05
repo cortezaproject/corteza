@@ -11,6 +11,7 @@ interface UserOptions extends Options {
   presetWithAuthenticated: boolean;
   selectType: string;
   multiDelimiter: string;
+  isUniqueMultiValue: boolean;
 }
 
 const defaults = (): Readonly<UserOptions> => Object.freeze({
@@ -19,6 +20,7 @@ const defaults = (): Readonly<UserOptions> => Object.freeze({
   presetWithAuthenticated: false,
   selectType: 'default',
   multiDelimiter: '\n',
+  isUniqueMultiValue: false,
 })
 
 export class ModuleFieldUser extends ModuleField {
@@ -35,7 +37,7 @@ export class ModuleFieldUser extends ModuleField {
     if (!o) return
     super.applyOptions(o)
 
-    Apply(this.options, o, Boolean, 'presetWithAuthenticated')
+    Apply(this.options, o, Boolean, 'presetWithAuthenticated', 'isUniqueMultiValue')
     Apply(this.options, o, String, 'selectType', 'multiDelimiter')
     Apply(this.options, o, (o) => {
       if (!o) {
