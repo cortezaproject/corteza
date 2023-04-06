@@ -119,6 +119,8 @@ export default {
       layouts: [],
       layout: undefined,
       blocks: undefined,
+
+      pageTitle: '',
     }
   },
 
@@ -149,16 +151,6 @@ export default {
       },
     },
 
-    pageTitle () {
-      if (this.page.pageID !== NoID && this.layout) {
-        const { title = '', handle = '' } = this.page
-        const { meta = {} } = this.layout
-        return meta.title || title || handle || this.$t('navigation:noPageTitle')
-      }
-
-      return ''
-    },
-
     pageEditor () {
       return { name: 'admin.pages.edit', params: { pageID: this.page.pageID } }
     },
@@ -179,6 +171,8 @@ export default {
 
         if (!this.isRecordPage) {
           this.determineLayout()
+        } else {
+          this.blocks = []
         }
 
         // If the page changed we need to clear the record pagination since its not relevant anymore
@@ -259,8 +253,9 @@ export default {
         return this.$router.go(-1)
       }
 
-      const { meta = {} } = this.layout || {}
+      const { handle, meta = {} } = this.layout || {}
       const title = meta.title || this.page.title
+      this.pageTitle = title || handle || this.$t('navigation:noPageTitle')
       document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
 
       this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
