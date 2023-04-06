@@ -275,6 +275,7 @@
                         <b-form-input
                           v-model="layout.meta.title"
                           :state="layoutTitleState(layout.meta.title)"
+                          @input="layout.meta.updated = true"
                         />
 
                         <b-input-group-append>
@@ -295,6 +296,7 @@
                         <b-form-input
                           v-model="layout.handle"
                           :state="layoutHandleState(layout.handle)"
+                          @input="layout.meta.updated = true"
                         />
 
                         <b-input-group-append>
@@ -1008,6 +1010,7 @@ export default {
       // Delete first so old deleted handles don't interfere with new identical ones
       return Promise.all([...this.removedLayouts].map(this.deletePageLayout)).then(() => {
         return Promise.all(this.layouts.map(layout => {
+          console.log(layout)
           if (layout.pageLayoutID === NoID) {
             return this.createPageLayout(layout)
           } else if (layout.meta.updated) {
