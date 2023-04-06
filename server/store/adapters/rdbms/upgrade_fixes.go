@@ -236,7 +236,7 @@ func fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings(ctx context.Cont
 
 func fix_2023_03_00_migrateComposePageMeta(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
-		"compose_record",
+		"compose_page",
 		model.Page.Attributes.FindByIdent("meta"),
 	)
 }
