@@ -73,6 +73,7 @@
                       <vue-select
                         v-model="chart.config.colorScheme"
                         :options="colorSchemes"
+                        :get-option-key="getOptionKey"
                         :reduce="cs => cs.value"
                         label="label"
                         option-text="label"
@@ -545,6 +546,10 @@ export default {
 
     onAddReport () {
       this.reports.push(this.chart.defReport())
+    },
+
+    getOptionKey ({ value }) {
+      return value
     },
   },
 }

@@ -9,6 +9,7 @@
       <vue-select
         v-model="value"
         :options="options"
+        :get-option-key="getOptionKey"
         :loading="processing"
         append-to-body
         :calculate-position="calculatePosition"
@@ -286,6 +287,10 @@ export default {
 
     goToPage (next = true) {
       this.filter.pageCursor = next ? this.filter.nextPage : this.filter.prevPage
+    },
+
+    getOptionKey ({ recordID }) {
+      return recordID
     },
   },
 }

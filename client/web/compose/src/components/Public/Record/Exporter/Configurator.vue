@@ -30,8 +30,9 @@
         v-if="forTimezone"
         v-model="exportTimezone"
         :options="timezones"
-        class="bg-white"
+        :get-option-key="getOptionKey"
         :placeholder="$t('recordList.export.timezonePlaceholder')"
+        class="bg-white"
       />
     </b-form-group>
 
@@ -643,6 +644,10 @@ export default {
             this.processingCount = false
           })
       }
+    },
+
+    getOptionKey ({ tzCode }) {
+      return tzCode
     },
   },
 }

@@ -226,6 +226,7 @@
           v-model="add.roleID"
           :data-test-id="`select-${add.mode}-roles`"
           :options="availableRoles"
+          :get-option-key="getOptionRoleKey"
           :multiple="add.mode === 'eval'"
           label="name"
           clearable
@@ -246,6 +247,7 @@
           v-model="add.userID"
           :data-test-id="`select-${add.mode}-users`"
           :disabled="!!add.roleID.length"
+          :get-option-key="getOptionUserKey"
           :options="userOptions"
           :get-option-label="getUserLabel"
           label="name"
@@ -492,6 +494,14 @@ export default {
 
     onHideRole (role) {
       this.$emit('hide', role)
+    },
+
+    getOptionRoleKey ({ roleID }) {
+      return roleID
+    },
+
+    getOptionUserKey ({ userID }) {
+      return userID
     },
   },
 }

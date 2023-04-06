@@ -179,6 +179,7 @@
                   v-model="edit.metricField"
                   :placeholder="$t('metric.edit.metricFieldSelect')"
                   :options="metricFields"
+                  :get-option-key="getOptionMetricFieldKey"
                   :reduce="f => f.name"
                   :calculate-position="calculateDropdownPosition"
                   class="bg-white"
@@ -193,6 +194,7 @@
                   :disabled="edit.metricField === 'count'"
                   :placeholder="$t('metric.edit.metricSelectAggregate')"
                   :options="aggregationOperations"
+                  :get-option-key="getOptionAggregationOperationKey"
                   :reduce="a => a.operation"
                   :calculate-position="calculateDropdownPosition"
                   class="bg-white"
@@ -414,6 +416,14 @@ export default {
 
     isTemporalField (name) {
       return !!this.fields.find(f => f.name === name && f.kind === 'DateTime')
+    },
+
+    getOptionMetricFieldKey ({ name }) {
+      return name
+    },
+
+    getOptionAggregationOperationKey ({ operation }) {
+      return operation
     },
   },
 }

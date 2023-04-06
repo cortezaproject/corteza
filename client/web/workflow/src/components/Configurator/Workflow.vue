@@ -47,6 +47,7 @@
         :options="user.options"
         data-test-id="select-run-as"
         :get-option-label="getOptionLabel"
+        :get-option-key="getOptionKey"
         :value="user.value"
         @search="search"
         @input="updateRunAs"

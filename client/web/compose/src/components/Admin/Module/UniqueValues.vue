@@ -82,6 +82,7 @@
               v-model="rule.currentField"
               :placeholder="$t('searchFields')"
               :get-option-label="getOptionLabel"
+              :get-option-key="getOptionKey"
               :options="filterFieldOptions(rule)"
               :calculate-position="calculateDropdownPosition"
               class="bg-white"
@@ -210,6 +211,10 @@ export default {
 
     getOptionLabel ({ kind, label, name }) {
       return label || name || kind
+    },
+
+    getOptionKey ({ fieldID }) {
+      return fieldID
     },
   },
 }

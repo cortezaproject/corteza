@@ -28,6 +28,7 @@
           <vue-select
             v-model="functionRef"
             :options="functionTypes"
+            :get-option-key="getOptionTypeKey"
             label="text"
             :selectable="f => !f.disabled"
             :reduce="f => f.value"
@@ -105,6 +106,7 @@
                 <vue-select
                   v-model="a.type"
                   :options="(paramTypes[functionRef][a.target] || [])"
+                  :get-option-key="getOptionParamKey"
                   :filter="argTypeFilter"
                   :clearable="false"
                   @input="$root.$emit('change-detected')"
@@ -124,6 +126,7 @@
                     v-model="a.value"
                     :options="workflowOptions"
                     :get-option-label="getWorkflowLabel"
+                    :get-option-key="getOptionWorkflowKey"
                     :reduce="wf => a.type === 'ID' ? wf.workflowID : wf.handle"
                     clearable
                     :placeholder="$t('steps:function.configurator.search-workflow')"
@@ -136,6 +139,7 @@
                     v-else-if="a.input.type === 'select'"
                     v-model="a.value"
                     :options="a.input.properties.options"
+                    :get-option-key="getOptionTypeKey"
                     label="text"
                     :filter="varFilter"
                     :reduce="a => a.value"
@@ -657,6 +661,18 @@ export default {
       }
 
       return typeDescriptions[type]
+    },
+
+    getOptionTypeKey ({ value }) {
+      return value
+    },
+
+    getOptionEWorkflowLabelKey ({ workflowID }) {
+      return workflowID
+    },
+
+    getOptionParamKey (type) {
+      return type
     },
   },
 }

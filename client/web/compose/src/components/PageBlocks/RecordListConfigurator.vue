@@ -314,6 +314,7 @@
                         v-model="filter.roles"
                         :options="roleOptions"
                         :get-option-label="getRoleLabel"
+                        :get-option-key="getOptionKey"
                         :placeholder="$t('recordList.filter.role.placeholder')"
                         :reduce="role => role.roleID"
                         :calculate-position="calculateDropdownPosition"
@@ -915,6 +916,10 @@ export default {
         filter: [],
         roles: [],
       })
+    },
+
+    getOptionKey ({ roleID }) {
+      return roleID
     },
   },
 }

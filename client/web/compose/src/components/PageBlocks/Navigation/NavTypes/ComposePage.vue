@@ -17,6 +17,7 @@
           :placeholder="$t('navigation.none')"
           :options="tree"
           append-to-body
+          :get-option-key="getOptionKey"
           label="title"
           :calculate-position="calculateDropdownPosition"
           :reduce="f => f.pageID"
@@ -110,6 +111,10 @@ export default {
         const composePage = this.tree.find(t => t.pageID === pageID)
         this.options.item.label = composePage ? composePage.title : ''
       }
+    },
+
+    getOptionKey ({ pageID }) {
+      return pageID
     },
   },
 }

@@ -54,6 +54,7 @@
               label="name"
               :clearable="false"
               :options="roles"
+              :get-option-key="getOptionRoleKey"
               append-to-body
               class="h-100 bg-white"
               @input="onRoleChange"
@@ -183,6 +184,7 @@
           key="roleID"
           v-model="add.roleID"
           :options="roles"
+          :get-option-key="getOptionRoleKey"
           label="name"
           multiple
           clearable
@@ -204,6 +206,7 @@
           :disabled="!!add.roleID.length"
           :options="userOptions"
           :get-option-label="getUserLabel"
+          :get-option-key="getOptionUserKey"
           label="name"
           clearable
           :placeholder="labels.add.user.placeholder"
@@ -557,6 +560,14 @@ export default {
       }
 
       return this.$t(`permissions:ui.tooltip.unknown-context.${isUser ? 'user' : 'role'}`)
+    },
+
+    getOptionRoleKey ({ roleID }) {
+      return roleID
+    },
+
+    getOptionUserKey ({ userID }) {
+      return userID
     },
   },
 }

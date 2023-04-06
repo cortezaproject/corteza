@@ -16,6 +16,7 @@
           :options="connections"
           :clearable="false"
           :get-option-label="({ handle, meta }) => meta.name || handle"
+          :get-option-key="getOptionKey"
           :placeholder="$t('connection.placeholder')"
           class="h-100 bg-white"
         />
@@ -208,6 +209,10 @@ export default {
         this.payload.modules[moduleID].records[recordID].values[field] = orgValue
         this.valid = true
       }
+    },
+
+    getOptionKey ({ connectionID }) {
+      return connectionID
     },
   },
 }

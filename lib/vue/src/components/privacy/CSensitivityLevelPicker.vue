@@ -5,6 +5,7 @@
     :disabled="_disabled"
     :options="sensitivityLevels"
     :get-option-label="getLabel"
+    :get-option-key="getOptionKey"
     :placeholder="placeholder"
     :reduce="l => l.sensitivityLevelID"
     append-to-body
@@ -95,7 +96,11 @@ export default {
 
     onInput (sensitivityLevelID) {
       this.$emit('input', sensitivityLevelID ? sensitivityLevelID : NoID)
-    }
+    },
+
+    getOptionKey ({ sensitivityLevelID }) {
+      return sensitivityLevelID
+    },
   }
 }
 </script>

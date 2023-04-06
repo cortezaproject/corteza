@@ -52,6 +52,7 @@
             <vue-select
               v-model="options.colorScheme"
               :options="colorSchemes"
+              :get-option-key="getOptionKey"
               :reduce="cs => cs.value"
               :placeholder="$t('general:label.default')"
               label="label"
@@ -712,6 +713,10 @@ export default {
 
     typeChanged (type) {
       this.options = reporter.ChartOptionsMaker({ ...this.options, type })
+    },
+
+    getOptionKey ({ value }) {
+      return value
     },
   },
 }

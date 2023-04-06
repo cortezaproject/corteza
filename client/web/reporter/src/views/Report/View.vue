@@ -14,6 +14,7 @@
         <vue-select
           v-model="scenarios.selected"
           :options="scenarioOptions"
+          :get-option-key="getOptionKey"
           :placeholder="$t('pick-scenario')"
           class="bg-white rounded"
           @input="refreshReport()"
@@ -182,6 +183,10 @@ export default {
         .finally(() => {
           this.processing = false
         })
+    },
+
+    getOptionKey (scenario) {
+      return scenario
     },
   },
 }

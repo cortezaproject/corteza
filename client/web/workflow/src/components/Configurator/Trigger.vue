@@ -23,6 +23,7 @@
           <vue-select
             v-model="item.triggers.resourceType"
             :options="resourceTypeOptions"
+            :get-option-key="getOptionTypeKey"
             label="text"
             :reduce="r => r.value"
             :filter="resTypeFilter"
@@ -39,6 +40,7 @@
           <vue-select
             v-model="item.triggers.eventType"
             :options="eventTypeOptions"
+            :get-option-key="getOptionEventTypeKey"
             label="eventType"
             :reduce="e => e.eventType"
             :filter="evtTypeFilter"
@@ -142,6 +144,7 @@
                 <vue-select
                   v-model="c.name"
                   :options="constraintNameTypes"
+                  :get-option-key="getOptionTypeKey"
                   label="text"
                   :reduce="c => c.value"
                   :filter="constrFilter"
@@ -157,6 +160,7 @@
                 <vue-select
                   v-model="c.op"
                   :options="constraintOperatorTypes"
+                  :get-option-key="getOptionTypeKey"
                   label="text"
                   :reduce="c => c.value"
                   :placeholder="$t('steps:trigger.configurator.select-operator')"
@@ -479,6 +483,14 @@ export default {
         value = value.charAt(0).toUpperCase() + value.slice(1)
         this.$emit('update-default-value', { value, force: !this.item.node.value })
       }
+    },
+
+    getOptionTypeKey ({ value }) {
+      return value
+    },
+
+    getOptionEventTypeKey ({ eventType }) {
+      return eventType
     },
   },
 }

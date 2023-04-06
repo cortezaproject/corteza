@@ -66,6 +66,7 @@
                     <vue-select
                       v-model="filter.name"
                       :options="fieldOptions"
+                      :get-option-key="getOptionKey"
                       :clearable="false"
                       :placeholder="$t('recordList.filter.fieldPlaceholder')"
                       option-value="name"
@@ -631,6 +632,10 @@ export default {
 
     isBetweenOperator (op) {
       return ['BETWEEN', 'NOT BETWEEN'].includes(op)
+    },
+
+    getOptionKey ({ name }) {
+      return name
     },
   },
 }

@@ -10,6 +10,7 @@
       <vue-select
         v-model="module.config.dal.connectionID"
         :options="connections"
+        :get-option-key="getOptionKey"
         :disabled="processing"
         :clearable="false"
         :reduce="s => s.connectionID"
@@ -257,6 +258,10 @@ export default {
         }
         return enc
       }, {})
+    },
+
+    getOptionKey ({ connectionID }) {
+      return connectionID
     },
   },
 }
