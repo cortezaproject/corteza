@@ -32,7 +32,7 @@ export class Role {
   public handle = ''
   public members: string[] = []
   public labels: object = {}
-  public meta: Meta = defaultMeta
+  public meta: Meta = { ...defaultMeta }
 
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
