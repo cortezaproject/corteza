@@ -31,6 +31,7 @@
         v-model="exportTimezone"
         :options="timezones"
         :get-option-key="getOptionKey"
+        :calculate-position="calculateDropdownPosition"
         :placeholder="$t('recordList.export.timezonePlaceholder')"
         class="bg-white"
       />

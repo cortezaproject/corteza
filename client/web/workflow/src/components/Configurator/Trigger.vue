@@ -28,6 +28,7 @@
             :reduce="r => r.value"
             :filter="resTypeFilter"
             :placeholder="$t('steps:trigger.configurator.select-resource-type')"
+            :calculate-position="calculateDropdownPosition"
             @input="resourceChanged"
           />
         </b-form-group>
@@ -45,6 +46,7 @@
             :reduce="e => e.eventType"
             :filter="evtTypeFilter"
             :placeholder="$t('steps:trigger.configurator.select-event-type')"
+            :calculate-position="calculateDropdownPosition"
             @input="eventChanged"
           />
         </b-form-group>
@@ -149,6 +151,7 @@
                   :reduce="c => c.value"
                   :filter="constrFilter"
                   :placeholder="$t('steps:trigger.configurator.select-constraint-type')"
+                  :calculate-position="calculateDropdownPosition"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>
@@ -164,6 +167,7 @@
                   label="text"
                   :reduce="c => c.value"
                   :placeholder="$t('steps:trigger.configurator.select-operator')"
+                  :calculate-position="calculateDropdownPosition"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>

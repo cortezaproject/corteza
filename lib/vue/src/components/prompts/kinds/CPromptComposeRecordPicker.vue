@@ -12,7 +12,7 @@
         :get-option-key="getOptionKey"
         :loading="processing"
         append-to-body
-        :calculate-position="calculatePosition"
+        :calculate-position="calculateDropdownPosition"
         option-value="recordID"
         option-text="label"
         placeholder="Select record"
@@ -202,7 +202,7 @@ export default {
       }
     }, 300),
 
-    calculatePosition (dropdownList, component, { width }) {
+    calculateDropdownPosition (dropdownList, component, { width }) {
       /**
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.

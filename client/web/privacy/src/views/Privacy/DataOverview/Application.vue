@@ -20,6 +20,7 @@
           :options="connections"
           :clearable="false"
           :placeholder="$t('connection.placeholder')"
+          :calculate-position="calculateDropdownPosition"
           :get-option-label="({ handle, meta }) => meta.name || handle"
           :get-option-key="getOptionKey"
           class="h-100 bg-white"
