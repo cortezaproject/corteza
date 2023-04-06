@@ -9,6 +9,7 @@ import (
 	"io/fs"
 )
 
+//go:embed src/*
 var languages embed.FS
 
 // LoadEmbedded returns embedded translation files
