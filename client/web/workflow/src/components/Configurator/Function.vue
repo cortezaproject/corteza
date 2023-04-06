@@ -126,7 +126,7 @@
                     :get-option-label="getWorkflowLabel"
                     :reduce="wf => a.type === 'ID' ? wf.workflowID : wf.handle"
                     clearable
-                    placeholder="Search for a workflow"
+                    :placeholder="$t('steps:function.configurator.search-workflow')"
                     class="bg-white rounded"
                     @input="$root.$emit('change-detected')"
                     @search="searchWorkflows"
