@@ -47,15 +47,35 @@
   </b-container>
 </template>
 <script>
+
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CAuthclientEditorInfo from 'corteza-webapp-admin/src/components/Authclient/CAuthclientEditorInfo'
 import { mapGetters } from 'vuex'
 
+const defSecurity = {
+  impersonateUser: '0',
+  permittedRoles: [],
+  prohibitedRoles: [],
+  forcedRoles: [],
+}
 // @todo move this to corteza-js and follow the pattern we use with other resource types
 const makeNewAuthClient = () => JSON.parse(JSON.stringify({
   scope: 'profile api',
   enabled: true,
   validGrant: 'authorization_code',
+
+  trusted: false,
+  handle: '',
+  meta: {
+    name: '',
+    description: '',
+  },
+
+  redirectURI: '',
+
+  security: {
+    ...defSecurity,
+  },
 }))
 
 export default {
