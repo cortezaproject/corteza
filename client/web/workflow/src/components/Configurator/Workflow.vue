@@ -49,6 +49,7 @@
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
         :value="user.value"
+        :calculate-position="calculateDropdownPosition"
         @search="search"
         @input="updateRunAs"
       />

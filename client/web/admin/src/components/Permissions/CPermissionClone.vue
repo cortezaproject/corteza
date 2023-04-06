@@ -36,6 +36,7 @@
           :loading="processingRoles"
           multiple
           :placeholder="$t('ui.clone.pick-role')"
+          :calculate-position="calculateDropdownPosition"
           class="bg-white"
         />
       </b-form-group>

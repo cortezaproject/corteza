@@ -39,6 +39,7 @@
             :get-option-key="getOptionKey"
             :reduce="wf => wf.workflowID"
             :placeholder="$t('filters.placeholders.workflow')"
+            :calculate-position="calculateDropdownPosition"
             class="bg-white"
           />
 

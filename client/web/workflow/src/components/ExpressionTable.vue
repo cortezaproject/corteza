@@ -72,6 +72,7 @@
             :get-option-key="getOptionKey"
             :clearable="false"
             :filter="varFilter"
+            :calculate-position="calculateDropdownPosition"
             @input="$root.$emit('change-detected')"
           />
         </b-form-group>

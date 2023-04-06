@@ -19,6 +19,7 @@
             :options="scenarioOptions"
             :get-option-key="getOptionKey"
             :placeholder="$t('builder:pick-scenario')"
+            :calculate-position="calculateDropdownPosition"
             class="bg-white rounded"
             @input="refreshReport()"
           />

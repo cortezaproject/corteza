@@ -18,6 +18,7 @@
           :get-option-label="({ handle, meta }) => meta.name || handle"
           :get-option-key="getOptionKey"
           :placeholder="$t('connection.placeholder')"
+          :calculate-position="calculateDropdownPosition"
           class="h-100 bg-white"
         />
       </b-form-group>

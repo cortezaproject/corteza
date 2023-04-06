@@ -34,6 +34,7 @@
             :reduce="f => f.value"
             :filter="functionFilter"
             :placeholder="$t('steps:function.configurator.select-function')"
+            :calculate-position="calculateDropdownPosition"
             @input="functionChanged"
           />
         </b-form-group>
@@ -109,6 +110,7 @@
                   :get-option-key="getOptionParamKey"
                   :filter="argTypeFilter"
                   :clearable="false"
+                  :calculate-position="calculateDropdownPosition"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>
@@ -130,6 +132,7 @@
                     :reduce="wf => a.type === 'ID' ? wf.workflowID : wf.handle"
                     clearable
                     :placeholder="$t('steps:function.configurator.search-workflow')"
+                    :calculate-position="calculateDropdownPosition"
                     class="bg-white rounded"
                     @input="$root.$emit('change-detected')"
                     @search="searchWorkflows"
@@ -144,6 +147,7 @@
                     :filter="varFilter"
                     :reduce="a => a.value"
                     :placeholder="$t('steps:function.configurator.option-select')"
+                    :calculate-position="calculateDropdownPosition"
                     @input="$root.$emit('change-detected')"
                   />
 

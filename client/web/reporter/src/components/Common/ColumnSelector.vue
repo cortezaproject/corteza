@@ -8,6 +8,7 @@
     :placeholder="$t('general:label.none')"
     :reduce="r => r.name"
     append-to-body
+    :calculate-position="calculateDropdownPosition"
     class="column-selector bg-white"
     v-on="$listeners"
   />

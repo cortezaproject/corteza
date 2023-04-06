@@ -59,6 +59,7 @@
               option-text="label"
               option-value="value"
               clearable
+              :calculate-position="calculateDropdownPosition"
               class="mw-100"
               style="min-width: 100%;"
             >
