@@ -14,6 +14,7 @@
     <page-block
       v-if="showModal"
       :block="block"
+      :blocks="page.blocks"
       :module="module"
       :record="record"
       :page="page"
