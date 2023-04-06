@@ -12,7 +12,7 @@
 
     <portal to="topbar-tools">
       <b-form-select
-        v-if="layout"
+        v-if="layout && layouts.length > 1"
         ref="layoutSelect"
         size="sm"
         :value="layout.pageLayoutID"
@@ -318,6 +318,8 @@ export default {
 
   data () {
     return {
+      title: '',
+
       processing: false,
 
       page: undefined,
@@ -348,13 +350,6 @@ export default {
         this.page = v
         this.updatePageSet(v)
       },
-    },
-
-    title () {
-      let { title = '', handle } = this.page || {}
-      title = title || handle
-
-      return this.$t('label.pageBuilder') + ' - ' + (title ? `"${title}"` : this.$t('label.noHandle'))
     },
 
     showEditor () {
@@ -433,21 +428,21 @@ export default {
     pageID: {
       immediate: true,
       handler (pageID) {
-        this.page = undefined
-        this.layout = undefined
-        this.layouts = []
         this.unsavedBlocks.clear()
+        this.layouts = []
+        this.layout = undefined
 
-        if (pageID) {
-          const { namespaceID, name } = this.namespace
-          this.findPageByID({ namespaceID, pageID, force: true }).then(page => {
-            document.title = [page.title, name, this.$t('general:label.app-name.private')].filter(v => v).join(' | ')
-            this.page = page.clone()
-            return this.fetchPageLayouts()
-          }).then(() => {
-            this.setLayout()
-          })
-        }
+        const { namespaceID, name } = this.namespace
+        this.findPageByID({ namespaceID, pageID, force: true }).then(page => {
+          let { title = '', handle } = page
+          title = title || handle
+          this.title = `${this.$t('label.pageBuilder')} - "${title}"`
+          document.title = [page.title, name, this.$t('general:label.app-name.private')].filter(v => v).join(' | ')
+          this.page = page.clone()
+          return this.fetchPageLayouts()
+        }).then(() => {
+          this.setLayout()
+        })
       },
     },
   },

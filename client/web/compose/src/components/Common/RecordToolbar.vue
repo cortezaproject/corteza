@@ -120,8 +120,6 @@
             {{ labels.clone || $t('label.saveAsCopy') }}
           </b-button>
 
-          <slot name="end-actions" />
-
           <b-button
             v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
             data-test-id="button-edit"
@@ -168,6 +166,8 @@
               {{ labels.submit || $t('label.save') }}
             </span>
           </b-button>
+
+          <slot name="end-actions" />
         </template>
       </b-col>
     </b-row>
