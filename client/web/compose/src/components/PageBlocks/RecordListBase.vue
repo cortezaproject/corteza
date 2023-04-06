@@ -557,26 +557,21 @@
                       />
                     </b-dropdown-item>
 
-                    <b-dropdown-item
+                    <c-input-confirm
                       v-if="isDeleteActionVisible(item.r)"
-                      link-class="p-0"
-                      @click.prevent
+                      borderless
+                      variant="link"
+                      size="md"
+                      button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                      class="w-100"
+                      @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
                     >
-                      <c-input-confirm
-                        borderless
-                        variant="link"
-                        size="md"
-                        button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
-                        class="w-100"
-                        @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
-                      >
-                        <font-awesome-icon
-                          :icon="['far', 'trash-alt']"
-                          class="text-danger"
-                        />
-                        {{ $t('recordList.record.tooltip.delete') }}
-                      </c-input-confirm>
-                    </b-dropdown-item>
+                      <font-awesome-icon
+                        :icon="['far', 'trash-alt']"
+                        class="text-danger"
+                      />
+                      {{ $t('recordList.record.tooltip.delete') }}
+                    </c-input-confirm>
                   </template>
                 </b-dropdown>
               </b-td>
