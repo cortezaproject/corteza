@@ -1509,7 +1509,7 @@ export default {
       this.selected = []
 
       // Compute query based on query, prefilter and recordListFilter
-      const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.recordListModule.filterFields(this.options.fields), this.recordListFilter)
+      const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.recordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
       if (this.filter.pageCursor) {
