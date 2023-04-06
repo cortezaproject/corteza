@@ -69,6 +69,7 @@
           <vue-select
             v-model="item.type"
             :options="types"
+            :get-option-key="getOptionKey"
             :clearable="false"
             :filter="varFilter"
             @input="$root.$emit('change-detected')"
@@ -138,6 +139,10 @@ export default {
       }
 
       return typeDescriptions[type]
+    },
+
+    getOptionKey (type) {
+      return type
     },
   },
 }

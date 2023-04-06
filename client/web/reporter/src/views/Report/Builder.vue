@@ -17,6 +17,7 @@
           <vue-select
             v-model="scenarios.selected"
             :options="scenarioOptions"
+            :get-option-key="getOptionKey"
             :placeholder="$t('builder:pick-scenario')"
             class="bg-white rounded"
             @input="refreshReport()"
@@ -913,6 +914,10 @@ export default {
       this.reportScenarios.splice(this.scenarios.currentIndex, 1)
       this.scenarios.currentIndex = this.reportScenarios.length ? 0 : undefined
       this.setCurrentScenario(this.scenarios.currentIndex)
+    },
+
+    getOptionKey (scenario) {
+      return scenario
     },
   },
 }

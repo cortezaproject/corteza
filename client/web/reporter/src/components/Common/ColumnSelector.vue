@@ -4,6 +4,7 @@
     :value="value"
     :options="columns"
     :get-option-label="getColumnLabel"
+    :get-option-key="getOptionKey"
     :placeholder="$t('general:label.none')"
     :reduce="r => r.name"
     append-to-body
@@ -35,6 +36,10 @@ export default {
   methods: {
     getColumnLabel ({ name, label }) {
       return `${label} (${name})`
+    },
+
+    getOptionKey ({ name }) {
+      return name
     },
   },
 }

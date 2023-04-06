@@ -7,6 +7,7 @@
         <vue-select
           v-model="block.options.chartID"
           :options="charts"
+          :get-option-key="getOptionKey"
           :placeholder="$t('chart.pick')"
           :reduce="option => option.chartID"
           :calculate-position="calculateDropdownPosition"
@@ -47,6 +48,7 @@
         <vue-select
           v-model="options.drillDown.blockID"
           :options="drillDownOptions"
+          :get-option-key="getOptionKey"
           :disabled="!options.drillDown.enabled"
           :get-option-label="o => o.title || o.kind"
           :reduce="option => option.blockID"
@@ -119,6 +121,10 @@ export default {
         enabled: false,
         blockID: '',
       }
+    },
+
+    getOptionKey ({ chartID }) {
+      return chartID
     },
   },
 }

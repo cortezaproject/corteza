@@ -41,6 +41,7 @@
           v-if="field.options.selectType === 'multiple'"
           v-model="multipleSelected"
           :options="options"
+          :get-option-key="getOptionKey"
           :disabled="!module"
           :loading="processing"
           option-value="recordID"
@@ -69,6 +70,7 @@
           v-else
           ref="singleSelect"
           :options="options"
+          :get-option-key="getOptionKey"
           :disabled="!module"
           :loading="processing"
           option-value="recordID"
@@ -98,6 +100,7 @@
         <vue-select
           v-if="field.options.selectType === 'each'"
           :options="options"
+          :get-option-key="getOptionKey"
           :disabled="!module"
           :loading="processing"
           option-value="recordID"
@@ -139,6 +142,7 @@
       <vue-select
         v-model="selected"
         :options="options"
+        :get-option-key="getOptionKey"
         :disabled="!module"
         :loading="processing"
         option-value="recordID"
@@ -497,6 +501,10 @@ export default {
 
     goToPage (next = true) {
       this.filter.pageCursor = next ? this.filter.nextPage : this.filter.prevPage
+    },
+
+    getOptionKey ({ value }) {
+      return value
     },
   },
 }

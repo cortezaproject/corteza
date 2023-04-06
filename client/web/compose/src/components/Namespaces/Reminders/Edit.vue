@@ -56,6 +56,7 @@
           data-test-id="select-assignee"
           :options="assignees"
           :get-option-label="getUserLabel"
+          :get-option-key="getOptionKey"
           :loading="processingUsers"
           :placeholder="$t('field.kind.user.suggestionPlaceholder')"
           :calculate-position="calculateDropdownPosition"
@@ -186,6 +187,10 @@ export default {
       }
 
       return name || username || email || `<@${userID}>`
+    },
+
+    getOptionKey ({ userID }) {
+      return userID
     },
   },
 }

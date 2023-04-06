@@ -37,6 +37,7 @@
             v-model="options.referenceField"
             :options="recordSelectorFields"
             :get-option-label="getFieldLabel"
+            :get-option-key="getOptionKey"
             :placeholder="$t('record.referenceRecordFieldPlaceholder')"
             :reduce="field => field.fieldID"
             :calculate-position="calculateDropdownPosition"
@@ -132,6 +133,7 @@
                 :placeholder="$t('record.fieldConditions.selectPlaceholder')"
                 :selectable="option => isSelectable(option)"
                 :get-option-label="getOptionLabel"
+                :get-option-key="getOptionKey"
                 :reduce="option => option.isSystem ? option.name : option.fieldID"
                 :calculate-position="calculateDropdownPosition"
                 class="field-selector bg-white"
@@ -272,6 +274,10 @@ export default {
 
     getFieldLabel ({ name, label }) {
       return label || name
+    },
+
+    getOptionKey ({ fieldID }) {
+      return fieldID
     },
 
     updateReferenceModule (fieldID, fields) {

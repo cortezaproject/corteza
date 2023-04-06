@@ -9,6 +9,7 @@
         class="namespace-selector sticky-top bg-white mt-2"
         :clearable="false"
         :options="filteredNamespaces"
+        :get-option-key="getOptionKey"
         :value="namespace"
         :selectable="option => option.namespaceID !== namespace.namespaceID"
         :placeholder="$t('pickNamespace')"
@@ -419,6 +420,10 @@ export default {
           },
         }
       })
+    },
+
+    getOptionKey ({ namespaceID }) {
+      return namespaceID
     },
   },
 }

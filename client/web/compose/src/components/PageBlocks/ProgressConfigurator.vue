@@ -36,6 +36,7 @@
               label="name"
               :placeholder="$t('progress.module.select')"
               :options="modules"
+              :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
               :calculate-position="calculateDropdownPosition"
               class="bg-white"
@@ -77,6 +78,7 @@
                 v-model="options.value.field"
                 :placeholder="$t('progress.field.select')"
                 :options="valueModuleFields"
+                :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
                 :calculate-position="calculateDropdownPosition"
                 class="bg-white"
@@ -98,6 +100,7 @@
                 :disabled="!options.value.field || options.value.field === 'count'"
                 :placeholder="$t('progress.aggregate.select')"
                 :options="aggregationOperations"
+                :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
                 :calculate-position="calculateDropdownPosition"
                 class="bg-white"
@@ -143,6 +146,7 @@
               label="name"
               :placeholder="$t('progress.module.select')"
               :options="modules"
+              :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
               :calculate-position="calculateDropdownPosition"
               class="bg-white"
@@ -184,6 +188,7 @@
                 v-model="options.minValue.field"
                 :placeholder="$t('progress.field.select')"
                 :options="minValueModuleFields"
+                :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
                 :calculate-position="calculateDropdownPosition"
                 class="bg-white"
@@ -205,6 +210,7 @@
                 :disabled="!options.minValue.field || options.minValue.field === 'count'"
                 :placeholder="$t('progress.aggregate.select')"
                 :options="aggregationOperations"
+                :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
                 :calculate-position="calculateDropdownPosition"
                 class="bg-white"
@@ -250,6 +256,7 @@
               label="name"
               :placeholder="$t('progress.module.select')"
               :options="modules"
+              :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
               :calculate-position="calculateDropdownPosition"
               class="bg-white"
@@ -291,6 +298,7 @@
                 v-model="options.maxValue.field"
                 :placeholder="$t('progress.field.select')"
                 :options="maxValueModuleFields"
+                :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
                 :calculate-position="calculateDropdownPosition"
                 class="bg-white"
@@ -312,6 +320,7 @@
                 :disabled="!options.maxValue.field || options.maxValue.field === 'count'"
                 :placeholder="$t('progress.aggregate.select')"
                 :options="aggregationOperations"
+                :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
                 :calculate-position="calculateDropdownPosition"
                 class="bg-white"
@@ -657,6 +666,18 @@ export default {
       if (!value || value === 'count') {
         optionsType.operation = ''
       }
+    },
+
+    getOptionModuleKey ({ moduleID }) {
+      return moduleID
+    },
+
+    getOptionModuleFieldKey ({ name }) {
+      return name
+    },
+
+    getOptionAggregationOperationKey ({ operation }) {
+      return operation
     },
   },
 }

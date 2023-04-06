@@ -52,6 +52,7 @@
           v-model="selectedField"
           :placeholder="getFieldSelectorPlaceholder"
           :get-option-label="getFieldLabel"
+          :get-option-key="getOptionKey"
           :options="moduleFields"
           append-to-body
           :calculate-position="calculateDropdownPosition"
@@ -259,6 +260,10 @@ export default {
       }
 
       return !expressions.value
+    },
+
+    getOptionKey ({ fieldID }) {
+      return fieldID
     },
   },
 }

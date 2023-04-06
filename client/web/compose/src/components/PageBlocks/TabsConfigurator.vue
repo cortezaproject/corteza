@@ -155,6 +155,7 @@
                 :options="blockOptions"
                 :placeholder="$t('tabs.placeholder.block')"
                 :get-option-label="getBlockLabel"
+                :get-option-key="getOptionKey"
                 :selectable="option => isSelectable(option)"
                 :reduce="option => option.value"
                 :calculate-position="calculateDropdownPosition"
@@ -355,6 +356,10 @@ export default {
 
     getBlockLabel ({ title, kind }) {
       return title || kind
+    },
+
+    getOptionKey ({ blockID }) {
+      return blockID
     },
   },
 }

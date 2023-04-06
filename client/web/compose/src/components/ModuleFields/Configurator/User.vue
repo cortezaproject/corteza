@@ -13,6 +13,7 @@
       <vue-select
         v-model="f.options.roles"
         :options="roleOptions"
+        :get-option-key="getOptionKey"
         :reduce="role => role.roleID"
         option-value="roleID"
         option-text="name"
@@ -69,6 +70,12 @@ export default {
     this.$SystemAPI.roleList().then(({ set: roles = [] }) => {
       this.roleOptions = roles
     })
+  },
+
+  methods: {
+    getOptionKey ({ roleID }) {
+      return roleID
+    },
   },
 }
 </script>
