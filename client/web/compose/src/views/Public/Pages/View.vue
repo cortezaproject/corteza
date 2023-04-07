@@ -215,6 +215,9 @@ export default {
         user: this.$auth.user,
         oldLayout: this.layout,
         layout: undefined,
+        isView: this.$route.name === 'page.record',
+        isCreate: this.$route.name === 'page.record.create',
+        isEdit: this.$route.name === 'page.record.edit',
       }
 
       this.layouts.forEach(layout => {
