@@ -69,6 +69,18 @@
         />
         <b-input-group-append>
           <b-button
+            :title="$t('tooltip.openMap')"
+            variant="light"
+            class="d-flex align-items-center"
+            @click="openMap(ctx.index)"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'map-marked-alt']"
+              class="text-primary"
+            />
+          </b-button>
+
+          <b-button
             v-if="!field.options.hideCurrentLocationButton"
             :title="$t('tooltip.useCurrentLocation')"
             variant="light"
@@ -181,10 +193,12 @@
           v-for="(marker, i) in markers"
           :key="i"
           :lat-lng="marker"
+          :opacity="i == localValueIndex ? 1.0 : 0.6"
           @click="removeMarker(i)"
         />
         <l-control class="leaflet-bar">
           <a
+            v-if="!field.options.hideCurrentLocationButton"
             :title="$t('tooltip.goToCurrentLocation')"
             role="button"
             class="d-flex justify-content-center align-items-center"
@@ -224,6 +238,7 @@ export default {
   data () {
     return {
       localValue: undefined,
+      localValueIndex: undefined,
 
       map: {
         show: false,
@@ -277,8 +292,9 @@ export default {
   },
 
   methods: {
-    openMap () {
-      const firstCoordinates = (this.field.isMulti ? this.localValue[0] : this.localValue) || {}
+    openMap (index) {
+      this.localValueIndex = index
+      const firstCoordinates = (index ? this.localValue[index] : (this.field.isMulti ? this.localValue[0] : this.localValue)) || {}
       this.map.center = firstCoordinates.coordinates && firstCoordinates.coordinates.length ? firstCoordinates.coordinates : this.field.options.center
       this.map.zoom = this.field.options.zoom
       this.map.show = true
@@ -363,6 +379,8 @@ export default {
 
     onLocationFound ({ latitude, longitude }) {
       const zoom = this.$refs.map.mapObject._zoom >= 15 ? this.$refs.map.mapObject._zoom : 15
+      const latlng = { lat: latitude, lng: longitude }
+      this.placeMarker({ latlng })
       this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
 
