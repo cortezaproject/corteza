@@ -1,6 +1,7 @@
 import { NoID } from '../../cast'
 import { expect } from 'chai'
 import { Page } from './page'
+import { PageBlock } from './page-block'
 
 describe(__filename, () => {
   describe('initialization', () => {
@@ -54,7 +55,7 @@ describe(__filename, () => {
 
         blocks: [
           { kind: 'RecordList', xywh: [0, 0, 3, 3] },
-        ],
+        ] as PageBlock[],
 
         createdAt: dateNow,
         updatedAt: dateNow,
@@ -131,7 +132,7 @@ describe(__filename, () => {
         visible: true,
         blocks: [
           { kind: 'RecordList', xywh: [0, 0, 3, 3] },
-        ],
+        ] as PageBlock[],
       })
 
       const pageExport = page.export()
@@ -146,7 +147,7 @@ describe(__filename, () => {
       const page = new Page({
         blocks: [
           { kind: 'RecordList', xywh: [0, 0, 3, 3] },
-        ],
+        ] as PageBlock[],
       })
 
       expect(page.validate()).to.deep.eq([])
@@ -166,7 +167,7 @@ describe(__filename, () => {
           { kind: 'RecordList', xywh: [0, 0, 3, 3] },
           { kind: 'RecordOrganizer', xywh: [0, 0, 3, 3] },
           { kind: 'SocialFeed', xywh: [0, 0, 3, 3] },
-        ],
+        ] as PageBlock[],
       })
 
       expect(p.blocks).lengthOf(8)
