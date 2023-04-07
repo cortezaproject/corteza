@@ -1034,7 +1034,7 @@ export default {
 
   created () {
     if (!this.inlineEditing) {
-      this.refreshBlock(this.refresh)
+      this.refreshBlock(this.refresh, false, true)
     }
   },
 
@@ -1486,7 +1486,7 @@ export default {
       }
     },
 
-    refresh (resetPagination = false, checkSelected = true) {
+    refresh (resetPagination = false, checkSelected = false) {
       // Prevent refresh if records are selected or inline editing
       if (checkSelected && (this.selected.length || this.inlineEdit.recordIDs.length)) return
 

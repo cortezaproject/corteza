@@ -101,11 +101,11 @@ export default {
      * If reloading data does not refresh the page block
      * You should attach :key="key" to it and increment it in the refreshFunction
      */
-    refreshBlock (refreshFunction) {
+    refreshBlock (refreshFunction, ...params) {
       if (!this.autoRefreshEnabled || this.refreshInterval) return
 
       const interval = setInterval(() => {
-        refreshFunction()
+        refreshFunction(...params)
       }, this.options.refreshRate * 1000)
 
       this.refreshInterval = interval
