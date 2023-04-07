@@ -1679,7 +1679,8 @@ export default {
 
     onInlineEdit () {
       this.refresh(true)
-      this.inlineEditRecords = []
+      this.inlineEdit.fields = []
+      this.inlineEdit.recordIDs = []
     },
 
     isFieldEditable (field) {

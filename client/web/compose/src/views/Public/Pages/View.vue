@@ -21,7 +21,7 @@
         >
           {{ $t('general:label.pageBuilder') }}
           <font-awesome-icon
-            :icon="['far', 'edit']"
+            :icon="['fas', 'cog']"
             class="ml-2"
           />
         </b-button>

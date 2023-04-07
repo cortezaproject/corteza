@@ -211,6 +211,7 @@ export default {
 
       if (this.openOnSelect) {
         this.fields = []
+        this.record = new compose.Record(this.module, {})
       }
     },
 

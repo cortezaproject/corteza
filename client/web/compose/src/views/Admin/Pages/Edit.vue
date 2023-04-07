@@ -20,7 +20,7 @@
         >
           {{ $t('label.pageBuilder') }}
           <font-awesome-icon
-            :icon="['far', 'edit']"
+            :icon="['fas', 'cog']"
             class="ml-2"
           />
         </b-button>
@@ -175,7 +175,7 @@
                   @click="openIconModal"
                 >
                   <font-awesome-icon
-                    :icon="['fas', 'cog']"
+                    :icon="['far', 'edit']"
                   />
                 </b-button>
               </template>
@@ -322,7 +322,7 @@
                             :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
                           >
                             <font-awesome-icon
-                              :icon="['far', 'edit']"
+                              :icon="['fas', 'cog']"
                             />
                           </b-button>
                         </b-input-group-append>
