@@ -294,21 +294,13 @@ export default {
 
           throw err
         })
-        .then(({ records }) => {
-          return records[0]
-        })
-        .then((record) => {
-          this.updatePrompts()
-          return record
-        })
-        .then((record) => {
-          if (record.valueErrors && record.valueErrors.set) {
-            this.toastWarning(this.$t('notification:record.validationWarnings'))
-          } else {
-            this.toastSuccess(this.$t('notification:record.bulkRecordUpdateSuccess'))
-            this.onModalHide()
-            this.$emit('save')
-          }
+        .then(this.updatePrompts())
+        .then(() => {
+          this.toastSuccess(this.$t('notification:record.bulkRecordUpdateSuccess'))
+          this.onModalHide()
+          this.fields = []
+          this.record = new compose.Record(this.module, {})
+          this.$emit('save')
         })
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkRecordUpdateFailed')))
         .finally(() => {
