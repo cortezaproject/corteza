@@ -56,7 +56,7 @@ func TestPageLayoutRead(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.Equal(`$.response.meta.name`, ly.Meta.Title)).
+		Assert(jsonpath.Equal(`$.response.meta.title`, ly.Meta.Title)).
 		Assert(jsonpath.Equal(`$.response.pageLayoutID`, fmt.Sprintf("%d", ly.ID))).
 		End()
 }
@@ -81,7 +81,7 @@ func TestPageLayoutList_filterForbidden(t *testing.T) {
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
-		Assert(jsonpath.NotPresent(`$.response.set[? @.meta.name=="page-layout_forbidden"]`)).
+		Assert(jsonpath.NotPresent(`$.response.set[? @.meta.title=="page-layout_forbidden"]`)).
 		End()
 }
 
@@ -96,7 +96,7 @@ func TestPageLayoutCreateForbidden(t *testing.T) {
 		Post(fmt.Sprintf("/namespace/%d/page/%d/layout/", ns.ID, pg.ID)).
 		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{
-			"meta": {"name": "some-page-layout"}
+			"meta": {"title": "some-page-layout"}
 		}`)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -122,7 +122,7 @@ func TestPageLayoutCreate(t *testing.T) {
 		Post(fmt.Sprintf("/namespace/%d/page/%d/layout/", ns.ID, pg.ID)).
 		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{
-			"meta": {"name": "some-page-layout"}
+			"meta": {"title": "some-page-layout"}
 		}`)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -148,7 +148,7 @@ func TestPageLayoutUpdateForbidden(t *testing.T) {
 		Post(fmt.Sprintf("/namespace/%d/page/%d/layout/%d", ns.ID, pg.ID, ly.ID)).
 		Header("Accept", "application/json").
 		JSON(fmt.Sprintf(`{
-			"meta": {"name": "changed-name"}
+			"meta": {"title": "changed-name"}
 		}`)).
 		Expect(t).
 		Status(http.StatusOK).
@@ -169,7 +169,7 @@ func TestPageLayoutUpdate(t *testing.T) {
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/page/%d/layout/%d", ns.ID, pg.ID, ly.ID)).
 		JSON(fmt.Sprintf(`{
-			"meta": {"name": "changed-name"}
+			"meta": {"title": "changed-name"}
 		}`)).
 		Expect(t).
 		Status(http.StatusOK).

@@ -29,7 +29,7 @@ func (h helper) repoMakePage(ns *types.Namespace, name string) *types.Page {
 	res := &types.Page{
 		ID:          id.Next(),
 		CreatedAt:   time.Now(),
-		Meta:        &types.PageMeta{},
+		Meta:        types.PageMeta{},
 		Title:       name,
 		NamespaceID: ns.ID,
 	}
@@ -53,7 +53,7 @@ func (h helper) repoMakeWeightedPage(ns *types.Namespace, name string, weight in
 	res := &types.Page{
 		ID:          id.Next(),
 		CreatedAt:   time.Now(),
-		Meta:        &types.PageMeta{},
+		Meta:        types.PageMeta{},
 		Title:       name,
 		NamespaceID: ns.ID,
 		Weight:      weight,
