@@ -16,8 +16,10 @@ const defaultWrap = 'Card'
  * @returns component
  */
 function GetWrapComponent ({ block }) {
-  const { kind = defaultWrap } = block.style.wrap
+  let { kind = defaultWrap } = block.style.wrap
+  const { isBackgroundTransparent = false } = block.options
 
+  kind = isBackgroundTransparent ? 'plain' : kind
   const cmpName = capitalize(kind)
   if (Object.hasOwnProperty.call(Registry, cmpName)) {
     return Registry[capitalize(cmpName)]

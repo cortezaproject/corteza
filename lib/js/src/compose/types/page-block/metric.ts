@@ -43,6 +43,7 @@ interface Options {
   refreshRate: number;
   showRefresh: boolean;
   magnifyOption: string;
+  isBackgroundTransparent?: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -50,6 +51,7 @@ const defaults: Readonly<Options> = Object.freeze({
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
+  isBackgroundTransparent: false,
 })
 
 export class PageBlockMetric extends PageBlock {
@@ -65,7 +67,7 @@ export class PageBlockMetric extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
-    Apply(this.options, o, Boolean, 'showRefresh')
+    Apply(this.options, o, Boolean, 'showRefresh', 'isBackgroundTransparent')
     Apply(this.options, o, String, 'magnifyOption')
     if (o.metrics) {
       this.options.metrics = o.metrics

@@ -251,6 +251,7 @@
           <m-style
             class="mt-2"
             :options="edit.valueStyle"
+            :is-background-transparent="block.options.isBackgroundTransparent"
           >
             <h5 slot="title">
               {{ $t('metric.editStyle.valueLabel') }}

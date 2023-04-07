@@ -3,7 +3,7 @@
     :style="genStyle(metric.valueStyle)"
     class="h-100 text-center"
   >
-    <!--    This div is here because .svg metrics dont render with print to PDF option-->
+    <!--    This div is here because .svg metrics don't render with print to PDF option-->
     <div
       class="d-none d-print-flex h-100 w-100 align-items-center justify-content-center overflow-hidden"
       :style="genStyle(metric.valueStyle)"
@@ -51,10 +51,15 @@ export default {
       required: false,
       default: () => ({}),
     },
+
     value: {
       type: Object,
       required: false,
       default: () => ({}),
+    },
+
+    isBackgroundTransparent: {
+      type: Boolean,
     },
   },
 
@@ -99,7 +104,7 @@ export default {
     genStyle (s = {}) {
       const d = {
         fill: s.color,
-        backgroundColor: s.backgroundColor,
+        backgroundColor: this.isBackgroundTransparent ? 'bg-transparent' : s.backgroundColor,
         fontSize: s.fontSize ? s.fontSize + 'px' : undefined,
         color: s.color,
       }

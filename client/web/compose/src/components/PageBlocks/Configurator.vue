@@ -103,6 +103,15 @@
           >
             {{ $t('general.hidden.label') }}
           </b-form-checkbox>
+
+          <b-form-checkbox
+            v-if="block.kind === 'Metric'"
+            v-model="block.options.isBackgroundTransparent"
+            data-test-id="checkbox-transparent-background"
+            switch
+          >
+            {{ $t('metric.edit.transparentBackground') }}
+          </b-form-checkbox>
         </b-col>
 
         <b-col

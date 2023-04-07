@@ -28,6 +28,7 @@
           <metric-item
             :metric="m"
             :value="v"
+            :is-background-transparent="block.options.isBackgroundTransparent || isPlain"
           />
         </div>
       </div>
@@ -87,6 +88,12 @@ export default {
 
   created () {
     this.refreshBlock(this.refresh)
+  },
+
+  computed: {
+    isPlain () {
+      return this.block.style.wrap.kind === 'plain'
+    },
   },
 
   methods: {

@@ -3,33 +3,25 @@
     <slot name="title" />
 
     <fieldset>
-      <b-form-group
+      <c-input-color-picker
+        v-model="options.color"
         :label="$t('metric.editStyle.color')"
-        label-cols="4"
-      >
-        <b-form-input
-          v-model="options.color"
-          type="color"
-          debounce="300"
-          class="mb-1"
-        />
-      </b-form-group>
+      />
 
-      <b-form-group
-        :label="$t('metric.editStyle.backgroundColor')"
-        label-cols="4"
-      >
-        <b-form-input
-          v-model="options.backgroundColor"
-          type="color"
-          debounce="300"
-          class="mb-1"
-        />
-      </b-form-group>
+      <c-input-color-picker
+        v-model="options.backgroundColor"
+        :label="$t('metric.editStyle.backgroundColor.label')"
+        :disabled="isBackgroundTransparent"
+        class="mb-1"
+      />
+      <small>
+        {{ $t('metric.editStyle.backgroundColor.description') }}
+      </small>
 
       <b-form-group
         :label="$t('metric.editStyle.fontSize')"
         label-cols="4"
+        class="mt-1"
       >
         <b-form-input
           v-model="options.fontSize"
@@ -43,9 +35,16 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
+
 export default {
   i18nOptions: {
     namespaces: 'block',
+  },
+
+  components: {
+    CInputColorPicker,
   },
 
   props: {
@@ -53,6 +52,10 @@ export default {
       type: Object,
       required: true,
       default: () => ({}),
+    },
+
+    isBackgroundTransparent: {
+      type: Boolean,
     },
   },
 }

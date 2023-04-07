@@ -213,8 +213,11 @@ metric:
     tabTitle: Metric
     transformFunctionDescription: v - current value; label - current value's label
     transformFunctionLabel: Transform value
+    transparentBackground: Transparent background
   editStyle:
-    backgroundColor: Background color
+    backgroundColor:
+      label: Background color
+      description: When the Transparent background option is enabled, the background cannot be changed
     color: Text color
     fontSize: Font size in pixels
     labelLabel: Label style
