@@ -164,15 +164,14 @@ resources:
           description: 'Default: deny'
           specific: Update page "{{target}}"
           title: Update any page
-        page-layout:
-          create:
-            description: 'Default: deny'
-            specific: Create page layouts for page "{{target}}"
-            title: Create page layout
-          search:
-            description: 'Default: deny'
-            specific: List page layouts for page "{{target}}"
-            title: List page layout
+        page-layout.create:
+          description: 'Default: deny'
+          specific: Create page layouts for page "{{target}}"
+          title: Create page layout
+        page-layouts.search:
+          description: 'Default: deny'
+          specific: List page layouts for page "{{target}}"
+          title: List page layout
 
     page-layout:
       all: all page layouts
