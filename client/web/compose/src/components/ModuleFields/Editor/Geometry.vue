@@ -36,7 +36,7 @@
         :title="$t('tooltip.openMap')"
         variant="light"
         class="w-100"
-        @click="openMap"
+        @click="openMap()"
       >
         <font-awesome-icon
           :icon="['fas', 'map-marked-alt']"
@@ -117,7 +117,7 @@
             :title="$t('tooltip.openMap')"
             variant="light"
             class="d-flex align-items-center"
-            @click="openMap"
+            @click="openMap()"
           >
             <font-awesome-icon
               :icon="['fas', 'map-marked-alt']"
@@ -193,7 +193,7 @@
           v-for="(marker, i) in markers"
           :key="i"
           :lat-lng="marker"
-          :opacity="i == localValueIndex ? 1.0 : 0.6"
+          :opacity="localValueIndex === undefined || i == localValueIndex ? 1.0 : 0.6"
           @click="removeMarker(i)"
         />
         <l-control class="leaflet-bar">

@@ -63,7 +63,7 @@
           v-for="(marker, i) in localValue"
           :key="i"
           :lat-lng="marker"
-          :opacity="i == localValueIndex ? 1.0 : 0.6"
+          :opacity="localValueIndex === undefined || i == localValueIndex ? 1.0 : 0.6"
         />
         <l-control class="leaflet-bar">
           <a
