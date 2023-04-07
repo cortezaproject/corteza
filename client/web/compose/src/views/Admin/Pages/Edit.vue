@@ -78,11 +78,13 @@
 
           <b-dropdown-item>
             <c-permissions-button
+              v-if="page.canGrant"
               :title="page.title || page.handle || page.pageID"
               :target="page.title || page.handle || page.pageID"
               :resource="`corteza::compose:page-layout/${namespace.namespaceID}/${page.pageID}/*`"
               :button-label="$t('general:label.pageLayout')"
               :show-button-icon="false"
+              all-specific
               button-variant="white text-left w-100"
             />
           </b-dropdown-item>
@@ -368,7 +370,7 @@
     <b-modal
       v-if="layoutEditor.layout"
       :visible="!!layoutEditor.layout"
-      :title="$t('page-layout.configure', { title: ((layoutEditor.layout || {}).meta || {}).title})"
+      :title="$t('page-layout.configure', { title: ((layoutEditor.layout || {}).meta || {}).title, interpolation: { escapeValue: false } })"
       :ok-title="$t('general:label.saveAndClose')"
       ok-variant="primary"
       cancel-variant="link"
