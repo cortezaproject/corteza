@@ -682,7 +682,7 @@
               width="auto"
               height="50"
               :class="{ 'selected-icon': selectedAttachmentID === a.attachmentID }"
-              class="rounded pointer mr-2"
+              class="rounded pointer m-2"
               @click="toggleSelectedIcon(a.attachmentID)"
             >
           </div>
@@ -1066,8 +1066,9 @@ export default {
       }).catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
     },
 
-    uploadAttachment () {
+    uploadAttachment ({ attachmentID }) {
       this.fetchAttachments()
+      this.toggleSelectedIcon(attachmentID)
     },
 
     async fetchAttachments () {
