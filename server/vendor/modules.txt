@@ -7,7 +7,7 @@ github.com/766b/chi-prometheus
 # github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
 ## explicit
 github.com/99designs/basicauth-go
-# github.com/Masterminds/goutils v1.1.0
+# github.com/Masterminds/goutils v1.1.1
 ## explicit
 github.com/Masterminds/goutils
 # github.com/Masterminds/semver v1.5.0
