@@ -296,7 +296,7 @@ export default {
       this.localValueIndex = index
       const firstCoordinates = (index ? this.localValue[index] : (this.field.isMulti ? this.localValue[0] : this.localValue)) || {}
       this.map.center = firstCoordinates.coordinates && firstCoordinates.coordinates.length ? firstCoordinates.coordinates : this.field.options.center
-      this.map.zoom = this.field.options.zoom
+      this.map.zoom = index >= 0 ? 13 : this.field.options.zoom
       this.map.show = true
 
       setTimeout(() => {

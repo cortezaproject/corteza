@@ -138,10 +138,10 @@ export default {
   },
 
   methods: {
-    openMap (i) {
-      this.localValueIndex = i
-      this.map.center = this.localValue[i] || this.field.options.center
-      this.map.zoom = this.localValue[i] ? this.map.zoom : this.field.options.zoom
+    openMap (index) {
+      this.localValueIndex = index
+      this.map.center = this.localValue[index] || this.field.options.center
+      this.map.zoom = index >= 0 ? 13 : this.field.options.zoom
       this.map.show = true
 
       setTimeout(() => {
