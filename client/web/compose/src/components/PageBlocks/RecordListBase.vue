@@ -1677,7 +1677,7 @@ export default {
     editInlineField (record, field) {
       this.inlineEdit.fields = [field]
       this.inlineEdit.record = record.clone()
-      this.inlineEdit.recordIDs.push(record.recordID)
+      this.inlineEdit.recordIDs = [record.recordID]
     },
 
     onInlineEdit () {

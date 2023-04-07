@@ -78,7 +78,7 @@
             <b-button
               variant="link"
               rounded
-              class="text-decoration-none text-primary"
+              class="text-primary"
               @click="onModalHide"
             >
               {{ $t('general.label.cancel') }}
