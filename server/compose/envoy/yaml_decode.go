@@ -548,21 +548,29 @@ func (d *fieldMapping) unmarshalMappingNode(n *yaml.Node) (out mapEntry, err err
 func (d *auxYamlDoc) procMappingRefs(in map[string]string) (out map[string]envoyx.Ref, scope envoyx.Scope) {
 	out = make(map[string]envoyx.Ref)
 
-	scope = envoyx.Scope{
-		ResourceType: types.NamespaceResourceType,
-		Identifiers:  envoyx.MakeIdentifiers(in["namespace"]),
+	nsII := envoyx.MakeIdentifiers(in["namespace"])
+	if len(nsII.Slice) > 0 {
+		scope = envoyx.Scope{
+			ResourceType: types.NamespaceResourceType,
+			Identifiers:  nsII,
+		}
 	}
 
-	out["NamespaceID"] = envoyx.Ref{
-		ResourceType: types.NamespaceResourceType,
-		Identifiers:  envoyx.MakeIdentifiers(in["namespace"]),
-		Scope:        scope,
+	if len(nsII.Slice) > 0 {
+		out["NamespaceID"] = envoyx.Ref{
+			ResourceType: types.NamespaceResourceType,
+			Identifiers:  nsII,
+			Scope:        scope,
+		}
 	}
 
-	out["ModuleID"] = envoyx.Ref{
-		ResourceType: types.ModuleResourceType,
-		Identifiers:  envoyx.MakeIdentifiers(in["module"]),
-		Scope:        scope,
+	modII := envoyx.MakeIdentifiers(in["module"])
+	if len(modII.Slice) > 0 {
+		out["ModuleID"] = envoyx.Ref{
+			ResourceType: types.ModuleResourceType,
+			Identifiers:  envoyx.MakeIdentifiers(in["module"]),
+			Scope:        scope,
+		}
 	}
 
 	return
