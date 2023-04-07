@@ -50,6 +50,11 @@ type (
 	// This type is auto-generated.
 	PageSet []*Page
 
+	// PageLayoutSet slice of PageLayout
+	//
+	// This type is auto-generated.
+	PageLayoutSet []*PageLayout
+
 	// PrivacyModuleSet slice of PrivacyModule
 	//
 	// This type is auto-generated.
@@ -453,6 +458,62 @@ func (set PageSet) FindByID(ID uint64) *Page {
 //
 // This function is auto-generated.
 func (set PageSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(PageLayout) err
+//
+// This function is auto-generated.
+func (set PageLayoutSet) Walk(w func(*PageLayout) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(PageLayout) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set PageLayoutSet) Filter(f func(*PageLayout) (bool, error)) (out PageLayoutSet, err error) {
+	var ok bool
+	out = PageLayoutSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set PageLayoutSet) FindByID(ID uint64) *PageLayout {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set PageLayoutSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

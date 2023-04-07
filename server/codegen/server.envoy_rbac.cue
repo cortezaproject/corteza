@@ -10,9 +10,9 @@ import (
 [
 	for cmp in app.corteza.components {
 		template: "gocode/envoy/rbac_references_$component.go.tpl"
-		output:   "pkg/envoy/resource/rbac_references_\(cmp.ident).gen.go"
+		output:   "pkg/envoyx/rbac_references_\(cmp.ident).gen.go"
 		payload: {
-			package: "resource"
+			package: "envoyx"
 			imports: [
 				"\"github.com/cortezaproject/corteza/server/\(cmp.ident)/types\"",
 			]

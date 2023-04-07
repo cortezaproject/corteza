@@ -21,7 +21,7 @@
         >
           {{ $t('general:label.pageBuilder') }}
           <font-awesome-icon
-            :icon="['fas', 'cogs']"
+            :icon="['far', 'edit']"
             class="ml-2"
           />
         </b-button>
@@ -29,6 +29,7 @@
           v-if="trPage"
           data-test-id="button-page-translations"
           :page.sync="trPage"
+          :page-layout.sync="layout"
           style="margin-left:2px;"
         />
         <b-button
@@ -50,7 +51,7 @@
       class="flex-grow-1 overflow-auto d-flex px-2 w-100"
     >
       <router-view
-        v-if="recordID || isRecordCreatePage"
+        v-if="isRecordPage"
         :namespace="namespace"
         :module="module"
         :page="page"
@@ -58,10 +59,11 @@
       />
 
       <grid
-        v-else
+        v-else-if="blocks"
         :namespace="namespace"
         :module="module"
         :page="page"
+        :blocks="blocks"
       />
     </div>
 
@@ -112,13 +114,24 @@ export default {
     },
   },
 
+  data () {
+    return {
+      layouts: [],
+      layout: undefined,
+      blocks: undefined,
+
+      pageTitle: '',
+    }
+  },
+
   computed: {
     ...mapGetters({
       recordPaginationUsable: 'ui/recordPaginationUsable',
+      getPageLayouts: 'pageLayout/getByPageID',
     }),
 
-    isRecordCreatePage () {
-      return this.$route.name === 'page.record.create'
+    isRecordPage () {
+      return this.recordID || this.$route.name === 'page.record.create'
     },
 
     module () {
@@ -138,15 +151,6 @@ export default {
       },
     },
 
-    pageTitle () {
-      if (this.page.pageID !== NoID) {
-        const { title = '', handle = '' } = this.page
-        return title || handle || this.$t('navigation:noPageTitle')
-      }
-
-      return ''
-    },
-
     pageEditor () {
       return { name: 'admin.pages.edit', params: { pageID: this.page.pageID } }
     },
@@ -157,16 +161,20 @@ export default {
   },
 
   watch: {
-    'page.title': {
-      immediate: true,
-      handler (title) {
-        document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
-      },
-    },
-
     'page.pageID': {
       immediate: true,
-      handler () {
+      handler (pageID) {
+        if (pageID === NoID) return
+
+        this.layouts = []
+        this.layout = undefined
+
+        if (!this.isRecordPage) {
+          this.determineLayout()
+        } else {
+          this.blocks = []
+        }
+
         // If the page changed we need to clear the record pagination since its not relevant anymore
         if (this.recordPaginationUsable) {
           this.setRecordPaginationUsable(false)
@@ -194,6 +202,71 @@ export default {
       setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
       clearRecordIDs: 'ui/clearRecordIDs',
     }),
+
+    evaluateLayoutExpressions () {
+      const expressions = {}
+      const variables = {
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          userAgent: navigator.userAgent,
+          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
+        },
+        user: this.$auth.user,
+        oldLayout: this.layout,
+        layout: undefined,
+        isView: this.$route.name === 'page.record',
+        isCreate: this.$route.name === 'page.record.create',
+        isEdit: this.$route.name === 'page.record.edit',
+      }
+
+      this.layouts.forEach(layout => {
+        const { config = {} } = layout
+        if (!config.visibility.expression) return
+
+        variables.layout = layout
+
+        expressions[layout.pageLayoutID] = config.visibility.expression
+      })
+
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(() => {
+        Object.keys(expressions).forEach(key => (expressions[key] = false))
+        return expressions
+      })
+    },
+
+    async determineLayout () {
+      this.layouts = this.getPageLayouts(this.page.pageID)
+
+      const expressions = await this.evaluateLayoutExpressions()
+
+      // Check layouts for expressions/roles and find the first one that fits
+      this.layout = this.layouts.find(({ pageLayoutID, config = {} }) => {
+        const { expression, roles = [] } = config.visibility
+
+        if (expression && !expressions[pageLayoutID]) return false
+
+        if (!roles.length) return true
+
+        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
+      })
+
+      if (!this.layout) {
+        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
+        return this.$router.go(-1)
+      }
+
+      const { handle, meta = {} } = this.layout || {}
+      const title = meta.title || this.page.title
+      this.pageTitle = title || handle || this.$t('navigation:noPageTitle')
+      document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
+
+      this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
+        const block = this.page.blocks.find(b => b.blockID === blockID)
+        block.xywh = xywh
+        return block
+      })
+    },
   },
 }
 </script>

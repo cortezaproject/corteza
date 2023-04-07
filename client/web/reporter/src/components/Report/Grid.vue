@@ -63,7 +63,7 @@ export default {
   props: {
     blocks: {
       type: Array,
-      default: () => [],
+      default: () => ([]),
     },
 
     editable: {
@@ -109,14 +109,6 @@ export default {
         }
       },
     },
-  },
-
-  mounted () {
-    window.addEventListener('resize', this.windowResizeThrottledHandler)
-  },
-
-  destroyed () {
-    window.removeEventListener('resize', this.windowResizeThrottledHandler)
   },
 }
 </script>

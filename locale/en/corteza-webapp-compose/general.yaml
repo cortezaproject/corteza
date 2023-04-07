@@ -48,6 +48,8 @@ label:
   none: None
   now: Now
   ok: Ok
+  page: Page
+  pageLayout: Page layout
   pageBuilder: Page builder
   permissions: Permissions
   private: Private
@@ -151,3 +153,12 @@ resourceList:
 recordNavigation:
   next: Next record
   prev: Previous record
+variants:
+  primary: Primary
+  secondary: Secondary
+  light: Light
+  dark: Dark
+  info: Info
+  success: Success
+  danger: Danger
+  warning: Warning

@@ -21,3 +21,8 @@ resources:
     block:
       title: "Page block #{{ blockID }}"
       tooltip: Block translations
+    layout:
+      title: Page layout "{{ handle }}"
+  page-layout:
+    title: Page layout "{{ handle }}"
+    tooltip: Page layout translations

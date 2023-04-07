@@ -489,6 +489,45 @@ func SplitResourceIdentifier(ref string) (out map[string]Ref) {
 			Scope:        scope,
 		}
 
+	case "corteza::compose:page-layout":
+		scope := Scope{}
+
+		if gRef(pp, 0) == "" {
+			return
+		}
+
+		aux := gRef(pp, 0)
+		if aux != "" {
+			scope.ResourceType = "corteza::compose:namespace"
+			scope.Identifiers = MakeIdentifiers(aux)
+		}
+
+		out["Path.0"] = Ref{
+			ResourceType: "corteza::compose:namespace",
+			Identifiers:  MakeIdentifiers(gRef(pp, 0)),
+			Scope:        scope,
+		}
+
+		if gRef(pp, 1) == "" {
+			return
+		}
+
+		out["Path.1"] = Ref{
+			ResourceType: "corteza::compose:page",
+			Identifiers:  MakeIdentifiers(gRef(pp, 1)),
+			Scope:        scope,
+		}
+
+		if gRef(pp, 2) == "" {
+			return
+		}
+
+		out["Path.2"] = Ref{
+			ResourceType: "corteza::compose:page-layout",
+			Identifiers:  MakeIdentifiers(gRef(pp, 2)),
+			Scope:        scope,
+		}
+
 	case "corteza::compose:record":
 		scope := Scope{}
 

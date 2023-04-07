@@ -23,8 +23,8 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 	// Note,
 	ffn := []func() error{
 		// Migrations:
-		// (placeholder for all post 2022.3.x modifications)
-		func() error { return migrateReports(ctx, log.Named("reports"), s) },
+		// (placeholder for all post 2022.9.x modifications)
+		func() error { return migratePages(ctx, log.Named("pages"), s) },
 
 		// *************************************************************************************************************
 

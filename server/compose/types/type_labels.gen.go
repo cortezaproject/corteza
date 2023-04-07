@@ -127,3 +127,27 @@ func (Page) LabelResourceKind() string {
 func (m Page) LabelResourceID() uint64 {
 	return m.ID
 }
+
+// SetLabel adds new label to label map
+func (m *PageLayout) SetLabel(key string, value string) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m PageLayout) GetLabels() map[string]string {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (PageLayout) LabelResourceKind() string {
+	return "compose:page-layout"
+}
+
+// GetLabels adds new label to label map
+func (m PageLayout) LabelResourceID() uint64 {
+	return m.ID
+}

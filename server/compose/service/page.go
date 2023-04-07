@@ -157,11 +157,6 @@ func (svc page) search(ctx context.Context, filter types.PageFilter) (set types.
 			return err
 		}
 
-		set.Walk(func(p *types.Page) error {
-			preparePageConfig(svc.pageSettings, p)
-			return nil
-		})
-
 		// i18n
 		tag := locale.GetAcceptLanguageFromContext(ctx)
 		set.Walk(func(p *types.Page) error {
@@ -321,8 +316,6 @@ func (svc page) Create(ctx context.Context, new *types.Page) (*types.Page, error
 			return
 		}
 
-		preparePageConfig(svc.pageSettings, new)
-
 		if err = label.Create(ctx, s, new); err != nil {
 			return
 		}
@@ -471,14 +464,6 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 			return err
 		}
 
-		// Get max blockID for later use
-		blockID := uint64(0)
-		for _, b := range res.Blocks {
-			if b.BlockID > blockID {
-				blockID = b.BlockID
-			}
-		}
-
 		old = res.Clone()
 
 		aProps.setNamespace(ns)
@@ -507,8 +492,6 @@ func (svc page) updater(ctx context.Context, s store.Storer, ns *types.Namespace
 		if err = updateTranslations(ctx, svc.ac, svc.locale, res.EncodeTranslations()...); err != nil {
 			return
 		}
-
-		preparePageConfig(svc.pageSettings, res)
 
 		if changes&pageLabelsChanged > 0 {
 			if err = label.Update(ctx, s, res); err != nil {
@@ -544,8 +527,6 @@ func (svc page) lookup(ctx context.Context, namespaceID uint64, lookup func(*pag
 		} else if err != nil {
 			return err
 		}
-
-		preparePageConfig(svc.pageSettings, p)
 
 		p.DecodeTranslations(svc.locale.Locale().ResourceTranslations(locale.GetAcceptLanguageFromContext(ctx), p.ResourceTranslation()))
 
@@ -638,6 +619,11 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 			}
 		}
 
+		if res.Meta.AllowPersonalLayouts != upd.Meta.AllowPersonalLayouts {
+			res.Meta.AllowPersonalLayouts = upd.Meta.AllowPersonalLayouts
+			changes |= pageChanged
+		}
+
 		if res.Title != upd.Title {
 			res.Title = upd.Title
 			changes |= pageChanged
@@ -706,24 +692,6 @@ func (svc page) handleUndelete(ctx context.Context, ns *types.Namespace, m *type
 	return pageChanged, nil
 }
 
-func preparePageConfig(ss *pageSettings, p *types.Page) {
-	if p.ModuleID == 0 {
-		p.Config.Buttons = nil
-		return
-	}
-
-	p.Config.Buttons = &types.PageButtonConfig{}
-	if ss == nil {
-		return
-	}
-	p.Config.Buttons.New.Enabled = !ss.hideNew
-	p.Config.Buttons.Edit.Enabled = !ss.hideEdit
-	p.Config.Buttons.Submit.Enabled = !ss.hideSubmit
-	p.Config.Buttons.Delete.Enabled = !ss.hideDelete
-	p.Config.Buttons.Clone.Enabled = !ss.hideClone
-	p.Config.Buttons.Back.Enabled = !ss.hideBack
-}
-
 func (svc *page) UpdateConfig(ss *systemTypes.AppSettings) {
 	a := ss.Compose.UI.RecordToolbar
 
@@ -768,8 +736,6 @@ func loadPage(ctx context.Context, s store.ComposePages, namespaceID, pageID uin
 		// Make sure page belongs to the right namespace
 		return nil, PageErrNotFound()
 	}
-
-	preparePageConfig(nil, res)
 
 	return
 }

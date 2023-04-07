@@ -203,6 +203,48 @@ func PageRbacResourceTpl() string {
 	return "%s/%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for PageLayout by calling PageLayoutRbacResource fn
+//
+// RBAC resource is in the corteza::compose:page-layout/... format
+//
+// This function is auto-generated
+func (r PageLayout) RbacResource() string {
+	return PageLayoutRbacResource(r.NamespaceID, r.PageID, r.ID)
+}
+
+// PageLayoutRbacResource returns string representation of RBAC resource for PageLayout
+//
+// RBAC resource is in the corteza::compose:page-layout/... format
+//
+// This function is auto-generated
+func PageLayoutRbacResource(namespaceID uint64, pageID uint64, id uint64) string {
+	cpts := []interface{}{PageLayoutResourceType}
+	if namespaceID != 0 {
+		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	if pageID != 0 {
+		cpts = append(cpts, strconv.FormatUint(pageID, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(PageLayoutRbacResourceTpl(), cpts...)
+
+}
+
+func PageLayoutRbacResourceTpl() string {
+	return "%s/%s/%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Record by calling RecordRbacResource fn
 //
 // RBAC resource is in the corteza::compose:record/... format

@@ -1,15 +1,18 @@
 <template>
   <grid
-    v-if="page.blocks"
-    :key="page.pageID"
-    :blocks="page.blocks"
+    :blocks="blocks"
     :editable="false"
   >
     <template
       slot-scope="{ boundingRect, block, index }"
     >
       <page-block
-        v-bind="{ ...$attrs, block, page, boundingRect, blockIndex: index }"
+        v-bind="{ ...$attrs }"
+        :page="page"
+        :blocks="blocks"
+        :block="block"
+        :bounding-rect="boundingRect"
+        :block-index="index"
         class="p-2"
         v-on="$listeners"
       />
@@ -32,6 +35,11 @@ export default {
   props: {
     page: {
       type: compose.Page,
+      required: true,
+    },
+
+    blocks: {
+      type: Array,
       required: true,
     },
   },

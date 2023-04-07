@@ -14,6 +14,8 @@
     <page-block
       v-if="showModal"
       :block="block"
+      :blocks="page.blocks"
+      :module="module"
       :record="record"
       :page="page"
       v-bind="$props"
@@ -24,7 +26,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 import PageBlock from 'corteza-webapp-compose/src/components/PageBlocks'
 
 export default {
@@ -61,6 +63,7 @@ export default {
   computed: {
     ...mapGetters({
       getPageByID: 'page/getByID',
+      getModuleByID: 'module/getByID',
     }),
 
     dialogClass () {
@@ -125,17 +128,20 @@ export default {
         return
       }
 
-      this.block = this.customBlock || this.page.blocks.find(block => block.blockID === blockID)
       const { namespaceID, moduleID } = this.page
       const recordID = paramsRecordID || queryRecordID
+      this.block = this.customBlock || this.page.blocks.find(block => block.blockID === blockID)
+      this.module = moduleID !== NoID ? this.getModuleByID(moduleID) : undefined
 
       if (recordID) {
         this.$ComposeAPI
           .recordRead({ namespaceID, moduleID, recordID })
           .then(record => {
-            this.record = record
+            this.record = new compose.Record(this.module, record)
           })
           .catch(this.toastErrorHandler(this.$t('notification:record.loadFailed')))
+      } else if (this.module) {
+        this.record = new compose.Record(this.module, {})
       }
 
       this.showModal = !!(this.block || {}).blockID

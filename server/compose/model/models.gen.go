@@ -633,6 +633,14 @@ var Page = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
 			Ident: "Config",
 			Type: &dal.TypeJSON{
 				DefaultValue: "{}",
@@ -746,6 +754,191 @@ var Page = &dal.Model{
 				{
 					AttributeIdent: "Handle",
 					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+
+				{
+					AttributeIdent: "NamespaceID",
+				},
+			},
+		},
+	},
+}
+
+var PageLayout = &dal.Model{
+	Ident:        "compose_page_layout",
+	ResourceType: types.PageLayoutResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "PageID", Sortable: true,
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::compose:page",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "page_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ParentID", Sortable: true,
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::compose:page-layout",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "parent_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "NamespaceID",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::compose:namespace",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_namespace"},
+		},
+
+		&dal.Attribute{
+			Ident: "Weight", Sortable: true,
+			Type: &dal.TypeNumber{HasDefault: true,
+				DefaultValue: 0,
+				Precision:    -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"},
+			},
+			Store: &dal.CodecAlias{Ident: "weight"},
+		},
+
+		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
+			Ident: "Config",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "config"},
+		},
+
+		&dal.Attribute{
+			Ident: "Blocks",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "blocks"},
+		},
+
+		&dal.Attribute{
+			Ident: "OwnedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "owned_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "compose_page_layout_namespace",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "NamespaceID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_page_layout_pageId",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "PageID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "compose_page_layout_parentId",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ParentID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:     "compose_page_layout_uniqueHandle",
+			Type:      "BTREE",
+			Unique:    true,
+			Predicate: "handle != '' AND deleted_at IS NULL",
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "Handle",
+					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
+				},
+
+				{
+					AttributeIdent: "PageID",
 				},
 
 				{
@@ -1003,6 +1196,7 @@ func init() {
 		ModuleField,
 		Namespace,
 		Page,
+		PageLayout,
 		Record,
 		RecordRevision,
 	)

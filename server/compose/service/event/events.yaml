@@ -35,6 +35,27 @@ compose:page:
     - name: page.handle
     - name: page.name
 
+compose:page-layout:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'pageLayout'
+      type: '*types.PageLayout'
+    - name: 'oldPageLayout'
+      type: '*types.PageLayout'
+      immutable: true
+    - name: 'namespace'
+      type: '*types.Namespace'
+      immutable: true
+    - name: 'selected'
+      type: '[]interface{}'
+      immutable: true
+  constraints:
+    - name: namespace.handle
+    - name: namespace.name
+    - name: pageLayout.handle
+    - name: pageLayout.name
+
 compose:module:
   on: ['manual']
   ba: ['create', 'update', 'delete']

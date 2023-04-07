@@ -526,6 +526,19 @@ resources:
           title: Read any page
         update:
           title: Update any page
+        page-layout.create:
+          title: Create page layouts under any page
+        page-layouts.search:
+          title: List and search page layouts under any page
+    page-layout:
+      label: Page layouts
+      operations:
+        delete:
+          title: Delete any page layout
+        read:
+          title: Read any page layout
+        update:
+          title: Update any page layout
     record:
       label: Records
       operations:

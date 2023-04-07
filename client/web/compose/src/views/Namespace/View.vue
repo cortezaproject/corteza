@@ -157,6 +157,9 @@ export default {
         this.$store.dispatch('page/load', p)
           .catch(this.errHandler),
 
+        this.$store.dispatch('pageLayout/load', p)
+          .catch(this.errHandler),
+
       ]).catch(this.errHandler).then(() => {
         this.loaded = true
       })

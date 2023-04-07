@@ -1,3 +1,43 @@
+page-layout:
+  title: Title *
+  handle: Handle
+  add: Add layout
+  configure: 'Configure layout - "{{title}}"'
+  visibility: Visibility
+  tooltip:
+    configure: Configure layout
+    builder: Open layout in builder
+  condition:
+    label: Condition
+    placeholder: When will the layout be shown
+  roles:
+    label: Roles
+    placeholder: Pick roles that the layout will be shown to
+  recordToolbar:
+    label: Record toolbar
+    buttons:
+      label: Buttons
+      showBack: Show "Back" button
+      showDelete: Show "Delete" button
+      showClone: Show "Save as copy" button
+      showNew: Show "Add new" button
+      showEdit: Show "Edit" button
+      showSave: Show "Save" button
+    actions:
+      label: Actions
+      add: Add action
+      buttonLabel: Label
+      variant: Variant
+      visible: Visible
+      placement:
+        label: Placement
+        start: Start
+        center: Center
+        end: End
+      layout:
+        label: Redirect to layout
+        placeholder: No layout selected
+
 block:
   general:
     changeBlock: Change existing block

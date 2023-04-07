@@ -58,6 +58,12 @@ page: {
 				}
 			}
 
+			meta: {
+				goType: "types.PageMeta"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+			}
 			config: {
 				goType: "types.PageConfig"
 				dal: { type: "JSON", defaultEmptyObject: true }
@@ -160,6 +166,9 @@ page: {
 			"read": {}
 			"update": {}
 			"delete": {}
+
+			"page-layout.create": description:    "Create page layout on namespace"
+			"page-layouts.search": description:   "List, search or filter page layouts on namespace"
 		}
 	}
 
@@ -169,30 +178,6 @@ page: {
 		keys: {
 			title: {}
 			description: {}
-			recordToolbarButtonNewLabel: {
-				path: ["recordToolbar", "new", "label"]
-				customHandler: true
-			}
-			recordToolbarButtonEditLabel: {
-				path: ["recordToolbar", "edit", "label"]
-				customHandler: true
-			}
-			recordToolbarButtonSubmitLabel: {
-				path: ["recordToolbar", "submit", "label"]
-				customHandler: true
-			}
-			recordToolbarButtonDeleteLabel: {
-				path: ["recordToolbar", "delete", "label"]
-				customHandler: true
-			}
-			recordToolbarButtonCloneLabel: {
-				path: ["recordToolbar", "clone", "label"]
-				customHandler: true
-			}
-			recordToolbarButtonBackLabel: {
-				path: ["recordToolbar", "back", "label"]
-				customHandler: true
-			}
 			blockTitle: {
 				path: ["pageBlock", {part: "blockID", var: true}, "title"]
 				customHandler: true

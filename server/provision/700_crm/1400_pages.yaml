@@ -3,6 +3,46 @@ pages:
   - handle: Home
     (envoy): { onExisting: "skip" }
     title: Home
+    layouts:
+      - handle: primary
+        meta:
+          title: Home
+        config:
+          buttons:
+            new:
+              enabled: true
+              label:
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 11, 4, 9]
+          - blockID: 2
+            xywh: [4, 11, 4, 9]
+          - blockID: 3
+            xywh: [8, 11, 4, 9]
+          - blockID: 4
+            xywh: [6, 0, 2, 4]
+          - blockID: 5
+            xywh: [0, 0, 2, 4]
+          - blockID: 6
+            xywh: [2, 0, 2, 4]
+          - blockID: 7
+            xywh: [4, 0, 2, 4]
+          - blockID: 8
+            xywh: [0, 4, 4, 7]
+          - blockID: 9
+            xywh: [4, 4, 4, 7]
+          - blockID: 10
+            xywh: [8, 0, 4, 11]
     blocks:
     - title: My New Leads
       options:
@@ -30,7 +70,6 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 11, 4, 9]
     - title: My Key Deals - Recent Opportunities
       options:
         allowExport: true
@@ -56,7 +95,6 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [4, 11, 4, 9]
     - title: My Tasks
       options:
         allowExport: true
@@ -80,14 +118,12 @@ pages:
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [8, 11, 4, 9]
     - title: Sales vs. Target
       options:
         chart: SalesVsTarget
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [6, 0, 2, 4]
     - title: New Leads
       options:
         metrics:
@@ -102,7 +138,6 @@ pages:
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: Metric
-      xywh: [0, 0, 2, 4]
     - title: Converted Leads
       options:
         metrics:
@@ -116,7 +151,6 @@ pages:
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: Metric
-      xywh: [2, 0, 2, 4]
     - title: Total Pipeline €
       options:
         metrics:
@@ -136,21 +170,18 @@ pages:
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: Metric
-      xywh: [4, 0, 2, 4]
     - title: Leads per Month
       options:
         chart: LeadsPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [0, 4, 4, 7]
     - title: Monthly Sales
       options:
         chart: MonthlySales
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [4, 4, 4, 7]
     - title: My Calendar
       options:
         defaultView: dayGridMonth
@@ -219,11 +250,35 @@ pages:
       style:
         variants: {border: primary, headerBg: white, headerText: primary}
       kind: Calendar
-      xywh: [8, 0, 4, 11]
     visible: true
   - handle: Leads
     (envoy): { onExisting: "skip" }
     title: Leads
+    layouts:
+      - handle: primary
+        meta:
+          title: Leads
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [9, 0, 3, 8]
+          - blockID: 2
+            xywh: [9, 8, 3, 8]
+          - blockID: 3
+            xywh: [0, 0, 9, 16]
     blocks:
     - title: Leads by type
       options:
@@ -231,14 +286,12 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: New Leads Per Month
       options:
         chart: LeadsPerMonth
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     - title: Leads
       options:
         allowExport: true
@@ -266,12 +319,46 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     pages:
       - handle: RecordPageForModuleLead
         (envoy): { onExisting: "skip" }
         module: Lead
         title: Record page for module "Lead"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Lead"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 15]
+              - blockID: 2
+                xywh: [9, 0, 3, 31]
+              - blockID: 3
+                xywh: [3, 0, 3, 15]
+              - blockID: 4
+                xywh: [6, 0, 3, 15]
+              - blockID: 5
+                xywh: [0, 15, 6, 8]
+              - blockID: 6
+                xywh: [0, 23, 4, 8]
+              - blockID: 7
+                xywh: [4, 23, 5, 8]
+              - blockID: 8
+                xywh: [6, 15, 3, 8]
         blocks:
         - title: Personal Data
           options:
@@ -290,7 +377,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 15]
         - title: Twitter feed
           options:
             profileSourceField: Twitter
@@ -298,7 +384,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
-          xywh: [9, 0, 3, 31]
         - title: Company Data
           options:
             fields:
@@ -315,7 +400,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 15]
         - title: Other Information
           options:
             fields:
@@ -332,7 +416,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 15]
         - title: Notes
           options:
             allowExport: true
@@ -357,7 +440,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 15, 6, 8]
         - title: Events
           options:
             allowExport: true
@@ -382,7 +464,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 23, 4, 8]
         - title: Tasks
           options:
             allowExport: true
@@ -408,7 +489,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 23, 5, 8]
         - title: Lead Actions
           options:
             buttons:
@@ -426,11 +506,31 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [6, 15, 3, 8]
         visible: true
       - handle: MyLeads
         (envoy): { onExisting: "skip" }
         title: My Leads
+        layouts:
+          - handle: primary
+            meta:
+              title: My Leads
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 17]
         blocks:
         - title: My Leads
           options:
@@ -462,11 +562,31 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 17]
         visible: true
       - handle: AllNewLeads
         (envoy): { onExisting: "skip" }
         title: All New Leads
+        layouts:
+          - handle: primary
+            meta:
+              title: All New Leads
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
         blocks:
         - title: New Leads
           options:
@@ -498,12 +618,36 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         visible: true
     visible: true
   - handle: Accounts
     (envoy): { onExisting: "skip" }
     title: Accounts
+    layouts:
+      - handle: primary
+        meta:
+          title: Accounts
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
     blocks:
     - title: All accounts
       options:
@@ -533,26 +677,66 @@ pages:
       style:
         variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Account by Type
       options:
         chart: AccountsByType
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Accounts by Rating
       options:
         chart: AccountsByRating
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleAccount
         (envoy): { onExisting: "skip" }
         module: Account
         title: Record page for module "Account"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Account"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 12]
+              - blockID: 2
+                xywh: [3, 0, 3, 12]
+              - blockID: 3
+                xywh: [6, 0, 3, 12]
+              - blockID: 4
+                xywh: [9, 0, 3, 12]
+              - blockID: 5
+                xywh: [0, 17, 9, 7]
+              - blockID: 6
+                xywh: [0, 24, 4, 8]
+              - blockID: 7
+                xywh: [0, 32, 4, 8]
+              - blockID: 8
+                xywh: [8, 24, 4, 8]
+              - blockID: 9
+                xywh: [4, 32, 4, 8]
+              - blockID: 10
+                xywh: [8, 32, 4, 8]
+              - blockID: 11
+                xywh: [4, 24, 4, 8]
+              - blockID: 12
+                xywh: [9, 17, 3, 7]
         blocks:
         - title: Account Detail
           options:
@@ -568,7 +752,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 12]
         - title: Account Address
           options:
             fields:
@@ -582,7 +765,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 12]
         - title: Other Information
           options:
             fields:
@@ -595,7 +777,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 12]
         - title: Company Twitter Feed
           options:
             profileSourceField: Twitter
@@ -603,7 +784,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
-          xywh: [9, 0, 3, 12]
         - title: Opportunities
           options:
             allowExport: true
@@ -630,7 +810,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 17, 9, 7]
         - title: Contacts
           options:
             allowExport: true
@@ -656,7 +835,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 24, 4, 8]
         - title: Notes
           options:
             allowExport: true
@@ -681,7 +859,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 32, 4, 8]
         - title: Cases
           options:
             allowExport: true
@@ -707,7 +884,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 24, 4, 8]
         - title: Events
           options:
             allowExport: true
@@ -732,7 +908,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 32, 4, 8]
         - title: Tasks
           options:
             allowExport: true
@@ -758,7 +933,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 32, 4, 8]
         - title: Contracts
           options:
             allowExport: true
@@ -785,7 +959,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 24, 4, 8]
         - title: Account Actions
           options:
             buttons:
@@ -808,12 +981,32 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [9, 17, 3, 7]
         pages:
           - handle: RecordPageForModuleAccountContactRole
             (envoy): { onExisting: "skip" }
             module: AccountContactRole
             title: Record page for module "AccountContactRole"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "AccountContactRole"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 5, 15]
             blocks:
             - title: Account Contact Role Details
               options:
@@ -823,13 +1016,37 @@ pages:
                 - name: Role
                 - name: IsPrimary
               kind: Record
-              xywh: [0, 0, 5, 15]
             visible: false
         visible: true
     visible: true
   - handle: Contacts
     (envoy): { onExisting: "skip" }
     title: Contacts
+    layouts:
+      - handle: primary
+        meta:
+          title: Contacts
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
     blocks:
     - title: List of Contacts
       options:
@@ -856,26 +1073,60 @@ pages:
         selectable: true
         selectionButtons: []
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Number of Contacts with Senior Title
       options:
         chart: ContactsPerSeniorLeveltitle
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Contacts per Country
       options:
         chart: ContactsPerCountry
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleContact
         (envoy): { onExisting: "skip" }
         module: Contact
         title: Record page for module "Contact"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Contact"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 13]
+              - blockID: 2
+                xywh: [3, 0, 3, 13]
+              - blockID: 3
+                xywh: [6, 0, 3, 13]
+              - blockID: 4
+                xywh: [9, 0, 3, 21]
+              - blockID: 5
+                xywh: [0, 21, 4, 8]
+              - blockID: 6
+                xywh: [4, 21, 4, 8]
+              - blockID: 7
+                xywh: [8, 21, 4, 8]
+              - blockID: 8
+                xywh: [0, 13, 6, 8]
+              - blockID: 9
+                xywh: [6, 13, 3, 8]
         blocks:
         - title: Personal Data
           options:
@@ -892,7 +1143,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 13]
         - title: Contact Address
           options:
             fields:
@@ -906,7 +1156,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 13]
         - title: Other Information
           options:
             fields:
@@ -919,7 +1168,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 13]
         - title: Contact Twitter Feed
           options:
             profileSourceField: Twitter
@@ -927,7 +1175,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: SocialFeed
-          xywh: [9, 0, 3, 21]
         - title: Notes
           options:
             allowExport: true
@@ -953,7 +1200,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 21, 4, 8]
         - title: Events
           options:
             allowExport: true
@@ -978,7 +1224,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 21, 4, 8]
         - title: Tasks
           options:
             allowExport: true
@@ -1004,7 +1249,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 21, 4, 8]
         - title: Cases related with this Contact
           options:
             allowExport: true
@@ -1031,7 +1275,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 13, 6, 8]
         - title: Contact Actions
           options:
             buttons:
@@ -1044,12 +1287,38 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [6, 13, 3, 8]
         visible: false
     visible: true
   - handle: Opportunities
     (envoy): { onExisting: "skip" }
     title: Opportunities
+    layouts:
+      - handle: primary
+        meta:
+          title: Opportunities
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 8, 16]
+          - blockID: 2
+            xywh: [8, 6, 4, 10]
+          - blockID: 3
+            xywh: [10, 0, 2, 6]
+          - blockID: 4
+            xywh: [8, 0, 2, 6]
     blocks:
     - title: List of Opportunities
       options:
@@ -1077,33 +1346,69 @@ pages:
         selectable: true
         selectionButtons: []
       kind: RecordList
-      xywh: [0, 0, 8, 16]
     - title: Opportunity Pipeline
       options:
         chart: OpportunitySalesPipeline
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [8, 6, 4, 10]
     - title: Sales vs. Target
       options:
         chart: SalesVsTarget
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [10, 0, 2, 6]
     - title: Opportunities vs. Target
       options:
         chart: NumberOfOpportunitiesVsTarget
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [8, 0, 2, 6]
     pages:
       - handle: RecordPageForModuleOpportunity
         (envoy): { onExisting: "skip" }
         module: Opportunity
         title: Record page for module "Opportunity"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Opportunity"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 4, 10]
+              - blockID: 2
+                xywh: [8, 0, 4, 10]
+              - blockID: 3
+                xywh: [6, 26, 6, 8]
+              - blockID: 4
+                xywh: [4, 0, 4, 10]
+              - blockID: 5
+                xywh: [0, 18, 8, 8]
+              - blockID: 6
+                xywh: [0, 34, 4, 8]
+              - blockID: 7
+                xywh: [4, 34, 4, 8]
+              - blockID: 8
+                xywh: [8, 34, 4, 8]
+              - blockID: 9
+                xywh: [0, 26, 6, 8]
+              - blockID: 10
+                xywh: [8, 18, 4, 8]
+
         blocks:
         - title: Opportunity Detail
           options:
@@ -1116,7 +1421,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 4, 10]
         - title: Additional Information
           options:
             fields:
@@ -1129,7 +1433,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [8, 0, 4, 10]
         - title: Contact Roles
           options:
             allowExport: true
@@ -1154,7 +1457,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [6, 26, 6, 8]
         - title: Stage
           options:
             fields:
@@ -1166,7 +1468,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 10]
         - title: Products
           options:
             allowExport: true
@@ -1204,7 +1505,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 18, 8, 8]
         - title: Notes
           options:
             allowExport: true
@@ -1229,7 +1529,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 34, 4, 8]
         - title: Events
           options:
             allowExport: true
@@ -1254,7 +1553,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 34, 4, 8]
         - title: Tasks
           options:
             allowExport: true
@@ -1280,7 +1578,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 34, 4, 8]
         - title: Quotes
           options:
             allowExport: true
@@ -1308,7 +1605,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 26, 6, 8]
         - title: Opportunity Actions
           options:
             buttons:
@@ -1327,12 +1623,33 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [8, 18, 4, 8]
         pages:
           - handle: RecordPageForModuleOpportunityContactRole
             (envoy): { onExisting: "skip" }
             module: OpportunityContactRole
             title: Record page for module "OpportunityContactRole"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "OpportunityContactRole"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 16]
+
             blocks:
             - title: Opportunity Contact Role Details
               options:
@@ -1342,12 +1659,36 @@ pages:
                 - name: Role
                 - name: IsPrimary
               kind: Record
-              xywh: [0, 0, 4, 16]
             visible: false
           - handle: RecordPageForModuleOpportunityLineItem
             (envoy): { onExisting: "skip" }
             module: OpportunityLineItem
             title: Record page for module "OpportunityLineItem"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "OpportunityLineItem"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 16]
+                  - blockID: 2
+                    xywh: [4, 0, 4, 16]
+                  - blockID: 3
+                    xywh: [8, 0, 4, 16]
             blocks:
             - title: Opportunity Line Item Details
               options:
@@ -1361,7 +1702,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [0, 0, 4, 16]
             - title: Automatically inserted values
               options:
                 fields:
@@ -1372,7 +1712,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [4, 0, 4, 16]
             - title: Other Information
               options:
                 fields:
@@ -1383,12 +1722,33 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [8, 0, 4, 16]
             visible: false
           - handle: RecordPageForModuleOpportunityCompetitor
             (envoy): { onExisting: "skip" }
             module: OpportunityCompetitor
             title: Record page for module "OpportunityCompetitor"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "OpportunityCompetitor"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 5, 17]
+
             blocks:
             - title: Opportunity Competitor Details
               options:
@@ -1400,13 +1760,38 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [0, 0, 5, 17]
             visible: false
         visible: false
     visible: true
   - handle: Quotes
     (envoy): { onExisting: "skip" }
     title: Quotes
+    layouts:
+      - handle: primary
+        meta:
+          title: Quotes
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: List of Quotes
       options:
@@ -1437,26 +1822,65 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Quotes Status
       options:
         chart: QuotesByStatus
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Number of Quotes per Month
       options:
         chart: QuotesPerMonth
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleQuote
         (envoy): { onExisting: "skip" }
         module: Quote
         title: Record page for module "Quote"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Quote"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 4, 12]
+              - blockID: 2
+                xywh: [8, 0, 4, 12]
+              - blockID: 3
+                xywh: [4, 0, 4, 9]
+              - blockID: 4
+                xywh: [0, 20, 4, 9]
+              - blockID: 5
+                xywh: [4, 20, 4, 9]
+              - blockID: 6
+                xywh: [8, 20, 4, 9]
+              - blockID: 7
+                xywh: [0, 12, 12, 8]
+              - blockID: 8
+                xywh: [0, 29, 4, 8]
+              - blockID: 9
+                xywh: [4, 29, 4, 8]
+              - blockID: 10
+                xywh: [8, 29, 4, 8]
+              - blockID: 11
+                xywh: [4, 9, 4, 3]
+
         blocks:
         - title: Quote Information
           options:
@@ -1470,7 +1894,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 4, 12]
         - title: Totals
           options:
             fields:
@@ -1484,7 +1907,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [8, 0, 4, 12]
         - title: Primary contact data
           options:
             fields:
@@ -1497,7 +1919,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 9]
         - title: Bill To
           options:
             fields:
@@ -1510,7 +1931,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 20, 4, 9]
         - title: Quote To
           options:
             fields:
@@ -1523,7 +1943,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [4, 20, 4, 9]
         - title: Ship To
           options:
             fields:
@@ -1536,7 +1955,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [8, 20, 4, 9]
         - title: Quote Line Items
           options:
             allowExport: true
@@ -1576,7 +1994,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 12, 12, 8]
         - title: Notes
           options:
             allowExport: true
@@ -1601,7 +2018,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 29, 4, 8]
         - title: Events
           options:
             allowExport: true
@@ -1626,7 +2042,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 29, 4, 8]
         - title: Tasks
           options:
             allowExport: true
@@ -1652,7 +2067,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 29, 4, 8]
         - options:
             buttons:
             - enabled: true
@@ -1669,12 +2083,32 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Automation
-          xywh: [4, 9, 4, 3]
         pages:
           - handle: RecordPageForModuleQuoteLineItem
             (envoy): { onExisting: "skip" }
             module: QuoteLineItem
             title: Record page for module "QuoteLineItem"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "QuoteLineItem"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 15]
             blocks:
             - title: Quote Line Item Information
               options:
@@ -1692,13 +2126,38 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [0, 0, 4, 15]
             visible: false
         visible: false
     visible: true
   - handle: Contracts
     (envoy): { onExisting: "skip" }
     title: Contracts
+    layouts:
+      - handle: primary
+        meta:
+          title: Contracts
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 18]
+          - blockID: 2
+            xywh: [9, 9, 3, 9]
+          - blockID: 3
+            xywh: [9, 0, 3, 9]
+
     blocks:
     - title: List of Contracts
       options:
@@ -1728,26 +2187,63 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 18]
     - title: Active Contracts by Strarting Month
       options:
         chart: ContractsPerStartingMonth
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 9, 3, 9]
     - title: Contracts by Status
       options:
         chart: ContractsByStatus
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 9]
     pages:
       - handle: RecordPageForModuleContract
         (envoy): { onExisting: "skip" }
         module: Contract
         title: Record page for module "Contract"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Contract"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 10]
+              - blockID: 2
+                xywh: [9, 0, 3, 10]
+              - blockID: 3
+                xywh: [3, 0, 3, 10]
+              - blockID: 4
+                xywh: [6, 0, 3, 10]
+              - blockID: 5
+                xywh: [9, 10, 3, 9]
+              - blockID: 6
+                xywh: [0, 19, 4, 8]
+              - blockID: 7
+                xywh: [4, 19, 4, 8]
+              - blockID: 8
+                xywh: [8, 19, 4, 8]
+              - blockID: 9
+                xywh: [6, 10, 3, 9]
+              - blockID: 10
+                xywh: [0, 10, 6, 9]
+
         blocks:
         - title: Contract Details
           options:
@@ -1761,7 +2257,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 10]
         - title: Contract Billing Address
           options:
             fields:
@@ -1773,7 +2268,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 10]
         - title: Contract Description and Special Terms
           options:
             fields:
@@ -1784,7 +2278,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 10]
         - title: Other Information
           options:
             fields:
@@ -1795,7 +2288,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 10]
         - title: Contract Shipping Address
           options:
             fields:
@@ -1807,7 +2299,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [9, 10, 3, 9]
         - title: Notes
           options:
             allowExport: true
@@ -1832,7 +2323,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 19, 4, 8]
         - title: Events
           options:
             allowExport: true
@@ -1857,7 +2347,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [4, 19, 4, 8]
         - title: Tasks
           options:
             allowExport: true
@@ -1883,7 +2372,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [8, 19, 4, 8]
         - title: Contacts related to the Contract
           options:
             allowExport: true
@@ -1908,7 +2396,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [6, 10, 3, 9]
         - title: Contract Line Items
           options:
             allowExport: true
@@ -1946,12 +2433,33 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 10, 6, 9]
         pages:
           - handle: RecordPageForModuleContractContactRole
             (envoy): { onExisting: "skip" }
             module: ContractContactRole
             title: Record page for module "ContractContactRole"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "ContractContactRole"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 16]
+
             blocks:
             - title: Contract Contact Role Details
               options:
@@ -1961,12 +2469,41 @@ pages:
                 - name: Role
                 - name: IsPrimary
               kind: Record
-              xywh: [0, 0, 4, 16]
             visible: false
           - handle: RecordPageForModuleEntitlement
             (envoy): { onExisting: "skip" }
             module: Entitlement
             title: Record page for module "Entitlement"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Entitlement"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 13]
+                  - blockID: 2
+                    xywh: [4, 0, 4, 13]
+                  - blockID: 3
+                    xywh: [6, 13, 6, 7]
+                  - blockID: 4
+                    xywh: [0, 13, 6, 7]
+                  - blockID: 5
+                    xywh: [8, 0, 4, 13]
+
             blocks:
             - title: Entitlement Details
               options:
@@ -1981,7 +2518,6 @@ pages:
                 - name: EndDate
                 - name: Status
               kind: Record
-              xywh: [0, 0, 4, 13]
             - title: Other Information
               options:
                 fields:
@@ -1992,7 +2528,6 @@ pages:
                 - name: LastModifiedById
                 - name: LastModifiedDate
               kind: Record
-              xywh: [4, 0, 4, 13]
             - title: Notes
               options:
                 fields:
@@ -2003,7 +2538,6 @@ pages:
                 perPage: 5
                 prefilter: EntitlementId = ${recordID}
               kind: RecordList
-              xywh: [6, 13, 6, 7]
             - title: Entitlement Templates
               options:
                 fields:
@@ -2017,7 +2551,6 @@ pages:
                 perPage: 5
                 prefilter: EntitlementId = ${recordID}
               kind: RecordList
-              xywh: [0, 13, 6, 7]
             - title: Entitlement Contacts
               options:
                 fields:
@@ -2028,12 +2561,33 @@ pages:
                 perPage: 8
                 prefilter: EntitlementId = ${recordID}
               kind: RecordList
-              xywh: [8, 0, 4, 13]
             pages:
               - handle: RecordPageForModuleEntitlementContact
                 (envoy): { onExisting: "skip" }
                 module: EntitlementContact
                 title: Record page for module "EntitlementContact"
+                layouts:
+                  - handle: primary
+                    meta:
+                      title: Record page for module "EntitlementContact"
+                    config:
+                      buttons:
+                        new:
+                          enabled: true
+                        edit:
+                          enabled: true
+                        submit:
+                          enabled: true
+                        delete:
+                          enabled: true
+                        clone:
+                          enabled: true
+                        back:
+                          enabled: true
+                    blocks:
+                      - blockID: 1
+                        xywh: [0, 0, 4, 14]
+
                 blocks:
                 - title: Entitlement Contact Details
                   options:
@@ -2042,12 +2596,32 @@ pages:
                     - name: ContactId
                     - name: Name
                   kind: Record
-                  xywh: [0, 0, 4, 14]
                 visible: false
               - handle: RecordPageForModuleEntitlementTemplate
                 (envoy): { onExisting: "skip" }
                 module: EntitlementTemplate
                 title: Record page for module "EntitlementTemplate"
+                layouts:
+                  - handle: primary
+                    meta:
+                      title: Record page for module "EntitlementTemplate"
+                    config:
+                      buttons:
+                        new:
+                          enabled: true
+                        edit:
+                          enabled: true
+                        submit:
+                          enabled: true
+                        delete:
+                          enabled: true
+                        clone:
+                          enabled: true
+                        back:
+                          enabled: true
+                    blocks:
+                      - blockID: 1
+                        xywh: [0, 0, 4, 14]
                 blocks:
                 - title: Entitlement Template Details
                   options:
@@ -2059,13 +2633,38 @@ pages:
                     - name: Term
                     - name: BusinessHours
                   kind: Record
-                  xywh: [0, 0, 4, 14]
                 visible: false
             visible: false
           - handle: RecordPageForModuleContractLineItem
             (envoy): { onExisting: "skip" }
             module: ContractLineItem
             title: Record page for module "ContractLineItem"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "ContractLineItem"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 11]
+                  - blockID: 2
+                    xywh: [4, 0, 4, 11]
+                  - blockID: 3
+                    xywh: [8, 0, 4, 11]
+
             blocks:
             - title: Contract Line Item Details
               options:
@@ -2076,7 +2675,6 @@ pages:
                 - name: EndDate
                 - name: Status
               kind: Record
-              xywh: [0, 0, 4, 11]
             - title: Contract Line Item Pricing
               options:
                 fields:
@@ -2086,7 +2684,6 @@ pages:
                 - name: Discount
                 - name: TotalPrice
               kind: Record
-              xywh: [4, 0, 4, 11]
             - title: Notes
               options:
                 fields:
@@ -2098,13 +2695,50 @@ pages:
                 perPage: 5
                 prefilter: ContractLineItemId = ${recordID}
               kind: RecordList
-              xywh: [8, 0, 4, 11]
             visible: false
         visible: false
     visible: true
   - handle: Campaigns
     (envoy): { onExisting: "skip" }
     title: Campaigns
+    layouts:
+      - handle: primary
+        meta:
+          title: Campaigns
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 4, 8, 12]
+          - blockID: 2
+            xywh: [8, 4, 4, 7]
+          - blockID: 3
+            xywh: [8, 11, 4, 5]
+          - blockID: 4
+            xywh: [0, 0, 2, 4]
+          - blockID: 5
+            xywh: [2, 0, 2, 4]
+          - blockID: 6
+            xywh: [4, 0, 2, 4]
+          - blockID: 7
+            xywh: [6, 0, 2, 4]
+          - blockID: 8
+            xywh: [8, 0, 2, 4]
+          - blockID: 9
+            xywh: [10, 0, 2, 4]
+
     blocks:
     - title: List of Campaigns
       options:
@@ -2133,21 +2767,18 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 4, 8, 12]
     - title: Campaign Costs vs. Revenue
       options:
         chart: CampaignCostVsRevenue
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [8, 4, 4, 7]
     - title: Active Campaigns per Type
       options:
         chart: ActiveCampaignsByType
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [8, 11, 4, 5]
     - title: Number of Leads in Campaigns
       options:
         metrics:
@@ -2161,7 +2792,6 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: Metric
-      xywh: [0, 0, 2, 4]
     - title: Number of Accounts in Campaigns
       options:
         metrics:
@@ -2175,7 +2805,6 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: Metric
-      xywh: [2, 0, 2, 4]
     - title: Number of Contacts in Campaigns
       options:
         metrics:
@@ -2189,7 +2818,6 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: Metric
-      xywh: [4, 0, 2, 4]
     - title: Number of Opp. in Campaigns
       options:
         metrics:
@@ -2203,26 +2831,59 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: Metric
-      xywh: [6, 0, 2, 4]
     - title: Campaign Opps. vs. Target
       options:
         chart: CampaignAmountAllOpportunitiesVsTarget
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [8, 0, 2, 4]
     - title: Campaign Won Opps. vs. Target
       options:
         chart: CampaignAmountAllWonOpportunitiesVsTarget
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [10, 0, 2, 4]
     pages:
       - handle: RecordPageForModuleCampaign
         (envoy): { onExisting: "skip" }
         module: Campaigns
         title: Record page for module "Campaign"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Campaign"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 10]
+              - blockID: 2
+                xywh: [3, 0, 3, 10]
+              - blockID: 3
+                xywh: [6, 0, 3, 10]
+              - blockID: 4
+                xywh: [6, 19, 6, 9]
+              - blockID: 5
+                xywh: [9, 0, 3, 10]
+              - blockID: 6
+                xywh: [0, 10, 6, 9]
+              - blockID: 7
+                xywh: [6, 10, 6, 9]
+              - blockID: 8
+                xywh: [0, 19, 6, 9]
+
         blocks:
         - title: Campaign Details
           options:
@@ -2234,7 +2895,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 10]
         - title: Campaign Planning
           options:
             fields:
@@ -2245,7 +2905,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 10]
         - title: Campaign Results
           options:
             fields:
@@ -2259,7 +2918,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 10]
         - title: Generated Opportunities
           options:
             allowExport: true
@@ -2285,7 +2943,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [6, 19, 6, 9]
         - title: Campaign Status
           options:
             fields:
@@ -2296,7 +2953,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 10]
         - title: Leads in Campaign
           options:
             allowExport: true
@@ -2323,7 +2979,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 10, 6, 9]
         - title: Contacts in Campaign
           options:
             allowExport: true
@@ -2349,7 +3004,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [6, 10, 6, 9]
         - title: Accounts in Campaign
           options:
             allowExport: true
@@ -2375,12 +3029,37 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 19, 6, 9]
         visible: false
     visible: true
   - handle: Products
     (envoy): { onExisting: "skip" }
     title: Products
+    layouts:
+      - handle: primary
+        meta:
+          title: Products
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: List of Products
       options:
@@ -2406,26 +3085,55 @@ pages:
         selectable: true
         selectionButtons: []
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Products per Product Family
       options:
         chart: ProductsPerFamily
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Products added per Month
       options:
         chart: ProductsAddedPerMonth
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleProduct
         (envoy): { onExisting: "skip" }
         module: Product
         title: Record page for module "Product"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Product"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 4, 10]
+              - blockID: 2
+                xywh: [0, 10, 6, 9]
+              - blockID: 3
+                xywh: [6, 10, 6, 9]
+              - blockID: 4
+                xywh: [0, 19, 12, 9]
+              - blockID: 5
+                xywh: [4, 0, 4, 10]
+              - blockID: 6
+                xywh: [8, 0, 4, 10]
+
         blocks:
         - title: Product Description
           options:
@@ -2437,7 +3145,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [0, 0, 4, 10]
         - title: Appears in the following Price Books
           options:
             allowExport: true
@@ -2462,7 +3169,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 10, 6, 9]
         - title: Related Cases
           options:
             allowExport: true
@@ -2488,7 +3194,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [6, 10, 6, 9]
         - title: Notes
           options:
             allowExport: true
@@ -2513,7 +3218,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 19, 12, 9]
         - title: Files
           options:
             fields:
@@ -2522,7 +3226,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [4, 0, 4, 10]
         - title: Record Information
           options:
             fields:
@@ -2534,11 +3237,36 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [8, 0, 4, 10]
         visible: false
       - handle: PriceBook
         (envoy): { onExisting: "skip" }
         title: Price book
+        layouts:
+          - handle: primary
+            meta:
+              title: Price book
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 9, 16]
+              - blockID: 2
+                xywh: [9, 0, 3, 8]
+              - blockID: 3
+                xywh: [9, 8, 3, 8]
+
         blocks:
         - title: Price Books
           options:
@@ -2565,26 +3293,49 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 9, 16]
         - title: Price Books created per Month
           options:
             chart: PriceBooksCreatedPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 0, 3, 8]
         - title: Price Book Entries per Month
           options:
             chart: PriceBookEntriesPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 8, 3, 8]
         pages:
           - handle: RecordPageForModulePricebook
             (envoy): { onExisting: "skip" }
             module: Pricebook
             title: Record page for module "Pricebook"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Pricebook"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 6, 14]
+                  - blockID: 2
+                    xywh: [6, 0, 6, 14]
+                  - blockID: 3
+                    xywh: [0, 14, 12, 8]
+
             blocks:
             - title: Price Book Details
               options:
@@ -2594,7 +3345,6 @@ pages:
                 - name: IsStandard
                 - name: IsActive
               kind: Record
-              xywh: [0, 0, 6, 14]
             - title: Price Book Entries
               options:
                 allowExport: true
@@ -2624,7 +3374,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: RecordList
-              xywh: [6, 0, 6, 14]
             - title: Notes
               options:
                 draggable: false
@@ -2646,12 +3395,33 @@ pages:
                 selectable: false
                 selectionButtons: []
               kind: RecordList
-              xywh: [0, 14, 12, 8]
             pages:
               - handle: RecordPageForModulePricebookEntry
                 (envoy): { onExisting: "skip" }
                 module: PricebookEntry
                 title: Record page for module "PricebookEntry"
+                layouts:
+                  - handle: primary
+                    meta:
+                      title: Record page for module "PricebookEntry"
+                    config:
+                      buttons:
+                        new:
+                          enabled: true
+                        edit:
+                          enabled: true
+                        submit:
+                          enabled: true
+                        delete:
+                          enabled: true
+                        clone:
+                          enabled: true
+                        back:
+                          enabled: true
+                    blocks:
+                      - blockID: 1
+                        xywh: [0, 0, 4, 15]
+
                 blocks:
                 - title: Details
                   options:
@@ -2662,7 +3432,6 @@ pages:
                   style:
                     variants: {border: primary, headerText: primary}
                   kind: Record
-                  xywh: [0, 0, 4, 15]
                 visible: false
             visible: false
         visible: true
@@ -2670,6 +3439,34 @@ pages:
   - handle: Events
     (envoy): { onExisting: "skip" }
     title: Events
+    layouts:
+      - handle: primary
+        meta:
+          title: Events
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 3, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+          - blockID: 4
+            xywh: [3, 0, 6, 16]
+
     blocks:
     - title: List of Events
       options:
@@ -2695,21 +3492,18 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 3, 16]
     - title: Events per Type
       options:
         chart: EventsPerType
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Events per Month
       options:
         chart: EventsPerMonth
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     - title: Event Calendar
       options:
         defaultView: dayGridMonth
@@ -2778,12 +3572,39 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: Calendar
-      xywh: [3, 0, 6, 16]
     pages:
       - handle: RecordPageForModuleEvent
         (envoy): { onExisting: "skip" }
         module: Event
         title: Record page for module "Event"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Event"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 16]
+              - blockID: 2
+                xywh: [9, 0, 3, 16]
+              - blockID: 3
+                xywh: [3, 0, 3, 16]
+              - blockID: 4
+                xywh: [6, 0, 3, 16]
+
         blocks:
         - title: Event Data
           options:
@@ -2795,7 +3616,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 16]
         - title: Other Information
           options:
             fields:
@@ -2811,7 +3631,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 16]
         - title: Event Date and Time
           options:
             fields:
@@ -2821,7 +3640,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 16]
         - title: Assigned To
           options:
             fields:
@@ -2829,12 +3647,37 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 16]
         visible: false
     visible: true
   - handle: Tasks
     (envoy): { onExisting: "skip" }
     title: Tasks
+    layouts:
+      - handle: primary
+        meta:
+          title: Tasks
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 9, 16]
+          - blockID: 2
+            xywh: [9, 0, 3, 8]
+          - blockID: 3
+            xywh: [9, 8, 3, 8]
+
     blocks:
     - title: List of Tasks
       options:
@@ -2865,26 +3708,51 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: RecordList
-      xywh: [0, 0, 9, 16]
     - title: Tasks by Status
       options:
         chart: TasksByStatus
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 8]
     - title: Tasks per Month
       options:
         chart: TasksPerMonth
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 8, 3, 8]
     pages:
       - handle: RecordPageForModuleTask
         (envoy): { onExisting: "skip" }
         module: Task
         title: Record page for module "Task"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Task"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 16]
+              - blockID: 2
+                xywh: [9, 0, 3, 16]
+              - blockID: 3
+                xywh: [3, 0, 3, 16]
+              - blockID: 4
+                xywh: [6, 0, 3, 16]
+
         blocks:
         - title: Task Details
           options:
@@ -2895,7 +3763,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [0, 0, 3, 16]
         - title: Related To
           options:
             fields:
@@ -2908,7 +3775,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [9, 0, 3, 16]
         - title: Task Status
           options:
             fields:
@@ -2918,7 +3784,6 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [3, 0, 3, 16]
         - title: Assigned To
           options:
             fields:
@@ -2928,12 +3793,49 @@ pages:
           style:
             variants: {border: primary, headerBg: white, headerText: primary}
           kind: Record
-          xywh: [6, 0, 3, 16]
         visible: false
     visible: true
   - handle: Dashboards
     (envoy): { onExisting: "skip" }
     title: Dashboards
+    layouts:
+      - handle: primary
+        meta:
+          title: Dashboards
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 6, 7]
+          - blockID: 2
+            xywh: [6, 0, 3, 7]
+          - blockID: 3
+            xywh: [6, 7, 6, 7]
+          - blockID: 4
+            xywh: [9, 0, 3, 7]
+          - blockID: 5
+            xywh: [0, 7, 6, 7]
+          - blockID: 6
+            xywh: [9, 14, 3, 7]
+          - blockID: 7
+            xywh: [0, 14, 3, 7]
+          - blockID: 8
+            xywh: [3, 14, 3, 7]
+          - blockID: 9
+            xywh: [6, 14, 3, 7]
+
     blocks:
     - title: Leads per day
       options:
@@ -2941,67 +3843,108 @@ pages:
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [0, 0, 6, 7]
     - title: Leads By Type
       options:
         chart: LeadsByType
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [6, 0, 3, 7]
     - title: Leads by Country
       options:
         chart: LeadsByCountry
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [6, 7, 6, 7]
     - title: Lead Funnel
       options:
         chart: LeadFunnel
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 0, 3, 7]
     - title: Monthly Sales
       options:
         chart: MonthlySales
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [0, 7, 6, 7]
     - title: Sales Pipeline
       options:
         chart: OpportunityStatusFunnel
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [9, 14, 3, 7]
     - title: Sales vs. Target
       options:
         chart: SalesVsTarget
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [0, 14, 3, 7]
     - title: Number of Opportunities vs. Target
       options:
         chart: NumberOfOpportunitiesVsTarget
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [3, 14, 3, 7]
     - title: Accounts by Rating
       options:
         chart: AccountsByRating
       style:
         variants: {border: primary, headerText: primary}
       kind: Chart
-      xywh: [6, 14, 3, 7]
     pages:
       - handle: LeadFunnelDashboard
         (envoy): { onExisting: "skip" }
         title: Lead Funnel Dashboard
+        layouts:
+          - handle: primary
+            meta:
+              title: Lead Funnel Dashboard
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 4]
+              - blockID: 2
+                xywh: [3, 0, 3, 4]
+              - blockID: 3
+                xywh: [6, 0, 3, 4]
+              - blockID: 4
+                xywh: [9, 0, 3, 4]
+              - blockID: 5
+                xywh: [3, 4, 3, 6]
+              - blockID: 6
+                xywh: [6, 4, 3, 6]
+              - blockID: 7
+                xywh: [0, 4, 3, 6]
+              - blockID: 8
+                xywh: [0, 10, 6, 8]
+              - blockID: 9
+                xywh: [6, 10, 6, 8]
+              - blockID: 10
+                xywh: [0, 18, 3, 7]
+              - blockID: 11
+                xywh: [3, 18, 3, 7]
+              - blockID: 12
+                xywh: [0, 25, 12, 8]
+              - blockID: 13
+                xywh: [9, 4, 3, 6]
+              - blockID: 14
+                xywh: [6, 18, 3, 7]
+              - blockID: 15
+                xywh: [9, 18, 3, 7]
+
         blocks:
         - title: Number of Leads in Campaigns
           options:
@@ -3016,7 +3959,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [0, 0, 3, 4]
         - title: Number of Accounts in Campaigns
           options:
             metrics:
@@ -3031,7 +3973,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [3, 0, 3, 4]
         - title: Number of Contacts in Campaigns
           options:
             metrics:
@@ -3045,7 +3986,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [6, 0, 3, 4]
         - title: Number of Opp. in Campaigns
           options:
             metrics:
@@ -3059,88 +3999,112 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [9, 0, 3, 4]
         - title: Campaign Opps. vs. Target
           options:
             chart: CampaignAmountAllOpportunitiesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [3, 4, 3, 6]
         - title: Campaign Won Opps. vs. Target
           options:
             chart: CampaignAmountAllWonOpportunitiesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 4, 3, 6]
         - title: Active Campaigns per Type
           options:
             chart: ActiveCampaignsByType
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 4, 3, 6]
         - title: Campaign Costs vs. Revenue
           options:
             chart: CampaignCostVsRevenue
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 10, 6, 8]
         - title: New Leads Per Month
           options:
             chart: LeadsPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 10, 6, 8]
         - title: Leads by type
           options:
             chart: LeadsByType
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 18, 3, 7]
         - title: Leads by Source
           options:
             chart: LeadsBySource
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [3, 18, 3, 7]
         - title: Lead by Country
           options:
             chart: LeadsByCountry
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 25, 12, 8]
         - title: Lead Funnel
           options:
             chart: LeadFunnel
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 4, 3, 6]
         - title: Leads by Rating
           options:
             chart: LeadsByRating
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 18, 3, 7]
         - title: Accounts by Rating
           options:
             chart: AccountsByRating
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 18, 3, 7]
         visible: true
       - handle: ForecastDashboard
         (envoy): { onExisting: "skip" }
         title: Forecast Dashboard
+        layouts:
+          - handle: primary
+            meta:
+              title: Forecast Dashboard
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [6, 0, 3, 6]
+              - blockID: 2
+                xywh: [6, 6, 6, 8]
+              - blockID: 3
+                xywh: [0, 14, 6, 8]
+              - blockID: 4
+                xywh: [9, 0, 3, 6]
+              - blockID: 5
+                xywh: [0, 0, 3, 6]
+              - blockID: 6
+                xywh: [3, 0, 3, 6]
+              - blockID: 7
+                xywh: [6, 14, 6, 8]
+              - blockID: 8
+                xywh: [0, 6, 6, 8]
+
         blocks:
         - title: Sales YTD
           options:
@@ -3148,60 +4112,108 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 0, 3, 6]
         - title: Dealsize
           options:
             chart: Dealsize
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 6, 6, 8]
         - title: Monthly Sales
           options:
             chart: MonthlySales
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 14, 6, 8]
         - title: Opportunity Pipeline
           options:
             chart: OpportunityStatusFunnel
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 0, 3, 6]
         - title: Opportunities vs. Target
           options:
             chart: NumberOfOpportunitiesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 0, 3, 6]
         - title: Sales vs. Target
           options:
             chart: SalesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [3, 0, 3, 6]
         - title: Quotes Per Month
           options:
             chart: QuotesPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 14, 6, 8]
         - title: Number of Opportunities per Month
           options:
             chart: OpportunitiesCreatedPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 6, 6, 8]
         visible: true
       - handle: KPIsAndSalesActivitiesDashboard
         (envoy): { onExisting: "skip" }
         title: KPIs and Sales Activities Dashboard
+        layouts:
+          - handle: primary
+            meta:
+              title: KPIs and Sales Activities Dashboard
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 2, 4]
+              - blockID: 2
+                xywh: [2, 0, 2, 4]
+              - blockID: 3
+                xywh: [4, 0, 2, 4]
+              - blockID: 4
+                xywh: [0, 4, 2, 4]
+              - blockID: 5
+                xywh: [2, 4, 2, 4]
+              - blockID: 6
+                xywh: [4, 4, 2, 4]
+              - blockID: 7
+                xywh: [6, 4, 2, 4]
+              - blockID: 8
+                xywh: [6, 0, 2, 4]
+              - blockID: 9
+                xywh: [8, 0, 2, 4]
+              - blockID: 10
+                xywh: [10, 0, 2, 4]
+              - blockID: 11
+                xywh: [8, 4, 2, 4]
+              - blockID: 12
+                xywh: [10, 4, 2, 4]
+              - blockID: 13
+                xywh: [0, 8, 6, 7]
+              - blockID: 14
+                xywh: [0, 15, 6, 7]
+              - blockID: 15
+                xywh: [6, 8, 6, 7]
+              - blockID: 16
+                xywh: [6, 15, 6, 7]
+              - blockID: 17
+                xywh: [0, 22, 6, 7]
+              - blockID: 18
+                xywh: [6, 22, 6, 7]
+
         blocks:
         - title: New Leads
           options:
@@ -3216,7 +4228,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [0, 0, 2, 4]
         - title: Converted Leads
           options:
             metrics:
@@ -3230,7 +4241,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [2, 0, 2, 4]
         - title: Open Opportunities
           options:
             metrics:
@@ -3244,7 +4254,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [4, 0, 2, 4]
         - title: Number of Leads in Campaigns
           options:
             metrics:
@@ -3258,7 +4267,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [0, 4, 2, 4]
         - title: Number of Accounts in Campaigns
           options:
             metrics:
@@ -3272,7 +4280,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [2, 4, 2, 4]
         - title: Number of Contacts in Campaigns
           options:
             metrics:
@@ -3286,7 +4293,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [4, 4, 2, 4]
         - title: Number of Opp. in Campaigns
           options:
             metrics:
@@ -3300,7 +4306,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [6, 4, 2, 4]
         - title: Won Opp. YTD
           options:
             metrics:
@@ -3314,81 +4319,110 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [6, 0, 2, 4]
         - title: Sales YTD
           options:
             chart: SalesYTD
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [8, 0, 2, 4]
         - title: Sales vs. Target
           options:
             chart: SalesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [10, 0, 2, 4]
         - title: Campaign Opps. vs. Target
           options:
             chart: CampaignAmountAllOpportunitiesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [8, 4, 2, 4]
         - title: Campaign Won Opps. vs. Target
           options:
             chart: CampaignAmountAllWonOpportunitiesVsTarget
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [10, 4, 2, 4]
         - title: Leads per Month
           options:
             chart: LeadsPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 8, 6, 7]
         - title: Sales per Month
           options:
             chart: MonthlySales
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 15, 6, 7]
         - title: Campaign Cost vs. Revenue
           options:
             chart: CampaignCostVsRevenue
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 8, 6, 7]
         - title: Quotes per Month
           options:
             chart: QuotesPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 15, 6, 7]
         - title: Contracts Starting per Month
           options:
             chart: ContractsPerStartingMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 22, 6, 7]
         - title: Cases per Month
           options:
             chart: CasesPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 22, 6, 7]
         visible: true
       - handle: ExecutiveDailyViewDashboard
         (envoy): { onExisting: "skip" }
         title: Executive Daily View Dashboard
+        layouts:
+          - handle: primary
+            meta:
+              title: Executive Daily View Dashboard
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 3, 8]
+              - blockID: 2
+                xywh: [3, 0, 6, 8]
+              - blockID: 3
+                xywh: [9, 0, 3, 8]
+              - blockID: 4
+                xywh: [0, 8, 3, 7]
+              - blockID: 5
+                xywh: [3, 8, 6, 7]
+              - blockID: 6
+                xywh: [3, 15, 3, 7]
+              - blockID: 7
+                xywh: [0, 15, 3, 7]
+              - blockID: 8
+                xywh: [9, 15, 3, 7]
+              - blockID: 9
+                xywh: [6, 15, 3, 7]
+              - blockID: 10
+                xywh: [9, 8, 3, 7]
+
         blocks:
         - title: Sales Pipeline
           options:
@@ -3396,7 +4430,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 0, 3, 8]
         - title: Key Opportunities
           options:
             draggable: false
@@ -3419,7 +4452,6 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [3, 0, 6, 8]
         - title: Total Pipeline (€)
           options:
             metrics:
@@ -3438,71 +4470,106 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: Metric
-          xywh: [9, 0, 3, 8]
         - title: Activities by Type
           options:
             chart: EventsPerType
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 8, 3, 7]
         - title: Activities per Month
           options:
             chart: EventsPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [3, 8, 6, 7]
         - title: Quotes by Status
           options:
             chart: QuotesByStatus
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [3, 15, 3, 7]
         - title: Lead Funnel
           options:
             chart: LeadFunnel
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [0, 15, 3, 7]
         - title: Cases by Status
           options:
             chart: CasesByStatus
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 15, 3, 7]
         - title: Contract by Status
           options:
             chart: ContractsByStatus
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [6, 15, 3, 7]
         - title: Tasks by Status
           options:
             chart: TasksByStatus
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 8, 3, 7]
         visible: true
     visible: true
   - handle: More
     (envoy): { onExisting: "skip" }
     title: More
+    layouts:
+      - handle: primary
+        meta:
+          title: More
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 3, 3]
+
     blocks:
     - title: Additional CRM modules
       options:
         body: <p><br>Available in the menu under "More".</p>
       kind: Content
-      xywh: [0, 0, 3, 3]
     pages:
       - handle: Notes
         (envoy): { onExisting: "skip" }
         title: Notes
+        layouts:
+          - handle: primary
+            meta:
+              title: Notes
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 16]
+
         blocks:
         - title: List of Notes
           options:
@@ -3532,12 +4599,37 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 12, 16]
         pages:
           - handle: RecordPageForModuleNote
             (envoy): { onExisting: "skip" }
             module: Note
             title: Record page for module "Note"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Note"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 20]
+                  - blockID: 2
+                    xywh: [4, 0, 4, 20]
+                  - blockID: 3
+                    xywh: [8, 0, 4, 20]
+
             blocks:
             - title: Note
               options:
@@ -3549,7 +4641,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [0, 0, 4, 20]
             - title: Files
               options:
                 fields:
@@ -3557,7 +4648,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [4, 0, 4, 20]
             - title: Related Objects
               options:
                 fields:
@@ -3571,12 +4661,43 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [8, 0, 4, 20]
             visible: false
         visible: true
       - handle: Cases
         (envoy): { onExisting: "skip" }
         title: Cases
+        layouts:
+          - handle: primary
+            meta:
+              title: Cases
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 8, 17]
+              - blockID: 2
+                xywh: [8, 11, 4, 6]
+              - blockID: 3
+                xywh: [8, 0, 2, 5]
+              - blockID: 4
+                xywh: [10, 5, 2, 6]
+              - blockID: 5
+                xywh: [10, 0, 2, 5]
+              - blockID: 6
+                xywh: [8, 5, 2, 6]
+
         blocks:
         - title: List of Cases
           options:
@@ -3605,47 +4726,79 @@ pages:
           style:
             variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 8, 17]
         - title: Cases per Month
           options:
             chart: CasesPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [8, 11, 4, 6]
         - title: Cases by Status
           options:
             chart: CasesByStatus
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [8, 0, 2, 5]
         - title: Cases by Type
           options:
             chart: CasesByType
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [10, 5, 2, 6]
         - title: Cases by Priority
           options:
             chart: CasesByPriority
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [10, 0, 2, 5]
         - title: Cases by Origin
           options:
             chart: CasesByOrigin
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [8, 5, 2, 6]
         pages:
           - handle: RecordPageForModuleCase
             (envoy): { onExisting: "skip" }
             module: Case
             title: Record page for module "Case"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Case"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 3, 12]
+                  - blockID: 2
+                    xywh: [3, 0, 3, 12]
+                  - blockID: 3
+                    xywh: [9, 0, 3, 12]
+                  - blockID: 4
+                    xywh: [0, 21, 4, 8]
+                  - blockID: 5
+                    xywh: [4, 21, 4, 8]
+                  - blockID: 6
+                    xywh: [8, 21, 4, 8]
+                  - blockID: 7
+                    xywh: [0, 12, 9, 9]
+                  - blockID: 8
+                    xywh: [9, 12, 3, 9]
+                  - blockID: 9
+                    xywh: [6, 0, 3, 12]
+
             blocks:
             - title: Case Main Information
               options:
@@ -3661,7 +4814,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [0, 0, 3, 12]
             - title: Case Details
               options:
                 fields:
@@ -3672,7 +4824,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [3, 0, 3, 12]
             - title: Case Status
               options:
                 fields:
@@ -3687,7 +4838,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [9, 0, 3, 12]
             - title: Notes
               options:
                 allowExport: true
@@ -3712,7 +4862,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: RecordList
-              xywh: [0, 21, 4, 8]
             - title: Events
               options:
                 allowExport: true
@@ -3737,7 +4886,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: RecordList
-              xywh: [4, 21, 4, 8]
             - title: Tasks
               options:
                 allowExport: true
@@ -3763,7 +4911,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: RecordList
-              xywh: [8, 21, 4, 8]
             - title: Case Updates
               options:
                 allowExport: true
@@ -3790,7 +4937,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: RecordList
-              xywh: [0, 12, 9, 9]
             - title: Case Actions
               options:
                 buttons:
@@ -3813,7 +4959,6 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Automation
-              xywh: [9, 12, 3, 9]
             - title: Case Solution
               options:
                 fields:
@@ -3825,12 +4970,32 @@ pages:
               style:
                 variants: {border: primary, headerText: primary}
               kind: Record
-              xywh: [6, 0, 3, 12]
             pages:
               - handle: RecordPageForModuleCaseUpdate
                 (envoy): { onExisting: "skip" }
                 module: CaseUpdate
                 title: Record page for module "CaseUpdate"
+                layouts:
+                  - handle: primary
+                    meta:
+                      title: Record page for module "CaseUpdate"
+                    config:
+                      buttons:
+                        new:
+                          enabled: true
+                        edit:
+                          enabled: true
+                        submit:
+                          enabled: true
+                        delete:
+                          enabled: true
+                        clone:
+                          enabled: true
+                        back:
+                          enabled: true
+                    blocks:
+                      - blockID: 1
+                        xywh: [0, 0, 4, 15]
                 blocks:
                 - title: Case Update
                   options:
@@ -3845,13 +5010,38 @@ pages:
                   style:
                     variants: {border: primary, headerText: primary}
                   kind: Record
-                  xywh: [0, 0, 4, 15]
                 visible: false
             visible: false
         visible: true
       - handle: Solutions
         (envoy): { onExisting: "skip" }
         title: Solutions
+        layouts:
+          - handle: primary
+            meta:
+              title: Solutions
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 9, 16]
+              - blockID: 2
+                xywh: [9, 0, 3, 8]
+              - blockID: 3
+                xywh: [9, 8, 3, 8]
+
         blocks:
         - title: List of Solutions
           options:
@@ -3879,26 +5069,45 @@ pages:
           style:
             variants: {border: primary, headerText: primary}
           kind: RecordList
-          xywh: [0, 0, 9, 16]
         - title: Solutions by Status
           options:
             chart: SolutionsByStatus
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 0, 3, 8]
         - title: Solutions Created per Month
           options:
             chart: SolutionsCreatedPerMonth
           style:
             variants: {border: primary, headerText: primary}
           kind: Chart
-          xywh: [9, 8, 3, 8]
         pages:
           - handle: RecordPageForModuleSolution
             (envoy): { onExisting: "skip" }
             module: Solution
             title: Record page for module "Solution"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Solution"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 15]
+
             blocks:
             - title: Solution Details
               options:
@@ -3912,7 +5121,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 4, 15]
             visible: false
         visible: true
       - handle: DefaultSettings
@@ -3920,6 +5128,28 @@ pages:
         title: Default Settings
         description: A list of defaults values which are called upon in automation
           processes.
+        layouts:
+          - handle: primary
+            meta:
+              title: Default Settings
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 7]
+
         blocks:
         - title: Default settings
           options:
@@ -3942,12 +5172,39 @@ pages:
             selectable: false
             selectionButtons: []
           kind: RecordList
-          xywh: [0, 0, 12, 7]
         pages:
           - handle: RecordPageForModuleDefaultSettings
             (envoy): { onExisting: "skip" }
             module: Settings
             title: Record page for module "DefaultSettings"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "DefaultSettings"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [3, 0, 3, 12]
+                  - blockID: 2
+                    xywh: [0, 0, 3, 12]
+                  - blockID: 3
+                    xywh: [6, 0, 3, 12]
+                  - blockID: 4
+                    xywh: [9, 0, 3, 12]
+
             blocks:
             - title: Quote Settings
               options:
@@ -3957,7 +5214,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [3, 0, 3, 12]
             - title: Opportunity Settings
               options:
                 fields:
@@ -3968,7 +5224,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [0, 0, 3, 12]
             - title: Contract Settings
               options:
                 fields:
@@ -3977,7 +5232,6 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [6, 0, 3, 12]
             - title: Case Settings
               options:
                 fields:
@@ -3986,24 +5240,70 @@ pages:
               style:
                 variants: {bodyBg: white, border: primary, headerBg: white, headerText: primary}
               kind: Record
-              xywh: [9, 0, 3, 12]
             visible: false
         visible: true
     visible: true
   - handle: UnpublishedModules
     (envoy): { onExisting: "skip" }
     title: Unpublished modules
+    layouts:
+      - handle: primary
+        meta:
+          title: Unpublished modules
+        config:
+          buttons:
+            new:
+              enabled: true
+            edit:
+              enabled: true
+            submit:
+              enabled: true
+            delete:
+              enabled: true
+            clone:
+              enabled: true
+            back:
+              enabled: true
+        blocks:
+          - blockID: 1
+            xywh: [0, 0, 3, 3]
+
     blocks:
     - title: Temp
       options:
         body: <p><br></p>
       kind: Content
-      xywh: [0, 0, 3, 3]
     pages:
       - handle: RecordPageForModuleQuestion
         (envoy): { onExisting: "skip" }
         module: Question
         title: Record page for module "Question"
+        layouts:
+          - handle: primary
+            meta:
+              title: Record page for module "Question"
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 4, 13]
+              - blockID: 2
+                xywh: [0, 13, 12, 7]
+              - blockID: 3
+                xywh: [4, 0, 8, 13]
+
         blocks:
         - title: Question Details
           options:
@@ -4015,7 +5315,6 @@ pages:
             - name: UpVotes
             - name: VoteScore
           kind: Record
-          xywh: [0, 0, 4, 13]
         - title: Replies
           options:
             draggable: false
@@ -4039,7 +5338,6 @@ pages:
             selectable: false
             selectionButtons: []
           kind: RecordList
-          xywh: [0, 13, 12, 7]
         - title: Votes
           options:
             draggable: false
@@ -4059,12 +5357,35 @@ pages:
             selectable: false
             selectionButtons: []
           kind: RecordList
-          xywh: [4, 0, 8, 13]
         pages:
           - handle: RecordPageForModuleReply
             (envoy): { onExisting: "skip" }
             module: Reply
             title: Record page for module "Reply"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Reply"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 6, 20]
+                  - blockID: 2
+                    xywh: [6, 0, 6, 20]
+
             blocks:
             - title: Reply Details
               options:
@@ -4077,7 +5398,6 @@ pages:
                 - name: DownVotes
                 - name: VoteTotal
               kind: Record
-              xywh: [0, 0, 6, 20]
             - title: Votes
               options:
                 fields:
@@ -4089,12 +5409,35 @@ pages:
                 perPage: 20
                 prefilter: ReplyId = ${recordID}
               kind: RecordList
-              xywh: [6, 0, 6, 20]
             visible: false
           - handle: RecordPageForModuleVote
             (envoy): { onExisting: "skip" }
             module: Vote
             title: Record page for module "Vote"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Vote"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 13]
+                  - blockID: 2
+                    xywh: [4, 0, 4, 13]
+
             blocks:
             - title: Vote Score
               options:
@@ -4103,7 +5446,6 @@ pages:
                 - name: CreatedById
                 - name: CreatedDate
               kind: Record
-              xywh: [0, 0, 4, 13]
             - title: Related Object
               options:
                 fields:
@@ -4111,12 +5453,32 @@ pages:
                 - name: ReplyId
                 - name: QuestionId
               kind: Record
-              xywh: [4, 0, 4, 13]
             visible: false
         visible: false
       - handle: Ideas
         (envoy): { onExisting: "skip" }
         title: Ideas
+        layouts:
+          - handle: primary
+            meta:
+              title: Ideas
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 20]
         blocks:
         - title: List of Ideas
           options:
@@ -4141,12 +5503,37 @@ pages:
             selectable: false
             selectionButtons: []
           kind: RecordList
-          xywh: [0, 0, 12, 20]
         pages:
           - handle: RecordPageForModuleIdea
             (envoy): { onExisting: "skip" }
             module: Idea
             title: Record page for module "Idea"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "Idea"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 4, 20]
+                  - blockID: 2
+                    xywh: [8, 0, 4, 20]
+                  - blockID: 3
+                    xywh: [4, 0, 4, 20]
+
             blocks:
             - title: Idea Details
               options:
@@ -4160,7 +5547,6 @@ pages:
                 - name: VoteScore
                 - name: VoteTotal
               kind: Record
-              xywh: [0, 0, 4, 20]
             - title: Votes
               options:
                 fields:
@@ -4172,7 +5558,6 @@ pages:
                 perPage: 20
                 prefilter: IdeaId = ${recordID}
               kind: RecordList
-              xywh: [8, 0, 4, 20]
             - title: Replies
               options:
                 fields:
@@ -4186,12 +5571,32 @@ pages:
                 perPage: 20
                 prefilter: IdeaId = ${recordID}
               kind: RecordList
-              xywh: [4, 0, 4, 20]
             visible: false
         visible: false
       - handle: Emails
         (envoy): { onExisting: "skip" }
         title: Emails
+        layouts:
+          - handle: primary
+            meta:
+              title: Emails
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [8, 0, 4, 20]
         blocks:
         - title: List of Email Templates
           options:
@@ -4204,12 +5609,33 @@ pages:
             perPage: 20
             presort: createdAt DESC
           kind: RecordList
-          xywh: [8, 0, 4, 20]
         pages:
           - handle: RecordPageForModuleEmailTemplate
             (envoy): { onExisting: "skip" }
             module: EmailTemplate
             title: Record page for module "EmailTemplate"
+            layouts:
+              - handle: primary
+                meta:
+                  title: Record page for module "EmailTemplate"
+                config:
+                  buttons:
+                    new:
+                      enabled: true
+                    edit:
+                      enabled: true
+                    submit:
+                      enabled: true
+                    delete:
+                      enabled: true
+                    clone:
+                      enabled: true
+                    back:
+                      enabled: true
+                blocks:
+                  - blockID: 1
+                    xywh: [0, 0, 6, 19]
+
             blocks:
             - title: Email Template Details
               options:
@@ -4220,12 +5646,33 @@ pages:
                 - name: Body
                 - name: IsActive
               kind: Record
-              xywh: [0, 0, 6, 19]
             visible: false
         visible: false
       - handle: Questions
         (envoy): { onExisting: "skip" }
         title: Questions
+        layouts:
+          - handle: primary
+            meta:
+              title: Questions
+            config:
+              buttons:
+                new:
+                  enabled: true
+                edit:
+                  enabled: true
+                submit:
+                  enabled: true
+                delete:
+                  enabled: true
+                clone:
+                  enabled: true
+                back:
+                  enabled: true
+            blocks:
+              - blockID: 1
+                xywh: [0, 0, 12, 20]
+
         blocks:
         - title: List of Questions
           options:
@@ -4238,6 +5685,5 @@ pages:
             perPage: 20
             presort: createdAt DESC
           kind: RecordList
-          xywh: [0, 0, 12, 20]
         visible: false
     visible: false

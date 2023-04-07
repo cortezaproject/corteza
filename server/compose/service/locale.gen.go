@@ -41,6 +41,7 @@ type (
 		Module(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
 		Namespace(ctx context.Context, id uint64) (locale.ResourceTranslationSet, error)
 		Page(ctx context.Context, namespaceID uint64, id uint64) (locale.ResourceTranslationSet, error)
+		PageLayout(ctx context.Context, namespaceID uint64, pageID uint64, id uint64) (locale.ResourceTranslationSet, error)
 
 		Upsert(context.Context, locale.ResourceTranslationSet) error
 		Locale() locale.Resource
@@ -269,6 +270,42 @@ func (svc resourceTranslationsManager) Page(ctx context.Context, namespaceID uin
 	}
 
 	tmp, err := svc.pageExtended(ctx, res)
+	return append(out, tmp...), err
+}
+
+func (svc resourceTranslationsManager) PageLayout(ctx context.Context, namespaceID uint64, pageID uint64, id uint64) (locale.ResourceTranslationSet, error) {
+	var (
+		err error
+		out locale.ResourceTranslationSet
+		res *types.PageLayout
+	)
+
+	res, err = svc.loadPageLayout(ctx, svc.store, namespaceID, pageID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var k types.LocaleKey
+	for _, tag := range svc.locale.Tags() {
+		k = types.LocaleKeyPageLayoutMetaTitle
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      k.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
+		})
+
+		k = types.LocaleKeyPageLayoutMetaDescription
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      k.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), k.Path),
+		})
+
+	}
+
+	tmp, err := svc.pageLayoutExtended(ctx, res)
 	return append(out, tmp...), err
 }
 

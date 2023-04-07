@@ -235,8 +235,6 @@ export class Module {
 
     if (IsOf(m, 'config')) {
       this.config = merge({}, this.config, m.config)
-
-      // Remove when we improve duplicate detection, for now its always enabled
     }
 
     if (IsOf(m, 'labels')) {

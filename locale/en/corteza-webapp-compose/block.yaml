@@ -1,3 +1,10 @@
+selector:
+  selectableBlocks:
+    placeholder: Blocks from other layouts
+  tooltip:
+    clone:
+      ref: Clone with references
+      noRef: Clone without references
 automation:
   addPlaceholderLabel: Add placeholder (dummy button)
   availableScriptsAndWorkflow: Available scripts and workflows ({{count}})

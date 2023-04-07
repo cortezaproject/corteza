@@ -33,6 +33,11 @@ export default {
       required: true,
     },
 
+    blocks: {
+      type: Array,
+      default: () => [],
+    },
+
     block: {
       type: compose.PageBlock,
       required: true,

@@ -131,6 +131,7 @@ export default {
   methods: {
     ...mapActions({
       createPage: 'page/create',
+      createPageLayout: 'pageLayout/create',
     }),
 
     loadTree () {
@@ -147,8 +148,11 @@ export default {
     handleAddPageFormSubmit () {
       const { namespaceID } = this.namespace
       this.page.weight = this.tree.length
-      this.createPage({ ...this.page, namespaceID }).then(({ pageID }) => {
-        this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
+      this.createPage({ ...this.page, namespaceID }).then(({ pageID, title }) => {
+        const pageLayout = new compose.PageLayout({ namespaceID, pageID, handle: 'primary', meta: { title } })
+        return this.createPageLayout(pageLayout).then(() => {
+          this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
+        })
       }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 

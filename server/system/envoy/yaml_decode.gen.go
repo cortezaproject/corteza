@@ -480,10 +480,12 @@ func (d *auxYamlDoc) unmarshalApplicationNode(dctx documentContext, n *yaml.Node
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ApplicationID"] = envoyx.Ref{
-				ResourceType: types.ApplicationResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ApplicationID"]; !ok {
+				a.References["ApplicationID"] = envoyx.Ref{
+					ResourceType: types.ApplicationResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -824,10 +826,12 @@ func (d *auxYamlDoc) unmarshalApigwRouteNode(dctx documentContext, n *yaml.Node,
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ApigwRouteID"] = envoyx.Ref{
-				ResourceType: types.ApigwRouteResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ApigwRouteID"]; !ok {
+				a.References["ApigwRouteID"] = envoyx.Ref{
+					ResourceType: types.ApigwRouteResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -1108,10 +1112,12 @@ func (d *auxYamlDoc) unmarshalApigwFilterNode(dctx documentContext, n *yaml.Node
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ApigwFilterID"] = envoyx.Ref{
-				ResourceType: types.ApigwFilterResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ApigwFilterID"]; !ok {
+				a.References["ApigwFilterID"] = envoyx.Ref{
+					ResourceType: types.ApigwFilterResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -1425,10 +1431,12 @@ func (d *auxYamlDoc) unmarshalAuthClientNode(dctx documentContext, n *yaml.Node,
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["AuthClientID"] = envoyx.Ref{
-				ResourceType: types.AuthClientResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["AuthClientID"]; !ok {
+				a.References["AuthClientID"] = envoyx.Ref{
+					ResourceType: types.AuthClientResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -1736,10 +1744,12 @@ func (d *auxYamlDoc) unmarshalQueueNode(dctx documentContext, n *yaml.Node, meta
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["QueueID"] = envoyx.Ref{
-				ResourceType: types.QueueResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["QueueID"]; !ok {
+				a.References["QueueID"] = envoyx.Ref{
+					ResourceType: types.QueueResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -2066,10 +2076,12 @@ func (d *auxYamlDoc) unmarshalReportNode(dctx documentContext, n *yaml.Node, met
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["ReportID"] = envoyx.Ref{
-				ResourceType: types.ReportResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["ReportID"]; !ok {
+				a.References["ReportID"] = envoyx.Ref{
+					ResourceType: types.ReportResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -2320,10 +2332,12 @@ func (d *auxYamlDoc) unmarshalRoleNode(dctx documentContext, n *yaml.Node, meta 
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["RoleID"] = envoyx.Ref{
-				ResourceType: types.RoleResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["RoleID"]; !ok {
+				a.References["RoleID"] = envoyx.Ref{
+					ResourceType: types.RoleResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -2593,10 +2607,12 @@ func (d *auxYamlDoc) unmarshalTemplateNode(dctx documentContext, n *yaml.Node, m
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["TemplateID"] = envoyx.Ref{
-				ResourceType: types.TemplateResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["TemplateID"]; !ok {
+				a.References["TemplateID"] = envoyx.Ref{
+					ResourceType: types.TemplateResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -2866,10 +2882,12 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["UserID"] = envoyx.Ref{
-				ResourceType: types.UserResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["UserID"]; !ok {
+				a.References["UserID"] = envoyx.Ref{
+					ResourceType: types.UserResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -3177,10 +3195,12 @@ func (d *auxYamlDoc) unmarshalDalConnectionNode(dctx documentContext, n *yaml.No
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["DalConnectionID"] = envoyx.Ref{
-				ResourceType: types.DalConnectionResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["DalConnectionID"]; !ok {
+				a.References["DalConnectionID"] = envoyx.Ref{
+					ResourceType: types.DalConnectionResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
@@ -3471,10 +3491,12 @@ func (d *auxYamlDoc) unmarshalDalSensitivityLevelNode(dctx documentContext, n *y
 				a.References = make(map[string]envoyx.Ref)
 			}
 
-			a.References["DalSensitivityLevelID"] = envoyx.Ref{
-				ResourceType: types.DalSensitivityLevelResourceType,
-				Identifiers:  ii,
-				Scope:        scope,
+			if _, ok := a.References["DalSensitivityLevelID"]; !ok {
+				a.References["DalSensitivityLevelID"] = envoyx.Ref{
+					ResourceType: types.DalSensitivityLevelResourceType,
+					Identifiers:  ii,
+					Scope:        scope,
+				}
 			}
 
 			for f, ref := range a.References {
