@@ -98,6 +98,19 @@ page:
   blockWaiting: There is a page-block awaiting
   copyFailed: Could not copy block {{reason}}
   invalidBlock: Not a valid page-block
+  page-layout:
+    notFound:
+      edit: No page layout, create one to edit it
+      view: No page layout found, create one to view the page
+    save:
+      success: Layout saved
+      failed: Failed to save layout
+    clone:
+      success: Layout created
+      failed: Failed to clone layout
+    delete:
+      success: Layout deleted
+      failed: Failed to delete layout
 record:
   createFailed: Could not create record
   deleteFailed: Could not delete record

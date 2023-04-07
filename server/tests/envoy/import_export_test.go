@@ -75,7 +75,7 @@ func TestImportExport(t *testing.T) {
 			req.NoError(err)
 		})
 
-		assertState(ctx, t, defaultStore, req)
+		assertFullState(ctx, t, defaultStore, req)
 	})
 
 	// Prepare a temp file where we'll dump the YAML into
@@ -94,10 +94,11 @@ func TestImportExport(t *testing.T) {
 					"dal":    defaultDal,
 				},
 				Filter: map[string]envoyx.ResourceFilter{
-					types.ChartResourceType:     {},
-					types.ModuleResourceType:    {},
-					types.NamespaceResourceType: {},
-					types.PageResourceType:      {},
+					types.ChartResourceType:      {},
+					types.ModuleResourceType:     {},
+					types.NamespaceResourceType:  {},
+					types.PageResourceType:       {},
+					types.PageLayoutResourceType: {},
 
 					systemTypes.ApplicationResourceType:         {},
 					systemTypes.ApigwRouteResourceType:          {},
@@ -173,11 +174,11 @@ func TestImportExport(t *testing.T) {
 			req.NoError(err)
 		})
 
-		assertState(ctx, t, defaultStore, req)
+		assertFullState(ctx, t, defaultStore, req)
 	})
 }
 
-func assertState(ctx context.Context, t *testing.T, s store.Storer, req *require.Assertions) {
+func assertFullState(ctx context.Context, t *testing.T, s store.Storer, req *require.Assertions) {
 	t.Run("check state", func(t *testing.T) {
 		t.Run("corteza::compose", func(t *testing.T) {
 			// Namespaces
@@ -241,6 +242,25 @@ func assertState(ctx context.Context, t *testing.T, s store.Storer, req *require
 			rpg1 := pages.FindByHandle("test_ns_1_record_page_1")
 			req.NotNil(rpg1)
 			req.Equal(mod1.ID, rpg1.ModuleID)
+
+			// Page layouts
+			layouts, _, err := store.SearchComposePageLayouts(ctx, s, types.PageLayoutFilter{
+				NamespaceID: ns.ID,
+			})
+			req.NoError(err)
+
+			ly1 := layouts.FindByHandle("test_ns_1_page_1_layout_1")
+			req.NotNil(ly1)
+
+			ly2 := layouts.FindByHandle("test_ns_1_page_1_layout_2")
+			req.NotNil(ly2)
+
+			// Record page layouts
+			ly3 := layouts.FindByHandle("test_ns_1_record_page_1_layout_1")
+			req.NotNil(ly3)
+
+			ly4 := layouts.FindByHandle("test_ns_1_record_page_1_layout_2")
+			req.NotNil(ly4)
 		})
 		t.Run("corteza::system", func(t *testing.T) {
 			// Users

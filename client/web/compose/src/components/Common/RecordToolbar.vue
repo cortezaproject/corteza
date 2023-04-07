@@ -13,7 +13,7 @@
         class="d-flex align-items-center justify-content-start"
       >
         <b-button
-          v-if="!settings.hideBack"
+          v-if="!(hideBack || settings.hideBack)"
           data-test-id="button-back"
           variant="link"
           class="text-dark back"
@@ -26,6 +26,8 @@
           />
           {{ showRecordModal ? $t('label.close') : labels.back || $t('label.back') }}
         </b-button>
+
+        <slot name="start-actions" />
       </b-col>
 
       <b-col
@@ -55,6 +57,8 @@
             <font-awesome-icon :icon="['fas', 'angle-right']" />
           </b-button>
         </b-button-group>
+
+        <slot name="center-actions" />
       </b-col>
 
       <b-col
@@ -64,7 +68,7 @@
           v-if="module"
         >
           <c-input-confirm
-            v-if="(isCreated && !settings.hideDelete && !isDeleted)"
+            v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
             :disabled="!canDeleteRecord"
             size="lg"
             size-confirm="lg"
@@ -105,7 +109,7 @@
           </c-input-confirm>
 
           <b-button
-            v-if="!inEditing && module.canCreateRecord && !hideClone && isCreated && !settings.hideClone"
+            v-if="!inEditing && isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
             data-test-id="button-clone"
             variant="light"
             size="lg"
@@ -113,11 +117,11 @@
             class="ml-2"
             @click.prevent="$emit('clone')"
           >
-            {{ labels.clone || $t('label.clone') }}
+            {{ labels.clone || $t('label.saveAsCopy') }}
           </b-button>
 
           <b-button
-            v-if="!inEditing && !settings.hideEdit && isCreated"
+            v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
             data-test-id="button-edit"
             :disabled="!record.canUpdateRecord || processing"
             variant="light"
@@ -129,7 +133,7 @@
           </b-button>
 
           <b-button
-            v-if="module.canCreateRecord && !hideAdd && !inEditing && !settings.hideNew"
+            v-if="!inEditing && module.canCreateRecord && !(hideNew || settings.hideNew)"
             data-test-id="button-add-new"
             variant="primary"
             size="lg"
@@ -141,7 +145,7 @@
           </b-button>
 
           <b-button
-            v-if="inEditing && !settings.hideSubmit"
+            v-if="inEditing && !(hideSubmit || settings.hideSubmit)"
             data-test-id="button-submit"
             :disabled="!canSaveRecord || processing"
             class="d-flex align-items-center justify-content-center ml-2"
@@ -162,6 +166,8 @@
               {{ labels.submit || $t('label.save') }}
             </span>
           </b-button>
+
+          <slot name="end-actions" />
         </template>
       </b-col>
     </b-row>
@@ -220,14 +226,34 @@ export default {
       required: true,
     },
 
-    hideClone: {
+    hideBack: {
       type: Boolean,
-      default: () => false,
+      default: () => true,
     },
 
-    hideAdd: {
+    hideDelete: {
       type: Boolean,
-      default: () => false,
+      default: () => true,
+    },
+
+    hideNew: {
+      type: Boolean,
+      default: () => true,
+    },
+
+    hideClone: {
+      type: Boolean,
+      default: () => true,
+    },
+
+    hideEdit: {
+      type: Boolean,
+      default: () => true,
+    },
+
+    hideSubmit: {
+      type: Boolean,
+      default: () => true,
     },
 
     showRecordModal: {

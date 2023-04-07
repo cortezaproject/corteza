@@ -1,0 +1,113 @@
+# List of loggable service actions
+
+resource: compose:page-layout
+service: pageLayout
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza/server/compose/types
+
+props:
+  - name: pageLayout
+    type: "*types.PageLayout"
+    fields: [ handle, ID, namespaceID ]
+  - name: changed
+    type: "*types.PageLayout"
+    fields: [ handle, ID, namespaceID, blocks ]
+  - name: filter
+    type: "*types.PageLayoutFilter"
+    fields: [ query, handle, namespaceID, sort, limit ]
+  - name: namespace
+    type: "*types.Namespace"
+    fields: [ slug, ID ]
+
+actions:
+  - action: search
+    log: "searched for pageLayouts"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{pageLayout}}"
+    severity: info
+
+  - action: create
+    log: "created {{pageLayout}}"
+
+  - action: update
+    log: "updated {{pageLayout}}"
+
+  - action: reorder
+    log: "reordered {{pageLayout}}"
+
+  - action: delete
+    log: "deleted {{pageLayout}}"
+
+  - action: undelete
+    log: "undeleted {{pageLayout}}"
+
+errors:
+  - error: notFound
+    message: "pageLayout does not exist"
+    severity: warning
+
+  - error: namespaceNotFound
+    message: "namespace does not exist"
+    severity: warning
+
+  - error: moduleNotFound
+    message: "module does not exist"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    log: "used duplicate handle ({{pageLayout.handle}}) for pageLayout"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: invalidNamespaceID
+    message: "invalid or missing namespace ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this pageLayout"
+    log: "could not read {{pageLayout}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list pageLayouts"
+    log: "could not search pageLayouts; insufficient permissions"
+
+  - error: notAllowedToListPageLayouts
+    message: "not allowed to list pageLayouts"
+    log: "could not list pageLayouts; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create pageLayouts"
+    log: "could not create pageLayouts; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this pageLayout"
+    log: "could not update {{pageLayout}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this pageLayout"
+    log: "could not delete {{pageLayout}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this pageLayout"
+    log: "could not undelete {{pageLayout}}; insufficient permissions"

@@ -59,3 +59,14 @@ func ComposePageResourceTranslationReferences(namespaceID string, self string) (
 
 	return
 }
+
+// ComposePageLayoutResourceTranslationReferences generates Locale references
+//
+// This function is auto-generated
+func ComposePageLayoutResourceTranslationReferences(namespaceID string, pageID string, self string) (res *Ref, pp []*Ref, err error) {
+	res = &Ref{ResourceType: types.PageLayoutResourceType, Identifiers: MakeIdentifiers(self)}
+	pp = append(pp, &Ref{ResourceType: types.NamespaceResourceType, Identifiers: MakeIdentifiers(namespaceID)})
+	pp = append(pp, &Ref{ResourceType: types.PageResourceType, Identifiers: MakeIdentifiers(pageID)})
+
+	return
+}

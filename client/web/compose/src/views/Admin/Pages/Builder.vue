@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="!!page"
+    v-if="page"
     id="page-builder"
     ref="pageBuilder"
     class="flex-grow-1 overflow-auto d-flex px-2 w-100"
@@ -11,15 +11,26 @@
     </portal>
 
     <portal to="topbar-tools">
-      <b-button-group
-        v-if="page && page.canUpdatePage"
+      <b-form-select
+        v-if="layout && layouts.length > 1"
+        ref="layoutSelect"
         size="sm"
-        class="mr-1"
+        :value="layout.pageLayoutID"
+        :options="layouts"
+        value-field="pageLayoutID"
+        text-field="label"
+        style="width: 300px;"
+        @change="switchLayout"
+      />
+
+      <b-button-group
+        v-if="page.canUpdatePage"
+        size="sm"
+        class="ml-2 text-nowrap"
       >
         <b-button
           variant="primary"
           class="d-flex align-items-center"
-          :disabled="!pageViewer"
           :to="pageViewer"
         >
           {{ $t('navigation.viewPage') }}
@@ -30,6 +41,7 @@
         </b-button>
         <page-translator
           :page.sync="trPage"
+          :page-layout.sync="layout"
           style="margin-left:2px;"
         />
         <b-button
@@ -47,9 +59,8 @@
     </portal>
 
     <grid
-      :blocks="page.blocks"
+      :blocks.sync="blocks"
       editable
-      @change="updatePageBlockGrid"
       @item-updated="onBlockUpdated"
     >
       <template
@@ -58,7 +69,6 @@
         <div
           :data-test-id="`block-${block.kind}`"
           class="h-100 editable-block"
-          :class="{ 'bg-warning': !isValid(block) }"
         >
           <div
             class="toolbox border-0 p-2 m-0 text-light text-center"
@@ -121,9 +131,18 @@
           </div>
 
           <page-block
-            v-bind="{ ...$attrs, ...$props, page, block, boundingRect, blockIndex: index, editable: true }"
-            :record="record"
+            v-bind="{
+              ...$attrs,
+              ...$props
+            }"
+            :page="page"
+            :blocks="usedBlocks"
+            :block-index="index"
+            :block="block"
             :module="module"
+            :record="record"
+            :bounding-rect="boundingRect"
+            editable
             class="p-2"
           />
         </div>
@@ -134,13 +153,17 @@
       id="createBlockSelector"
       size="lg"
       scrollable
-      hide-footer
       :title="$t('build.selectBlockTitle')"
     >
       <new-block-selector
         :record-page="!!module"
+        :existing-blocks="selectableExistingBlocks"
         @select="addBlock"
       />
+
+      <template #modal-footer>
+        {{ $t('block:selectBlockFootnote') }}
+      </template>
     </b-modal>
 
     <b-modal
@@ -161,6 +184,7 @@
         :namespace="namespace"
         :module="module"
         :page="page"
+        :blocks="usedBlocks"
         :block.sync="editor.block"
         :record="record"
       />
@@ -180,10 +204,12 @@
         :namespace="namespace"
         :module="module"
         :page="page"
+        :blocks="usedBlocks"
         :block.sync="editor.block"
         :block-index="editor.index"
         :record="record"
       />
+
       <template #modal-footer="{ cancel }">
         <c-input-confirm
           size="md"
@@ -220,15 +246,12 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :back-link="{name: 'admin.pages'}"
-        :hide-delete="hideDelete"
         :hide-save="!page.canUpdatePage"
-        :disable-clone="disableClone"
-        :disable-save="processing"
-        :clone-tooltip="cloneTooltip"
-        @save="handleSave()"
-        @delete="handleDeletePage"
-        @saveAndClose="handleSave({ closeOnSuccess: true })"
-        @clone="handleClone()"
+        :processing="processing"
+        @save="handleSaveLayout()"
+        @delete="handleDeleteLayout()"
+        @saveAndClose="handleSaveLayout({ closeOnSuccess: true })"
+        @clone="handleCloneLayout()"
       >
         <b-button
           v-if="page.canUpdatePage"
@@ -240,29 +263,6 @@
         >
           + {{ $t('build.addBlock') }}
         </b-button>
-
-        <template #delete>
-          <b-dropdown
-            v-if="showDeleteDropdown"
-            data-test-id="dropdown-delete"
-            size="lg"
-            variant="danger"
-            :text="$t('general:label.delete')"
-          >
-            <b-dropdown-item
-              data-test-id="dropdown-item-delete-update-parent-of-sub-pages"
-              @click="handleDeletePage('rebase')"
-            >
-              {{ $t('delete.rebase') }}
-            </b-dropdown-item>
-            <b-dropdown-item
-              data-test-id="dropdown-item-delete-sub-pages"
-              @click="handleDeletePage('cascade')"
-            >
-              {{ $t('delete.cascade') }}
-            </b-dropdown-item>
-          </b-dropdown>
-        </template>
       </editor-toolbar>
     </portal>
 
@@ -282,8 +282,8 @@ import PageBlock from 'corteza-webapp-compose/src/components/PageBlocks'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import Configurator from 'corteza-webapp-compose/src/components/PageBlocks/Configurator'
-import { fetchID } from 'corteza-webapp-compose/src/lib/tabs'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
+import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
 export default {
   i18nOptions: {
@@ -318,11 +318,18 @@ export default {
 
   data () {
     return {
+      title: '',
+
       processing: false,
 
-      editor: undefined,
       page: undefined,
+      layout: undefined,
+      layouts: [],
+
       blocks: [],
+
+      editor: undefined,
+
       unsavedBlocks: new Set(),
     }
   },
@@ -343,13 +350,6 @@ export default {
         this.page = v
         this.updatePageSet(v)
       },
-    },
-
-    title () {
-      let { title = '', handle } = this.page || {}
-      title = title || handle
-
-      return this.$t('label.pageBuilder') + ' - ' + (title ? `"${title}"` : this.$t('label.noHandle'))
     },
 
     showEditor () {
@@ -380,11 +380,8 @@ export default {
     },
 
     pageViewer () {
-      if (this.module) {
-        return undefined
-      }
-
-      return { name: 'page', params: { pageID: this.pageID } }
+      const name = this.module ? 'page.record.create' : 'page'
+      return { name, params: { pageID: this.pageID } }
     },
 
     pageEditor () {
@@ -399,36 +396,53 @@ export default {
       return this.hasChildren || !this.page.canDeletePage || !!this.page.deletedAt
     },
 
-    showDeleteDropdown () {
-      return this.hasChildren && this.page.canDeletePage && !this.page.deletedAt
+    selectableExistingBlocks () {
+      return this.page.blocks.filter(({ blockID }) => !this.usedBlocks.some(b => b.blockID === blockID))
     },
 
-    disableClone () {
-      return !!this.module
-    },
+    // Blocks used on page or tabbed
+    usedBlocks () {
+      const tabbedIDs = new Set()
 
-    cloneTooltip () {
-      return this.disableClone ? this.$t('tooltip.saveAsCopy') : ''
-    },
+      // If tab is not on layout include it
+      this.blocks.forEach(block => {
+        if (block.kind !== 'Tabs') return
 
+        const { tabs = [] } = block.options
+        tabs.forEach(tab => {
+          const { blockID } = this.page.blocks.find(({ blockID }) => blockID === tab.blockID) || {}
+          if (blockID) {
+            tabbedIDs.add(blockID)
+          }
+        })
+      })
+
+      return [
+        ...this.page.blocks.filter(({ blockID }) => tabbedIDs.has(blockID)),
+        ...this.blocks.filter(({ blockID }) => !tabbedIDs.has(blockID)),
+      ]
+    },
   },
 
   watch: {
     pageID: {
       immediate: true,
       handler (pageID) {
-        this.page = undefined
         this.unsavedBlocks.clear()
+        this.layouts = []
+        this.layout = undefined
 
-        if (pageID) {
-          const { namespaceID, name } = this.namespace
-          this.findPageByID({ namespaceID, pageID, force: true })
-            .then(page => {
-              document.title = [page.title, name, this.$t('general:label.app-name.private')].filter(v => v).join(' | ')
-
-              this.page = page.clone()
-            })
-        }
+        const { namespaceID, name } = this.namespace
+        this.findPageByID({ namespaceID, pageID, force: true }).then(page => {
+          let { title = '', handle } = page
+          title = title || handle
+          this.title = `${this.$t('label.pageBuilder')} - "${title}"`
+          document.title = [page.title, name, this.$t('general:label.app-name.private')].filter(v => v).join(' | ')
+          this.page = page.clone()
+          return this.fetchPageLayouts()
+        }).then(() => {
+          this.setLayout()
+        })
       },
     },
   },
@@ -465,13 +479,22 @@ export default {
       updatePageSet: 'page/updateSet',
       createPage: 'page/create',
       loadPages: 'page/load',
+      findLayoutByID: 'pageLayout/findByID',
+      findLayoutsByPageID: 'pageLayout/findByPageID',
+      createPageLayout: 'pageLayout/create',
+      updatePageLayout: 'pageLayout/update',
+      deletePageLayout: 'pageLayout/delete',
     }),
 
     fulfilEditRequest (blockID) {
       // this ensures whatever changes in tabs is not lost before we lose its configurator
       // because we are reusing that modal component
       this.updateBlocks()
-      this.blocks.find((block, i) => fetchID(block) === blockID && this.editBlock(i))
+
+      const blockIndex = this.blocks.findIndex(block => fetchID(block) === blockID)
+      if (blockIndex > -1) {
+        this.editBlock(blockIndex)
+      }
     },
 
     fulfilCreateRequest (block) {
@@ -506,7 +529,9 @@ export default {
     },
 
     editBlock (index = undefined) {
-      this.editor = { index, block: compose.PageBlockMaker(this.blocks[index]) }
+      this.$nextTick(() => {
+        this.editor = { index, block: compose.PageBlockMaker(this.blocks[index]) }
+      })
     },
 
     deleteBlock (index) {
@@ -518,45 +543,54 @@ export default {
         })
       }
 
-      // Changes meta.hidden property to false, for all blocks that were tabbed only in the deleted block
-      if (this.blocks[index].kind === 'Tabs') {
-        const tabbedBlocks = this.blocks.filter((block) => block.kind === 'Tabs' && fetchID(block) !== fetchID(this.blocks[index]))
-          .map(({ options }) => options.tabs).flat().reduce((unique, o) => {
-            if (!unique.some(tab => tab.blockID === o.blockID)) {
-              unique.push(o)
-            }
-            return unique
-          }, []).map(({ blockID }) => blockID)
-
-        this.blocks[index].options.tabs.forEach(({ blockID }) => {
-          if (tabbedBlocks.includes(blockID)) return
-          const index = this.blocks.findIndex((b) => fetchID(b) === blockID)
-          if (index === -1) return
-          this.blocks[index].meta.hidden = false
-          this.calculateNewBlockPosition(this.blocks[index])
-        })
-      }
+      const { kind } = this.blocks[index]
 
       this.blocks.splice(index, 1)
-      this.page.blocks = this.blocks
+      this.unsavedBlocks.add(index)
+
+      if (kind === 'Tabs') {
+        this.showUntabbedHiddenBlocks()
+      }
 
       if (this.editor) this.editor = undefined
-      this.unsavedBlocks.add(index)
     },
 
-    updatePageBlockGrid (blocks) {
-      this.blocks = blocks
+    // Changes meta.hidden property to false, for all blocks that are hidden but not in a tab
+    showUntabbedHiddenBlocks () {
+      const tabbedBlocks = new Set()
+
+      this.blocks.forEach(block => {
+        if (block.kind !== 'Tabs') return
+
+        block.options.tabs.forEach(({ blockID }) => tabbedBlocks.add(blockID))
+      })
+
+      this.blocks.forEach((block, index) => {
+        if (!block.meta.hidden || tabbedBlocks.has(fetchID(block))) return
+
+        this.blocks[index].meta.hidden = false
+        this.calculateNewBlockPosition(this.blocks[index])
+      })
     },
 
     onBlockUpdated (index) {
       this.unsavedBlocks.add(index)
     },
 
+    // When debugging this, make sure to remove the @hide event handle from the block editor/creator modals
     updateBlocks (block = this.editor.block) {
       block = compose.PageBlockMaker(block)
-      this.page.blocks = this.blocks
 
-      if (this.editor.index !== undefined) {
+      const creatingTabbedBlock = this.editor.block.kind !== block.kind
+
+      if (creatingTabbedBlock) {
+        this.$root.$emit('builder-createRequestFulfilled', {
+          blockID: fetchID(block),
+          title: block.title,
+        })
+      }
+
+      if (this.editor.index !== undefined && !creatingTabbedBlock) {
         const oldBlock = this.blocks[this.editor.index]
 
         if (oldBlock.meta.hidden === true && this.editor.block.meta.hidden === false) {
@@ -564,25 +598,24 @@ export default {
           this.calculateNewBlockPosition(block)
         }
 
-        if (this.editor.block.kind !== block.kind) {
-          this.page.blocks.push(block)
-          this.$root.$emit('builder-createRequestFulfilled', {
-            blockID: fetchID(block),
-            title: block.title,
-          })
-        } else {
-          this.page.blocks.splice(this.editor.index, 1, block)
-          this.unsavedBlocks.add(this.editor.index)
-        }
+        this.blocks.splice(this.editor.index, 1, block)
+        this.unsavedBlocks.add(this.editor.index)
       } else {
-        this.page.blocks.push(block)
-        this.unsavedBlocks.add(this.page.blocks.length - 1)
+        this.blocks.push(block)
+        this.unsavedBlocks.add(this.blocks.length - 1)
       }
 
       if (block.kind === 'Tabs') {
         block.options.tabs.forEach((tab) => {
           if (!tab.blockID) return
-          this.page.blocks.find(b => fetchID(b) === tab.blockID).meta.hidden = true
+          let tabbedBlock = this.blocks.find(b => fetchID(b) === tab.blockID)
+
+          if (!tabbedBlock) {
+            tabbedBlock = this.page.blocks.find(({ blockID }) => blockID === tab.blockID)
+            this.blocks.push(tabbedBlock)
+          }
+
+          tabbedBlock.meta.hidden = true
         })
       }
 
@@ -617,59 +650,20 @@ export default {
           const maxY = this.blocks.filter(({ meta }) => !meta.hidden).map((block) => block.xywh[1]).reduce((acc, val) => {
           return acc > val ? acc : val
         }, 0)
-        block.xywh = [0, maxY + 2, 3, 3]
+        block.xywh = [0, maxY + 2, 20, 15]
       }
     },
 
-    async handleSave ({ closeOnSuccess = false, previewOnSuccess = false } = {}) {
+    async fetchPageLayouts () {
       const { namespaceID } = this.namespace
 
-      // Record blocks
-      if (this.module && !this.validateModuleFieldSelection(this.module, this.page)) {
-        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
-        return
-      }
-
-      // Inline record lists
-      const queue = []
-      this.blocks.forEach((b, index) => {
-        if (b.kind === 'RecordList' && b.options.editable) {
-          const p = new Promise((resolve) => {
-            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID || NoID, b.blockID].map(v => v || NoID).join('-')
-            this.$root.$emit(`page-block:validate:${recordListUniqueID}`, resolve)
-          })
-
-          queue.push(p)
-        }
-      })
-
-      const validated = await Promise.all(queue)
-      if (validated.find(({ valid }) => !valid)) {
-        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
-        return
-      }
-
-      this.processing = true
-
-      this.findPageByID({ namespaceID, pageID: this.pageID, force: true })
-        .then(page => {
-          // Merge changes
-          const mergedPage = new compose.Page({ namespaceID, ...page, blocks: this.blocks })
-
-          return this.updatePage(mergedPage).then(this.updateTabbedBlockIDs)
-        }).then((page) => {
-          this.unsavedBlocks.clear()
-          this.toastSuccess(this.$t('notification:page.saved'))
-          if (closeOnSuccess) {
-            this.$router.push({ name: 'admin.pages' })
-          } else if (previewOnSuccess) {
-            this.$router.push({ name: 'page', params: { pageID: this.pageID } })
-          }
-          this.page = new compose.Page(page)
-        }).finally(() => {
-          this.processing = false
+      return this.findLayoutsByPageID({ namespaceID, pageID: this.pageID }).then(layouts => {
+        this.layouts = layouts.map(l => {
+          l = new compose.PageLayout(l)
+          l.label = l.meta.title || l.handle || l.pageLayoutID
+          return l
         })
-        .catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
+      })
     },
 
     validateModuleFieldSelection (module, page) {
@@ -696,10 +690,111 @@ export default {
       return !req.size
     },
 
-    handleDeletePage (strategy = 'abort') {
-      this.deletePage({ ...this.page, strategy }).then(() => {
-        this.$router.push({ name: 'admin.pages' })
-      }).catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
+    async handleSaveLayout ({ closeOnSuccess = false, previewOnSuccess = false } = {}) {
+      const { namespaceID } = this.namespace
+
+      // Record blocks
+      if (this.module && !this.validateModuleFieldSelection(this.module, this.page)) {
+        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
+        return
+      }
+
+      // Inline record lists
+      const queue = []
+      this.usedBlocks.forEach((b, index) => {
+        if (b.kind === 'RecordList' && b.options.editable) {
+          const p = new Promise((resolve) => {
+            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID || NoID, b.blockID].map(v => v || NoID).join('-')
+            this.$root.$emit(`page-block:validate:${recordListUniqueID}`, resolve)
+          })
+
+          queue.push(p)
+        }
+      })
+
+      const validated = await Promise.all(queue)
+      if (validated.find(({ valid }) => !valid)) {
+        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
+        return
+      }
+
+      this.processing = true
+
+      return Promise.all([
+        this.findPageByID({ ...this.page, force: true }),
+        this.findLayoutByID({ ...this.layout }),
+      ]).then(([page, layout]) => {
+        const blocks = [
+          ...page.blocks.filter(({ blockID }) => {
+            // Check if block exists in any other layout, if not delete it permanently
+            return !this.blocks.some(b => b.blockID === blockID) && this.layouts.some(({ pageLayoutID, blocks }) => pageLayoutID !== layout.pageLayoutID && blocks.some(b => b.blockID === blockID))
+          }),
+          ...this.blocks,
+        ]
+
+        return this.updatePage({ namespaceID, ...page, blocks })
+          .then(this.updateTabbedBlockIDs)
+          .then(async page => {
+            const blocks = this.blocks.map(({ blockID, meta, xywh }) => {
+              if (blockID === NoID) {
+                blockID = (page.blocks.find(block => block.meta.tempID === meta.tempID) || {}).blockID
+              }
+
+              return { blockID, xywh, meta }
+            })
+            layout = await this.updatePageLayout({ ...layout, blocks })
+            return { page, layout }
+          })
+      }).then(({ page, layout }) => {
+        this.page = new compose.Page(page)
+        this.layout = new compose.PageLayout(layout)
+        this.fetchPageLayouts()
+        this.$route.query.layoutID = layout.pageLayoutID
+        this.unsavedBlocks.clear()
+        this.toastSuccess(this.$t('notification:page.page-layout.save.success'))
+
+        if (closeOnSuccess) {
+          this.$router.push({ name: 'admin.pages' })
+        } else if (previewOnSuccess) {
+          this.$router.push({ name: 'page', params: { pageID: this.pageID } })
+        }
+      }).finally(() => {
+        this.processing = false
+      }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
+    },
+
+    handleCloneLayout () {
+      this.processing = true
+
+      const layout = {
+        ...this.layout,
+        handle: '',
+        weight: this.layouts.length + 1,
+      }
+
+      layout.meta.title = `${layout.meta.title}`
+
+      this.createPageLayout(this.layout).then(({ layoutID }) => {
+        return this.fetchPageLayouts().then(() => {
+          this.switchLayout(layoutID)
+          this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
+        })
+      }).finally(() => {
+        this.processing = false
+      }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.clone.failed')))
+    },
+
+    handleDeleteLayout () {
+      this.processing = true
+
+      this.deletePageLayout({ ...this.layout }).then(() => {
+        return this.fetchPageLayouts()
+      }).then(() => {
+        this.setLayout()
+        this.toastSuccess(this.$t('notification:page.page-layout.delete.success'))
+      }).finally(() => {
+        this.processing = false
+      }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.delete.failed')))
     },
 
     /**
@@ -732,7 +827,6 @@ export default {
 
       navigator.clipboard.writeText(block).then(() => {
         this.toastSuccess(this.$t('notification:page.copySuccess'))
-        this.toastInfo(this.$t('notification:page.blockWaiting'))
         this.$refs.pageBuilder.focus()
       },
       (err) => {
@@ -763,6 +857,59 @@ export default {
     // Trigger browser dialog on page leave to prevent unsaved changes
     checkUnsavedBlocks (next) {
       next(!this.unsavedBlocks.size || window.confirm(this.$t('build.unsavedChanges')))
+    },
+
+    async setLayout () {
+      if (this.$route.query.layoutID) {
+        const { namespaceID } = this.namespace
+        this.layout = await this.findLayoutByID({ namespaceID, pageID: this.pageID, pageLayoutID: this.$route.query.layoutID })
+      }
+
+      this.layout = this.layout || this.layouts[0]
+      if (!this.layout) {
+        this.toastWarning(this.$t('notification:page.page-layout.notFound.edit'))
+        return this.$router.push(this.pageEditor)
+      }
+
+      if (this.$route.query.layoutID !== this.layout.pageLayoutID) {
+        this.$router.replace({ ...this.$route, query: { ...this.$route.query, layoutID: this.layout.pageLayoutID } })
+      }
+
+      this.unsavedBlocks.clear()
+
+      const tempBlocks = []
+      const { blocks = [] } = this.layout || {}
+
+      blocks.forEach(({ blockID, xywh, meta = {} }) => {
+        let block = this.page.blocks.find(b => b.blockID === blockID)
+        block.xywh = xywh
+        block.meta.hidden = !!meta.hidden
+        tempBlocks.push(block)
+
+        if (block.kind === 'Tabs') {
+          const { tabs = [] } = block.options
+          tabs.forEach(tab => {
+            if (blocks.some(b => b.blockID === tab.blockID)) return
+
+            block = this.page.blocks.find(b => b.blockID === tab.blockID)
+
+            if (block) {
+              tempBlocks.push(block)
+            }
+          })
+        }
+      })
+
+      this.blocks = tempBlocks
+    },
+
+    switchLayout (layoutID) {
+      this.$router.push({ ...this.$route, query: { ...this.$route.query, layoutID } }).then(() => {
+        this.setLayout()
+      }).catch(() => {
+        // Change layout value of select back to previous one if redirect was canceled
+        this.$refs.layoutSelect.localValue = this.layout.pageLayoutID
+      })
     },
   },
 }

@@ -555,6 +555,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -580,6 +581,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -663,6 +665,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -691,6 +694,7 @@ export default class Compose {
       visible,
       blocks,
       config,
+      meta,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1005,6 +1009,433 @@ export default class Compose {
 
   iconUploadEndpoint (): string {
     return '/icon/'
+  }
+
+  // List available page layouts
+  async pageLayoutListNamespace (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      moduleID,
+      parentID,
+      query,
+      handle,
+      labels,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.pageLayoutListNamespaceEndpoint({
+        namespaceID,
+      }),
+    }
+    cfg.params = {
+      pageID,
+      moduleID,
+      parentID,
+      query,
+      handle,
+      labels,
+      limit,
+      pageCursor,
+      sort,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutListNamespaceEndpoint (a: KV): string {
+    const {
+      namespaceID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page-layout`
+  }
+
+  // List available page layouts
+  async pageLayoutList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      moduleID,
+      parentID,
+      query,
+      handle,
+      labels,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.pageLayoutListEndpoint({
+        namespaceID, pageID,
+      }),
+    }
+    cfg.params = {
+      moduleID,
+      parentID,
+      query,
+      handle,
+      labels,
+      limit,
+      pageCursor,
+      sort,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutListEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/`
+  }
+
+  // Create page layout
+  async pageLayoutCreate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      parentID,
+      weight,
+      moduleID,
+      handle,
+      meta,
+      config,
+      blocks,
+      labels,
+      ownedBy,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.pageLayoutCreateEndpoint({
+        namespaceID, pageID,
+      }),
+    }
+    cfg.data = {
+      parentID,
+      weight,
+      moduleID,
+      handle,
+      meta,
+      config,
+      blocks,
+      labels,
+      ownedBy,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutCreateEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/`
+  }
+
+  // Get page details
+  async pageLayoutRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageLayoutID) {
+      throw Error('field pageLayoutID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.pageLayoutReadEndpoint({
+        namespaceID, pageID, pageLayoutID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutReadEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
+  }
+
+  // Update page
+  async pageLayoutUpdate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+      parentID,
+      weight,
+      moduleID,
+      handle,
+      meta,
+      config,
+      blocks,
+      labels,
+      ownedBy,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageLayoutID) {
+      throw Error('field pageLayoutID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.pageLayoutUpdateEndpoint({
+        namespaceID, pageID, pageLayoutID,
+      }),
+    }
+    cfg.data = {
+      parentID,
+      weight,
+      moduleID,
+      handle,
+      meta,
+      config,
+      blocks,
+      labels,
+      ownedBy,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutUpdateEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
+  }
+
+  // Reorder page layouts
+  async pageLayoutReorder (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageIDs,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageIDs) {
+      throw Error('field pageIDs is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.pageLayoutReorderEndpoint({
+        namespaceID, pageID,
+      }),
+    }
+    cfg.data = {
+      pageIDs,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutReorderEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/reorder`
+  }
+
+  // Delete page layout
+  async pageLayoutDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+      strategy,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageLayoutID) {
+      throw Error('field pageLayoutID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.pageLayoutDeleteEndpoint({
+        namespaceID, pageID, pageLayoutID,
+      }),
+    }
+    cfg.params = {
+      strategy,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutDeleteEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}`
+  }
+
+  // Undelete soft deleted Delete page layout
+  async pageLayoutUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageLayoutID) {
+      throw Error('field pageLayoutID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.pageLayoutUndeleteEndpoint({
+        namespaceID, pageID, pageLayoutID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutUndeleteEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}/undelete`
+  }
+
+  // List page layout translation
+  async pageLayoutListTranslations (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageLayoutID) {
+      throw Error('field pageLayoutID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.pageLayoutListTranslationsEndpoint({
+        namespaceID, pageID, pageLayoutID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutListTranslationsEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}/translation`
+  }
+
+  // Update page layout translation
+  async pageLayoutUpdateTranslations (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+      translations,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!pageID) {
+      throw Error('field pageID is empty')
+    }
+    if (!pageLayoutID) {
+      throw Error('field pageLayoutID is empty')
+    }
+    if (!translations) {
+      throw Error('field translations is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.pageLayoutUpdateTranslationsEndpoint({
+        namespaceID, pageID, pageLayoutID,
+      }),
+    }
+    cfg.data = {
+      translations,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutUpdateTranslationsEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      pageID,
+      pageLayoutID,
+    } = a || {}
+    return `/namespace/${namespaceID}/page/${pageID}/layout/${pageLayoutID}/translation`
   }
 
   // List modules

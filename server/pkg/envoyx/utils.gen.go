@@ -19,8 +19,9 @@ var (
 		"corteza::compose:module":       true,
 		"corteza::compose:module-field": true,
 
-		"corteza::compose:page":   true,
-		"corteza::compose:record": true,
+		"corteza::compose:page":        true,
+		"corteza::compose:page-layout": true,
+		"corteza::compose:record":      true,
 
 		"corteza::compose:record-datasource": true,
 	}

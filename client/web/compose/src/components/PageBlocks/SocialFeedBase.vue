@@ -6,7 +6,7 @@
   >
     <div
       v-if="profile"
-      class="px-3 h-100"
+      class="p-2 h-100"
     >
       <timeline
         v-if="isTwitter"

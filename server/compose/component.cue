@@ -14,6 +14,7 @@ component: schema.#component & {
 		"module-field":        moduleField
 		"namespace":           namespace
 		"page":                page
+		"page-layout":         pageLayout
 		"record":              record
 		"record-revision":     record_revision
 	}

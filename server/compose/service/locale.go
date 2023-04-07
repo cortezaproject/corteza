@@ -179,50 +179,23 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 		aux []*locale.ResourceTranslation
 	)
 
+	// We need to get page layouts to include them also
+	// @todo refactor the base logic to simplify this; it's suboptimal
+	layouts, _, err := store.SearchComposePageLayouts(ctx, svc.store, types.PageLayoutFilter{
+		NamespaceID: res.NamespaceID,
+		PageID:      res.ID,
+	})
+	if err != nil {
+		return
+	}
+
 	for _, tag := range svc.locale.Tags() {
-		// Button translations
-		if res.Config.Buttons != nil {
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      types.LocaleKeyPageRecordToolbarNewLabel.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarNewLabel.Path),
-			})
-
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      types.LocaleKeyPageRecordToolbarEditLabel.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarEditLabel.Path),
-			})
-
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      types.LocaleKeyPageRecordToolbarSubmitLabel.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarSubmitLabel.Path),
-			})
-
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      types.LocaleKeyPageRecordToolbarDeleteLabel.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarDeleteLabel.Path),
-			})
-
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      types.LocaleKeyPageRecordToolbarCloneLabel.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarCloneLabel.Path),
-			})
-
-			out = append(out, &locale.ResourceTranslation{
-				Resource: res.ResourceTranslation(),
-				Lang:     tag.String(),
-				Key:      types.LocaleKeyPageRecordToolbarBackLabel.Path,
-				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageRecordToolbarBackLabel.Path),
-			})
+		for _, l := range layouts {
+			aux, err = svc.PageLayout(ctx, res.NamespaceID, res.ID, l.ID)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
 		}
 
 		for i, block := range res.Blocks {
@@ -273,6 +246,75 @@ func (svc resourceTranslationsManager) pageExtended(ctx context.Context, res *ty
 				})
 
 			}
+		}
+	}
+
+	return
+}
+
+func (svc resourceTranslationsManager) pageLayoutExtended(ctx context.Context, res *types.PageLayout) (out locale.ResourceTranslationSet, err error) {
+	var (
+		k types.LocaleKey
+	)
+
+	for _, tag := range svc.locale.Tags() {
+		// Standard buttons
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsNewLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsNewLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsEditLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsEditLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsSubmitLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsSubmitLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsDeleteLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsDeleteLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsCloneLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsCloneLabel.Path),
+		})
+
+		out = append(out, &locale.ResourceTranslation{
+			Resource: res.ResourceTranslation(),
+			Lang:     tag.String(),
+			Key:      types.LocaleKeyPageLayoutConfigButtonsBackLabel.Path,
+			Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), types.LocaleKeyPageLayoutConfigButtonsBackLabel.Path),
+		})
+
+		// Actions
+		for i, action := range res.Config.Actions {
+			acContentID := locale.ContentID(action.ActionID, i)
+			rpl := strings.NewReplacer(
+				"{{actionID}}", strconv.FormatUint(acContentID, 10),
+			)
+
+			k = types.LocaleKeyPageLayoutConfigActionsActionIDMetaLabel
+			out = append(out, &locale.ResourceTranslation{
+				Resource: res.ResourceTranslation(),
+				Lang:     tag.String(),
+				Key:      rpl.Replace(k.Path),
+				Msg:      svc.locale.TResourceFor(tag, res.ResourceTranslation(), rpl.Replace(k.Path)),
+			})
 		}
 	}
 
@@ -391,6 +433,10 @@ func (svc resourceTranslationsManager) loadNamespace(ctx context.Context, s stor
 
 func (svc resourceTranslationsManager) loadPage(ctx context.Context, s store.Storer, namespaceID, pageID uint64) (*types.Page, error) {
 	return loadPage(ctx, s, namespaceID, pageID)
+}
+
+func (svc resourceTranslationsManager) loadPageLayout(ctx context.Context, s store.Storer, namespaceID, pageID, pageLayoutID uint64) (res *types.PageLayout, err error) {
+	return loadPageLayout(ctx, s, namespaceID, pageID, pageLayoutID)
 }
 
 func (svc resourceTranslationsManager) loadChart(ctx context.Context, s store.Storer, namespaceID, chartID uint64) (*types.Chart, error) {

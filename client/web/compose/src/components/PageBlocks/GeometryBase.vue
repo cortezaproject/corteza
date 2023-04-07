@@ -9,57 +9,57 @@
     >
       <b-spinner />
     </div>
-    <template v-else>
-      <div
-        class="w-100 h-100"
-        @mouseover="disableMap"
-        @mouseleave="enableMap"
-      >
-        <l-map
-          v-if="map"
-          ref="map"
-          :zoom="map.zoom"
-          :center="map.center"
-          :min-zoom="map.zoomMin"
-          :max-zoom="map.zoomMax"
-          :bounds="map.bounds"
-          :max-bounds="map.bounds"
-          class="w-100 h-100"
-          @locationfound="onLocationFound"
-        >
-          <l-tile-layer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            :attribution="map.attribution"
-          />
-          <l-polygon
-            v-for="(geometry, i) in geometries"
-            :key="`polygon-${i}`"
-            :lat-lngs="geometry.map(value => value.geometry)"
-            :color="colors[i]"
-          />
 
-          <l-marker
-            v-for="(marker, i) in localValue"
-            :key="`marker-${i}`"
-            :lat-lng="marker.value"
-            :icon="getIcon(marker)"
-          />
-          <l-control class="leaflet-bar">
-            <a
-              :title="$t('geometry.tooltip.goToCurrentLocation')"
-              role="button"
-              class="d-flex justify-content-center align-items-center"
-              @click="goToCurrentLocation"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'location-arrow']"
-                class="text-primary"
-              />
-            </a>
-          </l-control>
-        </l-map>
-      </div>
-    </template>
+    <div
+      v-else
+      class="w-100 h-100"
+      @mouseover="disableMap"
+      @mouseleave="enableMap"
+    >
+      <l-map
+        v-if="map"
+        ref="map"
+        :zoom="map.zoom"
+        :center="map.center"
+        :min-zoom="map.zoomMin"
+        :max-zoom="map.zoomMax"
+        :bounds="map.bounds"
+        :max-bounds="map.bounds"
+        class="w-100 h-100"
+        @locationfound="onLocationFound"
+      >
+        <l-tile-layer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          :attribution="map.attribution"
+        />
+        <l-polygon
+          v-for="(geometry, i) in geometries"
+          :key="`polygon-${i}`"
+          :lat-lngs="geometry.map(value => value.geometry)"
+          :color="colors[i]"
+        />
+
+        <l-marker
+          v-for="(marker, i) in localValue"
+          :key="`marker-${i}`"
+          :lat-lng="marker.value"
+          :icon="getIcon(marker)"
+        />
+        <l-control class="leaflet-bar">
+          <a
+            :title="$t('geometry.tooltip.goToCurrentLocation')"
+            role="button"
+            class="d-flex justify-content-center align-items-center"
+            @click="goToCurrentLocation"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'location-arrow']"
+              class="text-primary"
+            />
+          </a>
+        </l-control>
+      </l-map>
+    </div>
   </wrap>
 </template>
 
@@ -69,6 +69,7 @@ import { LPolygon, LControl } from 'vue2-leaflet'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapGetters, mapActions } from 'vuex'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { throttle } from 'lodash'
 import base from './base'
 
 export default {
@@ -125,15 +126,17 @@ export default {
         this.loadEvents()
       },
     },
+
     options: {
       deep: true,
       handler () {
         this.loadEvents()
       },
     },
-    boundingRect () {
+
+    boundingRect: throttle(function () {
       this.loadEvents()
-    },
+    }, 300),
   },
 
   created () {
@@ -211,6 +214,11 @@ export default {
           })
       })).finally(() => {
         this.processing = false
+
+        setTimeout(() => {
+          if (!this.$refs.map) return
+          this.$refs.map.mapObject.invalidateSize()
+        })
       })
     },
 
