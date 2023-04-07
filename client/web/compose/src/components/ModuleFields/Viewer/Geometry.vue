@@ -67,6 +67,7 @@
         />
         <l-control class="leaflet-bar">
           <a
+            v-if="!field.options.hideCurrentLocationButton"
             :title="$t('tooltip.goToCurrentLocation')"
             role="button"
             class="d-flex justify-content-center align-items-center"
