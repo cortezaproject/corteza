@@ -4,7 +4,7 @@
     v-bind="$props"
     :scrollable-body="false"
     v-on="$listeners"
-    @refreshBlock="refresh"
+    @refreshBlock="refresh(false, false)"
   >
     <template
       v-if="isFederated"
@@ -1486,7 +1486,10 @@ export default {
       }
     },
 
-    refresh (resetPagination = false) {
+    refresh (resetPagination = false, checkSelected = true) {
+      // Prevent refresh if records are selected or inline editing
+      if (checkSelected && (this.selected.length || this.inlineEdit.recordIDs.length)) return
+
       return this.pullRecords(resetPagination)
     },
 
