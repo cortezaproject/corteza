@@ -21,7 +21,7 @@
       >
         <div
           class="d-flex"
-          style="height: 300px"
+          style="height: 300px;"
         >
           <b-img
             v-if="current"
@@ -242,9 +242,7 @@ export default {
   flex: 1 1 auto;
   width: 1%;
   margin-bottom: 0;
-}
 
-.block-selector {
   &:not(.vs--open) .vs__selected + .vs__search {
     // force this to not use any space
     // we still need it to be rendered for the focus
