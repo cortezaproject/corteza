@@ -839,7 +839,7 @@ export default {
     },
 
     showFooter () {
-      return !this.options.hidePaging
+      return this.showPageNavigation || this.options.showTotalCount
     },
 
     getPagination () {
@@ -1684,6 +1684,7 @@ export default {
       this.refresh(true)
       this.inlineEdit.fields = []
       this.inlineEdit.recordIDs = []
+      this.inlineEdit.record = {}
     },
 
     isFieldEditable (field) {
