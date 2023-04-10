@@ -1,0 +1,31 @@
+workflows:
+  error_handler_results:
+    enabled: true
+    trace: true
+    triggers:
+      - enabled: true
+        stepID: 1
+
+    steps:
+      - stepID: 1
+        kind: error-handler
+        results:
+          - { target: e, type: Any, expr: "error" }
+          - { target: eM, type: String, expr: "errorMessage" }
+          - { target: esID, type: Integer, expr: "errorStepID" }
+
+      - stepID: 2
+        kind: error
+        arguments:
+          - { target: message, type: String, value: "TestingError" }
+
+      - stepID: 3
+        kind: function
+        ref: logInfo
+        arguments:
+          - { target: message, type: String, expr: "format(\"%s, %s, %d\", e, eM, esID)" }
+
+    paths:
+      - { parentID: 1, childID: 2 }
+      - { parentID: 1, childID: 3 }
+
