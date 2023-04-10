@@ -1,6 +1,7 @@
 package wfexec
 
 import (
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"time"
 )
 
@@ -10,6 +11,7 @@ type (
 
 	errHandler struct {
 		handler Step
+		results *expr.Vars
 	}
 
 	termination struct{}
@@ -35,8 +37,8 @@ func Resume() *resumed {
 	return &resumed{}
 }
 
-func ErrorHandler(h Step) *errHandler {
-	return &errHandler{handler: h}
+func ErrorHandler(h Step, results *expr.Vars) *errHandler {
+	return &errHandler{handler: h, results: results}
 }
 
 func Termination() *termination {

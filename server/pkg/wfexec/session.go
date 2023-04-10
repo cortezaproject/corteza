@@ -171,7 +171,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 		delayed:  make(map[uint64]*delayed),
 		prompted: make(map[uint64]*prompted),
 
-		//workerInterval: time.Millisecond,
+		// workerInterval: time.Millisecond,
 		workerInterval: time.Millisecond * 250, // debug mode rate
 		workerLock:     make(chan struct{}, 1),
 
@@ -395,15 +395,14 @@ func (s *Session) enqueue(ctx context.Context, st *State) error {
 }
 
 // Wait does not wait for the whole wf to be complete but until:
-//  - context timeout
-//  - idle state
-//  - error in error queue
+//   - context timeout
+//   - idle state
+//   - error in error queue
 func (s *Session) Wait(ctx context.Context) error {
 	return s.WaitUntil(ctx, SessionFailed, SessionDelayed, SessionCompleted)
 }
 
 // WaitUntil blocks until workflow session gets into expected status
-//
 func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) error {
 	indexed := make(map[SessionStatus]bool)
 	for _, status := range expected {
@@ -689,7 +688,10 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 				zap.Error(st.err),
 			)
 
-			_ = expr.Assign(scope, "error", expr.Must(expr.NewString(st.err.Error())))
+			err = setErrorHandlerResultsToScope(scope, st.results, st.err, st.step.ID())
+			if err != nil {
+				return nil, err
+			}
 
 			// copy error handler & disable it on state to prevent inf. loop
 			// in case of another error in the error-handling branch
@@ -731,6 +733,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 			// this step sets error handling step on current state
 			// and continues on the current path
 			st.errHandler = result.handler
+			st.results = st.results.MustMerge(result.results)
 
 			// find step that's not error handler and
 			// use it for the next step
@@ -940,4 +943,31 @@ func GetContextCallStack(ctx context.Context) []uint64 {
 	}
 
 	return v.([]uint64)
+}
+
+func setErrorHandlerResultsToScope(scope *expr.Vars, result *expr.Vars, e error, stepID uint64) (err error) {
+	var (
+		ehr = struct {
+			Error        string `json:"error"`
+			ErrorMessage string `json:"errorMessage"`
+			ErrorStepID  string `json:"errorStepID"`
+		}{}
+	)
+
+	err = result.Decode(&ehr)
+	if err != nil {
+		return
+	}
+
+	if len(ehr.Error) > 0 {
+		_ = expr.Assign(scope, ehr.Error, expr.Must(expr.NewAny(e)))
+	}
+	if len(ehr.ErrorMessage) > 0 {
+		_ = expr.Assign(scope, ehr.ErrorMessage, expr.Must(expr.NewString(e.Error())))
+	}
+	if len(ehr.ErrorStepID) > 0 {
+		_ = expr.Assign(scope, ehr.ErrorStepID, expr.Must(expr.NewInteger(stepID)))
+	}
+
+	return
 }
