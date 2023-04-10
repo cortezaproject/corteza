@@ -88,6 +88,7 @@ func (s State) Next(current Step, scope *expr.Vars) *State {
 		sessionId:  s.sessionId,
 		parent:     s.step,
 		errHandler: s.errHandler,
+		results:    s.results,
 		loops:      s.loops,
 
 		step:  current,
