@@ -149,7 +149,7 @@ func (h *AuthHandlers) profileProc(req *request.AuthReq) error {
 		service.UserErrNotAllowedToUpdate().Is(err),
 		service.AttachmentErrInvalidAvatarFileType().Is(err),
 		service.AttachmentErrInvalidAvatarFileSize().Is(err),
-		service.AttachmentErrInvalidInitialsLength().Is(err):
+		service.AttachmentErrInvalidAvatarGenerateFontFile().Is(err):
 		req.SetKV(map[string]string{
 			"error":            err.Error(),
 			"email":            u.Email,
