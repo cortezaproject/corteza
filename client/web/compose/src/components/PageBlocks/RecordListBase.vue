@@ -727,7 +727,7 @@
   </wrap>
 </template>
 <script>
-import { debounce } from 'lodash'
+import { debounce, isEqual } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
@@ -1072,6 +1072,17 @@ export default {
     },
 
     onFilter (filter = []) {
+      filter.forEach(f => {
+        if (this.activeFilters.includes(f.name)) {
+          this.filterPresets.find(p => p.name === f.name).filter.forEach((filterPreset) => {
+            if (!isEqual(f.filter, filterPreset.filter)) {
+              const filterIndex = this.activeFilters.indexOf(f.name)
+              this.activeFilters.splice(filterIndex, 1)
+            }
+          })
+        }
+      })
+
       this.recordListFilter = filter
       this.setStorageRecordListFilter()
       this.refresh(true)

@@ -556,7 +556,7 @@ export default {
       // Create record and fill its values property if value exists
       this.componentFilter = this.recordListFilter
         .filter(({ filter = [] }) => filter.some(f => f.name))
-        .map(({ groupCondition, filter = [] }) => {
+        .map(({ groupCondition, filter = [], name }) => {
           filter = filter.map(({ value, ...f }) => {
             f.record = new compose.Record(this.mock.module, {})
 
@@ -583,7 +583,7 @@ export default {
             return f
           })
 
-          return { groupCondition, filter }
+          return { groupCondition, filter, name }
         })
 
       // If no filterGroups, add default
@@ -598,7 +598,7 @@ export default {
       }
 
       // Emit only value and not whole record with every filter
-      this.$emit('filter', this.componentFilter.map(({ groupCondition, filter = [] }) => {
+      this.$emit('filter', this.componentFilter.map(({ groupCondition, filter = [], name }) => {
         filter = filter.map(({ record, ...f }) => {
           if (record) {
             f.value = record[f.name] || record.values[f.name]
@@ -614,7 +614,7 @@ export default {
           return f
         })
 
-        return { groupCondition, filter }
+        return { groupCondition, filter, name }
       }))
     },
 
