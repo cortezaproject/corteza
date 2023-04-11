@@ -82,7 +82,7 @@ require (
 
 require (
 	cloud.google.com/go v0.99.0 // indirect
-	github.com/Masterminds/goutils v1.1.0 // indirect
+	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
