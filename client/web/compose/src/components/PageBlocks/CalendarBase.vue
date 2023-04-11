@@ -340,7 +340,18 @@ export default {
         return
       }
 
-      this.$router.push({ name: 'page.record', params: { recordID, pageID: page.pageID } })
+      const route = { name: 'page.record', params: { recordID, pageID: page.pageID } }
+
+      if (this.options.eventDisplayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
+      } else if (this.options.eventDisplayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          recordID,
+          recordPageID: page.pageID,
+        })
+      } else {
+        this.$router.push(route)
+      }
     },
 
     getHeight () {

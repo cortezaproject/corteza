@@ -72,6 +72,10 @@ calendar:
     listMonth: Agenda
     timeGridDay: Day
     timeGridWeek: Week
+    onEventClick: On event click
+    openInSameTab: Open record in the same tab
+    openInNewTab: Open record in a new tab
+    openInModal: Open record in a modal
   viewLabel: Calendar
 chart:
   add: New Chart

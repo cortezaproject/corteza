@@ -57,6 +57,23 @@
         :options="views"
       />
     </b-form-group>
+
+    <b-row>
+      <b-col
+        cols="12"
+        md="6"
+      >
+        <b-form-group
+          :label="$t('calendar.view.onEventClick')"
+          label-class="text-primary"
+        >
+          <b-form-select
+            v-model="options.eventDisplayOption"
+            :options="eventDisplayOptions"
+          />
+        </b-form-group>
+      </b-col>
+    </b-row>
   </fieldset>
 </template>
 <script>
@@ -74,6 +91,14 @@ export default {
     views () {
       return compose.PageBlockCalendar.availableViews()
         .map(view => ({ value: view, text: this.$t(`calendar.view.${view}`) }))
+    },
+
+    eventDisplayOptions () {
+      return [
+        { value: 'sameTab', text: this.$t('calendar.view.openInSameTab') },
+        { value: 'newTab', text: this.$t('calendar.view.openInNewTab') },
+        { value: 'modal', text: this.$t('calendar.view.openInModal') },
+      ]
     },
   },
 }
