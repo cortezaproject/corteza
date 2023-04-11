@@ -38,6 +38,7 @@ class CalendarOptions {
   public refreshRate = 0
   public showRefresh = false
   public magnifyOption = ''
+  public eventDisplayOption = 'sameTab'
 }
 
 /**
@@ -63,7 +64,7 @@ export class PageBlockCalendar extends PageBlock {
 
     Apply(this.options, o, Boolean, 'showRefresh')
 
-    Apply(this.options, o, String, 'magnifyOption')
+    Apply(this.options, o, String, 'magnifyOption', 'eventDisplayOption')
 
     this.options.defaultView = PageBlockCalendar.handleLegacyView(o.defaultView) || 'dayGridMonth'
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
