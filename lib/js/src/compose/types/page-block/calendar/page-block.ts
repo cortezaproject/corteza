@@ -71,7 +71,7 @@ export class PageBlockCalendar extends PageBlock {
       {},
       this.options.header,
       o.header,
-      { views: PageBlockCalendar.handleLegacyViews(o.header?.views || []) },
+      { views: PageBlockCalendar.handleLegacyViews(o.header?.views || ['dayGridMonth']) },
     )
 
     this.options.locale = o.locale || 'en-gb'
