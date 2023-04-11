@@ -12,10 +12,10 @@
         <b-col
           cols="12"
           md="6"
-          class="text-primary"
         >
           <b-form-group
             :label="$t('edit.module.label')"
+            label-class="text-primary"
           >
             <b-form-select
               v-model="moduleID"
@@ -38,10 +38,10 @@
           v-if="!!module"
           cols="12"
           md="6"
-          class="text-primary"
         >
           <b-form-group
-            :label="$t('edit.filter.label')"
+            :label="$t('edit.filter.preset')"
+            label-class="text-primary"
           >
             <b-form-select
               v-model="report.filter"
@@ -59,26 +59,27 @@
         <!-- Configure report filters -->
         <b-col
           v-if="!!module"
-          class="mt-1 text-primary"
           cols="12"
+          class="mt-1"
         >
           <b-form-group
             :label="$t('edit.filter.label')"
+            label-class="text-primary"
           >
             <b-form-textarea
               v-model="report.filter"
               :placeholder="$t('edit.filter.placeholder')"
             />
-            <b-form-text>
-              <i18next
-                path="edit.filter.footnote"
-                tag="label"
-              >
-                <code>${recordID}</code>
-                <code>${ownerID}</code>
-                <code>${userID}</code>
-              </i18next>
-            </b-form-text>
+
+            <i18next
+              path="edit.filter.footnote"
+              tag="small"
+              class="text-muted"
+            >
+              <code>${recordID}</code>
+              <code>${ownerID}</code>
+              <code>${userID}</code>
+            </i18next>
           </b-form-group>
         </b-col>
       </b-row>
@@ -99,16 +100,14 @@
         </h5>
 
         <template v-if="usesDimensionsField">
-          <b-row
-            class="text-primary"
-          >
+          <b-row>
             <b-col
               cols="12"
               md="6"
             >
               <b-form-group
                 :label="$t('edit.dimension.fieldLabel')"
-                class="text-primary"
+                label-class="text-primary"
               >
                 <b-form-select
                   v-model="d.field"
@@ -132,7 +131,7 @@
             >
               <b-form-group
                 :label="$t('edit.dimension.function.label')"
-                class="text-primary"
+                label-class="text-primary"
               >
                 <b-form-select
                   v-model="d.modifier"
@@ -160,7 +159,7 @@
                 <b-form-group
                   :label="$t('edit.dimension.rotate.label')"
                   :description="$t('edit.dimension.rotate.description')"
-                  class="text-primary"
+                  label-class="text-primary"
                 >
                   <b-input
                     v-model="d.rotateLabel"
@@ -175,15 +174,14 @@
                 md="6"
               >
                 <b-form-group
-                  :label="$t('edit.dimension.skipMissingValues')"
-                  class="text-primary"
+                  :label="$t('edit.dimension.options.label')"
+                  label-class="text-primary"
                 >
-                  <c-input-checkbox
-                    :value="!!d.skipMissing"
-                    switch
-                    :labels="checkboxLabel"
-                    @change="d.skipMissing = $event"
-                  />
+                  <b-form-checkbox
+                    v-model="d.skipMissing"
+                  >
+                    {{ $t('edit.dimension.skipMissingValues') }}
+                  </b-form-checkbox>
                 </b-form-group>
               </b-col>
 
@@ -195,7 +193,7 @@
                 <b-form-group
                   :label="$t('edit.dimension.defaultValueLabel')"
                   :description="$t('edit.dimension.defaultValueFootnote')"
-                  class="text-primary"
+                  label-class="text-primary"
                 >
                   <b-form-input
                     v-model="d.default"
@@ -237,30 +235,39 @@
       <draggable
         class="metrics mb-3"
         :list.sync="metrics"
-        handle=".metric-handle"
+        handle=".grab"
         :group="`metrics_${moduleID}`"
       >
-        <fieldset
+        <div
           v-for="(m,i) in metrics"
           :key="i"
-          class="main-fieldset mb-3"
+          class="rounded border border-light p-3 mb-3"
+          style="background-color: #F9FAFB;"
         >
           <h5
             v-if="metrics.length > 1"
             class="d-flex align-items-center mb-3"
           >
-            <font-awesome-icon
-              class="grab metric-handle align-baseline text-secondary mr-2"
-              :icon="['fas', 'grip-vertical']"
-            />
             {{ $t('edit.metric.label') }} {{ i + 1 }}
-            <b-button
-              variant="link"
-              class="text-danger align-baseline"
-              @click.prevent="removeMetric(i)"
-            >
-              <font-awesome-icon :icon="['far', 'trash-alt']" />
-            </b-button>
+
+            <div class="d-flex align-items-center ml-auto">
+              <c-input-confirm
+                class="mr-2"
+                @confirmed="removeMetric(i)"
+              />
+
+              <b-button
+                variant="link"
+                size="sm"
+                :disabled="true"
+                class="ml-auto px-0"
+              >
+                <font-awesome-icon
+                  class="grab text-secondary"
+                  :icon="['fas', 'bars']"
+                />
+              </b-button>
+            </div>
           </h5>
 
           <b-row>
@@ -270,7 +277,7 @@
             >
               <b-form-group
                 :label="$t('edit.metric.fieldLabel')"
-                class="text-primary"
+                label-class="text-primary"
               >
                 <b-form-select
                   v-model="m.field"
@@ -294,7 +301,7 @@
             >
               <b-form-group
                 :label="$t('edit.metric.function.label')"
-                class="text-primary"
+                label-class="text-primary"
               >
                 <b-form-select
                   v-model="m.aggregate"
@@ -317,9 +324,10 @@
             name="metric-options"
             :metric="m"
           />
-        </fieldset>
+        </div>
       </draggable>
     </div>
+
     <hr v-if="!!module && hasAxis">
 
     <template v-if="hasAxis">
@@ -327,8 +335,8 @@
         name="y-axis"
         :report="editReport"
       />
+      <hr>
     </template>
-    <hr v-if="hasAxis">
 
     <slot
       name="additional-config"

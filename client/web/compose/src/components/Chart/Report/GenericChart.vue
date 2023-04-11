@@ -11,15 +11,14 @@
           {{ $t('edit.yAxis.label') }}
         </h5>
 
-        <b-row
-          class="text-primary"
-        >
+        <b-row>
           <b-col
             cols="12"
             md="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.labelLabel')"
+              label-class="text-primary"
             >
               <b-input-group>
                 <b-form-input
@@ -44,6 +43,7 @@
           >
             <b-form-group
               :label="$t('edit.yAxis.labelPosition.label')"
+              label-class="text-primary"
             >
               <b-form-select
                 v-model="report.yAxis.labelPosition"
@@ -58,6 +58,7 @@
           >
             <b-form-group
               :label="$t('edit.yAxis.minLabel')"
+              label-class="text-primary"
             >
               <b-form-input
                 v-model="report.yAxis.min"
@@ -73,6 +74,7 @@
           >
             <b-form-group
               :label="$t('edit.yAxis.maxLabel')"
+              label-class="text-primary"
             >
               <b-form-input
                 v-model="report.yAxis.max"
@@ -89,6 +91,7 @@
             <b-form-group
               :label="$t('edit.yAxis.rotate.label')"
               :description="$t('edit.yAxis.rotate.description')"
+              label-class="text-primary"
             >
               <b-input
                 v-model="report.yAxis.rotateLabel"
@@ -103,6 +106,7 @@
           >
             <b-form-group
               :label="$t('edit.yAxis.options.label')"
+              label-class="text-primary"
             >
               <b-form-checkbox
                 v-model="report.yAxis.axisType"
@@ -134,13 +138,12 @@
     <template #metric-options="{ metric }">
       <b-row>
         <b-col
-          v-if="!['pie', 'doughnut'].includes(metric.type)"
           cols="12"
           md="6"
         >
           <b-form-group
             :label="$t('edit.metric.labelLabel')"
-            class="text-primary"
+            label-class="text-primary"
           >
             <b-input-group>
               <b-form-input
@@ -165,7 +168,7 @@
         >
           <b-form-group
             :label="$t('edit.metric.output.label')"
-            class="text-primary"
+            label-class="text-primary"
           >
             <b-form-select
               v-model="metric.type"
@@ -189,7 +192,7 @@
           <b-form-group
             :label="$t('edit.metric.fx.label')"
             :description="$t('edit.metric.fx.description')"
-            class="text-primary"
+            label-class="text-primary"
           >
             <b-form-textarea
               v-model="metric.fx"
@@ -199,53 +202,32 @@
         </b-col>
 
         <b-col
-          v-if="true"
           cols="12"
           md="6"
         >
           <b-form-group
-            :label="$t('edit.metric.relative')"
-            class="text-primary"
+            :label="$t('edit.metric.options.label')"
+            label-class="text-primary"
           >
-            <c-input-checkbox
-              :value="!!metric.relativeValue"
-              switch
-              :labels="checkboxLabel"
-              @change="$set(metric,'relativeValue', $event)"
-            />
-          </b-form-group>
-        </b-col>
+            <b-form-checkbox
+              v-if="hasRelativeDisplay(metric)"
+              v-model="metric.relativeValue"
+            >
+              {{ $t('edit.metric.relative') }}
+            </b-form-checkbox>
 
-        <b-col
-          v-if="metric.type === 'line'"
-          cols="12"
-          md="6"
-        >
-          <b-form-group
-            :label="$t('edit.metric.fillArea')"
-            class="text-primary"
-          >
-            <c-input-checkbox
+            <b-form-checkbox
+              v-if="metric.type === 'line'"
               v-model="metric.fill"
-              switch
-              :labels="checkboxLabel"
-            />
-          </b-form-group>
-        </b-col>
+            >
+              {{ $t('edit.metric.fillArea') }}
+            </b-form-checkbox>
 
-        <b-col
-          cols="12"
-          md="6"
-        >
-          <b-form-group
-            :label="$t('edit.metric.fixTooltips')"
-            class="text-primary"
-          >
-            <c-input-checkbox
+            <b-form-checkbox
               v-model="metric.fixTooltips"
-              switch
-              :labels="checkboxLabel"
-            />
+            >
+              {{ $t('edit.metric.fixTooltips') }}
+            </b-form-checkbox>
           </b-form-group>
         </b-col>
       </b-row>
@@ -267,7 +249,7 @@
           >
             <b-form-group
               :label="$t('edit.additionalConfig.legend.orientation.label')"
-              class="text-primary"
+              label-class="text-primary"
             >
               <b-form-select
                 v-model="report.legend.orientation"
@@ -281,12 +263,13 @@
             md="6"
           >
             <b-form-group
-              :label="$t('edit.additionalConfig.legend.hide')"
-              class="text-primary"
+              :label="$t('edit.additionalConfig.legend.show')"
+              label-class="text-primary"
             >
               <c-input-checkbox
                 :value="!!report.legend.isHidden"
                 switch
+                invert
                 :labels="checkboxLabel"
                 @input="$set(report.legend,'isHidden', $event)"
               />
@@ -301,7 +284,7 @@
           >
             <b-form-group
               :label="$t('edit.additionalConfig.legend.align.label')"
-              class="text-primary"
+              label-class="text-primary"
             >
               <b-form-select
                 v-model="report.legend.align"
@@ -316,8 +299,8 @@
             md="6"
           >
             <b-form-group
-              :label="'Options'"
-              class="text-primary"
+              :label="$t('edit.additionalConfig.legend.options.label')"
+              label-class="text-primary"
             >
               <b-form-checkbox
                 v-model="report.legend.isScrollable"
@@ -333,117 +316,132 @@
               </b-form-checkbox>
             </b-form-group>
           </b-col>
-
-          <b-row
-            v-if="true"
-            class="px-3 pt-3"
-          >
-            <h6
-              class="text-secondary px-3"
-            >{{ $t('edit.additionalConfig.legend.valueRange') }}</h6>
-            <b-col
-              cols="12"
-              md="6"
-            >
-              <b-form-group
-                :label="$t('edit.additionalConfig.legend.position.top')"
-                class="text-primary"
-              >
-                <b-input
-                  v-model="report.legend.position.top"
-                />
-              </b-form-group>
-            </b-col>
-
-            <b-col
-              cols="12"
-              md="6"
-            >
-              <b-form-group
-                :label="$t('edit.additionalConfig.legend.position.right')"
-                class="text-primary"
-              >
-                <b-input
-                  v-model="report.legend.position.right"
-                />
-              </b-form-group>
-            </b-col>
-
-            <b-col
-              cols="12"
-              md="6"
-            >
-              <b-form-group
-                :label="$t('edit.additionalConfig.legend.position.bottom')"
-                class="text-primary"
-              >
-                <b-input
-                  v-model="report.legend.position.bottom"
-                />
-              </b-form-group>
-            </b-col>
-
-            <b-col
-              cols="12"
-              md="6"
-            >
-              <b-form-group
-                :label="$t('edit.additionalConfig.legend.position.left')"
-                class="text-primary"
-              >
-                <b-input
-                  v-model="report.legend.position.left"
-                />
-              </b-form-group>
-            </b-col>
-          </b-row>
         </b-row>
-      </div>
-
-      <template v-if="!hasAxis">
-        <hr>
-        <div class="px-3 text-primary">
-          <h5 class="mb-3">
-            {{ $t('edit.additionalConfig.tooltip.label') }}
-          </h5>
-
-          <b-form-group
-            :label="$t('edit.additionalConfig.tooltip.formatting.label')"
-            :description="$t('edit.additionalConfig.tooltip.formatting.description')"
-          >
-            <b-input
-              v-model="report.tooltip.formatting"
-              :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
-            />
-          </b-form-group>
-
-          <b-form-group
-            :label="$t('edit.additionalConfig.tooltip.labelNextToChartPartition')"
-          >
-            <c-input-checkbox
-              v-model="report.tooltip.labelsNextToPartition"
-              switch
-              :labels="checkboxLabel"
-            />
-          </b-form-group>
-        </div>
-      </template>
-
-      <hr>
-      <div class="px-3">
-        <h5 class="mb-3">
-          {{ $t('edit.additionalConfig.offset.label') }}
-        </h5>
 
         <b-row
-          class="text-primary"
+          v-if="!report.legend.position.isDefault"
         >
           <b-col
             cols="12"
             md="6"
           >
             <b-form-group
+              :label="$t('edit.additionalConfig.legend.position.top')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.legend.position.top"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('edit.additionalConfig.legend.position.right')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.legend.position.right"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('edit.additionalConfig.legend.position.bottom')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.legend.position.bottom"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('edit.additionalConfig.legend.position.left')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.legend.position.left"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col cols="12">
+            <small class="text-muted">
+              {{ $t('edit.additionalConfig.legend.valueRange') }}
+            </small>
+          </b-col>
+        </b-row>
+      </div>
+
+      <template v-if="!hasAxis">
+        <hr>
+        <div class="px-3">
+          <h5 class="mb-3">
+            {{ $t('edit.additionalConfig.tooltip.label') }}
+          </h5>
+
+          <b-row>
+            <b-col
+              cols="12"
+              md="6"
+            >
+              <b-form-group
+                :label="$t('edit.additionalConfig.tooltip.formatting.label')"
+                :description="$t('edit.additionalConfig.tooltip.formatting.description')"
+                label-class="text-primary"
+              >
+                <b-input
+                  v-model="report.tooltip.formatting"
+                  :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              md="6"
+            >
+              <b-form-group
+                :label="$t('edit.additionalConfig.tooltip.labelNextToChart')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  :value="!!report.tooltip.labelsNextToPartition"
+                  switch
+                  :labels="checkboxLabel"
+                  @input="$set(report.tooltip, 'labelsNextToPartition', $event)"
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+        </div>
+      </template>
+
+      <hr>
+      <div class="px-3 mb-2">
+        <h5 class="mb-3">
+          {{ $t('edit.additionalConfig.offset.label') }}
+        </h5>
+
+        <b-row>
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
               :label="$t('edit.additionalConfig.offset.default')"
+              label-class="text-primary"
             >
               <c-input-checkbox
                 v-model="report.offset.isDefault"
@@ -457,7 +455,6 @@
 
         <b-row
           v-if="!report.offset.isDefault"
-          class="text-primary"
         >
           <b-col
             cols="12"
@@ -465,6 +462,7 @@
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.top')"
+              label-class="text-primary"
             >
               <b-input
                 v-model="report.offset.top"
@@ -478,6 +476,7 @@
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.right')"
+              label-class="text-primary"
             >
               <b-input
                 v-model="report.offset.right"
@@ -491,6 +490,7 @@
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.bottom')"
+              label-class="text-primary"
             >
               <b-input
                 v-model="report.offset.bottom"
@@ -504,12 +504,18 @@
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.left')"
-              :description="$t('edit.additionalConfig.offset.valueRange')"
+              label-class="text-primary"
             >
               <b-input
                 v-model="report.offset.left"
               />
             </b-form-group>
+          </b-col>
+
+          <b-col cols="12">
+            <small class="text-muted">
+              {{ $t('edit.additionalConfig.offset.valueRange') }}
+            </small>
           </b-col>
         </b-row>
       </div>

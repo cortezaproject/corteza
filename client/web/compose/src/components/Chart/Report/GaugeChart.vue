@@ -9,7 +9,7 @@
     <template #dimension-options="{ dimension }">
       <b-form-group
         :label="$t('edit.dimension.gaugeSteps')"
-        class="text-primary"
+        label-class="text-primary"
       >
         <b-input-group
           v-for="(step, i) in dimension.meta.steps"
@@ -61,9 +61,7 @@
     </template>
 
     <template #metric-options="{ metric }">
-      <b-row
-        class="text-primary"
-      >
+      <b-row>
         <b-col
           cols="12"
           md="6"
@@ -71,6 +69,7 @@
           <b-form-group
             :label="$t('edit.metric.fx.label')"
             :description="$t('edit.metric.fx.description')"
+            label-class="text-primary"
           >
             <b-form-textarea
               v-model="metric.fx"
@@ -84,13 +83,14 @@
           md="6"
         >
           <b-form-group
-            :label="$t('edit.metric.fixTooltips')"
+            :label="$t('edit.metric.options.label')"
+            label-class="text-primary"
           >
-            <c-input-checkbox
+            <b-form-checkbox
               v-model="metric.fixTooltips"
-              switch
-              :labels="checkboxLabel"
-            />
+            >
+              {{ $t('edit.metric.fixTooltips') }}
+            </b-form-checkbox>
           </b-form-group>
         </b-col>
       </b-row>
