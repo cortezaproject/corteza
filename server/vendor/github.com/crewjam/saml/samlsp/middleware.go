@@ -186,12 +186,19 @@ func (m *Middleware) CreateSessionFromAssertion(w http.ResponseWriter, r *http.R
 	if trackedRequestIndex := r.Form.Get("RelayState"); trackedRequestIndex != "" {
 		trackedRequest, err := m.RequestTracker.GetTrackedRequest(r, trackedRequestIndex)
 		if err != nil {
-			m.OnError(w, r, err)
-			return
-		}
-		m.RequestTracker.StopTrackingRequest(w, r, trackedRequestIndex)
+			if err == http.ErrNoCookie && m.ServiceProvider.AllowIDPInitiated {
+				if uri := r.Form.Get("RelayState"); uri != "" {
+					redirectURI = uri
+				}
+			} else {
+				m.OnError(w, r, err)
+				return
+			}
+		} else {
+			m.RequestTracker.StopTrackingRequest(w, r, trackedRequestIndex)
 
-		redirectURI = trackedRequest.URI
+			redirectURI = trackedRequest.URI
+		}
 	}
 
 	if err := m.Session.CreateSession(w, r, assertion); err != nil {
@@ -209,9 +216,8 @@ func (m *Middleware) CreateSessionFromAssertion(w http.ResponseWriter, r *http.R
 //
 // For example:
 //
-//     goji.Use(m.RequireAccount)
-//     goji.Use(RequireAttributeMiddleware("eduPersonAffiliation", "Staff"))
-//
+//	goji.Use(m.RequireAccount)
+//	goji.Use(RequireAttributeMiddleware("eduPersonAffiliation", "Staff"))
 func RequireAttribute(name, value string) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
