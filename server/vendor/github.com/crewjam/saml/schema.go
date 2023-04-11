@@ -11,6 +11,24 @@ import (
 	"github.com/russellhaering/goxmldsig/etreeutils"
 )
 
+// RequestedAuthnContext represents the SAML object of the same name, an indication of the
+// requirements on the authentication process.
+type RequestedAuthnContext struct {
+	XMLName              xml.Name `xml:"urn:oasis:names:tc:SAML:2.0:protocol RequestedAuthnContext"`
+	Comparison           string   `xml:",attr"`
+	AuthnContextClassRef string   `xml:"urn:oasis:names:tc:SAML:2.0:assertion AuthnContextClassRef"`
+}
+
+// Element returns an etree.Element representing the object in XML form.
+func (r *RequestedAuthnContext) Element() *etree.Element {
+	el := etree.NewElement("samlp:RequestedAuthnContext")
+	el.CreateAttr("Comparison", r.Comparison)
+	elContext := etree.NewElement("saml:AuthnContextClassRef")
+	elContext.SetText(r.AuthnContextClassRef)
+	el.AddChild(elContext)
+	return el
+}
+
 // AuthnRequest represents the SAML object of the same name, a request from a service provider
 // to authenticate a user.
 //
@@ -26,10 +44,10 @@ type AuthnRequest struct {
 	Issuer       *Issuer   `xml:"urn:oasis:names:tc:SAML:2.0:assertion Issuer"`
 	Signature    *etree.Element
 
-	Subject      *Subject
-	NameIDPolicy *NameIDPolicy `xml:"urn:oasis:names:tc:SAML:2.0:protocol NameIDPolicy"`
-	Conditions   *Conditions
-	//RequestedAuthnContext *RequestedAuthnContext // TODO
+	Subject               *Subject
+	NameIDPolicy          *NameIDPolicy `xml:"urn:oasis:names:tc:SAML:2.0:protocol NameIDPolicy"`
+	Conditions            *Conditions
+	RequestedAuthnContext *RequestedAuthnContext
 	//Scoping               *Scoping // TODO
 
 	ForceAuthn                     *bool  `xml:",attr"`
@@ -77,11 +95,11 @@ func (r *LogoutRequest) Element() *etree.Element {
 	if r.Issuer != nil {
 		el.AddChild(r.Issuer.Element())
 	}
-	if r.NameID != nil {
-		el.AddChild(r.NameID.Element())
-	}
 	if r.Signature != nil {
 		el.AddChild(r.Signature)
+	}
+	if r.NameID != nil {
+		el.AddChild(r.NameID.Element())
 	}
 	if r.SessionIndex != nil {
 		el.AddChild(r.SessionIndex.Element())
@@ -159,7 +177,6 @@ func (r *LogoutRequest) Deflate() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-// Element returns an etree.Element representing the object
 // Element returns an etree.Element representing the object in XML form.
 func (r *AuthnRequest) Element() *etree.Element {
 	el := etree.NewElement("samlp:AuthnRequest")
@@ -189,9 +206,9 @@ func (r *AuthnRequest) Element() *etree.Element {
 	if r.Conditions != nil {
 		el.AddChild(r.Conditions.Element())
 	}
-	//if r.RequestedAuthnContext != nil {
-	//	el.AddChild(r.RequestedAuthnContext.Element())
-	//}
+	if r.RequestedAuthnContext != nil {
+		el.AddChild(r.RequestedAuthnContext.Element())
+	}
 	//if r.Scoping != nil {
 	//	el.AddChild(r.Scoping.Element())
 	//}
@@ -306,7 +323,7 @@ func (a *NameIDPolicy) Element() *etree.Element {
 
 // ArtifactResolve represents the SAML object of the same name.
 type ArtifactResolve struct {
-	XMLName      xml.Name  `xml:"urn:oasis:names:tc:SAML:2.0:protocol ArtifactResponse"`
+	XMLName      xml.Name  `xml:"urn:oasis:names:tc:SAML:2.0:protocol ArtifactResolve"`
 	ID           string    `xml:",attr"`
 	Version      string    `xml:",attr"`
 	IssueInstant time.Time `xml:",attr"`
@@ -747,7 +764,7 @@ func (a *Assertion) Element() *etree.Element {
 	for _, attributeStatement := range a.AttributeStatements {
 		el.AddChild(attributeStatement.Element())
 	}
-	err := etreeutils.TransformExcC14n(el, canonicalizerPrefixList)
+	err := etreeutils.TransformExcC14n(el, canonicalizerPrefixList, false)
 	if err != nil {
 		panic(err)
 	}
