@@ -35,7 +35,7 @@ const reportTemplate = `<!DOCTYPE html>
         }
 
         .copy-to-clipboard-button {
-            background-color: #FFFFFF;
+            background-color: #fff;
             border: 1px solid #eee;
             cursor: pointer;
             font-size: 12px;

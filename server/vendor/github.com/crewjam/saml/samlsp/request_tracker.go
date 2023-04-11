@@ -8,11 +8,11 @@ import (
 //
 // There are two main reasons for this:
 //
-// 1. When the middleware initiates an authentication request it must track the original URL
-//    in order to redirect the user to the right place after the authentication completes.
+//  1. When the middleware initiates an authentication request it must track the original URL
+//     in order to redirect the user to the right place after the authentication completes.
 //
-// 2. After the authentication completes, we want to ensure that the user presenting the
-//    assertion is actually the one the request it, to mitigate request forgeries.
+//  2. After the authentication completes, we want to ensure that the user presenting the
+//     assertion is actually the one the request it, to mitigate request forgeries.
 type RequestTracker interface {
 	// TrackRequest starts tracking the SAML request with the given ID. It returns an
 	// `index` that should be used as the RelayState in the SAMl request flow.
