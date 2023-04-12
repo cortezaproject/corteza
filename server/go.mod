@@ -50,6 +50,7 @@ require (
 	github.com/lestrrat-go/strftime v1.0.6
 	github.com/lib/pq v1.10.5
 	github.com/markbates/goth v1.71.1
+	github.com/mat/besticon v3.12.0+incompatible
 	github.com/mattn/go-sqlite3 v1.14.12
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/minio/minio-go/v6 v6.0.57

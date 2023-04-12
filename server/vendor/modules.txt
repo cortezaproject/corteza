@@ -333,6 +333,9 @@ github.com/markbates/goth/providers/github
 github.com/markbates/goth/providers/google
 github.com/markbates/goth/providers/linkedin
 github.com/markbates/goth/providers/openidConnect
+# github.com/mat/besticon v3.12.0+incompatible
+## explicit
+github.com/mat/besticon/ico
 # github.com/mattermost/xml-roundtrip-validator v0.1.0
 ## explicit; go 1.14
 github.com/mattermost/xml-roundtrip-validator
