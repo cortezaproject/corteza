@@ -34,7 +34,7 @@ require (
 	github.com/go-chi/jwtauth v1.2.0
 	github.com/go-oauth2/oauth2/v4 v4.4.3
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang-jwt/jwt/v4 v4.4.1
+	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.2
