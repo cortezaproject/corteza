@@ -1,37 +1,51 @@
 <template>
   <div>
     <portal to="sidebar-header-expanded">
-      <vue-select
-        v-if="!hideNamespaceList"
-        key="namespaceID"
-        data-test-id="select-namespace"
-        label="name"
-        class="namespace-selector sticky-top bg-white mt-2"
-        :clearable="false"
-        :options="filteredNamespaces"
-        :get-option-key="getOptionKey"
-        :value="namespace"
-        :selectable="option => option.namespaceID !== namespace.namespaceID"
-        :placeholder="$t('pickNamespace')"
-        :calculate-position="calculateDropdownPosition"
-        :autoscroll="false"
-        @option:selected="namespaceSelected"
-      >
-        <template #list-header>
-          <li
-            v-if="showNamespaceListLink"
-            class="border-bottom text-center mb-1"
-          >
-            <router-link
-              :to="{ name: 'namespace.manage' }"
-              data-test-id="button-manage-namespaces"
-              class="d-block my-1 font-weight-bold text-decoration-none"
+      <b-input-group class="d-flex w-100 mt-2">
+        <vue-select
+          v-if="!hideNamespaceList"
+          key="namespaceID"
+          data-test-id="select-namespace"
+          label="name"
+          class="namespace-selector sticky-top"
+          :clearable="false"
+          :options="filteredNamespaces"
+          :get-option-key="getOptionKey"
+          :value="namespace"
+          :selectable="option => option.namespaceID !== namespace.namespaceID"
+          :placeholder="$t('pickNamespace')"
+          :calculate-position="calculateDropdownPosition"
+          :autoscroll="false"
+          @option:selected="namespaceSelected"
+        >
+          <template #list-header>
+            <li
+              v-if="showNamespaceListLink"
+              class="border-bottom text-center mb-1"
             >
-              {{ $t('manageNamespaces') }}
-            </router-link>
-          </li>
-        </template>
-      </vue-select>
+              <router-link
+                :to="{ name: 'namespace.manage' }"
+                data-test-id="button-manage-namespaces"
+                class="d-block my-1 font-weight-bold text-decoration-none"
+              >
+                {{ $t('manageNamespaces') }}
+              </router-link>
+            </li>
+          </template>
+        </vue-select>
+        <b-input-group-append>
+          <b-button
+            v-if="canManageNamespaces"
+            :disabled="!namespace.canUpdateNamespace"
+            :title="$t('manageNamespace')"
+            variant="primary"
+            class="d-flex align-items-center"
+            :to="{ name: 'namespace.edit', params: { namespaceID: namespace.namespaceID } }"
+          >
+            <font-awesome-icon :icon="['far', 'edit']" />
+          </b-button>
+        </b-input-group-append>
+      </b-input-group>
     </portal>
 
     <portal
@@ -432,7 +446,8 @@ export default {
 <style lang="scss">
 .namespace-selector {
   font-size: 1rem;
-  min-width: 100%;
+  min-width: auto !important;
+  flex: auto;
 
   .vs__dropdown-menu {
     min-width: 100%;
