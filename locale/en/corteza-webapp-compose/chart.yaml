@@ -79,6 +79,18 @@ edit:
     fx:
       description: n - current dataset value, m - previous dataset value
       label: Post processing function
+    stack:
+      label: Stack
+      description: Metrics with same value will be stacked
+    lineStyle:
+      label: Line style
+      default: Default
+      smooth: Smooth
+      step: Step
+    angle:
+      start: Start angle
+      end: End angle
+    rose: Rose
     gaugeColor: Color
     label: Metric
     labelColor: Label color
@@ -126,9 +138,11 @@ edit:
     labelLabel: Axis label
     labelPosition:
       label: Label position
-      top: Top
+      top: Start
       center: Center
-      bottom: Bottom
+      bottom: End
+    horizontal:
+      label: Horizontal
     logarithmicScale: Logarithmic scale
     maxLabel: Max value
     maxPlaceholder: Maximum value
@@ -173,6 +187,17 @@ edit:
         bottom: Bottom
         left: Left
       valueRange: Values can be set as pixels 20 or as percentages 20%
+  toolbox:
+    label: Tools
+    saveAsImage:
+      label: Show "Save as Image" button
+    timeline:
+      label: Timeline
+      options:
+        none: None
+        x: X-Axis
+        y: Y-Axis
+        xy: Both
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 name: Chart name *

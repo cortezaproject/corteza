@@ -85,7 +85,9 @@ export default class FunnelChart extends BaseChart {
   }
 
   makeOptions (data: any) {
-    const { colorScheme, noAnimation = false } = this.config
+    const { colorScheme, noAnimation = false, toolbox } = this.config
+    const { saveAsImage } = toolbox || {}
+
     const { labels, datasets = [], tooltip } = data
     const colors = getColorschemeColors(colorScheme)
 
@@ -96,6 +98,15 @@ export default class FunnelChart extends BaseChart {
       animation: !noAnimation,
       textStyle: {
         fontFamily: 'Poppins-Regular',
+      },
+      toolbox: {
+        feature: {
+          saveAsImage: saveAsImage ? {
+            name: this.name
+          } : undefined,
+        },
+        top: 15,
+        right: 5,
       },
       tooltip: {
         show: true,
@@ -111,7 +122,7 @@ export default class FunnelChart extends BaseChart {
         return {
           type: 'funnel',
           sort: 'descending',
-          top: 35,
+          top: 45,
           bottom: 10,
           left: '5%',
           width: '90%',
