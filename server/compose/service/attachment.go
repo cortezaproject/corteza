@@ -21,6 +21,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/edwvee/exiffix"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/mat/besticon/ico"
 )
 
 const (
@@ -588,10 +589,15 @@ func (svc attachment) extractMimetypeS(file io.ReadSeeker) (mType string, err er
 }
 
 func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment) (err error) {
-	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") || att.Meta.Original.Mimetype == "image/x-icon" {
+	if !strings.HasPrefix(att.Meta.Original.Mimetype, "image/") {
 		// Only supporting previews from images (for now)
 		return
 	}
+
+	const (
+		iconMimetype  = "image/x-icon"
+		iconExtension = "ico"
+	)
 
 	var (
 		preview       image.Image
@@ -603,48 +609,55 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 			imaging.JPEG: "image/jpeg",
 			imaging.GIF:  "image/gif",
 		}
-
 		f2e = map[imaging.Format]string{
 			imaging.JPEG: "jpg",
 			imaging.GIF:  "gif",
 		}
+		isIcon = att.Meta.Original.Mimetype == iconMimetype
 	)
 
 	if _, err = original.Seek(0, 0); err != nil {
 		return
 	}
 
-	if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
-		return errors.Internal("could not get format from extension '%s'", att.Meta.Original.Extension).Wrap(err)
-	}
-
-	previewFormat = format
-
-	if imaging.JPEG == format {
-		// Rotate image if needed
-		// if preview, _, err = exiffix.Decode(original); err != nil {
-		// 	return fmt.Errorf("Could not decode EXIF from JPEG", err)
-		// }
-		preview, _, _ = exiffix.Decode(original)
-	}
-
-	if imaging.GIF == format {
-		// Decode all and check loops & delay to determine if GIF is animated or not
-		if cfg, err := gif.DecodeAll(original); err == nil {
-			animated = cfg.LoopCount > 0 || len(cfg.Delay) > 1
-
-			// Use first image for the preview
-			preview = cfg.Image[0]
-		} else {
-			return errors.Internal("Could not decode gif config").Wrap(err)
+	if isIcon {
+		preview, err = ico.Decode(original)
+		if err != nil {
+			return errors.Internal("Could not decode ico config").Wrap(err)
+		}
+	} else {
+		if format, err = imaging.FormatFromExtension(att.Meta.Original.Extension); err != nil {
+			return errors.Internal("could not get format from extension '%s'", att.Meta.Original.Extension).Wrap(err)
 		}
 
-	} else {
-		// Use GIF preview for GIFs and JPEG for everything else!
-		previewFormat = imaging.JPEG
+		previewFormat = format
 
-		// Store with a bit lower quality
-		opts = append(opts, imaging.JPEGQuality(85))
+		if imaging.JPEG == format {
+			// Rotate image if needed
+			// if preview, _, err = exiffix.Decode(original); err != nil {
+			// 	return fmt.Errorf("Could not decode EXIF from JPEG", err)
+			// }
+			preview, _, _ = exiffix.Decode(original)
+		}
+
+		if imaging.GIF == format {
+			// Decode all and check loops & delay to determine if GIF is animated or not
+			if cfg, err := gif.DecodeAll(original); err == nil {
+				animated = cfg.LoopCount > 0 || len(cfg.Delay) > 1
+
+				// Use first image for the preview
+				preview = cfg.Image[0]
+			} else {
+				return errors.Internal("Could not decode gif config").Wrap(err)
+			}
+
+		} else {
+			// Use GIF preview for GIFs and JPEG for everything else!
+			previewFormat = imaging.JPEG
+
+			// Store with a bit lower quality
+			opts = append(opts, imaging.JPEGQuality(85))
+		}
 	}
 
 	// In case of JPEG we decode the image and rotate it beforehand
@@ -676,8 +689,14 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 
 	meta := att.SetPreviewImageMeta(width, height, false)
 	meta.Size = int64(buf.Len())
-	meta.Mimetype = f2m[previewFormat]
-	meta.Extension = f2e[previewFormat]
+
+	if isIcon {
+		meta.Mimetype = iconMimetype
+		meta.Extension = iconExtension
+	} else {
+		meta.Mimetype = f2m[previewFormat]
+		meta.Extension = f2e[previewFormat]
+	}
 
 	// Can and how we make a preview of this attachment?
 	att.PreviewUrl = svc.objects.Preview(att.ID, meta.Extension)
