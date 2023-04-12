@@ -25,7 +25,11 @@ export default class Chart extends BaseChart {
       type: m.type,
       label: m.label || m.field,
       data,
-      fill: !!m.fill,
+      fill: m.fill,
+      smooth: m.smooth,
+      step: m.step ? 'middle' : undefined,
+      roseType: m.rose ? 'radius' : undefined,
+      stack: m.stack,
       tooltip: {
         fixed: m.fixTooltips,
         relative: m.relativeValue && !['bar', 'line'].includes(m.type as string),
@@ -34,7 +38,8 @@ export default class Chart extends BaseChart {
   }
 
   makeOptions (data: any): any {
-    const { reports = [], colorScheme, noAnimation = false } = this.config
+    const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
+    const { saveAsImage, timeline = '' } = toolbox || {}
 
     const options: any = {
       animation: !noAnimation,
@@ -70,20 +75,31 @@ export default class Chart extends BaseChart {
           beginAtZero,
           min,
           max,
+          horizontal,
         } = yAxis
 
+        const xAxis = {
+          nameLocation: 'center',
+          type: 'category',
+          data: labels,
+          axisLabel: {
+            interval: 0,
+            overflow: 'break',
+            hideOverlap: true,
+            rotate: dimension.rotateLabel,
+          },
+        }
 
         const tempYAxis = {
           name: yLabel,
           type: yType === 'linear' ? 'value' : 'log',
           position,
-          nameGap: labelPosition === 'center' ? 30 : 7,
           nameLocation: labelPosition,
           min: beginAtZero ? 0 : min || undefined,
           max: max || undefined,
           axisLabel: {
             interval: 0,
-            overflow: 'truncate',
+            overflow: 'break',
             hideOverlap: true,
             rotate: yAxis.rotateLabel,
           },
@@ -93,7 +109,6 @@ export default class Chart extends BaseChart {
           },
           nameTextStyle: {
             align: labelPosition === 'center' ? 'center' : position,
-            padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -3] : [0, -3, 2, 0]) : undefined,
           },
         }
 
@@ -103,11 +118,17 @@ export default class Chart extends BaseChart {
           delete tempYAxis.max
         }
 
-        options.yAxis = [tempYAxis]
+        if (horizontal) {
+          options.xAxis = [tempYAxis]
+          options.yAxis = [xAxis]
+        } else {
+          options.xAxis = [xAxis]
+          options.yAxis = [tempYAxis]
+        }
       }
     }
 
-    options.series = datasets.map(({ type, label, data, fill, tooltip }: any, index: number) => {
+    options.series = datasets.map(({ type, label, data, stack, tooltip, fill, smooth, step, roseType }: any, index: number) => {
       const { fixed, relative } = tooltip
 
       const tooltipFormatter = t?.formatting ? t.formatting : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
@@ -118,10 +139,15 @@ export default class Chart extends BaseChart {
 
       if (['pie', 'doughnut'].includes(type)) {
         const startRadius = type === 'doughnut' ? 40 : 0
+        const endRadius = 80
+        const radiusLength = (endRadius - startRadius) / (datasets.length || 1)
+
+        const sr = startRadius + (index * radiusLength)
+        const er = startRadius + ((index + 1) * radiusLength)
 
         options.tooltip.trigger = 'item'
 
-        let lbl:any =  {
+        let lbl :any =  {
           rotate: dimension.rotateLabel ? +dimension.rotateLabel: 0
         }
 
@@ -143,9 +169,11 @@ export default class Chart extends BaseChart {
 
         return {
           z,
+          stack,
           name: label,
           type: 'pie',
-          radius: [`${startRadius}%`, '80%'],
+          roseType,
+          radius: [`${sr}%`, `${er}%`],
           center: ['50%', '55%'],
           tooltip: {
             trigger: 'item',
@@ -178,33 +206,28 @@ export default class Chart extends BaseChart {
       } else if (['bar', 'line'].includes(type)) {
         options.tooltip.trigger = 'axis'
 
-        if (!options.xAxis.length) {
-          options.xAxis.push({
-            nameLocation: 'center',
-            type: 'category',
-            data: labels,
-            axisLabel: {
-              interval: 0,
-              overflow: 'truncate',
-              hideOverlap: true,
-              rotate: dimension.rotateLabel,
-            },
-          })
+        const defaultOffset = {
+          top: 50,
+          right: timeline.includes('x') ? 40 : 30,
+          bottom: timeline.includes('x') ? 60 : 20,
+          left: 30,
         }
 
         options.grid = {
-          top: offset?.isDefault ? 50 : offset?.top,
-          right: offset?.isDefault ? 30 : offset?.right,
-          bottom: offset?.isDefault ? 20 : offset?.bottom,
-          left: offset?.isDefault ? 30 : offset?.left,
+          top: offset?.isDefault ? defaultOffset.top : offset?.top,
+          right: offset?.isDefault ? defaultOffset.right : offset?.right,
+          bottom: offset?.isDefault ? defaultOffset.bottom : offset?.bottom,
+          left: offset?.isDefault ? defaultOffset.left : offset?.left,
           containLabel: true,
         }
 
         return {
           z,
+          stack,
           name: label,
           type: type,
-          smooth: true,
+          smooth,
+          step,
           areaStyle: {
             opacity: fill ? 0.7 : 0,
           },
@@ -220,11 +243,37 @@ export default class Chart extends BaseChart {
       }
     })
 
+    const dataZoom = timeline ? [
+      {
+        show: timeline.includes('x'),
+        type: 'slider',
+        height: 30,
+      },
+      {
+        show: timeline.includes('y'),
+        type: 'slider',
+        width: 15,
+        yAxisIndex: 0,
+      },
+    ] : undefined
+
+
     return {
       color: getColorschemeColors(colorScheme),
       textStyle: {
         fontFamily: 'Poppins-Regular',
+        overflow: 'break',
       },
+      toolbox: {
+        feature: {
+          saveAsImage: saveAsImage ? {
+            name: this.name
+          } : undefined,
+        },
+        top: 15,
+        right: 5,
+      },
+      dataZoom,
       legend: {
         show: !l?.isHidden,
         type: l?.isScrollable ? 'scroll' : 'plain',
@@ -236,6 +285,14 @@ export default class Chart extends BaseChart {
       },
       ...options,
     }
+  }
+
+  defMetrics (): Metric {
+    return Object.assign({}, {
+      smooth: true,
+      fill: false,
+      rose: false,
+    })
   }
 
   baseChartType (datasets: Array<any>): string {

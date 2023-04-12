@@ -209,9 +209,56 @@
                   :report.sync="editReport"
                   :chart="chart"
                   :modules="modules"
-                  :dimension-field-kind="['Select']"
                   :supported-metrics="1"
                 />
+
+                <hr>
+
+                <div
+                  class="px-3"
+                >
+                  <h5 class="mb-3">
+                    {{ $t('edit.toolbox.label') }}
+                  </h5>
+
+                  <b-row>
+                    <b-col
+                      cols="12"
+                      md="6"
+                    >
+                      <b-form-group
+                        :label="$t('edit.toolbox.saveAsImage.label')"
+                        label-class="text-primary"
+                      >
+                        <c-input-checkbox
+                          :value="!!chart.config.toolbox.saveAsImage"
+                          switch
+                          :labels="checkboxLabel"
+                          @input="$set(chart.config.toolbox, 'saveAsImage', $event)"
+                        />
+                      </b-form-group>
+                    </b-col>
+
+                    <b-col
+                      v-if="hasAxis"
+                      cols="12"
+                      md="6"
+                    >
+                      <b-form-group
+                        :label="$t('edit.toolbox.timeline.label')"
+                        label-class="text-primary"
+                      >
+                        <b-form-radio-group
+                          v-model="chart.config.toolbox.timeline"
+                          buttons
+                          button-variant="outline-secondary"
+                          size="sm"
+                          :options="timelineOptions"
+                        />
+                      </b-form-group>
+                    </b-col>
+                  </b-row>
+                </div>
               </b-col>
 
               <b-col
@@ -227,7 +274,7 @@
                     :disabled="processing || !reportsValid"
                     variant="outline-light"
                     size="lg"
-                    class="d-flex align-items-center text-primary ml-auto border-0 mt-2 mr-2"
+                    class="d-flex align-items-center text-primary ml-auto border-0 px-2 mt-2 mr-2"
                     @click.prevent="update"
                   >
                     <font-awesome-icon :icon="['fa', 'sync']" />
@@ -449,6 +496,19 @@ export default {
 
     isEdit () {
       return this.chart && this.chart.chartID !== NoID
+    },
+
+    hasAxis () {
+      return this.reports.some(({ metrics = [] }) => metrics.some(m => ['bar', 'line'].includes(m.type)))
+    },
+
+    timelineOptions () {
+      return [
+        { value: '', text: this.$t('edit.toolbox.timeline.options.none') },
+        { value: 'x', text: this.$t('edit.toolbox.timeline.options.x') },
+        { value: 'y', text: this.$t('edit.toolbox.timeline.options.y') },
+        { value: 'xy', text: this.$t('edit.toolbox.timeline.options.xy') },
+      ]
     },
   },
 

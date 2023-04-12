@@ -93,6 +93,38 @@
             </b-form-checkbox>
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.metric.angle.start')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="metric.startAngle"
+              type="number"
+              number
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.metric.angle.end')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="metric.endAngle"
+              type="number"
+              number
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </template>
   </report-edit>

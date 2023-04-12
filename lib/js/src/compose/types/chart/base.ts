@@ -115,6 +115,11 @@ export class BaseChart {
     }
 
     this.config = (conf ? _.merge(this.defConfig(), conf) : false) || this.config || this.defConfig()
+    this.config.reports?.forEach(report => {
+      const { dimensions = [], metrics = [] } = report || {}
+      report.dimensions = dimensions.map(d => _.merge(this.defDimension(), d))
+      report.metrics = metrics.map(m => _.merge(this.defMetrics(), m))
+    })
   }
 
   /**
@@ -361,6 +366,10 @@ export class BaseChart {
       colorScheme: '',
       reports: [this.defReport()],
       noAnimation: false,
+      toolbox: {
+        saveAsImage: false,
+        timeline: '',
+      },
     })
   }
 

@@ -11,7 +11,7 @@ import { Icon } from 'leaflet'
 import ECharts from 'vue-echarts'
 import { use } from 'echarts/core'
 import {
-  SVGRenderer,
+  CanvasRenderer,
 } from 'echarts/renderers'
 import {
   LineChart,
@@ -28,6 +28,7 @@ import {
   TooltipComponent,
   VisualMapComponent,
   ToolboxComponent,
+  DataZoomComponent,
 } from 'echarts/components'
 
 use([
@@ -37,13 +38,14 @@ use([
   GaugeChart,
   HeatmapChart,
   FunnelChart,
-  SVGRenderer,
+  CanvasRenderer,
   TitleComponent,
   GridComponent,
   TooltipComponent,
   LegendComponent,
   VisualMapComponent,
   ToolboxComponent,
+  DataZoomComponent,
 ])
 
 Vue.component('e-charts', ECharts)

@@ -57,6 +57,7 @@ export interface YAxis {
   min?: string;
   max?: string;
   rotateLabel?: number;
+  horizontal?: boolean;
 }
 
 export interface ChartOffset {
@@ -100,10 +101,16 @@ export interface Report {
   offset?: ChartOffset;
 }
 
+interface ChartToolbox {
+  saveAsImage: boolean;
+  timeline: string;
+}
+
 export interface ChartConfig {
   reports?: Array<Report>;
   colorScheme?: string;
   noAnimation?: boolean;
+  toolbox?: ChartToolbox
 }
 
 export const aggregateFunctions = [

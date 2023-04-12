@@ -129,6 +129,11 @@
               >
                 {{ $t('edit.yAxis.axisScaleFromZero') }}
               </b-form-checkbox>
+              <b-form-checkbox
+                v-model="report.yAxis.horizontal"
+              >
+                {{ $t('edit.yAxis.horizontal.label') }}
+              </b-form-checkbox>
             </b-form-group>
           </b-col>
         </b-row>
@@ -210,10 +215,23 @@
             label-class="text-primary"
           >
             <b-form-checkbox
+              v-model="metric.fixTooltips"
+            >
+              {{ $t('edit.metric.fixTooltips') }}
+            </b-form-checkbox>
+
+            <b-form-checkbox
               v-if="hasRelativeDisplay(metric)"
               v-model="metric.relativeValue"
             >
               {{ $t('edit.metric.relative') }}
+            </b-form-checkbox>
+
+            <b-form-checkbox
+              v-if="metric.type === 'pie'"
+              v-model="metric.rose"
+            >
+              {{ $t('edit.metric.rose') }}
             </b-form-checkbox>
 
             <b-form-checkbox
@@ -222,12 +240,34 @@
             >
               {{ $t('edit.metric.fillArea') }}
             </b-form-checkbox>
+          </b-form-group>
 
-            <b-form-checkbox
-              v-model="metric.fixTooltips"
-            >
-              {{ $t('edit.metric.fixTooltips') }}
-            </b-form-checkbox>
+          <b-form-group
+            v-if="metric.type === 'line'"
+            :label="$t('edit.metric.lineStyle.label')"
+            label-class="text-primary"
+          >
+            <b-form-radio-group
+              :checked="getLineStyle(metric)"
+              :options="lineStyleOptions"
+              @change="setLineStyle($event, metric)"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="!hasRelativeDisplay(metric)"
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.metric.stack.label')"
+            :description="$t('edit.metric.stack.description')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="metric.stack"
+            />
           </b-form-group>
         </b-col>
       </b-row>
@@ -591,6 +631,12 @@ export default {
         { value: 'center', text: this.$t('edit.additionalConfig.legend.align.center') },
         { value: 'right', text: this.$t('edit.additionalConfig.legend.align.right') },
       ],
+
+      lineStyleOptions: [
+        { value: '', text: this.$t('edit.metric.lineStyle.default') },
+        { value: 'smooth', text: this.$t('edit.metric.lineStyle.smooth') },
+        { value: 'step', text: this.$t('edit.metric.lineStyle.step') },
+      ],
     }
   },
 
@@ -602,6 +648,17 @@ export default {
 
   methods: {
     hasRelativeDisplay: compose.chartUtil.hasRelativeDisplay,
+
+    getLineStyle (metric) {
+      if (metric.smooth) return 'smooth'
+      else if (metric.step) return 'step'
+      return ''
+    },
+
+    setLineStyle (style, metric) {
+      this.$set(metric, 'smooth', style === 'smooth')
+      this.$set(metric, 'step', style === 'step')
+    },
   },
 }
 </script>
