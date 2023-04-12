@@ -1,0 +1,37 @@
+'basic-controls':
+  action:
+    deselect: Deselect
+    pan: Pan
+    select: Select
+    'select-multiple': Select multiple
+    'zoom-in/out': Zoom in/out
+  shortcut:
+    'left-click': 
+      background: Left click on background
+      drag: Left click & drag
+      label: Left click
+    'mouse-wheel': Mouse wheel
+    'right-click-drag': Right click & drag
+'basic-controls-label': Basic controls
+'keyboard-shortcuts':
+  action:
+    'add-selection': Add to selection
+    copy: Copy
+    cut: Cut
+    'delete-selected-elements': Delete selected elements
+    nudge: Nudge
+    paste: Paste
+    redo: Redo
+    save: Save
+    'show-guides': Show guides
+    'show-help': Show help
+    'reset-view-to-start-point': Reset view to starting point
+    'select-all': Select all
+    undo: Undo
+  shortcut:
+    'adjust-distance': to adjust distance
+    'arrow-keys': Arrow keys - Use
+    hold: Hold
+    'left-mouse-button': left mouse button
+'keyboard-shortcuts-label': Keyboard shortcuts
+'mac-users': If using a MAC keyboard, replace Ctrl with the CMD key

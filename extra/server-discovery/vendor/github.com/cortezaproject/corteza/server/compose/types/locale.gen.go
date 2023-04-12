@@ -28,6 +28,7 @@ const (
 	ModuleFieldResourceTranslationType = "compose:module-field"
 	NamespaceResourceTranslationType   = "compose:namespace"
 	PageResourceTranslationType        = "compose:page"
+	PageLayoutResourceTranslationType  = "compose:page-layout"
 )
 
 var (
@@ -49,16 +50,19 @@ var (
 	LocaleKeyNamespaceMetaDescription                       = LocaleKey{Path: "meta.description"}
 	LocaleKeyPageTitle                                      = LocaleKey{Path: "title"}
 	LocaleKeyPageDescription                                = LocaleKey{Path: "description"}
-	LocaleKeyPageRecordToolbarNewLabel                      = LocaleKey{Path: "recordToolbar.new.label"}
-	LocaleKeyPageRecordToolbarEditLabel                     = LocaleKey{Path: "recordToolbar.edit.label"}
-	LocaleKeyPageRecordToolbarSubmitLabel                   = LocaleKey{Path: "recordToolbar.submit.label"}
-	LocaleKeyPageRecordToolbarDeleteLabel                   = LocaleKey{Path: "recordToolbar.delete.label"}
-	LocaleKeyPageRecordToolbarCloneLabel                    = LocaleKey{Path: "recordToolbar.clone.label"}
-	LocaleKeyPageRecordToolbarBackLabel                     = LocaleKey{Path: "recordToolbar.back.label"}
 	LocaleKeyPagePageBlockBlockIDTitle                      = LocaleKey{Path: "pageBlock.{{blockID}}.title"}
 	LocaleKeyPagePageBlockBlockIDDescription                = LocaleKey{Path: "pageBlock.{{blockID}}.description"}
 	LocaleKeyPagePageBlockBlockIDButtonButtonIDLabel        = LocaleKey{Path: "pageBlock.{{blockID}}.button.{{buttonID}}.label"}
 	LocaleKeyPagePageBlockBlockIDContentBody                = LocaleKey{Path: "pageBlock.{{blockID}}.content.body"}
+	LocaleKeyPageLayoutMetaTitle                            = LocaleKey{Path: "meta.title"}
+	LocaleKeyPageLayoutMetaDescription                      = LocaleKey{Path: "meta.description"}
+	LocaleKeyPageLayoutConfigButtonsNewLabel                = LocaleKey{Path: "config.buttons.new.label"}
+	LocaleKeyPageLayoutConfigButtonsEditLabel               = LocaleKey{Path: "config.buttons.edit.label"}
+	LocaleKeyPageLayoutConfigButtonsSubmitLabel             = LocaleKey{Path: "config.buttons.submit.label"}
+	LocaleKeyPageLayoutConfigButtonsDeleteLabel             = LocaleKey{Path: "config.buttons.delete.label"}
+	LocaleKeyPageLayoutConfigButtonsCloneLabel              = LocaleKey{Path: "config.buttons.clone.label"}
+	LocaleKeyPageLayoutConfigButtonsBackLabel               = LocaleKey{Path: "config.buttons.back.label"}
+	LocaleKeyPageLayoutConfigActionsActionIDMetaLabel       = LocaleKey{Path: "config.actions.{{actionID}}.meta.label"}
 )
 
 // ResourceTranslation returns string representation of Locale resource for Chart by calling ChartResourceTranslation fn
@@ -352,6 +356,69 @@ func (r *Page) EncodeTranslations() (out locale.ResourceTranslationSet) {
 		Resource: r.ResourceTranslation(),
 		Key:      LocaleKeyPageDescription.Path,
 		Msg:      locale.SanitizeMessage(r.Description),
+	})
+
+	out = append(out, r.encodeTranslations()...)
+
+	return out
+}
+
+// ResourceTranslation returns string representation of Locale resource for PageLayout by calling PageLayoutResourceTranslation fn
+//
+// Locale resource is in "compose:page-layout/..." format
+//
+// This function is auto-generated
+func (r PageLayout) ResourceTranslation() string {
+	return PageLayoutResourceTranslation(r.NamespaceID, r.PageID, r.ID)
+}
+
+// PageLayoutResourceTranslation returns string representation of Locale resource for PageLayout
+//
+// Locale resource is in the compose:page-layout/... format
+//
+// This function is auto-generated
+func PageLayoutResourceTranslation(NamespaceID uint64, PageID uint64, ID uint64) string {
+	cpts := []interface{}{
+		PageLayoutResourceTranslationType,
+		strconv.FormatUint(NamespaceID, 10),
+		strconv.FormatUint(PageID, 10),
+		strconv.FormatUint(ID, 10),
+	}
+
+	return fmt.Sprintf(PageLayoutResourceTranslationTpl(), cpts...)
+}
+
+func PageLayoutResourceTranslationTpl() string {
+	return "%s/%s/%s/%s"
+}
+
+func (r *PageLayout) DecodeTranslations(tt locale.ResourceTranslationIndex) {
+	var aux *locale.ResourceTranslation
+
+	if aux = tt.FindByKey(LocaleKeyPageLayoutMetaTitle.Path); aux != nil {
+		r.Meta.Title = aux.Msg
+	}
+
+	if aux = tt.FindByKey(LocaleKeyPageLayoutMetaDescription.Path); aux != nil {
+		r.Meta.Description = aux.Msg
+	}
+
+	r.decodeTranslations(tt)
+}
+
+func (r *PageLayout) EncodeTranslations() (out locale.ResourceTranslationSet) {
+	out = locale.ResourceTranslationSet{}
+
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyPageLayoutMetaTitle.Path,
+		Msg:      locale.SanitizeMessage(r.Meta.Title),
+	})
+
+	out = append(out, &locale.ResourceTranslation{
+		Resource: r.ResourceTranslation(),
+		Key:      LocaleKeyPageLayoutMetaDescription.Path,
+		Msg:      locale.SanitizeMessage(r.Meta.Description),
 	})
 
 	out = append(out, r.encodeTranslations()...)

@@ -1,0 +1,26 @@
+editor:
+  title: Compose settings
+  basic:
+    attachments:
+      max-size: Max size (MB)
+      page: Page attachments
+      record: Record attachments
+      icon: Icon attachments
+      type:
+        description: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
+        whitelist: File type whitelist
+    title: Basic
+  ui:
+    title: User interface
+    sidebar:
+      title: Sidebar
+      hide-namespace-list: Hide list of namespaces
+      hide-namespace-list-link: Hide link to list of all namespaces
+    record-toolbar:
+      title: Record Toolbar
+      hide-submit: Hide submit button
+      hide-delete: Hide delete button
+      hide-edit: Hide edit button
+      hide-new: Hide new button
+      hide-clone: Hide clone button
+      hide-back: Hide back link
