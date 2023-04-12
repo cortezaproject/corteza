@@ -153,6 +153,15 @@ func (set ResourceTranslationSet) FilterKey(key string) (out ResourceTranslation
 	return
 }
 
+func (set ResourceTranslationSet) FilterResource(res string) (out ResourceTranslationSet) {
+	for _, a := range set {
+		if a.Resource == res {
+			out = append(out, a)
+		}
+	}
+	return
+}
+
 func FromLocale(ll locale.ResourceTranslationSet) (out ResourceTranslationSet) {
 	for _, l := range ll {
 		out = append(out, &ResourceTranslation{

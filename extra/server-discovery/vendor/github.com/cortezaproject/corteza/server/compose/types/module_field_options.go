@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	discovery "github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"github.com/spf13/cast"
 	"strconv"
@@ -14,9 +13,6 @@ type (
 	ModuleFieldOptions map[string]interface{}
 
 	ModuleFieldOptionIndex struct {
-		// index values in this field for public, protected or private  searches
-		Access discovery.Access `json:"access"`
-
 		// Applicable to ref field kinds where we use nested/object type
 		// and we want to control how deep do we want to follow the references
 		NestingDepth map[string]bool `json:"nestingDepth,omitempty"`

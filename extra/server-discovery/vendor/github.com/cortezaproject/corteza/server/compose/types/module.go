@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"time"
 
-	discovery "github.com/cortezaproject/corteza/server/discovery/types"
-
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"github.com/jmoiron/sqlx/types"
 
@@ -55,8 +53,7 @@ type (
 		// Record data privacy settings
 		Privacy ModuleConfigDataPrivacy `json:"privacy"`
 
-		// @todo we need to transfer this from meta!!
-		Discovery discovery.ModuleMeta `json:"discovery"`
+		Discovery ModuleConfigDiscovery `json:"discovery"`
 
 		RecordRevisions ModuleConfigRecordRevisions `json:"recordRevisions"`
 
@@ -99,6 +96,19 @@ type (
 
 		// list of duplicate detection rules applied to module's fields
 		Rules DeDupRuleSet `json:"rules,omitempty"`
+	}
+
+	ModuleConfigDiscovery struct {
+		Public    DiscoveryResult `json:"public"`
+		Private   DiscoveryResult `json:"private"`
+		Protected DiscoveryResult `json:"protected"`
+	}
+
+	DiscoveryResult struct {
+		Result []struct {
+			Lang   string   `json:"lang"`
+			Fields []string `json:"fields"`
+		} `json:"result"`
 	}
 
 	ModuleFilter struct {
