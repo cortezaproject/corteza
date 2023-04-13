@@ -212,6 +212,7 @@ export default {
       deep: true,
       handler () {
         this.updateSize()
+        this.refresh()
       },
     },
     boundingRect: {
