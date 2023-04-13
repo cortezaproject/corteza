@@ -211,9 +211,9 @@ export default {
     tableFields () {
       return [
         {
-          key: 'handle',
+          key: 'name',
           label: this.$t('general:columns.name'),
-          sortable: true,
+          sortable: false,
           tdClass: 'text-nowrap',
         },
         {

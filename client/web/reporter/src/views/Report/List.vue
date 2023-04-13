@@ -146,7 +146,7 @@ export default {
         {
           key: 'name',
           label: this.$t('columns.name'),
-          sortable: true,
+          sortable: false,
           tdClass: 'text-nowrap',
         },
         {
