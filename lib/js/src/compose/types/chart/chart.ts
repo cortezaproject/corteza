@@ -2,7 +2,6 @@ import { BaseChart } from './base'
 import {
   Dimension,
   Metric,
-  dimensionFunctions,
   TemporalDataPoint,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
@@ -63,7 +62,7 @@ export default class Chart extends BaseChart {
     } = reports[0] || {}
 
     const hasAxis = datasets.some(({ type }: any) => ['bar', 'line'].includes(type))
-    const timeDimension = (dimensionFunctions.lookup(dimension) || {}).time
+    let horizontal = false
 
     if (hasAxis) {
       if (yAxis) {
@@ -75,13 +74,13 @@ export default class Chart extends BaseChart {
           beginAtZero,
           min,
           max,
-          horizontal,
         } = yAxis
+
+        horizontal = !!yAxis.horizontal
 
         const xAxis = {
           nameLocation: 'center',
-          type: 'category',
-          data: labels,
+          type: dimension.modifier === 'auto' ? 'time' : 'category',
           axisLabel: {
             interval: 0,
             overflow: 'break',
@@ -132,7 +131,7 @@ export default class Chart extends BaseChart {
       const { fixed, relative } = tooltip
 
       const tooltipFormatter = t?.formatting ? t.formatting : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
-      const labelFormatter = `{c}${relative ? ' ({d}%)' : ''}`
+      const labelFormatter = `{@[1]}${relative ? ' ({d}%)' : ''}`
 
       // We should render the first metric in the dataset as the last
       const z = (datasets.length - 1) - index
@@ -219,6 +218,16 @@ export default class Chart extends BaseChart {
           bottom: offset?.isDefault ? defaultOffset.bottom : offset?.bottom,
           left: offset?.isDefault ? defaultOffset.left : offset?.left,
           containLabel: true,
+        }
+
+        if (horizontal) {
+          data = labels.map((name: string, i: number) => {
+            return [data[i], name]
+          })
+        } else {
+          data = labels.map((name: string, i: number) => {
+            return [name, data[i]]
+          })
         }
 
         return {

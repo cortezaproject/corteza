@@ -23,14 +23,15 @@ edit:
     fieldLabel: Field *
     fieldPlaceholder: Select a dimension field
     function:
-      date: DATE
-      label: Function
-      month: MONTH
-      none: (no grouping / buckets)
       placeholder: Select dimension modifier (bucket size)
-      quarter: QUARTER
-      week: WEEK
-      year: YEAR
+      none: No grouping
+      auto: Auto
+      date: Date
+      label: Function
+      month: Month
+      quarter: Quarter
+      week: Week
+      year: Year
     gaugeSteps: Steps
     label: Dimensions
     skipMissingValues: Skip missing values
