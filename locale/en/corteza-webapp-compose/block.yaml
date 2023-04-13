@@ -688,7 +688,7 @@ progress:
     warning: Warning
 
 nylas:
-  label: Nylas Component
+  label: Office365/Google
 
   viewer:
     connect: Connect with Nylas
@@ -696,7 +696,7 @@ nylas:
     noComponentID: Nylas component ID is not configured
 
   configurator:
-    label: Nylas
+    label: Office365/Google
     kind: Component kind
     componentID: Component ID
     kinds:
