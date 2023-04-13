@@ -21,8 +21,7 @@
       :content-class="contentClass"
       v-bind="{
         align: block.options.style.alignment,
-        fill: block.options.style.fillJustify === 'fill',
-        justified: block.options.style.fillJustify === 'justify',
+        justified: block.options.style.justify === 'justify',
         pills: block.options.style.appearance === 'pills',
         tabs: block.options.style.appearance === 'tabs',
         small: block.options.style.appearance === 'small',
@@ -125,8 +124,8 @@ export default {
 
   methods: {
     getTitleItemClass (index) {
-      const { fillJustify, alignment } = this.block.options.style
-      return `order-${index} text-truncate text-${alignment} ${fillJustify !== 'none' ? 'flex-fill' : ''}`
+      const { justify, alignment } = this.block.options.style
+      return `order-${index} text-truncate text-${alignment} ${justify !== 'none' ? 'flex-fill' : ''}`
     },
 
     getTabTitle ({ title, block = {} }, tabIndex) {

@@ -36,13 +36,13 @@
           >
             <b-form-group
               horizontal
-              :label="$t('navigation.fillJustify')"
+              :label="$t('navigation.justify')"
             >
               <b-form-radio-group
-                v-model="options.display.fillJustify"
+                v-model="options.display.justify"
                 buttons
                 button-variant="outline-primary"
-                :options="fillJustifyOptions"
+                :options="justifyOptions"
                 size="sm"
               />
             </b-form-group>
@@ -239,9 +239,9 @@ export default {
         { value: 'right', text: this.$t('navigation.right') },
       ],
 
-      fillJustifyOptions: [
-        { value: 'fill', text: this.$t('navigation.fill') },
+      justifyOptions: [
         { value: 'justify', text: this.$t('navigation.justify') },
+        { value: 'none', text: this.$t('navigation.none') },
       ],
 
       backgroundColors: [
