@@ -140,7 +140,6 @@ interface DimensionFunction {
   text: string;
   value: string;
   convert: (f: string) => string;
-  time: boolean | object;
 }
 
 export class DimensionFunctions<T> extends Array<T> {
@@ -167,42 +166,42 @@ dimensionFunctions.push(...[
     text: 'none',
     value: '(no grouping / buckets)',
     convert: (f: string) => f,
-    time: false,
+  },
+
+  {
+    text: 'auto',
+    value: 'auto',
+    convert: (f: string) => f,
   },
 
   {
     text: 'date',
     value: 'DATE',
     convert: (f: string) => `DATE(${f})`,
-    time: { unit: 'day', minUnit: 'day', round: true },
   },
 
   {
     text: 'week',
     value: 'WEEK',
     convert: (f: string) => `WEEK(${f})`,
-    time: { unit: 'week', minUnit: 'week', round: true, isoWeekday: true },
   },
 
   {
     text: 'month',
     value: 'MONTH',
     convert: (f: string) => `DATE_FORMAT(${f}, '%Y-%m-01')`,
-    time: { unit: 'month', minUnit: 'month', round: true },
   },
 
   {
     text: 'quarter',
     value: 'QUARTER',
     convert: (f: string) => `QUARTER(${f})`,
-    time: { unit: 'quarter', minUnit: 'quarter', round: true },
   },
 
   {
     text: 'year',
     value: 'YEAR',
     convert: (f: string) => `DATE_FORMAT(${f}, '%Y-01-01')`,
-    time: { unit: 'year', minUnit: 'year', round: true },
   },
 ])
 
