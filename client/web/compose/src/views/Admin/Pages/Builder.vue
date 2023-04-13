@@ -410,6 +410,7 @@ export default {
 
         const { tabs = [] } = block.options
         tabs.forEach(tab => {
+          if (this.blocks.some(({ blockID }) => blockID === tab.blockID)) return
           const { blockID } = this.page.blocks.find(({ blockID }) => blockID === tab.blockID) || {}
           if (blockID) {
             tabbedIDs.add(blockID)
@@ -418,8 +419,8 @@ export default {
       })
 
       return [
-        ...this.page.blocks.filter(({ blockID }) => tabbedIDs.has(blockID)),
         ...this.blocks.filter(({ blockID }) => !tabbedIDs.has(blockID)),
+        ...this.page.blocks.filter(({ blockID }) => tabbedIDs.has(blockID)),
       ]
     },
   },
