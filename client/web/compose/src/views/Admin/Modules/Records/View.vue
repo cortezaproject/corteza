@@ -166,11 +166,10 @@ export default {
 
       const fields = []
       const fieldSetSize = 8
-      const moduleFields = this.module.fields.slice().sort((a, b) => a.label.localeCompare(b.label))
 
       let i, j
-      for (i = 0, j = moduleFields.length; i < j; i += fieldSetSize) {
-        fields.push(moduleFields.slice(i, i + fieldSetSize))
+      for (i = 0, j = this.module.fields.length; i < j; i += fieldSetSize) {
+        fields.push(this.module.fields.slice(i, i + fieldSetSize))
       }
 
       fields.push(this.module.systemFields())
