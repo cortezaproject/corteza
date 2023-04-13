@@ -6,11 +6,12 @@
   >
     <div class="h-100 w-100 card overflow-hidden bg-transparent">
       <b-nav
-        :tabs="options.display.appearance === 'tabs'"
-        :pills="options.display.appearance === 'pills'"
-        :small="options.display.appearance === 'small'"
-        :fill="options.display.fillJustify === 'fill'"
-        :justify="options.display.fillJustify === 'justify'"
+        v-bind="{
+          tabs: options.display.appearance === 'tabs',
+          pills: options.display.appearance === 'pills',
+          small: options.display.appearance === 'small',
+          justified: options.display.justify === 'justify'
+        }"
         :align="options.display.alignment"
         class="border-0 h-100"
       >

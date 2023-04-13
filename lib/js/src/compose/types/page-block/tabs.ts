@@ -6,7 +6,7 @@ const kind = 'Tabs'
 interface Style {
   appearance: string;
   alignment: string;
-  fillJustify: string;
+  justify: string;
   orientation: string;
   position: string;
 }
@@ -26,7 +26,7 @@ const defaults: Readonly<Options> = Object.freeze({
   style: {
     appearance: 'tabs',
     alignment: 'center',
-    fillJustify: 'justify',
+    justify: 'justify',
     orientation: 'horizontal',
     position: 'start',
   },

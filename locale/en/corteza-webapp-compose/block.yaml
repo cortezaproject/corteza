@@ -586,7 +586,7 @@ navigation:
   displayOptions: Display options
   appearance: Appearance
   alignment: Alignment
-  fillJustify: Fill and Justify
+  justify: Justify
   fieldLabel: Label
   enabled: Enabled
   openIn: Open in
@@ -608,8 +608,7 @@ navigation:
   right: Right
   bottom: Bottom
   top: Top
-  fill: Fill
-  justify: Justify
+  None: None
   primary: Primary
   secondary: Secondary
   success: Success
@@ -765,9 +764,8 @@ tabs:
       left: Left
       center: Center
       right: Right
-    fillJustify:
-      label: Fill or Justify
-      fill: Fill
+    justify:
+      label: Justify
       justify: Justify
       none: None
     orientation:

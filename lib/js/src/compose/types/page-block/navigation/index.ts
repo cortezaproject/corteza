@@ -7,7 +7,7 @@ const kind = 'Navigation'
 interface DisplayOptions {
   appearance: string;
   alignment: string;
-  fillJustify: string;
+  justify: string;
 }
 
 interface Options {
@@ -20,7 +20,7 @@ const defaults: Readonly<Options> = Object.freeze({
   display: {
     appearance: 'pills',
     alignment: 'center',
-    fillJustify: 'fill',
+    justify: 'justify',
   },
   navigationItems: [],
   magnifyOption: '',

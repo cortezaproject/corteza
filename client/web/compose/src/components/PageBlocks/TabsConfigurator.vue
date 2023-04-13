@@ -72,10 +72,10 @@
         cols="12"
         md="4"
       >
-        <b-form-group :label="$t('tabs.style.fillJustify.label')">
+        <b-form-group :label="$t('tabs.style.justify.label')">
           <b-form-radio-group
-            v-model="block.options.style.fillJustify"
-            :options="style.fillJustify"
+            v-model="block.options.style.justify"
+            :options="style.justifyOptions"
             buttons
             button-variant="outline-primary"
             size="sm"
@@ -279,10 +279,9 @@ export default {
           { text: this.$t('tabs.style.alignment.right'), value: 'right' },
         ],
 
-        fillJustify: [
-          { text: this.$t('tabs.style.fillJustify.fill'), value: 'fill' },
-          { text: this.$t('tabs.style.fillJustify.justify'), value: 'justify' },
-          { text: this.$t('tabs.style.fillJustify.none'), value: 'none' },
+        justifyOptions: [
+          { text: this.$t('tabs.style.justify.justify'), value: 'justify' },
+          { text: this.$t('tabs.style.justify.none'), value: 'none' },
         ],
 
         orientation: [
