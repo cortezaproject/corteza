@@ -106,7 +106,7 @@ func (d *auxYamlDoc) UnmarshalYAML(n *yaml.Node) (err error) {
 
 		switch kv {
 		// Decode all resources under the system component
-		case "application", "apps":
+		case "application", "applications", "apps":
 			if y7s.IsMapping(v) {
 				aux, err = d.unmarshalApplicationMap(dctx, v)
 				d.nodes = append(d.nodes, aux...)

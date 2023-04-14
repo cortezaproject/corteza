@@ -74,7 +74,7 @@ application: {
 		yaml: {
 			supportMappedInput: true
 			mappedField: "Name"
-			identKeyAlias: ["apps"]
+			identKeyAlias: ["applications", "apps"]
 		}
 		store: {
 			handleField: "Name"
