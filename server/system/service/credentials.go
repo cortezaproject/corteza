@@ -38,6 +38,9 @@ func (svc *credentials) List(ctx context.Context, userID uint64) (cc types.Crede
 
 	err = func() error {
 		u, err = loadUser(ctx, svc.store, userID)
+		if err != nil {
+			return err
+		}
 		caProps.setUser(u)
 
 		// Allow users to manage their own credentials
