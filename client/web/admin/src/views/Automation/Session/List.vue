@@ -93,7 +93,6 @@ export default {
       filter: {
         status: undefined,
         completed: 1,
-        sort: 'createdAt DESC',
       },
 
       sorting: {
