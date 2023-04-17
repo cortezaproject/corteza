@@ -253,6 +253,7 @@ export class BaseChart {
     return {
       labels: this.processLabels(labels, dimension),
       datasets,
+      dimension,
     }
   }
 

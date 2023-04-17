@@ -45,7 +45,7 @@ edit:
       unselectAllItems: Unselect all
       noItemsFound: No options found
     rotate:
-      label: Rotate label
+      label: Rotate labels
       description: Labels can be rotated from -90 to 90 degrees.
   filter:
     customize: Customize filter
@@ -97,6 +97,15 @@ edit:
     labelColor: Label color
     labelLabel: Label
     labelPlaceholder: Total
+    symbol:
+      label: Symbol
+      circle: Circle
+      triangle: Triangle
+      diamond: Diamond
+      pin: Pin
+      arrow: Arrow
+      rect: Rectangle
+      roundRect: Rounded Rectangle
     legend:
       bottom: Bottom
       left: Left
@@ -116,6 +125,7 @@ edit:
       label: Chart type *
       line: Line
       pie: Pie
+      scatter: Scatter
       placeholder: Select metric output
     relative: Show relative value
     relativePrecision: 'Precision:'

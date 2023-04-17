@@ -499,7 +499,7 @@ export default {
     },
 
     hasAxis () {
-      return this.reports.some(({ metrics = [] }) => metrics.some(m => ['bar', 'line'].includes(m.type)))
+      return this.reports.some(({ metrics = [] }) => metrics.some(m => ['bar', 'line', 'scatter'].includes(m.type)))
     },
 
     timelineOptions () {

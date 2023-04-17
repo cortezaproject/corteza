@@ -179,7 +179,11 @@ export default class FunnelChart extends BaseChart {
       const report = this.config.reports?.[ri]
       const d = report?.dimensions?.[0] as Dimension
 
-      for (const { value } of d.meta?.fields || []) {
+      let { fields = [] } = d.meta || {}
+      fields = fields.length ? fields : r.labels
+
+      for (let label of fields) {
+        const value = typeof label === 'object' ? label.value : label
         values.push({
           // Use value for label and resolve it on FE (i18n)
           label: value,
