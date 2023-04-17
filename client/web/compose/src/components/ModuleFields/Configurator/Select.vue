@@ -42,38 +42,17 @@
             </b-button>
           </b-input-group-append>
         </b-input-group>
-
-        <b-input-group>
-          <b-form-input
-            v-model.trim="newOption.value"
-            plain
-            size="sm"
-            :placeholder="$t('kind.select.optionValuePlaceholder')"
-            :state="newOptState"
-            @keypress.enter.prevent="handleAddOption"
-          />
-
-          <b-form-input
-            v-model.trim="newOption.text"
-            plain
-            size="sm"
-            :placeholder="$t('kind.select.optionLabelPlaceholder')"
-            :state="newOptState"
-            @keypress.enter.prevent="handleAddOption"
-          />
-
-          <b-input-group-append>
-            <b-button
-              variant="primary"
-              size="sm"
-              :disabled="newOptState === false || newEmpty"
-              @click.prevent="handleAddOption"
-            >
-              + {{ $t('kind.select.optionAdd') }}
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
       </b-form-group>
+
+      <div class="my-2">
+        <b-button
+          variant="primary px-3"
+          size="md"
+          @click.prevent="handleAddOption"
+        >
+          + {{ $t('kind.select.optionAdd') }}
+        </b-button>
+      </div>
 
       <b-form-group
         v-if="f.isMulti"
@@ -162,10 +141,11 @@ export default {
 
   methods: {
     handleAddOption () {
-      if (this.newOption.value) {
-        this.f.options.options.push(this.newOption)
-        this.newOption = { value: undefined, text: undefined, new: true }
-      }
+      this.f.options.options.push({
+        value: undefined,
+        text: undefined,
+        new: true,
+      })
     },
 
     onUpdateIsUniqueMultiValue () {
