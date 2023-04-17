@@ -39,7 +39,7 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
       case 'IN':
       case 'NOT IN':
         // flip left/right for IN/NOT IN
-        return `'${right}' ${op} ${left}`
+        return `${right} ${op} ${left}`
       case 'BETWEEN':
       case 'NOT BETWEEN':
         return `${left} ${op} ${right}`
@@ -77,7 +77,7 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
     if (['BETWEEN', 'NOT BETWEEN'].includes(operator)) {
       return build(operator, name, `${query.start} ${query.end}`)
     } else if (!isNaN(numQuery)) {
-      return build(operator, name, numQuery)
+      return build(operator, name, `'${numQuery}'`)
     }
   }
 
