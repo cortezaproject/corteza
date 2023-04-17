@@ -24,6 +24,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		flagPassword         string
 		flagMakePasswordLink bool
 		flagRoles            []string
+		flagSendEmail        bool
 	)
 
 	// User management commands.
@@ -93,7 +94,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		Short: "Add new user",
 		Args:  cobra.MinimumNArgs(1),
 
-		PreRunE: commandPreRunInitService(app),
+		PreRunE: commandPreRunInitActivate(app),
 		Run: func(cmd *cobra.Command, args []string) {
 			ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
@@ -148,6 +149,12 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 				}
 			}
 
+			if flagSendEmail {
+				if err = authSvc.SendInviteEmail(ctx, user.Email); err != nil {
+					cli.HandleError(err)
+				}
+			}
+
 			fmt.Fprintf(cmd.OutOrStdout(), "User created [%d].\n", user.ID)
 
 			if flagMakePasswordLink && len(url) > 0 {
@@ -194,6 +201,12 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 		"role",
 		nil,
 		"Add user to roles (use ID or handle, repeat for multiple roles)")
+
+	addCmd.Flags().BoolVar(
+		&flagSendEmail,
+		"send-invite",
+		false,
+		"Send invite email to user with accept invite link")
 
 	pwdCmd := &cobra.Command{
 		Use:     "password [email]",

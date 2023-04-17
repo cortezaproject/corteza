@@ -51,3 +51,21 @@ templates:
         <p>Hello,</p>
         <p>Enter this code into your login form: <code>{{.Code}}</code></p>
       {{template "email_general_footer" .}}
+
+  auth_email_user_invite_subject:
+    type: text/plain
+    meta:
+      short: User invite subject
+    template: Invitation to join our platform
+
+  auth_email_user_invite_content:
+    type: text/html
+    meta:
+      short: User invite content
+    template: |-
+      {{template "email_general_header" .}}
+        <h2 style="color: #568ba2;text-align: center;">Invitation to join our platform</h2>
+        <p>Hello,</p>
+        <p>To get started, please follow <a href="{{ .URL }}" style="color:#568ba2;">this link</a> to accept the invitation and set up your password</p>
+        <p>Once you accept the invitation, you will be able to logged in to your account.</p>
+      {{template "email_general_footer" .}}

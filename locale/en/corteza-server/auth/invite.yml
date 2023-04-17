@@ -1,0 +1,14 @@
+template:
+  title: Accept Invite
+  form:
+    email:
+      label: E-mail
+      placeholder: email@domain.ltd
+    new-password:
+      label: Password
+      placeholder: password
+    buttons:
+      password: Set password
+alert:
+  invalid-expired-invite-token: Invalid or expired user invite token, please request a password reset.
+  success: Password successfully updated

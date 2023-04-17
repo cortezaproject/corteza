@@ -29,6 +29,13 @@ editor:
           label: Enable split-credentials check
       profile-avatar:
         enabled: Profile avatar enabled
+      send-user-invite-email:
+        title: Invite email
+        enabled: Send invite email on user creation
+        description: When enabled, this configuration sends an invite email to a newly created user via the CLI
+        expires:
+          label: Valid for
+          description: How long will the invite token be valid before it expires
     mail:
       title: Authentication email sender mail
       from-address: Sender's address
