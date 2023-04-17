@@ -85,6 +85,9 @@ actions:
 
   - action: accessTokensRemoved
     log: "access tokens for {{user}} removed"
+
+  - action: sendInviteEMail
+    log: "invite email sent to {{email}}"
 errors:
   - error: invalidCredentials
     message: "invalid username and password combination"
@@ -212,4 +215,8 @@ errors:
 
   - error: maxUserLimitReached
     message: "you have reached your user limit, contact your Corteza administrator"
+    severity: warning
+
+  - error: disabledSendUserInviteEmail
+    message: "sending user invite email is disabled"
     severity: warning

@@ -14,6 +14,7 @@ type (
 		MultiFactor               MultiFactor
 		BackgroundUI              BackgroundUI
 		ProfileAvatarEnabled      bool
+		SendUserInviteEmail       bool
 	}
 
 	SAML struct {

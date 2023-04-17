@@ -32,6 +32,7 @@ const (
 	credentialsTypeCreatePasswordToken         = "password-create-token"
 	credentialsTypeMfaTotpSecret               = "mfa-totp-secret"
 	credentialsTypeMFAEmailOTP                 = "mfa-email-otp"
+	credentialsTypeInviteEmailToken            = "invite-email-token"
 
 	credentialsTokenLength = 32
 
@@ -40,6 +41,10 @@ const (
 
 	passwordMinLength = 8
 	passwordMaxLength = 256
+
+	passwordTokenValidity = 24
+	emailOTPValidity      = 60
+	inviteTokenValidity   = 72
 )
 
 var (
@@ -211,7 +216,7 @@ func (svc *auth) createUserToken(ctx context.Context, u *types.User, kind string
 		case credentialsTypeMFAEmailOTP:
 			expSec := svc.settings.Auth.MultiFactor.EmailOTP.Expires
 			if expSec == 0 {
-				expSec = 60
+				expSec = emailOTPValidity
 			}
 
 			expiresAt = now().Add(time.Second * time.Duration(expSec))
@@ -221,13 +226,22 @@ func (svc *auth) createUserToken(ctx context.Context, u *types.User, kind string
 		case credentialsTypeCreatePasswordToken:
 			expSec := svc.settings.Auth.Internal.PasswordCreate.Expires
 			if expSec == 0 {
-				expSec = 24
+				expSec = passwordTokenValidity
 			}
 
 			expiresAt = now().Add(time.Hour * time.Duration(expSec))
 
 			// random password string, "3i[g0|)z"
 			token = fmt.Sprintf("%s", rand.Password(credentialsTokenLength))
+		case credentialsTypeInviteEmailToken:
+			expSec := svc.settings.Auth.Internal.SendUserInviteEmail.Expires
+			if expSec == 0 {
+				expSec = inviteTokenValidity
+			}
+
+			// set the expiration time for all invited user tokens sent via email to 72 hours.
+			expiresAt = now().Add(time.Hour * time.Duration(expSec))
+			token = string(rand.Bytes(credentialsTokenLength))
 		default:
 			// 1h expiration for all tokens send via email
 			expiresAt = now().Add(time.Minute * 60)
@@ -421,6 +435,10 @@ func (svc *auth) ValidatePasswordResetToken(ctx context.Context, token string) (
 // ValidatePasswordCreateToken validates password create token
 func (svc *auth) ValidatePasswordCreateToken(ctx context.Context, token string) (user *types.User, err error) {
 	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeCreatePasswordToken)
+}
+
+func (svc *auth) ValidateInviteEmailToken(ctx context.Context, token string) (user *types.User, err error) {
+	return svc.loadFromTokenAndConfirmEmail(ctx, token, credentialsTypeInviteEmailToken)
 }
 
 // ExchangePasswordResetToken exchanges reset password token for a new one and returns it with user info
@@ -1183,4 +1201,41 @@ func checkPasswordStrength(password string, pc types.PasswordConstraints) bool {
 	}
 
 	return true
+}
+
+func (svc *auth) SendInviteEmail(ctx context.Context, email string) (err error) {
+	var (
+		u *types.User
+
+		aam = &authActionProps{
+			user:  u,
+			email: email,
+		}
+	)
+
+	err = func() error {
+		if !svc.settings.Auth.Internal.SendUserInviteEmail.Enabled {
+			return AuthErrDisabledSendUserInviteEmail(aam)
+		}
+
+		if u, err = store.LookupUserByEmail(ctx, svc.store, email); err != nil {
+			return err
+		}
+
+		ctx = internalAuth.SetIdentityToContext(ctx, u)
+
+		token, err := svc.createUserToken(ctx, u, credentialsTypeInviteEmailToken)
+		if err != nil {
+			return err
+		}
+
+		err = svc.notifications.InviteEmail(ctx, u.Email, token)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}()
+
+	return svc.recordAction(ctx, aam, AuthActionSendInviteEMail, err)
 }

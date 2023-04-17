@@ -53,6 +53,8 @@ type (
 		SendEmailOTP(ctx context.Context) (err error)
 		ConfigureEmailOTP(ctx context.Context, userID uint64, enable bool) (u *types.User, err error)
 		ValidateEmailOTP(ctx context.Context, code string) (err error)
+		SendInviteEmail(ctx context.Context, email string) (err error)
+		ValidateInviteEmailToken(ctx context.Context, token string) (user *types.User, err error)
 	}
 
 	credentialsService interface {
@@ -143,6 +145,7 @@ const (
 	TmplRequestPasswordReset     = "request-password-reset.html.tpl"
 	TmplPasswordResetRequested   = "password-reset-requested.html.tpl"
 	TmplResetPassword            = "reset-password.html.tpl"
+	TmplInvite                   = "invite.html.tpl"
 	TmplSecurity                 = "security.html.tpl"
 	TmplProfile                  = "profile.html.tpl"
 	TmplSessions                 = "sessions.html.tpl"

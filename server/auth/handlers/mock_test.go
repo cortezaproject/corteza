@@ -101,6 +101,8 @@ type (
 		sendEmailOTP                      func(context.Context) (err error)
 		configureEmailOTP                 func(context.Context, uint64, bool) (u *types.User, err error)
 		validateEmailOTP                  func(context.Context, string) (err error)
+		sendInviteEmail                   func(context.Context, string) (err error)
+		validateEmailToken                func(context.Context, string) (user *types.User, err error)
 	}
 )
 
@@ -198,6 +200,14 @@ func (s authServiceMocked) ValidateEmailOTP(ctx context.Context, code string) (e
 	return s.validateEmailOTP(ctx, code)
 }
 
+func (s authServiceMocked) SendInviteEmail(ctx context.Context, email string) (err error) {
+	return s.sendInviteEmail(ctx, email)
+}
+
+func (s authServiceMocked) ValidateInviteEmailToken(ctx context.Context, token string) (user *types.User, err error) {
+	return s.validateEmailToken(ctx, token)
+}
+
 func (s authServiceMocked) LoadRoleMemberships(ctx context.Context, u *types.User) error {
 	// no-op for now
 	return nil
@@ -283,6 +293,15 @@ func (ma mockAuthService) ValidateTOTP(ctx context.Context, code string) (err er
 	return
 }
 
+func (ma mockAuthService) SendInviteEmail(ctx context.Context, email string) (err error) {
+	err = nil
+	return
+}
+
+func (ma mockAuthService) ValidateInviteEmailToken(ctx context.Context, token string) (*types.User, error) {
+	return &types.User{ID: 123}, nil
+}
+
 // Mocking notification service
 func (m mockNotificationService) EmailConfirmation(ctx context.Context, emailAddress string, token string) error {
 	return nil
@@ -297,6 +316,10 @@ func (m mockNotificationService) PasswordCreate(token string) (string, error) {
 }
 
 func (m mockNotificationService) EmailOTP(ctx context.Context, emailAddress string, code string) error {
+	return nil
+}
+
+func (m mockNotificationService) InviteEmail(ctx context.Context, emailAddress string, token string) error {
 	return nil
 }
 
