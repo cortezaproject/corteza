@@ -110,7 +110,7 @@ export default {
               ...module.systemFields(),
             ].find(({ name }) => name === field)
 
-            if (meta.fields) {
+            if (meta.fields && field.kind === 'Select') {
               data.labels = data.labels.map(value => {
                 const { text } = field.options.options.find(o => o.value === value) || {}
                 return text || value
@@ -130,8 +130,9 @@ export default {
               const { namespaceID } = this.chart || {}
               const recordModule = this.getModuleByID(field.options.moduleID)
               if (recordModule && data.labels) {
+                const isValidRecordID = (recordID) => recordID !== dimension.default && recordID !== 'undefined'
                 await Promise.all(data.labels.map(recordID => {
-                  if (recordID && recordID !== 'undefined') {
+                  if (isValidRecordID(recordID)) {
                     return this.$ComposeAPI.recordRead({ namespaceID, moduleID: recordModule.moduleID, recordID }).then(record => {
                       record = new compose.Record(recordModule, record)
 

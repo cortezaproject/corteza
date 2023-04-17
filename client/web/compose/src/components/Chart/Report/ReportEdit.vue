@@ -153,18 +153,18 @@
           <template v-if="!unSkippable">
             <b-row>
               <b-col
+                v-if="!d.skipMissing"
                 cols="12"
                 md="6"
               >
                 <b-form-group
-                  :label="$t('edit.dimension.rotate.label')"
-                  :description="$t('edit.dimension.rotate.description')"
+                  :label="$t('edit.dimension.defaultValueLabel')"
+                  :description="$t('edit.dimension.defaultValueFootnote')"
                   label-class="text-primary"
                 >
-                  <b-input
-                    v-model="d.rotateLabel"
-                    type="number"
-                    number
+                  <b-form-input
+                    v-model="d.default"
+                    :type="defaultValueInputType(d)"
                   />
                 </b-form-group>
               </b-col>
@@ -182,22 +182,10 @@
                   >
                     {{ $t('edit.dimension.skipMissingValues') }}
                   </b-form-checkbox>
-                </b-form-group>
-              </b-col>
 
-              <b-col
-                v-if="!d.skipMissing"
-                cols="12"
-                md="6"
-              >
-                <b-form-group
-                  :label="$t('edit.dimension.defaultValueLabel')"
-                  :description="$t('edit.dimension.defaultValueFootnote')"
-                  label-class="text-primary"
-                >
-                  <b-form-input
-                    v-model="d.default"
-                    :type="defaultValueInputType(d)"
+                  <slot
+                    name="dimension-options-options"
+                    :dimension="d"
                   />
                 </b-form-group>
               </b-col>
@@ -423,7 +411,7 @@ export default {
     },
 
     hasAxis () {
-      return this.metrics.some(({ type }) => ['bar', 'line'].includes(type))
+      return this.metrics.some(({ type }) => ['bar', 'line', 'scatter'].includes(type))
     },
 
     dimensionFields () {
@@ -503,6 +491,8 @@ export default {
       if (!this.isTemporalField(f)) {
         this.$set(d, 'modifier', this.dimensionModifiers[0].value)
       }
+
+      this.$set(d.meta, 'fields', [])
     },
 
     onMetricFieldChange (field, m) {

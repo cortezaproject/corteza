@@ -11,6 +11,7 @@ export enum ChartType {
   doughnut='doughnut',
   funnel = 'funnel',
   gauge = 'gauge',
+  scatter = 'scatter',
 }
 
 export interface TemporalDataPoint {
@@ -45,6 +46,7 @@ export interface Metric {
   modifier?: string;
   fx?: string;
   backgroundColor?: string;
+  symbol?: string;
   [_: string]: any;
 }
 

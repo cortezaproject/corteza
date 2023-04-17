@@ -3,6 +3,27 @@
     :report.sync="editReport"
     :modules="modules"
   >
+    <template #dimension-options="{ dimension }">
+      <b-row>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.dimension.rotate.label')"
+            :description="$t('edit.dimension.rotate.description')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="dimension.rotateLabel"
+              type="number"
+              number
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+    </template>
+
     <template #y-axis="{ report }">
       <div
         class="px-3"
@@ -267,6 +288,22 @@
           >
             <b-form-input
               v-model="metric.stack"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="metric.type === 'scatter'"
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.metric.symbol.label')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="metric.symbol"
+              :options="scatterSymbolOptions"
             />
           </b-form-group>
         </b-col>
@@ -572,6 +609,7 @@ import base from './base'
 const ignoredCharts = [
   'funnel',
   'gauge',
+  'heatmap',
 ]
 
 export default {
@@ -636,6 +674,16 @@ export default {
         { value: '', text: this.$t('edit.metric.lineStyle.default') },
         { value: 'smooth', text: this.$t('edit.metric.lineStyle.smooth') },
         { value: 'step', text: this.$t('edit.metric.lineStyle.step') },
+      ],
+
+      scatterSymbolOptions: [
+        { value: 'circle', text: this.$t('edit.metric.symbol.circle') },
+        { value: 'triangle', text: this.$t('edit.metric.symbol.triangle') },
+        { value: 'diamond', text: this.$t('edit.metric.symbol.diamond') },
+        { value: 'pin', text: this.$t('edit.metric.symbol.pin') },
+        { value: 'arrow', text: this.$t('edit.metric.symbol.arrow') },
+        { value: 'rect', text: this.$t('edit.metric.symbol.rect') },
+        { value: 'roundRect', text: this.$t('edit.metric.symbol.roundRect') },
       ],
     }
   },

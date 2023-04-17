@@ -2,17 +2,15 @@
   <report-edit
     :report.sync="editReport"
     :modules="modules"
-    :dimension-field-kind="['Select']"
     :supported-metrics="1"
-    un-skippable
   >
     <template #dimension-options="{ index, dimension, field }">
       <b-form-group
+        v-if="showPicker(field)"
         :label="$t('edit.dimension.options.label')"
         label-class="text-primary"
       >
         <c-item-picker
-          v-if="showPicker(field)"
           :value="getOptions(dimension)"
           :options="field.options.options"
           :labels="{

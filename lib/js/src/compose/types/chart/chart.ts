@@ -28,6 +28,7 @@ export default class Chart extends BaseChart {
       smooth: m.smooth,
       step: m.step ? 'middle' : undefined,
       roseType: m.rose ? 'radius' : undefined,
+      symbol: m.symbol,
       stack: m.stack,
       tooltip: {
         fixed: m.fixTooltips,
@@ -61,7 +62,7 @@ export default class Chart extends BaseChart {
       legend: l,
     } = reports[0] || {}
 
-    const hasAxis = datasets.some(({ type }: any) => ['bar', 'line'].includes(type))
+    const hasAxis = datasets.some(({ type }: any) => ['bar', 'line', 'scatter'].includes(type))
     let horizontal = false
 
     if (hasAxis) {
@@ -127,7 +128,7 @@ export default class Chart extends BaseChart {
       }
     }
 
-    options.series = datasets.map(({ type, label, data, stack, tooltip, fill, smooth, step, roseType }: any, index: number) => {
+    options.series = datasets.map(({ type, label, data, stack, tooltip, fill, smooth, step, roseType, symbol }: any, index: number) => {
       const { fixed, relative } = tooltip
 
       const tooltipFormatter = t?.formatting ? t.formatting : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
@@ -202,7 +203,7 @@ export default class Chart extends BaseChart {
           bottom: offset?.isDefault ? undefined : offset?.bottom,
           left: offset?.isDefault ? undefined : offset?.left,
         }
-      } else if (['bar', 'line'].includes(type)) {
+      } else if (['bar', 'line', 'scatter'].includes(type)) {
         options.tooltip.trigger = 'axis'
 
         const defaultOffset = {
@@ -240,6 +241,7 @@ export default class Chart extends BaseChart {
           areaStyle: {
             opacity: fill ? 0.7 : 0,
           },
+          symbol,
           label: {
             show: fixed,
             position: 'inside',
@@ -301,6 +303,7 @@ export default class Chart extends BaseChart {
       smooth: true,
       fill: false,
       rose: false,
+      symbol: 'circle',
     })
   }
 
