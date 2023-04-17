@@ -58,6 +58,12 @@ type (
 				// Can users reset their passwords
 				PasswordReset struct{ Enabled bool } `json:"-" kv:"password-reset"`
 
+				// When enabled, users added via CLI will receive an email with a link to reset their password.
+				SendUserInviteEmail struct {
+					Enabled bool
+					Expires uint
+				} `kv:"send-user-invite-email" json:"sendUserInviteEmail"`
+
 				// PasswordCreate setting for create password for user via generated link with token
 				// If user has no password then link redirects to create password page
 				// Otherwise it redirects to profile page of that user
