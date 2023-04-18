@@ -7,7 +7,6 @@
           key="namespaceID"
           data-test-id="select-namespace"
           label="name"
-          class="namespace-selector sticky-top"
           :clearable="false"
           :options="filteredNamespaces"
           :get-option-key="getOptionKey"
@@ -16,6 +15,7 @@
           :placeholder="$t('pickNamespace')"
           :calculate-position="calculateDropdownPosition"
           :autoscroll="false"
+          class="namespace-selector"
           @option:selected="namespaceSelected"
         >
           <template #list-header>
@@ -33,11 +33,12 @@
             </li>
           </template>
         </vue-select>
+
         <b-input-group-append>
           <b-button
             v-if="canManageNamespaces"
             :disabled="!namespace.canUpdateNamespace"
-            :title="$t('manageNamespace')"
+            :title="$t('editNamespace')"
             variant="primary"
             class="d-flex align-items-center"
             :to="{ name: 'namespace.edit', params: { namespaceID: namespace.namespaceID } }"
@@ -445,33 +446,40 @@ export default {
 
 <style lang="scss">
 .namespace-selector {
+  position: relative;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  width: 1%;
+  margin-bottom: 0;
   font-size: 1rem;
   min-width: auto !important;
-  flex: auto;
 
-  .vs__dropdown-menu {
-    min-width: 100%;
-  }
-
-  .vs__dropdown-option {
-    text-overflow: ellipsis;
-    overflow-x: hidden;
+  &:not(.vs--open) .vs__selected + .vs__search {
+    // force this to not use any space
+    // we still need it to be rendered for the focus
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 0;
   }
 
   .vs__selected-options {
-    flex-wrap: nowrap;
+    // do not allow growing
+    width: 0;
   }
 
   .vs__selected {
-    max-width: 230px;
-    display: inline-block;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: block;
     white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow: hidden;
   }
+}
 
-  .vs__open-indicator {
-    fill: $primary;
-  }
+.vs__dropdown-menu .vs__dropdown-option {
+  text-overflow: ellipsis;
+  overflow: hidden !important;
 }
 </style>

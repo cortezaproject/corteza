@@ -59,7 +59,6 @@
             variant="light"
             :title="$t('tooltip.field')"
             :disabled="!value.cap.configurable"
-            class="px-2"
             @click.prevent="$emit('edit')"
           >
             <font-awesome-icon
