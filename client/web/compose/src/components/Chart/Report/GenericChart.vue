@@ -199,6 +199,7 @@
             <b-form-select
               v-model="metric.type"
               :options="chartTypes"
+              @input="chartTypeChanged(metric)"
             >
               <template slot="first">
                 <option
@@ -311,48 +312,47 @@
     </template>
 
     <template #additional-config="{ hasAxis, report }">
-      <template v-if="!hasAxis">
-        <hr>
-        <div class="px-3">
-          <h5 class="mb-3">
-            {{ $t('edit.additionalConfig.tooltip.label') }}
-          </h5>
+      <hr>
+      <div class="px-3">
+        <h5 class="mb-3">
+          {{ $t('edit.additionalConfig.tooltip.label') }}
+        </h5>
 
-          <b-row>
-            <b-col
-              cols="12"
-              md="6"
+        <b-row>
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('edit.additionalConfig.tooltip.formatting.label')"
+              :description="$t('edit.additionalConfig.tooltip.formatting.description')"
+              label-class="text-primary"
             >
-              <b-form-group
-                :label="$t('edit.additionalConfig.tooltip.formatting.label')"
-                :description="$t('edit.additionalConfig.tooltip.formatting.description')"
-                label-class="text-primary"
-              >
-                <b-input
-                  v-model="report.tooltip.formatting"
-                  :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
-                />
-              </b-form-group>
-            </b-col>
-            <b-col
-              cols="12"
-              md="6"
+              <b-input
+                v-model="report.tooltip.formatting"
+                :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
+              />
+            </b-form-group>
+          </b-col>
+          <b-col
+            v-if="!hasAxis"
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('edit.additionalConfig.tooltip.labelNextToChart')"
+              label-class="text-primary"
             >
-              <b-form-group
-                :label="$t('edit.additionalConfig.tooltip.labelNextToChart')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  :value="!!report.tooltip.labelsNextToPartition"
-                  switch
-                  :labels="checkboxLabel"
-                  @input="$set(report.tooltip, 'labelsNextToPartition', $event)"
-                />
-              </b-form-group>
-            </b-col>
-          </b-row>
-        </div>
-      </template>
+              <c-input-checkbox
+                :value="!!report.tooltip.labelsNextToPartition"
+                switch
+                :labels="checkboxLabel"
+                @input="$set(report.tooltip, 'labelsNextToPartition', $event)"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
 
       <hr>
       <div class="px-3 mb-2">
@@ -531,6 +531,10 @@ export default {
     setLineStyle (style, metric) {
       this.$set(metric, 'smooth', style === 'smooth')
       this.$set(metric, 'step', style === 'step')
+    },
+
+    chartTypeChanged (metric) {
+      metric.relativeValue = false
     },
   },
 }

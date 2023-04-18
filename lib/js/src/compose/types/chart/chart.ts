@@ -242,6 +242,11 @@ export default class Chart extends BaseChart {
             opacity: fill ? 0.7 : 0,
           },
           symbol,
+          symbolSize: 16,
+          tooltip: {
+            trigger: 'axis',
+            formatter: tooltipFormatter,
+          },
           label: {
             show: fixed,
             position: 'inside',

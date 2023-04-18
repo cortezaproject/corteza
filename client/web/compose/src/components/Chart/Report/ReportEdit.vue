@@ -322,7 +322,6 @@
         name="y-axis"
         :report="editReport"
       />
-      <hr>
     </template>
 
     <hr v-if="hasLegend">
