@@ -247,7 +247,6 @@
               <b-button
                 variant="link"
                 size="sm"
-                :disabled="true"
                 class="ml-auto px-0"
               >
                 <font-awesome-icon
@@ -326,6 +325,159 @@
       <hr>
     </template>
 
+    <hr v-if="hasLegend">
+
+    <div
+      v-if="hasLegend"
+      class="px-3"
+    >
+      <h5 class="mb-3">
+        {{ $t('edit.additionalConfig.legend.label') }}
+      </h5>
+
+      <b-row>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.orientation.label')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="report.legend.orientation"
+              :options="orientations"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.show')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              :value="!!report.legend.isHidden"
+              switch
+              invert
+              :labels="checkboxLabel"
+              @input="$set(report.legend,'isHidden', $event)"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <b-row>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.align.label')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="report.legend.align"
+              :options="alignments"
+              :disabled="!report.legend.position.isDefault"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.options.label')"
+            label-class="text-primary"
+          >
+            <b-form-checkbox
+              v-model="report.legend.isScrollable"
+              :disabled="report.legend.orientation !== 'horizontal'"
+            >
+              {{ $t('edit.additionalConfig.legend.scrollable') }}
+            </b-form-checkbox>
+
+            <b-form-checkbox
+              v-model="report.legend.position.isDefault"
+            >
+              {{ $t('edit.additionalConfig.legend.position.customize') }}
+            </b-form-checkbox>
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <b-row
+        v-if="!report.legend.position.isDefault"
+      >
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.position.top')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.legend.position.top"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.position.right')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.legend.position.right"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.position.bottom')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.legend.position.bottom"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.legend.position.left')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.legend.position.left"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col cols="12">
+          <small class="text-muted">
+            {{ $t('edit.additionalConfig.legend.valueRange') }}
+          </small>
+        </b-col>
+      </b-row>
+    </div>
+
     <slot
       name="additional-config"
       :report="editReport"
@@ -381,10 +533,25 @@ export default {
       metricAggregates: aggregateFunctions.map(af => ({ ...af, text: this.$t(`edit.metric.function.${af.text}`) })),
       dimensionModifiers: compose.chartUtil.dimensionFunctions.map(df => ({ ...df, text: this.$t(`edit.dimension.function.${df.text}`) })),
       predefinedFilters: compose.chartUtil.predefinedFilters.map(pf => ({ ...pf, text: this.$t(`edit.filter.${pf.text}`) })),
+
+      alignments: [
+        { value: 'left', text: this.$t('edit.additionalConfig.legend.align.left') },
+        { value: 'center', text: this.$t('edit.additionalConfig.legend.align.center') },
+        { value: 'right', text: this.$t('edit.additionalConfig.legend.align.right') },
+      ],
+
+      orientations: [
+        { value: 'horizontal', text: this.$t('edit.additionalConfig.legend.orientation.horizontal') },
+        { value: 'vertical', text: this.$t('edit.additionalConfig.legend.orientation.vertical') },
+      ],
     }
   },
 
   computed: {
+    hasLegend () {
+      return !this.metrics.some(({ type }) => ['gauge'].includes(type))
+    },
+
     defaultValueInputType () {
       return ({ field }) => (this.module.fields.filter(f => f.name === field)[0] || {}).kind === 'DateTime' ? 'date' : 'text'
     },

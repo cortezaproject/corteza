@@ -15,7 +15,7 @@ import {
   BarChart,
   PieChart,
   GaugeChart,
-  HeatmapChart,
+  RadarChart,
   FunnelChart,
 } from 'echarts/charts'
 import {
@@ -32,7 +32,7 @@ use([
   LineChart,
   PieChart,
   GaugeChart,
-  HeatmapChart,
+  RadarChart,
   FunnelChart,
   SVGRenderer,
   TitleComponent,

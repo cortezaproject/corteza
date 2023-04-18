@@ -81,6 +81,7 @@ chart:
   add: New Chart
   addFunnel: Funnel chart
   addGauge: Gauge chart
+  addRadar: Radar chart
   addGeneric: Generic chart
   createFailed: Could not create a chart
   columns:

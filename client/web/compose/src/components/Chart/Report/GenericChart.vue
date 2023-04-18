@@ -311,157 +311,6 @@
     </template>
 
     <template #additional-config="{ hasAxis, report }">
-      <hr v-if="!hasAxis">
-      <div
-        class="px-3"
-      >
-        <h5 class="mb-3">
-          {{ $t('edit.additionalConfig.legend.label') }}
-        </h5>
-
-        <b-row>
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.orientation.label')"
-              label-class="text-primary"
-            >
-              <b-form-select
-                v-model="report.legend.orientation"
-                :options="orientations"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.show')"
-              label-class="text-primary"
-            >
-              <c-input-checkbox
-                :value="!!report.legend.isHidden"
-                switch
-                invert
-                :labels="checkboxLabel"
-                @input="$set(report.legend,'isHidden', $event)"
-              />
-            </b-form-group>
-          </b-col>
-        </b-row>
-
-        <b-row>
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.align.label')"
-              label-class="text-primary"
-            >
-              <b-form-select
-                v-model="report.legend.align"
-                :options="alignments"
-                :disabled="!report.legend.position.isDefault"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.options.label')"
-              label-class="text-primary"
-            >
-              <b-form-checkbox
-                v-model="report.legend.isScrollable"
-                :disabled="report.legend.orientation !== 'horizontal'"
-              >
-                {{ $t('edit.additionalConfig.legend.scrollable') }}
-              </b-form-checkbox>
-
-              <b-form-checkbox
-                v-model="report.legend.position.isDefault"
-              >
-                {{ $t('edit.additionalConfig.legend.position.customize') }}
-              </b-form-checkbox>
-            </b-form-group>
-          </b-col>
-        </b-row>
-
-        <b-row
-          v-if="!report.legend.position.isDefault"
-        >
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.position.top')"
-              label-class="text-primary"
-            >
-              <b-input
-                v-model="report.legend.position.top"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.position.right')"
-              label-class="text-primary"
-            >
-              <b-input
-                v-model="report.legend.position.right"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.position.bottom')"
-              label-class="text-primary"
-            >
-              <b-input
-                v-model="report.legend.position.bottom"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            md="6"
-          >
-            <b-form-group
-              :label="$t('edit.additionalConfig.legend.position.left')"
-              label-class="text-primary"
-            >
-              <b-input
-                v-model="report.legend.position.left"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col cols="12">
-            <small class="text-muted">
-              {{ $t('edit.additionalConfig.legend.valueRange') }}
-            </small>
-          </b-col>
-        </b-row>
-      </div>
-
       <template v-if="!hasAxis">
         <hr>
         <div class="px-3">
@@ -603,13 +452,13 @@
 <script>
 import ReportEdit from './ReportEdit'
 import ChartTranslator from 'corteza-webapp-compose/src/components/Chart/ChartTranslator'
-import { compose, NoID } from '@cortezaproject/corteza-js'
+import { compose } from '@cortezaproject/corteza-js'
 import base from './base'
 
 const ignoredCharts = [
   'funnel',
   'gauge',
-  'heatmap',
+  'radar',
 ]
 
 export default {
@@ -625,13 +474,6 @@ export default {
   },
 
   extends: base,
-
-  props: {
-    chart: {
-      type: compose.Chart,
-      required: true,
-    },
-  },
 
   data () {
     return {
@@ -659,17 +501,6 @@ export default {
         { text: this.$t('edit.metric.lineTension.curvy'), value: 0.6 },
       ],
 
-      orientations: [
-        { value: 'horizontal', text: this.$t('edit.additionalConfig.legend.orientation.horizontal') },
-        { value: 'vertical', text: this.$t('edit.additionalConfig.legend.orientation.vertical') },
-      ],
-
-      alignments: [
-        { value: 'left', text: this.$t('edit.additionalConfig.legend.align.left') },
-        { value: 'center', text: this.$t('edit.additionalConfig.legend.align.center') },
-        { value: 'right', text: this.$t('edit.additionalConfig.legend.align.right') },
-      ],
-
       lineStyleOptions: [
         { value: '', text: this.$t('edit.metric.lineStyle.default') },
         { value: 'smooth', text: this.$t('edit.metric.lineStyle.smooth') },
@@ -686,12 +517,6 @@ export default {
         { value: 'roundRect', text: this.$t('edit.metric.symbol.roundRect') },
       ],
     }
-  },
-
-  computed: {
-    isNew () {
-      return this.chart.chartID === NoID
-    },
   },
 
   methods: {

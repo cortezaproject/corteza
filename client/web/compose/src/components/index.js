@@ -18,8 +18,9 @@ import {
   BarChart,
   PieChart,
   GaugeChart,
-  HeatmapChart,
+  RadarChart,
   FunnelChart,
+  ScatterChart,
 } from 'echarts/charts'
 import {
   TitleComponent,
@@ -36,8 +37,9 @@ use([
   LineChart,
   PieChart,
   GaugeChart,
-  HeatmapChart,
+  RadarChart,
   FunnelChart,
+  ScatterChart,
   CanvasRenderer,
   TitleComponent,
   GridComponent,

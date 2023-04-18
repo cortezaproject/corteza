@@ -205,7 +205,7 @@
                 <!-- General report editing component -->
                 <component
                   :is="reportEditor"
-                  v-if="editReport"
+                  v-if="chart && editReport"
                   :report.sync="editReport"
                   :chart="chart"
                   :modules="modules"
@@ -454,10 +454,12 @@ export default {
 
       if (this.chart instanceof compose.FunnelChart) {
         return Reports.FunnelChart
-      }
-      if (this.chart instanceof compose.GaugeChart) {
+      } else if (this.chart instanceof compose.GaugeChart) {
         return Reports.GaugeChart
+      } else if (this.chart instanceof compose.RadarChart) {
+        return Reports.RadarChart
       }
+
       return Reports.GenericChart
     },
 
@@ -528,6 +530,10 @@ export default {
 
             case 'funnel':
               c = new compose.FunnelChart(c)
+              break
+
+            case 'radar':
+              c = new compose.RadarChart(c)
               break
           }
           this.chart = c
