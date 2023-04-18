@@ -21,6 +21,10 @@
           :disabled="!namespaceEnabled"
         >
           {{ $t('visit') }}
+          <font-awesome-icon
+            :icon="['far', 'eye']"
+            class="ml-2"
+          />
         </b-button>
         <b-button
           v-if="namespace.canManageNamespace"

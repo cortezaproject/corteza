@@ -20,7 +20,7 @@
         >
           {{ $t('label.pageBuilder') }}
           <font-awesome-icon
-            :icon="['fas', 'cog']"
+            :icon="['fas', 'tools']"
             class="ml-2"
           />
         </b-button>
@@ -306,7 +306,6 @@
                             variant="light"
                             class="d-flex align-items-center px-3"
                             :title="$t('page-layout.tooltip.configure')"
-                            style="margin-left:2px;"
                             @click="configureLayout(index)"
                           >
                             <font-awesome-icon
@@ -322,7 +321,7 @@
                             :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
                           >
                             <font-awesome-icon
-                              :icon="['fas', 'cog']"
+                              :icon="['fas', 'tools']"
                             />
                           </b-button>
                         </b-input-group-append>

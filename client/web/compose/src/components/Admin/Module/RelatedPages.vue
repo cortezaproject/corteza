@@ -5,7 +5,7 @@
     <b-dropdown
       v-if="recordPage"
       :size="size"
-      variant="light"
+      variant="primary"
       :text="$t('related-pages')"
       boundary="viewport"
       class="related-pages-dropdown"
