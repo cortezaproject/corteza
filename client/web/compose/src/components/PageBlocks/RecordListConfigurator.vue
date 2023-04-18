@@ -6,11 +6,9 @@
       no-body
     >
       <div
-        class="px-3"
+        class="px-3 pt-3"
       >
-        <h5
-          class="pt-3"
-        >
+        <h5 class="mb-3">
           {{ $t('recordList.record.generalLabel') }}
         </h5>
         <b-row>
@@ -50,36 +48,43 @@
             </b-form-group>
           </b-col>
         </b-row>
+      </div>
+
+      <hr v-if="recordListModule">
+
+      <div
+        v-if="recordListModule"
+        class="px-3"
+      >
+        <div class="mb-3">
+          <h5 class="mb-1">
+            {{ $t('module:general.fields') }}
+          </h5>
+          <small class="text-muted">
+            {{ $t('recordList.moduleFieldsFootnote') }}
+          </small>
+        </div>
 
         <b-row>
           <b-col
             cols="12"
           >
-            <b-form-group
-              v-if="recordListModule"
-              :label="$t('module:general.fields')"
-              label-class="pb-0 text-primary"
-            >
-              <label class="text-secondary small pb-1">
-                {{ $t('recordList.moduleFieldsFootnote') }}
-              </label>
-
-              <field-picker
-                :module="recordListModule"
-                :fields.sync="options.fields"
-                style="max-height: 40vh;"
-              />
-            </b-form-group>
+            <field-picker
+              :module="recordListModule"
+              :fields.sync="options.fields"
+              style="max-height: 40vh;"
+            />
           </b-col>
         </b-row>
       </div>
+
       <hr>
 
       <div
         v-if="options.editable"
-        class="px-3 pt-3"
+        class="px-3"
       >
-        <h5>
+        <h5 class="mb-3">
           {{ $t('recordList.record.inlineEditor') }}
         </h5>
 
