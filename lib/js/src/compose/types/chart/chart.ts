@@ -242,7 +242,7 @@ export default class Chart extends BaseChart {
             opacity: fill ? 0.7 : 0,
           },
           symbol,
-          symbolSize: 16,
+          symbolSize: type === 'scatter' ? 16 : 10,
           tooltip: {
             trigger: 'axis',
             formatter: tooltipFormatter,
