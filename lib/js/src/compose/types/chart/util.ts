@@ -11,6 +11,7 @@ export enum ChartType {
   doughnut='doughnut',
   funnel = 'funnel',
   gauge = 'gauge',
+  radar = 'radar',
   scatter = 'scatter',
 }
 

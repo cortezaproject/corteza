@@ -66,7 +66,7 @@ edit:
     fieldLabel: Field *
     fieldPlaceholder: Select metric field
     fillArea: Fill area below the line
-    fixTooltips: Always show tooltips
+    fixTooltips: Always show labels
     options:
       label: Options
     function:
@@ -92,6 +92,11 @@ edit:
       start: Start angle
       end: End angle
     rose: Rose
+    radar:
+      shape:
+        label: Radar shape
+        polygon: Polygon
+        circle: Circle
     gaugeColor: Color
     label: Metric
     labelColor: Label color

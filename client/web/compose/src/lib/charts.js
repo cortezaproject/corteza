@@ -11,6 +11,8 @@ export function chartConstructor (c) {
         return new compose.FunnelChart(c)
       } else if (m.type === 'gauge') {
         return new compose.GaugeChart(c)
+      } else if (m.type === 'radar') {
+        return new compose.RadarChart(c)
       }
     }
   }

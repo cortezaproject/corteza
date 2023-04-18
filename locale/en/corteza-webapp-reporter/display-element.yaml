@@ -76,7 +76,7 @@ chart:
     tooltips:
       name: Tooltips
       show:
-        always: Always show tooltips
+        always: Always show labels
     offset:
       name: Offset
       default: Default offset

@@ -59,6 +59,12 @@
             >
               {{ $t('chart.addGauge') }}
             </b-dropdown-item-button>
+            <b-dropdown-item-button
+              variant="dark"
+              @click="$router.push({ name: 'admin.charts.create', params: { category: 'radar' } })"
+            >
+              {{ $t('chart.addRadar') }}
+            </b-dropdown-item-button>
           </b-dropdown>
 
           <import
@@ -204,6 +210,10 @@ export default {
 
         case 'funnel':
           c = new compose.FunnelChart(c)
+          break
+
+        case 'radar':
+          c = new compose.RadarChart(c)
           break
       }
 
