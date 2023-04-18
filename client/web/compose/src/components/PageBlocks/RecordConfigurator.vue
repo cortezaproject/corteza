@@ -1,100 +1,112 @@
 <template>
   <b-tab
     :title="$t('record.label')"
+    no-body
   >
-    <b-row>
-      <b-col
-        cols="12"
-        md="6"
-      >
-        <fieldset
-          class="form-group"
-        >
-          <label>
-            {{ $t('general.module') }}
-          </label>
+    <div class="px-3 pt-3">
+      <h5 class="mb-3">
+        {{ $t('recordList.record.generalLabel') }}
+      </h5>
 
-          <input
-            v-if="module"
-            v-model="module.name"
-            class="form-control"
-            type="text"
-            readonly
+      <b-row>
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('general.module')"
+            label-class="text-primary"
           >
-        </fieldset>
-      </b-col>
+            <b-form-input
+              v-if="module"
+              v-model="module.name"
+              type="text"
+              readonly
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-col
-        cols="12"
-        md="6"
-      >
-        <b-form-group
-          :label="$t('record.referenceRecordField')"
-          :description="$t('record.referenceRecordFieldDescription')"
-          label-class="text-primary"
+        <b-col
+          cols="12"
+          md="6"
         >
-          <vue-select
-            v-model="options.referenceField"
-            :options="recordSelectorFields"
-            :get-option-label="getFieldLabel"
-            :get-option-key="getOptionKey"
-            :placeholder="$t('record.referenceRecordFieldPlaceholder')"
-            :reduce="field => field.fieldID"
-            :calculate-position="calculateDropdownPosition"
-            append-to-body
-            class="bg-white"
-            @input="updateReferenceModule($event, [])"
-          />
-        </b-form-group>
-      </b-col>
-    </b-row>
+          <b-form-group
+            :label="$t('record.recordSelectorDisplayOptions')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="options.recordSelectorDisplayOption"
+              :options="recordDisplayOptions"
+            />
+          </b-form-group>
+        </b-col>
 
-    <b-form-group
-      :label="$t('module:general.fields')"
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('record.referenceRecordField')"
+            :description="$t('record.referenceRecordFieldDescription')"
+            label-class="text-primary"
+          >
+            <vue-select
+              v-model="options.referenceField"
+              :options="recordSelectorFields"
+              :get-option-label="getFieldLabel"
+              :get-option-key="getOptionKey"
+              :placeholder="$t('record.referenceRecordFieldPlaceholder')"
+              :reduce="field => field.fieldID"
+              :calculate-position="calculateDropdownPosition"
+              append-to-body
+              class="bg-white"
+              @input="updateReferenceModule($event, [])"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+    </div>
+
+    <hr v-if="module">
+
+    <div
+      v-if="module"
+      class="px-3"
     >
-      <field-picker
-        v-if="module"
-        :module="fieldModule"
-        :fields.sync="options.fields"
-        style="max-height: 52vh;"
-      />
-    </b-form-group>
+      <h5 class="mb-3">
+        {{ $t('module:general.fields') }}
+      </h5>
+
+      <b-row>
+        <b-col
+          cols="12"
+        >
+          <field-picker
+            :module="fieldModule"
+            :fields.sync="options.fields"
+            style="max-height: 52vh;"
+          />
+        </b-col>
+      </b-row>
+    </div>
 
     <hr>
 
-    <div>
-      <b-form-group
-        label-size="lg"
-      >
-        <template #label>
-          <div
-            class="d-flex"
-          >
-            {{ $t('record.fieldConditions.label') }}
+    <div class="px-3">
+      <h5 class="d-flex align-items-center justify-content-between mb-3">
+        {{ $t('record.fieldConditions.label') }}
 
-            <b-button
-              variant="link"
-              class="p-0 ml-1 text-decoration-none border-0"
-              :disabled="addRuleDisabled"
-              @click="addRule"
-            >
-              {{ $t('record.fieldConditions.action') }}
-            </b-button>
-
-            <b-button
-              variant="link"
-              :href="`${documentationURL}#value-sanitizers`"
-              target="_blank"
-              class="p-0 ml-auto"
-            >
-              {{ $t('record.fieldConditions.help') }}
-            </b-button>
-          </div>
-        </template>
-      </b-form-group>
+        <b-button
+          variant="link"
+          :href="`${documentationURL}#value-sanitizers`"
+          target="_blank"
+          class="p-0 ml-auto"
+        >
+          {{ $t('record.fieldConditions.help') }}
+        </b-button>
+      </h5>
 
       <b-table-simple
-        v-if="block.options.fieldConditions.length"
         borderless
         small
         responsive="lg"
@@ -166,25 +178,20 @@
               />
             </b-td>
           </b-tr>
+
+          <b-tr>
+            <b-td>
+              <b-button
+                variant="primary"
+                :disabled="addRuleDisabled"
+                @click="addRule"
+              >
+                {{ $t('record.fieldConditions.action') }}
+              </b-button>
+            </b-td>
+          </b-tr>
         </b-tbody>
       </b-table-simple>
-
-      <b-row>
-        <b-col
-          cols="12"
-          md="6"
-        >
-          <b-form-group
-            :label="$t('record.recordSelectorDisplayOptions')"
-            label-class="text-primary"
-          >
-            <b-form-select
-              v-model="options.recordSelectorDisplayOption"
-              :options="recordDisplayOptions"
-            />
-          </b-form-group>
-        </b-col>
-      </b-row>
     </div>
   </b-tab>
 </template>
