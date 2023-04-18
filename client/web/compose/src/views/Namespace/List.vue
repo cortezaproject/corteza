@@ -40,7 +40,6 @@
         >
           <c-input-search
             v-model.trim="query"
-            size="lg"
             :placeholder="$t('searchPlaceholder')"
           />
         </b-col>
