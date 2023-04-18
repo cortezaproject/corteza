@@ -113,9 +113,7 @@ export default {
           ? this.value === o.value
           : (this.value || []).includes(o.value)
         return { ...o, disabled }
-      }).filter(({ value = '', text = '' }) => {
-        return value !== '' || text !== ''
-      })
+      }).filter(({ value = '', text = '' }) => value && text)
     },
   },
 

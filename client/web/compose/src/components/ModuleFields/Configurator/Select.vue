@@ -4,44 +4,94 @@
       <b-form-group
         :label="$t('kind.select.optionsLabel')"
       >
-        <b-input-group
-          v-for="(option, index) in f.options.options"
-          :key="index"
-          class="mb-1"
+        <b-table-simple
+          borderless
+          small
+          responsive="lg"
         >
-          <b-form-input
-            v-model.trim="f.options.options[index].value"
-            plain
-            size="sm"
-            :placeholder="$t('kind.select.optionValuePlaceholder')"
-          />
+          <b-thead>
+            <b-tr>
+              <b-th />
 
-          <b-form-input
-            v-model.trim="f.options.options[index].text"
-            plain
-            size="sm"
-            :placeholder="$t('kind.select.optionLabelPlaceholder')"
-          />
+              <b-th
+                class="text-primary"
+              >
+                {{ $t('kind.select.optionValuePlaceholder') }}
+              </b-th>
 
-          <b-input-group-append>
-            <field-select-translator
-              v-if="field"
-              :field="field"
-              :module="module"
-              :highlight-key="`meta.options.${option.value}.text`"
-              size="sm"
-              :disabled="isNew || option.new"
-              button-variant="light"
-            />
-            <b-button
-              variant="outline-danger"
-              class="border-0"
-              @click.prevent="f.options.options.splice(index, 1)"
+              <b-th
+                class="text-primary"
+              >
+                {{ $t('kind.select.optionLabelPlaceholder') }}
+              </b-th>
+
+              <b-th />
+            </b-tr>
+          </b-thead>
+
+          <draggable
+            v-model="f.options.options"
+            group="sort"
+            handle=".grab"
+            tag="tbody"
+          >
+            <b-tr
+              v-for="(option, index) in f.options.options"
+              :key="index"
             >
-              <font-awesome-icon :icon="['far', 'trash-alt']" />
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
+              <b-td class="d-flex align-items-center justify-content-center">
+                <font-awesome-icon
+                  :icon="['fas', 'bars']"
+                  class="grab text-light"
+                />
+              </b-td>
+              <b-td
+                style="min-width: 200px;"
+              >
+                <b-form-input
+                  v-model.trim="f.options.options[index].value"
+                  plain
+                  size="sm"
+                  :placeholder="$t('kind.select.optionValuePlaceholder')"
+                />
+              </b-td>
+              <b-td
+                style="min-width: 200px;"
+              >
+                <b-input-group>
+                  <b-form-input
+                    v-model.trim="f.options.options[index].text"
+                    plain
+                    size="sm"
+                    :placeholder="$t('kind.select.optionLabelPlaceholder')"
+                  />
+
+                  <b-input-group-append>
+                    <field-select-translator
+                      v-if="field"
+                      :field="field"
+                      :module="module"
+                      :highlight-key="`meta.options.${option.value}.text`"
+                      size="sm"
+                      :disabled="isNew || option.new"
+                      button-variant="light"
+                    />
+                  </b-input-group-append>
+                </b-input-group>
+              </b-td>
+
+              <b-td class="d-flex align-items-center justify-content-center">
+                <b-button
+                  variant="outline-danger"
+                  class="border-0"
+                  @click.prevent="f.options.options.splice(index, 1)"
+                >
+                  <font-awesome-icon :icon="['far', 'trash-alt']" />
+                </b-button>
+              </b-td>
+            </b-tr>
+          </draggable>
+        </b-table-simple>
       </b-form-group>
 
       <div class="my-2">
@@ -80,6 +130,7 @@
 
 <script>
 import base from './base'
+import Draggable from 'vuedraggable'
 import { NoID } from '@cortezaproject/corteza-js'
 import FieldSelectTranslator from 'corteza-webapp-compose/src/components/Admin/Module/FieldSelectTranslator'
 
@@ -90,6 +141,7 @@ export default {
 
   components: {
     FieldSelectTranslator,
+    Draggable,
   },
 
   extends: base,
