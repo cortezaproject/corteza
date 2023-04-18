@@ -272,49 +272,49 @@ pages:
                   enabled: true
                 back:
                   enabled: true
-              blocks:
-                - blockID: 1
-                  xywh:
-                    - 0
-                    - 0
-                    - 3
-                    - 11
-                - blockID: 2
-                  xywh:
-                    - 9
-                    - 0
-                    - 3
-                    - 11
-                - blockID: 3
-                  xywh:
-                    - 3
-                    - 0
-                    - 6
-                    - 5
-                - blockID: 4
-                  xywh:
-                    - 3
-                    - 5
-                    - 6
-                    - 11
-                - blockID: 5
-                  xywh:
-                    - 0
-                    - 11
-                    - 3
-                    - 7
-                - blockID: 6
-                  xywh:
-                    - 9
-                    - 11
-                    - 3
-                    - 7
-                - blockID: 7
-                  xywh:
-                    - 3
-                    - 3
-                    - 6
-                    - 2
+            blocks:
+              - blockID: 1
+                xywh:
+                  - 0
+                  - 0
+                  - 12
+                  - 44
+              - blockID: 2
+                xywh:
+                  - 36
+                  - 0
+                  - 12
+                  - 44
+              - blockID: 3
+                xywh:
+                  - 12
+                  - 0
+                  - 24
+                  - 20
+              - blockID: 4
+                xywh:
+                  - 12
+                  - 20
+                  - 24
+                  - 44
+              - blockID: 5
+                xywh:
+                  - 0
+                  - 44
+                  - 12
+                  - 28
+              - blockID: 6
+                xywh:
+                  - 36
+                  - 44
+                  - 12
+                  - 28
+              - blockID: 7
+                xywh:
+                  - 12
+                  - 12
+                  - 24
+                  - 8
         blocks:
           - title: Case Description
             options:
@@ -480,13 +480,13 @@ pages:
                       enabled: true
                     back:
                       enabled: true
-                  blocks:
-                    - blockID: 1
-                      xywh:
-                        - 0
-                        - 0
-                        - 5
-                        - 18
+                blocks:
+                  - blockID: 1
+                    xywh:
+                      - 0
+                      - 0
+                      - 20
+                      - 72
             blocks:
               - title: Attachment Details
                 options:
@@ -525,25 +525,25 @@ pages:
                       enabled: true
                     back:
                       enabled: true
-                  blocks:
-                    - blockID: 1
-                      xywh:
-                        - 0
-                        - 0
-                        - 8
-                        - 18
-                    - blockID: 2
-                      xywh:
-                        - 8
-                        - 0
-                        - 4
-                        - 7
-                    - blockID: 3
-                      xywh:
-                        - 8
-                        - 7
-                        - 4
-                        - 11
+                blocks:
+                  - blockID: 1
+                    xywh:
+                      - 0
+                      - 0
+                      - 32
+                      - 72
+                  - blockID: 2
+                    xywh:
+                      - 32
+                      - 0
+                      - 16
+                      - 28
+                  - blockID: 3
+                    xywh:
+                      - 32
+                      - 28
+                      - 16
+                      - 44
             blocks:
               - title: Content
                 options:
@@ -619,8 +619,8 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 12
-                  - 16
+                  - 48
+                  - 64
         blocks:
           - title: All my cases
             options:
@@ -681,8 +681,8 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 12
-                  - 16
+                  - 48
+                  - 64
         blocks:
           - title: My new cases
             options:
@@ -837,44 +837,44 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 3
                   - 12
+                  - 48
               - blockID: 2
                 xywh:
-                  - 3
-                  - 0
-                  - 3
                   - 12
+                  - 0
+                  - 12
+                  - 48
               - blockID: 3
                 xywh:
-                  - 6
+                  - 24
                   - 0
-                  - 3
                   - 12
+                  - 48
               - blockID: 4
                 xywh:
-                  - 9
+                  - 36
                   - 0
-                  - 3
-                  - 30
+                  - 12
+                  - 120
               - blockID: 5
                 xywh:
                   - 0
-                  - 12
-                  - 9
-                  - 9
+                  - 48
+                  - 36
+                  - 36
               - blockID: 6
                 xywh:
-                  - 6
-                  - 21
-                  - 3
-                  - 9
+                  - 24
+                  - 84
+                  - 12
+                  - 36
               - blockID: 7
                 xywh:
                   - 0
-                  - 21
-                  - 6
-                  - 9
+                  - 84
+                  - 24
+                  - 36
         blocks:
           - title: Account Detail
             options:
@@ -1030,8 +1030,8 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 12
-                  - 16
+                  - 48
+                  - 64
         blocks:
           - title: Contacts
             options:
@@ -1094,32 +1094,32 @@ pages:
                     xywh:
                       - 0
                       - 0
-                      - 3
-                      - 11
+                      - 12
+                      - 44
                   - blockID: 2
                     xywh:
-                      - 3
+                      - 12
                       - 0
-                      - 3
-                      - 11
+                      - 12
+                      - 44
                   - blockID: 3
                     xywh:
-                      - 6
+                      - 24
                       - 0
-                      - 3
-                      - 11
+                      - 12
+                      - 44
                   - blockID: 4
                     xywh:
-                      - 9
+                      - 36
                       - 0
-                      - 3
-                      - 30
+                      - 12
+                      - 120
                   - blockID: 5
                     xywh:
                       - 0
-                      - 11
-                      - 9
-                      - 9
+                      - 44
+                      - 36
+                      - 36
             blocks:
               - title: Personal Data
                 options:
@@ -1233,8 +1233,8 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 12
-                  - 16
+                  - 48
+                  - 64
         blocks:
           - title: Entitlements
             options:
@@ -1297,20 +1297,20 @@ pages:
                     xywh:
                       - 0
                       - 0
-                      - 4
-                      - 15
+                      - 16
+                      - 60
                   - blockID: 2
                     xywh:
-                      - 8
+                      - 32
                       - 0
-                      - 4
-                      - 15
+                      - 16
+                      - 60
                   - blockID: 3
                     xywh:
-                      - 4
+                      - 16
                       - 0
-                      - 4
-                      - 15
+                      - 16
+                      - 60
             blocks:
               - title: Product Entitlement
                 options:
@@ -1484,44 +1484,44 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 3
-                  - 10
+                  - 12
+                  - 40
               - blockID: 2
                 xywh:
-                  - 9
+                  - 36
                   - 0
-                  - 3
-                  - 10
+                  - 12
+                  - 40
               - blockID: 3
                 xywh:
                   - 0
-                  - 10
-                  - 12
-                  - 8
+                  - 40
+                  - 48
+                  - 32
               - blockID: 4
                 xywh:
                   - 0
-                  - 18
-                  - 6
-                  - 7
+                  - 72
+                  - 24
+                  - 28
               - blockID: 5
                 xywh:
-                  - 6
-                  - 18
-                  - 6
-                  - 7
+                  - 24
+                  - 72
+                  - 24
+                  - 28
               - blockID: 6
                 xywh:
-                  - 6
+                  - 24
                   - 0
-                  - 3
-                  - 10
+                  - 12
+                  - 40
               - blockID: 7
                 xywh:
-                  - 3
+                  - 12
                   - 0
-                  - 3
-                  - 10
+                  - 12
+                  - 40
         blocks:
           - title: Product Description
             options:
@@ -1665,8 +1665,8 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 12
-                  - 16
+                  - 48
+                  - 64
         blocks:
           - title: Entitlement Templates
             options:
@@ -1726,14 +1726,14 @@ pages:
                     xywh:
                       - 0
                       - 0
-                      - 6
-                      - 16
+                      - 24
+                      - 64
                   - blockID: 2
                     xywh:
-                      - 6
+                      - 24
                       - 0
-                      - 6
-                      - 16
+                      - 24
+                      - 64
             blocks:
               - title: Entitlement Template
                 options:
@@ -1894,28 +1894,28 @@ pages:
             blocks:
               - blockID: 1
                 xywh:
-                  - 3
-                  - 5
-                  - 6
-                  - 15
+                  - 12
+                  - 20
+                  - 24
+                  - 60
               - blockID: 2
                 xywh:
-                  - 9
+                  - 36
                   - 0
-                  - 3
-                  - 20
+                  - 12
+                  - 80
               - blockID: 3
                 xywh:
-                  - 3
+                  - 12
                   - 0
-                  - 6
-                  - 5
+                  - 24
+                  - 20
               - blockID: 4
                 xywh:
                   - 0
                   - 0
-                  - 3
-                  - 20
+                  - 12
+                  - 80
         blocks:
           - title: Details
             options:
@@ -2102,20 +2102,20 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 6
-                  - 6
+                  - 24
+                  - 24
               - blockID: 2
                 xywh:
-                  - 6
+                  - 24
                   - 0
-                  - 6
-                  - 6
+                  - 24
+                  - 24
               - blockID: 3
                 xywh:
                   - 0
-                  - 6
-                  - 12
-                  - 10
+                  - 24
+                  - 48
+                  - 40
         blocks:
           - title: Department details
             options:
@@ -2595,8 +2595,8 @@ pages:
                 xywh:
                   - 0
                   - 0
-                  - 6
-                  - 17
+                  - 24
+                  - 68
         blocks:
           - title: Settings
             options:
