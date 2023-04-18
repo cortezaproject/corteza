@@ -1,6 +1,7 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
+    class="d-flex flex-column h-100 py-3"
   >
     <c-content-header
       :title="$t('title')"

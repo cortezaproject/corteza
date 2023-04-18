@@ -1,6 +1,7 @@
 <template>
   <b-container
     fluid="xl"
+    class="d-flex flex-column h-100 py-3"
   >
     <c-content-header
       :title="$t('title')"
@@ -25,17 +26,45 @@
       }"
       sticky-header
       hide-search
-      class="custom-resource-height"
+      hide-total
+      class="custom-resource-list-height-no-buttons"
     >
       <template #header>
-        <c-resource-list-status-filter
-          v-model="filter.completed"
-          :label="$t('filterForm.inProgress.label')"
-          :excluded-label="$t('filterForm.excluded.label')"
-          :inclusive-label="$t('filterForm.inclusive.label')"
-          :exclusive-label="$t('filterForm.exclusive.label')"
-          @change="filterList"
-        />
+        <b-row>
+          <b-col
+            cols="12"
+            sm="5"
+          >
+            <b-form-group
+              :label="$t('columns.sessionID')"
+              label-class="text-primary"
+              class="mb-2"
+            >
+              <c-input-search
+                :value="filter.sessionID"
+                size="sm"
+                @input="filterBySessionID"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            sm="5"
+          >
+            <b-form-group
+              :label="$t('columns.workflowID')"
+              label-class="text-primary"
+            >
+              <c-input-search
+                :value="filter.workflowID"
+                size="sm"
+                @input="filterByWorkflowID"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+
         <b-form-radio-group
           v-model="filter.status"
           :options="statusOptions"
@@ -47,6 +76,24 @@
         <span class="ml-2 text-nowrap">
           {{ $t('filterForm.sessions.label') }}
         </span>
+      </template>
+
+      <template #sessionID="{ item }">
+        <a
+          href="javascript:;"
+          @click="filterBySessionID(item.sessionID)"
+        >
+          {{ item.sessionID }}
+        </a>
+      </template>
+
+      <template #workflowID="{ item }">
+        <a
+          href="javascript:;"
+          @click="filterByWorkflowID(item.workflowID)"
+        >
+          {{ item.workflowID }}
+        </a>
       </template>
 
       <template #actions="{ item }">
@@ -67,11 +114,12 @@
 <script>
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import { components } from '@cortezaproject/corteza-vue'
-const { CResourceList } = components
+const { CResourceList, CInputSearch } = components
 
 export default {
   components: {
     CResourceList,
+    CInputSearch,
   },
 
   mixins: [
@@ -91,7 +139,10 @@ export default {
       editRoute: 'automation.session.edit',
 
       filter: {
-        status: undefined,
+        // Use null not undefined!
+        sessionID: null,
+        workflowID: null,
+        status: null,
         completed: 1,
       },
 
@@ -109,7 +160,6 @@ export default {
         },
         {
           key: 'status',
-          sortable: true,
         },
         {
           key: 'eventType',
@@ -135,7 +185,7 @@ export default {
   computed: {
     statusOptions () {
       return [
-        { value: undefined, text: this.$t('filterForm.all.label') },
+        { value: null, text: this.$t('filterForm.all.label') },
         { value: 0, text: this.$t('filterForm.started.label') },
         { value: 1, text: this.$t('filterForm.prompted.label') },
         { value: 2, text: this.$t('filterForm.suspended.label') },
@@ -152,6 +202,16 @@ export default {
 
     rowClass (item) {
       return { 'text-primary': item && !!item.completedAt }
+    },
+
+    filterBySessionID (sessionID) {
+      this.filter.sessionID = sessionID || null
+      this.filterList()
+    },
+
+    filterByWorkflowID (workflowID) {
+      this.filter.workflowID = workflowID || null
+      this.filterList()
     },
   },
 }

@@ -1,5 +1,7 @@
 <template>
-  <b-input-group>
+  <b-input-group
+    :size="size"
+  >
     <b-input
       ref="searchInput"
       data-test-id="input-search"
@@ -10,7 +12,6 @@
       :disabled="disabled"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
-      :size="size"
       class="h-100 pr-0 border-light border-right-0 text-truncate bg-white"
       @update="search"
       @keyup.enter="submitQuery"
@@ -23,6 +24,7 @@
         v-if="showSubmittable"
         variant="link"
         :disabled="disabled"
+        class="py-0"
         :class="{
           'search-icon-border': showSubmittableAndClearable,
           'cursor-default': !isSubmittable
