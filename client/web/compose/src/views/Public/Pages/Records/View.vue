@@ -1,7 +1,6 @@
 <template>
   <div
-    :class="{ 'flex-column': showRecordModal }"
-    class="d-flex flex-grow-1 w-100 h-100"
+    class="d-flex flex-column flex-grow-1 w-100 h-100 overflow-auto"
   >
     <b-alert
       v-if="isDeleted"
@@ -31,6 +30,7 @@
       :record="record"
       :blocks="blocks"
       :mode="inEditing ? 'editor' : 'base'"
+      class="h-100"
       @reload="loadRecord()"
     />
 
