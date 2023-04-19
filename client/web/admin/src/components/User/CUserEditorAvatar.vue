@@ -1,7 +1,7 @@
 <template>
   <b-card
     class="shadow-sm"
-    data-test-id="card-user-info"
+    data-test-id="card-user-profile-avatar"
     header-bg-variant="white"
     footer-bg-variant="white"
   >
@@ -50,8 +50,8 @@
         >
           <b-form-input
             v-model="user.meta.avatarColor"
+            data-test-id="input-text-color"
             type="color"
-            data-test-id="input-handle"
           />
         </b-form-group>
 
@@ -61,6 +61,7 @@
         >
           <b-form-input
             v-model="user.meta.avatarBgColor"
+            data-test-id="input-background-color"
             type="color"
           />
         </b-form-group>
