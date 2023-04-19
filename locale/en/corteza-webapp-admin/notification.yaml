@@ -44,8 +44,11 @@ user:
   import:
     success: Users imported successfully
   avatarUpload:
-    success: Avatar uploaded
+    success: Avatar updated
     error: Avatar upload failed
+  avatarSettings:
+    success: Avatar settings updated
+    error: Avatar settings update failed
   avatarDelete:
     success: Avatar deleted
     error: Avatar delete failed

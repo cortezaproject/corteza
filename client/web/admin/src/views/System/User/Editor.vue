@@ -55,9 +55,8 @@
     <c-user-editor-avatar
       v-if="user && userID && $Settings.get('auth.internal.profile-avatar.Enabled', false)"
       :user="user"
-      :processing="info.processing"
-      :success="info.success"
-      :can-create="canCreate"
+      :processing="avatar.processing"
+      :success="avatar.success"
       class="mt-3"
       @submit="onAvatarSubmit"
       @onUpload="onAvatarUpload"
@@ -154,6 +153,10 @@ export default {
         processing: false,
         success: false,
       },
+      avatar: {
+        processing: false,
+        success: false,
+      },
       password: {
         processing: false,
         success: false,
@@ -207,10 +210,10 @@ export default {
       return system.UserEvent(res)
     },
 
-    fetchUser () {
+    async fetchUser () {
       this.incLoader()
 
-      this.$SystemAPI.userRead({ userID: this.userID })
+      return this.$SystemAPI.userRead({ userID: this.userID })
         .then(user => {
           this.user = new system.User(user)
         })
@@ -286,7 +289,7 @@ export default {
     },
 
     onAvatarSubmit (user) {
-      this.info.processing = true
+      this.avatar.processing = true
 
       const payload = {
         userID: user.userID,
@@ -295,15 +298,14 @@ export default {
       }
 
       this.$SystemAPI.userProfileAvatarInitial(payload)
+        .then(() => this.fetchUser())
         .then(() => {
-          this.fetchUser()
-          this.$auth.handle()
-          this.animateSuccess('info')
-          this.toastSuccess(this.$t('notification:user.avatarUpload.success'))
+          this.animateSuccess('avatar')
+          this.toastSuccess(this.$t('notification:user.avatarSettings.success'))
         })
-        .catch(this.toastErrorHandler(this.$t('notification:user.avatarUpload.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:user.avatarSettings.error')))
         .finally(() => {
-          this.info.processing = false
+          this.avatar.processing = false
         })
     },
 
@@ -409,7 +411,7 @@ export default {
         ...original.filter(roleID => !active.includes(roleID)).map(roleID => {
           return this.$SystemAPI.userMembershipRemove({ roleID, userID })
         }),
-        // all new memerships
+        // all new memberships
         ...active.filter(roleID => !original.includes(roleID)).map(roleID => {
           return this.$SystemAPI.userMembershipAdd({ roleID, userID })
         }),
@@ -482,16 +484,17 @@ export default {
     },
 
     onAvatarUpload () {
-      this.fetchUser()
+      this.fetchUser().then(() => {
+        this.toastSuccess(this.$t('notification:user.avatarUpload.success'))
+      })
     },
 
     onResetAvatar () {
       const userID = this.userID
 
       this.$SystemAPI.userDeleteAvatar({ userID })
+        .then(() => this.fetchUser())
         .then(() => {
-          this.fetchUser()
-
           this.toastSuccess(this.$t('notification:user.avatarDelete.success'))
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.avatarDelete.error')))
