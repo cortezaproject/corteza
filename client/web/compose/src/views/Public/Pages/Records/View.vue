@@ -17,8 +17,15 @@
       {{ title }}
     </portal>
 
+    <div
+      v-if="!layout"
+      class="d-flex align-items-center justify-content-center h-100"
+    >
+      <b-spinner />
+    </div>
+
     <grid
-      v-if="blocks"
+      v-else-if="blocks"
       v-bind="$props"
       :errors="errors"
       :record="record"
@@ -380,7 +387,12 @@ export default {
     },
 
     async determineLayout (pageLayoutID) {
-      const expressions = await this.evaluateLayoutExpressions()
+      let expressions = {}
+
+      // Only evaluate if one of the layouts has an expressions variable
+      if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
+        expressions = await this.evaluateLayoutExpressions()
+      }
 
       // Check layouts for expressions/roles and find the first one that fits
       this.layout = this.layouts.find(l => {

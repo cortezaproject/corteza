@@ -58,6 +58,13 @@
         class="flex-grow-1 overflow-auto d-flex flex-column"
       />
 
+      <div
+        v-else-if="!layout"
+        class="d-flex align-items-center justify-content-center w-100"
+      >
+        <b-spinner />
+      </div>
+
       <grid
         v-else-if="blocks"
         :namespace="namespace"
@@ -238,7 +245,13 @@ export default {
     async determineLayout () {
       this.layouts = this.getPageLayouts(this.page.pageID)
 
-      const expressions = await this.evaluateLayoutExpressions()
+      let expressions = {}
+
+      // Only evaluate if one of the layouts has an expressions variable
+      if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
+        this.pageTitle = this.page.title
+        expressions = await this.evaluateLayoutExpressions()
+      }
 
       // Check layouts for expressions/roles and find the first one that fits
       this.layout = this.layouts.find(({ pageLayoutID, config = {} }) => {

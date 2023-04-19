@@ -1,6 +1,5 @@
 <template>
   <div
-    v-if="page"
     class="py-3"
   >
     <portal to="topbar-title">
@@ -26,7 +25,6 @@
         </b-button>
 
         <page-translator
-          v-if="page"
           :page.sync="page"
           :page-layouts.sync="layouts"
           style="margin-left:2px;"
@@ -46,7 +44,17 @@
       </b-button-group>
     </portal>
 
-    <b-container fluid="xl">
+    <div
+      v-if="processing"
+      class="d-flex align-items-center justify-content-center h-100"
+    >
+      <b-spinner />
+    </div>
+
+    <b-container
+      v-else
+      fluid="xl"
+    >
       <div
         class="d-flex align-items-center mt-1 mb-2"
       >
@@ -706,7 +714,7 @@
       <editor-toolbar
         :back-link="{ name: 'admin.pages' }"
         :hide-delete="hideDelete"
-        :hide-save="!page.canUpdatePage"
+        :hide-save="hideSave"
         :disable-save="disableSave"
         :processing="processing"
         @clone="handleClone()"
@@ -840,11 +848,15 @@ export default {
     },
 
     disableSave () {
-      return [this.titleState, this.handleState].includes(false) || this.layouts.some(l => !l.meta.title || handle.handleState(l.handle) === false)
+      return !this.page || [this.titleState, this.handleState].includes(false) || this.layouts.some(l => !l.meta.title || handle.handleState(l.handle) === false)
     },
 
     hideDelete () {
-      return this.hasChildren || !this.page.canDeletePage || !!this.page.deletedAt
+      return !this.page || this.hasChildren || !this.page.canDeletePage || !!this.page.deletedAt
+    },
+
+    hideSave () {
+      return !this.page || !this.page.canUpdatePage
     },
 
     showDeleteDropdown () {
@@ -936,7 +948,7 @@ export default {
           this.processing = true
 
           const { namespaceID } = this.namespace
-          this.findPageByID({ namespaceID, pageID }).then((page) => {
+          this.findPageByID({ namespaceID, pageID, force: true }).then((page) => {
             this.page = page.clone()
             return this.fetchAttachments()
           }).then(this.fetchLayouts)
