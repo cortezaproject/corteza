@@ -158,6 +158,7 @@ export default {
 
     onError (e, message) {
       this.error = message
+      this.active = null
     },
 
     onUploadProgress (file, progress, bytesSent) {

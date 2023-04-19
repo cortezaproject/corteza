@@ -72,7 +72,6 @@
         class="float-right"
         :processing="processing"
         :success="success"
-        :disabled="saveDisabled"
         @submit="$emit('submit', user)"
       />
     </template>
@@ -80,7 +79,6 @@
 </template>
 
 <script>
-import { NoID } from '@cortezaproject/corteza-js'
 import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import CUploaderWithPreview from 'corteza-webapp-admin/src/components/CUploaderWithPreview'
 
@@ -112,26 +110,9 @@ export default {
       type: Boolean,
       value: false,
     },
-
-    canCreate: {
-      type: Boolean,
-      required: true,
-    },
   },
 
   computed: {
-    fresh () {
-      return !this.user.userID || this.user.userID === NoID
-    },
-
-    editable () {
-      return this.fresh ? this.canCreate : this.user.canUpdateUser
-    },
-
-    saveDisabled () {
-      return !this.editable
-    },
-
     isKindAvatar () {
       return this.user.meta.avatarKind === 'avatar'
     },
