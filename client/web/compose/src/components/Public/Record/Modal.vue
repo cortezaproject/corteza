@@ -22,7 +22,7 @@
       :page="page"
       :module="module"
       :record-i-d="recordID"
-      :show-record-modal="showModal"
+      show-record-modal
     />
 
     <template #modal-footer>
@@ -84,14 +84,14 @@ export default {
       immediate: true,
       handler (recordID, oldRecordID) {
         const { recordPageID } = this.$route.query
-        const { pageID: oldrecordPageID } = this.page || {}
+        const { pageID: oldRecordPageID } = this.page || {}
 
         if (!recordID) {
           this.showModal = false
           return
         }
 
-        if (recordPageID !== oldrecordPageID) {
+        if (recordPageID !== oldRecordPageID) {
           // If the page changed we need to clear the record pagination since its not relevant anymore
           if (this.recordPaginationUsable) {
             this.setRecordPaginationUsable(false)
@@ -116,9 +116,9 @@ export default {
           }
         }
 
-        setTimeout(() => {
+        this.$nextTick(() => {
           this.loadModal({ recordID, recordPageID })
-        }, 100)
+        })
       },
     },
   },

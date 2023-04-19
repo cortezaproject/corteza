@@ -120,15 +120,22 @@ export default {
       immediate: true,
       deep: true,
       handler (blocks) {
-        this.layout = []
-
-        // Next tick is important, otherwise it can lead to overlapping blocks
-        this.$nextTick(() => {
-          this.layout = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
-            // To avoid collision with hidden elements
-            return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
-          })
+        blocks = blocks.map(({ meta, xywh: [x, y, w, h] }, i) => {
+          // To avoid collision with hidden elements
+          return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
         })
+
+        // Only use next tick if previous layout exists
+        if (this.layout.length) {
+          this.layout = []
+
+          // Next tick is important, otherwise it can lead to overlapping blocks
+          this.$nextTick(() => {
+            this.layout = blocks
+          })
+        } else {
+          this.layout = blocks
+        }
       },
     },
   },
