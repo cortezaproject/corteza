@@ -17,7 +17,7 @@
       :cols="columnNumber"
       :margin="[0, 0]"
       :responsive="!editable"
-      use-css-transforms
+      :use-css-transforms="false"
       class="flex-grow-1 d-flex w-100 h-100"
     >
       <template

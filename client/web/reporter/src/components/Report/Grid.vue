@@ -13,7 +13,7 @@
       :cols="{ lg: 48, md: 48, sm: 1, xs: 1, xxs: 1 }"
       :margin="[0, 0]"
       :responsive="!editable"
-      use-css-transforms
+      :use-css-transforms="false"
     >
       <grid-item
         v-for="(item, index) in grid"
