@@ -32,6 +32,19 @@ export default class RadarChart extends BaseChart {
 
     const labelFormatter = '{c}'
 
+    let min: number = 0
+    let max: number = Math.max()
+    const seriesData: any[] = []
+
+    datasets.forEach(({ data: value, label: name }: any) => {
+      value.forEach((v: number) => {
+        if (v < min) min = v
+        if (v > max) max = v
+      })
+
+      seriesData.push({ value, name })
+    })
+
     return {
       color: getColorschemeColors(colorScheme),
       animation: !noAnimation,
@@ -62,7 +75,7 @@ export default class RadarChart extends BaseChart {
       radar: {
         shape: dimension.shape,
         indicator: labels.map((name: string) => {
-          return { name }
+          return { name, min, max }
         }),
         center: ['50%', '55%']
       },
@@ -72,9 +85,7 @@ export default class RadarChart extends BaseChart {
           show: dimension.fixTooltips,
           formatter: labelFormatter,
         },
-        data: datasets.map(({ data: value, label: name }: any, index: number) => {
-          return { value, name }
-        }),
+        data: seriesData,
       },
     }
   }
