@@ -207,7 +207,7 @@ export default class Chart extends BaseChart {
         options.tooltip.trigger = 'axis'
 
         const defaultOffset = {
-          top: 50,
+          top: 65,
           right: timeline.includes('x') ? 40 : 30,
           bottom: timeline.includes('x') ? 60 : 20,
           left: 30,
