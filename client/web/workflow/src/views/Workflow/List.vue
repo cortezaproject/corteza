@@ -112,7 +112,7 @@
               </b-col>
             </template>
 
-            <template #handle="{ item: w }">
+            <template #name="{ item: w }">
               {{ w.meta.name || w.handle }}
               <h5 class="d-inline-block ml-2">
                 <b-badge
