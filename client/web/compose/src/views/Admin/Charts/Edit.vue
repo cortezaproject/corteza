@@ -303,7 +303,7 @@
         :hide-save="hideSave"
         hide-clone
         :disable-save="disableSave"
-        @delete="handleDelete"
+        @delete="handleDelete()"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
       />

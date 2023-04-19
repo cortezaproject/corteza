@@ -109,6 +109,7 @@
         <related-pages
           :namespace="namespace"
           :module="m"
+          size="sm"
         />
 
         <b-button-group
