@@ -8,7 +8,7 @@ roles:
     name: Security administrator
 
   low-code-admin:
-    name: Low code administrator
+    name: Namespace administrator
 
   owner:
     name: Owner

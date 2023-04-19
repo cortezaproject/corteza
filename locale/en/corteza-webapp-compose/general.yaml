@@ -1,7 +1,7 @@
 label:
   app-name:
-    public: Low Code
-    private: Low Code - Admin
+    public: Namespaces
+    private: Namespaces - Admin
   actions: Actions
   active: Active
   add: Add

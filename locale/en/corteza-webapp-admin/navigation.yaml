@@ -13,7 +13,7 @@ system:
     permissions: Permissions
     queues: Messaging Queues
     roles: Roles
-    settings: Settings
+    settings: Auth Settings
     email: Email settings
     stats: Stats
     templates: Templates

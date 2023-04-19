@@ -10,7 +10,7 @@ const props = {
     listed: true,
     logo: '/applications/low-code-platform.png',
     pinned: false,
-    name: 'Low Code',
+    name: 'Namespaces',
     url: '/compose',
   },
 

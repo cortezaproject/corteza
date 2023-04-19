@@ -1,5 +1,5 @@
 applications:
-  - name: Low Code
+  - name: Namespaces
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:
@@ -26,7 +26,7 @@ applications:
       logo: applications/low-code-service-solution-app.png
       url: compose/ns/service-solution/pages
 
-  - name: Jitsi Bridge
+  - name: Jitsi Video Conferencing
     (envoy): { skipIf: "!missing" }
     enabled: true
     unify:

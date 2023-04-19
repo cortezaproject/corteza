@@ -48,7 +48,7 @@ slug:
 subtitle:
   label: Subtitle
   placeholder: Enter namespace subtitle
-title: Low Code Namespaces
+title: Namespaces
 tooltip:
   translations: Namespace translations
 visit: View namespace
