@@ -90,19 +90,22 @@
                 </b-button>
               </b-td>
             </b-tr>
+
+            <b-tr>
+              <b-td />
+              <b-td>
+                <b-button
+                  variant="primary px-3"
+                  size="md"
+                  @click.prevent="handleAddOption"
+                >
+                  + {{ $t('kind.select.optionAdd') }}
+                </b-button>
+              </b-td>
+            </b-tr>
           </draggable>
         </b-table-simple>
       </b-form-group>
-
-      <div class="my-2">
-        <b-button
-          variant="primary px-3"
-          size="md"
-          @click.prevent="handleAddOption"
-        >
-          + {{ $t('kind.select.optionAdd') }}
-        </b-button>
-      </div>
 
       <b-form-group
         v-if="f.isMulti"
