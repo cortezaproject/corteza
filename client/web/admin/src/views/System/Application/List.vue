@@ -49,7 +49,6 @@
       :fields="fields"
       :items="items"
       :row-class="genericRowClass"
-      class="custom-resource-height"
       :translations="{
         searchPlaceholder: $t('filterForm.query.placeholder'),
         notFound: $t('admin:general.notFound'),
@@ -61,6 +60,7 @@
         nextPagination: $t('admin:general.pagination.next'),
       }"
       sticky-header
+      class="custom-resource-list-height"
       @search="filterList"
     >
       <template #header>

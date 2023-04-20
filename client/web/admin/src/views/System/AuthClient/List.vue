@@ -37,7 +37,6 @@
       :fields="fields"
       :items="items"
       :row-class="genericRowClass"
-      class="custom-resource-height"
       :translations="{
         searchPlaceholder: $t('filterForm.query.placeholder'),
         notFound: $t('admin:general.notFound'),
@@ -50,6 +49,7 @@
       }"
       sticky-header
       hide-search
+      class="custom-resource-list-height"
       @search="filterList"
     >
       <template #header>

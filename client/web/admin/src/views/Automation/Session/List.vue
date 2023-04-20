@@ -1,11 +1,9 @@
 <template>
   <b-container
     fluid="xl"
-    class="overflow-auto"
   >
     <c-content-header
       :title="$t('title')"
-      class="content-header"
     />
 
     <c-resource-list
@@ -26,8 +24,8 @@
         nextPagination: $t('admin:general.pagination.next'),
       }"
       sticky-header
-      class="h-100"
       hide-search
+      class="custom-resource-height"
     >
       <template #header>
         <c-resource-list-status-filter

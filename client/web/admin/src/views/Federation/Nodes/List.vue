@@ -30,7 +30,6 @@
       :pagination="pagination"
       :sorting="sorting"
       :items="items"
-      class="custom-resource-height"
       :translations="{
         searchPlaceholder: $t('filterForm.query.placeholder'),
         notFound: $t('admin:general.notFound'),
@@ -43,6 +42,7 @@
       }"
       sticky-header
       hide-total
+      class="custom-resource-list-height"
       @search="filterList"
     >
       <template #actions="{ item }">
