@@ -37,11 +37,11 @@
         <b-input-group-append>
           <b-button
             v-if="canManageNamespaces"
-            :disabled="!namespace.canUpdateNamespace"
+            :disabled="canUpdateNamespace"
             :title="$t('editNamespace')"
             variant="primary"
             class="d-flex align-items-center"
-            :to="{ name: 'namespace.edit', params: { namespaceID: namespace.namespaceID } }"
+            :to="{ name: 'namespace.edit', params: { namespaceID: namespaceID } }"
           >
             <font-awesome-icon :icon="['far', 'edit']" />
           </b-button>
@@ -290,6 +290,14 @@ export default {
       }
 
       return current
+    },
+
+    canUpdateNamespace () {
+      return this.namespace ? !this.namespace.canUpdateNamespace : false
+    },
+
+    namespaceID () {
+      return this.namespace ? this.namespace.namespaceID : NoID
     },
   },
 
