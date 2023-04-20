@@ -12,25 +12,24 @@
           class="mr-2 mb-2 text-dark"
           @click="$emit('select', type.block)"
           @mouseover="current = type.image"
+          @mouseleave="current = undefined"
         >
           {{ type.label }}
         </b-button>
       </b-col>
+
       <b-col
         cols="12"
+        style="height: 500px;"
+        class="d-flex align-items-center"
       >
-        <div
-          class="d-flex"
-          style="height: 300px;"
-        >
-          <b-img
-            v-if="current"
-            :src="current"
-            center
-            fluid
-            class="mx-auto"
-          />
-        </div>
+        <b-img
+          v-if="current"
+          :src="current"
+          center
+          fluid
+          class="mx-auto mh-100"
+        />
       </b-col>
 
       <hr
