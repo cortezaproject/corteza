@@ -599,6 +599,7 @@ export default {
         if (oldBlock.meta.hidden === true && this.editor.block.meta.hidden === false) {
           this.untabBlock(this.editor.block)
           this.calculateNewBlockPosition(block)
+          block.style.wrap.kind = 'Card'
         }
 
         this.blocks.splice(this.editor.index, 1, block)
