@@ -58,8 +58,8 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
-      class="custom-resource-height"
       sticky-header
+      class="custom-resource-list-height"
       @search="filterList"
     >
       <template #header>

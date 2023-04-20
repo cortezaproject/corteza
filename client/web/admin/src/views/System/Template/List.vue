@@ -69,7 +69,7 @@
         nextPagination: $t('admin:general.pagination.next'),
       }"
       sticky-header
-      class="custom-resource-height"
+      class="custom-resource-list-height"
       @search="filterList"
     >
       <template #header>

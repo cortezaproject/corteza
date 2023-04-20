@@ -27,7 +27,6 @@
       :fields="fields"
       :items="items"
       :row-class="genericRowClass"
-      class="custom-resource-height"
       :translations="{
         notFound: $t('admin:general.notFound'),
         noItems: $t('admin:general.resource-list.no-items'),
@@ -39,6 +38,7 @@
       }"
       sticky-header
       hide-search
+      class="custom-resource-list-height"
     >
       <template #header>
         <c-resource-list-status-filter
