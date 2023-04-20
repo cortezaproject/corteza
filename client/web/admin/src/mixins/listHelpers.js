@@ -10,7 +10,7 @@ export default {
       filter: {},
 
       pagination: {
-        limit: 10,
+        limit: 100,
         pageCursor: undefined,
         prevPage: '',
         nextPage: '',

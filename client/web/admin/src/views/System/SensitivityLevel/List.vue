@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
   >
     <c-content-header
       :title="$t('title')"
@@ -18,6 +18,7 @@
         </b-button>
       </span>
     </c-content-header>
+
     <c-resource-list
       :primary-key="primaryKey"
       :filter="filter"
@@ -26,6 +27,7 @@
       :fields="fields"
       :items="items"
       :row-class="genericRowClass"
+      class="custom-resource-height"
       :translations="{
         notFound: $t('admin:general.notFound'),
         noItems: $t('admin:general.resource-list.no-items'),
@@ -35,6 +37,7 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      sticky-header
       hide-search
     >
       <template #header>

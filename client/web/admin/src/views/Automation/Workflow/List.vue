@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
   >
     <c-content-header
       :title="$t('title')"
@@ -15,6 +15,7 @@
         >
           {{ $t('new') }}
         </b-button>
+
         <c-permissions-button
           v-if="canGrant"
           resource="corteza::automation:workflow/*"
@@ -25,6 +26,7 @@
           {{ $t('permissions') }}
         </c-permissions-button>
       </span>
+
       <b-dropdown
         v-if="false"
         variant="link"
@@ -37,6 +39,7 @@
         </b-dropdown-item-button>
       </b-dropdown>
     </c-content-header>
+
     <c-resource-list
       :primary-key="primaryKey"
       :filter="filter"
@@ -55,6 +58,8 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      class="custom-resource-height"
+      sticky-header
       @search="filterList"
     >
       <template #header>

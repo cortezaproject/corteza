@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
   >
     <c-content-header
       :title="$t('title')"
@@ -17,6 +17,7 @@
         >
           {{ $t('new') }}
         </b-button>
+
         <c-permissions-button
           v-if="canGrant"
           resource="corteza::system:template/*"
@@ -26,6 +27,7 @@
           {{ $t('permissions') }}
         </c-permissions-button>
       </span>
+
       <b-dropdown
         v-if="false"
         variant="link"
@@ -37,6 +39,7 @@
           {{ $t('yaml') }}
         </b-dropdown-item-button>
       </b-dropdown>
+
       <c-corredor-manual-buttons
         ui-page="template/list"
         ui-slot="toolbar"
@@ -46,6 +49,7 @@
         @click="dispatchCortezaSystemEvent($event)"
       />
     </c-content-header>
+
     <c-resource-list
       :primary-key="primaryKey"
       :filter="filter"
@@ -64,6 +68,8 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      sticky-header
+      class="custom-resource-height"
       @search="filterList"
     >
       <template #header>

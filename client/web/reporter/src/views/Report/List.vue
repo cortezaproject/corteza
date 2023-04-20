@@ -1,95 +1,96 @@
 <template>
-  <div class="d-flex w-100 py-3">
+  <b-container
+    fluid="xl"
+    class="d-flex flex-column py-3"
+  >
     <portal to="topbar-title">
       {{ $t('report.list') }}
     </portal>
 
-    <b-container fluid="xl">
-      <b-row no-gutters>
-        <b-col>
-          <c-resource-list
-            :primary-key="primaryKey"
-            :filter="filter"
-            :sorting="sorting"
-            :pagination="pagination"
-            :fields="tableFields"
-            :items="reportList"
-            :translations="{
-              searchPlaceholder: $t('searchPlaceholder'),
-              notFound: $t('general:resourceList.notFound'),
-              noItems: $t('general:resourceList.noItems'),
-              loading: $t('general:label.loading'),
-              showingPagination: 'general:resourceList.pagination.showing',
-              singlePluralPagination: 'general:resourceList.pagination.single',
-              prevPagination: $t('general:resourceList.pagination.prev'),
-              nextPagination: $t('general:resourceList.pagination.next'),
-            }"
-            clickable
-            class="h-100"
-            @search="filterList"
-            @row-clicked="viewReport"
-          >
-            <template #header>
-              <b-button
-                v-if="canCreate"
-                data-test-id="button-create-report"
-                variant="primary"
-                size="lg"
-                class="mr-1"
-                :to="{ name: 'report.create' }"
-              >
-                {{ $t('report.new') }}
-              </b-button>
+    <c-resource-list
+      :primary-key="primaryKey"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :fields="tableFields"
+      :items="reportList"
+      :translations="{
+        searchPlaceholder: $t('searchPlaceholder'),
+        notFound: $t('general:resourceList.notFound'),
+        noItems: $t('general:resourceList.noItems'),
+        loading: $t('general:label.loading'),
+        showingPagination: 'general:resourceList.pagination.showing',
+        singlePluralPagination: 'general:resourceList.pagination.single',
+        prevPagination: $t('general:resourceList.pagination.prev'),
+        nextPagination: $t('general:resourceList.pagination.next'),
+      }"
+      sticky-header
+      clickable
+      class="h-100"
+      @search="filterList"
+      @row-clicked="viewReport"
+    >
+      <template #header>
+        <div class="flex-fill">
+          <div class="wrap-with-vertical-gutters">
+            <b-button
+              v-if="canCreate"
+              data-test-id="button-create-report"
+              variant="primary"
+              size="lg"
+              class="mr-1"
+              :to="{ name: 'report.create' }"
+            >
+              {{ $t('report.new') }}
+            </b-button>
+            <c-permissions-button
+              v-if="canGrant"
+              resource="corteza::system:report/*"
+              :button-label="$t('permissions')"
+              button-variant="light"
+              class="btn-lg"
+            />
+          </div>
+        </div>
+      </template>
 
-              <c-permissions-button
-                v-if="canGrant"
-                resource="corteza::system:report/*"
-                :button-label="$t('permissions')"
-                button-variant="light"
-                class="btn-lg"
-              />
-            </template>
+      <template #name="{ item: r }">
+        {{ r.meta.name }}
+      </template>
 
-            <template #name="{ item: r }">
-              {{ r.meta.name }}
-            </template>
+      <template #changedAt="{ item }">
+        {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
+      </template>
 
-            <template #changedAt="{ item }">
-              {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
-            </template>
-
-            <template #actions="{ item: r }">
-              <b-button
-                v-if="r.canUpdateReport"
-                variant="light"
-                class="mr-2"
-                :to="{ name: 'report.builder', params: { reportID: r.reportID } }"
-              >
-                {{ $t('report.builder') }}
-              </b-button>
-              <b-button
-                v-if="r.canUpdateReport"
-                variant="link"
-                class="mr-2"
-                :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
-              >
-                {{ $t('report.edit') }}
-              </b-button>
-              <c-permissions-button
-                v-if="r.canGrant"
-                :tooltip="$t('permissions:resources.system.report.tooltip')"
-                :title="r.meta.name || r.handle || r.reportID"
-                :target="r.meta.name || r.handle || r.reportID"
-                :resource="`corteza::system:report/${r.reportID}`"
-                class="btn px-2"
-                link
-              />
-            </template>
-          </c-resource-list>
-        </b-col>
-      </b-row>
-    </b-container>
-  </div>
+      <template #actions="{ item: r }">
+        <b-button
+          v-if="r.canUpdateReport"
+          variant="light"
+          class="mr-2"
+          :to="{ name: 'report.builder', params: { reportID: r.reportID } }"
+        >
+          {{ $t('report.builder') }}
+        </b-button>
+        <b-button
+          v-if="r.canUpdateReport"
+          variant="link"
+          class="mr-2"
+          :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
+        >
+          {{ $t('report.edit') }}
+        </b-button>
+        <c-permissions-button
+          v-if="r.canGrant"
+          :tooltip="$t('permissions:resources.system.report.tooltip')"
+          :title="r.meta.name || r.handle || r.reportID"
+          :target="r.meta.name || r.handle || r.reportID"
+          :resource="`corteza::system:report/${r.reportID}`"
+          class="btn px-2"
+          link
+        />
+      </template>
+    </c-resource-list>
+  </b-container>
 </template>
 
 <script>
