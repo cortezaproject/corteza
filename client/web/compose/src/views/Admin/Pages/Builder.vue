@@ -154,6 +154,7 @@
       size="lg"
       scrollable
       :title="$t('build.selectBlockTitle')"
+      body-class="vh-75"
     >
       <new-block-selector
         :record-page="!!module"
