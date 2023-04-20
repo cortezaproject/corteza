@@ -714,6 +714,7 @@
       <editor-toolbar
         :back-link="{ name: 'admin.pages' }"
         :hide-delete="hideDelete"
+        :hide-clone="hideClone"
         :hide-save="hideSave"
         :disable-save="disableSave"
         :processing="processing"
@@ -857,6 +858,10 @@ export default {
 
     hideSave () {
       return !this.page || !this.page.canUpdatePage
+    },
+
+    hideClone () {
+      return !this.page || this.page.moduleID !== NoID
     },
 
     showDeleteDropdown () {
