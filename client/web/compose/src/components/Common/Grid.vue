@@ -125,8 +125,8 @@ export default {
           return meta.hidden ? { i, x: 0, y: 0, w: 0, h: 0 } : { i, x, y, w, h }
         })
 
-        // Only use next tick if previous layout exists
-        if (this.layout.length) {
+        // Only use next tick if previous layout exists and not editing
+        if (this.layout.length && !this.editable) {
           this.layout = []
 
           // Next tick is important, otherwise it can lead to overlapping blocks
