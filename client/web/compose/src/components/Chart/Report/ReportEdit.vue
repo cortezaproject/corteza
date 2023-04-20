@@ -364,8 +364,8 @@ export default {
         }),
       ].filter(({ kind, options = {} }) => {
         return this.dimensionFieldKind.includes(kind) && !(options.useRichTextEditor || options.multiLine)
-      }).map(({ name, label, kind }) => {
-        return { value: name, text: `${label} (${kind})`, kind }
+      }).map(({ name, handle, label, kind }) => {
+        return { value: name, text: `${label || name} (${kind})`, kind }
       })
     },
 
