@@ -202,6 +202,12 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 				return
 			}
 
+			// Caching 32MB to memory, the rest to disk
+			err = r.ParseMultipartForm(32 << 20)
+			if err != nil && err != http.ErrNotMultipart {
+				return
+			}
+
 			if !validFormPost(r) {
 				req.Status = http.StatusRequestEntityTooLarge
 				return
