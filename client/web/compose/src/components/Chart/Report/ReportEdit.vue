@@ -571,8 +571,8 @@ export default {
       return [
         { value: 'count', text: 'Count' },
         ...this.module.fields.filter(f => f.kind === 'Number')
-          .map(({ name }) => ({ value: name, text: name }))
-          .sort((a, b) => a.text.localeCompare(b.text)),
+          .sort((a, b) => (a.label || a.name).localeCompare((b.label || b.name)))
+          .map(({ label, name }) => ({ value: name, text: label || name })),
       ]
     },
 
@@ -582,14 +582,14 @@ export default {
 
     dimensionFields () {
       return [
-        ...[...this.module.fields].sort((a, b) => a.label.localeCompare(b.text)),
+        ...[...this.module.fields].sort((a, b) => (a.label || a.name).localeCompare((b.label || b.name))),
         ...this.module.systemFields().map(sf => {
           sf.label = this.$t(`field:system.${sf.name}`)
           return sf
         }),
       ].filter(({ kind, options = {} }) => {
         return this.dimensionFieldKind.includes(kind) && !(options.useRichTextEditor || options.multiLine)
-      }).map(({ name, handle, label, kind }) => {
+      }).map(({ name, label, kind }) => {
         return { value: name, text: `${label || name} (${kind})`, kind }
       })
     },
