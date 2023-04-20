@@ -13,6 +13,7 @@
           :calculate-position="calculateDropdownPosition"
           label="name"
           append-to-body
+          :selectable="c => !c.deletedAt"
           class="chart-selector bg-white"
           @input="chartSelected"
         />
