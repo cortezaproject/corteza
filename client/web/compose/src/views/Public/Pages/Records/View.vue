@@ -1,6 +1,7 @@
 <template>
   <div
     class="d-flex flex-column flex-grow-1 w-100 h-100 overflow-auto"
+    style="overflow-x: hidden !important;"
   >
     <b-alert
       v-if="isDeleted"
@@ -54,6 +55,7 @@
         :hide-clone="!layoutButtons.has('clone')"
         :hide-edit="!layoutButtons.has('edit')"
         :hide-submit="!layoutButtons.has('submit')"
+        :has-back="previousPages.length > 0"
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
@@ -106,7 +108,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
@@ -175,6 +177,7 @@ export default {
     ...mapGetters({
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
       getPageLayouts: 'pageLayout/getByPageID',
+      previousPages: 'ui/previousPages',
     }),
 
     portalTopbarTitle () {
@@ -269,6 +272,10 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      popPreviousPages: 'ui/popPreviousPages',
+    }),
+
     async loadRecord () {
       this.record = undefined
 
@@ -296,17 +303,25 @@ export default {
       }
     },
 
-    handleBack () {
+    async handleBack () {
       /**
        * Not the best way since we can not always know where we
        * came from (and "were" is back).
        */
       if (this.showRecordModal) {
+        if (!this.inEditing || this.inCreating) {
+          this.$bvModal.hide('record-modal')
+        }
         this.inEditing = false
         this.inCreating = false
-        this.$bvModal.hide('record-modal')
       } else {
-        this.$router.back()
+        const previousPage = await this.popPreviousPages()
+        const extraPop = !this.inCreating
+        this.$router.push(previousPage || { name: 'pages', params: { slug: this.namespace.slug || this.namespace.namespaceID } })
+        // Pop an additional time so that the route we went back to isn't added to previousPages
+        if (extraPop) {
+          this.popPreviousPages()
+        }
       }
     },
 
@@ -350,6 +365,7 @@ export default {
         this.$router.push({
           params: { ...this.$route.params, recordID },
         })
+        this.popPreviousPages()
       }
     },
 

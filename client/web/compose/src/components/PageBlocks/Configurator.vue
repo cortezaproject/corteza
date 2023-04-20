@@ -1,7 +1,6 @@
 <template>
   <b-tabs
     data-test-id="page-block-configurator"
-    active-nav-item-class="bg-grey"
     nav-wrapper-class="bg-white border-bottom"
     card
     lazy

@@ -34,6 +34,7 @@ label:
   general: General
   handle: Handle
   here: here
+  home: Home
   import: Import
   importPlaceholder: Upload files to import
   loading: Loading

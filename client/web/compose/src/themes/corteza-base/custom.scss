@@ -1,4 +1,8 @@
 /* stylelint-disable no-descending-specificity */
+.bg-gray {
+  background-color: $gray-200;
+}
+
 html {
   height: 100vh;
   width: 100vw;

@@ -7,6 +7,10 @@ const types = {
   clearRecordPagination: 'clearRecordPagination',
   recordPaginationUsable: 'recordPaginationUsable',
   setRecordPaginationUsable: 'setRecordPaginationUsable',
+  previousPages: 'previousPages',
+  setPreviousPages: 'setPreviousPages',
+  pushPreviousPages: 'pushPreviousPages',
+  popPreviousPages: 'popPreviousPages',
 }
 
 export default function (ComposeAPI) {
@@ -18,6 +22,8 @@ export default function (ComposeAPI) {
       pending: false,
       recordPaginationIDs: [],
       recordPaginationUsable: false,
+
+      previousPages: [],
     },
 
     getters: {
@@ -26,6 +32,8 @@ export default function (ComposeAPI) {
       pending: (state) => state.pending,
 
       recordPaginationUsable: (state) => state.recordPaginationUsable,
+
+      previousPages: (state) => state.previousPages,
 
       getNextAndPrevRecord: ({ recordPaginationIDs }) => (recordID) => {
         const recordIndex = recordPaginationIDs.indexOf(recordID)
@@ -62,6 +70,20 @@ export default function (ComposeAPI) {
       setRecordPaginationUsable ({ commit }, value) {
         commit(types.recordPaginationUsable, value)
       },
+
+      setPreviousPages ({ commit }, value) {
+        commit(types.setPreviousPages, value)
+      },
+
+      pushPreviousPages ({ commit }, value) {
+        commit(types.pushPreviousPages, value)
+      },
+
+      popPreviousPages ({ commit, state }) {
+        const previousPage = state.previousPages.slice(-1)[0]
+        commit(types.popPreviousPages)
+        return new Promise((resolve) => resolve(previousPage))
+      },
     },
 
     mutations: {
@@ -91,6 +113,18 @@ export default function (ComposeAPI) {
 
       [types.recordPaginationUsable] (state, value) {
         state.recordPaginationUsable = value
+      },
+
+      [types.setPreviousPages] (state, value) {
+        state.previousPages = value
+      },
+
+      [types.pushPreviousPages] (state, value) {
+        state.previousPages.push(value)
+      },
+
+      [types.popPreviousPages] (state) {
+        return state.previousPages.pop()
       },
     },
   }
