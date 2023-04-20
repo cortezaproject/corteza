@@ -526,6 +526,7 @@ export default {
 
     addBlock (block, index = undefined) {
       this.$bvModal.hide('createBlockSelector')
+      this.calculateNewBlockPosition(block)
       this.editor = { index, block: compose.PageBlockMaker(block) }
     },
 
@@ -604,6 +605,7 @@ export default {
       } else {
         this.blocks.push(block)
         this.unsavedBlocks.add(this.blocks.length - 1)
+        this.scrollToBottom()
       }
 
       if (block.kind === 'Tabs') {
@@ -910,6 +912,17 @@ export default {
       }).catch(() => {
         // Change layout value of select back to previous one if redirect was canceled
         this.$refs.layoutSelect.localValue = this.layout.pageLayoutID
+      })
+    },
+
+    scrollToBottom () {
+      const pageBuilderElement = document.getElementById('page-builder')
+
+      this.$nextTick(() => {
+        pageBuilderElement.scrollTo({
+          top: pageBuilderElement.scrollHeight,
+          behavior: 'smooth',
+        })
       })
     },
   },
