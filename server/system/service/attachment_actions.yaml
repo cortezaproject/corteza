@@ -78,6 +78,5 @@ errors:
     message: "file size is too large"
     severity: warning
 
-  - error: invalidInitialsLength
-    message: "initials characters length should not exceed 3 characters"
-    severity: warning
+  - error: invalidAvatarGenerateFontFile
+    message: "failed to generate avatar initial, font file configuration is invalid"
