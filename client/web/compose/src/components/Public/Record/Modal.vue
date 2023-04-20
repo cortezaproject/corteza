@@ -5,7 +5,7 @@
     scrollable
     dialog-class="h-100 mw-90"
     content-class="position-initial"
-    body-class="p-0"
+    body-class="p-0 bg-gray"
     footer-class="p-0"
     size="xl"
     @hidden="hideModal"

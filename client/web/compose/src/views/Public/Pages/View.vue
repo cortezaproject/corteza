@@ -202,11 +202,34 @@ export default {
     this.$root.$off('refetch-records')
   },
 
+  beforeRouteLeave (to, from, next) {
+    this.setPreviousPages([])
+    next()
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    const { recordID: toRecordID } = to.params
+    const { recordID: fromRecordID } = from.params
+
+    // Update either if coming from a record page and going to another record page and if the record isn't yet in previous pages to (avoid loop)
+    const fromToRecordPage = fromRecordID && toRecordID !== fromRecordID
+    // or if going from normal to record page
+    const fromNormalToRecordPage = from.name === 'page' && to.name !== 'page'
+
+    if (fromNormalToRecordPage || fromToRecordPage) {
+      this.pushPreviousPages(from)
+    }
+
+    next()
+  },
+
   methods: {
     ...mapActions({
       updatePageSet: 'page/updateSet',
       setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
       clearRecordIDs: 'ui/clearRecordIDs',
+      setPreviousPages: 'ui/setPreviousPages',
+      pushPreviousPages: 'ui/pushPreviousPages',
     }),
 
     evaluateLayoutExpressions () {

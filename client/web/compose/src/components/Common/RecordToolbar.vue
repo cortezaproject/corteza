@@ -16,15 +16,16 @@
           v-if="!(hideBack || settings.hideBack)"
           data-test-id="button-back"
           variant="link"
-          class="text-dark back"
           :disabled="processing"
+          class="text-dark back"
           @click.prevent="$emit('back')"
         >
           <font-awesome-icon
-            :icon="['fas', showRecordModal ? 'times' : 'chevron-left']"
+
+            :icon="['fas', showRecordModal && !inEditing ? 'times' : 'chevron-left']"
             class="back-icon"
           />
-          {{ showRecordModal ? $t('label.close') : labels.back || $t('label.back') }}
+          {{ backLabel }}
         </b-button>
 
         <slot name="start-actions" />
@@ -266,6 +267,11 @@ export default {
       required: false,
       default: () => ({}),
     },
+
+    hasBack: {
+      type: Boolean,
+      default: true,
+    },
   },
 
   computed: {
@@ -305,6 +311,16 @@ export default {
       }
 
       return this.isDeleted && this.record.canUndeleteRecord && !this.processing && this.record.recordID !== NoID
+    },
+
+    backLabel () {
+      if (this.inEditing) {
+        return this.$t('label.cancel')
+      } else if (this.showRecordModal) {
+        return this.$t('label.close')
+      }
+
+      return this.hasBack ? this.labels.back || this.$t('label.back') : this.$t('label.home')
     },
   },
 
