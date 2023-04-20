@@ -1,9 +1,11 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
+    class="overflow-auto"
   >
     <c-content-header
       :title="$t('title')"
+      class="content-header"
     />
 
     <c-resource-list
@@ -23,6 +25,8 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      sticky-header
+      class="h-100"
       hide-search
     >
       <template #header>
@@ -34,7 +38,6 @@
           :exclusive-label="$t('filterForm.exclusive.label')"
           @change="filterList"
         />
-
         <b-form-radio-group
           v-model="filter.status"
           :options="statusOptions"
@@ -156,3 +159,9 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.content-header{
+  margin-bottom: 0 !important;
+}
+</style>

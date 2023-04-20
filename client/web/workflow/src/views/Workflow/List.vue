@@ -1,155 +1,154 @@
 <template>
-  <div class="h-100 py-3 flex-grow-1 overflow-auto">
+  <b-container
+    fluid="xl"
+    class="py-3 d-flex flex-column"
+  >
     <portal to="topbar-title">
       {{ $t('general:workflow-list') }}
     </portal>
 
-    <b-container fluid="xl">
-      <b-row no-gutters>
+    <c-resource-list
+      :primary-key="primaryKey"
+      :filter="filter"
+      :sorting="sorting"
+      :pagination="pagination"
+      :fields="tableFields"
+      :items="workflowList"
+      :translations="{
+        searchPlaceholder: $t('general:searchPlaceholder'),
+        notFound: $t('general:resourceList.notFound'),
+        noItems: $t('general:resourceList.noItems'),
+        loading: $t('general:loading'),
+        showingPagination: 'general:resourceList.pagination.showing',
+        singlePluralPagination: 'general:resourceList.pagination.single',
+        prevPagination: $t('general:resourceList.pagination.prev'),
+        nextPagination: $t('general:resourceList.pagination.next'),
+      }"
+      clickable
+      sticky-header
+      class="h-100"
+      @search="filterList"
+      @row-clicked="handleRowClicked"
+    >
+      <template #header>
+        <div class="flex-grow-1">
+          <div class="wrap-with-vertical-gutters">
+            <b-button
+              v-if="canCreate"
+              data-test-id="button-create-workflow"
+              variant="primary"
+              size="lg"
+              class="float-left mr-1"
+              :to="{ name: 'workflow.create' }"
+            >
+              {{ $t('general:new-workflow') }}
+            </b-button>
+            <import
+              v-if="canCreate"
+              :disabled="importProcessing"
+              class="float-left mr-1"
+              @import="importJSON"
+            />
+            <export
+              class="float-left mr-1"
+            />
+            <c-permissions-button
+              v-if="canGrant"
+              resource="corteza::automation:workflow/*"
+              :button-label="$t('general:permissions')"
+              button-variant="light"
+              class="float-left btn-lg"
+            />
+          </div>
+        </div>
+      </template>
+
+      <template #toolbar>
         <b-col>
-          <c-resource-list
-            :primary-key="primaryKey"
-            :filter="filter"
-            :sorting="sorting"
-            :pagination="pagination"
-            :fields="tableFields"
-            :items="workflowList"
-            :translations="{
-              searchPlaceholder: $t('general:searchPlaceholder'),
-              notFound: $t('general:resourceList.notFound'),
-              noItems: $t('general:resourceList.noItems'),
-              loading: $t('general:loading'),
-              showingPagination: 'general:resourceList.pagination.showing',
-              singlePluralPagination: 'general:resourceList.pagination.single',
-              prevPagination: $t('general:resourceList.pagination.prev'),
-              nextPagination: $t('general:resourceList.pagination.next'),
-            }"
-            clickable
-            class="h-100"
-            @search="filterList"
-            @row-clicked="handleRowClicked"
-          >
-            <template #header>
-              <b-button
-                v-if="canCreate"
-                data-test-id="button-create-workflow"
-                variant="primary"
-                size="lg"
-                class="float-left mr-1"
-                :to="{ name: 'workflow.create' }"
-              >
-                {{ $t('general:new-workflow') }}
-              </b-button>
-
-              <import
-                v-if="canCreate"
-                :disabled="importProcessing"
-                class="float-left mr-1"
-                @import="importJSON"
-              />
-
-              <export
-                class="float-left mr-1"
-              />
-
-              <c-permissions-button
-                v-if="canGrant"
-                resource="corteza::automation:workflow/*"
-                :button-label="$t('general:permissions')"
-                button-variant="light"
-                class="float-left btn-lg"
-              />
-            </template>
-
-            <template #toolbar>
-              <b-col>
-                <b-form-radio-group
-                  v-model="filter.subWorkflow"
-                  :options="[
-                    { value: 0, text: $t('general:without') },
-                    { value: 1, text: $t('general:including') },
-                    { value: 2, text: $t('general:only') }
-                  ]"
-                  buttons
-                  button-variant="outline-primary"
-                  size="sm"
-                  name="radio-btn-outline"
-                  @change="filterList"
-                />
-                {{ $t('general:subworkflows') }}
-              </b-col>
-              <b-col>
-                <b-form-radio-group
-                  v-model="filter.disabled"
-                  :options="[
-                    { value: 0, text: $t('general:without') },
-                    { value: 1, text: $t('general:including') },
-                    { value: 2, text: $t('general:only') }
-                  ]"
-                  buttons
-                  button-variant="outline-primary"
-                  size="sm"
-                  name="radio-btn-outline"
-                  @change="filterList"
-                />
-                {{ $t('general:disabled') }}
-              </b-col>
-              <b-col>
-                <b-form-radio-group
-                  v-model="filter.deleted"
-                  :options="[
-                    { value: 0, text: $t('general:without') },
-                    { value: 1, text: $t('general:including') },
-                    { value: 2, text: $t('general:only') }
-                  ]"
-                  buttons
-                  button-variant="outline-primary"
-                  size="sm"
-                  name="radio-btn-outline"
-                  @change="filterList"
-                />
-                {{ $t('general:deleted') }}
-              </b-col>
-            </template>
-
-            <template #name="{ item: w }">
-              {{ w.meta.name || w.handle }}
-              <h5 class="d-inline-block ml-2">
-                <b-badge
-                  v-if="w.meta.subWorkflow"
-                  variant="info"
-                >
-                  {{ $t('general:subworkflow') }}
-                </b-badge>
-              </h5>
-            </template>
-
-            <template #enabled="{ item: w }">
-              <font-awesome-icon
-                :icon="['fas', w.enabled ? 'check' : 'times']"
-              />
-            </template>
-
-            <template #changedAt="{ item }">
-              {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
-            </template>
-
-            <template #actions="{ item: w }">
-              <c-permissions-button
-                v-if="w.canGrant"
-                :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
-                :title="w.meta.name || w.handle || w.workflowID"
-                :target="w.meta.name || w.handle || w.workflowID"
-                :resource="`corteza::automation:workflow/${w.workflowID}`"
-                link
-                class="btn px-2"
-              />
-            </template>
-          </c-resource-list>
+          <b-form-radio-group
+            v-model="filter.subWorkflow"
+            :options="[
+              { value: 0, text: $t('general:without') },
+              { value: 1, text: $t('general:including') },
+              { value: 2, text: $t('general:only') }
+            ]"
+            buttons
+            button-variant="outline-primary"
+            size="sm"
+            name="radio-btn-outline"
+            @change="filterList"
+          />
+          {{ $t('general:subworkflows') }}
         </b-col>
-      </b-row>
-    </b-container>
-  </div>
+        <b-col>
+          <b-form-radio-group
+            v-model="filter.disabled"
+            :options="[
+              { value: 0, text: $t('general:without') },
+              { value: 1, text: $t('general:including') },
+              { value: 2, text: $t('general:only') }
+            ]"
+            buttons
+            button-variant="outline-primary"
+            size="sm"
+            name="radio-btn-outline"
+            @change="filterList"
+          />
+          {{ $t('general:disabled') }}
+        </b-col>
+        <b-col>
+          <b-form-radio-group
+            v-model="filter.deleted"
+            :options="[
+              { value: 0, text: $t('general:without') },
+              { value: 1, text: $t('general:including') },
+              { value: 2, text: $t('general:only') }
+            ]"
+            buttons
+            button-variant="outline-primary"
+            size="sm"
+            name="radio-btn-outline"
+            @change="filterList"
+          />
+          {{ $t('general:deleted') }}
+        </b-col>
+      </template>
+
+      <template #name="{ item: w }">
+        {{ w.meta.name || w.handle }}
+        <h5 class="d-inline-block ml-2">
+          <b-badge
+            v-if="w.meta.subWorkflow"
+            variant="info"
+          >
+            {{ $t('general:subworkflow') }}
+          </b-badge>
+        </h5>
+      </template>
+
+      <template #enabled="{ item: w }">
+        <font-awesome-icon
+          :icon="['fas', w.enabled ? 'check' : 'times']"
+        />
+      </template>
+
+      <template #changedAt="{ item }">
+        {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
+      </template>
+
+      <template #actions="{ item: w }">
+        <c-permissions-button
+          v-if="w.canGrant"
+          :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
+          :title="w.meta.name || w.handle || w.workflowID"
+          :target="w.meta.name || w.handle || w.workflowID"
+          :resource="`corteza::automation:workflow/${w.workflowID}`"
+          link
+          class="btn px-2"
+        />
+      </template>
+    </c-resource-list>
+  </b-container>
 </template>
 
 <script>

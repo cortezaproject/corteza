@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
   >
     <c-content-header
       :title="$t('title')"
@@ -16,14 +16,17 @@
         >
           {{ $t('new') }}
         </b-button>
+
         <c-user-import-modal
           class="mr-1 float-left"
           @imported="onImported"
         />
+
         <c-user-export-modal
           class="mr-1 float-left"
           @export="onExport"
         />
+
         <c-permissions-button
           v-if="canGrant"
           resource="corteza::system:user/*"
@@ -33,6 +36,7 @@
           {{ $t('permissions') }}
         </c-permissions-button>
       </span>
+
       <b-dropdown
         v-if="false"
         variant="link"
@@ -44,6 +48,7 @@
           {{ $t('yaml') }}
         </b-dropdown-item-button>
       </b-dropdown>
+
       <c-corredor-manual-buttons
         ui-page="user/list"
         ui-slot="toolbar"
@@ -71,6 +76,8 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      sticky-header
+      class="custom-resource-height"
       @search="filterList"
     >
       <template #header>

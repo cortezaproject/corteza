@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
   >
     <c-content-header
       :title="$t('title')"
@@ -30,6 +30,7 @@
       :pagination="pagination"
       :sorting="sorting"
       :items="items"
+      class="custom-resource-height"
       :translations="{
         searchPlaceholder: $t('filterForm.query.placeholder'),
         notFound: $t('admin:general.notFound'),
@@ -40,6 +41,7 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      sticky-header
       hide-total
       @search="filterList"
     >
