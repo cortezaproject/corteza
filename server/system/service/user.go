@@ -1073,8 +1073,10 @@ func (svc user) UploadAvatar(ctx context.Context, userID uint64, upload *multipa
 			return
 		}
 
-		if !svc.ac.CanUpdateUser(ctx, u) {
-			return UserErrNotAllowedToUpdate()
+		if userID != internalAuth.GetIdentityFromContext(ctx).Identity() {
+			if !svc.ac.CanUpdateUser(ctx, u) {
+				return UserErrNotAllowedToUpdate()
+			}
 		}
 
 		if u.Meta.AvatarID != 0 {
@@ -1240,8 +1242,10 @@ func (svc user) GenerateAvatar(ctx context.Context, userID uint64, bgColor strin
 			return
 		}
 
-		if !svc.ac.CanUpdateUser(ctx, u) {
-			return UserErrNotAllowedToUpdate()
+		if userID != internalAuth.GetIdentityFromContext(ctx).Identity() {
+			if !svc.ac.CanUpdateUser(ctx, u) {
+				return UserErrNotAllowedToUpdate()
+			}
 		}
 
 		u.Meta.AvatarColor = initialColor

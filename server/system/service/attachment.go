@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza/server/assets"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
 	files "github.com/cortezaproject/corteza/server/pkg/objstore"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
@@ -532,20 +531,24 @@ func (svc attachment) processImage(original io.ReadSeeker, att *types.Attachment
 func (svc attachment) processFontsFile() (fontBytes []byte, err error) {
 	ext := strings.ToLower(filepath.Ext(svc.opt.AvatarInitialsFontPath))
 	if ext != ".ttf" {
-		svc.logger.Error("invalid font file extension, please provide a truetype font (.ttf) file")
-		return
+		err = fmt.Errorf("invalid font file extension, please provide a truetype font (.ttf) file")
+		svc.logger.Error(err.Error())
+		return nil, AttachmentErrInvalidAvatarGenerateFontFile().Wrap(err)
 	}
 
 	assetsFile := assets.Files(svc.logger, "")
 	fontFile, err := assetsFile.Open(svc.opt.AvatarInitialsFontPath)
 	if err != nil {
-		svc.logger.Error(fmt.Sprintf("%s, please ensure that the correct AVATAR_INITIALS_FONT_PATH is set", err.Error()))
-		return nil, errors.New(errors.KindInvalidData, "the path to the font file for generating avatar initials is incorrect or not set")
+		err = fmt.Errorf("%w : please ensure that the correct AVATAR_INITIALS_FONT_PATH is set", err)
+		svc.logger.Error(err.Error())
+		return nil, AttachmentErrInvalidAvatarGenerateFontFile().Wrap(err)
 	}
 
 	fontBytes, err = io.ReadAll(fontFile)
 	if err != nil {
-		return nil, err
+		err = fmt.Errorf("failed to read font file: %w", err)
+		svc.logger.Error(err.Error())
+		return nil, AttachmentErrInvalidAvatarGenerateFontFile().Wrap(err)
 	}
 
 	return fontBytes, nil
