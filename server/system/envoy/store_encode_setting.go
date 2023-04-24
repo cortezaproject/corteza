@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/store"
@@ -28,6 +29,10 @@ func (e StoreEncoder) prepareSetting(ctx context.Context, p envoyx.EncodeParams,
 		}
 
 		// @todo merge conflicts if we do existing assertion
+
+		if res.UpdatedAt.IsZero() {
+			res.UpdatedAt = time.Now()
+		}
 
 		n.Resource = res
 	}
