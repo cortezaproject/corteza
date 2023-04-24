@@ -3,8 +3,9 @@ package dal
 import (
 	"context"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"sync"
+
+	"github.com/cortezaproject/corteza/server/pkg/options"
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
@@ -111,13 +112,21 @@ func (c *connection) Search(ctx context.Context, m *dal.Model, f filter.Filter) 
 func (c *connection) Analyze(ctx context.Context, m *dal.Model) (a map[string]dal.OpAnalysis, err error) {
 	// @todo somehow (probably operations) bring in the info what can be done
 	//       for now, since we're quite rigid on the drivers, this will do.
-	a = map[string]dal.OpAnalysis{
-		dal.OpAnalysisAggregate: {
-			ScanCost:   dal.CostCheep,
-			SearchCost: dal.CostCheep,
-			FilterCost: dal.CostCheep,
-			SortCost:   dal.CostCheep,
-		},
+	//
+	// @note this is a temporary hack until we properly address the first point.
+	//       No point in complicating it at this stage.
+	if c.db.DriverName() == "sqlserver" {
+		a = map[string]dal.OpAnalysis{}
+	} else {
+		a = map[string]dal.OpAnalysis{
+			dal.OpAnalysisAggregate: {
+				ScanCost:   dal.CostCheep,
+				SearchCost: dal.CostCheep,
+				FilterCost: dal.CostCheep,
+				SortCost:   dal.CostCheep,
+			},
+		}
+
 	}
 
 	return
