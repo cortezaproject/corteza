@@ -661,6 +661,13 @@ func fix_2022_09_07_changePostgresIdColumnsDatatype(ctx context.Context, s *Stor
 }
 
 func fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup(ctx context.Context, s *Store) (err error) {
+	// @note skipping this for SQL server since it was introduced with 2023.3.0 so there.
+	// There are issues with the implementation which won't work on mssql.
+	// Since there is no way this would do anything on mssql, we can skip it.
+	if s.DB.DriverName() == "sqlserver" {
+		return
+	}
+
 	type (
 		oldRule struct {
 			Name       string   `json:"name"`
