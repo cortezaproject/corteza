@@ -316,6 +316,8 @@ export default {
 
   methods: {
     createRequestFulfilled (tab) {
+      const { title = '' } = this.block.options.tabs[this.activeIndex] || {}
+      tab.title = title
       this.updateTab(tab, this.activeIndex)
     },
 
