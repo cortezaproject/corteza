@@ -13,15 +13,13 @@
       scrollable
       :title="$t('allRecords.columns.title')"
       :ok-title="$t('general.label.saveAndClose')"
+      cancel-variant="link"
       body-class="p-0"
       @ok="onSave"
     >
       <b-card-body
         class="d-flex flex-column mh-100"
       >
-        <p>
-          {{ $t('allRecords.columns.description') }}
-        </p>
         <field-picker
           :module="module"
           :fields.sync="filteredFields"
