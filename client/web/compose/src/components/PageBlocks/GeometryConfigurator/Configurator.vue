@@ -114,6 +114,21 @@
           />
         </b-form-group>
       </b-col>
+
+      <b-col
+        sm="12"
+        md="4"
+      >
+        <b-form-group
+          :label="$t('geometry.onMarkerClick')"
+          label-class="text-primary"
+        >
+          <b-form-select
+            v-model="options.displayOption"
+            :options="displayOptions"
+          />
+        </b-form-group>
+      </b-col>
     </b-row>
   </div>
 </template>
@@ -148,6 +163,16 @@ export default {
       center: [],
       bounds: null,
     }
+  },
+
+  computed: {
+    displayOptions () {
+      return [
+        { value: 'sameTab', text: this.$t('geometry.openInSameTab') },
+        { value: 'newTab', text: this.$t('geometry.openInNewTab') },
+        { value: 'modal', text: this.$t('geometry.openInModal') },
+      ]
+    },
   },
 
   methods: {

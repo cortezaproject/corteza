@@ -17,6 +17,7 @@ interface Options {
   bounds: Bounds | null;
   lockBounds: boolean;
   magnifyOption: string;
+  displayOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -29,6 +30,7 @@ const defaults: Readonly<Options> = Object.freeze({
   bounds: null,
   lockBounds: false,
   magnifyOption: '',
+  displayOption: 'sameTab'
 })
 
 export class PageBlockGeometry extends PageBlock {
@@ -51,7 +53,7 @@ export class PageBlockGeometry extends PageBlock {
     this.options.center = (o.center || [])
     this.options.bounds = (o.bounds || null)
 
-    Apply(this.options, o, String, 'magnifyOption')
+    Apply(this.options, o, String, 'magnifyOption', 'displayOption')
     Apply(this.options, o, Number, 'zoomStarting', 'zoomMin', 'zoomMax')
     Apply(this.options, o, Boolean, 'lockBounds')
   }
