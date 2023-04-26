@@ -55,6 +55,7 @@ export default {
     ...mapGetters({
       pages: 'page/set',
       findUserByID: 'user/findByID',
+      findRecordsByIDs: 'record/findByIDs',
     }),
 
     formattedValue () {
@@ -84,7 +85,8 @@ export default {
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
-      resolveUsers: 'user/fetchUsers',
+      resolveUsers: 'user/resolveUsers',
+      resolveRecords: 'record/resolveRecords',
     }),
 
     linkToRecord (recordID) {
@@ -101,62 +103,55 @@ export default {
       }
     },
 
-    async formatRecordValues (value) {
-      value = Array.isArray(value) ? value : [value].filter(v => v) || []
+    async formatRecordValues (recordIDs) {
+      recordIDs = Array.isArray(recordIDs) ? recordIDs : [recordIDs].filter(v => v) || []
       const { namespaceID = NoID } = this.namespace
       const { moduleID = NoID, labelField, recordLabelField } = this.field.options
 
-      if (!value.length || [moduleID, namespaceID].includes(NoID) || !labelField) {
+      if (!recordIDs.length || [moduleID, namespaceID].includes(NoID) || !labelField) {
         return
       }
 
-      this.processing = true
-
-      // Get configured module/field
-      return this.findModuleByID({ namespace: this.namespace, moduleID }).then(module => {
+      return this.findModuleByID({ namespace: this.namespace, moduleID }).then(async module => {
         let relatedField = module.fields.find(({ name }) => name === labelField)
-        const query = value.map(recordID => `recordID = ${recordID}`).join(' OR ')
+        let records = this.findRecordsByIDs(recordIDs).map(r => new compose.Record(module, r))
 
-        return this.$ComposeAPI.recordList({ namespaceID, moduleID, query, deleted: 1 }).then(async ({ set = [] }) => {
-          if (recordLabelField) {
-            set = await this.findModuleByID({ namespaceID, moduleID: relatedField.options.moduleID }).then(relatedModule => {
-              const mappedIDs = {}
-              const queryIDs = []
+        if (recordLabelField) {
+          this.processing = true
 
-              set.forEach(r => {
-                r = new compose.Record(module, r)
-                mappedIDs[r.values[labelField]] = r.recordID
-                queryIDs.push(`recordID = ${r.values[labelField]}`)
-              })
+          await this.findModuleByID({ namespaceID, moduleID: relatedField.options.moduleID }).then(relatedModule => {
+            const mappedIDs = {}
+            const recordIDs = []
 
-              return this.$ComposeAPI.recordList({ namespaceID, moduleID: relatedField.options.moduleID, query: queryIDs.join(' OR '), deleted: 1 }).then(({ set = [] }) => {
-                relatedField = relatedModule.fields.find(({ name }) => name === this.field.options.recordLabelField)
-                return set.map(r => {
-                  r.recordID = mappedIDs[r.recordID]
-                  return new compose.Record(relatedModule, r)
-                })
+            records.forEach(r => {
+              mappedIDs[r.values[labelField]] = r.recordID
+              recordIDs.push(r.values[labelField])
+            })
+
+            return this.resolveRecords({ namespaceID, moduleID: relatedModule.moduleID, recordIDs }).then(() => {
+              relatedField = relatedModule.fields.find(({ name }) => name === this.field.options.recordLabelField)
+              records = this.findRecordsByIDs(recordIDs).map(r => {
+                r = new compose.Record(relatedModule, r)
+                r.recordID = mappedIDs[r.recordID]
+                return r
               })
             })
-          } else {
-            set = set.map(r => new compose.Record(module, r))
+          })
+        }
+
+        for (const record of records) {
+          let recordValue = relatedField.isMulti ? record.values[relatedField.name] : [record.values[relatedField.name]]
+
+          if (recordValue.length && relatedField.kind === 'User') {
+            this.processing = true
+
+            await this.resolveUsers(recordValue).then(() => {
+              recordValue = recordValue.map(v => relatedField.formatter(this.findUserByID(v)))
+            })
           }
 
-          for (const record of set) {
-            let recordValue = relatedField.isMulti ? record.values[relatedField.name] : [record.values[relatedField.name]]
-
-            if (recordValue.length && relatedField.kind === 'User') {
-              recordValue = await Promise.all(recordValue.map(async v => {
-                if (!this.findUserByID(v)) {
-                  await this.resolveUsers(v)
-                }
-
-                return relatedField.formatter(this.findUserByID(v))
-              }))
-            }
-
-            this.$set(this.recordValues, record.recordID, recordValue.join(relatedField.options.multiDelimiter))
-          }
-        })
+          this.$set(this.recordValues, record.recordID, recordValue.join(relatedField.options.multiDelimiter))
+        }
       }).finally(() => {
         setTimeout(() => {
           this.processing = false

@@ -274,6 +274,7 @@ export default {
   methods: {
     ...mapActions({
       popPreviousPages: 'ui/popPreviousPages',
+      clearRecordSet: 'record/clearSet',
     }),
 
     async loadRecord () {
@@ -403,6 +404,8 @@ export default {
     },
 
     async determineLayout (pageLayoutID) {
+      // Clear stored records so they can be refetched with latest values
+      this.clearRecordSet()
       let expressions = {}
 
       // Only evaluate if one of the layouts has an expressions variable
