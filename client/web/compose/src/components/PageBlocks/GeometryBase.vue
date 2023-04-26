@@ -44,6 +44,7 @@
           :key="`marker-${i}`"
           :lat-lng="marker.value"
           :icon="getIcon(marker)"
+          @click="onMarkerCLick(marker.recordID, marker.moduleID)"
         />
         <l-control class="leaflet-bar">
           <a
@@ -100,6 +101,7 @@ export default {
   computed: {
     ...mapGetters({
       getModuleByID: 'module/getByID',
+      pages: 'page/set',
     }),
 
     localValue () {
@@ -109,7 +111,12 @@ export default {
         geo.forEach((value) => {
           if (value.displayMarker) {
             value.markers.map(subValue => {
-              values.push({ value: this.getLatLng(subValue), color: value.color })
+              values.push({
+                value: this.getLatLng(subValue),
+                color: value.color,
+                recordID: value.recordID,
+                moduleID: value.moduleID,
+              })
             })
           }
         })
@@ -189,8 +196,8 @@ export default {
                 const mapModuleField = module.fields.find(f => f.name === feed.geometryField)
 
                 if (mapModuleField) {
-                  this.geometries[idx] = records.map(e => {
-                    let geometry = e.values[feed.geometryField]
+                  this.geometries[idx] = records.map(record => {
+                    let geometry = record.values[feed.geometryField]
                     let markers = []
 
                     if (mapModuleField.isMulti) {
@@ -202,11 +209,13 @@ export default {
                     }
 
                     return ({
-                      title: e.values[feed.titleField],
+                      title: record.values[feed.titleField],
                       geometry: feed.displayPolygon ? geometry : [],
                       markers,
                       color: feed.options.color,
                       displayMarker: feed.displayMarker,
+                      recordID: record.recordID,
+                      moduleID: record.moduleID,
                     })
                   })
                 }
@@ -263,6 +272,26 @@ export default {
     onLocationFound ({ latitude, longitude }) {
       const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
       this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
+    },
+
+    onMarkerCLick (recordID, moduleID) {
+      const page = this.pages.find(p => p.moduleID === moduleID)
+      if (!page) {
+        return
+      }
+
+      const route = { name: 'page.record', params: { recordID, pageID: page.pageID } }
+
+      if (this.options.displayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
+      } else if (this.options.displayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          recordID,
+          recordPageID: page.pageID,
+        })
+      } else {
+        this.$router.push(route)
+      }
     },
   },
 }
