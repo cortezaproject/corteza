@@ -7,7 +7,7 @@
       :size="size"
       variant="primary"
       :text="$t('related-pages')"
-      boundary="viewport"
+      :boundary="boundary"
       class="related-pages-dropdown"
     >
       <b-dropdown-item>
@@ -83,6 +83,11 @@ export default {
     size: {
       type: String,
       default: 'md',
+    },
+
+    boundary: {
+      type: String,
+      default: 'viewport',
     },
   },
 

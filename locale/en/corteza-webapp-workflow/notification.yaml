@@ -1,7 +1,5 @@
 'configure-triggers': Make sure all trigger steps are properly configured
 'confirm-unsaved-changes': You have unsaved changes, are you sure you want to exit?
-'delete-failed': Failed to delete workflow
-'deleted-workflow': Workflow deleted
 error: " - ERROR: "
 'event-type-not-found': Event type not found
 'event-type-fetch-failed': Failed to fetch event types
@@ -37,6 +35,9 @@ import:
 'trigger-paths-changed': Trigger paths changed
 'updated-workflow': Workflow updated
 'workflow-test-completed': Workflow test completed
+delete:
+  success: Workflow deleted
+  failed: Failed to delete workflow
 undelete:
   success: Workflow restored
   failed: Failed to restore workflow

@@ -28,6 +28,8 @@ list:
     level: Level
     createdAt: Created
     state: State
+  delete: Delete
+  undelete: Undelete
   rows:
     filters:
       deleted: Deleted

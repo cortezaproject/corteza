@@ -93,17 +93,53 @@
       </template>
 
       <template #actions="{ item: c }">
-        <b-button-group>
-          <c-permissions-button
+        <b-dropdown
+          v-if="c.canGrant || c.canDeleteChart"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
+        >
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item
             v-if="c.canGrant"
-            :title="c.name || c.handle || c.chartID"
-            :target="c.name || c.handle || c.chartID"
-            :resource="`corteza::compose:chart/${namespace.namespaceID}/${c.chartID}`"
-            :tooltip="$t('permissions:resources.compose.chart.tooltip')"
-            button-variant="outline-light"
-            class="text-dark d-print-none border-0"
-          />
-        </b-button-group>
+          >
+            <c-permissions-button
+              :title="c.name || c.handle || c.chartID"
+              :target="c.name || c.handle || c.chartID"
+              :resource="`corteza::compose:chart/${namespace.namespaceID}/${c.chartID}`"
+              :tooltip="$t('permissions:resources.compose.chart.tooltip')"
+              :button-label="$t('permissions:ui.label')"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="c.canDeleteChart"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(c)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              {{ $t('chart.delete') }}
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
 
       <template #changedAt="{ item }">
@@ -188,7 +224,7 @@ export default {
         {
           key: 'actions',
           label: '',
-          tdClass: 'text-right text-nowrap',
+          tdClass: 'text-right text-nowrap actions',
         },
       ]
     },
@@ -201,6 +237,7 @@ export default {
 
     ...mapActions({
       createChart: 'chart/create',
+      deleteChart: 'chart/delete',
     }),
 
     create (subType) {
@@ -254,10 +291,17 @@ export default {
       this.filterList()
       this.toastSuccess(this.$t('notification:general.import.successful'))
     },
+
+    handleDelete (chart) {
+      this.deleteChart(chart).then(() => {
+        this.toastSuccess(this.$t('notification:chart.deleted'))
+        this.filterList()
+      }).catch(this.toastErrorHandler(this.$t('notification:chart.deleteFailed')))
+    },
   },
 }
 </script>
-<style lang="scss" scoped>
+<style lang="scss">
 $input-height: 42px;
 
 .chart-name-input {

@@ -197,5 +197,39 @@ export default {
     genericRowClass (item) {
       return { 'text-secondary': item && !!item.deletedAt }
     },
+
+    handleRowClicked (item) {
+      this.$router.push({ name: this.editRoute, params: { [this.primaryKey]: item[this.primaryKey] } })
+    },
+
+    handleItemDelete ({ resource, resourceName, locale, api = 'system' }) {
+      this.incLoader()
+      const { deletedAt = '' } = resource
+      const method = deletedAt ? `${resourceName}Undelete` : `${resourceName}Delete`
+      const event = deletedAt ? 'undelete' : 'delete'
+      const toastLocale = locale || resourceName
+      const API = api === 'system' ? this.$SystemAPI : this.$AutomationAPI
+
+      API[method](resource)
+        .then(() => {
+          this.toastSuccess(this.$t(`notification:${toastLocale}.${event}.success`))
+          this.filterList()
+        })
+        .catch(this.toastErrorHandler(this.$t(`notification:${toastLocale}.${event}.error`)))
+        .finally(() => {
+          this.decLoader()
+        })
+    },
+
+    areActionsVisible ({ resource, conditions = [] }) {
+      const condition = conditions.some(c => {
+        if (!resource[c]) {
+          return false
+        }
+
+        return true
+      })
+      return condition
+    },
   },
 }

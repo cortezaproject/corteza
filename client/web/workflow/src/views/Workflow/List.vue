@@ -14,6 +14,7 @@
       :pagination="pagination"
       :fields="tableFields"
       :items="workflowList"
+      :row-class="genericRowClass"
       :translations="{
         searchPlaceholder: $t('general:searchPlaceholder'),
         notFound: $t('general:resourceList.notFound'),
@@ -139,15 +140,80 @@
       </template>
 
       <template #actions="{ item: w }">
-        <c-permissions-button
-          v-if="w.canGrant"
-          :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
-          :title="w.meta.name || w.handle || w.workflowID"
-          :target="w.meta.name || w.handle || w.workflowID"
-          :resource="`corteza::automation:workflow/${w.workflowID}`"
-          link
-          class="btn px-2"
-        />
+        <b-dropdown
+          v-if="w.canGrant || w.canDeleteWorkflow"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-1"
+          no-caret
+          lazy
+          menu-class="m-0"
+        >
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item
+            v-if="w.canGrant"
+          >
+            <c-permissions-button
+              :tooltip="$t('permissions:resources.automation.workflow.tooltip')"
+              :title="w.meta.name || w.handle || w.workflowID"
+              :target="w.meta.name || w.handle || w.workflowID"
+              :resource="`corteza::automation:workflow/${w.workflowID}`"
+              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              :button-label="$t('permissions:ui.label')"
+              class="text-dark d-print-none border-0"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="w.canDeleteWorkflow && !w.deletedAt"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(w)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                class="p-1"
+              >
+                {{ $t('delete') }}
+              </span>
+            </c-input-confirm>
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="w.canUndeleteWorkflow && w.deletedAt"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(w)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                class="p-1"
+              >
+                {{ $t('undelete') }}
+              </span>
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-container>
@@ -162,6 +228,10 @@ import { components } from '@cortezaproject/corteza-vue'
 const { CResourceList } = components
 
 export default {
+  i18nOptions: {
+    namespaces: 'list',
+  },
+
   name: 'WorkflowList',
 
   components: {
@@ -241,7 +311,7 @@ export default {
         {
           key: 'actions',
           label: '',
-          tdClass: 'text-right text-nowrap',
+          tdClass: 'text-right text-nowrap actions',
         },
       ]
     },
@@ -306,6 +376,19 @@ export default {
 
     handleRowClicked (workflow) {
       this.$router.push({ name: 'workflow.edit', params: { workflowID: workflow.workflowID } })
+    },
+
+    handleDelete (workflow) {
+      const { deletedAt = '' } = workflow
+      const method = deletedAt ? 'workflowUndelete' : 'workflowDelete'
+      const event = deletedAt ? 'undelete' : 'delete'
+      const { workflowID } = workflow
+      this.$AutomationAPI[method]({ workflowID })
+        .then(() => {
+          this.toastSuccess(this.$t(`notification:${event}.success`))
+          this.filterList()
+        })
+        .catch(this.toastErrorHandler(this.$t(`notification:${event}.failed`)))
     },
   },
 }

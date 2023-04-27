@@ -64,7 +64,7 @@ export default {
       }
     },
 
-    async handleDelete () {
+    handleDelete () {
       this.processing = true
 
       return this.$SystemAPI.reportDelete(this.report)

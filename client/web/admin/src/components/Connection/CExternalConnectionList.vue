@@ -32,8 +32,10 @@
         resourceSingle: $t('general:label.connection.single'),
         resourcePlural: $t('general:label.connection.plural')
       }"
+      clickable
       hide-search
       class="h-100"
+      @row-clicked="handleRowClicked"
     >
       <template #header>
         <b-button
@@ -55,16 +57,49 @@
         />
       </template>
 
-      <template #actions="{ item }">
-        <b-button
-          size="sm"
-          variant="link"
-          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
+      <template #actions="{ item: c }">
+        <b-dropdown
+          v-if="c.canDeleteConnection"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
         >
-          <font-awesome-icon
-            :icon="['fas', 'pen']"
-          />
-        </b-button>
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item>
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(c)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                v-if="!c.deletedAt"
+                class="p-1"
+              >{{ $t('delete') }}
+              </span>
+
+              <span
+                v-else
+                class="p-1"
+              >{{ $t('undelete') }}
+              </span>
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-card>
@@ -131,8 +166,7 @@ export default {
         },
         {
           key: 'actions',
-          label: '',
-          class: 'text-right',
+          class: 'actions',
         },
       ].map(c => ({
         // Generate column label translation key
@@ -143,8 +177,17 @@ export default {
   },
 
   methods: {
+
     items () {
       return this.procListResults(this.$SystemAPI.dalConnectionList(this.encodeListParams()))
+    },
+
+    handleDelete (connection) {
+      this.handleItemDelete({
+        resource: connection,
+        resourceName: 'dalConnection',
+        locale: 'connection',
+      })
     },
   },
 }

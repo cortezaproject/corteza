@@ -63,3 +63,5 @@ list:
   permissions: Permissions
   title: Applications
   yaml: YAML
+  delete: Delete
+  undelete: Undelete

@@ -23,6 +23,8 @@ list:
       label: deleted routes
     handle:
       placeholder: Filter endpoints by path
+  delete: Delete
+  undelete: Undelete
 
   columns:
     endpoint: Endpoint

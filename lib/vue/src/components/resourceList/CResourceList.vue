@@ -62,7 +62,7 @@
         show-empty
         no-sort-reset
         no-local-sorting
-        :primary-key="primaryKey"
+        :primary-key="primaryKey" 
         class="mh-100 h-100 mb-0"
         @sort-changed="pagination.page = 1"
         @row-clicked="$emit('row-clicked', $event)"
@@ -398,3 +398,24 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+#resource-list {
+  .actions {
+    padding-top: 8px;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.25s;
+    width: 1%;
+
+    .regular-font {
+      font-family: 'Poppins-Regular' !important;
+    }
+  }
+
+  tr:hover .actions {
+    opacity: 1;
+    background-color: #F9FAFB;
+  }
+}
+</style>

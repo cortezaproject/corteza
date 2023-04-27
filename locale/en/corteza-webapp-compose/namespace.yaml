@@ -57,6 +57,7 @@ configure: Configure namespace
 manage:
   title: Manage namespaces
   list-view: Back to namespace list
+  delete: Delete
 
   disabled: Disabled
 

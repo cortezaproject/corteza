@@ -112,6 +112,7 @@ chart:
         year: YEAR
   label: Chart
   pick: Pick a chart
+  delete: Delete
   preview:
     chartId: Chart preview (ID {{0}})
   searchPlaceholder: Type here to search all charts in this namespace

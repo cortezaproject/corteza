@@ -44,6 +44,7 @@
           />
         </b-col>
       </b-row>
+
       <transition-group
         v-if="filtered && filtered.length"
         name="namespace-list"
