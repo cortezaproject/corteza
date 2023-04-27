@@ -41,6 +41,10 @@ list:
     handle: Handle
     name: Name
     state: State
+  delete: Delete
+  undelete: Undelete
+  archive: Archive
+  unarchive: Unarchive
   rows:
     filters:
       archived: Archived

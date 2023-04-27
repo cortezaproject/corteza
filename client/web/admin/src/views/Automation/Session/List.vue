@@ -26,10 +26,12 @@
         resourceSingle: $t('general:label.session.single'),
         resourcePlural: $t('general:label.session.plural')
       }"
+      clickable
       sticky-header
       hide-search
       hide-total
       class="custom-resource-list-height-no-buttons"
+      @row-clicked="handleRowClicked"
     >
       <template #header>
         <b-row>
@@ -171,10 +173,6 @@ export default {
           key: 'createdAt',
           sortable: true,
           formatter: (v) => new Date(v).toLocaleString('en-EN'),
-        },
-        {
-          key: 'actions',
-          tdClass: 'text-right',
         },
       ].map(c => ({
         ...c,

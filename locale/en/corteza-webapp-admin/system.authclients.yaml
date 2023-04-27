@@ -95,3 +95,5 @@ list:
   permissions: Permissions
   title: Auth Clients
   yaml: YAML
+  delete: Delete
+  undelete: Undelete

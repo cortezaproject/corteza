@@ -70,9 +70,11 @@
         resourceSingle: $t('general:label.template.single'),
         resourcePlural: $t('general:label.template.plural'),
       }"
+      clickable
       sticky-header
       class="custom-resource-list-height"
       @search="filterList"
+      @row-clicked="handleRowClicked"
     >
       <template #header>
         <c-resource-list-status-filter
@@ -86,16 +88,63 @@
         />
       </template>
 
-      <template #actions="{ item }">
-        <b-button
-          size="sm"
-          variant="link"
-          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
+      <template #actions="{ item: t }">
+        <b-dropdown
+          v-if="(areActionsVisible({ resource: t, conditions: ['canDeleteTemplate', 'canGrant'] }) && t.templateID)"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
         >
-          <font-awesome-icon
-            :icon="['fas', 'pen']"
-          />
-        </b-button>
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item
+            v-if="t.templateID && canGrant"
+          >
+            <c-permissions-button
+              :title="t.meta.short || t.handle || t.templateID"
+              :target="t.meta.short || t.handle || t.templateID"
+              :resource="`corteza::system:template/${t.templateID}`"
+              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              class="text-dark d-print-none border-0"
+            >
+              <font-awesome-icon :icon="['fas', 'lock']" />
+              {{ $t('permissions') }}
+            </c-permissions-button>
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="t.canDeleteTemplate"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(t)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                v-if="!t.deletedAt"
+                class="p-1"
+              >{{ $t('delete') }}</span>
+              <span
+                v-else
+                class="p-1"
+              >{{ $t('undelete') }}</span>
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-container>
@@ -157,8 +206,7 @@ export default {
         },
         {
           key: 'actions',
-          label: '',
-          tdClass: 'text-right',
+          class: 'actions',
         },
       ].map(c => ({
         ...c,
@@ -185,6 +233,13 @@ export default {
   methods: {
     items () {
       return this.procListResults(this.$SystemAPI.templateList(this.encodeListParams()))
+    },
+
+    handleDelete (template) {
+      this.handleItemDelete({
+        resource: template,
+        resourceName: 'template',
+      })
     },
   },
 }

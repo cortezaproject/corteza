@@ -4,6 +4,7 @@ report:
   edit: Edit
   list: List of Reports
   new: New Report
+  delete: Delete
 searchPlaceholder: Type here to search reports
 title: Reports
 tooltip:

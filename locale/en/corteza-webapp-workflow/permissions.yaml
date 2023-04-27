@@ -3,6 +3,7 @@ ui:
   cancel: Cancel
   set-for: Set permissions for {{target}}
   loading: Loading permissions
+  label: Permissions
 
   edit:
     label: User roles

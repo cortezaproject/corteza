@@ -35,7 +35,9 @@
 
       }"
       class="h-100"
+      clickable
       @search="filterList"
+      @row-clicked="handleRowClicked"
     >
       <template #header>
         <b-button
@@ -61,24 +63,12 @@
           v-if="canGrant"
           data-test-id="button-permissions"
           resource="corteza::system:apigw-route/*"
-          button-variant="light"
-          class="ml-1"
+          button-variant="link text-decoration-none text-dark regular-font rounded-0"
+          class="text-dark d-print-none border-0"
         >
           <font-awesome-icon :icon="['fas', 'lock']" />
           {{ $t('permissions') }}
         </c-permissions-button>
-
-        <b-dropdown
-          v-if="false"
-          variant="link"
-          right
-          menu-class="shadow-sm"
-          :text="$t('export')"
-        >
-          <b-dropdown-item-button variant="link">
-            {{ $t('yaml') }}
-          </b-dropdown-item-button>
-        </b-dropdown>
 
         <c-resource-list-status-filter
           v-model="filter.deleted"
@@ -92,23 +82,72 @@
         />
       </template>
 
-      <template #actions="{ item }">
-        <b-button
-          size="sm"
-          variant="link"
-          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
+      <template #actions="{ item: r }">
+        <b-dropdown
+          v-if="(areActionsVisible({ resource: r, conditions: ['canDeleteApigwRoute', 'canGrant'] }))"
+          boundary="viewport"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
         >
-          <font-awesome-icon
-            :icon="['fas', 'pen']"
-          />
-        </b-button>
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item
+            v-if="r.routeID && canGrant"
+          >
+            <c-permissions-button
+              :title="r.endpoint || r.routeID"
+              :target="r.endpoint || r.routeID"
+              :resource="`corteza::system:apigw-route/${r.routeID}`"
+              button-variant="link"
+              class="d-print-none border-0 text-decoration-none text-dark regular-font rounded-0"
+            >
+              <font-awesome-icon :icon="['fas', 'lock']" />
+
+              {{ $t('permissions') }}
+            </c-permissions-button>
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="r.canDeleteApigwRoute"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(r)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                v-if="!r.deletedAt"
+                class="p-1"
+              >{{ $t('delete') }}</span>
+              <span
+                v-else
+                class="p-1"
+              >{{ $t('undelete') }}</span>
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-card>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import moment from 'moment'
 import { components } from '@cortezaproject/corteza-vue'
@@ -163,8 +202,7 @@ export default {
         },
         {
           key: 'actions',
-          label: '',
-          tdClass: 'text-right',
+          class: 'actions',
         },
       ].map(c => ({
         ...c,
@@ -189,8 +227,21 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      incLoader: 'ui/incLoader',
+      decLoader: 'ui/decLoader',
+    }),
+
     items () {
       return this.procListResults(this.$SystemAPI.apigwRouteList(this.encodeListParams()))
+    },
+
+    handleDelete (route) {
+      this.handleItemDelete({
+        resource: route,
+        resourceName: 'apigwRoute',
+        locale: 'gateway',
+      })
     },
   },
 }

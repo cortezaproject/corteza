@@ -92,23 +92,61 @@
       </template>
 
       <template #actions="{ item: n }">
-        <b-button-group>
-          <c-permissions-button
-            v-if="n.canGrant"
-            :title="n.name || n.slug || n.namespaceID"
-            :target="n.name || n.slug || n.namespaceID"
-            :resource="`corteza::compose:namespace/${n.namespaceID}`"
-            :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
-            button-variant="outline-light"
-            class="text-dark d-print-none border-0"
-          />
-        </b-button-group>
+        <div>
+          <b-dropdown
+            v-if="n.canDeleteNamespace || n.canGrant"
+            variant="outline-light"
+            toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+            no-caret
+            dropleft
+            lazy
+            menu-class="m-0"
+          >
+            <template #button-content>
+              <font-awesome-icon
+                :icon="['fas', 'ellipsis-v']"
+              />
+            </template>
+            <b-dropdown-item
+              v-if="n.canGrant"
+            >
+              <c-permissions-button
+                :title="n.name || n.slug || n.namespaceID"
+                :target="n.name || n.slug || n.namespaceID"
+                :resource="`corteza::compose:namespace/${n.namespaceID}`"
+                :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
+                :button-label="$t('permissions:ui.label')"
+                button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                class="text-dark d-print-none border-0"
+              />
+            </b-dropdown-item>
+
+            <b-dropdown-item
+              v-if="n.canDeleteNamespace"
+            >
+              <c-input-confirm
+                borderless
+                variant="link"
+                size="md"
+                button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                class="w-100"
+                @confirmed="handleDelete(n)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'trash-alt']"
+                  class="text-danger"
+                />
+                {{ $t('delete') }}
+              </c-input-confirm>
+            </b-dropdown-item>
+          </b-dropdown>
+        </div>
       </template>
     </c-resource-list>
   </b-container>
 </template>
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import ImporterModal from 'corteza-webapp-compose/src/components/Namespaces/Importer'
 import listHelpers from 'corteza-webapp-compose/src/mixins/listHelpers'
 
@@ -129,6 +167,8 @@ export default {
   data () {
     return {
       primaryKey: 'namespaceID',
+      application: undefined,
+      isApplication: false,
 
       filter: {
         query: '',
@@ -195,15 +235,20 @@ export default {
         {
           key: 'actions',
           label: '',
-          tdClass: 'text-right text-nowrap',
+          tdClass: 'text-right text-nowrap actions',
         },
       ]
     },
   },
 
   methods: {
+    ...mapActions({
+      load: 'namespace/load',
+      deleteNamespace: 'namespace/delete',
+    }),
+
     onImported () {
-      this.$store.dispatch('namespace/load', { force: true })
+      this.load({ force: true })
         .then(() => {
           this.filterList()
           this.toastSuccess(this.$t('notification:namespace.imported'))
@@ -224,6 +269,36 @@ export default {
 
     namespaceList () {
       return this.procListResults(this.$ComposeAPI.namespaceList(this.encodeListParams()))
+    },
+
+    fetchApplication (namespace) {
+      const { namespaceID, slug } = namespace
+      return this.$SystemAPI.applicationList({ name: slug || namespaceID })
+        .then(({ set = [] }) => {
+          if (set.length) {
+            this.application = set[0]
+            this.isApplication = this.application.enabled
+          }
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:namespace.deleteFailed')))
+    },
+
+    async handleDelete (namespace) {
+      this.fetchApplication(namespace).then(() => {
+        const { namespaceID } = namespace
+        const { applicationID } = this.application || {}
+        this.deleteNamespace({ namespaceID })
+          .catch(this.toastErrorHandler(this.$t('notification:namespace.deleteFailed')))
+          .then(() => {
+            if (applicationID) {
+              return this.$SystemAPI.applicationDelete({ applicationID })
+            }
+          })
+          .then(() => {
+            this.toastSuccess(this.$t('notification:namespace.deleted'))
+            this.filterList()
+          })
+      })
     },
   },
 }

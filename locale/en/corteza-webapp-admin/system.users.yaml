@@ -81,6 +81,11 @@ list:
     handle: Handle
     name: Name
     state: State
+  suspend: Suspend
+  unsuspend: Unsuspend
+  delete: Delete
+  undelete: Undelete
+  revokeActiveSession: Revoke Session
   export: Export
   rows:
     filters:

@@ -669,7 +669,6 @@ export default {
 }
 
 .color-selector {
-
   .vs__dropdown-menu {
     min-width: 100%;
   }
@@ -678,6 +677,7 @@ export default {
     text-overflow: ellipsis;
     overflow-x: hidden;
   }
+
   .vs__selected-options {
     width: 0;
     flex-wrap: nowrap;

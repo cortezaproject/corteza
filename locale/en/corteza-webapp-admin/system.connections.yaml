@@ -24,6 +24,9 @@ list:
     location: Location
     ownership: Ownership
     createdAt: Created
+    actions: ''
+  delete: Delete
+  undelete: Undelete
 
 editor:
   title:

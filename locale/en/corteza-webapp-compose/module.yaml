@@ -218,6 +218,7 @@ list:
     name: Name
     handle: Handle
     changedAt: Last change
+  delete: Delete
 
 recordPage:
   create: Create record page

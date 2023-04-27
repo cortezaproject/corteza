@@ -20,12 +20,14 @@ editor:
     new: Add a queue
 list:
   columns:
-    actions: Actions
+    actions: ''
     consumer: Consumer
     createdAt: Created At
     state: State
     queue: Queue
   export: Export
+  delete: Delete
+  undelete: Undelete
   rows:
     filters:
       deleted: Deleted

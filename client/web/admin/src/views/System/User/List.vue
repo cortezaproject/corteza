@@ -78,9 +78,11 @@
         resourceSingle: $t('general:label.user.single'),
         resourcePlural: $t('general:label.user.plural'),
       }"
+      clickable
       sticky-header
       class="custom-resource-list-height"
       @search="filterList"
+      @row-clicked="handleRowClicked"
     >
       <template #header>
         <c-resource-list-status-filter
@@ -103,16 +105,65 @@
         />
       </template>
 
-      <template #actions="{ item }">
-        <b-button
-          size="sm"
-          variant="link"
-          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
+      <template #actions="{ item: u }">
+        <b-dropdown
+          v-if="(areActionsVisible({ resource: u, conditions: ['canDeleteUser', 'canGrant'] }))"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
         >
-          <font-awesome-icon
-            :icon="['fas', 'pen']"
-          />
-        </b-button>
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item
+            v-if="canGrant"
+          >
+            <c-permissions-button
+              :title="u.name || u.handle || u.email || u.userID"
+              :target="u.name || u.handle || u.email || u.userID"
+              :resource="`corteza::system:user/${u.userID}`"
+              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              class="text-dark d-print-none border-0"
+            >
+              <font-awesome-icon :icon="['fas', 'lock']" />
+              {{ $t('permissions') }}
+            </c-permissions-button>
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="u.canDeleteUser"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(u)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+
+              <span
+                v-if="!u.deletedAt"
+                class="p-1"
+              >{{ $t('delete') }}</span>
+
+              <span
+                v-else
+                class="p-1"
+              >{{ $t('undelete') }}</span>
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-container>
@@ -185,8 +236,7 @@ export default {
         },
         {
           key: 'actions',
-          label: '',
-          tdClass: 'text-right',
+          class: 'actions',
         },
       ].map(c => ({
         ...c,
@@ -240,6 +290,13 @@ export default {
 
     rowClass (item) {
       return { 'text-secondary': item && (!!item.deletedAt || !!item.suspendedAt) }
+    },
+
+    handleDelete (user) {
+      this.handleItemDelete({
+        resource: user,
+        resourceName: 'user',
+      })
     },
   },
 }
