@@ -88,6 +88,7 @@ export default {
   i18nOptions: {
     namespaces: 'configurator',
   },
+
   components: {
     VueSelect,
   },

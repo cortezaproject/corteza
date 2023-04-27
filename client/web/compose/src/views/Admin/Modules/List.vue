@@ -112,33 +112,72 @@
           :namespace="namespace"
           :module="m"
           size="sm"
+          boundary="scrollParent"
         />
 
-        <b-button-group
-          class="ml-2"
+        <b-dropdown
+          v-if="m.canGrant || m.canDeleteModule"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-1"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
         >
-          <b-button
-            data-test-id="button-all-records"
-            variant="outline-light"
-            :title="$t('allRecords.label')"
-            :to="{name: 'admin.modules.record.list', params: { moduleID: m.moduleID }}"
-            class="text-primary d-print-none border-0"
-          >
+          <template #button-content>
             <font-awesome-icon
-              :icon="['fas', 'columns']"
+              :icon="['fas', 'ellipsis-v']"
             />
-          </b-button>
+          </template>
 
-          <c-permissions-button
+          <b-dropdown-item>
+            <b-button
+              data-test-id="button-all-records"
+              variant="outline-light"
+              :title="$t('allRecords.label')"
+              :to="{name: 'admin.modules.record.list', params: { moduleID: m.moduleID }}"
+              class="text-primary d-print-none border-0"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'columns']"
+              />
+              {{ $t('allRecords.label') }}
+            </b-button>
+          </b-dropdown-item>
+
+          <b-dropdown-item
             v-if="m.canGrant"
-            :title="m.name || m.handle || m.moduleID"
-            :target="m.name || m.handle || m.moduleID"
-            :resource="`corteza::compose:module/${m.namespaceID}/${m.moduleID}`"
-            :tooltip="$t('permissions:resources.compose.module.tooltip')"
-            button-variant="outline-light"
-            class="text-dark d-print-none border-0"
-          />
-        </b-button-group>
+          >
+            <c-permissions-button
+              :title="m.name || m.handle || m.moduleID"
+              :target="m.name || m.handle || m.moduleID"
+              :resource="`corteza::compose:module/${m.namespaceID}/${m.moduleID}`"
+              :tooltip="$t('permissions:resources.compose.module.tooltip')"
+              :button-label="$t('permissions:ui.label')"
+              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              class="text-dark d-print-none border-0"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="m.canDeleteModule"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(m)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              {{ $t('list.delete') }}
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
 
       <template #name="{ item: m }">
@@ -244,7 +283,7 @@ export default {
         {
           key: 'actions',
           label: '',
-          tdClass: 'text-right text-nowrap',
+          tdClass: 'text-right text-nowrap actions',
         },
       ]
     },
@@ -257,6 +296,8 @@ export default {
   methods: {
     ...mapActions({
       createPage: 'page/create',
+      deletePage: 'page/delete',
+      deleteModule: 'module/delete',
     }),
 
     handleRowClicked ({ moduleID, canUpdateModule, canDeleteModule }) {
@@ -292,6 +333,19 @@ export default {
     onImportSuccessful () {
       this.filterList()
       this.toastSuccess(this.$t('notification:general.import.successful'))
+    },
+
+    handleDelete (module) {
+      this.deleteModule(module).then(() => {
+        const moduleRecordPage = this.pages.find(p => p.moduleID === module.moduleID)
+        if (moduleRecordPage) {
+          return this.deletePage({ ...moduleRecordPage, strategy: 'rebase' })
+        }
+      }).catch(this.toastErrorHandler(this.$t('notification:module.deleteFailed')))
+        .finally(() => {
+          this.toastSuccess(this.$t('notification:module.deleted'))
+          this.filterList()
+        })
     },
   },
 }

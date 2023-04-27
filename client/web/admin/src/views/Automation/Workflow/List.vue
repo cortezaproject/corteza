@@ -60,9 +60,11 @@
         resourceSingle: $t('general:label.workflow.single'),
         resourcePlural: $t('general:label.workflow.plural')
       }"
+      clickable
       sticky-header
       class="custom-resource-list-height"
       @search="filterList"
+      @row-clicked="handleRowClicked"
     >
       <template #header>
         <c-resource-list-status-filter
@@ -75,16 +77,84 @@
         />
       </template>
 
-      <template #actions="{ item }">
-        <b-button
-          size="sm"
-          variant="link"
-          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
+      <template #actions="{ item: w }">
+        <b-dropdown
+          v-if="(areActionsVisible({ resource: w, conditions: ['canGrant', 'canDeleteWorkflow'] }) && w.workflowID)"
+          boundary="viewport"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
         >
-          <font-awesome-icon
-            :icon="['fas', 'pen']"
-          />
-        </b-button>
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
+
+          <b-dropdown-item
+            v-if="w.workflowID && canGrant"
+          >
+            <c-permissions-button
+              :title="w.meta.name || w.handle || w.workflowID"
+              :target="w.meta.name || w.handle || w.workflowID"
+              :resource="`corteza::automation:workflow/${w.workflowID}`"
+              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              class="text-dark d-print-none border-0"
+            >
+              <font-awesome-icon :icon="['fas', 'lock']" />
+              {{ $t('permissions') }}
+            </c-permissions-button>
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="w.canDeleteWorkflow && !w.deletedAt"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(w)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                class="p-1"
+              >
+                {{ $t('delete') }}
+              </span>
+            </c-input-confirm>
+          </b-dropdown-item>
+
+          <b-dropdown-item
+            v-if="w.canUndeleteWorkflow && w.deletedAt"
+          >
+            <c-input-confirm
+              borderless
+              variant="link"
+              size="md"
+              button-class="text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(w)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              <span
+                class="p-1"
+              >
+                {{ $t('undelete') }}
+              </span>
+            </c-input-confirm>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-container>
@@ -150,7 +220,7 @@ export default {
         },
         {
           key: 'actions',
-          tdClass: 'text-right',
+          class: 'actions',
         },
       ].map(c => ({
         ...c,
@@ -177,6 +247,14 @@ export default {
   methods: {
     items () {
       return this.procListResults(this.$AutomationAPI.workflowList(this.encodeListParams()))
+    },
+
+    handleDelete (workflow) {
+      this.handleItemDelete({
+        resource: workflow,
+        resourceName: 'workflow',
+        api: 'automation',
+      })
     },
   },
 }

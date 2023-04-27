@@ -191,8 +191,9 @@ export default {
       }
     },
 
-    onDelete (clientID) {
+    onDelete () {
       this.incLoader()
+      const clientID = this.authClientID
       this.$SystemAPI.authClientDelete({ clientID })
         .then(() => {
           this.fetchAuthclient()
@@ -204,8 +205,9 @@ export default {
         .finally(() => this.decLoader())
     },
 
-    onUndelete (clientID) {
+    onUndelete () {
       this.incLoader()
+      const clientID = this.authClientID
       this.$SystemAPI.authClientUndelete({ clientID })
         .then(() => {
           this.fetchAuthclient()

@@ -40,34 +40,42 @@
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
       }"
+      clickable
       sticky-header
       hide-total
       class="custom-resource-list-height"
+      @row-clicked="handleRowClicked"
       @search="filterList"
     >
-      <template #actions="{ item }">
-        <b-button
-          v-if="item.nodeID === item.sharedNodeID && (item.status || '').toLowerCase() === 'pair_requested'"
-          size="sm"
-          variant="link"
-          class="p-0 pr-1"
-          @click="openConfirmPending(item)"
+      <template #actions="{ item: n }">
+        <b-dropdown
+          v-if="n.nodeID === n.sharedNodeID && (item.status || '').toLowerCase() === 'pair_requested'"
+          variant="outline-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          menu-class="m-0"
         >
-          <font-awesome-icon
-            :icon="['fas', 'exclamation-triangle']"
-            class="text-danger"
-          />
-        </b-button>
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
+            />
+          </template>
 
-        <b-button
-          size="sm"
-          variant="link"
-          :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'pen']"
-          />
-        </b-button>
+          <b-dropdown-item>
+            <b-button
+              size="sm"
+              variant="link"
+              @click="openConfirmPending(n)"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'exclamation-triangle']"
+                class="text-danger"
+              />
+              {{ $t('pair.confirm') }}
+            </b-button>
+          </b-dropdown-item>
+        </b-dropdown>
       </template>
     </c-resource-list>
 
@@ -159,6 +167,7 @@
             {{ $t(pair.node.email ? 'pair.status.confirmPending.description' : 'pair.status.confirmPending.descriptionNoMail', pair.node) }}
           </h2>
         </div>
+
         <c-submit-button
           button-class="px-5 mt-4"
           variant="outline-primary"
@@ -254,8 +263,7 @@ export default {
         // },
         {
           key: 'actions',
-          label: '',
-          tdClass: 'text-right',
+          class: 'actions',
         },
       ].map(c => ({
         ...c,

@@ -22,6 +22,7 @@
     </b-list-group>
   </div>
 </template>
+
 <script>
 import { mapGetters } from 'vuex'
 import { components } from '@cortezaproject/corteza-vue'

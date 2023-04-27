@@ -172,7 +172,7 @@ export default {
         .then(() => {
           this.fetchQueue()
           this.toastSuccess(this.$t(`notification:queue.${event}.success`))
-          this.$router.push({ name: 'system.queue' })
+          if (!deletedAt) this.$router.push({ name: 'system.queue' })
         })
         .catch(this.toastErrorHandler(this.$t(`notification:queue.${event}.error`)))
         .finally(() => {

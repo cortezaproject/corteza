@@ -52,6 +52,8 @@ list:
     meta:
       short: Short name
     state: State
+  delete: Delete
+  undelete: Undelete
   export: Export
   rows:
     filters:

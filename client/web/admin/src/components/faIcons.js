@@ -47,6 +47,7 @@ import {
   faQuestion,
   faStamp,
   faInfoCircle,
+  faEllipsisV,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -111,4 +112,5 @@ library.add(
   faQuestion,
   faStamp,
   faInfoCircle,
+  faEllipsisV,
 )
