@@ -380,7 +380,7 @@ export default {
 </style>
 <style lang="scss">
 .calendar-container {
-  .fc-content {
+  .fc-content, .event-record {
     cursor: pointer;
   }
 
