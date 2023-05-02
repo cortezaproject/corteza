@@ -53,10 +53,8 @@
         <b-form-group
           :label="$t('display-element:metric.configurator.color.text')"
         >
-          <b-form-input
+          <c-input-color-picker
             v-model="options.color"
-            type="color"
-            debounce="300"
           />
         </b-form-group>
       </b-col>
@@ -64,10 +62,8 @@
         <b-form-group
           :label="$t('display-element:metric.configurator.color.background')"
         >
-          <b-form-input
+          <c-input-color-picker
             v-model="options.backgroundColor"
-            type="color"
-            debounce="300"
           />
         </b-form-group>
       </b-col>
@@ -78,10 +74,13 @@
 <script>
 import base from './base'
 import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   components: {
     ColumnSelector,
+    CInputColorPicker,
   },
 
   extends: base,

@@ -168,10 +168,8 @@
             :label="$t('kind.file.view.background')"
             label-class="text-primary"
           >
-            <b-form-input
+            <c-input-color-picker
               v-model="options.backgroundColor"
-              type="color"
-              debounce="300"
             />
           </b-form-group>
         </b-col>
@@ -183,6 +181,8 @@
 import base from './base'
 import Uploader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/Uploader'
 import ListLoader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/ListLoader'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {
@@ -194,6 +194,7 @@ export default {
   components: {
     Uploader,
     ListLoader,
+    CInputColorPicker,
   },
 
   extends: base,

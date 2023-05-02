@@ -399,6 +399,7 @@ export default {
         labelStyle: {},
         valueStyle: {
           backgroundColor: '#FFFFFF',
+          color: '#000000',
         },
       }
       this.metrics.push(m)

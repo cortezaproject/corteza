@@ -5,31 +5,24 @@
     <fieldset>
       <b-form-group
         :label="$t('metric.editStyle.color')"
-        label-cols="4"
       >
-        <b-form-input
+        <c-input-color-picker
           v-model="options.color"
-          type="color"
-          debounce="300"
           class="mb-1"
         />
       </b-form-group>
 
       <b-form-group
         :label="$t('metric.editStyle.backgroundColor')"
-        label-cols="4"
       >
-        <b-form-input
+        <c-input-color-picker
           v-model="options.backgroundColor"
-          type="color"
-          debounce="300"
           class="mb-1"
         />
       </b-form-group>
 
       <b-form-group
         :label="$t('metric.editStyle.fontSize')"
-        label-cols="4"
       >
         <b-form-input
           v-model="options.fontSize"
@@ -43,9 +36,16 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
+
 export default {
   i18nOptions: {
     namespaces: 'block',
+  },
+
+  components: {
+    CInputColorPicker,
   },
 
   props: {

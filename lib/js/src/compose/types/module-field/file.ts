@@ -46,7 +46,7 @@ const defaults = (): Readonly<FileOptions> => Object.freeze({
   maxWidth: '',
   borderRadius: '',
   margin: 'auto',
-  backgroundColor: '',
+  backgroundColor: '#000000',
 })
 
 export class ModuleFieldFile extends ModuleField {

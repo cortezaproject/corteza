@@ -152,10 +152,8 @@
             :label="$t('kind.file.view.background')"
             label-class="text-primary"
           >
-            <b-form-input
+            <c-input-color-picker
               v-model="f.options.backgroundColor"
-              type="color"
-              debounce="300"
             />
           </b-form-group>
         </b-col>
@@ -166,10 +164,16 @@
 
 <script>
 import base from './base'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {
     namespaces: 'field',
+  },
+
+  components: {
+    CInputColorPicker,
   },
 
   extends: base,
