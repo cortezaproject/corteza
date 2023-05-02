@@ -89,6 +89,7 @@ metric:
     color:
       background: Background color
       text: Text color
+      picker: Choose a color
     format: Format
     label-column: Label column
     none: None

@@ -45,6 +45,7 @@ kind:
       maxWidth: Max width
       borderRadius: Border radius
       background: Background color
+      colorPicker: Choose a color
       margin: Margin
       unitType: Unit type
       px: px
