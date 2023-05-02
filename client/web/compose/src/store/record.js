@@ -23,7 +23,10 @@ export default function (ComposeAPI) {
       },
 
       findByIDs (state) {
-        return (IDs) => state.set.filter(({ recordID }) => IDs.includes(recordID))
+        return (IDs) => {
+          IDs = IDs.flat()
+          return state.set.filter(({ recordID }) => IDs.includes(recordID))
+        }
       },
 
       set (state) {
@@ -53,6 +56,7 @@ export default function (ComposeAPI) {
         const query = recordIDs.map(recordID => `recordID = ${recordID}`).join(' OR ')
 
         return ComposeAPI.recordList({ namespaceID, moduleID, query, deleted: 1 }).then(({ set }) => {
+          console.log(set, 'set')
           commit(types.updateSet, set)
         }).finally(() => {
           commit(types.completed)
@@ -95,6 +99,8 @@ export default function (ComposeAPI) {
             state.set.push(newItem)
           }
         })
+
+        console.log(state, 'state')
       },
 
       [types.clearSet] (state) {
