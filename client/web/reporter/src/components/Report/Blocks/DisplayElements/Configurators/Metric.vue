@@ -2,7 +2,7 @@
   <div>
     <b-form-group
       v-if="options.valueColumn !== undefined"
-      :label="$t('display-element:metric.configurator.label-column')"
+      :label="$t('label-column')"
       label-class="text-primary"
     >
       <column-selector
@@ -15,7 +15,7 @@
     <b-row>
       <b-col>
         <b-form-group
-          :label="$t('display-element:metric.configurator.format')"
+          :label="$t('format')"
           label-class="text-primary"
         >
           <b-form-input
@@ -26,7 +26,7 @@
       </b-col>
       <b-col>
         <b-form-group
-          :label="$t('display-element:metric.configurator.prefix')"
+          :label="$t('prefix')"
           label-class="text-primary"
         >
           <b-form-input
@@ -37,7 +37,7 @@
       </b-col>
       <b-col>
         <b-form-group
-          :label="$t('display-element:metric.configurator.suffix')"
+          :label="$t('suffix')"
           label-class="text-primary"
         >
           <b-form-input
@@ -51,23 +51,27 @@
     <b-row>
       <b-col>
         <b-form-group
-          :label="$t('display-element:metric.configurator.color.text')"
+          :label="$t('color.text')"
         >
-          <b-form-input
+          <c-input-color-picker
             v-model="options.color"
-            type="color"
-            debounce="300"
+            :translations="{
+              modalTitle: $t('color.picker'),
+              saveBtnLabel: $t('general:label.saveAndClose')
+            }"
           />
         </b-form-group>
       </b-col>
       <b-col>
         <b-form-group
-          :label="$t('display-element:metric.configurator.color.background')"
+          :label="$t('color.background')"
         >
-          <b-form-input
+          <c-input-color-picker
             v-model="options.backgroundColor"
-            type="color"
-            debounce="300"
+            :translations="{
+              modalTitle: $t('color.picker'),
+              saveBtnLabel: $t('general:label.saveAndClose')
+            }"
           />
         </b-form-group>
       </b-col>
@@ -78,10 +82,18 @@
 <script>
 import base from './base'
 import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
+  i18nOptions: {
+    namespaces: 'display-element',
+    keyPrefix: 'metric.configurator',
+  },
+
   components: {
     ColumnSelector,
+    CInputColorPicker,
   },
 
   extends: base,

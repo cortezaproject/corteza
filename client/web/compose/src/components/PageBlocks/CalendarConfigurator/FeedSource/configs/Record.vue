@@ -30,14 +30,13 @@
           breakpoint="md"
           :label="$t('calendar.recordFeed.colorLabel')"
         >
-          <b-input-group>
-            <b-form-input
-              v-model="feed.options.color"
-              style="max-width: 50px;"
-              type="color"
-              debounce="300"
-            />
-          </b-input-group>
+          <c-input-color-picker
+            v-model="feed.options.color"
+            :translations="{
+              modalTitle: $t('calendar.recordFeed.colorPicker'),
+              saveBtnLabel: $t('general:label.saveAndClose')
+            }"
+          />
         </b-form-group>
         <b-form-group
           horizontal
@@ -143,10 +142,16 @@
 
 <script>
 import base from './base'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {
     namespaces: 'block',
+  },
+
+  components: {
+    CInputColorPicker,
   },
 
   extends: base,

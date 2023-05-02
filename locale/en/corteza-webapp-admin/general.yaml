@@ -9,6 +9,7 @@ label:
   refresh: Refresh
   loadMore: Load more
   loading: Loading
+  saveAndClose: Save and close
   submit: Submit
   delete: Delete
   undelete: Undelete

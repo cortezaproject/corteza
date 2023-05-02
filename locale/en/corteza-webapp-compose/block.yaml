@@ -46,6 +46,7 @@ calendar:
   hideToday: Hide today button
   label: Calendar
   recordFeed:
+    colorPicker: Choose a color
     colorLabel: Event color
     eventAllDay: Show as all-day-events
     eventEndFieldLabel: Event end
@@ -225,6 +226,7 @@ metric:
   editStyle:
     backgroundColor: Background color
     color: Text color
+    colorPicker: Choose a color
     fontSize: Font size in pixels
     labelLabel: Label style
     valueLabel: Value style
@@ -589,6 +591,7 @@ comment:
     footnote: 'Field value will be used as reference'
 navigation:
   chart: Charts
+  colorPicker: Choose a color
   noNavigationItems: No navigation item configured
   label: Navigation
   displayOptions: Display options
@@ -726,6 +729,7 @@ geometry:
   openInNewTab: Open in a new tab
   openInModal: Open in a modal
   recordFeed:
+    colorPicker: Choose a color
     moduleLabel: Module*
     modulePlaceholder: (No module)
     noMultiFields: Multi-value fields are currently not supported

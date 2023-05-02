@@ -431,7 +431,8 @@ export default {
       const m = {
         labelStyle: {},
         valueStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#FFFFFF00',
+          color: '#000000',
         },
         drillDown: {
           enabled: false,
