@@ -38,7 +38,7 @@ CORTEZA_BINS = $(CODEGEN) $(JSONTPLEXEC)
 ########################################################################################################################
 # Go Toolset
 $(GOCRITIC):
-	$(GOINSTALL) github.com/go-critic/go-critic@latest
+	$(GOINSTALL) github.com/go-critic/go-critic/cmd/gocritic@latest
 
 $(MOCKGEN):
 	$(GOINSTALL) github.com/golang/mock/mockgen@latest
@@ -86,6 +86,5 @@ COLOUR_YELLOW=\033[0;33m
 COLOUR_RED=\033[0;31m
 COLOUR_BLUE=\033[0;34m
 COLOUR_END=\033[0m
-
 
 #
