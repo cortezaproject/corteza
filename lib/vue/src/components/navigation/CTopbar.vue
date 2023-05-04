@@ -63,7 +63,7 @@
         <b-dropdown-item
           v-for="(helpLink, index) in helpLinks"
           :key="index"
-          :href="helpLink.url"
+          :href="helpLink.url | checkValidURL"
           :target="helpLink.newTab ? '_blank' : ''"
         >
           {{ helpLink.handle }}
@@ -150,7 +150,7 @@
         <b-dropdown-item
           v-for="(profileLink, index) in profileLinks"
           :key="index"
-          :href="profileLink.url"
+          :href="profileLink.url | checkValidURL"
           :target="profileLink.newTab ? '_blank' : ''"
         >
           {{ profileLink.handle }}

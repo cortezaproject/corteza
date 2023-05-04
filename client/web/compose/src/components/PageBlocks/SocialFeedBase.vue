@@ -88,7 +88,8 @@ export default {
       }
 
       // is this a twitter url?
-      if (url && url.indexOf('twitter.com')) {
+      if (url && url.indexOf('twitter.com') > -1) {
+        url = this.$options.filters.checkValidURL(url)
         twitterHandle = this.getTwitterHandle(url)
         if (twitterHandle === '') {
           // failed to get twitter handle from the url

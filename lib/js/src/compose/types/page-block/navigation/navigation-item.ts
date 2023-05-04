@@ -1,4 +1,5 @@
 import { Apply } from '../../../../cast'
+import { PageBlock } from '../base';
 
 interface DropdownItem {
   label: string;
