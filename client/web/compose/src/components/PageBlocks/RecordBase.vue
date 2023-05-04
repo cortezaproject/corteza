@@ -17,7 +17,7 @@
       <div
         v-for="(field, index) in fields"
         :key="index"
-        :class="{ 'd-flex flex-column mb-3 px-3': canDisplay(field)}"
+        :class="{ 'd-flex flex-column mb-3 px-3': canDisplay(field) }"
       >
         <template
           v-if="canDisplay(field)"

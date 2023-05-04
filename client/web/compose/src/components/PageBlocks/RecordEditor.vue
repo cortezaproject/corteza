@@ -13,12 +13,12 @@
 
     <div
       v-else-if="module"
-      class="px-3"
+      class="mt-3 px-3"
     >
       <div
         v-for="field in fields"
         :key="field.id"
-        :class="{ 'mt-3': canDisplay(field) }"
+        :class="{ 'd-flex flex-column': canDisplay(field) }"
       >
         <template
           v-if="canDisplay(field)"
@@ -30,7 +30,7 @@
             :field="field"
             @change="onFieldChange()"
           />
-          <div
+          <template
             v-else
           >
             <label
@@ -51,7 +51,7 @@
             </small>
             <div
               v-if="field.canReadRecordValue"
-              class="value"
+              class="value mt-2 mb-3"
             >
               <field-viewer
                 :field="field"
@@ -68,7 +68,7 @@
                 {{ $t('field.noPermission') }}
               </i>
             </div>
-          </div>
+          </template>
         </template>
       </div>
     </div>
