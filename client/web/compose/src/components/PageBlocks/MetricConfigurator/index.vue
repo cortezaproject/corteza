@@ -40,6 +40,8 @@
         </b-col>
       </b-row>
 
+      <hr>
+
       <b-row
         class="mt-3"
       >
@@ -242,6 +244,33 @@
                   class="mb-1"
                 />
               </b-form-group>
+
+              <b-form-group
+                :description="$t('metric.drillDown.description')"
+                label-class="d-flex align-items-center"
+                class="mb-1"
+              >
+                <template #label>
+                  {{ $t('metric.drillDown.label') }}
+                  <b-form-checkbox
+                    v-model="edit.drillDown.enabled"
+                    switch
+                    class="ml-1"
+                  />
+                </template>
+
+                <vue-select
+                  v-model="edit.drillDown.blockID"
+                  :options="drillDownOptions"
+                  :disabled="!edit.drillDown.enabled"
+                  :get-option-label="o => o.title || o.kind"
+                  :reduce="option => option.blockID"
+                  :clearable="true"
+                  :placeholder="$t('metric.drillDown.openInModal')"
+                  append-to-body
+                  class="block-selector bg-white w-100"
+                />
+              </b-form-group>
             </fieldset>
           </b-card>
 
@@ -297,7 +326,7 @@ import MStyle from './MStyle'
 import { mapGetters } from 'vuex'
 import MetricBase from '../MetricBase'
 import { VueSelect } from 'vue-select'
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 
 export default {
   i18nOptions: {
@@ -367,6 +396,10 @@ export default {
         this.options.metrics = m
       },
     },
+
+    drillDownOptions () {
+      return this.page.blocks.filter(({ blockID, kind, options = {} }) => kind === 'RecordList' && blockID !== NoID && options.moduleID === this.edit.moduleID)
+    },
   },
 
   watch: {
@@ -399,6 +432,10 @@ export default {
         labelStyle: {},
         valueStyle: {
           backgroundColor: '#FFFFFF',
+        },
+        drillDown: {
+          enabled: false,
+          blockID: '',
         },
       }
       this.metrics.push(m)
