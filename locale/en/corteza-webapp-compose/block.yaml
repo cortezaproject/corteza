@@ -185,6 +185,10 @@ iframe:
   srcLabel: URL to show in the iframe
 metric:
   defaultMetricLabel: Unnamed metric
+  drillDown:
+    label: Drill down
+    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected the drill down data will be shown in a modal.
+    openInModal: Open in modal
   edit:
     bucketLabel: Bucket size
     bucketPlaceholder: Select a bucket size

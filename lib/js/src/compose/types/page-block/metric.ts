@@ -6,6 +6,11 @@ const kind = 'Metric'
 
 type Reporter = (p: ReporterParams) => Promise<any>
 
+interface DrillDown {
+  enabled: boolean;
+  blockID?: string;
+}
+
 interface ReporterParams {
   moduleID: string;
   filter?: string;
@@ -36,6 +41,7 @@ interface Metric {
   // @todo allow conditional styles; eg. if value is < 10 render with bold red text
   labelStyle?: Style;
   valueStyle?: Style;
+  drillDown: DrillDown;
 }
 
 interface Options {
@@ -68,7 +74,10 @@ export class PageBlockMetric extends PageBlock {
     Apply(this.options, o, Boolean, 'showRefresh')
     Apply(this.options, o, String, 'magnifyOption')
     if (o.metrics) {
-      this.options.metrics = o.metrics
+      this.options.metrics = o.metrics.map((m) => ({
+        ...m,
+        drillDown: m.drillDown || { enabled: false },
+      }))
     }
   }
 
