@@ -8,7 +8,7 @@
       v-if="src"
       ref="iframe"
       class="h-100 w-100 border-0"
-      :src="src"
+      :src="src | checkValidURL"
     />
   </wrap>
 </template>

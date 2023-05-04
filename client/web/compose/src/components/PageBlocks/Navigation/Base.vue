@@ -59,7 +59,7 @@
                 >
                   <a
                     class="dropdown-item"
-                    :href="dropdown.url"
+                    :href="dropdown.url | checkValidURL"
                     :disabled="navItem.options.disabled"
                     :target="selectTargetOption(dropdown.target)"
                     :style="{ order: dIndex * 2 }"
@@ -165,7 +165,7 @@ export default {
         return
       }
 
-      return navItem.type === 'url' ? navItem.options.item.url : ''
+      return navItem.type === 'url' ? this.$options.filters.checkValidURL(navItem.options.item.url) : ''
     },
   },
 }
