@@ -454,6 +454,11 @@ export default {
     handleRecordClick (record) {
       if (!this.roRecordPage) return
 
+      const page = this.pages.find(p => p.moduleID === this.moduleID)
+      if (!page) {
+        return
+      }
+
       const route = {
         name: 'page.record',
         params: {
@@ -463,7 +468,16 @@ export default {
         query: null,
       }
 
-      this.$router.push(route)
+      if (this.options.displayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
+      } else if (this.options.displayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          recordID: record.recordID,
+          recordPageID: (this.roRecordPage || {}).pageID,
+        })
+      } else {
+        this.$router.push(route)
+      }
     },
 
     refresh () {
