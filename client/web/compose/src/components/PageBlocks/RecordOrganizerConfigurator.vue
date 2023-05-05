@@ -162,6 +162,20 @@
           {{ $t('recordOrganizer.group.footnote') }}
         </b-form-text>
       </b-form-group>
+
+      <b-form-group
+        v-if="options.groupField"
+        :label="$t('recordOrganizer.onRecordClick')"
+        :label-cols="3"
+        breakpoint="md"
+        horizontal
+        class="mb-0"
+      >
+        <b-form-select
+          v-model="options.displayOption"
+          :options="displayOptions"
+        />
+      </b-form-group>
     </div>
   </b-tab>
 </template>
@@ -246,6 +260,14 @@ export default {
 
     group () {
       return this.allFields.find(f => f.name === this.options.groupField)
+    },
+
+    displayOptions () {
+      return [
+        { value: 'sameTab', text: this.$t('recordOrganizer.openInSameTab') },
+        { value: 'newTab', text: this.$t('recordOrganizer.openInNewTab') },
+        { value: 'modal', text: this.$t('recordOrganizer.openInModal') },
+      ]
     },
   },
 

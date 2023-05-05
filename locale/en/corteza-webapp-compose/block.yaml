@@ -482,6 +482,10 @@ recordList:
     deleted: Show deleted records
     existing: Show existing records
 recordOrganizer:
+  onRecordClick: On record click
+  openInSameTab: Open in the same tab
+  openInNewTab: Open in a new tab
+  openInModal: Open in a modal
   descriptionField:
     footnote: Field value will be used as record description
     label: Description field
