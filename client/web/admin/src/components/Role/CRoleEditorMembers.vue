@@ -154,7 +154,7 @@ export default {
           this.$set(this.members, i, { ...this.members[i], label: label, dirty: true })
         }
 
-        this.memberUsers.push({ value: member.userID, label })
+        this.memberUsers.push(member)
       }
     },
 

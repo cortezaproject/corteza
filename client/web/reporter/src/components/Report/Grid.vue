@@ -28,6 +28,8 @@
         :y="item.y"
         :class="{ 'editable-grid-item': editable }"
         drag-ignore-from=".gutter"
+        @moved="onBlockUpdated(index)"
+        @resized="onBlockUpdated(index)"
       >
         <slot
           :block="blocks[item.i]"
@@ -108,6 +110,12 @@ export default {
           this.grid = blocks
         }
       },
+    },
+  },
+
+  methods: {
+    onBlockUpdated (index) {
+      this.$emit('item-updated', index)
     },
   },
 }

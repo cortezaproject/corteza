@@ -5,6 +5,7 @@ name: Name
 name-with-star: 'Name*'
 new-report: New Report
 permissions: Permissions
+unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 report:
   create: Create Report
   builder: Report Builder

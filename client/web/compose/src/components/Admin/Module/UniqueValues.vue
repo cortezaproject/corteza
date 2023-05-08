@@ -25,7 +25,7 @@
       </div>
       <div class="mt-3">
         <b-table-simple
-          v-if="rule.constraints.length > 0"
+          v-if="rule.constraints && rule.constraints.length > 0"
           borderless
         >
           <thead>
@@ -145,12 +145,6 @@ export default {
   computed: {
     rules: {
       get () {
-        this.module.config.recordDeDup.rules.forEach(rule => {
-          if (rule.constraints === null) {
-            rule.constraints = []
-          }
-        })
-
         return this.module.config.recordDeDup.rules
       },
       set (value) {
@@ -185,6 +179,10 @@ export default {
     },
 
     updateRuleConstraint (rule) {
+      if (!rule.constraints) {
+        rule.constraints = []
+      }
+
       rule.constraints.push({
         attribute: rule.currentField.name,
         modifier: 'case-sensitive',
@@ -197,7 +195,7 @@ export default {
     },
 
     filterFieldOptions (rule) {
-      const selectedFields = rule.constraints.map(({ attribute }) => attribute)
+      const selectedFields = rule.constraints ? rule.constraints.map(({ attribute }) => attribute) : []
       return this.module.fields.filter(({ name }) => !selectedFields.includes(name))
     },
 

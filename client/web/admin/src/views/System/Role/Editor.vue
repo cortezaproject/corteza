@@ -70,6 +70,7 @@
 </template>
 
 <script>
+import { isEqual } from 'lodash'
 import { system } from '@cortezaproject/corteza-js'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CRoleEditorInfo from 'corteza-webapp-admin/src/components/Role/CRoleEditorInfo'
@@ -104,9 +105,10 @@ export default {
   data () {
     return {
       role: undefined,
+      initialRoleState: undefined,
       isContext: false,
 
-      roleMembers: null,
+      roleMembers: [],
 
       info: {
         processing: false,
@@ -117,6 +119,14 @@ export default {
         success: false,
       },
     }
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
   },
 
   computed: {
@@ -154,6 +164,7 @@ export default {
           this.fetchRole()
         } else {
           this.role = new system.Role()
+          this.initialRoleState = this.role.clone()
           this.isContext = false
         }
       },
@@ -181,6 +192,8 @@ export default {
       this.$SystemAPI.roleRead({ roleID: this.roleID })
         .then(r => {
           this.role = new system.Role(r)
+          this.initialRoleState = this.role.clone()
+
           this.isContext = !!this.role.isContext
 
           if (this.role.canManageMembersOnRole && !this.role.isContext && !this.role.isClosed) {
@@ -313,6 +326,17 @@ export default {
           .finally(() => {
             this.members.processing = false
           })
+      }
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        const isDirty = this.roleMembers.some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)
+        next(isDirty ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
     },
   },

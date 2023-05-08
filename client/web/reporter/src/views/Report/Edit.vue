@@ -103,6 +103,7 @@
                       :placeholder="$t('name')"
                       required
                       :state="nameState"
+                      @input="handleDetectStateChange"
                     />
                   </b-form-group>
                 </b-col>
@@ -121,6 +122,7 @@
                       :placeholder="$t('placeholder-handle')"
                       required
                       :state="handleState"
+                      @input="handleDetectStateChange"
                     />
                     <b-form-invalid-feedback
                       data-test-id="input-handle-invalid-state"
@@ -141,6 +143,7 @@
                   data-test-id="input-description"
                   :placeholder="$t('report.description')"
                   rows="5"
+                  @input="handleDetectStateChange"
                 />
               </b-form-group>
 
@@ -178,6 +181,7 @@ import { handle } from '@cortezaproject/corteza-vue'
 import report from 'corteza-webapp-reporter/src/mixins/report'
 import EditorToolbar from 'corteza-webapp-reporter/src/components/EditorToolbar'
 import { mapGetters } from 'vuex'
+import { isEqual } from 'lodash'
 
 export default {
   name: 'EditReport',
@@ -197,6 +201,9 @@ export default {
       processing: false,
 
       report: undefined,
+      initialReportState: undefined,
+
+      detectStateChange: false,
     }
   },
 
@@ -268,8 +275,43 @@ export default {
           this.fetchReport(reportID)
         } else {
           this.report = new system.Report()
+          this.initialReportState = new system.Report()
         }
       },
+    },
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
+  methods: {
+    handleDetectStateChange () {
+      this.detectStateChange = true
+    },
+
+    checkUnsavedChart (next) {
+      const reportState = {
+        handle: this.report.handle,
+        meta: {
+          name: this.report.meta.name,
+          description: this.report.meta.description,
+        },
+      }
+
+      const initialReportState = {
+        handle: this.initialReportState.handle,
+        meta: {
+          name: this.initialReportState.meta.name,
+          description: this.initialReportState.meta.description,
+        },
+      }
+
+      next(!isEqual(reportState, initialReportState) ? window.confirm(this.$t('unsavedChanges')) : true)
     },
   },
 }

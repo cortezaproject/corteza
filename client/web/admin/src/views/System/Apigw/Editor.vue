@@ -53,6 +53,7 @@
   </b-container>
 </template>
 <script>
+import { isEqual, cloneDeep } from 'lodash'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CRouteEditorInfo from 'corteza-webapp-admin/src/components/Apigw/CRouteEditorInfo'
 import CFiltersStepper from 'corteza-webapp-admin/src/components/Apigw/CFiltersStepper'
@@ -85,6 +86,7 @@ export default {
   data () {
     return {
       route: {},
+      initialRouteState: {},
       routeEndpoint: undefined,
 
       info: {
@@ -98,6 +100,7 @@ export default {
       },
 
       filters: [],
+      initialFiltersState: [],
       availableFilters: [],
       steps: [],
     }
@@ -121,6 +124,14 @@ export default {
     },
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   watch: {
     routeID: {
       immediate: true,
@@ -133,8 +144,11 @@ export default {
           this.fetchFilters()
         } else {
           this.route = {
+            endpoint: '',
             method: 'GET',
           }
+
+          this.initialRouteState = cloneDeep(this.route)
         }
       },
     },
@@ -146,6 +160,7 @@ export default {
       this.$SystemAPI.apigwRouteRead({ routeID: this.routeID, incFlags: 1 })
         .then((api) => {
           this.route = api
+          this.initialRouteState = cloneDeep(api)
           this.routeEndpoint = btoa(api.endpoint)
         })
         .catch(this.toastErrorHandler(this.$t('notification:gateway.fetch.error')))
@@ -286,6 +301,7 @@ export default {
           f.enabled = !!filter.enabled
           return { ...f }
         })
+        this.initialFiltersState = cloneDeep(this.filters)
       })
     },
 
@@ -324,6 +340,19 @@ export default {
 
     fetchSteps () {
       this.steps = ['prefilter', 'processer', 'postfilter']
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        const routeState = !isEqual(this.route, this.initialRouteState)
+        const filtersState = !isEqual(this.filters, this.initialFiltersState)
+
+        next((routeState || filtersState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
     },
   },
 }

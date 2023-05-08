@@ -15,6 +15,7 @@ export default {
       return this.$SystemAPI.reportRead({ reportID })
         .then(report => {
           this.report = new system.Report(report)
+          this.initialReportState = this.report.clone()
         })
         .catch(this.toastErrorHandler(this.$t('notification:report.fetchFailed')))
         .finally(() => {
@@ -44,6 +45,8 @@ export default {
         return this.$SystemAPI.reportCreate(report)
           .then(report => {
             this.report = new system.Report(report)
+            this.initialReportState = this.report.clone()
+            this.detectStateChange = false
             this.toastSuccess(this.$t('notification:report.created'))
             this.$router.push({ name: 'report.edit', params: { reportID: report.reportID } })
           })
@@ -55,6 +58,8 @@ export default {
         return this.$SystemAPI.reportUpdate(report)
           .then(report => {
             this.report = new system.Report(report)
+            this.initialReportState = this.report.clone()
+            this.detectStateChange = false
             this.toastSuccess(this.$t('notification:report.updated'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:report.updateFailed')))

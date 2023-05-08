@@ -6,6 +6,7 @@ export { Reminder } from './types/reminder'
 export { Template } from './types/template'
 export { Report } from './types/report'
 export { DalConnection } from './types/dalConnection'
+export { AuthClient } from './types/authClient'
 export {
   SystemEvent,
   RoleEvent,

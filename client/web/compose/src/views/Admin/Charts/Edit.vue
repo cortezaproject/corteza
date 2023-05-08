@@ -311,6 +311,7 @@
   </div>
 </template>
 <script>
+import { isEqual, debounce, cloneDeep } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import { compose, NoID, shared } from '@cortezaproject/corteza-js'
@@ -323,7 +324,7 @@ import Reports from 'corteza-webapp-compose/src/components/Chart/Report'
 import { chartConstructor } from 'corteza-webapp-compose/src/lib/charts'
 import VueSelect from 'vue-select'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
-import { debounce } from 'lodash'
+
 const { CInputCheckbox } = components
 const { colorschemes } = shared
 
@@ -370,6 +371,7 @@ export default {
   data () {
     return {
       chart: undefined,
+      initialChartState: undefined,
       processing: false,
 
       editReportIndex: undefined,
@@ -519,6 +521,8 @@ export default {
       immediate: true,
       handler (chartID) {
         this.chart = undefined
+        this.initialChartState = undefined
+
         const { namespaceID } = this.namespace
 
         if (chartID === NoID) {
@@ -537,11 +541,13 @@ export default {
               break
           }
           this.chart = c
+          this.initialChartState = cloneDeep(c)
           this.onEditReport(0)
         } else {
           this.findChartByID({ namespaceID, chartID, force: true }).then((chart) => {
             // Make a copy so that we do not change store item by ref
             this.chart = chartConstructor(chart)
+            this.initialChartState = cloneDeep(chartConstructor(chart))
             this.onEditReport(0)
           }).catch(this.toastErrorHandler(this.$t('notification:chart.loadFailed')))
         }
@@ -556,6 +562,14 @@ export default {
         }
       },
     },
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChart(next)
   },
 
   methods: {
@@ -608,6 +622,7 @@ export default {
       if (this.chart.chartID === NoID) {
         this.createChart(c).then(({ chartID }) => {
           this.toastSuccess(this.$t('notification:chart.saved'))
+          this.initialChartState = cloneDeep(chartConstructor(this.chart))
           if (closeOnSuccess) {
             this.redirect()
           } else {
@@ -617,6 +632,7 @@ export default {
       } else {
         this.updateChart(c).then((chart) => {
           this.chart = chartConstructor(chart)
+          this.initialChartState = cloneDeep(chartConstructor(chart))
           this.toastSuccess(this.$t('notification:chart.saved'))
           if (closeOnSuccess) {
             this.redirect()
@@ -653,6 +669,10 @@ export default {
 
     getOptionKey ({ value }) {
       return value
+    },
+
+    checkUnsavedChart (next) {
+      next(!isEqual(this.chart, this.initialChartState) ? window.confirm(this.$t('notification.unsavedChanges')) : true)
     },
   },
 }

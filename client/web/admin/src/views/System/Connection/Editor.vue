@@ -63,6 +63,7 @@
 </template>
 
 <script>
+import { isEqual } from 'lodash'
 import { system, NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
@@ -102,6 +103,7 @@ export default {
     return {
       processing: false,
       connection: undefined,
+      initialConnectionState: undefined,
 
       sensitivityLevels: undefined,
     }
@@ -146,6 +148,14 @@ export default {
 
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   watch: {
     connectionID: {
       immediate: true,
@@ -154,6 +164,7 @@ export default {
           this.fetchConnection(connectionID)
         } else {
           this.connection = new system.DalConnection()
+          this.initialConnectionState = this.connection.clone()
         }
       },
     },
@@ -168,6 +179,7 @@ export default {
       this.incLoader()
       return this.$SystemAPI.dalConnectionRead({ connectionID }).then(connection => {
         this.connection = new system.DalConnection(connection)
+        this.initialConnectionState = this.connection.clone()
       }).catch(this.toastErrorHandler(this.$t('notification:connection.fetch.error')))
         .finally(async () => {
           this.decLoader()
@@ -204,6 +216,7 @@ export default {
             this.$router.push({ name: `system.connection.edit`, params: { connectionID } })
           } else {
             this.connection = new system.DalConnection(connection)
+            this.initialConnectionState = this.connection.clone()
           }
         })
         .catch(this.toastErrorHandler(this.$t(`notification:connection.${op}.error`)))
@@ -238,6 +251,16 @@ export default {
         .finally(() => {
           this.processing = false
         })
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        next(!isEqual(this.connection, this.initialConnectionState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
     },
   },
 }

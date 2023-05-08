@@ -32,6 +32,7 @@
   </b-container>
 </template>
 <script>
+import { isEqual, cloneDeep } from 'lodash'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CSensitivityLevelEditorInfo from 'corteza-webapp-admin/src/components/SensitivityLevel/CSensitivityLevelEditorInfo'
 import { mapGetters } from 'vuex'
@@ -61,6 +62,7 @@ export default {
   data () {
     return {
       sensitivityLevel: undefined,
+      initialSensitivityLevelState: undefined,
 
       info: {
         processing: false,
@@ -87,6 +89,14 @@ export default {
     },
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   watch: {
     sensitivityLevelID: {
       immediate: true,
@@ -102,6 +112,8 @@ export default {
               description: '',
             },
           }
+
+          this.initialSensitivityLevelState = cloneDeep(this.sensitivityLevel)
         }
       },
     },
@@ -114,6 +126,7 @@ export default {
       this.$SystemAPI.dalSensitivityLevelRead({ sensitivityLevelID })
         .then(sensitivityLevel => {
           this.sensitivityLevel = sensitivityLevel
+          this.initialSensitivityLevelState = cloneDeep(sensitivityLevel)
         })
         .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.fetch.error')))
         .finally(() => {
@@ -128,6 +141,7 @@ export default {
         this.$SystemAPI.dalSensitivityLevelUpdate(sensitivityLevel)
           .then(sensitivityLevel => {
             this.sensitivityLevel = sensitivityLevel
+            this.initialSensitivityLevelState = cloneDeep(sensitivityLevel)
 
             this.toastSuccess(this.$t('notification:sensitivityLevel.update.success'))
           })
@@ -139,6 +153,8 @@ export default {
         this.$SystemAPI.dalSensitivityLevelCreate(sensitivityLevel)
           .then(sensitivityLevel => {
             this.sensitivityLevel = sensitivityLevel
+            this.initialSensitivityLevelState = cloneDeep(sensitivityLevel)
+
             const { sensitivityLevelID } = sensitivityLevel
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:sensitivityLevel.create.success'))
@@ -176,6 +192,16 @@ export default {
           })
           .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.delete.error')))
           .finally(() => this.decLoader())
+      }
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        next(!isEqual(this.sensitivityLevel, this.initialSensitivityLevelState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
     },
   },

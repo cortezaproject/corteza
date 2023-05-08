@@ -165,6 +165,8 @@ export default {
       sizes.forEach((size, index) => {
         this.block.elements[index].meta.size = size
       })
+
+      this.$emit('item-updated', this.index)
     },
 
     getScenarioDefinition (element) {

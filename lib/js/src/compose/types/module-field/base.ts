@@ -121,7 +121,23 @@ export class ModuleField {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, Object, 'description', 'hint')
+    if (o.description) {
+      this.options.description = {
+        ...this.options.description,
+        ...o.description,
+      }
+      
+      this.options.description.edit = this.options.description.edit || undefined
+    }
+    
+    if (o.hint) {
+      this.options.hint = {
+        ...this.options.hint,
+        ...o.hint,
+      }
+      
+      this.options.hint.edit = this.options.hint.edit || undefined
+    }
   }
 
   clone (): ModuleField {

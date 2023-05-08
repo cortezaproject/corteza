@@ -7,10 +7,11 @@
       :title="title"
     >
       <span
+        v-if="applicationID"
         class="text-nowrap"
       >
         <b-button
-          v-if="applicationID && canCreate"
+          v-if="canCreate"
           data-test-id="button-new-application"
           variant="primary"
           :to="{ name: 'system.application.new' }"
@@ -18,7 +19,7 @@
           {{ $t('new') }}
         </b-button>
         <c-permissions-button
-          v-if="applicationID && canGrant"
+          v-if="canGrant"
           :title="application.name || applicationID"
           :target="application.name || applicationID"
           :resource="`corteza::system:application/${applicationID}`"
@@ -41,21 +42,24 @@
     />
 
     <c-application-editor-unify
-      v-if="application.unify && application.applicationID"
+      v-if="applicationID && application.unify && application.applicationID"
       class="mt-3"
       :unify="application.unify"
       :application="application"
       :can-pin="canPin"
       :processing="unify.processing"
       :success="unify.success"
+      @change-detected="unifyAssetStateChange = true"
       @submit="onUnifySubmit"
     />
   </b-container>
 </template>
 <script>
+import { isEqual } from 'lodash'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CApplicationEditorInfo from 'corteza-webapp-admin/src/components/Application/CApplicationEditorInfo'
 import CApplicationEditorUnify from 'corteza-webapp-admin/src/components/Application/CApplicationEditorUnify'
+import { system } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -84,6 +88,7 @@ export default {
   data () {
     return {
       application: undefined,
+      initialApplicationState: undefined,
 
       info: {
         processing: false,
@@ -93,6 +98,7 @@ export default {
         processing: false,
         success: false,
       },
+      unifyAssetStateChange: false,
     }
   },
 
@@ -118,6 +124,14 @@ export default {
     },
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   watch: {
     applicationID: {
       immediate: true,
@@ -125,7 +139,9 @@ export default {
         if (this.applicationID) {
           this.fetchApplication()
         } else {
-          this.application = {}
+          this.application = new system.Application()
+
+          this.initialApplicationState = this.application.clone()
         }
       },
     },
@@ -136,7 +152,25 @@ export default {
       this.incLoader()
 
       this.$SystemAPI.applicationRead({ applicationID: this.applicationID, incFlags: 1 })
-        .then(this.prepare)
+        .then((application = {}) => {
+          if (!application.unify) {
+            application.unify = {
+              listed: true,
+              pinned: false,
+              name: this.application.name,
+              config: '',
+              icon: '',
+              logo: '',
+              url: '',
+            }
+          }
+
+          application.unify.pinned = (application.flags || []).includes('pinned')
+          application.unify.name = application.unify.name ? application.unify.name : application.name
+
+          this.application = new system.Application(application)
+          this.initialApplicationState = this.application.clone()
+        },)
         .catch(this.toastErrorHandler(this.$t('notification:application.fetch.error')))
         .finally(() => {
           this.decLoader()
@@ -205,6 +239,7 @@ export default {
 
         return this.$SystemAPI.applicationUpdate({ ...this.application, unify })
           .then(() => {
+            this.unifyAssetStateChange = false
             this.fetchApplication()
 
             this.toastSuccess(this.$t('notification:application.update.success'))
@@ -284,22 +319,14 @@ export default {
       }
     },
 
-    prepare (application = {}) {
-      if (!application.unify) {
-        application.unify = {
-          listed: true,
-          pinned: false,
-          name: this.application.name,
-          config: '',
-          icon: '',
-          logo: '',
-          url: '',
-        }
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        next(!isEqual(this.application, this.initialApplicationState) || this.unifyAssetStateChange ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
-
-      application.unify.pinned = (application.flags || []).includes('pinned')
-
-      this.application = application
     },
   },
 }

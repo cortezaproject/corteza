@@ -106,4 +106,8 @@ export class User {
       this.userID,
     ].join(' ').toLocaleLowerCase()
   }
+
+  clone (): User {
+    return new User(JSON.parse(JSON.stringify(this)))
+  }
 }

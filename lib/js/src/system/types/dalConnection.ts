@@ -89,9 +89,9 @@ export class DalConnection {
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
 
-  public createdBy = ''
-  public updatedBy = ''
-  public deletedBy = ''
+  public createdBy = NoID
+  public updatedBy = NoID
+  public deletedBy = NoID
 
   public canDeleteConnection = false
   public canManageDalConfig = false
@@ -112,7 +112,7 @@ export class DalConnection {
     }
 
     if (IsOf(dc, 'config')) {
-      this.config = { ...dc.config.privacy }
+      this.config = { ...dc.config }
 
       if (this.connectionID !== NoID && this.canManageDalConfig) {
         this.config = {
@@ -123,6 +123,12 @@ export class DalConnection {
             modelIdentCheck: [],
           },
           ...dc.config,
+        }
+
+        if (!this.config.privacy.sensitivityLevelID) {
+          this.config.privacy = {
+            sensitivityLevelID: NoID,
+          }
         }
       }
     }
@@ -140,5 +146,9 @@ export class DalConnection {
         this.labels.push(l)
       }
     }
+  }
+
+  clone (): DalConnection {
+    return new DalConnection(JSON.parse(JSON.stringify(this)))
   }
 }
