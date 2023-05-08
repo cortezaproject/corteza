@@ -73,6 +73,7 @@ select-all: Select all
 unselect-all: Unselect all
 value: Value
 name: Name
+unsaved-changes: Unsaved changes will be lost. Do you wish to leave the page?
 filter:
   operators:
     like: Like

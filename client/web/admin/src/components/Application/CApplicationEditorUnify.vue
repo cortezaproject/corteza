@@ -58,6 +58,7 @@
           data-test-id="file-logo-upload"
           accept="image/*"
           :placeholder="$t('logo.placeholder')"
+          @change="$emit('change-detected')"
         />
       </b-form-group>
 

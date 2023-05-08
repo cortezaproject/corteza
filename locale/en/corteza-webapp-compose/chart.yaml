@@ -220,6 +220,7 @@ name: Chart name *
 handle: Handle
 generalSettings: General settings
 notification:
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
   loadFailed: Could not load chart
   saveFailed: Could not save this chart
   saved: Chart saved

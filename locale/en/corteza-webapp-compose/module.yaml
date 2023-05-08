@@ -193,6 +193,7 @@ forModule:
   recordPage: Record page for module
 general:
   fields: Module fields
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
   label:
     attributes: Attributes
     handle: Handle

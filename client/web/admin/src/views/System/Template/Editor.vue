@@ -62,6 +62,7 @@
 </template>
 
 <script>
+import { isEqual } from 'lodash'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CTemplateEditorInfo from 'corteza-webapp-admin/src/components/Template/CTemplateEditorInfo'
 import CTemplateEditorContent from 'corteza-webapp-admin/src/components/Template/CTemplateEditorContent/Index'
@@ -94,6 +95,7 @@ export default {
   data () {
     return {
       template: undefined,
+      initialTemplateState: undefined,
 
       info: {
         processing: false,
@@ -131,9 +133,18 @@ export default {
           this.fetchTemplate()
         } else {
           this.template = new system.Template()
+          this.initialTemplateState = this.template.clone()
         }
       },
     },
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
   },
 
   methods: {
@@ -143,6 +154,7 @@ export default {
       this.$SystemAPI.templateRead({ templateID: this.templateID })
         .then(t => {
           this.template = new system.Template(t)
+          this.initialTemplateState = this.template.clone()
         })
         .catch(this.toastErrorHandler(this.$t('notification:template.fetch.error')))
         .finally(() => {
@@ -198,7 +210,8 @@ export default {
       if (this.templateID) {
         this.$SystemAPI.templateUpdate(template)
           .then(template => {
-            this.template = template
+            this.template = new system.Template(template)
+            this.initialTemplateState = this.template.clone()
 
             this.toastSuccess(this.$t('notification:template.update.success'))
           })
@@ -220,6 +233,16 @@ export default {
             this.decLoader()
             this.info.processing = false
           })
+      }
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        next(!isEqual(this.template, this.initialTemplateState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
     },
   },

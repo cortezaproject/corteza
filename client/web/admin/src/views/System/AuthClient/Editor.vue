@@ -47,36 +47,11 @@
   </b-container>
 </template>
 <script>
-
+import { isEqual } from 'lodash'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CAuthclientEditorInfo from 'corteza-webapp-admin/src/components/Authclient/CAuthclientEditorInfo'
+import { system } from '@cortezaproject/corteza-js'
 import { mapGetters } from 'vuex'
-
-const defSecurity = {
-  impersonateUser: '0',
-  permittedRoles: [],
-  prohibitedRoles: [],
-  forcedRoles: [],
-}
-// @todo move this to corteza-js and follow the pattern we use with other resource types
-const makeNewAuthClient = () => JSON.parse(JSON.stringify({
-  scope: 'profile api',
-  enabled: true,
-  validGrant: 'authorization_code',
-
-  trusted: false,
-  handle: '',
-  meta: {
-    name: '',
-    description: '',
-  },
-
-  redirectURI: '',
-
-  security: {
-    ...defSecurity,
-  },
-}))
 
 export default {
   components: {
@@ -103,6 +78,7 @@ export default {
   data () {
     return {
       authclient: undefined,
+      initialAuthclientState: undefined,
       secret: '',
 
       info: {
@@ -130,6 +106,14 @@ export default {
     },
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   watch: {
     authClientID: {
       immediate: true,
@@ -137,7 +121,8 @@ export default {
         if (this.authClientID) {
           this.fetchAuthclient()
         } else {
-          this.authclient = makeNewAuthClient()
+          this.authclient = new system.AuthClient()
+          this.initialAuthclientState = this.authclient.clone()
         }
       },
     },
@@ -149,7 +134,8 @@ export default {
 
       this.$SystemAPI.authClientRead({ clientID: this.authClientID })
         .then(ac => {
-          this.authclient = ac
+          this.authclient = new system.AuthClient(ac)
+          this.initialAuthclientState = this.authclient.clone()
         })
         .catch(this.toastErrorHandler(this.$t('notification:authclient.fetch.error')))
         .finally(() => {
@@ -166,7 +152,8 @@ export default {
 
         this.$SystemAPI.authClientUpdate({ clientID, ...authclient })
           .then(ac => {
-            this.authclient = ac
+            this.authclient = new system.AuthClient(ac)
+            this.initialAuthclientState = this.authclient.clone()
 
             this.toastSuccess(this.$t('notification:authclient.update.success'))
           })
@@ -177,7 +164,8 @@ export default {
       } else {
         this.$SystemAPI.authClientCreate({ ...authclient })
           .then((ac) => {
-            this.authclient = ac
+            this.authclient = new system.AuthClient(ac)
+            this.initialAuthclientState = this.authclient.clone()
             const { authClientID } = ac
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:authclient.create.success'))
@@ -228,6 +216,16 @@ export default {
       this.$SystemAPI
         .authClientRegenerateSecret(({ clientID }))
         .then(newSecret => { this.secret = newSecret })
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        next(!isEqual(this.authclient, this.initialAuthclientState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
     },
   },
 }

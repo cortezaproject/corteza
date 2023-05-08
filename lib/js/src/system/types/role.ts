@@ -100,4 +100,8 @@ export class Role {
   get isContext (): boolean {
     return this.meta?.context?.expr?.length > 0
   }
+
+  clone (): Role {
+    return new Role(JSON.parse(JSON.stringify(this)))
+  }
 }

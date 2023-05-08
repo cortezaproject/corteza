@@ -19,7 +19,10 @@ export class Template {
   public language = ''
   public type = 'text/html'
   public partial = false
-  public meta: Meta = {}
+  public meta: Meta = {
+    short: '',
+    description: '',
+  }
   public template = ''
   public labels: object = {}
   public ownerID = NoID
@@ -62,5 +65,9 @@ export class Template {
    */
   get resourceType (): string {
     return 'system:template'
+  }
+
+  clone (): Template {
+    return new Template(JSON.parse(JSON.stringify(this)))
   }
 }

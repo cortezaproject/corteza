@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import { isEqual, cloneDeep } from 'lodash'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CQueueEditorInfo from 'corteza-webapp-admin/src/components/Queues/CQueueEditorInfo'
 import { mapGetters } from 'vuex'
@@ -63,6 +64,7 @@ export default {
   data () {
     return {
       queue: undefined,
+      initialQueueState: undefined,
 
       consumers: [],
 
@@ -87,6 +89,14 @@ export default {
     },
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   watch: {
     queueID: {
       immediate: true,
@@ -102,6 +112,16 @@ export default {
               poll_delay: '',
               dispatch_events: false,
             },
+            queue: '',
+          }
+
+          this.initialQueueState = {
+            consumer: 'corteza',
+            meta: {
+              poll_delay: '',
+              dispatch_events: false,
+            },
+            queue: '',
           }
         }
       },
@@ -113,7 +133,10 @@ export default {
       this.incLoader()
 
       this.$SystemAPI.queuesRead({ queueID: this.queueID })
-        .then(q => { this.queue = q })
+        .then(q => {
+          this.queue = q
+          this.initialQueueState = cloneDeep(q)
+        })
         .catch(this.toastErrorHandler(this.$t('notification:queue.fetch.error')))
         .finally(() => {
           this.decLoader()
@@ -139,6 +162,7 @@ export default {
         this.$SystemAPI.queuesUpdate(queue)
           .then(queue => {
             this.queue = queue
+            this.initialQueueState = cloneDeep(queue)
 
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:queue.update.success'))
@@ -178,6 +202,16 @@ export default {
         .finally(() => {
           this.decLoader()
         })
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        next(!isEqual(this.queue, this.initialQueueState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
     },
   },
 }

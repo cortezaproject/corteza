@@ -100,6 +100,7 @@
 </template>
 
 <script>
+import { isEqual } from 'lodash'
 import { NoID, system } from '@cortezaproject/corteza-js'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUserEditorInfo from 'corteza-webapp-admin/src/components/User/CUserEditorInfo'
@@ -140,10 +141,11 @@ export default {
   data () {
     return {
       user: undefined,
+      initialUserState: undefined,
 
       membership: {
         active: [],
-        original: [],
+        initial: [],
       },
 
       externalAuthProviders: [],
@@ -200,9 +202,18 @@ export default {
           this.fetchExternalAuthProviders()
         } else {
           this.user = new system.User()
+          this.initialUserState = this.user.clone()
         }
       },
     },
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
   },
 
   methods: {
@@ -216,6 +227,7 @@ export default {
       return this.$SystemAPI.userRead({ userID: this.userID })
         .then(user => {
           this.user = new system.User(user)
+          this.initialUserState = this.user.clone()
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.fetch.error')))
         .finally(() => {
@@ -227,7 +239,7 @@ export default {
       this.incLoader()
       return this.$SystemAPI.userMembershipList({ userID: this.userID })
         .then((set = []) => {
-          this.membership = { active: [...set], original: [...set] }
+          this.membership = { active: [...set], initial: [...set] }
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.roles.error')))
         .finally(() => {
@@ -264,6 +276,7 @@ export default {
         this.$SystemAPI.userUpdate(payload)
           .then(user => {
             this.user = new system.User(user)
+            this.initialUserState = this.user.clone()
 
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:user.update.success'))
@@ -404,15 +417,15 @@ export default {
 
       const userID = this.userID
 
-      const { active, original } = this.membership
+      const { active, initial } = this.membership
 
       Promise.all([
         // all removed memberships
-        ...original.filter(roleID => !active.includes(roleID)).map(roleID => {
+        ...initial.filter(roleID => !active.includes(roleID)).map(roleID => {
           return this.$SystemAPI.userMembershipRemove({ roleID, userID })
         }),
         // all new memberships
-        ...active.filter(roleID => !original.includes(roleID)).map(roleID => {
+        ...active.filter(roleID => !initial.includes(roleID)).map(roleID => {
           return this.$SystemAPI.userMembershipAdd({ roleID, userID })
         }),
       ])
@@ -498,6 +511,19 @@ export default {
           this.toastSuccess(this.$t('notification:user.avatarDelete.success'))
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.avatarDelete.error')))
+    },
+
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+
+      if (isNewPage) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        let userChangesStatus = !isEqual(this.user, this.initialUserState)
+        let membershipChangesStatus = !isEqual(this.membership.initial, this.membership.active)
+
+        next((userChangesStatus || membershipChangesStatus) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
     },
   },
 }

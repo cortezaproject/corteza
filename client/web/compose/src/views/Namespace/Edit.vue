@@ -318,6 +318,7 @@
 </template>
 
 <script>
+import { isEqual } from 'lodash'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { url, handle } from '@cortezaproject/corteza-vue'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
@@ -342,7 +343,12 @@ export default {
       processing: false,
 
       namespace: new compose.Namespace({ enabled: true }),
+      initialNamespaceState: new compose.Namespace({ enabled: true }),
       namespaceAssets: {
+        logo: undefined,
+        icon: undefined,
+      },
+      namespaceAssetsInitialState: {
         logo: undefined,
         icon: undefined,
       },
@@ -350,6 +356,7 @@ export default {
 
       application: undefined,
       isApplication: false,
+      isApplicationInitialState: false,
     }
   },
 
@@ -436,6 +443,14 @@ export default {
     },
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedNamespace(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedNamespace(next)
+  },
+
   methods: {
     ...mapActions({
       updateNamespace: 'namespace/update',
@@ -452,6 +467,7 @@ export default {
 
       this.application = undefined
       this.isApplication = false
+      this.isApplicationInitialState = this.isApplication
 
       if (namespaceID) {
         await this.findNamespace({ namespaceID })
@@ -476,6 +492,8 @@ export default {
         hideSidebar: false,
         ...this.namespace.meta,
       }
+
+      this.initialNamespaceState = this.namespace.clone()
 
       this.processing = false
       this.loaded = true
@@ -504,6 +522,7 @@ export default {
           if (set.length) {
             this.application = set[0]
             this.isApplication = this.application.enabled
+            this.isApplicationInitialState = this.isApplication
           }
         })
         .catch(this.toastErrorHandler(this.$t('notification:namespace.application.fetchFailed')))
@@ -525,6 +544,7 @@ export default {
         try {
           assets = await this.uploadAssets()
           meta = { ...meta, ...assets }
+          this.namespaceAssetsInitialState = this.namespaceAssets
         } catch (e) {
           const error = JSON.stringify(e) === '{}' ? '' : e
           this.toastErrorHandler(this.$t('notification:namespace.assetUploadFailed'))(error)
@@ -587,6 +607,7 @@ export default {
       if (closeOnSuccess) {
         this.$router.push({ name: 'namespace.manage' })
       } else if (!this.isEdit || this.isClone) {
+        this.initialNamespaceState = this.namespace.clone()
         this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
       }
 
@@ -596,6 +617,8 @@ export default {
         hideSidebar: false,
         ...this.namespace.meta,
       }
+
+      this.initialNamespaceState = this.namespace.clone()
     },
 
     handleDelete () {
@@ -704,6 +727,14 @@ export default {
     resetLogo () {
       this.namespace.meta.logo = undefined
       this.namespace.meta.logoID = undefined
+    },
+
+    checkUnsavedNamespace (next) {
+      const namespaceState = !isEqual(JSON.stringify(this.namespace), JSON.stringify(this.initialNamespaceState))
+      const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
+      const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
+
+      next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
     },
   },
 }

@@ -35,7 +35,10 @@ interface ReportScenario {
 export class Report {
   public reportID = NoID
   public handle = ''
-  public meta: Meta = {}
+  public meta: Meta = {
+    name: '',
+    description: '',
+  }
   public sources: Array<ReportDataSource> = []
   public blocks: Array<Block> = []
   public scenarios: Array<ReportScenario> = []
@@ -101,5 +104,9 @@ export class Report {
       'canGrant',
       'canRunReport',
     )
+  }
+
+  clone (): Report {
+    return new Report(JSON.parse(JSON.stringify(this)))
   }
 }
