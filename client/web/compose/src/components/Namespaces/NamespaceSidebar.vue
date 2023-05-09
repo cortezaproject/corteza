@@ -56,32 +56,32 @@
         v-if="namespace"
         class="d-flex flex-column flex-grow-1"
       >
-        <b-button
-          v-if="isAdminPage"
-          data-test-id="button-public"
-          variant="light"
-          class="w-100 mb-2"
-          :to="{ name: 'pages', params: { slug: namespace.slug || namespace.namespaceID } }"
-        >
-          {{ $t('publicPages') }}
-        </b-button>
-
-        <b-button
-          v-else-if="namespace.canManageNamespace"
-          data-test-id="button-admin"
-          variant="light"
-          class="w-100 mb-2"
-          :to="{ name: 'admin.modules', params: { slug: namespace.slug || namespace.namespaceID } }"
-        >
-          {{ $t('adminPanel') }}
-        </b-button>
-
-        <c-input-search
-          v-model.trim="query"
-          :disabled="loading"
-          :placeholder="$t(`searchPlaceholder.${isAdminPage ? 'admin' : 'public'}`)"
-          :autocomplete="'off'"
-        />
+        <div class="sticky-top bg-white w-100 pt-1 mb-2">
+          <b-button
+            v-if="isAdminPage"
+            data-test-id="button-public"
+            variant="light"
+            class="w-100 mb-2"
+            :to="{ name: 'pages', params: { slug: namespace.slug || namespace.namespaceID } }"
+          >
+            {{ $t('publicPages') }}
+          </b-button>
+          <b-button
+            v-else-if="namespace.canManageNamespace"
+            data-test-id="button-admin"
+            variant="light"
+            class="w-100 mb-2"
+            :to="{ name: 'admin.modules', params: { slug: namespace.slug || namespace.namespaceID } }"
+          >
+            {{ $t('adminPanel') }}
+          </b-button>
+          <c-input-search
+            v-model.trim="query"
+            :disabled="loading"
+            :placeholder="$t(`searchPlaceholder.${isAdminPage ? 'admin' : 'public'}`)"
+            :autocomplete="'off'"
+          />
+        </div>
 
         <div
           v-if="!loading"
