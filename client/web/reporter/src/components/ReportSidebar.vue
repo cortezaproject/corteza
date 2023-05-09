@@ -5,10 +5,12 @@
         v-if="reports.length"
         class="h-100"
       >
-        <c-input-search
-          v-model.trim="query"
-          :placeholder="$t('sidebar:search-reports')"
-        />
+        <div class="bg-white sticky-top pt-2 mb-2">
+          <c-input-search
+            v-model.trim="query"
+            :placeholder="$t('sidebar:search-reports')"
+          />
+        </div>
 
         <c-sidebar-nav-items
           :items="filteredReports"
