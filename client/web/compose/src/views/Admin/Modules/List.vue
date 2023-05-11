@@ -24,6 +24,8 @@
         singlePluralPagination: 'general:resourceList.pagination.single',
         prevPagination: $t('general:resourceList.pagination.prev'),
         nextPagination: $t('general:resourceList.pagination.next'),
+        resourceSingle: $t('general:label.module.single'),
+        resourcePlural: $t('general:label.module.plural'),
       }"
       clickable
       sticky-header
@@ -77,7 +79,7 @@
               <b-dropdown-item>
                 <c-permissions-button
                   :resource="`corteza::compose:module/${namespace.namespaceID}/*`"
-                  :button-label="$t('general:label.module')"
+                  :button-label="$t('general:label.module.single')"
                   :show-button-icon="false"
                   button-variant="white text-left w-100"
                 />

@@ -318,6 +318,7 @@ export default {
         from: ((page - 1) * limit) + 1,
         to: limit > 0 ? Math.min((page * limit), total) : total,
         count: total,
+        data: total == 1 ? this.translations.resourceSingle : this.translations.resourcePlural
       }
 
       return this.$t(this.translations[total > limit ? 'showingPagination' : 'singlePluralPagination'], pagination)

@@ -30,6 +30,9 @@
         singlePluralPagination: 'admin:general.pagination.single',
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
+        resourceSingle: $t('general:label.route.single'),
+        resourcePlural: $t('general:label.route.plural')
+
       }"
       class="h-100"
       @search="filterList"

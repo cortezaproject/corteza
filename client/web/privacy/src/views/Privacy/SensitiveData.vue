@@ -23,6 +23,8 @@
         singlePluralPagination: 'general:resourceList.pagination.single',
         prevPagination: $t('general:resourceList.pagination.prev'),
         nextPagination: $t('general:resourceList.pagination.next'),
+        resourceSingle: $t('general:label.sensitive_module.single'),
+        resourcePlural: $t('general:label.sensitive_module.plural'),
       }"
       clickable
       hide-total

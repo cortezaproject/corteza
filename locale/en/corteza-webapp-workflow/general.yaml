@@ -31,6 +31,9 @@ only: Only
 including: Including
 unnamed-workflow: Unnamed Workflow
 workflow-list: List of Workflows
+workflow:
+  single: Workflow
+  plural: Workflows
 save: Save
 today: Today
 cancel: Cancel
@@ -40,9 +43,9 @@ resourceList:
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} items'
-    single: One item
-    single_plural: '{{count}} items'
+    showing: '{{from}} - {{to}} of {{count}} {{data}}'
+    single: 'One {{data}}'
+    single_plural: '{{count}} {{data}}'
 
 tooltip:
   permissions: Workflow permissions
