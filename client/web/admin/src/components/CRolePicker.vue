@@ -2,55 +2,19 @@
   <div
     data-test-id="role-picker"
   >
-    <b-input-group>
-      <b-input-group-append is-text>
-        <font-awesome-icon :icon="['fas', 'search']" />
-      </b-input-group-append>
-      <b-form-input
-        v-model.trim="filter"
-        data-test-id="input-role"
-      />
-      <b-input-group-append
-        v-if="filter"
-        is-text
-      >
-        <b-button
-          data-test-id="button-clear-role"
-          variant="link"
-          size="sm"
-          class="p-0 m-0"
-          @click="filter = ''"
-        >
-          <font-awesome-icon :icon="['fas', 'times']" />
-        </b-button>
-      </b-input-group-append>
-    </b-input-group>
-
-    <b-container
-      v-if="filter && filtered.length > 0"
-      class="ml-5 my-2 position-absolute bg-white border results shadow w-50"
-    >
-      <b-row
-        v-for="r in filtered"
-        :key="r.roleID"
-        data-test-id="filtered-row-list"
-        class="filtered-role"
-        @click="addRole(r)"
-      >
-        <b-col class="pt-1">
-          {{ r | label }}
-          <b-button
-            data-test-id="button-add-role"
-            variant="link"
-            class="float-right"
-            @click="addRole(r)"
-          >
-            <font-awesome-icon :icon="['fas', 'plus']" />
-          </b-button>
-        </b-col>
-      </b-row>
-    </b-container>
-
+    <vue-select
+      ref="picker"
+      data-test-id="input-role-picker"
+      :options="filtered"
+      :get-option-key="r => r.value"
+      :get-option-label="r => getRoleLabel(r)"
+      :calculate-position="calculateDropdownPosition"
+      :placeholder="$t('admin:picker.role.placeholder')"
+      class="bg-white w-100"
+      multiple
+      @search="search"
+      @input="updateValue($event)"
+    />
     <b-form-text
       v-if="$slots['description']"
     >
@@ -62,16 +26,16 @@
       class="p-1"
     >
       <b-row
-        v-for="r in selected"
-        :key="r.userID"
+        v-for="role in selected"
+        :key="role.roleID"
         data-test-id="selected-row-list"
       >
-        <b-col>{{ r | label }}</b-col>
+        <b-col>{{ getRoleLabel(role) }}</b-col>
         <b-col class="text-right">
           <b-button
             data-test-id="button-remove-role"
             variant="link"
-            @click="removeRole(r)"
+            @click="removeRole(role)"
           >
             <font-awesome-icon :icon="['far', 'trash-alt']" />
           </b-button>
@@ -82,16 +46,16 @@
 </template>
 
 <script>
+import { debounce } from 'lodash'
+import { VueSelect } from 'vue-select'
 
 function roleSorter (a, b) {
   return `${a.name} ${a.handle} ${a.roleID}`.localeCompare(`${b.name} ${b.handle} ${b.roleID}`)
 }
 
 export default {
-  filters: {
-    label (r) {
-      return r.name || r.handle || r.roleID
-    },
+  components: {
+    VueSelect,
   },
 
   props: {
@@ -117,7 +81,7 @@ export default {
   computed: {
     selected () {
       return this.roles
-        .filter(({ roleID }) => this.value.includes(roleID))
+        .filter(({ roleID }) => (this.value || []).includes(roleID))
         .sort(roleSorter)
     },
 
@@ -130,16 +94,7 @@ export default {
         return !(isClosed || (meta.context && meta.context.resourceTypes))
       }
 
-      return this.roles.filter(r => !this.value.includes(r.roleID) && fits(r) && match(r))
-    },
-  },
-
-  watch: {
-    currentRoles: {
-      immediate: true,
-      handler () {
-        this.filter = ''
-      },
+      return this.roles.filter(r => !(this.value || []).includes(r.roleID) && fits(r) && match(r))
     },
   },
 
@@ -148,9 +103,10 @@ export default {
   },
 
   methods: {
-    addRole (r) {
-      if (!this.value.includes(r.roleID)) {
-        this.value.push(r.roleID)
+    addRole (role) {
+      if (!this.value.includes(role.roleID)) {
+        this.value.push(role.roleID)
+        this.$emit('input', this.value)
       }
     },
 
@@ -160,9 +116,36 @@ export default {
     },
 
     preload () {
-      return this.$SystemAPI.roleList()
+      return this.$SystemAPI.roleList({ query: this.filter })
         .then(({ set }) => { this.roles = set || [] })
-        .catch(this.toastErrorHandler({}))
+        .catch(this.toastErrorHandler(this.$t('notification:role.fetch.error')))
+    },
+
+    search: debounce(function (query = '') {
+      if (query !== this.filter) {
+        this.filter = query
+      }
+
+      this.preload()
+    }, 300),
+
+    updateValue (role, index = -1) {
+      // reset picker value for better value presentation
+      if (this.$refs.picker) {
+        this.$refs.picker._data._value = undefined
+      }
+
+      if (role[0]) {
+        this.addRole(role[0])
+      } else {
+        if (index >= 0) {
+          this.value.splice(index, 1)
+        }
+      }
+    },
+
+    getRoleLabel ({ name, handle, roleID }) {
+      return name || handle || roleID
     },
   },
 }

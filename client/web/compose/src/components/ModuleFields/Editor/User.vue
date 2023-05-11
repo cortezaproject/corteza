@@ -294,7 +294,7 @@ export default {
         // update list of resolved users for every item we add
         this.addUserToResolved({ ...user })
 
-        // update valie on record
+        // update value on record
         const { userID } = user
         if (this.field.isMulti) {
           if (index >= 0) {

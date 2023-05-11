@@ -109,3 +109,8 @@ navigation:
     loggedInAs: Logged in as {{user}}
     logout: Logout
     profile: Profile
+picker:
+  role:
+    placeholder: Start typing to search for roles
+  member:
+    placeholder: Start typing to search for users
