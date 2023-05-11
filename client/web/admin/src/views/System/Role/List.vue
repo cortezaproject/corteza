@@ -67,6 +67,8 @@
         singlePluralPagination: 'admin:general.pagination.single',
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
+        resourceSingle: $t('general:label.role.single'),
+        resourcePlural: $t('general:label.role.plural'),
       }"
       sticky-header
       class="custom-resource-list-height"

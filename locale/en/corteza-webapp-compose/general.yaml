@@ -39,7 +39,6 @@ label:
   importPlaceholder: Upload files to import
   loading: Loading
   makeDefault: Make default
-  module: Module
   moduleName: Module name
   multi: Multi
   name: Name
@@ -80,6 +79,15 @@ label:
   validation: Validation
   view: View
   yes: Yes
+  chart:
+    single: Chart
+    plural: Charts
+  namespace:
+    single: Namespace
+    plural: Namespaces
+  module: 
+    single: Module
+    plural: Modules
 navigation:
   chart: Charts
   namespace: Namespaces
@@ -148,9 +156,9 @@ resourceList:
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} items'
-    single: One item
-    single_plural: '{{count}} items'
+    showing: '{{from}} - {{to}} of {{count}} {{data}}'
+    single: 'One {{data}}'
+    single_plural: '{{count}} {{data}}'
 recordNavigation:
   next: Next record
   prev: Previous record

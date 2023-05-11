@@ -24,6 +24,8 @@
         singlePluralPagination: 'general:resourceList.pagination.single',
         prevPagination: $t('general:resourceList.pagination.prev'),
         nextPagination: $t('general:resourceList.pagination.next'),
+        resourceSingle: $t('general:label.privacy_request.single'),
+        resourcePlural: $t('general:label.privacy_request.plural'),
       }"
       :is-item-selectable="isItemSelectable"
       selectable

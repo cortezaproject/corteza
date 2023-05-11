@@ -23,6 +23,8 @@
         singlePluralPagination: 'general:resourceList.pagination.single',
         prevPagination: $t('general:resourceList.pagination.prev'),
         nextPagination: $t('general:resourceList.pagination.next'),
+        resourceSingle: $t('general:workflow.single'),
+        resourcePlural: $t('general:workflow.plural')
       }"
       clickable
       sticky-header

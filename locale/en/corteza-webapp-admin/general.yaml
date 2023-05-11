@@ -1,4 +1,37 @@
 label:
+  template:
+    single: Template
+    plural: Templates
+  user:
+    single: User
+    plural: Users
+  role:
+    single: Role
+    plural: Roles
+  application:
+    single: Application
+    plural: Applications
+  auth_client:
+    single: Auth Client
+    plural: Auth Clients
+  queue:
+    single: Messaging Queue
+    plural: Messaging Queues
+  route:
+    single: Route
+    plural: Routes
+  connection:
+    single: Database Connection
+    plural: Database Connections
+  sensitivity_level:
+    single: Sensitivity Level
+    plural: Sensitivity Levels
+  session:
+    single: Session
+    plural: Sessions
+  workflow:
+    single: Workflow
+    plural: Workflows
   plus-add: + Add
   clear: Clear
   none: None

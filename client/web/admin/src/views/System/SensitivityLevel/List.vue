@@ -35,6 +35,8 @@
         singlePluralPagination: 'admin:general.pagination.single',
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
+        resourceSingle: $t('general:label.sensitivity_level.single'),
+        resourcePlural: $t('general:label.sensitivity_level.plural'),
       }"
       sticky-header
       hide-search

@@ -18,12 +18,16 @@ label:
   today: Today
   urlPlaceholder: https://example.tld
   default: Default
+  report: 
+    single: Report
+    plural: Reports
+
 resourceList:
   notFound: Not found
   noItems: No items to show
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} items'
-    single: One item
-    single_plural: '{{count}} items'
+    showing: '{{from}} - {{to}} of {{count}} {{data}}'
+    single: 'One {{data}}'
+    single_plural: '{{count}} {{data}}'

@@ -23,6 +23,8 @@
         singlePluralPagination: 'general:resourceList.pagination.single',
         prevPagination: $t('general:resourceList.pagination.prev'),
         nextPagination: $t('general:resourceList.pagination.next'),
+        resourceSingle: $t('general:label.report.single'),
+        resourcePlural: $t('general:label.report.plural')
       }"
       sticky-header
       clickable

@@ -1,5 +1,11 @@
 label:
   back: Back
+  privacy_request:
+    single: Privacy Request
+    plural: Privacy Requests
+  sensitive_module:
+    single: Sensitive Module
+    plural: Sensitive Modules
 
 resourceList:
   loading: Loading
@@ -10,6 +16,6 @@ resourceList:
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} items'
-    single: One item
-    single_plural: '{{count}} items'
+    showing: '{{from}} - {{to}} of {{count}} {{data}}'
+    single: 'One {{data}}'
+    single_plural: '{{count}} {{data}}'

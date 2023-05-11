@@ -113,7 +113,7 @@
                         :title="module.name || module.handle || module.moduleID"
                         :target="module.name || module.handle || module.moduleID"
                         :resource="`corteza::compose:module/${namespace.namespaceID}/${module.moduleID}`"
-                        :button-label="$t('general:label.module')"
+                        :button-label="$t('general:label.module.single')"
                         :show-button-icon="false"
                         button-variant="white text-left w-100"
                       />
