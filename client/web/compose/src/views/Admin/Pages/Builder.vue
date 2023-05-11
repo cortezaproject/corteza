@@ -754,8 +754,7 @@ export default {
         this.page = new compose.Page(page)
         this.layout = new compose.PageLayout(layout)
         this.fetchPageLayouts()
-        this.$route.query.layoutID = layout.pageLayoutID
-        this.unsavedBlocks.clear()
+        this.setLayout()
         this.toastSuccess(this.$t('notification:page.page-layout.save.success'))
 
         if (closeOnSuccess) {
