@@ -151,7 +151,6 @@
         :label-cols="3"
         breakpoint="md"
         horizontal
-        class="mb-0"
       >
         <field-editor
           class="mb-0"
