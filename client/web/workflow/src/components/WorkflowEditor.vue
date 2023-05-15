@@ -640,14 +640,8 @@ export default {
 
   computed: {
     getSidebarItemType () {
-      const { itemType } = this.sidebar
-      if (itemType) {
-        if (itemType === 'edge') {
-          return 'Connector'
-        }
-        return itemType.charAt(0).toUpperCase() + itemType.slice(1)
-      }
-      return itemType
+      const { item } = this.sidebar
+      return this.$t(`steps:${item.node.style}.short`) || item.node.style
     },
 
     getSidebarItemIcon () {
