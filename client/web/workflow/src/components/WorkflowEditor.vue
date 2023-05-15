@@ -2209,12 +2209,6 @@ export default {
                 }
               }
 
-              // Reset state and refresh the trigger label so spinner disappears
-              this.dryRun.lookup = true
-              this.dryRun.processing = false
-              this.dryRun.sessionID = undefined
-              this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
-
               // If error or no stacktrace, raise an error/warning
               if (error) {
                 throw new Error(error)
@@ -2246,6 +2240,13 @@ export default {
 
           setTimeout(sessionReader, 1000)
         }).catch(this.toastErrorHandler(this.$t('notification:failed-test')))
+        .finally(() => {
+          // Reset state and refresh the trigger label so spinner disappears
+          this.dryRun.lookup = true
+          this.dryRun.processing = false
+          this.dryRun.sessionID = undefined
+          this.redrawLabel(this.graph.model.getCell(this.dryRun.cellID).mxObjectId)
+        })
     },
 
     cancelWorkflow () {
