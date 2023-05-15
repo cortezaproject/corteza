@@ -70,6 +70,10 @@ export default {
         return 'ExecWorkflow'
       }
 
+      if (kind === 'error-handler') {
+        return 'ErrorHandler'
+      }
+
       if (kind) {
         return kind.charAt(0).toUpperCase() + kind.slice(1)
       }
