@@ -64,7 +64,9 @@
         :class="{ 'mt-3': index }"
         class="overflow-auto"
       >
-        <div class="d-flex align-items-center flex-wrap border p-2">
+        <div
+          class="d-flex align-items-center flex-wrap border p-2"
+        >
           <h6 class="text-primary mb-0">
             <b-spinner
               v-if="formatting"
@@ -79,11 +81,11 @@
             {{ formatDate(c.createdAt) }}
           </span>
         </div>
-        <div
-          class="border p-3"
-        >
-          {{ c.comment }}
-        </div>
+        <b-form-textarea
+          v-model="c.comment"
+          style="border: 1px solid #E4E9EF;"
+          class="p-3 rounded-0"
+        />
       </div>
     </template>
   </b-card>
