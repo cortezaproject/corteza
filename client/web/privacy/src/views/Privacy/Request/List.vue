@@ -231,7 +231,7 @@ export default {
           this.$root.$emit('bv::refresh::table', 'resource-list')
         })
         .finally(() => {
-          this.processing = true
+          this.processing = false
         })
     },
 
