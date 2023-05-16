@@ -1,28 +1,87 @@
 <template>
   <div>
-    <b-button
-      class="rounded-circle"
-      :style="value || 'rgba(0,0,0,0)'"
-    ></b-button>
-    <chrome
+    <div class="verte">
+      <b-button
+        ref="guide"
+        :style="`color: ${currentColor}; fill: ${currentColor};`"
+        class="p-2 rounded-circle btn btn-white"
+        @click="toggleMenu"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          class="verte__icon"
+        >
+          <pattern
+            id="checkerboard"
+            width="6"
+            height="6"
+            patternUnits="userSpaceOnUse"
+            fill="FFF"
+          >
+            <rect
+              fill="#7080707f"
+              x="0"
+              width="3"
+              height="3"
+              y="0"
+            />
+            <rect
+              fill="#7080707f"
+              x="3"
+              width="3"
+              height="3"
+              y="3"
+            />
+          </pattern>
+          <circle
+            cx="12"
+            cy="12"
+            r="12"
+            fill="url(#checkerboard)"
+          />
+          <circle
+            cx="12"
+            cy="12"
+            r="12"
+          />
+        </svg>
+      </b-button>
+      <chrome
+        ref="menu"
+        :value="value || 'rgba(0,0,0,0)'"
+        class="verte__menu-origin"
+        :class="{'verte__menu-origin--active': isMenuActive }"
+        @input="updateColor"
+      />
+      <b-button
+        v-if="isMenuActive"
+        class="verte__close"
+        @click="closeMenu"
+      >
+        <font-awesome-icon
+          :icon="['fas', 'times']"
+          class="verte__icon--small"
+        />
+      </b-button>
+    </div>
+    <!-- <verte
       :value="value || 'rgba(0,0,0,0)'"
       @input="updateColor"
-    />
-    <verte v-model="value" />
+    /> -->
   </div>
 </template>
 
 <script>
 import { debounce } from 'lodash'
 import { Chrome } from 'vue-color'
-import Verte from 'verte'
+// import Verte from 'verte'
 
 export default {
   name: 'CInputColorPicker',
 
   components: {
     Chrome,
-    Verte,
+    // Verte,
   },
 
   props: {
@@ -32,19 +91,75 @@ export default {
     },
   },
 
+  data () {
+    return {
+      isMenuActive: false,
+    }
+  },
+
+  computed: {
+    currentColor: {
+      get () {
+        return this.value
+      },
+      set (val) {
+        this.currentColor = val
+        this.updateColor(val)
+      },
+    },
+  },
+
   methods: {
     updateColor: debounce(function (color = '') {
       this.$emit('input', color.hex8)
     }, 300),
+
+    toggleMenu () {
+      if (this.isMenuActive) {
+        this.closeMenu()
+      } else {
+        this.openMenu()
+      }
+    },
+
+    openMenu () {
+      this.isMenuActive = true
+      this.closeCallback = (evnt) => {
+        if (
+          !this.isElementClosest(evnt.target, this.$refs.menu) &&
+          !this.isElementClosest(evnt.target, this.$refs.guide)
+        ) {
+          this.closeMenu()
+        }
+      }
+      document.addEventListener('mousedown', this.closeCallback)
+    },
+
+    closeMenu () {
+      this.isMenuActive = false
+    },
+
+    isElementClosest (element, wrapper) {
+      while (element !== document && element !== null) {
+        if (element === wrapper) return true
+        element = element.parentNode
+      }
+
+      return false
+    },
   },
 }
 </script>
-<style>
-
+<style lang="scss">
+.btn-white:hover,
+.btn-white:focus,
+.btn-white:active {
+  background-color: white !important;
+  border-color: white !important;
+  box-shadow: none !important;
+}
 .verte {
   position: relative;
-  display: flex;
-  justify-content: center;
 }
 .verte * {
     box-sizing: border-box;
@@ -75,7 +190,6 @@ export default {
   border-radius: 6px;
   background-color: #fff;
   will-change: transform;
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 .verte__menu:focus {
     outline: none;
@@ -86,7 +200,7 @@ export default {
   z-index: 10;
 }
 .verte__menu-origin--active {
-    display: flex;
+    display: block;
 }
 .verte__menu-origin--static {
     position: static;
@@ -165,8 +279,8 @@ export default {
   height: 20px;
 }
 .verte__icon--small {
-    width: 12px;
-    height: 12px;
+  width: 12px !important;
+  height: 12px;
 }
 .verte__input {
   padding: 5px;
@@ -217,9 +331,9 @@ export default {
 }
 .verte__close {
   position: absolute;
-  top: 1px;
-  right: 1px;
-  z-index: 1;
+  top: 37px;
+  right: 139px;
+  z-index: 10;
   display: flex;
   justify-content: center;
   align-items: center;

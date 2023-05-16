@@ -48,6 +48,7 @@
     "tiptap": "^1.26.0",
     "tiptap-extensions": "^1.28.4",
     "v-photoswipe": "^1.0.3-1",
+    "verte": "^0.0.12",
     "vue-color": "^2.8.1",
     "vue-echarts": "^6.2.3",
     "vue-select": "^3.4.0",
