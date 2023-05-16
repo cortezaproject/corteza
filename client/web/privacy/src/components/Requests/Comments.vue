@@ -82,7 +82,11 @@
         <div
           class="border p-3"
         >
-          {{ c.comment }}
+          <p
+            class="mb-0 multiline"
+          >
+            {{ c.comment }}
+          </p>
         </div>
       </div>
     </template>
@@ -171,5 +175,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
+.multiline {
+  white-space: pre-line;
+}
 </style>
