@@ -36,7 +36,6 @@
             md="6"
           >
             <b-form-group
-              v-if="recordListModule"
               :label="$t('recordList.record.inlineEditorAllow')"
               label-class="text-primary"
             >

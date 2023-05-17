@@ -627,7 +627,7 @@
             <div class="text-truncate">
               <div
                 v-if="options.showTotalCount"
-                class="ml-2 text-nowrap"
+                class="ml-2 text-nowrap my-1"
               >
                 <span
                   v-if="pagination.count > options.perPage"
@@ -732,6 +732,7 @@ import ImporterModal from 'corteza-webapp-compose/src/components/Public/Record/I
 import AutomationButtons from './Shared/AutomationButtons'
 import { compose, validator, NoID } from '@cortezaproject/corteza-js'
 import users from 'corteza-webapp-compose/src/mixins/users'
+import records from 'corteza-webapp-compose/src/mixins/records'
 import { evaluatePrefilter, queryToFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import { getItem, setItem, removeItem } from 'corteza-webapp-compose/src/lib/local-storage'
 import { components, url } from '@cortezaproject/corteza-vue'
@@ -764,6 +765,7 @@ export default {
 
   mixins: [
     users,
+    records,
   ],
 
   props: {
@@ -1576,9 +1578,13 @@ export default {
 
           // Extract user IDs from record values and load all users
           const fields = this.fields.filter(f => f.moduleField).map(f => f.moduleField)
-          this.fetchUsers(fields, records)
 
-          this.items = records.map(r => this.wrapRecord(r))
+          return Promise.all([
+            this.fetchUsers(fields, records),
+            this.fetchRecords(namespaceID, fields, records),
+          ]).then(() => {
+            this.items = records.map(r => this.wrapRecord(r))
+          })
         })
         .catch(this.toastErrorHandler(this.$t('notification:record.listLoadFailed')))
         .finally(() => {

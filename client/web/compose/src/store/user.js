@@ -32,9 +32,9 @@ export default function (SystemAPI) {
     },
 
     actions: {
-      async load ({ commit }) {
+      async load ({ commit }, filter) {
         commit(types.pending)
-        return SystemAPI.userList().then(({ set }) => {
+        return SystemAPI.userList(filter).then(({ set }) => {
           commit(types.updateSet, set)
         }).finally(() => {
           commit(types.completed)

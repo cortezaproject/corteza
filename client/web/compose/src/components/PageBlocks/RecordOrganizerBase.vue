@@ -35,55 +35,50 @@
               {{ $t('recordOrganizer.noRecords') }}
             </div>
           </template>
-          <router-link
+
+          <b-card
             v-for="record in records"
             :key="`${record.recordID}`"
-            tag="div"
-            class="record-item mb-2"
-            :class="{ 'pointer': roRecordPage }"
-            :to="{ name: 'page.record', params: { pageID: (roRecordPage || {}).pageID, recordID: record.recordID }, query: null }"
+            body-class="px-2 py-1"
+            class="record-item border border-light rounded mb-2 grab"
+            @click="handleRecordClick(record)"
           >
-            <b-card
-              body-class="px-2 py-1"
-              class="border rounded"
+            <div
+              v-if="labelField"
+              class="d-flex mb-1"
             >
-              <b-card-title
-                v-if="labelField"
-                title-tag="div"
-                class="mb-1"
+              <field-viewer
+                v-if="labelField.canReadRecordValue"
+                :field="labelField"
+                :record="record"
+                :namespace="namespace"
+                value-only
+              />
+              <i
+                v-else
+                class="text-secondary"
+              >{{ $t('field.noPermission') }}</i>
+            </div>
+
+            <b-card-text
+              v-if="descriptionField"
+              class="d-flex small"
+            >
+              <field-viewer
+                v-if="descriptionField.canReadRecordValue"
+                :field="descriptionField"
+                :record="record"
+                :namespace="namespace"
+                value-only
+              />
+              <i
+                v-else
+                class="text-secondary"
               >
-                <field-viewer
-                  v-if="labelField.canReadRecordValue"
-                  :field="labelField"
-                  :record="record"
-                  :namespace="namespace"
-                  value-only
-                />
-                <i
-                  v-else
-                  class="text-secondary"
-                >{{ $t('field.noPermission') }}</i>
-              </b-card-title>
-              <b-card-text
-                v-if="descriptionField"
-                class="small"
-              >
-                <field-viewer
-                  v-if="descriptionField.canReadRecordValue"
-                  :field="descriptionField"
-                  :record="record"
-                  :namespace="namespace"
-                  value-only
-                />
-                <i
-                  v-else
-                  class="text-secondary"
-                >
-                  {{ $t('field.noPermission') }}
-                </i>
-              </b-card-text>
-            </b-card>
-          </router-link>
+                {{ $t('field.noPermission') }}
+              </i>
+            </b-card-text>
+          </b-card>
         </draggable>
         <div
           v-else
@@ -118,6 +113,7 @@ import base from './base'
 import draggable from 'vuedraggable'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import users from 'corteza-webapp-compose/src/mixins/users'
+import records from 'corteza-webapp-compose/src/mixins/records'
 import { evaluatePrefilter, getFieldFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 
@@ -135,6 +131,7 @@ export default {
 
   mixins: [
     users,
+    records,
   ],
 
   data () {
@@ -412,7 +409,7 @@ export default {
         args: Object.keys(args).map(name => ({ name, value: String(args[name]) })),
       }
 
-      return this.$ComposeAPI.recordExec(params).then(this.fetchRecords)
+      return this.$ComposeAPI.recordExec(params).then(this.pullRecords)
     },
 
     /**
@@ -422,7 +419,7 @@ export default {
      * @param {String}            query Filter records
      * @returns {Promise<Record[]>}
      */
-    async fetchRecords () {
+    async pullRecords () {
       if (!this.roModule) {
         return
       }
@@ -432,17 +429,21 @@ export default {
       }
 
       const query = this.expandFilter()
-      const { labelField, descriptionField, positionField } = this.options
+      const { positionField } = this.options
       const { moduleID, namespaceID } = this.roModule
-      const sort = positionField || `updatedAt, ${labelField || descriptionField}`
+      const sort = positionField || 'updatedAt'
 
       this.processing = true
 
       return this.$ComposeAPI.recordList({ namespaceID, moduleID, query, sort })
         .then(({ set }) => {
-          this.records = set.map(r => Object.freeze(new compose.Record(this.roModule, r)))
           const fields = [this.labelField, this.descriptionField].filter(f => !!f)
-          this.fetchUsers(fields, this.records)
+          this.records = set.map(r => Object.freeze(new compose.Record(this.roModule, r)))
+
+          return Promise.all([
+            this.fetchUsers(fields, this.records),
+            this.fetchRecords(namespaceID, fields, this.records),
+          ])
         }).catch(e => {
           console.error(e)
         }).finally(() => {
@@ -450,8 +451,23 @@ export default {
         })
     },
 
+    handleRecordClick (record) {
+      if (!this.roRecordPage) return
+
+      const route = {
+        name: 'page.record',
+        params: {
+          pageID: (this.roRecordPage || {}).pageID,
+          recordID: record.recordID,
+        },
+        query: null,
+      }
+
+      this.$router.push(route)
+    },
+
     refresh () {
-      this.fetchRecords()
+      this.pullRecords()
     },
   },
 }
