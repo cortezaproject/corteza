@@ -240,7 +240,6 @@ export default {
           .recordRead({ namespaceID, moduleID, recordID })
           .then(record => {
             this.record = new compose.Record(module, record)
-            this.fetchUsers(this.module.fields, [this.record])
           })
           .catch(this.toastErrorHandler(this.$t('notification:record.loadFailed')))
       }

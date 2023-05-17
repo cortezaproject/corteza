@@ -60,6 +60,9 @@ export default {
   },
 
   created () {
+    // Preload first 500 users
+    this.$store.dispatch('user/load', { limit: 500 })
+
     this.$store.dispatch('namespace/load', { force: true }).then(namespaces => {
       this.namespaces = namespaces
       this.loaded = true

@@ -67,6 +67,7 @@ import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import Hint from 'corteza-webapp-compose/src/components/Common/Hint.vue'
 import users from 'corteza-webapp-compose/src/mixins/users'
+import records from 'corteza-webapp-compose/src/mixins/records'
 import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
 
 export default {
@@ -83,6 +84,7 @@ export default {
 
   mixins: [
     users,
+    records,
     conditionalFields,
   ],
 
@@ -131,16 +133,23 @@ export default {
       handler (recordID) {
         if (!recordID) return
 
-        this.evaluating = true
-
-        this.evaluateExpressions()
-          .finally(() => {
-            this.evaluating = false
-          })
+        let resolutions = []
 
         if (recordID !== NoID) {
-          this.fetchUsers(this.fields, [this.record])
+          resolutions = [
+            this.fetchUsers(this.fields, [this.record]),
+            this.fetchRecords(this.namespace.namespaceID, this.fields, [this.record]),
+          ]
         }
+
+        this.evaluating = true
+
+        Promise.all([
+          ...resolutions,
+          this.evaluateExpressions(),
+        ]).finally(() => {
+          this.evaluating = false
+        })
 
         if (this.options.referenceModuleID) {
           this.fetchReferenceModule(this.options.referenceModuleID)

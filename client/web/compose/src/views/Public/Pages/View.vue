@@ -230,6 +230,7 @@ export default {
       clearRecordIDs: 'ui/clearRecordIDs',
       setPreviousPages: 'ui/setPreviousPages',
       pushPreviousPages: 'ui/pushPreviousPages',
+      clearRecordSet: 'record/clearSet',
     }),
 
     evaluateLayoutExpressions () {
@@ -265,6 +266,8 @@ export default {
     },
 
     async determineLayout () {
+      // Clear stored records so they can be refetched with latest values
+      this.clearRecordSet()
       this.layouts = this.getPageLayouts(this.page.pageID)
 
       let expressions = {}

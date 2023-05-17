@@ -17,7 +17,7 @@ export default {
           })
       }).flat(Infinity))
 
-      return this.$store.dispatch('user/fetchUsers', [...list])
+      return this.$store.dispatch('user/resolveUsers', [...list])
     },
   },
 }
