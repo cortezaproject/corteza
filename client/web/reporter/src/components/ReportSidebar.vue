@@ -5,7 +5,7 @@
         v-if="reports.length"
         class="h-100"
       >
-        <div class="bg-white sticky-top pt-2 mb-2">
+        <div class="bg-white sticky-top py-2">
           <c-input-search
             v-model.trim="query"
             :placeholder="$t('sidebar:search-reports')"
