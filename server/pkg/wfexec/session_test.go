@@ -203,14 +203,14 @@ func TestSession_ErrHandler(t *testing.T) {
 			wf,
 
 			// enable if you need to see what is going on
-			//SetLogger(logger.MakeDebugLogger()),
+			// SetLogger(logger.MakeDebugLogger()),
 
 			// enable if you need to see what is going on
-			//SetHandler(func(status SessionStatus, state *State, session *Session) {
+			// SetHandler(func(status SessionStatus, state *State, session *Session) {
 			//	if state.step != nil {
 			//		println(state.step.(*sesTestStep).name)
 			//	}
-			//}),
+			// }),
 		)
 
 		cb_1_1 = &sesTestStep{name: "catch-branch-1-1"}
@@ -218,7 +218,7 @@ func TestSession_ErrHandler(t *testing.T) {
 		tb_1_1 = &sesTestStep{name: "try-branch-1-1"}
 
 		eh_1 = &sesTestStep{name: "err-handler", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
-			return ErrorHandler(cb_1_1), nil
+			return ErrorHandler(cb_1_1, nil), nil
 		}}
 		er_1 = &sesTestStep{name: "err-raiser", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
 			return nil, fmt.Errorf("would-be-handled-error")
@@ -229,7 +229,7 @@ func TestSession_ErrHandler(t *testing.T) {
 		tb_2_1 = &sesTestStep{name: "try-branch-2-1"}
 
 		eh_2 = &sesTestStep{name: "err-handler", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
-			return ErrorHandler(cb_2_1), nil
+			return ErrorHandler(cb_2_1, nil), nil
 		}}
 		er_2 = &sesTestStep{name: "err-raiser", exec: func(ctx context.Context, request *ExecRequest) (ExecResponse, error) {
 			return nil, fmt.Errorf("would-be-handled-error")
