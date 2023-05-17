@@ -138,8 +138,9 @@
 
 <script>
 import base from './base'
-import { components } from '@cortezaproject/corteza-vue'
-const { CInputColorPicker } = components
+import CInputColorPicker from '/Users/katrinyordanova/Desktop/repos/corteza/client/web/compose/src/components/ModuleFields/Configurator/CInputColorPicker.vue'
+// import { components } from '@cortezaproject/corteza-vue'
+// const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {

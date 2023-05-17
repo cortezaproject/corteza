@@ -1,15 +1,15 @@
 <template>
   <div>
-    <div class="verte">
+    <div class="color-picker">
       <b-button
         ref="guide"
-        :style="`color: ${currentColor}; fill: ${currentColor};`"
-        class="p-2 rounded-circle btn btn-white"
+        :style="`color: ${currentColor || 'rgba(0,0,0,0)'}; fill: ${currentColor || 'rgba(0,0,0,0)'};`"
+        class="p-2 rounded-circle btn-white"
         @click="toggleMenu"
       >
         <svg
           viewBox="0 0 24 24"
-          class="verte__icon"
+          class="icon" 
         >
           <pattern
             id="checkerboard"
@@ -46,42 +46,45 @@
           />
         </svg>
       </b-button>
-      <chrome
-        ref="menu"
-        :value="value || 'rgba(0,0,0,0)'"
-        class="verte__menu-origin"
-        :class="{'verte__menu-origin--active': isMenuActive }"
-        @input="updateColor"
-      />
-      <b-button
+      <div
         v-if="isMenuActive"
-        class="verte__close"
-        @click="closeMenu"
+        class="color-menu"
       >
-        <font-awesome-icon
-          :icon="['fas', 'times']"
-          class="verte__icon--small"
+        <b-button
+          class="button-close"
+          @click="closeMenu"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'times']"
+            class="icon-small"
+          />
+        </b-button>
+        <chrome
+          ref="menu"
+          :value="value || 'rgba(0,0,0,0)'"
+          class=""
+          @input="updateColor"
         />
-      </b-button>
+      </div>
     </div>
-    <!-- <verte
+    <verte
       :value="value || 'rgba(0,0,0,0)'"
       @input="updateColor"
-    /> -->
+    />
   </div>
 </template>
 
 <script>
 import { debounce } from 'lodash'
 import { Chrome } from 'vue-color'
-// import Verte from 'verte'
+import Verte from 'verte'
 
 export default {
   name: 'CInputColorPicker',
 
   components: {
     Chrome,
-    // Verte,
+    Verte,
   },
 
   props: {
@@ -94,6 +97,7 @@ export default {
   data () {
     return {
       isMenuActive: false,
+      // closeCallback: '',c
     }
   },
 
@@ -124,19 +128,24 @@ export default {
 
     openMenu () {
       this.isMenuActive = true
-      this.closeCallback = (evnt) => {
-        if (
-          !this.isElementClosest(evnt.target, this.$refs.menu) &&
-          !this.isElementClosest(evnt.target, this.$refs.guide)
-        ) {
-          this.closeMenu()
-        }
-      }
-      document.addEventListener('mousedown', this.closeCallback)
+      // this.closeCallback = (evnt) => {
+      //   if (
+      //     console.log(this.$refs)
+      //     // console.log('!this.isElementClosest(evnt.target, this.$refs.menu)', !this.isElementClosest(evnt.target, this.$refs.menu))
+      //     // console.log('!this.isElementClosest(evnt.target, this.$refs.guide)', !this.isElementClosest(evnt.target, this.$refs.guide) && !this.isElementClosest(evnt.target, this.$refs.menu))
+      //     // !this.isElementClosest(evnt.target, this.$refs.menu) &&
+      //     // !this.isElementClosest(evnt.target, this.$refs.guide)
+      //   ) {
+      //     this.closeMenu()
+      //   }
+      // }
+      // document.addEventListener('mousedown', this.closeCallback)
     },
 
     closeMenu () {
       this.isMenuActive = false
+      document.removeEventListener('mousedown', this.closeCallback);
+      this.$emit('close', this.currentColor);
     },
 
     isElementClosest (element, wrapper) {
@@ -150,16 +159,12 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-.btn-white:hover,
-.btn-white:focus,
-.btn-white:active {
-  background-color: white !important;
-  border-color: white !important;
-  box-shadow: none !important;
-}
+<style>
+
 .verte {
   position: relative;
+  display: flex;
+  justify-content: center;
 }
 .verte * {
     box-sizing: border-box;
@@ -190,6 +195,7 @@ export default {
   border-radius: 6px;
   background-color: #fff;
   will-change: transform;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 .verte__menu:focus {
     outline: none;
@@ -200,7 +206,7 @@ export default {
   z-index: 10;
 }
 .verte__menu-origin--active {
-    display: block;
+    display: flex;
 }
 .verte__menu-origin--static {
     position: static;
@@ -279,8 +285,8 @@ export default {
   height: 20px;
 }
 .verte__icon--small {
-  width: 12px !important;
-  height: 12px;
+    width: 12px;
+    height: 12px;
 }
 .verte__input {
   padding: 5px;
@@ -331,9 +337,9 @@ export default {
 }
 .verte__close {
   position: absolute;
-  top: 37px;
-  right: 139px;
-  z-index: 10;
+  top: 1px;
+  right: 1px;
+  z-index: 1;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -492,4 +498,88 @@ export default {
 }
 
 /*# sourceMappingURL=Slider.vue.map */
+</style>
+<style lang="scss">
+.verte__menu-origin {
+  display: none;
+  position: absolute;
+  z-index: 10;
+}
+.verte__menu-origin--active {
+    display: flex;
+}
+.verte__menu-origin--center {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.verte__menu-origin:focus {
+    outline: none;
+}
+.btn-white:hover,
+.btn-white:focus,
+.btn-white:active {
+  background-color: white !important;
+  border-color: white !important;
+  box-shadow: none !important;
+}
+
+.color-picker * {
+  box-sizing: border-box;
+}
+
+.color-picker {
+  position: relative
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-small {
+  width: 12px !important;
+  height: 12px;
+}
+
+.color-menu {
+  position: absolute;
+  z-index: 10;
+}
+
+.color-menu-active {
+  display: block;
+}
+
+.button-close {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 50%;
+  border: 0;
+  transform: translate(50%, -50%);
+  background-color: rgba(0, 0, 0, 0.4);
+  fill: #fff;
+  outline: none;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.button-close:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.vc-chrome-fields .vc-input__input {
+  font-family: "Poppins-Medium";
+}
 </style>
