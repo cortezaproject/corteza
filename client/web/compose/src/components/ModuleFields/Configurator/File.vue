@@ -154,6 +154,10 @@
           >
             <c-input-color-picker
               v-model="f.options.backgroundColor"
+              :translations="{
+                description: $t('general:label.colorPicker'),
+                saveBtnLabel: $t('general:label.saveAndClose')
+              }"
             />
           </b-form-group>
         </b-col>
@@ -164,9 +168,8 @@
 
 <script>
 import base from './base'
-// import { components } from '@cortezaproject/corteza-vue'
-// const { CInputColorPicker } = components
-import CInputColorPicker from './CInputColorPicker.vue'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {

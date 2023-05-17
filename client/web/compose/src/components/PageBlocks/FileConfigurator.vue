@@ -170,6 +170,10 @@
           >
             <c-input-color-picker
               v-model="options.backgroundColor"
+              :translations="{
+                description: $t('general:label.colorPicker'),
+                saveBtnLabel: $t('general:label.saveAndClose')
+              }"
             />
           </b-form-group>
         </b-col>

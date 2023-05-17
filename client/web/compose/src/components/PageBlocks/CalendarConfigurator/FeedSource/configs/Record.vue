@@ -32,6 +32,10 @@
         >
           <c-input-color-picker
             v-model="feed.options.color"
+            :translations="{
+              description: $t('general:label.colorPicker'),
+              saveBtnLabel: $t('general:label.saveAndClose')
+            }"
           />
         </b-form-group>
         <b-form-group
@@ -138,9 +142,8 @@
 
 <script>
 import base from './base'
-import CInputColorPicker from '/Users/katrinyordanova/Desktop/repos/corteza/client/web/compose/src/components/ModuleFields/Configurator/CInputColorPicker.vue'
-// import { components } from '@cortezaproject/corteza-vue'
-// const { CInputColorPicker } = components
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputColorPicker } = components
 
 export default {
   i18nOptions: {

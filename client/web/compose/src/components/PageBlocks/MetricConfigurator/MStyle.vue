@@ -8,6 +8,10 @@
       >
         <c-input-color-picker
           v-model="options.color"
+          :translations="{
+            description: $t('general:label.colorPicker'),
+            saveBtnLabel: $t('general:label.saveAndClose')
+          }"
           class="mb-1"
         />
       </b-form-group>
@@ -17,6 +21,10 @@
       >
         <c-input-color-picker
           v-model="options.backgroundColor"
+          :translations="{
+            description: $t('general:label.colorPicker'),
+            saveBtnLabel: $t('general:label.saveAndClose')
+          }"
           class="mb-1"
         />
       </b-form-group>

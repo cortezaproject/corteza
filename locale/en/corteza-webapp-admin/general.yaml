@@ -1,5 +1,6 @@
 label:
   plus-add: + Add
+  colorPicker: The second slider sets the transparency of the current color. If the slider is set to the farther right, the current color cannot be changed
   clear: Clear
   none: None
   now: Now
@@ -9,6 +10,7 @@ label:
   refresh: Refresh
   loadMore: Load more
   loading: Loading
+  saveAndClose: Save and close
   submit: Submit
   delete: Delete
   undelete: Undelete
