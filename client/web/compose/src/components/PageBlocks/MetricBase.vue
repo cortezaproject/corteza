@@ -41,6 +41,7 @@
 import base from './base'
 import numeral from 'numeral'
 import moment from 'moment'
+import { debounce } from 'lodash'
 import MetricItem from './Metric/Item'
 import { NoID, compose } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
@@ -74,6 +75,13 @@ export default {
       handler () {
         this.refresh()
       },
+    },
+
+    options: {
+      deep: true,
+      handler: debounce(function () {
+        this.refresh()
+      }, 300),
     },
   },
 
