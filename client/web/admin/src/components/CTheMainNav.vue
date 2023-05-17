@@ -1,6 +1,6 @@
 <template>
   <div
-    class="overflow-auto"
+    class="overflow-auto py-3"
   >
     <b-list-group
       v-for="(grp, g) in navigation"
