@@ -56,6 +56,15 @@ export default {
     },
   },
 
+  watch: {
+    options: {
+      deep: true,
+      handler () {
+        this.refresh()
+      },
+    },
+  },
+
   mounted () {
     this.refreshBlock(this.refresh)
   },
