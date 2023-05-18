@@ -27,8 +27,10 @@
           autofocus
           :state="urlValid ? null : false"
           :placeholder="labels.urlPlaceholder"
+          style="min-width:100px"
           @keydown.enter.prevent.stop="link"
-          @keydown.esc.prevent.stop="close" />
+          @keydown.esc.prevent.stop="close" 
+        />
         <b-input-group-append>
           <b-button
             @click="link"
