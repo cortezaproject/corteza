@@ -2,7 +2,9 @@ package types
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"go.uber.org/zap"
 )
@@ -30,9 +32,9 @@ func (s debugStep) Exec(ctx context.Context, r *wfexec.ExecRequest) (wfexec.Exec
 		// so we need to use logger directly from workflow and not the one we (could)
 		// get from context by wfexec.
 		log = s.log.With(
-			zap.Uint64("sessionID", r.SessionID),
-			zap.Uint64("stateID", r.StateID),
-			zap.Uint64("stepID", s.ID()),
+			logger.Uint64("sessionID", r.SessionID),
+			logger.Uint64("stateID", r.StateID),
+			logger.Uint64("stepID", s.ID()),
 		)
 	)
 

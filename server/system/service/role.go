@@ -13,6 +13,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/slice"
@@ -912,7 +913,7 @@ func UpdateRbacRoles(ctx context.Context, log *zap.Logger, ru rbacRoleUpdater, b
 
 	for _, r := range roles {
 		log := log.With(
-			zap.Uint64("ID", r.ID),
+			logger.Uint64("ID", r.ID),
 			zap.String("handle", r.Handle),
 		)
 

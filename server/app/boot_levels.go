@@ -612,8 +612,8 @@ func (app *CortezaApp) initSystemEntities(ctx context.Context) (err error) {
 
 	app.Log.Debug(
 		"system entities set",
-		zap.Uint64s("users", uu.IDs()),
-		zap.Uint64s("roles", rr.IDs()),
+		logger.Uint64s("users", uu.IDs()),
+		logger.Uint64s("roles", rr.IDs()),
 	)
 
 	return nil

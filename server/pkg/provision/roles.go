@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
@@ -54,7 +55,7 @@ func SystemRoles(ctx context.Context, log *zap.Logger, s store.Storer) (rr []*ty
 			r.CreatedAt = *now()
 
 			m[r.Handle] = r
-			log.Info("creating system role", zap.String("handle", r.Handle), zap.Uint64("ID", r.ID))
+			log.Info("creating system role", zap.String("handle", r.Handle), logger.Uint64("ID", r.ID))
 		} else {
 			// use existing role
 			rr[i] = m[r.Handle]
@@ -64,7 +65,7 @@ func SystemRoles(ctx context.Context, log *zap.Logger, s store.Storer) (rr []*ty
 			r.DeletedAt = nil
 			r.ArchivedAt = nil
 
-			log.Info("updating system role", zap.String("handle", r.Handle), zap.Uint64("ID", r.ID))
+			log.Info("updating system role", zap.String("handle", r.Handle), logger.Uint64("ID", r.ID))
 		}
 	}
 

@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
@@ -51,7 +52,7 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 				return nil, fmt.Errorf("failed to provision system user %s: %w", u.Handle, err)
 			}
 
-			log.Info("creating system user", zap.String("handle", u.Handle), zap.Uint64("ID", u.ID))
+			log.Info("creating system user", zap.String("handle", u.Handle), logger.Uint64("ID", u.ID))
 		} else {
 
 			u.ID = m[u.Handle].ID
@@ -75,7 +76,7 @@ func SystemUsers(ctx context.Context, log *zap.Logger, s store.Users) (uu []*typ
 				return nil, fmt.Errorf("failed to provision system user %s: %w", u.Handle, err)
 			}
 
-			log.Info("updating system user", zap.String("handle", u.Handle), zap.Uint64("ID", u.ID))
+			log.Info("updating system user", zap.String("handle", u.Handle), logger.Uint64("ID", u.ID))
 		}
 	}
 
