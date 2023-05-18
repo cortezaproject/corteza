@@ -8,7 +8,6 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -50,7 +49,7 @@ func (ctrl SensitivityLevel) List(ctx context.Context, r *request.DalSensitivity
 		set types.DalSensitivityLevelSet
 
 		f = types.DalSensitivityLevelFilter{
-			DalSensitivityLevelID: payload.ParseUint64s(r.SensitivityLevelID),
+			DalSensitivityLevelID: r.SensitivityLevelID,
 
 			Deleted: filter.State(r.Deleted),
 		}

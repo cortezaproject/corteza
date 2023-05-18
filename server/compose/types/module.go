@@ -112,7 +112,7 @@ type (
 	}
 
 	ModuleFilter struct {
-		ModuleID    []uint64 `json:"moduleID"`
+		ModuleID    []string `json:"moduleID"`
 		NamespaceID uint64   `json:"namespaceID,string"`
 		Query       string   `json:"query"`
 		Handle      string   `json:"handle"`

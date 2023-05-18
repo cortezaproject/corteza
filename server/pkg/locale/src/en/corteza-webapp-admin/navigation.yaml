@@ -1,0 +1,46 @@
+dashboard: Dashboard
+
+system:
+  group: System
+  items:
+    users: Users
+    actionlog: Action log
+    apigw: Integration Gateway
+    applications: Applications
+    authclients: Auth Clients
+    connections: Connections
+    sensitivityLevel: Sensitivity Levels
+    permissions: Permissions
+    queues: Messaging Queues
+    roles: Roles
+    settings: Auth Settings
+    email: Email settings
+    stats: Stats
+    templates: Templates
+
+compose:
+  group: Compose
+  items:
+    automation: Automation
+    permissions: Permissions
+    settings: Settings
+
+automation:
+  group: Automation
+  items:
+    permissions: Permissions
+    scripts: Corredor Scripts
+    sessions: Sessions
+    workflows: Workflows
+
+federation:
+  group: Federation
+  items:
+    nodes: Nodes
+    permissions: Permissions
+
+ui:
+  group: User interface
+  items:
+    settings: Settings
+

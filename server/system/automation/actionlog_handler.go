@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 )
 
@@ -56,7 +57,7 @@ func (h actionlogHandler) search(ctx context.Context, args *actionlogSearchArgs)
 	)
 
 	if args.ActorID > 0 {
-		f.ActorID = []uint64{args.ActorID}
+		f.ActorID = id.Strings(args.ActorID)
 	}
 
 	results.Actions, _, err = h.svc.Find(ctx, f)
@@ -77,7 +78,7 @@ func (h actionlogHandler) each(ctx context.Context, args *actionlogEachArgs) (ou
 	)
 
 	if args.ActorID > 0 {
-		f.ActorID = []uint64{args.ActorID}
+		f.ActorID = id.Strings(args.ActorID)
 	}
 
 	if args.hasLimit {

@@ -2,12 +2,12 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/automation/rest/request"
 	"github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
 )
 
 type (
@@ -38,8 +38,8 @@ func (ctrl Trigger) List(ctx context.Context, r *request.TriggerList) (interface
 	var (
 		err error
 		f   = types.TriggerFilter{
-			WorkflowID:   payload.ParseUint64s(r.WorkflowID),
-			TriggerID:    payload.ParseUint64s(r.TriggerID),
+			WorkflowID:   r.WorkflowID,
+			TriggerID:    r.TriggerID,
 			EventType:    r.EventType,
 			ResourceType: r.ResourceType,
 			Labels:       r.Labels,

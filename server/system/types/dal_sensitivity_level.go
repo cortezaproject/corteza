@@ -34,7 +34,7 @@ type (
 	}
 
 	DalSensitivityLevelFilter struct {
-		DalSensitivityLevelID []uint64 `json:"sensitivityLevelID,string"`
+		DalSensitivityLevelID []string `json:"sensitivityLevelID"`
 		Handle                string   `json:"handle"`
 
 		Deleted filter.State `json:"deleted"`

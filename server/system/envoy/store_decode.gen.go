@@ -13,6 +13,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/pkg/errors"
@@ -32,6 +33,11 @@ type (
 const (
 	paramsKeyStorer = "storer"
 	paramsKeyDAL    = "dal"
+)
+
+var (
+	// @todo temporary fix to make unused pkg/id not throw errors
+	_ = id.Next
 )
 
 // Decode returns a set of envoy nodes based on the provided params
@@ -276,7 +282,7 @@ func (d StoreDecoder) makeApplicationFilter(scope *envoyx.Node, refs map[string]
 	_ = ids
 	_ = hh
 
-	out.ApplicationID = ids
+	out.ApplicationID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Name = hh[0]
@@ -377,7 +383,7 @@ func (d StoreDecoder) makeApigwRouteFilter(scope *envoyx.Node, refs map[string]*
 	_ = ids
 	_ = hh
 
-	out.ApigwRouteID = ids
+	out.ApigwRouteID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Endpoint = hh[0]
@@ -472,7 +478,7 @@ func (d StoreDecoder) makeApigwFilterFilter(scope *envoyx.Node, refs map[string]
 	_ = ids
 	_ = hh
 
-	out.ApigwFilterID = ids
+	out.ApigwFilterID = id.Strings(ids...)
 
 	// Refs
 	var (
@@ -566,7 +572,7 @@ func (d StoreDecoder) makeAuthClientFilter(scope *envoyx.Node, refs map[string]*
 	_ = ids
 	_ = hh
 
-	out.AuthClientID = ids
+	out.AuthClientID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -656,7 +662,7 @@ func (d StoreDecoder) makeQueueFilter(scope *envoyx.Node, refs map[string]*envoy
 	_ = ids
 	_ = hh
 
-	out.QueueID = ids
+	out.QueueID = id.Strings(ids...)
 
 	// Refs
 	var (
@@ -748,7 +754,7 @@ func (d StoreDecoder) makeReportFilter(scope *envoyx.Node, refs map[string]*envo
 	_ = ids
 	_ = hh
 
-	out.ReportID = ids
+	out.ReportID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -820,7 +826,7 @@ func (d StoreDecoder) makeRoleFilter(scope *envoyx.Node, refs map[string]*envoyx
 	_ = ids
 	_ = hh
 
-	out.RoleID = ids
+	out.RoleID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -898,7 +904,7 @@ func (d StoreDecoder) makeTemplateFilter(scope *envoyx.Node, refs map[string]*en
 	_ = ids
 	_ = hh
 
-	out.TemplateID = ids
+	out.TemplateID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -970,7 +976,7 @@ func (d StoreDecoder) makeUserFilter(scope *envoyx.Node, refs map[string]*envoyx
 	_ = ids
 	_ = hh
 
-	out.UserID = ids
+	out.UserID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -1062,7 +1068,7 @@ func (d StoreDecoder) makeDalConnectionFilter(scope *envoyx.Node, refs map[strin
 	_ = ids
 	_ = hh
 
-	out.DalConnectionID = ids
+	out.DalConnectionID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -1152,7 +1158,7 @@ func (d StoreDecoder) makeDalSensitivityLevelFilter(scope *envoyx.Node, refs map
 	_ = ids
 	_ = hh
 
-	out.DalSensitivityLevelID = ids
+	out.DalSensitivityLevelID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]

@@ -7,6 +7,7 @@ import (
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoy"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	pkgid "github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -567,7 +568,7 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 			templateID, err := cast.ToUint64E(id)
 			if err == nil && templateID > 0 {
 				df = df.Templates(&types.TemplateFilter{
-					TemplateID: []uint64{templateID},
+					TemplateID: pkgid.Strings(templateID),
 				})
 			}
 		case "system:apigw-route":
@@ -581,7 +582,7 @@ func (df *DecodeFilter) systemFromResource(rr ...string) *DecodeFilter {
 			reportID, err := cast.ToUint64E(id)
 			if err == nil && reportID > 0 {
 				df = df.Reports(&types.ReportFilter{
-					ReportID: []uint64{reportID},
+					ReportID: pkgid.Strings(reportID),
 				})
 			}
 
@@ -629,7 +630,7 @@ func (df *DecodeFilter) systemFromRef(rr ...*resource.Ref) *DecodeFilter {
 				templateID, err := cast.ToUint64E(i)
 				if err == nil && templateID > 0 {
 					df = df.Templates(&types.TemplateFilter{
-						TemplateID: []uint64{templateID},
+						TemplateID: pkgid.Strings(templateID),
 					})
 				}
 			}

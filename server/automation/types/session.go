@@ -5,9 +5,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"sync"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -79,9 +80,9 @@ type (
 	}
 
 	SessionFilter struct {
-		SessionID    []uint64 `json:"sessionID"`
-		WorkflowID   []uint64 `json:"workflowID"`
-		CreatedBy    []uint64 `json:"createdBy"`
+		SessionID    []string `json:"sessionID"`
+		WorkflowID   []string `json:"workflowID"`
+		CreatedBy    []string `json:"createdBy"`
 		EventType    string   `json:"eventType"`
 		ResourceType string   `json:"resourceType"`
 

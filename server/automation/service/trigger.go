@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
@@ -139,7 +140,7 @@ func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (rr 
 // In case stepID is 0, first trigger is returned
 func (svc *trigger) SearchOnManual(ctx context.Context, workflowID, stepID uint64) (*types.Trigger, error) {
 	tt, _, err := svc.Search(ctx, types.TriggerFilter{
-		WorkflowID: []uint64{workflowID},
+		WorkflowID: id.Strings(workflowID),
 		EventType:  "onManual",
 	})
 
@@ -417,7 +418,7 @@ func (svc trigger) canManageTrigger(ctx context.Context, res *types.Trigger, per
 func (svc *trigger) registerWorkflows(ctx context.Context, workflows ...*types.Workflow) error {
 	// load ALL triggers directly from store
 	tt, _, err := store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
-		WorkflowID: types.WorkflowSet(workflows).IDs(),
+		WorkflowID: id.Strings(types.WorkflowSet(workflows).IDs()...),
 		Deleted:    filter.StateInclusive,
 		Disabled:   filter.StateExcluded,
 	})
@@ -657,7 +658,7 @@ func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64
 		return nil, TriggerErrInvalidID()
 	}
 
-	if tt, _, err = store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{WorkflowID: []uint64{workflowID}}); errors.IsNotFound(err) {
+	if tt, _, err = store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{WorkflowID: id.Strings(workflowID)}); errors.IsNotFound(err) {
 		return nil, TriggerErrNotFound()
 	}
 

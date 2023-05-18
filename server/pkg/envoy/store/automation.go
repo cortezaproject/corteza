@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoy"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 )
 
@@ -76,7 +77,7 @@ func (d *automationDecoder) decodeWorkflows(ctx context.Context, s automationSto
 				}
 
 				tt, _, err := s.SearchAutomationTriggers(ctx, types.TriggerFilter{
-					WorkflowID: []uint64{n.ID},
+					WorkflowID: id.Strings(n.ID),
 					Disabled:   filter.StateInclusive,
 				})
 				if err != nil {

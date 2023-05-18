@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -35,8 +36,8 @@ type (
 	}
 
 	RoleFilter struct {
-		RoleID   []uint64 `json:"roleID"`
-		MemberID uint64   `json:"memberID"`
+		RoleID   []string `json:"roleID"`
+		MemberID uint64   `json:"memberID,string"`
 
 		Query string `json:"query"`
 

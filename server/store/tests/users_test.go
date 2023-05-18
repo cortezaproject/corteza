@@ -159,9 +159,9 @@ func testUsers(t *testing.T, s store.Users) {
 	t.Run("search", func(t *testing.T) {
 		t.Run("by ID", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
-			set, f, err := store.SearchUsers(ctx, s, types.UserFilter{UserID: []uint64{prefill[0].ID}})
+			set, f, err := store.SearchUsers(ctx, s, types.UserFilter{UserID: id.Strings(prefill[0].ID)})
 			req.NoError(err)
-			req.Equal([]uint64{prefill[0].ID}, f.UserID)
+			req.Equal(id.Strings(prefill[0].ID), f.UserID)
 			req.Len(set, 1)
 			//req.Equal(set[0].ID, user.ID)
 		})

@@ -3,9 +3,10 @@ package actionlog
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"strconv"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -63,7 +64,7 @@ type (
 
 		BeforeActionID uint64 `json:"beforeActionID"`
 
-		ActorID  []uint64 `json:"actorID"`
+		ActorID  []string `json:"actorID"`
 		Origin   string   `json:"origin"`
 		Resource string   `json:"resource"`
 		Action   string   `json:"action"`

@@ -3,6 +3,7 @@ package label
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/cortezaproject/corteza/server/store"

@@ -9,6 +9,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 )
 
@@ -24,7 +25,7 @@ func (d StoreDecoder) extendNamespaceFilter(scope *envoyx.Node, refs map[string]
 	}
 
 	// Overwrite it
-	out.NamespaceID = []uint64{scope.Resource.GetID()}
+	out.NamespaceID = id.Strings(scope.Resource.GetID())
 
 	return
 }

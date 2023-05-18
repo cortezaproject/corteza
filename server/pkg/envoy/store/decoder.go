@@ -5,6 +5,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/envoy"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -196,7 +197,7 @@ func (ux *userIndex) add(ctx context.Context, uu ...uint64) error {
 	}
 
 	users, _, err := store.SearchUsers(ctx, ux.s, types.UserFilter{
-		UserID: filtered,
+		UserID: id.Strings(filtered...),
 	})
 	if err != nil {
 		return err

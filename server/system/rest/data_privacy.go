@@ -2,9 +2,10 @@ package rest
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
 
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -39,7 +40,7 @@ func (ctrl DataPrivacy) ConnectionList(ctx context.Context, r *request.DataPriva
 		set types.PrivacyDalConnectionSet
 
 		f = types.DalConnectionFilter{
-			DalConnectionID: payload.ParseUint64s(r.ConnectionID),
+			DalConnectionID: r.ConnectionID,
 			Handle:          r.Handle,
 			Type:            r.Type,
 
@@ -67,7 +68,7 @@ func (ctrl DataPrivacy) RequestList(ctx context.Context, r *request.DataPrivacyR
 	var (
 		err error
 		f   = types.DataPrivacyRequestFilter{
-			RequestedBy: payload.ParseUint64s(r.RequestedBy),
+			RequestedBy: r.RequestedBy,
 			Query:       r.Query,
 			Kind:        r.Kind,
 			Status:      r.Status,
@@ -124,7 +125,7 @@ func (ctrl DataPrivacy) RequestCommentList(ctx context.Context, r *request.DataP
 	var (
 		err error
 		f   = types.DataPrivacyRequestCommentFilter{
-			RequestID: []uint64{r.RequestID},
+			RequestID: id.Strings(r.RequestID),
 		}
 	)
 
