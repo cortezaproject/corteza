@@ -52,7 +52,6 @@
             v-model="user.meta.avatarColor"
             data-test-id="input-text-color"
             :translations="{
-              description: $t('general:label.colorPicker'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />
@@ -66,7 +65,6 @@
             v-model="user.meta.avatarBgColor"
             data-test-id="input-background-color"
             :translations="{
-              description: $t('general:label.colorPicker'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />

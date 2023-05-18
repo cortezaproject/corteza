@@ -7,7 +7,8 @@
     >
       <svg
         viewBox="0 0 24 24"
-        style="width: 20px; height: 20px;"
+        style="width: 24px; height: 24px;"
+        class="border border-light rounded-circle"
       >
         <pattern
           id="checkerboard"
@@ -46,10 +47,9 @@
     </b-button>
     <b-modal
       :visible="showModal"
-      title="Choose color"
       size="sm"
       centered
-      body-class="p-3"
+      body-class="p-2"
       cancel-variant="link"
       :ok-title="translations.saveBtnLabel"
       @ok="$emit('input', currentColor)"
@@ -63,11 +63,6 @@
           @input="updateColor"
         />
       </div>
-      <small
-        class="pt-2 px-4 form-text font-weight-light text-muted"
-      >
-        {{ translations.description }}
-      </small>
     </b-modal>
   </div>
 </template>

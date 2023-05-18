@@ -88,7 +88,6 @@
           <c-input-color-picker
             v-model="feed.options.color"
             :translations="{
-              description: $t('general:label.colorPicker'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />

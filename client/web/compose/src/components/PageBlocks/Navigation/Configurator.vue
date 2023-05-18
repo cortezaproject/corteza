@@ -133,7 +133,6 @@
                       <c-input-color-picker
                         v-model="item.options.textColor"
                         :translations="{
-                          description: $t('general:label.colorPicker'),
                           saveBtnLabel: $t('general:label.saveAndClose')
                         }"
                         class="w-100"
@@ -143,7 +142,6 @@
                       <c-input-color-picker
                         :value="item.options.backgroundColor || '#000000'"
                         :translations="{
-                          description: $t('general:label.colorPicker'),
                           saveBtnLabel: $t('general:label.saveAndClose')
                         }"
                         class="w-100"

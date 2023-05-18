@@ -155,7 +155,6 @@
             <c-input-color-picker
               v-model="f.options.backgroundColor"
               :translations="{
-                description: $t('general:label.colorPicker'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
             />
