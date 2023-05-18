@@ -15,6 +15,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/store"
@@ -522,7 +523,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		g         *wfexec.Graph
 		issues    types.WorkflowIssueSet
 		wfLog     = svc.log.
-				With(zap.Uint64("workflowID", wf.ID))
+				With(logger.Uint64("workflowID", wf.ID))
 
 		// register only enabled, undeleted workflows
 		registerWorkflow = wf.Enabled && wf.DeletedAt == nil
@@ -545,7 +546,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 	svc.mux.Lock()
 
 	for _, t := range tt {
-		log := wfLog.With(zap.Uint64("triggerID", t.ID))
+		log := wfLog.With(logger.Uint64("triggerID", t.ID))
 
 		// always unregister
 		if svc.reg[wf.ID] == nil {
@@ -614,7 +615,7 @@ func (svc *trigger) unregisterWorkflows(wwf ...*types.Workflow) {
 	for _, wf := range wwf {
 		for triggerID, ptr := range svc.reg[wf.ID] {
 			svc.eventbus.Unregister(ptr)
-			svc.log.Debug("trigger unregistered", zap.Uint64("triggerID", triggerID), zap.Uint64("workflowID", wf.ID))
+			svc.log.Debug("trigger unregistered", logger.Uint64("triggerID", triggerID), logger.Uint64("workflowID", wf.ID))
 			delete(svc.triggers, wf.ID)
 		}
 
@@ -633,7 +634,7 @@ func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
 
 		if ptr, has := svc.reg[t.WorkflowID][t.ID]; has {
 			svc.eventbus.Unregister(ptr)
-			svc.log.Debug("trigger unregistered", zap.Uint64("triggerID", t.ID), zap.Uint64("workflowID", t.WorkflowID))
+			svc.log.Debug("trigger unregistered", logger.Uint64("triggerID", t.ID), logger.Uint64("workflowID", t.WorkflowID))
 			delete(svc.triggers, t.ID)
 		}
 	}
