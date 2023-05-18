@@ -1,0 +1,12 @@
+adminPanel: Admin panel
+chart: Charts
+manageNamespaces: Manage namespaces
+module: Modules
+noPages: No pages
+page: Pages
+pickNamespace: Select a namespace
+publicPages: Public pages
+editNamespace: Edit namespace
+searchPlaceholder:
+  admin: Search resources...
+  public: Search pages...

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/store"
@@ -28,10 +29,14 @@ type (
 		}
 )
 
-
 const (
 	paramsKeyStorer = "storer"
 	paramsKeyDAL = "dal"
+)
+
+var (
+	// @todo temporary fix to make unused pkg/id not throw errors
+	_ = id.Next
 )
 
 // Decode returns a set of envoy nodes based on the provided params
@@ -219,7 +224,7 @@ func (d StoreDecoder) make{{.expIdent}}Filter(scope *envoyx.Node, refs map[strin
 	_ = ids
 	_ = hh
 
-	out.{{.expIdent}}ID = ids
+	out.{{.expIdent}}ID = id.Strings(ids...)
 
 		{{ if .envoy.store.handleField }}
 	if len(hh) > 0 {

@@ -3,11 +3,13 @@ package documents
 import (
 	"context"
 	"fmt"
+
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	sysService "github.com/cortezaproject/corteza/server/system/service"
@@ -98,7 +100,7 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 		)
 
 		if namespaceID > 0 {
-			f.NamespaceID = append(f.NamespaceID, namespaceID)
+			f.NamespaceID = append(f.NamespaceID, id.String(namespaceID))
 		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {
@@ -191,7 +193,7 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 		)
 
 		if moduleID > 0 {
-			f.ModuleID = append(f.ModuleID, moduleID)
+			f.ModuleID = append(f.ModuleID, id.String(moduleID))
 		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {

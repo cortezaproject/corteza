@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/pkg/errors"
 )
@@ -32,6 +33,11 @@ type (
 const (
 	paramsKeyStorer = "storer"
 	paramsKeyDAL    = "dal"
+)
+
+var (
+	// @todo temporary fix to make unused pkg/id not throw errors
+	_ = id.Next
 )
 
 // Decode returns a set of envoy nodes based on the provided params

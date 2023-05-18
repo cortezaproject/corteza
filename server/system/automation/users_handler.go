@@ -3,6 +3,7 @@ package automation
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -89,9 +90,9 @@ func (h usersHandler) searchMembership(ctx context.Context, args *usersSearchMem
 		return
 	}
 
-	rr := make([]uint64, len(mm))
+	rr := make([]string, len(mm))
 	for i, r := range mm {
-		rr[i] = r.RoleID
+		rr[i] = strconv.FormatUint(r.RoleID, 10)
 	}
 
 	results.Roles, _, err = h.rSvc.Find(ctx, types.RoleFilter{

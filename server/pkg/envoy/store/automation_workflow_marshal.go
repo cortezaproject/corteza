@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 )
 
@@ -55,7 +56,7 @@ func (n *automationWorkflow) prepareTriggers(ctx context.Context, pl *payload) (
 
 	// Try to find any related triggers for this workflow
 	tt, _, err := store.SearchAutomationTriggers(ctx, pl.s, types.TriggerFilter{
-		WorkflowID: []uint64{n.wf.ID},
+		WorkflowID: id.Strings(n.wf.ID),
 		Disabled:   filter.StateInclusive,
 	})
 	if err != nil {

@@ -97,8 +97,8 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		err error
 		set types.UserSet
 		f   = types.UserFilter{
-			UserID:    payload.ParseUint64s(r.UserID),
-			RoleID:    payload.ParseUint64s(r.RoleID),
+			UserID:    r.UserID,
+			RoleID:    r.RoleID,
 			Query:     r.Query,
 			Email:     r.Email,
 			Username:  r.Username,

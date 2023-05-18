@@ -11,7 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -77,7 +77,7 @@ func (ctrl DalConnection) List(ctx context.Context, r *request.DalConnectionList
 		dalConnections types.DalConnectionSet
 
 		f = types.DalConnectionFilter{
-			DalConnectionID: payload.ParseUint64s(r.ConnectionID),
+			DalConnectionID: r.ConnectionID,
 			Handle:          r.Handle,
 			Type:            r.Type,
 
@@ -164,7 +164,7 @@ func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections typ
 
 // Make payload for dal-connection
 //
-// Payload is without connection params on the config prop
+// # Payload is without connection params on the config prop
 //
 // An explicit call to /params
 func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection) *connectionPayload {
@@ -244,7 +244,7 @@ func (ctrl DalConnection) filterConnections(baseConnections types.DalConnectionS
 		include := true
 
 		if len(f.DalConnectionID) > 0 {
-			include = include && ctrl.inIDSet(f.DalConnectionID, conn.ID)
+			include = include && ctrl.inIDSet(id.Uints(f.DalConnectionID...), conn.ID)
 		}
 
 		if f.Handle != "" {

@@ -29,7 +29,7 @@ type (
 
 	PrivacyModuleFilter struct {
 		NamespaceID  uint64   `json:"-"`
-		ConnectionID []uint64 `json:"connectionID,string"`
+		ConnectionID []string `json:"connectionID"`
 
 		// Standard helpers for paging and sorting
 		filter.Sorting

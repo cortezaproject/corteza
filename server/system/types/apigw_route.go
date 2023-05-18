@@ -34,7 +34,7 @@ type (
 	}
 
 	ApigwRouteFilter struct {
-		ApigwRouteID []uint64 `json:"apigwRouteID"`
+		ApigwRouteID []string `json:"apigwRouteID"`
 		Route        string   `json:"route"`
 		Endpoint     string   `json:"endpoint"`
 		Method       string   `json:"method"`

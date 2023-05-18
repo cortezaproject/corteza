@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
@@ -664,7 +665,7 @@ func (svc *workflow) validateWorkflow(ctx context.Context, wf *types.Workflow) (
 	g, wf.Issues = Convert(svc, wf)
 
 	tt, _, err = store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
-		WorkflowID: types.WorkflowSet{wf}.IDs(),
+		WorkflowID: id.Strings(types.WorkflowSet{wf}.IDs()...),
 		Deleted:    filter.StateExcluded,
 		Disabled:   filter.StateExcluded,
 	})

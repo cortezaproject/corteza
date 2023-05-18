@@ -94,9 +94,9 @@ func testRoles(t *testing.T, s store.Roles) {
 		t.Run("by ID", func(t *testing.T) {
 			req, prefill := truncAndFill(t, 5)
 
-			set, f, err := s.SearchRoles(ctx, types.RoleFilter{RoleID: []uint64{prefill[0].ID}})
+			set, f, err := s.SearchRoles(ctx, types.RoleFilter{RoleID: id.Strings(prefill[0].ID)})
 			req.NoError(err)
-			req.Equal([]uint64{prefill[0].ID}, f.RoleID)
+			req.Equal(id.Strings(prefill[0].ID), f.RoleID)
 			req.Len(set, 1)
 		})
 

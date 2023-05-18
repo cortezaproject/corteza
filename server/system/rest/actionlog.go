@@ -7,7 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	pkgid "github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -57,7 +57,7 @@ func (ctrl *Actionlog) List(ctx context.Context, r *request.ActionlogList) (inte
 			FromTimestamp:  r.From,
 			ToTimestamp:    r.To,
 			BeforeActionID: r.BeforeActionID,
-			ActorID:        payload.ParseUint64s(r.ActorID),
+			ActorID:        r.ActorID,
 			Resource:       r.Resource,
 			Action:         r.Action,
 			Limit:          r.Limit,
@@ -158,7 +158,7 @@ func userPreloader(ctx context.Context, s store.Users, g func(chan uint64), f ty
 	)
 
 	// Reset the collection of the IDs
-	f.UserID = make([]uint64, 0)
+	f.UserID = make([]string, 0)
 
 	// Call getter and collect the IDs
 	go g(ch)
@@ -177,7 +177,7 @@ rangeLoop:
 
 			if !unq[id] {
 				unq[id] = true
-				f.UserID = append(f.UserID, id)
+				f.UserID = append(f.UserID, pkgid.String(id))
 			}
 		}
 
