@@ -1,0 +1,74 @@
+# List of loggable service actions
+
+resource: system:dal-schema-alteration
+service: dalSchemaAlteration
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: dalSchemaAlteration
+    type: "*types.DalSchemaAlteration"
+    fields: [ ID ]
+  - name: new
+    type: "*types.DalSchemaAlteration"
+    fields: [ ID ]
+  - name: update
+    type: "*types.DalSchemaAlteration"
+    fields: [ ID ]
+  - name: existing
+    type: "*types.DalSchemaAlteration"
+    fields: [ ID ]
+  - name: filter
+    type: "*types.DalSchemaAlterationFilter"
+    fields: [ alterationID, batchID, kind, deleted, completed ]
+
+actions:
+  - action: search
+    log: "searched for matching dalSchemaAlterations"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{dalSchemaAlteration}}"
+    severity: info
+
+  - action: delete
+    log: "deleted {{dalSchemaAlteration}}"
+
+  - action: undelete
+    log: "undeleted {{dalSchemaAlteration}}"
+
+errors:
+  - error: notFound
+    message: "dalSchemaAlteration not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this dal schema alteration"
+    log: "failed to read {{dalSchemaAlteration.ID}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to list or search dal schema alterations"
+    log: "failed to search for dal schema alterations; insufficient permissions"
+
+  - error: notAllowedToListUsers
+    message: "not allowed to list dal schema alterations"
+    log: "failed to list dalSchemaAlteration; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this dal schema alteration"
+    log: "failed to delete {{dalSchemaAlteration.ID}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this dal schema alteration"
+    log: "failed to undelete {{dalSchemaAlteration.ID}}; insufficient permissions"
