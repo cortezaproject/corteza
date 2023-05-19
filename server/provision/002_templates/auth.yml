@@ -47,7 +47,7 @@ templates:
       short: MFA login code content
     template: |-
       {{template "email_general_header" .}}
-        <h2 style="color: #568ba2;text-align: center;">Reset your password</h2>
+        <h2 style="color: #568ba2;text-align: center;">Your login code</h2>
         <p>Hello,</p>
         <p>Enter this code into your login form: <code>{{.Code}}</code></p>
       {{template "email_general_footer" .}}
