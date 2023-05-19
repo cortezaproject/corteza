@@ -908,6 +908,65 @@ endpoints:
         required: true
         title: Connection ID
 
+- title: Data access layer schema alterations
+  path: "/dal/schema/alterations"
+  entrypoint: dalSchemaAlteration
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+  apis:
+  - name: list
+    method: GET
+    title: Search schema alterations
+    path: "/"
+    parameters:
+      get:
+      - name: alterationID
+        type: "[]string"
+        title: Filter by alteration ID
+      - name: batchID
+        type: "uint64"
+        title: Filter by batch ID
+      - type: string
+        name: kind
+        title: Search by kind
+      - name: deleted
+        title: Exclude (0, default), include (1) or return only (2) deleted alterations
+        type: uint
+      - name: completed
+        title: Exclude (0, default), include (1) or return only (2) completed alterations
+        type: uint
+      - type: bool
+        name: incTotal
+        title: Include total counter
+
+  # We'll drop these two because they don't make sense to be here 
+  # - name: create
+  #   method: POST
+
+  # - name: update
+  #   method: PUT
+
+  - name: read
+    method: GET
+    title: Read alteration details
+    path: "/{alterationID}"
+    parameters:
+      path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
+  - name: delete
+    method: DELETE
+    title: Remove alteration
+    path: "/{alterationID}"
+    parameters:
+      path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
+  - name: undelete
+    method: POST
+    title: Undelete alteration
+    path: "/{alterationID}/undelete"
+    parameters:
+      path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
+
 
 - title: Data access layer connections
   path: "/dal/connections"

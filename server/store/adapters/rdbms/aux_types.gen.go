@@ -351,6 +351,23 @@ type (
 		DeletedBy uint64                      `db:"deleted_by"`
 	}
 
+	// auxDalSchemaAlteration is an auxiliary structure used for transporting to/from RDBMS store
+	auxDalSchemaAlteration struct {
+		ID          uint64                                `db:"id"`
+		BatchID     uint64                                `db:"batchID"`
+		DependsOn   uint64                                `db:"dependsOn"`
+		Kind        string                                `db:"kind"`
+		Params      *systemType.DalSchemaAlterationParams `db:"params"`
+		CreatedAt   time.Time                             `db:"created_at"`
+		UpdatedAt   *time.Time                            `db:"updated_at"`
+		DeletedAt   *time.Time                            `db:"deleted_at"`
+		CompletedAt *time.Time                            `db:"completed_at"`
+		CreatedBy   uint64                                `db:"created_by"`
+		UpdatedBy   uint64                                `db:"updated_by"`
+		DeletedBy   uint64                                `db:"deleted_by"`
+		CompletedBy uint64                                `db:"completed_by"`
+	}
+
 	// auxDalSensitivityLevel is an auxiliary structure used for transporting to/from RDBMS store
 	auxDalSensitivityLevel struct {
 		ID        uint64                             `db:"id"`
@@ -1848,6 +1865,68 @@ func (aux *auxDalConnection) scan(row scanner) error {
 		&aux.CreatedBy,
 		&aux.UpdatedBy,
 		&aux.DeletedBy,
+	)
+}
+
+// encodes DalSchemaAlteration to auxDalSchemaAlteration
+//
+// This function is auto-generated
+func (aux *auxDalSchemaAlteration) encode(res *systemType.DalSchemaAlteration) (_ error) {
+	aux.ID = res.ID
+	aux.BatchID = res.BatchID
+	aux.DependsOn = res.DependsOn
+	aux.Kind = res.Kind
+	aux.Params = res.Params
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CompletedAt = res.CompletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	aux.CompletedBy = res.CompletedBy
+	return
+}
+
+// decodes DalSchemaAlteration from auxDalSchemaAlteration
+//
+// This function is auto-generated
+func (aux auxDalSchemaAlteration) decode() (res *systemType.DalSchemaAlteration, _ error) {
+	res = new(systemType.DalSchemaAlteration)
+	res.ID = aux.ID
+	res.BatchID = aux.BatchID
+	res.DependsOn = aux.DependsOn
+	res.Kind = aux.Kind
+	res.Params = aux.Params
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CompletedAt = aux.CompletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	res.CompletedBy = aux.CompletedBy
+	return
+}
+
+// scans row and fills auxDalSchemaAlteration fields
+//
+// This function is auto-generated
+func (aux *auxDalSchemaAlteration) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.BatchID,
+		&aux.DependsOn,
+		&aux.Kind,
+		&aux.Params,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CompletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+		&aux.CompletedBy,
 	)
 }
 

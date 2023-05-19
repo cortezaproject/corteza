@@ -31,6 +31,7 @@ component: schema.#component & {
     "user":                  				user
     "dal-connection":        				dal_connection
     "dal-sensitivity-level": 				dal_sensitivity_level
+    "dal-schema-alteration": 				dal_schema_alteration
 	}
 
 	rbac: operations: {

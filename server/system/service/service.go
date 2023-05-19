@@ -79,6 +79,7 @@ var (
 	DefaultCredentials         *credentials
 	DefaultDalConnection       *dalConnection
 	DefaultDalSensitivityLevel *dalSensitivityLevel
+	DefaultDalSchemaAlteration *dalSchemaAlteration
 	DefaultRole                *role
 	DefaultApplication         *application
 	DefaultReminder            ReminderService
@@ -157,9 +158,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
-	if err != nil {
-		return
-	}
+
+	DefaultDalSchemaAlteration = DalSchemaAlteration()
 
 	if DefaultObjectStore == nil {
 		var (

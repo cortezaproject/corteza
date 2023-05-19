@@ -10,6 +10,7 @@ types:
     labelResourceType: user
   DalConnection:
   DalSensitivityLevel:
+  DalSchemaAlteration:
   Application:
     labelResourceType: application
   Role:

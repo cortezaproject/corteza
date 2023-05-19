@@ -2427,6 +2427,126 @@ var (
 		}
 	}
 
+	// dalSchemaAlterationTable represents dalSchemaAlterations store table
+	//
+	// This value is auto-generated
+	dalSchemaAlterationTable = goqu.T("dal_schema_alterations")
+
+	// dalSchemaAlterationSelectQuery assembles select query for fetching dalSchemaAlterations
+	//
+	// This function is auto-generated
+	dalSchemaAlterationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"batchID",
+			"dependsOn",
+			"kind",
+			"params",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"completed_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+			"completed_by",
+		).From(dalSchemaAlterationTable)
+	}
+
+	// dalSchemaAlterationInsertQuery assembles query inserting dalSchemaAlterations
+	//
+	// This function is auto-generated
+	dalSchemaAlterationInsertQuery = func(d goqu.DialectWrapper, res *systemType.DalSchemaAlteration) *goqu.InsertDataset {
+		return d.Insert(dalSchemaAlterationTable).
+			Rows(goqu.Record{
+				"id":           res.ID,
+				"batchID":      res.BatchID,
+				"dependsOn":    res.DependsOn,
+				"kind":         res.Kind,
+				"params":       res.Params,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"completed_at": res.CompletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+				"completed_by": res.CompletedBy,
+			})
+	}
+
+	// dalSchemaAlterationUpsertQuery assembles (insert+on-conflict) query for replacing dalSchemaAlterations
+	//
+	// This function is auto-generated
+	dalSchemaAlterationUpsertQuery = func(d goqu.DialectWrapper, res *systemType.DalSchemaAlteration) *goqu.InsertDataset {
+		var target = `,id`
+
+		return dalSchemaAlterationInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"batchID":      res.BatchID,
+						"dependsOn":    res.DependsOn,
+						"kind":         res.Kind,
+						"params":       res.Params,
+						"created_at":   res.CreatedAt,
+						"updated_at":   res.UpdatedAt,
+						"deleted_at":   res.DeletedAt,
+						"completed_at": res.CompletedAt,
+						"created_by":   res.CreatedBy,
+						"updated_by":   res.UpdatedBy,
+						"deleted_by":   res.DeletedBy,
+						"completed_by": res.CompletedBy,
+					},
+				),
+			)
+	}
+
+	// dalSchemaAlterationUpdateQuery assembles query for updating dalSchemaAlterations
+	//
+	// This function is auto-generated
+	dalSchemaAlterationUpdateQuery = func(d goqu.DialectWrapper, res *systemType.DalSchemaAlteration) *goqu.UpdateDataset {
+		return d.Update(dalSchemaAlterationTable).
+			Set(goqu.Record{
+				"batchID":      res.BatchID,
+				"dependsOn":    res.DependsOn,
+				"kind":         res.Kind,
+				"params":       res.Params,
+				"created_at":   res.CreatedAt,
+				"updated_at":   res.UpdatedAt,
+				"deleted_at":   res.DeletedAt,
+				"completed_at": res.CompletedAt,
+				"created_by":   res.CreatedBy,
+				"updated_by":   res.UpdatedBy,
+				"deleted_by":   res.DeletedBy,
+				"completed_by": res.CompletedBy,
+			}).
+			Where(dalSchemaAlterationPrimaryKeys(res))
+	}
+
+	// dalSchemaAlterationDeleteQuery assembles delete query for removing dalSchemaAlterations
+	//
+	// This function is auto-generated
+	dalSchemaAlterationDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(dalSchemaAlterationTable).Where(ee...)
+	}
+
+	// dalSchemaAlterationDeleteQuery assembles delete query for removing dalSchemaAlterations
+	//
+	// This function is auto-generated
+	dalSchemaAlterationTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(dalSchemaAlterationTable)
+	}
+
+	// dalSchemaAlterationPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	dalSchemaAlterationPrimaryKeys = func(res *systemType.DalSchemaAlteration) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// dalSensitivityLevelTable represents dalSensitivityLevels store table
 	//
 	// This value is auto-generated

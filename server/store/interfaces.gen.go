@@ -65,6 +65,7 @@ type (
 		ComposePageLayouts
 		Credentials
 		DalConnections
+		DalSchemaAlterations
 		DalSensitivityLevels
 		DataPrivacyRequests
 		DataPrivacyRequestComments
@@ -367,6 +368,18 @@ type (
 		TruncateDalConnections(ctx context.Context) error
 		LookupDalConnectionByID(ctx context.Context, id uint64) (*systemType.DalConnection, error)
 		LookupDalConnectionByHandle(ctx context.Context, handle string) (*systemType.DalConnection, error)
+	}
+
+	DalSchemaAlterations interface {
+		SearchDalSchemaAlterations(ctx context.Context, f systemType.DalSchemaAlterationFilter) (systemType.DalSchemaAlterationSet, systemType.DalSchemaAlterationFilter, error)
+		CreateDalSchemaAlteration(ctx context.Context, rr ...*systemType.DalSchemaAlteration) error
+		UpdateDalSchemaAlteration(ctx context.Context, rr ...*systemType.DalSchemaAlteration) error
+		UpsertDalSchemaAlteration(ctx context.Context, rr ...*systemType.DalSchemaAlteration) error
+		DeleteDalSchemaAlteration(ctx context.Context, rr ...*systemType.DalSchemaAlteration) error
+
+		DeleteDalSchemaAlterationByID(ctx context.Context, id uint64) error
+		TruncateDalSchemaAlterations(ctx context.Context) error
+		LookupDalSchemaAlterationByID(ctx context.Context, id uint64) (*systemType.DalSchemaAlteration, error)
 	}
 
 	DalSensitivityLevels interface {
@@ -2051,6 +2064,63 @@ func LookupDalConnectionByID(ctx context.Context, s DalConnections, id uint64) (
 // This function is auto-generated
 func LookupDalConnectionByHandle(ctx context.Context, s DalConnections, handle string) (*systemType.DalConnection, error) {
 	return s.LookupDalConnectionByHandle(ctx, handle)
+}
+
+// SearchDalSchemaAlterations returns all matching DalSchemaAlterations from store
+//
+// This function is auto-generated
+func SearchDalSchemaAlterations(ctx context.Context, s DalSchemaAlterations, f systemType.DalSchemaAlterationFilter) (systemType.DalSchemaAlterationSet, systemType.DalSchemaAlterationFilter, error) {
+	return s.SearchDalSchemaAlterations(ctx, f)
+}
+
+// CreateDalSchemaAlteration creates one or more DalSchemaAlterations in store
+//
+// This function is auto-generated
+func CreateDalSchemaAlteration(ctx context.Context, s DalSchemaAlterations, rr ...*systemType.DalSchemaAlteration) error {
+	return s.CreateDalSchemaAlteration(ctx, rr...)
+}
+
+// UpdateDalSchemaAlteration updates one or more (existing) DalSchemaAlterations in store
+//
+// This function is auto-generated
+func UpdateDalSchemaAlteration(ctx context.Context, s DalSchemaAlterations, rr ...*systemType.DalSchemaAlteration) error {
+	return s.UpdateDalSchemaAlteration(ctx, rr...)
+}
+
+// UpsertDalSchemaAlteration creates new or updates existing one or more DalSchemaAlterations in store
+//
+// This function is auto-generated
+func UpsertDalSchemaAlteration(ctx context.Context, s DalSchemaAlterations, rr ...*systemType.DalSchemaAlteration) error {
+	return s.UpsertDalSchemaAlteration(ctx, rr...)
+}
+
+// DeleteDalSchemaAlteration deletes one or more DalSchemaAlterations from store
+//
+// This function is auto-generated
+func DeleteDalSchemaAlteration(ctx context.Context, s DalSchemaAlterations, rr ...*systemType.DalSchemaAlteration) error {
+	return s.DeleteDalSchemaAlteration(ctx, rr...)
+}
+
+// DeleteDalSchemaAlterationByID deletes one or more DalSchemaAlterations from store
+//
+// This function is auto-generated
+func DeleteDalSchemaAlterationByID(ctx context.Context, s DalSchemaAlterations, id uint64) error {
+	return s.DeleteDalSchemaAlterationByID(ctx, id)
+}
+
+// TruncateDalSchemaAlterations Deletes all DalSchemaAlterations from store
+//
+// This function is auto-generated
+func TruncateDalSchemaAlterations(ctx context.Context, s DalSchemaAlterations) error {
+	return s.TruncateDalSchemaAlterations(ctx)
+}
+
+// LookupDalSchemaAlterationByID searches for resource translation by ID
+// It also returns deleted resource translations.
+//
+// This function is auto-generated
+func LookupDalSchemaAlterationByID(ctx context.Context, s DalSchemaAlterations, id uint64) (*systemType.DalSchemaAlteration, error) {
+	return s.LookupDalSchemaAlterationByID(ctx, id)
 }
 
 // SearchDalSensitivityLevels returns all matching DalSensitivityLevels from store

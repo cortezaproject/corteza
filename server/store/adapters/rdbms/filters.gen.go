@@ -93,6 +93,9 @@ type (
 		// optional dalConnection filter function called after the generated function
 		DalConnection func(*Store, systemType.DalConnectionFilter) ([]goqu.Expression, systemType.DalConnectionFilter, error)
 
+		// optional dalSchemaAlteration filter function called after the generated function
+		DalSchemaAlteration func(*Store, systemType.DalSchemaAlterationFilter) ([]goqu.Expression, systemType.DalSchemaAlterationFilter, error)
+
 		// optional dalSensitivityLevel filter function called after the generated function
 		DalSensitivityLevel func(*Store, systemType.DalSensitivityLevelFilter) ([]goqu.Expression, systemType.DalSensitivityLevelFilter, error)
 
@@ -786,6 +789,30 @@ func DalConnectionFilter(d drivers.Dialect, f systemType.DalConnectionFilter) (e
 
 	if val := strings.TrimSpace(f.Type); len(val) > 0 {
 		ee = append(ee, goqu.C("type").Eq(f.Type))
+	}
+
+	return ee, f, err
+}
+
+// DalSchemaAlterationFilter returns logical expressions
+//
+// This function is called from Store.QueryDalSchemaAlterations() and can be extended
+// by setting Store.Filters.DalSchemaAlteration. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func DalSchemaAlterationFilter(d drivers.Dialect, f systemType.DalSchemaAlterationFilter) (ee []goqu.Expression, _ systemType.DalSchemaAlterationFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
+		ee = append(ee, goqu.C("kind").Eq(f.Kind))
+	}
+
+	if len(f.AlterationID) > 0 {
+		ee = append(ee, goqu.C("alteration_id").In(f.AlterationID))
 	}
 
 	return ee, f, err
