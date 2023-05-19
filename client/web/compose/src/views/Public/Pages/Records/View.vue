@@ -235,7 +235,9 @@ export default {
       immediate: true,
       handler () {
         this.record = undefined
-        this.loadRecord()
+        this.loadRecord().then(() => {
+          this.determineLayout()
+        })
       },
     },
 
@@ -246,8 +248,6 @@ export default {
 
         this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
-
-        this.determineLayout()
       },
     },
   },
@@ -290,12 +290,9 @@ export default {
         const module = Object.freeze(this.getModuleByID(moduleID).clone())
 
         if (this.recordID && this.recordID !== NoID) {
-          await this.$ComposeAPI
-            .recordRead({ namespaceID, moduleID, recordID: this.recordID })
+          return this.$ComposeAPI.recordRead({ namespaceID, moduleID, recordID: this.recordID })
             .then(record => {
-              setTimeout(() => {
-                this.record = new compose.Record(module, record)
-              }, 300)
+              this.record = new compose.Record(module, record)
             })
             .catch(this.toastErrorHandler(this.$t('notification:record.loadFailed')))
         } else {
