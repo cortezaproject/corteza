@@ -9,7 +9,7 @@
         />
       </b-form-group>
     </td>
-    <td style="width: 50%; min-width: 200px;">
+    <td style="min-width: 200px;">
       <b-form-group :label="$t('navigation.composePage')">
         <vue-select
           key="pageID"
@@ -148,6 +148,12 @@ export default {
     overflow: hidden;
   }
 }
+
+th,
+td {
+  padding-left: 15px;
+  padding-right: 15px;
+}
 </style>
 
 <style lang="css">
@@ -159,11 +165,5 @@ export default {
 .vs__dropdown-menu .vs__dropdown-option {
   text-overflow: ellipsis;
   overflow: hidden !important;
-}
-
-th,
-td {
-  padding-left: 15px;
-  padding-right: 15px;
 }
 </style>

@@ -108,7 +108,7 @@
                     </th>
                     <th
                       class="text-center"
-                      style="min-width: 200px;"
+                      style="width: 50px; min-width: 50px;"
                     >
                       {{ $t("navigation.enabled") }}
                     </th>

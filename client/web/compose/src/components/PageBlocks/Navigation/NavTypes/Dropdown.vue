@@ -3,11 +3,11 @@
     <td />
 
     <td
-      colspan="4"
+      colspan="5"
       class="p-0"
     >
       <div class="d-flex">
-        <th>
+        <th style="min-width: 200px;">
           <b-form-group :label="$t('navigation.fieldLabel')">
             <b-form-input
               v-model="options.item.dropdown.label"
@@ -16,7 +16,7 @@
           </b-form-group>
         </th>
 
-        <th>
+        <th style="min-width: 200px;">
           <b-form-group
             horizontal
             :label="$t('navigation.drop')"
@@ -41,19 +41,25 @@
       <div class="px-3">
         <table
           v-if="options.item.dropdown.items.length > 0"
-          class="table table-sm table-borderless table-responsive-lg"
+          class="dd-items table table-sm table-borderless table-responsive-lg"
         >
           <tr>
-            <th>
+            <th style="min-width: 200px;">
               {{ $t("navigation.text") }}
             </th>
-            <th>
+            <th style="min-width: 200px;">
               {{ $t("navigation.url") }}
             </th>
-            <th class="text-center">
+            <th
+              class="text-center"
+              style="min-width: 200px;"
+            >
               {{ $t('navigation.openIn') }}
             </th>
-            <th class="text-center">
+            <th
+              class="text-center"
+              style="width: 50px; min-width: 50px;"
+            >
               {{ $t("navigation.delimiter") }}
             </th>
           </tr>
@@ -62,34 +68,34 @@
             v-for="(item, dropIndex) in options.item.dropdown.items"
             :key="`drop-${dropIndex}`"
           >
-            <th>
+            <td>
               <b-form-group class="mb-0">
                 <b-form-input
                   v-model="item.label"
                   type="text"
                 />
               </b-form-group>
-            </th>
+            </td>
 
-            <th>
+            <td>
               <b-form-group class="mb-0">
                 <b-form-input
                   v-model="item.url"
                   type="text"
                 />
               </b-form-group>
-            </th>
+            </td>
 
-            <th class="align-middle text-center">
+            <td class="align-middle text-center">
               <b-form-group class="mb-0">
                 <b-form-select
                   v-model="item.target"
                   :options="targetOptions"
                 />
               </b-form-group>
-            </th>
+            </td>
 
-            <th class="align-middle text-center">
+            <td class="align-middle text-center">
               <b-form-group class="mb-0">
                 <b-form-checkbox
                   v-model="item.delimiter"
@@ -97,13 +103,13 @@
                   size="sm"
                 />
               </b-form-group>
-            </th>
+            </td>
 
-            <th class="align-middle text-center">
+            <td class="align-middle text-center">
               <c-input-confirm
                 @confirmed="options.item.dropdown.items.splice(dropIndex, 1)"
               />
-            </th>
+            </td>
           </tr>
         </table>
       </div>
