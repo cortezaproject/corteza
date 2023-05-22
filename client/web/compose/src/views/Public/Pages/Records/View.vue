@@ -394,8 +394,10 @@ export default {
         expressions[layout.pageLayoutID] = config.visibility.expression
       })
 
-      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(() => {
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
+        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
         Object.keys(expressions).forEach(key => (expressions[key] = false))
+
         return expressions
       })
     },

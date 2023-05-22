@@ -22,7 +22,7 @@ export default {
           Object.keys(res).forEach(v => {
             if (!res[v]) this.conditions.push(v)
           })
-        }).catch(this.toastErrorHandler(this.$t('record.fieldConditions.error')))
+        }).catch(this.toastErrorHandler(this.$t('notification:record.fieldConditions.failed')))
     },
 
     prepareFieldConditionsData () {

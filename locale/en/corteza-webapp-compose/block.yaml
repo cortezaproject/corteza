@@ -259,7 +259,6 @@ record:
     help: Example
     field: Field
     condition: Condition
-    error: Could not evaluate condition
 recordList:
   addRecord: Add
   cancelSelection: Cancel
