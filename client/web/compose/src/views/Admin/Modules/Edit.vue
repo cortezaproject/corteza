@@ -419,6 +419,12 @@
         />
       </b-modal>
 
+      <dal-schema-alterations
+        :modal="dalSchemaAlterations.modal"
+        :module="module"
+        @change="dalSchemaAlterations.modal = ($event || false)"
+      />
+
       <federation-settings
         v-if="federationEnabled"
         :modal="federationSettings.modal"
@@ -457,6 +463,7 @@ import FieldConfigurator from 'corteza-webapp-compose/src/components/ModuleField
 import FieldRowEdit from 'corteza-webapp-compose/src/components/Admin/Module/FieldRowEdit'
 import FieldRowView from 'corteza-webapp-compose/src/components/Admin/Module/FieldRowView'
 import FederationSettings from 'corteza-webapp-compose/src/components/Admin/Module/FederationSettings'
+import DalSchemaAlterations from 'corteza-webapp-compose/src/components/Admin/Module/DalSchemaAlterations'
 import DiscoverySettings from 'corteza-webapp-compose/src/components/Admin/Module/DiscoverySettings'
 import DalSettings from 'corteza-webapp-compose/src/components/Admin/Module/DalSettings'
 import RecordRevisionsSettings from 'corteza-webapp-compose/src/components/Admin/Module/RecordRevisionsSettings'
@@ -482,6 +489,7 @@ export default {
     FieldRowEdit,
     FieldRowView,
     FederationSettings,
+    DalSchemaAlterations,
     DiscoverySettings,
     DalSettings,
     RecordRevisionsSettings,
@@ -519,7 +527,11 @@ export default {
       processing: false,
 
       federationSettings: {
-        modal: false,
+        modal: false
+      },
+
+      dalSchemaAlterations: {
+        modal: true,
       },
 
       discoverySettings: {
