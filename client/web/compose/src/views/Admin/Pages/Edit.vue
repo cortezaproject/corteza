@@ -326,7 +326,7 @@
                             :disabled="layout.pageLayoutID === '0'"
                             :title="$t('page-layout.tooltip.builder')"
                             class="d-flex align-items-center"
-                            :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID} }"
+                            :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID } }"
                           >
                             <font-awesome-icon
                               :icon="['fas', 'tools']"
@@ -382,6 +382,7 @@
       ok-variant="primary"
       cancel-variant="link"
       size="xl"
+      scrollable
       @ok="updateLayout()"
       @cancel="layoutEditor.layout = undefined"
       @hide="layoutEditor.layout = undefined"

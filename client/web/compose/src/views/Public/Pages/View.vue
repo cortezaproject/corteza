@@ -162,7 +162,8 @@ export default {
     },
 
     pageBuilder () {
-      return { name: 'admin.pages.builder', params: { pageID: this.page.pageID } }
+      const { pageLayoutID } = this.layout || {}
+      return { name: 'admin.pages.builder', params: { pageID: this.page.pageID }, query: { layoutID: pageLayoutID } }
     },
   },
 
@@ -259,8 +260,10 @@ export default {
         expressions[layout.pageLayoutID] = config.visibility.expression
       })
 
-      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(() => {
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
+        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
         Object.keys(expressions).forEach(key => (expressions[key] = false))
+
         return expressions
       })
     },

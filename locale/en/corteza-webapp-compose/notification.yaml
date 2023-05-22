@@ -134,6 +134,8 @@ record:
   validationErrors: check error messages on the form
   validationWarnings: Record saved successfully, check warning messages on the form
   staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?
+  fieldConditions:
+    failed: Failed to evaluate record block field conditions
 record-list:
   corrupted-filter: Corrupted filter
   incorrect-filter-structure: Incorrect structure of filter {{filterID}}
@@ -148,4 +150,5 @@ connection:
   read-failed: Failed to read connection
 sensitivity-level:
   fetch-failed: Failed to fetch sensitivity levels
-
+evaluate:
+  failed: Failed to evaluate expression
