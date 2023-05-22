@@ -371,7 +371,7 @@ export default {
       const expressions = {}
       const variables = {
         user: this.$auth.user,
-        record: this.record || {},
+        record: this.record.serialize() || {},
         screen: {
           width: window.innerWidth,
           height: window.innerHeight,
