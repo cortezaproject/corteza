@@ -84,7 +84,7 @@
           <field-picker
             :module="fieldModule"
             :fields.sync="options.fields"
-            style="max-height: 52vh;"
+            style="height: 52vh;"
           />
         </b-col>
       </b-row>
