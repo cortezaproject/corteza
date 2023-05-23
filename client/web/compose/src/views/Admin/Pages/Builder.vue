@@ -59,6 +59,7 @@
     </portal>
 
     <grid
+      :key="layout ? layout.pageLayoutID : pageID"
       :blocks.sync="blocks"
       editable
       @item-updated="onBlockUpdated"
