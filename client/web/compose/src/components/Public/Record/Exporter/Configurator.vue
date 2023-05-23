@@ -14,7 +14,7 @@
         :system-fields="systemFields"
         :disabled-types="disabledTypes"
         :fields.sync="selectedFields"
-        style="max-height: 45vh;"
+        style="height: 45vh;"
       />
     </b-form-group>
 

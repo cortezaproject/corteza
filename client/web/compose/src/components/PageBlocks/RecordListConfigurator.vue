@@ -71,7 +71,7 @@
             <field-picker
               :module="recordListModule"
               :fields.sync="options.fields"
-              style="max-height: 40vh;"
+              style="height: 40vh;"
             />
           </b-col>
         </b-row>
@@ -97,7 +97,7 @@
             :fields.sync="options.editFields"
             :field-subset="options.fields"
             disable-system-fields
-            style="max-height: 40vh;"
+            style="height: 40vh;"
           />
         </b-form-group>
 

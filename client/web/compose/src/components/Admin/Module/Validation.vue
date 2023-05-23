@@ -15,7 +15,7 @@
         :fields.sync="strictFields"
         :field-subset="module.fields"
         disable-system-fields
-        style="max-height: 35vh;"
+        style="height: 35vh;"
         class="mt-3"
       />
     </b-form-group>
@@ -33,7 +33,7 @@
         :fields.sync="nonStrictFields"
         :field-subset="module.fields"
         disable-system-fields
-        style="max-height: 35vh;"
+        style="height: 35vh;"
         class="mt-3"
       />
     </b-form-group>

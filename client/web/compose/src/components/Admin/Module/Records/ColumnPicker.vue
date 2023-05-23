@@ -23,7 +23,7 @@
         <field-picker
           :module="module"
           :fields.sync="filteredFields"
-          style="max-height: 71vh;"
+          style="height: 71vh;"
         />
       </b-card-body>
     </b-modal>
