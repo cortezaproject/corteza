@@ -77,7 +77,7 @@ func (ctrl Attachment) Delete(ctx context.Context, r *request.AttachmentDelete) 
 }
 
 func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOriginal) (interface{}, error) {
-	if err := ctrl.isAccessible(r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
+	if err := ctrl.isAccessible(r.Kind, r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
@@ -85,14 +85,19 @@ func (ctrl Attachment) Original(ctx context.Context, r *request.AttachmentOrigin
 }
 
 func (ctrl Attachment) Preview(ctx context.Context, r *request.AttachmentPreview) (interface{}, error) {
-	if err := ctrl.isAccessible(r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
+	if err := ctrl.isAccessible(r.Kind, r.NamespaceID, r.AttachmentID, r.UserID, r.Sign); err != nil {
 		return nil, err
 	}
 
 	return ctrl.serve(ctx, r.NamespaceID, r.AttachmentID, true, false)
 }
 
-func (ctrl Attachment) isAccessible(namespaceID, attachmentID, userID uint64, signature string) error {
+func (ctrl Attachment) isAccessible(kind string, namespaceID, attachmentID, userID uint64, signature string) error {
+	if kind == types.PageAttachment || kind == types.IconAttachment || kind == types.NamespaceAttachment {
+		// Public Attachments
+		return nil
+	}
+
 	if signature == "" {
 		return errors.Unauthorized("missing signature")
 	}
