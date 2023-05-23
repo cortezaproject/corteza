@@ -141,7 +141,7 @@ export default class FunnelChart extends BaseChart {
           },
           emphasis: {
             label: {
-              show: false,
+              show: tooltip.fixed,
               fontSize: 14,
             },
           },
