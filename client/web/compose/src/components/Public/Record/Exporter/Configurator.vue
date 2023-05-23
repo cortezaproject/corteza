@@ -232,6 +232,11 @@ export default {
       required: false,
       default: () => [],
     },
+    selectedAllRecordsCount: {
+      type: Number,
+      required: false,
+      default: 0,
+    },
     filterRangeType: {
       type: String,
       default: 'all',
@@ -375,6 +380,10 @@ export default {
     getExportableCount () {
       // when exporting selection, only selected records are applicable
       if (this.rangeType === 'selection') {
+        if (this.selectedAllRecordsCount !== 0) {
+          return this.selectedAllRecordsCount
+        }
+
         return this.selection.length
       }
 

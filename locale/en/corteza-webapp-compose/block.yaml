@@ -484,6 +484,9 @@ recordList:
     label: Parent field
   selectable: Users will be able to select records
   selected: '{{count}} of {{total}} records selected'
+  selectedFromAllPages: 'All {{count}} records from all pages selected'
+  selectAllRecords: Select all records on all pages
+  unselectAllRecords: Clear selection
   sort:
     tooltip: Sort column
   showRecords:

@@ -1167,22 +1167,22 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { name: records, type: "[]string", title: Records to update }
       - { name: values, type: "types.RecordValueSet", title: Fields to update and their values }
+      - { name: query, type: "string", title: Search query for records to operate on }
   - name: bulkDelete
     method: DELETE
     title: Delete record row from module section
     path: "/"
     parameters:
       post:
-      - type: "[]string"
-        name: recordIDs
-        required: false
-        title: IDs of records to delete
       - type: bool
         name: truncate
         required: false
         title: Remove ALL records of a specified module (pending implementation)
+      - name: query
+        type: string
+        required: false
+        title: Search query for records to operate on
   - name: delete
     method: DELETE
     title: Delete record row from module section
@@ -1209,10 +1209,10 @@ endpoints:
     path: "/undelete"
     parameters:
       post:
-        - type: "[]string"
-          name: recordIDs
+        - name: query
+          type: string
           required: false
-          title: IDs of records to undelete
+          title: Search query for records to operate on
   - name: upload
     path: "/attachment"
     method: POST

@@ -126,6 +126,8 @@ type (
 		Update(ctx context.Context, record *types.Record) (*types.Record, *types.RecordValueErrorSet, error)
 		Bulk(ctx context.Context, skipFailed bool, oo ...*types.RecordBulkOperation) ([]types.RecordBulkOperationResult, error)
 
+		BulkModifyByFilter(ctx context.Context, f types.RecordFilter, values types.RecordValueSet, operation types.OperationType) (err error)
+
 		Validate(ctx context.Context, rec *types.Record) error
 
 		DeleteByID(ctx context.Context, namespaceID, moduleID uint64, recordID ...uint64) error
@@ -712,6 +714,82 @@ func (svc record) Bulk(ctx context.Context, skipFailed bool, oo ...*types.Record
 		// without any props
 		return rr, svc.recordAction(ctx, &recordActionProps{}, RecordActionBulk, err)
 	}
+}
+
+// BulkModifyByFilter performs bulk record operations based on the provided filter query.
+// It's able to update, delete or undelete records in a single transaction.
+func (svc record) BulkModifyByFilter(ctx context.Context, f types.RecordFilter, values types.RecordValueSet, operation types.OperationType) (err error) {
+	var (
+		ns           *types.Namespace
+		m            *types.Module
+		r            *types.Record
+		records      types.RecordSet
+		recordFilter types.RecordFilter
+
+		aProps = &recordActionProps{
+			namespace: &types.Namespace{ID: f.NamespaceID},
+			module:    &types.Module{ID: f.ModuleID},
+		}
+		action func(props ...*recordActionProps) *recordAction
+
+		valueError *types.RecordValueErrorSet
+	)
+
+	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
+		// load both the namespace and module
+		if ns, m, err = loadModuleCombo(ctx, s, f.NamespaceID, f.ModuleID); err != nil {
+			return err
+		}
+
+		aProps.setNamespace(ns)
+		aProps.setModule(m)
+
+		f.Limit = 500
+
+		// performing a batched search for IDs, processing them in batches of 500 for update.
+		for {
+			records, recordFilter, err = svc.Find(ctx, f)
+			if err != nil {
+				return err
+			}
+
+			for _, r = range records {
+				aProps.setRecord(r)
+
+				switch operation {
+				case types.OperationTypePatch:
+					action = RecordActionPatch
+					r, valueError, err = svc.patch(ctx, r, values)
+				case types.OperationTypeDelete:
+					action = RecordActionDelete
+					r, err = svc.processDelete(ctx, r, ns, m)
+				case types.OperationTypeUndelete:
+					action = RecordActionUndelete
+					r, err = svc.processUndelete(ctx, r, ns, m)
+				}
+
+				aProps.setChanged(r)
+
+				if valueError != nil && !valueError.IsValid() {
+					return RecordErrValueInput().Wrap(valueError)
+				}
+
+				_ = svc.recordAction(ctx, aProps, action, err)
+
+				if err != nil {
+					return err
+				}
+			}
+
+			if recordFilter.NextPage == nil {
+				break
+			}
+
+			f.NextPage = recordFilter.NextPage
+		}
+
+		return nil
+	})
 }
 
 // Raw create function that is responsible for value validation, event dispatching
@@ -1316,8 +1394,6 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	var (
 		ns *types.Namespace
 		m  *types.Module
-
-		invokerID = auth.GetIdentityFromContext(ctx).Identity()
 	)
 
 	if namespaceID == 0 {
@@ -1335,6 +1411,14 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 		return nil, err
 	}
 
+	return svc.processDelete(ctx, del, ns, m)
+}
+
+func (svc record) processDelete(ctx context.Context, del *types.Record, namespace *types.Namespace, module *types.Module) (record *types.Record, err error) {
+	var (
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
+	)
+
 	if !svc.ac.CanDeleteRecord(ctx, del) {
 		return nil, RecordErrNotAllowedToDelete()
 	}
@@ -1343,7 +1427,7 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 	del.DeletedBy = invokerID
 
 	// ensure module ref is set before running through records workflows and scripts
-	del.SetModule(m)
+	del.SetModule(module)
 
 	// deleted, revision need to be set when RecordBeforeDelete is triggered
 	del.DeletedAt = nowUTC()
@@ -1352,27 +1436,27 @@ func (svc record) delete(ctx context.Context, namespaceID, moduleID, recordID ui
 
 	{
 		// Calling before-record-delete scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, m, ns, nil, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeDelete(nil, del, module, namespace, nil, nil)); err != nil {
 			return nil, err
 		}
 	}
 
-	if m.Config.RecordRevisions.Enabled {
+	if module.Config.RecordRevisions.Enabled {
 		// Prepare record revision for update
 		if err = svc.revisions.softDeleted(ctx, del); err != nil {
 			return
 		}
 	}
 
-	if err = dalutils.ComposeRecordSoftDelete(ctx, svc.dal, m, del); err != nil {
+	if err = dalutils.ComposeRecordSoftDelete(ctx, svc.dal, module, del); err != nil {
 		return nil, err
 	}
 
 	// ensure module ref is set before running through records workflows and scripts
-	del.SetModule(m)
+	del.SetModule(module)
 
 	{
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, m, ns, nil, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterDeleteImmutable(nil, del, module, namespace, nil, nil))
 	}
 
 	return del, nil
@@ -1389,6 +1473,14 @@ func (svc record) undelete(ctx context.Context, namespaceID, moduleID, recordID 
 		return nil, err
 	}
 
+	return svc.processUndelete(ctx, undel, ns, m)
+}
+
+func (svc record) processUndelete(ctx context.Context, undel *types.Record, namespace *types.Namespace, module *types.Module) (record *types.Record, err error) {
+	if err != nil {
+		return nil, err
+	}
+
 	if !svc.ac.CanUndeleteRecord(ctx, undel) {
 		return nil, RecordErrNotAllowedToUndelete()
 	}
@@ -1397,7 +1489,7 @@ func (svc record) undelete(ctx context.Context, namespaceID, moduleID, recordID 
 	undel.DeletedBy = 0
 
 	// ensure module ref is set before running through records workflows and scripts
-	undel.SetModule(m)
+	undel.SetModule(module)
 
 	undel.DeletedAt = nil
 	undel.DeletedBy = 0
@@ -1405,27 +1497,27 @@ func (svc record) undelete(ctx context.Context, namespaceID, moduleID, recordID 
 
 	{
 		// Calling before-record-undelete scripts
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUndelete(nil, undel, m, ns, nil, nil)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeUndelete(nil, undel, module, namespace, nil, nil)); err != nil {
 			return nil, err
 		}
 	}
 
-	if m.Config.RecordRevisions.Enabled {
+	if module.Config.RecordRevisions.Enabled {
 		// Prepare record revision for update
 		if err = svc.revisions.undeleted(ctx, undel); err != nil {
 			return
 		}
 	}
 
-	if err = dalutils.ComposeRecordUndelete(ctx, svc.dal, m, undel); err != nil {
+	if err = dalutils.ComposeRecordUndelete(ctx, svc.dal, module, undel); err != nil {
 		return nil, err
 	}
 
 	// ensure module ref is set before running through records workflows and scripts
-	undel.SetModule(m)
+	undel.SetModule(module)
 
 	{
-		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUndeleteImmutable(nil, undel, m, ns, nil, nil))
+		_ = svc.eventbus.WaitFor(ctx, event.RecordAfterUndeleteImmutable(nil, undel, module, namespace, nil, nil))
 	}
 
 	return undel, nil
