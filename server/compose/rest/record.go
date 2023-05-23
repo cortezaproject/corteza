@@ -11,9 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/revisions"
-	"github.com/spf13/cast"
-
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -26,7 +23,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	estore "github.com/cortezaproject/corteza/server/pkg/envoy/store"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/cortezaproject/corteza/server/store"
 )
 
@@ -233,10 +230,15 @@ func (ctrl *Record) Create(ctx context.Context, r *request.RecordCreate) (interf
 
 func (ctrl *Record) Patch(ctx context.Context, req *request.RecordPatch) (interface{}, error) {
 	var (
+		f = types.RecordFilter{
+			Query:       req.Query,
+			NamespaceID: req.NamespaceID,
+			ModuleID:    req.ModuleID,
+			Deleted:     filter.State(0),
+		}
+
 		err error
 	)
-
-	oo := make([]*types.RecordBulkOperation, 0)
 
 	counters := make(map[string]uint)
 	for _, v := range req.Values {
@@ -244,23 +246,13 @@ func (ctrl *Record) Patch(ctx context.Context, req *request.RecordPatch) (interf
 		counters[v.Name]++
 	}
 
-	for _, r := range req.Records {
-		oo = append(oo, &types.RecordBulkOperation{
-			RecordID:    cast.ToUint64(r),
-			NamespaceID: req.NamespaceID,
-			ModuleID:    req.ModuleID,
+	err = ctrl.record.BulkModifyByFilter(ctx, f, req.Values, types.OperationTypePatch)
 
-			Record:    &types.Record{Values: req.Values},
-			Operation: types.OperationTypePatch,
-		})
-	}
-
-	results, err := ctrl.record.Bulk(ctx, true, oo...)
 	if rve := types.IsRecordValueErrorSet(err); rve != nil {
 		return ctrl.handleValidationError(rve), nil
 	}
 
-	return ctrl.makeRecordBulkPatchPayload(ctx, results, err)
+	return api.OK(), err
 }
 
 func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interface{}, error) {
@@ -329,15 +321,20 @@ func (ctrl *Record) Delete(ctx context.Context, r *request.RecordDelete) (interf
 }
 
 func (ctrl *Record) BulkDelete(ctx context.Context, r *request.RecordBulkDelete) (interface{}, error) {
+	var (
+		f = types.RecordFilter{
+			Query:       r.Query,
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Deleted:     filter.State(0),
+		}
+	)
+
 	if r.Truncate {
 		return nil, fmt.Errorf("pending implementation")
 	}
 
-	return api.OK(), ctrl.record.DeleteByID(ctx,
-		r.NamespaceID,
-		r.ModuleID,
-		payload.ParseUint64s(r.RecordIDs)...,
-	)
+	return api.OK(), ctrl.record.BulkModifyByFilter(ctx, f, nil, types.OperationTypeDelete)
 }
 
 func (ctrl *Record) Undelete(ctx context.Context, r *request.RecordUndelete) (interface{}, error) {
@@ -345,11 +342,16 @@ func (ctrl *Record) Undelete(ctx context.Context, r *request.RecordUndelete) (in
 }
 
 func (ctrl *Record) BulkUndelete(ctx context.Context, r *request.RecordBulkUndelete) (interface{}, error) {
-	return api.OK(), ctrl.record.UndeleteByID(ctx,
-		r.NamespaceID,
-		r.ModuleID,
-		payload.ParseUint64s(r.RecordIDs)...,
+	var (
+		f = types.RecordFilter{
+			Query:       r.Query,
+			NamespaceID: r.NamespaceID,
+			ModuleID:    r.ModuleID,
+			Deleted:     filter.State(1),
+		}
 	)
+
+	return api.OK(), ctrl.record.BulkModifyByFilter(ctx, f, nil, types.OperationTypeUndelete)
 }
 
 func (ctrl *Record) Upload(ctx context.Context, r *request.RecordUpload) (interface{}, error) {

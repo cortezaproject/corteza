@@ -2185,8 +2185,8 @@ export default class Compose {
     const {
       namespaceID,
       moduleID,
-      records,
       values,
+      query,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2202,8 +2202,8 @@ export default class Compose {
       }),
     }
     cfg.data = {
-      records,
       values,
+      query,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -2221,8 +2221,8 @@ export default class Compose {
     const {
       namespaceID,
       moduleID,
-      recordIDs,
       truncate,
+      query,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2238,8 +2238,8 @@ export default class Compose {
       }),
     }
     cfg.data = {
-      recordIDs,
       truncate,
+      query,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -2329,7 +2329,7 @@ export default class Compose {
     const {
       namespaceID,
       moduleID,
-      recordIDs,
+      query,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2345,7 +2345,7 @@ export default class Compose {
       }),
     }
     cfg.data = {
-      recordIDs,
+      query,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
