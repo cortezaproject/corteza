@@ -12,8 +12,8 @@ type (
 )
 
 func HasUint64(ss []uint64, s uint64) bool {
-	for i := range ss {
-		if ss[i] == s {
+	for _, value := range ss {
+		if value == s {
 			return true
 		}
 	}

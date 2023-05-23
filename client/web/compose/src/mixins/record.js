@@ -281,8 +281,10 @@ export default {
 
       const { moduleID, namespaceID } = this.module
 
+      const query = records.map(r => `recordID='${r}'`).join(' OR ')
+
       return this
-        .$ComposeAPI.recordPatch({ moduleID, namespaceID, records, values })
+        .$ComposeAPI.recordPatch({ moduleID, namespaceID, values, query })
         .catch(err => {
           const { details = undefined } = err
           if (!!details && Array.isArray(details) && details.length > 0) {

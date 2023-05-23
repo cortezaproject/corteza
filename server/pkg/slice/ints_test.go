@@ -35,7 +35,8 @@ func TestHasUint64(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			assert.EqualValues(t, HasUint64(c.ss, c.s), c.o)
+			ok := HasUint64(c.ss, c.s)
+			assert.EqualValues(t, ok, c.o)
 		})
 	}
 }

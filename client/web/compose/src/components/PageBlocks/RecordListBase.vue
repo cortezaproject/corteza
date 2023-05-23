@@ -72,6 +72,7 @@
                 :query="query"
                 :prefilter="prefilter"
                 :selection="selected"
+                :selected-all-records-count="selectedAllRecords ? pagination.count : 0"
                 :processing="processing"
                 :preselected-fields="fields.map(({ moduleField }) => moduleField)"
                 class="mr-1 float-left"
@@ -164,37 +165,37 @@
         </div>
 
         <div
-          class="d-none flex-wrap align-items-center mt-1"
-          :class="{ 'd-flex': options.selectable && selected.length }"
+          v-if="options.selectable && selected.length"
+          class="d-flex align-items-center flex-wrap align-items-center mt-2"
         >
-          <div
-            class="d-flex align-items-baseline my-auto pt-1 text-nowrap h-100"
-          >
-            {{ $t('recordList.selected', { count: selected.length, total: items.length }) }}
-            <b-button
-              variant="link"
-              class="p-0 text-decoration-none"
-              @click.prevent="handleSelectAllOnPage({ isChecked: false })"
-            >
-              ({{ $t('recordList.cancelSelection') }})
-            </b-button>
+          <div class="mr-1">
+            {{ selectedRecordsDisplayText }}
           </div>
+
+          <b-button
+            size="sm"
+            variant="outline-light"
+            class="text-primary border-0"
+            @click="selectAllRecords()"
+          >
+            {{ selectedAllRecords ? $t('recordList.unselectAllRecords') : $t('recordList.selectAllRecords') }}
+          </b-button>
 
           <div class="d-flex align-items-center ml-auto">
             <automation-buttons
               class="d-inline m-0 mr-2"
               :buttons="options.selectionButtons"
               :module="recordListModule"
-              :extra-event-args="{ selected, filter }"
+              :extra-event-args="{ selected, filter}"
               v-bind="$props"
               @refresh="refresh()"
             />
 
             <bulk-edit-modal
-              v-show="options.bulkRecordEditEnabled && canUpdateSelectedRecords"
+              v-show="options.bulkRecordEditEnabled && canUpdateSelectedRecords && !showingDeletedRecords"
               :module="recordListModule"
               :namespace="namespace"
-              :selected-records="selected"
+              :selected-records="selectedAllRecords ? [] : selected"
               @save="onBulkUpdate()"
             />
 
@@ -433,7 +434,7 @@
                     :extra-options="options"
                   />
                   <div
-                    v-if="options.inlineRecordEditEnabled && field.canEdit"
+                    v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
                     class="inline-actions"
                   >
                     <b-button
@@ -844,6 +845,7 @@ export default {
       customPresetFilters: [],
       currentCustomPresetFilter: undefined,
       showCustomPresetFilterModal: false,
+      selectedAllRecords: false,
     }
   },
 
@@ -1020,6 +1022,14 @@ export default {
     authUserRoles () {
       return this.$auth.user.roles
     },
+
+    selectedRecordsDisplayText () {
+      const count = this.selectedAllRecords ? (this.options.showTotalCount ? this.pagination.count : undefined) : this.selected.length
+      const total = this.items.length
+      const key = this.selectedAllRecords ? 'selectedFromAllPages' : 'selected'
+
+      return this.$t(`recordList.${key}`, { count, total })
+    },
   },
 
   watch: {
@@ -1150,6 +1160,8 @@ export default {
           return
         }
         this.selected.splice(i, 1)
+
+        this.selectedAllRecords = false
       }
     },
 
@@ -1174,6 +1186,7 @@ export default {
 
     handleShowDeleted () {
       this.showingDeletedRecords = !this.showingDeletedRecords
+      this.selectedAllRecords = false
       this.refresh(true)
     },
 
@@ -1381,7 +1394,7 @@ export default {
         query: {
           fields: e.fields,
           // url.Make already URL encodes the the values, so the filter shouldn't be encoded
-          filter: filter,
+          filter: this.selectedAllRecords ? '' : filter,
           jwt: this.$auth.accessToken,
           timezone: timezone ? timezone.tzCode : undefined,
         },
@@ -1468,7 +1481,13 @@ export default {
         this.selected = this.items.map(({ id }) => id)
       } else {
         this.selected = []
+        this.selectedAllRecords = isChecked
       }
+    },
+
+    selectAllRecords () {
+      this.selectedAllRecords = !this.selectedAllRecords
+      this.handleSelectAllOnPage({ isChecked: this.selectedAllRecords })
     },
 
     handleRestoreSelectedRecords () {
@@ -1482,15 +1501,19 @@ export default {
       } else {
         const { moduleID, namespaceID } = this.items[0].r
 
-        // filter undeletable records from the selected list
-        const recordIDs = this.items
-          .filter(({ id, r }) => r.canUndeleteRecord && this.selected.includes(id))
-          .map(({ id }) => id)
+        let query = ''
 
-        this.processing = true
+        if (!this.selectedAllRecords) {
+          // filter deletable records from the selected list
+          const recordIDs = this.items
+            .filter(({ id, r }) => r.canUndeleteRecord && this.selected.includes(id))
+            .map(({ id }) => id)
+
+          query = recordIDs.map(r => `recordID='${r}'`).join(' OR ')
+        }
 
         this.$ComposeAPI
-          .recordBulkUndelete({ moduleID, namespaceID, recordIDs })
+          .recordBulkUndelete({ moduleID, namespaceID, query })
           .then(() => {
             this.refresh(true)
             this.toastSuccess(this.$t('notification:record.undeleteBulkSuccess'))
@@ -1498,6 +1521,7 @@ export default {
           .catch(this.toastErrorHandler(this.$t('notification:record.undeleteBulkFailed')))
           .finally(() => {
             this.processing = false
+            this.selectedAllRecords = false
           })
       }
     },
@@ -1521,15 +1545,21 @@ export default {
         // same module so this should be safe to do.
         const { moduleID, namespaceID } = this.items[0].r
 
-        // filter deletable records from the selected list
-        const recordIDs = this.items
-          .filter(({ id, r }) => r.canDeleteRecord && selected.includes(id))
-          .map(({ id }) => id)
+        let query = ''
+
+        if (!this.selectedAllRecords) {
+          // filter deletable records from the selected list
+          const recordIDs = this.items
+            .filter(({ id, r }) => r.canDeleteRecord && selected.includes(id))
+            .map(({ id }) => id)
+
+          query = recordIDs.map(r => `recordID='${r}'`).join(' OR ')
+        }
 
         this.processing = true
 
         this.$ComposeAPI
-          .recordBulkDelete({ moduleID, namespaceID, recordIDs })
+          .recordBulkDelete({ moduleID, namespaceID, query })
           .then(() => this.refresh(true))
           .then(() => {
             this.toastSuccess(this.$t('notification:record.deleteBulkSuccess'))
@@ -1537,6 +1567,7 @@ export default {
           .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkFailed')))
           .finally(() => {
             this.processing = false
+            this.selectedAllRecords = false
           })
       }
     },
@@ -1762,6 +1793,7 @@ export default {
     },
 
     onBulkUpdate () {
+      this.selectedAllRecords = false
       this.refresh(true)
     },
 
