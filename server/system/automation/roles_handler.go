@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -96,9 +97,9 @@ func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMember
 	}
 
 	// Get actual users
-	uu := make([]uint64, len(mm))
+	uu := make([]string, len(mm))
 	for i, m := range mm {
-		uu[i] = m.UserID
+		uu[i] = cast.ToString(m.UserID)
 	}
 	results.Users, _, err = h.uSvc.Find(ctx, types.UserFilter{
 		UserID: uu,
@@ -134,9 +135,9 @@ func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs)
 	}
 
 	// Get actual users
-	uu := make([]uint64, len(mm))
+	uu := make([]string, len(mm))
 	for i, m := range mm {
-		uu[i] = m.UserID
+		uu[i] = cast.ToString(m.UserID)
 	}
 	i.buffer, i.filter, err = h.uSvc.Find(ctx, types.UserFilter{
 		UserID: uu,

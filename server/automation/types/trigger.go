@@ -3,10 +3,11 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
-	"time"
 )
 
 type (
@@ -55,8 +56,8 @@ type (
 	}
 
 	TriggerFilter struct {
-		TriggerID  []uint64 `json:"triggerID"`
-		WorkflowID []uint64 `json:"workflowID"`
+		TriggerID  []string `json:"triggerID"`
+		WorkflowID []string `json:"workflowID"`
 
 		EventType    string `json:"eventType"`
 		ResourceType string `json:"resourceType"`

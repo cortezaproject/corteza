@@ -489,7 +489,7 @@ func (e StoreEncoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*e
 	_ = ids
 	_ = hh
 
-	out.NamespaceID = ids
+	out.NamespaceID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Slug = hh[0]
@@ -504,7 +504,7 @@ func (e StoreEncoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*e
 	}
 
 	// Overwrite it
-	out.NamespaceID = []uint64{scope.Resource.GetID()}
+	out.NamespaceID = id.Strings(scope.Resource.GetID())
 
 	return
 }

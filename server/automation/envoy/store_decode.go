@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 )
 
@@ -40,7 +41,7 @@ func (d StoreDecoder) makeTriggerFilter(scope *envoyx.Node, refs map[string]*env
 	_ = ids
 	_ = hh
 
-	out.TriggerID = ids
+	out.TriggerID = id.Strings(ids...)
 
 	return
 }
@@ -50,7 +51,7 @@ func (d StoreDecoder) extendedWorkflowDecoder(ctx context.Context, s store.Store
 		wf := b.Resource.(*types.Workflow)
 
 		filters, err := d.decodeTrigger(ctx, s, dl, types.TriggerFilter{
-			WorkflowID: []uint64{wf.ID},
+			WorkflowID: id.Strings(wf.ID),
 		})
 		if err != nil {
 			return nil, err

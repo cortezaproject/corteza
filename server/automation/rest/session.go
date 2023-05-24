@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/automation/rest/request"
 	"github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/automation/types"
@@ -9,7 +10,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 )
 
@@ -53,9 +53,9 @@ func (ctrl Session) List(ctx context.Context, r *request.SessionList) (interface
 	var (
 		err error
 		f   = types.SessionFilter{
-			WorkflowID:   payload.ParseUint64s(r.WorkflowID),
-			SessionID:    payload.ParseUint64s(r.SessionID),
-			CreatedBy:    payload.ParseUint64s(r.CreatedBy),
+			WorkflowID:   r.WorkflowID,
+			SessionID:    r.SessionID,
+			CreatedBy:    r.CreatedBy,
 			EventType:    r.EventType,
 			ResourceType: r.ResourceType,
 			Completed:    filter.State(r.Completed),

@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
@@ -75,7 +76,7 @@ func Session(ctx context.Context, ws *server, conn *websocket.Conn) *session {
 	s.logger = ws.logger.
 		Named("session").
 		With(
-			zap.Uint64("id", s.id),
+			logger.Uint64("id", s.id),
 		)
 
 	return s
@@ -215,8 +216,8 @@ func (s *session) procRawMessage(raw []byte) (err error) {
 		i := s.Identity()
 		s.logger.Debug(
 			"authenticated",
-			zap.Uint64("userID", i.Identity()),
-			zap.Uint64s("roles", i.Roles()),
+			logger.Uint64("userID", i.Identity()),
+			logger.Uint64s("roles", i.Roles()),
 		)
 
 		s.server.StoreSession(s)

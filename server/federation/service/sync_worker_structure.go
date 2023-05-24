@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"go.uber.org/zap"
 )
 
@@ -52,7 +53,7 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 
 		if err != nil {
 			w.logger.Info("could not preload federation user, skipping",
-				zap.Uint64("nodeID", n.ID),
+				logger.Uint64("nodeID", n.ID),
 				zap.Error(err))
 
 			continue
@@ -63,7 +64,7 @@ func (w *syncWorkerStructure) PrepareForNodes(ctx context.Context, urls chan Url
 		basePath := fmt.Sprintf("/nodes/%d/modules/exposed/", n.SharedNodeID)
 
 		z := []zap.Field{
-			zap.Uint64("nodeID", n.ID),
+			logger.Uint64("nodeID", n.ID),
 			zap.String("host", n.BaseURL),
 			zap.String("delay", w.delay.String()),
 			zap.Int("pagesize", w.limit),
@@ -141,7 +142,7 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 				w.logger.Error("could not fetch data from url, skipping",
 					zap.Error(err),
 					zap.String("url", s),
-					zap.Uint64("nodeID", meta.Node.ID),
+					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
 
 				continue
@@ -161,7 +162,7 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			if err != nil {
 				w.logger.Error("could not read data from synced url, skipping",
 					zap.Error(err),
-					zap.Uint64("nodeID", meta.Node.ID),
+					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
 
 				continue
@@ -182,7 +183,7 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			// ignore
 			if moduleID := processed.(structureProcesserResponse).ModuleID; moduleID == 0 {
 				w.logger.Info("no structure change from last change, skipping",
-					zap.Uint64("nodeID", meta.Node.ID),
+					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
 
 				continue
@@ -212,7 +213,7 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			} else {
 				w.logger.Info("processed objects",
 					zap.Int("processed", processed.(structureProcesserResponse).Processed),
-					zap.Uint64("nodeID", meta.Node.ID),
+					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
 			}
 

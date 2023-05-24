@@ -43,7 +43,7 @@ type (
 	}
 
 	ApplicationFilter struct {
-		ApplicationID []uint64 `json:"applicationID"`
+		ApplicationID []string `json:"applicationID"`
 		Name          string   `json:"name"`
 		Query         string   `json:"query"`
 

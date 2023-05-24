@@ -3,8 +3,10 @@ package documents
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -55,7 +57,7 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string, user
 		)
 
 		if userID > 0 {
-			f.UserID = append(f.UserID, userID)
+			f.UserID = append(f.UserID, id.String(userID))
 		}
 
 		if f.Paging, err = filter.NewPaging(limit, cur); err != nil {

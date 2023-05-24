@@ -2,9 +2,11 @@ package logger
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"moul.io/zapfilter"
@@ -122,6 +124,16 @@ func Production(opt *options.LogOpt) (*zap.Logger, error) {
 	)
 
 	return conf.Build()
+}
+
+// Uint64 properly encodes values to be represented in the web console
+func Uint64(k string, id uint64) zap.Field {
+	return zap.String(k, strconv.FormatUint(id, 10))
+}
+
+// Uint64s properly encodes values to be represented in the web console
+func Uint64s(k string, id []uint64) zap.Field {
+	return zap.Strings(k, cast.ToStringSlice(id))
 }
 
 // Applies options from environment variables

@@ -1,6 +1,7 @@
 package rbac
 
 import (
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/slice"
 	"go.uber.org/zap"
 )
@@ -98,7 +99,7 @@ func (p partRoles) LogFields() (ff []zap.Field) {
 			ii = append(ii, r)
 		}
 
-		ff = append(ff, zap.Uint64s(k.String(), ii))
+		ff = append(ff, logger.Uint64s(k.String(), ii))
 	}
 
 	return

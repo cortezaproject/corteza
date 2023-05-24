@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"go.uber.org/zap"
 )
@@ -109,7 +110,7 @@ func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
 	svc.logger.Debug(a.String()+" "+op+" for "+res.RbacResource(),
 		append(
 			fRoles.LogFields(),
-			zap.Uint64("identity", ses.Identity()),
+			logger.Uint64("identity", ses.Identity()),
 			zap.Any("indexed", len(svc.indexed)),
 			zap.Any("rules", len(svc.rules)),
 		)...,

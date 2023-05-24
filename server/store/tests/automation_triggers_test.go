@@ -121,7 +121,7 @@ func testAutomationTriggers(t *testing.T, s store.AutomationTriggers) {
 		}
 
 		tt, _, err := store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{
-			WorkflowID: []uint64{auxWf},
+			WorkflowID: id.Strings(auxWf, 10),
 		})
 		req.NoError(err)
 		req.Len(tt, 1)

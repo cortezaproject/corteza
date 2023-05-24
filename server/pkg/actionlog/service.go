@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/go-chi/chi/v5/middleware"
 	"go.uber.org/zap"
 
@@ -39,7 +40,6 @@ type (
 )
 
 // NewService initializes action log service
-//
 func NewService(s actionlogStore, logger, tee *zap.Logger, policy policyMatcher) (svc *service) {
 	if tee == nil {
 		tee = zap.NewNop()
@@ -86,7 +86,7 @@ func (svc service) log(a *Action) {
 		zap.String("requestOrigin", a.RequestOrigin),
 		zap.String("requestID", a.RequestID),
 		zap.String("actorIPAddr", a.ActorIPAddr),
-		zap.Uint64("actorID", a.ActorID),
+		logger.Uint64("actorID", a.ActorID),
 		zap.String("resource", a.Resource),
 		zap.String("action", a.Action),
 		zap.Uint8("severity", uint8(a.Severity)),
