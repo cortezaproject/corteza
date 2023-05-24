@@ -453,6 +453,11 @@ export default {
 
     eventChanged () {
       this.item.triggers.constraints = []
+
+      if (['onTimestamp', 'onInterval'].includes(this.item.triggers.eventType)) {
+        this.addConstraint()
+      }
+
       this.$root.$emit('change-detected')
       this.updateDefaultName()
     },
