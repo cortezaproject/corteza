@@ -7,6 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
@@ -51,14 +52,14 @@ func NewMonitor(ctx context.Context, interval time.Duration) {
 			runtime.ReadMemStats(m)
 
 			log.With(
-				zap.Uint64("alloc", m.HeapAlloc),
-				zap.Uint64("totalAlloc", m.TotalAlloc),
-				zap.Uint64("sys", m.Sys),
-				zap.Uint64("mallocs", m.Mallocs),
-				zap.Uint64("frees", m.Frees),
+				logger.Uint64("alloc", m.HeapAlloc),
+				logger.Uint64("totalAlloc", m.TotalAlloc),
+				logger.Uint64("sys", m.Sys),
+				logger.Uint64("mallocs", m.Mallocs),
+				logger.Uint64("frees", m.Frees),
 
-				zap.Uint64("liveObjects", m.Mallocs-m.Frees),
-				zap.Uint64("pauseTotalNs", m.PauseTotalNs),
+				logger.Uint64("liveObjects", m.Mallocs-m.Frees),
+				logger.Uint64("pauseTotalNs", m.PauseTotalNs),
 				zap.Uint32("numGC", m.NumGC),
 				zap.Int("numGoRoutines", runtime.NumGoroutine()),
 			).Info("tick")

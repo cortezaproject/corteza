@@ -32,7 +32,7 @@ type (
 	}
 
 	ResourceTranslationFilter struct {
-		TranslationID []uint64 `json:"translationID"`
+		TranslationID []string `json:"translationID"`
 		Lang          string   `json:"lang"`
 		Resource      string   `json:"resource"`
 		ResourceType  string   `json:"resourceType"`

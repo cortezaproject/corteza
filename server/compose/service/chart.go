@@ -2,15 +2,17 @@ package service
 
 import (
 	"context"
+	"reflect"
+	"strconv"
+
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/store"
-	"reflect"
-	"strconv"
 )
 
 type (
@@ -83,7 +85,7 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 				svc.store,
 				types.Chart{}.LabelResourceKind(),
 				filter.Labels,
-				filter.ChartID...,
+				id.Uints(filter.ChartID...)...,
 			)
 
 			if err != nil {

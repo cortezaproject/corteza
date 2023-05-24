@@ -10,6 +10,7 @@ import (
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/mail"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -216,7 +217,7 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 		"Added OAuth2 client",
 		zap.String("name", c.Meta.Name),
 		zap.String("redirectURI", c.RedirectURI),
-		zap.Uint64("clientId", c.ID),
+		logger.Uint64("clientId", c.ID),
 	)
 
 	return nil

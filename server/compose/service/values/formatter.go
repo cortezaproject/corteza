@@ -26,7 +26,7 @@ func (f formatter) Run(m *types.Module, vv types.RecordValueSet) types.RecordVal
 		exprParser = expr.Parser()
 
 		log = logger.Default().
-			With(zap.Uint64("module", m.ID))
+			With(logger.Uint64("module", m.ID))
 	)
 
 	for _, v := range vv {

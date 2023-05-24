@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/cortezaproject/corteza/server/auth/request"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
@@ -40,7 +41,7 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 			h.Log.Info(
 				"signup successful",
 				zap.String("email", newUser.Email),
-				zap.Uint64s("roles", newUser.Roles()),
+				logger.Uint64s("roles", newUser.Roles()),
 			)
 			req.RedirectTo = GetLinks().Profile
 

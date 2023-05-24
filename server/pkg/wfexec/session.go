@@ -187,7 +187,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 	}
 
 	s.log = s.log.
-		With(zap.Uint64("sessionID", s.id))
+		With(logger.Uint64("sessionID", s.id))
 
 	s.callStack = append(s.callStack, s.id)
 
@@ -467,7 +467,7 @@ func (s *Session) worker(ctx context.Context) {
 				return
 			}
 
-			s.log.Debug("pulled state from queue", zap.Uint64("stateID", st.stateId))
+			s.log.Debug("pulled state from queue", logger.Uint64("stateID", st.stateId))
 			if st.step == nil {
 				// We should not terminate if the session contains any delayed or prompted steps.
 				status := s.Status()
@@ -506,7 +506,7 @@ func (s *Session) worker(ctx context.Context) {
 
 				var (
 					err error
-					log = s.log.With(zap.Uint64("stateID", st.stateId))
+					log = s.log.With(logger.Uint64("stateID", st.stateId))
 				)
 
 				nxt, err := s.exec(ctx, log, st)
@@ -544,7 +544,7 @@ func (s *Session) worker(ctx context.Context) {
 
 				s.log.Debug(
 					"executed",
-					zap.Uint64("stateID", st.stateId),
+					logger.Uint64("stateID", st.stateId),
 					zap.Stringer("status", status),
 					zap.Error(st.err),
 				)
@@ -553,9 +553,9 @@ func (s *Session) worker(ctx context.Context) {
 
 				for _, n := range nxt {
 					if n.step != nil {
-						log.Debug("next step queued", zap.Uint64("nextStepId", n.step.ID()))
+						log.Debug("next step queued", logger.Uint64("nextStepId", n.step.ID()))
 					} else {
-						log.Debug("next step queued", zap.Uint64("nextStepId", 0))
+						log.Debug("next step queued", logger.Uint64("nextStepId", 0))
 					}
 					if err = s.enqueue(ctx, n); err != nil {
 						log.Error("unable to enqueue", zap.Error(err))
@@ -652,7 +652,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 	)
 
 	if st.step != nil {
-		log = log.With(zap.Uint64("stepID", st.step.ID()))
+		log = log.With(logger.Uint64("stepID", st.step.ID()))
 	}
 
 	{
@@ -684,7 +684,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 			// handling error with error handling
 			// step set in one of the previous steps
 			log.Warn("step execution error handled",
-				zap.Uint64("errorHandlerStepId", st.errHandler.ID()),
+				logger.Uint64("errorHandlerStepId", st.errHandler.ID()),
 				zap.Error(st.err),
 			)
 
@@ -840,7 +840,7 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 		// gracefully handling last step of iteration branch
 		// that does not point back to the iterator step
 		st.next = Steps{currLoop.Iterator()}
-		log.Debug("last step in iteration branch, going back", zap.Uint64("backStepId", st.next[0].ID()))
+		log.Debug("last step in iteration branch, going back", logger.Uint64("backStepId", st.next[0].ID()))
 	}
 
 	if len(st.next) == 0 {

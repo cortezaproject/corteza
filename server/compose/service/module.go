@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"go.uber.org/zap"
 
@@ -188,7 +189,7 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 				svc.store,
 				types.Module{}.LabelResourceKind(),
 				filter.Labels,
-				filter.ModuleID...,
+				id.Uints(filter.ModuleID...)...,
 			)
 
 			if err != nil {
@@ -457,7 +458,7 @@ func (svc module) SearchSensitive(ctx context.Context, filter types.PrivacyModul
 	)
 
 	for _, connectionID := range filter.ConnectionID {
-		reqConnes[connectionID] = true
+		reqConnes[id.Uint(connectionID)] = true
 	}
 
 	err = func() error {
@@ -1078,7 +1079,6 @@ func loadModuleField(ctx context.Context, s store.Storer, namespaceID, moduleID,
 }
 
 // loadLabeledModules loads labels on one or more modules and their fields
-//
 func loadModuleLabels(ctx context.Context, s store.Labels, set ...*types.Module) error {
 	if len(set) == 0 {
 		return nil
@@ -1614,7 +1614,8 @@ func modulesByConnection(defConnID uint64, modules ...*types.Module) map[uint64]
 }
 
 // handleDalSysFieldEncodingUpdate prevents the mapping from being disabled for certain system field
-//		IE. `recordID` -> `Module.Config.DAL.SystemFieldEncoding.ID`
+//
+//	IE. `recordID` -> `Module.Config.DAL.SystemFieldEncoding.ID`
 func handleDalSysFieldEncodingUpdate(mod *types.Module) error {
 	if mod.Config.DAL.SystemFieldEncoding.ID != nil && mod.Config.DAL.SystemFieldEncoding.ID.Omit {
 		mod.Config.DAL.SystemFieldEncoding.ID.Omit = false

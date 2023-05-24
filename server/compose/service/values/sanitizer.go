@@ -63,7 +63,7 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 		kind string
 
 		log = logger.Default().
-			With(zap.Uint64("module", m.ID))
+			With(logger.Uint64("module", m.ID))
 	)
 
 	for _, v := range out {

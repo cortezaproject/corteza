@@ -1,0 +1,11 @@
+list:
+  title: Sensitive Modules
+  columns:
+    module: Module
+    namespace: Namespace
+    connection: Connection
+    location: Location
+    ownership:  Ownership
+  module:
+    enable: Enable modules
+    disable: Disable modules

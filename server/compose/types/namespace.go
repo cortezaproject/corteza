@@ -29,7 +29,7 @@ type (
 	}
 
 	NamespaceFilter struct {
-		NamespaceID []uint64 `json:"namespaceID"`
+		NamespaceID []string `json:"namespaceID"`
 
 		Query string `json:"query"`
 		Slug  string `json:"slug"`

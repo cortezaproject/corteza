@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"go.uber.org/zap"
 )
 
@@ -163,7 +164,7 @@ func (svc *service) ReplaceSensitivityLevel(levels ...SensitivityLevel) (err err
 	nx := svc.sensitivityLevels
 
 	for _, l := range levels {
-		log := log.With(zap.Uint64("ID", l.ID), zap.Int("level", l.Level), zap.String("handle", l.Handle))
+		log := log.With(logger.Uint64("ID", l.ID), zap.Int("level", l.Level), zap.String("handle", l.Handle))
 		if nx.includes(l.ID) {
 			log.Debug("found existing")
 		} else {
@@ -205,7 +206,7 @@ func (svc *service) RemoveSensitivityLevel(levelIDs ...uint64) (err error) {
 	nx := svc.sensitivityLevels
 
 	for _, l := range levels {
-		log := log.With(zap.Uint64("ID", l.ID))
+		log := log.With(logger.Uint64("ID", l.ID))
 		if !nx.includes(l.ID) {
 			log.Debug("sensitivity level not found")
 			continue
@@ -296,7 +297,7 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 		oldConn *ConnectionWrap
 
 		log = svc.logger.Named("connection").With(
-			zap.Uint64("ID", ID),
+			logger.Uint64("ID", ID),
 			zap.Any("params", conn.params),
 			zap.Any("config", conn.Config),
 		)
@@ -403,7 +404,7 @@ func (svc *service) RemoveConnection(ctx context.Context, ID uint64) (err error)
 	svc.updateIssues(issues)
 
 	svc.logger.Named("connection").Debug("deleted",
-		zap.Uint64("ID", ID),
+		logger.Uint64("ID", ID),
 		zap.Any("config", c.Config),
 	)
 
@@ -680,7 +681,7 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 		upd       bool
 
 		log = svc.logger.Named("models").With(
-			zap.Uint64("ID", ID),
+			logger.Uint64("ID", ID),
 			zap.String("ident", model.Ident),
 			zap.Any("label", model.Label),
 		)
@@ -745,7 +746,7 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 	svc.addModelToRegistry(model, upd)
 	log.Debug(
 		"added",
-		zap.Uint64("connectionID", model.ConnectionID),
+		logger.Uint64("connectionID", model.ConnectionID),
 	)
 
 	return
@@ -759,8 +760,8 @@ func (svc *service) RemoveModel(ctx context.Context, connectionID, ID uint64) (e
 		old *Model
 
 		log = svc.logger.Named("models").With(
-			zap.Uint64("connectionID", connectionID),
-			zap.Uint64("ID", ID),
+			logger.Uint64("connectionID", connectionID),
+			logger.Uint64("ID", ID),
 		)
 		issues = newIssueHelper().addModel(ID)
 	)
@@ -872,7 +873,7 @@ func (svc *service) removeModelFromRegistry(model *Model) {
 //
 // We rely on the user to provide stable and valid attribute definitions.
 func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, diff *ModelDiff, hasRecords bool, trans ...TransformationFunction) (err error) {
-	svc.logger.Debug("updating model attribute", zap.Uint64("model", model.ResourceID))
+	svc.logger.Debug("updating model attribute", logger.Uint64("model", model.ResourceID))
 
 	var (
 		conn   *ConnectionWrap
@@ -917,7 +918,7 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 	modelIssues := svc.hasModelIssues(model.ResourceID)
 
 	if !modelIssues && !connectionIssues {
-		svc.logger.Debug("updating model attribute", zap.Uint64("connection", model.ConnectionID), zap.Uint64("model", model.ResourceID))
+		svc.logger.Debug("updating model attribute", logger.Uint64("connection", model.ConnectionID), logger.Uint64("model", model.ResourceID))
 
 		err = conn.connection.UpdateModelAttribute(ctx, model, diff, hasRecords, trans...)
 		if err != nil {
@@ -925,10 +926,10 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 		}
 	} else {
 		if connectionIssues {
-			svc.logger.Warn("not updating model attribute due to connection issues", zap.Uint64("connection", model.ConnectionID))
+			svc.logger.Warn("not updating model attribute due to connection issues", logger.Uint64("connection", model.ConnectionID))
 		}
 		if modelIssues {
-			svc.logger.Warn("not updating model attribute due to model issues", zap.Uint64("model", model.ResourceID))
+			svc.logger.Warn("not updating model attribute due to model issues", logger.Uint64("model", model.ResourceID))
 		}
 	}
 
@@ -965,7 +966,8 @@ func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, dif
 // FindModelByRefs returns the model with all of the given refs matching
 //
 // @note refs are primarily used for DAL pipelines where steps can reference models
-//       by handles and slugs such as module and namespace.
+//
+//	by handles and slugs such as module and namespace.
 func (svc *service) FindModelByRefs(connectionID uint64, refs map[string]any) *Model {
 	if connectionID == 0 {
 		connectionID = svc.defConnID

@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
@@ -169,7 +170,7 @@ func (svc *session) PendingPrompts(ctx context.Context) (pp []*wfexec.PendingPro
 
 // Start new workflow session on a specific step with a given identity and scope
 //
-// Start is an asynchronous operation
+// # Start is an asynchronous operation
 //
 // Please note that context passed to the function is NOT the the one that is
 // used for the execution of the workflow. See watch function!
@@ -356,9 +357,9 @@ func (svc *session) Watch(ctx context.Context) {
 				if svc.opt.ExecDebug {
 					log := svc.log.
 						Named("exec").
-						With(zap.Uint64("workflowID", s.workflowID)).
-						With(zap.Uint64("runnerID", s.runner.Identity())).
-						With(zap.Uint64s("runnerRoles", s.runner.Roles()))
+						With(logger.Uint64("workflowID", s.workflowID)).
+						With(logger.Uint64("runnerID", s.runner.Identity())).
+						With(logger.Uint64s("runnerRoles", s.runner.Roles()))
 
 					opts = append(
 						opts,
@@ -448,7 +449,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		defer svc.mux.Unlock()
 
 		log := svc.log.With(
-			zap.Uint64("sessionID", s.ID()),
+			logger.Uint64("sessionID", s.ID()),
 			zap.Stringer("status", i),
 		)
 
@@ -458,7 +459,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			return
 		}
 
-		log = log.With(zap.Uint64("workflowID", ses.WorkflowID))
+		log = log.With(logger.Uint64("workflowID", ses.WorkflowID))
 
 		log.Debug("state change handler")
 

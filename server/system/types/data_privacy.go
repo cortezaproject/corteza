@@ -3,9 +3,10 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/geolocation"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
-	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -33,8 +34,8 @@ type (
 	}
 
 	DataPrivacyRequestFilter struct {
-		RequestID   []uint64 `json:"requestID"`
-		RequestedBy []uint64 `json:"requestedBy"`
+		RequestID   []string `json:"requestID"`
+		RequestedBy []string `json:"requestedBy"`
 
 		Query string `json:"query"`
 
@@ -87,7 +88,7 @@ type (
 	}
 
 	DataPrivacyRequestCommentFilter struct {
-		RequestID []uint64 `json:"requestID"`
+		RequestID []string `json:"requestID"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

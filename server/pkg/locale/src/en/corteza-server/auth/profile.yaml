@@ -1,0 +1,30 @@
+template:
+  title: Your profile
+  form:
+    email:
+      label: Email
+      placeholder: email@domain.ltd
+      resend-confirmation-link: Email is not verified, <a data-test-id="link-resend-confirmation" href="{{link}}?resend">resend confirmation link.</a>
+    name:
+      label: Full name
+      placeholder: Your full name
+    handle:
+      label: Handle
+      placeholder: Short name, nickname or handle
+    avatar:
+      label: Avatar
+      delete: Delete
+      upload: Upload avatar
+    avatar-initial:
+      label: Avatar initial
+      color: Avatar text color
+      background-color: Avatar background color
+    preferred-language:
+      label: Preferred language
+    buttons:
+      submit: Update profile
+alerts:
+  profile-updated: Profile successfully updated
+  profile-update-fail: Could not update profile due to input errors
+  profile-avatar-uploaded: Profile avatar successfully uploaded
+  profile-avatar-deleted: Profile avatar successfully deleted

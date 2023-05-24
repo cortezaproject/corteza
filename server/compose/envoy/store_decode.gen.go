@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/pkg/errors"
 )
@@ -32,6 +33,11 @@ type (
 const (
 	paramsKeyStorer = "storer"
 	paramsKeyDAL    = "dal"
+)
+
+var (
+	// @todo temporary fix to make unused pkg/id not throw errors
+	_ = id.Next
 )
 
 // Decode returns a set of envoy nodes based on the provided params
@@ -239,7 +245,7 @@ func (d StoreDecoder) makeChartFilter(scope *envoyx.Node, refs map[string]*envoy
 	_ = ids
 	_ = hh
 
-	out.ChartID = ids
+	out.ChartID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -343,7 +349,7 @@ func (d StoreDecoder) makeModuleFilter(scope *envoyx.Node, refs map[string]*envo
 	_ = ids
 	_ = hh
 
-	out.ModuleID = ids
+	out.ModuleID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -499,7 +505,7 @@ func (d StoreDecoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*e
 	_ = ids
 	_ = hh
 
-	out.NamespaceID = ids
+	out.NamespaceID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Slug = hh[0]
@@ -607,7 +613,7 @@ func (d StoreDecoder) makePageFilter(scope *envoyx.Node, refs map[string]*envoyx
 	_ = ids
 	_ = hh
 
-	out.PageID = ids
+	out.PageID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]
@@ -734,7 +740,7 @@ func (d StoreDecoder) makePageLayoutFilter(scope *envoyx.Node, refs map[string]*
 	_ = ids
 	_ = hh
 
-	out.PageLayoutID = ids
+	out.PageLayoutID = id.Strings(ids...)
 
 	if len(hh) > 0 {
 		out.Handle = hh[0]

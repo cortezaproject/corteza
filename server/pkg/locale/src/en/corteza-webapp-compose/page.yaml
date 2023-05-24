@@ -1,0 +1,125 @@
+page-layout:
+  title: Title *
+  handle: Handle
+  add: Add layout
+  configure: 'Configure layout - "{{title}}"'
+  visibility: Visibility
+  tooltip:
+    configure: Configure layout
+    builder: Open layout in builder
+  condition:
+    label: Condition
+    placeholder: When will the layout be shown
+  roles:
+    label: Roles
+    placeholder: Pick roles that the layout will be shown to
+  recordToolbar:
+    label: Record toolbar
+    buttons:
+      label: Buttons
+      showBack: Show "Back" button
+      showDelete: Show "Delete" button
+      showClone: Show "Save as copy" button
+      showNew: Show "Add new" button
+      showEdit: Show "Edit" button
+      showSave: Show "Save" button
+    actions:
+      label: Actions
+      add: Add action
+      buttonLabel: Label
+      variant: Variant
+      visible: Visible
+      placement:
+        label: Placement
+        start: Start
+        center: Center
+        end: End
+      layout:
+        label: Redirect to layout
+        placeholder: No layout selected
+
+block:
+  general:
+    changeBlock: Change existing block
+    label:
+      cancel: Cancel
+      noHandle: No handle
+      pageBuilder: Page builder
+      saveAndClose: Save and close
+    placeholder:
+      handle: handle (a - z, 0 - 9, underscore, dash)
+      sample: Sample
+    title: Add new block
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
+changeBlock: Change existing block
+copyOf: "Copy of {{title}}"
+build:
+  addBlock: Add block
+  selectBlockTitle: Select type of the new block
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
+createLabel: Create page
+edit:
+  create: Create page
+  edit: Edit page
+  pageDescription: Page description
+  visible: Is page visible
+  otherOptions: Other options
+icon:
+  configure: Configure page icon
+  noIcon: No icon
+  page: Page icon
+  upload: Upload icon
+  list: Uploaded icons
+url:
+  label: Or add URL to icon
+import: 'Import page(s):'
+instructions: Drag and drop pages to adjust the order and hierarchy
+invalid: Invalid configuration
+label:
+  cancel: Cancel
+  description: Description
+  handle: Handle
+  pageBuilder: Page builder
+  permissions: Permissions
+  saveAndClose: Save and close
+  delete: Delete Block
+loading: Loading
+moduleEdit: Edit module
+navigation:
+  page: Pages
+  viewPage: View Page
+newPlaceholder: Page title
+noBlock: No block added yet
+noPages: No pages
+notVisible: Hidden
+pageMoveFailed: Could not move this page
+reordered: Page reordered
+showSubPages: Expand sub-pages in the sidebar
+title: List of Pages
+tooltip:
+  unsavedChanges: Unsaved Changes
+  view: View page
+  edit:
+    page: Edit page
+    block: Edit block
+  copy:
+    block: Copy block
+  clone:
+    block: Clone block
+  delete:
+    block: Delete block
+  preview-link: Preview link
+  saveAsCopy: Cannot duplicate record page
+view: View
+visible: Visible
+delete:
+  rebase: Update parent of sub-pages
+  cascade: Delete sub-pages
+public:
+  record:
+    create:
+      title: Creating record for module "{{name}}"
+    edit:
+      title: Editing record for module "{{name}}"
+    view:
+      title: Viewing record for module "{{name}}"

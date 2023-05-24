@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/federation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"go.uber.org/zap"
 )
 
@@ -54,7 +55,7 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 
 		if err != nil {
 			w.logger.Info("could not preload federation user, skipping",
-				zap.Uint64("nodeID", n.ID),
+				logger.Uint64("nodeID", n.ID),
 				zap.Error(err))
 
 			continue
@@ -64,7 +65,7 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 
 		if err != nil {
 			w.logger.Info("could not get shared modules, skipping",
-				zap.Uint64("nodeID", n.ID),
+				logger.Uint64("nodeID", n.ID),
 				zap.Error(err))
 
 			continue
@@ -72,7 +73,7 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 
 		if len(set) == 0 {
 			w.logger.Info("there are no valid shared modules, skipping",
-				zap.Uint64("nodeID", n.ID),
+				logger.Uint64("nodeID", n.ID),
 				zap.Error(err))
 
 			continue
@@ -81,8 +82,8 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 		// go through set and prepare module mappings for it
 		for _, sm := range set {
 			z := []zap.Field{
-				zap.Uint64("nodeID", n.ID),
-				zap.Uint64("moduleID", sm.ID),
+				logger.Uint64("nodeID", n.ID),
+				logger.Uint64("moduleID", sm.ID),
 				zap.String("host", n.BaseURL),
 				zap.String("delay", w.delay.String()),
 				zap.Int("pagesize", w.limit),
@@ -199,7 +200,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 				w.logger.Error("could not fetch data from url, skipping",
 					zap.Error(err),
 					zap.String("url", s),
-					zap.Uint64("nodeID", meta.Node.ID),
+					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
 
 				continue
@@ -219,7 +220,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			if err != nil {
 				w.logger.Error("could not read data from synced url, skipping",
 					zap.Error(err),
-					zap.Uint64("nodeID", meta.Node.ID),
+					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
 
 				continue
@@ -262,7 +263,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			} else {
 				w.logger.Info("processed objects",
 					zap.Int("processed", processed.(dataProcesserResponse).Processed),
-					zap.Uint64("nodeID", meta.Node.ID))
+					logger.Uint64("nodeID", meta.Node.ID))
 			}
 		}
 	}

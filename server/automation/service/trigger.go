@@ -14,7 +14,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/store"
@@ -138,7 +140,7 @@ func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (rr 
 // In case stepID is 0, first trigger is returned
 func (svc *trigger) SearchOnManual(ctx context.Context, workflowID, stepID uint64) (*types.Trigger, error) {
 	tt, _, err := svc.Search(ctx, types.TriggerFilter{
-		WorkflowID: []uint64{workflowID},
+		WorkflowID: id.Strings(workflowID),
 		EventType:  "onManual",
 	})
 
@@ -416,7 +418,7 @@ func (svc trigger) canManageTrigger(ctx context.Context, res *types.Trigger, per
 func (svc *trigger) registerWorkflows(ctx context.Context, workflows ...*types.Workflow) error {
 	// load ALL triggers directly from store
 	tt, _, err := store.SearchAutomationTriggers(ctx, svc.store, types.TriggerFilter{
-		WorkflowID: types.WorkflowSet(workflows).IDs(),
+		WorkflowID: id.Strings(types.WorkflowSet(workflows).IDs()...),
 		Deleted:    filter.StateInclusive,
 		Disabled:   filter.StateExcluded,
 	})
@@ -522,7 +524,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 		g         *wfexec.Graph
 		issues    types.WorkflowIssueSet
 		wfLog     = svc.log.
-				With(zap.Uint64("workflowID", wf.ID))
+				With(logger.Uint64("workflowID", wf.ID))
 
 		// register only enabled, undeleted workflows
 		registerWorkflow = wf.Enabled && wf.DeletedAt == nil
@@ -545,7 +547,7 @@ func (svc *trigger) registerTriggers(wf *types.Workflow, runAs auth.Identifiable
 	svc.mux.Lock()
 
 	for _, t := range tt {
-		log := wfLog.With(zap.Uint64("triggerID", t.ID))
+		log := wfLog.With(logger.Uint64("triggerID", t.ID))
 
 		// always unregister
 		if svc.reg[wf.ID] == nil {
@@ -614,7 +616,7 @@ func (svc *trigger) unregisterWorkflows(wwf ...*types.Workflow) {
 	for _, wf := range wwf {
 		for triggerID, ptr := range svc.reg[wf.ID] {
 			svc.eventbus.Unregister(ptr)
-			svc.log.Debug("trigger unregistered", zap.Uint64("triggerID", triggerID), zap.Uint64("workflowID", wf.ID))
+			svc.log.Debug("trigger unregistered", logger.Uint64("triggerID", triggerID), logger.Uint64("workflowID", wf.ID))
 			delete(svc.triggers, wf.ID)
 		}
 
@@ -633,7 +635,7 @@ func (svc *trigger) unregisterTriggers(tt ...*types.Trigger) {
 
 		if ptr, has := svc.reg[t.WorkflowID][t.ID]; has {
 			svc.eventbus.Unregister(ptr)
-			svc.log.Debug("trigger unregistered", zap.Uint64("triggerID", t.ID), zap.Uint64("workflowID", t.WorkflowID))
+			svc.log.Debug("trigger unregistered", logger.Uint64("triggerID", t.ID), logger.Uint64("workflowID", t.WorkflowID))
 			delete(svc.triggers, t.ID)
 		}
 	}
@@ -656,7 +658,7 @@ func loadWorkflowTriggers(ctx context.Context, s store.Storer, workflowID uint64
 		return nil, TriggerErrInvalidID()
 	}
 
-	if tt, _, err = store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{WorkflowID: []uint64{workflowID}}); errors.IsNotFound(err) {
+	if tt, _, err = store.SearchAutomationTriggers(ctx, s, types.TriggerFilter{WorkflowID: id.Strings(workflowID)}); errors.IsNotFound(err) {
 		return nil, TriggerErrNotFound()
 	}
 

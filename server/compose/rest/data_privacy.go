@@ -108,7 +108,7 @@ func (ctrl *DataPrivacy) RecordList(ctx context.Context, r *request.DataPrivacyR
 func (ctrl *DataPrivacy) ModuleList(ctx context.Context, r *request.DataPrivacyModuleList) (out interface{}, err error) {
 	var (
 		f = types.PrivacyModuleFilter{
-			ConnectionID: payload.ParseUint64s(r.ConnectionID),
+			ConnectionID: r.ConnectionID,
 		}
 	)
 
