@@ -40,6 +40,7 @@ interface Options {
   fullPageNavigation: boolean;
   showTotalCount: boolean;
   showDeletedRecordsOption: boolean;
+  customFilterPresets: boolean;
   refreshRate: number;
   showRefresh: boolean;
 
@@ -97,6 +98,7 @@ const defaults: Readonly<Options> = Object.freeze({
   fullPageNavigation: false,
   showTotalCount: false,
   showDeletedRecordsOption: false,
+  customFilterPresets: false,
 
   editable: false,
   draggable: false,
@@ -164,6 +166,7 @@ export class PageBlockRecordList extends PageBlock {
       'fullPageNavigation',
       'showTotalCount',
       'showDeletedRecordsOption',
+      'customFilterPresets',
       'hideSorting',
       'allowExport',
       'selectable',

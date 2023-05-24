@@ -215,13 +215,23 @@
             {{ $t('general:label.reset') }}
           </b-button>
 
-          <b-button
-            ref="btnSave"
-            variant="primary"
-            @click="onSave"
-          >
-            {{ $t('general.label.save') }}
-          </b-button>
+          <div class="d-flex">
+            <b-button
+              v-if="allowFilterPresetSave"
+              variant="outline-primary"
+              class="mr-2"
+              @click="onSave(true, 'filter-preset')"
+            >
+              {{ $t('recordList.filter.addFilterToPreset') }}
+            </b-button>
+            <b-button
+              ref="btnSave"
+              variant="primary"
+              @click="onSave"
+            >
+              {{ $t('general.label.save') }}
+            </b-button>
+          </div>
         </b-card-footer>
       </b-card>
 
@@ -287,6 +297,11 @@ export default {
     buttonStyle: {
       type: String,
       default: '',
+    },
+
+    allowFilterPresetSave: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -592,13 +607,8 @@ export default {
       }
     },
 
-    onSave (close = true) {
-      if (close) {
-        this.$refs.popover.$emit('close')
-      }
-
-      // Emit only value and not whole record with every filter
-      this.$emit('filter', this.componentFilter.map(({ groupCondition, filter = [], name }) => {
+    processFilter () {
+      return this.componentFilter.map(({ groupCondition, filter = [], name }) => {
         filter = filter.map(({ record, ...f }) => {
           if (record) {
             f.value = record[f.name] || record.values[f.name]
@@ -615,7 +625,16 @@ export default {
         })
 
         return { groupCondition, filter, name }
-      }))
+      })
+    },
+
+    onSave (close = true, type = 'filter') {
+      if (close) {
+        this.$refs.popover.$emit('close')
+      }
+
+      // Emit only value and not whole record with every filter
+      this.$emit(type, this.processFilter())
     },
 
     updateFilterProperties (filter) {
