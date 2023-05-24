@@ -347,6 +347,21 @@
                   {{ $t('recordList.filter.addFilter') }}
                 </b-button>
               </b-form-group>
+
+              <b-row class="mb-3">
+                <b-col>
+                  <b-form-group
+                    :label="$t('recordList.record.setCustomFilterPresets')"
+                    label-class="text-primary"
+                  >
+                    <c-input-checkbox
+                      v-model="options.customFilterPresets"
+                      switch
+                      :labels="checkboxLabel"
+                    />
+                  </b-form-group>
+                </b-col>
+              </b-row>
             </b-col>
           </b-row>
         </div>

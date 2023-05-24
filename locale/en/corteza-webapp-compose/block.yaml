@@ -264,6 +264,10 @@ record:
 recordList:
   addRecord: Add
   cancelSelection: Cancel
+  customFilter: Custom filter
+  filterPresets:
+    filterName: Filter name
+    saveFilterAsPreset: Save filter as preset
   inlineEdit:
     enabled: Inline value editing enabled
     button:
@@ -321,6 +325,7 @@ recordList:
     addField: Add new filter field
     addFilter: + Add filter
     byValue: Filter records based on field value
+    addFilterToPreset: Save as preset
     conditions:
       and: AND
       or: OR
@@ -455,6 +460,7 @@ recordList:
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
     showDeletedRecordsOption: Show option to see deleted records
+    setCustomFilterPresets: User will be able to set custom filter presets
     openInSameTab: Open record in the same tab
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal

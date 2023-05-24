@@ -78,22 +78,32 @@
                 @export="onExport"
               />
 
-              <b-dropdown
-                v-if="filterPresets.length"
-                size="lg"
-                variant="light"
-                right
-                :text="$t('recordList.filter.filters.label')"
+              <b-button
+                :id="`${uniqueID}-filter-preset`"
+                class="btn dropdown-toggle btn-light btn-lg"
               >
-                <b-dropdown-item
-                  v-for="(f, idx) in filterPresets"
-                  :key="idx"
-                  :disabled="activeFilters.includes(f.name)"
-                  @click="updateFilter(f.filter, f.name)"
-                >
-                  {{ f.name }}
-                </b-dropdown-item>
-              </b-dropdown>
+                {{ $t('recordList.filter.filters.label') }}
+              </b-button>
+              <b-popover
+                :target="`${uniqueID}-filter-preset`"
+                triggers="click blur"
+                placement="bottom"
+              >
+                <ul class="list-style-none">
+                  <li
+                    v-for="(f, idx) in filterPresets"
+                    :key="idx"
+                  >
+                    <button
+                      class="dropdown-item"
+                      :disabled="activeFilters.includes(f.name)"
+                      @click="updateFilter(f.filter, f.name)"
+                    >
+                      {{ f.name }}
+                    </button>
+                  </li>
+                </ul>
+              </b-popover>
 
               <column-picker
                 v-if="!options.hideConfigureFieldsButton"
@@ -293,8 +303,10 @@
                       :namespace="namespace"
                       :module="recordListModule"
                       :record-list-filter="recordListFilter"
+                      :allow-filter-preset-save="options.customFilterPresets"
                       class="d-print-none ml-1"
                       @filter="onFilter"
+                      @filter-preset="onSaveFilterPreset"
                       @reset="activeFilters = []"
                     />
 
@@ -609,6 +621,13 @@
         open-on-select
         @save="onInlineEdit()"
       />
+
+      <!-- Modal for naming custom filter -->
+      <custom-filter-preset
+        :visible="showCustomPresetFilterModal"
+        @save="setStorageRecordListFilterPreset"
+        @close="showCustomPresetFilterModal = false"
+      />
     </template>
 
     <template
@@ -733,6 +752,7 @@ import draggable from 'vuedraggable'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/BulkEdit'
+import CustomFilterPreset from 'corteza-webapp-compose/src/components/Public/Record/CustomFilterPreset'
 
 const { CInputSearch } = components
 
@@ -752,6 +772,7 @@ export default {
     ColumnPicker,
     CInputSearch,
     BulkEditModal,
+    CustomFilterPreset,
   },
 
   extends: base,
@@ -815,6 +836,9 @@ export default {
       items: [],
       showingDeletedRecords: false,
       activeFilters: [],
+      customPresetFilters: [],
+      currentCustomPresetFilter: undefined,
+      showCustomPresetFilterModal: false,
     }
   },
 
@@ -982,7 +1006,10 @@ export default {
     },
 
     filterPresets () {
-      return this.options.filterPresets.filter(({ name, roles }) => name && this.isUserRoleMember(roles))
+      return [
+        ...this.options.filterPresets.filter(({ name, roles }) => name && this.isUserRoleMember(roles)),
+        ...this.customPresetFilters,
+      ]
     },
 
     authUserRoles () {
@@ -1008,6 +1035,7 @@ export default {
       handler () {
         this.createEvents()
         this.getStorageRecordListFilter()
+        this.getStorageRecordListFilterPreset()
         this.prepRecordList()
         this.refresh(true)
       },
@@ -1064,17 +1092,38 @@ export default {
     onFilter (filter = []) {
       filter.forEach(f => {
         if (this.activeFilters.includes(f.name)) {
-          this.filterPresets.find(p => p.name === f.name).filter.forEach((filterPreset) => {
-            if (!isEqual(f.filter, filterPreset.filter)) {
-              const filterIndex = this.activeFilters.indexOf(f.name)
-              this.activeFilters.splice(filterIndex, 1)
-            }
-          })
+          const filterPresets = this.filterPresets.find(p => p.name === f.name)
+
+          if (filterPresets) {
+            filterPresets.filter.forEach((filterPreset) => {
+              if (!isEqual(f.filter, filterPreset.filter)) {
+                const filterIndex = this.activeFilters.indexOf(f.name)
+                this.activeFilters.splice(filterIndex, 1)
+              }
+            })
+          }
+        }
+
+        if (f.filter.length === 1 && (!f.filter[0].value && !f.filter[0].name)) {
+          const filterIndex = this.activeFilters.indexOf(f.name)
+          this.activeFilters.splice(filterIndex, 1)
+        } else {
+          this.activeFilters.push(this.$t('recordList.customFilter'))
+          f.name = this.$t('recordList.customFilter')
         }
       })
 
       this.recordListFilter = filter
       this.setStorageRecordListFilter()
+      this.refresh(true)
+    },
+
+    onSaveFilterPreset (filter = []) {
+      this.currentCustomPresetFilter = {
+        filter,
+      }
+
+      this.showCustomPresetFilterModal = true
       this.refresh(true)
     },
 
@@ -1597,7 +1646,23 @@ export default {
           removeItem(`record-list-filters-${this.uniqueID}`)
         } else {
           this.recordListFilter = currentFilters
+          this.activeFilters = currentFilters.map(f => f.name)
         }
+      } catch (e) {
+        // Land here if the filter is corrupted
+        console.warn(this.$t('notification:record-list.corrupted-filter'))
+        // Remove filter from the local storage
+        removeItem(`record-list-filters-${this.uniqueID}`)
+      }
+    },
+
+    getStorageRecordListFilterPreset () {
+      try {
+        // Get record list filters from localStorage
+        const currentFilterPresets = getItem(`record-list-preset-${this.uniqueID}`)
+
+        // Set the custom preset filters
+        this.customPresetFilters = currentFilterPresets
       } catch (e) {
         // Land here if the filter is corrupted
         console.warn(this.$t('notification:record-list.corrupted-filter'))
@@ -1615,7 +1680,23 @@ export default {
         currentListFilters = this.recordListFilter
         setItem(`record-list-filters-${this.uniqueID}`, currentListFilters)
       } catch (e) {
-        console.warning(this.$t('notification:record-list.corrupted-filter'))
+        console.warn(this.$t('notification:record-list.corrupted-filter'))
+      }
+    },
+
+    setStorageRecordListFilterPreset ({ name }) {
+      this.showCustomPresetFilterModal = false
+
+      const currentListFilters = [...this.customPresetFilters]
+      currentListFilters.push({ ...this.currentCustomPresetFilter, name })
+
+      this.customPresetFilters = currentListFilters
+      this.updateFilter(this.currentCustomPresetFilter.filter, name)
+
+      try {
+        setItem(`record-list-preset-${this.uniqueID}`, currentListFilters)
+      } catch (e) {
+        console.warn(this.$t('notification:record-list.corrupted-filter'))
       }
     },
 
@@ -1714,7 +1795,7 @@ export default {
       return !expressions.value
     },
 
-    updateFilter (filter, name) {
+    updateFilter (filter = [], name) {
       const lastFilterIdx = this.recordListFilter.length - 1
       filter = filter.map((filter) => ({ ...filter, name }))
 
@@ -1799,5 +1880,11 @@ td:hover .inline-actions {
   .regular-font {
     font-family: $font-regular !important;
   }
+}
+
+.list-style-none {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 </style>
