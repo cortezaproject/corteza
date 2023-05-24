@@ -115,7 +115,7 @@ func testAutomationSessions(t *testing.T, s store.AutomationSessions) {
 		req.Len(set, 1) // we've deleted one
 
 		// find all prefixed
-		set, f, err = s.SearchAutomationSessions(ctx, types.SessionFilter{WorkflowID: []uint64{1001}})
+		set, f, err = s.SearchAutomationSessions(ctx, types.SessionFilter{WorkflowID: id.Strings(1001)})
 		req.NoError(err)
 		req.Len(set, 4)
 
