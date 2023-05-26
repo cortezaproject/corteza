@@ -77,7 +77,7 @@
               v-if="namespace.canGrant"
               :title="page.title || page.handle || page.pageID"
               :target="page.title || page.handle || page.pageID"
-              :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
+              :resource="`corteza::compose:page/${namespace.namespaceID}/${page.pageID}`"
               :button-label="$t('general:label.page')"
               :show-button-icon="false"
               button-variant="white text-left w-100"
