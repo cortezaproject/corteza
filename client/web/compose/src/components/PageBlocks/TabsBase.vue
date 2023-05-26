@@ -81,14 +81,18 @@ export default {
   computed: {
     tabbedBlocks () {
       return this.block.options.tabs.map(({ blockID, title }) => {
-        let block = this.blocks.find(b => fetchID(b) === blockID)
+        const unparsedBlock = this.blocks.find(b => fetchID(b) === blockID)
 
-        // Blocks should display as Plain, to avoid card shadow/border
-        if (block) {
-          block.style.wrap.kind = 'Plain'
-          block = compose.PageBlockMaker(block)
+        if (!unparsedBlock) {
+          return { title }
         }
 
+        let block = JSON.parse(JSON.stringify(unparsedBlock))
+
+        // Blocks should display as Plain, to avoid card shadow/border
+        block.style.wrap.kind = 'Plain'
+        block.style.border.enabled = false
+        block = compose.PageBlockMaker(block)
         return {
           block,
           title,

@@ -600,7 +600,6 @@ export default {
         if (oldBlock.meta.hidden === true && this.editor.block.meta.hidden === false) {
           this.untabBlock(this.editor.block)
           this.calculateNewBlockPosition(block)
-          block.style.wrap.kind = 'Card'
         }
 
         this.blocks.splice(this.editor.index, 1, block)
@@ -623,11 +622,33 @@ export default {
 
           tabbedBlock.meta.hidden = true
         })
+        this.showUnusedHiddenBlocks()
       }
 
       if (this.editor.block.kind === block.kind) {
         this.editor = undefined
       }
+    },
+
+    showUnusedHiddenBlocks () {
+      const allTabBlocks = this.blocks.filter(({ kind }) => kind === 'Tabs')
+
+      this.blocks.forEach(block => {
+        if (!block.meta.hidden) return
+
+        const hiddenBlockID = fetchID(block)
+
+        // Go through all hidden blocks to see if they are tabbed anywhere
+        const tabbed = allTabBlocks.some(({ options }) => {
+          const { tabs = [] } = options
+          return tabs.some(({ blockID }) => blockID === hiddenBlockID)
+        })
+
+        if (!tabbed) {
+          this.calculateNewBlockPosition(block)
+          block.meta.hidden = false
+        }
+      })
     },
 
     cloneBlock (index) {
