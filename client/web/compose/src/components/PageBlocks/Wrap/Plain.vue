@@ -1,7 +1,7 @@
 <template>
   <div class="h-100">
     <div
-      class="card bg-transparent h-100 overflow-hidden"
+      class="d-flex flex-column card bg-transparent h-100 overflow-hidden"
       :class="[blockClass, cardClass]"
     >
       <div
@@ -72,7 +72,7 @@
       </div>
 
       <div
-        class="card-body p-0"
+        class="card-body p-0 flex-fill"
         :class="{ 'overflow-auto': scrollableBody }"
         style="flex-shrink: 10;"
       >
@@ -83,7 +83,7 @@
 
       <b-card-footer
         v-if="footerSet"
-        class="card-footer bg-transparent p-0 overflow-hidden border-top"
+        class="card-footer bg-transparent p-0 border-top"
       >
         <slot
           name="footer"

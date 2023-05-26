@@ -94,8 +94,8 @@ const defaults: Readonly<Options> = Object.freeze({
   recordSelectorDisplayOption: 'sameTab',
   magnifyOption: '',
 
-  fullPageNavigation: true,
-  showTotalCount: true,
+  fullPageNavigation: false,
+  showTotalCount: false,
   showDeletedRecordsOption: false,
 
   editable: false,

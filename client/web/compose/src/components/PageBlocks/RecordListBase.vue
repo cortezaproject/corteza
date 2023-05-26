@@ -417,7 +417,7 @@
                   />
                   <div
                     v-if="options.inlineRecordEditEnabled && field.canEdit"
-                    class="inline-actions ml-auto"
+                    class="inline-actions"
                   >
                     <b-button
                       :title="$t('recordList.inlineEdit.button.title')"
@@ -612,112 +612,105 @@
     </template>
 
     <template
-      v-if="showFooter"
       #footer
     >
-      <b-container
-        fluid
-        class="m-0 p-2"
+      <div
+        v-if="showFooter"
+        class="d-flex align-items-center justify-content-between p-2"
       >
-        <b-row
-          align-v="stretch"
-          no-gutters
-        >
-          <b-col class="d-flex align-items-center justify-content-start">
-            <div class="text-truncate">
-              <div
-                v-if="options.showTotalCount"
-                class="ml-2 text-nowrap my-1"
-              >
-                <span
-                  v-if="pagination.count > options.perPage"
-                  data-test-id="pagination-range"
-                >
-                  {{ $t('recordList.pagination.showing', getPagination) }}
-                </span>
-                <span
-                  v-else
-                  data-test-id="pagination-single-number"
-                >
-                  {{ $t('recordList.pagination.single', getPagination) }}
-                </span>
-              </div>
-            </div>
-          </b-col>
-
-          <b-col
-            v-if="showPageNavigation"
-            class="d-flex align-items-center justify-content-end"
+        <div class="text-truncate">
+          <div
+            v-if="options.showTotalCount"
+            class="ml-2 text-nowrap my-1"
           >
-            <b-pagination
-              v-if="options.fullPageNavigation"
-              data-test-id="pagination"
-              align="right"
-              aria-controls="record-list"
-              class="m-0 d-print-none"
-              pills
-              :value="getPagination.page"
-              :per-page="getPagination.perPage"
-              :total-rows="getPagination.count"
-              @change="goToPage"
+            <span
+              v-if="pagination.count > options.perPage"
+              data-test-id="pagination-range"
             >
-              <template #first-text>
-                <font-awesome-icon :icon="['fas', 'angle-double-left']" />
-              </template>
-              <template #prev-text>
-                <font-awesome-icon :icon="['fas', 'angle-left']" />
-              </template>
-              <template #next-text>
-                <font-awesome-icon :icon="['fas', 'angle-right']" />
-              </template>
-              <template #last-text>
-                <font-awesome-icon :icon="['fas', 'angle-double-right']" />
-              </template>
-              <template #elipsis-text>
-                <font-awesome-icon :icon="['fas', 'ellipsis-h']" />
-              </template>
-            </b-pagination>
+              {{ $t('recordList.pagination.showing', getPagination) }}
+            </span>
+            <span
+              v-else
+              data-test-id="pagination-single-number"
+            >
+              {{ $t('recordList.pagination.single', getPagination) }}
+            </span>
+          </div>
+        </div>
 
-            <b-button-group v-else>
-              <b-button
-                :disabled="!hasPrevPage"
-                data-test-id="first-page"
-                variant="outline-light"
-                class="d-flex align-items-center justify-content-center text-primary border-0"
-                @click="goToPage()"
-              >
-                <font-awesome-icon :icon="['fas', 'angle-double-left']" />
-              </b-button>
-              <b-button
-                :disabled="!hasPrevPage"
-                data-test-id="previous-page"
-                variant="outline-light"
-                class="d-flex align-items-center justify-content-center text-primary border-0"
-                @click="goToPage('prevPage')"
-              >
-                <font-awesome-icon
-                  :icon="['fas', 'angle-left']"
-                  class="mr-1"
-                />
-                {{ $t('recordList.pagination.prev') }}
-              </b-button>
-              <b-button
-                :disabled="!hasNextPage"
-                data-test-id="next-page"
-                variant="outline-light"
-                class="d-flex align-items-center justify-content-center text-primary border-0"
-                @click="goToPage('nextPage')"
-              >
-                {{ $t('recordList.pagination.next') }}
-                <font-awesome-icon
-                  :icon="['fas', 'angle-right']"
-                  class="ml-1"
-                />
-              </b-button>
-            </b-button-group>
-          </b-col>
-        </b-row>
-      </b-container>
+        <div
+          v-if="showPageNavigation"
+          class="d-flex align-items-center justify-content-end"
+        >
+          <b-pagination
+            v-if="options.fullPageNavigation"
+            data-test-id="pagination"
+            align="right"
+            aria-controls="record-list"
+            class="m-0 d-print-none"
+            pills
+            :disabled="processing"
+            :value="getPagination.page"
+            :per-page="getPagination.perPage"
+            :total-rows="getPagination.count"
+            @change="goToPage"
+          >
+            <template #first-text>
+              <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+            </template>
+            <template #prev-text>
+              <font-awesome-icon :icon="['fas', 'angle-left']" />
+            </template>
+            <template #next-text>
+              <font-awesome-icon :icon="['fas', 'angle-right']" />
+            </template>
+            <template #last-text>
+              <font-awesome-icon :icon="['fas', 'angle-double-right']" />
+            </template>
+            <template #elipsis-text>
+              <font-awesome-icon :icon="['fas', 'ellipsis-h']" />
+            </template>
+          </b-pagination>
+
+          <b-button-group v-else>
+            <b-button
+              :disabled="!hasPrevPage || processing"
+              data-test-id="first-page"
+              variant="outline-light"
+              class="d-flex align-items-center justify-content-center text-primary border-0"
+              @click="goToPage()"
+            >
+              <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+            </b-button>
+            <b-button
+              :disabled="!hasPrevPage || processing"
+              data-test-id="previous-page"
+              variant="outline-light"
+              class="d-flex align-items-center justify-content-center text-primary border-0"
+              @click="goToPage('prevPage')"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'angle-left']"
+                class="mr-1"
+              />
+              {{ $t('recordList.pagination.prev') }}
+            </b-button>
+            <b-button
+              :disabled="!hasNextPage || processing"
+              data-test-id="next-page"
+              variant="outline-light"
+              class="d-flex align-items-center justify-content-center text-primary border-0"
+              @click="goToPage('nextPage')"
+            >
+              {{ $t('recordList.pagination.next') }}
+              <font-awesome-icon
+                :icon="['fas', 'angle-right']"
+                class="ml-1"
+              />
+            </b-button>
+          </b-button-group>
+        </div>
+      </div>
     </template>
   </wrap>
 </template>
@@ -1344,13 +1337,13 @@ export default {
       this.processing = false
     },
 
-    async handleRowClicked ({ r: { recordID } }) {
+    handleRowClicked ({ r: { recordID } }) {
       if ((this.options.editable && this.editing) || (!this.recordPageID && !this.options.rowViewUrl)) {
         return
       }
 
       if (this.options.enableRecordPageNavigation) {
-        await this.loadPaginationRecords({
+        this.loadPaginationRecords({
           filter: {
             ...this.filter,
             limit: Math.min(this.pagination.count, 100),
