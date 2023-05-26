@@ -6,9 +6,11 @@ import (
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service"
 	systemTypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -29,10 +31,17 @@ func migratePages(ctx context.Context, log *zap.Logger, s store.Storer) (err err
 		auxf  types.PageFilter
 
 		translations systemTypes.ResourceTranslationSet
+		nsRules      rbac.RuleSet
+		pgRules      rbac.RuleSet
 	)
 
 	return store.Tx(ctx, s, func(ctx context.Context, s store.Storer) (err error) {
 		translations, err = getRelevantTranslations(ctx, s)
+		if err != nil {
+			return
+		}
+
+		nsRules, pgRules, err = getRelevantRbacRules(ctx, s)
 		if err != nil {
 			return
 		}
@@ -51,7 +60,7 @@ func migratePages(ctx context.Context, log *zap.Logger, s store.Storer) (err err
 				break
 			}
 
-			err = migratePageChunk(ctx, s, translations, pages)
+			err = migratePageChunk(ctx, s, nsRules, pgRules, translations, pages)
 			if err != nil {
 				return
 			}
@@ -100,7 +109,32 @@ func getRelevantTranslations(ctx context.Context, s store.Storer) (out systemTyp
 	return
 }
 
-func migratePageChunk(ctx context.Context, s store.Storer, translations systemTypes.ResourceTranslationSet, pages types.PageSet) (err error) {
+func getRelevantRbacRules(ctx context.Context, s store.Storer) (nsOut, pgOut rbac.RuleSet, err error) {
+	ll, _, err := store.SearchRbacRules(ctx, s, rbac.RuleFilter{})
+	if err != nil {
+		return
+	}
+
+	for _, r := range ll {
+		if strings.HasPrefix(r.Resource, types.NamespaceResourceType) {
+			switch r.Operation {
+			case "pages.search", "page.create":
+				nsOut = append(nsOut, r)
+			}
+		}
+
+		if strings.HasPrefix(r.Resource, types.PageResourceType) {
+			switch r.Operation {
+			case "read", "update", "delete":
+				pgOut = append(pgOut, r)
+			}
+		}
+	}
+
+	return
+}
+
+func migratePageChunk(ctx context.Context, s store.Storer, nsRules, pgRules rbac.RuleSet, translations systemTypes.ResourceTranslationSet, pages types.PageSet) (err error) {
 	n := now()
 	for _, p := range pages {
 
@@ -144,8 +178,8 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 		}
 
 		// Title, description
-		x := tt.FilterKey(types.LocaleKeyPageTitle.Path)
-		for _, t := range x {
+		ttAux := tt.FilterKey(types.LocaleKeyPageTitle.Path)
+		for _, t := range ttAux {
 			tt = append(tt, &systemTypes.ResourceTranslation{
 				ID:        nextID(),
 				Resource:  ly.ResourceTranslation(),
@@ -156,8 +190,8 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 			})
 		}
 
-		x = tt.FilterKey(types.LocaleKeyPageDescription.Path)
-		for _, t := range x {
+		ttAux = tt.FilterKey(types.LocaleKeyPageDescription.Path)
+		for _, t := range ttAux {
 			tt = append(tt, &systemTypes.ResourceTranslation{
 				ID:        nextID(),
 				Resource:  ly.ResourceTranslation(),
@@ -166,6 +200,63 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 				Message:   t.Message,
 				CreatedAt: *n,
 			})
+		}
+
+		// RBAC
+		rr := make(rbac.RuleSet, 0, len(pgRules)+len(nsRules))
+		// - from namespace
+		for _, r := range nsRules {
+			nsRef := strings.Split(r.Resource, "/")[1]
+			pgRes := types.PageRbacResource(cast.ToUint64(nsRef), 0)
+
+			switch r.Operation {
+			case "pages.search":
+				rr = append(rr, &rbac.Rule{
+					RoleID:    r.RoleID,
+					Resource:  pgRes,
+					Operation: "page-layouts.search",
+					Access:    r.Access,
+				})
+			case "page.create":
+				rr = append(rr, &rbac.Rule{
+					RoleID:    r.RoleID,
+					Resource:  pgRes,
+					Operation: "page-layout.create",
+					Access:    r.Access,
+				})
+			}
+		}
+
+		// - from page
+		for _, r := range pgRules {
+			pp := strings.Split(r.Resource, "/")
+			nsRef := pp[1]
+			pgRef := pp[2]
+			lyRes := types.PageLayoutRbacResource(cast.ToUint64(nsRef), cast.ToUint64(pgRef), 0)
+
+			switch r.Operation {
+			case "read":
+				rr = append(rr, &rbac.Rule{
+					RoleID:    r.RoleID,
+					Resource:  lyRes,
+					Operation: "read",
+					Access:    r.Access,
+				})
+			case "update":
+				rr = append(rr, &rbac.Rule{
+					RoleID:    r.RoleID,
+					Resource:  lyRes,
+					Operation: "update",
+					Access:    r.Access,
+				})
+			case "delete":
+				rr = append(rr, &rbac.Rule{
+					RoleID:    r.RoleID,
+					Resource:  lyRes,
+					Operation: "delete",
+					Access:    r.Access,
+				})
+			}
 		}
 
 		// Blocks
@@ -189,6 +280,11 @@ func migratePageChunk(ctx context.Context, s store.Storer, translations systemTy
 		}
 
 		err = store.UpsertResourceTranslation(ctx, s, tt...)
+		if err != nil {
+			return
+		}
+
+		err = store.UpsertRbacRule(ctx, s, rr...)
 		if err != nil {
 			return
 		}
