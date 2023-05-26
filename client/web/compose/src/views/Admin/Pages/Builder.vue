@@ -779,7 +779,7 @@ export default {
 
       layout.meta.title = `${layout.meta.title}`
 
-      this.createPageLayout(this.layout).then(({ layoutID }) => {
+      this.createPageLayout(layout).then(({ layoutID }) => {
         return this.fetchPageLayouts().then(() => {
           this.switchLayout(layoutID)
           this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
