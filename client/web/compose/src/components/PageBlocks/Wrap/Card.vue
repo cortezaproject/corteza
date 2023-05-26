@@ -2,7 +2,7 @@
   <div class="h-100">
     <b-card
       no-body
-      class="h-100 shadow overflow-hidden"
+      class="d-flex flex-column h-100 shadow overflow-hidden"
       :class="[blockClass, cardClass]"
     >
       <b-card-header
@@ -74,9 +74,8 @@
       </div>
 
       <b-card-body
-        class="p-0"
+        class="p-0 flex-fill"
         :class="{ 'overflow-auto': scrollableBody }"
-        style="flex-shrink: 10;"
       >
         <slot
           name="default"
@@ -85,7 +84,7 @@
 
       <b-card-footer
         v-if="footerSet"
-        class="p-0 overflow-hidden bg-white border-top"
+        class="p-0 bg-white border-top"
       >
         <slot
           name="footer"
