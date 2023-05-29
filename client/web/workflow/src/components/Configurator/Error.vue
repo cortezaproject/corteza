@@ -21,15 +21,38 @@
         class="mb-0"
       >
         <expression-editor
-          :value.sync="item.config.arguments[0].expr"
+          v-model="item.config.arguments[0].expr"
           lang="javascript"
           font-size="18px"
           show-line-numbers
           :border="false"
+          @open="openInEditor"
           @input="valueChanged"
         />
       </b-form-group>
     </b-card-body>
+
+    <b-modal
+      id="expression-editor"
+      :visible="!!expressionEditor.currentExpression"
+      :title="$t('editor:editor')"
+      size="lg"
+      :ok-title="$t('general:save')"
+      :cancel-title="$t('general:cancel')"
+      body-class="p-0"
+      @ok="saveExpression"
+      @hidden="resetExpression"
+    >
+      <expression-editor
+        v-model="expressionEditor.currentExpression"
+        lang="javascript"
+        height="500"
+        font-size="18px"
+        show-line-numbers
+        :border="false"
+        :show-popout="false"
+      />
+    </b-modal>
   </b-card>
 </template>
 
@@ -38,11 +61,19 @@ import base from './base'
 import ExpressionEditor from '../ExpressionEditor'
 
 export default {
-
   components: {
     ExpressionEditor,
   },
+
   extends: base,
+
+  data () {
+    return {
+      expressionEditor: {
+        currentExpression: undefined,
+      },
+    }
+  },
 
   created () {
     let args = [{
@@ -70,6 +101,23 @@ export default {
         value: `Stop workflow with error: ${value}`,
         force: !this.item.node.value,
       })
+      this.$root.$emit('change-detected')
+    },
+
+    openInEditor () {
+      this.expressionEditor.currentExpression = this.item.config.arguments[0].expr
+    },
+
+    saveExpression () {
+      const { currentExpression } = this.expressionEditor
+      this.$set(this.item.config.arguments[0], 'expr', currentExpression)
+      this.$root.$emit('change-detected')
+
+      this.resetExpression()
+    },
+
+    resetExpression () {
+      this.expressionEditor.currentExpression = undefined
     },
   },
 }
