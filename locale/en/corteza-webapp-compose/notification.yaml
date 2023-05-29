@@ -106,7 +106,7 @@ page:
       success: Layout saved
       failed: Failed to save layout
     clone:
-      success: Layout created
+      success: Layout cloned and selected
       failed: Failed to clone layout
     delete:
       success: Layout deleted
