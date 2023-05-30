@@ -95,7 +95,7 @@ session: {
 			resource_type: { goType: "string" }
 		}
 
-		byValue: ["status", "workflow_id", "event_type", "resource_type", "created_by"]
+		byValue: ["status", "session_id", "workflow_id", "event_type", "resource_type", "created_by"]
 		byNilState: ["completed"]
 	}
 

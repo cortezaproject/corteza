@@ -387,6 +387,10 @@ func AutomationSessionFilter(d drivers.Dialect, f automationType.SessionFilter) 
 	// @todo codegen warning: filtering by Status ([]uint) not supported,
 	//       see rdbms.go.tpl and add an exception
 
+	if len(f.SessionID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.SessionID))
+	}
+
 	if len(f.WorkflowID) > 0 {
 		ee = append(ee, goqu.C("rel_workflow").In(f.WorkflowID))
 	}

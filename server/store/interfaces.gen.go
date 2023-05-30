@@ -817,7 +817,7 @@ func TruncateApigwRoutes(ctx context.Context, s ApigwRoutes) error {
 
 // LookupApigwRouteByID searches for route by ID
 //
-// # It returns route even if deleted or suspended
+// It returns route even if deleted or suspended
 //
 // This function is auto-generated
 func LookupApigwRouteByID(ctx context.Context, s ApigwRoutes, id uint64) (*systemType.ApigwRoute, error) {
@@ -826,7 +826,7 @@ func LookupApigwRouteByID(ctx context.Context, s ApigwRoutes, id uint64) (*syste
 
 // LookupApigwRouteByEndpoint searches for route by endpoint
 //
-// # It returns route even if deleted or suspended
+// It returns route even if deleted or suspended
 //
 // This function is auto-generated
 func LookupApigwRouteByEndpoint(ctx context.Context, s ApigwRoutes, endpoint string) (*systemType.ApigwRoute, error) {
@@ -884,7 +884,7 @@ func TruncateApplications(ctx context.Context, s Applications) error {
 
 // LookupApplicationByID searches for role by ID
 //
-// # It returns role even if deleted or suspended
+// It returns role even if deleted or suspended
 //
 // This function is auto-generated
 func LookupApplicationByID(ctx context.Context, s Applications, id uint64) (*systemType.Application, error) {
@@ -1012,7 +1012,7 @@ func TruncateAuthClients(ctx context.Context, s AuthClients) error {
 
 // LookupAuthClientByID 	searches for auth client by ID
 //
-//	It returns auth clint even if deleted
+// 	It returns auth clint even if deleted
 //
 // This function is auto-generated
 func LookupAuthClientByID(ctx context.Context, s AuthClients, id uint64) (*systemType.AuthClient, error) {
@@ -1021,7 +1021,7 @@ func LookupAuthClientByID(ctx context.Context, s AuthClients, id uint64) (*syste
 
 // LookupAuthClientByHandle searches for auth client by ID
 //
-// # It returns auth clint even if deleted
+// It returns auth clint even if deleted
 //
 // This function is auto-generated
 func LookupAuthClientByHandle(ctx context.Context, s AuthClients, handle string) (*systemType.AuthClient, error) {
@@ -1317,7 +1317,7 @@ func TruncateAutomationSessions(ctx context.Context, s AutomationSessions) error
 
 // LookupAutomationSessionByID searches for session by ID
 //
-// # It returns session even if deleted
+// It returns session even if deleted
 //
 // This function is auto-generated
 func LookupAutomationSessionByID(ctx context.Context, s AutomationSessions, id uint64) (*automationType.Session, error) {
@@ -1375,7 +1375,7 @@ func TruncateAutomationTriggers(ctx context.Context, s AutomationTriggers) error
 
 // LookupAutomationTriggerByID searches for trigger by ID
 //
-// # It returns trigger even if deleted
+// It returns trigger even if deleted
 //
 // This function is auto-generated
 func LookupAutomationTriggerByID(ctx context.Context, s AutomationTriggers, id uint64) (*automationType.Trigger, error) {
@@ -1433,7 +1433,7 @@ func TruncateAutomationWorkflows(ctx context.Context, s AutomationWorkflows) err
 
 // LookupAutomationWorkflowByID searches for workflow by ID
 //
-// # It returns workflow even if deleted
+// It returns workflow even if deleted
 //
 // This function is auto-generated
 func LookupAutomationWorkflowByID(ctx context.Context, s AutomationWorkflows, id uint64) (*automationType.Workflow, error) {
@@ -1442,7 +1442,7 @@ func LookupAutomationWorkflowByID(ctx context.Context, s AutomationWorkflows, id
 
 // LookupAutomationWorkflowByHandle searches for workflow by their handle
 //
-// # It returns only valid workflows
+// It returns only valid workflows
 //
 // This function is auto-generated
 func LookupAutomationWorkflowByHandle(ctx context.Context, s AutomationWorkflows, handle string) (*automationType.Workflow, error) {
@@ -1556,7 +1556,7 @@ func TruncateComposeCharts(ctx context.Context, s ComposeCharts) error {
 
 // LookupComposeChartByID searches for compose chart by ID
 //
-// # It returns compose chart even if deleted
+// It returns compose chart even if deleted
 //
 // This function is auto-generated
 func LookupComposeChartByID(ctx context.Context, s ComposeCharts, id uint64) (*composeType.Chart, error) {
@@ -1635,7 +1635,7 @@ func LookupComposeModuleByNamespaceIDName(ctx context.Context, s ComposeModules,
 
 // LookupComposeModuleByID searches for compose module by ID
 //
-// # It returns compose module even if deleted
+// It returns compose module even if deleted
 //
 // This function is auto-generated
 func LookupComposeModuleByID(ctx context.Context, s ComposeModules, id uint64) (*composeType.Module, error) {
@@ -1763,7 +1763,7 @@ func LookupComposeNamespaceBySlug(ctx context.Context, s ComposeNamespaces, slug
 
 // LookupComposeNamespaceByID searches for compose namespace by ID
 //
-// # It returns compose namespace even if deleted
+// It returns compose namespace even if deleted
 //
 // This function is auto-generated
 func LookupComposeNamespaceByID(ctx context.Context, s ComposeNamespaces, id uint64) (*composeType.Namespace, error) {
@@ -1835,7 +1835,7 @@ func LookupComposePageByNamespaceIDModuleID(ctx context.Context, s ComposePages,
 
 // LookupComposePageByID searches for compose page by ID
 //
-// # It returns compose page even if deleted
+// It returns compose page even if deleted
 //
 // This function is auto-generated
 func LookupComposePageByID(ctx context.Context, s ComposePages, id uint64) (*composeType.Page, error) {
@@ -1979,7 +1979,7 @@ func TruncateCredentials(ctx context.Context, s Credentials) error {
 
 // LookupCredentialByID searches for credentials by ID
 //
-// # It returns credentials even if deleted
+// It returns credentials even if deleted
 //
 // This function is auto-generated
 func LookupCredentialByID(ctx context.Context, s Credentials, id uint64) (*systemType.Credential, error) {
@@ -2037,7 +2037,7 @@ func TruncateDalConnections(ctx context.Context, s DalConnections) error {
 
 // LookupDalConnectionByID searches for connection by ID
 //
-// # It returns connection even if deleted or suspended
+// It returns connection even if deleted or suspended
 //
 // This function is auto-generated
 func LookupDalConnectionByID(ctx context.Context, s DalConnections, id uint64) (*systemType.DalConnection, error) {
@@ -2104,7 +2104,7 @@ func TruncateDalSensitivityLevels(ctx context.Context, s DalSensitivityLevels) e
 
 // LookupDalSensitivityLevelByID searches for user by ID
 //
-// # It returns user even if deleted or suspended
+// It returns user even if deleted or suspended
 //
 // This function is auto-generated
 func LookupDalSensitivityLevelByID(ctx context.Context, s DalSensitivityLevels, id uint64) (*systemType.DalSensitivityLevel, error) {
@@ -2162,7 +2162,7 @@ func TruncateDataPrivacyRequests(ctx context.Context, s DataPrivacyRequests) err
 
 // LookupDataPrivacyRequestByID searches for data privacy request by ID
 //
-// # It returns data privacy request even if deleted
+// It returns data privacy request even if deleted
 //
 // This function is auto-generated
 func LookupDataPrivacyRequestByID(ctx context.Context, s DataPrivacyRequests, id uint64) (*systemType.DataPrivacyRequest, error) {
@@ -2269,7 +2269,7 @@ func TruncateFederationExposedModules(ctx context.Context, s FederationExposedMo
 
 // LookupFederationExposedModuleByID searches for federation module by ID
 //
-// # It returns federation module
+// It returns federation module
 //
 // This function is auto-generated
 func LookupFederationExposedModuleByID(ctx context.Context, s FederationExposedModules, id uint64) (*federationType.ExposedModule, error) {
@@ -2320,7 +2320,7 @@ func TruncateFederationModuleMappings(ctx context.Context, s FederationModuleMap
 
 // LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID searches for module mapping by federation module id and compose module id
 //
-// # It returns module mapping
+// It returns module mapping
 //
 // This function is auto-generated
 func LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, s FederationModuleMappings, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) (*federationType.ModuleMapping, error) {
@@ -2329,7 +2329,7 @@ func LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeName
 
 // LookupFederationModuleMappingByFederationModuleID searches for module mapping by federation module id
 //
-// # It returns module mapping
+// It returns module mapping
 //
 // This function is auto-generated
 func LookupFederationModuleMappingByFederationModuleID(ctx context.Context, s FederationModuleMappings, federationModuleID uint64) (*federationType.ModuleMapping, error) {
@@ -2387,7 +2387,7 @@ func TruncateFederationNodes(ctx context.Context, s FederationNodes) error {
 
 // LookupFederationNodeByID searches for federation node by ID
 //
-// # It returns federation node
+// It returns federation node
 //
 // This function is auto-generated
 func LookupFederationNodeByID(ctx context.Context, s FederationNodes, id uint64) (*federationType.Node, error) {
@@ -2459,7 +2459,7 @@ func TruncateFederationNodeSyncs(ctx context.Context, s FederationNodeSyncs) err
 
 // LookupFederationNodeSyncByNodeID searches for sync activity by node ID
 //
-// # It returns sync activity
+// It returns sync activity
 //
 // This function is auto-generated
 func LookupFederationNodeSyncByNodeID(ctx context.Context, s FederationNodeSyncs, nodeID uint64) (*federationType.NodeSync, error) {
@@ -2468,7 +2468,7 @@ func LookupFederationNodeSyncByNodeID(ctx context.Context, s FederationNodeSyncs
 
 // LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus searches for activity by node, type and status
 //
-// # It returns sync activity
+// It returns sync activity
 //
 // This function is auto-generated
 func LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, s FederationNodeSyncs, nodeID uint64, moduleID uint64, syncType string, syncStatus string) (*federationType.NodeSync, error) {
@@ -2526,7 +2526,7 @@ func TruncateFederationSharedModules(ctx context.Context, s FederationSharedModu
 
 // LookupFederationSharedModuleByID searches for shared federation module by ID
 //
-// # It returns shared federation module
+// It returns shared federation module
 //
 // This function is auto-generated
 func LookupFederationSharedModuleByID(ctx context.Context, s FederationSharedModules, id uint64) (*federationType.SharedModule, error) {
@@ -2927,7 +2927,7 @@ func TruncateReports(ctx context.Context, s Reports) error {
 
 // LookupReportByID searches for report by ID
 //
-// # It returns report even if deleted
+// It returns report even if deleted
 //
 // This function is auto-generated
 func LookupReportByID(ctx context.Context, s Reports, id uint64) (*systemType.Report, error) {
@@ -2936,7 +2936,7 @@ func LookupReportByID(ctx context.Context, s Reports, id uint64) (*systemType.Re
 
 // LookupReportByHandle searches for report by handle
 //
-// # It returns report if deleted
+// It returns report if deleted
 //
 // This function is auto-generated
 func LookupReportByHandle(ctx context.Context, s Reports, handle string) (*systemType.Report, error) {
@@ -3107,7 +3107,7 @@ func TruncateRoles(ctx context.Context, s Roles) error {
 
 // LookupRoleByID searches for role by ID
 //
-// # It returns role even if deleted or suspended
+// It returns role even if deleted or suspended
 //
 // This function is auto-generated
 func LookupRoleByID(ctx context.Context, s Roles, id uint64) (*systemType.Role, error) {
@@ -3369,7 +3369,7 @@ func TruncateUsers(ctx context.Context, s Users) error {
 
 // LookupUserByID searches for user by ID
 //
-// # It returns user even if deleted or suspended
+// It returns user even if deleted or suspended
 //
 // This function is auto-generated
 func LookupUserByID(ctx context.Context, s Users, id uint64) (*systemType.User, error) {
