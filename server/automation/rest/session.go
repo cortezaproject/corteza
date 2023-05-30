@@ -67,6 +67,14 @@ func (ctrl Session) List(ctx context.Context, r *request.SessionList) (interface
 		return nil, err
 	}
 
+	// fixes issue with sorting of status column and pagination
+	// need to improve on cursor for this
+	if f.Paging.PageCursor != nil {
+		for _, status := range r.Status {
+			f.Paging.PageCursor.Set("status", status, false)
+		}
+	}
+
 	f.IncTotal = r.IncTotal
 
 	if f.Sorting, err = filter.NewSorting(r.Sort); err != nil {

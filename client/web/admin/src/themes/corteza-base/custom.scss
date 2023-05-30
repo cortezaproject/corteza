@@ -59,7 +59,12 @@ th {
 
 // custom height for resource lists with buttons
 .custom-resource-list-height {
-  height: calc(100vh - 115px);
+  height: calc(100vh - 120px);
+}
+
+// custom height for resource lists without buttons
+.custom-resource-list-height-no-buttons {
+  height: calc(100vh - 105px);
 }
 
 // to remove the gap on top of the sticky header table
