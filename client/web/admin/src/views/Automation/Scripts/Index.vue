@@ -1,5 +1,6 @@
 <template>
   <b-container
+    fluid="xl"
     class="d-flex flex-column h-100 py-3"
   >
     <c-content-header

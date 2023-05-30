@@ -122,7 +122,10 @@
       </b-table>
     </b-card-body>
 
-    <template #footer>
+    <template
+      v-if="showFooter"
+      #footer
+    >
       <div
         class="d-flex align-items-center justify-content-between"
       >
@@ -138,7 +141,7 @@
         </div>
 
         <b-button-group
-          v-if="showPagination"
+          v-if="!hidePagination"
         >
           <b-button
             :disabled="!hasPrevPage"
@@ -328,8 +331,8 @@ export default {
       return !!this.pagination.nextPage
     },
 
-    showPagination () {
-      return !this.hidePagination && (this.hasPrevPage || this.hasNextPage)
+    showFooter () {
+      return !(this.hideTotal && this.hidePagination)
     }
   },
 
