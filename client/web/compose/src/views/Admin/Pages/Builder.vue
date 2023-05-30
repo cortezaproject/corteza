@@ -772,16 +772,16 @@ export default {
       this.processing = true
 
       const layout = {
-        ...this.layout,
+        ...this.layout.clone(),
         handle: '',
         weight: this.layouts.length + 1,
       }
 
-      layout.meta.title = `${layout.meta.title}`
+      layout.meta.title = `${this.$t('copyOf')}${layout.meta.title}`
 
-      this.createPageLayout(this.layout).then(({ layoutID }) => {
+      this.createPageLayout(layout).then(({ pageLayoutID }) => {
         return this.fetchPageLayouts().then(() => {
-          this.switchLayout(layoutID)
+          this.switchLayout(pageLayoutID)
           this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
         })
       }).finally(() => {
