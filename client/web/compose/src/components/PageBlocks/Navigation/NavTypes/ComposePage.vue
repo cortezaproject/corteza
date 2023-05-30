@@ -60,7 +60,7 @@
 import base from './base'
 
 import { VueSelect } from 'vue-select'
-import { compose } from '@cortezaproject/corteza-js'
+import { NoID, compose } from '@cortezaproject/corteza-js'
 
 export default {
   components: {
@@ -99,9 +99,9 @@ export default {
     loadTree () {
       const { namespaceID } = this.namespace
       this.$ComposeAPI
-        .pageTree({ namespaceID })
-        .then(tree => {
-          this.tree = tree.map(p => new compose.Page(p))
+        .pageList({ namespaceID, sort: 'title' })
+        .then(({ set: tree }) => {
+          this.tree = tree.map(p => new compose.Page(p)).filter(p => p.moduleID === NoID)
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
     },
