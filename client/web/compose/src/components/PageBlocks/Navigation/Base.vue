@@ -20,7 +20,10 @@
           :key="`navItem-${index}`"
           :disabled="!navItem.options.enabled"
           :style="{ order: index, color: navItem.options.textColor, background: navItem.options.backgroundColor, justifyContent: options.display.alignment }"
-          :link-attrs="{ style: `color: ${navItem.options.textColor}` }"
+          :link-attrs="{
+            style: `color: ${navItem.options.textColor}`,
+          }"
+          link-classes="h-100 w-100 d-flex align-items-center justify-content-center"
           :href="generateHrefAttributeLink(navItem)"
           :to="generateToAttributeLink(navItem)"
           :target="selectTargetOption(navItem.options.item.target)"
@@ -29,7 +32,7 @@
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
             <b-button
               :id="`dropdown-popover-${index}-${block.blockID}`"
-              class="text-decoration-none p-0"
+              class="text-decoration-none p-0 w-100 h-100"
               variant="link"
               :style="{ color: navItem.options.textColor, background: navItem.options.backgroundColor }"
             >
@@ -76,6 +79,20 @@
               </template>
 
               <template v-else>
+                <b-link
+                  :to="{ name: 'page', params: { pageID: navItem.options.item.pageID } }"
+                  :target="selectTargetOption(navItem.options.item.target)"
+                  :disabled="navItem.options.disabled"
+                  class="dropdown-item"
+                  style="white-space: normal;"
+                >
+                  {{ navItem.options.item.label }}
+                </b-link>
+
+                <hr
+                  class="my-1"
+                >
+
                 <div
                   v-for="(dropdown, dIndex) in getSubPages(navItem.options.item.pageID)"
                   :key="`dropdown-${dIndex}`"
