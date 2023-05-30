@@ -34,7 +34,7 @@ export default {
     },
 
     isBlockOpened () {
-      return this.block.blockID === this.$route.query.blockID
+      return this.block.blockID === this.$route.query.magnifiedBlockID
     },
 
     headerSet () {
