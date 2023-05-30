@@ -76,26 +76,26 @@ export default {
   },
 
   watch: {
-    '$route.query.blockID': {
+    '$route.query.magnifiedBlockID': {
       immediate: true,
-      handler (blockID, oldBlockID) {
-        if (!blockID) {
+      handler (magnifiedBlockID, oldMagnifiedBlockID) {
+        if (!magnifiedBlockID) {
           this.showModal = false
           return
         }
 
-        if (this.showModal && (blockID !== oldBlockID)) {
+        if (this.showModal && (magnifiedBlockID !== oldMagnifiedBlockID)) {
           this.showModal = false
 
           setTimeout(() => {
-            this.$router.push({ query: { ...this.$route.query, blockID } })
+            this.$router.push({ query: { ...this.$route.query, magnifiedBlockID } })
           }, 300)
 
           return
         }
 
         setTimeout(() => {
-          this.loadModal(blockID)
+          this.loadModal(magnifiedBlockID)
         }, 100)
       },
     },
@@ -112,8 +112,8 @@ export default {
   methods: {
     magnifyPageBlock ({ blockID, block } = {}) {
       this.customBlock = block
-      blockID = blockID || (block || {}).blockID
-      this.$router.push({ query: { ...this.$route.query, blockID } })
+      const magnifiedBlockID = blockID || (block || {}).blockID
+      this.$router.push({ query: { ...this.$route.query, magnifiedBlockID } })
     },
 
     loadModal (blockID) {
@@ -148,7 +148,7 @@ export default {
     },
 
     hideModal () {
-      this.$router.push({ query: { ...this.$route.query, blockID: undefined } })
+      this.$router.push({ query: { ...this.$route.query, magnifiedBlockID: undefined } })
     },
   },
 }
