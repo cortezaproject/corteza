@@ -84,7 +84,7 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 	}
 
 	if err = client.Verify(); err != nil {
-		return
+		return fmt.Errorf("flow broken; client verification failed: %w", err)
 	}
 
 	if !h.canAuthorizeClient(req.Context(), req.Client) {
