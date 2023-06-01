@@ -76,17 +76,7 @@ func (svc authNotification) InviteEmail(ctx context.Context, emailAddress string
 }
 
 func (svc authNotification) newMail() *gomail.Message {
-	var (
-		m    = mail.New()
-		addr = svc.settings.Auth.Mail.FromAddress
-		name = svc.settings.Auth.Mail.FromName
-	)
-
-	if addr != "" {
-		m.SetAddressHeader("From", addr, name)
-	}
-
-	return m
+	return mail.New()
 }
 
 func (svc authNotification) send(ctx context.Context, name, sendTo string, payload map[string]interface{}) error {
@@ -117,8 +107,6 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 	// Prepare payload
 	payload["Logo"] = htpl.URL(svc.settings.General.Mail.Logo)
 	payload["BaseURL"] = svc.opt.BaseURL
-	payload["SignatureName"] = svc.settings.Auth.Mail.FromName
-	payload["SignatureEmail"] = svc.settings.Auth.Mail.FromAddress
 	payload["EmailAddress"] = sendTo
 
 	// Render document

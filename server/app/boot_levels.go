@@ -973,6 +973,7 @@ func setupSmtpDialer(log *zap.Logger, servers ...types.SmtpServers) {
 		zap.String("host", s.Host),
 		zap.Int("port", s.Port),
 		zap.String("user", s.User),
+		zap.String("from", s.From),
 		logger.Mask("pass", s.Pass),
 		zap.Bool("tsl-insecure", s.TlsInsecure),
 		zap.String("tls-server-name", s.TlsServerName),
