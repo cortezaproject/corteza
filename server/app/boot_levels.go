@@ -13,6 +13,8 @@ import (
 	authService "github.com/cortezaproject/corteza/server/auth"
 	"github.com/cortezaproject/corteza/server/auth/saml"
 	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
+	automationBundler "github.com/cortezaproject/corteza/server/automation/plugin"
+	automationPluginBundler "github.com/cortezaproject/corteza/server/automation/plugin/bundler"
 	autService "github.com/cortezaproject/corteza/server/automation/service"
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
@@ -32,6 +34,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/messagebus"
 	"github.com/cortezaproject/corteza/server/pkg/monitor"
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/plugin"
 	"github.com/cortezaproject/corteza/server/pkg/provision"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/scheduler"
@@ -456,6 +459,27 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		if err != nil {
 			return fmt.Errorf("could not initialize discovery services: %w", err)
 		}
+	}
+
+	app.Log.Debug("enabling Corteza Plugin service")
+
+	plugin.Setup(app.Log, autService.Registry())
+	// plugin.Service().RegisterAll(ctx)
+
+	// factory of bundlers?
+
+	{
+		automationBundler.Setup(zap.NewNop())
+
+		abService := automationBundler.Service()
+
+		abService.AddBundler(
+			automationPluginBundler.NewAf(plugin.Service(), autService.Registry()),
+		)
+
+		abService.Discover(ctx, "./bundle")
+		abService.Validate(ctx)
+		abService.Register(ctx)
 	}
 
 	app.lvl = bootLevelServicesInitialized

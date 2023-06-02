@@ -1,0 +1,40 @@
+syntax = "proto3";
+package proto;
+
+option go_package = "github.com/cortezaproject/corteza/server/pkg/plugin/plugin/proto/go/proto";
+
+message AutomationFunctionMeta {
+    string short = 1;
+    string description = 2;
+}
+
+message AutomationFunctionParams {
+    string name = 1;
+    repeated string types = 2;
+    bool required = 3;
+	bool isarray  = 4;
+}
+
+message AutomationFunction {
+    string ref = 1;
+    // todo - deprecate, kind should be enforced on client side to be "function"
+    string kind = 2;
+    AutomationFunctionMeta meta = 3;
+    repeated AutomationFunctionParams params = 4;
+    repeated AutomationFunctionParams results = 5;
+}
+
+message ExecReq {
+    string value = 1;
+}
+
+message ExecResp {
+    string value = 1;
+}
+
+message MetaReq {}
+
+service AutomationFunctionService {
+    rpc Exec(ExecReq) returns (ExecResp);
+    rpc Meta(MetaReq) returns (AutomationFunction);
+}

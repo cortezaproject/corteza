@@ -1,0 +1,76 @@
+# Corteza plugin POC
+
+.Done:
+ - generated protobuf file
+ - simple string payload send
+ - grpc with a test automation function
+
+2nd version:
+ - refactor plugin to compose/system/automation/...
+ - create simple plugin with 1 automation function
+ - add plugin to configurable automation folder
+ - create discovery for it (bundler support)
+
+.Todo:
+ - multiple clients (automation functions for now)
+ - multiple plugins
+ - plugin discovery
+ - bidirectional grpc
+ - grpc expr.Types
+ - grpc DAL connection
+
+## Architecture
+
+Every plugin should have a known interface to Corteza, it cannot have its own custom interface.
+
+.Currently supported interfaces:
+
+ - AutomationFunction
+
+Each interface gets its own functions and grpc message structure to handle client (Corteza) <-> server (plugin) communication.
+
+For every interface, the plugins need to be placed into a specific subfolder.
+
+Example:
+
+```
+plugins/
+plugins/automation/function/{plugin-1,plugin-2}
+plugins/automation/type/{plugin-1}
+```
+
+
+## Install
+
+### Prerequisites
+
+Install protobuf from https://github.com/protocolbuffers/protobuf/releases
+
+Install `protoc-gen-go-grpc`, `protoc-gen-go`
+
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+
+## Generate protobuf
+[source,bash]
+----
+cd plugin/proto
+
+protoc --proto_path=. \
+    --go_out=. \
+    --go_opt=paths=source_relative \
+    --go-grpc_out=. \
+    --go-grpc_opt=paths=source_relative \
+    automation_function.proto
+----
+
+## Generate a new plugin
+
+.A plugin needs following parts:
+ - client and server grpc implementations
+ - plugin implementation
+ - interface definitions
+ - compiled corteza plugin binary
+ - its own client?
+
+

@@ -76,6 +76,14 @@ func (r *Registry) Preload() {
 	r.Add("redirection", filter.NewRedirection(r.cfg))
 	r.Add("response", filter.NewResponse(r.cfg, service.Registry()))
 	r.Add("defaultJsonResponse", filter.NewDefaultJsonResponse(r.cfg))
+
+	// how to register a corteza plugin filter? via which mechanism?
+	// refactor registry to add a filter like automation does for types?
+	// integration gateway registry running as a daemon which can dynamically register filters
+	// what can a filter access? request
+
+	// should there be a system service for corteza plugins running?
+
 }
 
 func NewWorkflow() (wf filter.WfExecer) {
