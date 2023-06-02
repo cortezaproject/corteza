@@ -97,7 +97,7 @@ placeholder:
   handle: handle (a - z, 0 - 9, underscore, dash)
   sample: Sample
 reminder:
-  add: Add a new reminder
+  add: Add a reminder
   dismiss: Dismiss
   dismissed: Dismissed
   undismiss: Undismiss

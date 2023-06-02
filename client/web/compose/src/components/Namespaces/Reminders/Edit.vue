@@ -91,24 +91,28 @@
         </b-input-group>
       </b-form-group>
 
-      <div class="text-center py-1">
+      <div class="d-flex justify-content-center pt-2">
+        <b-button
+          variant="outline-light"
+          class="text-primary mt-auto border-0"
+          @click="$emit('back')"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'chevron-left']"
+            class="back-icon"
+          />
+          {{ $t('label.back') }}
+        </b-button>
+
         <b-button
           data-test-id="button-save"
-          variant="outline-primary"
+          variant="primary"
           @click="$emit('save', reminder)"
         >
           {{ $t('label.save') }}
         </b-button>
       </div>
     </b-form>
-
-    <b-button
-      variant="outline-light"
-      class="text-primary mt-auto border-0"
-      @click="$emit('back')"
-    >
-      {{ $t('label.back') }}
-    </b-button>
   </div>
 </template>
 
