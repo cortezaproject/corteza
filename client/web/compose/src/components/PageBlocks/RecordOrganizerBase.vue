@@ -45,7 +45,7 @@
           >
             <div
               v-if="labelField"
-              class="d-flex mb-1"
+              class="d-flex mb-1 overflow-hidden"
             >
               <field-viewer
                 v-if="labelField.canReadRecordValue"
@@ -62,7 +62,7 @@
 
             <b-card-text
               v-if="descriptionField"
-              class="d-flex small"
+              class="d-flex small overflow-hidden"
             >
               <field-viewer
                 v-if="descriptionField.canReadRecordValue"
