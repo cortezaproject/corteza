@@ -83,7 +83,7 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
     // * changing Z to +00:00
     // * doing the same for time-only fields
     if (dateTime.isValid()) {
-      return build(operator, `TIMESTAMP(DATE_FORMAT(${name}, '%Y-%m-%dT%H:%i:00.%f+00:00'))`, `TIMESTAMP(DATE_FORMAT('${dateTime.format()}', '%Y-%m-%dT%H:%i:00.%f+00:00'))`)
+      return build(operator, `TIMESTAMP(DATE_FORMAT(${name}, '%Y-%m-%d"T"%H:%i:%s"Z"'))`, `TIMESTAMP(DATE_FORMAT('${dateTime.format()}', '%Y-%m-%d"T"%H:%i:%s"Z"'))`)
     } else if (date.isValid()) {
       return build(operator, name, `DATE('${query}')`)
     } else if (time.isValid()) {
