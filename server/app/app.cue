@@ -33,6 +33,7 @@ corteza: schema.#platform & {
 		options.monitor,
 		options.objectStore,
 		options.provision,
+		options.plugin,
 		options.sentry,
 		options.template,
 		options.upgrade,

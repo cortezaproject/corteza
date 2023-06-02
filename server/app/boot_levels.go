@@ -32,6 +32,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/messagebus"
 	"github.com/cortezaproject/corteza/server/pkg/monitor"
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/plugin"
+	pd "github.com/cortezaproject/corteza/server/pkg/plugin/discovery"
 	"github.com/cortezaproject/corteza/server/pkg/provision"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/scheduler"
@@ -365,6 +367,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return fmt.Errorf("could not reload resource translations: %w", err)
 	}
 
+	if app.Opt.Plugin.Enabled {
+		app.Log.Debug("enabling Corteza Plugin service")
+		plugin.Setup(app.Log)
+		app.PluginDiscovery = pd.New(app.Log)
+	}
+
 	// Initializes system services
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
@@ -393,10 +401,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	//
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
-	err = autService.Initialize(ctx, app.Log, app.Store, app.WsServer, autService.Config{
+	err = autService.Initialize(ctx, app.Log, app.Store, app.WsServer, app.PluginDiscovery, autService.Config{
 		ActionLog: app.Opt.ActionLog,
 		Workflow:  app.Opt.Workflow,
 		Corredor:  app.Opt.Corredor,
+		Plugin:    app.Opt.Plugin,
 	})
 
 	if err != nil {
@@ -505,7 +514,6 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 		return fmt.Errorf("could not activate system services: %w", err)
 
 	}
-
 	if err = autService.Activate(ctx); err != nil {
 		return fmt.Errorf("could not activate automation services: %w", err)
 
@@ -557,6 +565,10 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	app.AuthService.Watch(ctx)
 
+	if app.Opt.Plugin.Enabled {
+		app.PluginDiscovery.Activate(auth.SetIdentityToContext(ctx, auth.ServiceUser()))
+	}
+
 	// messagebus reloader and consumer listeners
 	if app.Opt.Messagebus.Enabled {
 
@@ -574,7 +586,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 		updateApigwSettings(ctx, sysService.CurrentSettings)
 
-		// // Reload routes
+		// Reload routes
 		if err = apigw.Service().Reload(ctx); err != nil {
 			return fmt.Errorf("could not initialize api gateway services: %w", err)
 		}

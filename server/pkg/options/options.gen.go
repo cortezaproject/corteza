@@ -208,6 +208,10 @@ type (
 		Path   string `env:"PROVISION_PATH"`
 	}
 
+	PluginOpt struct {
+		Enabled bool `env:"PLUGIN_ENABLED"`
+	}
+
 	SentryOpt struct {
 		DSN              string  `env:"SENTRY_DSN"`
 		Debug            bool    `env:"SENTRY_DEBUG"`
@@ -855,6 +859,33 @@ func Provision() (o *ProvisionOpt) {
 	o = &ProvisionOpt{
 		Always: true,
 		Path:   "provision/*",
+	}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Plugin initializes and returns a PluginOpt with default values
+//
+// This function is auto-generated
+func Plugin() (o *PluginOpt) {
+	o = &PluginOpt{
+		Enabled: true,
 	}
 
 	// Custom defaults

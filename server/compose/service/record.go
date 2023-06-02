@@ -828,26 +828,26 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	// ensure module ref is set before running through records workflows and scripts
 	new.SetModule(m)
 
-	{
-		// handle deDup error/warnings
-		dd, err = svc.DupDetection(ctx, m, new)
+	// {
+	// 	// handle deDup error/warnings
+	// 	// dd, err = svc.DupDetection(ctx, m, new)
 
-		// handle input payload errors
-		if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
-			return nil, dd, RecordErrValueInput().Wrap(rve)
-		}
+	// 	// handle input payload errors
+	// 	if rve = svc.procCreate(ctx, invokerID, m, new); !rve.IsValid() {
+	// 		return nil, dd, RecordErrValueInput().Wrap(rve)
+	// 	}
 
-		// record value errors from dup detection
-		if err != nil {
-			return
-		}
+	// 	// record value errors from dup detection
+	// 	if err != nil {
+	// 		return
+	// 	}
 
-		if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil)); err != nil {
-			return
-		} else if !rve.IsValid() {
-			return nil, dd, RecordErrValueInput().Wrap(rve)
-		}
-	}
+	// 	if err = svc.eventbus.WaitFor(ctx, event.RecordBeforeCreate(new, nil, m, ns, rve, nil)); err != nil {
+	// 		return
+	// 	} else if !rve.IsValid() {
+	// 		return nil, dd, RecordErrValueInput().Wrap(rve)
+	// 	}
+	// }
 
 	new.Values = RecordValueDefaults(m, new.Values)
 

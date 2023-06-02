@@ -141,6 +141,9 @@ github.com/evanw/esbuild/internal/runtime
 github.com/evanw/esbuild/internal/sourcemap
 github.com/evanw/esbuild/internal/xxhash
 github.com/evanw/esbuild/pkg/api
+# github.com/fatih/color v1.13.0
+## explicit; go 1.13
+github.com/fatih/color
 # github.com/fogleman/gg v1.3.0
 ## explicit
 github.com/fogleman/gg
@@ -229,6 +232,7 @@ github.com/golang/protobuf/proto
 github.com/golang/protobuf/ptypes
 github.com/golang/protobuf/ptypes/any
 github.com/golang/protobuf/ptypes/duration
+github.com/golang/protobuf/ptypes/empty
 github.com/golang/protobuf/ptypes/timestamp
 # github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10
 ## explicit; go 1.19
@@ -257,6 +261,16 @@ github.com/gorilla/sessions
 # github.com/gorilla/websocket v1.5.0
 ## explicit; go 1.12
 github.com/gorilla/websocket
+# github.com/hashicorp/go-hclog v1.5.0
+## explicit; go 1.13
+github.com/hashicorp/go-hclog
+# github.com/hashicorp/go-plugin v1.4.9
+## explicit; go 1.17
+github.com/hashicorp/go-plugin
+github.com/hashicorp/go-plugin/internal/plugin
+# github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb
+## explicit
+github.com/hashicorp/yamux
 # github.com/huandu/xstrings v1.3.2
 ## explicit; go 1.12
 github.com/huandu/xstrings
@@ -346,6 +360,12 @@ github.com/mat/besticon/ico
 # github.com/mattermost/xml-roundtrip-validator v0.1.0
 ## explicit; go 1.14
 github.com/mattermost/xml-roundtrip-validator
+# github.com/mattn/go-colorable v0.1.12
+## explicit; go 1.13
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.14
+## explicit; go 1.12
+github.com/mattn/go-isatty
 # github.com/mattn/go-sqlite3 v1.14.12
 ## explicit; go 1.12
 github.com/mattn/go-sqlite3
@@ -377,6 +397,9 @@ github.com/mitchellh/copystructure
 # github.com/mitchellh/go-homedir v1.1.0
 ## explicit
 github.com/mitchellh/go-homedir
+# github.com/mitchellh/go-testing-interface v0.0.0-20171004221916-a61a99592b77
+## explicit
+github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/reflectwalk v1.0.0
 ## explicit
 github.com/mitchellh/reflectwalk
@@ -389,6 +412,9 @@ github.com/modern-go/reflect2
 # github.com/ngrok/sqlmw v0.0.0-20211220175533-9d16fdc47b31
 ## explicit; go 1.13
 github.com/ngrok/sqlmw
+# github.com/oklog/run v1.0.0
+## explicit
+github.com/oklog/run
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors
@@ -591,6 +617,8 @@ google.golang.org/grpc/credentials/insecure
 google.golang.org/grpc/encoding
 google.golang.org/grpc/encoding/proto
 google.golang.org/grpc/grpclog
+google.golang.org/grpc/health
+google.golang.org/grpc/health/grpc_health_v1
 google.golang.org/grpc/internal
 google.golang.org/grpc/internal/backoff
 google.golang.org/grpc/internal/balancer/gracefulswitch
@@ -618,6 +646,8 @@ google.golang.org/grpc/internal/transport/networktype
 google.golang.org/grpc/keepalive
 google.golang.org/grpc/metadata
 google.golang.org/grpc/peer
+google.golang.org/grpc/reflection
+google.golang.org/grpc/reflection/grpc_reflection_v1alpha
 google.golang.org/grpc/resolver
 google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
@@ -656,6 +686,7 @@ google.golang.org/protobuf/runtime/protoimpl
 google.golang.org/protobuf/types/descriptorpb
 google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
+google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
 # gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc
 ## explicit

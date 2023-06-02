@@ -5,7 +5,7 @@ FROM alpine:3 as build-stage
 ARG VERSION=2022.9.0
 ARG SASS_VERSION=1.69.5
 ARG SERVER_VERSION=${VERSION}
-ARG WEBAPP_VERSION=${VERSION}
+ARG WEBAPP_VERSION=2023.3.3
 ARG CORTEZA_SERVER_PATH=https://releases.cortezaproject.org/files/corteza-server-${SERVER_VERSION}-linux-amd64.tar.gz
 ARG CORTEZA_WEBAPP_PATH=https://releases.cortezaproject.org/files/corteza-webapp-${WEBAPP_VERSION}.tar.gz
 ARG SASS_URL=https://github.com/sass/dart-sass/releases/download/${SASS_VERSION}/dart-sass-${SASS_VERSION}-linux-x64.tar.gz

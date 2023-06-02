@@ -11,9 +11,13 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/objstore"
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/plugin"
 	"github.com/cortezaproject/corteza/server/store"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
+
+	automationPluginBundler "github.com/cortezaproject/corteza/server/automation/plugin/bundler"
+	pDiscovery "github.com/cortezaproject/corteza/server/pkg/plugin/discovery"
 )
 
 type (
@@ -25,10 +29,15 @@ type (
 		ActionLog options.ActionLogOpt
 		Workflow  options.WorkflowOpt
 		Corredor  options.CorredorOpt
+		Plugin    options.PluginOpt
 	}
 
 	userService interface {
 		FindByAny(ctx context.Context, identifier interface{}) (*sysTypes.User, error)
+	}
+
+	pluginDiscovery interface {
+		AddBundler(...pDiscovery.Bundler)
 	}
 )
 
@@ -52,6 +61,8 @@ var (
 	DefaultTrigger  *trigger
 	DefaultSession  *session
 
+	DefaultPlugin pluginDiscovery
+
 	// wrapper around time.Now() that will aid service testing
 	now = func() *time.Time {
 		c := time.Now().Round(time.Second)
@@ -64,7 +75,7 @@ var (
 	}
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websocketSender, c Config) (err error) {
+func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websocketSender, pd pluginDiscovery, c Config) (err error) {
 	var (
 	//hcd = healthcheck.Defaults()
 	)
@@ -96,6 +107,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultTrigger = Trigger(DefaultLogger.Named("trigger"), c.Workflow)
 
 	DefaultWorkflow.triggers = DefaultTrigger
+
+	if c.Plugin.Enabled {
+		DefaultPlugin = pd
+	}
 
 	Registry().AddTypes(
 		&expr.Any{},
@@ -129,6 +144,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	automation.EmailHandler(Registry())
 	automation.JwtHandler(Registry())
 	automation.ApigwBodyHandler(Registry())
+
 	return
 }
 
@@ -137,12 +153,19 @@ func Activate(ctx context.Context) (err error) {
 		return
 	}
 
+	if DefaultPlugin != nil {
+		DefaultPlugin.AddBundler(
+			// first check workflows, then load functions
+			automationPluginBundler.Workflow(DefaultWorkflow),
+			automationPluginBundler.Function(plugin.Service(), Registry()),
+		)
+	}
+
 	return
 }
 
 func Watchers(ctx context.Context) {
 	DefaultSession.Watch(ctx)
-	return
 }
 
 // Data is stale when new date does not match updatedAt or createdAt (before first update)

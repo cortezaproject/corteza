@@ -30,6 +30,7 @@ type (
 		Apigw       ApigwOpt
 		Attachment  AttachmentOpt
 		Webapp      WebappOpt
+		Plugin      PluginOpt
 	}
 )
 
@@ -63,5 +64,6 @@ func Init() *Options {
 		Apigw:       *Apigw(),
 		Attachment:  *Attachment(),
 		Webapp:      *Webapp(),
+		Plugin:      *Plugin(),
 	}
 }

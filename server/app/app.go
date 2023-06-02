@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza/server/auth/settings"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/plugin/discovery"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -44,6 +45,12 @@ type (
 		http.Handler
 	}
 
+	pluginDiscovery interface {
+		AddBundler(...discovery.Bundler)
+		Dispense(context.Context)
+		Activate(context.Context)
+	}
+
 	CortezaApp struct {
 		Opt *options.Options
 		lvl int
@@ -70,8 +77,9 @@ type (
 		GrpcServer grpcServer
 		WsServer   wsServer
 
-		AuthService  authServicer
-		ApigwService apigwServicer
+		AuthService     authServicer
+		ApigwService    apigwServicer
+		PluginDiscovery pluginDiscovery
 
 		systemEntitiesInitialized bool
 	}

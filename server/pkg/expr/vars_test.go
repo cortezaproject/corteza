@@ -4,10 +4,34 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/stretchr/testify/require"
 )
 
 // extract typed-value
+
+func Test_set_vars(t *testing.T) {
+	v := &Vars{}
+	v.Assign(map[string]interface{}{
+		"foo": "bar",
+		"baz": true,
+		"tst": []int{1, 2, 3},
+	})
+	spew.Dump("V", v)
+	t.Fail()
+	vv := &Vars{}
+	vv.Set("foo", "bar")
+	vv.Set("baz", true)
+	vv.Set("tst", []int{1, 2, 3, 4, 45, 56, 6})
+	spew.Dump(vv.Dict())
+	s, _ := vv.Value()
+	spew.Dump(string(s.([]byte)))
+	spew.Dump(s)
+	vvv := &Vars{}
+	json.Unmarshal(s.([]byte), vvv)
+	spew.Dump(vvv)
+	t.Fail()
+}
 
 func Example_set_vars() {
 	var (

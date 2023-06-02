@@ -3,8 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
-	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
 	"sync"
+
+	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
 
 	authCommands "github.com/cortezaproject/corteza/server/auth/commands"
 	federationCommands "github.com/cortezaproject/corteza/server/federation/commands"
@@ -92,6 +93,8 @@ func (app *CortezaApp) InitCLI() {
 
 		// Wait for all servers to be done
 		wg.Wait()
+
+		app.PluginDiscovery.Dispense(ctx)
 
 		app.HttpServer.Shutdown()
 
