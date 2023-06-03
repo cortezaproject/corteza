@@ -181,8 +181,21 @@ func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.R
 			r.AssignedAt = time.Now()
 		}
 
-		r.Payload = upd.Payload
+		a := r.RemindAt
+		if a == nil {
+			a = &time.Time{}
+		}
+
+		b := upd.RemindAt
+		if b == nil {
+			b = &time.Time{}
+		}
+		if !a.Equal(*b) {
+			r.SnoozeCount = 0
+		}
+
 		r.RemindAt = upd.RemindAt
+		r.Payload = upd.Payload
 		r.Resource = upd.Resource
 		r.UpdatedAt = now()
 
