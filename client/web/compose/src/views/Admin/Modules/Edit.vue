@@ -389,7 +389,7 @@
                   show
                   variant="danger"
                 >
-                  {{ issue }}
+                  {{ issue.issue }}
                 </b-alert>
               </b-tab>
             </b-tabs>
