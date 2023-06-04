@@ -11786,6 +11786,8 @@ func (Store) sortableDalSchemaAlterationFields() map[string]string {
 		"createdat":    "created_at",
 		"deleted_at":   "deleted_at",
 		"deletedat":    "deleted_at",
+		"dismissed_at": "dismissed_at",
+		"dismissedat":  "dismissed_at",
 		"id":           "id",
 		"updated_at":   "updated_at",
 		"updatedat":    "updated_at",
@@ -11826,6 +11828,8 @@ func (s *Store) collectDalSchemaAlterationCursorValues(res *systemType.DalSchema
 					return res.DeletedAt
 				case "completedAt":
 					return res.CompletedAt
+				case "dismissedAt":
+					return res.DismissedAt
 				}
 				return nil
 			}

@@ -159,7 +159,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
 
-	DefaultDalSchemaAlteration = DalSchemaAlteration()
+	DefaultDalSchemaAlteration = DalSchemaAlteration(dal.Service())
 
 	if DefaultObjectStore == nil {
 		var (

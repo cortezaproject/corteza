@@ -807,12 +807,28 @@ func DalSchemaAlterationFilter(d drivers.Dialect, f systemType.DalSchemaAlterati
 		ee = append(ee, expr)
 	}
 
+	if expr := stateNilComparison(d, "completed_at", f.Completed); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if expr := stateNilComparison(d, "dismissed_at", f.Dismissed); expr != nil {
+		ee = append(ee, expr)
+	}
+
 	if val := strings.TrimSpace(f.Kind); len(val) > 0 {
 		ee = append(ee, goqu.C("kind").Eq(f.Kind))
 	}
 
+	if ss := trimStringSlice(f.Resource); len(ss) > 0 {
+		ee = append(ee, goqu.C("resource").In(ss))
+	}
+
 	if len(f.AlterationID) > 0 {
-		ee = append(ee, goqu.C("alteration_id").In(f.AlterationID))
+		ee = append(ee, goqu.C("id").In(f.AlterationID))
+	}
+
+	if f.BatchID > 0 {
+		ee = append(ee, goqu.C("batch_id").Eq(f.BatchID))
 	}
 
 	return ee, f, err

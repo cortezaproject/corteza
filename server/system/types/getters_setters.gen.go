@@ -834,6 +834,8 @@ func (r *DalSchemaAlteration) GetValue(name string, pos uint) (any, error) {
 		return r.CompletedAt, nil
 	case "completedBy", "CompletedBy":
 		return r.CompletedBy, nil
+	case "connectionID", "ConnectionID":
+		return r.ConnectionID, nil
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
 	case "createdBy", "CreatedBy":
@@ -844,10 +846,18 @@ func (r *DalSchemaAlteration) GetValue(name string, pos uint) (any, error) {
 		return r.DeletedBy, nil
 	case "dependsOn", "DependsOn":
 		return r.DependsOn, nil
+	case "dismissedAt", "DismissedAt":
+		return r.DismissedAt, nil
+	case "dismissedBy", "DismissedBy":
+		return r.DismissedBy, nil
 	case "id", "ID":
 		return r.ID, nil
 	case "kind", "Kind":
 		return r.Kind, nil
+	case "resource", "Resource":
+		return r.Resource, nil
+	case "resourceType", "ResourceType":
+		return r.ResourceType, nil
 	case "updatedAt", "UpdatedAt":
 		return r.UpdatedAt, nil
 	case "updatedBy", "UpdatedBy":
@@ -865,6 +875,8 @@ func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err er
 		return cast2.TimePtr(value, &r.CompletedAt)
 	case "completedBy", "CompletedBy":
 		return cast2.Uint64(value, &r.CompletedBy)
+	case "connectionID", "ConnectionID":
+		return cast2.Uint64(value, &r.ConnectionID)
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
 	case "createdBy", "CreatedBy":
@@ -875,10 +887,18 @@ func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err er
 		return cast2.Uint64(value, &r.DeletedBy)
 	case "dependsOn", "DependsOn":
 		return cast2.Uint64(value, &r.DependsOn)
+	case "dismissedAt", "DismissedAt":
+		return cast2.TimePtr(value, &r.DismissedAt)
+	case "dismissedBy", "DismissedBy":
+		return cast2.Uint64(value, &r.DismissedBy)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
 	case "kind", "Kind":
 		return cast2.String(value, &r.Kind)
+	case "resource", "Resource":
+		return cast2.String(value, &r.Resource)
+	case "resourceType", "ResourceType":
+		return cast2.String(value, &r.ResourceType)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":

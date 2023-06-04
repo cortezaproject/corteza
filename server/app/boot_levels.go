@@ -23,6 +23,7 @@ import (
 	apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/http"
@@ -380,10 +381,12 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Limit:      app.Opt.Limit,
 		Attachment: app.Opt.Attachment,
 	})
-
 	if err != nil {
 		return
 	}
+
+	// Add alteration management service the global DAL service
+	dal.Service().Alterations = service.DefaultDalSchemaAlteration
 
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers

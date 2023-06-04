@@ -23,6 +23,8 @@ type (
 		Read(context.Context, *request.DalSchemaAlterationRead) (interface{}, error)
 		Delete(context.Context, *request.DalSchemaAlterationDelete) (interface{}, error)
 		Undelete(context.Context, *request.DalSchemaAlterationUndelete) (interface{}, error)
+		Apply(context.Context, *request.DalSchemaAlterationApply) (interface{}, error)
+		Dismiss(context.Context, *request.DalSchemaAlterationDismiss) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -31,6 +33,8 @@ type (
 		Read     func(http.ResponseWriter, *http.Request)
 		Delete   func(http.ResponseWriter, *http.Request)
 		Undelete func(http.ResponseWriter, *http.Request)
+		Apply    func(http.ResponseWriter, *http.Request)
+		Dismiss  func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -100,6 +104,38 @@ func NewDalSchemaAlteration(h DalSchemaAlterationAPI) *DalSchemaAlteration {
 
 			api.Send(w, r, value)
 		},
+		Apply: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewDalSchemaAlterationApply()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Apply(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		Dismiss: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewDalSchemaAlterationDismiss()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Dismiss(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -110,5 +146,7 @@ func (h DalSchemaAlteration) MountRoutes(r chi.Router, middlewares ...func(http.
 		r.Get("/dal/schema/alterations/{alterationID}", h.Read)
 		r.Delete("/dal/schema/alterations/{alterationID}", h.Delete)
 		r.Post("/dal/schema/alterations/{alterationID}/undelete", h.Undelete)
+		r.Post("/dal/schema/alterations/apply", h.Apply)
+		r.Post("/dal/schema/alterations/dismiss", h.Dismiss)
 	})
 }
