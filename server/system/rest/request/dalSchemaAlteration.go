@@ -85,6 +85,20 @@ type (
 		// Alteration ID
 		AlterationID uint64 `json:",string"`
 	}
+
+	DalSchemaAlterationApply struct {
+		// AlterationID GET parameter
+		//
+		// Alteration ID
+		AlterationID []uint64
+	}
+
+	DalSchemaAlterationDismiss struct {
+		// AlterationID GET parameter
+		//
+		// Alteration ID
+		AlterationID []uint64
+	}
 )
 
 // NewDalSchemaAlterationList request
@@ -287,6 +301,86 @@ func (r *DalSchemaAlterationUndelete) Fill(req *http.Request) (err error) {
 			return err
 		}
 
+	}
+
+	return err
+}
+
+// NewDalSchemaAlterationApply request
+func NewDalSchemaAlterationApply() *DalSchemaAlterationApply {
+	return &DalSchemaAlterationApply{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationApply) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"alterationID": r.AlterationID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationApply) GetAlterationID() []uint64 {
+	return r.AlterationID
+}
+
+// Fill processes request and fills internal variables
+func (r *DalSchemaAlterationApply) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["alterationID[]"]; ok {
+			r.AlterationID, err = payload.ParseUint64s(val), nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["alterationID"]; ok {
+			r.AlterationID, err = payload.ParseUint64s(val), nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return err
+}
+
+// NewDalSchemaAlterationDismiss request
+func NewDalSchemaAlterationDismiss() *DalSchemaAlterationDismiss {
+	return &DalSchemaAlterationDismiss{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationDismiss) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"alterationID": r.AlterationID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationDismiss) GetAlterationID() []uint64 {
+	return r.AlterationID
+}
+
+// Fill processes request and fills internal variables
+func (r *DalSchemaAlterationDismiss) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["alterationID[]"]; ok {
+			r.AlterationID, err = payload.ParseUint64s(val), nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["alterationID"]; ok {
+			r.AlterationID, err = payload.ParseUint64s(val), nil
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err

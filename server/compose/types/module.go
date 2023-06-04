@@ -32,7 +32,7 @@ type (
 
 		Labels map[string]string `json:"labels,omitempty"`
 
-		Issues []string `json:"issues,omitempty"`
+		Issues []dal.Issue `json:"issues,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 

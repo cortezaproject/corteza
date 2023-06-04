@@ -80,8 +80,7 @@ type (
 
 		ReplaceModel(context.Context, *dal.Model) error
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) (err error)
-		SearchModelIssues(ID uint64) []error
+		SearchModelIssues(ID uint64) []dal.Issue
 	}
 )
 
@@ -307,15 +306,9 @@ func (svc module) procDal(m *types.Module) {
 		return
 	}
 
-	ii := svc.dal.SearchModelIssues(m.ID)
-	if len(ii) == 0 {
+	m.Issues = svc.dal.SearchModelIssues(m.ID)
+	if len(m.Issues) == 0 {
 		m.Issues = nil
-		return
-	}
-
-	m.Issues = make([]string, len(ii))
-	for i, err := range ii {
-		m.Issues[i] = err.Error()
 	}
 }
 
@@ -334,10 +327,6 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			if systemFields[f.Name] {
 				return ModuleErrFieldNameReserved()
 			}
-		}
-
-		if err != nil {
-
 		}
 
 		if ns, err = loadNamespace(ctx, s, new.NamespaceID); err != nil {
@@ -631,9 +620,6 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 				return err
 			}
 			if err = DalModelReplace(ctx, svc.dal, ns, old, m); err != nil {
-				return err
-			}
-			if err = dalAttributeReplace(ctx, svc.dal, ns, old, m, hasRecords); err != nil {
 				return err
 			}
 		} else {
@@ -1162,28 +1148,6 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 	for _, m := range models {
 		err = dmm.ReplaceModel(ctx, m)
 		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, old, new *types.Module, hasRecords bool) (err error) {
-	oldModel, err := ModulesToModelSet(dmm, ns, old)
-	if err != nil {
-		return
-	}
-	newModel, err := ModulesToModelSet(dmm, ns, new)
-	if err != nil {
-		return
-	}
-
-	diff := oldModel[0].Diff(newModel[0])
-
-	// TODO handle the fact that diff is a list of changes so the same field could be present more than once.
-	for _, d := range diff {
-		if err = dmm.ReplaceModelAttribute(ctx, oldModel[0], d, hasRecords); err != nil {
 			return
 		}
 	}

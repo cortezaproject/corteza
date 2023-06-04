@@ -1131,7 +1131,7 @@ var DalSchemaAlteration = &dal.Model{
 		&dal.Attribute{
 			Ident: "BatchID",
 			Type:  &dal.TypeID{},
-			Store: &dal.CodecAlias{Ident: "batchID"},
+			Store: &dal.CodecAlias{Ident: "batch_id"},
 		},
 
 		&dal.Attribute{
@@ -1142,7 +1142,30 @@ var DalSchemaAlteration = &dal.Model{
 					ResourceType: "corteza::system:dal-schema-alteration",
 				},
 			},
-			Store: &dal.CodecAlias{Ident: "dependsOn"},
+			Store: &dal.CodecAlias{Ident: "depends_on"},
+		},
+
+		&dal.Attribute{
+			Ident: "Resource",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "resource"},
+		},
+
+		&dal.Attribute{
+			Ident: "ResourceType",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "resource_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "ConnectionID",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:dal-connection",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "connection_id"},
 		},
 
 		&dal.Attribute{
@@ -1183,6 +1206,12 @@ var DalSchemaAlteration = &dal.Model{
 			Ident: "CompletedAt", Sortable: true,
 			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
 			Store: &dal.CodecAlias{Ident: "completed_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DismissedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "dismissed_at"},
 		},
 
 		&dal.Attribute{
@@ -1235,6 +1264,19 @@ var DalSchemaAlteration = &dal.Model{
 				},
 			},
 			Store: &dal.CodecAlias{Ident: "completed_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DismissedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "dismissed_by"},
 		},
 	},
 

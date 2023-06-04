@@ -973,6 +973,18 @@ endpoints:
     parameters:
       path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
 
+  - name: apply
+    method: POST
+    title: Apply alterations
+    path: "/apply"
+    parameters:
+      get: [ { type: "[]uint64", name: alterationID, required: true, title: "Alteration ID" } ]
+  - name: dismiss
+    method: POST
+    title: Dismiss alterations
+    path: "/dismiss"
+    parameters:
+      get: [ { type: "[]uint64", name: alterationID, required: true, title: "Alteration ID" } ]
 
 - title: Data access layer connections
   path: "/dal/connections"

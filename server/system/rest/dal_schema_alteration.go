@@ -42,6 +42,8 @@ type (
 		FindByID(ctx context.Context, ID uint64) (*types.DalSchemaAlteration, error)
 		DeleteByID(ctx context.Context, ID uint64) error
 		UndeleteByID(ctx context.Context, ID uint64) error
+		Apply(context.Context, ...uint64) error
+		Dismiss(context.Context, ...uint64) error
 	}
 )
 
@@ -92,6 +94,14 @@ func (ctrl DalSchemaAlteration) Delete(ctx context.Context, r *request.DalSchema
 
 func (ctrl DalSchemaAlteration) Undelete(ctx context.Context, r *request.DalSchemaAlterationUndelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.AlterationID)
+}
+
+func (ctrl DalSchemaAlteration) Apply(ctx context.Context, r *request.DalSchemaAlterationApply) (interface{}, error) {
+	return api.OK(), ctrl.svc.Apply(ctx, r.AlterationID...)
+}
+
+func (ctrl DalSchemaAlteration) Dismiss(ctx context.Context, r *request.DalSchemaAlterationDismiss) (interface{}, error) {
+	return api.OK(), ctrl.svc.Dismiss(ctx, r.AlterationID...)
 }
 
 func (ctrl DalSchemaAlteration) makePayload(ctx context.Context, res *types.DalSchemaAlteration, err error) (*alterationPayload, error) {
