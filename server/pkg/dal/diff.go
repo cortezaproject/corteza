@@ -28,6 +28,13 @@ const (
 
 // Diff calculates the diff between models a and b where a is used as base
 func (a *Model) Diff(b *Model) (out ModelDiffSet) {
+	if a == nil {
+		a = &Model{}
+	}
+	if b == nil {
+		b = &Model{}
+	}
+
 	bIndex := make(map[string]struct {
 		found bool
 		attr  *Attribute
@@ -119,6 +126,72 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 				Inserted:     attrB,
 			})
 			continue
+		}
+	}
+
+	return
+}
+
+func (dd ModelDiffSet) Alterations() (out []*Alteration) {
+	add := func(a *Alteration) {
+		out = append(out, a)
+	}
+
+	for _, d := range dd {
+		switch d.Type {
+		case AttributeMissing:
+			if d.Inserted == nil {
+				// @todo if this was the last attribute we can consider dropping this column
+				if d.Original.Store.Type() == AttributeCodecRecordValueSetJSON {
+					break
+				}
+
+				add(&Alteration{
+					AttributeDelete: &AttributeDelete{
+						Attr: d.Original,
+					},
+				})
+			} else {
+				if d.Inserted.Store.Type() == AttributeCodecRecordValueSetJSON {
+					add(&Alteration{
+						AttributeAdd: &AttributeAdd{
+							Attr: &Attribute{
+								Ident: d.Inserted.StoreIdent(),
+								Type:  &TypeJSON{Nullable: false},
+								Store: &CodecPlain{},
+							},
+						},
+					})
+				} else {
+					add(&Alteration{
+						AttributeAdd: &AttributeAdd{
+							Attr: d.Inserted,
+						},
+					})
+				}
+
+			}
+
+		case AttributeTypeMissmatch:
+			// @todo we might have to do some validation earlier on
+			if d.Original.Store.Type() == AttributeCodecRecordValueSetJSON {
+				break
+			}
+
+			add(&Alteration{
+				AttributeReType: &AttributeReType{
+					Attr: d.Original,
+					To:   d.Inserted.Type,
+				},
+			})
+
+		case AttributeCodecMismatch:
+			add(&Alteration{
+				AttributeReEncode: &AttributeReEncode{
+					Attr: d.Original,
+					To:   d.Inserted,
+				},
+			})
 		}
 	}
 
