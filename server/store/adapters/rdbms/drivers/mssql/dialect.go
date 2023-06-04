@@ -229,6 +229,10 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	return
 }
 
+func (mssqlDialect) ColumnFits(target, assert *ddl.Column) bool {
+	return false
+}
+
 // @todo untested
 func (d mssqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
