@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
@@ -232,64 +232,161 @@ func (c *connection) UpdateModel(ctx context.Context, old *dal.Model, new *dal.M
 	return
 }
 
-// UpdateModelAttribute alters column on a db table and runs data transformations
-func (c *connection) UpdateModelAttribute(ctx context.Context, sch *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) error {
-	// @todo apply transformations
+// AssertSchemaAlterations returns a new set of Alterations based on what the underlying
+// schema already provides -- it discards alterations for column additions that already exist, etc.
+func (c *connection) AssertSchemaAlterations(ctx context.Context, model *dal.Model, aa ...*dal.Alteration) (out []*dal.Alteration, err error) {
+	var aux []*dal.Alteration
 
+	t, err := c.dataDefiner.TableLookup(ctx, model.Ident)
+	if err != nil && errors.IsNotFound(err) {
+		// Since there is no thing for this model we need to create it and all the
+		// alterations are pointless
+		return []*dal.Alteration{{
+			ID:           id.Next(),
+			Resource:     model.Resource,
+			ResourceType: model.ResourceType,
+			ConnectionID: model.ConnectionID,
+
+			ModelAdd: &dal.ModelAdd{
+				Model: model,
+			},
+		}}, nil
+	}
+	if err != nil {
+		return
+	}
+
+	// Index columns by ident for easier lookup
+	colIndex := make(map[string]*ddl.Column)
+	for _, c := range t.Columns {
+		colIndex[c.Ident] = c
+	}
+
+	for _, a := range aa {
+		switch {
+		case a.AttributeAdd != nil:
+			aux, err = c.assertAlterationAttributeAdd(t, colIndex, a)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		case a.AttributeDelete != nil:
+			aux, err = c.assertAlterationAttributeDelete(t, colIndex, a)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		case a.AttributeReType != nil:
+			aux, err = c.assertAlterationAttributeReType(t, colIndex, a)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		case a.AttributeReEncode != nil:
+			aux, err = c.assertAlterationAttributeReEncode(t, colIndex, a)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		case a.ModelAdd != nil:
+			aux, err = c.assertAlterationModelAdd(t, colIndex, a)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		case a.ModelDelete != nil:
+			aux, err = c.assertAlterationModelDelete(t, colIndex, a)
+			if err != nil {
+				return
+			}
+			out = append(out, aux...)
+		}
+	}
+
+	return
+}
+
+// ApplyAhlteration applies the given alterations to the underlying schema
+//
+// The returned slice of error indicates what alterations failed.
+// If the corresponding index is nil, the alteration was successful.
+func (c *connection) ApplyAlteration(ctx context.Context, model *dal.Model, alt ...*dal.Alteration) (errs []error) {
 	var (
-		sampleAttribute *dal.Attribute
+		err    error
+		failed = make(map[uint64]bool, len(alt)/2)
 	)
 
-	// this is mainly for messages code-paths where we don't care which attribute provides the information
-	if diff.Original != nil {
-		sampleAttribute = diff.Original
-	} else {
-		sampleAttribute = diff.Inserted
-	}
-	if diff.Type == dal.AttributeCodecMismatch {
-		return fmt.Errorf("cannot alter storage codec of attribute %s from %v to %v. ", sampleAttribute.Ident, diff.Original.Store.Type(), diff.Inserted.Store.Type())
-	}
-	// we're guaranteed by the check above that both codecs are the same
-	if sampleAttribute.Store.Type() != (&dal.CodecPlain{}).Type() {
-		// no need to alter column since this is not a normal column. It's a value column.
-		// Don't raise not-supported error in order to keep feature parity with previous implementation.
-		// i.e. we don't want to break DAL service model adding procedure
-		return nil
-	}
-	if !options.DB().AllowDestructiveSchemaChanges {
-		return fmt.Errorf("cannot modify %s. Changing physical schemas is not yet supported", sampleAttribute.Ident)
+	for _, a := range alt {
+		// Skip since the alteration we depend on failed
+		if a.DependsOn != 0 && failed[a.DependsOn] {
+			errs = append(errs, fmt.Errorf("skipping alteration %d: depending alteration %d failed", a.ID, a.DependsOn))
+			continue
+		}
+
+		switch {
+		case a.AttributeAdd != nil:
+			err = c.applyAlterationAttributeAdd(ctx, model, a)
+		case a.AttributeDelete != nil:
+			err = c.applyAlterationAttributeDelete(ctx, model, a)
+		case a.AttributeReType != nil:
+			err = c.applyAlterationAttributeReType(ctx, model, a)
+		case a.AttributeReEncode != nil:
+			err = c.applyAlterationAttributeReEncode(ctx, model, a)
+		case a.ModelAdd != nil:
+			err = c.applyAlterationModelAdd(ctx, model, a)
+		case a.ModelDelete != nil:
+			err = c.applyAlterationModelDelete(ctx, model, a)
+		}
+
+		if err != nil {
+			failed[a.ID] = true
+		}
+
+		errs = append(errs, err)
 	}
 
-	// @todo don't use a string literal. Receive the name from somewhere else
-	if sch.Ident == "compose_record" {
-		return fmt.Errorf(`issue adding %s. Cannot modify the schema of the generic "compose_record" table. Try setting your table name to a non-default value`, sampleAttribute.Ident)
+	return
+}
+
+func (c *connection) applyAlterationAttributeAdd(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
+	col, err := c.dataDefiner.ConvertAttribute(alt.AttributeAdd.Attr)
+	if err != nil {
+		return
 	}
 
-	switch diff.Modification {
-	case dal.AttributeChanged:
-		if diff.Modification == dal.AttributeChanged {
-			// @todo implement model column altering
-			return fmt.Errorf("cannot alter %s, physical column modification is not yet supported", sampleAttribute.Ident)
-		}
-	case dal.AttributeAdded:
-		if !diff.Inserted.Type.IsNullable() && hasRecords {
-			return fmt.Errorf("cannot add non-nullable attribute %s since there are records in the table", diff.Inserted.Ident)
-		}
-		col, err := c.dataDefiner.ConvertAttribute(diff.Inserted)
-		if err != nil {
-			return err
-		}
-		err = c.dataDefiner.ColumnAdd(ctx, sch.Ident, col)
-		if err != nil {
-			return err
-		}
-	case dal.AttributeDeleted:
-		err := c.dataDefiner.ColumnDrop(ctx, sch.Ident, diff.Original.StoreIdent())
-		if err != nil {
-			return err
-		}
+	return c.dataDefiner.ColumnAdd(ctx, model.Ident, col)
+}
+
+func (c *connection) applyAlterationAttributeDelete(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
+	return c.dataDefiner.ColumnDrop(ctx, model.Ident, alt.AttributeDelete.Attr.Ident)
+}
+
+func (c *connection) applyAlterationAttributeReType(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
+	col, err := c.dataDefiner.ConvertAttribute(alt.AttributeAdd.Attr)
+	if err != nil {
+		return
 	}
-	return nil
+
+	return c.dataDefiner.ColumnReType(ctx, model.Ident, col.Ident, col.Type)
+}
+
+// @todo might consider droppig this one for now
+func (c *connection) applyAlterationAttributeReEncode(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
+	// ...
+	return
+}
+
+func (c *connection) applyAlterationModelAdd(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
+	t, err := c.dataDefiner.ConvertModel(model)
+	if err != nil {
+		return
+	}
+
+	return c.dataDefiner.TableCreate(ctx, t)
+}
+
+func (c *connection) applyAlterationModelDelete(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
+	return c.dataDefiner.TableDrop(ctx, model.Ident)
 }
 
 func cacheKey(m *dal.Model) (key string) {
@@ -298,5 +395,144 @@ func cacheKey(m *dal.Model) (key string) {
 		panic("can not add model without a key (combo of resource type, resource and ident)")
 	}
 
+	return
+}
+
+func (c *connection) assertAlterationAttributeAdd(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	if alt.AttributeAdd.Attr.Store.Type() == dal.AttributeCodecRecordValueSetJSON {
+		// RecordValue codec needs to be checked a bit differently since we're worried about the column that contains
+		// the JSON, not the attribute ident itself
+		return c.assertAlterationNestedAttributeAdd(table, colIndex, alt)
+	} else {
+		return c.assertAlterationStandaloneAttributeAdd(table, colIndex, alt)
+	}
+}
+
+func (c *connection) assertAlterationNestedAttributeAdd(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	col := colIndex[alt.AttributeAdd.Attr.StoreIdent()]
+	if col != nil {
+		return
+	}
+
+	a := &dal.Alteration{
+		ID:           id.Next(),
+		BatchID:      alt.BatchID,
+		DependsOn:    alt.DependsOn,
+		Resource:     alt.Resource,
+		ConnectionID: alt.ConnectionID,
+
+		AttributeAdd: &dal.AttributeAdd{
+			Attr: &dal.Attribute{
+				Ident: alt.AttributeAdd.Attr.StoreIdent(),
+				Store: &dal.CodecPlain{},
+				Type:  dal.TypeJSON{Nullable: false},
+			},
+		},
+	}
+	out = append(out, a)
+
+	// Update colIndex so other alterations won't duplicate
+	auxCol, err := c.dialect.AttributeToColumn(a.AttributeAdd.Attr)
+	if err != nil {
+		return nil, err
+	}
+	colIndex[auxCol.Ident] = auxCol
+
+	return out, nil
+}
+
+func (c *connection) assertAlterationStandaloneAttributeAdd(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	col := colIndex[alt.AttributeAdd.Attr.StoreIdent()]
+	if col == nil {
+		out = append(out, alt)
+		return
+	}
+
+	auxCol, err := c.dialect.AttributeToColumn(alt.AttributeAdd.Attr)
+	if err != nil {
+		return nil, err
+	}
+
+	if !c.dialect.ColumnFits(col, auxCol) {
+		out = append(out, &dal.Alteration{
+			ID:           id.Next(),
+			BatchID:      alt.BatchID,
+			DependsOn:    alt.DependsOn,
+			Resource:     alt.Resource,
+			ResourceType: alt.ResourceType,
+			ConnectionID: alt.ConnectionID,
+
+			AttributeReType: &dal.AttributeReType{
+				Attr: alt.AttributeAdd.Attr,
+				To:   alt.AttributeAdd.Attr.Type,
+			},
+		})
+	}
+
+	// Update colIndex so other alterations won't duplicate
+	colIndex[auxCol.Ident] = auxCol
+
+	return out, nil
+}
+
+func (c *connection) assertAlterationAttributeDelete(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	col := colIndex[alt.AttributeDelete.Attr.StoreIdent()]
+	if col == nil {
+		return
+	}
+
+	delete(colIndex, alt.AttributeDelete.Attr.StoreIdent())
+
+	out = append(out, alt)
+	return
+}
+
+func (c *connection) assertAlterationAttributeReType(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	col := colIndex[alt.AttributeReType.Attr.StoreIdent()]
+	if col == nil {
+		err = fmt.Errorf("cannot alter %s, column does not exist", alt.AttributeReType.Attr.Ident)
+		return
+	}
+
+	// Since it's a JSON we don't need to do anything
+	// @todo consider adding some migration logic here
+	if alt.AttributeReType.Attr.Store.Type() == dal.AttributeCodecRecordValueSetJSON {
+		return
+	}
+
+	auxCol, err := c.dialect.AttributeToColumn(alt.AttributeReType.Attr)
+	if err != nil {
+		return
+	}
+
+	if c.dialect.ColumnFits(auxCol, col) {
+		return
+	}
+
+	out = append(out, alt)
+	return
+}
+
+// @todo might consider droppig this one for now
+func (c *connection) assertAlterationAttributeReEncode(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	// ...
+	return
+}
+
+func (c *connection) assertAlterationModelAdd(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	if table != nil {
+		return
+	}
+
+	out = append(out, alt)
+	return
+}
+
+func (c *connection) assertAlterationModelDelete(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
+	if table == nil {
+		return
+	}
+
+	out = append(out, alt)
 	return
 }

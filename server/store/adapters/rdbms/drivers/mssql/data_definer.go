@@ -102,6 +102,15 @@ func (dd *dataDefiner) ColumnRename(ctx context.Context, t string, o string, n s
 	})
 }
 
+func (dd *dataDefiner) ColumnReType(ctx context.Context, t string, col string, tp *ddl.ColumnType) error {
+	return ddl.Exec(ctx, dd.conn, &ddl.ReTypeColumn{
+		Dialect: dd.d,
+		Table:   t,
+		Column:  col,
+		Type:    tp,
+	})
+}
+
 func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index, error) {
 	if index, err := dd.is.IndexLookup(ctx, i, t, dd.dbName); err != nil {
 		return nil, err

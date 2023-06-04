@@ -233,6 +233,76 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	return
 }
 
+func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
+	targetType := strings.ToLower(target.Type.Name)
+	assertType := strings.ToLower(assert.Type.Name)
+
+	if targetType == "bigint unsigned" {
+		targetType = "bigint"
+	}
+	if assertType == "bigint unsigned" {
+		assertType = "bigint"
+	}
+
+	targetType = strings.Split(targetType, "(")[0]
+	assertType = strings.Split(assertType, "(")[0]
+
+	if assertType == targetType {
+		return true
+	}
+
+	// @todo check varchar sizes
+	// @todo signed & unsigned
+
+	// [the type of the target column][what types fit the target col. type]
+	return map[string]map[string]bool{
+		"bigint": {
+			"varchar": true,
+			"text":    true,
+
+			"decimal": true,
+		},
+		"datetime": {
+			"varchar": true,
+			"text":    true,
+		},
+		"time": {
+			"varchar": true,
+			"text":    true,
+
+			"datetime": true,
+		},
+		"date": {
+			"varchar": true,
+			"text":    true,
+
+			"datetime": true,
+		},
+		"decimal": {
+			"varchar": true,
+			"text":    true,
+		},
+		"varchar": {
+			"text": true,
+		},
+		"text": {
+			"varchar": true,
+		},
+		"json": {},
+		"blob": {},
+		"tinyint": {
+			"varchar": true,
+			"text":    true,
+			"bigint":  true,
+			"decimal": true,
+		},
+		"char": {
+			"varchar": true,
+			"text":    true,
+		},
+	}[assertType][targetType]
+}
+
 func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
 	case "in":

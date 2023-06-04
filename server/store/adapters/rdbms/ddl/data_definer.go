@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"strconv"
+
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 )
 
 type (
@@ -29,6 +30,7 @@ type (
 		ColumnAdd(context.Context, string, *Column) error
 		ColumnDrop(context.Context, string, string) error
 		ColumnRename(context.Context, string, string, string) error
+		ColumnReType(context.Context, string, string, *ColumnType) error
 
 		IndexLookup(context.Context, string, string) (*Index, error)
 		IndexCreate(context.Context, string, *Index) error

@@ -73,6 +73,7 @@ type (
 
 		// AttributeToColumn converts attribute to column defunition
 		AttributeToColumn(*dal.Attribute) (*ddl.Column, error)
+		ColumnFits(base, assert *ddl.Column) bool
 
 		// ExprHandler returns driver specific expression handling
 		ExprHandler(*ql.ASTNode, ...exp.Expression) (exp.Expression, error)

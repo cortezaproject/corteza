@@ -214,6 +214,10 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 	return
 }
 
+func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
+	return false
+}
+
 func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
 	case "concat":
