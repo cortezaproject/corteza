@@ -88,6 +88,7 @@ export default {
       modulePending: 'module/pending',
       chartPending: 'chart/pending',
       pagePending: 'page/pending',
+      pageLayoutPending: 'pageLayout/pending',
       pages: 'page/set',
     }),
 
@@ -97,6 +98,7 @@ export default {
         module: this.modulePending,
         page: this.pagePending,
         chart: this.chartPending,
+        pageLayout: this.pageLayoutPending,
       }
     },
   },
