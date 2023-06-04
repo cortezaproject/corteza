@@ -3,11 +3,14 @@ package dal
 import "go.uber.org/zap"
 
 type (
-	issue struct {
-		kind issueKind
-		err  error
+	Issue struct {
+		err   error
+		Issue string `json:"issue,omitempty"`
+
+		Kind issueKind      `json:"kind,omitempty"`
+		Meta map[string]any `json:"meta,omitempty"`
 	}
-	issueSet []issue
+	issueSet []Issue
 
 	issueHelper struct {
 		// these two will be used to help clear out unneeded errors
@@ -34,27 +37,12 @@ func newIssueHelper() *issueHelper {
 	}
 }
 
-func makeIssue(kind issueKind, err error) issue {
-	return issue{
-		kind: kind,
-		err:  err,
-	}
+func (svc *service) SearchConnectionIssues(connectionID uint64) (out []Issue) {
+	return svc.connectionIssues[connectionID]
 }
 
-func (svc *service) SearchConnectionIssues(connectionID uint64) (out []error) {
-	for _, issue := range svc.connectionIssues[connectionID] {
-		out = append(out, issue.err)
-	}
-
-	return
-}
-
-func (svc *service) SearchModelIssues(resourceID uint64) (out []error) {
-	for _, issue := range svc.modelIssues[resourceID] {
-		out = append(out, issue.err)
-	}
-
-	return
+func (svc *service) SearchModelIssues(resourceID uint64) (out []Issue) {
+	return svc.modelIssues[resourceID]
 }
 
 func (svc *service) hasConnectionIssues(connectionID uint64) bool {
@@ -95,12 +83,24 @@ func (rd *issueHelper) addModel(modelID uint64) *issueHelper {
 	return rd
 }
 
-func (rd *issueHelper) addConnectionIssue(connectionID uint64, err error) {
-	rd.connectionIssues[connectionID] = append(rd.connectionIssues[connectionID], makeIssue(connectionIssue, err))
+func (rd *issueHelper) addConnectionIssue(connectionID uint64, i Issue) {
+	i.Kind = connectionIssue
+	i.Issue = i.err.Error()
+	rd.connectionIssues[connectionID] = append(rd.connectionIssues[connectionID], i)
 }
 
-func (rd *issueHelper) addModelIssue(resourceID uint64, err error) {
-	rd.modelIssues[resourceID] = append(rd.modelIssues[resourceID], makeIssue(modelIssue, err))
+func (rd *issueHelper) addModelIssue(resourceID uint64, i Issue) {
+	i.Kind = modelIssue
+	i.Issue = i.err.Error()
+	rd.modelIssues[resourceID] = append(rd.modelIssues[resourceID], i)
+}
+
+func (rd *issueHelper) hasConnectionIssues() bool {
+	return len(rd.connectionIssues) > 0
+}
+
+func (rd *issueHelper) hasModelIssues() bool {
+	return len(rd.modelIssues) > 0
 }
 
 func (a *issueHelper) mergeWith(b *issueHelper) {

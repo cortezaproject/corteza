@@ -2,6 +2,7 @@ package dal
 
 import (
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 )
 
@@ -67,6 +68,9 @@ func errModelCreateGreaterAttributeSensitivityLevel(connectionID, modelID, attrS
 func errModelCreateConnectionModelUnsupported(connectionID, modelID uint64) error {
 	return fmt.Errorf("cannot create model %d on connection %d: model already exists for connection but is not compatible with provided definition", modelID, connectionID)
 }
+func errModelCreateInvalidIdent(connectionID, modelID uint64, ident string) error {
+	return fmt.Errorf("cannot create model %d on connection %d: malformed model ident %s", modelID, connectionID, ident)
+}
 
 // - update
 func errModelUpdateProblematicConnection(connectionID, modelID uint64) error {
@@ -92,6 +96,11 @@ func errModelUpdateMissingSensitivityLevel(connectionID, modelID, sensitivityLev
 }
 func errModelUpdateGreaterSensitivityLevel(connectionID, modelID, modelSensitivityLevelID, connSensitivityLevelID uint64) error {
 	return fmt.Errorf("cannot update model %d on connection %d: sensitivity level %d exceeds connection supported sensitivity level %d", modelID, connectionID, modelSensitivityLevelID, connSensitivityLevelID)
+}
+
+// - alterations
+func errModelRequiresAlteration(connectionID, modelID, batchID uint64) error {
+	return fmt.Errorf("model %d on connection %d requires schema alterations: alteration batchID %d", modelID, connectionID, batchID)
 }
 
 // Attribute errors

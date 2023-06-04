@@ -3,10 +3,10 @@ package dal
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"strconv"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -29,6 +29,13 @@ type (
 
 		connectionIssues dalIssueIndex
 		modelIssues      dalIssueIndex
+
+		Alterations alterations
+	}
+
+	alterations interface {
+		ModelAlterations(context.Context, *Model) (out []*Alteration, err error)
+		SetAlterations(ctx context.Context, m *Model, stale []*Alteration, set ...*Alteration) (err error)
 	}
 
 	FullService interface {
@@ -45,7 +52,6 @@ type (
 		SearchModels(ctx context.Context) (out ModelSet, err error)
 		ReplaceModel(ctx context.Context, model *Model) (err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *Model, dif *ModelDiff, hasRecords bool, trans ...TransformationFunction) (err error)
 		FindModelByResourceID(connectionID uint64, resourceID uint64) *Model
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model
 		FindModelByIdent(connectionID uint64, ident string) *Model
@@ -60,8 +66,8 @@ type (
 		Run(ctx context.Context, pp Pipeline) (iter Iterator, err error)
 		Dryrun(ctx context.Context, pp Pipeline) (err error)
 
-		SearchConnectionIssues(connectionID uint64) (out []error)
-		SearchModelIssues(resourceID uint64) (out []error)
+		SearchConnectionIssues(connectionID uint64) (out []Issue)
+		SearchModelIssues(resourceID uint64) (out []Issue)
 	}
 )
 
@@ -319,7 +325,9 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 
 	// Sensitivity level validations
 	if !svc.sensitivityLevels.includes(conn.Config.SensitivityLevelID) {
-		issues.addConnectionIssue(ID, errConnectionCreateMissingSensitivityLevel(ID, conn.Config.SensitivityLevelID))
+		issues.addConnectionIssue(ID, Issue{
+			err: errConnectionCreateMissingSensitivityLevel(ID, conn.Config.SensitivityLevelID),
+		})
 	}
 
 	if oldConn = svc.GetConnectionByID(ID); oldConn != nil {
@@ -335,7 +343,9 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 
 			// - sensitivity levels
 			if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.Config.SensitivityLevelID) {
-				issues.addConnectionIssue(ID, fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", ID, model.ResourceID))
+				issues.addConnectionIssue(ID, Issue{
+					err: fmt.Errorf("cannot update connection %d: new connection sensitivity level does not support model %d", ID, model.ResourceID),
+				})
 				errored = true
 			}
 		}
@@ -349,7 +359,9 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 		// close old connection
 		if cc, ok := oldConn.connection.(ConnectionCloser); ok {
 			if err = cc.Close(ctx); err != nil {
-				issues.addConnectionIssue(ID, err)
+				issues.addConnectionIssue(ID, Issue{
+					err: err,
+				})
 				return nil
 			}
 
@@ -363,7 +375,9 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 		conn.connection, err = connect(ctx, svc.logger, svc.inDev, conn.params)
 		if err != nil {
 			log.Warn("could not connect", zap.Error(err))
-			issues.addConnectionIssue(ID, err)
+			issues.addConnectionIssue(ID, Issue{
+				err: err,
+			})
 		} else {
 			log.Debug("connected")
 		}
@@ -667,18 +681,17 @@ func (svc *service) SearchModels(ctx context.Context) (out ModelSet, err error) 
 
 // ReplaceModel adds new or updates an existing model
 //
-// ReplaceModel only affects the metadata (the connection, identifier, ...)
-// and leaves attributes untouched.
-// Use the ReplaceModelAttribute to upsert attributes.
-//
 // We rely on the user to provide stable and valid model definitions.
 func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) {
 	var (
-		ID        = model.ResourceID
-		oldModel  *Model
-		issues    = newIssueHelper().addModel(ID)
-		auxIssues = newIssueHelper()
-		upd       bool
+		ID         = model.ResourceID
+		connection = svc.GetConnectionByID(model.ConnectionID)
+		oldModel   *Model
+		issues     = newIssueHelper().addModel(ID)
+		upd        bool
+
+		modelIssues      bool
+		connectionIssues bool
 
 		log = svc.logger.Named("models").With(
 			logger.Uint64("ID", ID),
@@ -693,8 +706,8 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 		model.ConnectionID = svc.defConnID
 	}
 
-	// Check if update
-	if oldModel = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID); oldModel != nil {
+	// Check if we're creating or updating the model
+	if oldModel = svc.FindModel(model.ToFilter()); oldModel != nil {
 		log.Debug("found existing")
 
 		if oldModel.ConnectionID != model.ConnectionID {
@@ -704,52 +717,132 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 		upd = true
 	}
 
-	// Validation
-	svc.validateModel(issues, model, oldModel)
-	for _, attr := range model.Attributes {
-		svc.validateAttribute(issues, model, attr)
-	}
+	// @todo consider adding some logging to validators
+	svc.validateModel(issues, connection, model, oldModel)
+	svc.validateAttributes(issues, model, model.Attributes...)
 
-	// Add to connection
-	connectionIssues := svc.hasConnectionIssues(model.ConnectionID)
+	connectionIssues = issues.hasConnectionIssues()
 	if connectionIssues {
 		log.Warn(
-			"not adding to connection due to connection issues",
+			"not adding to store due to connection issues",
 			zap.Any("issues", svc.SearchConnectionIssues(model.ConnectionID)),
 		)
 	}
 
-	modelIssues := svc.hasModelIssues(model.ResourceID)
+	modelIssues = issues.hasModelIssues()
 	if modelIssues {
 		log.Warn(
-			"not adding to connection due to model issues",
+			"not adding to store due to model issues",
 			zap.Any("issues", svc.SearchModelIssues(model.ResourceID)),
 		)
 	}
 
-	connection := svc.GetConnectionByID(model.ConnectionID)
-	if !modelIssues && !connectionIssues {
-		if !checkIdent(model.Ident, connection.Config.ModelIdentCheck...) {
-			log.Warn("can not add model to connection, invalid ident")
-			return nil
-		}
-
-		auxIssues, err = svc.registerModelToConnection(ctx, connection, model)
-		issues.mergeWith(auxIssues)
-		if err != nil {
-			log.Error("failed with errors", zap.Error(err))
-			return
-		}
-	}
-
 	// Add to registry
+	// @note models should be added to the registry regardless of issues
 	svc.addModelToRegistry(model, upd)
 	log.Debug(
-		"added",
+		"added to registry",
 		logger.Uint64("connectionID", model.ConnectionID),
 	)
 
+	// Can't continue with connection alterations if there are issues already
+	if connectionIssues || modelIssues {
+		return
+	}
+
+	// Get alterations
+	// - base from the model diff
+	df := oldModel.Diff(model)
+	batchID := id.Next()
+	aa := df.Alterations()
+	for _, a := range aa {
+		a.BatchID = batchID
+		a.Resource = model.Resource
+		a.ResourceType = model.ResourceType
+		a.ConnectionID = model.ConnectionID
+	}
+	// - merge with existing
+	baseAa, err := svc.Alterations.ModelAlterations(ctx, model)
+	if err != nil {
+		return
+	}
+	// - cleanup to remove duplicates, squash overlapping changes, ...
+	aa = svc.mergeAlterations(baseAa, aa)
+	if len(aa) > 0 {
+		batchID = aa[0].BatchID
+	}
+	// - updated with an assertion over the connection
+	aa, err = connection.connection.AssertSchemaAlterations(ctx, model, aa...)
+	if err != nil {
+		return
+	}
+	for _, a := range aa {
+		a.BatchID = batchID
+	}
+
+	err = svc.Alterations.SetAlterations(ctx, model, baseAa, aa...)
+	if err != nil {
+		return
+	}
+
+	if len(aa) > 0 {
+		issues.addModelIssue(model.ResourceID, Issue{
+			err: errModelRequiresAlteration(connection.ID, model.ResourceID, batchID),
+			Meta: map[string]any{
+				"batchID": strconv.FormatUint(batchID, 10),
+			},
+		})
+		log.Info("not adding to store: alterations required", zap.Error(err))
+		return
+	}
+
+	if upd {
+		err = connection.connection.UpdateModel(ctx, oldModel, model)
+	} else {
+		err = connection.connection.CreateModel(ctx, model)
+	}
+
+	if err != nil {
+		log.Error("failed with errors", zap.Error(err))
+	}
+
 	return
+}
+
+// ApplyAlteration updates the underlying schema with the requested changes
+func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (errs []error, err error) {
+	if len(alts) == 0 {
+		return
+	}
+
+	connectionID := alts[0].ConnectionID
+	resource := alts[0].Resource
+	resourceType := alts[0].ResourceType
+	for _, alt := range alts {
+		if alt.ConnectionID != connectionID {
+			return nil, fmt.Errorf("alterations must be for the same connection")
+		}
+
+		if alt.ResourceType != resourceType {
+			return nil, fmt.Errorf("alterations must be for the same resource type")
+		}
+
+		if alt.Resource != resource {
+			return nil, fmt.Errorf("alterations must be for the same resource")
+		}
+	}
+
+	connection := svc.GetConnectionByID(connectionID)
+	if connection == nil {
+		return nil, fmt.Errorf("connection not found")
+	}
+
+	model := svc.getModelByRef(ModelRef{Resource: resource, ResourceType: resourceType})
+	if model == nil {
+		return nil, fmt.Errorf("model not found xd")
+	}
+
+	return connection.connection.ApplyAlteration(ctx, model, alts...), nil
 }
 
 // RemoveModel removes the given model from DAL
@@ -798,44 +891,64 @@ func (svc *service) RemoveModel(ctx context.Context, connectionID, ID uint64) (e
 	return nil
 }
 
-func (svc *service) validateModel(issues *issueHelper, model, oldModel *Model) {
+func (svc *service) validateModel(issues *issueHelper, c *ConnectionWrap, model, oldModel *Model) {
 	// Connection ok?
 	if svc.hasConnectionIssues(model.ConnectionID) {
-		issues.addModelIssue(model.ResourceID, errModelCreateProblematicConnection(model.ConnectionID, model.ResourceID))
+		issues.addModelIssue(model.ResourceID, Issue{
+			err: errModelCreateProblematicConnection(model.ConnectionID, model.ResourceID),
+		})
 	}
 	// Connection exists?
-	conn := svc.GetConnectionByID(model.ConnectionID)
-	if conn == nil {
-		issues.addModelIssue(model.ResourceID, errModelCreateMissingConnection(model.ConnectionID, model.ResourceID))
+	if c == nil {
+		issues.addModelIssue(model.ResourceID, Issue{
+			err: errModelCreateMissingConnection(model.ConnectionID, model.ResourceID),
+		})
 	}
 
 	// If ident changed, check for duplicate
 	if oldModel != nil && oldModel.Ident != model.Ident {
 		if tmp := svc.FindModelByIdent(model.ConnectionID, model.Ident); tmp == nil {
-			issues.addModelIssue(oldModel.ResourceID, errModelUpdateDuplicate(model.ConnectionID, model.ResourceID))
+			issues.addModelIssue(oldModel.ResourceID, Issue{
+				err: errModelUpdateDuplicate(model.ConnectionID, model.ResourceID),
+			})
 		}
 	}
 
 	// Sensitivity level ok and valid?
 	if !svc.sensitivityLevels.includes(model.SensitivityLevelID) {
-		issues.addModelIssue(model.ResourceID, errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID))
+		issues.addModelIssue(model.ResourceID, Issue{
+			err: errModelCreateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID),
+		})
 	} else {
 		// Only check if it is present
-		if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, conn.Config.SensitivityLevelID) {
-			issues.addModelIssue(model.ResourceID, errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID, conn.Config.SensitivityLevelID))
+		if !svc.sensitivityLevels.isSubset(model.SensitivityLevelID, c.Config.SensitivityLevelID) {
+			issues.addModelIssue(model.ResourceID, Issue{
+				err: errModelCreateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, model.SensitivityLevelID, c.Config.SensitivityLevelID),
+			})
 		}
+	}
+
+	if c != nil && !checkIdent(model.Ident, c.Config.ModelIdentCheck...) {
+		issues.addModelIssue(model.ResourceID, Issue{
+			err: errModelCreateInvalidIdent(model.ConnectionID, model.ResourceID, model.Ident),
+		})
 	}
 }
 
-func (svc *service) validateAttribute(issues *issueHelper, model *Model, attr *Attribute) {
-	if !svc.sensitivityLevels.includes(attr.SensitivityLevelID) {
-		issues.addModelIssue(model.ResourceID, errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID))
-	} else {
-		if !svc.sensitivityLevels.isSubset(attr.SensitivityLevelID, model.SensitivityLevelID) {
-			issues.addModelIssue(model.ResourceID, errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, attr.SensitivityLevelID, model.SensitivityLevelID))
+func (svc *service) validateAttributes(issues *issueHelper, model *Model, attr ...*Attribute) {
+	for _, a := range attr {
+		if !svc.sensitivityLevels.includes(a.SensitivityLevelID) {
+			issues.addModelIssue(model.ResourceID, Issue{
+				err: errModelCreateMissingAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, a.SensitivityLevelID),
+			})
+		} else {
+			if !svc.sensitivityLevels.isSubset(a.SensitivityLevelID, model.SensitivityLevelID) {
+				issues.addModelIssue(model.ResourceID, Issue{
+					err: errModelCreateGreaterAttributeSensitivityLevel(model.ConnectionID, model.ResourceID, a.SensitivityLevelID, model.SensitivityLevelID),
+				})
+			}
 		}
 	}
-
 }
 
 func (svc *service) addModelToRegistry(model *Model, upd bool) {
@@ -867,100 +980,6 @@ func (svc *service) removeModelFromRegistry(model *Model) {
 
 		svc.models[model.ConnectionID] = append(svc.models[model.ConnectionID], o)
 	}
-}
-
-// ReplaceModelAttribute adds new or updates an existing attribute for the given model
-//
-// We rely on the user to provide stable and valid attribute definitions.
-func (svc *service) ReplaceModelAttribute(ctx context.Context, model *Model, diff *ModelDiff, hasRecords bool, trans ...TransformationFunction) (err error) {
-	svc.logger.Debug("updating model attribute", logger.Uint64("model", model.ResourceID))
-
-	var (
-		conn   *ConnectionWrap
-		issues = newIssueHelper().addModel(model.ResourceID)
-	)
-	defer svc.updateIssues(issues)
-
-	if model.ConnectionID == 0 {
-		model.ConnectionID = svc.defConnID
-	}
-
-	// Validation
-	{
-		// Connection issues
-		if svc.hasConnectionIssues(model.ConnectionID) {
-			issues.addModelIssue(model.ResourceID, errAttributeUpdateProblematicConnection(model.ConnectionID, model.ResourceID))
-		}
-
-		// Check if it exists
-		auxModel := svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
-		if auxModel == nil {
-			issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingModel(model.ConnectionID, model.ResourceID))
-		}
-
-		// In case we're deleting it we can ignore this check
-		if diff.Inserted != nil {
-			if !svc.sensitivityLevels.includes(diff.Inserted.SensitivityLevelID) {
-				issues.addModelIssue(model.ResourceID, errAttributeUpdateMissingSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Inserted.SensitivityLevelID))
-			} else {
-				if !svc.sensitivityLevels.isSubset(diff.Inserted.SensitivityLevelID, model.SensitivityLevelID) {
-					issues.addModelIssue(model.ResourceID, errAttributeUpdateGreaterSensitivityLevel(model.ConnectionID, model.ResourceID, diff.Inserted.SensitivityLevelID, model.SensitivityLevelID))
-				}
-			}
-		}
-
-		conn = svc.GetConnectionByID(model.ConnectionID)
-	}
-
-	// Update attribute
-	// Update connection
-	connectionIssues := svc.hasConnectionIssues(model.ConnectionID)
-	modelIssues := svc.hasModelIssues(model.ResourceID)
-
-	if !modelIssues && !connectionIssues {
-		svc.logger.Debug("updating model attribute", logger.Uint64("connection", model.ConnectionID), logger.Uint64("model", model.ResourceID))
-
-		err = conn.connection.UpdateModelAttribute(ctx, model, diff, hasRecords, trans...)
-		if err != nil {
-			issues.addModelIssue(model.ResourceID, err)
-		}
-	} else {
-		if connectionIssues {
-			svc.logger.Warn("not updating model attribute due to connection issues", logger.Uint64("connection", model.ConnectionID))
-		}
-		if modelIssues {
-			svc.logger.Warn("not updating model attribute due to model issues", logger.Uint64("model", model.ResourceID))
-		}
-	}
-
-	// Update registry
-	if diff.Original == nil {
-		// adding
-		model.Attributes = append(model.Attributes, diff.Original)
-	} else if diff.Original == nil {
-		// removing
-		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
-		nSet := make(AttributeSet, 0, len(model.Attributes))
-		for _, attribute := range model.Attributes {
-			if attribute.Ident != diff.Original.Ident {
-				nSet = append(nSet, attribute)
-			}
-		}
-		model.Attributes = nSet
-	} else {
-		// updating
-		model = svc.FindModelByResourceID(model.ConnectionID, model.ResourceID)
-		for i, attribute := range model.Attributes {
-			if attribute.Ident == diff.Original.Ident {
-				model.Attributes[i] = diff.Inserted
-				break
-			}
-		}
-	}
-
-	svc.logger.Debug("updated model attribute")
-
-	return
 }
 
 // FindModelByRefs returns the model with all of the given refs matching
@@ -1057,48 +1076,6 @@ func (svc *service) getConnection(connectionID uint64, oo ...Operation) (cw *Con
 	}
 
 	return
-}
-
-func (svc *service) registerModelToConnection(ctx context.Context, cw *ConnectionWrap, model *Model) (issues *issueHelper, err error) {
-	issues = newIssueHelper()
-
-	available, err := cw.connection.Models(ctx)
-	if err != nil {
-		issues.addConnectionIssue(model.ConnectionID, err)
-		return issues, nil
-	}
-
-	// Check if already in there
-	if existing := available.FindByResourceIdent(model.ResourceType, model.Resource); existing != nil {
-		// Assert validity
-		diff := existing.Diff(model)
-		if len(diff) > 0 {
-			issues.addModelIssue(model.ResourceID, errModelCreateConnectionModelUnsupported(model.ConnectionID, model.ResourceID))
-			return issues, nil
-		}
-
-		return
-	}
-
-	// make sure connection supports model's ident
-	var (
-		rre []*regexp.Regexp
-	)
-
-	for _, re := range rre {
-		if re.MatchString(model.Ident) {
-			return
-		}
-	}
-
-	// Try to add to store
-	err = cw.connection.CreateModel(ctx, model)
-	if err != nil {
-		issues.addModelIssue(model.ResourceID, err)
-		return issues, nil
-	}
-
-	return nil, nil
 }
 
 func (svc *service) getModelByRef(mr ModelRef) *Model {
@@ -1233,4 +1210,20 @@ func (svc *service) analyzePipeline(ctx context.Context, pp Pipeline) (err error
 	}
 
 	return
+}
+
+func (svc *service) mergeAlterations(base, added AlterationSet) (out AlterationSet) {
+	var (
+		batchID uint64
+	)
+
+	if len(base) > 0 {
+		batchID = base[0].BatchID
+	}
+
+	for _, a := range base {
+		a.BatchID = batchID
+	}
+
+	return base.Merge(added)
 }

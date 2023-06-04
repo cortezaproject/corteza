@@ -1,6 +1,7 @@
 package dal
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -77,6 +78,56 @@ type (
 		// Type describes what the value represents and how it should be
 		// encoded/decoded
 		Type Type
+	}
+
+	// auxAttribute is a helper struct used for marshaling/unmarshaling
+	//
+	// This is required since some fields are interfaces
+	auxAttribute struct {
+		Ident              string `json:"ident"`
+		Label              string `json:"label"`
+		SensitivityLevelID uint64 `json:"sensitivityLevelID"`
+		MultiValue         bool   `json:"multiValue"`
+		PrimaryKey         bool   `json:"primaryKey"`
+		SoftDeleteFlag     bool   `json:"softDeleteFlag"`
+		System             bool   `json:"system"`
+		Sortable           bool   `json:"sortable"`
+		Filterable         bool   `json:"filterable"`
+
+		Store *auxAttributeStore `json:"store"`
+		Type  *auxAttributeType  `json:"type"`
+	}
+
+	// auxAttributeStore is a helper struct used for marshaling/unmarshaling
+	//
+	// This is required since some fields are interfaces
+	auxAttributeStore struct {
+		Type string `json:"type"`
+
+		Plain              *CodecPlain              `json:"plain,omitempty"`
+		RecordValueSetJSON *CodecRecordValueSetJSON `json:"recordValueSetJSON,omitempty"`
+		Alias              *CodecAlias              `json:"alias,omitempty"`
+	}
+
+	// auxAttributeType is a helper struct used for marshaling/unmarshaling
+	//
+	// This is required since some fields are interfaces
+	auxAttributeType struct {
+		Type string `json:"type"`
+
+		ID        *TypeID        `json:"id,omitempty"`
+		Ref       *TypeRef       `json:"ref,omitempty"`
+		Timestamp *TypeTimestamp `json:"timestamp,omitempty"`
+		Time      *TypeTime      `json:"time,omitempty"`
+		Date      *TypeDate      `json:"date,omitempty"`
+		Number    *TypeNumber    `json:"number,omitempty"`
+		Text      *TypeText      `json:"text,omitempty"`
+		Boolean   *TypeBoolean   `json:"boolean,omitempty"`
+		Enum      *TypeEnum      `json:"enum,omitempty"`
+		Geometry  *TypeGeometry  `json:"geometry,omitempty"`
+		JSON      *TypeJSON      `json:"jSON,omitempty"`
+		Blob      *TypeBlob      `json:"blob,omitempty"`
+		UUID      *TypeUUID      `json:"uuid,omitempty"`
 	}
 
 	AttributeSet []*Attribute
@@ -294,4 +345,176 @@ func (m Model) Validate() error {
 	}
 
 	return nil
+}
+
+func (a *Attribute) MarshalJSON() ([]byte, error) {
+	aux := &auxAttribute{
+		Ident:              a.Ident,
+		Label:              a.Label,
+		SensitivityLevelID: a.SensitivityLevelID,
+		MultiValue:         a.MultiValue,
+		PrimaryKey:         a.PrimaryKey,
+		SoftDeleteFlag:     a.SoftDeleteFlag,
+		System:             a.System,
+		Sortable:           a.Sortable,
+		Filterable:         a.Filterable,
+
+		Store: &auxAttributeStore{},
+		Type:  &auxAttributeType{},
+	}
+
+	switch s := a.Store.(type) {
+	case *CodecPlain:
+		aux.Store.Type = "plain"
+		aux.Store.Plain = s
+
+	case *CodecRecordValueSetJSON:
+		aux.Store.Type = "recordValueSetJSON"
+		aux.Store.RecordValueSetJSON = s
+
+	case *CodecAlias:
+		aux.Store.Type = "alias"
+		aux.Store.Alias = s
+
+	default:
+		return nil, fmt.Errorf("unknown store codec type: %T", s)
+	}
+
+	switch t := a.Type.(type) {
+	case *TypeID:
+		aux.Type.Type = "ID"
+		aux.Type.ID = t
+
+	case *TypeRef:
+		aux.Type.Type = "Ref"
+		aux.Type.Ref = t
+
+	case *TypeTimestamp:
+		aux.Type.Type = "Timestamp"
+		aux.Type.Timestamp = t
+
+	case *TypeTime:
+		aux.Type.Type = "Time"
+		aux.Type.Time = t
+
+	case *TypeDate:
+		aux.Type.Type = "Date"
+		aux.Type.Date = t
+
+	case *TypeNumber:
+		aux.Type.Type = "Number"
+		aux.Type.Number = t
+
+	case *TypeText:
+		aux.Type.Type = "Text"
+		aux.Type.Text = t
+
+	case *TypeBoolean:
+		aux.Type.Type = "Boolean"
+		aux.Type.Boolean = t
+
+	case *TypeEnum:
+		aux.Type.Type = "Enum"
+		aux.Type.Enum = t
+
+	case *TypeGeometry:
+		aux.Type.Type = "Geometry"
+		aux.Type.Geometry = t
+
+	case *TypeJSON:
+		aux.Type.Type = "JSON"
+		aux.Type.JSON = t
+
+	case *TypeBlob:
+		aux.Type.Type = "Blob"
+		aux.Type.Blob = t
+
+	case *TypeUUID:
+		aux.Type.Type = "UUID"
+		aux.Type.UUID = t
+
+	default:
+		return nil, fmt.Errorf("unknown attribute type type: %T", t)
+	}
+
+	return json.Marshal(aux)
+}
+
+func (a *Attribute) UnmarshalJSON(data []byte) (err error) {
+	aux := &auxAttribute{}
+	err = json.Unmarshal(data, &aux)
+	if err != nil {
+		return err
+	}
+
+	if a == nil {
+		*a = Attribute{}
+	}
+
+	a.Ident = aux.Ident
+	a.Label = aux.Label
+	a.SensitivityLevelID = aux.SensitivityLevelID
+	a.MultiValue = aux.MultiValue
+	a.PrimaryKey = aux.PrimaryKey
+	a.SoftDeleteFlag = aux.SoftDeleteFlag
+	a.System = aux.System
+	a.Sortable = aux.Sortable
+	a.Filterable = aux.Filterable
+
+	switch aux.Store.Type {
+	case "plain":
+		a.Store = aux.Store.Plain
+
+	case "recordValueSetJSON":
+		a.Store = aux.Store.RecordValueSetJSON
+
+	case "alias":
+		a.Store = aux.Store.Alias
+	}
+
+	switch aux.Type.Type {
+	case "ID":
+		a.Type = aux.Type.ID
+
+	case "Ref":
+		a.Type = aux.Type.Ref
+
+	case "Timestamp":
+		a.Type = aux.Type.Timestamp
+
+	case "Time":
+		a.Type = aux.Type.Time
+
+	case "Date":
+		a.Type = aux.Type.Date
+
+	case "Number":
+		a.Type = aux.Type.Number
+
+	case "Text":
+		a.Type = aux.Type.Text
+
+	case "Boolean":
+		a.Type = aux.Type.Boolean
+
+	case "Enum":
+		a.Type = aux.Type.Enum
+
+	case "Geometry":
+		a.Type = aux.Type.Geometry
+
+	case "JSON":
+		a.Type = aux.Type.JSON
+
+	case "Blob":
+		a.Type = aux.Type.Blob
+
+	case "UUID":
+		a.Type = aux.Type.UUID
+
+	default:
+		return fmt.Errorf("unknown attribute type type: %s", aux.Type.Type)
+	}
+
+	return
 }
