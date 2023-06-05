@@ -815,9 +815,16 @@ func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (e
 		return
 	}
 
-	connectionID := alts[0].ConnectionID
-	resource := alts[0].Resource
-	resourceType := alts[0].ResourceType
+	var (
+		connectionID = alts[0].ConnectionID
+		resource     = alts[0].Resource
+		resourceType = alts[0].ResourceType
+
+		issues = newIssueHelper()
+	)
+
+	defer svc.updateIssues(issues)
+
 	for _, alt := range alts {
 		if alt.ConnectionID != connectionID {
 			return nil, fmt.Errorf("alterations must be for the same connection")
@@ -841,6 +848,12 @@ func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (e
 	if model == nil {
 		return nil, fmt.Errorf("model not found xd")
 	}
+
+	issues = issues.addModel(model.ResourceID)
+
+	// @todo consider adding some logging to validators
+	svc.validateModel(issues, connection, model, model)
+	svc.validateAttributes(issues, model, model.Attributes...)
 
 	return connection.connection.ApplyAlteration(ctx, model, alts...), nil
 }
