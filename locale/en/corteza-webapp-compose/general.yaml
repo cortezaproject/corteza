@@ -85,7 +85,7 @@ label:
   namespace:
     single: Namespace
     plural: Namespaces
-  module: 
+  module:
     single: Module
     plural: Modules
 navigation:
@@ -100,6 +100,7 @@ reminder:
   add: Add a reminder
   dismiss: Dismiss
   dismissed: Dismissed
+  dismissedAt: Dismissed at
   undismiss: Undismiss
   delete: Delete reminder
   recordPageLink: View record
@@ -115,7 +116,9 @@ reminder:
     titlePlaceholder: Title
   listLabel: Reminders
   routesTo: Label for page link
-  snooze: Snooze
+  snooze:
+    label: Snooze
+    count: Snooze count {{count}}
 tooltip:
   dragAndDrop: Drag and drop to change order
   field: Configure field
