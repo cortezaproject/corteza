@@ -1,16 +1,15 @@
 <template>
   <div
-    class="d-flex flex-column w-100"
+    class="d-flex flex-column h-100"
   >
     <b-form
       v-if="reminder"
-      class="p-2 text-primary"
+      class="flex-fill overflow-auto p-2 text-primary"
       @submit.prevent
     >
       <b-form-group v-if="reminder.reminderID !== '0'">
         <b-form-checkbox
           :checked="!!reminder.dismissedAt"
-          switch
           class="mt-2"
           @change="$emit('dismiss', reminder, $event)"
         >
@@ -41,6 +40,7 @@
         <c-input-date-time
           v-model="reminder.remindAt"
           data-test-id="select-remind-at"
+          only-future
           :labels="{
             clear: $t('label.clear'),
             none: $t('label.none'),
@@ -91,28 +91,43 @@
         </b-input-group>
       </b-form-group>
 
-      <div class="d-flex justify-content-center pt-2">
-        <b-button
-          variant="outline-light"
-          class="text-primary mt-auto border-0"
-          @click="$emit('back')"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'chevron-left']"
-            class="back-icon"
-          />
-          {{ $t('label.back') }}
-        </b-button>
+      <b-form-group
+        v-if="reminder.dismissedAt"
+        :label="$t('reminder.dismissedAt')"
+      >
+        {{ reminder.dismissedAt | locFullDateTime }}
+      </b-form-group>
 
-        <b-button
-          data-test-id="button-save"
-          variant="primary"
-          @click="$emit('save', reminder)"
-        >
-          {{ $t('label.save') }}
-        </b-button>
-      </div>
+      <b-form-group
+        v-if="reminder.snoozeCount"
+        :label="$t('reminder.snooze.count')"
+      >
+        {{ reminder.snoozeCount }}
+      </b-form-group>
     </b-form>
+
+    <div class="d-flex align-items-center justify-content-around py-3">
+      <b-button
+        data-test-id="button-back"
+        variant="outline-light"
+        class="text-primary border-0"
+        @click="$emit('back')"
+      >
+        <font-awesome-icon
+          :icon="['fas', 'chevron-left']"
+          class="back-icon"
+        />
+        {{ $t('label.back') }}
+      </b-button>
+
+      <b-button
+        data-test-id="button-save"
+        variant="primary"
+        @click="$emit('save', reminder)"
+      >
+        {{ $t('label.save') }}
+      </b-button>
+    </div>
   </div>
 </template>
 

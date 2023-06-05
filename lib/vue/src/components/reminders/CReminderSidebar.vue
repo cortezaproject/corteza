@@ -2,7 +2,7 @@
   <b-sidebar
     v-model="isVisible"
     header-class="d-flex align-items-center justify-content-between reminder-sidebar-header px-2 py-3 border-bottom"
-    body-class="bg-white px-2 pb-2"
+    body-class="d-flex flex-column overflow-hidden bg-white"
     :title="title"
     :backdrop="isMobile"
     no-footer

@@ -257,7 +257,7 @@ export default {
 
       r.actions.snooze = {
         cb: this.onReminderSnooze,
-        label: `<b>${this.$t('general:reminder.snooze')}</b>`,
+        label: `<b>${this.$t('general:reminder.snooze.label')}</b>`,
         kind: 'Select',
         options: {
           variant: 'outline-warning',
