@@ -1300,12 +1300,10 @@ var DalSchemaAlteration = &dal.Model{
 			Fields: []*dal.IndexField{
 				{
 					AttributeIdent: "ID",
-					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
 				},
 
 				{
 					AttributeIdent: "BatchID",
-					Modifiers:      []dal.IndexFieldModifier{"LOWERCASE"},
 				},
 			},
 		},

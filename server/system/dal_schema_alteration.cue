@@ -65,8 +65,8 @@ dal_schema_alteration: {
 			"primary": { attribute: "id" }
 			"unique_alteration": {
 				 fields: [
-				   { attribute: "id",      modifiers: [ "LOWERCASE" ] },
-				   { attribute: "batchID", modifiers: [ "LOWERCASE" ] },
+				   { attribute: "id" },
+				   { attribute: "batchID" },
 				 ]
 		 	}
 		}
