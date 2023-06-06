@@ -48,6 +48,10 @@ type (
 		Find(ctx context.Context, filter types.PageFilter) (set types.PageSet, f types.PageFilter, err error)
 	}
 
+	pageLayoutFinder interface {
+		Find(ctx context.Context, filter types.PageLayoutFilter) (set types.PageLayoutSet, f types.PageLayoutFilter, err error)
+	}
+
 	chartFinder interface {
 		Find(ctx context.Context, filter types.ChartFilter) (set types.ChartSet, f types.ChartFilter, err error)
 	}
@@ -56,6 +60,7 @@ type (
 		namespace  service.NamespaceService
 		module     service.ModuleService
 		page       pageFinder
+		pageLayout pageLayoutFinder
 		chart      chartFinder
 		locale     service.ResourceTranslationsManagerService
 		attachment service.AttachmentService
@@ -81,6 +86,7 @@ func (Namespace) New() *Namespace {
 		namespace:  service.DefaultNamespace,
 		module:     service.DefaultModule,
 		page:       service.DefaultPage,
+		pageLayout: service.DefaultPageLayout,
 		chart:      service.DefaultChart,
 		locale:     service.DefaultResourceTranslation,
 		role:       systemService.DefaultRole,
@@ -418,6 +424,20 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	for _, p := range pp {
 		var aux *envoyx.Node
 		aux, err = composeEnvoy.PageToEnvoyNode(p)
+		if err != nil {
+			return
+		}
+		resources = append(resources, aux)
+	}
+
+	// - page layouts
+	ll, _, err := ctrl.pageLayout.Find(ctx, types.PageLayoutFilter{NamespaceID: n.ID})
+	if err != nil {
+		return
+	}
+	for _, l := range ll {
+		var aux *envoyx.Node
+		aux, err = composeEnvoy.PageLayoutToEnvoyNode(l)
 		if err != nil {
 			return
 		}
