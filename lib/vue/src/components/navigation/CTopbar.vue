@@ -87,7 +87,7 @@
         <b-dropdown-item
           v-if="!settings.hideFeedbackLink"
           data-test-id="dropdown-helper-feedback"
-          href="mailto:info@crust.tech"
+          href="mailto:info@cortezaproject.org"
           target="_blank"
         >
           {{ labels.helpFeedback }}
