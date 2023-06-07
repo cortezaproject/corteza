@@ -78,32 +78,37 @@
                 @export="onExport"
               />
 
-              <b-button
-                :id="`${uniqueID}-filter-preset`"
-                class="btn dropdown-toggle btn-light btn-lg"
-              >
-                {{ $t('recordList.filter.filters.label') }}
-              </b-button>
-              <b-popover
-                :target="`${uniqueID}-filter-preset`"
-                triggers="click blur"
-                placement="bottom"
-              >
-                <ul class="list-style-none">
-                  <li
-                    v-for="(f, idx) in filterPresets"
-                    :key="idx"
-                  >
-                    <button
-                      class="dropdown-item"
-                      :disabled="activeFilters.includes(f.name)"
-                      @click="updateFilter(f.filter, f.name)"
+              <template v-if="filterPresets.length">
+                <b-button
+                  :id="`${uniqueID}-filter-preset`"
+                  variant="light"
+                  size="lg"
+                  class="dropdown-toggle"
+                >
+                  {{ $t('recordList.filter.filters.label') }}
+                </b-button>
+
+                <b-popover
+                  :target="`${uniqueID}-filter-preset`"
+                  triggers="click blur"
+                  placement="bottom"
+                >
+                  <ul class="list-style-none">
+                    <li
+                      v-for="(f, idx) in filterPresets"
+                      :key="idx"
                     >
-                      {{ f.name }}
-                    </button>
-                  </li>
-                </ul>
-              </b-popover>
+                      <button
+                        class="dropdown-item"
+                        :disabled="activeFilters.includes(f.name)"
+                        @click="updateFilter(f.filter, f.name)"
+                      >
+                        {{ f.name }}
+                      </button>
+                    </li>
+                  </ul>
+                </b-popover>
+              </template>
 
               <column-picker
                 v-if="!options.hideConfigureFieldsButton"
@@ -1007,7 +1012,7 @@ export default {
 
     filterPresets () {
       return [
-        ...this.options.filterPresets.filter(({ name, roles }) => name && this.isUserRoleMember(roles)),
+        ...this.options.filterPresets.filter(({ name }) => name),
         ...this.customPresetFilters,
       ]
     },
@@ -1073,7 +1078,7 @@ export default {
         this.$root.$off(`refetch-non-record-blocks:${pageID}`)
       }
 
-      this.uniqueID = [pageID, recordID, this.block.blockID].map(v => v || NoID).join('-')
+      this.uniqueID = [pageID, recordID, this.block.blockID, this.magnified].map(v => v || NoID).join('-')
       this.$root.$on(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
       this.$root.$on(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
       this.$root.$on(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)

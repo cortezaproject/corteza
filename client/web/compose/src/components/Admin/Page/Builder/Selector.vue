@@ -20,7 +20,7 @@
 
       <b-col
         cols="12"
-        style="height: 500px;"
+        style="height: 50vh;"
         class="d-flex align-items-center"
       >
         <b-img

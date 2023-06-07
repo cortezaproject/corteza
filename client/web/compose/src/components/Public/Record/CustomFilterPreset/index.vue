@@ -6,6 +6,7 @@
       body-class="p-0"
       footer-class="d-flex w-100 align-items-center justify-content-between"
       centered
+      no-fade
       @hide="onModalHide"
     >
       <b-card

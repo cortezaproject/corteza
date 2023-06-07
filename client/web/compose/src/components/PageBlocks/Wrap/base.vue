@@ -33,8 +33,8 @@ export default {
       ]
     },
 
-    isBlockOpened () {
-      return this.block.blockID === this.$route.query.magnifiedBlockID
+    isBlockMagnified () {
+      return this.$attrs.magnified
     },
 
     headerSet () {

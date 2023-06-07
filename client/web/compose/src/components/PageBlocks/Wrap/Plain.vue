@@ -39,12 +39,12 @@
 
               <b-button
                 v-if="block.options.magnifyOption"
-                :title="isBlockOpened ? '' : $t('general.label.magnify')"
+                :title="isBlockMagnified ? '' : $t('general.label.magnify')"
                 variant="outline-light"
                 class="d-flex align-items-center text-primary d-print-none border-0"
-                @click="$root.$emit('magnify-page-block', isBlockOpened ? undefined : { blockID: block.blockID })"
+                @click="$root.$emit('magnify-page-block', isBlockMagnified ? undefined : { blockID: block.blockID })"
               >
-                <font-awesome-icon :icon="['fas', isBlockOpened ? 'times' : 'search-plus']" />
+                <font-awesome-icon :icon="['fas', isBlockMagnified ? 'times' : 'search-plus']" />
               </b-button>
             </b-button-group>
           </div>
