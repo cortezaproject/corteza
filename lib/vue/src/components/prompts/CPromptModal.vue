@@ -6,7 +6,7 @@
     :hide-footer="!current"
     :title="current ? current.title : 'Workflow prompts'"
     :busy="isLoading"
-
+    no-fade
     @hide="deactivate()"
   >
     <component

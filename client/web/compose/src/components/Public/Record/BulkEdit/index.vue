@@ -19,6 +19,7 @@
       body-class="p-0"
       footer-class="flex-column align-items-stretch"
       centered
+      no-fade
       @hide="onModalHide"
     >
       <b-card

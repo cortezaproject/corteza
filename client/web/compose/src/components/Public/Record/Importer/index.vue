@@ -14,6 +14,7 @@
       :title="$t('recordList.import.to', { modulename: module.name })"
       hide-footer
       body-class="p-0"
+      no-fade
       @hide="onModalHide"
     >
       <keep-alive>

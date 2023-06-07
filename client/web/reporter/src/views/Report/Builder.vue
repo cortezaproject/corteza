@@ -149,6 +149,7 @@
       size="xl"
       body-class="p-0 border-top-0"
       header-class="pb-0 px-3 pt-3 border-bottom-0"
+      no-fade
       @ok="updateBlock()"
     >
       <b-tabs
@@ -240,6 +241,7 @@
       scrollable
       size="xl"
       body-class="py-3"
+      no-fade
       @ok="saveDatasources"
     >
       <configurator
@@ -279,6 +281,7 @@
       hide-footer
       :title="$t('builder:add.display-element')"
       body-class="px-0 py-3"
+      no-fade
     >
       <selector
         :items="displayElements.types"
@@ -293,6 +296,7 @@
       hide-footer
       :title="$t('builder:add.datasource')"
       body-class="px-0 py-3"
+      no-fade
     >
       <selector
         :items="datasources.types"
@@ -309,6 +313,7 @@
       ok-variant="primary"
       :title="$t('builder:scenarios.label')"
       body-class="py-3"
+      no-fade
     >
       <configurator
         v-if="report"

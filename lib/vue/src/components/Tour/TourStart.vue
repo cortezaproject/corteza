@@ -6,6 +6,7 @@
     :ok-title="$t('start.show')"
     :cancel-title="$t('start.skip')"
     body-class="p-0"
+    no-fade
     @ok="onSave"
     @cancel="onCancel"
   >

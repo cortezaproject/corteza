@@ -9,6 +9,7 @@
     hide-header
     hide-footer
     size="xl"
+    no-fade
     @hidden="hideModal"
   >
     <page-block
@@ -50,6 +51,7 @@ export default {
   data () {
     return {
       showModal: false,
+
       block: undefined,
       record: undefined,
       page: undefined,
@@ -132,6 +134,7 @@ export default {
       const recordID = paramsRecordID || queryRecordID
       this.block = this.customBlock || this.page.blocks.find(block => block.blockID === blockID)
       this.module = moduleID !== NoID ? this.getModuleByID(moduleID) : undefined
+      this.showModal = !!(this.block || {}).blockID
 
       if (recordID) {
         this.$ComposeAPI
@@ -143,8 +146,6 @@ export default {
       } else if (this.module) {
         this.record = new compose.Record(this.module, {})
       }
-
-      this.showModal = !!(this.block || {}).blockID
     },
 
     hideModal () {

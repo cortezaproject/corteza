@@ -383,6 +383,7 @@
       cancel-variant="link"
       size="xl"
       scrollable
+      no-fade
       @ok="updateLayout()"
       @cancel="layoutEditor.layout = undefined"
       @hide="layoutEditor.layout = undefined"
@@ -623,6 +624,7 @@
       size="lg"
       label-class="text-primary"
       cancel-variant="link"
+      no-fade
       @close="closeIconModal"
       @ok="saveIconModal"
     >
@@ -703,6 +705,7 @@
       hide-header
       hide-footer
       centered
+      no-fade
       body-class="p-1"
     >
       <b-img

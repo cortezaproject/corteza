@@ -11,6 +11,7 @@
       :ok-title="labels.save"
       :cancel-title="labels.cancel"
       cancel-variant="light"
+      no-fade
       body-class="d-flex flex-column p-0"
       class="h-100 overflow-hidden"
       @hide="onHide"
@@ -173,6 +174,7 @@
       ok-only
       :ok-title="labels.add.save"
       :ok-disabled="!addEnabled"
+      no-fade
       @ok="onAddEval"
     >
       <b-form-group
@@ -343,13 +345,13 @@ export default {
         } else if (this.currentRole) {
           const { roleID } = this.currentRole
           this.processing = true
-  
+
           return this.fetchRules(roleID).then(() => {
             return Promise.all(this.evaluate.map(e => {
               const { userID } = e.userID || {}
               let { roleID = [] } = e
               roleID = roleID.map(({ roleID }) => roleID)
-    
+
               return this.evaluatePermissions({ roleID, userID }).then(rules => {
                 return {
                   ...e,

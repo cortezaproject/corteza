@@ -4,10 +4,11 @@
     v-model="showModal"
     scrollable
     dialog-class="h-100 mw-90"
-    content-class="position-initial"
+    content-class="card position-initial"
     body-class="p-0 bg-gray"
     footer-class="p-0"
     size="xl"
+    no-fade
     @hidden="hideModal"
   >
     <template #modal-title>
