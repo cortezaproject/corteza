@@ -19,6 +19,7 @@
       :module="module"
       :record="record"
       :page="page"
+      magnified
       v-bind="$props"
       v-on="$listeners"
     />
@@ -96,9 +97,9 @@ export default {
           return
         }
 
-        setTimeout(() => {
+        this.$nextTick(() => {
           this.loadModal(magnifiedBlockID)
-        }, 100)
+        })
       },
     },
   },
@@ -149,6 +150,7 @@ export default {
     },
 
     hideModal () {
+      this.showModal = false
       this.$router.push({ query: { ...this.$route.query, magnifiedBlockID: undefined } })
     },
   },

@@ -66,6 +66,12 @@ export default {
       required: false,
       default: false,
     },
+
+    magnified: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   data () {

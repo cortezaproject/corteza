@@ -47,6 +47,7 @@
           v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index, boundingRect: { xywh: block.xywh} }"
           :record="record"
           :module="module"
+          :magnified="magnified"
         />
 
         <div

@@ -152,15 +152,14 @@
 
     <b-modal
       id="createBlockSelector"
+      :title="$t('build.selectBlockTitle')"
       size="lg"
       scrollable
-      :title="$t('build.selectBlockTitle')"
-      no-fade
-      body-class="vh-75"
     >
       <new-block-selector
         :record-page="!!module"
         :existing-blocks="selectableExistingBlocks"
+        style="max-height: 75vh;"
         @select="addBlock"
       />
 
@@ -179,7 +178,6 @@
       :visible="showCreator"
       body-class="p-0 border-top-0"
       header-class="p-3 pb-0 border-bottom-0"
-      no-fade
       @ok="updateBlocks()"
       @hide="editor = undefined"
     >
@@ -201,7 +199,6 @@
       body-class="p-0 border-top-0"
       footer-class="d-flex justify-content-between"
       header-class="p-3 pb-0 border-bottom-0"
-      no-fade
       @hide="editor = undefined"
     >
       <configurator
