@@ -422,7 +422,7 @@
       <dal-schema-alterations
         :modal="dalSchemaAlterations.modal"
         :module="module"
-        @change="dalSchemaAlterations.modal = ($event || false)"
+        @cancel="dalSchemaAlterations.modal = ($event || false)"
       />
 
       <federation-settings
@@ -528,6 +528,10 @@ export default {
 
       federationSettings: {
         modal: false
+      },
+
+      dalSchemaAlterations: {
+        modal: true,
       },
 
       dalSchemaAlterations: {
@@ -652,7 +656,7 @@ export default {
   watch: {
     moduleID: {
       immediate: true,
-      handler (moduleID) {
+      async handler (moduleID) {
         this.module = undefined
 
         /**
@@ -673,7 +677,7 @@ export default {
             moduleID: moduleID,
           }
 
-          this.findModuleByID(params).then((module) => {
+          await this.findModuleByID(params).then((module) => {
             // Make a copy so that we do not change store item by ref
             this.module = module.clone()
 
@@ -686,13 +690,18 @@ export default {
             }
 
             // Count existing records to see what we can do with this module
-            this.$ComposeAPI
+            return this.$ComposeAPI
               .recordList({ moduleID, namespaceID, limit: 1 })
               .then(({ set }) => { this.hasRecords = (set.length > 0) })
           })
         }
 
         this.fetchSensitivityLevels()
+
+        // Check if module has Alterations to resolve
+        if (this.module.issues.some(({ meta = {} }) => meta.batchID)) {
+          this.dalSchemaAlterations.modal = true
+        }
       },
     },
 
