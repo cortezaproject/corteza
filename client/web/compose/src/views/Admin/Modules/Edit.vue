@@ -424,7 +424,7 @@
       <dal-schema-alterations
         :modal="dalSchemaAlterations.modal"
         :module="module"
-        @change="dalSchemaAlterations.modal = ($event || false)"
+        @cancel="dalSchemaAlterations.modal = ($event || false)"
       />
 
       <federation-settings
@@ -539,6 +539,10 @@ export default {
 
       federationSettings: {
         modal: false
+      },
+
+      dalSchemaAlterations: {
+        modal: true,
       },
 
       dalSchemaAlterations: {
@@ -666,7 +670,7 @@ export default {
   watch: {
     moduleID: {
       immediate: true,
-      handler (moduleID) {
+      async handler (moduleID) {
         this.module = undefined
         this.initialModuleState = undefined
 
@@ -690,7 +694,7 @@ export default {
             moduleID: moduleID,
           }
 
-          this.findModuleByID(params).then((module) => {
+          await this.findModuleByID(params).then((module) => {
             // Make a copy so that we do not change store item by ref
             this.module = module.clone()
             this.initialModuleState = module.clone()
@@ -715,6 +719,11 @@ export default {
         }
 
         this.fetchSensitivityLevels()
+
+        // Check if module has Alterations to resolve
+        if (this.module.issues.some(({ meta = {} }) => meta.batchID)) {
+          this.dalSchemaAlterations.modal = true
+        }
       },
     },
 
