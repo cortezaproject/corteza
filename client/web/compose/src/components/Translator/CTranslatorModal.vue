@@ -6,6 +6,7 @@
       lazy
       scrollable
       :title="title"
+      no-fade
       @hide="onHide"
     >
       <c-translator-form

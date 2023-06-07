@@ -57,6 +57,7 @@
       :ok-title="$t('general:save')"
       :cancel-title="$t('general:cancel')"
       body-class="p-0"
+      no-fade
       @ok="saveExpression"
       @hidden="resetExpression"
     >

@@ -230,6 +230,7 @@
       size="lg"
       scrollable
       hide-footer
+      no-fade
       :title="$t('tabs.newBlockModal')"
     >
       <new-block-selector

@@ -311,6 +311,7 @@
       :hide-header-close="workflow.workflowID === '0'"
       :no-close-on-backdrop="workflow.workflowID === '0'"
       :no-close-on-esc="workflow.workflowID === '0'"
+      no-fade
     >
       <template #modal-title>
         {{ $t('editor:workflow-configuration') }}
@@ -401,6 +402,7 @@
       size="lg"
       scrollable
       hide-footer
+      no-fade
       body-class="p-0"
     >
       <help />
@@ -411,6 +413,7 @@
       v-model="issuesModal.show"
       :title="$t('editor:issues')"
       hide-footer
+      no-fade
     >
       <div
         v-for="(issue, index) in issuesModal.issues"
@@ -433,6 +436,7 @@
       :ok-title="`${dryRun.lookup ? this.$t('editor:load-and-configure') : this.$t('editor:run-workflow')}`"
       :cancel-title="$t('editor:back')"
       ok-variant="success"
+      no-fade
       @cancel.prevent="dryRun.lookup = true"
       @ok="dryRunOk"
     >

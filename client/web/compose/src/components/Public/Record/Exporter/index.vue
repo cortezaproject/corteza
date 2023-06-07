@@ -13,6 +13,7 @@
       :title="$t('label.export')"
       hide-footer
       body-class="p-0"
+      no-fade
       @hide="toggleModal"
     >
       <configurator

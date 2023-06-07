@@ -407,6 +407,7 @@
         :visible="!!updateField"
         body-class="p-0 border-top-0"
         header-class="p-3 pb-0 border-bottom-0"
+        no-fade
         @ok="handleFieldSave(updateField)"
         @hide="updateField=null"
       >

@@ -28,6 +28,7 @@
         vertical: block.options.style.orientation === 'vertical',
         end: block.options.style.position === 'end'
       }"
+      no-fade
       class="h-100"
       :class="{ 'd-flex flex-column': block.options.style.orientation !== 'vertical' }"
     >

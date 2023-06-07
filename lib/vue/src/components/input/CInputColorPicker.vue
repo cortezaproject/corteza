@@ -56,6 +56,7 @@
       size="sm"
       body-class="p-0"
       cancel-variant="link"
+      no-fade
       @ok="$emit('input', currentColor || value)"
       @hide="closeMenu"
     >

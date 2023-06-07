@@ -14,6 +14,7 @@
       size="lg"
       :title="$t('general:import.json')"
       ok-only
+      no-fade
       class="d-none"
       @ok="$emit('import', workflows)"
     >

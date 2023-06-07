@@ -291,6 +291,7 @@
       hide-header
       hide-footer
       centered
+      no-fade
       body-class="p-1"
     >
       <b-img
@@ -305,6 +306,7 @@
       hide-header
       hide-footer
       centered
+      no-fade
       body-class="p-1"
     >
       <b-img
