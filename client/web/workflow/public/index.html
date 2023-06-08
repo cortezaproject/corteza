@@ -23,7 +23,7 @@
       }
     </style>
   </head>
-  <body>
+  <body id="workflow">
     <noscript>
       <strong>
         JavaScript is disabled in your browser!
@@ -35,6 +35,9 @@
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
+    <style>
+      @import url("<%= BASE_URL %>custom.css");
+    </style>
     <script src="<%= BASE_URL %>config.js" type="text/javascript"></script>
   </body>
 </html>

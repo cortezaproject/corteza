@@ -11,13 +11,22 @@
       :can-manage="canManage"
     />
 
+    <c-ui-custom-css
+      :settings="settings"
+      :processing="customCSS.processing"
+      :success="customCSS.success"
+      :can-manage="canManage"
+      class="mt-3"
+      @submit="onSubmit($event, 'customCSS')"
+    />
+
     <c-ui-topbar-settings
       :settings="settings"
       :processing="topbar.processing"
       :success="topbar.success"
       :can-manage="canManage"
       class="mt-3"
-      @submit="onTopbarSubmit"
+      @submit="onSubmit($event, 'topbar')"
     />
   </b-container>
 </template>
@@ -25,6 +34,7 @@
 <script>
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUILogoEditor from 'corteza-webapp-admin/src/components/Settings/UI/CUILogoEditor'
+import CUICustomCSS from 'corteza-webapp-admin/src/components/Settings/UI/CUICustomCSS.vue'
 import CUITopbarSettings from 'corteza-webapp-admin/src/components/Settings/UI/CUITopbarSettings'
 import { mapGetters } from 'vuex'
 
@@ -38,6 +48,7 @@ export default {
 
   components: {
     'c-ui-logo-editor': CUILogoEditor,
+    'c-ui-custom-css': CUICustomCSS,
     'c-ui-topbar-settings': CUITopbarSettings,
   },
 
@@ -50,6 +61,11 @@ export default {
       settings: {},
 
       topbar: {
+        processing: false,
+        success: false,
+      },
+
+      customCSS: {
         processing: false,
         success: false,
       },
@@ -85,8 +101,8 @@ export default {
         })
     },
 
-    onTopbarSubmit (settings) {
-      this.topbar.processing = true
+    onSubmit (settings, type) {
+      this[type].processing = true
 
       const values = Object.entries(settings).map(([name, value]) => {
         return { name, value }
@@ -94,13 +110,13 @@ export default {
 
       this.$SystemAPI.settingsUpdate({ values })
         .then(() => {
-          this.animateSuccess('topbar')
-          this.toastSuccess(this.$t('notification:settings.compose.update.success'))
+          this.animateSuccess(type)
+          this.toastSuccess(this.$t('notification:settings.ui.update.success'))
           this.$Settings.fetch()
         })
-        .catch(this.toastErrorHandler(this.$t('notification:settings.compose.update.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:settings.ui.update.error')))
         .finally(() => {
-          this.topbar.processing = false
+          this[type].processing = false
         })
     },
   },

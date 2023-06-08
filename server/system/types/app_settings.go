@@ -248,6 +248,8 @@ type (
 				Disabled bool `json:"disabled"`
 			} `kv:"sidebar,final" json:"sidebar"`
 
+			CustomCSS string `kv:"custom-css" json:"customCSS"`
+
 			Topbar struct {
 				HideAppSelector        bool `json:"hideAppSelector"`
 				HideHelp               bool `json:"hideHelp"`
