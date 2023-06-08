@@ -37,16 +37,17 @@ type (
 		log *zap.Logger
 
 		// cache of workflows, graphs to workflow ID (key, uint64)
-		cache map[uint64]*wfCacheItem
+		cache    map[uint64]*wfCacheItem
+		muxCache *sync.RWMutex
 
 		// handle to workflow index
-		wIndex map[string]uint64
+		wIndex    map[string]uint64
+		muxWIndex *sync.RWMutex
 
 		// workflow function registry
 		reg         *registry
 		corredorOpt options.CorredorOpt
 
-		mux    *sync.RWMutex
 		parser expr.Parsable
 	}
 
@@ -108,7 +109,8 @@ func Workflow(log *zap.Logger, corredorOpt options.CorredorOpt, opt options.Work
 		eventbus:    eventbus.Service(),
 		cache:       make(map[uint64]*wfCacheItem),
 		wIndex:      make(map[string]uint64),
-		mux:         &sync.RWMutex{},
+		muxCache:    &sync.RWMutex{},
+		muxWIndex:   &sync.RWMutex{},
 		parser:      expr.NewParser(),
 		reg:         Registry(),
 		corredorOpt: corredorOpt,
@@ -376,6 +378,9 @@ func (svc *workflow) updater(ctx context.Context, workflowID uint64, action func
 }
 
 func (svc *workflow) handleToID(h string) uint64 {
+	svc.muxWIndex.RLock()
+	defer svc.muxWIndex.RUnlock()
+
 	return svc.wIndex[h]
 }
 
@@ -510,10 +515,12 @@ func (svc *workflow) Load(ctx context.Context) error {
 		g     *wfexec.Graph
 		runAs intAuth.Identifiable
 	)
-
 	if err != nil {
 		return err
 	}
+
+	svc.muxWIndex.Lock()
+	defer svc.muxWIndex.Unlock()
 
 	for _, wf := range set {
 		svc.wIndex[wf.Handle] = wf.ID
@@ -530,8 +537,9 @@ func (svc *workflow) Load(ctx context.Context) error {
 
 // updateCache
 func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable, g *wfexec.Graph) {
-	defer svc.mux.Unlock()
-	svc.mux.Lock()
+	defer svc.muxCache.Unlock()
+	svc.muxCache.Lock()
+
 	if wf.Executable() {
 		svc.cache[wf.ID] = &wfCacheItem{g: g, wf: wf, runAs: runAs}
 	} else {
@@ -553,14 +561,14 @@ func (svc *workflow) Exec(ctx context.Context, workflowID uint64, p types.Workfl
 	)
 
 	err := func() (err error) {
-		svc.mux.Lock()
+		svc.muxCache.Lock()
 		if nil == svc.cache[workflowID] || nil == svc.cache[workflowID].wf {
-			svc.mux.Unlock()
+			svc.muxCache.Unlock()
 			return WorkflowErrNotFound()
 		}
 
 		wf := svc.cache[workflowID].wf
-		svc.mux.Unlock()
+		svc.muxCache.Unlock()
 
 		wap.setWorkflow(wf)
 
@@ -702,8 +710,8 @@ func (svc *workflow) exec(ctx context.Context, wf *types.Workflow, p types.Workf
 		return nil, 0, wf.Issues
 	}
 
-	defer svc.mux.Unlock()
-	svc.mux.Lock()
+	defer svc.muxCache.Unlock()
+	svc.muxCache.Lock()
 
 	if svc.cache[wf.ID] == nil {
 		return nil, 0, WorkflowErrInvalidID()

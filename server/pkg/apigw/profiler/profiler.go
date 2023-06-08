@@ -2,6 +2,7 @@ package profiler
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	h "github.com/cortezaproject/corteza/server/pkg/http"
@@ -9,12 +10,13 @@ import (
 
 type (
 	Profiler struct {
-		l Hits
+		mux sync.RWMutex
+		l   Hits
 	}
 )
 
 func New() *Profiler {
-	return &Profiler{make(Hits)}
+	return &Profiler{l: make(Hits)}
 }
 
 func (p *Profiler) Hit(r *h.Request) (h *Hit) {
@@ -29,6 +31,9 @@ func (p *Profiler) Hit(r *h.Request) (h *Hit) {
 }
 
 func (p *Profiler) Push(h *Hit) (id string) {
+	p.mux.Lock()
+	defer p.mux.Unlock()
+
 	if h.Tf == nil {
 		n := time.Now()
 		d := n.Sub(*h.Ts)
@@ -46,6 +51,9 @@ func (p *Profiler) Push(h *Hit) (id string) {
 }
 
 func (p *Profiler) Hits(s Sort) Hits {
+	p.mux.RLock()
+	defer p.mux.RUnlock()
+
 	ll := p.l.Filter(func(k string, v *Hit) bool {
 		var b bool = true
 
@@ -64,6 +72,9 @@ func (p *Profiler) Hits(s Sort) Hits {
 }
 
 func (p *Profiler) Purge(f *PurgeFilter) {
+	p.mux.Lock()
+	defer p.mux.Unlock()
+
 	if f.RouteID == 0 {
 		p.l = make(Hits, 0)
 		return
