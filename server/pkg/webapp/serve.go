@@ -12,6 +12,8 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/system/service"
+	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"go.uber.org/zap"
 )
@@ -24,6 +26,7 @@ type (
 		webappBaseUrl       string
 		discoveryApiBaseUrl string
 		sentryUrl           string
+		settings            *types.AppSettings
 	}
 )
 
@@ -68,6 +71,7 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 				webappBaseUrl:       httpSrvOpt.BaseUrl,
 				discoveryApiBaseUrl: discoveryApiBaseUrl,
 				sentryUrl:           webappSentryUrl,
+				settings:            service.CurrentSettings,
 			})
 			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fs))
 		}
@@ -80,6 +84,7 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 			webappBaseUrl:       httpSrvOpt.BaseUrl,
 			discoveryApiBaseUrl: discoveryApiBaseUrl,
 			sentryUrl:           webappSentryUrl,
+			settings:            service.CurrentSettings,
 		})
 		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fs))
 	}
@@ -138,6 +143,12 @@ func serveConfig(r chi.Router, config webappConfig) {
 		if len(config.sentryUrl) > 0 {
 			_, _ = fmt.Fprintf(w, line, "SentryDSN", config.sentryUrl)
 		}
+	})
+
+	r.Get(options.CleanBase(config.appUrl, "custom.css"), func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/css")
+
+		_, _ = fmt.Fprint(w, config.settings.UI.CustomCSS)
 	})
 }
 

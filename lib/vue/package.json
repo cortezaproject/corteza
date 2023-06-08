@@ -52,6 +52,7 @@
     "vue-echarts": "^6.2.3",
     "vue-select": "^3.4.0",
     "vue-swatches": "^1.0.4",
+    "vue2-ace-editor": "^0.0.15",
     "vuedraggable": "^2.23.0",
     "vuex": "^3.6.2",
     "websocket-extensions": "^0.1.4",
