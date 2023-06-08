@@ -86,29 +86,27 @@
             />
           </template>
 
-          <b-dropdown-item>
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(q)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
+          <c-input-confirm
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(q)"
+          >
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
 
-              <span v-if="!q.deletedAt">
-                {{ $t('delete') }}
-              </span>
+            <span v-if="!q.deletedAt">
+              {{ $t('delete') }}
+            </span>
 
-              <span v-else>
-                {{ $t('undelete') }}
-              </span>
-            </c-input-confirm>
-          </b-dropdown-item>
+            <span v-else>
+              {{ $t('undelete') }}
+            </span>
+          </c-input-confirm>
         </b-dropdown>
       </template>
     </c-resource-list>

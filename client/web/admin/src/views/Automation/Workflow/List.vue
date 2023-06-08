@@ -96,64 +96,59 @@
 
           <b-dropdown-item
             v-if="w.workflowID && canGrant"
+            link-class="p-0"
+            variant="light"
           >
             <c-permissions-button
               :title="w.meta.name || w.handle || w.workflowID"
               :target="w.meta.name || w.handle || w.workflowID"
               :resource="`corteza::automation:workflow/${w.workflowID}`"
-              button-variant="link text-decoration-none text-dark regular-font rounded-0"
-              class="text-dark d-print-none border-0"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
             >
               <font-awesome-icon :icon="['fas', 'lock']" />
               {{ $t('permissions') }}
             </c-permissions-button>
           </b-dropdown-item>
 
-          <b-dropdown-item
+          <c-input-confirm
             v-if="w.canDeleteWorkflow && !w.deletedAt"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(w)"
           >
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(w)"
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
+            <span
+              class="p-1"
             >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
-              <span
-                class="p-1"
-              >
-                {{ $t('delete') }}
-              </span>
-            </c-input-confirm>
-          </b-dropdown-item>
+              {{ $t('delete') }}
+            </span>
+          </c-input-confirm>
 
-          <b-dropdown-item
+          <c-input-confirm
             v-if="w.canUndeleteWorkflow && w.deletedAt"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(w)"
           >
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(w)"
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
+            <span
+              class="p-1"
             >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
-              <span
-                class="p-1"
-              >
-                {{ $t('undelete') }}
-              </span>
-            </c-input-confirm>
-          </b-dropdown-item>
+              {{ $t('undelete') }}
+            </span>
+          </c-input-confirm>
         </b-dropdown>
       </template>
     </c-resource-list>

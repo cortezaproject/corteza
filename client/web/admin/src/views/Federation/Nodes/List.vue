@@ -49,7 +49,7 @@
     >
       <template #actions="{ item: n }">
         <b-dropdown
-          v-if="n.nodeID === n.sharedNodeID && (item.status || '').toLowerCase() === 'pair_requested'"
+          v-if="n.nodeID === n.sharedNodeID && (n.status || '').toLowerCase() === 'pair_requested'"
           variant="outline-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret

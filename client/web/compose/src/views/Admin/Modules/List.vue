@@ -29,7 +29,7 @@
       }"
       clickable
       sticky-header
-      class="h-100"
+      class="module-list h-100"
       @search="filterList"
       @row-clicked="handleRowClicked"
     >
@@ -130,23 +130,20 @@
             />
           </template>
 
-          <b-dropdown-item>
-            <b-button
-              data-test-id="button-all-records"
-              variant="outline-light"
-              :title="$t('allRecords.label')"
-              :to="{name: 'admin.modules.record.list', params: { moduleID: m.moduleID }}"
-              class="text-primary d-print-none border-0"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'columns']"
-              />
-              {{ $t('allRecords.label') }}
-            </b-button>
+          <b-dropdown-item
+            data-test-id="button-all-records"
+            :to="{name: 'admin.modules.record.list', params: { moduleID: m.moduleID }}"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'columns']"
+              class="text-primary"
+            />
+            {{ $t('allRecords.label') }}
           </b-dropdown-item>
 
           <b-dropdown-item
             v-if="m.canGrant"
+            link-class="p-0"
           >
             <c-permissions-button
               :title="m.name || m.handle || m.moduleID"
@@ -154,29 +151,25 @@
               :resource="`corteza::compose:module/${m.namespaceID}/${m.moduleID}`"
               :tooltip="$t('permissions:resources.compose.module.tooltip')"
               :button-label="$t('permissions:ui.label')"
-              button-variant="link text-decoration-none text-dark regular-font rounded-0"
-              class="text-dark d-print-none border-0"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
             />
           </b-dropdown-item>
 
-          <b-dropdown-item
+          <c-input-confirm
             v-if="m.canDeleteModule"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(m)"
           >
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(m)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
-              {{ $t('list.delete') }}
-            </c-input-confirm>
-          </b-dropdown-item>
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
+            {{ $t('list.delete') }}
+          </c-input-confirm>
         </b-dropdown>
       </template>
 
@@ -352,6 +345,12 @@ export default {
 </script>
 
 <style lang="scss">
+.module-list {
+  td.actions {
+    position: static !important;
+  }
+}
+
 .permissions-dropdown {
   .dropdown-item {
     padding: 0;

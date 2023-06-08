@@ -107,8 +107,11 @@
                 :icon="['fas', 'ellipsis-v']"
               />
             </template>
+
             <b-dropdown-item
               v-if="n.canGrant"
+              link-class="p-0"
+              variant="light"
             >
               <c-permissions-button
                 :title="n.name || n.slug || n.namespaceID"
@@ -117,28 +120,24 @@
                 :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
                 :button-label="$t('permissions:ui.label')"
                 button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-                class="text-dark d-print-none border-0"
               />
             </b-dropdown-item>
 
-            <b-dropdown-item
+            <c-input-confirm
               v-if="n.canDeleteNamespace"
+              borderless
+              variant="link"
+              size="md"
+              button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+              class="w-100"
+              @confirmed="handleDelete(n)"
             >
-              <c-input-confirm
-                borderless
-                variant="link"
-                size="md"
-                button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
-                class="w-100"
-                @confirmed="handleDelete(n)"
-              >
-                <font-awesome-icon
-                  :icon="['far', 'trash-alt']"
-                  class="text-danger"
-                />
-                {{ $t('delete') }}
-              </c-input-confirm>
-            </b-dropdown-item>
+              <font-awesome-icon
+                :icon="['far', 'trash-alt']"
+                class="text-danger"
+              />
+              {{ $t('delete') }}
+            </c-input-confirm>
           </b-dropdown>
         </div>
       </template>
