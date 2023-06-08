@@ -21,6 +21,11 @@ editor:
     uploader:
       instructions: 'Click or drop favicon file here to upload'
       uploading: 'Uploading favicon'
+  
+  custom-css:
+    title: Custom CSS
+    modal:
+     editor: Custom CSS editor
 
   topbar:
     title: Topbar

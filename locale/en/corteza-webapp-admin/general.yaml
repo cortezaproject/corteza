@@ -43,6 +43,7 @@ label:
   loadMore: Load more
   loading: Loading
   saveAndClose: Save and close
+  cancel: Cancel
   submit: Submit
   delete: Delete
   undelete: Undelete
