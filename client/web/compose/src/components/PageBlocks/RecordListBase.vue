@@ -114,7 +114,7 @@
                 v-if="!options.hideConfigureFieldsButton"
                 :module="recordListModule"
                 :fields="fields"
-                class="float-left"
+                class="mr-1 float-left"
                 @updateFields="onUpdateFields"
               />
             </div>

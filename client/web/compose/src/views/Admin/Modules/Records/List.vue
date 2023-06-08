@@ -128,6 +128,7 @@ export default {
         enableRecordPageNavigation: true,
         hideConfigureFieldsButton: false,
         inlineRecordEditEnabled: true,
+        customFilterPresets: true,
       },
     })
 
