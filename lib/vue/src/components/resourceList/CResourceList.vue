@@ -62,7 +62,7 @@
         show-empty
         no-sort-reset
         no-local-sorting
-        :primary-key="primaryKey" 
+        :primary-key="primaryKey"
         class="mh-100 h-100 mb-0"
         @sort-changed="pagination.page = 1"
         @row-clicked="$emit('row-clicked', $event)"
@@ -401,10 +401,11 @@ export default {
 
 <style lang="scss">
 #resource-list {
-  .actions {
+  td.actions {
     padding-top: 8px;
     right: 0;
     opacity: 0;
+    position: sticky;
     transition: opacity 0.25s;
     width: 1%;
 
@@ -413,7 +414,7 @@ export default {
     }
   }
 
-  tr:hover .actions {
+  tr:hover td.actions {
     opacity: 1;
     background-color: #F9FAFB;
   }

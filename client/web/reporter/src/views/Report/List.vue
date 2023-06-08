@@ -93,23 +93,20 @@
 
           <b-dropdown-item
             v-if="r.canUpdateReport"
+            :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
           >
-            <b-button
-              variant="link"
-              class="text-decoration-none"
-              :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
-            >
-              <font-awesome-icon
-                :icon="['fa', 'pen']"
-                class="text-dark"
-              />
+            <font-awesome-icon
+              :icon="['fa', 'pen']"
+              class="text-dark"
+            />
 
-              <span class="p-1">{{ $t('report.edit') }}</span>
-            </b-button>
+            {{ $t('report.edit') }}
           </b-dropdown-item>
 
           <b-dropdown-item
             v-if="r.canGrant"
+            link-class="p-0"
+            variant="light"
           >
             <c-permissions-button
               :tooltip="$t('permissions:resources.system.report.tooltip')"
@@ -118,28 +115,25 @@
               :resource="`corteza::system:report/${r.reportID}`"
               class="text-dark d-print-none border-0"
               :button-label="$t('permissions:ui.label')"
-              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
             />
           </b-dropdown-item>
 
-          <b-dropdown-item
+          <c-input-confirm
             v-if="r.canDeleteReport"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(r)"
           >
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(r)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
-              {{ $t('report.delete') }}
-            </c-input-confirm>
-          </b-dropdown-item>
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
+            {{ $t('report.delete') }}
+          </c-input-confirm>
         </b-dropdown>
       </template>
     </c-resource-list>

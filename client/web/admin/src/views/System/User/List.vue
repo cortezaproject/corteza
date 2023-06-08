@@ -123,46 +123,44 @@
 
           <b-dropdown-item
             v-if="canGrant"
+            link-class="p-0"
+            variant="light"
           >
             <c-permissions-button
               :title="u.name || u.handle || u.email || u.userID"
               :target="u.name || u.handle || u.email || u.userID"
               :resource="`corteza::system:user/${u.userID}`"
-              button-variant="link text-decoration-none text-dark regular-font rounded-0"
-              class="text-dark d-print-none border-0"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
             >
               <font-awesome-icon :icon="['fas', 'lock']" />
               {{ $t('permissions') }}
             </c-permissions-button>
           </b-dropdown-item>
 
-          <b-dropdown-item
+          <c-input-confirm
             v-if="u.canDeleteUser"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(u)"
           >
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(u)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
 
-              <span
-                v-if="!u.deletedAt"
-                class="p-1"
-              >{{ $t('delete') }}</span>
+            <span
+              v-if="!u.deletedAt"
+              class="p-1"
+            >{{ $t('delete') }}</span>
 
-              <span
-                v-else
-                class="p-1"
-              >{{ $t('undelete') }}</span>
-            </c-input-confirm>
-          </b-dropdown-item>
+            <span
+              v-else
+              class="p-1"
+            >{{ $t('undelete') }}</span>
+          </c-input-confirm>
         </b-dropdown>
       </template>
     </c-resource-list>

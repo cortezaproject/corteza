@@ -106,44 +106,42 @@
 
           <b-dropdown-item
             v-if="t.templateID && canGrant"
+            link-class="p-0"
           >
             <c-permissions-button
               :title="t.meta.short || t.handle || t.templateID"
               :target="t.meta.short || t.handle || t.templateID"
               :resource="`corteza::system:template/${t.templateID}`"
-              button-variant="link text-decoration-none text-dark regular-font rounded-0"
-              class="text-dark d-print-none border-0"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
             >
               <font-awesome-icon :icon="['fas', 'lock']" />
               {{ $t('permissions') }}
             </c-permissions-button>
           </b-dropdown-item>
 
-          <b-dropdown-item
+          <c-input-confirm
             v-if="t.canDeleteTemplate"
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            class="w-100"
+            @confirmed="handleDelete(t)"
           >
-            <c-input-confirm
-              borderless
-              variant="link"
-              size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
-              class="w-100"
-              @confirmed="handleDelete(t)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'trash-alt']"
-                class="text-danger"
-              />
-              <span
-                v-if="!t.deletedAt"
-                class="p-1"
-              >{{ $t('delete') }}</span>
-              <span
-                v-else
-                class="p-1"
-              >{{ $t('undelete') }}</span>
-            </c-input-confirm>
-          </b-dropdown-item>
+            <font-awesome-icon
+              :icon="['far', 'trash-alt']"
+              class="text-danger"
+            />
+            <span
+              v-if="!t.deletedAt"
+              class="p-1"
+            >{{ $t('delete') }}</span>
+
+            <span
+              v-else
+              class="p-1"
+            >{{ $t('undelete') }}</span>
+          </c-input-confirm>
         </b-dropdown>
       </template>
     </c-resource-list>
