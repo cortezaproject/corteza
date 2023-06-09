@@ -70,7 +70,7 @@ export default function (SystemAPI) {
 
         // exclude existing & make unique
         const existing = new Set(getters.set.map(({ userID }) => userID))
-        list = [...new Set(list.filter(userID => !existing.has(userID)))]
+        list = [...new Set(list.filter(userID => userID && !existing.has(userID)))]
 
         if (list.length === 0) {
           // Check for values again
