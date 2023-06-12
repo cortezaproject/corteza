@@ -202,6 +202,7 @@ export default class System {
       expiresAt,
       security,
       labels,
+      updatedAt,
     } = (a as KV) || {}
     if (!clientID) {
       throw Error('field clientID is empty')
@@ -225,6 +226,7 @@ export default class System {
       expiresAt,
       security,
       labels,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -586,6 +588,7 @@ export default class System {
       members,
       meta,
       labels,
+      updatedAt,
     } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
@@ -603,6 +606,7 @@ export default class System {
       members,
       meta,
       labels,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1054,6 +1058,7 @@ export default class System {
       handle,
       kind,
       labels,
+      updatedAt,
     } = (a as KV) || {}
     if (!userID) {
       throw Error('field userID is empty')
@@ -1077,6 +1082,7 @@ export default class System {
       handle,
       kind,
       labels,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1701,6 +1707,7 @@ export default class System {
       handle,
       level,
       meta,
+      updatedAt,
     } = (a as KV) || {}
     if (!sensitivityLevelID) {
       throw Error('field sensitivityLevelID is empty')
@@ -1722,6 +1729,7 @@ export default class System {
       handle,
       level,
       meta,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1883,6 +1891,7 @@ export default class System {
       type,
       meta,
       config,
+      updatedAt,
     } = (a as KV) || {}
     if (!connectionID) {
       throw Error('field connectionID is empty')
@@ -1908,6 +1917,7 @@ export default class System {
       type,
       meta,
       config,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -2079,6 +2089,7 @@ export default class System {
       unify,
       config,
       labels,
+      updatedAt,
     } = (a as KV) || {}
     if (!applicationID) {
       throw Error('field applicationID is empty')
@@ -2100,6 +2111,7 @@ export default class System {
       unify,
       config,
       labels,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -3018,6 +3030,7 @@ export default class System {
       template,
       ownerID,
       labels,
+      updatedAt,
     } = (a as KV) || {}
     if (!templateID) {
       throw Error('field templateID is empty')
@@ -3038,6 +3051,7 @@ export default class System {
       template,
       ownerID,
       labels,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -3236,6 +3250,7 @@ export default class System {
       sources,
       blocks,
       labels,
+      updatedAt,
     } = (a as KV) || {}
     if (!reportID) {
       throw Error('field reportID is empty')
@@ -3254,6 +3269,7 @@ export default class System {
       sources,
       blocks,
       labels,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -3622,6 +3638,7 @@ export default class System {
       queue,
       consumer,
       meta,
+      updatedAt,
     } = (a as KV) || {}
     if (!queueID) {
       throw Error('field queueID is empty')
@@ -3643,6 +3660,7 @@ export default class System {
       queue,
       consumer,
       meta,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -3783,6 +3801,7 @@ export default class System {
       enabled,
       group,
       meta,
+      updatedAt,
     } = (a as KV) || {}
     if (!routeID) {
       throw Error('field routeID is empty')
@@ -3803,6 +3822,7 @@ export default class System {
       enabled,
       group,
       meta,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -3969,6 +3989,7 @@ export default class System {
       ref,
       enabled,
       params,
+      updatedAt,
     } = (a as KV) || {}
     if (!filterID) {
       throw Error('field filterID is empty')
@@ -3990,6 +4011,7 @@ export default class System {
       ref,
       enabled,
       params,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -4334,6 +4356,7 @@ export default class System {
       place,
       message,
       ownerID,
+      updatedAt,
     } = (a as KV) || {}
     if (!translationID) {
       throw Error('field translationID is empty')
@@ -4352,6 +4375,7 @@ export default class System {
       place,
       message,
       ownerID,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }

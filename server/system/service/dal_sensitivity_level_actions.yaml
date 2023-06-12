@@ -63,6 +63,10 @@ errors:
     message: "invalid DSN"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: existsEndpoint
     message: "sensitivityLevel with this DSN already exists"
     severity: warning

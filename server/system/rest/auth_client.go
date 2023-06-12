@@ -122,6 +122,7 @@ func (ctrl *AuthClient) Update(ctx context.Context, r *request.AuthClientUpdate)
 			ExpiresAt:   r.ExpiresAt,
 			Security:    r.Security,
 			Labels:      r.Labels,
+			UpdatedAt:   r.UpdatedAt,
 		}
 	)
 

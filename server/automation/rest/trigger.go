@@ -90,6 +90,7 @@ func (ctrl Trigger) Update(ctx context.Context, r *request.TriggerUpdate) (inter
 		Labels:       r.Labels,
 		OwnedBy:      r.OwnedBy,
 		Meta:         r.Meta,
+		UpdatedAt:    r.UpdatedAt,
 	}
 
 	return ctrl.svc.Update(ctx, trigger)

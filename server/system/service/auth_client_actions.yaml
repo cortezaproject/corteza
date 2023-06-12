@@ -61,6 +61,10 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: missingName
     message: "missing name"
 

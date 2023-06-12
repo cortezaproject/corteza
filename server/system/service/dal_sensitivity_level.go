@@ -122,6 +122,11 @@ func (svc *dalSensitivityLevel) Update(ctx context.Context, upd *types.DalSensit
 			return DalSensitivityLevelErrNotAllowedToManage(qProps)
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
+			return DalSensitivityLevelErrStaleData()
+		}
+
 		upd.UpdatedAt = now()
 		upd.CreatedAt = qq.CreatedAt
 		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()

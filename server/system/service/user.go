@@ -2,6 +2,15 @@ package service
 
 import (
 	"context"
+	"io"
+	"mime/multipart"
+	"net/mail"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+	"unicode"
+
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -12,14 +21,6 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"io"
-	"mime/multipart"
-	"net/mail"
-	"regexp"
-	"strconv"
-	"strings"
-	"time"
-	"unicode"
 )
 
 const (
@@ -445,6 +446,11 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			if !svc.ac.CanUpdateUser(ctx, u) {
 				return UserErrNotAllowedToUpdate()
 			}
+		}
+
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, u.UpdatedAt, u.CreatedAt) {
+			return UserErrStaleData()
 		}
 
 		// Assign changed values

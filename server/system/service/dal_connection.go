@@ -138,6 +138,11 @@ func (svc *dalConnection) Update(ctx context.Context, upd *types.DalConnection) 
 			return DalConnectionErrNotAllowedToUpdate(cProps)
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, old.UpdatedAt, old.CreatedAt) {
+			return DalConnectionErrStaleData()
+		}
+
 		upd.UpdatedAt = now()
 		upd.CreatedAt = old.CreatedAt
 		upd.UpdatedBy = a.GetIdentityFromContext(ctx).Identity()

@@ -57,6 +57,7 @@ var (
 // setSize updates attachmentActionProps's size
 //
 // This function is auto-generated.
+//
 func (p *attachmentActionProps) setSize(size int64) *attachmentActionProps {
 	p.size = size
 	return p
@@ -65,6 +66,7 @@ func (p *attachmentActionProps) setSize(size int64) *attachmentActionProps {
 // setName updates attachmentActionProps's name
 //
 // This function is auto-generated.
+//
 func (p *attachmentActionProps) setName(name string) *attachmentActionProps {
 	p.name = name
 	return p
@@ -73,6 +75,7 @@ func (p *attachmentActionProps) setName(name string) *attachmentActionProps {
 // setMimetype updates attachmentActionProps's mimetype
 //
 // This function is auto-generated.
+//
 func (p *attachmentActionProps) setMimetype(mimetype string) *attachmentActionProps {
 	p.mimetype = mimetype
 	return p
@@ -81,6 +84,7 @@ func (p *attachmentActionProps) setMimetype(mimetype string) *attachmentActionPr
 // setUrl updates attachmentActionProps's url
 //
 // This function is auto-generated.
+//
 func (p *attachmentActionProps) setUrl(url string) *attachmentActionProps {
 	p.url = url
 	return p
@@ -89,6 +93,7 @@ func (p *attachmentActionProps) setUrl(url string) *attachmentActionProps {
 // setAttachment updates attachmentActionProps's attachment
 //
 // This function is auto-generated.
+//
 func (p *attachmentActionProps) setAttachment(attachment *types.Attachment) *attachmentActionProps {
 	p.attachment = attachment
 	return p
@@ -97,6 +102,7 @@ func (p *attachmentActionProps) setAttachment(attachment *types.Attachment) *att
 // setFilter updates attachmentActionProps's filter
 //
 // This function is auto-generated.
+//
 func (p *attachmentActionProps) setFilter(filter *types.AttachmentFilter) *attachmentActionProps {
 	p.filter = filter
 	return p
@@ -105,6 +111,7 @@ func (p *attachmentActionProps) setFilter(filter *types.AttachmentFilter) *attac
 // Serialize converts attachmentActionProps to actionlog.Meta
 //
 // This function is auto-generated.
+//
 func (p attachmentActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -135,6 +142,7 @@ func (p attachmentActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
+//
 func (p attachmentActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -209,6 +217,7 @@ func (p attachmentActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
+//
 func (a *attachmentAction) String() string {
 	var props = &attachmentActionProps{}
 
@@ -236,6 +245,7 @@ func (e *attachmentAction) ToAction() *actionlog.Action {
 // AttachmentActionSearch returns "system:attachment.search" action
 //
 // This function is auto-generated.
+//
 func AttachmentActionSearch(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -255,6 +265,7 @@ func AttachmentActionSearch(props ...*attachmentActionProps) *attachmentAction {
 // AttachmentActionLookup returns "system:attachment.lookup" action
 //
 // This function is auto-generated.
+//
 func AttachmentActionLookup(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -274,6 +285,7 @@ func AttachmentActionLookup(props ...*attachmentActionProps) *attachmentAction {
 // AttachmentActionCreate returns "system:attachment.create" action
 //
 // This function is auto-generated.
+//
 func AttachmentActionCreate(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -293,6 +305,7 @@ func AttachmentActionCreate(props ...*attachmentActionProps) *attachmentAction {
 // AttachmentActionDelete returns "system:attachment.delete" action
 //
 // This function is auto-generated.
+//
 func AttachmentActionDelete(props ...*attachmentActionProps) *attachmentAction {
 	a := &attachmentAction{
 		timestamp: time.Now(),
@@ -315,7 +328,9 @@ func AttachmentActionDelete(props ...*attachmentActionProps) *attachmentAction {
 
 // AttachmentErrGeneric returns "system:attachment.generic" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrGeneric(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -349,7 +364,9 @@ func AttachmentErrGeneric(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrNotFound returns "system:attachment.notFound" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrNotFound(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -381,7 +398,9 @@ func AttachmentErrNotFound(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrInvalidID returns "system:attachment.invalidID" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidID(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -413,7 +432,9 @@ func AttachmentErrInvalidID(mm ...*attachmentActionProps) *errors.Error {
 
 // AttachmentErrNotAllowedToListAttachments returns "system:attachment.notAllowedToListAttachments" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrNotAllowedToListAttachments(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -447,7 +468,9 @@ func AttachmentErrNotAllowedToListAttachments(mm ...*attachmentActionProps) *err
 
 // AttachmentErrNotAllowedToCreate returns "system:attachment.notAllowedToCreate" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -481,7 +504,9 @@ func AttachmentErrNotAllowedToCreate(mm ...*attachmentActionProps) *errors.Error
 
 // AttachmentErrNotAllowedToCreateEmptyAttachment returns "system:attachment.notAllowedToCreateEmptyAttachment" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -515,7 +540,9 @@ func AttachmentErrNotAllowedToCreateEmptyAttachment(mm ...*attachmentActionProps
 
 // AttachmentErrFailedToExtractMimeType returns "system:attachment.failedToExtractMimeType" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrFailedToExtractMimeType(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -547,7 +574,9 @@ func AttachmentErrFailedToExtractMimeType(mm ...*attachmentActionProps) *errors.
 
 // AttachmentErrFailedToStoreFile returns "system:attachment.failedToStoreFile" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrFailedToStoreFile(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -579,7 +608,9 @@ func AttachmentErrFailedToStoreFile(mm ...*attachmentActionProps) *errors.Error 
 
 // AttachmentErrFailedToProcessImage returns "system:attachment.failedToProcessImage" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -611,7 +642,9 @@ func AttachmentErrFailedToProcessImage(mm ...*attachmentActionProps) *errors.Err
 
 // AttachmentErrInvalidAvatarFileType returns "system:attachment.invalidAvatarFileType" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidAvatarFileType(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -643,7 +676,9 @@ func AttachmentErrInvalidAvatarFileType(mm ...*attachmentActionProps) *errors.Er
 
 // AttachmentErrInvalidAvatarFileSize returns "system:attachment.invalidAvatarFileSize" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidAvatarFileSize(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -675,7 +710,9 @@ func AttachmentErrInvalidAvatarFileSize(mm ...*attachmentActionProps) *errors.Er
 
 // AttachmentErrInvalidAvatarGenerateFontFile returns "system:attachment.invalidAvatarGenerateFontFile" as *errors.Error
 //
+//
 // This function is auto-generated.
+//
 func AttachmentErrInvalidAvatarGenerateFontFile(mm ...*attachmentActionProps) *errors.Error {
 	var p = &attachmentActionProps{}
 	if len(mm) > 0 {
@@ -713,6 +750,7 @@ func AttachmentErrInvalidAvatarGenerateFontFile(mm ...*attachmentActionProps) *e
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
+//
 func (svc attachment) recordAction(ctx context.Context, props *attachmentActionProps, actionFn func(...*attachmentActionProps) *attachmentAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

@@ -487,6 +487,40 @@ func ApigwRouteErrInvalidEndpoint(mm ...*apigwRouteActionProps) *errors.Error {
 	return e
 }
 
+// ApigwRouteErrStaleData returns "system:apigw-route.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwRouteErrStaleData(mm ...*apigwRouteActionProps) *errors.Error {
+	var p = &apigwRouteActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:apigw-route"),
+
+		errors.Meta(apigwRoutePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-route.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ApigwRouteErrExistsEndpoint returns "system:apigw-route.existsEndpoint" as *errors.Error
 //
 //

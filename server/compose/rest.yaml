@@ -257,6 +257,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/label
     - github.com/cortezaproject/corteza/server/pkg/str
     - github.com/cortezaproject/corteza/server/compose/types
+    - time
   parameters:
     path:
     - type: uint64
@@ -421,6 +422,7 @@ endpoints:
         required: false
         title: Meta
         parser: types.ParsePageMeta
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: reorder
     method: POST
     title: Reorder pages
@@ -571,6 +573,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/locale
     - github.com/cortezaproject/corteza/server/compose/types
     - github.com/cortezaproject/corteza/server/pkg/label
+    - time
   parameters:
     path:
     - type: uint64
@@ -772,6 +775,7 @@ endpoints:
         name: ownedBy
         required: false
         title: OwnedBy
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: reorder
     method: POST
     title: Reorder page layouts
@@ -999,6 +1003,7 @@ endpoints:
   authentication: []
   imports:
     - github.com/cortezaproject/corteza/server/compose/types
+    - time
   parameters:
     path:
     - type: uint64
@@ -1155,6 +1160,7 @@ endpoints:
       - { name: ownedBy, type: "uint64",                title: Record Owner }
       - { name: meta,    type: "map[string]any",        title: Record meta-data, parser: payload.ParseMeta }
       - { name: records, type: "types.RecordBulkSet",   title: Records }
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: patch
     method: PATCH
     title: Partially update record values

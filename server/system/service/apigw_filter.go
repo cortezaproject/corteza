@@ -156,6 +156,11 @@ func (svc *apigwFilter) Update(ctx context.Context, upd *types.ApigwFilter) (q *
 			return ApigwRouteErrNotAllowedToUpdate()
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
+			return ApigwFilterErrStaleData()
+		}
+
 		if qq, e = store.LookupApigwFilterByID(ctx, svc.store, upd.ID); e == nil && qq == nil {
 			return ApigwFilterErrNotFound(qProps)
 		}

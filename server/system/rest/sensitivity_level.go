@@ -77,10 +77,11 @@ func (ctrl SensitivityLevel) Create(ctx context.Context, r *request.DalSensitivi
 
 func (ctrl SensitivityLevel) Update(ctx context.Context, r *request.DalSensitivityLevelUpdate) (interface{}, error) {
 	sensitivityLevel := &types.DalSensitivityLevel{
-		ID:     r.SensitivityLevelID,
-		Handle: r.Handle,
-		Level:  r.Level,
-		Meta:   r.Meta,
+		ID:        r.SensitivityLevelID,
+		Handle:    r.Handle,
+		Level:     r.Level,
+		Meta:      r.Meta,
+		UpdatedAt: r.UpdatedAt,
 	}
 
 	return ctrl.svc.Update(ctx, sensitivityLevel)

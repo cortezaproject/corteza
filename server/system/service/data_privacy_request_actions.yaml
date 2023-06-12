@@ -62,6 +62,10 @@ errors:
     message: "invalid Status"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: notAllowedToRead
     message: "not allowed to read this data privacy request"
     log: "failed to read data privacy request; insufficient permissions"

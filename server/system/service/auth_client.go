@@ -278,6 +278,11 @@ func (svc *authClient) Update(ctx context.Context, upd *types.AuthClient) (res *
 			return AuthClientErrNotAllowedToUpdate()
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return AuthClientErrStaleData()
+		}
+
 		// Firstly validate default clients before the automation occurs
 		if err = defaultClientValidator(res, upd); err != nil {
 			return err

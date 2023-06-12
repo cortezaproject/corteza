@@ -97,13 +97,14 @@ func (ctrl *ApigwFilter) Update(ctx context.Context, r *request.ApigwFilterUpdat
 	var (
 		err error
 		q   = &types.ApigwFilter{
-			ID:      r.FilterID,
-			Route:   r.RouteID,
-			Weight:  r.Weight,
-			Kind:    r.Kind,
-			Ref:     r.Ref,
-			Enabled: r.Enabled,
-			Params:  r.Params,
+			ID:        r.FilterID,
+			Route:     r.RouteID,
+			Weight:    r.Weight,
+			Kind:      r.Kind,
+			Ref:       r.Ref,
+			Enabled:   r.Enabled,
+			Params:    r.Params,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 

@@ -284,6 +284,7 @@ func (ctrl *Record) Update(ctx context.Context, r *request.RecordUpdate) (interf
 			Values:      r.Values,
 			Meta:        r.Meta,
 			OwnedBy:     r.OwnedBy,
+			UpdatedAt:   r.UpdatedAt,
 		}
 
 		oo = append(oo, &types.RecordBulkOperation{

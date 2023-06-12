@@ -54,6 +54,10 @@ errors:
     message: "invalid route"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: asyncRouteTooManyProcessers
     message: "processer already exists for this async route"
     log: "failed to add {{filter}}; too many processers, async route"

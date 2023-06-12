@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/apigw"
 	a "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -115,6 +116,11 @@ func (svc *apigwRoute) Update(ctx context.Context, upd *types.ApigwRoute) (res *
 
 		if !svc.ac.CanUpdateApigwRoute(ctx, res) {
 			return ApigwRouteErrNotAllowedToUpdate(qProps)
+		}
+
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, res.UpdatedAt, res.CreatedAt) {
+			return ApigwRouteErrStaleData()
 		}
 
 		// copy (potentially) updated files from the payload

@@ -435,6 +435,40 @@ func ApigwFilterErrInvalidRoute(mm ...*apigwFilterActionProps) *errors.Error {
 	return e
 }
 
+// ApigwFilterErrStaleData returns "system:filter.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApigwFilterErrStaleData(mm ...*apigwFilterActionProps) *errors.Error {
+	var p = &apigwFilterActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:filter"),
+
+		errors.Meta(apigwFilterPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "apigw-filter.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ApigwFilterErrAsyncRouteTooManyProcessers returns "system:filter.asyncRouteTooManyProcessers" as *errors.Error
 //
 //

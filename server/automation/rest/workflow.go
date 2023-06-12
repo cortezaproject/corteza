@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/automation/rest/request"
 	"github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/automation/types"
@@ -138,6 +139,7 @@ func (ctrl Workflow) Update(ctx context.Context, r *request.WorkflowUpdate) (int
 		Paths:        r.Paths,
 		RunAs:        r.RunAs,
 		OwnedBy:      r.OwnedBy,
+		UpdatedAt:    r.UpdatedAt,
 	}
 
 	wf, err := ctrl.svc.Update(ctx, workflow)

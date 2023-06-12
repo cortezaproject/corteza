@@ -14,6 +14,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/expr
     - github.com/cortezaproject/corteza/server/automation/types
     - github.com/cortezaproject/corteza/server/pkg/label
+    - time
   apis:
   - name: list
     method: GET
@@ -66,6 +67,7 @@ endpoints:
       - { name: paths,        type: "types.WorkflowPathSet",    title: "Workflow step paths definition", parser: "types.ParseWorkflowPathSet" }
       - { name: runAs,        type: uint64, required: true,     title: "Is workflow enabled" }
       - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the workflow" }
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: read
     method: GET
     title: Read workflow details
@@ -112,6 +114,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/automation/types
     - github.com/cortezaproject/corteza/server/pkg/expr
     - github.com/cortezaproject/corteza/server/pkg/label
+    - time
   apis:
   - name: list
     method: GET
@@ -163,6 +166,7 @@ endpoints:
       - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",               parser: "types.ParseTriggerMeta" }
       - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
       - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: read
     method: GET
     title: Read trigger details

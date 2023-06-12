@@ -793,6 +793,40 @@ func UserErrInvalidEmail(mm ...*userActionProps) *errors.Error {
 	return e
 }
 
+// UserErrStaleData returns "system:user.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func UserErrStaleData(mm ...*userActionProps) *errors.Error {
+	var p = &userActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:user"),
+
+		errors.Meta(userPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "user.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // UserErrNotAllowedToRead returns "system:user.notAllowedToRead" as *errors.Error
 //
 //

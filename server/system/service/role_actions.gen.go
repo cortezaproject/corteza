@@ -737,6 +737,40 @@ func RoleErrInvalidHandle(mm ...*roleActionProps) *errors.Error {
 	return e
 }
 
+// RoleErrStaleData returns "system:role.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func RoleErrStaleData(mm ...*roleActionProps) *errors.Error {
+	var p = &roleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:role"),
+
+		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // RoleErrNotAllowedToRead returns "system:role.notAllowedToRead" as *errors.Error
 //
 //

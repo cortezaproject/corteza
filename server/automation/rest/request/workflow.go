@@ -20,6 +20,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -205,6 +206,11 @@ type (
 		//
 		// Owner of the workflow
 		OwnedBy uint64 `json:",string"`
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	WorkflowRead struct {
@@ -766,6 +772,7 @@ func (r WorkflowUpdate) Auditable() map[string]interface{} {
 		"paths":        r.Paths,
 		"runAs":        r.RunAs,
 		"ownedBy":      r.OwnedBy,
+		"updatedAt":    r.UpdatedAt,
 	}
 }
 
@@ -827,6 +834,11 @@ func (r WorkflowUpdate) GetRunAs() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r WorkflowUpdate) GetOwnedBy() uint64 {
 	return r.OwnedBy
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r WorkflowUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -951,6 +963,13 @@ func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1058,6 +1077,13 @@ func (r *WorkflowUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["ownedBy"]; ok && len(val) > 0 {
 			r.OwnedBy, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

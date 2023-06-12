@@ -195,6 +195,11 @@ func (svc *report) Update(ctx context.Context, upd *types.Report) (report *types
 			return ReportErrNotAllowedToUpdate()
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, report.UpdatedAt, report.CreatedAt) {
+			return ReportErrStaleData()
+		}
+
 		// if err = svc.eventbus.WaitFor(ctx, event.ReportBeforeUpdate(upd, report)); err != nil {
 		// 	return
 		// }

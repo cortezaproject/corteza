@@ -19,6 +19,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -174,6 +175,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	UserPartialUpdate struct {
@@ -768,12 +774,13 @@ func NewUserUpdate() *UserUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r UserUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"userID": r.UserID,
-		"email":  r.Email,
-		"name":   r.Name,
-		"handle": r.Handle,
-		"kind":   r.Kind,
-		"labels": r.Labels,
+		"userID":    r.UserID,
+		"email":     r.Email,
+		"name":      r.Name,
+		"handle":    r.Handle,
+		"kind":      r.Kind,
+		"labels":    r.Labels,
+		"updatedAt": r.UpdatedAt,
 	}
 }
 
@@ -805,6 +812,11 @@ func (r UserUpdate) GetKind() types.UserKind {
 // Auditable returns all auditable/loggable parameters
 func (r UserUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -867,6 +879,13 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -912,6 +931,13 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}
