@@ -17,6 +17,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -142,6 +143,11 @@ type (
 		//
 		// OwnerID
 		OwnerID uint64 `json:",string"`
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	LocaleReadResource struct {
@@ -480,6 +486,7 @@ func (r LocaleUpdateResource) Auditable() map[string]interface{} {
 		"place":         r.Place,
 		"message":       r.Message,
 		"ownerID":       r.OwnerID,
+		"updatedAt":     r.UpdatedAt,
 	}
 }
 
@@ -516,6 +523,11 @@ func (r LocaleUpdateResource) GetMessage() string {
 // Auditable returns all auditable/loggable parameters
 func (r LocaleUpdateResource) GetOwnerID() uint64 {
 	return r.OwnerID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LocaleUpdateResource) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -580,6 +592,13 @@ func (r *LocaleUpdateResource) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -627,6 +646,13 @@ func (r *LocaleUpdateResource) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["ownerID"]; ok && len(val) > 0 {
 			r.OwnerID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

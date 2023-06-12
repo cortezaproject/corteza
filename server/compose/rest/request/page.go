@@ -22,6 +22,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -231,6 +232,11 @@ type (
 		//
 		// Meta
 		Meta types.PageMeta
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	PageReorder struct {
@@ -911,6 +917,7 @@ func (r PageUpdate) Auditable() map[string]interface{} {
 		"blocks":      r.Blocks,
 		"config":      r.Config,
 		"meta":        r.Meta,
+		"updatedAt":   r.UpdatedAt,
 	}
 }
 
@@ -977,6 +984,11 @@ func (r PageUpdate) GetConfig() sqlxTypes.JSONText {
 // Auditable returns all auditable/loggable parameters
 func (r PageUpdate) GetMeta() types.PageMeta {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r PageUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -1086,6 +1098,13 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1178,6 +1197,13 @@ func (r *PageUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["meta"]; ok {
 			r.Meta, err = types.ParsePageMeta(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

@@ -18,6 +18,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -133,6 +134,11 @@ type (
 		//
 		// Filter parameters
 		Params types.ApigwFilterParams
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	ApigwFilterRead struct {
@@ -445,13 +451,14 @@ func NewApigwFilterUpdate() *ApigwFilterUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwFilterUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"filterID": r.FilterID,
-		"routeID":  r.RouteID,
-		"weight":   r.Weight,
-		"kind":     r.Kind,
-		"ref":      r.Ref,
-		"enabled":  r.Enabled,
-		"params":   r.Params,
+		"filterID":  r.FilterID,
+		"routeID":   r.RouteID,
+		"weight":    r.Weight,
+		"kind":      r.Kind,
+		"ref":       r.Ref,
+		"enabled":   r.Enabled,
+		"params":    r.Params,
+		"updatedAt": r.UpdatedAt,
 	}
 }
 
@@ -488,6 +495,11 @@ func (r ApigwFilterUpdate) GetEnabled() bool {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwFilterUpdate) GetParams() types.ApigwFilterParams {
 	return r.Params
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwFilterUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -557,6 +569,13 @@ func (r *ApigwFilterUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -609,6 +628,13 @@ func (r *ApigwFilterUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["params"]; ok {
 			r.Params, err = types.ParseApigwfFilterParams(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

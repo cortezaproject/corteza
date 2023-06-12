@@ -101,10 +101,11 @@ func (ctrl *Queue) Update(ctx context.Context, r *request.QueuesUpdate) (interfa
 	var (
 		err error
 		q   = &types.Queue{
-			ID:       r.QueueID,
-			Consumer: r.Consumer,
-			Queue:    r.Queue,
-			Meta:     r.Meta,
+			ID:        r.QueueID,
+			Consumer:  r.Consumer,
+			Queue:     r.Queue,
+			Meta:      r.Meta,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 

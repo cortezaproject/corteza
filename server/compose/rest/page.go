@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/service/event"
@@ -170,6 +171,7 @@ func (ctrl *Page) Update(ctx context.Context, r *request.PageUpdate) (interface{
 			Weight:      r.Weight,
 			Labels:      r.Labels,
 			Meta:        r.Meta,
+			UpdatedAt:   r.UpdatedAt,
 		}
 	)
 

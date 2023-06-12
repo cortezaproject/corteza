@@ -20,6 +20,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -145,6 +146,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	ReportRead struct {
@@ -501,6 +507,7 @@ func (r ReportUpdate) Auditable() map[string]interface{} {
 		"sources":   r.Sources,
 		"blocks":    r.Blocks,
 		"labels":    r.Labels,
+		"updatedAt": r.UpdatedAt,
 	}
 }
 
@@ -537,6 +544,11 @@ func (r ReportUpdate) GetBlocks() types.ReportBlockSet {
 // Auditable returns all auditable/loggable parameters
 func (r ReportUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ReportUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -586,6 +598,13 @@ func (r *ReportUpdate) Fill(req *http.Request) (err error) {
 				}
 			} else if val, ok := req.MultipartForm.Value["labels"]; ok {
 				r.Labels, err = label.ParseStrings(val)
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 				if err != nil {
 					return err
 				}
@@ -647,6 +666,13 @@ func (r *ReportUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

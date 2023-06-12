@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
@@ -164,6 +165,11 @@ func (svc *queue) Update(ctx context.Context, upd *types.Queue) (q *types.Queue,
 
 		if qq, e = store.LookupQueueByID(ctx, svc.store, upd.ID); e != nil {
 			return QueueErrNotFound(qProps)
+		}
+
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, qq.UpdatedAt, qq.CreatedAt) {
+			return QueueErrStaleData()
 		}
 
 		if qq, e := store.LookupQueueByQueue(ctx, svc.store, upd.Queue); e == nil && qq != nil && qq.ID != upd.ID {

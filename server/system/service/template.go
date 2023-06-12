@@ -252,6 +252,11 @@ func (svc template) Update(ctx context.Context, upd *types.Template) (tpl *types
 			return TemplateErrNotAllowedToUpdate()
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, tpl.UpdatedAt, tpl.CreatedAt) {
+			return TemplateErrStaleData()
+		}
+
 		// @todo corredor?
 
 		tpl.Handle = upd.Handle

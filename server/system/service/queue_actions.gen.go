@@ -493,6 +493,40 @@ func QueueErrInvalidConsumer(mm ...*queueActionProps) *errors.Error {
 	return e
 }
 
+// QueueErrStaleData returns "system:queue.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func QueueErrStaleData(mm ...*queueActionProps) *errors.Error {
+	var p = &queueActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:queue"),
+
+		errors.Meta(queuePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "queue.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // QueueErrAlreadyExists returns "system:queue.alreadyExists" as *errors.Error
 //
 //

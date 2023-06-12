@@ -117,6 +117,7 @@ func (ctrl *Report) Update(ctx context.Context, r *request.ReportUpdate) (interf
 			Sources:   r.Sources,
 			Blocks:    r.Blocks,
 			Labels:    r.Labels,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 

@@ -60,6 +60,10 @@ errors:
     message: "invalid consumer"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: alreadyExists
     message: "queue by that name already exists"
     severity: warning

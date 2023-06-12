@@ -18,6 +18,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -108,6 +109,11 @@ type (
 		//
 		//
 		Config types.ConnectionConfig
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	DalConnectionRead struct {
@@ -378,6 +384,7 @@ func (r DalConnectionUpdate) Auditable() map[string]interface{} {
 		"type":         r.Type,
 		"meta":         r.Meta,
 		"config":       r.Config,
+		"updatedAt":    r.UpdatedAt,
 	}
 }
 
@@ -404,6 +411,11 @@ func (r DalConnectionUpdate) GetMeta() types.ConnectionMeta {
 // Auditable returns all auditable/loggable parameters
 func (r DalConnectionUpdate) GetConfig() types.ConnectionConfig {
 	return r.Config
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalConnectionUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -464,6 +476,13 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -507,6 +526,13 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["config"]; ok {
 			r.Config, err = types.ParseConnectionConfig(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

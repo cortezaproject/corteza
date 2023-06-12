@@ -369,6 +369,11 @@ func (svc role) Update(ctx context.Context, upd *types.Role) (r *types.Role, err
 			return RoleErrNotAllowedToUpdate()
 		}
 
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, r.UpdatedAt, r.CreatedAt) {
+			return RoleErrStaleData()
+		}
+
 		if svc.IsSystem(r) {
 			// prevent system role updates
 			// we need this here because of the clumsy way

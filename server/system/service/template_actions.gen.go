@@ -501,6 +501,40 @@ func TemplateErrInvalidID(mm ...*templateActionProps) *errors.Error {
 	return e
 }
 
+// TemplateErrStaleData returns "system:template.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func TemplateErrStaleData(mm ...*templateActionProps) *errors.Error {
+	var p = &templateActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:template"),
+
+		errors.Meta(templatePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "template.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // TemplateErrInvalidHandle returns "system:template.invalidHandle" as *errors.Error
 //
 //

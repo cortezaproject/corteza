@@ -117,11 +117,12 @@ func (ctrl DalConnection) Create(ctx context.Context, r *request.DalConnectionCr
 
 func (ctrl DalConnection) Update(ctx context.Context, r *request.DalConnectionUpdate) (interface{}, error) {
 	connection := &types.DalConnection{
-		ID:     r.ConnectionID,
-		Handle: r.Handle,
-		Type:   r.Type,
-		Meta:   r.Meta,
-		Config: r.Config,
+		ID:        r.ConnectionID,
+		Handle:    r.Handle,
+		Type:      r.Type,
+		Meta:      r.Meta,
+		Config:    r.Config,
+		UpdatedAt: r.UpdatedAt,
 	}
 
 	res, err := ctrl.svc.Update(ctx, connection)

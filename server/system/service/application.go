@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
@@ -201,6 +202,11 @@ func (svc *application) Update(ctx context.Context, upd *types.Application) (app
 
 		if !svc.ac.CanUpdateApplication(ctx, app) {
 			return ApplicationErrNotAllowedToUpdate()
+		}
+
+		// Test if stale (update has an older version of data)
+		if isStale(upd.UpdatedAt, app.UpdatedAt, app.CreatedAt) {
+			return ApplicationErrStaleData()
 		}
 
 		if err = svc.eventbus.WaitFor(ctx, event.ApplicationBeforeUpdate(upd, app)); err != nil {

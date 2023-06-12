@@ -190,6 +190,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	AuthClientRead struct {
@@ -655,6 +660,7 @@ func (r AuthClientUpdate) Auditable() map[string]interface{} {
 		"expiresAt":   r.ExpiresAt,
 		"security":    r.Security,
 		"labels":      r.Labels,
+		"updatedAt":   r.UpdatedAt,
 	}
 }
 
@@ -716,6 +722,11 @@ func (r AuthClientUpdate) GetSecurity() *types.AuthClientSecurity {
 // Auditable returns all auditable/loggable parameters
 func (r AuthClientUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AuthClientUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -830,6 +841,13 @@ func (r *AuthClientUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -927,6 +945,13 @@ func (r *AuthClientUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

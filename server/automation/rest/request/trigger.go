@@ -20,6 +20,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -200,6 +201,11 @@ type (
 		//
 		// Owner of the trigger
 		OwnedBy uint64 `json:",string"`
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	TriggerRead struct {
@@ -698,6 +704,7 @@ func (r TriggerUpdate) Auditable() map[string]interface{} {
 		"meta":           r.Meta,
 		"constraints":    r.Constraints,
 		"ownedBy":        r.OwnedBy,
+		"updatedAt":      r.UpdatedAt,
 	}
 }
 
@@ -754,6 +761,11 @@ func (r TriggerUpdate) GetConstraints() types.TriggerConstraintSet {
 // Auditable returns all auditable/loggable parameters
 func (r TriggerUpdate) GetOwnedBy() uint64 {
 	return r.OwnedBy
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TriggerUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -866,6 +878,13 @@ func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -961,6 +980,13 @@ func (r *TriggerUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["ownedBy"]; ok && len(val) > 0 {
 			r.OwnedBy, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

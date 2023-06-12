@@ -191,6 +191,7 @@ export default class Automation {
       paths,
       runAs,
       ownedBy,
+      updatedAt,
     } = (a as KV) || {}
     if (!workflowID) {
       throw Error('field workflowID is empty')
@@ -220,6 +221,7 @@ export default class Automation {
       paths,
       runAs,
       ownedBy,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -491,6 +493,7 @@ export default class Automation {
       meta,
       constraints,
       ownedBy,
+      updatedAt,
     } = (a as KV) || {}
     if (!triggerID) {
       throw Error('field triggerID is empty')
@@ -528,6 +531,7 @@ export default class Automation {
       meta,
       constraints,
       ownedBy,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }

@@ -526,6 +526,40 @@ func ApplicationErrInvalidID(mm ...*applicationActionProps) *errors.Error {
 	return e
 }
 
+// ApplicationErrStaleData returns "system:application.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ApplicationErrStaleData(mm ...*applicationActionProps) *errors.Error {
+	var p = &applicationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:application"),
+
+		errors.Meta(applicationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "application.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ApplicationErrNotAllowedToRead returns "system:application.notAllowedToRead" as *errors.Error
 //
 //

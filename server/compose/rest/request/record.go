@@ -18,6 +18,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -317,6 +318,11 @@ type (
 		//
 		// Records
 		Records types.RecordBulkSet
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	RecordPatch struct {
@@ -1469,6 +1475,7 @@ func (r RecordUpdate) Auditable() map[string]interface{} {
 		"ownedBy":     r.OwnedBy,
 		"meta":        r.Meta,
 		"records":     r.Records,
+		"updatedAt":   r.UpdatedAt,
 	}
 }
 
@@ -1505,6 +1512,11 @@ func (r RecordUpdate) GetMeta() map[string]any {
 // Auditable returns all auditable/loggable parameters
 func (r RecordUpdate) GetRecords() types.RecordBulkSet {
 	return r.Records
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -1547,6 +1559,12 @@ func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -1589,6 +1607,13 @@ func (r *RecordUpdate) Fill(req *http.Request) (err error) {
 		//        return err
 		//    }
 		//}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	{

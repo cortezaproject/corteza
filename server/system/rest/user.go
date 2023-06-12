@@ -147,12 +147,13 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 
 func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}, error) {
 	user := &types.User{
-		ID:     r.UserID,
-		Email:  r.Email,
-		Name:   r.Name,
-		Handle: r.Handle,
-		Kind:   r.Kind,
-		Labels: r.Labels,
+		ID:        r.UserID,
+		Email:     r.Email,
+		Name:      r.Name,
+		Handle:    r.Handle,
+		Kind:      r.Kind,
+		Labels:    r.Labels,
+		UpdatedAt: r.UpdatedAt,
 	}
 
 	res, err := ctrl.user.Update(ctx, user)

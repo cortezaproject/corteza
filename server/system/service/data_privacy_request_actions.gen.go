@@ -508,6 +508,40 @@ func DataPrivacyErrInvalidStatus(mm ...*dataPrivacyActionProps) *errors.Error {
 	return e
 }
 
+// DataPrivacyErrStaleData returns "system:data-privacy-request.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DataPrivacyErrStaleData(mm ...*dataPrivacyActionProps) *errors.Error {
+	var p = &dataPrivacyActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:data-privacy-request"),
+
+		errors.Meta(dataPrivacyPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "data-privacy.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DataPrivacyErrNotAllowedToRead returns "system:data-privacy-request.notAllowedToRead" as *errors.Error
 //
 //

@@ -19,6 +19,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -139,6 +140,11 @@ type (
 		//
 		// Route meta
 		Meta types.ApigwRouteMeta
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	ApigwRouteRead struct {
@@ -467,12 +473,13 @@ func NewApigwRouteUpdate() *ApigwRouteUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwRouteUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"routeID":  r.RouteID,
-		"endpoint": r.Endpoint,
-		"method":   r.Method,
-		"enabled":  r.Enabled,
-		"group":    r.Group,
-		"meta":     r.Meta,
+		"routeID":   r.RouteID,
+		"endpoint":  r.Endpoint,
+		"method":    r.Method,
+		"enabled":   r.Enabled,
+		"group":     r.Group,
+		"meta":      r.Meta,
+		"updatedAt": r.UpdatedAt,
 	}
 }
 
@@ -504,6 +511,11 @@ func (r ApigwRouteUpdate) GetGroup() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r ApigwRouteUpdate) GetMeta() types.ApigwRouteMeta {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r ApigwRouteUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -566,6 +578,13 @@ func (r *ApigwRouteUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -611,6 +630,13 @@ func (r *ApigwRouteUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["meta"]; ok {
 			r.Meta, err = types.ParseApigwRouteMeta(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

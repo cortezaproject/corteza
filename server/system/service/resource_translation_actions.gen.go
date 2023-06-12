@@ -493,6 +493,40 @@ func ResourceTranslationErrInvalidID(mm ...*resourceTranslationActionProps) *err
 	return e
 }
 
+// ResourceTranslationErrStaleData returns "system:resource-translation.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func ResourceTranslationErrStaleData(mm ...*resourceTranslationActionProps) *errors.Error {
+	var p = &resourceTranslationActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:resource-translation"),
+
+		errors.Meta(resourceTranslationPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "resource-translation.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // ResourceTranslationErrNotAllowedToRead returns "system:resource-translation.notAllowedToRead" as *errors.Error
 //
 //

@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
@@ -115,11 +116,12 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 	var (
 		err  error
 		role = &types.Role{
-			ID:     r.RoleID,
-			Name:   r.Name,
-			Handle: r.Handle,
-			Labels: r.Labels,
-			Meta:   r.Meta,
+			ID:        r.RoleID,
+			Name:      r.Name,
+			Handle:    r.Handle,
+			Labels:    r.Labels,
+			Meta:      r.Meta,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 

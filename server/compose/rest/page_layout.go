@@ -167,6 +167,7 @@ func (ctrl *PageLayout) Update(ctx context.Context, r *request.PageLayoutUpdate)
 			Meta:        r.Meta,
 			Labels:      r.Labels,
 			OwnedBy:     r.OwnedBy,
+			UpdatedAt:   r.UpdatedAt,
 		}
 	)
 

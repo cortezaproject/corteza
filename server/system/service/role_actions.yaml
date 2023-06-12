@@ -88,6 +88,10 @@ errors:
     message: "invalid handle"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: notAllowedToRead
     message: "not allowed to read this role"
     log: "failed to read {{role.handle}}; insufficient permissions"

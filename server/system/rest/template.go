@@ -114,14 +114,15 @@ func (ctrl *Template) Update(ctx context.Context, r *request.TemplateUpdate) (in
 	var (
 		err error
 		app = &types.Template{
-			ID:       r.TemplateID,
-			Handle:   r.Handle,
-			Language: r.Language,
-			Type:     types.DocumentType(r.Type),
-			Partial:  r.Partial,
-			Meta:     r.Meta,
-			Template: r.Template,
-			OwnerID:  r.OwnerID,
+			ID:        r.TemplateID,
+			Handle:    r.Handle,
+			Language:  r.Language,
+			Type:      types.DocumentType(r.Type),
+			Partial:   r.Partial,
+			Meta:      r.Meta,
+			Template:  r.Template,
+			OwnerID:   r.OwnerID,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 

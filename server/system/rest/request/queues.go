@@ -18,6 +18,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -110,6 +111,11 @@ type (
 		//
 		// Meta data for queue
 		Meta types.QueueMeta
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	QueuesDelete struct {
@@ -380,10 +386,11 @@ func NewQueuesUpdate() *QueuesUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r QueuesUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"queueID":  r.QueueID,
-		"queue":    r.Queue,
-		"consumer": r.Consumer,
-		"meta":     r.Meta,
+		"queueID":   r.QueueID,
+		"queue":     r.Queue,
+		"consumer":  r.Consumer,
+		"meta":      r.Meta,
+		"updatedAt": r.UpdatedAt,
 	}
 }
 
@@ -405,6 +412,11 @@ func (r QueuesUpdate) GetConsumer() string {
 // Auditable returns all auditable/loggable parameters
 func (r QueuesUpdate) GetMeta() types.QueueMeta {
 	return r.Meta
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r QueuesUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -453,6 +465,13 @@ func (r *QueuesUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -484,6 +503,13 @@ func (r *QueuesUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["meta"]; ok {
 			r.Meta, err = types.ParseQueueMeta(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

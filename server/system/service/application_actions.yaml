@@ -65,6 +65,10 @@ errors:
     message: "invalid ID"
     severity: warning
 
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
   - error: notAllowedToRead
     message: "not allowed to read this application"
     log: "failed to read {{application.name}}; insufficient permissions"

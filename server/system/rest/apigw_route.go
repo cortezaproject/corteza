@@ -107,12 +107,13 @@ func (ctrl *ApigwRoute) Update(ctx context.Context, r *request.ApigwRouteUpdate)
 	var (
 		err error
 		q   = &types.ApigwRoute{
-			ID:       r.RouteID,
-			Endpoint: r.Endpoint,
-			Method:   r.Method,
-			Group:    r.Group,
-			Enabled:  r.Enabled,
-			Meta:     r.Meta,
+			ID:        r.RouteID,
+			Endpoint:  r.Endpoint,
+			Method:    r.Method,
+			Group:     r.Group,
+			Enabled:   r.Enabled,
+			Meta:      r.Meta,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 

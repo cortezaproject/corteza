@@ -19,6 +19,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // dummy vars to prevent
@@ -186,6 +187,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// UpdatedAt POST parameter
+		//
+		// Last update (or creation) date
+		UpdatedAt *time.Time
 	}
 
 	TemplateDelete struct {
@@ -670,6 +676,7 @@ func (r TemplateUpdate) Auditable() map[string]interface{} {
 		"template":   r.Template,
 		"ownerID":    r.OwnerID,
 		"labels":     r.Labels,
+		"updatedAt":  r.UpdatedAt,
 	}
 }
 
@@ -716,6 +723,11 @@ func (r TemplateUpdate) GetOwnerID() uint64 {
 // Auditable returns all auditable/loggable parameters
 func (r TemplateUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r TemplateUpdate) GetUpdatedAt() *time.Time {
+	return r.UpdatedAt
 }
 
 // Fill processes request and fills internal variables
@@ -804,6 +816,13 @@ func (r *TemplateUpdate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
+				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -875,6 +894,13 @@ func (r *TemplateUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["updatedAt"]; ok && len(val) > 0 {
+			r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 			if err != nil {
 				return err
 			}

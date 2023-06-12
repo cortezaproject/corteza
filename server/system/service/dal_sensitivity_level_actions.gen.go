@@ -521,6 +521,40 @@ func DalSensitivityLevelErrInvalidEndpoint(mm ...*dalSensitivityLevelActionProps
 	return e
 }
 
+// DalSensitivityLevelErrStaleData returns "system:dal-sensitivity-level.staleData" as *errors.Error
+//
+//
+// This function is auto-generated.
+//
+func DalSensitivityLevelErrStaleData(mm ...*dalSensitivityLevelActionProps) *errors.Error {
+	var p = &dalSensitivityLevelActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("stale data", nil),
+
+		errors.Meta("type", "staleData"),
+		errors.Meta("resource", "system:dal-sensitivity-level"),
+
+		errors.Meta(dalSensitivityLevelPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-sensitivity-level.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
 // DalSensitivityLevelErrExistsEndpoint returns "system:dal-sensitivity-level.existsEndpoint" as *errors.Error
 //
 //

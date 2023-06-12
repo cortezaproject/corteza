@@ -666,6 +666,7 @@ export default class Compose {
       blocks,
       config,
       meta,
+      updatedAt,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -695,6 +696,7 @@ export default class Compose {
       blocks,
       config,
       meta,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1207,6 +1209,7 @@ export default class Compose {
       blocks,
       labels,
       ownedBy,
+      updatedAt,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -1234,6 +1237,7 @@ export default class Compose {
       blocks,
       labels,
       ownedBy,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -2139,6 +2143,7 @@ export default class Compose {
       ownedBy,
       meta,
       records,
+      updatedAt,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2161,6 +2166,7 @@ export default class Compose {
       ownedBy,
       meta,
       records,
+      updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }

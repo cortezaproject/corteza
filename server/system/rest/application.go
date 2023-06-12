@@ -117,11 +117,12 @@ func (ctrl *Application) Update(ctx context.Context, r *request.ApplicationUpdat
 	var (
 		err error
 		app = &types.Application{
-			ID:      r.ApplicationID,
-			Name:    r.Name,
-			Enabled: r.Enabled,
-			Weight:  r.Weight,
-			Labels:  r.Labels,
+			ID:        r.ApplicationID,
+			Name:      r.Name,
+			Enabled:   r.Enabled,
+			Weight:    r.Weight,
+			Labels:    r.Labels,
+			UpdatedAt: r.UpdatedAt,
 		}
 	)
 
