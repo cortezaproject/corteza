@@ -22,6 +22,12 @@ export default {
       required: false,
       default: '',
     },
+
+    magnified: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   computed: {
@@ -34,7 +40,7 @@ export default {
     },
 
     isBlockMagnified () {
-      return this.$attrs.magnified
+      return this.magnified
     },
 
     headerSet () {
