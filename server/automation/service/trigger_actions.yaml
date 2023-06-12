@@ -7,7 +7,7 @@ import:
   - github.com/cortezaproject/corteza/server/automation/types
 
 # Default sensitivity for actions
-defaultActionSeverity: info
+defaultActionSeverity: notice
 
 # default severity for errors
 defaultErrorSeverity: error

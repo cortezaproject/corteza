@@ -266,7 +266,7 @@ func TriggerActionCreate(props ...*triggerActionProps) *triggerAction {
 		resource:  "automation:trigger",
 		action:    "create",
 		log:       "created {{trigger}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -286,7 +286,7 @@ func TriggerActionUpdate(props ...*triggerActionProps) *triggerAction {
 		resource:  "automation:trigger",
 		action:    "update",
 		log:       "updated {{trigger}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -306,7 +306,7 @@ func TriggerActionDelete(props ...*triggerActionProps) *triggerAction {
 		resource:  "automation:trigger",
 		action:    "delete",
 		log:       "deleted {{trigger}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -326,7 +326,7 @@ func TriggerActionUndelete(props ...*triggerActionProps) *triggerAction {
 		resource:  "automation:trigger",
 		action:    "undelete",
 		log:       "undeleted {{trigger}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
