@@ -309,7 +309,7 @@ func WorkflowActionCreate(props ...*workflowActionProps) *workflowAction {
 		resource:  "automation:workflow",
 		action:    "create",
 		log:       "created {{workflow}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -329,7 +329,7 @@ func WorkflowActionUpdate(props ...*workflowActionProps) *workflowAction {
 		resource:  "automation:workflow",
 		action:    "update",
 		log:       "updated {{workflow}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -349,7 +349,7 @@ func WorkflowActionDelete(props ...*workflowActionProps) *workflowAction {
 		resource:  "automation:workflow",
 		action:    "delete",
 		log:       "deleted {{workflow}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -369,7 +369,7 @@ func WorkflowActionUndelete(props ...*workflowActionProps) *workflowAction {
 		resource:  "automation:workflow",
 		action:    "undelete",
 		log:       "undeleted {{workflow}}",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -389,7 +389,7 @@ func WorkflowActionExecute(props ...*workflowActionProps) *workflowAction {
 		resource:  "automation:workflow",
 		action:    "execute",
 		log:       "{{workflow}} executed",
-		severity:  actionlog.Info,
+		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
