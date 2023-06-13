@@ -16,6 +16,7 @@ export default {
         nextPage: '',
         total: 0,
         page: 1,
+        incTotal: true,
       },
 
       // Used to save query when fetching for total if we came to the page with a pageCursor in URL
@@ -124,7 +125,7 @@ export default {
 
     encodeListParams () {
       const { sortBy, sortDesc } = this.sorting
-      const { limit, pageCursor } = this.pagination
+      const { limit, pageCursor, incTotal } = this.pagination
 
       const sort = sortBy ? `${sortBy} ${sortDesc ? 'DESC' : 'ASC'}` : undefined
 
@@ -133,7 +134,7 @@ export default {
         sort: pageCursor ? undefined : sort,
         ...this.filter,
         pageCursor,
-        incTotal: !pageCursor || this.tempQuery,
+        incTotal: incTotal && (!pageCursor || this.tempQuery),
       }
     },
 
