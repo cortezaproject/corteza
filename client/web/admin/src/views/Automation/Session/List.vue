@@ -29,7 +29,7 @@
       clickable
       sticky-header
       hide-search
-      hide-total
+      :hide-total="!pagination.incTotal"
       class="custom-resource-list-height-no-buttons"
       @row-clicked="handleRowClicked"
     >
@@ -156,12 +156,7 @@ export default {
       },
 
       pagination: {
-        limit: 100,
-        pageCursor: undefined,
-        prevPage: '',
-        nextPage: '',
-        total: 0,
-        page: 1,
+        ...this.pagination,
         incTotal: false,
       },
 
