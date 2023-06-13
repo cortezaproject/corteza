@@ -34,7 +34,7 @@
       }"
       clickable
       hide-search
-      class="h-100"
+      class="h-100 connection-list"
       @row-clicked="handleRowClicked"
     >
       <template #header>
@@ -146,6 +146,7 @@ export default {
           key: 'name',
           sortable: false,
           formatter: (value, col, conn) => conn.meta.name || conn.handle,
+          class: 'name-width text-truncate',
         },
         {
           key: 'location',
@@ -190,3 +191,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.connection-list {
+  .name-width {
+    max-width: 200px;
+  }
+}
+</style>
