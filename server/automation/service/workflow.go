@@ -239,6 +239,8 @@ func (svc *workflow) Create(ctx context.Context, new *types.Workflow) (wf *types
 			CreatedBy: cUser,
 		}
 
+		wap.workflow = wf
+
 		if g, runAs, err = svc.validateWorkflow(ctx, wf); err != nil {
 			return
 		}

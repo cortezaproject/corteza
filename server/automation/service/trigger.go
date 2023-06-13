@@ -221,6 +221,7 @@ func (svc *trigger) Create(ctx context.Context, new *types.Trigger) (res *types.
 			CreatedAt:    *now(),
 			CreatedBy:    cUser,
 		}
+		wap.new = res
 
 		if err = store.CreateAutomationTrigger(ctx, s, res); err != nil {
 			return
