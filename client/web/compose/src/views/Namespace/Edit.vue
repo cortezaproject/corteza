@@ -220,7 +220,7 @@
                 <b-input-group-append>
                   <namespace-translator
                     :namespace="namespace"
-                    highlight-key="subtitle"
+                    highlight-key="meta.subtitle"
                     button-variant="light"
                     :disabled="isNew"
                   />
@@ -242,7 +242,7 @@
                 <b-input-group-append>
                   <namespace-translator
                     :namespace="namespace"
-                    highlight-key="description"
+                    highlight-key="meta.description"
                     button-variant="light"
                     :disabled="isNew"
                   />
