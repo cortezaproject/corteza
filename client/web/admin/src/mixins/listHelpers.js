@@ -79,7 +79,7 @@ export default {
 
       /// To prevent extra list fetch, check if pageCursor is defined (not first page)
       const refresh = this.$route.query.pageCursor !== this.pagination.pageCursor
-      this.pagination = { limit, pageCursor, prevPage, nextPage, total, page }
+      this.pagination = { ...this.pagination, limit, pageCursor, prevPage, nextPage, total, page }
 
       // Sorting
       let { sortBy = this.sorting.sortBy, sortDesc = this.sorting.sortDesc, ...r2 } = r1
