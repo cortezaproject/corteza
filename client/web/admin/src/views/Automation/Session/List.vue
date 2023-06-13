@@ -155,6 +155,16 @@ export default {
         sortDesc: true,
       },
 
+      pagination: {
+        limit: 100,
+        pageCursor: undefined,
+        prevPage: '',
+        nextPage: '',
+        total: 0,
+        page: 1,
+        incTotal: false,
+      },
+
       fields: [
         {
           key: 'sessionID',
