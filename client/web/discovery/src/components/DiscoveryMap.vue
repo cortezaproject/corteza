@@ -20,6 +20,7 @@
 </template>
 
 <script>
+import { isNumber } from 'lodash'
 import { latLng } from 'leaflet'
 
 export default {
@@ -69,7 +70,11 @@ export default {
 
   methods: {
     getLatLng (coordinates = [0, 0]) {
-      return latLng(coordinates[0], coordinates[1])
+      const [lat, lng] = coordinates
+
+      if (isNumber(lat) && isNumber(lng)) {
+        return latLng(lat, lng)
+      }
     },
 
     onMarkerClick (ID) {

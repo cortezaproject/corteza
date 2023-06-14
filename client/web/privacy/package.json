@@ -26,6 +26,7 @@
     "i18next": "^17.0.9",
     "i18next-browser-languagedetector": "^3.0.2",
     "leaflet": "^1.7.1",
+    "lodash": "^4.17.21",
     "portal-vue": "^2.1.7",
     "vue": "2.6.14",
     "vue-grid-layout": "^2.3.12",

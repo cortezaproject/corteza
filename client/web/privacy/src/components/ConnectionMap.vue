@@ -43,6 +43,7 @@
 
 <script>
 import { latLng } from 'leaflet'
+import { isNumber } from 'lodash'
 import { LMap, LTileLayer, LMarker, LTooltip } from 'vue2-leaflet'
 
 export default {
@@ -97,7 +98,11 @@ export default {
     },
 
     getLatLng (coordinates = [0, 0]) {
-      return latLng(coordinates[0], coordinates[1])
+      const [lat, lng] = coordinates
+
+      if (isNumber(lat) && isNumber(lng)) {
+        return latLng(lat, lng)
+      }
     },
   },
 }

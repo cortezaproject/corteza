@@ -135,7 +135,6 @@
 
 <script>
 import base from '../base'
-import { latLng } from 'leaflet'
 import { LControl } from 'vue2-leaflet'
 
 export default {
@@ -176,14 +175,6 @@ export default {
   },
 
   methods: {
-    getLatLng (coordinates = [undefined, undefined]) {
-      const [lat, lng] = coordinates
-
-      if (lat && lng) {
-        return latLng(lat, lng)
-      }
-    },
-
     updateCenter (coordinates) {
       let { lat = 0, lng = 0 } = coordinates || {}
 

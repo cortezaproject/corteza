@@ -91,6 +91,7 @@ import { latLng } from 'leaflet'
 import { LControl } from 'vue2-leaflet'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import { components } from '@cortezaproject/corteza-vue'
+import { isNumber } from 'lodash'
 const { CInputSearch } = components
 
 export default {
@@ -152,7 +153,7 @@ export default {
     getLatLng (coordinates = [undefined, undefined]) {
       const [lat, lng] = coordinates
 
-      if (lat && lng) {
+      if (isNumber(lat) && isNumber(lng)) {
         return latLng(lat, lng)
       }
     },
