@@ -23,10 +23,6 @@ const PageBlockFileDefaultMode = 'list'
 const PageBlockFileModes = [
   // list of attachments, no preview
   'list',
-  // grid of icons
-  'grid',
-  // single (first) image/file, show preview
-  'single',
   // list of all images/files, show preview
   'gallery',
 ]
@@ -68,6 +64,13 @@ export class PageBlockFile extends PageBlock {
     Apply(this.options, o, String, 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor', 'magnifyOption')
 
     if (o.mode) {
+      // Legacy
+      if (o.mode === 'single') {
+        o.mode = 'gallery'
+      } else if (o.mode === 'grid') {
+        o.mode = 'list'
+      }
+
       if (PageBlockFileModes.includes(o.mode)) {
         this.options.mode = o.mode
       } else {

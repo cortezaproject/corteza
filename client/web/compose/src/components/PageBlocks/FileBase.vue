@@ -10,7 +10,7 @@
       :mode="options.mode"
       :hide-file-name="options.hideFileName"
       :preview-options="options"
-      class="h-100 px-2"
+      class="h-100"
     />
   </wrap>
 </template>

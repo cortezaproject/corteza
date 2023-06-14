@@ -1,5 +1,6 @@
 import { ModuleField, Registry, Options, defaultOptions } from './base'
 import { Apply, ApplyWhitelisted } from '../../../cast'
+import { omit } from 'lodash';
 
 const kind = 'File'
 
@@ -8,8 +9,6 @@ export const modes = [
   'list',
   // grid of icons
   'grid',
-  // single (first) image/file, show preview
-  'single',
   // list of all images/files, show preview
   'gallery',
 ]
@@ -66,6 +65,14 @@ export class ModuleFieldFile extends ModuleField {
     Apply(this.options, o, Number, 'maxSize')
     Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName')
     Apply(this.options, o, String, 'mimetypes', 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor')
+
+    // Legacy
+    if (o.mode === 'single') {
+      o.mode = 'gallery'
+    } else if (o.mode === 'grid') {
+      o.mode = 'list'
+    }
+
     ApplyWhitelisted(this.options, o, modes, 'mode')
   }
 }

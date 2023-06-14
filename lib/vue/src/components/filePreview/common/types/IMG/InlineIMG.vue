@@ -1,5 +1,5 @@
 <template>
-  <div class="inline h-100">
+  <div class="d-flex inline h-100">
     <img
       ref="image"
       :key="src"

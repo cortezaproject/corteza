@@ -6,9 +6,9 @@
     >
       <b-spinner />
     </div>
+
     <div
       v-else-if="mode === 'list'"
-      class="list"
     >
       <draggable
         :list.sync="attachments"
@@ -17,7 +17,7 @@
         <div
           v-for="(a, index) in attachments"
           :key="a.attachmentID"
-          class="item"
+          class="item pl-2 mb-2"
         >
           <b-row no-gutters>
             <b-col>
@@ -32,35 +32,42 @@
                   class="handle text-light"
                 />
               </div>
-              <attachment-link :attachment="a" />
-              &nbsp;
+
+              <div class="d-flex align-items-center">
+                <font-awesome-icon
+                  :title="ext(a)"
+                  :icon="['far', `file-${ext(a)}`]"
+                  class="text-dark h5 float-left mb-0 mr-2"
+                />
+
+                <attachment-link :attachment="a" />
+              </div>
+
               <i18next
                 path="general.label.attachmentFileInfo"
-                tag="label"
+                tag="small"
+                class="d-block text-muted"
               >
                 <span>{{ size(a) }}</span>
+
                 <span>{{ uploadedAt(a) }}</span>
               </i18next>
             </b-col>
+
             <div class="col-sm-2 text-right my-auto">
-              <a
+              <b-button
                 v-if="a.download"
                 :href="a.download"
-                class="px-0 btn text-primary mr-2"
+                variant="outline-light"
+                class="border-0 text-primary px-2 mr-2"
               >
                 <font-awesome-icon :icon="['fas', 'download']" />
-              </a>
-              <b-button
-                v-if="enableDelete"
-                variant="link"
-                class="px-0"
-                @click="deleteAttachment(index)"
-              >
-                <font-awesome-icon
-                  :icon="['far', 'trash-alt']"
-                  class="action text-danger"
-                />
               </b-button>
+
+              <c-input-confirm
+                v-if="enableDelete"
+                @confirmed="deleteAttachment(index)"
+              />
             </div>
           </b-row>
         </div>
@@ -68,45 +75,16 @@
     </div>
 
     <div
-      v-else-if="mode === 'grid'"
-      class="grid"
+      v-else
+      class="d-flex align-items-center justify-content-around flex-wrap h-100"
     >
       <div
         v-for="a in attachments"
         :key="a.attachmentID"
-        class="p-2"
-      >
-        <attachment-link
-          :attachment="a"
-          class="d-block"
-        >
-          <font-awesome-icon
-            :icon="['far', 'file-'+ext(a)]"
-            class="text-dark float-left mr-2"
-          />
-        </attachment-link>
-        <i18next
-          path="general.label.attachmentFileInfo"
-          tag="label"
-        >
-          <span>{{ size(a) }}</span>
-          <span>{{ uploadedAt(a) }}</span>
-        </i18next>
-      </div>
-    </div>
-
-    <div
-      v-else
-      class="single gallery h-100"
-    >
-      <div
-        v-for="(a) in files"
-        :key="a.attachmentID"
-        class="mx-auto h-100"
+        :class="{ 'h-100': attachments.length === 1 }"
       >
         <c-preview-inline
           v-if="canPreview(a)"
-          class="ml-0 py-2"
           :src="inlineUrl(a)"
           :meta="a.meta"
           :name="a.name"
@@ -128,7 +106,7 @@
 
         <div
           v-if="!hideFileName"
-          class="m-1"
+          class="text-center"
         >
           <attachment-link
             :attachment="a"
@@ -232,14 +210,6 @@ export default {
 
     baseURL () {
       return url.Make({ url: window.CortezaAPI + '/compose' })
-    },
-
-    files () {
-      if (this.mode === 'single') {
-        return this.attachments.slice(this.attachments.length - 1)
-      } else {
-        return this.attachments
-      }
     },
   },
 
@@ -371,25 +341,13 @@ export default {
   },
 }
 </script>
+
 <style lang="scss" scoped>
-
-.grid {
-  .svg-inline--fa {
-    font-size: 40px;
-  }
-}
-
-.single {
-  .svg-inline--fa {
-    font-size: 40px;
-  }
-
-  img {
-    cursor: pointer;
-  }
-}
-
 .handle {
   cursor: grab;
+}
+
+.item:hover {
+  background-color: $gray-200;
 }
 </style>

@@ -216,15 +216,13 @@ export default {
     modes () {
       return [
         { value: 'list', text: this.$t('kind.file.view.list') },
-        { value: 'grid', text: this.$t('kind.file.view.grid') },
-        { value: 'single', text: this.$t('kind.file.view.single') },
         { value: 'gallery', text: this.$t('kind.file.view.gallery') },
       ]
     },
 
     currentPreviewMode () {
       const { mode } = this.options
-      return (mode === 'single') || (mode === 'gallery')
+      return mode === 'gallery'
     },
   },
 
