@@ -423,6 +423,7 @@
 
       <dal-schema-alterations
         :modal="dalSchemaAlterations.modal"
+        :batch="dalSchemaAlterations.batchID"
         :module="module"
         @cancel="dalSchemaAlterations.modal = ($event || false)"
       />
@@ -538,15 +539,12 @@ export default {
       processingDelete: false,
 
       federationSettings: {
-        modal: false
+        modal: false,
       },
 
       dalSchemaAlterations: {
-        modal: true,
-      },
-
-      dalSchemaAlterations: {
-        modal: true,
+        modal: false,
+        batchID: undefined,
       },
 
       discoverySettings: {
@@ -721,8 +719,12 @@ export default {
         this.fetchSensitivityLevels()
 
         // Check if module has Alterations to resolve
-        if (this.module.issues.some(({ meta = {} }) => meta.batchID)) {
-          this.dalSchemaAlterations.modal = true
+        for (const i of this.module.issues) {
+          if (i.meta.batchID) {
+            this.dalSchemaAlterations.modal = true
+            this.dalSchemaAlterations.batchID = i.meta.batchID
+            break
+          }
         }
       },
     },
