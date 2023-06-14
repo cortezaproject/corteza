@@ -27,7 +27,7 @@ type (
 	}
 
 	QueueFilter struct {
-		QueueID []uint64     `json:"queueID"`
+		QueueID []string     `json:"queueID"`
 		Query   string       `json:"query"`
 		Deleted filter.State `json:"deleted"`
 

@@ -127,8 +127,8 @@ type (
 	}
 
 	PageFilter struct {
-		PageID      []uint64 `json:"pageID,string"`
-		NamespaceID uint64   `json:"namespaceID,string"`
+		NamespaceID uint64   `json:"namespaceID"`
+		PageID      []string `json:"pageID,string"`
 		ParentID    uint64   `json:"parentID,string,omitempty"`
 		ModuleID    uint64   `json:"moduleID,string,omitempty"`
 		Root        bool     `json:"root,omitempty"`

@@ -54,7 +54,7 @@ type (
 
 	ChartFilter struct {
 		NamespaceID uint64   `json:"namespaceID,string"`
-		ChartID     []uint64 `json:"chartID"`
+		ChartID     []string `json:"chartID"`
 		Handle      string   `json:"handle"`
 		Name        string   `json:"name"`
 		Query       string   `json:"query"`

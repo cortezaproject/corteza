@@ -1,6 +1,8 @@
 package json
 
 import (
+	"io"
+
 	"github.com/goccy/go-json/internal/decoder"
 	"github.com/goccy/go-json/internal/encoder"
 )
@@ -36,6 +38,20 @@ func DisableNormalizeUTF8() EncodeOptionFunc {
 func Debug() EncodeOptionFunc {
 	return func(opt *EncodeOption) {
 		opt.Flag |= encoder.DebugOption
+	}
+}
+
+// DebugWith sets the destination to write debug messages.
+func DebugWith(w io.Writer) EncodeOptionFunc {
+	return func(opt *EncodeOption) {
+		opt.DebugOut = w
+	}
+}
+
+// DebugDOT sets the destination to write opcodes graph.
+func DebugDOT(w io.WriteCloser) EncodeOptionFunc {
+	return func(opt *EncodeOption) {
+		opt.DebugDOTOut = w
 	}
 }
 
