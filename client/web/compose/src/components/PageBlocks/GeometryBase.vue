@@ -70,7 +70,8 @@ import { LPolygon, LControl } from 'vue2-leaflet'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapGetters, mapActions } from 'vuex'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
-import { throttle } from 'lodash'
+import { throttle, isNumber } from 'lodash'
+
 import base from './base'
 
 export default {
@@ -111,12 +112,14 @@ export default {
         geo.forEach((value) => {
           if (value.displayMarker) {
             value.markers.map(subValue => {
-              values.push({
-                value: this.getLatLng(subValue),
-                color: value.color,
-                recordID: value.recordID,
-                moduleID: value.moduleID,
-              })
+              if (this.getLatLng(subValue)) {
+                values.push({
+                  value: this.getLatLng(subValue) || {},
+                  color: value.color,
+                  recordID: value.recordID,
+                  moduleID: value.moduleID,
+                })
+              }
             })
           }
         })
@@ -208,16 +211,18 @@ export default {
                       markers = [geometry]
                     }
 
-                    return ({
-                      title: record.values[feed.titleField],
-                      geometry: feed.displayPolygon ? geometry : [],
-                      markers,
-                      color: feed.options.color,
-                      displayMarker: feed.displayMarker,
-                      recordID: record.recordID,
-                      moduleID: record.moduleID,
-                    })
-                  })
+                    if (geometry.length && geometry.length === 2) {
+                      return ({
+                        title: record.values[feed.titleField],
+                        geometry: feed.displayPolygon ? geometry : [],
+                        markers,
+                        color: feed.options.color,
+                        displayMarker: feed.displayMarker,
+                        recordID: record.recordID,
+                        moduleID: record.moduleID,
+                      })
+                    }
+                  }).filter(g => g)
                 }
               })
           })
@@ -248,13 +253,14 @@ export default {
     },
 
     parseGeometryField (value) {
-      return JSON.parse(value || '{"coordinates":[]}').coordinates || []
+      value = JSON.parse(value || '{"coordinates":[]}').coordinates || []
+      return value.every(isNumber) ? value : []
     },
 
     getLatLng (coordinates = [undefined, undefined]) {
       const [lat, lng] = coordinates
 
-      if (lat && lng) {
+      if (isNumber(lat) && isNumber(lng)) {
         return latLng(lat, lng)
       }
     },
