@@ -199,6 +199,12 @@ func (svc dalSchemaAlteration) ModelAlterations(ctx context.Context, m *dal.Mode
 func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, m *dal.Model, stale []*dal.Alteration, aa ...*dal.Alteration) (err error) {
 	// @todo boilerplate code around this
 
+	c := svc.dal.GetConnectionByID(0)
+	if m.ConnectionID == c.ID && m.Ident == "compose_record" {
+		err = fmt.Errorf("cannot set alterations for default schema")
+		return
+	}
+
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
 		// Firstly get rid of the old ones
 		aux := make([]*types.DalSchemaAlteration, len(stale))
