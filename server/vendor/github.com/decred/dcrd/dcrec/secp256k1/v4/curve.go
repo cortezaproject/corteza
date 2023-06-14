@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021 The Decred developers
+// Copyright (c) 2015-2022 The Decred developers
 // Copyright 2013-2014 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -7,7 +7,7 @@ package secp256k1
 
 import (
 	"encoding/hex"
-	"math/big"
+	"math/bits"
 )
 
 // References:
@@ -18,6 +18,9 @@ import (
 //
 //   [BRID]: On Binary Representations of Integers with Digits -1, 0, 1
 //           (Prodinger, Helmut)
+//
+//   [STWS]: Secure-TWS: Authenticating Node to Multi-user Communication in
+//           Shared Sensor Networks (Oliveira, Leonardo B. et al)
 
 // All group operations are performed using Jacobian coordinates.  For a given
 // (x, y) position on the curve, the Jacobian coordinates are (x1, y1, z1)
@@ -39,29 +42,59 @@ func hexToFieldVal(s string) *FieldVal {
 	return &f
 }
 
-var (
-	// Next 6 constants are from Hal Finney's bitcointalk.org post:
-	// https://bitcointalk.org/index.php?topic=3238.msg45565#msg45565
-	// May he rest in peace.
-	//
-	// They have also been independently derived from the code in the
-	// EndomorphismVectors function in genstatics.go.
-	endomorphismLambda = fromHex("5363ad4cc05c30e0a5261c028812645a122e22ea20816678df02967c1b23bd72")
-	endomorphismBeta   = hexToFieldVal("7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee")
-	endomorphismA1     = fromHex("3086d221a7d46bcde86c90e49284eb15")
-	endomorphismB1     = fromHex("-e4437ed6010e88286f547fa90abfe4c3")
-	endomorphismA2     = fromHex("114ca50f7a8e2f3f657c1108d9d44cfd8")
-	endomorphismB2     = fromHex("3086d221a7d46bcde86c90e49284eb15")
+// hexToModNScalar converts the passed hex string into a ModNScalar and will
+// panic if there is an error.  This is only provided for the hard-coded
+// constants so errors in the source code can be detected. It will only (and
+// must only) be called with hard-coded values.
+func hexToModNScalar(s string) *ModNScalar {
+	var isNegative bool
+	if len(s) > 0 && s[0] == '-' {
+		isNegative = true
+		s = s[1:]
+	}
+	if len(s)%2 != 0 {
+		s = "0" + s
+	}
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		panic("invalid hex in source file: " + s)
+	}
+	var scalar ModNScalar
+	if overflow := scalar.SetByteSlice(b); overflow {
+		panic("hex in source file overflows mod N scalar: " + s)
+	}
+	if isNegative {
+		scalar.Negate()
+	}
+	return &scalar
+}
 
-	// Alternatively, the following parameters are valid as well, however, they
-	// seem to be about 8% slower in practice.
+var (
+	// The following constants are used to accelerate scalar point
+	// multiplication through the use of the endomorphism:
 	//
-	// endomorphismLambda = fromHex("AC9C52B33FA3CF1F5AD9E3FD77ED9BA4A880B9FC8EC739C2E0CFC810B51283CE")
-	// endomorphismBeta = hexToFieldVal("851695D49A83F8EF919BB86153CBCB16630FB68AED0A766A3EC693D68E6AFA40")
-	// endomorphismA1 = fromHex("E4437ED6010E88286F547FA90ABFE4C3")
-	// endomorphismB1 = fromHex("-3086D221A7D46BCDE86C90E49284EB15")
-	// endomorphismA2 = fromHex("3086D221A7D46BCDE86C90E49284EB15")
-	// endomorphismB2 = fromHex("114CA50F7A8E2F3F657C1108D9D44CFD8")
+	// φ(Q) ⟼ λ*Q = (β*Q.x mod p, Q.y)
+	//
+	// See the code in the deriveEndomorphismParams function in genprecomps.go
+	// for details on their derivation.
+	//
+	// Additionally, see the scalar multiplication function in this file for
+	// details on how they are used.
+	endoNegLambda = hexToModNScalar("-5363ad4cc05c30e0a5261c028812645a122e22ea20816678df02967c1b23bd72")
+	endoBeta      = hexToFieldVal("7ae96a2b657c07106e64479eac3434e99cf0497512f58995c1396c28719501ee")
+	endoNegB1     = hexToModNScalar("e4437ed6010e88286f547fa90abfe4c3")
+	endoNegB2     = hexToModNScalar("-3086d221a7d46bcde86c90e49284eb15")
+	endoZ1        = hexToModNScalar("3086d221a7d46bcde86c90e49284eb153daa8a1471e8ca7f")
+	endoZ2        = hexToModNScalar("e4437ed6010e88286f547fa90abfe4c4221208ac9df506c6")
+
+	// Alternatively, the following parameters are valid as well, however,
+	// benchmarks show them to be about 2% slower in practice.
+	// endoNegLambda = hexToModNScalar("-ac9c52b33fa3cf1f5ad9e3fd77ed9ba4a880b9fc8ec739c2e0cfc810b51283ce")
+	// endoBeta      = hexToFieldVal("851695d49a83f8ef919bb86153cbcb16630fb68aed0a766a3ec693d68e6afa40")
+	// endoNegB1     = hexToModNScalar("3086d221a7d46bcde86c90e49284eb15")
+	// endoNegB2     = hexToModNScalar("-114ca50f7a8e2f3f657c1108d9d44cfd8")
+	// endoZ1        = hexToModNScalar("114ca50f7a8e2f3f657c1108d9d44cfd95fbc92c10fddd145")
+	// endoZ2        = hexToModNScalar("3086d221a7d46bcde86c90e49284eb153daa8a1471e8ca7f")
 )
 
 // JacobianPoint is an element of the group formed by the secp256k1 curve in
@@ -178,7 +211,7 @@ func addZ1AndZ2EqualsOne(p1, p2, result *JacobianPoint) {
 	y3.Set(&v).Add(&negX3).Mul(&r).Add(&j)     // Y3 = r*(V-X3)-2*Y1*J (mag: 4)
 	z3.Set(&h).MulInt(2)                       // Z3 = 2*H (mag: 6)
 
-	// Normalize the resulting field values to a magnitude of 1 as needed.
+	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
 	z3.Normalize()
@@ -196,7 +229,7 @@ func addZ1EqualsZ2(p1, p2, result *JacobianPoint) {
 	// the equation into intermediate elements which are used to minimize
 	// the number of field multiplications using a slightly modified version
 	// of the method shown at:
-	// https://hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#addition-mmadd-2007-bl
+	// https://hyperelliptic.org/EFD/g1p/auto-shortw-jacobian-0.html#addition-zadd-2007-m
 	//
 	// In particular it performs the calculations using the following:
 	// A = X2-X1, B = A^2, C=Y2-Y1, D = C^2, E = X1*B, F = X2*B
@@ -242,13 +275,13 @@ func addZ1EqualsZ2(p1, p2, result *JacobianPoint) {
 	e.Mul2(x1, &b)                         // E = X1*B (mag: 1)
 	negE.Set(&e).Negate(1)                 // negE = -E (mag: 2)
 	f.Mul2(x2, &b)                         // F = X2*B (mag: 1)
-	x3.Add2(&e, &f).Negate(3).Add(&d)      // X3 = D-E-F (mag: 5)
-	negX3.Set(x3).Negate(5).Normalize()    // negX3 = -X3 (mag: 1)
-	y3.Set(y1).Mul(f.Add(&negE)).Negate(3) // Y3 = -(Y1*(F-E)) (mag: 4)
-	y3.Add(e.Add(&negX3).Mul(&c))          // Y3 = C*(E-X3)+Y3 (mag: 5)
+	x3.Add2(&e, &f).Negate(2).Add(&d)      // X3 = D-E-F (mag: 4)
+	negX3.Set(x3).Negate(4)                // negX3 = -X3 (mag: 5)
+	y3.Set(y1).Mul(f.Add(&negE)).Negate(1) // Y3 = -(Y1*(F-E)) (mag: 2)
+	y3.Add(e.Add(&negX3).Mul(&c))          // Y3 = C*(E-X3)+Y3 (mag: 3)
 	z3.Mul2(z1, &a)                        // Z3 = Z1*A (mag: 1)
 
-	// Normalize the resulting field values to a magnitude of 1 as needed.
+	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
 	z3.Normalize()
@@ -330,7 +363,7 @@ func addZ2EqualsOne(p1, p2, result *JacobianPoint) {
 	z3.Add2(z1, &h).Square()               // Z3 = (Z1+H)^2 (mag: 1)
 	z3.Add(z1z1.Add(&hh).Negate(2))        // Z3 = Z3-(Z1Z1+HH) (mag: 4)
 
-	// Normalize the resulting field values to a magnitude of 1 as needed.
+	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
 	z3.Normalize()
@@ -397,7 +430,7 @@ func addGeneric(p1, p2, result *JacobianPoint) {
 	var negU1, negS1, negX3 FieldVal
 	negU1.Set(&u1).Negate(1)               // negU1 = -U1 (mag: 2)
 	h.Add2(&u2, &negU1)                    // H = U2-U1 (mag: 3)
-	i.Set(&h).MulInt(2).Square()           // I = (2*H)^2 (mag: 2)
+	i.Set(&h).MulInt(2).Square()           // I = (2*H)^2 (mag: 1)
 	j.Mul2(&h, &i)                         // J = H*I (mag: 1)
 	negS1.Set(&s1).Negate(1)               // negS1 = -S1 (mag: 2)
 	r.Set(&s2).Add(&negS1).MulInt(2)       // r = 2*(S2-S1) (mag: 6)
@@ -412,7 +445,7 @@ func addGeneric(p1, p2, result *JacobianPoint) {
 	z3.Add(z1z1.Add(&z2z2).Negate(2))      // Z3 = Z3-(Z1Z1+Z2Z2) (mag: 4)
 	z3.Mul(&h)                             // Z3 = Z3*H (mag: 1)
 
-	// Normalize the resulting field values to a magnitude of 1 as needed.
+	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
 	z3.Normalize()
@@ -424,7 +457,7 @@ func addGeneric(p1, p2, result *JacobianPoint) {
 // NOTE: The points must be normalized for this function to return the correct
 // result.  The resulting point will be normalized.
 func AddNonConst(p1, p2, result *JacobianPoint) {
-	// A point at infinity is the identity according to the group law for
+	// The point at infinity is the identity according to the group law for
 	// elliptic curve cryptography.  Thus, ∞ + P = P and P + ∞ = P.
 	if (p1.X.IsZero() && p1.Y.IsZero()) || p1.Z.IsZero() {
 		result.Set(p2)
@@ -508,7 +541,7 @@ func doubleZ1EqualsOne(p, result *JacobianPoint) {
 	y3.Set(&c).MulInt(8).Negate(8)           // Y3 = -(8*C) (mag: 9)
 	y3.Add(f.Mul(&e))                        // Y3 = E*F+Y3 (mag: 10)
 
-	// Normalize the field values back to a magnitude of 1.
+	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
 	z3.Normalize()
@@ -562,7 +595,7 @@ func doubleGeneric(p, result *JacobianPoint) {
 	y3.Set(&c).MulInt(8).Negate(8)           // Y3 = -(8*C) (mag: 9)
 	y3.Add(f.Mul(&e))                        // Y3 = E*F+Y3 (mag: 10)
 
-	// Normalize the field values back to a magnitude of 1.
+	// Normalize the resulting field values as needed.
 	x3.Normalize()
 	y3.Normalize()
 	z3.Normalize()
@@ -574,7 +607,7 @@ func doubleGeneric(p, result *JacobianPoint) {
 // NOTE: The point must be normalized for this function to return the correct
 // result.  The resulting point will be normalized.
 func DoubleNonConst(p, result *JacobianPoint) {
-	// Doubling a point at infinity is still infinity.
+	// Doubling the point at infinity is still infinity.
 	if p.Y.IsZero() || p.Z.IsZero() {
 		result.X.SetInt(0)
 		result.Y.SetInt(0)
@@ -596,47 +629,283 @@ func DoubleNonConst(p, result *JacobianPoint) {
 	doubleGeneric(p, result)
 }
 
-// splitK returns a balanced length-two representation of k and their signs.
-// This is algorithm 3.74 from [GECC].
-//
-// One thing of note about this algorithm is that no matter what c1 and c2 are,
-// the final equation of k = k1 + k2 * lambda (mod n) will hold.  This is
-// provable mathematically due to how a1/b1/a2/b2 are computed.
-//
-// c1 and c2 are chosen to minimize the max(k1,k2).
-func splitK(k []byte) ([]byte, []byte, int, int) {
-	// All math here is done with big.Int, which is slow.
-	// At some point, it might be useful to write something similar to
-	// FieldVal but for N instead of P as the prime field if this ends up
-	// being a bottleneck.
-	bigIntK := new(big.Int)
-	c1, c2 := new(big.Int), new(big.Int)
-	tmp1, tmp2 := new(big.Int), new(big.Int)
-	k1, k2 := new(big.Int), new(big.Int)
+// mulAdd64 multiplies the two passed base 2^64 digits together, adds the given
+// value to the result, and returns the 128-bit result via a (hi, lo) tuple
+// where the upper half of the bits are returned in hi and the lower half in lo.
+func mulAdd64(digit1, digit2, m uint64) (hi, lo uint64) {
+	// Note the carry on the final add is safe to discard because the maximum
+	// possible value is:
+	//   (2^64 - 1)(2^64 - 1) + (2^64 - 1) = 2^128 - 2^64
+	// and:
+	//   2^128 - 2^64 < 2^128.
+	var c uint64
+	hi, lo = bits.Mul64(digit1, digit2)
+	lo, c = bits.Add64(lo, m, 0)
+	hi, _ = bits.Add64(hi, 0, c)
+	return hi, lo
+}
 
-	bigIntK.SetBytes(k)
-	// c1 = round(b2 * k / n) from step 4.
-	// Rounding isn't really necessary and costs too much, hence skipped
-	c1.Mul(endomorphismB2, bigIntK)
-	c1.Div(c1, curveParams.N)
-	// c2 = round(b1 * k / n) from step 4 (sign reversed to optimize one step)
-	// Rounding isn't really necessary and costs too much, hence skipped
-	c2.Mul(endomorphismB1, bigIntK)
-	c2.Div(c2, curveParams.N)
-	// k1 = k - c1 * a1 - c2 * a2 from step 5 (note c2's sign is reversed)
-	tmp1.Mul(c1, endomorphismA1)
-	tmp2.Mul(c2, endomorphismA2)
-	k1.Sub(bigIntK, tmp1)
-	k1.Add(k1, tmp2)
-	// k2 = - c1 * b1 - c2 * b2 from step 5 (note c2's sign is reversed)
-	tmp1.Mul(c1, endomorphismB1)
-	tmp2.Mul(c2, endomorphismB2)
-	k2.Sub(tmp2, tmp1)
+// mulAdd64Carry multiplies the two passed base 2^64 digits together, adds both
+// the given value and carry to the result, and returns the 128-bit result via a
+// (hi, lo) tuple where the upper half of the bits are returned in hi and the
+// lower half in lo.
+func mulAdd64Carry(digit1, digit2, m, c uint64) (hi, lo uint64) {
+	// Note the carry on the high order add is safe to discard because the
+	// maximum possible value is:
+	//   (2^64 - 1)(2^64 - 1) + 2*(2^64 - 1) = 2^128 - 1
+	// and:
+	//   2^128 - 1 < 2^128.
+	var c2 uint64
+	hi, lo = mulAdd64(digit1, digit2, m)
+	lo, c2 = bits.Add64(lo, c, 0)
+	hi, _ = bits.Add64(hi, 0, c2)
+	return hi, lo
+}
 
-	// Note Bytes() throws out the sign of k1 and k2. This matters
-	// since k1 and/or k2 can be negative. Hence, we pass that
-	// back separately.
-	return k1.Bytes(), k2.Bytes(), k1.Sign(), k2.Sign()
+// mul512Rsh320Round computes the full 512-bit product of the two given scalars,
+// right shifts the result by 320 bits, rounds to the nearest integer, and
+// returns the result in constant time.
+//
+// Note that despite the inputs and output being mod n scalars, the 512-bit
+// product is NOT reduced mod N prior to the right shift.  This is intentional
+// because it is used for replacing division with multiplication and thus the
+// intermediate results must be done via a field extension to a larger field.
+func mul512Rsh320Round(n1, n2 *ModNScalar) ModNScalar {
+	// Convert n1 and n2 to base 2^64 digits.
+	n1Digit0 := uint64(n1.n[0]) | uint64(n1.n[1])<<32
+	n1Digit1 := uint64(n1.n[2]) | uint64(n1.n[3])<<32
+	n1Digit2 := uint64(n1.n[4]) | uint64(n1.n[5])<<32
+	n1Digit3 := uint64(n1.n[6]) | uint64(n1.n[7])<<32
+	n2Digit0 := uint64(n2.n[0]) | uint64(n2.n[1])<<32
+	n2Digit1 := uint64(n2.n[2]) | uint64(n2.n[3])<<32
+	n2Digit2 := uint64(n2.n[4]) | uint64(n2.n[5])<<32
+	n2Digit3 := uint64(n2.n[6]) | uint64(n2.n[7])<<32
+
+	// Compute the full 512-bit product n1*n2.
+	var r0, r1, r2, r3, r4, r5, r6, r7, c uint64
+
+	// Terms resulting from the product of the first digit of the second number
+	// by all digits of the first number.
+	//
+	// Note that r0 is ignored because it is not needed to compute the higher
+	// terms and it is shifted out below anyway.
+	c, _ = bits.Mul64(n2Digit0, n1Digit0)
+	c, r1 = mulAdd64(n2Digit0, n1Digit1, c)
+	c, r2 = mulAdd64(n2Digit0, n1Digit2, c)
+	r4, r3 = mulAdd64(n2Digit0, n1Digit3, c)
+
+	// Terms resulting from the product of the second digit of the second number
+	// by all digits of the first number.
+	//
+	// Note that r1 is ignored because it is no longer needed to compute the
+	// higher terms and it is shifted out below anyway.
+	c, _ = mulAdd64(n2Digit1, n1Digit0, r1)
+	c, r2 = mulAdd64Carry(n2Digit1, n1Digit1, r2, c)
+	c, r3 = mulAdd64Carry(n2Digit1, n1Digit2, r3, c)
+	r5, r4 = mulAdd64Carry(n2Digit1, n1Digit3, r4, c)
+
+	// Terms resulting from the product of the third digit of the second number
+	// by all digits of the first number.
+	//
+	// Note that r2 is ignored because it is no longer needed to compute the
+	// higher terms and it is shifted out below anyway.
+	c, _ = mulAdd64(n2Digit2, n1Digit0, r2)
+	c, r3 = mulAdd64Carry(n2Digit2, n1Digit1, r3, c)
+	c, r4 = mulAdd64Carry(n2Digit2, n1Digit2, r4, c)
+	r6, r5 = mulAdd64Carry(n2Digit2, n1Digit3, r5, c)
+
+	// Terms resulting from the product of the fourth digit of the second number
+	// by all digits of the first number.
+	//
+	// Note that r3 is ignored because it is no longer needed to compute the
+	// higher terms and it is shifted out below anyway.
+	c, _ = mulAdd64(n2Digit3, n1Digit0, r3)
+	c, r4 = mulAdd64Carry(n2Digit3, n1Digit1, r4, c)
+	c, r5 = mulAdd64Carry(n2Digit3, n1Digit2, r5, c)
+	r7, r6 = mulAdd64Carry(n2Digit3, n1Digit3, r6, c)
+
+	// At this point the upper 256 bits of the full 512-bit product n1*n2 are in
+	// r4..r7 (recall the low order results were discarded as noted above).
+	//
+	// Right shift the result 320 bits.  Note that the MSB of r4 determines
+	// whether or not to round because it is the final bit that is shifted out.
+	//
+	// Also, notice that r3..r7 would also ordinarily be set to 0 as well for
+	// the full shift, but that is skipped since they are no longer used as
+	// their values are known to be zero.
+	roundBit := r4 >> 63
+	r2, r1, r0 = r7, r6, r5
+
+	// Conditionally add 1 depending on the round bit in constant time.
+	r0, c = bits.Add64(r0, roundBit, 0)
+	r1, c = bits.Add64(r1, 0, c)
+	r2, r3 = bits.Add64(r2, 0, c)
+
+	// Finally, convert the result to a mod n scalar.
+	//
+	// No modular reduction is needed because the result is guaranteed to be
+	// less than the group order given the group order is > 2^255 and the
+	// maximum possible value of the result is 2^192.
+	var result ModNScalar
+	result.n[0] = uint32(r0)
+	result.n[1] = uint32(r0 >> 32)
+	result.n[2] = uint32(r1)
+	result.n[3] = uint32(r1 >> 32)
+	result.n[4] = uint32(r2)
+	result.n[5] = uint32(r2 >> 32)
+	result.n[6] = uint32(r3)
+	result.n[7] = uint32(r3 >> 32)
+	return result
+}
+
+// splitK returns two scalars (k1 and k2) that are a balanced length-two
+// representation of the provided scalar such that k ≡ k1 + k2*λ (mod N), where
+// N is the secp256k1 group order.
+func splitK(k *ModNScalar) (ModNScalar, ModNScalar) {
+	// The ultimate goal is to decompose k into two scalars that are around
+	// half the bit length of k such that the following equation is satisfied:
+	//
+	// k1 + k2*λ ≡ k (mod n)
+	//
+	// The strategy used here is based on algorithm 3.74 from [GECC] with a few
+	// modifications to make use of the more efficient mod n scalar type, avoid
+	// some costly long divisions, and minimize the number of calculations.
+	//
+	// Start by defining a function that takes a vector v = <a,b> ∈ ℤ⨯ℤ:
+	//
+	// f(v) = a + bλ (mod n)
+	//
+	// Then, find two vectors, v1 = <a1,b1>, and v2 = <a2,b2> in ℤ⨯ℤ such that:
+	// 1) v1 and v2 are linearly independent
+	// 2) f(v1) = f(v2) = 0
+	// 3) v1 and v2 have small Euclidean norm
+	//
+	// The vectors that satisfy these properties are found via the Euclidean
+	// algorithm and are precomputed since both n and λ are fixed values for the
+	// secp256k1 curve.  See genprecomps.go for derivation details.
+	//
+	// Next, consider k as a vector <k, 0> in ℚ⨯ℚ and by linear algebra write:
+	//
+	// <k, 0> = g1*v1 + g2*v2, where g1, g2 ∈ ℚ
+	//
+	// Note that, per above, the components of vector v1 are a1 and b1 while the
+	// components of vector v2 are a2 and b2.  Given the vectors v1 and v2 were
+	// generated such that a1*b2 - a2*b1 = n, solving the equation for g1 and g2
+	// yields:
+	//
+	// g1 = b2*k / n
+	// g2 = -b1*k / n
+	//
+	// Observe:
+	// <k, 0> = g1*v1 + g2*v2
+	//        = (b2*k/n)*<a1,b1> + (-b1*k/n)*<a2,b2>              | substitute
+	//        = <a1*b2*k/n, b1*b2*k/n> + <-a2*b1*k/n, -b2*b1*k/n> | scalar mul
+	//        = <a1*b2*k/n - a2*b1*k/n, b1*b2*k/n - b2*b1*k/n>    | vector add
+	//        = <[a1*b2*k - a2*b1*k]/n, 0>                        | simplify
+	//        = <k*[a1*b2 - a2*b1]/n, 0>                          | factor out k
+	//        = <k*n/n, 0>                                        | substitute
+	//        = <k, 0>                                            | simplify
+	//
+	// Now, consider an integer-valued vector v:
+	//
+	// v = c1*v1 + c2*v2, where c1, c2 ∈ ℤ (mod n)
+	//
+	// Since vectors v1 and v2 are linearly independent and were generated such
+	// that f(v1) = f(v2) = 0, all possible scalars c1 and c2 also produce a
+	// vector v such that f(v) = 0.
+	//
+	// In other words, c1 and c2 can be any integers and the resulting
+	// decomposition will still satisfy the required equation.  However, since
+	// the goal is to produce a balanced decomposition that provides a
+	// performance advantage by minimizing max(k1, k2), c1 and c2 need to be
+	// integers close to g1 and g2, respectively, so the resulting vector v is
+	// an integer-valued vector that is close to <k, 0>.
+	//
+	// Finally, consider the vector u:
+	//
+	// u  = <k, 0> - v
+	//
+	// It follows that f(u) = k and thus the two components of vector u satisfy
+	// the required equation:
+	//
+	// k1 + k2*λ ≡ k (mod n)
+	//
+	// Choosing c1 and c2:
+	// -------------------
+	//
+	// As mentioned above, c1 and c2 need to be integers close to g1 and g2,
+	// respectively.  The algorithm in [GECC] chooses the following values:
+	//
+	// c1 = round(g1) = round(b2*k / n)
+	// c2 = round(g2) = round(-b1*k / n)
+	//
+	// However, as section 3.4.2 of [STWS] notes, the aforementioned approach
+	// requires costly long divisions that can be avoided by precomputing
+	// rounded estimates as follows:
+	//
+	// t = bitlen(n) + 1
+	// z1 = round(2^t * b2 / n)
+	// z2 = round(2^t * -b1 / n)
+	//
+	// Then, use those precomputed estimates to perform a multiplication by k
+	// along with a floored division by 2^t, which is a simple right shift by t:
+	//
+	// c1 = floor(k * z1 / 2^t) = (k * z1) >> t
+	// c2 = floor(k * z2 / 2^t) = (k * z2) >> t
+	//
+	// Finally, round up if last bit discarded in the right shift by t is set by
+	// adding 1.
+	//
+	// As a further optimization, rather than setting t = bitlen(n) + 1 = 257 as
+	// stated by [STWS], this implementation uses a higher precision estimate of
+	// t = bitlen(n) + 64 = 320 because it allows simplification of the shifts
+	// in the internal calculations that are done via uint64s and also allows
+	// the use of floor in the precomputations.
+	//
+	// Thus, the calculations this implementation uses are:
+	//
+	// z1 = floor(b2<<320 / n)                                     | precomputed
+	// z2 = floor((-b1)<<320) / n)                                 | precomputed
+	// c1 = ((k * z1) >> 320) + (((k * z1) >> 319) & 1)
+	// c2 = ((k * z2) >> 320) + (((k * z2) >> 319) & 1)
+	//
+	// Putting it all together:
+	// ------------------------
+	//
+	// Calculate the following vectors using the values discussed above:
+	//
+	// v = c1*v1 + c2*v2
+	// u = <k, 0> - v
+	//
+	// The two components of the resulting vector v are:
+	// va = c1*a1 + c2*a2
+	// vb = c1*b1 + c2*b2
+	//
+	// Thus, the two components of the resulting vector u are:
+	// k1 = k - va
+	// k2 = 0 - vb = -vb
+	//
+	// As some final optimizations:
+	//
+	// 1) Note that k1 + k2*λ ≡ k (mod n) means that k1 ≡ k - k2*λ (mod n).
+	//    Therefore, the computation of va can be avoided to save two
+	//    field multiplications and a field addition.
+	//
+	// 2) Since k1 = k - k2*λ = k + k2*(-λ), an additional field negation is
+	//    saved by storing and using the negative version of λ.
+	//
+	// 3) Since k2 = -vb = -(c1*b1 + c2*b2) = c1*(-b1) + c2*(-b2), one more
+	//    field negation is saved by storing and using the negative versions of
+	//    b1 and b2.
+	//
+	// k2 = c1*(-b1) + c2*(-b2)
+	// k1 = k + k2*(-λ)
+	var k1, k2 ModNScalar
+	c1 := mul512Rsh320Round(k, endoZ1)
+	c2 := mul512Rsh320Round(k, endoZ2)
+	k2.Add2(c1.Mul(endoNegB1), c2.Mul(endoNegB2))
+	k1.Mul2(&k2, endoNegLambda).Add(k)
+	return k1, k2
 }
 
 // nafScalar represents a positive integer up to a maximum value of 2^256 - 1
@@ -775,70 +1044,132 @@ func naf(k []byte) nafScalar {
 	return result
 }
 
-// ScalarMultNonConst multiplies k*P where k is a big endian integer modulo the
-// curve order and P is a point in Jacobian projective coordinates and stores
-// the result in the provided Jacobian point.
+// ScalarMultNonConst multiplies k*P where k is a scalar modulo the curve order
+// and P is a point in Jacobian projective coordinates and stores the result in
+// the provided Jacobian point.
 //
 // NOTE: The point must be normalized for this function to return the correct
 // result.  The resulting point will be normalized.
 func ScalarMultNonConst(k *ModNScalar, point, result *JacobianPoint) {
-	// Decompose K into k1 and k2 in order to halve the number of EC ops.
-	// See Algorithm 3.74 in [GECC].
-	kBytes := k.Bytes()
-	k1, k2, signK1, signK2 := splitK(kBytes[:])
-	zeroArray32(&kBytes)
-
-	// The main equation here to remember is:
-	//   k * P = k1 * P + k2 * ϕ(P)
+	// -------------------------------------------------------------------------
+	// This makes use of the following efficiently-computable endomorphism to
+	// accelerate the computation:
 	//
-	// P1 below is P in the equation, P2 below is ϕ(P) in the equation
+	// φ(P) ⟼ λ*P = (β*P.x mod p, P.y)
+	//
+	// In other words, there is a special scalar λ that every point on the
+	// elliptic curve can be multiplied by that will result in the same point as
+	// performing a single field multiplication of the point's X coordinate by
+	// the special value β.
+	//
+	// This is useful because scalar point multiplication is significantly more
+	// expensive than a single field multiplication given the former involves a
+	// series of point doublings and additions which themselves consist of a
+	// combination of several field multiplications, squarings, and additions.
+	//
+	// So, the idea behind making use of the endomorphism is thus to decompose
+	// the scalar into two scalars that are each about half the bit length of
+	// the original scalar such that:
+	//
+	// k ≡ k1 + k2*λ (mod n)
+	//
+	// This in turn allows the scalar point multiplication to be performed as a
+	// sum of two smaller half-length multiplications as follows:
+	//
+	// k*P = (k1 + k2*λ)*P
+	//     = k1*P + k2*λ*P
+	//     = k1*P + k2*φ(P)
+	//
+	// Thus, a speedup is achieved so long as it's faster to decompose the
+	// scalar, compute φ(P), and perform a simultaneous multiply of the
+	// half-length point multiplications than it is to compute a full width
+	// point multiplication.
+	//
+	// In practice, benchmarks show the current implementation provides a
+	// speedup of around 30-35% versus not using the endomorphism.
+	//
+	// See section 3.5 in [GECC] for a more rigorous treatment.
+	// -------------------------------------------------------------------------
+
+	// Per above, the main equation here to remember is:
+	//   k*P = k1*P + k2*φ(P)
+	//
+	// p1 below is P in the equation while p2 is φ(P) in the equation.
+	//
+	// NOTE: φ(x,y) = (β*x,y).  The Jacobian z coordinates are the same, so this
+	// math goes through.
+	//
+	// Also, calculate -p1 and -p2 for use in the NAF optimization.
 	p1, p1Neg := new(JacobianPoint), new(JacobianPoint)
 	p1.Set(point)
 	p1Neg.Set(p1)
 	p1Neg.Y.Negate(1).Normalize()
-
-	// NOTE: ϕ(x,y) = (βx,y).  The Jacobian z coordinates are the same, so this
-	// math goes through.
 	p2, p2Neg := new(JacobianPoint), new(JacobianPoint)
 	p2.Set(p1)
-	p2.X.Mul(endomorphismBeta).Normalize()
+	p2.X.Mul(endoBeta).Normalize()
 	p2Neg.Set(p2)
 	p2Neg.Y.Negate(1).Normalize()
 
-	// Flip the positive and negative values of the points as needed
-	// depending on the signs of k1 and k2.  As mentioned in the equation
-	// above, each of k1 and k2 are multiplied by the respective point.
-	// Since -k * P is the same thing as k * -P, and the group law for
-	// elliptic curves states that P(x, y) = -P(x, -y), it's faster and
-	// simplifies the code to just make the point negative.
-	if signK1 == -1 {
+	// Decompose k into k1 and k2 such that k = k1 + k2*λ (mod n) where k1 and
+	// k2 are around half the bit length of k in order to halve the number of EC
+	// operations.
+	//
+	// Notice that this also flips the sign of the scalars and points as needed
+	// to minimize the bit lengths of the scalars k1 and k2.
+	//
+	// This is done because the scalars are operating modulo the group order
+	// which means that when they would otherwise be a small negative magnitude
+	// they will instead be a large positive magnitude.  Since the goal is for
+	// the scalars to have a small magnitude to achieve a performance boost, use
+	// their negation when they are greater than the half order of the group and
+	// flip the positive and negative values of the corresponding point that
+	// will be multiplied by to compensate.
+	//
+	// In other words, transform the calc when k1 is over the half order to:
+	//   k1*P = -k1*-P
+	//
+	// Similarly, transform the calc when k2 is over the half order to:
+	//   k2*φ(P) = -k2*-φ(P)
+	k1, k2 := splitK(k)
+	if k1.IsOverHalfOrder() {
+		k1.Negate()
 		p1, p1Neg = p1Neg, p1
 	}
-	if signK2 == -1 {
+	if k2.IsOverHalfOrder() {
+		k2.Negate()
 		p2, p2Neg = p2Neg, p2
 	}
 
-	// NAF versions of k1 and k2 should have a lot more zeros.
+	// Convert k1 and k2 into their NAF representations since NAF has a lot more
+	// zeros overall on average which minimizes the number of required point
+	// additions in exchange for a mix of fewer point additions and subtractions
+	// at the cost of one additional point doubling.
 	//
-	// The Pos version of the bytes contain the +1s and the Neg versions
-	// contain the -1s.
-	k1NAF, k2NAF := naf(k1), naf(k2)
+	// This is an excellent tradeoff because subtraction of points has the same
+	// computational complexity as addition of points and point doubling is
+	// faster than both.
+	//
+	// Concretely, on average, 1/2 of all bits will be non-zero with the normal
+	// binary representation whereas only 1/3rd of the bits will be non-zero
+	// with NAF.
+	//
+	// The Pos version of the bytes contain the +1s and the Neg versions contain
+	// the -1s.
+	k1Bytes, k2Bytes := k1.Bytes(), k2.Bytes()
+	k1NAF, k2NAF := naf(k1Bytes[:]), naf(k2Bytes[:])
 	k1PosNAF, k1NegNAF := k1NAF.Pos(), k1NAF.Neg()
 	k2PosNAF, k2NegNAF := k2NAF.Pos(), k2NAF.Neg()
 	k1Len, k2Len := len(k1PosNAF), len(k2PosNAF)
 
+	// Add left-to-right using the NAF optimization.  See algorithm 3.77 from
+	// [GECC].
+	//
+	// Point Q = ∞ (point at infinity).
+	var q JacobianPoint
 	m := k1Len
 	if m < k2Len {
 		m = k2Len
 	}
-
-	// Point Q = ∞ (point at infinity).
-	var q JacobianPoint
-
-	// Add left-to-right using the NAF optimization.  See algorithm 3.77
-	// from [GECC].  This should be faster overall since there will be a lot
-	// more instances of 0, hence reducing the number of Jacobian additions
-	// at the cost of 1 possible extra doubling.
 	for i := 0; i < m; i++ {
 		// Since k1 and k2 are potentially different lengths and the calculation
 		// is being done left to right, pad the front of the shorter one with
@@ -850,7 +1181,8 @@ func ScalarMultNonConst(k *ModNScalar, point, result *JacobianPoint) {
 		if i >= m-k2Len {
 			k2BytePos, k2ByteNeg = k2PosNAF[i-(m-k2Len)], k2NegNAF[i-(m-k2Len)]
 		}
-		for bit, mask := 7, uint8(1<<7); bit >= 0; bit, mask = bit-1, mask>>1 {
+
+		for mask := uint8(1 << 7); mask > 0; mask >>= 1 {
 			// Q = 2 * Q
 			DoubleNonConst(&q, &q)
 
@@ -883,31 +1215,28 @@ func ScalarMultNonConst(k *ModNScalar, point, result *JacobianPoint) {
 	result.Set(&q)
 }
 
-// ScalarBaseMultNonConst multiplies k*G where G is the base point of the group
-// and k is a big endian integer.  The result is stored in Jacobian coordinates
-// (x1, y1, z1).
+// ScalarBaseMultNonConst multiplies k*G where k is a scalar modulo the curve
+// order and G is the base point of the group and stores the result in the
+// provided Jacobian point.
 //
 // NOTE: The resulting point will be normalized.
 func ScalarBaseMultNonConst(k *ModNScalar, result *JacobianPoint) {
 	bytePoints := s256BytePoints()
 
-	// Point Q = ∞ (point at infinity).
-	var q JacobianPoint
+	// Start with the point at infinity.
+	result.X.Zero()
+	result.Y.Zero()
+	result.Z.Zero()
 
-	// curve.bytePoints has all 256 byte points for each 8-bit window.  The
-	// strategy is to add up the byte points.  This is best understood by
-	// expressing k in base-256 which it already sort of is.  Each "digit" in
-	// the 8-bit window can be looked up using bytePoints and added together.
-	var pt JacobianPoint
-	for i, byteVal := range k.Bytes() {
-		p := bytePoints[i][byteVal]
-		pt.X.Set(&p[0])
-		pt.Y.Set(&p[1])
-		pt.Z.SetInt(1)
-		AddNonConst(&q, &pt, &q)
+	// bytePoints has all 256 byte points for each 8-bit window.  The strategy
+	// is to add up the byte points.  This is best understood by expressing k in
+	// base-256 which it already sort of is.  Each "digit" in the 8-bit window
+	// can be looked up using bytePoints and added together.
+	kb := k.Bytes()
+	for i := 0; i < len(kb); i++ {
+		pt := &bytePoints[i][kb[i]]
+		AddNonConst(result, pt, result)
 	}
-
-	result.Set(&q)
 }
 
 // isOnCurve returns whether or not the affine point (x,y) is on the curve.
