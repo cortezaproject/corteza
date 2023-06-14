@@ -19,6 +19,11 @@
           <b-th
             class="text-primary"
           >
+            Alteration
+          </b-th>
+          <b-th
+            class="text-primary"
+          >
             Operation
           </b-th>
 
@@ -51,7 +56,11 @@
           </b-td>
 
           <b-td>
-            <pre class="m-0">{{ a.params }}</pre>
+            {{ $t(`schema-alteration.${a.kind}.label`) }}
+          </b-td>
+
+          <b-td>
+            {{ stringifyParams(a.params) }}
           </b-td>
 
           <b-td class="text-center align-top">
@@ -158,6 +167,12 @@ export default {
       type: compose.Module,
       required: true,
     },
+
+    batch: {
+      type: String,
+      required: false,
+      default: undefined,
+    },
   },
 
   data () {
@@ -168,88 +183,9 @@ export default {
 
       dependOnHover: undefined,
 
-      alterations: [
-        {
-          alterationID: '338079440671000001',
-          batchID: '338079440672000001',
-          dependsOn: undefined,
-          processing: false,
-          kind: 'a',
-          params: {},
-          error: undefined,
-          createdAt: '2023-05-22T08:39:35.341Z',
-          createdBy: '338079375675130271',
-          updatedAt: undefined,
-          updatedBy: undefined,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          completedAt: undefined,
-          completedBy: undefined,
-        }, {
-          alterationID: '338079440671000002',
-          batchID: '338079440672000002',
-          dependsOn: undefined,
-          kind: 'b',
-          params: {},
-          error: undefined,
-          createdAt: '2023-05-22T08:39:35.341Z',
-          createdBy: '338079375675130271',
-          updatedAt: undefined,
-          updatedBy: undefined,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          completedAt: '2023-05-22T08:39:35.341Z',
-          completedBy: '338079375675130271',
-        },
-        {
-          alterationID: '338079440671000003',
-          batchID: '338079440672000003',
-          dependsOn: undefined,
-          kind: 'a',
-          params: {},
-          error: undefined,
-          createdAt: '2023-05-22T08:39:35.341Z',
-          createdBy: '338079375675130271',
-          updatedAt: undefined,
-          updatedBy: undefined,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          completedAt: undefined,
-          completedBy: undefined,
-        },
-        {
-          alterationID: '338079440671000004',
-          batchID: '338079440672000003',
-          dependsOn: '338079440671000003',
-          kind: 'b',
-          params: {},
-          error: undefined,
-          createdAt: '2023-05-22T08:39:35.341Z',
-          createdBy: '338079375675130271',
-          updatedAt: undefined,
-          updatedBy: undefined,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          completedAt: undefined,
-          completedBy: undefined,
-        },
-        {
-          alterationID: '338079440671000005',
-          batchID: '338079440672000005',
-          dependsOn: undefined,
-          kind: 'b',
-          params: {},
-          error: 'Something went wrong',
-          createdAt: '2023-05-22T08:39:35.341Z',
-          createdBy: '338079375675130271',
-          updatedAt: undefined,
-          updatedBy: undefined,
-          deletedAt: undefined,
-          deletedBy: undefined,
-          completedAt: undefined,
-          completedBy: undefined,
-        },
-      ],
+      alterations: [],
+
+      alterationProcessing: {},
     }
   },
 
@@ -266,33 +202,126 @@ export default {
         this.showModal = show
       },
     },
+
+    batch: {
+      immediate: true,
+      handler (batch) {
+        this.load(batch)
+      },
+    },
   },
 
   methods: {
     async onDismiss (alteration = undefined) {
-      this.processing = true
-      this.$set(alteration, 'processing', true)
+      if (!alteration) {
+        alteration = this.alterations
+      } else {
+        alteration = [alteration]
+      }
 
-      this.$ComposeAPI.dismissAlteration(alteration).then(() => {
+      const ids = []
+      for (const a of alteration) {
+        ids.push(a.alterationID)
+        this.alterationProcessing[a.alterationID] = true
+      }
+
+      this.processing = true
+
+      this.$SystemAPI.dalSchemaAlterationDismiss({ alterationID: ids }).then(() => {
         this.toastSuccess(this.$t('notification:module.alteration.dismiss.success'))
       }).catch(this.toastErrorHandler(this.$t('notification:alteration.dismiss.error')))
         .finally(() => {
           this.processing = false
-          this.$set(alteration, 'processing', false)
+          for (const i of ids) {
+            this.$delete(this.alterationProcessing, i)
+          }
+          this.load(this.batch)
         })
     },
 
     async onResolve (alteration = undefined) {
-      this.processing = true
-      this.$set(alteration, 'processing', true)
+      if (!alteration) {
+        alteration = this.alterations
+      } else {
+        alteration = [alteration]
+      }
 
-      this.$ComposeAPI.resolveAlteration(alteration).then(() => {
+      const ids = []
+      for (const a of alteration) {
+        ids.push(a.alterationID)
+        this.alterationProcessing[a.alterationID] = true
+      }
+
+      this.processing = true
+
+      this.$ComposeAPI.dalSchemaAlterationApply({ alterationID: ids }).then(() => {
         this.toastSuccess(this.$t('notification:module.alteration.resolve.success'))
       }).catch(this.toastErrorHandler(this.$t('notification:alteration.resolve.error')))
         .finally(() => {
           this.processing = false
-          this.$set(alteration, 'processing', false)
+          for (const i of ids) {
+            this.$delete(this.alterationProcessing, i)
+          }
+          this.load(this.batch)
         })
+    },
+
+    async load (batch) {
+      if (!batch) {
+        return
+      }
+
+      await this.$SystemAPI.dalSchemaAlterationList({ batchID: batch }).then(({ set }) => {
+        this.alterations = set
+      }).catch(this.toastErrorHandler(this.$t('notification:module.alteration.load.error')))
+    },
+
+    stringifyParams (params) {
+      switch (true) {
+        case !!params.attributeAdd:
+          return this.stringifyAttributeAddParams(params.attributeAdd)
+
+        case !!params.attributeDelete:
+          return this.stringifyAttributeDeleteParams(params.attributeDelete)
+
+        case !!params.attributeReType:
+          return this.stringifyAttributeReTypeParams(params.attributeReType)
+
+        case !!params.attributeReEncode:
+          return this.stringifyAttributeReEncodeParams(params.attributeReEncode)
+
+        case !!params.modelAdd:
+          return this.stringifyModelAddParams(params.modelAdd)
+
+        case !!params.modelDelete:
+          return this.stringifyModelDeleteParams(params.modelDelete)
+      }
+
+      throw new Error('Unknown alteration type')
+    },
+
+    stringifyAttributeAddParams (params) {
+      return `Add column ${params.attr.ident} encoded as ${params.attr.store.type} of type ${params.attr.type.type}`
+    },
+
+    stringifyAttributeDeleteParams (params) {
+      return `Delete column ${params.attr.ident} encoded as ${params.attr.store.type}`
+    },
+
+    stringifyAttributeReTypeParams (params) {
+      return `Changing type of column ${params.attr.ident} from ${params.attr.type.type} to ${params.to.type.type}`
+    },
+
+    stringifyAttributeReEncodeParams (params) {
+      return `Changing encoding of column ${params.attr.ident} from ${params.attr.store.type} to ${params.to.store.type}`
+    },
+
+    stringifyModelAddParams (params) {
+      return `Add schema for model ${params.model.ident}`
+    },
+
+    stringifyModelDeleteParams (params) {
+      return `Delete schema for model ${params.model.ident}`
     },
 
     canDismiss (alteration) {
