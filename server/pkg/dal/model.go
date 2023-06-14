@@ -24,60 +24,60 @@ type (
 
 	// Model describes the underlying data and its shape
 	Model struct {
-		ConnectionID uint64
-		Ident        string
-		Label        string
+		ConnectionID uint64 `json:"connectionID"`
+		Ident        string `json:"ident"`
+		Label        string `json:"label"`
 
-		Resource     string
-		ResourceID   uint64
-		ResourceType string
+		Resource     string `json:"resource"`
+		ResourceID   uint64 `json:"resourceID"`
+		ResourceType string `json:"resourceType"`
 
 		// Refs is an arbitrary map to identify a model
 		// @todo consider reworking this; I'm not the biggest fan
-		Refs map[string]any
+		Refs map[string]any `json:"refs"`
 
-		SensitivityLevelID uint64
+		SensitivityLevelID uint64 `json:"sensitivityLevelID"`
 
-		Attributes AttributeSet
+		Attributes AttributeSet `json:"attributes"`
 
-		Constraints map[string][]any
-		Indexes     IndexSet
+		Constraints map[string][]any `json:"constraints"`
+		Indexes     IndexSet         `json:"indexes"`
 	}
 
 	ModelSet []*Model
 
 	// Attribute describes a specific value of the dataset
 	Attribute struct {
-		Ident string
-		Label string
+		Ident string `json:"ident"`
+		Label string `json:"label"`
 
-		SensitivityLevelID uint64
+		SensitivityLevelID uint64 `json:"sensitivityLevelID"`
 
-		MultiValue bool
+		MultiValue bool `json:"multiValue"`
 
-		PrimaryKey bool
+		PrimaryKey bool `json:"primaryKey"`
 
 		// If attribute has SoftDeleteFlag=true we use it
 		// when filtering out deleted items
-		SoftDeleteFlag bool
+		SoftDeleteFlag bool `json:"softDeleteFlag"`
 
 		// System indicates the attribute was defined by the system
-		System bool
+		System bool `json:"system"`
 
 		// Is attribute sortable?
 		// Note: all primary keys are sortable
-		Sortable bool
+		Sortable bool `json:"sortable"`
 
 		// Can attribute be used in query expression?
-		Filterable bool
+		Filterable bool `json:"filterable"`
 
 		// Store describes the strategy the underlying storage system should
 		// apply to the underlying value
-		Store Codec
+		Store Codec `json:"store"`
 
 		// Type describes what the value represents and how it should be
 		// encoded/decoded
-		Type Type
+		Type Type `json:"type"`
 	}
 
 	// auxAttribute is a helper struct used for marshaling/unmarshaling
