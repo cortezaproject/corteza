@@ -36,6 +36,8 @@
           v-model="options.fontSize"
           type="number"
           placeholder="16"
+          min="0.1"
+          step="0.1"
           class="mb-1"
         />
       </b-form-group>

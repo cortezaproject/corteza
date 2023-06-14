@@ -268,6 +268,10 @@
       </editor-toolbar>
     </portal>
 
+    <record-modal
+      :namespace="namespace"
+    />
+
     <magnification-modal
       :namespace="namespace"
     />
@@ -284,6 +288,7 @@ import PageBlock from 'corteza-webapp-compose/src/components/PageBlocks'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import Configurator from 'corteza-webapp-compose/src/components/PageBlocks/Configurator'
+import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
@@ -299,6 +304,7 @@ export default {
     PageBlock,
     EditorToolbar,
     PageTranslator,
+    RecordModal,
     MagnificationModal,
   },
 
@@ -731,7 +737,8 @@ export default {
       this.usedBlocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
           const p = new Promise((resolve) => {
-            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID || NoID, b.blockID].map(v => v || NoID).join('-')
+            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID, b.blockID, false].map(v => v || NoID).join('-')
+            console.log(`page-block:validate:${recordListUniqueID}`)
             this.$root.$emit(`page-block:validate:${recordListUniqueID}`, resolve)
           })
 

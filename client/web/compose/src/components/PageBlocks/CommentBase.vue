@@ -225,13 +225,6 @@ export default {
       return user.name || user.handle || user.email || ''
     },
 
-    fetchUsers () {
-      const userListID = this.records.map(r => {
-        return r.ownedBy
-      }).filter((x, i, r) => r.indexOf(x) === i)
-      this.$store.dispatch('user/fetchUsers', userListID)
-    },
-
     refresh () {
       if (!this.options.moduleID) {
       // Make sure block is properly configured
@@ -242,7 +235,7 @@ export default {
         this.fetchRecords(this.roModule, this.expandFilter())
           .then(rr => {
             this.records = rr
-            this.fetchUsers()
+            this.fetchUsers([{ name: 'ownedBy', kind: 'User', isSystem: true, isMulti: false }], this.records)
           })
           .catch(e => {
             console.error(e)
