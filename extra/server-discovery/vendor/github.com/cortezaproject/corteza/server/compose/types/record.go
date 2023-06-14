@@ -101,10 +101,11 @@ type (
 )
 
 const (
-	OperationTypeCreate OperationType = "create"
-	OperationTypeUpdate OperationType = "update"
-	OperationTypeDelete OperationType = "delete"
-	OperationTypePatch  OperationType = "patch"
+	OperationTypeCreate   OperationType = "create"
+	OperationTypeUpdate   OperationType = "update"
+	OperationTypeDelete   OperationType = "delete"
+	OperationTypePatch    OperationType = "patch"
+	OperationTypeUndelete OperationType = "undelete"
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {

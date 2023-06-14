@@ -1,3 +1,89 @@
+# v0.10.2 - 2023/03/20
+
+### New features
+
+* Support DebugDOT option for debugging encoder ( #440 )
+
+### Fix bugs
+
+* Fix combination of embedding structure and omitempty option ( #442 )
+
+# v0.10.1 - 2023/03/13
+
+### Fix bugs
+
+* Fix checkptr error for array decoder ( #415 )
+* Fix added buffer size check when decoding key ( #430 )
+* Fix handling of anonymous fields other than struct ( #431 )
+* Fix to not optimize when lower conversion can't handle byte-by-byte ( #432 )
+* Fix a problem that MarshalIndent does not work when UnorderedMap is specified ( #435 )
+* Fix mapDecoder.DecodeStream() for empty objects containing whitespace ( #425 )
+* Fix an issue that could not set the correct NextField for fields in the embedded structure ( #438 )
+
+# v0.10.0 - 2022/11/29
+
+### New features
+
+* Support JSON Path ( #250 )
+
+### Fix bugs
+
+* Fix marshaler for map's key ( #409 )
+
+# v0.9.11 - 2022/08/18
+
+### Fix bugs
+
+* Fix unexpected behavior when buffer ends with backslash ( #383 )
+* Fix stream decoding of escaped character ( #387 )
+
+# v0.9.10 - 2022/07/15
+
+### Fix bugs
+
+* Fix boundary exception of type caching ( #382 )
+
+# v0.9.9 - 2022/07/15
+
+### Fix bugs
+
+* Fix encoding of directed interface with typed nil ( #377 )
+* Fix embedded primitive type encoding using alias ( #378 )
+* Fix slice/array type encoding with types implementing MarshalJSON ( #379 )
+* Fix unicode decoding when the expected buffer state is not met after reading ( #380 )
+
+# v0.9.8 - 2022/06/30
+
+### Fix bugs
+
+* Fix decoding of surrogate-pair ( #365 )
+* Fix handling of embedded primitive type ( #366 )
+* Add validation of escape sequence for decoder ( #367 )
+* Fix stream tokenizing respecting UseNumber ( #369 )
+* Fix encoding when struct pointer type that implements Marshal JSON is embedded ( #375 )
+
+### Improve performance
+
+* Improve performance of linkRecursiveCode ( #368 )
+
+# v0.9.7 - 2022/04/22
+
+### Fix bugs
+
+#### Encoder
+
+* Add filtering process for encoding on slow path ( #355 )
+* Fix encoding of interface{} with pointer type ( #363 )
+
+#### Decoder
+
+* Fix map key decoder that implements UnmarshalJSON ( #353 )
+* Fix decoding of []uint8 type ( #361 )
+
+### New features
+
+* Add DebugWith option for encoder ( #356 )
+
 # v0.9.6 - 2022/03/22
 
 ### Fix bugs

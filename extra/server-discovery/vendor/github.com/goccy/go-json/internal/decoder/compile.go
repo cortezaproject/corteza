@@ -24,7 +24,7 @@ func init() {
 	if typeAddr == nil {
 		typeAddr = &runtime.TypeAddr{}
 	}
-	cachedDecoder = make([]Decoder, typeAddr.AddrRange>>typeAddr.AddrShift)
+	cachedDecoder = make([]Decoder, typeAddr.AddrRange>>typeAddr.AddrShift+1)
 }
 
 func loadDecoderMap() map[uintptr]Decoder {
@@ -153,6 +153,9 @@ func isStringTagSupportedType(typ *runtime.Type) bool {
 func compileMapKey(typ *runtime.Type, structName, fieldName string, structTypeToDecoder map[uintptr]Decoder) (Decoder, error) {
 	if runtime.PtrTo(typ).Implements(unmarshalTextType) {
 		return newUnmarshalTextDecoder(runtime.PtrTo(typ), structName, fieldName), nil
+	}
+	if typ.Kind() == reflect.String {
+		return newStringDecoder(structName, fieldName), nil
 	}
 	dec, err := compile(typ, structName, fieldName, structTypeToDecoder)
 	if err != nil {
@@ -390,7 +393,25 @@ func compileStruct(typ *runtime.Type, structName, fieldName string, structTypeTo
 						}
 						allFields = append(allFields, fieldSet)
 					}
+				} else {
+					fieldSet := &structFieldSet{
+						dec:         pdec,
+						offset:      field.Offset,
+						isTaggedKey: tag.IsTaggedKey,
+						key:         field.Name,
+						keyLen:      int64(len(field.Name)),
+					}
+					allFields = append(allFields, fieldSet)
 				}
+			} else {
+				fieldSet := &structFieldSet{
+					dec:         dec,
+					offset:      field.Offset,
+					isTaggedKey: tag.IsTaggedKey,
+					key:         field.Name,
+					keyLen:      int64(len(field.Name)),
+				}
+				allFields = append(allFields, fieldSet)
 			}
 		} else {
 			if tag.IsString && isStringTagSupportedType(runtime.Type2RType(field.Type)) {
