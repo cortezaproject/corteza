@@ -15,8 +15,8 @@ export default class GaugeChart extends BaseChart {
     // Assure required fields
     for (const v of (this.config.reports || []) as Array<Report>) {
       for (const d of (v.dimensions || []) as Array<Dimension>) {
-        // Since gauge produces one value we want one dataset, deletedBy is the same for all existing records
-        d.field = 'deletedBy'
+        // Since gauge produces one value we want one dataset, deletedAt is the same for all existing records
+        d.field = 'deletedAt'
 
         if (!d.meta) {
           d.meta = {}

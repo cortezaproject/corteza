@@ -177,7 +177,7 @@ export default {
         const { pageID = NoID } = this.page
         const { recordID = NoID } = this.record || {}
         // Construct its uniqueID to identify it
-        const recordListUniqueID = [pageID, recordID, drillDown.blockID].map(v => v || NoID).join('-')
+        const recordListUniqueID = [pageID, recordID, drillDown.blockID, false].map(v => v || NoID).join('-')
         this.$root.$emit(`drill-down-recordList:${recordListUniqueID}`, filter)
       } else {
         // Open in modal

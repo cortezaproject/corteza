@@ -120,7 +120,8 @@ export class PageBlockMetric extends PageBlock {
       moduleID,
       filter,
       metrics,
-      dimensions: dimensionFunctions.convert({ modifier: 'YEAR', field: 'createdAt' }),
+      // Since metric produces one value we want one dataset, deletedAt is the same for all existing records
+      dimensions: 'deletedAt',
     }
   }
 }

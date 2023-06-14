@@ -299,10 +299,13 @@
             style="top: 0;"
           >
             <b-button
-              variant="outline-primary"
+              :title="$t('metric.edit.refreshData')"
+              variant="outline-light"
+              size="lg"
+              class="d-flex align-items-center text-primary ml-auto border-0 px-2 mt-2 mr-2"
               @click.prevent="$root.$emit('metric.update')"
             >
-              {{ $t('metric.edit.refreshData') }}
+              <font-awesome-icon :icon="['fa', 'sync']" />
             </b-button>
 
             <div

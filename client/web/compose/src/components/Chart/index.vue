@@ -17,7 +17,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import { chartConstructor } from 'corteza-webapp-compose/src/lib/charts'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { components } from '@cortezaproject/corteza-vue'
@@ -80,6 +80,10 @@ export default {
   },
 
   methods: {
+    ...mapActions({
+      resolveUsers: 'user/resolveUsers',
+    }),
+
     async updateChart () {
       this.renderer = undefined
 
@@ -121,7 +125,7 @@ export default {
           if (field && ['User', 'Record'].includes(field.kind)) {
             if (field.kind === 'User') {
               // Fetch and map users to labels
-              await this.$store.dispatch('user/fetchUsers', data.labels)
+              await this.resolveUsers(data.labels)
               data.labels = data.labels.map(label => {
                 return field.formatter(this.getUserByID(label)) || label
               })

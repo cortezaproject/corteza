@@ -267,7 +267,7 @@ export default {
 
   methods: {
     ...mapActions({
-      resolveUsers: 'user/fetchUsers',
+      resolveUsers: 'user/resolveUsers',
       addUserToResolved: 'user/push',
     }),
 
