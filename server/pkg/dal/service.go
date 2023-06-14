@@ -920,7 +920,7 @@ func (svc *service) validateModel(issues *issueHelper, c *ConnectionWrap, model,
 
 	// If ident changed, check for duplicate
 	if oldModel != nil && oldModel.Ident != model.Ident {
-		if tmp := svc.FindModelByIdent(model.ConnectionID, model.Ident); tmp == nil {
+		if tmp := svc.FindModelByIdent(model.ConnectionID, model.Ident); tmp != nil {
 			issues.addModelIssue(oldModel.ResourceID, Issue{
 				err: errModelUpdateDuplicate(model.ConnectionID, model.ResourceID),
 			})
