@@ -31,7 +31,7 @@
     </div>
 
     <div
-      v-if="mode === 'single' || 'gallery'"
+      v-else
       class="single"
     >
       <div v-if="isImage(a)">
