@@ -39,6 +39,10 @@ func (app *CortezaApp) initAuth(ctx context.Context) (err error) {
 	// set base path for links&routes in auth server
 	authHandlers.BasePath = app.Opt.HTTPServer.BaseUrl
 
+	// set webapp base path in auth server
+	// @todo refactor, consider passing this into the functions that need it instead of setting it globally
+	authHandlers.WebappBasePath = app.Opt.HTTPServer.WebappBaseUrl
+
 	auth.DefaultSigner = auth.HmacSigner(app.Opt.Auth.Secret)
 
 	if auth.HttpTokenVerifier, err = auth.TokenVerifierMiddlewareWithSecretSigner(app.Opt.Auth.Secret); err != nil {

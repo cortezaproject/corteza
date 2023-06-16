@@ -58,6 +58,7 @@ var (
 	invalidLinkChars        = regexp.MustCompile(`[^-A-Za-z0-9+&@#/%?=~_|!:,.;\\(\\)]`)
 	stripSchema             = regexp.MustCompile(`(.*\/\/)`)
 	BasePath         string = "/"
+	WebappBasePath   string = "/"
 )
 
 func GetLinks() Links {

@@ -12,18 +12,7 @@
 {{ $activeNav := default "" .activeNav }}
 
 {{ if not .hideNav }}
-	{{ if and .user .client }}
-	<div class="py-1 px-3">
-		<a
-			data-test-id="link-finalize-authorization"
-			class="text-danger"
-			href="{{ links.OAuth2AuthorizeClient }}"
-		>
-		 {{ tr "inc_nav.template.authorize-client" }} {{ .client.Name }}
-		 <i class="bi bi-chevron-double-right"></i>
-		 </a>
-	</div>
-	{{ else if .user }}
+	{{ if .user }}
 	<ul class="nav ml-1 d-flex justify-content-around">
 		<li class="nav-item {{ if eq $activeNav "profile" }}active{{ end  }}">
 			<a
