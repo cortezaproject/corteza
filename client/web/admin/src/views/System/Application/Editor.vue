@@ -181,9 +181,17 @@ export default {
       this.info.processing = true
 
       if (this.applicationID) {
+        application = {
+          ...application,
+          unify: this.initialApplicationState.unify,
+        }
+
         this.$SystemAPI.applicationUpdate(application)
           .then(() => {
-            this.fetchApplication()
+            this.initialApplicationState = new system.Application({
+              ...application,
+              unify: this.initialApplicationState.unify,
+            })
 
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:application.update.success'))
@@ -237,10 +245,15 @@ export default {
             .catch(() => {})
         }
 
-        return this.$SystemAPI.applicationUpdate({ ...this.application, unify })
+        return this.$SystemAPI.applicationUpdate({ ...this.initialApplicationState, unify })
           .then(() => {
+            this.application = new system.Application({ ...this.application, unify })
+            this.initialApplicationState = new system.Application({
+              ...this.initialApplicationState,
+              unify,
+            })
+
             this.unifyAssetStateChange = false
-            this.fetchApplication()
 
             this.toastSuccess(this.$t('notification:application.update.success'))
           })
