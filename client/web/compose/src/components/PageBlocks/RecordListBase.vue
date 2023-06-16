@@ -220,10 +220,10 @@
               </b-button>
             </template>
 
-            <template v-if="canUndeleteSelectedRecords && areAllRowsDeleted">
+            <template v-if="canRestoreSelectedRecords && areAllRowsDeleted">
               <c-input-confirm
                 v-if="!inlineEditing"
-                :tooltip="$t('recordList.tooltip.undeleteSelected')"
+                :tooltip="$t('recordList.tooltip.restoreSelected')"
                 @confirmed="handleRestoreSelectedRecords()"
               >
                 <font-awesome-icon
@@ -234,7 +234,7 @@
                 v-else
                 variant="link"
                 size="md"
-                :title="$t('recordList.tooltip.undeleteSelected')"
+                :title="$t('recordList.tooltip.restoreSelected')"
                 class="text-danger"
                 @click.prevent="handleRestoreSelectedRecords()"
               >
@@ -582,13 +582,29 @@
                       size="md"
                       button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
                       class="w-100"
-                      @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
+                      @confirmed="handleDeleteSelectedRecords([item.r.recordID])"
                     >
                       <font-awesome-icon
                         :icon="['far', 'trash-alt']"
                         class="text-danger"
                       />
                       {{ $t('recordList.record.tooltip.delete') }}
+                    </c-input-confirm>
+
+                    <c-input-confirm
+                      v-else-if="isRestoreActionVisible(item.r)"
+                      borderless
+                      variant="link"
+                      size="md"
+                      button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                      class="w-100"
+                      @confirmed="handleRestoreSelectedRecords([item.r.recordID])"
+                    >
+                      <font-awesome-icon
+                        :icon="['fas', 'trash-restore']"
+                        class="text-danger"
+                      />
+                      {{ $t('recordList.record.tooltip.restore') }}
                     </c-input-confirm>
                   </template>
                 </b-dropdown>
@@ -985,7 +1001,7 @@ export default {
       return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canUpdateRecord).length
     },
 
-    canUndeleteSelectedRecords () {
+    canRestoreSelectedRecords () {
       return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canUndeleteRecord).length
     },
 
@@ -1490,7 +1506,7 @@ export default {
       this.handleSelectAllOnPage({ isChecked: this.selectedAllRecords })
     },
 
-    handleRestoreSelectedRecords () {
+    handleRestoreSelectedRecords (selected = this.selected) {
       if (this.inlineEditing) {
         const sel = new Set(this.selected)
         this.items.forEach((item, index) => {
@@ -1506,7 +1522,7 @@ export default {
         if (!this.selectedAllRecords) {
           // filter deletable records from the selected list
           const recordIDs = this.items
-            .filter(({ id, r }) => r.canUndeleteRecord && this.selected.includes(id))
+            .filter(({ id, r }) => r.canUndeleteRecord && selected.includes(id))
             .map(({ id }) => id)
 
           query = recordIDs.map(r => `recordID='${r}'`).join(' OR ')
@@ -1516,9 +1532,9 @@ export default {
           .recordBulkUndelete({ moduleID, namespaceID, query })
           .then(() => {
             this.refresh(true)
-            this.toastSuccess(this.$t('notification:record.undeleteBulkSuccess'))
+            this.toastSuccess(this.$t('notification:record.restoreBulkSuccess'))
           })
-          .catch(this.toastErrorHandler(this.$t('notification:record.undeleteBulkFailed')))
+          .catch(this.toastErrorHandler(this.$t('notification:record.restoreBulkFailed')))
           .finally(() => {
             this.processing = false
             this.selectedAllRecords = false
@@ -1769,8 +1785,12 @@ export default {
       return canGrant && !this.options.hideRecordPermissionsButton
     },
 
-    isDeleteActionVisible ({ canDeleteRecord }) {
-      return canDeleteRecord
+    isDeleteActionVisible ({ deletedAt, canDeleteRecord }) {
+      return !deletedAt && canDeleteRecord
+    },
+
+    isRestoreActionVisible ({ canUndeleteRecord }) {
+      return canUndeleteRecord
     },
 
     areActionsVisible (record) {
@@ -1789,6 +1809,7 @@ export default {
         this.isEditRecordActionVisible(record),
         this.isRecordPermissionButtonVisible(record),
         this.isDeleteActionVisible(record),
+        this.isRestoreActionVisible(record),
       ].some(v => v)
     },
 
