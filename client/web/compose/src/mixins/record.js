@@ -255,14 +255,14 @@ export default {
         .then(() => this.dispatchUiEvent('afterUndelete'))
         .then(() => this.updatePrompts())
         .then(this.loadRecord)
-        .catch(this.toastErrorHandler(this.$t('notification:record.undeleteFailed')))
+        .catch(this.toastErrorHandler(this.$t('notification:record.restoreFailed')))
         .finally(() => {
           this.processingUndelete = false
           this.processing = false
         })
     }, 500),
 
-    handleBulkUpdateSelectedRecords: throttle(function (records) {
+    handleBulkUpdateSelectedRecords: throttle(function (query) {
       this.processing = true
 
       const values = []
@@ -280,8 +280,6 @@ export default {
       })
 
       const { moduleID, namespaceID } = this.module
-
-      const query = records.map(r => `recordID='${r}'`).join(' OR ')
 
       return this
         .$ComposeAPI.recordPatch({ moduleID, namespaceID, values, query })

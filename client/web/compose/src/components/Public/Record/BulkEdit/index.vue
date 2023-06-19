@@ -88,7 +88,7 @@
             <b-button
               variant="primary"
               :disabled="!fields.length || processing"
-              @click="handleBulkUpdateSelectedRecords(selectedRecords)"
+              @click="handleBulkUpdateSelectedRecords(query)"
             >
               {{ $t('general.label.save') }}
             </b-button>
@@ -132,11 +132,6 @@ export default {
       required: true,
     },
 
-    selectedRecords: {
-      type: Array,
-      required: true,
-    },
-
     selectedFields: {
       type: Array,
       default: () => ([]),
@@ -153,6 +148,11 @@ export default {
     },
 
     modalTitle: {
+      type: String,
+      default: '',
+    },
+
+    query: {
       type: String,
       default: '',
     },
@@ -182,9 +182,9 @@ export default {
   },
 
   watch: {
-    selectedRecords: {
-      handler (records) {
-        if (!this.openOnSelect || !records.length) return
+    query: {
+      handler (query) {
+        if (!this.openOnSelect || !query.length) return
 
         this.record = new compose.Record(this.module, this.initialRecord)
         this.showModal = true
@@ -215,6 +215,7 @@ export default {
         this.fields = []
         this.record = new compose.Record(this.module, {})
       }
+      this.$emit('close')
     },
 
     getFieldLabel ({ kind, label, name }) {

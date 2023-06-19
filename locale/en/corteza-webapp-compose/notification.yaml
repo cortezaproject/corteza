@@ -114,12 +114,12 @@ page:
 record:
   createFailed: Could not create record
   deleteFailed: Could not delete record
-  undeleteFailed: Could not undelete record
+  restoreFailed: Could not restore record
   deleteBulkFailed: Could not delete selected records
   deleteBulkRecordUpdateFailed: Could not update selected records
   deleteBulkSuccess: Successfully deleted selected records
   bulkRecordUpdateSuccess: Successfully updated selected records
-  undeleteBulkFailed: Could not restore selected records
+  restoreBulkFailed: Could not restore selected records
   restoreBulkSuccess: Successfully restored selected records
   invalidOwnerVar: Can not use ${ownerID} variable in non-record pages
   invalidRecordVar: Can not use ${record...} variable in non-record pages
