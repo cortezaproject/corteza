@@ -195,7 +195,7 @@
               v-show="options.bulkRecordEditEnabled && canUpdateSelectedRecords && !showingDeletedRecords"
               :module="recordListModule"
               :namespace="namespace"
-              :selected-records="selectedAllRecords ? [] : selected"
+              :query="bulkQuery"
               @save="onBulkUpdate()"
             />
 
@@ -636,12 +636,13 @@
         v-if="options.inlineRecordEditEnabled"
         :namespace="namespace"
         :module="recordListModule"
-        :selected-records="inlineEdit.recordIDs"
         :selected-fields="inlineEdit.fields"
         :initial-record="inlineEdit.record"
+        :query="inlineEdit.query"
         :modal-title="$t('recordList.inlineEdit.modal.title')"
         open-on-select
         @save="onInlineEdit()"
+        @close="onInlineEditClose()"
       />
 
       <!-- Modal for naming custom filter -->
@@ -1045,6 +1046,14 @@ export default {
       const key = this.selectedAllRecords ? 'selectedFromAllPages' : 'selected'
 
       return this.$t(`recordList.${key}`, { count, total })
+    },
+
+    bulkQuery () {
+      if (this.selectedAllRecords) {
+        return this.filter.query
+      }
+
+      return this.selected.map(r => `recordID='${r}'`).join(' OR ')
     },
   },
 
@@ -1515,18 +1524,10 @@ export default {
           }
         })
       } else {
-        const { moduleID, namespaceID } = this.items[0].r
+        this.processing = true
 
-        let query = ''
-
-        if (!this.selectedAllRecords) {
-          // filter deletable records from the selected list
-          const recordIDs = this.items
-            .filter(({ id, r }) => r.canUndeleteRecord && selected.includes(id))
-            .map(({ id }) => id)
-
-          query = recordIDs.map(r => `recordID='${r}'`).join(' OR ')
-        }
+        const query = this.bulkQuery
+        const { moduleID, namespaceID } = this.filter
 
         this.$ComposeAPI
           .recordBulkUndelete({ moduleID, namespaceID, query })
@@ -1555,24 +1556,11 @@ export default {
           }
         }
       } else {
-        // Pick module and namespace ID from the first record
-        //
-        // We are always showing list of records from the
-        // same module so this should be safe to do.
-        const { moduleID, namespaceID } = this.items[0].r
-
-        let query = ''
-
-        if (!this.selectedAllRecords) {
-          // filter deletable records from the selected list
-          const recordIDs = this.items
-            .filter(({ id, r }) => r.canDeleteRecord && selected.includes(id))
-            .map(({ id }) => id)
-
-          query = recordIDs.map(r => `recordID='${r}'`).join(' OR ')
-        }
-
         this.processing = true
+
+        const query = this.bulkQuery
+        // Pick module and namespace ID from the filter
+        const { moduleID, namespaceID } = this.filter
 
         this.$ComposeAPI
           .recordBulkDelete({ moduleID, namespaceID, query })
@@ -1821,14 +1809,18 @@ export default {
     editInlineField (record, field) {
       this.inlineEdit.fields = [field]
       this.inlineEdit.record = record.clone()
-      this.inlineEdit.recordIDs = [record.recordID]
+      this.inlineEdit.query = `recordID = ${record.recordID}`
+    },
+
+    onInlineEditClose () {
+      this.inlineEdit.fields = []
+      this.inlineEdit.record = {}
+      this.inlineEdit.query = ''
     },
 
     onInlineEdit () {
       this.refresh(true)
-      this.inlineEdit.fields = []
-      this.inlineEdit.recordIDs = []
-      this.inlineEdit.record = {}
+      this.onInlineEditClose()
     },
 
     isFieldEditable (field) {
