@@ -2524,6 +2524,163 @@ export default class System {
     return `/dal/sensitivity-levels/${sensitivityLevelID}/undelete`
   }
 
+  // Search schema alterations
+  async dalSchemaAlterationList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      alterationID,
+      batchID,
+      kind,
+      deleted,
+      completed,
+      incTotal,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dalSchemaAlterationListEndpoint(),
+    }
+    cfg.params = {
+      alterationID,
+      batchID,
+      kind,
+      deleted,
+      completed,
+      incTotal,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationListEndpoint (): string {
+    return '/dal/schema/alterations/'
+  }
+
+  // Read alteration details
+  async dalSchemaAlterationRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      alterationID,
+    } = (a as KV) || {}
+    if (!alterationID) {
+      throw Error('field alterationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.dalSchemaAlterationReadEndpoint({
+        alterationID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationReadEndpoint (a: KV): string {
+    const {
+      alterationID,
+    } = a || {}
+    return `/dal/schema/alterations/${alterationID}`
+  }
+
+  // Remove alteration
+  async dalSchemaAlterationDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      alterationID,
+    } = (a as KV) || {}
+    if (!alterationID) {
+      throw Error('field alterationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.dalSchemaAlterationDeleteEndpoint({
+        alterationID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationDeleteEndpoint (a: KV): string {
+    const {
+      alterationID,
+    } = a || {}
+    return `/dal/schema/alterations/${alterationID}`
+  }
+
+  // Undelete alteration
+  async dalSchemaAlterationUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      alterationID,
+    } = (a as KV) || {}
+    if (!alterationID) {
+      throw Error('field alterationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.dalSchemaAlterationUndeleteEndpoint({
+        alterationID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationUndeleteEndpoint (a: KV): string {
+    const {
+      alterationID,
+    } = a || {}
+    return `/dal/schema/alterations/${alterationID}/undelete`
+  }
+
+  // Apply alterations
+  async dalSchemaAlterationApply (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      alterationID,
+    } = (a as KV) || {}
+    if (!alterationID) {
+      throw Error('field alterationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.dalSchemaAlterationApplyEndpoint(),
+    }
+    cfg.params = {
+      alterationID,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationApplyEndpoint (): string {
+    return '/dal/schema/alterations/apply'
+  }
+
+  // Dismiss alterations
+  async dalSchemaAlterationDismiss (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      alterationID,
+    } = (a as KV) || {}
+    if (!alterationID) {
+      throw Error('field alterationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.dalSchemaAlterationDismissEndpoint(),
+    }
+    cfg.params = {
+      alterationID,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationDismissEndpoint (): string {
+    return '/dal/schema/alterations/dismiss'
+  }
+
   // Search connections (Directory)
   async dalConnectionList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
