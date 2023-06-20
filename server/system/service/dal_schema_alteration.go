@@ -169,9 +169,12 @@ func (svc dalSchemaAlteration) ModelAlterations(ctx context.Context, m *dal.Mode
 
 	for _, a := range aux {
 		t := &dal.Alteration{
-			ID:        a.ID,
-			BatchID:   a.BatchID,
-			DependsOn: a.DependsOn,
+			ID:           a.ID,
+			BatchID:      a.BatchID,
+			DependsOn:    a.DependsOn,
+			Resource:     a.Resource,
+			ResourceType: a.ResourceType,
+			ConnectionID: a.ConnectionID,
 		}
 
 		switch a.Kind {
