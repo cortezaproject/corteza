@@ -33,11 +33,17 @@ type (
 		FindByID(context.Context, uint64) (*systemTypes.User, error)
 	}
 
+	schemaAltManager interface {
+		ModelAlterations(context.Context, *dal.Model) (out []*dal.Alteration, err error)
+		SetAlterations(ctx context.Context, s store.Storer, m *dal.Model, stale []*dal.Alteration, set ...*dal.Alteration) (err error)
+	}
+
 	Config struct {
-		ActionLog  options.ActionLogOpt
-		Discovery  options.DiscoveryOpt
-		Storage    options.ObjectStoreOpt
-		UserFinder userFinder
+		ActionLog        options.ActionLogOpt
+		Discovery        options.DiscoveryOpt
+		Storage          options.ObjectStoreOpt
+		UserFinder       userFinder
+		SchemaAltManager schemaAltManager
 	}
 
 	eventDispatcher interface {
@@ -176,7 +182,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	}
 
 	DefaultNamespace = Namespace()
-	DefaultModule = Module()
+	DefaultModule = Module(c.SchemaAltManager)
 
 	DefaultImportSession = ImportSession()
 	DefaultRecord = Record()

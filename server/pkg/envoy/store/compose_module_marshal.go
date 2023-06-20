@@ -343,12 +343,12 @@ func (n *composeModule) Encode(ctx context.Context, pl *payload) (err error) {
 
 		// @todo validate ident with connection's ident validator
 
-		if err = pl.dal.ReplaceModel(ctx, rModel); err != nil {
+		if _, err = pl.dal.ReplaceModel(ctx, nil, rModel); err != nil {
 			return
 		}
 	}
 
-	if err = pl.dal.ReplaceModel(ctx, model); err != nil {
+	if _, err = pl.dal.ReplaceModel(ctx, nil, model); err != nil {
 		return
 	}
 

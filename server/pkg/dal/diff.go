@@ -180,7 +180,7 @@ func (dd ModelDiffSet) Alterations() (out []*Alteration) {
 
 			add(&Alteration{
 				AttributeReType: &AttributeReType{
-					Attr: d.Original,
+					Attr: d.Inserted,
 					To:   d.Inserted.Type,
 				},
 			})
@@ -188,8 +188,8 @@ func (dd ModelDiffSet) Alterations() (out []*Alteration) {
 		case AttributeCodecMismatch:
 			add(&Alteration{
 				AttributeReEncode: &AttributeReEncode{
-					Attr: d.Original,
-					To:   d.Inserted,
+					Attr: d.Inserted,
+					To:   d.Inserted.Store,
 				},
 			})
 		}

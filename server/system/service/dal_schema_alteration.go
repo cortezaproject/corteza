@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -23,7 +24,10 @@ type (
 	}
 
 	dalAltManager interface {
+		GetConnectionByID(ID uint64) *dal.ConnectionWrap
 		ApplyAlteration(ctx context.Context, alts ...*dal.Alteration) (errs []error, err error)
+		ReloadModel(ctx context.Context, currentAlts []*dal.Alteration, model *dal.Model) (newAlts []*dal.Alteration, err error)
+		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *dal.Model
 	}
 
 	dalSchemaAlterationAccessController interface {
@@ -198,81 +202,92 @@ func (svc dalSchemaAlteration) ModelAlterations(ctx context.Context, m *dal.Mode
 	return
 }
 
-// @todo we can probably do some diffing here to make it more efficient; it'll do for now
-func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, m *dal.Model, stale []*dal.Alteration, aa ...*dal.Alteration) (err error) {
+func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, s store.Storer, m *dal.Model, stale []*dal.Alteration, aa ...*dal.Alteration) (err error) {
+	if len(stale)+len(aa) == 0 {
+		return
+	}
+
+	var (
+		n = *now()
+		u = intAuth.GetIdentityFromContext(ctx).Identity()
+	)
+
 	// @todo boilerplate code around this
 
+	// @todo this won't work entirely; if someone defines a dal connection to the same DSN as the primary one,
+	//       they can easily bypass this.
+	//       We'll need to do some checking on the DSN; potentially when defining the connection itself.
 	c := svc.dal.GetConnectionByID(0)
 	if m.ConnectionID == c.ID && m.Ident == "compose_record" {
 		err = fmt.Errorf("cannot set alterations for default schema")
 		return
 	}
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		// Firstly get rid of the old ones
-		aux := make([]*types.DalSchemaAlteration, len(stale))
-		for i, a := range stale {
-			aux[i] = &types.DalSchemaAlteration{
-				ID: a.ID,
-			}
+	// Delete current ones
+	// @todo we might be able to do some diffing to preserve the metadata/ids
+	//       but for now this should be just fine.
+	auxStale := make([]*types.DalSchemaAlteration, len(stale))
+	for i, a := range stale {
+		auxStale[i] = &types.DalSchemaAlteration{
+			ID: a.ID,
 		}
-		err = store.DeleteDalSchemaAlteration(ctx, s, aux...)
-		if err != nil {
-			return
-		}
+	}
+	err = store.DeleteDalSchemaAlteration(ctx, s, auxStale...)
+	if err != nil {
+		return
+	}
 
-		// Now add the new ones
-		cvt := make(types.DalSchemaAlterationSet, len(aa))
-		n := *now()
-		u := intAuth.GetIdentityFromContext(ctx).Identity()
-		for i, a := range aa {
-			t := &types.DalSchemaAlteration{
-				ID:           a.ID,
-				BatchID:      a.BatchID,
-				DependsOn:    a.DependsOn,
-				ConnectionID: a.ConnectionID,
-				Resource:     a.Resource,
-				ResourceType: a.ResourceType,
+	// Set new ones
+	cvt := make(types.DalSchemaAlterationSet, len(aa))
+	for i, a := range aa {
+		t := &types.DalSchemaAlteration{
+			ID:           a.ID,
+			BatchID:      a.BatchID,
+			DependsOn:    a.DependsOn,
+			ConnectionID: a.ConnectionID,
+			Resource:     a.Resource,
+			ResourceType: a.ResourceType,
 
-				Params: &types.DalSchemaAlterationParams{},
-			}
-
-			// @todo we'd need to merge this with the old one probably just to preserve the metadata
-			t.ID = nextID()
-			t.CreatedAt = n
-			t.CreatedBy = u
-
-			switch {
-			case a.AttributeAdd != nil:
-				t.Kind = "attributeAdd"
-				t.Params.AttributeAdd = a.AttributeAdd
-
-			case a.AttributeDelete != nil:
-				t.Kind = "attributeDelete"
-				t.Params.AttributeDelete = a.AttributeDelete
-
-			case a.AttributeReType != nil:
-				t.Kind = "attributeReType"
-				t.Params.AttributeReType = a.AttributeReType
-
-			case a.AttributeReEncode != nil:
-				t.Kind = "attributeReEncode"
-				t.Params.AttributeReEncode = a.AttributeReEncode
-
-			case a.ModelAdd != nil:
-				t.Kind = "modelAdd"
-				t.Params.ModelAdd = a.ModelAdd
-
-			case a.ModelDelete != nil:
-				t.Kind = "modelDelete"
-				t.Params.ModelDelete = a.ModelDelete
-			}
-
-			cvt[i] = t
+			Params: &types.DalSchemaAlterationParams{},
 		}
 
-		return store.UpsertDalSchemaAlteration(ctx, svc.store, cvt...)
-	})
+		t.ID = nextID()
+		t.CreatedAt = n
+		t.CreatedBy = u
+
+		switch {
+		case a.AttributeAdd != nil:
+			t.Kind = "attributeAdd"
+			t.Params.AttributeAdd = a.AttributeAdd
+
+		case a.AttributeDelete != nil:
+			t.Kind = "attributeDelete"
+			t.Params.AttributeDelete = a.AttributeDelete
+
+		case a.AttributeReType != nil:
+			t.Kind = "attributeReType"
+			t.Params.AttributeReType = a.AttributeReType
+
+		case a.AttributeReEncode != nil:
+			t.Kind = "attributeReEncode"
+			t.Params.AttributeReEncode = a.AttributeReEncode
+
+		case a.ModelAdd != nil:
+			t.Kind = "modelAdd"
+			t.Params.ModelAdd = a.ModelAdd
+
+		case a.ModelDelete != nil:
+			t.Kind = "modelDelete"
+			t.Params.ModelDelete = a.ModelDelete
+
+		default:
+			panic(fmt.Sprintf("unknown alteration type %v", a))
+		}
+
+		cvt[i] = t
+	}
+
+	return store.UpsertDalSchemaAlteration(ctx, svc.store, cvt...)
 }
 
 func (svc dalSchemaAlteration) Apply(ctx context.Context, ids ...uint64) (err error) {
@@ -285,12 +300,13 @@ func (svc dalSchemaAlteration) Apply(ctx context.Context, ids ...uint64) (err er
 		return
 	}
 
-	aa, err := svc.toPkgAlterations(ctx, svc.appliableAlterations(aux...)...)
+	alts := svc.appliableAlterations(aux...)
+	pkgAlts, err := svc.toPkgAlterations(ctx, alts...)
 	if err != nil {
 		return
 	}
 
-	errors, err := svc.dal.ApplyAlteration(ctx, aa...)
+	errors, err := svc.dal.ApplyAlteration(ctx, pkgAlts...)
 	if err != nil {
 		return
 	}
@@ -304,7 +320,12 @@ func (svc dalSchemaAlteration) Apply(ctx context.Context, ids ...uint64) (err er
 		}
 	}
 
-	return store.UpdateDalSchemaAlteration(ctx, svc.store, aux...)
+	err = store.UpdateDalSchemaAlteration(ctx, svc.store, aux...)
+	if err != nil {
+		return
+	}
+
+	return svc.reloadAlteredModels(ctx, svc.store, alts)
 }
 
 func (svc dalSchemaAlteration) Dismiss(ctx context.Context, ids ...uint64) (err error) {
@@ -327,7 +348,12 @@ func (svc dalSchemaAlteration) Dismiss(ctx context.Context, ids ...uint64) (err 
 			a.DismissedBy = intAuth.GetIdentityFromContext(ctx).Identity()
 		}
 
-		return store.UpdateDalSchemaAlteration(ctx, s, alt...)
+		err = store.UpdateDalSchemaAlteration(ctx, s, alt...)
+		if err != nil {
+			return
+		}
+
+		return svc.reloadAlteredModels(ctx, s, alt)
 	})
 }
 
@@ -403,6 +429,64 @@ func (svc dalSchemaAlteration) toPkgAlterations(ctx context.Context, aa ...*type
 		}
 
 		out[i] = t
+	}
+
+	return
+}
+
+func (svc dalSchemaAlteration) reloadAlteredModels(ctx context.Context, s store.Storer, alts types.DalSchemaAlterationSet) (err error) {
+	if len(alts) == 0 {
+		return
+	}
+
+	// @todo consider lifting this constraint and handle arbitrary sets of alterations
+	for _, a := range alts {
+		if a.Resource != alts[0].Resource {
+			panic("reloadAlteredModels requires all alterations to be for the same resource")
+		}
+	}
+
+	alt := alts[0]
+
+	// Fetch current alterations to see if there are any left over
+	_, f, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
+		Resource:  []string{alt.Resource},
+		Deleted:   filter.StateExcluded,
+		Completed: filter.StateExcluded,
+		Dismissed: filter.StateExcluded,
+
+		Paging: filter.Paging{
+			IncTotal: true,
+		},
+	})
+	if err != nil {
+		return err
+	}
+
+	// There are some alterations left so we can't reload the model
+	if f.Total > 0 {
+		return
+	}
+
+	model := svc.dal.FindModelByResourceIdent(alt.ConnectionID, alt.ResourceType, alt.Resource)
+	if model == nil {
+		err = fmt.Errorf("cannot find model for resource %s", alt.Resource)
+		return
+	}
+
+	currentAlts, err := svc.ModelAlterations(ctx, model)
+	if err != nil {
+		return
+	}
+
+	newAlts, err := svc.dal.ReloadModel(ctx, currentAlts, model)
+	if err != nil {
+		return
+	}
+
+	err = svc.SetAlterations(ctx, s, model, currentAlts, newAlts...)
+	if err != nil {
+		return
 	}
 
 	return

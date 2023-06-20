@@ -1,6 +1,9 @@
 package dal
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type (
 	Alteration struct {
@@ -36,7 +39,7 @@ type (
 
 	AttributeReEncode struct {
 		Attr *Attribute `json:"attr"`
-		To   *Attribute `json:"to"`
+		To   Codec      `json:"to"`
 	}
 
 	ModelAdd struct {
@@ -52,24 +55,69 @@ type (
 	// This is required since the Type inside the Attribute is an interface and we
 	// need to help the encoding/json a bit.
 	auxAttributeReType struct {
-		Attr *Attribute
-		To   *auxAttributeType
+		Attr *Attribute        `json:"attr"`
+		To   *auxAttributeType `json:"to"`
+	}
+
+	// auxAttributeReEncode is a helper struct used for marshaling/unmarshaling
+	//
+	// This is required since the Codec inside the Attribute is an interface and we
+	// need to help the encoding/json a bit.
+	auxAttributeReEncode struct {
+		Attr *Attribute     `json:"attr"`
+		To   *auxStoreCodec `json:"to"`
 	}
 )
 
 // Merge merges the two alteration slices
-func (a AlterationSet) Merge(b AlterationSet) (c AlterationSet) {
-	// @todo don't blindly append the two slices since there can be duplicates
-	// or overlapping alterations which would cause needles processing
+func (aa AlterationSet) Merge(bb AlterationSet) (cc AlterationSet) {
+	// @todo the Merge function currently just merges the two slices together
+	//       and removes any duplicates that would occur due to the merge.
+	//       We should also handle overlapping/transitive alterations to reduce
+	//       the amount of needles processing.
 	//
 	// A quick list of overlapping alterations:
 	// * attribute A added and then renamed from A to A'
 	// * attribute A renamed to A' and then renamed to A''
 	// * attribute A deleted and then created
-	//
-	// For now we'll simply append them and worry about improvements on a later stage
 
-	return append(a, b...)
+	cc = make(AlterationSet, 0, len(aa)+len(bb))
+	skip := make(map[int]bool, (len(aa)+len(bb))/2)
+
+	// For each item in aa, check if it has a matching element in bb.
+	// If it does, mark the bb index as skipped, if it doesn't use the aa element.
+	// If a duplicate is found, the bb element is used (considered newer),
+	//
+	// This is sub-optimal but the slices are expected to be small and this
+	// won't be ran often.
+	for _, a := range aa {
+		found := false
+		for j, b := range bb {
+			if skip[j] {
+				continue
+			}
+
+			if a.compare(*b) {
+				skip[j] = true
+				cc = append(cc, b)
+				found = true
+				break
+			}
+		}
+		if !found {
+			cc = append(cc, a)
+		}
+	}
+
+	for j, b := range bb {
+		if skip[j] {
+			continue
+		}
+
+		cc = append(cc, b)
+	}
+
+	return
 }
 
 func (a AttributeReType) MarshalJSON() ([]byte, error) {
@@ -190,4 +238,140 @@ func (a *AttributeReType) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	return
+}
+
+func (a AttributeReEncode) MarshalJSON() ([]byte, error) {
+	aux := auxAttributeReEncode{
+		Attr: a.Attr,
+		To:   &auxStoreCodec{},
+	}
+
+	switch t := a.To.(type) {
+	case *CodecPlain:
+		aux.To.Type = "CodecPlain"
+		aux.To.CodecPlain = t
+	case *CodecRecordValueSetJSON:
+		aux.To.Type = "CodecRecordValueSetJSON"
+		aux.To.CodecRecordValueSetJSON = t
+	case *CodecAlias:
+		aux.To.Type = "CodecAlias"
+		aux.To.CodecAlias = t
+	}
+
+	return json.Marshal(aux)
+}
+
+func (a *AttributeReEncode) UnmarshalJSON(data []byte) (err error) {
+	aux := &auxAttributeReEncode{}
+	err = json.Unmarshal(data, &aux)
+	if err != nil {
+		return err
+	}
+
+	if a == nil {
+		*a = AttributeReEncode{}
+	}
+
+	a.Attr = aux.Attr
+
+	switch aux.To.Type {
+	case "CodecPlain":
+		a.To = aux.To.CodecPlain
+
+	case "CodecRecordValueSetJSON":
+		a.To = aux.To.CodecRecordValueSetJSON
+
+	case "CodecAlias":
+		a.To = aux.To.CodecAlias
+	}
+
+	return
+}
+
+func (a Alteration) compare(b Alteration) (cmp bool) {
+	if a.AttributeAdd == nil && b.AttributeAdd != nil {
+		return false
+	}
+	if a.AttributeDelete == nil && b.AttributeDelete != nil {
+		return false
+	}
+	if a.AttributeReType == nil && b.AttributeReType != nil {
+		return false
+	}
+	if a.AttributeReEncode == nil && b.AttributeReEncode != nil {
+		return false
+	}
+	if a.ModelAdd == nil && b.ModelAdd != nil {
+		return false
+	}
+	if a.ModelDelete == nil && b.ModelDelete != nil {
+		return false
+	}
+
+	switch {
+	case a.AttributeAdd != nil:
+		return a.compareAttributeAdd(b)
+	case a.AttributeDelete != nil:
+		return a.compareAttributeDelete(b)
+	case a.AttributeReType != nil:
+		return a.compareAttributeReType(b)
+	case a.AttributeReEncode != nil:
+		return a.compareAttributeReEncode(b)
+	case a.ModelAdd != nil:
+		return a.compareModelAdd(b)
+	case a.ModelDelete != nil:
+		return a.compareModelDelete(b)
+	}
+
+	panic(fmt.Sprintf("unsupported alteration type %v", a))
+}
+
+func (a Alteration) compareAttributeAdd(b Alteration) bool {
+	if a.AttributeAdd == nil || b.AttributeAdd == nil {
+		return a.AttributeAdd == b.AttributeAdd
+	}
+	return a.AttributeAdd.Attr.Compare(b.AttributeAdd.Attr)
+}
+
+func (a Alteration) compareAttributeDelete(b Alteration) bool {
+	if a.AttributeDelete == nil || b.AttributeDelete == nil {
+		return a.AttributeDelete == b.AttributeDelete
+	}
+	return a.AttributeDelete.Attr.Compare(b.AttributeDelete.Attr)
+}
+
+func (a Alteration) compareAttributeReType(b Alteration) bool {
+	if !a.AttributeReType.Attr.Compare(b.AttributeReType.Attr) {
+		return false
+	}
+
+	if a.AttributeReType == nil || b.AttributeReType == nil {
+		return a.AttributeReType == b.AttributeReType
+	}
+	return a.AttributeReType.To.Type() == b.AttributeReType.To.Type()
+}
+
+func (a Alteration) compareAttributeReEncode(b Alteration) bool {
+	if !a.AttributeReEncode.Attr.Compare(b.AttributeReEncode.Attr) {
+		return false
+	}
+
+	if a.AttributeReEncode == nil || b.AttributeReEncode == nil {
+		return a.AttributeReEncode == b.AttributeReEncode
+	}
+	return a.AttributeReEncode.To.Type() == b.AttributeReEncode.To.Type()
+}
+
+func (a Alteration) compareModelAdd(b Alteration) bool {
+	if a.ModelAdd == nil || b.ModelAdd == nil {
+		return a.ModelAdd == b.ModelAdd
+	}
+	return a.ModelAdd.Model.Compare(*b.ModelAdd.Model)
+}
+
+func (a Alteration) compareModelDelete(b Alteration) bool {
+	if a.ModelDelete == nil || b.ModelDelete == nil {
+		return a.ModelDelete == b.ModelDelete
+	}
+	return a.ModelDelete.Model.Compare(*b.ModelDelete.Model)
 }

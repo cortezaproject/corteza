@@ -15,7 +15,7 @@ type (
 	DalSchemaAlteration struct {
 		ID           uint64 `json:"alterationID,string"`
 		BatchID      uint64 `json:"batchID,string"`
-		DependsOn    uint64 `json:"dependsOn,string"`
+		DependsOn    uint64 `json:"dependsOn,string,omitempty"`
 		ConnectionID uint64 `json:"connectionID,string"`
 		Resource     string `json:"resource"`
 		ResourceType string `json:"resourceType"`
