@@ -234,28 +234,29 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 }
 
 func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
-	targetType := strings.ToLower(target.Type.Name)
-	assertType := strings.ToLower(assert.Type.Name)
+	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
+	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
 
-	if targetType == "bigint unsigned" {
-		targetType = "bigint"
-	}
-	if assertType == "bigint unsigned" {
-		assertType = "bigint"
-	}
-
-	targetType = strings.Split(targetType, "(")[0]
-	assertType = strings.Split(assertType, "(")[0]
-
+	// If everything matches up perfectly use that
 	if assertType == targetType {
 		return true
 	}
 
-	// @todo check varchar sizes
-	// @todo signed & unsigned
-
+	// See if we can guess it
 	// [the type of the target column][what types fit the target col. type]
-	return map[string]map[string]bool{
+	matches := map[string]map[string]bool{
+		"bigint unsigned": {
+			"varchar": true,
+			"text":    true,
+
+			"decimal": true,
+		},
+		"bigint signed": {
+			"varchar": true,
+			"text":    true,
+
+			"decimal": true,
+		},
 		"bigint": {
 			"varchar": true,
 			"text":    true,
@@ -300,7 +301,22 @@ func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 			"varchar": true,
 			"text":    true,
 		},
-	}[assertType][targetType]
+	}
+
+	baseMatch := matches[assertName][targetName]
+
+	// Special cases
+	switch {
+	case assertName == "varchar" && targetName == "varchar":
+		// Check varchar size
+		return baseMatch && assertMeta[0] <= targetMeta[0]
+
+	case assertName == "decimal" && targetName == "decimal":
+		// Check decimal size and precision
+		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
+	}
+
+	return baseMatch
 }
 
 func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
