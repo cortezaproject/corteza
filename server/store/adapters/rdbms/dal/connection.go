@@ -362,7 +362,7 @@ func (c *connection) applyAlterationAttributeDelete(ctx context.Context, model *
 }
 
 func (c *connection) applyAlterationAttributeReType(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
-	col, err := c.dataDefiner.ConvertAttribute(alt.AttributeAdd.Attr)
+	col, err := c.dataDefiner.ConvertAttribute(alt.AttributeReType.Attr)
 	if err != nil {
 		return
 	}
