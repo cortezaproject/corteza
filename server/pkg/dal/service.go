@@ -29,13 +29,6 @@ type (
 
 		connectionIssues dalIssueIndex
 		modelIssues      dalIssueIndex
-
-		Alterations alterations
-	}
-
-	alterations interface {
-		ModelAlterations(context.Context, *Model) (out []*Alteration, err error)
-		SetAlterations(ctx context.Context, m *Model, stale []*Alteration, set ...*Alteration) (err error)
 	}
 
 	FullService interface {
@@ -50,7 +43,7 @@ type (
 		RemoveConnection(ctx context.Context, ID uint64) (err error)
 
 		SearchModels(ctx context.Context) (out ModelSet, err error)
-		ReplaceModel(ctx context.Context, model *Model) (err error)
+		ReplaceModel(ctx context.Context, currentAlts []*Alteration, model *Model) (newAlts []*Alteration, err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
 		FindModelByResourceID(connectionID uint64, resourceID uint64) *Model
 		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *Model
@@ -73,6 +66,11 @@ type (
 
 var (
 	gSvc *service
+
+	// wrapper around id.Next() that will aid service testing
+	nextID = func() uint64 {
+		return id.Next()
+	}
 )
 
 // New creates a DAL service with the primary connection
@@ -682,7 +680,7 @@ func (svc *service) SearchModels(ctx context.Context) (out ModelSet, err error) 
 // ReplaceModel adds new or updates an existing model
 //
 // We rely on the user to provide stable and valid model definitions.
-func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) {
+func (svc *service) ReplaceModel(ctx context.Context, currentAlts []*Alteration, model *Model) (newAlts []*Alteration, err error) {
 	var (
 		ID         = model.ResourceID
 		connection = svc.GetConnectionByID(model.ConnectionID)
@@ -747,7 +745,7 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 	}
 
 	// Add to registry
-	// @note models should be added to the registry regardless of issues
+	// Models should be added to the registry regardless of issues
 	svc.addModelToRegistry(model, upd)
 	log.Debug(
 		"added to registry",
@@ -759,48 +757,13 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 		return
 	}
 
-	// Get alterations
-	// - base from the model diff
-	df := oldModel.Diff(model)
-	batchID := id.Next()
-	aa := df.Alterations()
-	for _, a := range aa {
-		a.BatchID = batchID
-		a.Resource = model.Resource
-		a.ResourceType = model.ResourceType
-		a.ConnectionID = model.ConnectionID
-	}
-	// - merge with existing
-	baseAa, err := svc.Alterations.ModelAlterations(ctx, model)
-	if err != nil {
-		return
-	}
-	// - cleanup to remove duplicates, squash overlapping changes, ...
-	aa = svc.mergeAlterations(baseAa, aa)
-	if len(aa) > 0 {
-		batchID = aa[0].BatchID
-	}
-	// - updated with an assertion over the connection
-	aa, err = connection.connection.AssertSchemaAlterations(ctx, model, aa...)
-	if err != nil {
-		return
-	}
-	for _, a := range aa {
-		a.BatchID = batchID
-	}
-
-	err = svc.Alterations.SetAlterations(ctx, model, baseAa, aa...)
+	newAlts, batchID, err := svc.getSchemaAlterations(ctx, connection, currentAlts, oldModel, model)
 	if err != nil {
 		return
 	}
 
-	if len(aa) > 0 {
-		issues.addModelIssue(model.ResourceID, Issue{
-			err: errModelRequiresAlteration(connection.ID, model.ResourceID, batchID),
-			Meta: map[string]any{
-				"batchID": strconv.FormatUint(batchID, 10),
-			},
-		})
+	if len(newAlts) > 0 {
+		svc.setAlterationsModelIssue(issues, batchID, connection, model, newAlts)
 		log.Info("not adding to store: alterations required", zap.Error(err))
 		return
 	}
@@ -853,9 +816,9 @@ func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (e
 		return nil, fmt.Errorf("connection not found")
 	}
 
-	model := svc.getModelByRef(ModelRef{Resource: resource, ResourceType: resourceType})
+	model := svc.getModelByRef(ModelRef{Resource: resource, ResourceType: resourceType, ConnectionID: connectionID})
 	if model == nil {
-		return nil, fmt.Errorf("model not found xd")
+		return nil, fmt.Errorf("model not found")
 	}
 
 	issues = issues.addModel(model.ResourceID)
@@ -865,6 +828,61 @@ func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (e
 	svc.validateAttributes(issues, model, model.Attributes...)
 
 	return connection.connection.ApplyAlteration(ctx, model, alts...), nil
+}
+
+func (svc *service) ReloadModel(ctx context.Context, currentAlts []*Alteration, model *Model) (newAlts []*Alteration, err error) {
+	var (
+		issues = newIssueHelper()
+
+		log = svc.logger.Named("models").With(
+			logger.Uint64("ID", model.ResourceID),
+			zap.String("ident", model.Ident),
+			zap.Any("label", model.Label),
+		)
+	)
+	defer svc.updateIssues(issues)
+
+	connection := svc.GetConnectionByID(model.ConnectionID)
+	if connection == nil {
+		err = fmt.Errorf("connection not found")
+		return
+	}
+
+	issues = issues.addModel(model.ResourceID)
+
+	// @todo consider adding some logging to validators
+	svc.validateModel(issues, connection, model, model)
+	svc.validateAttributes(issues, model, model.Attributes...)
+
+	// If there are any issues at this stage, there is nothing for us to do
+	if issues.hasConnectionIssues() || issues.hasModelIssues() {
+		log.Warn(
+			"not reloading due to issues",
+			zap.Any("connection issues", svc.SearchConnectionIssues(model.ConnectionID)),
+			zap.Any("model issues", svc.SearchModelIssues(model.ResourceID)),
+		)
+		return
+	}
+
+	// Re-evaluate schema alterations
+	// oldModel nil will force it to re-check the entire thing
+	newAlts, batchID, err := svc.getSchemaAlterations(ctx, connection, currentAlts, nil, model)
+	if err != nil {
+		return
+	}
+
+	if len(newAlts) > 0 {
+		svc.setAlterationsModelIssue(issues, batchID, connection, model, newAlts)
+		log.Info("not adding to store: alterations required", zap.Error(err))
+		return
+	}
+
+	err = connection.connection.UpdateModel(ctx, model, model)
+	if err != nil {
+		log.Error("failed with errors", zap.Error(err))
+	}
+
+	return
 }
 
 // RemoveModel removes the given model from DAL
@@ -1248,4 +1266,47 @@ func (svc *service) mergeAlterations(base, added AlterationSet) (out AlterationS
 	}
 
 	return base.Merge(added)
+}
+
+func (svc *service) getSchemaAlterations(ctx context.Context, connection *ConnectionWrap, currentAlts []*Alteration, oldModel, model *Model) (newAlts []*Alteration, batchID uint64, err error) {
+	// - use the diff between the two models as a starting point to see what we should do to support the change
+	df := oldModel.Diff(model)
+	newAlts = df.Alterations()
+	batchID = nextID()
+	for _, a := range newAlts {
+		a.BatchID = batchID
+		a.Resource = model.Resource
+		a.ResourceType = model.ResourceType
+		a.ConnectionID = model.ConnectionID
+	}
+
+	// - merge stale and new alteration
+	// @todo for now we're just using the newly calculated alterations as merging with
+	//       existing ones is not that trivial and doesn't add much value.
+	// @note this merging assumes the two sets are already ok, valid, and without any
+	//       duplications.
+	newAlts = svc.mergeAlterations(currentAlts, newAlts)
+	// - run the alterations against the database to take the schema into consideration
+	newAlts, err = connection.connection.AssertSchemaAlterations(ctx, model, newAlts...)
+	if err != nil {
+		return
+	}
+
+	// - set all of the alterations to the same batch ID
+	for _, a := range newAlts {
+		a.BatchID = batchID
+	}
+
+	return
+}
+
+func (svc *service) setAlterationsModelIssue(issues *issueHelper, batchID uint64, connection *ConnectionWrap, model *Model, alts []*Alteration) {
+	if len(alts) > 0 {
+		issues.addModelIssue(model.ResourceID, Issue{
+			err: errModelRequiresAlteration(connection.ID, model.ResourceID, batchID),
+			Meta: map[string]any{
+				"batchID": strconv.FormatUint(batchID, 10),
+			},
+		})
+	}
 }

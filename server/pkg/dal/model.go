@@ -130,6 +130,17 @@ type (
 		UUID      *TypeUUID      `json:"uuid,omitempty"`
 	}
 
+	// auxStoreCodec is a helper struct used for marshaling/unmarshaling
+	//
+	// This is required since some fields are interfaces
+	auxStoreCodec struct {
+		Type string `json:"type"`
+
+		CodecPlain              *CodecPlain              `json:"codecPlain"`
+		CodecRecordValueSetJSON *CodecRecordValueSetJSON `json:"codecRecordValueSetJSON"`
+		CodecAlias              *CodecAlias              `json:"codecAlias"`
+	}
+
 	AttributeSet []*Attribute
 
 	Index struct {
@@ -206,6 +217,36 @@ func (a *Attribute) StoreIdent() string {
 		return a.Ident
 
 	}
+}
+
+// Compare the two attributes
+func (a *Attribute) Compare(b *Attribute) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+
+	out := true
+	out = out && a.Ident == b.Ident
+	out = out && a.Label == b.Label
+	out = out && a.SensitivityLevelID == b.SensitivityLevelID
+	out = out && a.MultiValue == b.MultiValue
+	out = out && a.PrimaryKey == b.PrimaryKey
+	out = out && a.SoftDeleteFlag == b.SoftDeleteFlag
+	out = out && a.System == b.System
+	out = out && a.Sortable == b.Sortable
+	out = out && a.Filterable == b.Filterable
+	if a.Store == nil || b.Store == nil {
+		out = out && a.Store == b.Store
+	} else {
+		out = out && a.Store.Type() == b.Store.Type()
+	}
+	if a.Type == nil || b.Type == nil {
+		out = out && a.Type == b.Type
+	} else {
+		out = out && a.Type.Type() == b.Type.Type()
+	}
+
+	return out
 }
 
 func (mm ModelSet) FindByResourceID(resourceID uint64) *Model {
@@ -345,6 +386,23 @@ func (m Model) Validate() error {
 	}
 
 	return nil
+}
+
+// Compare the two models
+//
+// This only checks model metadata, the attributes are excluded.
+func (a Model) Compare(b Model) bool {
+	out := true
+
+	out = out && a.ConnectionID == b.ConnectionID
+	out = out && a.Ident == b.Ident
+	out = out && a.Label == b.Label
+	out = out && a.Resource == b.Resource
+	out = out && a.ResourceID == b.ResourceID
+	out = out && a.ResourceType == b.ResourceType
+	out = out && a.SensitivityLevelID == b.SensitivityLevelID
+
+	return out
 }
 
 func (a *Attribute) MarshalJSON() ([]byte, error) {

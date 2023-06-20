@@ -23,7 +23,6 @@ import (
 	apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/http"
@@ -385,9 +384,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		return
 	}
 
-	// Add alteration management service the global DAL service
-	dal.Service().Alterations = service.DefaultDalSchemaAlteration
-
 	if app.Opt.Messagebus.Enabled {
 		// initialize all the queue handlers
 		messagebus.Service().Init(ctx, service.DefaultQueue)
@@ -412,10 +408,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
 	err = cmpService.Initialize(ctx, app.Log, app.Store, cmpService.Config{
-		ActionLog:  app.Opt.ActionLog,
-		Discovery:  app.Opt.Discovery,
-		Storage:    app.Opt.ObjStore,
-		UserFinder: sysService.DefaultUser,
+		ActionLog:        app.Opt.ActionLog,
+		Discovery:        app.Opt.Discovery,
+		Storage:          app.Opt.ObjStore,
+		UserFinder:       sysService.DefaultUser,
+		SchemaAltManager: sysService.DefaultDalSchemaAlteration,
 	})
 
 	if err != nil {
