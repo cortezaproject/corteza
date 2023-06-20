@@ -80,6 +80,19 @@ edit:
   issues:
     label: Issues ({{count}})
 
+  schemaAlterations:
+    title: Schema alterations
+    columns:
+      alteration: Alteration
+      operation: Operation
+      change: Change
+      status: Status
+    resolve: Resolve
+    resolveAuto: Resolve automatically
+    resolved: Resolved
+    dismiss: Dismiss
+    waitingFor: Waiting for {{id}}
+    noAlterations: No schema alterations need to be resolved
 
   config:
     dal:

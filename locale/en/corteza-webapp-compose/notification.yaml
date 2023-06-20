@@ -75,6 +75,15 @@ module:
     saveFailed: Could not save columns
   recordPage:
     createFailed: Could not create module record page
+  schemaAlterations:
+    load:
+      error: Could not fetch alterations
+    resolve:
+      success: Alteration(s) resolved
+      error: Could not resolve alteration(s)
+    dismiss:
+      success: Alteration dismissed
+      error: Could not dismiss alteration
 namespace:
   application:
     createFailed: Could not create namespace application

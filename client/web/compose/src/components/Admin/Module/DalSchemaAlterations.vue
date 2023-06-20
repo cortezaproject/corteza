@@ -1,10 +1,12 @@
 <template>
   <b-modal
     v-model="showModal"
-    title="Schema alterations"
+    :title="$t('title')"
     size="xl"
-    body-class="p-0 border-top-0"
+    body-class="p-0 border-top-0 position-relative"
     header-class="p-3 pb-0 border-bottom-0"
+    no-fade
+    @hide="$emit('hide')"
     @change="$emit('change', $event)"
   >
     <b-table-simple
@@ -12,37 +14,41 @@
       sticky-header
       responsive
       head-variant="light"
-      style="max-height: 75vh;"
+      class="mb-0"
+      style="min-height: 300px; max-height: 75vh;"
     >
       <b-thead>
         <b-tr>
           <b-th
             class="text-primary"
           >
-            Alteration
-          </b-th>
-          <b-th
-            class="text-primary"
-          >
-            Operation
+            {{ $t('alteration') }}
           </b-th>
 
           <b-th
             class="text-primary"
           >
-            Change
+            {{ $t('operation') }}
+          </b-th>
+
+          <b-th
+            class="text-primary"
+            style="max-width: 300px;"
+          >
+            {{ $t('change') }}
           </b-th>
 
           <b-th
             class="text-primary text-center"
           >
-            Status
+            {{ $t('status') }}
           </b-th>
+
           <b-th style="min-width: 200px;" />
         </b-tr>
       </b-thead>
 
-      <b-tbody>
+      <b-tbody v-if="sortedAlterations.length && !loading">
         <b-tr
           v-for="a in sortedAlterations"
           :key="a.alterationID"
@@ -56,10 +62,10 @@
           </b-td>
 
           <b-td>
-            {{ $t(`schema-alteration.${a.kind}.label`) }}
+            {{ a.kind }}
           </b-td>
 
-          <b-td>
+          <b-td style="max-width: 300px; word-wrap: break-word;">
             {{ stringifyParams(a.params) }}
           </b-td>
 
@@ -75,14 +81,14 @@
               v-else-if="a.completedAt"
               variant="success"
             >
-              Resolved
+              {{ $t('resolved') }}
             </b-badge>
 
             <b-badge
               v-else-if="a.dependsOn"
               variant="secondary"
             >
-              Waiting for {{ a.dependsOn }}
+              {{ $t('waitingFor', { id:a.dependsOn }) }}
             </b-badge>
           </b-td>
 
@@ -103,7 +109,7 @@
                 @click.stop
                 @confirmed="onResolve(a)"
               >
-                Resolve
+                {{ $t('resolve') }}
               </c-input-confirm>
 
               <c-input-confirm
@@ -115,12 +121,29 @@
                 @click.stop
                 @confirmed="onDismiss(a)"
               >
-                Dismiss
+                {{ $t('dismiss') }}
               </c-input-confirm>
             </template>
           </b-td>
         </b-tr>
       </b-tbody>
+
+      <div
+        v-else
+        class="position-absolute text-center mt-5 d-print-none"
+        style="left: 0; right: 0;"
+      >
+        <b-spinner
+          v-if="loading"
+        />
+
+        <p
+          v-else-if="!sortedAlterations.length"
+          class="mb-0 mx-2"
+        >
+          {{ $t('noAlterations') }}
+        </p>
+      </div>
     </b-table-simple>
 
     <template #modal-footer>
@@ -128,18 +151,20 @@
         variant="link"
         size="sm"
         :disabled="processing"
+        class="text-decoration-none"
         @click="$emit('cancel')"
       >
-        Cancel
+        {{ canResolveAlterations ? $t('general:label.cancel') : $t('general:label.close') }}
       </b-button>
 
       <c-input-confirm
+        v-if="canResolveAlterations"
         variant="primary"
         :disabled="processing"
         :borderless="false"
         @confirmed="onResolve()"
       >
-        Resolve automatically
+        {{ $t('resolveAuto') }}
         <b-spinner
           v-if="processing"
           variant="white"
@@ -155,6 +180,7 @@ import { compose } from '@cortezaproject/corteza-js'
 export default {
   i18nOptions: {
     namespaces: 'module',
+    keyPrefix: 'schemaAlterations',
   },
 
   props: {
@@ -179,6 +205,7 @@ export default {
     return {
       showModal: false,
 
+      loading: false,
       processing: false,
 
       dependOnHover: undefined,
@@ -192,6 +219,10 @@ export default {
   computed: {
     sortedAlterations () {
       return this.alterations.toSorted((a, b) => (a.batchID || '').localeCompare(b.batchID || '') || (a.dependsOn || '').localeCompare(b.dependsOn || ''))
+    },
+
+    canResolveAlterations () {
+      return this.sortedAlterations.some(this.canResolve)
     },
   },
 
@@ -212,68 +243,66 @@ export default {
   },
 
   methods: {
-    async onDismiss (alteration = undefined) {
-      if (!alteration) {
-        alteration = this.alterations
-      } else {
-        alteration = [alteration]
-      }
-
-      const ids = []
-      for (const a of alteration) {
-        ids.push(a.alterationID)
-        this.alterationProcessing[a.alterationID] = true
-      }
-
+    async onDismiss (alteration) {
       this.processing = true
 
-      this.$SystemAPI.dalSchemaAlterationDismiss({ alterationID: ids }).then(() => {
-        this.toastSuccess(this.$t('notification:module.alteration.dismiss.success'))
-      }).catch(this.toastErrorHandler(this.$t('notification:alteration.dismiss.error')))
+      alteration = alteration ? [alteration] : this.alterations
+
+      const alterationID = []
+      for (const a of alteration) {
+        alterationID.push(a.alterationID)
+        a.processing = true
+      }
+
+      this.$SystemAPI.dalSchemaAlterationDismiss({ alterationID }).then(() => {
+        this.toastSuccess(this.$t('notification:module.schemaAlterations.dismiss.success'))
+      }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.dismiss.error')))
         .finally(() => {
-          this.processing = false
-          for (const i of ids) {
-            this.$delete(this.alterationProcessing, i)
+          for (const a of alteration) {
+            a.processing = false
           }
           this.load(this.batch)
+          this.processing = false
         })
     },
 
-    async onResolve (alteration = undefined) {
-      if (!alteration) {
-        alteration = this.alterations
-      } else {
-        alteration = [alteration]
-      }
-
-      const ids = []
-      for (const a of alteration) {
-        ids.push(a.alterationID)
-        this.alterationProcessing[a.alterationID] = true
-      }
-
+    async onResolve (alteration) {
       this.processing = true
 
-      this.$SystemAPI.dalSchemaAlterationApply({ alterationID: ids }).then(() => {
-        this.toastSuccess(this.$t('notification:module.alteration.resolve.success'))
-      }).catch(this.toastErrorHandler(this.$t('notification:alteration.resolve.error')))
+      alteration = alteration ? [alteration] : this.alterations
+
+      const alterationID = []
+      for (const a of alteration) {
+        alterationID.push(a.alterationID)
+        a.processing = true
+      }
+
+      this.$SystemAPI.dalSchemaAlterationApply({ alterationID }).then(() => {
+        this.toastSuccess(this.$t('notification:module.schemaAlterations.resolve.success'))
+      }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.resolve.error')))
         .finally(() => {
-          this.processing = false
-          for (const i of ids) {
-            this.$delete(this.alterationProcessing, i)
+          for (const a of alteration) {
+            a.processing = false
           }
           this.load(this.batch)
+          this.processing = false
         })
     },
 
-    async load (batch) {
-      if (!batch) {
+    async load (batchID) {
+      if (!batchID) {
+        this.alterations = []
         return
       }
 
-      await this.$SystemAPI.dalSchemaAlterationList({ batchID: batch }).then(({ set }) => {
+      this.loading = true
+
+      return this.$SystemAPI.dalSchemaAlterationList({ batchID }).then(({ set }) => {
         this.alterations = set
-      }).catch(this.toastErrorHandler(this.$t('notification:module.alteration.load.error')))
+      }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.load.error')))
+        .finally(() => {
+          this.loading = false
+        })
     },
 
     stringifyParams (params) {
