@@ -737,6 +737,15 @@ func (svc *service) ReplaceModel(ctx context.Context, model *Model) (err error) 
 		)
 	}
 
+	// Remove the old model from the registry
+	if oldModel != nil {
+		svc.removeModelFromRegistry(oldModel)
+		log.Debug(
+			"removed old model from registry",
+			logger.Uint64("connectionID", model.ConnectionID),
+		)
+	}
+
 	// Add to registry
 	// @note models should be added to the registry regardless of issues
 	svc.addModelToRegistry(model, upd)
