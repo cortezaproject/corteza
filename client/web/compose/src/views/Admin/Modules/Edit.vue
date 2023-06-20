@@ -423,6 +423,7 @@
         :modal="dalSchemaAlterations.modal"
         :batch="dalSchemaAlterations.batchID"
         :module="module"
+        @hide="fetchModule"
         @cancel="dalSchemaAlterations.modal = ($event || false)"
       />
 
@@ -655,55 +656,7 @@ export default {
     moduleID: {
       immediate: true,
       async handler (moduleID) {
-        this.module = undefined
-
-        /**
-         * Every time module changes we switch to the 1st tab
-         */
-        this.activeTab = 0
-
-        if (moduleID === NoID) {
-          this.module = new compose.Module(
-            { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: this.$t('general.placeholder.sample') })] },
-            this.namespace,
-          )
-        } else {
-          const params = {
-            // make sure module is loaded from the API every time!
-            force: true,
-            namespace: this.namespace,
-            moduleID: moduleID,
-          }
-
-          await this.findModuleByID(params).then((module) => {
-            // Make a copy so that we do not change store item by ref
-            this.module = module.clone()
-
-            const { moduleID, namespaceID, issues = [] } = this.module
-
-            if (issues.length > 0) {
-              // do not proceed with record search as it's
-              // likely to fail due to issues on a module
-              return
-            }
-
-            // Count existing records to see what we can do with this module
-            return this.$ComposeAPI
-              .recordList({ moduleID, namespaceID, limit: 1 })
-              .then(({ set }) => { this.hasRecords = (set.length > 0) })
-          })
-        }
-
-        this.fetchSensitivityLevels()
-
-        // Check if module has Alterations to resolve
-        for (const i of this.module.issues) {
-          if (i.meta.batchID) {
-            this.dalSchemaAlterations.modal = true
-            this.dalSchemaAlterations.batchID = i.meta.batchID
-            break
-          }
-        }
+        this.fetchModule(moduleID)
       },
     },
 
@@ -750,6 +703,58 @@ export default {
 
     onPrivacySettingsSave (changes) {
       this.module.config = { ...this.module.config, ...changes }
+    },
+
+    async fetchModule (moduleID = this.moduleID) {
+      this.module = undefined
+
+      /**
+       * Every time module changes we switch to the 1st tab
+       */
+      this.activeTab = 0
+
+      if (moduleID === NoID) {
+        this.module = new compose.Module(
+          { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: this.$t('general.placeholder.sample') })] },
+          this.namespace,
+        )
+      } else {
+        const params = {
+          // make sure module is loaded from the API every time!
+          force: true,
+          namespace: this.namespace,
+          moduleID: moduleID,
+        }
+
+        await this.findModuleByID(params).then((module) => {
+          // Make a copy so that we do not change store item by ref
+          this.module = module.clone()
+
+          const { moduleID, namespaceID, issues = [] } = this.module
+
+          if (issues.length > 0) {
+            // do not proceed with record search as it's
+            // likely to fail due to issues on a module
+            return
+          }
+
+          // Count existing records to see what we can do with this module
+          return this.$ComposeAPI
+            .recordList({ moduleID, namespaceID, limit: 1 })
+            .then(({ set }) => { this.hasRecords = (set.length > 0) })
+        })
+      }
+
+      this.fetchSensitivityLevels()
+
+      // Check if module has Alterations to resolve
+      for (const i of this.module.issues) {
+        if (i.meta.batchID) {
+          this.dalSchemaAlterations.modal = true
+          this.dalSchemaAlterations.batchID = i.meta.batchID
+          break
+        }
+      }
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
