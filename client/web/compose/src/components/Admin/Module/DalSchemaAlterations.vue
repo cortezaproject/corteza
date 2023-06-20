@@ -254,7 +254,7 @@ export default {
 
       this.processing = true
 
-      this.$ComposeAPI.dalSchemaAlterationApply({ alterationID: ids }).then(() => {
+      this.$SystemAPI.dalSchemaAlterationApply({ alterationID: ids }).then(() => {
         this.toastSuccess(this.$t('notification:module.alteration.resolve.success'))
       }).catch(this.toastErrorHandler(this.$t('notification:alteration.resolve.error')))
         .finally(() => {
@@ -309,11 +309,11 @@ export default {
     },
 
     stringifyAttributeReTypeParams (params) {
-      return `Changing type of column ${params.attr.ident} from ${params.attr.type.type} to ${params.to.type.type}`
+      return `Changing type of column ${params.attr.ident} to ${params.to.type}`
     },
 
     stringifyAttributeReEncodeParams (params) {
-      return `Changing encoding of column ${params.attr.ident} from ${params.attr.store.type} to ${params.to.store.type}`
+      return `Changing encoding of column ${params.attr.ident} to ${params.to.type}`
     },
 
     stringifyModelAddParams (params) {
