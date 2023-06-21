@@ -215,7 +215,60 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 }
 
 func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
-	return false
+	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
+	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
+
+	// If everything matches up perfectly use that
+	if assertType == targetType {
+		return true
+	}
+
+	// See if we can guess it
+	// [the type of the target column][what types fit the target col. type]
+	matches := map[string]map[string]bool{
+		"numeric": {
+			"text": true,
+		},
+		"timestamp": {
+			"text": true,
+
+			"timestamptz": true,
+		},
+		"timestamptz": {
+			"text": true,
+		},
+		"time": {
+			"text": true,
+
+			"timetz": true,
+		},
+		"timetz": {
+			"text": true,
+		},
+		"date": {
+			"text": true,
+		},
+		"text":  {},
+		"jsonb": {},
+		"bytea": {},
+		"boolean": {
+			"numeric": true,
+		},
+		"uuid": {
+			"text": true,
+		},
+	}
+
+	baseMatch := matches[assertName][targetName]
+
+	// Special cases
+	switch {
+	case assertName == "numeric" && targetName == "numeric":
+		// Check numeric size and precision
+		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
+	}
+
+	return baseMatch
 }
 
 func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
