@@ -84,7 +84,6 @@ edit:
     title: Schema alterations
     columns:
       alteration: Alteration
-      operation: Operation
       change: Change
       status: Status
     resolve: Resolve
@@ -93,7 +92,15 @@ edit:
     dismiss: Dismiss
     waitingFor: Waiting for {{id}}
     noAlterations: No schema alterations need to be resolved
-
+    params:
+      attribute:
+        add: Add column {{ident}} encoded as {{storeType}} of type {{attrType}}
+        delete: Delete column {{ident}} encoded as {{storeType}}
+        reType: Changing type of column {{ident}} to {{toType}}
+        reEncode: Changing encoding of column {{ident}} to {{toType}}
+      model:
+        add: Add schema for model {{ident}}
+        delete: Delete schema for model {{ident}}
   config:
     dal:
       title: Data store

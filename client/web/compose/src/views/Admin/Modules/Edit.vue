@@ -383,6 +383,7 @@
                 v-if="module.issues.length > 0"
                 :title="$t('edit.issues.label', { count: module.issues.length })"
                 title-link-class="text-danger"
+                @click="checkAlterations"
               >
                 <b-alert
                   v-for="(issue, index) in module.issues"
@@ -671,6 +672,8 @@ export default {
       immediate: true,
       async handler (moduleID) {
         this.fetchModule(moduleID)
+        this.fetchSensitivityLevels()
+        this.checkAlterations()
       },
     },
 
@@ -867,9 +870,9 @@ export default {
             .then(({ set }) => { this.hasRecords = (set.length > 0) })
         })
       }
+    },
 
-      this.fetchSensitivityLevels()
-
+    checkAlterations () {
       // Check if module has Alterations to resolve
       for (const i of this.module.issues) {
         if (i.meta.batchID) {

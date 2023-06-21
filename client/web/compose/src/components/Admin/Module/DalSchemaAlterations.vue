@@ -27,12 +27,6 @@
 
           <b-th
             class="text-primary"
-          >
-            {{ $t('operation') }}
-          </b-th>
-
-          <b-th
-            class="text-primary"
             style="max-width: 300px;"
           >
             {{ $t('change') }}
@@ -62,10 +56,6 @@
           </b-td>
 
           <b-td>
-            {{ a.kind }}
-          </b-td>
-
-          <b-td style="max-width: 300px; word-wrap: break-word;">
             {{ stringifyParams(a.params) }}
           </b-td>
 
@@ -329,28 +319,28 @@ export default {
       throw new Error('Unknown alteration type')
     },
 
-    stringifyAttributeAddParams (params) {
-      return `Add column ${params.attr.ident} encoded as ${params.attr.store.type} of type ${params.attr.type.type}`
+    stringifyAttributeAddParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.add', { ident: attr.ident, storeType: attr.store.type, attrType: attr.type.type })
     },
 
-    stringifyAttributeDeleteParams (params) {
-      return `Delete column ${params.attr.ident} encoded as ${params.attr.store.type}`
+    stringifyAttributeDeleteParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, storeType: attr.store.type })
     },
 
-    stringifyAttributeReTypeParams (params) {
-      return `Changing type of column ${params.attr.ident} to ${params.to.type}`
+    stringifyAttributeReTypeParams ({ attr = {}, to = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, toType: to.type })
     },
 
-    stringifyAttributeReEncodeParams (params) {
-      return `Changing encoding of column ${params.attr.ident} to ${params.to.type}`
+    stringifyAttributeReEncodeParams ({ attr = {}, to = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, toType: to.type })
     },
 
-    stringifyModelAddParams (params) {
-      return `Add schema for model ${params.model.ident}`
+    stringifyModelAddParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.model.add', { ident: attr.ident })
     },
 
-    stringifyModelDeleteParams (params) {
-      return `Delete schema for model ${params.model.ident}`
+    stringifyModelDeleteParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.model.delete', { ident: attr.ident })
     },
 
     canDismiss (alteration) {
