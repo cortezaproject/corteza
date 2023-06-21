@@ -230,7 +230,54 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 }
 
 func (mssqlDialect) ColumnFits(target, assert *ddl.Column) bool {
-	return false
+	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
+	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
+
+	// If everything matches up perfectly use that
+	if assertType == targetType {
+		return true
+	}
+
+	// See if we can guess it
+	// [the type of the target column][what types fit the target col. type]
+	matches := map[string]map[string]bool{
+		"bigint": {
+			"varchar": true,
+		},
+		"datetime": {
+			"varchar": true,
+		},
+		"time": {
+			"varchar": true,
+		},
+		"date": {
+			"varchar": true,
+		},
+		"decimal": {
+			"varchar": true,
+		},
+		"varchar":   {},
+		"varbinary": {},
+		"bit":       {},
+		"char": {
+			"varchar": true,
+		},
+	}
+
+	baseMatch := matches[assertName][targetName]
+
+	// Special cases
+	switch {
+	case assertName == "varchar" && targetName == "varchar":
+		// Check varchar size
+		return baseMatch && assertMeta[0] <= targetMeta[0]
+
+	case assertName == "decimal" && targetName == "decimal":
+		// Check decimal size and precision
+		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
+	}
+
+	return baseMatch
 }
 
 // @todo untested
