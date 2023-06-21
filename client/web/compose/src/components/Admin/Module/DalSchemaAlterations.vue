@@ -289,6 +289,10 @@ export default {
 
       return this.$SystemAPI.dalSchemaAlterationList({ batchID }).then(({ set }) => {
         this.alterations = set
+
+        if (!this.alteration.length) {
+          this.$emit('hide')
+        }
       }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.load.error')))
         .finally(() => {
           this.loading = false
