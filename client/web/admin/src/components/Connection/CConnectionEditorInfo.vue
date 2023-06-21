@@ -1,5 +1,6 @@
 <template>
   <b-card
+    data-test-id="card-connection-settings"
     class="shadow-sm"
     :title="$t('title')"
   >

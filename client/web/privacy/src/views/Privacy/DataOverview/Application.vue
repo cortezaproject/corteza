@@ -63,6 +63,7 @@
         :back-link="{ name: 'data-overview' }"
       >
         <b-button
+          data-test-id="button-request-deletion"
           :disabled="processing.connections || processing.sensitiveData"
           variant="light"
           size="lg"
@@ -73,6 +74,7 @@
         </b-button>
 
         <b-button
+          data-test-id="button-request-correction"
           :disabled="processing.connections || processing.sensitiveData"
           variant="primary"
           size="lg"

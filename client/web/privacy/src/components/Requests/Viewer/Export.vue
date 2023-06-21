@@ -7,6 +7,7 @@
       label-class="text-primary"
     >
       <span
+        data-test-id="span-data-type"
         class="ml-2"
       >
         {{ dataType }}
@@ -18,6 +19,7 @@
       label-class="text-primary"
     >
       <span
+        data-test-id="span-date-range"
         class="ml-2"
       >
         {{ $t(`date-range.${payload.range}`) }}
@@ -29,6 +31,7 @@
       label-class="text-primary"
     >
       <span
+        data-test-id="span-file-format"
         class="ml-2"
       >
         {{ $t(`file-format.${payload.format}`) }}

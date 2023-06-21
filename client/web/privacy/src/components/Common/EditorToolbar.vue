@@ -10,6 +10,7 @@
       <b-col>
         <b-button
           v-if="backLink"
+          data-test-id="button-back"
           variant="link"
           size="lg"
           :to="backLink"
@@ -50,6 +51,7 @@
 
           <b-button
             v-else
+            :data-test-id="buttonLabelCypressId(deleteLabel)"
             :disabled="deleteDisabled || processing"
             variant="danger"
             size="lg"
@@ -62,6 +64,7 @@
 
         <b-button
           v-if="submitShow"
+          :data-test-id="buttonLabelCypressId(submitLabel)"
           :disabled="submitDisabled || processing"
           variant="primary"
           size="lg"
@@ -123,6 +126,12 @@ export default {
     submitLabel: {
       type: String,
       default: '',
+    },
+  },
+
+  methods: {
+    buttonLabelCypressId (label) {
+      return `button-${label.toLowerCase().split(' ').join('-')}`
     },
   },
 }

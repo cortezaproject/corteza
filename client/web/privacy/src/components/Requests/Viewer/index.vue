@@ -17,6 +17,7 @@
           {{ formattedDate }}
         </span>
         <b-badge
+          :data-test-id="`badge-${request.status}`"
           :variant="statusVariants[request.status]"
           pill
           class="px-2 py-1"
@@ -25,7 +26,10 @@
         </b-badge>
       </h5>
 
-      <b-card-text class="text-primary">
+      <b-card-text
+        data-test-id="request-author"
+        class="text-primary"
+      >
         {{ formattedUsers[request.requestedBy] || 'Unknown user' }}
       </b-card-text>
     </template>

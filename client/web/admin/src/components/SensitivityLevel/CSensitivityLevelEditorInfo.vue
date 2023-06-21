@@ -1,5 +1,6 @@
 <template>
   <b-card
+    data-test-id="card-sens-lvl-info"
     class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
@@ -17,6 +18,7 @@
           >
             <b-form-input
               v-model="sensitivityLevel.meta.name"
+              data-test-id="input-name"
               required
               :state="nameState"
             />
