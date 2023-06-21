@@ -11,12 +11,14 @@
       >
         <b-form-checkbox
           v-model="payload.profile"
+          data-test-id="checkbox-profile-information"
           class="ml-2 mb-1"
         >
           {{ $t('data-type.profile-information') }}
         </b-form-checkbox>
         <b-form-checkbox
           v-model="payload.application"
+          data-test-id="checkbox-application-data"
           class="ml-2"
         >
           {{ $t('data-type.application-data') }}
@@ -48,6 +50,7 @@
           >
             <b-form-select
               v-model="payload.format"
+              data-test-id="select-file-format"
               :options="formatOptions"
             />
           </b-form-group>

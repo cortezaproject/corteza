@@ -1,5 +1,6 @@
 <template>
   <vue-select
+    data-test-id="select-sens-lvl"
     key="type"
     :value="_value"
     :disabled="_disabled"

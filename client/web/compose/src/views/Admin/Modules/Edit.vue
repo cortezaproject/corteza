@@ -7,6 +7,7 @@
     <portal to="topbar-tools">
       <b-button-group
         v-if="isEdit"
+        data-test-id="button-all-records"
         size="sm"
         class="mr-1"
       >

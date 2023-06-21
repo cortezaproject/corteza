@@ -1,6 +1,7 @@
 
 <template>
   <b-card
+    data-test-id="card-primary-database"
     class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
@@ -11,6 +12,7 @@
 
         <b-button
           v-if="connection"
+          data-test-id="button-edit"
           size="sm"
           variant="link"
           :to="{ name: 'system.connection.edit', params: { connectionID: (connection || {}).connectionID } }"

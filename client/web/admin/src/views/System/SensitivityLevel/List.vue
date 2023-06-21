@@ -10,6 +10,7 @@
       >
         <b-button
           v-if="canCreate"
+          data-test-id="button-new-sens-lvl"
           variant="primary"
           class="mr-2"
           :to="{ name: 'system.sensitivityLevel.new' }"
