@@ -227,44 +227,70 @@ func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
 	// [the type of the target column][what types fit the target col. type]
 	matches := map[string]map[string]bool{
 		"numeric": {
-			"text": true,
+			"text":    true,
+			"varchar": true,
 		},
 		"timestamp": {
-			"text": true,
+			"text":    true,
+			"varchar": true,
 
 			"timestamptz": true,
 		},
 		"timestamptz": {
-			"text": true,
+			"text":    true,
+			"varchar": true,
 		},
 		"time": {
-			"text": true,
+			"text":    true,
+			"varchar": true,
 
 			"timetz": true,
 		},
 		"timetz": {
-			"text": true,
+			"text":    true,
+			"varchar": true,
 		},
 		"date": {
+			"text":    true,
+			"varchar": true,
+		},
+		"text": {},
+		"varchar": {
 			"text": true,
 		},
-		"text":  {},
 		"jsonb": {},
 		"bytea": {},
 		"boolean": {
 			"numeric": true,
 		},
 		"uuid": {
-			"text": true,
+			"text":    true,
+			"varchar": true,
 		},
 	}
 
-	baseMatch := matches[assertName][targetName]
+	baseMatch := assertName == targetName || matches[assertName][targetName]
 
 	// Special cases
 	switch {
+	case assertName == "varchar" && targetName == "varchar":
+		// Check varchar size
+		for i := len(assertMeta); i < 1; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		for i := len(targetMeta); i < 1; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
 	case assertName == "numeric" && targetName == "numeric":
 		// Check numeric size and precision
+		for i := len(assertMeta); i < 2; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		for i := len(targetMeta); i < 2; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
 		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
 	}
 

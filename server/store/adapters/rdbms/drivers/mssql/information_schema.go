@@ -11,6 +11,8 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
+	"github.com/modern-go/reflect2"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -48,6 +50,9 @@ func (i *informationSchema) columnSelect(dbname string) *goqu.SelectDataset {
 		"COLUMN_NAME",
 		"IS_NULLABLE",
 		"DATA_TYPE",
+		"CHARACTER_MAXIMUM_LENGTH",
+		"NUMERIC_SCALE",
+		"DATETIME_PRECISION",
 	).
 		// @note this goqu.I is a cheat; try to figure out if we have something nicer available (same applies to lower code)
 		From(goqu.I(fmt.Sprintf("%s.information_schema.columns", dbname))).
@@ -69,6 +74,11 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			Column     string `db:"COLUMN_NAME"`
 			IsNullable string `db:"IS_NULLABLE"`
 			Type       string `db:"DATA_TYPE"`
+			// We'll use these two to get numeric's precision and scale
+			Precision any `db:"DATETIME_PRECISION"`
+			Scale     any `db:"NUMERIC_SCALE"`
+			// We'll use this one to get varchar length
+			MaxLength any `db:"CHARACTER_MAXIMUM_LENGTH"`
 		}, 0)
 	)
 
@@ -83,6 +93,35 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			at = len(out)
 			n2p[v.Table] = at
 			out = append(out, &ddl.Table{Ident: v.Table})
+		}
+
+		if v.Type == "decimal" {
+			var (
+				p, s int
+			)
+
+			if !reflect2.IsNil(v.Precision) {
+				p = cast.ToInt(v.Precision)
+			}
+			if !reflect2.IsNil(v.Scale) {
+				s = cast.ToInt(v.Scale)
+			}
+
+			if p+s > 0 {
+				v.Type = fmt.Sprintf("%s(%d,%d)", v.Type, p, s)
+			}
+		}
+
+		if v.Type == "varchar" {
+			var (
+				l int
+			)
+
+			if !reflect2.IsNil(v.MaxLength) {
+				l = cast.ToInt(v.MaxLength)
+			}
+
+			v.Type = fmt.Sprintf("%s(%d)", v.Type, l)
 		}
 
 		out[at].Columns = append(out[at].Columns, &ddl.Column{

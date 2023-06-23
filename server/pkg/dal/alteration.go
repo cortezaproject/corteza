@@ -81,40 +81,31 @@ func (aa AlterationSet) Merge(bb AlterationSet) (cc AlterationSet) {
 	// * attribute A renamed to A' and then renamed to A''
 	// * attribute A deleted and then created
 
-	cc = make(AlterationSet, 0, len(aa)+len(bb))
-	skip := make(map[int]bool, (len(aa)+len(bb))/2)
+	aux := append(aa, bb...)
+	seen := make(map[int]bool, len(aux)/2)
 
-	// For each item in aa, check if it has a matching element in bb.
-	// If it does, mark the bb index as skipped, if it doesn't use the aa element.
-	// If a duplicate is found, the bb element is used (considered newer),
-	//
-	// This is sub-optimal but the slices are expected to be small and this
-	// won't be ran often.
-	for _, a := range aa {
-		found := false
-		for j, b := range bb {
-			if skip[j] {
-				continue
-			}
-
-			if a.compare(*b) {
-				skip[j] = true
-				cc = append(cc, b)
-				found = true
-				break
-			}
-		}
-		if !found {
-			cc = append(cc, a)
-		}
-	}
-
-	for j, b := range bb {
-		if skip[j] {
+	for i, a := range aux {
+		if seen[i] {
 			continue
 		}
 
-		cc = append(cc, b)
+		found := false
+		for j := i + 1; j < len(aux); j++ {
+			if seen[j] {
+				continue
+			}
+
+			if a.compare(*aux[j]) {
+				seen[j] = true
+				found = true
+				cc = append(cc, aux[j])
+				break
+			}
+		}
+
+		if !found {
+			cc = append(cc, a)
+		}
 	}
 
 	return

@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
+	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza/server/pkg/cast2"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
@@ -264,17 +265,46 @@ func (mssqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 		},
 	}
 
-	baseMatch := matches[assertName][targetName]
+	baseMatch := assertName == targetName || matches[assertName][targetName]
 
 	// Special cases
 	switch {
 	case assertName == "varchar" && targetName == "varchar":
 		// Check varchar size
-		return baseMatch && assertMeta[0] <= targetMeta[0]
+		for i := len(assertMeta); i < 1; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		if assertMeta[0] == "max" {
+			assertMeta[0] = "-1"
+		}
+		assertA := cast.ToInt(assertMeta[0])
+
+		for i := len(targetMeta); i < 1; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+		if targetMeta[0] == "max" {
+			targetMeta[0] = "-1"
+		}
+		targetA := cast.ToInt(targetMeta[0])
+
+		// -1 means no limit so it can fit any length
+		if targetA == -1 {
+			return baseMatch
+		}
+
+		return baseMatch && assertA <= targetA
 
 	case assertName == "decimal" && targetName == "decimal":
 		// Check decimal size and precision
-		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
+		for i := len(assertMeta); i < 2; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+
+		for i := len(targetMeta); i < 2; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0]) && cast.ToInt(assertMeta[1]) <= cast.ToInt(targetMeta[1])
 	}
 
 	return baseMatch

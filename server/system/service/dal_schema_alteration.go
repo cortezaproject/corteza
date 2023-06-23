@@ -159,9 +159,13 @@ func (svc dalSchemaAlteration) UndeleteByID(ctx context.Context, dalSchemaAltera
 
 // ModelAlterations returns all non deleted, non completed, and non dismissed alterations for the given model
 func (svc dalSchemaAlteration) ModelAlterations(ctx context.Context, m *dal.Model) (out []*dal.Alteration, err error) {
+	return svc.modelAlterations(ctx, svc.store, m)
+}
+
+func (svc dalSchemaAlteration) modelAlterations(ctx context.Context, s store.Storer, m *dal.Model) (out []*dal.Alteration, err error) {
 	// @todo boilerplate code around this
 
-	aux, _, err := store.SearchDalSchemaAlterations(ctx, svc.store, types.DalSchemaAlterationFilter{
+	aux, _, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
 		Resource:  []string{m.Resource},
 		Deleted:   filter.StateExcluded,
 		Completed: filter.StateExcluded,
@@ -333,7 +337,7 @@ func (svc dalSchemaAlteration) Dismiss(ctx context.Context, ids ...uint64) (err 
 	// originally, we wanted to hook into ComposeModule resource (or any resource that defined a model)
 
 	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
-		alt, _, err := store.SearchDalSchemaAlterations(ctx, svc.store, types.DalSchemaAlterationFilter{
+		alt, _, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
 			AlterationID: id.Strings(ids...),
 		})
 		if err != nil {
@@ -341,11 +345,11 @@ func (svc dalSchemaAlteration) Dismiss(ctx context.Context, ids ...uint64) (err 
 		}
 
 		alt = svc.appliableAlterations(alt...)
-
+		identity := intAuth.GetIdentityFromContext(ctx).Identity()
 		for _, a := range alt {
 			a.Error = ""
 			a.DismissedAt = now()
-			a.DismissedBy = intAuth.GetIdentityFromContext(ctx).Identity()
+			a.DismissedBy = identity
 		}
 
 		err = store.UpdateDalSchemaAlteration(ctx, s, alt...)
@@ -474,7 +478,7 @@ func (svc dalSchemaAlteration) reloadAlteredModels(ctx context.Context, s store.
 		return
 	}
 
-	currentAlts, err := svc.ModelAlterations(ctx, model)
+	currentAlts, err := svc.modelAlterations(ctx, s, model)
 	if err != nil {
 		return
 	}
