@@ -2,12 +2,16 @@ package postgres
 
 import (
 	"context"
+	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
-	"strings"
+	"github.com/modern-go/reflect2"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -46,6 +50,11 @@ func (i *informationSchema) columnSelect() *goqu.SelectDataset {
 		"column_name",
 		"is_nullable",
 		"data_type",
+		// We'll use these two to get numeric's precision and scale
+		"numeric_precision",
+		"numeric_scale",
+		// We'll use this one to get varchar length
+		"character_maximum_length",
 	).
 		From("information_schema.columns").
 		Order(
@@ -59,6 +68,12 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 		at  int
 		has bool
 		n2p = make(map[string]int)
+		// Making column type naming consistent between different databases
+		typeMapping = map[string]string{
+			"timestamp with time zone":    "timestamptz",
+			"timestamp without time zone": "timestamp",
+			"character varying":           "varchar",
+		}
 
 		// https://dev.mysql.com/doc/mysql-infoschema-excerpt/5.7/en/information-schema-statistics-table.html
 		aux = make([]struct {
@@ -66,6 +81,9 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			Column     string `db:"column_name"`
 			IsNullable string `db:"is_nullable"`
 			Type       string `db:"data_type"`
+			Precision  any    `db:"numeric_precision"`
+			Scale      any    `db:"numeric_scale"`
+			MaxLength  any    `db:"character_maximum_length"`
 		}, 0)
 	)
 
@@ -82,10 +100,44 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			out = append(out, &ddl.Table{Ident: v.Table})
 		}
 
+		tn, has := typeMapping[v.Type]
+		if !has {
+			tn = v.Type
+		}
+
+		if tn == "numeric" {
+			var (
+				p, s int
+			)
+
+			if !reflect2.IsNil(v.Precision) {
+				p = cast.ToInt(v.Precision)
+			}
+			if !reflect2.IsNil(v.Scale) {
+				s = cast.ToInt(v.Scale)
+			}
+
+			if p+s > 0 {
+				tn = fmt.Sprintf("%s(%d,%d)", tn, p, s)
+			}
+		}
+
+		if tn == "varchar" {
+			var (
+				l int
+			)
+
+			if !reflect2.IsNil(v.MaxLength) {
+				l = cast.ToInt(v.MaxLength)
+			}
+
+			tn = fmt.Sprintf("%s(%d)", tn, l)
+		}
+
 		out[at].Columns = append(out[at].Columns, &ddl.Column{
 			Ident: v.Column,
 			Type: &ddl.ColumnType{
-				Name: v.Type,
+				Name: tn,
 				Null: v.IsNullable == "YES",
 			},
 		})

@@ -70,6 +70,38 @@ func TestMerge(t *testing.T) {
 			},
 		},
 		{
+			name: "remove duplicates",
+			aa:   AlterationSet{},
+			bb: AlterationSet{
+				&Alteration{
+					AttributeAdd: &AttributeAdd{
+						Attr: &Attribute{
+							Ident: "foo",
+							Type:  &TypeJSON{Nullable: false},
+						},
+					},
+				},
+				&Alteration{
+					AttributeAdd: &AttributeAdd{
+						Attr: &Attribute{
+							Ident: "foo",
+							Type:  &TypeJSON{Nullable: false},
+						},
+					},
+				},
+			},
+			cc: AlterationSet{
+				&Alteration{
+					AttributeAdd: &AttributeAdd{
+						Attr: &Attribute{
+							Ident: "foo",
+							Type:  &TypeJSON{Nullable: false},
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "un matching types",
 			aa: AlterationSet{
 				&Alteration{

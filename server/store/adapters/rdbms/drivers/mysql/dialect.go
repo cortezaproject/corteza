@@ -233,6 +233,7 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	return
 }
 
+// target is the existing one
 func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
 	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
@@ -303,7 +304,7 @@ func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 		},
 	}
 
-	baseMatch := matches[assertName][targetName]
+	baseMatch := assertName == targetName || matches[assertName][targetName]
 
 	// Special cases
 	switch {
@@ -312,8 +313,15 @@ func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 		return baseMatch && assertMeta[0] <= targetMeta[0]
 
 	case assertName == "decimal" && targetName == "decimal":
-		// Check decimal size and precision
-		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
+		// Check numeric size and precision
+		for i := len(assertMeta); i < 2; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		for i := len(targetMeta); i < 2; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0]) && cast.ToInt(assertMeta[1]) <= cast.ToInt(targetMeta[1])
 	}
 
 	return baseMatch
