@@ -1423,7 +1423,7 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 		dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
 		dal.FullAttribute(sysDeletedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
 		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
-		dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
+		dal.FullAttribute(sysRevision, &dal.TypeNumber{HasDefault: true, DefaultValue: 0, Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}}, mfc(colSysRevision, sysEnc.Revision)),
 		dal.FullAttribute(sysMeta, &dal.TypeJSON{}, mfc(colSysMeta, sysEnc.Meta)),
 		dal.FullAttribute(sysOwnedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
 		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),
