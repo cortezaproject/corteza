@@ -503,6 +503,11 @@ func (svc accessControl) List() (out []map[string]string) {
 		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
+			"op":   "dal-schema-alterations.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
 			"op":   "data-privacy-request.create",
 		},
 		{
@@ -1112,6 +1117,14 @@ func (svc accessControl) CanManageResourceTranslations(ctx context.Context) bool
 	return svc.can(ctx, "resource-translations.manage", r)
 }
 
+// CanManageDalSchemaAlterations checks if current user can list, search, apply, or dismiss dal alterations
+//
+// This function is auto-generated
+func (svc accessControl) CanManageDalSchemaAlterations(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "dal-schema-alterations.manage", r)
+}
+
 // CanCreateDataPrivacyRequest checks if current user can create data privacy requests
 //
 // This function is auto-generated
@@ -1327,35 +1340,36 @@ func rbacResourceOperations(r string) map[string]bool {
 		}
 	case types.ComponentResourceType:
 		return map[string]bool{
-			"grant":                        true,
-			"action-log.read":              true,
-			"settings.read":                true,
-			"settings.manage":              true,
-			"auth-client.create":           true,
-			"auth-clients.search":          true,
-			"role.create":                  true,
-			"roles.search":                 true,
-			"user.create":                  true,
-			"users.search":                 true,
-			"dal-connection.create":        true,
-			"dal-connections.search":       true,
-			"dal-sensitivity-level.manage": true,
-			"application.create":           true,
-			"applications.search":          true,
-			"application.flag.self":        true,
-			"application.flag.global":      true,
-			"template.create":              true,
-			"templates.search":             true,
-			"report.create":                true,
-			"reports.search":               true,
-			"reminder.assign":              true,
-			"queue.create":                 true,
-			"queues.search":                true,
-			"apigw-route.create":           true,
-			"apigw-routes.search":          true,
-			"resource-translations.manage": true,
-			"data-privacy-request.create":  true,
-			"data-privacy-requests.search": true,
+			"grant":                         true,
+			"action-log.read":               true,
+			"settings.read":                 true,
+			"settings.manage":               true,
+			"auth-client.create":            true,
+			"auth-clients.search":           true,
+			"role.create":                   true,
+			"roles.search":                  true,
+			"user.create":                   true,
+			"users.search":                  true,
+			"dal-connection.create":         true,
+			"dal-connections.search":        true,
+			"dal-sensitivity-level.manage":  true,
+			"application.create":            true,
+			"applications.search":           true,
+			"application.flag.self":         true,
+			"application.flag.global":       true,
+			"template.create":               true,
+			"templates.search":              true,
+			"report.create":                 true,
+			"reports.search":                true,
+			"reminder.assign":               true,
+			"queue.create":                  true,
+			"queues.search":                 true,
+			"apigw-route.create":            true,
+			"apigw-routes.search":           true,
+			"resource-translations.manage":  true,
+			"dal-schema-alterations.manage": true,
+			"data-privacy-request.create":   true,
+			"data-privacy-requests.search":  true,
 		}
 	}
 

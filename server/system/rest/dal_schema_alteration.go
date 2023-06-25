@@ -40,8 +40,6 @@ type (
 	alterationService interface {
 		Search(ctx context.Context, filter types.DalSchemaAlterationFilter) (types.DalSchemaAlterationSet, types.DalSchemaAlterationFilter, error)
 		FindByID(ctx context.Context, ID uint64) (*types.DalSchemaAlteration, error)
-		DeleteByID(ctx context.Context, ID uint64) error
-		UndeleteByID(ctx context.Context, ID uint64) error
 		Apply(context.Context, ...uint64) error
 		Dismiss(context.Context, ...uint64) error
 	}
@@ -86,14 +84,6 @@ func (ctrl DalSchemaAlteration) List(ctx context.Context, r *request.DalSchemaAl
 func (ctrl DalSchemaAlteration) Read(ctx context.Context, r *request.DalSchemaAlterationRead) (interface{}, error) {
 	res, err := ctrl.svc.FindByID(ctx, r.AlterationID)
 	return ctrl.makePayload(ctx, res, err)
-}
-
-func (ctrl DalSchemaAlteration) Delete(ctx context.Context, r *request.DalSchemaAlterationDelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.DeleteByID(ctx, r.AlterationID)
-}
-
-func (ctrl DalSchemaAlteration) Undelete(ctx context.Context, r *request.DalSchemaAlterationUndelete) (interface{}, error) {
-	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.AlterationID)
 }
 
 func (ctrl DalSchemaAlteration) Apply(ctx context.Context, r *request.DalSchemaAlterationApply) (interface{}, error) {

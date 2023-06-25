@@ -21,20 +21,16 @@ type (
 	DalSchemaAlterationAPI interface {
 		List(context.Context, *request.DalSchemaAlterationList) (interface{}, error)
 		Read(context.Context, *request.DalSchemaAlterationRead) (interface{}, error)
-		Delete(context.Context, *request.DalSchemaAlterationDelete) (interface{}, error)
-		Undelete(context.Context, *request.DalSchemaAlterationUndelete) (interface{}, error)
 		Apply(context.Context, *request.DalSchemaAlterationApply) (interface{}, error)
 		Dismiss(context.Context, *request.DalSchemaAlterationDismiss) (interface{}, error)
 	}
 
 	// HTTP API interface
 	DalSchemaAlteration struct {
-		List     func(http.ResponseWriter, *http.Request)
-		Read     func(http.ResponseWriter, *http.Request)
-		Delete   func(http.ResponseWriter, *http.Request)
-		Undelete func(http.ResponseWriter, *http.Request)
-		Apply    func(http.ResponseWriter, *http.Request)
-		Dismiss  func(http.ResponseWriter, *http.Request)
+		List    func(http.ResponseWriter, *http.Request)
+		Read    func(http.ResponseWriter, *http.Request)
+		Apply   func(http.ResponseWriter, *http.Request)
+		Dismiss func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -65,38 +61,6 @@ func NewDalSchemaAlteration(h DalSchemaAlterationAPI) *DalSchemaAlteration {
 			}
 
 			value, err := h.Read(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		Delete: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewDalSchemaAlterationDelete()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Delete(r.Context(), params)
-			if err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			api.Send(w, r, value)
-		},
-		Undelete: func(w http.ResponseWriter, r *http.Request) {
-			defer r.Body.Close()
-			params := request.NewDalSchemaAlterationUndelete()
-			if err := params.Fill(r); err != nil {
-				api.Send(w, r, err)
-				return
-			}
-
-			value, err := h.Undelete(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -144,8 +108,6 @@ func (h DalSchemaAlteration) MountRoutes(r chi.Router, middlewares ...func(http.
 		r.Use(middlewares...)
 		r.Get("/dal/schema/alterations/", h.List)
 		r.Get("/dal/schema/alterations/{alterationID}", h.Read)
-		r.Delete("/dal/schema/alterations/{alterationID}", h.Delete)
-		r.Post("/dal/schema/alterations/{alterationID}/undelete", h.Undelete)
 		r.Post("/dal/schema/alterations/apply", h.Apply)
 		r.Post("/dal/schema/alterations/dismiss", h.Dismiss)
 	})

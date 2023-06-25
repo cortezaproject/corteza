@@ -960,18 +960,6 @@ endpoints:
     path: "/{alterationID}"
     parameters:
       path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
-  - name: delete
-    method: DELETE
-    title: Remove alteration
-    path: "/{alterationID}"
-    parameters:
-      path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
-  - name: undelete
-    method: POST
-    title: Undelete alteration
-    path: "/{alterationID}/undelete"
-    parameters:
-      path: [ { type: uint64, name: alterationID, required: true, title: "Alteration ID" } ]
 
   - name: apply
     method: POST
