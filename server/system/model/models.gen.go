@@ -1183,6 +1183,12 @@ var DalSchemaAlteration = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Error",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "error"},
+		},
+
+		&dal.Attribute{
 			Ident: "CreatedAt", Sortable: true,
 			Type: &dal.TypeTimestamp{
 				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,

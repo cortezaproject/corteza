@@ -361,6 +361,7 @@ type (
 		ConnectionID uint64                                `db:"connectionID"`
 		Kind         string                                `db:"kind"`
 		Params       *systemType.DalSchemaAlterationParams `db:"params"`
+		Error        string                                `db:"error"`
 		CreatedAt    time.Time                             `db:"created_at"`
 		UpdatedAt    *time.Time                            `db:"updated_at"`
 		DeletedAt    *time.Time                            `db:"deleted_at"`
@@ -1885,6 +1886,7 @@ func (aux *auxDalSchemaAlteration) encode(res *systemType.DalSchemaAlteration) (
 	aux.ConnectionID = res.ConnectionID
 	aux.Kind = res.Kind
 	aux.Params = res.Params
+	aux.Error = res.Error
 	aux.CreatedAt = res.CreatedAt
 	aux.UpdatedAt = res.UpdatedAt
 	aux.DeletedAt = res.DeletedAt
@@ -1911,6 +1913,7 @@ func (aux auxDalSchemaAlteration) decode() (res *systemType.DalSchemaAlteration,
 	res.ConnectionID = aux.ConnectionID
 	res.Kind = aux.Kind
 	res.Params = aux.Params
+	res.Error = aux.Error
 	res.CreatedAt = aux.CreatedAt
 	res.UpdatedAt = aux.UpdatedAt
 	res.DeletedAt = aux.DeletedAt
@@ -1937,6 +1940,7 @@ func (aux *auxDalSchemaAlteration) scan(row scanner) error {
 		&aux.ConnectionID,
 		&aux.Kind,
 		&aux.Params,
+		&aux.Error,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
