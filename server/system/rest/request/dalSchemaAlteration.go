@@ -72,20 +72,6 @@ type (
 		AlterationID uint64 `json:",string"`
 	}
 
-	DalSchemaAlterationDelete struct {
-		// AlterationID PATH parameter
-		//
-		// Alteration ID
-		AlterationID uint64 `json:",string"`
-	}
-
-	DalSchemaAlterationUndelete struct {
-		// AlterationID PATH parameter
-		//
-		// Alteration ID
-		AlterationID uint64 `json:",string"`
-	}
-
 	DalSchemaAlterationApply struct {
 		// AlterationID GET parameter
 		//
@@ -220,76 +206,6 @@ func (r DalSchemaAlterationRead) GetAlterationID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *DalSchemaAlterationRead) Fill(req *http.Request) (err error) {
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "alterationID")
-		r.AlterationID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return err
-}
-
-// NewDalSchemaAlterationDelete request
-func NewDalSchemaAlterationDelete() *DalSchemaAlterationDelete {
-	return &DalSchemaAlterationDelete{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalSchemaAlterationDelete) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"alterationID": r.AlterationID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalSchemaAlterationDelete) GetAlterationID() uint64 {
-	return r.AlterationID
-}
-
-// Fill processes request and fills internal variables
-func (r *DalSchemaAlterationDelete) Fill(req *http.Request) (err error) {
-
-	{
-		var val string
-		// path params
-
-		val = chi.URLParam(req, "alterationID")
-		r.AlterationID, err = payload.ParseUint64(val), nil
-		if err != nil {
-			return err
-		}
-
-	}
-
-	return err
-}
-
-// NewDalSchemaAlterationUndelete request
-func NewDalSchemaAlterationUndelete() *DalSchemaAlterationUndelete {
-	return &DalSchemaAlterationUndelete{}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalSchemaAlterationUndelete) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"alterationID": r.AlterationID,
-	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r DalSchemaAlterationUndelete) GetAlterationID() uint64 {
-	return r.AlterationID
-}
-
-// Fill processes request and fills internal variables
-func (r *DalSchemaAlterationUndelete) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

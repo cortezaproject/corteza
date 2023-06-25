@@ -31,6 +31,7 @@ type (
 	}
 
 	dalSchemaAlterationAccessController interface {
+		CanManageDalSchemaAlterations(ctx context.Context) bool
 	}
 )
 
@@ -56,9 +57,9 @@ func (svc dalSchemaAlteration) FindByID(ctx context.Context, dalSchemaAlteration
 
 		uaProps.setDalSchemaAlteration(a)
 
-		// if !svc.ac.CanReadDalSchemaAlteration(ctx, u) {
-		// 	return DalSchemaAlterationErrNotAllowedToRead()
-		// }
+		if !svc.ac.CanManageDalSchemaAlterations(ctx) {
+			return DalSchemaAlterationErrNotAllowedToManage()
+		}
 
 		return nil
 	}()
@@ -74,18 +75,10 @@ func (svc dalSchemaAlteration) Search(ctx context.Context, filter types.DalSchem
 		uaProps = &dalSchemaAlterationActionProps{filter: &filter}
 	)
 
-	// For each fetched item, store backend will check if it is valid or not
-	// if !svc.ac.CanReadDalSchemaAlteration(ctx, res) {
-	// 	return false, nil
-	// }
-
-	// 	return true, nil
-	// }
-
 	err = func() error {
-		// if !svc.ac.CanSearchDalSchemaAlterations(ctx) {
-		// 	return DalSchemaAlterationErrNotAllowedToSearch()
-		// }
+		if !svc.ac.CanManageDalSchemaAlterations(ctx) {
+			return DalSchemaAlterationErrNotAllowedToManage()
+		}
 
 		aa, f, err = store.SearchDalSchemaAlterations(ctx, svc.store, filter)
 		return err
@@ -94,77 +87,12 @@ func (svc dalSchemaAlteration) Search(ctx context.Context, filter types.DalSchem
 	return aa, f, svc.recordAction(ctx, uaProps, DalSchemaAlterationActionSearch, err)
 }
 
-func (svc dalSchemaAlteration) DeleteByID(ctx context.Context, dalSchemaAlterationID uint64) (err error) {
-	var (
-		u       *types.DalSchemaAlteration
-		uaProps = &dalSchemaAlterationActionProps{dalSchemaAlteration: &types.DalSchemaAlteration{ID: dalSchemaAlterationID}}
-	)
-
-	err = func() (err error) {
-		if u, err = loadDalSchemaAlteration(ctx, svc.store, dalSchemaAlterationID); err != nil {
-			return
-		}
-
-		// if !svc.ac.CanDeleteDalSchemaAlteration(ctx, u) {
-		// 	return DalSchemaAlterationErrNotAllowedToDelete()
-		// }
-
-		// if err = svc.eventbus.WaitFor(ctx, event.DalSchemaAlterationBeforeDelete(nil, u)); err != nil {
-		// 	return
-		// }
-
-		u.DeletedAt = now()
-		if err = store.UpdateDalSchemaAlteration(ctx, svc.store, u); err != nil {
-			return
-		}
-
-		// _ = svc.eventbus.WaitFor(ctx, event.DalSchemaAlterationAfterDelete(nil, u))
-		return nil
-	}()
-
-	return svc.recordAction(ctx, uaProps, DalSchemaAlterationActionDelete, err)
-}
-
-func (svc dalSchemaAlteration) UndeleteByID(ctx context.Context, dalSchemaAlterationID uint64) (err error) {
-	var (
-		u       *types.DalSchemaAlteration
-		uaProps = &dalSchemaAlterationActionProps{dalSchemaAlteration: &types.DalSchemaAlteration{ID: dalSchemaAlterationID}}
-	)
-
-	err = func() (err error) {
-		if u, err = loadDalSchemaAlteration(ctx, svc.store, dalSchemaAlterationID); err != nil {
-			return
-		}
-
-		uaProps.setDalSchemaAlteration(u)
-
-		// if err = uniqueDalSchemaAlterationCheck(ctx, svc.store, u); err != nil {
-		// 	return err
-		// }
-
-		// if !svc.ac.CanDeleteDalSchemaAlteration(ctx, u) {
-		// 	return DalSchemaAlterationErrNotAllowedToDelete()
-		// }
-
-		u.DeletedAt = nil
-		if err = store.UpdateDalSchemaAlteration(ctx, svc.store, u); err != nil {
-			return
-		}
-
-		return nil
-	}()
-
-	return svc.recordAction(ctx, uaProps, DalSchemaAlterationActionUndelete, err)
-}
-
 // ModelAlterations returns all non deleted, non completed, and non dismissed alterations for the given model
 func (svc dalSchemaAlteration) ModelAlterations(ctx context.Context, m *dal.Model) (out []*dal.Alteration, err error) {
 	return svc.modelAlterations(ctx, svc.store, m)
 }
 
 func (svc dalSchemaAlteration) modelAlterations(ctx context.Context, s store.Storer, m *dal.Model) (out []*dal.Alteration, err error) {
-	// @todo boilerplate code around this
-
 	aux, _, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
 		Resource:  []string{m.Resource},
 		Deleted:   filter.StateExcluded,
@@ -206,6 +134,10 @@ func (svc dalSchemaAlteration) modelAlterations(ctx context.Context, s store.Sto
 	return
 }
 
+// SetAlterations updates the DB state to reflect the given alterations
+//
+// This function should only be invoked by internal proceses so it doesn't need
+// to check for permissions.
 func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, s store.Storer, m *dal.Model, stale []*dal.Alteration, aa ...*dal.Alteration) (err error) {
 	if len(stale)+len(aa) == 0 {
 		return
@@ -215,8 +147,6 @@ func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, s store.Store
 		n = *now()
 		u = intAuth.GetIdentityFromContext(ctx).Identity()
 	)
-
-	// @todo boilerplate code around this
 
 	// @todo this won't work entirely; if someone defines a dal connection to the same DSN as the primary one,
 	//       they can easily bypass this.
@@ -295,54 +225,84 @@ func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, s store.Store
 }
 
 func (svc dalSchemaAlteration) Apply(ctx context.Context, ids ...uint64) (err error) {
-	// @todo boilerplate (RBAC and such); we might have special RBAC rules for this;
-	// originally, we wanted to hook into ComposeModule resource (or any resource that defined a model)
-	aux, _, err := store.SearchDalSchemaAlterations(ctx, svc.store, types.DalSchemaAlterationFilter{
-		AlterationID: id.Strings(ids...),
-	})
-	if err != nil {
-		return
-	}
+	var (
+		uaProps = &dalSchemaAlterationActionProps{}
+	)
 
-	alts := svc.appliableAlterations(aux...)
-	pkgAlts, err := svc.toPkgAlterations(ctx, alts...)
-	if err != nil {
-		return
-	}
-
-	errors, err := svc.dal.ApplyAlteration(ctx, pkgAlts...)
-	if err != nil {
-		return
-	}
-
-	for i, e := range errors {
-		if e != nil {
-			aux[i].Error = e.Error()
-		} else {
-			aux[i].CompletedAt = now()
-			aux[i].CompletedBy = intAuth.GetIdentityFromContext(ctx).Identity()
+	err = func() (err error) {
+		if !svc.ac.CanManageDalSchemaAlterations(ctx) {
+			return DalSchemaAlterationErrNotAllowedToManage()
 		}
-	}
 
-	err = store.UpdateDalSchemaAlteration(ctx, svc.store, aux...)
-	if err != nil {
-		return
-	}
+		aux, _, err := store.SearchDalSchemaAlterations(ctx, svc.store, types.DalSchemaAlterationFilter{
+			AlterationID: id.Strings(ids...),
+		})
+		if err != nil {
+			return
+		}
 
-	return svc.reloadAlteredModels(ctx, svc.store, alts)
+		alts := svc.appliableAlterations(aux...)
+		pkgAlts, err := svc.toPkgAlterations(ctx, alts...)
+		if err != nil {
+			return
+		}
+
+		ii := make([]uint64, len(alts))
+		for i, a := range alts {
+			ii[i] = a.ID
+		}
+
+		uaProps.setApply(ii)
+
+		errors, err := svc.dal.ApplyAlteration(ctx, pkgAlts...)
+		if err != nil {
+			return
+		}
+
+		for i, e := range errors {
+			if e != nil {
+				aux[i].Error = e.Error()
+			} else {
+				aux[i].CompletedAt = now()
+				aux[i].CompletedBy = intAuth.GetIdentityFromContext(ctx).Identity()
+			}
+		}
+
+		err = store.UpdateDalSchemaAlteration(ctx, svc.store, aux...)
+		if err != nil {
+			return
+		}
+
+		return svc.reloadAlteredModels(ctx, svc.store, alts)
+	}()
+
+	return svc.recordAction(ctx, uaProps, DalSchemaAlterationActionApply, err)
+
 }
 
 func (svc dalSchemaAlteration) Dismiss(ctx context.Context, ids ...uint64) (err error) {
-	// @todo boilerplate (RBAC and such); we might have special RBAC rules for this;
-	// originally, we wanted to hook into ComposeModule resource (or any resource that defined a model)
+	var (
+		uaProps = &dalSchemaAlterationActionProps{}
+	)
 
-	return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		if !svc.ac.CanManageDalSchemaAlterations(ctx) {
+			return DalSchemaAlterationErrNotAllowedToManage()
+		}
+
 		alt, _, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
 			AlterationID: id.Strings(ids...),
 		})
 		if err != nil {
 			return
 		}
+
+		ii := make([]uint64, len(alt))
+		for i, a := range alt {
+			ii[i] = a.ID
+		}
+
+		uaProps.setApply(ii)
 
 		alt = svc.appliableAlterations(alt...)
 		identity := intAuth.GetIdentityFromContext(ctx).Identity()
@@ -359,6 +319,8 @@ func (svc dalSchemaAlteration) Dismiss(ctx context.Context, ids ...uint64) (err 
 
 		return svc.reloadAlteredModels(ctx, s, alt)
 	})
+
+	return svc.recordAction(ctx, uaProps, DalSchemaAlterationActionDismiss, err)
 }
 
 func (svc dalSchemaAlteration) appliableAlterations(aa ...*types.DalSchemaAlteration) (out types.DalSchemaAlterationSet) {

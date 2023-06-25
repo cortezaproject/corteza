@@ -23,7 +23,8 @@ type (
 	dalSchemaAlterationActionProps struct {
 		dalSchemaAlteration *types.DalSchemaAlteration
 		new                 *types.DalSchemaAlteration
-		update              *types.DalSchemaAlteration
+		apply               []uint64
+		dismiss             []uint64
 		existing            *types.DalSchemaAlteration
 		filter              *types.DalSchemaAlterationFilter
 	}
@@ -71,12 +72,21 @@ func (p *dalSchemaAlterationActionProps) setNew(new *types.DalSchemaAlteration) 
 	return p
 }
 
-// setUpdate updates dalSchemaAlterationActionProps's update
+// setApply updates dalSchemaAlterationActionProps's apply
 //
 // This function is auto-generated.
 //
-func (p *dalSchemaAlterationActionProps) setUpdate(update *types.DalSchemaAlteration) *dalSchemaAlterationActionProps {
-	p.update = update
+func (p *dalSchemaAlterationActionProps) setApply(apply []uint64) *dalSchemaAlterationActionProps {
+	p.apply = apply
+	return p
+}
+
+// setDismiss updates dalSchemaAlterationActionProps's dismiss
+//
+// This function is auto-generated.
+//
+func (p *dalSchemaAlterationActionProps) setDismiss(dismiss []uint64) *dalSchemaAlterationActionProps {
+	p.dismiss = dismiss
 	return p
 }
 
@@ -113,9 +123,8 @@ func (p dalSchemaAlterationActionProps) Serialize() actionlog.Meta {
 	if p.new != nil {
 		m.Set("new.ID", p.new.ID, true)
 	}
-	if p.update != nil {
-		m.Set("update.ID", p.update.ID, true)
-	}
+	m.Set("apply", p.apply, true)
+	m.Set("dismiss", p.dismiss, true)
 	if p.existing != nil {
 		m.Set("existing.ID", p.existing.ID, true)
 	}
@@ -178,18 +187,8 @@ func (p dalSchemaAlterationActionProps) Format(in string, err error) string {
 		)
 		pairs = append(pairs, "{{new.ID}}", fns(p.new.ID))
 	}
-
-	if p.update != nil {
-		// replacement for "{{update}}" (in order how fields are defined)
-		pairs = append(
-			pairs,
-			"{{update}}",
-			fns(
-				p.update.ID,
-			),
-		)
-		pairs = append(pairs, "{{update.ID}}", fns(p.update.ID))
-	}
+	pairs = append(pairs, "{{apply}}", fns(p.apply))
+	pairs = append(pairs, "{{dismiss}}", fns(p.dismiss))
 
 	if p.existing != nil {
 		// replacement for "{{existing}}" (in order how fields are defined)
@@ -277,6 +276,46 @@ func DalSchemaAlterationActionSearch(props ...*dalSchemaAlterationActionProps) *
 	return a
 }
 
+// DalSchemaAlterationActionApply returns "system:dal-schema-alteration.apply" action
+//
+// This function is auto-generated.
+//
+func DalSchemaAlterationActionApply(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
+	a := &dalSchemaAlterationAction{
+		timestamp: time.Now(),
+		resource:  "system:dal-schema-alteration",
+		action:    "apply",
+		log:       "applied {{dalSchemaAlteration}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// DalSchemaAlterationActionDismiss returns "system:dal-schema-alteration.dismiss" action
+//
+// This function is auto-generated.
+//
+func DalSchemaAlterationActionDismiss(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
+	a := &dalSchemaAlterationAction{
+		timestamp: time.Now(),
+		resource:  "system:dal-schema-alteration",
+		action:    "dismiss",
+		log:       "dismissed {{dalSchemaAlteration}}",
+		severity:  actionlog.Info,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // DalSchemaAlterationActionLookup returns "system:dal-schema-alteration.lookup" action
 //
 // This function is auto-generated.
@@ -288,46 +327,6 @@ func DalSchemaAlterationActionLookup(props ...*dalSchemaAlterationActionProps) *
 		action:    "lookup",
 		log:       "looked-up for a {{dalSchemaAlteration}}",
 		severity:  actionlog.Info,
-	}
-
-	if len(props) > 0 {
-		a.props = props[0]
-	}
-
-	return a
-}
-
-// DalSchemaAlterationActionDelete returns "system:dal-schema-alteration.delete" action
-//
-// This function is auto-generated.
-//
-func DalSchemaAlterationActionDelete(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
-	a := &dalSchemaAlterationAction{
-		timestamp: time.Now(),
-		resource:  "system:dal-schema-alteration",
-		action:    "delete",
-		log:       "deleted {{dalSchemaAlteration}}",
-		severity:  actionlog.Notice,
-	}
-
-	if len(props) > 0 {
-		a.props = props[0]
-	}
-
-	return a
-}
-
-// DalSchemaAlterationActionUndelete returns "system:dal-schema-alteration.undelete" action
-//
-// This function is auto-generated.
-//
-func DalSchemaAlterationActionUndelete(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
-	a := &dalSchemaAlterationAction{
-		timestamp: time.Now(),
-		resource:  "system:dal-schema-alteration",
-		action:    "undelete",
-		log:       "undeleted {{dalSchemaAlteration}}",
-		severity:  actionlog.Notice,
 	}
 
 	if len(props) > 0 {
@@ -445,12 +444,12 @@ func DalSchemaAlterationErrInvalidID(mm ...*dalSchemaAlterationActionProps) *err
 	return e
 }
 
-// DalSchemaAlterationErrNotAllowedToRead returns "system:dal-schema-alteration.notAllowedToRead" as *errors.Error
+// DalSchemaAlterationErrNotAllowedToManage returns "system:dal-schema-alteration.notAllowedToManage" as *errors.Error
 //
 //
 // This function is auto-generated.
 //
-func DalSchemaAlterationErrNotAllowedToRead(mm ...*dalSchemaAlterationActionProps) *errors.Error {
+func DalSchemaAlterationErrNotAllowedToManage(mm ...*dalSchemaAlterationActionProps) *errors.Error {
 	var p = &dalSchemaAlterationActionProps{}
 	if len(mm) > 0 {
 		p = mm[0]
@@ -459,162 +458,18 @@ func DalSchemaAlterationErrNotAllowedToRead(mm ...*dalSchemaAlterationActionProp
 	var e = errors.New(
 		errors.KindInternal,
 
-		p.Format("not allowed to read this dal schema alteration", nil),
+		p.Format("not allowed to manage DAL schema alterations", nil),
 
-		errors.Meta("type", "notAllowedToRead"),
+		errors.Meta("type", "notAllowedToManage"),
 		errors.Meta("resource", "system:dal-schema-alteration"),
 
 		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalSchemaAlterationLogMetaKey{}, "failed to read {{dalSchemaAlteration.ID}}; insufficient permissions"),
+		errors.Meta(dalSchemaAlterationLogMetaKey{}, "failed to manage DAL schema alterations; insufficient permissions"),
 		errors.Meta(dalSchemaAlterationPropsMetaKey{}, p),
 
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dal-schema-alteration.errors.notAllowedToRead"),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// DalSchemaAlterationErrNotAllowedToSearch returns "system:dal-schema-alteration.notAllowedToSearch" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func DalSchemaAlterationErrNotAllowedToSearch(mm ...*dalSchemaAlterationActionProps) *errors.Error {
-	var p = &dalSchemaAlterationActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to list or search dal schema alterations", nil),
-
-		errors.Meta("type", "notAllowedToSearch"),
-		errors.Meta("resource", "system:dal-schema-alteration"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalSchemaAlterationLogMetaKey{}, "failed to search for dal schema alterations; insufficient permissions"),
-		errors.Meta(dalSchemaAlterationPropsMetaKey{}, p),
-
-		// translation namespace & key
-		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dal-schema-alteration.errors.notAllowedToSearch"),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// DalSchemaAlterationErrNotAllowedToListUsers returns "system:dal-schema-alteration.notAllowedToListUsers" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func DalSchemaAlterationErrNotAllowedToListUsers(mm ...*dalSchemaAlterationActionProps) *errors.Error {
-	var p = &dalSchemaAlterationActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to list dal schema alterations", nil),
-
-		errors.Meta("type", "notAllowedToListUsers"),
-		errors.Meta("resource", "system:dal-schema-alteration"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalSchemaAlterationLogMetaKey{}, "failed to list dalSchemaAlteration; insufficient permissions"),
-		errors.Meta(dalSchemaAlterationPropsMetaKey{}, p),
-
-		// translation namespace & key
-		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dal-schema-alteration.errors.notAllowedToListUsers"),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// DalSchemaAlterationErrNotAllowedToDelete returns "system:dal-schema-alteration.notAllowedToDelete" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func DalSchemaAlterationErrNotAllowedToDelete(mm ...*dalSchemaAlterationActionProps) *errors.Error {
-	var p = &dalSchemaAlterationActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to delete this dal schema alteration", nil),
-
-		errors.Meta("type", "notAllowedToDelete"),
-		errors.Meta("resource", "system:dal-schema-alteration"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalSchemaAlterationLogMetaKey{}, "failed to delete {{dalSchemaAlteration.ID}}; insufficient permissions"),
-		errors.Meta(dalSchemaAlterationPropsMetaKey{}, p),
-
-		// translation namespace & key
-		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dal-schema-alteration.errors.notAllowedToDelete"),
-
-		errors.StackSkip(1),
-	)
-
-	if len(mm) > 0 {
-	}
-
-	return e
-}
-
-// DalSchemaAlterationErrNotAllowedToUndelete returns "system:dal-schema-alteration.notAllowedToUndelete" as *errors.Error
-//
-//
-// This function is auto-generated.
-//
-func DalSchemaAlterationErrNotAllowedToUndelete(mm ...*dalSchemaAlterationActionProps) *errors.Error {
-	var p = &dalSchemaAlterationActionProps{}
-	if len(mm) > 0 {
-		p = mm[0]
-	}
-
-	var e = errors.New(
-		errors.KindInternal,
-
-		p.Format("not allowed to undelete this dal schema alteration", nil),
-
-		errors.Meta("type", "notAllowedToUndelete"),
-		errors.Meta("resource", "system:dal-schema-alteration"),
-
-		// action log entry; no formatting, it will be applied inside recordAction fn.
-		errors.Meta(dalSchemaAlterationLogMetaKey{}, "failed to undelete {{dalSchemaAlteration.ID}}; insufficient permissions"),
-		errors.Meta(dalSchemaAlterationPropsMetaKey{}, p),
-
-		// translation namespace & key
-		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
-		errors.Meta(locale.ErrorMetaKey{}, "dal-schema-alteration.errors.notAllowedToUndelete"),
+		errors.Meta(locale.ErrorMetaKey{}, "dal-schema-alteration.errors.notAllowedToManage"),
 
 		errors.StackSkip(1),
 	)

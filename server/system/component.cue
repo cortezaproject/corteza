@@ -74,6 +74,8 @@ component: schema.#component & {
 
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
 
+		"dal-schema-alterations.manage": description: "List, search, apply, or dismiss DAL alterations"
+
 		"data-privacy-request.create": description:  "Create data privacy requests"
 		"data-privacy-requests.search": description: "List, search or filter data privacy requests"
 	}

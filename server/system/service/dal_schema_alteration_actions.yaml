@@ -19,9 +19,10 @@ props:
   - name: new
     type: "*types.DalSchemaAlteration"
     fields: [ ID ]
-  - name: update
-    type: "*types.DalSchemaAlteration"
-    fields: [ ID ]
+  - name: apply
+    type: "[]uint64"
+  - name: dismiss
+    type: "[]uint64"
   - name: existing
     type: "*types.DalSchemaAlteration"
     fields: [ ID ]
@@ -34,15 +35,17 @@ actions:
     log: "searched for matching dalSchemaAlterations"
     severity: info
 
+  - action: apply
+    log: "applied {{dalSchemaAlteration}}"
+    severity: info
+
+  - action: dismiss
+    log: "dismissed {{dalSchemaAlteration}}"
+    severity: info
+
   - action: lookup
     log: "looked-up for a {{dalSchemaAlteration}}"
     severity: info
-
-  - action: delete
-    log: "deleted {{dalSchemaAlteration}}"
-
-  - action: undelete
-    log: "undeleted {{dalSchemaAlteration}}"
 
 errors:
   - error: notFound
@@ -53,22 +56,6 @@ errors:
     message: "invalid ID"
     severity: warning
 
-  - error: notAllowedToRead
-    message: "not allowed to read this dal schema alteration"
-    log: "failed to read {{dalSchemaAlteration.ID}}; insufficient permissions"
-
-  - error: notAllowedToSearch
-    message: "not allowed to list or search dal schema alterations"
-    log: "failed to search for dal schema alterations; insufficient permissions"
-
-  - error: notAllowedToListUsers
-    message: "not allowed to list dal schema alterations"
-    log: "failed to list dalSchemaAlteration; insufficient permissions"
-
-  - error: notAllowedToDelete
-    message: "not allowed to delete this dal schema alteration"
-    log: "failed to delete {{dalSchemaAlteration.ID}}; insufficient permissions"
-
-  - error: notAllowedToUndelete
-    message: "not allowed to undelete this dal schema alteration"
-    log: "failed to undelete {{dalSchemaAlteration.ID}}; insufficient permissions"
+  - error: notAllowedToManage
+    message: "not allowed to manage DAL schema alterations"
+    log: "failed to manage DAL schema alterations; insufficient permissions"
