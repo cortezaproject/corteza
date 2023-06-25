@@ -475,6 +475,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Activate)
 	defer sentry.Recover()
 
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
+
 	// Start scheduler
 	if app.Opt.Eventbus.SchedulerEnabled {
 		scheduler.Service().Start(ctx)
