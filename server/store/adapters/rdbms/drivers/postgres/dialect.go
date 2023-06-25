@@ -282,6 +282,8 @@ func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
 			targetMeta = append(targetMeta, "0")
 		}
 
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0])
+
 	case assertName == "numeric" && targetName == "numeric":
 		// Check numeric size and precision
 		for i := len(assertMeta); i < 2; i++ {
@@ -291,7 +293,7 @@ func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
 			targetMeta = append(targetMeta, "0")
 		}
 
-		return baseMatch && assertMeta[0] <= targetMeta[0] && assertMeta[1] <= targetMeta[1]
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0]) && cast.ToInt(assertMeta[1]) <= cast.ToInt(targetMeta[1])
 	}
 
 	return baseMatch

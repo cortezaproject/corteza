@@ -310,7 +310,7 @@ func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 	switch {
 	case assertName == "varchar" && targetName == "varchar":
 		// Check varchar size
-		return baseMatch && assertMeta[0] <= targetMeta[0]
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0])
 
 	case assertName == "decimal" && targetName == "decimal":
 		// Check numeric size and precision
