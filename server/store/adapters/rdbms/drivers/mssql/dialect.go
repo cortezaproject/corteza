@@ -273,26 +273,33 @@ func (mssqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 	// Special cases
 	switch {
 	case assertName == "varchar" && targetName == "varchar":
+		// @note mssql represents max as -1 so we're just going with this
+		if assertMeta[0] == "max" {
+			assertMeta[0] = "-1"
+		}
+		if targetMeta[0] == "max" {
+			targetMeta[0] = "-1"
+		}
+
 		// Check varchar size
 		for i := len(assertMeta); i < 1; i++ {
 			assertMeta = append(assertMeta, "0")
-		}
-		if assertMeta[0] == "max" {
-			assertMeta[0] = "-1"
 		}
 		assertA := cast.ToInt(assertMeta[0])
 
 		for i := len(targetMeta); i < 1; i++ {
 			targetMeta = append(targetMeta, "0")
 		}
-		if targetMeta[0] == "max" {
-			targetMeta[0] = "-1"
-		}
 		targetA := cast.ToInt(targetMeta[0])
 
 		// -1 means no limit so it can fit any length
+		// - if target is max, any varchar fits
 		if targetA == -1 {
 			return baseMatch
+		}
+		// - if assert is max, only max fits
+		if assertA == -1 {
+			return baseMatch && targetA == -1
 		}
 
 		return baseMatch && assertA <= targetA
