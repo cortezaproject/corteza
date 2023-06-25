@@ -850,6 +850,8 @@ func (r *DalSchemaAlteration) GetValue(name string, pos uint) (any, error) {
 		return r.DismissedAt, nil
 	case "dismissedBy", "DismissedBy":
 		return r.DismissedBy, nil
+	case "error", "Error":
+		return r.Error, nil
 	case "id", "ID":
 		return r.ID, nil
 	case "kind", "Kind":
@@ -891,6 +893,8 @@ func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err er
 		return cast2.TimePtr(value, &r.DismissedAt)
 	case "dismissedBy", "DismissedBy":
 		return cast2.Uint64(value, &r.DismissedBy)
+	case "error", "Error":
+		return cast2.String(value, &r.Error)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
 	case "kind", "Kind":

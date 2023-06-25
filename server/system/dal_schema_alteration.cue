@@ -49,6 +49,10 @@ dal_schema_alteration: {
 				omitGetter: true
 			}
 
+			error: {
+				dal: { type: "Text" }
+			}
+
 			created_at: schema.SortableTimestampNowField
 			updated_at: schema.SortableTimestampNilField
 			deleted_at: schema.SortableTimestampNilField
