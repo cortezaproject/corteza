@@ -89,6 +89,14 @@ func TestMerge(t *testing.T) {
 						},
 					},
 				},
+				&Alteration{
+					AttributeAdd: &AttributeAdd{
+						Attr: &Attribute{
+							Ident: "foo",
+							Type:  &TypeJSON{Nullable: false},
+						},
+					},
+				},
 			},
 			cc: AlterationSet{
 				&Alteration{

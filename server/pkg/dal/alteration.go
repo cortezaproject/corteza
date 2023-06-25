@@ -96,10 +96,12 @@ func (aa AlterationSet) Merge(bb AlterationSet) (cc AlterationSet) {
 			}
 
 			if a.compare(*aux[j]) {
+				if !found {
+					cc = append(cc, aux[j])
+				}
+
 				seen[j] = true
 				found = true
-				cc = append(cc, aux[j])
-				break
 			}
 		}
 
