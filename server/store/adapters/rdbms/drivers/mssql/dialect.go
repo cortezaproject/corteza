@@ -208,6 +208,9 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 			col.Default = fmt.Sprintf("%q", t.DefaultValue)
 		}
 
+	case *dal.TypeEnum:
+		col.Type.Name = "VARCHAR(MAX)"
+
 	case *dal.TypeJSON:
 		col.Type.Name = "VARCHAR(MAX)"
 
