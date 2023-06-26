@@ -64,12 +64,16 @@ func (ctrl DalSchemaAlteration) List(ctx context.Context, r *request.DalSchemaAl
 			Kind:         r.Kind,
 
 			Deleted:   filter.State(r.Deleted),
+			Dismissed: filter.State(r.Dismissed),
 			Completed: filter.State(r.Completed),
 		}
 	)
 
 	if f.Deleted == 0 {
 		f.Deleted = filter.StateExcluded
+	}
+	if f.Dismissed == 0 {
+		f.Dismissed = filter.StateExcluded
 	}
 	if f.Completed == 0 {
 		f.Completed = filter.StateExcluded

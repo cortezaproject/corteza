@@ -59,6 +59,11 @@ type (
 		// Exclude (0, default), include (1) or return only (2) completed alterations
 		Completed uint
 
+		// Dismissed GET parameter
+		//
+		// Exclude (0, default), include (1) or return only (2) dismissed alterations
+		Dismissed uint
+
 		// IncTotal GET parameter
 		//
 		// Include total counter
@@ -100,6 +105,7 @@ func (r DalSchemaAlterationList) Auditable() map[string]interface{} {
 		"kind":         r.Kind,
 		"deleted":      r.Deleted,
 		"completed":    r.Completed,
+		"dismissed":    r.Dismissed,
 		"incTotal":     r.IncTotal,
 	}
 }
@@ -127,6 +133,11 @@ func (r DalSchemaAlterationList) GetDeleted() uint {
 // Auditable returns all auditable/loggable parameters
 func (r DalSchemaAlterationList) GetCompleted() uint {
 	return r.Completed
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationList) GetDismissed() uint {
+	return r.Dismissed
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -172,6 +183,12 @@ func (r *DalSchemaAlterationList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["completed"]; ok && len(val) > 0 {
 			r.Completed, err = payload.ParseUint(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["dismissed"]; ok && len(val) > 0 {
+			r.Dismissed, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}
