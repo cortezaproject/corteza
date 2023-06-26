@@ -943,6 +943,9 @@ endpoints:
       - name: completed
         title: Exclude (0, default), include (1) or return only (2) completed alterations
         type: uint
+      - name: dismissed
+        title: Exclude (0, default), include (1) or return only (2) dismissed alterations
+        type: uint
       - type: bool
         name: incTotal
         title: Include total counter
