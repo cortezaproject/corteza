@@ -421,11 +421,11 @@
       </b-modal>
 
       <dal-schema-alterations
-        :modal="dalSchemaAlterations.modal"
-        :batch="dalSchemaAlterations.batchID"
         :module="module"
-        @hide="fetchModuleWithAlterations"
-        @cancel="dalSchemaAlterations.modal = ($event || false)"
+        :modal="dalSchemaAlterations.modal"
+        :batch-i-d="dalSchemaAlterations.batchID"
+        @hide="onDalAlterationsHide"
+        @fetch="fetchModuleWithAlterations"
       />
 
       <federation-settings
@@ -448,9 +448,9 @@
         :processing="processing"
         :back-link="{ name: 'admin.modules' }"
         :hide-delete="hideDelete"
-        hide-clone
         :hide-save="hideSave"
         :disable-save="disableSave"
+        hide-clone
         @delete="handleDelete"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
@@ -656,10 +656,11 @@ export default {
   watch: {
     moduleID: {
       immediate: true,
-      async handler (moduleID) {
-        await this.fetchModule(moduleID)
-        this.fetchSensitivityLevels()
-        this.checkAlterations()
+      handler () {
+        return this.fetchModule().then(() => {
+          this.fetchSensitivityLevels()
+          this.checkAlterations()
+        })
       },
     },
 
@@ -708,9 +709,16 @@ export default {
       this.module.config = { ...this.module.config, ...changes }
     },
 
-    async fetchModuleWithAlterations () {
-      await this.fetchModule(this.moduleID)
-      this.checkAlterations()
+    onDalAlterationsHide () {
+      this.dalSchemaAlterations.modal = false
+      this.dalSchemaAlterations.batchID = undefined
+    },
+
+    fetchModuleWithAlterations () {
+      this.onDalAlterationsHide()
+      return this.fetchModule().then(() => {
+        this.checkAlterations()
+      })
     },
 
     async fetchModule (moduleID = this.moduleID) {
@@ -769,8 +777,8 @@ export default {
         }
       }
 
-      this.dalSchemaAlterations.modal = modal
       this.dalSchemaAlterations.batchID = batchID
+      this.dalSchemaAlterations.modal = modal
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
@@ -824,6 +832,7 @@ export default {
         this.updateModule({ ...this.module, resourceTranslationLanguage }).then(module => {
           this.module = new compose.Module({ ...module }, this.namespace)
           this.toastSuccess(this.$t('notification:module.saved'))
+          this.checkAlterations()
           if (closeOnSuccess) {
             this.$router.push({ name: 'admin.modules' })
           }

@@ -1819,6 +1819,7 @@ export default class System {
       kind,
       deleted,
       completed,
+      dismissed,
       incTotal,
     } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
@@ -1832,6 +1833,7 @@ export default class System {
       kind,
       deleted,
       completed,
+      dismissed,
       incTotal,
     }
 
@@ -1866,58 +1868,6 @@ export default class System {
       alterationID,
     } = a || {}
     return `/dal/schema/alterations/${alterationID}`
-  }
-
-  // Remove alteration
-  async dalSchemaAlterationDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
-    if (!alterationID) {
-      throw Error('field alterationID is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'delete',
-      url: this.dalSchemaAlterationDeleteEndpoint({
-        alterationID,
-      }),
-    }
-
-    return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  dalSchemaAlterationDeleteEndpoint (a: KV): string {
-    const {
-      alterationID,
-    } = a || {}
-    return `/dal/schema/alterations/${alterationID}`
-  }
-
-  // Undelete alteration
-  async dalSchemaAlterationUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
-    if (!alterationID) {
-      throw Error('field alterationID is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'post',
-      url: this.dalSchemaAlterationUndeleteEndpoint({
-        alterationID,
-      }),
-    }
-
-    return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  dalSchemaAlterationUndeleteEndpoint (a: KV): string {
-    const {
-      alterationID,
-    } = a || {}
-    return `/dal/schema/alterations/${alterationID}/undelete`
   }
 
   // Apply alterations

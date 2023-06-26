@@ -7,7 +7,6 @@
     header-class="p-3 pb-0 border-bottom-0"
     no-fade
     @hide="$emit('hide')"
-    @change="$emit('change', $event)"
   >
     <b-table-simple
       borderless
@@ -22,20 +21,20 @@
           <b-th
             class="text-primary"
           >
-            {{ $t('alteration') }}
+            {{ $t('column.alteration') }}
           </b-th>
 
           <b-th
             class="text-primary"
             style="max-width: 300px;"
           >
-            {{ $t('change') }}
+            {{ $t('column.change') }}
           </b-th>
 
           <b-th
             class="text-primary text-center"
           >
-            {{ $t('status') }}
+            {{ $t('column.status') }}
           </b-th>
 
           <b-th style="min-width: 200px;" />
@@ -142,7 +141,7 @@
         size="sm"
         :disabled="processing"
         class="text-decoration-none"
-        @click="$emit('cancel')"
+        @click="$emit('hide')"
       >
         {{ canResolveAlterations ? $t('general:label.cancel') : $t('general:label.close') }}
       </b-button>
@@ -170,7 +169,7 @@ import { compose } from '@cortezaproject/corteza-js'
 export default {
   i18nOptions: {
     namespaces: 'module',
-    keyPrefix: 'schemaAlterations',
+    keyPrefix: 'edit.schemaAlterations',
   },
 
   props: {
@@ -184,9 +183,8 @@ export default {
       required: true,
     },
 
-    batch: {
+    batchID: {
       type: String,
-      required: false,
       default: undefined,
     },
   },
@@ -224,10 +222,10 @@ export default {
       },
     },
 
-    batch: {
+    batchID: {
       immediate: true,
-      handler (batch) {
-        this.load(batch)
+      handler () {
+        this.load()
       },
     },
   },
@@ -251,13 +249,15 @@ export default {
           for (const a of alteration) {
             a.processing = false
           }
-          this.load(this.batch)
+          this.load()
           this.processing = false
         })
     },
 
     async onResolve (alteration) {
       this.processing = true
+
+      const resolveAll = !alteration
 
       alteration = alteration ? [alteration] : this.alterations
 
@@ -269,17 +269,24 @@ export default {
 
       this.$SystemAPI.dalSchemaAlterationApply({ alterationID }).then(() => {
         this.toastSuccess(this.$t('notification:module.schemaAlterations.resolve.success'))
+        if (resolveAll) {
+          this.$emit('fetch')
+        }
       }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.resolve.error')))
         .finally(() => {
           for (const a of alteration) {
             a.processing = false
           }
-          this.load(this.batch)
+
+          if (!resolveAll) {
+            this.load()
+          }
+
           this.processing = false
         })
     },
 
-    async load (batchID) {
+    async load (batchID = this.batchID) {
       if (!batchID) {
         this.alterations = []
         return
@@ -287,11 +294,11 @@ export default {
 
       this.loading = true
 
-      return this.$SystemAPI.dalSchemaAlterationList({ batchID }).then(({ set }) => {
+      return this.$SystemAPI.dalSchemaAlterationList({ batchID, dismissed: 0, completed: 0 }).then(({ set }) => {
         this.alterations = set
 
         if (!this.alterations.length) {
-          this.$emit('hide')
+          this.$emit('fetch')
         }
       }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.load.error')))
         .finally(() => {
@@ -324,27 +331,27 @@ export default {
     },
 
     stringifyAttributeAddParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.add', { ident: attr.ident, storeType: attr.store.type, attrType: attr.type.type })
+      return this.$t('params.attribute.add', { ident: attr.ident, storeType: attr.store.type, attrType: attr.type.type })
     },
 
     stringifyAttributeDeleteParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, storeType: attr.store.type })
+      return this.$t('params.attribute.delete', { ident: attr.ident, storeType: attr.store.type })
     },
 
     stringifyAttributeReTypeParams ({ attr = {}, to = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.reType', { ident: attr.ident, toType: to.type })
+      return this.$t('params.attribute.reType', { ident: attr.ident, toType: to.type })
     },
 
     stringifyAttributeReEncodeParams ({ attr = {}, to = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.reEncode', { ident: attr.ident, toType: to.type })
+      return this.$t('params.attribute.reEncode', { ident: attr.ident, toType: to.type })
     },
 
-    stringifyModelAddParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.model.add', { ident: attr.ident })
+    stringifyModelAddParams ({ model = {} }) {
+      return this.$t('params.model.add', { ident: model.ident })
     },
 
-    stringifyModelDeleteParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.model.delete', { ident: attr.ident })
+    stringifyModelDeleteParams ({ model = {} }) {
+      return this.$t('params.model.delete', { ident: model.ident })
     },
 
     canDismiss (alteration) {
