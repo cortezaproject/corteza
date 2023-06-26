@@ -424,7 +424,7 @@
         :modal="dalSchemaAlterations.modal"
         :batch="dalSchemaAlterations.batchID"
         :module="module"
-        @hide="fetchModule"
+        @hide="fetchModuleWithAlterations"
         @cancel="dalSchemaAlterations.modal = ($event || false)"
       />
 
@@ -657,7 +657,7 @@ export default {
     moduleID: {
       immediate: true,
       async handler (moduleID) {
-        this.fetchModule(moduleID)
+        await this.fetchModule(moduleID)
         this.fetchSensitivityLevels()
         this.checkAlterations()
       },
@@ -708,6 +708,11 @@ export default {
       this.module.config = { ...this.module.config, ...changes }
     },
 
+    async fetchModuleWithAlterations () {
+      await this.fetchModule(this.moduleID)
+      this.checkAlterations()
+    },
+
     async fetchModule (moduleID = this.moduleID) {
       this.module = undefined
 
@@ -734,7 +739,6 @@ export default {
           this.module = module.clone()
 
           const { moduleID, namespaceID, issues = [] } = this.module
-
           if (issues.length > 0) {
             // do not proceed with record search as it's
             // likely to fail due to issues on a module
@@ -750,14 +754,23 @@ export default {
     },
 
     checkAlterations () {
+      if (!this.module) {
+        return
+      }
+
       // Check if module has Alterations to resolve
+      let modal = false
+      let batchID
       for (const i of this.module.issues) {
         if (i.meta.batchID) {
-          this.dalSchemaAlterations.modal = true
-          this.dalSchemaAlterations.batchID = i.meta.batchID
+          modal = true
+          batchID = i.meta.batchID
           break
         }
       }
+
+      this.dalSchemaAlterations.modal = modal
+      this.dalSchemaAlterations.batchID = batchID
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
