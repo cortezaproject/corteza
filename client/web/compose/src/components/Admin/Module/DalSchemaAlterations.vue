@@ -290,7 +290,7 @@ export default {
       return this.$SystemAPI.dalSchemaAlterationList({ batchID }).then(({ set }) => {
         this.alterations = set
 
-        if (!this.alteration.length) {
+        if (!this.alterations.length) {
           this.$emit('hide')
         }
       }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.load.error')))
@@ -332,11 +332,11 @@ export default {
     },
 
     stringifyAttributeReTypeParams ({ attr = {}, to = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, toType: to.type })
+      return this.$t('module.schemaAlteration.params.attribute.reType', { ident: attr.ident, toType: to.type })
     },
 
     stringifyAttributeReEncodeParams ({ attr = {}, to = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, toType: to.type })
+      return this.$t('module.schemaAlteration.params.attribute.reEncode', { ident: attr.ident, toType: to.type })
     },
 
     stringifyModelAddParams ({ attr = {} }) {
