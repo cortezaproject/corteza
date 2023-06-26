@@ -29,11 +29,11 @@
             />
           </template>
         </template>
-        <span
-          class="title"
+        <label
+          class="title mb-0 pointer"
         >
           {{ page.title }}
-        </span>
+      </label>
       </span>
 
       <template
@@ -163,7 +163,11 @@ export default {
 
 .nav-item > span > {
   .title {
-    font-family: 'Poppins-Regular'
+    color: var(--tertiary);
+  }
+  .title:hover {
+    color: var(--primary);
+    transition: color 0.5s;
   }
 }
 
@@ -173,7 +177,8 @@ export default {
   }
 
   .title {
-    font-family: 'Poppins-SemiBold'
+    color: var(--primary);
+    transition: color .25s
   }
 }
 
