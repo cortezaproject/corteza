@@ -296,7 +296,7 @@ export default {
     openMap (index) {
       this.localValueIndex = index
       const firstCoordinates = (index >= 0 ? this.localValue[index] : this.localValue) || {}
-      firstCoordinates.coordinates = [...firstCoordinates.coordinates]
+      firstCoordinates.coordinates = firstCoordinates.coordinates ? [...firstCoordinates.coordinates] : []
 
       this.map.center = firstCoordinates.coordinates &&
                         firstCoordinates.coordinates.length === 2 &&
