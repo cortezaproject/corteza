@@ -5,31 +5,75 @@
       :key="index"
     >
       <hr v-if="index">
-      <div>
-        <div class="d-flex justify-content-between align-items-center">
-          <h5 v-html="$t('uniqueValueConstraint', { index: index + 1, interpolation: { escapeValue: false } })" />
 
-          <div class="px-4">
-            <c-input-confirm
-              @confirmed="rules.splice(index, 1)"
-            />
-          </div>
-        </div>
-        <b-form-checkbox
-          v-model="rule.strict"
-          switch
-          class="mt-3"
+      <h5 class="d-flex align-items-center">
+        {{ $t('uniqueValueConstraint', { index: index + 1 }) }}
+        <c-input-confirm
+          class="ml-2"
+          @confirmed="rules.splice(index, 1)"
+        />
+      </h5>
+
+      <b-row no-gutters>
+        <b-col
+          cols="12"
+          md="6"
         >
-          {{ $t("preventRecordsSave") }}
-        </b-form-checkbox>
-      </div>
-      <div class="mt-3">
+          <b-form-group>
+            <b-input-group>
+              <vue-select
+                v-model="rule.currentField"
+                :placeholder="$t('searchFields')"
+                :get-option-label="getOptionLabel"
+                :get-option-key="getOptionKey"
+                :options="filterFieldOptions(rule)"
+                :calculate-position="calculateDropdownPosition"
+                class="bg-white"
+                style="min-width: 300px;"
+              />
+
+              <b-input-group-append>
+                <b-button
+                  variant="primary"
+                  class="px-4"
+                  :disabled="!rule.currentField"
+                  @click="updateRuleConstraint(rule)"
+                >
+                  {{ $t("add") }}
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('preventRecordsSave')"
+            label-class="text-primary ml-auto mt-2"
+          >
+            <c-input-checkbox
+              v-model="rule.strict"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <div
+        v-if="rule.constraints && rule.constraints.length > 0"
+        class="rounded border border-light p-3 mt-3"
+        style="background-color: #F9FAFB;"
+      >
         <b-table-simple
-          v-if="rule.constraints && rule.constraints.length > 0"
           borderless
+          class="mb-0"
         >
           <thead>
-            <tr>
+            <tr class="text-primary">
               <th>
                 {{ $t("field") }}
               </th>
@@ -42,6 +86,7 @@
               <th style="width: 250px;">
                 {{ $t("multiValues") }}
               </th>
+              <th style="width: 150px;" />
             </tr>
           </thead>
           <tbody v-if="rule.constraints">
@@ -75,30 +120,6 @@
             </tr>
           </tbody>
         </b-table-simple>
-
-        <b-form-group>
-          <b-input-group>
-            <vue-select
-              v-model="rule.currentField"
-              :placeholder="$t('searchFields')"
-              :get-option-label="getOptionLabel"
-              :get-option-key="getOptionKey"
-              :options="filterFieldOptions(rule)"
-              :calculate-position="calculateDropdownPosition"
-              class="bg-white"
-            />
-
-            <b-input-group-append>
-              <b-button
-                variant="primary"
-                class="px-4"
-                @click="updateRuleConstraint(rule)"
-              >
-                {{ $t("add") }}
-              </b-button>
-            </b-input-group-append>
-          </b-input-group>
-        </b-form-group>
       </div>
     </div>
 
@@ -107,8 +128,8 @@
     <div class="d-flex justify-content-end">
       <b-button
         size="lg"
-        variant="link"
-        class="d-flex align-items-center text-decoration-none p-0 mt-3"
+        variant="outline-light"
+        class="d-flex align-items-center border-0 text-primary mt-3"
         @click="addNewConstraint"
       >
         <font-awesome-icon
@@ -140,6 +161,15 @@ export default {
       type: compose.Module,
       required: true,
     },
+  },
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+    }
   },
 
   computed: {
