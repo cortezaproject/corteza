@@ -173,6 +173,7 @@
           </div>
 
           <b-button
+            v-if="!inlineEditing"
             size="sm"
             variant="outline-light"
             class="text-primary border-0"
@@ -201,47 +202,21 @@
 
             <template v-if="canDeleteSelectedRecords && !areAllRowsDeleted">
               <c-input-confirm
-                v-if="!inlineEditing"
                 :tooltip="$t('recordList.tooltip.deleteSelected')"
                 @confirmed="handleDeleteSelectedRecords()"
               />
-              <b-button
-                v-else
-                variant="link"
-                size="md"
-                :title="$t('recordList.tooltip.deleteSelected')"
-                class="text-danger"
-                @click.prevent="handleDeleteSelectedRecords()"
-              >
-                <font-awesome-icon
-                  class="text-danger"
-                  :icon="['far', 'trash-alt']"
-                />
-              </b-button>
             </template>
 
             <template v-if="canRestoreSelectedRecords && areAllRowsDeleted">
               <c-input-confirm
-                v-if="!inlineEditing"
                 :tooltip="$t('recordList.tooltip.restoreSelected')"
+                variant="outline-warning"
                 @confirmed="handleRestoreSelectedRecords()"
               >
                 <font-awesome-icon
                   :icon="['fa', 'trash-restore']"
                 />
               </c-input-confirm>
-              <b-button
-                v-else
-                variant="link"
-                size="md"
-                :title="$t('recordList.tooltip.restoreSelected')"
-                class="text-danger"
-                @click.prevent="handleRestoreSelectedRecords()"
-              >
-                <font-awesome-icon
-                  :icon="['fa', 'trash-restore']"
-                />
-              </b-button>
             </template>
           </div>
         </div>
@@ -360,7 +335,8 @@
             <b-tr
               v-for="(item, index) in items"
               :key="`${index}${item.r.recordID}`"
-              :class="{ 'pointer': !(options.editable && editing) }"
+              :class="{ 'pointer': !(options.editable && editing), }"
+              :variant="inlineEditing && item.r.deletedAt ? 'warning' : ''"
               @click="handleRowClicked(item)"
             >
               <b-td
@@ -582,7 +558,7 @@
                       size="md"
                       button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
                       class="w-100"
-                      @confirmed="handleDeleteSelectedRecords([item.r.recordID])"
+                      @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'trash-alt']"
@@ -598,11 +574,11 @@
                       size="md"
                       button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
                       class="w-100"
-                      @confirmed="handleRestoreSelectedRecords([item.r.recordID])"
+                      @confirmed="handleRestoreSelectedRecords(item.r.recordID)"
                     >
                       <font-awesome-icon
                         :icon="['fas', 'trash-restore']"
-                        class="text-danger"
+                        class="text-warning"
                       />
                       {{ $t('recordList.record.tooltip.restore') }}
                     </c-input-confirm>
@@ -1515,7 +1491,7 @@ export default {
       this.handleSelectAllOnPage({ isChecked: this.selectedAllRecords })
     },
 
-    handleRestoreSelectedRecords (selected = this.selected) {
+    handleRestoreSelectedRecords (recordID) {
       if (this.inlineEditing) {
         const sel = new Set(this.selected)
         this.items.forEach((item, index) => {
@@ -1526,7 +1502,7 @@ export default {
       } else {
         this.processing = true
 
-        const query = this.bulkQuery
+        const query = recordID ? `recordID = ${recordID}` : this.bulkQuery
         const { moduleID, namespaceID } = this.filter
 
         this.$ComposeAPI
@@ -1543,13 +1519,9 @@ export default {
       }
     },
 
-    handleDeleteSelectedRecords (selected = this.selected) {
-      if (selected.length === 0) {
-        return
-      }
-
+    handleDeleteSelectedRecords (recordID) {
       if (this.inlineEditing) {
-        const sel = new Set(selected)
+        const sel = new Set(this.selected)
         for (let i = 0; i < this.items.length; i++) {
           if (sel.has(this.items[i].id)) {
             this.handleDeleteInline(this.items[i], i)
@@ -1558,7 +1530,7 @@ export default {
       } else {
         this.processing = true
 
-        const query = this.bulkQuery
+        const query = recordID ? `recordID = ${recordID}` : this.bulkQuery
         // Pick module and namespace ID from the filter
         const { moduleID, namespaceID } = this.filter
 
