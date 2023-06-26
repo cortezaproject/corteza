@@ -100,15 +100,15 @@ edit:
       module-fields:
         label: Module field mapping and encoding
         description: |
-          Configure how record fields are stored and read from the database. 
+          Configure how record fields are stored and read from the database.
           Default behaviour is to encode values into JSON and store them in a single field.
-          Alternatively you can use columns with the same name as the field name (Column) 
+          Alternatively you can use columns with the same name as the field name (Column)
           or use an Alias and store the value directly in the column.
 
       system-fields:
         label: System field mapping and encoding
         description: |
-          System fields are used to store metadata about the record. 
+          System fields are used to store metadata about the record.
           Configure to skip or store them into a column with the same name (Column),
           a different column (Alias) or encode them into JSON.
         grouptypes:
@@ -172,7 +172,7 @@ edit:
       valueModifiers: Value modifiers
       multiValues: Multi-field values
       add: Add
-      searchFields: Search fields
+      searchFields: Add field(s) to constraint
       ignoreCase: Ignore case
       fuzzyMatch: Fuzzy match
       soundsLike: Sounds like
@@ -184,7 +184,7 @@ edit:
       type: Type
       none: None
       addNewConstraint: Add new constraint
-      uniqueValueConstraint: Unique value constraint &#x23;{{index}}
+      uniqueValueConstraint: "Unique value constraint #{{index}}"
 
 federated: Federated
 forModule:
