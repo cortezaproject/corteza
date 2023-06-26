@@ -26,7 +26,7 @@
         :fields="columns"
       >
         <template #cell(kind)="{ item: field }">
-          {{ $t(`field:kind.${field.kind.toLowerCase()}.label`) }}
+          {{ $t(`field:kind.${field.kind.charAt(0).toLowerCase() + field.kind.slice(1)}.label`) }}
           <span
             v-if="isRecord(field)"
           >
