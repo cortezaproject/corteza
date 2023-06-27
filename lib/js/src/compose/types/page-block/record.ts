@@ -15,6 +15,7 @@ interface Options {
   recordSelectorDisplayOption: string;
   referenceField?: string;
   referenceModuleID?: string;
+  inlineRecordEditEnabled: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -23,7 +24,8 @@ const defaults: Readonly<Options> = Object.freeze({
   magnifyOption: '',
   recordSelectorDisplayOption: 'sameTab',
   referenceField: '',
-  referenceModuleID: undefined
+  referenceModuleID: undefined,
+  inlineRecordEditEnabled: false,
 })
 
 export class PageBlockRecord extends PageBlock {
@@ -40,6 +42,7 @@ export class PageBlockRecord extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'referenceField', 'referenceModuleID')
+    Apply(this.options, o, Boolean, 'inlineRecordEditEnabled')
 
     if (o.fields) {
       this.options.fields = o.fields

@@ -17,31 +17,52 @@
       <div
         v-for="(field, index) in fields"
         :key="index"
-        :class="{ 'd-flex flex-column mb-3 px-3': canDisplay(field) }"
+        :class="{ 'd-flex flex-column mb-3 px-3 field-container': canDisplay(field) }"
       >
         <template
           v-if="canDisplay(field)"
         >
           <label
-            class="text-primary mb-0"
-            :class="{ 'mb-0': !!(field.options.description || {}).view || false }"
+            class="d-flex align-items-center text-primary mb-0"
           >
-            {{ field.label || field.name }}
+            <span class="d-inline-block text-truncate mw-100 py-1">
+              {{ field.label || field.name }}
+            </span>
+
             <hint
               :id="field.fieldID"
               :text="((field.options.hint || {}).view || '')"
-              class="d-inline-block"
             />
+
+            <div
+              v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
+              class="inline-actions ml-2"
+            >
+              <b-button
+                :title="$t('field.inlineEdit.button.title')"
+                variant="outline-light"
+                size="sm"
+                :disabled="editable"
+                class="text-secondary border-0"
+                @click="editInlineField(fieldRecord, field)"
+              >
+                <font-awesome-icon
+                  :icon="['fas', 'pen']"
+                />
+              </b-button>
+            </div>
           </label>
 
-          <small
-            class="text-muted"
+          <div
+            class="small text-muted"
+            :class="{ 'mb-1': !!(field.options.description || {}).view }"
           >
             {{ (field.options.description || {}).view }}
-          </small>
+          </div>
+
           <div
             v-if="field.canReadRecordValue"
-            class="value mt-2"
+            class="value mt-1"
           >
             <field-viewer
               v-bind="{ ...$props, field }"
@@ -58,6 +79,19 @@
         </template>
       </div>
     </div>
+
+    <!-- Modal for inline editing -->
+    <bulk-edit-modal
+      :namespace="namespace"
+      :module="fieldModule"
+      :selected-records="inlineEdit.recordIDs"
+      :selected-fields="inlineEdit.fields"
+      :initial-record="inlineEdit.record"
+      :query="inlineEdit.query"
+      :modal-title="$t('field.inlineEdit.modal.title')"
+      open-on-select
+      @save="onInlineEdit()"
+    />
   </wrap>
 </template>
 <script>
@@ -65,6 +99,7 @@ import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapActions } from 'vuex'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
+import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/BulkEdit'
 import Hint from 'corteza-webapp-compose/src/components/Common/Hint.vue'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
@@ -78,6 +113,7 @@ export default {
   components: {
     FieldViewer,
     Hint,
+    BulkEditModal,
   },
 
   extends: base,
@@ -92,6 +128,11 @@ export default {
     return {
       referenceRecord: undefined,
       referenceModule: undefined,
+      inlineEdit: {
+        fields: [],
+        recordIDs: [],
+        initialRecord: {},
+      },
     }
   },
 
@@ -216,11 +257,64 @@ export default {
           this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
         })
     },
+
+    editInlineField (record, field) {
+      this.inlineEdit.fields = [field.name]
+      this.inlineEdit.record = record.clone()
+      this.inlineEdit.recordIDs = [record.recordID]
+      this.inlineEdit.query = `recordID = ${record.recordID}`
+    },
+
+    onInlineEdit () {
+      this.inlineEdit.fields = []
+      this.inlineEdit.recordIDs = []
+      this.inlineEdit.record = {}
+      this.inlineEdit.query = ''
+
+      this.$root.$emit('refetch-record-blocks')
+    },
+
+    isFieldEditable (field) {
+      if (!field) return false
+
+      const { canCreateOwnedRecord } = this.fieldModule || {}
+      const { createdAt, canManageOwnerOnRecord } = this.record || {}
+      const { name, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
+
+      if (!canUpdateRecordValue) return false
+
+      if (isSystem) {
+        // Make ownedBy field editable if correct permissions
+        if (name === 'ownedBy') {
+          // If not created we check module permissions, otherwise the canManageOwnerOnRecord
+          return createdAt ? canManageOwnerOnRecord : canCreateOwnedRecord
+        }
+
+        return false
+      }
+
+      return !expressions.value
+    },
   },
 }
 </script>
 <style lang="scss">
 .value {
   min-height: 1.2rem;
+}
+</style>
+
+<style lang="scss" scoped>
+.inline-actions {
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+
+.field-container:hover .inline-actions {
+  opacity: 1;
+
+  button:hover {
+    color: $primary !important;
+  }
 }
 </style>

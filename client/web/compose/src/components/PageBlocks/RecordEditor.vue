@@ -13,12 +13,12 @@
 
     <div
       v-else-if="module"
-      class="mt-3 px-3"
+      class="mt-3"
     >
       <div
         v-for="field in fields"
         :key="field.id"
-        :class="{ 'd-flex flex-column': canDisplay(field) }"
+        :class="{ 'd-flex flex-column mb-3 px-3': canDisplay(field) }"
       >
         <template
           v-if="canDisplay(field)"

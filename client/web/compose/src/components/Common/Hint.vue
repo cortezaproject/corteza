@@ -2,7 +2,7 @@
   <div
     v-if="text"
     :id="id"
-    class="ml-1"
+    class="d-flex align-items-center ml-2"
   >
     <font-awesome-icon
       :icon="['far', 'question-circle']"
