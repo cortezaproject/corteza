@@ -607,18 +607,10 @@ export default {
       if (closeOnSuccess) {
         this.$router.push({ name: 'namespace.manage' })
       } else if (!this.isEdit || this.isClone) {
-        this.initialNamespaceState = this.namespace.clone()
         this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
       }
 
-      this.namespace.meta = {
-        subtitle: '',
-        description: '',
-        hideSidebar: false,
-        ...this.namespace.meta,
-      }
-
-      this.initialNamespaceState = this.namespace.clone()
+      this.fetchNamespace()
     },
 
     handleDelete () {
