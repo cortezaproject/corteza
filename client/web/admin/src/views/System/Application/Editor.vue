@@ -187,10 +187,15 @@ export default {
         }
 
         this.$SystemAPI.applicationUpdate(application)
-          .then(() => {
+          .then(application => {
             this.initialApplicationState = new system.Application({
               ...application,
               unify: this.initialApplicationState.unify,
+            })
+
+            this.application = new system.Application({
+              ...application,
+              unify: this.application.unify,
             })
 
             this.animateSuccess('info')
