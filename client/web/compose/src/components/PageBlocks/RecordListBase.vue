@@ -441,7 +441,7 @@
               >
                 <b-dropdown
                   v-if="areActionsVisible(item.r)"
-                  boundary="scrollParent"
+                  boundary="viewport"
                   variant="outline-light"
                   toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
                   no-caret
@@ -1898,6 +1898,7 @@ td:hover .inline-actions {
   opacity: 0;
   transition: opacity 0.25s;
   width: 1%;
+  z-index: 1000;
 
   .regular-font {
     font-family: $font-regular !important;
