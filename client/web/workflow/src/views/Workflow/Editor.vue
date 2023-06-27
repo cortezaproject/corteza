@@ -174,7 +174,7 @@ export default {
         window.onbeforeunload = null
 
         this.workflow = wf
-        this.toastSuccess(this.$t('notification:updated-workflow'))
+        this.toastSuccess(this.$t('notification:update.success'))
 
         if (isNew) {
           // Redirect to edit route if new
@@ -194,10 +194,9 @@ export default {
             // Disable unsaved changes prompt
             this.workflow = {}
             this.$router.push({ name: 'workflow.list' })
-
-            this.toastSuccess(this.$t('notification:deleted-workflow'))
+            this.toastSuccess(this.$t('notification:delete.success'))
           })
-          .catch(this.toastErrorHandler(this.$t('notification:delete-failed')))
+          .catch(this.toastErrorHandler(this.$t('notification:delete.failed')))
       }
     },
 
@@ -207,10 +206,9 @@ export default {
           .then(() => {
             this.workflow.deletedAt = undefined
             this.workflow.deletedBy = undefined
-
-            this.toastSuccess(this.$t('notification:undelete-workflow'))
+            this.toastSuccess(this.$t('notification:undelete.success'))
           })
-          .catch(this.toastErrorHandler(this.$t('notification:undelete-failed')))
+          .catch(this.toastErrorHandler(this.$t('notification:undelete.failed')))
       }
     },
   },
