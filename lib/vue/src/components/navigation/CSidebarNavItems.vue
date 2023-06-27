@@ -7,6 +7,7 @@
       class="w-100 text-dark text-decoration-none p-0 pt-2 nav-item"
       active-class="nav-active"
       exact-active-class="nav-active"
+      :title="page.title"
       :to="{ name: page.name || defaultRouteName, params }"
     >
       <span
@@ -33,7 +34,7 @@
           class="title mb-0 pointer"
         >
           {{ page.title }}
-      </label>
+        </label>
       </span>
 
       <template
@@ -161,24 +162,28 @@ export default {
   width: 30px;
 }
 
-.nav-item > span > {
+.nav-item > span {
   .title {
     color: var(--tertiary);
   }
-  .title:hover {
+}
+
+.nav-item:hover > span {
+  .title {
     color: var(--primary);
-    transition: color 0.5s;
+    transition: color 0.25s;
   }
 }
 
 .nav-active > span > {
   .icon {
-    color: #4D7281;
+    color: var(--primary)
   }
 
   .title {
+    font-family: 'Poppins-SemiBold';
     color: var(--primary);
-    transition: color .25s
+    transition: color 0.5s
   }
 }
 
