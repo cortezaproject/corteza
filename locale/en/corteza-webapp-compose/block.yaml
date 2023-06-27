@@ -245,6 +245,8 @@ record:
   listLoadFailed: Could not load record list
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
+  inlineEdit:
+    enabled: Inline value editing enabled
   preview:
     blockNoRecord: Cannot render this block without a record
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
@@ -580,6 +582,12 @@ field:
   selector:
     available: Available fields
     systemField: (system field)
+  inlineEdit:
+    enabled: Inline value editing enabled
+    button:
+      title: Edit value
+    modal:
+      title: Update record values
 comment:
   label: 'Comments'
   titleField:

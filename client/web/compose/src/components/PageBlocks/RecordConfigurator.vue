@@ -64,6 +64,22 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('record.inlineEdit.enabled')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.inlineRecordEditEnabled"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </div>
 
@@ -219,6 +235,10 @@ export default {
   data () {
     return {
       referenceModule: undefined,
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
     }
   },
 

@@ -1,6 +1,6 @@
 <template>
   <b-form-group
-    label-class="text-primary"
+    label-class="d-flex align-items-center text-primary p-0"
     :state="state"
     :class="formGroupStyleClasses"
   >
@@ -8,27 +8,22 @@
       v-if="!valueOnly"
       #label
     >
-      <div
-        class="d-flex align-items-top"
-      >
-        <label
-          class="mb-0"
-        >
-          {{ label }}
-        </label>
+      <span class="d-inline-block text-truncate mw-100 py-1">
+        {{ label }}
+      </span>
 
-        <hint
-          :id="field.fieldID"
-          :text="hint"
-        />
-      </div>
-
-      <small
-        class="form-text font-weight-light text-muted"
-      >
-        {{ description }}
-      </small>
+      <hint
+        :id="field.fieldID"
+        :text="hint"
+      />
     </template>
+
+    <div
+      class="small text-muted"
+      :class="{ 'mb-1': description }"
+    >
+      {{ description }}
+    </div>
 
     <multi
       v-if="field.isMulti"
