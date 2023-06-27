@@ -675,10 +675,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@cortezaproject/corteza-js@^2023.3.2-1":
-  version "2023.3.2-1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.3.2-1.tgz#602c7023513b1a959a7a3f5ab38fa7873a88a57f"
-  integrity sha512-8LJbG67QRQ7g8EVH10hituaMOQ4MjgC+YdrItcKHeXQD+3ZyIgwar1CybcM1UPc5ZIh0w6SuZInns1Cp0qG02Q==
+"@cortezaproject/corteza-js@^2023.3.3-rc.1":
+  version "2023.3.3-rc.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.3.3-rc.1.tgz#fde695dd551a6e4d6ae12830889bbc52dc35fc34"
+  integrity sha512-8vso2Gqwe5EjGSNjJWQdsZT2RiLS92wf9iDLE84UZLaBfBGBdC215qfab5VqF54ZODqVKGfkgiC+zrn52XkLjA==
   dependencies:
     axios "^0.21.1"
     hex-rgb "^4.1.0"
@@ -689,12 +689,12 @@
     numeral "^2.0.6"
     pino "^5.16.0"
 
-"@cortezaproject/corteza-vue@^2023.3.2-1":
-  version "2023.3.2-1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2023.3.2-1.tgz#4046be37c6b4d337e963d7c3bb11d257bd8f7a39"
-  integrity sha512-doYioBI2J5GUrGN/93PuiV/lgVLm/xwypFxK9W2QoKoV/VDatounTTkHup6OmAqPZxmInYPIAGwDmk9guBhrkg==
+"@cortezaproject/corteza-vue@^2023.3.3-rc.1":
+  version "2023.3.3-rc.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2023.3.3-rc.1.tgz#1cdb9c57f6cdac50de43674001c6eb1e306107e1"
+  integrity sha512-UwEc1JLz8DY80Orox+PzcLwn0O9erv6997YdsYT/PuVIL7lw/LKkf29SXAjxS/qZMg9at6X1/XaSrzD8ji0JKA==
   dependencies:
-    "@cortezaproject/corteza-js" "^2023.3.2-1"
+    "@cortezaproject/corteza-js" "^2023.3.3-rc.1"
     "@fortawesome/fontawesome-svg-core" "^1.2.26"
     "@fortawesome/free-solid-svg-icons" "^5.12.0"
     "@fortawesome/vue-fontawesome" "^0.1.9"
@@ -724,6 +724,7 @@
     vue-echarts "^6.2.3"
     vue-select "^3.4.0"
     vue-swatches "^1.0.4"
+    vue2-ace-editor "^0.0.15"
     vuedraggable "^2.23.0"
     vuex "^3.6.2"
     websocket-extensions "^0.1.4"
@@ -1994,6 +1995,11 @@ brace-expansion@^1.1.7:
   dependencies:
     balanced-match "^1.0.0"
     concat-map "0.0.1"
+
+brace@^0.11.0:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/brace/-/brace-0.11.1.tgz#4896fcc9d544eef45f4bb7660db320d3b379fe58"
+  integrity sha512-Fc8Ne62jJlKHiG/ajlonC4Sd66Pq68fFwK4ihJGNZpGqboc324SQk+lRvMzpPRuJOmfrJefdG8/7JdWX4bzJ2Q==
 
 braces@^2.3.1, braces@^2.3.2:
   version "2.3.2"
@@ -9968,6 +9974,13 @@ vue-tour@^2.0.0:
     hash-sum "^2.0.0"
     jump.js "^1.0.2"
     vue "^2.6.12"
+
+vue2-ace-editor@^0.0.15:
+  version "0.0.15"
+  resolved "https://registry.yarnpkg.com/vue2-ace-editor/-/vue2-ace-editor-0.0.15.tgz#569b208e54ae771ae1edd3b8902ac42f0edc74e3"
+  integrity sha512-e3TR9OGXc71cGpvYcW068lNpRcFt3+OONCC81oxHL/0vwl/V3OgqnNMw2/RRolgQkO/CA5AjqVHWmANWKOtNnQ==
+  dependencies:
+    brace "^0.11.0"
 
 vue@2.6.14, vue@^2.6.12:
   version "2.6.14"
