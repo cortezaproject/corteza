@@ -923,10 +923,10 @@
     "@babel/helper-validator-identifier" "^7.16.7"
     to-fast-properties "^2.0.0"
 
-"@cortezaproject/corteza-js@^2023.3.2-1":
-  version "2023.3.2-1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.3.2-1.tgz#602c7023513b1a959a7a3f5ab38fa7873a88a57f"
-  integrity sha512-8LJbG67QRQ7g8EVH10hituaMOQ4MjgC+YdrItcKHeXQD+3ZyIgwar1CybcM1UPc5ZIh0w6SuZInns1Cp0qG02Q==
+"@cortezaproject/corteza-js@^2023.3.3-rc.1":
+  version "2023.3.3-rc.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.3.3-rc.1.tgz#fde695dd551a6e4d6ae12830889bbc52dc35fc34"
+  integrity sha512-8vso2Gqwe5EjGSNjJWQdsZT2RiLS92wf9iDLE84UZLaBfBGBdC215qfab5VqF54ZODqVKGfkgiC+zrn52XkLjA==
   dependencies:
     axios "^0.21.1"
     hex-rgb "^4.1.0"
