@@ -33,8 +33,10 @@ import:
 'test-in-progress': Test in progress
 'trace-unavailable': Trace not available
 'trigger-paths-changed': Trigger paths changed
-'updated-workflow': Workflow updated
 'workflow-test-completed': Workflow test completed
+update:
+  success: Workflow updated
+  failed: Failed to update workflow
 delete:
   success: Workflow deleted
   failed: Failed to delete workflow
