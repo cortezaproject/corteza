@@ -252,7 +252,7 @@ export default {
     },
   },
 
-  created () {
+  mounted () {
     this.$root.$on('refetch-record-blocks', () => {
       // Don*t refresh when creating and prompt user before refreshing when editing
       if (this.inCreating || (this.inEditing && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
@@ -263,6 +263,10 @@ export default {
       this.loadRecord()
       this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
     })
+  },
+
+  beforeDestroy () {
+    this.$root.$off('refetch-record-blocks')
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one

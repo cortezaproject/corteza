@@ -307,11 +307,11 @@ export default {
     },
   },
 
-  created () {
+  mounted () {
     this.$root.$on('builder-createRequestFulfilled', this.createRequestFulfilled)
   },
 
-  destroyed () {
+  beforeDestroy () {
     this.$root.$off('builder-createRequestFulfilled', this.createRequestFulfilled)
   },
 

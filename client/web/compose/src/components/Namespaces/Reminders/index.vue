@@ -46,7 +46,7 @@ export default {
     }),
   },
 
-  created () {
+  mounted () {
     this.fetchReminders()
     // @todo remove this, when sockets get implemented
     this.$root.$on('reminders.pull', this.fetchReminders)

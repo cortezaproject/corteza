@@ -124,7 +124,7 @@ export default {
     },
   },
 
-  created () {
+  mounted () {
     this.$root.$on('show-record-modal', ({ recordID, recordPageID }) => {
       this.$router.push({
         query: {
