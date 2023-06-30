@@ -506,7 +506,7 @@ func (svc role) Delete(ctx context.Context, roleID uint64) (err error) {
 
 func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
 	var (
-		r       *types.Role
+		r, upd  *types.Role
 		raProps = &roleActionProps{role: &types.Role{ID: roleID}}
 	)
 
@@ -519,18 +519,23 @@ func (svc role) Undelete(ctx context.Context, roleID uint64) (err error) {
 			return RoleErrNotAllowedToUndelete()
 		}
 
-		raProps.setRole(r)
-
-		if !svc.ac.CanDeleteRole(ctx, r) {
-			return RoleErrNotAllowedToDelete()
-		}
-
-		r.DeletedAt = nil
-
-		if err = store.UpdateRole(ctx, svc.store, r); err != nil {
+		upd = r.Clone()
+		if err = svc.eventbus.WaitFor(ctx, event.RoleBeforeUpdate(upd, r)); err != nil {
 			return
 		}
 
+		raProps.setRole(upd)
+
+		if !svc.ac.CanDeleteRole(ctx, upd) {
+			return RoleErrNotAllowedToDelete()
+		}
+
+		upd.DeletedAt = nil
+		if err = store.UpdateRole(ctx, svc.store, upd); err != nil {
+			return
+		}
+
+		svc.eventbus.Dispatch(ctx, event.RoleAfterUpdate(upd, r))
 		return nil
 	}()
 
