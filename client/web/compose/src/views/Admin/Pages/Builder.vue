@@ -456,14 +456,11 @@ export default {
     },
   },
 
-  created () {
+  mounted () {
+    window.addEventListener('paste', this.pasteBlock)
     this.$root.$on('tab-editRequest', this.fulfilEditRequest)
     this.$root.$on('tab-createRequest', this.fulfilCreateRequest)
     this.$root.$on('tabChange', this.untabBlock)
-  },
-
-  mounted () {
-    window.addEventListener('paste', this.pasteBlock)
   },
 
   beforeRouteUpdate (to, from, next) {
@@ -474,7 +471,7 @@ export default {
     this.checkUnsavedBlocks(next)
   },
 
-  destroyed () {
+  beforeDestroy () {
     window.removeEventListener('paste', this.pasteBlock)
     this.$root.$off('tab-editRequest', this.fulfilEditRequest)
     this.$root.$off('tab-createRequest', this.fulfilCreateRequest)

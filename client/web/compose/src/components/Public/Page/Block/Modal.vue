@@ -104,11 +104,11 @@ export default {
     },
   },
 
-  created () {
+  mounted () {
     this.$root.$on('magnify-page-block', this.magnifyPageBlock)
   },
 
-  destroyed () {
+  beforeDestroy () {
     this.$root.$off('magnify-page-block', this.magnifyPageBlock)
   },
 
