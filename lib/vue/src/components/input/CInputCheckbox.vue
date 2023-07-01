@@ -1,30 +1,31 @@
 <template>
-    <div
-      class="d-flex"
+  <div
+    class="d-flex align-items-center"
+  >
+    <span
+      class="mb-0 inline-block text-primary"
+      :class="offClass"
     >
-      <span
-        class="mb-0 inline-block text-primary mr-2"
-        :class="noClass"
-      >
-        {{ labels.off }}
-      </span>
+      {{ labels.off }}
+    </span>
 
-      <b-form-checkbox
-        v-bind="$attrs"
-        :checked="value"
-        :value="!invert"
-        :unchecked-value="invert"
-        v-on="$listeners"
-      />
+    <b-form-checkbox
+      v-bind="$attrs"
+      :checked="value"
+      :value="!invert"
+      :unchecked-value="invert"
+      v-on="$listeners"
+    >
+      <slot />
+    </b-form-checkbox>
 
-      <span
-        class="mb-0 inline-block strong text-primary ml-2"
-        :class="yesClass"
-      >
-        {{ labels.on }}
-      </span>
-    </div>
-
+    <span
+      class="mb-0 inline-block strong text-primary"
+      :class="onClass"
+    >
+      {{ labels.on }}
+    </span>
+  </div>
 </template>
 
 <script>
@@ -48,19 +49,21 @@ export default {
   },
 
   computed: {
-    noClass () {
+    offClass () {
       const value = this.invert ? !this.value : this.value
       return {
         'text-muted': value,
         'font-weight-bold': !value,
+        'mr-2': !!this.labels.off
       }
     },
 
-    yesClass () {
+    onClass () {
       const value = this.invert ? !this.value : this.value
       return {
         'text-muted': !value,
         'font-weight-bold': value,
+        'ml-1': !!this.labels.on
       }
     }
   },
