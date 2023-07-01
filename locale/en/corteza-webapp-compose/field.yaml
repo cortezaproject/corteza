@@ -6,10 +6,12 @@ required-field: This field is required
 kind:
   bool:
     checkedValueLabel: Value when checked
-    checkedValuePlaceholder: Checked value
+    checkedValuePlaceholder: Yes
     label: Checkbox (Y/N)
     uncheckedValueLabel: Value when unchecked
-    uncheckedValuePlaceholder: Unchecked value
+    uncheckedValuePlaceholder: No
+    toggleTypeLabel: Checkbox Type
+    toggleType: Display as switch
   dateTime:
     dateOnly: Date Only
     futureValuesOnly: Future Value Only
