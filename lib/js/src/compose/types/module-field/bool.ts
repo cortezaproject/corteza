@@ -6,12 +6,14 @@ const kind = 'Bool'
 interface BoolOptions extends Options {
   trueLabel: string;
   falseLabel: string;
+  switch: boolean;
 }
 
 const defaults = (): Readonly<BoolOptions> => Object.freeze({
   ...defaultOptions(),
   trueLabel: '',
   falseLabel: '',
+  switch: false,
 })
 
 export class ModuleFieldBool extends ModuleField {
@@ -29,6 +31,7 @@ export class ModuleFieldBool extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, String, 'trueLabel', 'falseLabel')
+    Apply(this.options, o, Boolean, 'switch')
   }
 
   /**

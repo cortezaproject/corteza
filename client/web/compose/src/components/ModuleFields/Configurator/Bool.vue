@@ -8,6 +8,7 @@
           v-model="f.options.trueLabel"
           :placeholder="$t('kind.bool.checkedValuePlaceholder')"
         />
+
         <b-input-group-append>
           <field-bool-translator
             v-if="field"
@@ -30,6 +31,7 @@
           v-model="f.options.falseLabel"
           :placeholder="$t('kind.bool.uncheckedValuePlaceholder')"
         />
+
         <b-input-group-append>
           <field-bool-translator
             v-if="field"
@@ -42,6 +44,14 @@
           />
         </b-input-group-append>
       </b-input-group>
+    </b-form-group>
+
+    <b-form-group
+      :label="$t('kind.bool.toggleTypeLabel')"
+    >
+      <b-form-checkbox v-model="f.options.switch">
+        {{ $t('kind.bool.toggleType') }}
+      </b-form-checkbox>
     </b-form-group>
   </div>
 </template>
