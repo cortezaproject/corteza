@@ -37,8 +37,13 @@ func (s Scp) Writer() http.ResponseWriter {
 }
 
 func (s Scp) Opts() *options.ApigwOpt {
-	if _, ok := s["opts"]; ok {
-		return s["opts"].(*options.ApigwOpt)
+	if ss, ok := s["opts"]; ok {
+		switch sss := ss.(type) {
+		case *options.ApigwOpt:
+			return sss
+		case options.ApigwOpt:
+			return &sss
+		}
 	}
 
 	return nil
