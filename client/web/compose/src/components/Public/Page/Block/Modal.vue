@@ -29,6 +29,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 import PageBlock from 'corteza-webapp-compose/src/components/PageBlocks'
 
 export default {
@@ -133,7 +134,7 @@ export default {
 
       const { namespaceID, moduleID } = this.page
       const recordID = paramsRecordID || queryRecordID
-      this.block = this.customBlock || this.page.blocks.find(block => block.blockID === blockID)
+      this.block = this.customBlock || this.page.blocks.find(block => fetchID(block) === blockID)
       this.module = moduleID !== NoID ? this.getModuleByID(moduleID) : undefined
       this.showModal = !!(this.block || {}).blockID
 

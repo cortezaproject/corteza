@@ -1,5 +1,6 @@
 <script>
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
+
 export default {
   i18nOptions: {
     namespaces: 'block',
@@ -71,6 +72,11 @@ export default {
         this.block.options.showRefresh,
       ].some(c => !!c)
     },
+
+    magnifyParams () {
+      const params = this.block.blockID === NoID ? { block: this.block } : { blockID: this.block.blockID }
+      return this.isBlockMagnified ? undefined : params
+    }
   },
 }
 </script>
