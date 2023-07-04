@@ -464,7 +464,7 @@ export default {
   },
 
   beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedBlocks(next)
+    this.checkUnsavedBlocks(next, to)
   },
 
   beforeRouteLeave (to, from, next) {
@@ -883,8 +883,10 @@ export default {
     },
 
     // Trigger browser dialog on page leave to prevent unsaved changes
-    checkUnsavedBlocks (next) {
-      next(!this.unsavedBlocks.size || window.confirm(this.$t('build.unsavedChanges')))
+    checkUnsavedBlocks (next, to = { query: {} }) {
+      // Check if additional query params will be appended to url
+      const queryParams = Object.keys(to.query).filter(key => key !== 'layoutID')
+      next(!this.unsavedBlocks.size || queryParams ||  window.confirm(this.$t('build.unsavedChanges')))
     },
 
     async setLayout () {
