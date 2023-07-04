@@ -16,15 +16,124 @@
         v-model="options.componentID"
       />
     </b-form-group>
+
+    <template v-if="showPreviewSection">
+      <hr class="my-3">
+
+      <div>
+        <h5 class="mb-3">
+          {{ $t('prefill.title') }}
+        </h5>
+
+        <b-row>
+          <template v-if="options.kind === 'Composer'">
+            <b-col
+              cols="12"
+              sm="6"
+            >
+              <b-form-group
+                :label="$t('prefill.to')"
+                label-class="text-primary"
+              >
+                <vue-select
+                  v-model="options.prefill.to"
+                  :options="moduleTextFields"
+                  :get-option-label="getFieldLabel"
+                  :get-option-key="getOptionKey"
+                  :placeholder="$t('prefill.selectField')"
+                  :reduce="field => field.fieldID"
+                  :calculate-position="calculateDropdownPosition"
+                  append-to-body
+                  class="bg-white"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              sm="6"
+            >
+              <b-form-group
+                :label="$t('prefill.subject')"
+                label-class="text-primary"
+              >
+                <vue-select
+                  v-model="options.prefill.subject"
+                  :options="moduleTextFields"
+                  :get-option-label="getFieldLabel"
+                  :get-option-key="getOptionKey"
+                  :placeholder="$t('prefill.selectField')"
+                  :reduce="field => field.fieldID"
+                  :calculate-position="calculateDropdownPosition"
+                  append-to-body
+                  class="bg-white"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              sm="6"
+            >
+              <b-form-group
+                :label="$t('prefill.body')"
+                label-class="text-primary"
+              >
+                <vue-select
+                  v-model="options.prefill.body"
+                  :options="moduleTextFields"
+                  :get-option-label="getFieldLabel"
+                  :get-option-key="getOptionKey"
+                  :placeholder="$t('prefill.selectField')"
+                  :reduce="field => field.fieldID"
+                  :calculate-position="calculateDropdownPosition"
+                  append-to-body
+                  class="bg-white"
+                />
+              </b-form-group>
+            </b-col>
+          </template>
+
+          <template v-if="options.kind === 'Mailbox'">
+            <b-col
+              cols="12"
+              sm="6"
+            >
+              <b-form-group
+                :label="$t('prefill.queryString')"
+                label-class="text-primary"
+              >
+                <vue-select
+                  v-model="options.prefill.queryString"
+                  :options="moduleTextFields"
+                  :get-option-label="getFieldLabel"
+                  :get-option-key="getOptionKey"
+                  :placeholder="$t('prefill.selectField')"
+                  :reduce="field => field.fieldID"
+                  :calculate-position="calculateDropdownPosition"
+                  append-to-body
+                  class="bg-white"
+                />
+              </b-form-group>
+            </b-col>
+          </template>
+        </b-row>
+      </div>
+    </template>
   </b-tab>
 </template>
+
 <script>
+import { VueSelect } from 'vue-select'
+import { NoID } from '@cortezaproject/corteza-js'
 import base from '../base'
 
 export default {
   i18nOptions: {
     namespaces: 'block',
     keyPrefix: 'nylas.configurator',
+  },
+
+  components: {
+    VueSelect,
   },
 
   extends: base,
@@ -39,7 +148,32 @@ export default {
         { value: 'Email', text: this.$t('kinds.email') },
         { value: 'Mailbox', text: this.$t('kinds.mailbox') },
       ],
+
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
     }
+  },
+
+  computed: {
+    moduleTextFields () {
+      return this.module.fields.filter(({ kind }) => ['String', 'Email'].includes(kind))
+    },
+
+    showPreviewSection () {
+      return ['Composer', 'Mailbox'].includes(this.options.kind) && (this.page.moduleID !== NoID)
+    },
+  },
+
+  methods: {
+    getFieldLabel ({ name, label }) {
+      return label || name
+    },
+
+    getOptionKey ({ fieldID }) {
+      return fieldID
+    },
   },
 }
 </script>

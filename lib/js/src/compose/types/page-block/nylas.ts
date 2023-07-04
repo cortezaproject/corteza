@@ -7,12 +7,26 @@ interface Options {
   kind: string,
   componentID: string;
   magnifyOption: string;
+  prefill: Prefill;
+}
+
+interface Prefill {
+  to: string;
+  subject: string;
+  body: string;
+  queryString: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
   kind: 'Composer', // Default kind of nylas component
   componentID: '',
   magnifyOption: '',
+  prefill: {
+    to: '',
+    subject: '',
+    body: '',
+    queryString: ''
+  }
 })
 
 export class PageBlockNylas extends PageBlock {
@@ -29,6 +43,8 @@ export class PageBlockNylas extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, String, 'kind', 'componentID', 'magnifyOption')
+
+    this.options.prefill = { ...defaults.prefill, ...o.prefill }
   }
 }
 

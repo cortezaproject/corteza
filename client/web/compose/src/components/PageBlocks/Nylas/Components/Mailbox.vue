@@ -2,6 +2,7 @@
   <nylas-mailbox
     :id="componentID"
     :access_token="accessToken"
+    :query_string="queryString"
     theme="light"
   />
 </template>
@@ -12,5 +13,19 @@ import '@nylas/components-mailbox'
 
 export default {
   extends: base,
+
+  props: {
+    prefillValues: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
+
+  computed: {
+    queryString () {
+      const { queryString = [] } = this.prefillValues
+      return `from=${queryString}`
+    },
+  },
 }
 </script>

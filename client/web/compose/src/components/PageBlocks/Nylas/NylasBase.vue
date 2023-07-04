@@ -37,6 +37,7 @@
       v-else
       :component-i-d="options.componentID"
       :access-token="accessToken"
+      :prefill-values="prefillValues"
     />
   </wrap>
 </template>
@@ -62,6 +63,13 @@ export default {
       accessToken: '',
 
       tokenCheckInterval: undefined,
+
+      prefillValues: {
+        to: [],
+        subject: '',
+        body: '',
+        queryString: '',
+      },
     }
   },
 
@@ -97,11 +105,41 @@ export default {
           .finally(() => {
             this.processing = false
           })
+
+        this.processPrefillValues()
       },
     },
   },
 
   methods: {
+    processPrefillValues () {
+      if (this.module) {
+        this.prefillValues = {
+          to: this.mapFieldToValue('to').map(v => ({ email: v })),
+          subject: this.mapFieldToValue('subject').join(','),
+          body: this.mapFieldToValue('body').join('<br />'),
+          queryString: this.mapFieldToValue('queryString').join(','),
+        }
+      }
+    },
+
+    mapFieldToValue (property) {
+      const ID = this.options.prefill[property]
+
+      if (!ID) {
+        return []
+      }
+
+      const { name, isMulti } = this.module.fields.find(f => f.fieldID === ID) || {}
+      const value = this.record.values[name]
+
+      if (!value) {
+        return []
+      }
+
+      return isMulti ? this.record.values[name] : [this.record.values[name]]
+    },
+
     checkNylasAccessToken () {
       return this.$SystemAPI.userListCredentials({ userID: this.$auth.user.userID })
         .then(credentials => {

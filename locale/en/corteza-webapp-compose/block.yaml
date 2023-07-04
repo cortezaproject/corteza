@@ -729,6 +729,13 @@ nylas:
     label: Office365/Google
     kind: Component kind
     componentID: Component ID
+    prefill:
+      title: Prefill values
+      selectField: Select field
+      body: Body
+      subject: Subject
+      queryString: Query string
+      to: To
     kinds:
       agenda: Agenda
       composer: Composer
