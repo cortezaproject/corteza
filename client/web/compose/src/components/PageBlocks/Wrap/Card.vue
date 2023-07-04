@@ -44,7 +44,7 @@
                 :title="isBlockMagnified ? '' : $t('general.label.magnify')"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
-                @click="$root.$emit('magnify-page-block', isBlockMagnified ? undefined : { blockID: block.blockID })"
+                @click="$root.$emit('magnify-page-block', isBlockMagnified ? undefined : magnifyParams)"
               >
                 <font-awesome-icon :icon="['fas', isBlockMagnified ? 'times' : 'search-plus']" />
               </b-button>
