@@ -25,7 +25,16 @@
     </div>
 
     <template v-if="field.isMulti">
+      <template v-if="field.options.selectType === 'list'">
+        <b-form-checkbox-group
+          v-model="value"
+          :options="selectOptions"
+          stacked
+        />
+      </template>
+
       <multi
+        v-else
         :value.sync="value"
         :errors="errors"
         :single-input="field.options.selectType !== 'each'"
@@ -46,6 +55,7 @@
               </option>
             </template>
           </b-form-select>
+
           <b-form-select
             v-if="field.options.selectType === 'multiple'"
             v-model="value"
@@ -54,6 +64,7 @@
             multiple
           />
         </template>
+
         <template v-slot:default="ctx">
           <b-form-select
             v-if="field.options.selectType === 'each'"
@@ -69,6 +80,7 @@
               </option>
             </template>
           </b-form-select>
+
           <span v-else>{{ findLabel(value[ctx.index]) }}</span>
         </template>
       </multi>
@@ -78,6 +90,7 @@
       v-else
     >
       <b-form-select
+        v-if="field.options.selectType === 'default'"
         v-model="value"
         :options="selectOptions"
       >
@@ -87,6 +100,14 @@
           </option>
         </template>
       </b-form-select>
+
+      <b-form-radio-group
+        v-else
+        v-model="value"
+        :options="selectOptions"
+        stacked
+      />
+
       <errors :errors="errors" />
     </template>
   </b-form-group>
@@ -107,7 +128,7 @@ export default {
         const disabled = o.value && this.field.isMulti && !this.field.options.isUniqueMultiValue
           ? this.value === o.value
           : (this.value || []).includes(o.value)
-        return { ...o, disabled }
+        return { ...o, disabled: this.field.options.selectType !== 'list' && disabled }
       }).filter(({ value = '', text = '' }) => value && text)
     },
   },

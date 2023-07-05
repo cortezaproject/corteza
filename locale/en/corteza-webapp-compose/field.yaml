@@ -119,8 +119,10 @@ kind:
     optionType:
       default: Single input
       each: Input for each value
-      label: Multiple value input type
+      label: Select type
       multiple: Multiple select
+      checkbox: Checkbox Group
+      radio: Radio Group
     optionValuePlaceholder: Value
     optionsLabel: Options to select from
     placeholder: Select an option by clicking here
