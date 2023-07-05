@@ -32,13 +32,11 @@
       >
         <b-col>{{ getRoleLabel(role) }}</b-col>
         <b-col class="text-right">
-          <b-button
+          <c-input-confirm
             data-test-id="button-remove-role"
-            variant="link"
-            @click="removeRole(role)"
-          >
-            <font-awesome-icon :icon="['far', 'trash-alt']" />
-          </b-button>
+            no-prompt
+            @confirmed="removeRole(role)"
+          />
         </b-col>
       </b-row>
     </b-container>
@@ -48,7 +46,8 @@
 <script>
 import { debounce } from 'lodash'
 import { VueSelect } from 'vue-select'
-
+import { components } from '@cortezaproject/corteza-vue/'
+const { CInputConfirm } = components
 function roleSorter (a, b) {
   return `${a.name} ${a.handle} ${a.roleID}`.localeCompare(`${b.name} ${b.handle} ${b.roleID}`)
 }
@@ -56,6 +55,7 @@ function roleSorter (a, b) {
 export default {
   components: {
     VueSelect,
+    CInputConfirm,
   },
 
   props: {

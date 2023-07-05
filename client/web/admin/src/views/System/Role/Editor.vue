@@ -108,7 +108,7 @@ export default {
       initialRoleState: undefined,
       isContext: false,
 
-      roleMembers: [],
+      roleMembers: undefined,
 
       info: {
         processing: false,
@@ -166,6 +166,7 @@ export default {
           this.role = new system.Role()
           this.initialRoleState = this.role.clone()
           this.isContext = false
+          this.roleMembers = undefined
         }
       },
     },
