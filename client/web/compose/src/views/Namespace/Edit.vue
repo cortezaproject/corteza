@@ -1,6 +1,6 @@
 <template>
   <div
-    v-if="loaded"
+    v-if="namespace"
     class="d-flex flex-column w-100 h-100"
   >
     <portal to="topbar-title">
@@ -339,19 +339,21 @@ export default {
 
   data () {
     return {
-      loaded: false,
       processing: false,
 
-      namespace: new compose.Namespace({ enabled: true }),
-      initialNamespaceState: new compose.Namespace({ enabled: true }),
+      namespace: undefined,
+      initialNamespaceState: undefined,
+
       namespaceAssets: {
         logo: undefined,
         icon: undefined,
       },
+
       namespaceAssetsInitialState: {
         logo: undefined,
         icon: undefined,
       },
+
       namespaceEnabled: false,
 
       application: undefined,
@@ -465,6 +467,8 @@ export default {
 
       const namespaceID = this.$route.params.namespaceID
 
+      this.namespace = undefined
+      this.initialNamespaceState = undefined
       this.application = undefined
       this.isApplication = false
       this.isApplicationInitialState = this.isApplication
@@ -490,13 +494,14 @@ export default {
         subtitle: '',
         description: '',
         hideSidebar: false,
+        logoEnabled: null,
         ...this.namespace.meta,
       }
 
       this.initialNamespaceState = this.namespace.clone()
+      this.namespaceAssetsInitialState = this.namespaceAssets
 
       this.processing = false
-      this.loaded = true
     },
 
     exportNamespace () {
@@ -602,6 +607,9 @@ export default {
       await this.handleApplicationSave()
         .catch(() => this.toastErrorHandler(this.$t('notification:namespace.createAppFailed')))
 
+      this.initialNamespaceState = this.namespace.clone()
+      this.isApplicationInitialState = this.isApplication
+
       this.processing = false
 
       if (closeOnSuccess) {
@@ -609,8 +617,6 @@ export default {
       } else if (!this.isEdit || this.isClone) {
         this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
       }
-
-      this.fetchNamespace()
     },
 
     handleDelete () {
@@ -656,7 +662,10 @@ export default {
         this.application.unify.logo = this.application.unify.logo || this.namespace.meta.logo
 
         return this.$SystemAPI.applicationUpdate({ ...this.application, enabled })
-          .then(app => { this.application = app })
+          .then(app => {
+            this.application = app
+            this.isApplication = this.application.enabled
+          })
           .catch(this.toastErrorHandler(this.$t('notification:namespace.application.saveFailed')))
       } else if (this.isApplication) {
         // If namespace not an application - create one and enable
@@ -672,7 +681,10 @@ export default {
           },
         }
         return this.$SystemAPI.applicationCreate({ ...application })
-          .then(app => { this.application = app })
+          .then(app => {
+            this.application = app
+            this.isApplication = this.application.enabled
+          })
           .catch(this.toastErrorHandler(this.$t('notification:namespace.application.createFailed')))
       }
     },
@@ -722,7 +734,7 @@ export default {
     },
 
     checkUnsavedNamespace (next) {
-      const namespaceState = !isEqual(JSON.stringify(this.namespace), JSON.stringify(this.initialNamespaceState))
+      const namespaceState = !isEqual(this.namespace.clone(), this.initialNamespaceState.clone())
       const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
       const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
 
