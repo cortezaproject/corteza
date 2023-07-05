@@ -36,14 +36,11 @@
             >
               <td>{{ getUserLabel(user) }}</td>
               <td class="text-right">
-                <b-button
+                <c-input-confirm
                   data-test-id="button-remove-member"
-                  variant="link"
-                  class="text-danger pr-0"
-                  @click="removeMember(user.userID)"
-                >
-                  {{ $t('remove') }}
-                </b-button>
+                  no-prompt
+                  @confirmed="removeMember(user.userID)"
+                />
               </td>
             </tr>
           </tbody>
@@ -72,6 +69,8 @@
 import { debounce } from 'lodash'
 import { VueSelect } from 'vue-select'
 import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
+import { components } from '@cortezaproject/corteza-vue/'
+const { CInputConfirm } = components
 
 export default {
   i18nOptions: {
@@ -82,6 +81,7 @@ export default {
   components: {
     CSubmitButton,
     VueSelect,
+    CInputConfirm,
   },
 
   props: {
@@ -132,7 +132,6 @@ export default {
 
   mounted () {
     this.fetchUsers()
-    this.fetchMembers()
   },
 
   methods: {
@@ -172,22 +171,16 @@ export default {
     },
 
     fetchUsers () {
-      this.$SystemAPI.userList({ query: this.filter })
+      this.$SystemAPI.userList({ query: this.filter, limit: 25 })
         .then(({ set: items = [] }) => {
           this.users = items
+
+          if (!this.filter) {
+            const userIDs = this.members.map(({ userID }) => userID)
+            this.memberUsers = items.filter(({ userID }) => userIDs.includes(userID))
+          }
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.fetch.error')))
-    },
-
-    fetchMembers () {
-      const userID = this.members.map(({ userID }) => userID)
-      if (userID.length > 0) {
-        this.$SystemAPI.userList({ query: this.filter, userID })
-          .then(({ set: items = [] }) => {
-            this.memberUsers = items
-          })
-          .catch(this.toastErrorHandler(this.$t('notification:user.fetch.error')))
-      }
     },
 
     search: debounce(function (query = '') {
