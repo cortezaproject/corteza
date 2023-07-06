@@ -336,7 +336,7 @@ export default {
       if (isNewPage) {
         next(true)
       } else if (!to.name.includes('edit')) {
-        const isDirty = this.roleMembers.some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)
+        const isDirty = (this.roleMembers || []).some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)
         next(isDirty ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
     },
