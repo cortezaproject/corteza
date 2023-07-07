@@ -1,14 +1,11 @@
 import { ModuleField, Registry, Options, defaultOptions } from './base'
 import { Apply, ApplyWhitelisted } from '../../../cast'
-import { omit } from 'lodash';
 
 const kind = 'File'
 
 export const modes = [
   // list of attachments, no preview
   'list',
-  // grid of icons
-  'grid',
   // list of all images/files, show preview
   'gallery',
 ]
@@ -28,6 +25,8 @@ interface FileOptions extends Options {
   borderRadius?: string;
   margin?: string;
   backgroundColor?: string;
+  clickToView?: boolean;
+  enableDownload?: boolean;
 }
 
 const defaults = (): Readonly<FileOptions> => Object.freeze({
@@ -35,7 +34,7 @@ const defaults = (): Readonly<FileOptions> => Object.freeze({
   allowImages: true,
   allowDocuments: true,
   maxSize: 0,
-  mode: '\n',
+  mode: 'list',
   inline: true,
   hideFileName: false,
   mimetypes: '',
@@ -46,6 +45,8 @@ const defaults = (): Readonly<FileOptions> => Object.freeze({
   borderRadius: '',
   margin: 'auto',
   backgroundColor: '#FFFFFF00',
+  clickToView: true,
+  enableDownload: true,
 })
 
 export class ModuleFieldFile extends ModuleField {
@@ -63,7 +64,7 @@ export class ModuleFieldFile extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, Number, 'maxSize')
-    Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName')
+    Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName', 'clickToView', 'enableDownload')
     Apply(this.options, o, String, 'mimetypes', 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor')
 
     // Legacy

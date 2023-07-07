@@ -17,13 +17,15 @@
         <div
           v-for="(a, index) in attachments"
           :key="a.attachmentID"
-          class="item pl-2 mb-2"
+          class="item mb-2"
         >
           <b-row no-gutters>
-            <b-col>
+            <b-col
+              cols="auto"
+            >
               <div
                 v-if="enableOrder"
-                class="mr-2 d-inline"
+                class="d-inline p-1 mr-2"
               >
                 <font-awesome-icon
                   v-b-tooltip.hover
@@ -32,7 +34,9 @@
                   class="handle text-light"
                 />
               </div>
+            </b-col>
 
+            <b-col>
               <div class="d-flex align-items-center">
                 <font-awesome-icon
                   :title="ext(a)"
@@ -54,7 +58,7 @@
               </i18next>
             </b-col>
 
-            <div class="col-sm-2 text-right my-auto">
+            <b-col cols="auto">
               <b-button
                 v-if="a.download"
                 :href="a.download"
@@ -68,7 +72,7 @@
                 v-if="enableDelete"
                 @confirmed="deleteAttachment(index)"
               />
-            </div>
+            </b-col>
           </b-row>
         </div>
       </draggable>

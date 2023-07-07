@@ -36,14 +36,24 @@
       />
     </b-form-group>
 
-    <b-form-group
-      v-if="enablePreviewStyling"
-      class="mb-0"
-    >
+    <b-form-group>
       <b-form-checkbox
+        v-if="enablePreviewStyling"
         v-model="f.options.hideFileName"
       >
         {{ $t('kind.file.view.showName') }}
+      </b-form-checkbox>
+
+      <b-form-checkbox
+        v-model="f.options.clickToView"
+      >
+        {{ $t('kind.file.view.clickToView') }}
+      </b-form-checkbox>
+
+      <b-form-checkbox
+        v-model="f.options.enableDownload"
+      >
+        {{ $t('kind.file.view.enableDownload') }}
       </b-form-checkbox>
     </b-form-group>
 
