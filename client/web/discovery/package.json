@@ -63,7 +63,7 @@
     "sass": "^1.49.9",
     "sass-loader": "^10",
     "sinon": "^7.3.2",
-    "stylelint": "^8.0.0",
+    "stylelint": "^15.10.1",
     "stylelint-config-standard": "^18.3.0",
     "stylelint-scss": "^3.14.2",
     "stylelint-webpack-plugin": "^0.10.5",
