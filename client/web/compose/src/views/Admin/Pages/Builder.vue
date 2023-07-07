@@ -735,7 +735,6 @@ export default {
         if (b.kind === 'RecordList' && b.options.editable) {
           const p = new Promise((resolve) => {
             const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID, b.blockID, false].map(v => v || NoID).join('-')
-            console.log(`page-block:validate:${recordListUniqueID}`)
             this.$root.$emit(`page-block:validate:${recordListUniqueID}`, resolve)
           })
 

@@ -14,27 +14,27 @@
         :options="modes"
       />
     </b-form-group>
-    <b-form-checkbox
-      v-model="options.hideFileName"
-      :disabled="!currentPreviewMode"
-      class="mb-3"
-    >
-      {{ $t('kind.file.view.showName') }}
-    </b-form-checkbox>
 
-    <b-form-checkbox
-      v-model="options.clickToView"
-      class="mb-3"
-    >
-      {{ $t('kind.file.view.clickToView') }}
-    </b-form-checkbox>
+    <b-form-group>
+      <b-form-checkbox
+        v-if="enablePreviewStyling"
+        v-model="options.hideFileName"
+      >
+        {{ $t('kind.file.view.showName') }}
+      </b-form-checkbox>
 
-    <b-form-checkbox
-      v-model="options.enableDownload"
-      class="mb-3"
-    >
-      {{ $t('kind.file.view.enableDownload') }}
-    </b-form-checkbox>
+      <b-form-checkbox
+        v-model="options.clickToView"
+      >
+        {{ $t('kind.file.view.clickToView') }}
+      </b-form-checkbox>
+
+      <b-form-checkbox
+        v-model="options.enableDownload"
+      >
+        {{ $t('kind.file.view.enableDownload') }}
+      </b-form-checkbox>
+    </b-form-group>
 
     <uploader
       :endpoint="endpoint"
@@ -51,7 +51,7 @@
       class="mt-2"
     />
 
-    <template v-if="currentPreviewMode">
+    <template v-if="enablePreviewStyling">
       <hr>
 
       <h5 class="mb-2">
@@ -220,7 +220,7 @@ export default {
       ]
     },
 
-    currentPreviewMode () {
+    enablePreviewStyling () {
       const { mode } = this.options
       return mode === 'gallery'
     },

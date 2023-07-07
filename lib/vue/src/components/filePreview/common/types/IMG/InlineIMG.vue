@@ -90,8 +90,12 @@ div {
   }
 
   &.inline {
-    img:not(.disable-zoom-cursor) {
+    img {
       cursor: zoom-in;
+    }
+
+    img.disable-zoom-cursor {
+      cursor: default;
     }
   }
 }

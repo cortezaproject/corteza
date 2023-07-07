@@ -1,5 +1,6 @@
 <template>
   <div
+    style="min-width: fit-content"
     @click.stop
   >
     <list-loader
@@ -14,6 +15,7 @@
     <errors :errors="errors" />
   </div>
 </template>
+
 <script>
 import base from './base'
 import ListLoader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/ListLoader'

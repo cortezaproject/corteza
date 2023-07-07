@@ -34,9 +34,10 @@ kind:
       maxSizeLabel: Maximum file size
       mimetypesFootnote: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
       mimetypesLabel: File type allow list
-      modeFootnote: How files are represented in record page blocks
+      modeFootnote: How files are represented in page blocks
       modeLabel: View mode
       showName: Hide file name
+      enableDownload: Enable download
       single: Single image
       previewStyle: Preview style
       height: Height
@@ -49,7 +50,6 @@ kind:
       margin: Margin
       unitType: Unit type
       px: px
-      enableDownload: Enable download
       clickToView: Click to view file
       description: 'Add unit after value to set it. For example: 50px or 50%'
   number:
