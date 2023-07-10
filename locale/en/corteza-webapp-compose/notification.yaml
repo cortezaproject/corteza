@@ -125,6 +125,7 @@ record:
   invalidRecordVar: Can not use ${record...} variable in non-record pages
   listLoadFailed: Could not load record list
   loadFailed: Could not load record
+  countFailed: Failed to fetch number of avaiable records
   moduleMismatch: Module incompatible, module mismatch
   moduleNotDefined: Record module not defined
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
