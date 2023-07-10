@@ -1,6 +1,6 @@
 <template>
   <div
-    style="min-width: fit-content"
+    style="min-width: fit-content;"
     @click.stop
   >
     <list-loader
