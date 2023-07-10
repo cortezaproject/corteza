@@ -30,7 +30,7 @@
         >
           <div class="text-nowrap flex-grow-1">
             <div
-              class="wrap-with-vertical-gutters"
+              class="d-flex align-items-center flex-wrap wrap-with-vertical-gutters"
             >
               <template v-if="recordListModule.canCreateRecord">
                 <template v-if="inlineEditing">
@@ -50,7 +50,7 @@
                   <router-link
                     v-if="!options.hideAddButton"
                     data-test-id="button-add-record"
-                    class="btn btn-lg btn-primary float-left mr-1"
+                    class="btn btn-lg btn-primary mr-1"
                     :to="newRecordRoute"
                   >
                     + {{ $t('recordList.addRecord') }}
@@ -59,7 +59,7 @@
                     v-if="!options.hideImportButton"
                     :module="recordListModule"
                     :namespace="namespace"
-                    class="mr-1 float-left"
+                    class="mr-1"
                     @importSuccessful="onImportSuccessful"
                   />
                 </template>
@@ -68,14 +68,12 @@
               <exporter-modal
                 v-if="options.allowExport && !inlineEditing"
                 :module="recordListModule"
-                :record-count="pagination.count"
-                :query="query"
-                :prefilter="prefilter"
+                :filter="filter.query"
                 :selection="selected"
-                :selected-all-records-count="selectedAllRecords ? pagination.count : 0"
+                :selected-all-records="selectedAllRecords"
                 :processing="processing"
                 :preselected-fields="fields.map(({ moduleField }) => moduleField)"
-                class="mr-1 float-left"
+                class="mr-1"
                 @export="onExport"
               />
 
@@ -84,7 +82,7 @@
                   :id="`${uniqueID}-filter-preset`"
                   variant="light"
                   size="lg"
-                  class="dropdown-toggle"
+                  class="mr-1"
                 >
                   {{ $t('recordList.filter.filters.label') }}
                 </b-button>
@@ -115,14 +113,14 @@
                 v-if="!options.hideConfigureFieldsButton"
                 :module="recordListModule"
                 :fields="fields"
-                class="mr-1 float-left"
+                class="mr-1"
                 @updateFields="onUpdateFields"
               />
             </div>
           </div>
           <div
             v-if="!options.hideSearch"
-            class="flex-grow-1 w-25"
+            class="d-flex align-items-center flex-grow-1 w-25"
           >
             <c-input-search
               v-model.trim="query"
@@ -1395,7 +1393,7 @@ export default {
         query: {
           fields: e.fields,
           // url.Make already URL encodes the the values, so the filter shouldn't be encoded
-          filter: this.selectedAllRecords ? '' : filter,
+          filter: this.selectedAllRecords ? this.bulkQuery : filter,
           jwt: this.$auth.accessToken,
           timezone: timezone ? timezone.tzCode : undefined,
         },

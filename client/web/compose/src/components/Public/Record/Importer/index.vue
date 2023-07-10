@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="d-inline-block">
     <b-button
       size="lg"
       variant="light"
@@ -15,6 +15,7 @@
       hide-footer
       body-class="p-0"
       no-fade
+      scrollable
       @hide="onModalHide"
     >
       <keep-alive>
