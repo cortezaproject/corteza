@@ -123,6 +123,8 @@ export default {
         title: '',
         content: '',
       },
+
+      abortRequests: [],
     }
   },
 
@@ -217,6 +219,10 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   methods: {
@@ -338,8 +344,11 @@ export default {
         sort,
       }
 
-      return this.$ComposeAPI
-        .recordList(params)
+      const { response, cancel } = this.$ComposeAPI
+        .recordListCancellable(params)
+      this.abortRequests.push(cancel)
+
+      return response()
         .then(({ set }) => set.map(r => Object.freeze(new compose.Record(module, r))))
     },
 

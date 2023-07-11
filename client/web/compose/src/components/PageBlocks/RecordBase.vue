@@ -101,6 +101,7 @@
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapActions } from 'vuex'
+import axios from 'axios'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/BulkEdit'
@@ -137,6 +138,8 @@ export default {
         recordIDs: [],
         initialRecord: {},
       },
+
+      abortRequests: [],
     }
   },
 
@@ -214,6 +217,9 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   methods: {
@@ -256,13 +262,20 @@ export default {
         return
       }
 
-      this.$ComposeAPI.recordRead({ namespaceID, moduleID, recordID })
+      const { response, cancel } = this.$ComposeAPI
+        .recordReadCancellable({ namespaceID, moduleID, recordID })
+
+      this.abortRequests.push(cancel)
+
+      response()
         .then(record => {
           this.referenceRecord = new compose.Record(this.fieldModule, { ...record })
         })
-        .catch((e) => {
-          this.referenceRecord = new compose.Record(this.fieldModule, {})
-          this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
+        .catch(e => {
+          if (!axios.isCancel(e)) {
+            this.referenceRecord = new compose.Record(this.fieldModule, {})
+            this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
+          }
         })
     },
 

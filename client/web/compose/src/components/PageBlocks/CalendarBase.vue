@@ -102,6 +102,7 @@
 <script>
 import moment from 'moment'
 import { mapGetters, mapActions } from 'vuex'
+import axios from 'axios'
 import base from './base'
 import FullCalendar from '@fullcalendar/vue'
 import dayGridPlugin from '@fullcalendar/daygrid'
@@ -158,6 +159,8 @@ export default {
       },
 
       refreshing: false,
+
+      cancelTokenSource: axios.CancelToken.source(),
     }
   },
 
@@ -232,6 +235,7 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.abortRequests()
   },
 
   methods: {
@@ -310,7 +314,7 @@ export default {
                   })
                 }
 
-                return compose.PageBlockCalendar.RecordFeed(this.$ComposeAPI, module, this.namespace, ff, this.loaded)
+                return compose.PageBlockCalendar.RecordFeed(this.$ComposeAPI, module, this.namespace, ff, this.loaded, { cancelToken: this.cancelTokenSource.token })
                   .then(events => {
                     events = this.setEventColors(events, ff)
                     this.events.push(...events)
@@ -390,6 +394,10 @@ export default {
       this.title = ''
       this.loaded = {}
       this.refreshing = false
+    },
+
+    abortRequests () {
+      this.cancelTokenSource.cancel(`cancel-record-list-request-${this.block.blockID}`)
     },
   },
 }

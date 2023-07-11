@@ -722,6 +722,7 @@
   </wrap>
 </template>
 <script>
+import axios from 'axios'
 import { debounce, isEqual } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import base from './base'
@@ -828,6 +829,8 @@ export default {
       currentCustomPresetFilter: undefined,
       showCustomPresetFilterModal: false,
       selectedAllRecords: false,
+
+      abortRequests: [],
     }
   },
 
@@ -1093,6 +1096,10 @@ export default {
       this.$root.$off(`page-block:validate:${this.uniqueID}`)
       this.$root.$off(`drill-down-recordList:${this.uniqueID}`)
       this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+
+      this.abortRequests.forEach((cancel) => {
+        cancel()
+      })
     },
 
     onFilter (filter = []) {
@@ -1495,8 +1502,12 @@ export default {
         const query = recordID ? `recordID = ${recordID}` : this.bulkQuery
         const { moduleID, namespaceID } = this.filter
 
-        this.$ComposeAPI
-          .recordBulkUndelete({ moduleID, namespaceID, query })
+        const { response, cancel } = this.$ComposeAPI
+          .recordBulkUndeleteCancellable({ moduleID, namespaceID, query })
+
+        this.abortRequests.push(cancel)
+
+        response()
           .then(() => {
             this.refresh(true)
             this.toastSuccess(this.$t('notification:record.restoreBulkSuccess'))
@@ -1525,8 +1536,12 @@ export default {
         // Pick module and namespace ID from the filter
         const { moduleID, namespaceID } = this.filter
 
-        this.$ComposeAPI
-          .recordBulkDelete({ moduleID, namespaceID, query })
+        const { response, cancel } = this.$ComposeAPI
+          .recordBulkDeleteCancellable({ moduleID, namespaceID, query })
+
+        this.abortRequests.push(cancel)
+
+        response()
           .then(() => this.refresh(true))
           .then(() => {
             this.toastSuccess(this.$t('notification:record.deleteBulkSuccess'))
@@ -1585,7 +1600,10 @@ export default {
       // Filter's out deleted records when filter.deleted is 2, and undeleted records when filter.deleted is 0
       this.showingDeletedRecords ? this.filter.deleted = 2 : this.filter.deleted = 0
 
-      return this.$ComposeAPI.recordList({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions })
+      const { response, cancel } = this.$ComposeAPI.recordListCancellable({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions })
+      this.abortRequests.push(cancel)
+
+      return response()
         .then(({ set, filter }) => {
           const records = set.map(r => new compose.Record(r, this.recordListModule))
 
@@ -1631,7 +1649,11 @@ export default {
             this.items = records.map(r => this.wrapRecord(r))
           })
         })
-        .catch(this.toastErrorHandler(this.$t('notification:record.listLoadFailed')))
+        .catch((e) => {
+          if (!axios.isCancel(e)) {
+            this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
+          }
+        })
         .finally(() => {
           this.processing = false
         })

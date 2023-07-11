@@ -93,6 +93,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import { mapActions } from 'vuex'
 import PageTree from 'corteza-webapp-compose/src/components/Admin/Page/Tree'
 import { compose } from '@cortezaproject/corteza-js'
@@ -121,6 +122,7 @@ export default {
       tree: [],
       page: new compose.Page({ visible: true }),
       processing: false,
+      abortRequests: [],
     }
   },
 
@@ -130,6 +132,9 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   methods: {
@@ -141,9 +146,20 @@ export default {
     loadTree () {
       this.processing = true
       const { namespaceID } = this.namespace
-      this.$ComposeAPI.pageTree({ namespaceID }).then((tree) => {
-        this.tree = tree.map(p => new compose.Page(p))
-      }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+
+      const { response, cancel } = this.$ComposeAPI
+        .pageTreeCancellable({ namespaceID })
+
+      this.abortRequests.push(cancel)
+
+      response()
+        .then((tree) => {
+          this.tree = tree.map(p => new compose.Page(p))
+        }).catch((e) => {
+          if (!axios.isCancel(e)) {
+            this.toastErrorHandler(this.$t('notification:page.loadFailed'))(e)
+          }
+        })
         .finally(() => {
           this.processing = false
         })
@@ -157,7 +173,11 @@ export default {
         return this.createPageLayout(pageLayout).then(() => {
           this.$router.push({ name: 'admin.pages.edit', params: { pageID } })
         })
-      }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
+      }).catch((e) => {
+        if (!axios.isCancel(e)) {
+          this.toastErrorHandler(this.$t('notification:page.saveFailed'))(e)
+        }
+      })
     },
 
     handleReorder () {

@@ -120,6 +120,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  namespaceListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   namespaceListEndpoint (): string {
     return '/namespace/'
   }
@@ -154,6 +166,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  namespaceCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   namespaceCreateEndpoint (): string {
     return '/namespace/'
   }
@@ -175,6 +199,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceReadEndpoint (a: KV): string {
@@ -222,6 +258,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  namespaceUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   namespaceUpdateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -248,6 +296,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  namespaceDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   namespaceDeleteEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -272,6 +332,18 @@ export default class Compose {
       upload,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceUploadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceUpload(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceUploadEndpoint (): string {
@@ -303,6 +375,18 @@ export default class Compose {
       slug,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceCloneCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceClone(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceCloneEndpoint (a: KV): string {
@@ -339,6 +423,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  namespaceExportCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceExport(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   namespaceExportEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -365,6 +461,18 @@ export default class Compose {
       upload,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceImportInitCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceImportInit(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceImportInitEndpoint (): string {
@@ -396,6 +504,18 @@ export default class Compose {
       slug,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceImportRunCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceImportRun(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceImportRunEndpoint (a: KV): string {
@@ -432,6 +552,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  namespaceTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceTriggerScript(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   namespaceTriggerScriptEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -456,6 +588,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceListTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceListTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceListTranslationsEndpoint (a: KV): string {
@@ -488,6 +632,18 @@ export default class Compose {
       translations,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  namespaceUpdateTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.namespaceUpdateTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   namespaceUpdateTranslationsEndpoint (a: KV): string {
@@ -532,6 +688,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageListEndpoint (a: KV): string {
@@ -586,6 +754,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageCreateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -616,6 +796,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageReadEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -641,6 +833,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageTreeCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageTree(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageTreeEndpoint (a: KV): string {
@@ -701,6 +905,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageUpdateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -738,6 +954,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageReorderCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageReorder(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageReorderEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -771,6 +999,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageDeleteEndpoint (a: KV): string {
@@ -808,6 +1048,18 @@ export default class Compose {
       upload,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageUploadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageUpload(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageUploadEndpoint (a: KV): string {
@@ -849,6 +1101,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageTriggerScript(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageTriggerScriptEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -878,6 +1142,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageListTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageListTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageListTranslationsEndpoint (a: KV): string {
@@ -915,6 +1191,18 @@ export default class Compose {
       translations,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageUpdateTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageUpdateTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageUpdateTranslationsEndpoint (a: KV): string {
@@ -958,6 +1246,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageUpdateIconCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageUpdateIcon(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageUpdateIconEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -989,6 +1289,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  iconListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.iconList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   iconListEndpoint (): string {
     return '/icon/'
   }
@@ -1007,6 +1319,18 @@ export default class Compose {
       icon,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  iconUploadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.iconUpload(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   iconUploadEndpoint (): string {
@@ -1050,6 +1374,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutListNamespaceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutListNamespace(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageLayoutListNamespaceEndpoint (a: KV): string {
@@ -1098,6 +1434,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageLayoutListEndpoint (a: KV): string {
@@ -1150,6 +1498,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageLayoutCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageLayoutCreateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1183,6 +1543,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageLayoutReadEndpoint (a: KV): string {
@@ -1242,6 +1614,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageLayoutUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageLayoutUpdateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1278,6 +1662,18 @@ export default class Compose {
       pageIDs,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutReorderCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutReorder(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageLayoutReorderEndpoint (a: KV): string {
@@ -1319,6 +1715,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageLayoutDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageLayoutDeleteEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1355,6 +1763,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  pageLayoutUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutUndelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   pageLayoutUndeleteEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1389,6 +1809,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutListTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutListTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageLayoutListTranslationsEndpoint (a: KV): string {
@@ -1431,6 +1863,18 @@ export default class Compose {
       translations,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  pageLayoutUpdateTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.pageLayoutUpdateTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   pageLayoutUpdateTranslationsEndpoint (a: KV): string {
@@ -1477,6 +1921,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  moduleListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   moduleListEndpoint (a: KV): string {
@@ -1527,6 +1983,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  moduleCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   moduleCreateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1555,6 +2023,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  moduleReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   moduleReadEndpoint (a: KV): string {
@@ -1612,6 +2092,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  moduleUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   moduleUpdateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1641,6 +2133,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  moduleDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   moduleDeleteEndpoint (a: KV): string {
@@ -1682,6 +2186,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  moduleTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleTriggerScript(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   moduleTriggerScriptEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1711,6 +2227,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  moduleListTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleListTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   moduleListTranslationsEndpoint (a: KV): string {
@@ -1748,6 +2276,18 @@ export default class Compose {
       translations,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  moduleUpdateTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.moduleUpdateTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   moduleUpdateTranslationsEndpoint (a: KV): string {
@@ -1790,6 +2330,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordReportCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordReport(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordReportEndpoint (a: KV): string {
@@ -1841,6 +2393,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordListEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1876,6 +2440,18 @@ export default class Compose {
       upload,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordImportInitCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordImportInit(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordImportInitEndpoint (a: KV): string {
@@ -1924,6 +2500,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordImportRunCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordImportRun(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordImportRunEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -1958,6 +2546,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordImportProgressCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordImportProgress(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordImportProgressEndpoint (a: KV): string {
@@ -2008,6 +2608,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordExportCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordExport(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordExportEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2046,6 +2658,18 @@ export default class Compose {
       args,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordExecCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordExec(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordExecEndpoint (a: KV): string {
@@ -2089,6 +2713,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordCreateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2122,6 +2758,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordReadEndpoint (a: KV): string {
@@ -2171,6 +2819,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordUpdateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2206,6 +2866,18 @@ export default class Compose {
       query,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordPatchCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordPatch(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordPatchEndpoint (a: KV): string {
@@ -2244,6 +2916,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordBulkDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordBulkDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordBulkDeleteEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2277,6 +2961,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordDeleteEndpoint (a: KV): string {
@@ -2315,6 +3011,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordUndelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordUndeleteEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2348,6 +3056,18 @@ export default class Compose {
       query,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordBulkUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordBulkUndelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordBulkUndeleteEndpoint (a: KV): string {
@@ -2392,6 +3112,18 @@ export default class Compose {
       upload,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordUploadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordUpload(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   recordUploadEndpoint (a: KV): string {
@@ -2440,6 +3172,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordTriggerScript(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordTriggerScriptEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2480,6 +3224,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordTriggerScriptOnListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordTriggerScriptOnList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordTriggerScriptOnListEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2515,6 +3271,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  recordRevisionsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.recordRevisions(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   recordRevisionsEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2543,6 +3311,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  dataPrivacyRecordListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.dataPrivacyRecordList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   dataPrivacyRecordListEndpoint (): string {
     return '/data-privacy/record'
   }
@@ -2568,6 +3348,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dataPrivacyModuleListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.dataPrivacyModuleList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   dataPrivacyModuleListEndpoint (): string {
@@ -2607,6 +3399,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  chartListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   chartListEndpoint (a: KV): string {
@@ -2650,6 +3454,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  chartCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   chartCreateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2678,6 +3494,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  chartReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   chartReadEndpoint (a: KV): string {
@@ -2728,6 +3556,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  chartUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   chartUpdateEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2759,6 +3599,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  chartDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   chartDeleteEndpoint (a: KV): string {
     const {
       namespaceID,
@@ -2788,6 +3640,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  chartListTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartListTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   chartListTranslationsEndpoint (a: KV): string {
@@ -2825,6 +3689,18 @@ export default class Compose {
       translations,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  chartUpdateTranslationsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.chartUpdateTranslations(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   chartUpdateTranslationsEndpoint (a: KV): string {
@@ -2865,6 +3741,18 @@ export default class Compose {
       remoteAttachments,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationEmailSendCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.notificationEmailSend(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   notificationEmailSendEndpoint (): string {
@@ -2912,6 +3800,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  attachmentListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.attachmentList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   attachmentListEndpoint (a: KV): string {
     const {
       kind,
@@ -2951,6 +3851,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  attachmentReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.attachmentRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   attachmentReadEndpoint (a: KV): string {
@@ -2993,6 +3905,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  attachmentDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.attachmentDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   attachmentDeleteEndpoint (a: KV): string {
@@ -3043,6 +3967,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  attachmentOriginalCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.attachmentOriginal(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   attachmentOriginalEndpoint (a: KV): string {
     const {
       kind,
@@ -3090,6 +4026,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  attachmentPreviewCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.attachmentPreview(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   attachmentPreviewEndpoint (a: KV): string {
     const {
       kind,
@@ -3112,6 +4060,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  permissionsListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsList(options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   permissionsListEndpoint (): string {
     return '/permissions/'
   }
@@ -3131,6 +4091,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsEffectiveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsEffective(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsEffectiveEndpoint (): string {
@@ -3156,6 +4128,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsTraceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsTrace(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsTraceEndpoint (): string {
@@ -3185,6 +4169,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  permissionsReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   permissionsReadEndpoint (a: KV): string {
     const {
       roleID,
@@ -3209,6 +4205,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsDeleteEndpoint (a: KV): string {
@@ -3241,6 +4249,18 @@ export default class Compose {
       rules,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsUpdateEndpoint (a: KV): string {
@@ -3277,6 +4297,18 @@ export default class Compose {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  automationListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.automationList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   automationListEndpoint (): string {
     return '/automation/'
   }
@@ -3297,6 +4329,18 @@ export default class Compose {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  automationBundleCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.automationBundle(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   automationBundleEndpoint (a: KV): string {
@@ -3327,6 +4371,18 @@ export default class Compose {
       args,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  automationTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.automationTriggerScript(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   automationTriggerScriptEndpoint (): string {

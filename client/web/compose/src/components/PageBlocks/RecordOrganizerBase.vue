@@ -109,6 +109,7 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import axios from 'axios'
 import base from './base'
 import draggable from 'vuedraggable'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
@@ -144,6 +145,8 @@ export default {
       },
 
       records: [],
+
+      abortRequests: [],
     }
   },
 
@@ -253,6 +256,10 @@ export default {
   beforeDestroy () {
     this.setDefaultValues()
     this.destroyEvents()
+    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   methods: {
@@ -436,7 +443,12 @@ export default {
 
       this.processing = true
 
-      return this.$ComposeAPI.recordList({ namespaceID, moduleID, query, sort })
+      const { response, cancel } = this.$ComposeAPI
+        .recordListCancellable({ namespaceID, moduleID, query, sort })
+
+      this.abortRequests.push(cancel)
+
+      return response()
         .then(({ set }) => {
           const fields = [this.labelField, this.descriptionField].filter(f => !!f)
           this.records = set.map(r => Object.freeze(new compose.Record(this.roModule, r)))
@@ -446,7 +458,9 @@ export default {
             this.fetchRecords(namespaceID, fields, this.records),
           ])
         }).catch(e => {
-          console.error(e)
+          if (!axios.isCancel(e)) {
+            console.error(e)
+          }
         }).finally(() => {
           this.processing = false
         })

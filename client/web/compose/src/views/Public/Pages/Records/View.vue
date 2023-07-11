@@ -116,6 +116,7 @@ import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordTo
 import record from 'corteza-webapp-compose/src/mixins/record'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import axios from 'axios'
 
 export default {
   i18nOptions: {
@@ -192,6 +193,8 @@ export default {
         prev: undefined,
         next: undefined,
       },
+
+      abortRequests: [],
     }
   },
 
@@ -324,6 +327,11 @@ export default {
   beforeDestroy () {
     this.setDefaultValues()
     this.destroyEvents()
+    this.$root.$off('refetch-record-blocks')
+
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one
@@ -349,13 +357,20 @@ export default {
         const module = Object.freeze(this.getModuleByID(moduleID).clone())
 
         if (recordID && recordID !== NoID) {
-          return this.$ComposeAPI.recordRead({ namespaceID, moduleID, recordID })
+          const { response, cancel } = this.$ComposeAPI
+            .recordReadCancellable({ namespaceID, moduleID, recordID })
+
+          this.abortRequests.push(cancel)
+
+          return response()
             .then(record => {
               this.record = new compose.Record(module, record)
             })
             .catch(e => {
-              this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
-              this.handleBack()
+              if (!axios.isCancel(e)) {
+                this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
+                this.handleBack()
+              }
             })
         } else {
           this.record = new compose.Record(module, { values: this.values })

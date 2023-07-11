@@ -65,6 +65,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 import { divIcon, latLng, latLngBounds } from 'leaflet'
 import { LPolygon, LControl } from 'vue2-leaflet'
 import { compose, NoID } from '@cortezaproject/corteza-js'
@@ -96,6 +97,8 @@ export default {
       geometries: [],
       colors: [],
       markers: [],
+
+      cancelTokenSource: axios.CancelToken.source(),
     }
   },
 
@@ -155,6 +158,7 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.abortRequests()
   },
 
   methods: {
@@ -198,7 +202,7 @@ export default {
               })
             }
 
-            return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, feed)
+            return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, feed, { cancelToken: this.cancelTokenSource.token })
               .then(records => {
                 const mapModuleField = module.fields.find(f => f.name === feed.geometryField)
 
@@ -311,6 +315,10 @@ export default {
       this.geometries = []
       this.colors = []
       this.markers = []
+    },
+
+    abortRequests () {
+      this.cancelTokenSource.cancel(`abort-request-${this.block.blockID}`)
     },
   },
 }

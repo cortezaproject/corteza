@@ -122,12 +122,16 @@ function recordFeedFilter (r: Readonly<Record>, field: string): boolean {
  * @param {Object} range Current date range
  * @returns {Promise<Array>} Resolves to a set of FC events to display
  */
-export async function RecordFeed ($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, range: Range): Promise<Event[]> {
+export async function RecordFeed ($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, range: Range, options = {}): Promise<Event[]> {
   // Params for record fetching
   const params = {
     namespaceID: namespace.namespaceID,
     moduleID: module.moduleID,
-    query: `(date(${feed.startField}) <= '${range.end.toISOString()}' AND '${range.start.toISOString()}' <= date(${feed.endField || feed.startField}))`,
+    query: `(date(${
+      feed.startField
+    }) <= '${range.end.toISOString()}' AND '${range.start.toISOString()}' <= date(${
+      feed.endField || feed.startField
+    }))`,
   }
 
   if (feed.options.prefilter) {
@@ -135,7 +139,7 @@ export async function RecordFeed ($ComposeAPI: ComposeAPI, module: Module, names
   }
 
   const events: Array<Event> = []
-  return $ComposeAPI.recordList(params).then(({ set }) => {
+  return $ComposeAPI.recordList(params, options).then(({ set }) => {
     (set as Array<{ recordID: string }>)
 
       // Removes all duplicates

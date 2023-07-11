@@ -40,6 +40,8 @@ export default {
       processing: false,
 
       automationScripts: [],
+
+      abortRequests: [],
     }
   },
 
@@ -49,19 +51,37 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
+  },
+
   created () {
     if (this.$UIHooks.set && !!this.$UIHooks.set.length) {
       return
     }
 
-    this.processing = true
-    return this.$ComposeAPI.automationList({ eventTypes: ['onManual'], excludeInvalid: true })
-      .then(({ set = [] }) => {
-        this.automationScripts = set
-      })
-      .finally(() => {
-        this.processing = false
-      })
+    this.fetchAutomationLists()
+  },
+
+  methods: {
+    fetchAutomationLists () {
+      this.processing = true
+
+      const { response, cancel } = this.$ComposeAPI
+        .automationListCancellable({ eventTypes: ['onManual'], excludeInvalid: true })
+
+      this.abortRequests.push(cancel)
+
+      return response()
+        .then(({ set = [] }) => {
+          this.automationScripts = set
+        })
+        .finally(() => {
+          this.processing = false
+        })
+    },
   },
 
   beforeDestroy () {

@@ -126,6 +126,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodeHandshakeInitializeCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeHandshakeInitialize(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodeHandshakeInitializeEndpoint (a: KV): string {
     const {
       nodeID,
@@ -160,6 +172,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodeSearchCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeSearch(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodeSearchEndpoint (): string {
     return '/nodes/'
   }
@@ -186,6 +210,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodeCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeCreate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodeCreateEndpoint (): string {
     return '/nodes/'
   }
@@ -207,6 +243,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  nodeReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   nodeReadEndpoint (a: KV): string {
@@ -233,6 +281,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  nodeGenerateUriCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeGenerateUri(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   nodeGenerateUriEndpoint (a: KV): string {
@@ -268,6 +328,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodeUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodeUpdateEndpoint (a: KV): string {
     const {
       nodeID,
@@ -292,6 +364,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  nodeDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   nodeDeleteEndpoint (a: KV): string {
@@ -320,6 +404,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodeUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeUndelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodeUndeleteEndpoint (a: KV): string {
     const {
       nodeID,
@@ -346,6 +442,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodePairCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodePair(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodePairEndpoint (a: KV): string {
     const {
       nodeID,
@@ -370,6 +478,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  nodeHandshakeConfirmCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeHandshakeConfirm(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   nodeHandshakeConfirmEndpoint (a: KV): string {
@@ -404,6 +524,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  nodeHandshakeCompleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.nodeHandshakeComplete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   nodeHandshakeCompleteEndpoint (a: KV): string {
     const {
       nodeID,
@@ -432,6 +564,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  manageStructureReadExposedCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureReadExposed(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   manageStructureReadExposedEndpoint (a: KV): string {
@@ -482,6 +626,18 @@ export default class Federation {
       fields,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  manageStructureCreateExposedCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureCreateExposed(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   manageStructureCreateExposedEndpoint (a: KV): string {
@@ -537,6 +693,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  manageStructureUpdateExposedCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureUpdateExposed(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   manageStructureUpdateExposedEndpoint (a: KV): string {
     const {
       nodeID,
@@ -568,6 +736,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  manageStructureRemoveExposedCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureRemoveExposed(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   manageStructureRemoveExposedEndpoint (a: KV): string {
     const {
       nodeID,
@@ -597,6 +777,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  manageStructureReadSharedCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureReadShared(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   manageStructureReadSharedEndpoint (a: KV): string {
@@ -643,6 +835,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  manageStructureCreateMappingsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureCreateMappings(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   manageStructureCreateMappingsEndpoint (a: KV): string {
     const {
       nodeID,
@@ -678,6 +882,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  manageStructureReadMappingsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureReadMappings(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   manageStructureReadMappingsEndpoint (a: KV): string {
     const {
       nodeID,
@@ -711,6 +927,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  manageStructureListAllCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.manageStructureListAll(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   manageStructureListAllEndpoint (a: KV): string {
@@ -751,6 +979,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  syncStructureReadExposedInternalCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.syncStructureReadExposedInternal(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   syncStructureReadExposedInternalEndpoint (a: KV): string {
     const {
       nodeID,
@@ -789,6 +1029,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  syncStructureReadExposedSocialCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.syncStructureReadExposedSocial(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   syncStructureReadExposedSocialEndpoint (a: KV): string {
     const {
       nodeID,
@@ -825,6 +1077,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  syncDataReadExposedAllCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.syncDataReadExposedAll(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   syncDataReadExposedAllEndpoint (a: KV): string {
@@ -867,6 +1131,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  syncDataReadExposedInternalCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.syncDataReadExposedInternal(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   syncDataReadExposedInternalEndpoint (a: KV): string {
@@ -912,6 +1188,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  syncDataReadExposedSocialCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.syncDataReadExposedSocial(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   syncDataReadExposedSocialEndpoint (a: KV): string {
     const {
       nodeID,
@@ -930,6 +1218,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsList(options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsListEndpoint (): string {
@@ -951,6 +1251,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsEffectiveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsEffective(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsEffectiveEndpoint (): string {
@@ -976,6 +1288,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsTraceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsTrace(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsTraceEndpoint (): string {
@@ -1005,6 +1329,18 @@ export default class Federation {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  permissionsReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   permissionsReadEndpoint (a: KV): string {
     const {
       roleID,
@@ -1029,6 +1365,18 @@ export default class Federation {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsDeleteEndpoint (a: KV): string {
@@ -1061,6 +1409,18 @@ export default class Federation {
       rules,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  permissionsUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.permissionsUpdate(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   permissionsUpdateEndpoint (a: KV): string {

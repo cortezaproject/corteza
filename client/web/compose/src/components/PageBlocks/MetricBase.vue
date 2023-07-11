@@ -66,6 +66,8 @@ export default {
     return {
       processing: false,
       reports: [],
+
+      abortRequests: [],
     }
   },
 
@@ -94,6 +96,12 @@ export default {
   beforeDestroy () {
     this.setDefaultValues()
     this.destroyEvents()
+    this.$root.$off('metric.update', this.refresh)
+    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   created () {
@@ -135,7 +143,14 @@ export default {
       try {
         const rtr = []
         const namespaceID = this.namespace.namespaceID
-        const reporter = r => this.$ComposeAPI.recordReport({ ...r, namespaceID })
+        const reporter = r => {
+          const { response, cancel } = this.$ComposeAPI
+            .recordReportCancellable({ ...r, namespaceID })
+
+          this.abortRequests.push(cancel)
+
+          return response()
+        }
 
         for (const m of this.options.metrics) {
           if (m.moduleID) {

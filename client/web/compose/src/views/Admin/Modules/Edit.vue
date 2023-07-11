@@ -529,6 +529,8 @@ export default {
       discoverySettings: {
         modal: false,
       },
+
+      abortRequests: [],
     }
   },
 
@@ -681,8 +683,12 @@ export default {
             }
 
             // Count existing records to see what we can do with this module
-            this.$ComposeAPI
-              .recordList({ moduleID, namespaceID, limit: 1 })
+            const { response, cancel } = this.$ComposeAPI
+              .recordListCancellable({ moduleID, namespaceID, limit: 1 })
+
+            this.abortRequests.push(cancel)
+
+            response()
               .then(({ set }) => { this.hasRecords = (set.length > 0) })
           })
         }
@@ -708,6 +714,12 @@ export default {
 
   beforeRouteLeave (to, from, next) {
     this.checkUnsavedModule(next)
+  },
+
+  beforeDestroy () {
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   methods: {

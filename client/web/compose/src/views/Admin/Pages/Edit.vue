@@ -903,6 +903,8 @@ export default {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
+
+      abortRequests: [],
     }
   },
 
@@ -1060,6 +1062,12 @@ export default {
     this.checkUnsavedComposePage(next)
   },
 
+  beforeDestroy () {
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
+  },
+
   created () {
     this.fetchRoles()
   },
@@ -1091,11 +1099,17 @@ export default {
     async fetchRoles () {
       this.roles.processing = true
 
-      this.$SystemAPI.roleList().then(({ set: roles = [] }) => {
-        this.roles.options = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
-      }).finally(() => {
-        this.roles.processing = false
-      })
+      const { response, cancel } = this.$SystemAPI
+        .roleListCancellable({})
+
+      this.abortRequests.push(cancel)
+
+      response()
+        .then(({ set: roles = [] }) => {
+          this.roles.options = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
+        }).finally(() => {
+          this.roles.processing = false
+        })
     },
 
     addLayout () {
