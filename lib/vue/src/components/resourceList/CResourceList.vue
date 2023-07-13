@@ -417,6 +417,7 @@ export default {
   tr:hover td.actions {
     opacity: 1;
     background-color: #F9FAFB;
+    z-index: 1;
   }
 }
 </style>

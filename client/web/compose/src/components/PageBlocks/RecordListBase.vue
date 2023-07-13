@@ -1869,6 +1869,7 @@ th .required::after {
 tr:hover td.actions {
   opacity: 1;
   background-color: $gray-200;
+  z-index: 1;
 }
 
 .inline-actions {
@@ -1896,7 +1897,6 @@ td:hover .inline-actions {
   opacity: 0;
   transition: opacity 0.25s;
   width: 1%;
-  z-index: 1000;
 
   .regular-font {
     font-family: $font-regular !important;
