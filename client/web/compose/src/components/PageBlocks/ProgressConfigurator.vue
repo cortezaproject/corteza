@@ -59,6 +59,7 @@
                   path="metric.edit.filterFootnote"
                   tag="label"
                 >
+                  <code>${record.values.fieldName}</code>
                   <code>${recordID}</code>
                   <code>${ownerID}</code>
                   <code>${userID}</code>
@@ -169,6 +170,7 @@
                   path="metric.edit.filterFootnote"
                   tag="label"
                 >
+                  <code>${record.values.fieldName}</code>
                   <code>${recordID}</code>
                   <code>${ownerID}</code>
                   <code>${userID}</code>
@@ -279,6 +281,7 @@
                   path="metric.edit.filterFootnote"
                   tag="label"
                 >
+                  <code>${record.values.fieldName}</code>
                   <code>${recordID}</code>
                   <code>${ownerID}</code>
                   <code>${userID}</code>

@@ -198,7 +198,7 @@ metric:
     dimensionFieldLabel: Field
     dimensionFieldPlaceholder: Dimension field
     dimensionLabel: Dimension
-    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     filterLabel: Filter
     labelLabel: Label
     labelPlaceholder: Label
@@ -302,7 +302,7 @@ recordList:
     filter:
       label: Record filter
       placeholder: field1 = 1 AND field2 = 232
-      footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+      footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
       createdAt: Record created
       custom: Custom
       lastMonth: Last month
@@ -450,7 +450,7 @@ recordList:
     recordsLabel: Records
     noPermission: No permission to read record
     perPage: Records per page
-    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     prefilterHideSearch: Users will be able to search the record list
     filterHide: Users will be able to filter the list
     prefilterLabel: Filtering

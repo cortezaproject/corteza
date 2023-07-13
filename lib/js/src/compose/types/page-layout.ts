@@ -16,6 +16,8 @@ interface PageLayoutConfig {
     submit: Button;
   };
   actions: Action[];
+  // Only used for record pages
+  useTitle: Boolean;
 }
 
 interface Action {
@@ -67,6 +69,7 @@ export class PageLayout {
       submit: { enabled: true },
     },
     actions: [],
+    useTitle: false,
   }
 
   public meta: Meta = {

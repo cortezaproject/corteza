@@ -380,6 +380,7 @@
       :title="$t('page-layout.configure', { title: ((layoutEditor.layout || {}).meta || {}).title, interpolation: { escapeValue: false } })"
       :ok-title="$t('general:label.saveAndClose')"
       ok-variant="primary"
+      :ok-disabled="!layoutEditor.layout.meta.title"
       cancel-variant="link"
       size="xl"
       scrollable
@@ -388,6 +389,79 @@
       @cancel="layoutEditor.layout = undefined"
       @hide="layoutEditor.layout = undefined"
     >
+      <h5 class="mb-3">
+        {{ $t('page-layout.general') }}
+      </h5>
+
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('page-layout.title')"
+            label-class="text-primary"
+          >
+            <b-input-group>
+              <b-form-input
+                v-model="layoutEditor.layout.meta.title"
+                :state="layoutTitleState(layoutEditor.layout.meta.title)"
+                @input="layoutEditor.layout.meta.updated = true"
+              />
+
+              <b-input-group-append>
+                <page-layout-translator
+                  :page-layout="layoutEditor.layout"
+                  :disabled="layoutEditor.layout.pageLayoutID === '0'"
+                  highlight-key="meta.title"
+                  button-variant="light"
+                />
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('page-layout.handle')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="layoutEditor.layout.handle"
+              :state="layoutHandleState(layoutEditor.layout.handle)"
+              @input="layoutEditor.layout.meta.updated = true"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <b-form-group
+        v-if="isRecordPage"
+        :label="$t('page-layout.useTitle')"
+        label-class="text-primary ml-auto mt-2"
+      >
+        <c-input-checkbox
+          v-model="layoutEditor.layout.config.useTitle"
+          switch
+          :labels="checkboxLabel"
+        />
+        <i18next
+          path="page-layout.tooltip.title"
+          tag="small"
+          class="text-muted"
+        >
+          <code>${record.values.fieldName}</code>
+          <code>${recordID}</code>
+          <code>${ownerID}</code>
+          <code>${userID}</code>
+        </i18next>
+      </b-form-group>
+
+      <hr>
+
       <h5 class="mb-3">
         {{ $t('page-layout.visibility') }}
       </h5>
@@ -823,6 +897,11 @@ export default {
       roles: {
         processing: false,
         options: [],
+      },
+
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
       },
     }
   },

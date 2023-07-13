@@ -51,7 +51,7 @@ edit:
     customize: Customize filter
     label: Filter
     preset: Preset filters
-    footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}} and {{2}} are evaluated (when available)
+    footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     placeholder: field1 = 1 AND field2 = 232
     noFilter: Select a filter or make a custom one
     recordsCreatedLastMonth: Records created last month

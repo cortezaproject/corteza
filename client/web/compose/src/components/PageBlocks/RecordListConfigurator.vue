@@ -240,10 +240,9 @@
                     path="recordList.record.prefilterFootnote"
                     tag="label"
                   >
+                    <code>${record.values.fieldName}</code>
                     <code>${recordID}</code>
-
                     <code>${ownerID}</code>
-
                     <code>${userID}</code>
                   </i18next>
                 </b-form-text>

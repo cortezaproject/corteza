@@ -4,7 +4,10 @@ page-layout:
   add: Add layout
   configure: 'Configure layout - "{{title}}"'
   visibility: Visibility
+  general: General
+  useTitle: Use layout title
   tooltip:
+    title: Use the layout title instead of the record page default. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     configure: Configure layout
     builder: Open layout in builder
   condition:
@@ -96,6 +99,7 @@ notVisible: Hidden
 pageMoveFailed: Could not move this page
 reordered: Page reordered
 showSubPages: Expand sub-pages in the sidebar
+customTitle: Use custom title
 title: List of Pages
 tooltip:
   unsavedChanges: Unsaved Changes

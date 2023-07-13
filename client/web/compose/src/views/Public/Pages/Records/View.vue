@@ -113,6 +113,7 @@ import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -218,7 +219,24 @@ export default {
     },
 
     title () {
+      if (!this.layout) {
+        return ''
+      }
+
+      const { config = {}, meta = {} } = this.layout || {}
+      const { useTitle = false } = config
+
+      if (useTitle) {
+        return evaluatePrefilter(meta.title, {
+          record: this.record,
+          recordID: (this.record || {}).recordID || NoID,
+          ownerID: (this.record || {}).ownedBy || NoID,
+          userID: (this.$auth.user || {}).userID || NoID,
+        })
+      }
+
       const { name, handle } = this.module
+
       const titlePrefix = this.inCreating ? 'create' : this.inEditing ? 'edit' : 'view'
 
       return this.$t(`page:public.record.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })

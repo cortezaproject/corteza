@@ -84,6 +84,8 @@ type (
 
 		Buttons PageLayoutButtonConfig `json:"buttons"`
 		Actions []PageLayoutAction     `json:"actions,omitempty"`
+
+		UseTitle bool `json:"useTitle"`
 	}
 
 	PageLayoutVisibility struct {

@@ -76,6 +76,7 @@
               tag="small"
               class="text-muted"
             >
+              <code>${record.values.fieldName}</code>
               <code>${recordID}</code>
               <code>${ownerID}</code>
               <code>${userID}</code>
