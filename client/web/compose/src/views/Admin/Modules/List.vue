@@ -29,7 +29,7 @@
       }"
       clickable
       sticky-header
-      class="module-list h-100"
+      class="h-100"
       @search="filterList"
       @row-clicked="handleRowClicked"
     >
@@ -345,12 +345,6 @@ export default {
 </script>
 
 <style lang="scss">
-.module-list {
-  td.actions {
-    position: static !important;
-  }
-}
-
 .permissions-dropdown {
   .dropdown-item {
     padding: 0;
