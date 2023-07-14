@@ -17,31 +17,66 @@
       footer-class="d-flex align-items-center justify-content-between"
       @hide="toggleModal"
     >
-      <b-form-group
-        :label="$t('recordList.export.selectFields')"
-        :description="$t('recordList.export.limitations')"
-        label-class="text-primary"
-      >
-        <field-picker
-          v-if="module"
-          :module="module"
-          :system-fields="systemFields"
-          :disabled-types="disabledTypes"
-          :fields.sync="selectedFields"
-          style="height: 45vh;"
-        />
-      </b-form-group>
+      <template v-if="showExportModal">
+        <b-form-group
+          :label="$t('recordList.export.selectFields')"
+          :description="$t('recordList.export.limitations')"
+          label-class="text-primary"
+        >
+          <field-picker
+            v-if="module"
+            :module="module"
+            :system-fields="systemFields"
+            :disabled-types="disabledTypes"
+            :fields.sync="selectedFields"
+            style="height: 45vh;"
+          />
+        </b-form-group>
 
-      <b-form-group>
-        <b-form-radio-group
-          v-model="rangeType"
-          :options="rangeTypeOptions"
-          stacked
-          @change="getTotalCount()"
-        />
-      </b-form-group>
+        <b-form-group>
+          <b-form-radio-group
+            v-model="rangeType"
+            :options="rangeTypeOptions"
+            stacked
+            @change="getTotalCount()"
+          />
+        </b-form-group>
 
-      <template v-if="rangeType === 'range'">
+        <template v-if="rangeType === 'range'">
+          <b-row
+            v-if="rangeType === 'range'"
+          >
+            <b-col
+              md="6"
+            >
+              <b-form-group
+                :label="$t('recordList.export.rangeBy')"
+                label-class="text-primary"
+              >
+                <b-form-select
+                  v-model="rangeBy"
+                  :options="rangeByOptions"
+                  @change="getTotalCount()"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              md="6"
+            >
+              <b-form-group
+                :label="$t('recordList.export.dateRange')"
+                label-class="text-primary"
+              >
+                <b-form-select
+                  v-model="range"
+                  :options="dateRangeOptions"
+                  @change="getTotalCount()"
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+        </template>
+
         <b-row
           v-if="rangeType === 'range'"
         >
@@ -49,112 +84,79 @@
             md="6"
           >
             <b-form-group
-              :label="$t('recordList.export.rangeBy')"
+              :label="$t('recordList.export.filter.from')"
               label-class="text-primary"
             >
-              <b-form-select
-                v-model="rangeBy"
-                :options="rangeByOptions"
-                @change="getTotalCount()"
+              <c-input-date-time
+                v-model="start"
+                no-time
+                only-past
+                :labels="{
+                  clear: $t('general:label.clear'),
+                  none: $t('general:label.none'),
+                  now: $t('general:label.now'),
+                  today: $t('general:label.today'),
+                }"
               />
             </b-form-group>
           </b-col>
+
           <b-col
             md="6"
           >
             <b-form-group
-              :label="$t('recordList.export.dateRange')"
+              :label="$t('recordList.export.filter.to')"
               label-class="text-primary"
             >
-              <b-form-select
-                v-model="range"
-                :options="dateRangeOptions"
-                @change="getTotalCount()"
+              <c-input-date-time
+                v-model="end"
+                no-time
+                only-past
+                :labels="{
+                  clear: $t('general:label.clear'),
+                  none: $t('general:label.none'),
+                  now: $t('general:label.now'),
+                  today: $t('general:label.today'),
+                }"
               />
             </b-form-group>
           </b-col>
         </b-row>
-      </template>
 
-      <b-row
-        v-if="rangeType === 'range'"
-      >
-        <b-col
-          md="6"
+        <template
+          v-if="rangeType !== 'selection'"
         >
           <b-form-group
-            :label="$t('recordList.export.filter.from')"
+            :label="$t('recordList.export.filter.label')"
             label-class="text-primary"
           >
-            <c-input-date-time
-              v-model="start"
-              no-time
-              only-past
-              :labels="{
-                clear: $t('general:label.clear'),
-                none: $t('general:label.none'),
-                now: $t('general:label.now'),
-                today: $t('general:label.today'),
-              }"
+            <b-form-textarea
+              v-model="exportFilter"
+              :placeholder="$t('recordList.export.filter.placeholder')"
+              debounce="500"
             />
           </b-form-group>
-        </b-col>
+        </template>
 
-        <b-col
-          md="6"
-        >
-          <b-form-group
-            :label="$t('recordList.export.filter.to')"
-            label-class="text-primary"
+        <b-form-group>
+          <b-form-checkbox
+            v-model="forTimezone"
+            class="mb-2"
           >
-            <c-input-date-time
-              v-model="end"
-              no-time
-              only-past
-              :labels="{
-                clear: $t('general:label.clear'),
-                none: $t('general:label.none'),
-                now: $t('general:label.now'),
-                today: $t('general:label.today'),
-              }"
-            />
-          </b-form-group>
-        </b-col>
-      </b-row>
+            {{ $t('recordList.export.specifyTimezone') }}
+          </b-form-checkbox>
 
-      <template
-        v-if="rangeType !== 'selection'"
-      >
-        <b-form-group
-          :label="$t('recordList.export.filter.label')"
-          label-class="text-primary"
-        >
-          <b-form-textarea
-            v-model="exportFilter"
-            :placeholder="$t('recordList.export.filter.placeholder')"
-            debounce="500"
+          <vue-select
+            v-if="forTimezone"
+            v-model="exportTimezone"
+            :options="timezones"
+            :get-option-key="getOptionKey"
+            :calculate-position="calculateDropdownPosition"
+            :placeholder="$t('recordList.export.timezonePlaceholder')"
+            class="bg-white"
           />
         </b-form-group>
       </template>
-
-      <b-form-group>
-        <b-form-checkbox
-          v-model="forTimezone"
-          class="mb-2"
-        >
-          {{ $t('recordList.export.specifyTimezone') }}
-        </b-form-checkbox>
-
-        <vue-select
-          v-if="forTimezone"
-          v-model="exportTimezone"
-          :options="timezones"
-          :get-option-key="getOptionKey"
-          :calculate-position="calculateDropdownPosition"
-          :placeholder="$t('recordList.export.timezonePlaceholder')"
-          class="bg-white"
-        />
-      </b-form-group>
 
       <template #modal-footer>
         <div>
@@ -497,7 +499,6 @@ export default {
       deep: true,
       handler (filter) {
         this.exportConfig.filter = filter
-        this.getTotalCount()
       },
     },
 
@@ -549,6 +550,10 @@ export default {
   methods: {
     toggleModal () {
       this.showExportModal = !this.showExportModal
+
+      if (this.showExportModal) {
+        this.getTotalCount()
+      }
     },
 
     calcStart (m, range) {

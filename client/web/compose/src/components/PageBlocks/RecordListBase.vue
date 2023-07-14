@@ -139,16 +139,20 @@
           >
             {{ $t('recordList.filter.filters.active') }}
             <b-form-tags
-              v-model="activeFilters"
-              tag-variant="secondary"
-              tag-pills
               size="lg"
-              input-class="d-none"
-              tag-class="align-items-center"
-              class="filter-tags border-0 p-0 ml-1"
+              class="border-0 p-0"
               style="width: fit-content;"
-              @input="removeFilter"
-            />
+            >
+              <b-form-tag
+                v-for="(title, i) in activeFilters"
+                :key="i"
+                :title="title"
+                variant="secondary"
+                pill
+                class="ml-2"
+                @remove="removeFilter(title)"
+              />
+            </b-form-tags>
           </div>
 
           <b-button
@@ -1121,9 +1125,8 @@ export default {
         if (f.filter.length === 1 && (!f.filter[0].value && !f.filter[0].name)) {
           const filterIndex = this.activeFilters.indexOf(f.name)
           this.activeFilters.splice(filterIndex, 1)
-        } else {
+        } else if (!this.activeFilters.includes(this.$t('recordList.customFilter'))) {
           this.activeFilters.push(this.$t('recordList.customFilter'))
-          f.name = this.$t('recordList.customFilter')
         }
       })
 
@@ -1550,7 +1553,9 @@ export default {
       // Prevent refresh if records are selected or inline editing
       if (checkSelected && (this.selected.length || this.inlineEdit.recordIDs.length)) return
 
-      return this.pullRecords(resetPagination)
+      this.$nextTick(() => {
+        return this.pullRecords(resetPagination)
+      })
     },
 
     /**
@@ -1828,12 +1833,16 @@ export default {
       this.refresh(true)
     },
 
-    removeFilter (currentFilters) {
-      if (this.drillDownFilter && !currentFilters.includes(this.$t('recordList.drillDown.filter.label'))) {
+    removeFilter (filterIndex) {
+      this.activeFilters.splice(filterIndex, 1)
+
+      if (this.drillDownFilter && !this.activeFilters.includes(this.$t('recordList.drillDown.filter.label'))) {
         this.setDrillDownFilter(undefined)
       }
 
-      this.recordListFilter = this.recordListFilter.filter(({ name }) => !name || currentFilters.includes(name))
+      this.recordListFilter = this.recordListFilter.filter(({ name }) => !name || this.activeFilters.includes(name))
+
+      this.setStorageRecordListFilter()
       this.refresh(true)
     },
 
