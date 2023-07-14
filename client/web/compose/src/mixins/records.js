@@ -32,7 +32,10 @@ export default {
       // Dispatch resolution per module
       return Promise.all(Object.entries(moduleRecords).map(([moduleID, recordIDs]) => {
         recordIDs = [...recordIDs]
-        return this.$store.dispatch('record/resolveRecords', { namespaceID, moduleID, recordIDs })
+
+        if (recordIDs.length) {
+          return this.$store.dispatch('record/resolveRecords', { namespaceID, moduleID, recordIDs })
+        }
       }))
     },
   },

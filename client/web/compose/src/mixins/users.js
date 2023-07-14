@@ -5,7 +5,7 @@ export default {
         return
       }
 
-      const list = new Set(records.map(r => {
+      const list = [...new Set(records.map(r => {
         return fields
           .filter(c => c.kind === 'User')
           .map(f => {
@@ -15,9 +15,11 @@ export default {
               return f.isMulti ? r.values[f.name] : [r.values[f.name]]
             }
           })
-      }).flat(Infinity))
+      }).flat(Infinity))]
 
-      return this.$store.dispatch('user/resolveUsers', [...list])
+      if (list.length) {
+        return this.$store.dispatch('user/resolveUsers', list)
+      }
     },
   },
 }
