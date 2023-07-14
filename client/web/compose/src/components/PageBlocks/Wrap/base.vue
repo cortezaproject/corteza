@@ -41,7 +41,8 @@ export default {
     },
 
     isBlockMagnified () {
-      return this.magnified
+      const { magnifiedBlockID } = this.$route.query
+      return this.magnified && magnifiedBlockID === this.block.blockID
     },
 
     headerSet () {

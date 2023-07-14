@@ -8,8 +8,7 @@
     body-class="p-0 bg-gray"
     footer-class="p-0"
     size="xl"
-    no-fade
-    @hidden="hideModal"
+    @hidden="onHidden"
   >
     <template #modal-title>
       <portal-target
@@ -24,6 +23,7 @@
       :module="module"
       :record-i-d="recordID"
       show-record-modal
+      @handle-record-redirect="loadRecord"
     />
 
     <template #modal-footer>
@@ -81,17 +81,9 @@ export default {
   },
 
   watch: {
-    '$route.query.recordID': {
+    '$route.query.recordPageID': {
       immediate: true,
-      handler (recordID, oldRecordID) {
-        const { recordPageID } = this.$route.query
-        const { pageID: oldRecordPageID } = this.page || {}
-
-        if (!recordID) {
-          this.showModal = false
-          return
-        }
-
+      handler (recordPageID, oldRecordPageID) {
         if (recordPageID !== oldRecordPageID) {
           // If the page changed we need to clear the record pagination since its not relevant anymore
           if (this.recordPaginationUsable) {
@@ -99,41 +91,19 @@ export default {
           } else {
             this.clearRecordIDs()
           }
-
-          if (this.showModal && (recordID !== oldRecordID)) {
-            this.showModal = false
-
-            setTimeout(() => {
-              this.$router.push({
-                query: {
-                  ...this.$route.query,
-                  recordID,
-                  recordPageID,
-                },
-              })
-            }, 300)
-
-            return
-          }
         }
-
-        this.$nextTick(() => {
-          this.loadModal({ recordID, recordPageID })
-        })
       },
     },
   },
 
   mounted () {
-    this.$root.$on('show-record-modal', ({ recordID, recordPageID }) => {
-      this.$router.push({
-        query: {
-          ...this.$route.query,
-          recordID,
-          recordPageID,
-        },
-      })
-    })
+    this.$root.$on('show-record-modal', this.loadRecord)
+
+    const { recordID, recordPageID } = this.$route.query
+
+    if (recordID && recordPageID) {
+      this.loadRecord({ recordID, recordPageID })
+    }
   },
 
   beforeDestroy () {
@@ -146,27 +116,49 @@ export default {
       clearRecordIDs: 'ui/clearRecordIDs',
     }),
 
+    loadRecord ({ recordID, recordPageID }) {
+      this.loadModal({ recordID, recordPageID })
+
+      setTimeout(() => {
+        this.$router.push({
+          query: {
+            ...this.$route.query,
+            recordID,
+            recordPageID,
+          },
+        })
+      }, 300)
+    },
+
     loadModal ({ recordID, recordPageID }) {
       if (recordID && recordPageID) {
         this.recordID = recordID
-        this.page = this.getPageByID(recordPageID)
 
-        if (this.page) {
+        if (!this.page || this.page.pageID !== recordPageID) {
+          this.page = this.getPageByID(recordPageID)
+        }
+
+        if (this.page && (!this.module || this.module.moduleID !== this.page.moduleID)) {
           this.module = this.getModuleByID(this.page.moduleID)
+        }
+
+        if (this.page && this.module) {
           this.showModal = true
         }
       }
     },
 
-    hideModal () {
-      this.$router.push({
-        query: {
-          ...this.$route.query,
-          recordID: undefined,
-          moduleID: undefined,
-          recordPageID: undefined,
-        },
-      })
+    onHidden () {
+      setTimeout(() => {
+        this.$router.push({
+          query: {
+            ...this.$route.query,
+            recordID: undefined,
+            moduleID: undefined,
+            recordPageID: undefined,
+          },
+        })
+      }, 300)
     },
   },
 }

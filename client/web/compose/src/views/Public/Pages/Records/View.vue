@@ -39,6 +39,7 @@
       :to="portalRecordToolbar"
     >
       <record-toolbar
+        v-if="layout"
         :module="module"
         :record="record"
         :labels="recordToolbarLabels"
@@ -378,9 +379,7 @@ export default {
       if (!recordID) return
 
       if (this.showRecordModal) {
-        this.$router.push({
-          query: { ...this.$route.query, recordID },
-        })
+        this.$emit('handle-record-redirect', { recordID, recordPageID: this.page.pageID })
       } else {
         this.$router.push({
           params: { ...this.$route.params, recordID },

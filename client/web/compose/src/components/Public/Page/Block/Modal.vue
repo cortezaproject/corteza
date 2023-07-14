@@ -9,8 +9,7 @@
     hide-header
     hide-footer
     size="xl"
-    no-fade
-    @hidden="hideModal"
+    @hidden="onHidden"
   >
     <page-block
       v-if="showModal"
@@ -79,34 +78,14 @@ export default {
     },
   },
 
-  watch: {
-    '$route.query.magnifiedBlockID': {
-      immediate: true,
-      handler (magnifiedBlockID, oldMagnifiedBlockID) {
-        if (!magnifiedBlockID) {
-          this.showModal = false
-          return
-        }
-
-        if (this.showModal && (magnifiedBlockID !== oldMagnifiedBlockID)) {
-          this.showModal = false
-
-          setTimeout(() => {
-            this.$router.push({ query: { ...this.$route.query, magnifiedBlockID } })
-          }, 300)
-
-          return
-        }
-
-        this.$nextTick(() => {
-          this.loadModal(magnifiedBlockID)
-        })
-      },
-    },
-  },
-
   mounted () {
     this.$root.$on('magnify-page-block', this.magnifyPageBlock)
+
+    const { magnifiedBlockID } = this.$route.query
+
+    if (magnifiedBlockID) {
+      this.magnifyPageBlock({ blockID: magnifiedBlockID })
+    }
   },
 
   beforeDestroy () {
@@ -117,7 +96,16 @@ export default {
     magnifyPageBlock ({ blockID, block } = {}) {
       this.customBlock = block
       const magnifiedBlockID = blockID || (block || {}).blockID
-      this.$router.push({ query: { ...this.$route.query, magnifiedBlockID } })
+      this.loadModal(magnifiedBlockID)
+
+      setTimeout(() => {
+        this.$router.push({
+          query: {
+            ...this.$route.query,
+            magnifiedBlockID,
+          },
+        })
+      }, 300)
     },
 
     loadModal (blockID) {
@@ -150,9 +138,15 @@ export default {
       }
     },
 
-    hideModal () {
-      this.showModal = false
-      this.$router.push({ query: { ...this.$route.query, magnifiedBlockID: undefined } })
+    onHidden () {
+      setTimeout(() => {
+        this.$router.push({
+          query: {
+            ...this.$route.query,
+            magnifiedBlockID: undefined,
+          },
+        })
+      }, 300)
     },
   },
 }
