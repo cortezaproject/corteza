@@ -40,7 +40,6 @@
         </b-form-invalid-feedback>
         <template
           v-if="resource.isDefault"
-          data-test-id="cannot-change-handle"
           #description
         >
           {{ $t('handle.disabledFootnote') }}
@@ -150,14 +149,14 @@
       >
         <b-input-group>
           <b-form-datepicker
-            v-model="validFrom.date"
+            v-model="validFromDate"
             data-test-id="datepicker-choose-date"
             :placeholder="$t('choose-date')"
             locale="en"
           />
 
           <b-form-timepicker
-            v-model="validFrom.time"
+            v-model="validFromTime"
             data-test-id="timepicker-choose-time"
             :placeholder="$t('no-time')"
             locale="en"
@@ -168,7 +167,7 @@
             class="ml-1 text-secondary"
             variant="link"
             :title="$t('tooltip.reset-value')"
-            @click="resetDateTime('validFrom')"
+            @click="resetDateTime('validFromDate')"
           >
             <font-awesome-icon
               :icon="['fas', 'sync']"
@@ -185,14 +184,14 @@
       >
         <b-input-group>
           <b-form-datepicker
-            v-model="expiresAt.date"
+            v-model="expiresAtDate"
             data-test-id="datepicker-choose-date"
             :placeholder="$t('choose-date')"
             locale="en"
           />
 
           <b-form-timepicker
-            v-model="expiresAt.time"
+            v-model="expiresAtTime"
             data-test-id="timepicker-choose-time"
             :placeholder="$t('no-time')"
             locale="en"
@@ -203,7 +202,7 @@
             class="ml-1 text-secondary"
             variant="link"
             :title="$t('tooltip.reset-value')"
-            @click="resetDateTime('expiresAt')"
+            @click="resetDateTime('expiresAtDate')"
           >
             <font-awesome-icon
               :icon="['fas', 'sync']"
@@ -569,18 +568,6 @@ export default {
     return {
       redirectURI: this.resource.redirectURI ? this.resource.redirectURI.split(' ') : [],
 
-      // @todo should be handled via computed props
-      validFrom: this.resource.validFrom ? {
-        date: new Date(this.resource.validFrom).toISOString().split('T')[0],
-        time: new Date(this.resource.validFrom).toTimeString().split(' ')[0],
-      } : { date: null, time: null },
-
-      // @todo should be handled via computed props
-      expiresAt: this.resource.expiresAt ? {
-        date: new Date(this.resource.expiresAt).toISOString().split('T')[0],
-        time: new Date(this.resource.expiresAt).toTimeString().split(' ')[0],
-      } : { date: null, time: null },
-
       curlVisible: false,
       curlURL: '',
       tokenRequest: {
@@ -591,6 +578,60 @@ export default {
   },
 
   computed: {
+    validFromDate: {
+      get () {
+        return this.resource.validFrom
+          ? new Date(this.resource.validFrom).toISOString().split('T')[0]
+          : null
+      },
+
+      set (validFromDate) {
+        this.resource.validFrom = validFromDate
+      },
+    },
+
+    validFromTime: {
+      get () {
+        return this.resource.validFrom
+          ? new Date(this.resource.validFrom).toTimeString().split(' ')[0]
+          : null
+      },
+
+      set (validFromTime) {
+        const date = this.validFromDate || this.resource.validFrom.toISOString().split('T')[0]
+        this.resource.validFrom = this.resource.validFrom
+          ? new Date(`${date} ${this.validFromTime}`).toISOString()
+          : null
+      },
+    },
+
+    expiresAtDate: {
+      get () {
+        return this.resource.expiresAt
+          ? new Date(this.resource.expiresAt).toISOString().split('T')[0]
+          : null
+      },
+
+      set (expiresAtDate) {
+        this.resource.expiresAt = expiresAtDate
+      },
+    },
+
+    expiresAtTime: {
+      get () {
+        return this.resource.expiresAt
+          ? new Date(this.resource.expiresAt).toTimeString().split(' ')[0]
+          : null
+      },
+
+      set (expiresAtTime) {
+        const date = this.expiresAtDate || this.resource.validFrom.toISOString().split('T')[0]
+        this.resource.expiresAt = this.resource.expiresAt
+          ? new Date(`${date} ${this.expiresAtTime}`).toISOString()
+          : null
+      },
+    },
+
     fresh () {
       return !this.resource.resourceID || this.resource.resourceID === NoID
     },
@@ -672,8 +713,8 @@ export default {
     },
 
     submit () {
-      if (this.validFrom.date && this.validFrom.time) {
-        this.resource.validFrom = new Date(`${this.validFrom.date} ${this.validFrom.time}`).toISOString()
+      if (this.validFromDate && this.validFromTime) {
+        this.resource.validFrom = new Date(`${this.validFromDate} ${this.validFromTime}`).toISOString()
       } else {
         this.resource.validFrom = undefined
       }
@@ -682,8 +723,8 @@ export default {
         this.resource.security.impersonateUser = '0'
       }
 
-      if (this.expiresAt.date && this.expiresAt.time) {
-        this.resource.expiresAt = new Date(`${this.expiresAt.date} ${this.expiresAt.time}`).toISOString()
+      if (this.expiresAtDate && this.expiresAtTime) {
+        this.resource.expiresAt = new Date(`${this.expiresAtDate} ${this.expiresAtTime}`).toISOString()
       } else {
         this.resource.expiresAt = undefined
       }
@@ -703,11 +744,8 @@ export default {
       this.resource.scope = items.join(' ')
     },
 
-    resetDateTime (target) {
-      if (target) {
-        this[target].date = undefined
-        this[target].time = undefined
-      }
+    resetDateTime (date) {
+      this[date] = undefined
     },
   },
 }

@@ -45,6 +45,8 @@ export class AuthClient {
   public enabled = true;
   public trusted = false;
 
+  public validFrom?: Date = undefined;
+  public expiresAt?: Date = undefined;
   public createdAt?: Date = undefined;
   public updatedAt?: Date = undefined;
   public deletedAt?: Date = undefined;
@@ -63,7 +65,7 @@ export class AuthClient {
 
   apply (o?: PartialAuthClient): void {
     Apply(this, o, CortezaID, 'authClientID')
-    Apply(this, o, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt');
+    Apply(this, o, ISO8601Date, 'validFrom', 'expiresAt', 'createdAt', 'updatedAt', 'deletedAt');
     Apply(this, o, String, 'handle', 'scope', 'redirectURI', 'validGrant');
     Apply(this, o, Boolean, 'enabled', 'trusted', 'canDeleteAuthClient', 'canGrant', 'canUpdateAuthClient');
     
