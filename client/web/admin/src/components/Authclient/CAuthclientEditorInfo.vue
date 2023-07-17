@@ -314,16 +314,17 @@
                 <pre
                   ref="cUrl"
                   data-test-id="cURL"
+                  style="word-break: break-word;"
                 >
 curl -X POST {{ curlURL }} \
 -d grant_type=client_credentials \
 -d scope='profile api' \
--u {{ resource.resourceID }}:{{ secret || 'PLACE-YOUR-CLIENT-SECRET-HERE' }}
+-u {{ resource.authClientID }}:{{ secret || 'PLACE-YOUR-CLIENT-SECRET-HERE' }}
                 </pre>
                 <b-button
                   data-test-id="copy-cURL"
                   variant="link"
-                  class="align-top ml-auto fit-content text-secondary"
+                  class="align-top ml-auto fit-content text-secondary mr-5"
                   @click="copyToClipboard('cUrl')"
                 >
                   <font-awesome-icon
@@ -490,7 +491,7 @@ curl -X POST {{ curlURL }} \
           v-if="isDeleted"
           data-test-id="button-undelete"
           :disabled="processing"
-          @confirmed="$emit('undelete', resource.resourceID)"
+          @confirmed="$emit('undelete', resource.authClientID)"
         >
           {{ $t('undelete') }}
         </confirmation-toggle>
@@ -498,7 +499,7 @@ curl -X POST {{ curlURL }} \
           v-else
           data-test-id="button-delete"
           :disabled="processing"
-          @confirmed="$emit('delete', resource.resourceID)"
+          @confirmed="$emit('delete', resource.authClientID)"
         >
           {{ $t('delete') }}
         </confirmation-toggle>
@@ -633,7 +634,7 @@ export default {
     },
 
     fresh () {
-      return !this.resource.resourceID || this.resource.resourceID === NoID
+      return !this.resource.authClientID || this.resource.authClientID === NoID
     },
 
     editable () {
@@ -689,7 +690,7 @@ export default {
       axios.post(
         this.curlURL,
         params,
-        { auth: { username: this.resource.resourceID, password: this.secret } }
+        { auth: { username: this.resource.authClientID, password: this.secret } }
       ).then(response => {
         this.tokenRequest.token = (response.data || {}).access_token
       }).catch(error => {
@@ -751,16 +752,16 @@ export default {
 }
 </script>
 <style lang="scss">
-.auth-clients{
-  .fit-content{
+.auth-clients {
+  .fit-content {
     height:fit-content;
   }
-  .overflow-wrap{
+  .overflow-wrap {
       overflow-wrap: anywhere;
   }
-  .curl .form-row{
+  .curl .form-row {
     flex-wrap: nowrap !important;
-    .col{
+    .col {
       max-width: 84.3%;
     }
   }
