@@ -11,7 +11,6 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
         >
           <b-form-group
             :label="$t('general.module')"
@@ -75,6 +74,22 @@
           >
             <c-input-checkbox
               v-model="options.inlineRecordEditEnabled"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('record.horizontalFormLayout')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.horizontalFieldLayoutEnabled"
               switch
               :labels="checkboxLabel"
             />

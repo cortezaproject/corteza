@@ -1,29 +1,38 @@
 <template>
   <b-form-group
-    label-class="d-flex align-items-center text-primary p-0"
+    :label-cols-md="horizontal && '5'"
+    :label-cols-xl="horizontal && '4'"
+    :content-cols-md="horizontal && '7'"
+    :content-cols-xl="horizontal && '8'"
     :state="state"
     :class="formGroupStyleClasses"
   >
     <template
-      v-if="!valueOnly"
       #label
     >
-      <span class="d-inline-block text-truncate mw-100 py-1">
-        {{ label }}
-      </span>
+      <div
+        v-if="!valueOnly"
+        class="d-flex align-items-center text-primary p-0"
+      >
+        <span
+          class="d-inline-block mw-100 py-1"
+          :title="label"
+        >
+          {{ label }}
+        </span>
 
-      <hint
-        :id="field.fieldID"
-        :text="hint"
-      />
+        <hint
+          :id="field.fieldID"
+          :text="hint"
+        />
+      </div>
+      <div
+        class="small text-muted"
+        :class="{ 'mb-1': description }"
+      >
+        {{ description }}
+      </div>
     </template>
-
-    <div
-      class="small text-muted"
-      :class="{ 'mb-1': description }"
-    >
-      {{ description }}
-    </div>
 
     <multi
       v-if="field.isMulti"

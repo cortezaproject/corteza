@@ -245,6 +245,7 @@ record:
   listLoadFailed: Could not load record list
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
+  horizontalFormLayout: Horizontal form layout
   inlineEdit:
     enabled: Inline value editing enabled
   preview:

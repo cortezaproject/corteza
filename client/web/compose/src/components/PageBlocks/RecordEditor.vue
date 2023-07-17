@@ -18,7 +18,8 @@
       <div
         v-for="field in fields"
         :key="field.id"
-        :class="{ 'd-flex flex-column mb-3 px-3': canDisplay(field) }"
+        class="field"
+        :class="{ 'mb-3 px-3': canDisplay(field) }"
       >
         <template
           v-if="canDisplay(field)"
@@ -26,32 +27,36 @@
           <field-editor
             v-if="isFieldEditable(field)"
             v-bind="{ ...$props, errors: fieldErrors(field.name) }"
-            class="field"
+            :horizontal="horizontal"
             :field="field"
             @change="onFieldChange()"
           />
-          <template
+
+          <b-form-group
             v-else
+            :label-cols-md="horizontal && '5'"
+            :label-cols-xl="horizontal && '4'"
+            :content-cols-md="horizontal && '7'"
+            :content-cols-xl="horizontal && '8'"
           >
-            <label
-              class="text-primary mb-0"
-              :class="{ 'mb-0': !!(field.options.description || {}).view || false }"
-            >
-              {{ field.label || field.name }}
-              <hint
-                :id="field.fieldID"
-                :text="((field.options.hint || {}).view || '')"
-                class="d-inline-block"
-              />
-            </label>
-            <small
-              class="text-muted"
-            >
-              {{ (field.options.description || {}).view }}
-            </small>
+            <template #label>
+              <div
+                class="d-flex align-items-center text-primary mb-0"
+              >
+                <span class="d-inline-block text-truncate mw-100 py-1">
+                  {{ field.label || field.name }}
+                </span>
+
+                <hint
+                  :id="field.fieldID"
+                  :text="((field.options.hint || {}).view || '')"
+                />
+              </div>
+            </template>
+
             <div
               v-if="field.canReadRecordValue"
-              class="value mt-2 mb-3"
+              class="value mt-1 align-self-center"
             >
               <field-viewer
                 :field="field"
@@ -68,7 +73,7 @@
                 {{ $t('field.noPermission') }}
               </i>
             </div>
-          </template>
+          </b-form-group>
         </template>
       </div>
     </div>
@@ -138,6 +143,10 @@ export default {
 
     processing () {
       return !this.record || this.evaluating
+    },
+
+    horizontal () {
+      return this.block.options.horizontalFieldLayoutEnabled
     },
   },
 
@@ -213,6 +222,13 @@ export default {
 }
 </script>
 <style lang="scss">
+.field {
+  legend {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 .value {
   min-height: 1.2rem;
 }

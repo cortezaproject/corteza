@@ -14,18 +14,20 @@
       v-else-if="fieldModule"
       class="mt-3"
     >
-      <div
+      <b-form-group
         v-for="(field, index) in fields"
         :key="index"
-        :class="{ 'd-flex flex-column mb-3 px-3 field-container': canDisplay(field) }"
+        :label-cols-md="options.horizontalFieldLayoutEnabled && '5'"
+        :label-cols-xl="options.horizontalFieldLayoutEnabled && '4'"
+        :content-cols-md="options.horizontalFieldLayoutEnabled && '7'"
+        :content-cols-xl="options.horizontalFieldLayoutEnabled && '8'"
+        :class="{ 'field-container mb-3 px-3': canDisplay(field) }"
       >
-        <template
-          v-if="canDisplay(field)"
-        >
+        <template #label>
           <label
             class="d-flex align-items-center text-primary mb-0"
           >
-            <span class="d-inline-block text-truncate mw-100 py-1">
+            <span class="d-inline-block mw-100 py-1">
               {{ field.label || field.name }}
             </span>
 
@@ -59,25 +61,25 @@
           >
             {{ (field.options.description || {}).view }}
           </div>
-
-          <div
-            v-if="field.canReadRecordValue"
-            class="value mt-1"
-          >
-            <field-viewer
-              v-bind="{ ...$props, field }"
-              :extra-options="options"
-              :record="fieldRecord"
-            />
-          </div>
-          <i
-            v-else
-            class="text-primary"
-          >
-            {{ $t('field.noPermission') }}
-          </i>
         </template>
-      </div>
+
+        <div
+          v-if="field.canReadRecordValue"
+          class="value mt-1 align-self-center"
+        >
+          <field-viewer
+            v-bind="{ ...$props, field }"
+            :extra-options="options"
+            :record="fieldRecord"
+          />
+        </div>
+        <i
+          v-else
+          class="text-primary"
+        >
+          {{ $t('field.noPermission') }}
+        </i>
+      </b-form-group>
     </div>
 
     <!-- Modal for inline editing -->
@@ -307,6 +309,13 @@ export default {
 }
 </script>
 <style lang="scss">
+.field-container {
+  legend {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 .value {
   min-height: 1.2rem;
 }

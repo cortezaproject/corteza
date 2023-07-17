@@ -61,6 +61,11 @@ export default {
       type: Boolean,
       default: true,
     },
+
+    horizontal: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   computed: {

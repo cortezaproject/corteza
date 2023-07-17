@@ -1,26 +1,38 @@
 <template>
   <b-form-group
-    label-class="d-flex align-items-center text-primary p-0"
+    :label-cols-md="horizontal && '5'"
+    :label-cols-xl="horizontal && '4'"
+    :content-cols-md="horizontal && '7'"
+    :content-cols-xl="horizontal && '8'"
   >
     <template
       v-if="field.options.switch"
       #label
     >
-      {{ label }}
+      <div
+        v-if="!valueOnly"
+        class="d-flex align-items-center text-primary p-0"
+      >
+        <span
+          class="d-inline-block mw-100 pt-0"
+          :class="{ 'py-1': !horizontal }"
+          :title="label"
+        >
+          {{ label }}
+        </span>
 
-      <hint
-        :id="field.fieldID"
-        :text="hint"
-      />
+        <hint
+          :id="field.fieldID"
+          :text="hint"
+        />
+      </div>
+      <div
+        class="small text-muted"
+        :class="{ 'mb-1': description }"
+      >
+        {{ description }}
+      </div>
     </template>
-
-    <div
-      v-if="field.options.switch"
-      class="small text-muted"
-      :class="{ 'mb-1': description }"
-    >
-      {{ description }}
-    </div>
 
     <c-input-checkbox
       v-model="value"
