@@ -263,63 +263,51 @@
                 :colspan="fieldIndex === (fields.length - 1) ? 2 : 1"
                 :style="{
                   'padding-right': fieldIndex === (fields.length - 1) ? '15px' : '',
-                  cursor: field.sortable ? 'pointer' : 'default',
                 }"
-                @click="handleSort(field)"
               >
-                <div
-                  class="d-flex align-self-center"
-                >
+                <div class="d-flex align-items-center">
                   <div
                     :class="{ required: field.required }"
                     class="d-flex align-self-center text-nowrap"
                   >
                     {{ field.label }}
                   </div>
-                  <div
-                    class="d-flex"
-                  >
-                    <record-list-filter
-                      v-if="!options.hideFiltering && field.filterable"
-                      :target="uniqueID"
-                      :selected-field="field.moduleField"
-                      :namespace="namespace"
-                      :module="recordListModule"
-                      :record-list-filter="recordListFilter"
-                      :allow-filter-preset-save="options.customFilterPresets"
-                      class="d-print-none ml-1"
-                      @filter="onFilter"
-                      @filter-preset="onSaveFilterPreset"
-                    />
 
-                    <b-button
-                      v-if="field.sortable"
-                      variant="link p-0 ml-1"
-                      :title="$t('recordList.sort.tooltip')"
-                      class="d-flex align-items-center justify-content-center"
+                  <b-button
+                    v-if="field.sortable"
+                    variant="outline-light"
+                    :title="$t('recordList.sort.tooltip')"
+                    class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
+                    @click="handleSort(field)"
+                  >
+                    <font-awesome-layers
+                      class="d-print-none"
                     >
-                      <font-awesome-layers
-                        class="d-print-none"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'angle-up']"
-                          class="mb-1"
-                          :style="{
-                            color: 'gray',
-                            ...sorterStyle(field, 'ASC'),
-                          }"
-                        />
-                        <font-awesome-icon
-                          :icon="['fas', 'angle-down']"
-                          class="mt-1"
-                          :style="{
-                            color: 'gray',
-                            ...sorterStyle(field, 'DESC'),
-                          }"
-                        />
-                      </font-awesome-layers>
-                    </b-button>
-                  </div>
+                      <font-awesome-icon
+                        :icon="['fas', 'angle-up']"
+                        class="mb-1 text-grey"
+                        :class="{ 'text-primary': isSortedBy(field, 'ASC') }"
+                      />
+                      <font-awesome-icon
+                        :icon="['fas', 'angle-down']"
+                        class="mt-1"
+                        :class="{ 'text-primary': isSortedBy(field, 'DESC') }"
+                      />
+                    </font-awesome-layers>
+                  </b-button>
+
+                  <record-list-filter
+                    v-if="!options.hideFiltering && field.filterable"
+                    :target="uniqueID"
+                    :selected-field="field.moduleField"
+                    :namespace="namespace"
+                    :module="recordListModule"
+                    :record-list-filter="recordListFilter"
+                    :allow-filter-preset-save="options.customFilterPresets"
+                    class="d-print-none ml-1"
+                    @filter="onFilter"
+                    @filter-preset="onSaveFilterPreset"
+                  />
                 </div>
               </b-th>
             </b-tr>
@@ -1167,12 +1155,12 @@ export default {
       }
     },
 
-    sorterStyle ({ key }, dir) {
+    isSortedBy ({ key }, dir) {
       const { sort = '' } = this.filter
 
       const sortedFields = (sort.includes(',') ? sort.split(',') : [sort])
 
-      const isSorted = sortedFields.map(v => v.trim()).some(value => {
+      return sortedFields.map(v => v.trim()).some(value => {
         let valueDir = 'ASC'
 
         if (value.includes(' ')) {
@@ -1182,8 +1170,6 @@ export default {
 
         return valueDir === dir && value === key
       })
-
-      return isSorted ? { color: 'black' } : {}
     },
 
     handleShowDeleted () {
@@ -1597,7 +1583,7 @@ export default {
       // Filter's out deleted records when filter.deleted is 2, and undeleted records when filter.deleted is 0
       this.showingDeletedRecords ? this.filter.deleted = 2 : this.filter.deleted = 0
 
-      await this.$ComposeAPI.recordList({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions })
+      return this.$ComposeAPI.recordList({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions })
         .then(({ set, filter }) => {
           const records = set.map(r => new compose.Record(r, this.recordListModule))
 

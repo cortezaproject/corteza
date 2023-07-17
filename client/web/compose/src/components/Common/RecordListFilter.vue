@@ -4,11 +4,15 @@
       :id="popoverTarget"
       :title="$t('recordList.filter.title')"
       :variant="variant"
-      :class="[inFilter ? 'text-primary' : 'text-secondary', buttonClass]"
+      class="d-flex align-items-center text-secondary d-print-none border-0 px-1 h-100"
+      :class="buttonClass"
       :style="buttonStyle"
       @click.stop
     >
-      <font-awesome-icon :icon="['fas', 'filter']" />
+      <font-awesome-icon
+        :icon="['fas', 'filter']"
+        :class="[inFilter ? 'text-primary' : 'text-secondary']"
+      />
     </b-button>
 
     <b-popover
@@ -286,12 +290,12 @@ export default {
 
     variant: {
       type: String,
-      default: 'link',
+      default: 'outline-light',
     },
 
     buttonClass: {
       type: String,
-      default: 'p-0',
+      default: '',
     },
 
     buttonStyle: {
