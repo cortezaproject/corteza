@@ -76,7 +76,7 @@ export default {
     magnifyParams () {
       const params = this.block.blockID === NoID ? { block: this.block } : { blockID: this.block.blockID }
       return this.isBlockMagnified ? undefined : params
-    }
+    },
   },
 }
 </script>
