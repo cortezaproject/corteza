@@ -531,8 +531,6 @@ export default {
         this.createDefaultFilterGroup(),
       ]
       this.$emit('reset')
-
-      this.onSave(false)
     },
 
     deleteFilter (groupIndex, index) {

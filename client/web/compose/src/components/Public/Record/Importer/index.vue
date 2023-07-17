@@ -13,35 +13,34 @@
       size="lg"
       :title="$t('recordList.import.to', { modulename: module.name })"
       hide-footer
+      ok-variant="primary"
       body-class="p-0"
       no-fade
       scrollable
       @hide="onModalHide"
     >
-      <keep-alive>
-        <component
-          :is="stepComponent"
-          v-bind="$props"
-          :session="session"
-          @fileUploaded="onFileUploaded"
-          @fieldsMatched="onFieldsMatched"
-          @importSuccessful="onImportSuccessful"
-          @importFailed="onImportFailed"
-          @back="onBack"
-          @reset="onReset"
-          @close="onClose"
-          v-on="$listeners"
+      <component
+        :is="stepComponent"
+        v-bind="$props"
+        :session="session"
+        @fileUploaded="onFileUploaded"
+        @fieldsMatched="onFieldsMatched"
+        @importSuccessful="onImportSuccessful"
+        @importFailed="onImportFailed"
+        @back="onBack"
+        @reset="onReset"
+        @close="onClose"
+        v-on="$listeners"
+      >
+        <label
+          v-if="progress.failed"
+          slot="uploadLabel"
+          class="text-danger"
         >
-          <label
-            v-if="progress.failed"
-            slot="uploadLabel"
-            class="text-danger"
-          >
 
-            {{ $t('recordList.import.failed', progress) }}
-          </label>
-        </component>
-      </keep-alive>
+          {{ $t('recordList.import.failed', progress) }}
+        </label>
+      </component>
     </b-modal>
   </div>
 </template>

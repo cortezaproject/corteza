@@ -187,7 +187,7 @@ export default {
         if (this.hasFocus !== f) {
           this.hasFocus = f
         }
-      }, 250)
+      }, 1000)
     }
   },
 
@@ -200,6 +200,7 @@ export default {
   },
 }
 </script>
+
 <style scoped lang="scss">
 .slide-enter-active {
   transition: all .3s ease;

@@ -290,7 +290,6 @@
                       class="d-print-none ml-1"
                       @filter="onFilter"
                       @filter-preset="onSaveFilterPreset"
-                      @reset="activeFilters = []"
                     />
 
                     <b-button
@@ -1127,6 +1126,7 @@ export default {
           this.activeFilters.splice(filterIndex, 1)
         } else if (!this.activeFilters.includes(this.$t('recordList.customFilter'))) {
           this.activeFilters.push(this.$t('recordList.customFilter'))
+          f.name = this.$t('recordList.customFilter')
         }
       })
 

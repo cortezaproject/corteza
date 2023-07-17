@@ -145,7 +145,7 @@ export default {
     this.recalculateBoundingRect()
   },
 
-  destroyed () {
+  beforeDestroy () {
     window.removeEventListener('resize', this.windowResizeThrottledHandler)
   },
 
@@ -170,6 +170,7 @@ export default {
   },
 }
 </script>
+
 <style lang="scss">
 .editable {
   .grid-item {

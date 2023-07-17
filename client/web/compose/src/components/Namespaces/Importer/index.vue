@@ -17,26 +17,24 @@
       body-class="p-0"
       @hide="onModalHide"
     >
-      <keep-alive>
-        <component
-          :is="stepComponent"
-          v-if="!importing"
-          v-bind="$props"
-          :session="session"
-          @fileUploaded="onFileUploaded"
-          @configured="onConfigured"
-          @back="onBack"
-          @reset="onReset"
-          @close="onClose"
-          v-on="$listeners"
-        />
-        <div
-          v-else
-          class="p-5 h-100 d-flex align-items-center justify-content-center"
-        >
-          <b-spinner />
-        </div>
-      </keep-alive>
+      <div
+        v-if="importing"
+        class="p-5 h-100 d-flex align-items-center justify-content-center"
+      >
+        <b-spinner />
+      </div>
+
+      <component
+        :is="stepComponent"
+        v-bind="$props"
+        :session="session"
+        @fileUploaded="onFileUploaded"
+        @configured="onConfigured"
+        @back="onBack"
+        @reset="onReset"
+        @close="onClose"
+        v-on="$listeners"
+      />
     </b-modal>
   </div>
 </template>

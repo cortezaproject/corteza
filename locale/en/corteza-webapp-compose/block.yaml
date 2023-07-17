@@ -383,7 +383,7 @@ recordList:
     hasRequiredFileFields: 'This module has required file upload fields'
     matchFields: 'Match imported columns with existing ones:'
     moduleFields: Module fields
-    onError: 'If any record fails to import:'
+    onError: If any record fails to import
     onErrorFail: Cancel import
     onErrorSkip: Skip record
     pickModuleField: Pick a module field
