@@ -68,11 +68,11 @@ func (c *connection) withModel(m *dal.Model, fn func(m *model) error) error {
 		key = cacheKey(m)
 	)
 	c.mux.RLock()
-	defer c.mux.RUnlock()
 	if cached, ok := c.models[key]; ok {
+		c.mux.RUnlock()
 		return fn(cached)
 	}
-
+	c.mux.RUnlock()
 	return fmt.Errorf("model %q (%d) not loaded", key, m.ResourceID)
 }
 
