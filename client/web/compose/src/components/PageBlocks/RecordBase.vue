@@ -91,6 +91,7 @@
       :modal-title="$t('field.inlineEdit.modal.title')"
       open-on-select
       @save="onInlineEdit()"
+      @close="onInlineEditClose()"
     />
   </wrap>
 </template>
@@ -272,6 +273,12 @@ export default {
       this.inlineEdit.query = ''
 
       this.$root.$emit('refetch-record-blocks')
+    },
+
+    onInlineEditClose () {
+      this.inlineEdit.fields = []
+      this.inlineEdit.record = {}
+      this.inlineEdit.query = ''
     },
 
     isFieldEditable (field) {
