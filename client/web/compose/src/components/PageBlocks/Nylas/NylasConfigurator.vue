@@ -1,21 +1,51 @@
 <template>
   <b-tab :title="$t('label')">
-    <b-form-group
-      :label="$t('kind')"
-    >
-      <b-form-select
-        v-model="options.kind"
-        :options="nylasComponentKinds"
-      />
-    </b-form-group>
+    <b-row>
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          :label="$t('kind')"
+          label-class="text-primary"
+        >
+          <b-form-select
+            v-model="options.kind"
+            :options="nylasComponentKinds"
+          />
+        </b-form-group>
+      </b-col>
 
-    <b-form-group
-      :label="$t('componentID')"
-    >
-      <b-form-input
-        v-model="options.componentID"
-      />
-    </b-form-group>
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          :label="$t('componentID')"
+          label-class="text-primary"
+        >
+          <b-form-input
+            v-model="options.componentID"
+          />
+        </b-form-group>
+      </b-col>
+
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          :label="$t('accessTokenRequired')"
+          label-class="text-primary"
+        >
+          <c-input-checkbox
+            v-model="options.accessTokenRequired"
+            switch
+            :labels="checkboxLabels"
+          />
+        </b-form-group>
+      </b-col>
+    </b-row>
 
     <template v-if="showPreviewSection">
       <hr class="my-3">
@@ -149,7 +179,7 @@ export default {
         { value: 'Mailbox', text: this.$t('kinds.mailbox') },
       ],
 
-      checkboxLabel: {
+      checkboxLabels: {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },

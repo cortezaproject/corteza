@@ -729,6 +729,7 @@ nylas:
     label: Office365/Google
     kind: Component kind
     componentID: Component ID
+    accessTokenRequired: Access token required
     prefill:
       title: Prefill values
       selectField: Select field

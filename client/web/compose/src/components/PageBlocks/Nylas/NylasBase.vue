@@ -5,7 +5,7 @@
   >
     <div
       v-if="hideComponent"
-      class="d-flex flex-column align-items-center justify-content-center h-100 overflow-hidden"
+      class="d-flex flex-column align-items-center justify-content-center text-center h-100 overflow-hidden p-2 "
     >
       <b-spinner
         v-if="processing"
@@ -60,7 +60,7 @@ export default {
 
       isExternalConfigured: false,
 
-      accessToken: '',
+      accessToken: undefined,
 
       tokenCheckInterval: undefined,
 
@@ -79,7 +79,8 @@ export default {
     },
 
     hideComponent () {
-      return this.processing || !this.isExternalConfigured || !this.accessToken || !this.options.componentID
+      // If access token is required, check if external is configured and we have it
+      return this.processing || !this.options.componentID || (this.options.accessTokenRequired && !(this.isExternalConfigured && this.accessToken))
     },
   },
 
@@ -87,6 +88,11 @@ export default {
     'record.recordID': {
       immediate: true,
       async handler () {
+        if (!this.options.accessTokenRequired) {
+          this.processPrefillValues()
+          return
+        }
+
         this.processing = true
         // Check if nylas is configured as a provider
         const { enabled: externalEnabled = false, providers = [] } = this.$Settings.get('auth.external', {})
@@ -105,8 +111,17 @@ export default {
           .finally(() => {
             this.processing = false
           })
+      },
+    },
 
-        this.processPrefillValues()
+    options: {
+      deep: true,
+      handler () {
+        this.processing = true
+
+        setTimeout(() => {
+          this.processing = false
+        }, 300)
       },
     },
   },
@@ -118,7 +133,7 @@ export default {
           to: this.mapFieldToValue('to').map(v => ({ email: v })),
           subject: this.mapFieldToValue('subject').join(','),
           body: this.mapFieldToValue('body').join('<br />'),
-          queryString: this.mapFieldToValue('queryString').join(','),
+          queryString: this.mapFieldToValue('queryString')[0],
         }
       }
     },

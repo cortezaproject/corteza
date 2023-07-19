@@ -23,8 +23,8 @@ export default {
 
   computed: {
     queryString () {
-      const { queryString = [] } = this.prefillValues
-      return `from=${queryString}`
+      const { queryString = '' } = this.prefillValues
+      return queryString ? `from=${queryString}` : undefined
     },
   },
 }

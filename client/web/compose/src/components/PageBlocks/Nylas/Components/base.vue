@@ -8,7 +8,7 @@ export default {
 
     accessToken: {
       type: String,
-      required: true,
+      default: undefined,
     },
   },
 }
