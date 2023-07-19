@@ -117,58 +117,60 @@
       </b-form-text>
     </b-form-group>
 
+    <hr>
+
     <div>
-      <div>
-        <h5>{{ $t('constraints.label') }}</h5>
-        <b-form-checkbox
-          v-model="fieldConstraint.exists"
-          class="mt-3"
-          @change="toggleFieldConstraint"
+      <h5>{{ $t('constraints.label') }}</h5>
+      <b-form-checkbox
+        v-model="fieldConstraint.exists"
+        class="mt-3"
+        @change="toggleFieldConstraint"
+      >
+        {{ $t('constraints.description') }}
+      </b-form-checkbox>
+
+      <b-row
+        v-if="fieldConstraint.exists"
+        class="mt-4"
+      >
+        <b-col
+          cols="12"
+          sm="6"
         >
-          {{ $t('constraints.description') }}
-        </b-form-checkbox>
-      </div>
-
-      <div class="mt-4">
-        <b-row>
-          <b-col
-            cols="12"
-            sm="6"
+          <b-form-group
+            :label="$t('constraints.valueModifiers')"
+            label-class="text-primary"
           >
-            <b-form-group
-              :label="$t('constraints.valueModifiers')"
-            >
-              <b-form-select
-                v-model="constraint.modifier"
-                :options="modifierOptions"
-              />
-            </b-form-group>
-          </b-col>
-          <b-col
-            cols="12"
-            sm="6"
+            <b-form-select
+              v-model="constraint.modifier"
+              :options="modifierOptions"
+            />
+          </b-form-group>
+        </b-col>
+        <b-col
+          v-if="field.isMulti"
+          cols="12"
+          sm="6"
+        >
+          <b-form-group
+            :label="$t('constraints.multiValues')"
+            label-class="text-primary"
           >
-            <b-form-group
-              :label="$t('constraints.multiValues')"
-            >
-              <b-form-select
-                v-model="constraint.multiValue"
-                :options="multiValueOptions"
-                :disabled="!field.isMulti"
-              />
-            </b-form-group>
-          </b-col>
-        </b-row>
-
-        <div
+            <b-form-select
+              v-model="constraint.multiValue"
+              :options="multiValueOptions"
+            />
+          </b-form-group>
+        </b-col>
+        <b-col
           v-if="fieldConstraint.total"
-          class="mt-3"
+          cols="12"
         >
           <i>
             {{ $t('constraints.totalFieldConstraintCount', { total: fieldConstraint.total }) }}
           </i>
-        </div>
-      </div>
+        </b-col>
+      </b-row>
     </div>
   </div>
 </template>
