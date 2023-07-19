@@ -82,6 +82,7 @@
 
     <!-- Modal for inline editing -->
     <bulk-edit-modal
+      v-if="options.inlineRecordEditEnabled"
       :namespace="namespace"
       :module="fieldModule"
       :selected-records="inlineEdit.recordIDs"
