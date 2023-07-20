@@ -147,25 +147,19 @@
         label-cols="3"
         :description="$t('validFrom.description')"
       >
-        <b-input-group>
-          <b-form-datepicker
-            v-model="validFromDate"
-            data-test-id="datepicker-choose-date"
-            :placeholder="$t('choose-date')"
-            locale="en"
-          />
-
-          <b-form-timepicker
-            v-model="validFromTime"
-            data-test-id="timepicker-choose-time"
-            :placeholder="$t('no-time')"
-            locale="en"
-          />
-
+        <c-input-date-time
+          v-model="resource.validFrom"
+          :labels="{
+            clear: $t('general:label.clear'),
+            none: $t('general:label.none'),
+            now: $t('general:label.now'),
+            today: $t('general:label.today'),
+          }"
+        >
           <b-button
             data-test-id="button-reset-value"
-            class="ml-1 text-secondary"
-            variant="link"
+            class="text-primary border-0"
+            variant="outline-light"
             :title="$t('tooltip.reset-value')"
             @click="resetDateTime('validFromDate')"
           >
@@ -173,7 +167,7 @@
               :icon="['fas', 'sync']"
             />
           </b-button>
-        </b-input-group>
+        </c-input-date-time>
       </b-form-group>
 
       <b-form-group
@@ -182,25 +176,19 @@
         label-cols="3"
         :description="$t('expiresAt.description')"
       >
-        <b-input-group>
-          <b-form-datepicker
-            v-model="expiresAtDate"
-            data-test-id="datepicker-choose-date"
-            :placeholder="$t('choose-date')"
-            locale="en"
-          />
-
-          <b-form-timepicker
-            v-model="expiresAtTime"
-            data-test-id="timepicker-choose-time"
-            :placeholder="$t('no-time')"
-            locale="en"
-          />
-
+        <c-input-date-time
+          v-model="resource.expiresAt"
+          :labels="{
+            clear: $t('general:label.clear'),
+            none: $t('general:label.none'),
+            now: $t('general:label.now'),
+            today: $t('general:label.today'),
+          }"
+        >
           <b-button
             data-test-id="button-reset-value"
-            class="ml-1 text-secondary"
-            variant="link"
+            class="text-primary border-0"
+            variant="outline-light"
             :title="$t('tooltip.reset-value')"
             @click="resetDateTime('expiresAtDate')"
           >
@@ -208,7 +196,7 @@
               :icon="['fas', 'sync']"
             />
           </b-button>
-        </b-input-group>
+        </c-input-date-time>
       </b-form-group>
 
       <b-form-group
@@ -510,13 +498,15 @@ curl -X POST {{ curlURL }} \
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
-import { handle } from '@cortezaproject/corteza-vue'
+import { handle, components } from '@cortezaproject/corteza-vue'
 import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import CRolePicker from 'corteza-webapp-admin/src/components/CRolePicker'
 import CSelectUser from 'corteza-webapp-admin/src/components/Authclient/CSelectUser'
 import copy from 'copy-to-clipboard'
 import axios from 'axios'
+
+const { CInputDateTime } = components
 
 export default {
   name: 'CAuthclientEditorInfo',
@@ -531,6 +521,7 @@ export default {
     CSubmitButton,
     CRolePicker,
     CSelectUser,
+    CInputDateTime,
   },
 
   props: {
@@ -579,60 +570,6 @@ export default {
   },
 
   computed: {
-    validFromDate: {
-      get () {
-        return this.resource.validFrom
-          ? new Date(this.resource.validFrom).toISOString().split('T')[0]
-          : null
-      },
-
-      set (validFromDate) {
-        this.resource.validFrom = validFromDate
-      },
-    },
-
-    validFromTime: {
-      get () {
-        return this.resource.validFrom
-          ? new Date(this.resource.validFrom).toTimeString().split(' ')[0]
-          : null
-      },
-
-      set (validFromTime) {
-        const date = this.validFromDate || this.resource.validFrom.toISOString().split('T')[0]
-        this.resource.validFrom = this.resource.validFrom
-          ? new Date(`${date} ${this.validFromTime}`).toISOString()
-          : null
-      },
-    },
-
-    expiresAtDate: {
-      get () {
-        return this.resource.expiresAt
-          ? new Date(this.resource.expiresAt).toISOString().split('T')[0]
-          : null
-      },
-
-      set (expiresAtDate) {
-        this.resource.expiresAt = expiresAtDate
-      },
-    },
-
-    expiresAtTime: {
-      get () {
-        return this.resource.expiresAt
-          ? new Date(this.resource.expiresAt).toTimeString().split(' ')[0]
-          : null
-      },
-
-      set (expiresAtTime) {
-        const date = this.expiresAtDate || this.resource.validFrom.toISOString().split('T')[0]
-        this.resource.expiresAt = this.resource.expiresAt
-          ? new Date(`${date} ${this.expiresAtTime}`).toISOString()
-          : null
-      },
-    },
-
     fresh () {
       return !this.resource.authClientID || this.resource.authClientID === NoID
     },
@@ -714,20 +651,8 @@ export default {
     },
 
     submit () {
-      if (this.validFromDate && this.validFromTime) {
-        this.resource.validFrom = new Date(`${this.validFromDate} ${this.validFromTime}`).toISOString()
-      } else {
-        this.resource.validFrom = undefined
-      }
-
       if (!this.isClientCredentialsGrant || !this.resource.security.impersonateUser) {
         this.resource.security.impersonateUser = '0'
-      }
-
-      if (this.expiresAtDate && this.expiresAtTime) {
-        this.resource.expiresAt = new Date(`${this.expiresAtDate} ${this.expiresAtTime}`).toISOString()
-      } else {
-        this.resource.expiresAt = undefined
       }
 
       this.$emit('submit', this.resource)

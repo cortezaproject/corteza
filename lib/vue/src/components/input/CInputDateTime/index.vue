@@ -32,6 +32,8 @@
       now-button
       class="h-100 overflow-hidden"
     />
+
+    <slot />
   </div>
 </template>
 <script lang="js">
