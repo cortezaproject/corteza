@@ -20,7 +20,7 @@
         value-field="pageLayoutID"
         text-field="label"
         style="width: 300px;"
-        @change="switchLayout"
+        @change="setLayout"
       />
 
       <b-button-group
@@ -58,8 +58,15 @@
       </b-button-group>
     </portal>
 
+    <div
+      v-if="processingLayout"
+      class="d-flex align-items-center justify-content-center w-100"
+    >
+      <b-spinner />
+    </div>
+
     <grid
-      :key="layout ? layout.pageLayoutID : pageID"
+      v-else-if="layout"
       :blocks.sync="blocks"
       editable
       @item-updated="onBlockUpdated"
@@ -330,6 +337,8 @@ export default {
 
       processing: false,
 
+      processingLayout: false,
+
       page: undefined,
       layout: undefined,
       layouts: [],
@@ -437,6 +446,8 @@ export default {
     pageID: {
       immediate: true,
       handler (pageID) {
+        this.processingLayout = true
+
         this.unsavedBlocks.clear()
         this.layouts = []
         this.layout = undefined
@@ -448,9 +459,11 @@ export default {
           this.title = `${this.$t('label.pageBuilder')} - "${title}"`
           document.title = [page.title, name, this.$t('general:label.app-name.private')].filter(v => v).join(' | ')
           this.page = page.clone()
-          return this.fetchPageLayouts()
-        }).then(() => {
-          this.setLayout()
+          return this.fetchPageLayouts().then(() => {
+            this.setLayout()
+          })
+        }).catch(() => {
+          this.processingLayout = false
         })
       },
     },
@@ -778,15 +791,16 @@ export default {
       }).then(({ page, layout }) => {
         this.page = new compose.Page(page)
         this.layout = new compose.PageLayout(layout)
-        this.fetchPageLayouts()
-        this.setLayout()
+        this.unsavedBlocks.clear()
+
         this.toastSuccess(this.$t('notification:page.page-layout.save.success'))
 
         if (closeOnSuccess) {
           this.$router.push({ name: 'admin.pages' })
-        } else if (previewOnSuccess) {
-          this.$router.push({ name: 'page', params: { pageID: this.pageID } })
+          return
         }
+
+        return this.fetchPageLayouts()
       }).finally(() => {
         this.processing = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
@@ -805,7 +819,7 @@ export default {
 
       this.createPageLayout(layout).then(({ pageLayoutID }) => {
         return this.fetchPageLayouts().then(() => {
-          this.switchLayout(pageLayoutID)
+          this.setLayout(pageLayoutID)
           this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
         })
       }).finally(() => {
@@ -889,10 +903,13 @@ export default {
       next(!this.unsavedBlocks.size || queryParams || window.confirm(this.$t('build.unsavedChanges')))
     },
 
-    async setLayout () {
-      if (this.$route.query.layoutID) {
-        const { namespaceID } = this.namespace
-        this.layout = await this.findLayoutByID({ namespaceID, pageID: this.pageID, pageLayoutID: this.$route.query.layoutID })
+    async setLayout (layoutID) {
+      this.processingLayout = true
+
+      layoutID = layoutID || this.$route.query.layoutID
+
+      if (layoutID) {
+        this.layout = this.layouts.find(({ pageLayoutID }) => pageLayoutID === layoutID)
       }
 
       this.layout = this.layout || this.layouts[0]
@@ -931,15 +948,10 @@ export default {
       })
 
       this.blocks = tempBlocks
-    },
 
-    switchLayout (layoutID) {
-      this.$router.push({ ...this.$route, query: { ...this.$route.query, layoutID } }).then(() => {
-        this.setLayout()
-      }).catch(() => {
-        // Change layout value of select back to previous one if redirect was canceled
-        this.$refs.layoutSelect.localValue = this.layout.pageLayoutID
-      })
+      setTimeout(() => {
+        this.processingLayout = false
+      }, 400)
     },
 
     scrollToBottom () {
