@@ -217,13 +217,7 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
 	case "concat":
-		// need to force text type on all arguments
-		aa := make([]any, len(args))
-		for a := range args {
-			aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
-		}
-
-		return exp.NewSQLFunctionExpression("CONCAT", aa...), nil
+		return castColumnDataToText("CONCAT", args...)
 
 	case "in":
 		return drivers.OpHandlerIn(d, n, args...)
@@ -231,6 +225,16 @@ func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp
 	case "nin":
 		return drivers.OpHandlerNotIn(d, n, args...)
 
+	case "like", "nlike":
+		dalType := n.Args[0].Meta["dal.Attribute"].(*dal.Attribute).Type
+		// if the type is id (numeric) data type, then cast it to text
+		if dalType != nil && dalType.Type() == dal.AttributeTypeID {
+			op := "LIKE"
+			if ref == "nlike" {
+				op = "NOT LIKE"
+			}
+			return castColumnDataToText(op, args...)
+		}
 	}
 
 	return ref2exp.RefHandler(n, args...)
@@ -255,4 +259,14 @@ func (d postgresDialect) ValHandler(n *ql.ASTNode) (out exp.Expression, err erro
 
 func (d postgresDialect) OrderedExpression(expr exp.Expression, dir exp.SortDirection, nst exp.NullSortType) exp.OrderedExpression {
 	return exp.NewOrderedExpression(expr, dir, nst)
+}
+
+// castColumnDataToText converts column data to text.
+func castColumnDataToText(op string, args ...exp.Expression) (expr exp.Expression, err error) {
+	aa := make([]any, len(args))
+	for a := range args {
+		aa[a] = exp.NewCastExpression(exp.NewLiteralExpression("?", args[a]), "TEXT")
+	}
+
+	return exp.NewSQLFunctionExpression(op, aa...), nil
 }
