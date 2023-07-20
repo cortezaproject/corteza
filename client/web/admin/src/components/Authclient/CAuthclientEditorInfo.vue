@@ -93,7 +93,7 @@
         label-cols="3"
         class="mb-3"
       >
-        <b-input-group>
+        <div class="d-flex">
           <b-form-input
             v-model="secret"
             data-test-id="input-client-secret"
@@ -104,8 +104,8 @@
           <b-button
             v-if="!secretVisible"
             data-test-id="button-show-client-secret"
-            class="ml-1 text-primary"
-            variant="link"
+            class="text-primary border-0 px-3"
+            variant="outline-light"
             @click="$emit('request-secret')"
           >
             <font-awesome-icon
@@ -116,8 +116,8 @@
           <b-button
             v-else
             data-test-id="button-regenerate-client-secret"
-            class="ml-1 text-primary"
-            variant="link"
+            class="text-primary border-0 px-3"
+            variant="outline-light"
             :title="$t('tooltip.regenerate-secret')"
             @click="$emit('regenerate-secret')"
           >
@@ -125,7 +125,7 @@
               :icon="['fas', 'sync']"
             />
           </b-button>
-        </b-input-group>
+        </div>
       </b-form-group>
 
       <b-form-group
@@ -155,19 +155,7 @@
             now: $t('general:label.now'),
             today: $t('general:label.today'),
           }"
-        >
-          <b-button
-            data-test-id="button-reset-value"
-            class="text-primary border-0"
-            variant="outline-light"
-            :title="$t('tooltip.reset-value')"
-            @click="resetDateTime('validFromDate')"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'sync']"
-            />
-          </b-button>
-        </c-input-date-time>
+        />
       </b-form-group>
 
       <b-form-group
@@ -184,19 +172,7 @@
             now: $t('general:label.now'),
             today: $t('general:label.today'),
           }"
-        >
-          <b-button
-            data-test-id="button-reset-value"
-            class="text-primary border-0"
-            variant="outline-light"
-            :title="$t('tooltip.reset-value')"
-            @click="resetDateTime('expiresAtDate')"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'sync']"
-            />
-          </b-button>
-        </c-input-date-time>
+        />
       </b-form-group>
 
       <b-form-group
@@ -668,10 +644,6 @@ export default {
       }
 
       this.resource.scope = items.join(' ')
-    },
-
-    resetDateTime (date) {
-      this[date] = undefined
     },
   },
 }
