@@ -62,6 +62,7 @@ func (d mysqlDialect) JsonExtract(jsonDoc exp.Expression, pp ...any) (path exp.E
 	if path, err = jsonPathExpr(pp...); err != nil {
 		return
 	} else {
+		path = exp.NewCastExpression(path, "CHAR")
 		return exp.NewSQLFunctionExpression("JSON_EXTRACT", jsonDoc, path), nil
 	}
 }
@@ -239,6 +240,11 @@ func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr e
 
 	case "nin":
 		return drivers.OpHandlerNotIn(d, n, args...)
+
+	case "like":
+		for a := range args {
+			args[a] = exp.NewLiteralExpression("LOWER(?)", args[a])
+		}
 	}
 
 	return ref2exp.RefHandler(n, args...)
