@@ -37,14 +37,15 @@
             :field="getField(field)"
             :errors="fieldErrors(field)"
             :record="record"
-          />
-
-          <c-input-confirm
-            class="position-absolute"
-            :tooltip="$t('recordList.bulkRecord.field.remove')"
-            style="top: -2px; right: -4.5px; z-index: 2;"
-            @confirmed="fields.splice(index, 1)"
-          />
+          >
+            <template #tools>
+              <c-input-confirm
+                class="ml-2"
+                :tooltip="$t('recordList.bulkRecord.field.remove')"
+                @confirmed="fields.splice(index, 1)"
+              />
+            </template>
+          </field-editor>
         </div>
       </b-card>
 

@@ -34,6 +34,7 @@ export default {
       return createElement(cmp, {
         props: this.$props,
         on: this.$listeners,
+        scopedSlots: this.$scopedSlots,
       })
     } else {
       return createElement('code', this.$t('field.unknownFieldKind', { kind: this.field.kind }))

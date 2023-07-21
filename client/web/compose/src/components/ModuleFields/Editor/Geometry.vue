@@ -25,6 +25,8 @@
           :id="field.fieldID"
           :text="hint"
         />
+
+        <slot name="tools" />
       </div>
       <div
         class="small text-muted"
