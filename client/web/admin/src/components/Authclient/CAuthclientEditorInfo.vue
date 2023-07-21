@@ -149,6 +149,7 @@
       >
         <c-input-date-time
           v-model="resource.validFrom"
+          data-test-id="input-valid-from"
           :labels="{
             clear: $t('general:label.clear'),
             none: $t('general:label.none'),
@@ -166,6 +167,7 @@
       >
         <c-input-date-time
           v-model="resource.expiresAt"
+          data-test-id="input-expires-at"
           :labels="{
             clear: $t('general:label.clear'),
             none: $t('general:label.none'),

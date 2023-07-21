@@ -3,6 +3,7 @@
     <b-form-datepicker
       v-if="!noDate"
       v-model="date"
+      data-test-id="picker-date"
       :placeholder="labels.none"
       :date-format-options="{ year: 'numeric', month: 'numeric', day: 'numeric' }"
       :min="minDate"
@@ -22,6 +23,7 @@
     <b-form-timepicker
       v-if="!noTime"
       v-model="time"
+      data-test-id="picker-time"
       :placeholder="labels.none"
       :label-reset-button="labels.clear"
       :label-now-button="labels.now"
