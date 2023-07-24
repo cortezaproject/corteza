@@ -241,7 +241,7 @@ func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr e
 	case "nin":
 		return drivers.OpHandlerNotIn(d, n, args...)
 
-	case "like":
+	case "like", "nlike":
 		for a := range args {
 			args[a] = exp.NewLiteralExpression("LOWER(?)", args[a])
 		}
