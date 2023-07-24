@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap flex-sm-nowrap align-items-center sticky-top pr-3">
+  <div class="header-navigation d-flex flex-wrap align-items-center sticky-top pr-3">
     <div
       class="spacer"
       :class="{
@@ -7,42 +7,39 @@
       }"
     />
 
-    <h2
-      class="title py-2 py-sm-0 mr-0 mr-sm-2 d-sm-inline-block text-truncate order-2 order-sm-0 mb-0"
-    >
+    <h2 class="title py-1 mb-0">
       <slot name="title" />
     </h2>
 
-    <div class="tools-wrapper ml-auto text-sm-nowrap order-3 order-sm-0 pt-2 pb-3 py-sm-0">
+    <div class="tools-wrapper py-1 ml-auto">
       <slot name="tools" />
     </div>
 
-    <div class="d-flex align-items-center order-1 order-sm-0 ml-auto ml-sm-0">
+    <div class="d-flex align-items-center ml-auto">
       <b-button
-      v-if="!hideAppSelector && !settings.hideAppSelector"
-      variant="outline-light"
-      :href="appSelectorURL"
-      size="lg"
-      class="d-flex align-items-center justify-content-center text-dark border-0 nav-icon rounded-circle text-sm-nowrap"
-    >
-      <font-awesome-icon
-        class="m-0 h5"
-        :icon="['fas', 'grip-horizontal']"
-      />
-    </b-button>
-    </div>
+        v-if="!hideAppSelector && !settings.hideAppSelector"
+        variant="outline-light"
+        :href="appSelectorURL"
+        title="Apps"
+        size="lg"
+        class="d-flex align-items-center justify-content-center text-dark border-0 nav-icon rounded-circle text-sm-nowrap"
+      >
+        <font-awesome-icon
+          class="m-0 h5"
+          :icon="['fas', 'grip-horizontal']"
+        />
+      </b-button>
 
-    <div class="d-flex align-items-center order-1 order-sm-0">
       <b-dropdown
         v-if="!settings.hideHelp"
         data-test-id="dropdown-helper"
         size="lg"
         variant="outline-light"
-        class="nav-icon mx-1 text-sm-nowrap"
         toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
         menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
         right
         no-caret
+        class="nav-icon mx-1 text-sm-nowrap"
       >
         <template #button-content>
           <div
@@ -104,9 +101,7 @@
           {{ frontendVersion }}
         </b-dropdown-item>
       </b-dropdown>
-    </div>
 
-    <div class="d-flex align-items-center order-1 order-sm-0 flex-grow-sm-0">
       <b-dropdown
         v-if="!settings.hideProfile"
         data-test-id="dropdown-profile"
@@ -290,21 +285,16 @@ $nav-user-icon-size: 50px;
 
 .header-navigation {
   width: 100vw;
-  height: $header-height;
+  min-height: $header-height;
   background-color: #F9FAFB !important;
   padding-left: calc(3.5rem + 6px);
-}
-
-.header-navigation .title > * {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .topbar-dropdown-menu {
   max-height: 80vh;
   overflow-y: auto;
 }
+
 
 .avatar {
   border-radius: 50%;
@@ -336,33 +326,28 @@ $nav-user-icon-size: 50px;
   }
 }
 
-@media (max-width:576px) {
-  .header-navigation {
-    height: auto;
-    padding-left: 1.5rem;
-    .title {
-      flex-basis: 100%;
-    }
-  }
-  .tools-wrapper {
-    flex-grow: 1;
-    .vue-portal-target {
-      display: flex;
-      justify-content: end;
-    }
+.title {
+  display: flex;
+  align-items: center;
+  min-height: $header-height;
 
-    ~ div {
-      height: 64px;
-    }
+  .vue-portal-target {
+    display: -webkit-box; /* For Safari and old versions of Chrome */
+    display: -ms-flexbox; /* For old versions of IE */
+    -webkit-box-orient: vertical; /* For Safari and old versions of Chrome */
+    -webkit-line-clamp: 3; /* Maximum number of lines to display */
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
-</style>
 
-<style lang="scss">
-.topbar-tools {
+.tools-wrapper {
+  flex-grow: 1;
+
   .vue-portal-target {
     display: flex;
-    align-items: center;
+    justify-content: end;
+    flex-wrap: wrap;
   }
 }
 </style>
