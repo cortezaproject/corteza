@@ -31,7 +31,7 @@
                 v-if="block.options.showRefresh"
                 :title="$t('general.label.refresh')"
                 variant="outline-light"
-                class="d-flex align-items-center text-primary d-print-none border-0"
+                class="d-flex align-items-center text-secondary d-print-none border-0"
                 @click="$emit('refreshBlock')"
               >
                 <font-awesome-icon :icon="['fa', 'sync']" />
@@ -41,7 +41,7 @@
                 v-if="block.options.magnifyOption"
                 :title="isBlockMagnified ? '' : $t('general.label.magnify')"
                 variant="outline-light"
-                class="d-flex align-items-center text-primary d-print-none border-0"
+                class="d-flex align-items-center text-secondary d-print-none border-0"
                 @click="$root.$emit('magnify-page-block', isBlockMagnified ? undefined : magnifyParams)"
               >
                 <font-awesome-icon :icon="['fas', isBlockMagnified ? 'times' : 'search-plus']" />

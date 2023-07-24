@@ -19,7 +19,7 @@
         :options="layouts"
         value-field="pageLayoutID"
         text-field="label"
-        style="width: 300px;"
+        style="max-width: 300px;"
         @change="setLayout"
       />
 
