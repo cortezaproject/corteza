@@ -113,8 +113,13 @@ page:
       failed: Failed to delete layout
 record:
   createFailed: Could not create record
+  createSuccess: Record created
+  updateFailed: Could not update record
+  updateSuccess: Record updated
   deleteFailed: Could not delete record
+  deleteSuccess: Record deleted
   restoreFailed: Could not restore record
+  restoreSuccess: Record restored
   deleteBulkFailed: Could not delete selected records
   deleteBulkRecordUpdateFailed: Could not update selected records
   deleteBulkSuccess: Successfully deleted selected records
@@ -131,7 +136,6 @@ record:
   moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   unexpectedInput: Unexpected input for values property, should be an array with name-value object pairs
   unexpectedValue: Unexpected value for record module ({{type}})
-  updateFailed: Could not update record
   validationErrors: check error messages on the form
   validationWarnings: Record saved successfully, check warning messages on the form
   staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?

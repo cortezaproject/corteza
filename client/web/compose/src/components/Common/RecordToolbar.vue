@@ -63,7 +63,7 @@
       </b-col>
 
       <b-col
-        class="d-flex align-items-center justify-content-end"
+        class="d-flex align-items-center justify-content-end text-nowrap"
       >
         <template
           v-if="module"
@@ -75,6 +75,8 @@
             size-confirm="lg"
             variant="danger"
             :borderless="false"
+            button-class="d-flex align-items-center justify-content-center w-100 h-100"
+            style="min-height: 42px; min-width: 85px;"
             @confirmed="$emit('delete')"
           >
             <b-spinner
@@ -96,6 +98,8 @@
             variant="warning"
             variant-ok="warning"
             :borderless="false"
+            button-class="d-flex align-items-center justify-content-center w-100 h-100"
+            style="min-height: 42px; min-width: 95px;"
             @confirmed="$emit('undelete')"
           >
             <b-spinner
@@ -110,7 +114,7 @@
           </c-input-confirm>
 
           <b-button
-            v-if="!inEditing && isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
+            v-if="isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
             data-test-id="button-clone"
             variant="light"
             size="lg"
@@ -134,6 +138,18 @@
           </b-button>
 
           <b-button
+            v-else-if="inEditing && isCreated && !(hideEdit || settings.hideEdit)"
+            data-test-id="button-edit"
+            :disabled="!record.canUpdateRecord || processing"
+            variant="light"
+            size="lg"
+            class="ml-2"
+            @click.prevent="$emit('view')"
+          >
+            {{ labels.edit || $t('label.view') }}
+          </b-button>
+
+          <b-button
             v-if="!inEditing && module.canCreateRecord && !(hideNew || settings.hideNew)"
             data-test-id="button-add-new"
             variant="primary"
@@ -152,6 +168,7 @@
             class="d-flex align-items-center justify-content-center ml-2"
             variant="primary"
             size="lg"
+            style="min-height: 42px; min-width: 73px;"
             @click.prevent="$emit('submit')"
           >
             <b-spinner
@@ -314,9 +331,7 @@ export default {
     },
 
     backLabel () {
-      if (this.inEditing) {
-        return this.$t('label.cancel')
-      } else if (this.showRecordModal) {
+      if (this.showRecordModal) {
         return this.$t('label.close')
       }
 

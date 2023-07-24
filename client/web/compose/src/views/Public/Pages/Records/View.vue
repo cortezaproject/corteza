@@ -60,6 +60,7 @@
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
+        @view="handleView()"
         @delete="handleDelete()"
         @undelete="handleUndelete()"
         @back="handleBack()"
@@ -273,7 +274,7 @@ export default {
 
   mounted () {
     this.$root.$on('refetch-record-blocks', () => {
-      // Don*t refresh when creating and prompt user before refreshing when editing
+      // Don't refresh when creating and prompt user before refreshing when editing
       if (this.inCreating || (this.inEditing && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
         return
       }
@@ -300,9 +301,7 @@ export default {
       clearRecordSet: 'record/clearSet',
     }),
 
-    async loadRecord () {
-      this.record = undefined
-
+    async loadRecord (recordID = this.recordID) {
       if (!this.page) {
         return
       }
@@ -312,12 +311,15 @@ export default {
       if (moduleID !== NoID) {
         const module = Object.freeze(this.getModuleByID(moduleID).clone())
 
-        if (this.recordID && this.recordID !== NoID) {
-          return this.$ComposeAPI.recordRead({ namespaceID, moduleID, recordID: this.recordID })
+        if (recordID && recordID !== NoID) {
+          return this.$ComposeAPI.recordRead({ namespaceID, moduleID, recordID })
             .then(record => {
               this.record = new compose.Record(module, record)
             })
-            .catch(this.toastErrorHandler(this.$t('notification:record.loadFailed')))
+            .catch(e => {
+              this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
+              this.handleBack()
+            })
         } else {
           this.record = new compose.Record(module, {})
         }
@@ -327,7 +329,7 @@ export default {
     async handleBack () {
       /**
        * Not the best way since we can not always know where we
-       * came from (and "were" is back).
+       * came from (and "where" is back).
        */
       if (this.showRecordModal) {
         if (!this.inEditing || this.inCreating) {
@@ -347,32 +349,31 @@ export default {
     },
 
     handleAdd () {
-      if (this.showRecordModal) {
-        this.inEditing = true
-        this.inCreating = true
-        this.record = new compose.Record(this.module, { values: this.values })
-      } else {
+      this.inEditing = true
+      this.inCreating = true
+      this.record = new compose.Record(this.module, { values: this.values })
+      if (!this.showRecordModal) {
         this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
       }
     },
 
     handleClone () {
-      if (this.showRecordModal) {
-        this.inEditing = true
-        this.inCreating = true
-        this.record = new compose.Record(this.module, { values: this.record.values })
-      } else {
+      this.inEditing = true
+      this.inCreating = true
+      this.record = new compose.Record(this.module, { values: this.record.values })
+      if (!this.showRecordModal) {
         this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
       }
     },
 
     handleEdit () {
-      if (this.showRecordModal) {
-        this.inCreating = false
-        this.inEditing = true
-      } else {
-        this.$router.push({ name: 'page.record.edit', params: this.$route.params })
-      }
+      this.inEditing = true
+      this.inCreating = false
+    },
+
+    handleView () {
+      this.inEditing = false
+      this.inCreating = false
     },
 
     handleRedirectToPrevOrNext (recordID) {
@@ -434,7 +435,7 @@ export default {
       }
 
       // Check layouts for expressions/roles and find the first one that fits
-      this.layout = this.layouts.find(l => {
+      const matchedLayout = this.layouts.find(l => {
         if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return
 
         const { expression, roles = [] } = l.config.visibility
@@ -446,10 +447,16 @@ export default {
         return this.$auth.user.roles.some(roleID => roles.includes(roleID))
       })
 
-      if (!this.layout) {
+      if (!matchedLayout) {
         this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
         return this.$router.go(-1)
       }
+
+      if (this.layout && matchedLayout.pageLayoutID === this.layout.pageLayoutID) {
+        return
+      }
+
+      this.layout = matchedLayout
 
       const { config = {} } = this.layout
       const { buttons = [] } = config

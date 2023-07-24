@@ -150,18 +150,12 @@ export default {
         .then(() => {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
-          } else if (this.showRecordModal) {
-            this.inEditing = false
-            this.inCreating = false
           } else {
-            this.$router.push({ name: route, params: { ...this.$route.params, recordID: this.record.recordID } })
+            this.inCreating = false
           }
+          this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
         })
-        .catch(this.toastErrorHandler(this.$t(
-          isNew
-            ? 'notification:record.createFailed'
-            : 'notification:record.updateFailed',
-        )))
+        .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
         .finally(() => {
           this.processingSubmit = false
           this.processing = false
@@ -231,13 +225,14 @@ export default {
 
       return this
         .dispatchUiEvent('beforeDelete')
-        .then(() => this.$ComposeAPI.recordDelete(this.record))
+        .then(this.$ComposeAPI.recordDelete(this.record))
         .then(() => {
           this.record.deletedAt = (new Date()).toISOString()
         })
-        .then(() => this.dispatchUiEvent('afterDelete'))
-        .then(() => this.updatePrompts())
+        .then(this.dispatchUiEvent('afterDelete'))
+        .then(this.updatePrompts())
         .then(this.loadRecord)
+        .then(this.toastSuccess(this.$t('notification:record.deleteSuccess')))
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteFailed')))
         .finally(() => {
           this.processingDelete = false
@@ -251,10 +246,11 @@ export default {
 
       return this
         .dispatchUiEvent('beforeUndelete')
-        .then(() => this.$ComposeAPI.recordUndelete(this.record))
-        .then(() => this.dispatchUiEvent('afterUndelete'))
-        .then(() => this.updatePrompts())
+        .then(this.$ComposeAPI.recordUndelete(this.record))
+        .then(this.dispatchUiEvent('afterUndelete'))
+        .then(this.updatePrompts())
         .then(this.loadRecord)
+        .then(this.toastSuccess(this.$t('notification:record.restoreSuccess')))
         .catch(this.toastErrorHandler(this.$t('notification:record.restoreFailed')))
         .finally(() => {
           this.processingUndelete = false
