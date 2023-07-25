@@ -39,13 +39,12 @@ export class PageBlockNavigation extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
+    Apply(this.options, o, String, 'magnifyOption')
+
     this.options.navigationItems = (o.navigationItems || []).map(f => new NavigationItem(f))
 
-    if (o.display) {
-      this.options.display = o.display
-    }
+    this.options.display = { ...this.options.display, ...o.display }
 
-    Apply(this.options, o, String, 'magnifyOption')
   }
 
   static makeNavigationItem (item?: NavigationItemInput): NavigationItem {

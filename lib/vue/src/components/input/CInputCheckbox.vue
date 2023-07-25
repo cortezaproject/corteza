@@ -38,7 +38,6 @@ export default {
 
     labels: {
       type: Object,
-      required: true,
       default: () => ({}),
     },
 

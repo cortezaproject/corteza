@@ -90,6 +90,7 @@
                 </b-link>
 
                 <hr
+                  v-if="getSubPages(navItem.options.item.pageID).length > 0"
                   class="my-1"
                 >
 
@@ -140,8 +141,8 @@ export default {
       return (navItem.type === 'compose' && navItem.options.item.displaySubPages)
     },
 
-    getSubPages (selfID) {
-      return this.pages.filter(value => value.selfID === selfID && value.moduleID === NoID) || []
+    getSubPages (pageID) {
+      return this.pages.filter(value => value.selfID === pageID && value.moduleID === NoID) || []
     },
 
     selectTargetOption (target) {

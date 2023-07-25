@@ -73,7 +73,7 @@
 
       <div class="mb-3 mt-2">
         <div class="d-flex align-items-center mb-4">
-          <h5 class="text-primary mb-0">
+          <h5 class="mb-0">
             {{ $t("navigation.navigationItems") }}
           </h5>
         </div>
@@ -149,11 +149,11 @@
                         class="w-100"
                       />
                     </td>
-                    <td class="align-middle text-center">
-                      <b-form-checkbox
+                    <td class="d-flex align-items-center justify-content-center">
+                      <c-input-checkbox
                         v-model="item.options.enabled"
                         switch
-                        class="mb-0"
+                        :labels="{}"
                       />
                     </td>
                     <td class="align-middle">
@@ -277,8 +277,11 @@ export default {
           options: {
             backgroundColor: '#FFFFFF00',
             item: {
+              label: '',
+              url: '',
               align: 'bottom',
               target: 'sameTab',
+              displaySubPages: false,
               dropdown: {
                 label: '',
                 items: [],

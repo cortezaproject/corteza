@@ -50,10 +50,7 @@
             <th style="min-width: 200px;">
               {{ $t("navigation.url") }}
             </th>
-            <th
-              class="text-center"
-              style="min-width: 200px;"
-            >
+            <th style="min-width: 200px;">
               {{ $t('navigation.openIn') }}
             </th>
             <th
@@ -96,8 +93,8 @@
             </td>
 
             <td class="align-middle text-center">
-              <b-form-group class="mb-0">
-                <b-form-checkbox
+              <b-form-group class="d-flex align-items-center justify-content-center mb-0">
+                <c-input-checkbox
                   v-model="item.delimiter"
                   switch
                   size="sm"
@@ -118,7 +115,7 @@
         <b-button
           variant="primary"
           class="text-decoration-none"
-          @click="options.item.dropdown.items.push({ text: '', url: '', target: 'sameTab' })"
+          @click="options.item.dropdown.items.push({ text: '', url: '', target: 'sameTab', delimiter: false })"
         >
           <font-awesome-icon
             :icon="['fas', 'plus']"
