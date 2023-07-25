@@ -2,7 +2,6 @@ package types
 
 import (
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -55,7 +54,7 @@ func NewSinkRequest(r *http.Request, body io.Reader) (sr *SinkRequest, err error
 			sr.PostForm = r.PostForm
 		}
 
-		if sr.Body, err = ioutil.ReadAll(body); err != nil {
+		if sr.Body, err = io.ReadAll(body); err != nil {
 			return nil, err
 		}
 	}

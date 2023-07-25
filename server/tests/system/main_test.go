@@ -5,7 +5,6 @@ import (
 	"embed"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"testing"
@@ -223,7 +222,7 @@ func loadScenarioRequest(t *testing.T, req string) string {
 	require.NoError(t, err)
 	defer f.Close()
 
-	bb, err := ioutil.ReadAll(f)
+	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 
 	return string(bb)

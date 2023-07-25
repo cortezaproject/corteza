@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/mail"
@@ -41,7 +40,7 @@ func (h emailHandler) send(_ context.Context, args *emailSendArgs) (err error) {
 
 	_, s, r := args.GetSubject()
 	if r != nil {
-		aux, _ := ioutil.ReadAll(r)
+		aux, _ := io.ReadAll(r)
 		s = string(aux)
 	}
 
@@ -58,7 +57,7 @@ func (h emailHandler) message(_ context.Context, args *emailMessageArgs) (*email
 
 	_, s, r := args.GetSubject()
 	if r != nil {
-		aux, _ := ioutil.ReadAll(r)
+		aux, _ := io.ReadAll(r)
 		s = string(aux)
 	}
 
@@ -165,7 +164,7 @@ func (h emailHandler) procArgs(msg *gomail.Message, subject string, args message
 
 	if has, s, r := args.GetPlain(); has {
 		if r != nil {
-			aux, _ := ioutil.ReadAll(r)
+			aux, _ := io.ReadAll(r)
 			s = string(aux)
 		}
 
@@ -175,7 +174,7 @@ func (h emailHandler) procArgs(msg *gomail.Message, subject string, args message
 
 	if has, s, r := args.GetHtml(); has {
 		if r != nil {
-			aux, _ := ioutil.ReadAll(r)
+			aux, _ := io.ReadAll(r)
 			s = string(aux)
 		}
 

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 
@@ -138,7 +138,7 @@ func AssertError(expectedError string) assertFn {
 // AssertBody compares the raw body to the provided string
 func AssertBody(expected string) assertFn {
 	return func(rsp *http.Response, _ *http.Request) (err error) {
-		bb, err := ioutil.ReadAll(rsp.Body)
+		bb, err := io.ReadAll(rsp.Body)
 		if err != nil {
 			return err
 		}

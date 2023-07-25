@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -185,7 +184,7 @@ func CastToQueueMessage(val interface{}) (out *types.QueueMessage, err error) {
 }
 
 func (doc renderedDocument) String() string {
-	aux, _ := ioutil.ReadAll(doc.Document)
+	aux, _ := io.ReadAll(doc.Document)
 	return string(aux)
 }
 

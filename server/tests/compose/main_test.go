@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -338,7 +338,7 @@ func namespaceExport(t *testing.T, h helper, namespaceID uint64) ([]byte, error)
 
 	defer out.Response.Body.Close()
 
-	bb, err := ioutil.ReadAll(out.Response.Body)
+	bb, err := io.ReadAll(out.Response.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +364,7 @@ func namespaceImportInitPath(t *testing.T, h helper, pp ...string) (uint64, erro
 	}
 
 	defer f.Close()
-	bb, err := ioutil.ReadAll(f)
+	bb, err := io.ReadAll(f)
 	if err != nil {
 		return 0, err
 	}
@@ -399,7 +399,7 @@ func namespaceImportInit(t *testing.T, h helper, arch []byte) (uint64, error) {
 		End()
 
 	defer out.Response.Body.Close()
-	bb, err := ioutil.ReadAll(out.Response.Body)
+	bb, err := io.ReadAll(out.Response.Body)
 	h.a.NoError(err)
 
 	var aux struct {

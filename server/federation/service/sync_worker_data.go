@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/federation/types"
@@ -214,7 +214,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			payloads <- spayload
 		case p := <-payloads:
 			meta := p.Meta.(*dataProcesser)
-			body, err := ioutil.ReadAll(p.Payload)
+			body, err := io.ReadAll(p.Payload)
 
 			// handle error
 			if err != nil {

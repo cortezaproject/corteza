@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -380,7 +379,7 @@ func CastToBoolean(val interface{}) (out bool, err error) {
 func CastToString(val interface{}) (out string, err error) {
 	switch v := val.(type) {
 	case io.Reader:
-		bb, err := ioutil.ReadAll(v)
+		bb, err := io.ReadAll(v)
 		if err != nil {
 			return "", err
 		}

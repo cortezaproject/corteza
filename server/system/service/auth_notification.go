@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	htpl "html/template"
-	"io/ioutil"
+	"io"
 	"net/url"
 
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -120,13 +120,13 @@ func (svc authNotification) send(ctx context.Context, name, sendTo string, paylo
 		return err
 	}
 
-	tmp, err = ioutil.ReadAll(subject)
+	tmp, err = io.ReadAll(subject)
 	if err != nil {
 		return err
 	}
 	ntf.SetAddressHeader("To", sendTo, "")
 	ntf.SetHeader("Subject", string(tmp))
-	tmp, err = ioutil.ReadAll(content)
+	tmp, err = io.ReadAll(content)
 	if err != nil {
 		return err
 	}

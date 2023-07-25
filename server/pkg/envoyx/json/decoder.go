@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -50,7 +49,7 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 		ident: ident,
 	}
 
-	out.src, err = ioutil.TempFile(os.TempDir(), "*.ndjson")
+	out.src, err = os.CreateTemp(os.TempDir(), "*.ndjson")
 	if err != nil {
 		return
 	}

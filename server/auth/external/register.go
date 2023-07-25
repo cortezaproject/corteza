@@ -3,7 +3,7 @@ package external
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -240,7 +240,7 @@ func validateExternalRedirectURL(opt options.AuthOpt) error {
 	}
 
 	defer rsp.Body.Close()
-	body, err := ioutil.ReadAll(rsp.Body)
+	body, err := io.ReadAll(rsp.Body)
 	if err != nil {
 		return fmt.Errorf("could not read response body: %w", err)
 	}

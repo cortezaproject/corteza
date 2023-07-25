@@ -10,7 +10,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 	gomail "gopkg.in/mail.v2"
 	htpl "html/template"
-	"io/ioutil"
+	"io"
 	"strings"
 )
 
@@ -173,12 +173,12 @@ func (svc smtpConfigurationChecker) procEmailTemplate(ctx context.Context, stId 
 		return nil, nil, err
 	}
 
-	subjectTmp, err = ioutil.ReadAll(subject)
+	subjectTmp, err = io.ReadAll(subject)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	contentTmp, err = ioutil.ReadAll(content)
+	contentTmp, err = io.ReadAll(content)
 	if err != nil {
 		return nil, nil, err
 	}

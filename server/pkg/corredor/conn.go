@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/cortezaproject/corteza/server/pkg/options"
@@ -61,7 +60,7 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 
 		// Create a certificate pool from the certificate authority
 		certPool := x509.NewCertPool()
-		ca, err := ioutil.ReadFile(opt.TlsCertCA)
+		ca, err := os.ReadFile(opt.TlsCertCA)
 		if err != nil {
 			return nil, fmt.Errorf("could not read ca certificate: %s"+expl, err)
 		}

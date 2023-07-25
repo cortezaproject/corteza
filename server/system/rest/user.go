@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -447,7 +446,7 @@ func (ctrl *User) Export(ctx context.Context, r *request.UserExport) (rsp interf
 			return
 		}
 
-		bb, err = ioutil.ReadAll(s.Source)
+		bb, err = io.ReadAll(s.Source)
 		if err != nil {
 			return
 		}

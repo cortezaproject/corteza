@@ -3,7 +3,7 @@ package automation
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -16,7 +16,7 @@ func TestHttpRequestMaker(t *testing.T) {
 	validateBody := func(r *require.Assertions, req *http.Request, expected string) {
 		reader, err := req.GetBody()
 		r.NoError(err)
-		body, err := ioutil.ReadAll(reader)
+		body, err := io.ReadAll(reader)
 		r.NoError(err)
 
 		r.Equal(expected, string(body))

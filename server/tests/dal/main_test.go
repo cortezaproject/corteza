@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"path"
 	"testing"
@@ -323,7 +323,7 @@ func loadRequestFrom(t *testing.T, suite, name string) string {
 	require.NoError(t, err)
 	defer f.Close()
 
-	bb, err := ioutil.ReadAll(f)
+	bb, err := io.ReadAll(f)
 	require.NoError(t, err)
 
 	return string(bb)
@@ -444,7 +444,7 @@ func loadScenarioSource(t wrapTest, scenarioName, srcName string) (src string) {
 	require.NoError(t, err)
 	defer f.Close()
 
-	out, err := ioutil.ReadAll(bufio.NewReader(f))
+	out, err := io.ReadAll(bufio.NewReader(f))
 	require.NoError(t, err)
 
 	return string(out)

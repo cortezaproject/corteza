@@ -14,7 +14,7 @@ import (
 	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
-	"io/ioutil"
+	"os"
 	"strings"
 )
 
@@ -131,7 +131,7 @@ func prepareSignatureFnParams(opt options.AuthOpt) (alg jwa.SignatureAlgorithm, 
 				keyFile = opt.JwtKey
 				b       []byte
 			)
-			if b, err = ioutil.ReadFile(keyFile); err != nil {
+			if b, err = os.ReadFile(keyFile); err != nil {
 				return alg, nil, fmt.Errorf("could not read key file: %w", err)
 			}
 
