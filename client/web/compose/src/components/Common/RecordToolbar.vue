@@ -70,7 +70,7 @@
         >
           <c-input-confirm
             v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
-            :disabled="!canDeleteRecord"
+            :disabled="!record || !canDeleteRecord"
             size="lg"
             size-confirm="lg"
             variant="danger"
@@ -91,8 +91,8 @@
           </c-input-confirm>
 
           <c-input-confirm
-            v-if="isDeleted"
-            :disabled="!canUndeleteRecord"
+            v-if="isDeleted && !(hideDelete || settings.hideDelete)"
+            :disabled="!record || !canUndeleteRecord"
             size="lg"
             size-confirm="lg"
             variant="warning"
@@ -128,7 +128,7 @@
           <b-button
             v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
             data-test-id="button-edit"
-            :disabled="!record.canUpdateRecord || processing"
+            :disabled="!record || !record.canUpdateRecord || processing"
             variant="light"
             size="lg"
             class="ml-2"
@@ -139,8 +139,8 @@
 
           <b-button
             v-else-if="inEditing && isCreated && !(hideEdit || settings.hideEdit)"
-            data-test-id="button-edit"
-            :disabled="!record.canUpdateRecord || processing"
+            data-test-id="button-view"
+            :disabled="!record || !record.canUpdateRecord || processing"
             variant="light"
             size="lg"
             class="ml-2"
@@ -154,7 +154,7 @@
             data-test-id="button-add-new"
             variant="primary"
             size="lg"
-            :disabled="processing"
+            :disabled="!record || processing"
             class="ml-2"
             @click.prevent="$emit('add')"
           >
@@ -164,7 +164,7 @@
           <b-button
             v-if="inEditing && !(hideSubmit || settings.hideSubmit)"
             data-test-id="button-submit"
-            :disabled="!canSaveRecord || processing"
+            :disabled="!record || !canSaveRecord || processing"
             class="d-flex align-items-center justify-content-center ml-2"
             variant="primary"
             size="lg"
@@ -293,7 +293,8 @@ export default {
 
   computed: {
     isCreated () {
-      return this.record && this.record.recordID !== NoID
+      // The !this.record is intentional, to keep the button visible even when loading a record
+      return !this.record || this.record.recordID !== NoID
     },
 
     isDeleted () {
