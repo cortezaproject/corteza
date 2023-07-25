@@ -40,7 +40,7 @@ export default function (ComposeAPI) {
         const prev = recordIndex >= 0 ? recordPaginationIDs[recordIndex - 1] : undefined
         const next = recordIndex >= 0 ? recordPaginationIDs[recordIndex + 1] : undefined
 
-        return { next, prev }
+        return { prev, next }
       },
     },
 
@@ -49,15 +49,17 @@ export default function (ComposeAPI) {
         commit(types.pending)
         commit(types.recordPaginationUsable, true)
 
-        const { pageCursor, prevPage } = filter
+        const { prevPage, pageCursor, nextPage } = filter
 
-        return Promise.all([prevPage, pageCursor].map(pageCursor => {
+        const cursors = new Set([prevPage, pageCursor, nextPage])
+
+        return Promise.all([...cursors].map(pageCursor => {
           return ComposeAPI.recordList({ ...filter, pageCursor })
             .then(({ set }) => {
               return set.map(({ recordID }) => recordID)
             })
-        })).then(([prevRecords, nextRecords]) => {
-          commit(types.setRecordPagination, [...new Set([...prevRecords, ...nextRecords])])
+        })).then(([...records]) => {
+          commit(types.setRecordPagination, [...new Set(records.flatMap(r => r))])
         }).finally(() => {
           commit(types.completed)
         })

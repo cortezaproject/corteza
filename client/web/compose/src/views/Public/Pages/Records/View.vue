@@ -173,6 +173,11 @@ export default {
       layout: undefined,
       layoutButtons: new Set(),
       blocks: undefined,
+
+      recordNavigation: {
+        prev: undefined,
+        next: undefined,
+      },
     }
   },
 
@@ -244,7 +249,7 @@ export default {
       return this.$t(`page:public.record.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })
     },
 
-    recordNavigation () {
+    currentRecordNavigation () {
       const { recordID } = this.record || {}
       return this.getNextAndPrevRecord(recordID)
     },
@@ -268,6 +273,23 @@ export default {
 
         this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
+      },
+    },
+
+    currentRecordNavigation: {
+      handler (rn, oldRn) {
+        // To prevent hiding and then showing the record navigation
+        // We use the old value if its valid and the current one isn't
+        if (rn.prev || rn.next) {
+          this.recordNavigation = rn
+        } else if (this.recordID !== NoID && (oldRn.prev || oldRn.next)) {
+          this.recordNavigation = oldRn
+        } else {
+          this.recordNavigation = {
+            prev: undefined,
+            next: undefined
+          }
+        }
       },
     },
   },
@@ -352,7 +374,10 @@ export default {
       this.inEditing = true
       this.inCreating = true
       this.record = new compose.Record(this.module, { values: this.values })
-      if (!this.showRecordModal) {
+
+      if (this.showRecordModal) {
+        this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
+      } else {
         this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
       }
     },
@@ -361,7 +386,10 @@ export default {
       this.inEditing = true
       this.inCreating = true
       this.record = new compose.Record(this.module, { values: this.record.values })
-      if (!this.showRecordModal) {
+
+      if (this.showRecordModal) {
+        this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
+      } else {
         this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
       }
     },

@@ -1401,7 +1401,7 @@ export default {
         this.loadPaginationRecords({
           filter: {
             ...this.filter,
-            limit: Math.min(this.pagination.count, 100),
+            limit: Math.min(this.filter.limit, 100),
           },
         })
       }
