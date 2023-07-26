@@ -287,7 +287,7 @@ export default {
         } else {
           this.recordNavigation = {
             prev: undefined,
-            next: undefined
+            next: undefined,
           }
         }
       },
@@ -353,45 +353,37 @@ export default {
        * Not the best way since we can not always know where we
        * came from (and "where" is back).
        */
-      if (this.showRecordModal) {
-        if (!this.inEditing || this.inCreating) {
-          this.$bvModal.hide('record-modal')
-        }
-        this.inEditing = false
-        this.inCreating = false
-      } else {
-        const previousPage = await this.popPreviousPages()
-        const extraPop = !this.inCreating
-        this.$router.push(previousPage || { name: 'pages', params: { slug: this.namespace.slug || this.namespace.namespaceID } })
-        // Pop an additional time so that the route we went back to isn't added to previousPages
-        if (extraPop) {
-          this.popPreviousPages()
-        }
+      const previousPage = await this.popPreviousPages()
+      const extraPop = !this.inCreating
+      this.$router.push(previousPage || { name: 'pages', params: { slug: this.namespace.slug || this.namespace.namespaceID } })
+      // Pop an additional time so that the route we went back to isn't added to previousPages
+      if (extraPop) {
+        this.popPreviousPages()
       }
     },
 
     handleAdd () {
+      if (!this.showRecordModal) {
+        this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
+        return
+      }
+
       this.inEditing = true
       this.inCreating = true
       this.record = new compose.Record(this.module, { values: this.values })
-
-      if (this.showRecordModal) {
-        this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
-      } else {
-        this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
-      }
+      this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
     },
 
     handleClone () {
+      if (!this.showRecordModal) {
+        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
+        return
+      }
+
       this.inEditing = true
       this.inCreating = true
       this.record = new compose.Record(this.module, { values: this.record.values })
-
-      if (this.showRecordModal) {
-        this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
-      } else {
-        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
-      }
+      this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
     },
 
     handleEdit () {

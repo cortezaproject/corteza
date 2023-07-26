@@ -88,6 +88,7 @@
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
+        @view="handleView()"
         @delete="handleDelete()"
         @undelete="handleUndelete()"
         @back="handleBack()"
@@ -258,7 +259,13 @@ export default {
     },
 
     handleEdit () {
-      this.$router.push({ name: 'admin.modules.record.edit', params: this.$route.params })
+      this.inEditing = true
+      this.inCreating = false
+    },
+
+    handleView () {
+      this.inEditing = false
+      this.inCreating = false
     },
 
     handleRedirectToPrevOrNext (recordID) {
