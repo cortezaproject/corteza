@@ -24,7 +24,7 @@
         :class="{ 'field-container mb-3 px-3': canDisplay(field) }"
       >
         <template #label>
-          <label
+          <div
             class="d-flex align-items-center text-primary mb-0"
           >
             <span class="d-inline-block mw-100 py-1">
@@ -53,7 +53,7 @@
                 />
               </b-button>
             </div>
-          </label>
+          </div>
 
           <div
             class="small text-muted"
