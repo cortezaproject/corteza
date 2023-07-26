@@ -23,7 +23,7 @@
           :reduce="f => f.pageID"
           option-value="pageID"
           option-text="title"
-          class="nav-page-selector bg-white"
+          class="bg-white"
           @input="updateLabelValue"
         />
       </b-form-group>
@@ -121,49 +121,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
-.nav-page-selector {
-  position: relative;
-
-  &:not(.vs--open) .vs__selected + .vs__search {
-    // force this to not use any space
-    // we still need it to be rendered for the focus
-    width: 0;
-    padding: 0;
-    margin: 0;
-    border: none;
-    height: 0;
-  }
-
-  .vs__selected-options {
-    // do not allow growing
-    width: 0;
-  }
-
-  .vs__selected {
-    display: block;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    overflow: hidden;
-  }
-}
-
 th,
 td {
   padding-left: 15px;
   padding-right: 15px;
-}
-</style>
-
-<style lang="css">
-
-.vs__dropdown-menu {
-  min-width: auto;
-}
-
-.vs__dropdown-menu .vs__dropdown-option {
-  text-overflow: ellipsis;
-  overflow: hidden !important;
 }
 </style>

@@ -14,7 +14,7 @@
           label="name"
           append-to-body
           :selectable="c => !c.deletedAt"
-          class="chart-selector bg-white"
+          class="bg-white"
           @input="chartSelected"
         />
         <b-input-group-append>
@@ -57,7 +57,7 @@
           :clearable="true"
           :placeholder="$t('chart.drillDown.openInModal')"
           append-to-body
-          class="block-selector bg-white"
+          class="bg-white w-100"
         />
       </b-form-group>
     </template>
@@ -130,43 +130,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.chart-selector {
-  position: relative;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  width: 1%;
-  margin-bottom: 0;
-}
-
-.block-selector, .chart-selector {
-  &:not(.vs--open) .vs__selected + .vs__search {
-    // force this to not use any space
-    // we still need it to be rendered for the focus
-    width: 0;
-    padding: 0;
-    margin: 0;
-    border: none;
-    height: 0;
-  }
-
-  .vs__selected-options {
-    // do not allow growing
-    width: 0;
-  }
-
-  .vs__selected {
-    display: block;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    overflow: hidden;
-  }
-}
-
-.vs__dropdown-menu .vs__dropdown-option {
-  text-overflow: ellipsis;
-  overflow: hidden !important;
-}
-</style>

@@ -164,7 +164,7 @@
                 :get-option-key="getOptionKey"
                 :reduce="option => option.isSystem ? option.name : option.fieldID"
                 :calculate-position="calculateDropdownPosition"
-                class="field-selector bg-white"
+                class="bg-white"
               />
             </b-td>
 
@@ -329,24 +329,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.field-selector {
-  .vs__selected-options {
-    flex-wrap: nowrap;
-  }
-
-  .vs__selected {
-    max-width: 200px;
-    display: inline-block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-}
-
-.vs__dropdown-menu .vs__dropdown-option {
-  text-overflow: ellipsis;
-  overflow: hidden !important;
-}
-</style>

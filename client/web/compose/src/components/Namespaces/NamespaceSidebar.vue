@@ -17,7 +17,6 @@
           :placeholder="$t('pickNamespace')"
           :calculate-position="calculateDropdownPosition"
           :autoscroll="false"
-          class="namespace-selector"
           @option:selected="namespaceSelected"
         >
           <template #list-header>
@@ -452,43 +451,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.namespace-selector {
-  position: relative;
-  -ms-flex: 1 1 auto;
-  flex: 1 1 auto;
-  width: 1%;
-  margin-bottom: 0;
-  font-size: 1rem;
-  min-width: auto !important;
-
-  &:not(.vs--open) .vs__selected + .vs__search {
-    // force this to not use any space
-    // we still need it to be rendered for the focus
-    width: 0;
-    padding: 0;
-    margin: 0;
-    border: none;
-    height: 0;
-  }
-
-  .vs__selected-options {
-    // do not allow growing
-    width: 0;
-  }
-
-  .vs__selected {
-    display: block;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    max-width: 100%;
-    overflow: hidden;
-  }
-}
-
-.vs__dropdown-menu .vs__dropdown-option {
-  text-overflow: ellipsis;
-  overflow: hidden !important;
-}
-</style>

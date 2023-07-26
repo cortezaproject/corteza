@@ -102,7 +102,7 @@
                           option-value="value"
                           :placeholder="$t('colorScheme.placeholder')"
                           :calculate-position="calculateDropdownPosition"
-                          class="color-selector bg-white"
+                          class="bg-white w-100"
                         >
                           <template #option="option">
                             <p
@@ -686,29 +686,5 @@ export default {
 .color-box {
   width: 18px;
   height: 8px;
-}
-
-.color-selector {
-  .vs__dropdown-menu {
-    min-width: 100%;
-  }
-
-  .vs__dropdown-option {
-    text-overflow: ellipsis;
-    overflow-x: hidden;
-  }
-
-  .vs__selected-options {
-    width: 0;
-    flex-wrap: nowrap;
-  }
-
-  .vs__selected {
-    max-width: 230px;
-    display: inline-block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
 }
 </style>
