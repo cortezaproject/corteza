@@ -269,9 +269,9 @@ $input-height: 42px;
 $content-height: 48px;
 $blank-li-height: 10px;
 $left-padding: 5px;
-$border-color: $light;
-$hover-color: $gray-200;
-$dropping-color: $secondary;
+$border-color: var(--light);
+$hover-color: var(--gray-200);
+$dropping-color: var(--secondary);
 
 .page-name-input {
   height: $input-height;
@@ -296,7 +296,7 @@ $dropping-color: $secondary;
 
   li {
     white-space: nowrap;
-    background: $white;
+    background: var(--white);
 
     &.blank-li {
       height: $blank-li-height !important;
@@ -306,25 +306,25 @@ $dropping-color: $secondary;
       }
 
       &:nth-last-of-type(1)::before {
-        border-left-color: $white !important;
+        border-left-color: var(--white) !important;
         height: 0;
       }
     }
 
     &::before {
-      top: $content-height / -2 !important;
-      border-left-color: $white !important;
+      top: calc($content-height / -2) !important;
+      border-left-color: var(--white) !important;
     }
 
     &::after {
       height: $content-height !important;
-      top: $content-height / 2 !important;
-      border-color: $white !important;
+      top: calc($content-height / 2) !important;
+      border-color: var(--white) !important;
     }
 
     &.parent-li:nth-last-child(2)::before {
       height: $content-height !important;
-      top: $content-height / -2 !important;
+      top: calc($content-height / -2) !important;
     }
   }
 
@@ -352,7 +352,7 @@ $dropping-color: $secondary;
 
     &.exist-li {
       &::before {
-        border-color: $white !important;
+        border-color: var(--white) !important;
       }
 
       .parent-li {
@@ -372,9 +372,9 @@ $dropping-color: $secondary;
 
 .pages-list-header {
   min-height: $content-height;
-  background-color: $gray-200;
+  background-color: var(--gray-200);
   margin-bottom: -1.8rem !important;
-  border-bottom: 2px solid $light;
+  border-bottom: 2px solid var(--light);
   z-index: 1;
 }
 </style>

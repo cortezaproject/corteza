@@ -1,0 +1,3045 @@
+//================================================
+// BootstrapVue Variables
+//================================================
+
+// --- BootstrapVue custom SCSS variables ---
+//
+// Users can override these variables in their custom SCSS
+//
+// Variables beginning with `$bv-` are used to enable/disable specific section CSS generation
+// Variables beginning with `$b-` are used to control values within the CSS generation
+
+// --- Custom inputs (adds sizing support) ---
+
+// Indicator height (and sometimes width)
+$b-custom-control-indicator-size-lg: $custom-control-indicator-size * 1.25 !default;
+$b-custom-control-indicator-size-sm: $custom-control-indicator-size * 0.875 !default;
+
+// Indicator background
+$b-custom-control-indicator-bg-size-lg: $custom-control-indicator-bg-size !default;
+$b-custom-control-indicator-bg-size-sm: $custom-control-indicator-bg-size !default;
+
+// Gutter widths
+$b-custom-control-gutter-lg: $custom-control-gutter * 1.25 !default;
+$b-custom-control-gutter-sm: $custom-control-gutter * 0.875 !default;
+
+// Custom radio sizes (uses defaults of 50%, since radios are round)
+$b-custom-radio-indicator-border-radius-lg: $custom-radio-indicator-border-radius !default;
+$b-custom-radio-indicator-border-radius-sm: $custom-radio-indicator-border-radius !default;
+
+// Custom checkbox sizes
+$b-custom-checkbox-indicator-border-radius-lg: $border-radius-lg !default;
+$b-custom-checkbox-indicator-border-radius-sm: $border-radius-sm !default;
+
+// Custom switch sizes
+$b-custom-switch-width-lg: $b-custom-control-indicator-size-lg * 1.75 !default;
+$b-custom-switch-width-sm: $b-custom-control-indicator-size-sm * 1.75 !default;
+$b-custom-switch-indicator-border-radius-lg: $b-custom-control-indicator-size-lg / 2 !default;
+$b-custom-switch-indicator-border-radius-sm: $b-custom-control-indicator-size-sm / 2 !default;
+$b-custom-switch-indicator-size-lg: calc(
+  #{$b-custom-control-indicator-size-lg} - #{$custom-control-indicator-border-width * 4}
+) !default;
+$b-custom-switch-indicator-size-sm: calc(
+  #{$b-custom-control-indicator-size-sm} - #{$custom-control-indicator-border-width * 4}
+) !default;
+
+// Custom file sizes
+$b-custom-file-font-size-lg: $input-font-size-lg !default;
+$b-custom-file-font-size-sm: $input-font-size-sm !default;
+$b-custom-file-line-height-lg: $input-line-height-lg !default;
+$b-custom-file-line-height-sm: $input-line-height-sm !default;
+$b-custom-file-height-lg: $input-height-lg !default;
+$b-custom-file-height-sm: $input-height-sm !default;
+$b-custom-file-border-radius-lg: $input-border-radius-lg !default;
+$b-custom-file-border-radius-sm: $input-border-radius-sm !default;
+$b-custom-file-padding-y-lg: $input-padding-y-lg !default;
+$b-custom-file-padding-y-sm: $input-padding-y-sm !default;
+$b-custom-file-padding-x-lg: $input-padding-x-lg !default;
+$b-custom-file-padding-x-sm: $input-padding-x-sm !default;
+$b-custom-file-height-inner-lg: calc(
+  #{$b-custom-file-line-height-lg * 1em} + #{$b-custom-file-padding-y-lg * 2}
+) !default;
+$b-custom-file-height-inner-sm: calc(
+  #{$b-custom-file-line-height-sm * 1em} + #{$b-custom-file-padding-y-sm * 2}
+) !default;
+
+// --- Icons ---
+
+$b-icon-vertical-offset: -0.15em;
+
+// Animations
+$b-icon-animation-cylon-duration: 0.75s !default;
+$b-icon-animation-cylon-vertical-duration: $b-icon-animation-cylon-duration !default;
+$b-icon-animation-fade-duration: 0.75s !default;
+$b-icon-animation-spin-duration: 2s !default;
+$b-icon-animation-spin-reverse-duration: $b-icon-animation-spin-duration !default;
+$b-icon-animation-spin-pulse-duration: 1s !default;
+$b-icon-animation-spin-reverse-pulse-duration: $b-icon-animation-spin-pulse-duration !default;
+$b-icon-animation-throb-duration: 0.75s !default;
+
+// --- Sidebar ---
+
+$b-sidebar-width: 320px !default;
+$b-sidebar-transition-duration: 0.3s !default;
+$b-sidebar-zindex: calc(#{$zindex-fixed} + 5) !default;
+$b-sidebar-header-font-size: 1.5rem !default;
+$b-sidebar-header-padding-y: $navbar-padding-y !default;
+$b-sidebar-header-padding-x: $navbar-padding-x !default;
+
+// --- Tables ---
+
+// Table busy state
+$b-table-busy-opacity: 0.55 !default;
+
+// Table sorting
+$b-table-sort-icon-bg-width: 0.65em !default;
+$b-table-sort-icon-bg-height: 1em !default;
+// Sort icons are square, but "squished" horizontally by the above variables
+$b-table-sort-icon-bg-not-sorted: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'><path fill='black' opacity='.3' d='M51 1l25 23 24 22H1l25-22zM51 101l25-23 24-22H1l25 22z'/></svg>") !default;
+$b-table-sort-icon-bg-ascending: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'><path fill='black' d='M51 1l25 23 24 22H1l25-22z'/><path fill='black' opacity='.3' d='M51 101l25-23 24-22H1l25 22z'/></svg>") !default;
+$b-table-sort-icon-bg-descending: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'><path fill='black' opacity='.3' d='M51 1l25 23 24 22H1l25-22z'/><path fill='black' d='M51 101l25-23 24-22H1l25 22z'/></svg>") !default;
+// Icons to use on dark table or dark header/footer (lighter color icons)
+// We simply just replace the fill color 'black' white 'white'
+$b-table-sort-icon-bg-dark-not-sorted: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'><path fill='white' opacity='.3' d='M51 1l25 23 24 22H1l25-22zM51 101l25-23 24-22H1l25 22z'/></svg>") !default;
+$b-table-sort-icon-bg-dark-ascending: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'><path fill='white' d='M51 1l25 23 24 22H1l25-22z'/><path fill='white' opacity='.3' d='M51 101l25-23 24-22H1l25 22z'/></svg>") !default;
+$b-table-sort-icon-bg-dark-descending: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='101' height='101' view-box='0 0 101 101' preserveAspectRatio='none'><path fill='white' opacity='.3' d='M51 1l25 23 24 22H1l25-22z'/><path fill='white' d='M51 101l25-23 24-22H1l25 22z'/></svg>") !default;
+
+// Flag to enable sticky table header and column CSS generation
+$bv-enable-table-sticky: true !default;
+// Default max-height for tables with sticky headers
+$b-table-sticky-header-max-height: 300px !default;
+
+// Flag to enable table stacked CSS generation
+$bv-enable-table-stacked: true !default;
+// Table stacked defaults
+$b-table-stacked-heading-width: 40% !default;
+$b-table-stacked-gap: 1rem !default;
+
+// Bootstrap v4.3 is missing the "active" variant for dark tables
+// Which translates to `bg-active`, but only for tables
+$table-dark-active-bg: $table-dark-hover-bg !default;
+
+// --- Toasts ---
+
+// Toaster defaults
+$b-toaster-zindex: 1100 !default;
+$b-toaster-offset-top: 0.5rem !default;
+$b-toaster-offset-bottom: $b-toaster-offset-top !default;
+$b-toaster-offset-left: $b-toaster-offset-top !default;
+$b-toaster-offset-right: $b-toaster-offset-top !default;
+
+// Default toast opacity
+// Value from 0 to 1, or 0% to 100%
+// Bootstrap default is 0.85 (extracted from the `$toast-background-color` value)
+// Bootstrap does not have this as a variable, so we add it in.
+$b-toast-background-opacity: alpha($toast-background-color) !default;
+
+// Toast variant levels wrt theme color value
+$b-toast-bg-level: $alert-bg-level !default;
+$b-toast-border-level: $alert-border-level !default;
+$b-toast-color-level: $alert-color-level !default;
+
+// --- Tooltips ---
+
+// Flag to enable tooltip variant CSS generation
+$bv-enable-tooltip-variants: true !default;
+
+// Tooltip background variant level wrt theme color value
+$b-tooltip-bg-level: 0 !default;
+
+// --- Popovers ---
+
+// Flag to enable popover variant CSS generation
+$bv-enable-popover-variants: true !default;
+
+// Popover variant levels wrt theme color value
+$b-popover-bg-level: $alert-bg-level !default;
+$b-popover-border-level: $alert-border-level !default;
+$b-popover-color-level: $alert-color-level !default;
+
+// --- Avatar ---
+
+$b-avatar-size: 2.5rem !default;
+$b-avatar-size-sm: 1.5rem !default;
+$b-avatar-size-lg: 3.5rem !default;
+$b-avatar-font-size-scale: 0.4 !default;
+$b-avatar-badge-font-size-scale: $b-avatar-font-size-scale * 0.7 !default;
+
+// --- Skeleton ---
+
+$b-skeleton-background-color: rgba(0, 0, 0, 0.12) !default;
+$b-skeleton-loading-cursor: wait !default;
+$b-skeleton-animation-duration: 1.75s !default;
+$b-skeleton-text-spacing: map-get($spacers, 1) !default;
+$b-skeleton-btn-width: 75px !default;
+
+//==============================================
+// BootstrapVue Utilities
+//================================================
+
+// --- BootstrapVue utility / helper classes ---
+
+$bv-utility-classes-defined: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-utility-classes-defined == false {
+  $bv-utility-classes-defined: true;
+
+  // No focus outline helper (use sparingly)
+  .bv-no-focus-ring:focus {
+    outline: none;
+  }
+
+  // Create `.bv-d-<bp>-down-none` helper classes
+  @each $breakpoint in map-keys($grid-breakpoints) {
+    @include media-breakpoint-down($breakpoint) {
+      .bv-d-#{$breakpoint}-down-none {
+        display: none !important;
+      }
+    }
+  }
+}
+
+//==============================================
+// BootstrapVue Custom Controls
+//================================================
+// Special styling for some BootstrapVue custom form controls that do
+// not have a native HTML input type root element (or tabindex)
+// Used by BFormSpinbutton, BFormDatepicker, BFormTimepicker, BTime, BCalendar
+.form-control {
+ // Adds focus styling to the form-control class (via the focus class)
+ // Specifically when we are using non focusable elements, or when true focus
+ // is within the `.form-control` element.
+ // Mimics the `.form-control:focus` styling
+ &.focus {
+   color: $input-focus-color;
+   background-color: $input-focus-bg;
+   border-color: $input-focus-border-color;
+   outline: 0;
+   @if $enable-shadows {
+     box-shadow: $input-box-shadow, $input-focus-box-shadow;
+   } @else {
+     box-shadow: $input-focus-box-shadow;
+   }
+
+   &.is-valid {
+     border-color: $form-feedback-valid-color;
+     box-shadow: 0 0 0 $input-focus-width rgba($form-feedback-valid-color, 0.25);
+   }
+
+   &.is-invalid {
+     border-color: $form-feedback-invalid-color;
+     box-shadow: 0 0 0 $input-focus-width rgba($form-feedback-invalid-color, 0.25);
+   }
+ }
+}
+
+//==============================================
+// Components/Avatar
+//================================================
+// BAvatar custom styles
+
+.b-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  flex-shrink: 0;
+  width: $b-avatar-size;
+  height: $b-avatar-size;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: 1;
+  max-width: 100%;
+  max-height: auto;
+  text-align: center;
+  overflow: visible;
+  position: relative;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+
+  &:focus {
+    outline: 0;
+  }
+
+  &.btn,
+  &[href] {
+    padding: 0;
+    border: 0;
+
+    .b-avatar-img img {
+      transition: transform 0.15s ease-in-out;
+    }
+
+    &:not(:disabled):not(.disabled) {
+      cursor: if($enable-pointer-cursor-for-buttons, pointer, null);
+
+      &:hover {
+        .b-avatar-img img {
+          transform: scale(1.15);
+        }
+      }
+    }
+  }
+
+  &.disabled,
+  &:disabled,
+  &[disabled] {
+    opacity: $btn-disabled-opacity;
+    pointer-events: none;
+  }
+
+  .b-avatar-custom,
+  .b-avatar-text,
+  .b-avatar-img {
+    border-radius: inherit;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    // https://gist.github.com/ayamflow/b602ab436ac9f05660d9c15190f4fd7b
+    mask-image: radial-gradient(white, black);
+  }
+
+  .b-avatar-text {
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  &[href] {
+    text-decoration: none;
+  }
+
+  > .b-icon {
+    width: 60%;
+    height: auto;
+    max-width: 100%;
+  }
+
+  .b-avatar-img img {
+    width: 100%;
+    height: 100%;
+    max-height: auto;
+    border-radius: inherit;
+    // This is not supported in IE11 and Edge <16
+    // https://caniuse.com/object-fit
+    object-fit: cover;
+  }
+
+  .b-avatar-badge {
+    // Positioning will be handled via inline styles
+    position: absolute;
+    min-height: 1.5em;
+    min-width: 1.5em;
+    padding: 0.25em;
+    line-height: 1;
+    border-radius: 10em;
+    font-size: 70%;
+    font-weight: 700;
+    z-index: 1;
+  }
+}
+
+.b-avatar-sm {
+  width: $b-avatar-size-sm;
+  height: $b-avatar-size-sm;
+
+  .b-avatar-text {
+    font-size: calc(#{$b-avatar-size-sm * $b-avatar-font-size-scale});
+  }
+
+  .b-avatar-badge {
+    font-size: calc(#{$b-avatar-size-sm * $b-avatar-badge-font-size-scale});
+  }
+}
+
+.b-avatar-lg {
+  width: $b-avatar-size-lg;
+  height: $b-avatar-size-lg;
+
+  .b-avatar-text {
+    font-size: calc(#{$b-avatar-size-lg * $b-avatar-font-size-scale});
+  }
+
+  .b-avatar-badge {
+    font-size: calc(#{$b-avatar-size-lg * $b-avatar-badge-font-size-scale});
+  }
+}
+
+.b-avatar-group {
+  .b-avatar-group-inner {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .b-avatar {
+    border: $border-width solid $border-color;
+  }
+
+  a,
+  .btn {
+    &.b-avatar:hover:not(.disabled):not(disabled) {
+      z-index: 1;
+    }
+  }
+}
+
+//==============================================
+// Components/Calendar
+//================================================
+// BCalendar custom styles
+
+.b-calendar {
+  display: inline-flex;
+
+  .b-calendar-inner {
+    // Prevent calendar from going below this width
+    min-width: 250px;
+  }
+
+  .b-calendar-header,
+  .b-calendar-nav {
+    margin-bottom: 0.25rem;
+  }
+
+  .b-calendar-nav .btn {
+    padding: 0.25rem;
+  }
+
+  output {
+    padding: 0.25rem;
+    font-size: 80%;
+
+    &.readonly {
+      background-color: $input-disabled-bg;
+      opacity: 1;
+    }
+  }
+
+  .b-calendar-footer {
+    margin-top: 0.5rem;
+  }
+
+  .b-calendar-grid {
+    padding: 0;
+    margin: 0;
+    // Easy rounded corners on contained elements,
+    // specifically the footer of the calendar grid
+    overflow: hidden;
+
+    .row {
+      // Prevent grid rows from wrapping
+      flex-wrap: nowrap;
+    }
+  }
+
+  .b-calendar-grid-caption {
+    padding: 0.25rem;
+  }
+
+  .b-calendar-grid-body {
+    .col[data-date] {
+      // We hard code the sizes in `px` to fit
+      // correctly on small mobile device screens
+      .btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        line-height: 1;
+        margin: 3px auto;
+        padding: 9px 0;
+      }
+    }
+  }
+
+  // Style to get around Bootstrap v4.4 bug
+  // with hand cursor on disabled buttons
+  // As well, when a button is still focusable, but is
+  // `aria-disabled` we want `pointer-events: none`
+  .btn {
+    &:disabled,
+    &.disabled,
+    &[aria-disabled="true"] {
+      cursor: default;
+      pointer-events: none;
+    }
+  }
+}
+
+//==============================================
+// Components/Card
+//==============================================
+.card-img-left {
+  @include border-left-radius($card-inner-border-radius);
+}
+
+.card-img-right {
+  @include border-right-radius($card-inner-border-radius);
+}
+
+//==============================================
+// Components/Dropdown
+//==============================================
+$bv-dropdown-defined: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-dropdown-defined == false {
+  $bv-dropdown-defined: true;
+
+  // Hide the caret for `no-caret` setting
+  // See: https://github.com/bootstrap-vue/bootstrap-vue/issues/1473
+  // See: https://github.com/twbs/bootstrap/issues/23724
+  .dropdown {
+    &:not(.dropleft) {
+      .dropdown-toggle {
+        &.dropdown-toggle-no-caret::after {
+          display: none !important;
+        }
+      }
+    }
+
+    // See: https://github.com/bootstrap-vue/bootstrap-vue/issues/2909
+    &.dropleft {
+      .dropdown-toggle {
+        &.dropdown-toggle-no-caret::before {
+          display: none !important;
+        }
+      }
+    }
+
+    // Hide the focus ring introduced by Bootstratp v4.4 reboot
+    // on items with tabindex="-1", as we know how users feel
+    // about blue rings where they don't expect them.
+    .dropdown-menu:focus {
+      outline: none;
+    }
+
+    // Prevent dropdown background overflow if there's no padding
+    // See https://github.com/twbs/bootstrap/pull/27703
+    // Added here to address <li> wrapping of items
+    @if $dropdown-padding-y == 0 {
+      .dropdown-menu {
+        > :first-child {
+          .dropdown-item,
+          .dropdown-form,
+          .dropdown-text {
+            @include border-top-radius($dropdown-inner-border-radius);
+          }
+        }
+
+        > :last-child {
+          .dropdown-item,
+          .dropdown-form,
+          .dropdown-text {
+            @include border-bottom-radius($dropdown-inner-border-radius);
+          }
+        }
+      }
+    }
+  }
+}
+
+$bv-dropdown-form-defined: false !default;
+
+@if $bv-dropdown-form-defined == false {
+  // This test will only include these style definitions once
+  $bv-dropdown-form-defined: true;
+
+  // Custom styles for <b-dropdown-form>
+  // Based on class `.dropdown-item`
+  .b-dropdown-form {
+    display: inline-block;
+    padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+    width: 100%;
+    clear: both;
+    font-weight: $font-weight-normal;
+
+    &:focus {
+      // From https://github.com/twbs/bootstrap/blob/master/scss/_reboot.scss
+      // mimicking button:focus styling.
+      // We add important here as anything with tabindex `-1` and focused will not
+      // have a focus ring due to reboot.scss and its `!important` override.
+      // Needed for keyboard navigation high-lighting
+      outline: 1px dotted !important;
+      outline: 5px auto -webkit-focus-ring-color !important;
+    }
+
+    &.disabled,
+    &:disabled {
+      outline: 0 !important;
+      color: $dropdown-link-disabled-color;
+      pointer-events: none;
+      // background-color: transparent;
+      // Remove CSS gradients if they're enabled
+      // @if $enable-gradients {
+      //   background-image: none;
+      // }
+    }
+  }
+}
+
+$bv-dropdown-text-defined: false !default;
+
+@if $bv-dropdown-text-defined == false {
+  // This test will only include these style definitions once
+  $bv-dropdown-text-defined: true;
+
+  // Custom styles for <b-dropdown-text>
+  // Based on class `.dropdown-item`
+  .b-dropdown-text {
+    display: inline-block;
+    padding: $dropdown-item-padding-y $dropdown-item-padding-x;
+    margin-bottom: 0;
+    width: 100%;
+    clear: both;
+    font-weight: $font-weight-lighter;
+  }
+}
+
+//==============================================
+// Components/Form-checkbox
+//================================================
+// Adds control sizing to Bootstrap custom checkbox/switch inputs
+
+.custom-checkbox.b-custom-control-lg,
+.input-group-lg .custom-checkbox {
+  font-size: $font-size-lg;
+  line-height: $line-height-lg;
+  padding-left: $b-custom-control-gutter-lg + $b-custom-control-indicator-size-lg;
+
+  .custom-control-label::before {
+    top: ($font-size-lg * $line-height-lg - $b-custom-control-indicator-size-lg) / 2;
+    left: -($b-custom-control-gutter-lg + $b-custom-control-indicator-size-lg);
+    width: $b-custom-control-indicator-size-lg;
+    height: $b-custom-control-indicator-size-lg;
+    @include border-radius($b-custom-checkbox-indicator-border-radius-lg);
+  }
+
+  .custom-control-label::after {
+    top: ($font-size-lg * $line-height-lg - $b-custom-control-indicator-size-lg) / 2;
+    left: -($b-custom-control-gutter-lg + $b-custom-control-indicator-size-lg);
+    width: $b-custom-control-indicator-size-lg;
+    height: $b-custom-control-indicator-size-lg;
+    background-size: $b-custom-control-indicator-bg-size-lg;
+  }
+}
+
+.custom-checkbox.b-custom-control-sm,
+.input-group-sm .custom-checkbox {
+  font-size: $font-size-sm;
+  line-height: $line-height-sm;
+  padding-left: $b-custom-control-gutter-sm + $b-custom-control-indicator-size-sm;
+
+  .custom-control-label::before {
+    top: ($font-size-sm * $line-height-sm - $b-custom-control-indicator-size-sm) / 2;
+    left: -($b-custom-control-gutter-sm + $b-custom-control-indicator-size-sm);
+    width: $b-custom-control-indicator-size-sm;
+    height: $b-custom-control-indicator-size-sm;
+    @include border-radius($b-custom-checkbox-indicator-border-radius-sm);
+  }
+
+  .custom-control-label::after {
+    top: ($font-size-sm * $line-height-sm - $b-custom-control-indicator-size-sm) / 2;
+    left: -($b-custom-control-gutter-sm + $b-custom-control-indicator-size-sm);
+    width: $b-custom-control-indicator-size-sm;
+    height: $b-custom-control-indicator-size-sm;
+    background-size: $b-custom-control-indicator-bg-size-sm;
+  }
+}
+
+.custom-switch.b-custom-control-lg,
+.input-group-lg .custom-switch {
+  padding-left: $b-custom-switch-width-lg + $b-custom-control-gutter-lg;
+
+  .custom-control-label {
+    font-size: $font-size-lg;
+    line-height: $line-height-lg;
+
+    &::before {
+      top: ($font-size-lg * $line-height-lg - $b-custom-control-indicator-size-lg) / 2;
+      height: $b-custom-control-indicator-size-lg;
+      left: -($b-custom-switch-width-lg + $b-custom-control-gutter-lg);
+      width: $b-custom-switch-width-lg;
+      border-radius: $b-custom-switch-indicator-border-radius-lg;
+    }
+
+    &::after {
+      top: calc(
+        #{(($font-size-lg * $line-height-lg - $b-custom-control-indicator-size-lg) / 2)} + #{$custom-control-indicator-border-width *
+          2}
+      );
+      left: calc(
+        #{- ($b-custom-switch-width-lg + $b-custom-control-gutter-lg)} + #{$custom-control-indicator-border-width *
+          2}
+      );
+      width: $b-custom-switch-indicator-size-lg;
+      height: $b-custom-switch-indicator-size-lg;
+      border-radius: $b-custom-switch-indicator-border-radius-lg;
+      background-size: $b-custom-control-indicator-bg-size-lg;
+    }
+  }
+
+  .custom-control-input:checked ~ .custom-control-label {
+    &::after {
+      transform: translateX($b-custom-switch-width-lg - $b-custom-control-indicator-size-lg);
+    }
+  }
+}
+
+.custom-switch.b-custom-control-sm,
+.input-group-sm .custom-switch {
+  padding-left: $b-custom-switch-width-sm + $b-custom-control-gutter-sm;
+
+  .custom-control-label {
+    font-size: $font-size-sm;
+    line-height: $line-height-sm;
+
+    &::before {
+      top: ($font-size-sm * $line-height-sm - $b-custom-control-indicator-size-sm) / 2;
+      left: -($b-custom-switch-width-sm + $b-custom-control-gutter-sm);
+      width: $b-custom-switch-width-sm;
+      height: $b-custom-control-indicator-size-sm;
+      border-radius: $b-custom-switch-indicator-border-radius-sm;
+    }
+
+    &::after {
+      top: calc(
+        #{(($font-size-sm * $line-height-sm - $b-custom-control-indicator-size-sm) / 2)} + #{$custom-control-indicator-border-width *
+          2}
+      );
+      left: calc(
+        #{- ($b-custom-switch-width-sm + $b-custom-control-gutter-sm)} + #{$custom-control-indicator-border-width *
+          2}
+      );
+      width: $b-custom-switch-indicator-size-sm;
+      height: $b-custom-switch-indicator-size-sm;
+      border-radius: $b-custom-switch-indicator-border-radius-sm;
+      background-size: $b-custom-control-indicator-bg-size-sm;
+    }
+  }
+
+  .custom-control-input:checked ~ .custom-control-label {
+    &::after {
+      transform: translateX($b-custom-switch-width-sm - $b-custom-control-indicator-size-sm);
+    }
+  }
+}
+
+// --- BootstrapVue utility / helper classes ---
+
+$bv-utility-classes-defined: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-utility-classes-defined == false {
+  $bv-utility-classes-defined: true;
+
+  // No focus outline helper (use sparingly)
+  .bv-no-focus-ring:focus {
+    outline: none;
+  }
+
+  // Create `.bv-d-<bp>-down-none` helper classes
+  @each $breakpoint in map-keys($grid-breakpoints) {
+    @include media-breakpoint-down($breakpoint) {
+      .bv-d-#{$breakpoint}-down-none {
+        display: none !important;
+      }
+    }
+  }
+}
+
+$bv-input-group-dropdown-patched: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-input-group-dropdown-patched == false {
+  $bv-input-group-dropdown-patched: true;
+
+  // Workaround for https://github.com/bootstrap-vue/bootstrap-vue/issues/1560
+  // Workaround for https://github.com/bootstrap-vue/bootstrap-vue/issues/2114 */
+  // Based on: `~bootstrap/scss/_input-group.scss`
+  .input-group {
+    > .input-group-prepend > .btn-group,
+    > .input-group-append:not(:last-child) > .btn-group,
+    > .input-group-append:last-child > .btn-group:not(:last-child):not(.dropdown-toggle) {
+      > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+
+    > .input-group-append > .btn-group,
+    > .input-group-prepend:not(:first-child) > .btn-group,
+    > .input-group-prepend:first-child > .btn-group:not(:first-child) {
+      > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
+  }
+}
+
+//==============================================
+// Components/Datepicker
+//==============================================
+$bv-form-btn-label-control-defined: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-form-btn-label-control-defined == false {
+  $bv-form-btn-label-control-defined: true;
+
+  // Custom BVFormBtnLabelControl styling
+  // Currently used by BFormTimepicker and BFormDatepicker
+  // Does not apply to button-only styling
+  .b-form-btn-label-control.form-control {
+    display: flex;
+    align-items: stretch;
+    height: auto;
+    padding: 0;
+    // Remove background validation images and padding from
+    // main wrapper as they will be present in the inner label element
+    background-image: none;
+
+    @at-root {
+      // Handle `.input-group` padding overrides
+      .input-group & {
+        padding: 0;
+      }
+    }
+
+    @at-root {
+      // Prevent the button/label from reversing order on in horizontal RTL mode
+      [dir="rtl"] &,
+      &[dir="rtl"] {
+        flex-direction: row-reverse;
+
+        > label {
+          text-align: right;
+        }
+      }
+    }
+
+    > .btn {
+      line-height: 1;
+      font-size: inherit;
+      box-shadow: none !important;
+      border: 0;
+
+      &:disabled {
+        pointer-events: none;
+      }
+    }
+
+    &.is-valid > .btn {
+      color: $form-feedback-valid-color;
+    }
+
+    &.is-invalid > .btn {
+      color: $form-feedback-invalid-color;
+    }
+
+    > .dropdown-menu {
+      padding: 0.5rem;
+    }
+
+    > .form-control {
+      height: auto;
+      // Set a minimum height, as we have height set to `auto`
+      // (to allow the content to wrap, if needed)
+      // We subtract off the border, as we have border set to `0`
+      min-height: calc(#{$input-height} - #{$input-height-border});
+      padding-left: 0.25rem;
+      margin: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      word-break: break-word;
+      font-size: inherit;
+      white-space: normal;
+      @if $enable-pointer-cursor-for-buttons {
+        cursor: pointer;
+      }
+
+      &.form-control-sm {
+        min-height: calc(#{$input-height-sm} - #{$input-height-border});
+      }
+
+      &.form-control-lg {
+        min-height: calc(#{$input-height-lg} - #{$input-height-border});
+      }
+
+      @at-root {
+        // Handle input group sizing
+        .input-group.input-group-sm & {
+          min-height: calc(#{$input-height-sm} - #{$input-height-border});
+          padding-top: $input-padding-y-sm;
+          padding-bottom: $input-padding-y-sm;
+        }
+
+        .input-group.input-group-lg & {
+          min-height: calc(#{$input-height-lg} - #{$input-height-border});
+          padding-top: $input-padding-y-lg;
+          padding-bottom: $input-padding-y-lg;
+        }
+      }
+    }
+
+    // Disabled and read-only styling
+    &[aria-disabled="true"],
+    &[aria-readonly="true"] {
+      background-color: $input-disabled-bg;
+      opacity: 1;
+    }
+
+    &[aria-disabled="true"] {
+      pointer-events: none;
+
+      > label {
+        cursor: default;
+      }
+    }
+  }
+
+  // Button only mode menu padding overrides
+  .b-form-btn-label-control.btn-group {
+    > .dropdown-menu {
+      padding: 0.5rem;
+    }
+  }
+}
+
+//==============================================
+// Components/Form file
+//==============================================
+// Adds in sizes for custom-file
+
+// Prevent file names from overflowing the file input
+// These styles can be removed when the related Bootstrap bug gets fixed:
+// https://github.com/twbs/bootstrap/issues/31577
+.custom-file-label {
+  white-space: nowrap;
+  overflow-x: hidden;
+}
+
+.b-custom-control-lg,
+.input-group-lg {
+  &.custom-file,
+  .custom-file-input,
+  .custom-file-label {
+    font-size: $b-custom-file-font-size-lg;
+    height: $b-custom-file-height-lg;
+  }
+
+  .custom-file-label,
+  .custom-file-label:after {
+    padding: $b-custom-file-padding-y-lg $b-custom-file-padding-x-lg;
+    line-height: $b-custom-file-line-height-lg;
+  }
+
+  .custom-file-label {
+    @include border-radius($b-custom-file-border-radius-lg);
+
+    &::after {
+      font-size: inherit;
+      height: $b-custom-file-height-inner-lg;
+      @include border-radius(0 $b-custom-file-border-radius-lg $b-custom-file-border-radius-lg 0);
+    }
+  }
+}
+
+.b-custom-control-sm,
+.input-group-sm {
+  &.custom-file,
+  .custom-file-input,
+  .custom-file-label {
+    font-size: $b-custom-file-font-size-sm;
+    height: $b-custom-file-height-sm;
+  }
+
+  .custom-file-label,
+  .custom-file-label:after {
+    padding: $b-custom-file-padding-y-sm $b-custom-file-padding-x-sm;
+    line-height: $b-custom-file-line-height-sm;
+  }
+
+  .custom-file-label {
+    @include border-radius($b-custom-file-border-radius-sm);
+
+    &::after {
+      font-size: inherit;
+      height: $b-custom-file-height-inner-sm;
+      @include border-radius(0 $b-custom-file-border-radius-sm $b-custom-file-border-radius-sm 0);
+    }
+  }
+}
+
+//==============================================
+// Components/Form-input
+//==============================================
+// Temporary fix for cssnano bug: https://github.com/cssnano/cssnano/issues/712
+// By moving center to last value in `background-position` property
+// See: https://github.com/bootstrap-vue/bootstrap-vue/issues/2599
+@if $enable-validation-icons {
+  .form-control {
+    .was-validated &:invalid,
+    .was-validated &:valid,
+    &.is-invalid,
+    &.is-valid {
+      background-position: right $input-height-inner-quarter center;
+    }
+  }
+}
+
+// Bootstrap v4.x does not have special styling for color input
+// So we define some basic styles to compensate
+input[type="color"].form-control {
+  height: $input-height;
+  // We use the smaller padding to make the color block larger
+  padding: ($input-padding-y-sm / 2) ($input-padding-x-sm / 2);
+}
+
+input[type="color"].form-control.form-control-sm,
+.input-group-sm input[type="color"].form-control {
+  height: $input-height-sm;
+  // We use the smaller padding to make the color block larger
+  padding: ($input-padding-y-sm / 2) ($input-padding-x-sm / 2);
+}
+
+input[type="color"].form-control.form-control-lg,
+.input-group-lg input[type="color"].form-control {
+  height: $input-height-lg;
+  padding: ($input-padding-y-sm / 2) ($input-padding-x-sm / 2);
+}
+
+input[type="color"].form-control:disabled {
+  // Disabled styling needs to be a bit different than regular inputs
+  background-color: $gray-500;
+  opacity: $btn-disabled-opacity;
+}
+
+// --- Base `.input-group > .custom-range` styling (no PR yet on Bootstrap v4) ---
+.input-group {
+  > .custom-range {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    margin-bottom: 0;
+
+    + .form-control,
+    + .form-control-plaintext,
+    + .custom-select,
+    + .custom-range,
+    + .custom-file {
+      margin-left: -$input-border-width;
+    }
+  }
+
+  > .form-control,
+  > .form-control-plaintext,
+  > .custom-select,
+  > .custom-range,
+  > .custom-file {
+    + .custom-range {
+      margin-left: -$input-border-width;
+    }
+  }
+
+  > .custom-range:focus {
+    z-index: 3;
+  }
+
+  > .custom-range {
+    &:not(:last-child) {
+      @include border-right-radius(0);
+    }
+    &:not(:first-child) {
+      @include border-left-radius(0);
+    }
+  }
+
+  > .custom-range {
+    height: $input-height;
+    padding: 0 $input-padding-x;
+    background-color: $input-bg;
+    background-clip: padding-box;
+    border: $input-border-width solid $input-border-color;
+    height: $input-height;
+
+    @if $enable-rounded {
+      border-radius: $input-border-radius;
+    } @else {
+      border-radius: 0;
+    }
+
+    @include box-shadow($input-box-shadow);
+    @include transition($input-transition);
+    // Bootstrap v4.3.2 has deprecated this mixin
+    // @include form-control-focus();
+    // So we manually add its content here
+    &:focus {
+      color: $input-focus-color; // only needed for fallback to text input
+      background-color: $input-focus-bg;
+      border-color: $input-focus-border-color;
+      outline: 0;
+      @if $enable-shadows {
+        box-shadow: $input-box-shadow, $input-focus-box-shadow;
+      } @else {
+        box-shadow: $input-focus-box-shadow;
+      }
+    }
+
+    &:disabled,
+    &[readonly] {
+      background-color: $input-disabled-bg;
+    }
+  }
+}
+
+.input-group-lg > .custom-range {
+  height: $input-height-lg;
+  padding: 0 $input-padding-x-lg;
+  @include border-radius($input-border-radius-lg);
+}
+
+.input-group-sm > .custom-range {
+  height: $input-height-sm;
+  padding: 0 $input-padding-x-sm;
+  @include border-radius($input-border-radius-sm);
+}
+
+// --- <b-form-input>: custom-range validation styling - valid (no PR yet for Bootstrap v4.2) ---
+// Mixin for generating `.input-group .custom-range` validation styling
+@mixin bv-custom-range-validation-state($state, $color) {
+  .input-group .custom-range {
+    .was-validated &:#{$state},
+    &.is-#{$state} {
+      border-color: $color;
+
+      &:focus {
+        border-color: $color;
+        box-shadow: 0 0 0 $input-focus-width rgba($color, 0.25);
+      }
+    }
+  }
+
+  .custom-range {
+    .was-validated &:#{$state},
+    &.is-#{$state} {
+      // Pseudo-elements must be split across multiple rulesets to have an affect
+      &:focus {
+        &::-webkit-slider-thumb {
+          box-shadow: 0 0 0 1px $body-bg, 0 0 0 $input-btn-focus-width lighten($color, 35%);
+        }
+        &::-moz-range-thumb {
+          box-shadow: 0 0 0 1px $body-bg, 0 0 0 $input-btn-focus-width lighten($color, 35%);
+        }
+        &::-ms-thumb {
+          box-shadow: 0 0 0 1px $body-bg, 0 0 0 $input-btn-focus-width lighten($color, 35%);
+        }
+      }
+
+      &::-webkit-slider-thumb {
+        background-color: $color;
+        background-image: none;
+
+        &:active {
+          background-color: lighten($color, 35%);
+          background-image: none;
+        }
+      }
+
+      &::-webkit-slider-runnable-track {
+        background-color: rgba($color, 0.35);
+      }
+
+      &::-moz-range-thumb {
+        background-color: $color;
+        background-image: none;
+
+        &:active {
+          background-color: lighten($color, 35%);
+          background-image: none;
+        }
+      }
+
+      &::-moz-range-track {
+        background: rgba($color, 0.35);
+      }
+
+      ~ .#{$state}-feedback,
+      ~ .#{$state}-tooltip {
+        display: block;
+      }
+
+      &::-ms-thumb {
+        background-color: $color;
+        background-image: none;
+
+        &:active {
+          background-color: lighten($color, 35%);
+          background-image: none;
+        }
+      }
+
+      &::-ms-track-lower {
+        background: rgba($color, 0.35);
+      }
+      &::-ms-track-upper {
+        background: rgba($color, 0.35);
+      }
+    }
+  }
+}
+
+@include bv-custom-range-validation-state("valid", $form-feedback-valid-color);
+@include bv-custom-range-validation-state("invalid", $form-feedback-invalid-color);
+
+//==============================================
+// Components/Form-radio
+//==============================================
+// Adds control sizing to Bootstrap custom radio inputs
+
+.custom-radio.b-custom-control-lg,
+.input-group-lg .custom-radio {
+  font-size: $font-size-lg;
+  line-height: $line-height-lg;
+  padding-left: $b-custom-control-gutter-lg + $b-custom-control-indicator-size-lg;
+
+  .custom-control-label::before {
+    top: ($font-size-lg * $line-height-lg - $b-custom-control-indicator-size-lg) / 2;
+    left: -($b-custom-control-gutter-lg + $b-custom-control-indicator-size-lg);
+    width: $b-custom-control-indicator-size-lg;
+    height: $b-custom-control-indicator-size-lg;
+    border-radius: $b-custom-radio-indicator-border-radius-lg;
+  }
+
+  .custom-control-label::after {
+    top: ($font-size-lg * $line-height-lg - $b-custom-control-indicator-size-lg) / 2;
+    left: -($b-custom-control-gutter-lg + $b-custom-control-indicator-size-lg);
+    width: $b-custom-control-indicator-size-lg;
+    height: $b-custom-control-indicator-size-lg;
+    background: no-repeat 50% / #{$b-custom-control-indicator-bg-size-lg};
+  }
+}
+
+.custom-radio.b-custom-control-sm,
+.input-group-sm .custom-radio {
+  font-size: $font-size-sm;
+  line-height: $line-height-sm;
+  padding-left: $b-custom-control-gutter-sm + $b-custom-control-indicator-size-sm;
+
+  .custom-control-label::before {
+    top: ($font-size-sm * $line-height-sm - $b-custom-control-indicator-size-sm) / 2;
+    left: -($b-custom-control-gutter-sm + $b-custom-control-indicator-size-sm);
+    width: $b-custom-control-indicator-size-sm;
+    height: $b-custom-control-indicator-size-sm;
+    border-radius: $b-custom-radio-indicator-border-radius-sm;
+  }
+
+  .custom-control-label::after {
+    top: ($font-size-sm * $line-height-sm - $b-custom-control-indicator-size-sm) / 2;
+    left: -($b-custom-control-gutter-sm + $b-custom-control-indicator-size-sm);
+    width: $b-custom-control-indicator-size-sm;
+    height: $b-custom-control-indicator-size-sm;
+    background: no-repeat 50% / #{$b-custom-control-indicator-bg-size-sm};
+  }
+}
+
+//==============================================
+// Components/Form-rating
+//==============================================
+.b-rating {
+  text-align: center;
+
+  &.d-inline-flex {
+    width: auto;
+  }
+
+  .b-rating-star,
+  .b-rating-value {
+    padding: 0 0.25em;
+  }
+
+  .b-rating-value {
+    // Keep the stars from moving when value changes (usually)
+    min-width: 2.5em;
+  }
+
+  .b-rating-star {
+    display: inline-flex;
+    justify-content: center;
+    outline: 0;
+
+    .b-rating-icon {
+      display: inline-flex;
+      transition: all 0.15s ease-in-out;
+    }
+  }
+
+  &.disabled,
+  &:disabled {
+    background-color: $input-disabled-bg;
+    color: $text-muted;
+  }
+
+  &:not(.disabled):not(.readonly) {
+    .b-rating-star {
+      cursor: pointer;
+    }
+
+    // Zoom focused or hovered icons
+    &:focus:not(:hover) .b-rating-star.focused,
+    .b-rating-star:hover {
+      .b-rating-icon {
+        transform: scale(1.5);
+      }
+    }
+  }
+
+  // Flip the half icon if RTL mode
+  // We transform the outer star wrapper so that we do not
+  // interfere with the hover/focus transform above
+  &[dir="rtl"] {
+    .b-rating-star-half {
+      transform: scale(-1, 1);
+    }
+  }
+}
+
+//==============================================
+// Components/Form-SpinButton
+//==============================================
+.b-form-spinbutton {
+  text-align: center;
+  // Quick way to get end buttons rounded on outside edges
+  overflow: hidden;
+  // Hide validation icon, as there is no room for it
+  background-image: none;
+  padding: 0;
+
+  @at-root {
+    // Prevent the buttons from reversing order on in horizontal RTL mode
+    [dir="rtl"] &:not(.flex-column),
+    &[dir="rtl"]:not(.flex-column) {
+      flex-direction: row-reverse;
+    }
+  }
+
+  output {
+    font-size: inherit;
+    outline: 0;
+    border: 0;
+    background-color: transparent;
+    width: auto;
+    margin: 0;
+    padding: 0 0.25rem;
+
+    > div,
+    > bdi {
+      display: block;
+      min-width: 2.25em;
+      // We set a height to ensure an empty value isn't collapsed
+      height: 1em * $input-line-height;
+    }
+  }
+
+  &.flex-column {
+    height: auto;
+    width: auto;
+
+    output {
+      margin: 0 0.25rem;
+      padding: 0.25rem 0;
+    }
+  }
+
+  &:not(.d-inline-flex):not(.flex-column) {
+    output: {
+      width: 100%;
+    }
+  }
+
+  &.d-inline-flex:not(.flex-column) {
+    width: auto;
+  }
+
+  .btn {
+    line-height: 1;
+    box-shadow: none !important;
+
+    &:disabled {
+      pointer-events: none;
+    }
+
+    &:hover:not(:disabled) > div > .b-icon {
+      transform: scale(1.25);
+    }
+  }
+
+  &.disabled,
+  &.readonly {
+    background-color: $input-disabled-bg;
+  }
+
+  &.disabled {
+    pointer-events: none;
+  }
+}
+
+//==============================================
+// Components/Form-Tags
+//==============================================
+.b-form-tags {
+  .b-form-tags-list {
+    margin-top: -0.25rem;
+
+    .b-from-tags-field,
+    .b-form-tag {
+      margin-top: 0.25rem;
+    }
+  }
+
+  &.focus {
+    color: $input-focus-color;
+    background-color: $input-focus-bg;
+    border-color: $input-focus-border-color;
+    outline: 0;
+    @if $enable-shadows {
+      box-shadow: $input-box-shadow, $input-focus-box-shadow;
+    } @else {
+      box-shadow: $input-focus-box-shadow;
+    }
+
+    &.is-valid {
+      border-color: $form-feedback-valid-color;
+      box-shadow: 0 0 0 $input-focus-width rgba($form-feedback-valid-color, 0.25);
+    }
+
+    &.is-invalid {
+      border-color: $form-feedback-invalid-color;
+      box-shadow: 0 0 0 $input-focus-width rgba($form-feedback-invalid-color, 0.25);
+    }
+  }
+
+  &.disabled {
+    background-color: $input-disabled-bg;
+  }
+}
+
+.b-form-tag {
+  // Override default badge settings
+  // Due to using text-truncate on the inner content
+  font-size: 75%;
+  font-weight: normal;
+  line-height: $input-line-height;
+  margin-right: 0.25rem;
+
+  &.disabled {
+    opacity: 0.75;
+  }
+
+  // Override default close button settings
+  > button.b-form-tag-remove {
+    color: inherit;
+    font-size: 125%;
+    line-height: 1;
+    float: none;
+    margin-left: 0.25rem;
+  }
+}
+
+.form-control-sm .b-form-tag {
+  line-height: $input-line-height-sm;
+}
+
+.form-control-lg .b-form-tag {
+  line-height: $input-line-height-lg;
+}
+
+//==============================================
+// Components/Form-Timepicker
+//==============================================
+$bv-form-btn-label-control-defined: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-form-btn-label-control-defined == false {
+  $bv-form-btn-label-control-defined: true;
+
+  // Custom BVFormBtnLabelControl styling
+  // Currently used by BFormTimepicker and BFormDatepicker
+  // Does not apply to button-only styling
+  .b-form-btn-label-control.form-control {
+    display: flex;
+    align-items: stretch;
+    height: auto;
+    padding: 0;
+    // Remove background validation images and padding from
+    // main wrapper as they will be present in the inner label element
+    background-image: none;
+
+    @at-root {
+      // Handle `.input-group` padding overrides
+      .input-group & {
+        padding: 0;
+      }
+    }
+
+    @at-root {
+      // Prevent the button/label from reversing order on in horizontal RTL mode
+      [dir="rtl"] &,
+      &[dir="rtl"] {
+        flex-direction: row-reverse;
+
+        > label {
+          text-align: right;
+        }
+      }
+    }
+
+    > .btn {
+      line-height: 1;
+      font-size: inherit;
+      box-shadow: none !important;
+      border: 0;
+
+      &:disabled {
+        pointer-events: none;
+      }
+    }
+
+    &.is-valid > .btn {
+      color: $form-feedback-valid-color;
+    }
+
+    &.is-invalid > .btn {
+      color: $form-feedback-invalid-color;
+    }
+
+    > .dropdown-menu {
+      padding: 0.5rem;
+    }
+
+    > .form-control {
+      height: auto;
+      // Set a minimum height, as we have height set to `auto`
+      // (to allow the content to wrap, if needed)
+      // We subtract off the border, as we have border set to `0`
+      min-height: calc(#{$input-height} - #{$input-height-border});
+      padding-left: 0.25rem;
+      margin: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      word-break: break-word;
+      font-size: inherit;
+      white-space: normal;
+      @if $enable-pointer-cursor-for-buttons {
+        cursor: pointer;
+      }
+
+      &.form-control-sm {
+        min-height: calc(#{$input-height-sm} - #{$input-height-border});
+      }
+
+      &.form-control-lg {
+        min-height: calc(#{$input-height-lg} - #{$input-height-border});
+      }
+
+      @at-root {
+        // Handle input group sizing
+        .input-group.input-group-sm & {
+          min-height: calc(#{$input-height-sm} - #{$input-height-border});
+          padding-top: $input-padding-y-sm;
+          padding-bottom: $input-padding-y-sm;
+        }
+
+        .input-group.input-group-lg & {
+          min-height: calc(#{$input-height-lg} - #{$input-height-border});
+          padding-top: $input-padding-y-lg;
+          padding-bottom: $input-padding-y-lg;
+        }
+      }
+    }
+
+    // Disabled and read-only styling
+    &[aria-disabled="true"],
+    &[aria-readonly="true"] {
+      background-color: $input-disabled-bg;
+      opacity: 1;
+    }
+
+    &[aria-disabled="true"] {
+      pointer-events: none;
+
+      > label {
+        cursor: default;
+      }
+    }
+  }
+
+  // Button only mode menu padding overrides
+  .b-form-btn-label-control.btn-group {
+    > .dropdown-menu {
+      padding: 0.5rem;
+    }
+  }
+}
+
+//==============================================
+// Components/InputGroup
+//==============================================
+$bv-input-group-dropdown-patched: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-input-group-dropdown-patched == false {
+  $bv-input-group-dropdown-patched: true;
+
+  // Workaround for https://github.com/bootstrap-vue/bootstrap-vue/issues/1560
+  // Workaround for https://github.com/bootstrap-vue/bootstrap-vue/issues/2114 */
+  // Based on: `~bootstrap/scss/_input-group.scss`
+  .input-group {
+    > .input-group-prepend > .btn-group,
+    > .input-group-append:not(:last-child) > .btn-group,
+    > .input-group-append:last-child > .btn-group:not(:last-child):not(.dropdown-toggle) {
+      > .btn {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+    }
+
+    > .input-group-append > .btn-group,
+    > .input-group-prepend:not(:first-child) > .btn-group,
+    > .input-group-prepend:first-child > .btn-group:not(:first-child) {
+      > .btn {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
+  }
+}
+
+//==============================================
+// Components/Media
+//==============================================
+.media-aside {
+  display: flex;
+  margin-right: 1rem;
+}
+
+.media-aside-right {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+//==============================================
+// Components/Modal
+//==============================================
+// Needed to allow Vue transition system to work with Bootstrap v4 .modal-backdrop
+// as modal opacity is 1 by default
+.modal-backdrop {
+  opacity: $modal-backdrop-opacity;
+}
+
+//==============================================
+// Components/Pagination
+//==============================================
+$bv-pagination-classes-defined: false !default;
+
+// Make sure to include these style definitions only once
+@if $bv-pagination-classes-defined == false {
+  $bv-pagination-classes-defined: true;
+
+  // Pagination pill style
+  .b-pagination-pills {
+    .page-item {
+      .page-link {
+        border-radius: 50rem !important;
+        margin-left: 0.25rem;
+        line-height: 1;
+      }
+
+      &:first-child {
+        .page-link {
+          margin-left: 0;
+        }
+      }
+    }
+  }
+}
+
+//==============================================
+// Components/Popover
+//==============================================
+// Some overrides to make popover transitions work with Vue `<transition>`
+.popover.b-popover {
+  display: block;
+  opacity: 1;
+  // Needed due to Bootstrap v4.4 reboot.css changes
+  outline: 0;
+
+  &.fade:not(.show) {
+    opacity: 0;
+  }
+
+  &.show {
+    opacity: 1;
+  }
+}
+
+@if $bv-enable-popover-variants {
+  @each $variant, $value in $theme-colors {
+    .b-popover-#{$variant} {
+      $po-bg-color: theme-color-level($variant, $b-popover-bg-level);
+      $po-border-color: theme-color-level($variant, $b-popover-border-level);
+      $po-color: theme-color-level($variant, $b-popover-color-level);
+      $po-header-bg: darken($po-bg-color, 3%);
+      $po-header-color: color-yiq($po-header-bg);
+      $po-arrow-color: $po-bg-color;
+      $po-arrow-color-bottom: $po-header-bg;
+      $po-arrow-outer-color: fade-in($po-border-color, 0.05);
+
+      &.popover {
+        background-color: $po-bg-color;
+        border-color: $po-border-color;
+      }
+
+      &.bs-popover-top {
+        > .arrow {
+          &::before {
+            border-top-color: $po-arrow-outer-color;
+          }
+
+          &::after {
+            border-top-color: $po-arrow-color;
+          }
+        }
+      }
+
+      &.bs-popover-right {
+        > .arrow {
+          &::before {
+            border-right-color: $po-arrow-outer-color;
+          }
+
+          &::after {
+            border-right-color: $po-arrow-color;
+          }
+        }
+      }
+
+      &.bs-popover-bottom {
+        > .arrow {
+          &::before {
+            border-bottom-color: $po-arrow-outer-color;
+          }
+
+          &::after {
+            // Use the header bg color
+            border-bottom-color: $po-arrow-color-bottom;
+          }
+        }
+
+        .popover-header::before {
+          border-bottom-color: $po-header-bg;
+        }
+      }
+
+      &.bs-popover-left {
+        > .arrow {
+          &::before {
+            border-left-color: $po-arrow-outer-color;
+          }
+
+          &::after {
+            border-left-color: $po-arrow-color;
+          }
+        }
+      }
+
+      &.bs-popover-auto {
+        &[x-placement^="top"] {
+          @extend .bs-popover-top;
+        }
+        &[x-placement^="right"] {
+          @extend .bs-popover-right;
+        }
+        &[x-placement^="bottom"] {
+          @extend .bs-popover-bottom;
+        }
+        &[x-placement^="left"] {
+          @extend .bs-popover-left;
+        }
+      }
+
+      .popover-header {
+        color: $po-header-color;
+        background-color: $po-header-bg;
+        border-bottom-color: darken($po-header-bg, 5%);
+      }
+
+      .popover-body {
+        color: $po-color;
+      }
+    }
+  }
+}
+
+//==============================================
+// Components/Sidebar
+//==============================================
+.b-sidebar-outer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  overflow: visible;
+  z-index: $b-sidebar-zindex;
+}
+
+.b-sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  width: 100vw;
+  height: 100vh;
+  opacity: 0.6;
+}
+
+.b-sidebar {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  width: $b-sidebar-width;
+  max-width: 100%;
+  height: 100vh;
+  max-height: 100%;
+  margin: 0;
+  outline: 0;
+  transform: translateX(0);
+
+  &.slide {
+    transition: transform $b-sidebar-transition-duration ease-in-out;
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  &:not(.b-sidebar-right) {
+    left: 0;
+    right: auto;
+
+    &.slide:not(.show) {
+      transform: translateX(-100%);
+    }
+
+    > .b-sidebar-header .close {
+      margin-left: auto;
+    }
+  }
+
+  &.b-sidebar-right {
+    left: auto;
+    right: 0;
+
+    &.slide:not(.show) {
+      transform: translateX(100%);
+    }
+
+    > .b-sidebar-header .close {
+      margin-right: auto;
+    }
+  }
+
+  > .b-sidebar-header {
+    font-size: $b-sidebar-header-font-size;
+    padding: $b-sidebar-header-padding-y $b-sidebar-header-padding-x;
+    display: flex;
+    flex-direction: row;
+    flex-grow: 0;
+    align-items: center;
+
+    @at-root {
+      // Keep the buttons on the correct end when in RTL mode
+      [dir="rtl"] & {
+        flex-direction: row-reverse;
+      }
+    }
+
+    .close {
+      float: none;
+      font-size: $b-sidebar-header-font-size;
+    }
+  }
+
+  > .b-sidebar-body {
+    flex-grow: 1;
+    height: 100%;
+    overflow-y: auto;
+  }
+
+  > .b-sidebar-footer {
+    flex-grow: 0;
+  }
+}
+
+//==============================================
+// Components/Skeleton
+//==============================================
+// Wrapper
+.b-skeleton-wrapper {
+  cursor: $b-skeleton-loading-cursor;
+}
+
+// Base
+.b-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: $b-skeleton-background-color;
+  cursor: $b-skeleton-loading-cursor;
+  // https://gist.github.com/ayamflow/b602ab436ac9f05660d9c15190f4fd7b
+  mask-image: radial-gradient(white, black);
+
+  // Use `::before` since `::after` is used for the wave-animation
+  &::before {
+    content: "\00a0";
+  }
+}
+
+// Text
+.b-skeleton-text {
+  height: $font-size-base;
+  margin-bottom: $b-skeleton-text-spacing;
+
+  @if $enable-rounded {
+    border-radius: 0.25rem;
+  }
+}
+
+// Button
+.b-skeleton-button {
+  width: $b-skeleton-btn-width;
+  padding: $btn-padding-y $btn-padding-x;
+  font-size: $btn-font-size;
+  line-height: $btn-line-height;
+
+  @if $enable-rounded {
+    border-radius: $btn-border-radius;
+  }
+}
+
+// Avatar
+.b-skeleton-avatar {
+  width: 2.5em;
+  height: 2.5em;
+  border-radius: 50%;
+}
+
+// Input
+.b-skeleton-input {
+  height: $input-height;
+  padding: $input-padding-y $input-padding-x;
+  line-height: $input-line-height;
+  border: $input-border-color solid $input-border-width;
+
+  @if $enable-rounded {
+    border-radius: $input-border-radius;
+  }
+}
+
+// Icon
+.b-skeleton-icon-wrapper {
+  svg {
+    color: $b-skeleton-background-color;
+  }
+}
+
+// Image
+.b-skeleton-img {
+  height: 100%;
+  width: 100%;
+}
+
+// Wave animation
+.b-skeleton-animate-wave {
+  &::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+
+    background: linear-gradient(90deg, transparent, hsla(0, 0%, 100%, 0.4), transparent);
+    animation: b-skeleton-animate-wave $b-skeleton-animation-duration linear infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+      background: none;
+      animation: none;
+    }
+  }
+}
+
+@keyframes b-skeleton-animate-wave {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+// Fade animation
+.b-skeleton-animate-fade {
+  animation: b-skeleton-animate-fade ($b-skeleton-animation-duration / 2) ease-in-out alternate
+    infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes b-skeleton-animate-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
+// Throb animation
+.b-skeleton-animate-throb {
+  animation: b-skeleton-animate-throb ($b-skeleton-animation-duration / 2) ease-in alternate
+    infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes b-skeleton-animate-throb {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0.975);
+  }
+}
+
+
+//==============================================
+// Components/Table
+//==============================================
+// --- General styling ---
+
+.table.b-table {
+  // Table fixed header width layout
+  &.b-table-fixed {
+    // Fixed width columns
+    table-layout: fixed;
+  }
+
+  // Disabled border-collapse
+  // Mainly for use with sticky headers and columns
+  &.b-table-no-border-collapse {
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  // Table busy styling
+  &[aria-busy="true"] {
+    opacity: $b-table-busy-opacity;
+  }
+
+  // Details row styling
+  > tbody > tr.b-table-details > td {
+    border-top: none !important;
+  }
+
+  // Caption positioning
+  > caption {
+    caption-side: bottom;
+  }
+
+  &.b-table-caption-top {
+    > caption {
+      caption-side: top !important;
+    }
+  }
+
+  // Re-declare `table-active` class here so that it can take
+  // precedence over row variants when used on selectable rows
+  // Class can only be applied to rows and not individual cells
+  > tbody > .table-active {
+    &,
+    > th,
+    > td {
+      background-color: $table-active-bg;
+    }
+  }
+
+  // Add special hover styling for `table-active` row variant
+  &.table-hover > tbody > tr.table-active:hover {
+    td,
+    th {
+      color: $table-hover-color;
+      // `$table-hover-bg` default is a very transparent black
+      // We overlay it over the background color to achieve the
+      // same color effect while keeping the background solid
+      background-image: linear-gradient($table-hover-bg, $table-hover-bg);
+      background-repeat: no-repeat;
+    }
+  }
+
+  // Add in missing `bg-active` class for table tbody rows
+  // Bootstrap v4.3 is missing this for dark tables
+  // `bg-active` class cannot be applied to individual cells
+  > tbody > .bg-active {
+    &,
+    > th,
+    > td {
+      // Important is needed to override the standard `bg-variants`
+      // as the also use `!important`
+      background-color: $table-dark-active-bg !important;
+    }
+  }
+
+  // Add special hover styling for `bg-active` row variant (dark tables)
+  &.table-hover.table-dark > tbody > tr.bg-active:hover {
+    td,
+    th {
+      color: $table-dark-hover-color;
+      // `$table-dark-hover-bg` default is a very transparent white
+      // We overlay it over the background color to achieve the
+      // same color effect while keeping the background solid
+      background-image: linear-gradient($table-dark-hover-bg, $table-dark-hover-bg);
+      background-repeat: no-repeat;
+    }
+  }
+}
+
+// --- Table sticky header styling ---
+
+@if $bv-enable-table-sticky {
+  .b-table-sticky-header,
+  .table-responsive,
+  [class*="table-responsive-"] {
+    // Move the table bottom margin to the wrapper
+    margin-bottom: $spacer;
+
+    > .table {
+      // Reset `margin-bottom` to we don't get a space after
+      // the table inside the scroll area
+      margin-bottom: 0;
+    }
+  }
+
+  .b-table-sticky-header {
+    overflow-y: auto;
+    // Annoyingly, when overflow-y is set, browsers convert
+    // 'overflow-x: visible' to 'overflow-x: auto' - so it becomes
+    // responsive in the x axis automatically
+    // Default `max-height` before a scrollbar will show
+    // We don't use `height` as table could be shorter than this value
+    max-height: $b-table-sticky-header-max-height;
+  }
+
+  @media print {
+    // Override any styles (including inline styles)
+    // when printing
+    .b-table-sticky-header {
+      overflow-y: visible !important;
+      max-height: none !important;
+    }
+  }
+
+  @supports (position: sticky) {
+    // Positioning of sticky headers
+    .b-table-sticky-header > .table.b-table > thead > tr > th {
+      // Header cells need to be sticky on top
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    // Positioning of sticky columns
+    // Sticky columns only work when table has sticky
+    // headers and/or is responsive
+    .b-table-sticky-header,
+    .table-responsive,
+    [class*="table-responsive-"] {
+      > .table.b-table {
+        > thead,
+        > tbody,
+        > tfoot {
+          > tr > .b-table-sticky-column {
+            position: sticky;
+            left: 0;
+          }
+        }
+
+        > thead {
+          > tr > .b-table-sticky-column {
+            // z-index needs to be higher than sticky columns and
+            // sticky headers for correct layering
+            z-index: 5;
+          }
+        }
+
+        > tbody,
+        > tfoot {
+          > tr > .b-table-sticky-column {
+            // z-index needs to be lower than sticky header that
+            // is also a sticky column
+            z-index: 2;
+          }
+        }
+      }
+    }
+
+    // Default theme color background for table cells that are sticky
+    // Applied only when no variant is applied to the rows, or no head-variant
+    // Needed because Bootstrap v4 does not have table child elements set up
+    // to inherit their background color from parent element by default
+    //
+    // An issue made at twbs/bootstrap repo for table
+    // background color inheritance:
+    //   https://github.com/twbs/bootstrap/issues/29244
+    // If implemented, would negate the need for all the below SCSS
+    .table.b-table {
+      > thead,
+      > tbody,
+      > tfoot {
+        > tr > .table-b-table-default {
+          // Default cell color
+          color: $table-color;
+          // `$table-bg` is null by default in Bootstrap v4 variables
+          // but could have a value set by the consumer
+          background-color: if($table-bg, $table-bg, $body-bg);
+        }
+      }
+
+      &.table-dark {
+        > thead,
+        > tbody,
+        > tfoot {
+          > tr > .bg-b-table-default {
+            // Default cell color in table dark mode
+            color: $table-dark-color;
+            // Default cell background color in table dark mode
+            background-color: $table-dark-bg;
+          }
+        }
+      }
+
+      // Handle case of zebra striping
+      &.table-striped {
+        // "fake" zebra striping via use of a transparent background image
+        > tbody > tr:nth-of-type(#{$table-striped-order}) > .table-b-table-default {
+          // `$table-accent-bg` (used for striping) default is a very transparent black
+          // We overlay it over the background color to achieve the same color
+          // effect while keeping the background solid.
+          background-image: linear-gradient($table-accent-bg, $table-accent-bg);
+          background-repeat: no-repeat;
+        }
+
+        &.table-dark {
+          > tbody > tr:nth-of-type(#{$table-striped-order}) > .bg-b-table-default {
+            // `$table-dark-accent-bg` (used for striping) default is a very transparent white
+            // We overlay it over the background color to achieve the same color
+            // effect while keeping the background solid.
+            background-image: linear-gradient($table-dark-accent-bg, $table-dark-accent-bg);
+            background-repeat: no-repeat;
+          }
+        }
+      }
+
+      // Handle case of hover
+      &.table-hover {
+        // "fake" hover via use of a transparent background image
+        > tbody > tr:hover > .table-b-table-default {
+          color: $table-hover-color;
+          // `$table-hover-bg` default is a very transparent black
+          // We overlay it over the background color to achieve the same color
+          // effect while keeping the background solid.
+          background-image: linear-gradient($table-hover-bg, $table-hover-bg);
+          background-repeat: no-repeat;
+        }
+
+        &.table-dark {
+          > tbody > tr:hover > .bg-b-table-default {
+            color: $table-dark-hover-color;
+            // `$table-dark-hover-bg` default is a very transparent white
+            // We overlay it over the background color to achieve the same color
+            // effect while keeping the background solid.
+            background-image: linear-gradient($table-dark-hover-bg, $table-dark-hover-bg);
+            background-repeat: no-repeat;
+          }
+        }
+      }
+    }
+  }
+}
+
+// --- Header sort styling ---
+
+// Bootstrap v4.4 will include this variable as `$escaped-characters`
+// But if we want to preserve backwards compatibility with v4.3, we leave this in
+$bv-escaped-characters: (("<", "%3c"), (">", "%3e"), ("#", "%23"));
+
+// Bootstrap v4.4 will include this method as `escape-svg`
+// But if we want to preserve backwards compatibility with v4.3, we leave this in
+// See https://codepen.io/kevinweber/pen/dXWoRw
+@function bv-escape-svg($string) {
+  @if str-index($string, "data:image/svg+xml") {
+    @each $char, $encoded in $bv-escaped-characters {
+      $string: str-replace($string, $char, $encoded);
+    }
+  }
+
+  @return $string;
+}
+
+.table.b-table {
+  > thead,
+  > tfoot {
+    > tr {
+      > [aria-sort] {
+        cursor: pointer;
+        background-image: none;
+        background-repeat: no-repeat;
+        background-size: $b-table-sort-icon-bg-width $b-table-sort-icon-bg-height;
+
+        &:not(.b-table-sort-icon-left) {
+          // Default is icon on the right
+          background-position: right calc(#{$table-cell-padding} / 2) center;
+          padding-right: calc(#{$table-cell-padding} + #{$b-table-sort-icon-bg-width});
+        }
+
+        &.b-table-sort-icon-left {
+          // Left aligned sort icon
+          background-position: left calc(#{$table-cell-padding} / 2) center;
+          padding-left: calc(#{$table-cell-padding} + #{$b-table-sort-icon-bg-width});
+        }
+      }
+
+      > [aria-sort="none"] {
+        background-image: bv-escape-svg($b-table-sort-icon-bg-not-sorted);
+      }
+
+      > [aria-sort="ascending"] {
+        background-image: bv-escape-svg($b-table-sort-icon-bg-ascending);
+      }
+
+      > [aria-sort="descending"] {
+        background-image: bv-escape-svg($b-table-sort-icon-bg-descending);
+      }
+    }
+  }
+
+  // Sort icons for dark tables, headers, footers
+  &.table-dark > thead > tr,
+  &.table-dark > tfoot > tr,
+  > .thead-dark > tr {
+    > [aria-sort="none"] {
+      background-image: bv-escape-svg($b-table-sort-icon-bg-dark-not-sorted);
+    }
+
+    > [aria-sort="ascending"] {
+      background-image: bv-escape-svg($b-table-sort-icon-bg-dark-ascending);
+    }
+
+    > [aria-sort="descending"] {
+      background-image: bv-escape-svg($b-table-sort-icon-bg-dark-descending);
+    }
+  }
+
+  // Sort icons when header cell has `table-dark` class
+  > thead > tr > .table-dark,
+  > tfoot > tr > .table-dark {
+    &[aria-sort="none"] {
+      background-image: bv-escape-svg($b-table-sort-icon-bg-dark-not-sorted);
+    }
+
+    &[aria-sort="ascending"] {
+      background-image: bv-escape-svg($b-table-sort-icon-bg-dark-ascending);
+    }
+
+    &[aria-sort="descending"] {
+      background-image: bv-escape-svg($b-table-sort-icon-bg-dark-descending);
+    }
+  }
+
+  // Padding and position adjustment for small tables
+  &.table-sm {
+    > thead,
+    > tfoot {
+      > tr > [aria-sort] {
+        &:not(.b-table-sort-icon-left) {
+          // Default is icon on the right
+          background-position: right calc(#{$table-cell-padding-sm} / 2) center;
+          padding-right: calc(#{$table-cell-padding-sm} + #{$b-table-sort-icon-bg-width});
+        }
+
+        &.b-table-sort-icon-left {
+          // Left aligned sort icon
+          background-position: left calc(#{$table-cell-padding-sm} / 2) center;
+          padding-left: calc(#{$table-cell-padding-sm} + #{$b-table-sort-icon-bg-width});
+        }
+      }
+    }
+  }
+}
+
+// --- Selectable rows ---
+.table.b-table {
+  &.b-table-selectable:not(.b-table-selectable-no-click) {
+    & > tbody > tr {
+      cursor: pointer;
+    }
+
+    &.b-table-selecting {
+      // Disabled text-selection when in range mode when
+      // at least one row selected
+      &.b-table-select-range > tbody > tr {
+        user-select: none;
+      }
+    }
+  }
+}
+
+// --- Stacked tables ---
+@if $bv-enable-table-stacked {
+  .table.b-table {
+    &.b-table-stacked {
+      @each $breakpoint in map-keys($grid-breakpoints) {
+        $next: breakpoint-next($breakpoint, $grid-breakpoints);
+        $infix: breakpoint-infix($next, $grid-breakpoints);
+
+        &#{$infix} {
+          @include media-breakpoint-down($breakpoint) {
+            display: block;
+            width: 100%;
+
+            // Convert to blocks when stacked
+            > caption,
+            > tbody,
+            > tbody > tr,
+            > tbody > tr > td,
+            > tbody > tr > th {
+              display: block;
+            }
+
+            // Hide when stacked
+            > thead,
+            > tfoot {
+              display: none;
+
+              > tr.b-table-top-row,
+              > tr.b-table-bottom-row {
+                display: none;
+              }
+            }
+
+            // Caption positioning
+            > caption {
+              caption-side: top !important;
+            }
+
+            > tbody {
+              > tr {
+                // Turn cells with labels into micro-grids
+                > [data-label] {
+                  // Cell header label pseudo element
+                  &::before {
+                    content: attr(data-label);
+                    width: $b-table-stacked-heading-width;
+                    float: left;
+                    text-align: right;
+                    overflow-wrap: break-word;
+                    font-weight: bold;
+                    font-style: normal;
+                    padding: 0 calc(#{$b-table-stacked-gap} / 2) 0 0;
+                    margin: 0;
+                  }
+
+                  // Add clearfix in-case field label wraps
+                  &::after {
+                    display: block;
+                    clear: both;
+                    content: "";
+                  }
+
+                  // Cell value (we wrap the cell value in a div when stacked)
+                  > div {
+                    display: inline-block;
+                    width: calc(100% - #{$b-table-stacked-heading-width});
+                    // Add "gap" between "cells"
+                    padding: 0 0 0 calc(#{$b-table-stacked-gap} / 2);
+                    margin: 0;
+                  }
+                }
+
+                // Dont show the fixed top/bottom rows
+                &.top-row,
+                &.bottom-row {
+                  display: none;
+                }
+
+                // Give the top cell of each "row" a heavy border
+                > :first-child {
+                  border-top-width: (3 * $table-border-width);
+                }
+
+                // Give any cell after a rowspan'ed cell a heavy top border
+                > [rowspan] + td,
+                > [rowspan] + th {
+                  border-top-width: (3 * $table-border-width);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+//========================================================================
+// Components/Time
+//========================================================================
+// BTime custom SCSS
+
+.b-time {
+  min-width: 150px;
+
+  &[aria-disabled="true"] output,
+  &[aria-readonly="true"] output,
+  output.disabled {
+    background-color: $input-disabled-bg;
+    opacity: 1;
+  }
+
+  &[aria-disabled="true"] output {
+    pointer-events: none;
+  }
+
+  @at-root {
+    // Prevent the spinbuttons from reversing order in RTL mode
+    // as time is always read LTR
+    [dir="rtl"] & > .d-flex:not(.flex-column) {
+      flex-direction: row-reverse;
+    }
+  }
+
+  .b-time-header {
+    margin-bottom: 0.5rem;
+
+    output {
+      padding: 0.25rem;
+      font-size: 80%;
+    }
+  }
+
+  .b-time-footer {
+    margin-top: 0.5rem;
+  }
+
+  .b-time-ampm {
+    margin-left: 0.5rem;
+  }
+}
+
+//========================================================================
+// Components/Toast
+//========================================================================
+// --- <b-toast> custom SCSS ---
+
+// Toast wrapper element class (needed for list transition in toasters)
+.b-toast {
+  display: block;
+  position: relative;
+  max-width: $toast-max-width;
+  backface-visibility: hidden;
+  background-clip: padding-box;
+
+  z-index: 1;
+  @include border-radius($toast-border-radius);
+
+  .toast {
+    // Allow us to override Bootstrap's default toast opacity
+    // As they do not provide it as a variable
+    background-color: rgba($toast-background-color, $b-toast-background-opacity);
+  }
+
+  &:not(:last-child) {
+    margin-bottom: $toast-padding-x;
+  }
+
+  &.b-toast-solid {
+    .toast {
+      background-color: rgba($toast-background-color, 1);
+    }
+  }
+
+  .toast {
+    // Override default Bootstrap v4.x opacity of 0
+    // Needed for re-usable fade transition
+    opacity: 1;
+
+    &.fade:not(.show) {
+      opacity: 0;
+    }
+
+    .toast-body {
+      display: block; // Needed when we use a link as the body element
+    }
+  }
+}
+
+@mixin b-toast-variant($background, $border, $color) {
+  // Based on alert-variant mixin
+  .toast {
+    background-color: rgba(lighten($background, 5%), $b-toast-background-opacity);
+    border-color: rgba($border, $b-toast-background-opacity);
+    color: $color;
+
+    .toast-header {
+      color: $color;
+      background-color: rgba($background, $b-toast-background-opacity);
+      border-bottom-color: rgba($border, $b-toast-background-opacity);
+    }
+
+    // .toast-body[href] {
+    //   color: darken($color, 10%);
+    // }
+  }
+
+  &.b-toast-solid {
+    .toast {
+      background-color: rgba(lighten($background, 5%), 1);
+    }
+  }
+}
+
+// Toast variants
+@each $color, $value in $theme-colors {
+  .b-toast-#{$color} {
+    @include b-toast-variant(
+      theme-color-level($color, $b-toast-bg-level),
+      theme-color-level($color, $b-toast-border-level),
+      theme-color-level($color, $b-toast-color-level)
+    );
+  }
+}
+
+// --- <b-toaster> custom SCSS ---
+
+// Base toaster styling
+.b-toaster {
+  z-index: $b-toaster-zindex;
+
+  .b-toaster-slot {
+    position: relative;
+    display: block;
+
+    &:empty {
+      display: none !important;
+    }
+  }
+}
+
+// Built-in toaster styling
+//  - b-toaster-top-right
+//  - b-toaster-top-left
+//  - b-toaster-top-center
+//  - b-toaster-top-full
+//  - b-toaster-bottom-right
+//  - b-toaster-bottom-left
+//  - b-toaster-bottom-center
+//  - b-toaster-bottom-full
+.b-toaster {
+  &.b-toaster-top-right,
+  &.b-toaster-top-left,
+  &.b-toaster-top-center,
+  &.b-toaster-top-full,
+  &.b-toaster-bottom-right,
+  &.b-toaster-bottom-left,
+  &.b-toaster-bottom-center,
+  &.b-toaster-bottom-full {
+    position: fixed;
+    left: $b-toaster-offset-left;
+    right: $b-toaster-offset-right;
+    margin: 0;
+    padding: 0;
+    height: 0;
+    overflow: visible;
+
+    .b-toaster-slot {
+      position: absolute;
+      max-width: $toast-max-width;
+      width: 100%; /* IE 11 fix */
+      left: 0;
+      right: 0;
+      padding: 0;
+      margin: 0;
+    }
+  }
+
+  &.b-toaster-top-full,
+  &.b-toaster-bottom-full {
+    .b-toaster-slot {
+      width: 100%;
+      max-width: 100%;
+
+      .b-toast,
+      .toast {
+        // Override Bootstrap toast max-width
+        width: 100%;
+        max-width: 100%;
+      }
+    }
+  }
+
+  &.b-toaster-top-right,
+  &.b-toaster-top-left,
+  &.b-toaster-top-center,
+  &.b-toaster-top-full {
+    top: 0;
+
+    .b-toaster-slot {
+      top: $b-toaster-offset-top;
+    }
+  }
+
+  &.b-toaster-bottom-right,
+  &.b-toaster-bottom-left,
+  &.b-toaster-bottom-center,
+  &.b-toaster-bottom-full {
+    bottom: 0;
+
+    .b-toaster-slot {
+      bottom: $b-toaster-offset-bottom;
+    }
+  }
+
+  &.b-toaster-top-right,
+  &.b-toaster-bottom-right,
+  &.b-toaster-top-center,
+  &.b-toaster-bottom-center {
+    .b-toaster-slot {
+      margin-left: auto;
+    }
+  }
+
+  &.b-toaster-top-left,
+  &.b-toaster-bottom-left,
+  &.b-toaster-top-center,
+  &.b-toaster-bottom-center {
+    .b-toaster-slot {
+      margin-right: auto;
+    }
+  }
+}
+
+// --- <b-toast> custom transition SCSS ---
+
+// PortalVue appears to have issues with transition classes on portaled items
+
+.b-toaster {
+  &.b-toaster-top-right,
+  &.b-toaster-top-left,
+  &.b-toaster-bottom-right,
+  &.b-toaster-bottom-left {
+    .b-toast {
+      &.b-toaster-enter-active,
+      &.b-toaster-leave-active,
+      &.b-toaster-move {
+        transition: transform 0.175s;
+      }
+
+      &.b-toaster-enter {
+      }
+
+      &.b-toaster-enter-to,
+      &.b-toaster-enter-active {
+        .toast.fade {
+          // Delay the appearance of the toast until
+          // the move transition has completed
+          transition-delay: 0.175s;
+        }
+      }
+
+      &.b-toaster-enter-to {
+      }
+
+      &.b-toaster-leave-active {
+        position: absolute;
+        transition-delay: 0.175s;
+
+        .toast.fade {
+          transition-delay: 0s;
+        }
+      }
+
+      &.b-toaster-leave-to {
+      }
+    }
+  }
+}
+
+
+//========================================================================
+// Components/Tooltip
+//========================================================================
+// Some overrides to make tooltip transitions work with Vue `<transition>`
+.tooltip.b-tooltip {
+  display: block;
+  opacity: $tooltip-opacity;
+  // Needed due to Bootstrap v4.4 reboot.css changes
+  outline: 0;
+
+  &.fade:not(.show) {
+    opacity: 0;
+  }
+
+  &.show {
+    opacity: $tooltip-opacity;
+  }
+
+  // Disabled pointer events when in 'noninteractive' mode to hide
+  // the tooltip when the user hovers over its content
+  &.noninteractive {
+    pointer-events: none;
+  }
+
+  .arrow {
+    margin: 0 $tooltip-border-radius;
+  }
+
+  &.bs-tooltip-right,
+  &.bs-tooltip-left {
+    .arrow {
+      margin: $tooltip-border-radius 0;
+    }
+  }
+}
+
+// Create custom variants for tooltips
+@if $bv-enable-tooltip-variants {
+  @each $variant, $value in $theme-colors {
+    .tooltip.b-tooltip-#{$variant} {
+      $tip-bg-color: theme-color-level($variant, $b-tooltip-bg-level);
+      $tip-text-color: color-yiq($tip-bg-color);
+
+      &.bs-tooltip-top {
+        .arrow::before {
+          border-top-color: $tip-bg-color;
+        }
+      }
+
+      &.bs-tooltip-right {
+        .arrow::before {
+          border-right-color: $tip-bg-color;
+        }
+      }
+
+      &.bs-tooltip-bottom {
+        .arrow::before {
+          border-bottom-color: $tip-bg-color;
+        }
+      }
+
+      &.bs-tooltip-left {
+        .arrow::before {
+          border-left-color: $tip-bg-color;
+        }
+      }
+
+      &.bs-tooltip-auto {
+        &[x-placement^="top"] {
+          @extend .bs-tooltip-top;
+        }
+        &[x-placement^="right"] {
+          @extend .bs-tooltip-right;
+        }
+        &[x-placement^="bottom"] {
+          @extend .bs-tooltip-bottom;
+        }
+        &[x-placement^="left"] {
+          @extend .bs-tooltip-left;
+        }
+      }
+
+      .tooltip-inner {
+        color: $tip-text-color;
+        background-color: $tip-bg-color;
+      }
+    }
+  }
+}
+
+//========================================================================
+// Icons
+//========================================================================
+// Base icon styling
+.b-icon {
+  &.bi {
+    display: inline-block;
+    overflow: visible;
+    // The following is required to compensate for alignment
+    // issues with the Bootstrap Icons alpha implementation
+    vertical-align: $b-icon-vertical-offset;
+  }
+
+  &.b-icon-animation-cylon,
+  &.b-iconstack .b-icon-animation-cylon > g {
+    transform-origin: center;
+    animation: $b-icon-animation-cylon-duration infinite ease-in-out alternate
+      b-icon-animation-cylon;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-cylon-vertical,
+  &.b-iconstack .b-icon-animation-cylon-vertical > g {
+    transform-origin: center;
+    animation: $b-icon-animation-cylon-vertical-duration infinite ease-in-out alternate
+      b-icon-animation-cylon-vertical;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-fade,
+  &.b-iconstack .b-icon-animation-fade > g {
+    transform-origin: center;
+    animation: $b-icon-animation-throb-duration infinite ease-in-out alternate b-icon-animation-fade;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-spin,
+  &.b-iconstack .b-icon-animation-spin > g {
+    transform-origin: center;
+    animation: $b-icon-animation-spin-duration infinite linear normal b-icon-animation-spin;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-spin-reverse,
+  &.b-iconstack .b-icon-animation-spin-reverse > g {
+    transform-origin: center;
+    animation: $b-icon-animation-spin-reverse-duration infinite linear reverse b-icon-animation-spin;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-spin-pulse,
+  &.b-iconstack .b-icon-animation-spin-pulse > g {
+    transform-origin: center;
+    animation: $b-icon-animation-spin-pulse-duration infinite steps(8) normal b-icon-animation-spin;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-spin-reverse-pulse,
+  &.b-iconstack .b-icon-animation-spin-reverse-pulse > g {
+    transform-origin: center;
+    animation: $b-icon-animation-spin-reverse-pulse-duration infinite steps(8) reverse
+      b-icon-animation-spin;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  &.b-icon-animation-throb,
+  &.b-iconstack .b-icon-animation-throb > g {
+    transform-origin: center;
+    animation: $b-icon-animation-throb-duration infinite ease-in-out alternate
+      b-icon-animation-throb;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+}
+
+// Animation for spinning icons
+@keyframes b-icon-animation-cylon {
+  0% {
+    transform: translateX(-25%);
+  }
+  100% {
+    transform: translateX(25%);
+  }
+}
+
+@keyframes b-icon-animation-cylon-vertical {
+  0% {
+    transform: translateY(25%);
+  }
+  100% {
+    transform: translateY(-25%);
+  }
+}
+
+@keyframes b-icon-animation-fade {
+  0% {
+    opacity: 0.1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes b-icon-animation-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(359deg);
+  }
+}
+
+@keyframes b-icon-animation-throb {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.5);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Make icons slightly larger in buttons, nav-links, dropdowns, and input-group-text
+.btn,
+.nav-link,
+.dropdown-toggle,
+.dropdown-item,
+.input-group-text {
+  .b-icon {
+    &.bi {
+      font-size: 125%;
+      vertical-align: text-bottom;
+    }
+  }
+}

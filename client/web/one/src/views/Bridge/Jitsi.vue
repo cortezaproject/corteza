@@ -195,13 +195,13 @@ main {
     max-width: 400px;
     margin: 50px auto;
     padding: 50px;
-    background: $white;
+    background: var(--white);
   }
 
   input {
     height: 30px;
     width: 100%;
-    border: 1px solid $secondary;
+    border: 1px solid var(--secondary);
     padding-left: 10px;
     font-size: 14px;
     display: block;
@@ -224,12 +224,12 @@ main {
     -webkit-appearance:none;
     -moz-appearance:none;
     appearance:none;
-    border: 1px solid $secondary;
+    border: 1px solid var(--secondary);
   }
 
   #roomdropdown::after {
     border: 4px dashed transparent;
-    border-top: 4px solid $secondary;
+    border-top: 4px solid var(--secondary);
     content: "";
     display: inline-block;
     float: right;
@@ -245,7 +245,7 @@ main {
   button {
     cursor: pointer;
     background: transparent;
-    color: $primary;
+    color: var(--primary);
     font-size: 14px;
     line-height: 38px;
     text-decoration: none;
@@ -256,16 +256,16 @@ main {
     margin: 20px auto 0;
     -webkit-transition: color .2s,background-color .2s;
     transition: color .2s,background-color .2s;
-    border: 1px solid $primary;
+    border: 1px solid var(--primary);
     &:hover {
-      border: 1px solid $primary;
-      background: $primary;
-      color: $white;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: var(--white);
     }
     &:disabled {
       cursor: not-allowed;
-      color: $secondary;
-      border-color: $secondary;
+      color: var(--secondary);
+      border-color: var(--secondary);
       &:hover {
         background: transparent;
       }
@@ -279,11 +279,11 @@ main {
     align-items: center;
     text-align: center;
     margin: 30px 0;
-    color: $secondary;
+    color: var(--secondary);
     &:before,
     &:after {
       content: '';
-      border-top: 1px solid $secondary;
+      border-top: 1px solid var(--secondary);
       margin: 0 20px 0 0;
       flex: 1 0 20px;
     }

@@ -75,11 +75,11 @@ export default {
 }
 
 .btn-url {
-  color: $danger;
+  color: var(--danger);
   text-decoration: none;
 
   &:hover {
-    color: $danger;
+    color: var(--danger);
 
     .icon-trash {
       font-weight: 900;

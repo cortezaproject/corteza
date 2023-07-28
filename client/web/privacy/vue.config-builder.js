@@ -1,23 +1,20 @@
-const webpack = require('webpack')
-const exec = require('child_process').execSync
-const path = require('path')
+var webpack = require('webpack')
+var exec = require('child_process').execSync
+var path = require('path')
+var Vue = require('vue')
 
-module.exports = ({ appFlavour, appLabel, version, theme, packageAlias, root = path.resolve('.'), env = process.env.NODE_ENV }) => {
+module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, theme, packageAlias, root = path.resolve('.'), env = process.env.NODE_ENV }) => {
   const isDevelopment = (env === 'development')
   const isTest = (env === 'test')
 
-  if (isTest || isDevelopment) {
-    const Vue = require('vue')
+  if (isTest) {
+    Vue.config.devtools = false
+    Vue.config.productionTip = false
+  }
 
-    if (isTest) {
-      Vue.config.devtools = false
-      Vue.config.productionTip = false
-    }
-
-    if (isDevelopment) {
-      Vue.config.devtools = true
-      Vue.config.performance = true
-    }
+  if (isDevelopment) {
+    Vue.config.devtools = true
+    Vue.config.performance = true
   }
 
   const optimization = isTest ? {} : {
@@ -36,14 +33,14 @@ module.exports = ({ appFlavour, appLabel, version, theme, packageAlias, root = p
 
   return {
     publicPath: './',
-
     lintOnSave: true,
-
     runtimeCompiler: true,
 
     configureWebpack: {
       // other webpack options to merge in ...
 
+      // Make sure webpack is not too nosy
+      // and tries to tinker around linked packages
       resolve: { symlinks: false },
 
       plugins: [
@@ -59,8 +56,26 @@ module.exports = ({ appFlavour, appLabel, version, theme, packageAlias, root = p
     },
 
     chainWebpack: config => {
+      // https://cli.vuejs.org/guide/troubleshooting.html#symbolic-links-in-node-modules
+      config.resolve.symlinks(false)
+
+      // Remove css extraction issues
+      // https://github.com/vuejs/vue-cli/issues/3771#issuecomment-526228100
+      config.plugin('friendly-errors').tap(args => {
+        const vueCli3Transformer = args[0].additionalTransformers[0]
+        args[0].additionalTransformers = [
+          vueCli3Transformer,
+          error => {
+            const regexp = /\[mini-css-extract-plugin\]/
+            if (regexp.test(error.message)) return {}
+            return error
+          },
+        ]
+        return args
+      })
+
       // Do not copy config files (deployment procedure will do that)
-      config.plugin('copy').tap(options => {
+      config.plugins.has('copy') && config.plugin('copy').tap(options => {
         options[0][0].ignore.push('config*js')
         options[0][0].ignore.push('*gitignore')
         return options
@@ -94,6 +109,7 @@ module.exports = ({ appFlavour, appLabel, version, theme, packageAlias, root = p
       scssNormal.use('resolve-url-loader')
         .loader('resolve-url-loader').options({
           keepQuery: true,
+          removeCR: true,
           root: path.join(root, 'src/themes', theme),
         })
         .before('sass-loader')
@@ -103,6 +119,12 @@ module.exports = ({ appFlavour, appLabel, version, theme, packageAlias, root = p
       host: '127.0.0.1',
       hot: true,
       disableHostCheck: true,
+
+      proxy: {
+        '^/custom.css': {
+          target: fetchBaseUrl(),
+        },
+      },
 
       watchOptions: {
         ignored: [
@@ -118,11 +140,30 @@ module.exports = ({ appFlavour, appLabel, version, theme, packageAlias, root = p
     css: {
       sourceMap: isDevelopment,
       loaderOptions: {
-        sass: {
-          // @todo cleanup all components and remove this global import
-          additionalData: `@import "./src/themes/${theme}/variables.scss";`,
-        },
+        sass: {},
       },
     },
+  }
+}
+
+function fetchBaseUrl () {
+  var fs = require('fs')
+  var window = {}
+
+  const fileContents =
+    fs.existsSync('public/config.js')
+      ? fs.readFileSync('public/config.js', 'utf-8')
+      : ''
+
+  try {
+    // eslint-disable-next-line no-eval
+    eval(fileContents)
+
+    const u = window.CortezaAPI || ''
+    const ur = new URL(u.startsWith('//') ? `http:${u}` : u)
+
+    return `${ur.protocol}//${ur.host}/`
+  } catch (e) {
+    return '/'
   }
 }

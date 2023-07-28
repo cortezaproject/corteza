@@ -1,3 +1,6 @@
+// Fonts Path
+$fonts_dir : './fonts/' !default;
+
 @font-face {
   font-family: 'Poppins-Bold';
   src: url($fonts_dir + 'poppins/Poppins-Bold.ttf') format('truetype');

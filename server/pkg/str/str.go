@@ -1,6 +1,8 @@
 package str
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
@@ -63,4 +65,11 @@ func ParseStrings(ss []string) (m map[string]string, err error) {
 	}
 
 	return m, nil
+}
+
+func HashStringSHA256(str string) string {
+	h := sha256.New()
+	h.Write([]byte(str))
+
+	return hex.EncodeToString(h.Sum(nil))
 }

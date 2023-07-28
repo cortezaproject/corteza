@@ -13,6 +13,7 @@ require (
 	github.com/PaesslerAG/gval v1.2.1
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/bep/godartsass/v2 v2.0.0
 	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/crewjam/saml v0.4.13
 	github.com/crusttech/go-oidc v0.0.0-20180918092017-982855dad3e1
@@ -74,7 +75,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 	golang.org/x/text v0.8.0
 	google.golang.org/grpc v1.46.0
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.30.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0
@@ -90,6 +91,7 @@ require (
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cli/safeexec v1.0.1 // indirect
 	github.com/crewjam/httperr v0.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/dlclark/regexp2 v1.8.1 // indirect

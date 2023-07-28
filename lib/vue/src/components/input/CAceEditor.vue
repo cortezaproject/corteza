@@ -93,6 +93,7 @@
         require('brace/mode/text')
         require('brace/mode/html') 
         require('brace/mode/css')
+        require('brace/mode/scss')
         require('brace/mode/javascript')
         require('brace/theme/chrome')
   

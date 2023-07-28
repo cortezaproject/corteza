@@ -14,7 +14,7 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
 
   if (isDevelopment) {
     Vue.config.devtools = true
-    Vue.config.performance = false
+    Vue.config.performance = true
   }
 
   const optimization = isTest ? {} : {
@@ -24,6 +24,7 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
       cacheGroups: {
         vendor: {
           test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
           chunks: 'all',
         },
       },
@@ -37,6 +38,11 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
 
     configureWebpack: {
       // other webpack options to merge in ...
+
+      // Make sure webpack is not too nosy
+      // and tries to tinker around linked packages
+      resolve: { symlinks: false },
+
       plugins: [
         new webpack.DefinePlugin({
           FLAVOUR: JSON.stringify(appFlavour),
@@ -71,10 +77,11 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
       // Do not copy config files (deployment procedure will do that)
       config.plugins.has('copy') && config.plugin('copy').tap(options => {
         options[0][0].ignore.push('config*js')
+        options[0][0].ignore.push('*gitignore')
         return options
       })
 
-      // Aliasing 'corteza-webapp-compose' instead of '@' so we do
+      // Aliasing full package name instead of '@' so we do
       // not break imports on apps that import this code
       config.resolve.alias.delete('@')
       if (packageAlias) {
@@ -113,6 +120,12 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
       hot: true,
       disableHostCheck: true,
 
+      proxy: {
+        '^/custom.css': {
+          target: fetchBaseUrl(),
+        },
+      },
+
       watchOptions: {
         ignored: [
           // Do not watch for changes under node_modules
@@ -127,11 +140,30 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
     css: {
       sourceMap: isDevelopment,
       loaderOptions: {
-        sass: {
-          // @todo cleanup all components and remove this global import
-          additionalData: `@import "./src/themes/${theme}/variables.scss";`,
-        },
+        sass: {},
       },
     },
+  }
+}
+
+function fetchBaseUrl () {
+  var fs = require('fs')
+  var window = {}
+
+  const fileContents =
+    fs.existsSync('public/config.js')
+      ? fs.readFileSync('public/config.js', 'utf-8')
+      : ''
+
+  try {
+    // eslint-disable-next-line no-eval
+    eval(fileContents)
+
+    const u = window.CortezaAPI || ''
+    const ur = new URL(u.startsWith('//') ? `http:${u}` : u)
+
+    return `${ur.protocol}//${ur.host}/`
+  } catch (e) {
+    return '/'
   }
 }

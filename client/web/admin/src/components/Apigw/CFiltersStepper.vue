@@ -211,14 +211,14 @@ export default {
 
 .apigw {
   .nav-link {
-    color: $primary;
+    color: var(--primary);
     border-width: 0 0 3px 0 !important;
     border-color: transparent !important;
   }
 
   .active-tab {
-    color: $primary !important;
-    border-color: $primary !important;
+    color: var(--primary) !important;
+    border-color: var(--primary) !important;
   }
 }
 </style>
