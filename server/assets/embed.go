@@ -57,7 +57,6 @@ func fromPath(path string) (assets fs.FS, err error) {
 
 	if !fi.IsDir() {
 		return nil, fmt.Errorf("expecting directory")
-
 	}
 
 	assets = os.DirFS(path)
@@ -66,4 +65,18 @@ func fromPath(path string) (assets fs.FS, err error) {
 	}
 
 	return
+}
+
+func FileNames(aPath string) (fileNames []string) {
+	files, err := fs.ReadDir(ff, "src/"+aPath)
+	if err != nil {
+		// something is seriously wrong, we might as well panic
+		panic(err)
+	}
+
+	for _, file := range files {
+		fileNames = append(fileNames, file.Name())
+	}
+
+	return fileNames
 }

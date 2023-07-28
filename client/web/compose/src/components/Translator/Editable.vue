@@ -44,7 +44,7 @@ div {
 
 div:empty::before {
   content: attr(placeholder);
-  color: $secondary;
+  color: var(--secondary);
   pointer-events: none;
   display: block; /* For Firefox */
 }

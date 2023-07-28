@@ -190,7 +190,7 @@ export default {
 <style lang="scss" scoped>
 .error {
   font-size: 24px;
-  background-color: $white;
+  background-color: var(--white);
   width: 100vw;
   height: 20vh;
   padding: 60px;

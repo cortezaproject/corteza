@@ -1,53 +1,57 @@
 <template>
   <div>
-    <b-button
-      :style="`color: ${pickedColor}; fill: ${pickedColor};`"
-      class="p-0 rounded-circle bg-white border-white shadow-none"
-      @click="toggleMenu"
-    >
-      <svg
-        viewBox="0 0 32 32"
-        style="width: 32px; height: 32px;"
-        class="border border-light rounded-circle"
-      >
-        <pattern
-          id="checkerboard"
-          width="12"
-          height="12"
-          patternUnits="userSpaceOnUse"
-          fill="FFF"
+    <div class="d-flex align-items-center">
+      <b-button
+          :style="`color: ${pickedColor}; fill: ${pickedColor};`"
+          class="p-0 rounded-circle bg-white border-white shadow-none"
+          @click="toggleMenu"
         >
-          <rect
-            fill="#7080707f"
-            x="0"
-            width="6"
-            height="6"
-            y="0"
-          />
-          <rect
-            fill="#7080707f"
-            x="6"
-            width="6"
-            height="6"
-            y="6"
-          />
-        </pattern>
+          <svg
+            viewBox="0 0 32 32"
+            :style="{ width: width, height: height }"
+            class="border border-light rounded-circle"
+          >
+            <pattern
+              id="checkerboard"
+              width="12"
+              height="12"
+              patternUnits="userSpaceOnUse"
+              fill="FFF"
+            >
+              <rect
+                fill="#7080707f"
+                x="0"
+                width="6"
+                height="6"
+                y="0"
+              />
+              <rect
+                fill="#7080707f"
+                x="6"
+                width="6"
+                height="6"
+                y="6"
+              />
+            </pattern>
 
-        <circle
-          cx="16"
-          cy="16"
-          r="16"
-          fill="url(#checkerboard)"
-        />
+            <circle
+              cx="16"
+              cy="16"
+              r="16"
+              fill="url(#checkerboard)"
+            />
 
-        <circle
-          cx="16"
-          cy="16"
-          r="16"
-        />
-      </svg>
-    </b-button>
-
+            <circle
+              cx="16"
+              cy="16"
+              r="16"
+            />
+          </svg>
+        </b-button>
+        <span v-show="showColorCodeText" class="ml-2">
+          {{ value }}
+        </span>
+    </div>
     <b-modal
       :visible="showModal"
       :title="translations.modalTitle"
@@ -89,6 +93,22 @@ export default {
     translations: {
       type: Object,
     },
+
+    width: {
+      type: String,
+      default: "32px",
+    },
+
+    height: {
+      type: String,
+      default: "32px",
+    },
+
+    showColorCodeText: {
+      type: Boolean,
+      default: false,
+      required: false,
+    }
   },
 
   data () {

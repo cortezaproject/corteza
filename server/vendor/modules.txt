@@ -39,6 +39,10 @@ github.com/beevik/etree
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
 github.com/beorn7/perks/quantile
+# github.com/bep/godartsass/v2 v2.0.0
+## explicit; go 1.19
+github.com/bep/godartsass/v2
+github.com/bep/godartsass/v2/internal/embeddedsass
 # github.com/brianvoe/gofakeit/v6 v6.16.0
 ## explicit; go 1.17
 github.com/brianvoe/gofakeit/v6
@@ -46,6 +50,9 @@ github.com/brianvoe/gofakeit/v6/data
 # github.com/cespare/xxhash/v2 v2.1.2
 ## explicit; go 1.11
 github.com/cespare/xxhash/v2
+# github.com/cli/safeexec v1.0.1
+## explicit; go 1.15
+github.com/cli/safeexec
 # github.com/crewjam/httperr v0.2.0
 ## explicit; go 1.13
 github.com/crewjam/httperr
@@ -616,7 +623,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.28.0
+# google.golang.org/protobuf v1.30.0
 ## explicit; go 1.11
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext

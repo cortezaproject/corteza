@@ -35,7 +35,7 @@
     >
       <c-ace-editor
         v-model="modalCSSInput"
-        lang="css"
+        lang="scss"
         height="500px"
         font-size="14px"
         show-line-numbers

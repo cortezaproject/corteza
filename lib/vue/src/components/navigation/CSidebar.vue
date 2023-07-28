@@ -347,7 +347,7 @@ $sidebar-bg: #F4F7FA;
   transition: left 0.15s ease-in-out;
 
   header {
-    background-color: white;
+    background-color: var(--white);
 
     &.expanded {
       background-color: $sidebar-bg !important;
@@ -372,7 +372,7 @@ $sidebar-bg: #F4F7FA;
     transition: right 0.15s ease-in-out;
 
     header {
-      background-color: white;
+      background-color: var(--white);
 
       &.expanded {
         background-color: $sidebar-bg !important;

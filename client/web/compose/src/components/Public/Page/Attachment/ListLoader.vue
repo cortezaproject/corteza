@@ -365,6 +365,6 @@ export default {
 }
 
 .item:hover {
-  background-color: $gray-200;
+  background-color: var(--gray-200);
 }
 </style>

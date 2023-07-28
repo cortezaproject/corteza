@@ -210,16 +210,16 @@ $line-height: 30px;
 
 .custom-file-label {
   height: $input-height;
-  font-family: $font-regular;
+  font-family: var(--font-regular);
 
   &::after {
     height: 100%;
-    font-family: $btn-font-family;
+    font-family: var(--btn-font-family);
     line-height: $line-height;
-    background-color: $light;
-    color: $dark;
+    background-color: var(--light);
+    color: var(--dark);
     font-weight: 400;
-    padding: $btn-padding-y $btn-padding-x;
+    padding: var(btn-padding-y) var(--btn-padding-x);
   }
 }
 </style>

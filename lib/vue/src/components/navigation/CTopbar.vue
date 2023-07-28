@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center pr-3">
+  <div class="header-navigation d-flex flex-wrap align-items-center sticky-top mb-3 pr-3">
     <div
       class="spacer"
       :class="{
@@ -287,8 +287,15 @@ $nav-user-icon-size: 50px;
 .header-navigation {
   width: 100vw;
   min-height: $header-height;
-  background-color: #F9FAFB !important;
+  background-color: var(--gray-200) !important;
+  padding-left: calc(3.5rem + 6px);
 }
+
+.topbar-dropdown-menu {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
 
 .avatar {
   border-radius: 50%;

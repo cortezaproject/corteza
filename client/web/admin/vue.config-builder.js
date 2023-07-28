@@ -115,10 +115,7 @@ module.exports = ({ appFlavour, appName, appLabel, version, theme, packageAlias,
     css: {
       sourceMap: isDevelopment,
       loaderOptions: {
-        sass: {
-          // @todo cleanup all components and remove this global import
-          additionalData: `@import "./src/themes/${theme}/variables.scss";`,
-        },
+        sass: {},
       },
     },
   }

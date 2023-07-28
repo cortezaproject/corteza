@@ -156,7 +156,7 @@ export default {
   .filtered-role {
     cursor: pointer;
     &:hover {
-      background-color: $light;
+      background-color: var(--light);
     }
   }
 }

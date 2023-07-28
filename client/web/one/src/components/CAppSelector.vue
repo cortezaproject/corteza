@@ -330,7 +330,7 @@ export default {
     background-color: transparent;
     border: none;
     .star-icon {
-      fill: $warning;
+      fill: var(--warning);
       width: 1.2rem;
       height: 1.2rem;
     }

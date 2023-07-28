@@ -1919,7 +1919,7 @@ export default {
 th .required::after {
   content: "*";
   display: inline-block;
-  color: $primary;
+  color: var(--primary);
   vertical-align: sub;
   margin-left: 2px;
   width: 10px;
@@ -1929,7 +1929,7 @@ th .required::after {
 
 tr:hover td.actions {
   opacity: 1;
-  background-color: $gray-200;
+  background-color: var(--gray-200);
   z-index: 1;
 }
 
@@ -1942,10 +1942,10 @@ tr:hover td.actions {
 
 td:hover .inline-actions {
   opacity: 1;
-  background-color: $gray-200;
+  background-color: var(--gray-200);
 
   button:hover {
-    color: $primary !important;
+    color: var(--primary) !important;
   }
 }
 </style>
@@ -1960,7 +1960,7 @@ td:hover .inline-actions {
   width: 1%;
 
   .regular-font {
-    font-family: $font-regular !important;
+    font-family: var(--font-regular) !important;
   }
 }
 

@@ -250,6 +250,10 @@ type (
 
 			CustomCSS string `kv:"custom-css" json:"customCSS"`
 
+			Branding struct {
+				Variables []string `json:"variables"`
+			} `kv:"branding" json:"branding"`
+
 			Topbar struct {
 				HideAppSelector        bool `json:"hideAppSelector"`
 				HideHelp               bool `json:"hideHelp"`

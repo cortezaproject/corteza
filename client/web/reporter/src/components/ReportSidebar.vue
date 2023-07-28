@@ -98,7 +98,7 @@ export default {
 
 // Using font-weight-bold moves the sidebar nav content; text-stroke keeps in nicely in place
 .nav-active {
-  color: $primary;
-  -webkit-text-stroke: 0.4px $primary;
+  color: var(--primary);
+  -webkit-text-stroke: 0.4px var(--primary);
 }
 </style>

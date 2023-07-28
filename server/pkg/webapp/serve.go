@@ -3,6 +3,8 @@ package webapp
 import (
 	"bytes"
 	"fmt"
+	"github.com/bep/godartsass/v2"
+	"github.com/cortezaproject/corteza/server/assets"
 	"io"
 	"net/http"
 	"os"
@@ -148,7 +150,59 @@ func serveConfig(r chi.Router, config webappConfig) {
 	r.Get(options.CleanBase(config.appUrl, "custom.css"), func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/css")
 
-		_, _ = fmt.Fprint(w, config.settings.UI.CustomCSS)
+		var sassString string
+
+		assetFiles := assets.Files(logger.Default(), "")
+
+		if len(config.settings.UI.Branding.Variables) > 0 {
+			sassString += strings.Join(config.settings.UI.Branding.Variables, ";\n") + ";"
+		}
+
+		// Get SASS variables from the custom CSS editor and give them precedence over branding variables
+		variablesPattern := regexp.MustCompile(`(\$[a-zA-Z_-]+):\s*([^;]+);`)
+		customVariables := variablesPattern.FindAllString(config.settings.UI.CustomCSS, -1)
+
+		sassString += strings.Join(customVariables, "\n")
+
+		// Boostrap, bootstrap-vue and custom variables scss files
+		fileNames := assets.FileNames("scss")
+		for _, fileName := range fileNames {
+			open, err := assetFiles.Open("scss/" + fileName)
+			if err != nil {
+				logger.Default().Error(fmt.Sprintf("failed to open asset %s file", fileName), zap.Error(err))
+				return
+			}
+			fileContent, err := io.ReadAll(open)
+			if err != nil {
+				return
+			}
+			sassString += string(fileContent)
+		}
+
+		//Custom CSS editor selector block
+		selectorBlock := variablesPattern.ReplaceAllString(config.settings.UI.CustomCSS, "")
+		sassString += selectorBlock
+
+		// Process Sass
+		args := godartsass.Args{
+			Source: sassString,
+		}
+
+		t, err := godartsass.Start(godartsass.Options{
+			DartSassEmbeddedFilename: "sass",
+		})
+
+		if err != nil {
+			panic(err.Error())
+		}
+
+		execute, err := t.Execute(args)
+		if err != nil {
+			logger.Default().Error("Sass syntax error", zap.Error(err))
+			return
+		}
+
+		_, _ = fmt.Fprint(w, execute.CSS)
 	})
 }
 

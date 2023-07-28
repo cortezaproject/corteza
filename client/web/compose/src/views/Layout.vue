@@ -315,7 +315,7 @@ export default {
   transition: min-width 0.2s ease-in-out;
 
   &.expanded {
-    min-width: $sidebar-width;
+    min-width: var(--sidebar-width);
     -webkit-transition: min-width 0.2s ease-in-out;
     -moz-transition: min-width 0.2s ease-in-out;
     -o-transition: min-width 0.2s ease-in-out;

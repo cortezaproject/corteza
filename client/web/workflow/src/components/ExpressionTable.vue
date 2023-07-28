@@ -195,7 +195,7 @@ export default {
   background-color: #F3F3F5;
 
   .grab > * {
-    color: $secondary !important;
+    color: var(--secondary) !important;
   }
 }
 </style>
