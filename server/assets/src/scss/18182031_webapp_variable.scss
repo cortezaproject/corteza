@@ -1,8 +1,9 @@
-$wideminwidth:767px !default;
-$confortableminwidth:1020px !default;
+//================================================
+// Webapp Variables
+//================================================
 
-// Paths
-$fonts_dir : './fonts/' !default;
+$wideminwidth: 767px !default;
+$confortableminwidth: 1020px !default;
 
 // Typography
 $font-light: 'Poppins-Light' !default;
@@ -23,17 +24,21 @@ $secondary:     #758D9B !default;
 $success:       #43AA8B !default;
 $warning:       #E2A046 !default;
 $danger:        #E54122 !default;
-$light:         #F3F5F7 !default;
+$light:         #E4E9EF !default;
+$extra-light:   #F3F5F7 !default;
 $dark:          #162425 !default;
 $tertiary:      #5E727E !default;
 
 $gray-200:      #F9FAFB !default;
 
+// Body
+$body-bg: $gray-200 !default;
+
 $theme-colors: () !default;
 $theme-colors: map-merge(
   (
     "white": $white,
-    "tertiary": $tertiary,
+    "tertiary": $tertiary
   ),
   $theme-colors
 );
@@ -51,9 +56,6 @@ $grid-breakpoints: (
 $enable-rounded:   true !default;
 $enable-gradients: false !default;
 $enable-responsive-font-sizes: true !default;
-
-// Body
-$body-bg: $gray-200 !default;
 
 // Card
 $card-border-radius: 1rem !default;
@@ -112,6 +114,24 @@ $input-border-width:  2px !default;
 $input-btn-focus-width:     0 !default;
 $input-focus-box-shadow:    none !default;
 $input-focus-border-color:  $primary !default;
+
+$corteza-specific: () !default;
+$corteza-specific: map-merge(
+  (
+    "gray-200": $gray-200,
+    "body-bg": $body-bg,
+    "sidebar-width": $sidebar-width,
+    "font-regular": $font-regular,
+    "font-semibold": $font-semibold,
+    "font-family-base": $font-family-base,
+    "font-medium": $font-medium,
+    "btn-font-family": $btn-font-family,
+    "btn-padding-x": $btn-padding-x,
+    "btn-padding-y": $btn-padding-y,
+    "topbar-height": $topbar-height
+  ),
+  $corteza-specific
+);
 
 /* stylelint-disable */
 // This is used within corteza-webapp-compose/src/lib/block/Calendar/feedLoader/

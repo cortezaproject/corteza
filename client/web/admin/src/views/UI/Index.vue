@@ -11,6 +11,15 @@
       :can-manage="canManage"
     />
 
+    <c-ui-branding-editor
+      :settings="settings"
+      :processing="branding.processing"
+      :success="branding.success"
+      :can-manage="canManage"
+      class="mt-3"
+      @submit="onSubmit($event, 'branding')"
+    />
+
     <c-ui-custom-css
       :settings="settings"
       :processing="customCSS.processing"
@@ -34,6 +43,7 @@
 <script>
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUILogoEditor from 'corteza-webapp-admin/src/components/Settings/UI/CUILogoEditor'
+import CUIBrandingEditor from '../../components/Settings/UI/CUIBrandingEditor.vue'
 import CUICustomCSS from 'corteza-webapp-admin/src/components/Settings/UI/CUICustomCSS.vue'
 import CUITopbarSettings from 'corteza-webapp-admin/src/components/Settings/UI/CUITopbarSettings'
 import { mapGetters } from 'vuex'
@@ -49,6 +59,7 @@ export default {
   components: {
     'c-ui-logo-editor': CUILogoEditor,
     'c-ui-custom-css': CUICustomCSS,
+    'c-ui-branding-editor': CUIBrandingEditor,
     'c-ui-topbar-settings': CUITopbarSettings,
   },
 
@@ -66,6 +77,11 @@ export default {
       },
 
       customCSS: {
+        processing: false,
+        success: false,
+      },
+
+      branding: {
         processing: false,
         success: false,
       },
@@ -117,6 +133,11 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:settings.ui.update.error')))
         .finally(() => {
           this[type].processing = false
+
+          // Refresh the page if branding or custom CSS was updated
+          if (type === 'branding' || type === 'customCSS') {
+            window.location.reload()
+          }
         })
     },
   },

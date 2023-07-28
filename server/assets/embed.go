@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 
 	"go.uber.org/zap"
 )
@@ -57,7 +58,6 @@ func fromPath(path string) (assets fs.FS, err error) {
 
 	if !fi.IsDir() {
 		return nil, fmt.Errorf("expecting directory")
-
 	}
 
 	assets = os.DirFS(path)
@@ -66,4 +66,28 @@ func fromPath(path string) (assets fs.FS, err error) {
 	}
 
 	return
+}
+
+func DirEntries(dir string) (fileNames, subDirs []string, err error) {
+	dirEntries, err := fs.ReadDir(ff, path.Join("src", dir))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, dirEntry := range dirEntries {
+		fileInfo, err := dirEntry.Info()
+		if err != nil {
+			return nil, nil, err
+		}
+
+		// if the entry is a directory skip it
+		if fileInfo.IsDir() {
+			subDirs = append(subDirs, dirEntry.Name())
+			continue
+		}
+
+		fileNames = append(fileNames, dirEntry.Name())
+	}
+
+	return fileNames, subDirs, err
 }

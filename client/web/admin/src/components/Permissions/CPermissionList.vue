@@ -503,14 +503,14 @@ export default {
   cursor: not-allowed;
 }
 .active-cell:hover {
-  background-color: $gray-200;
+  background-color: var(--gray-200);
 }
 .rotate {
   transform: rotate(45deg);
 }
 .hide-role:hover {
   .rotate {
-    color: $dark !important;
+    color: var(--dark) !important;
   }
 }
 </style>
@@ -518,7 +518,7 @@ export default {
 <style lang="scss">
 .mode {
   .btn {
-    background-color: $light;
+    background-color: var(--light);
     border: none;
   }
 

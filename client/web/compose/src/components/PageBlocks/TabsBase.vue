@@ -201,7 +201,7 @@ export default {
 <style lang="scss">
 .tabs-base-block-container .nav-pills {
   .active .edit-block-btn {
-    color: $white !important;
+    color: var(--white) !important;
   }
 }
 </style>

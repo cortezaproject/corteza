@@ -1504,7 +1504,7 @@ export default {
 
 <style lang="scss" scoped>
 .selected-icon {
-  outline: 2px solid $success;
+  outline: 2px solid var(--success);
 }
 
 .list-background {

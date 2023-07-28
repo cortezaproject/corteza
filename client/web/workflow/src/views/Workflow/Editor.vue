@@ -247,7 +247,7 @@ export default {
     margin: 0 auto;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-bottom: 10px solid $light;
+    border-bottom: 10px solid var(--light);
   }
 }
 </style>

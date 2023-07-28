@@ -360,7 +360,7 @@ export default {
   opacity: 1;
 
   button:hover {
-    color: $primary !important;
+    color: var(--primary) !important;
   }
 }
 </style>

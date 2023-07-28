@@ -110,6 +110,6 @@ export default {
 
 <style lang="scss">
 .vl-style-text {
-  color: $white;
+  color: var(--white);
 }
 </style>

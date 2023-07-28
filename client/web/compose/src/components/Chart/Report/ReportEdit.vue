@@ -694,7 +694,7 @@ export default {
 <style lang="scss" scoped>
 .metrics {
   .metric {
-    background-color: $body-bg;
+    background-color: var(--body-bg);
   }
 }
 </style>

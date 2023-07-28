@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -203,7 +204,7 @@ func (svc *settings) Set(ctx context.Context, v *types.SettingValue) (err error)
 		return
 	}
 
-	svc.logChange(ctx, types.SettingValueSet{v})
+	svc.logChange(ctx, v)
 	return svc.updateCurrent(ctx, types.SettingValueSet{v})
 }
 
@@ -243,20 +244,25 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 		return
 	}
 
-	svc.logChange(ctx, vv)
+	for _, v := range vv {
+		// if branding-sass or custom-css is updated, empty stylesheet cache
+		if v.Name == "ui.studio.branding-sass" || v.Name == "ui.studio.custom-css" {
+			sass.StylesheetCache.Set(map[string]string{})
+		}
+
+		svc.logChange(ctx, v)
+	}
 
 	return svc.updateCurrent(ctx, vv)
 }
 
-func (svc *settings) logChange(ctx context.Context, vv types.SettingValueSet) {
-	for _, v := range vv {
-		svc.log(ctx,
-			zap.String("name", v.Name),
-			logger.Uint64("owned-by", v.OwnedBy),
-			zap.Stringer("value", v.Value)).
-			WithOptions(zap.AddCallerSkip(1)).
-			Debug("setting value updated")
-	}
+func (svc *settings) logChange(ctx context.Context, v *types.SettingValue) {
+	svc.log(ctx,
+		zap.String("name", v.Name),
+		logger.Uint64("owned-by", v.OwnedBy),
+		zap.Stringer("value", v.Value)).
+		WithOptions(zap.AddCallerSkip(1)).
+		Debug("setting value updated")
 }
 
 func (svc *settings) Delete(ctx context.Context, name string, ownedBy uint64) error {
