@@ -14,16 +14,15 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <vue-select
+        <c-input-select
           v-model="connection"
           :disabled="processing.connections"
           :options="connections"
           :clearable="false"
+          :reduce="o => o.connectionID"
           :placeholder="$t('connection.placeholder')"
-          :calculate-position="calculateDropdownPosition"
           :get-option-label="({ handle, meta }) => meta.name || handle"
           :get-option-key="getOptionKey"
-          class="h-100 bg-white rounded"
         />
       </b-form-group>
     </b-card>
@@ -36,7 +35,7 @@
     </div>
 
     <h5
-      v-else-if="!(connection && modules[connection.connectionID])"
+      v-else-if="!(connection && modules[connection])"
       class="text-center mt-5"
     >
       {{ $t('no-data-available') }}
@@ -45,7 +44,7 @@
     <module-records
       v-else
       v-slot="{ value }"
-      :modules="modules[connection.connectionID]"
+      :modules="modules[connection]"
     >
       <p
         v-for="(v, vi) in value.value"
@@ -68,7 +67,7 @@
           variant="light"
           size="lg"
           class="ml-1"
-          @click="$router.push({ name: 'request.create', params: { kind: 'delete', connection } })"
+          @click="$router.push({ name: 'request.create', params: { kind: 'delete', connectionObj } })"
         >
           {{ $t('request-deletion') }}
         </b-button>
@@ -79,7 +78,7 @@
           variant="primary"
           size="lg"
           class="ml-1"
-          @click="$router.push({ name: 'request.create', params: { kind: 'correct', connection } })"
+          @click="$router.push({ name: 'request.create', params: { kind: 'correct', connectionObj } })"
         >
           {{ $t('request-correction') }}
         </b-button>
@@ -91,7 +90,6 @@
 <script>
 import EditorToolbar from 'corteza-webapp-privacy/src/components/Common/EditorToolbar'
 import ModuleRecords from 'corteza-webapp-privacy/src/components/Common/ModuleRecords'
-import VueSelect from 'vue-select'
 
 export default {
   name: 'ApplicationDataOverview',
@@ -102,7 +100,6 @@ export default {
   },
 
   components: {
-    VueSelect,
     EditorToolbar,
     ModuleRecords,
   },
@@ -119,13 +116,17 @@ export default {
       connections: [],
 
       modules: {},
+
+      connectionObj: {},
     }
   },
 
   watch: {
     connection: {
-      handler ({ connectionID } = {}) {
+      handler (connectionID = '') {
+        console.log('connection', connectionID)
         this.fetchSensitiveData(connectionID)
+        this.connectionObj = this.connections.find(({ connectionID: id }) => id === connectionID) || {}
       },
     },
   },
@@ -141,7 +142,7 @@ export default {
       this.$SystemAPI.dataPrivacyConnectionList()
         .then(({ set = [] }) => {
           this.connections = set
-          this.connection = set[0]
+          this.connection = set[0].connectionID
         })
         .catch(this.toastErrorHandler(this.$t('notification:connection-load-failed')))
         .finally(() => {
@@ -150,6 +151,7 @@ export default {
     },
 
     fetchSensitiveData (connectionID) {
+      console.log('fetchSensitiveData', connectionID)
       if (connectionID) {
         this.processing.sensitiveData = true
 

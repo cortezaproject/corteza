@@ -26,7 +26,7 @@
         :description="$t('ui.clone.description')"
         class="mb-0"
       >
-        <vue-select
+        <c-input-select
           v-model="selectedRoles"
           data-test-id="select-role-list"
           label="name"
@@ -36,8 +36,6 @@
           :loading="processingRoles"
           multiple
           :placeholder="$t('ui.clone.pick-role')"
-          :calculate-position="calculateDropdownPosition"
-          class="bg-white rounded"
         />
       </b-form-group>
     </b-modal>
@@ -45,15 +43,9 @@
 </template>
 
 <script>
-import VueSelect from 'vue-select'
-
 export default {
   i18nOptions: {
     namespaces: 'permissions',
-  },
-
-  components: {
-    VueSelect,
   },
 
   props: {

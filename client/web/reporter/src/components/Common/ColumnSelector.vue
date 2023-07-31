@@ -1,5 +1,5 @@
 <template>
-  <vue-select
+  <c-input-select
     key="name"
     :value="value"
     :options="columns"
@@ -8,19 +8,12 @@
     :placeholder="$t('general:label.none')"
     :reduce="r => r.name"
     append-to-body
-    :calculate-position="calculateDropdownPosition"
-    class="column-selector bg-white rounded"
     v-on="$listeners"
   />
 </template>
 
 <script>
-import { VueSelect } from 'vue-select'
-
 export default {
-  components: {
-    VueSelect,
-  },
 
   props: {
     columns: {

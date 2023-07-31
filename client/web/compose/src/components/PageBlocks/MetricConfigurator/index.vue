@@ -77,22 +77,14 @@
                 :label="$t('metric.edit.moduleLabel')"
                 label-class="text-primary"
               >
-                <b-form-select
+                <c-input-select
                   v-model="edit.moduleID"
                   :options="modules"
-                  text-field="name"
+                  label="name"
                   class="mt-1"
-                  value-field="moduleID"
-                >
-                  <template slot="first">
-                    <option
-                      :value="undefined"
-                      disabled
-                    >
-                      {{ $t('metric.edit.modulePlaceholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                  :reduce="o => o.moduleID"
+                  :placeholder="$t('metric.edit.modulePlaceholder')"
+                />
               </b-form-group>
 
               <!-- <b-form-group
@@ -184,14 +176,12 @@
                 :label="$t('metric.edit.metricFieldLabel')"
                 label-class="text-primary"
               >
-                <vue-select
+                <c-input-select
                   v-model="edit.metricField"
                   :placeholder="$t('metric.edit.metricFieldSelect')"
                   :options="metricFields"
                   :get-option-key="getOptionMetricFieldKey"
                   :reduce="f => f.name"
-                  :calculate-position="calculateDropdownPosition"
-                  class="bg-white rounded"
                   @input="onMetricFieldChange"
                 />
               </b-form-group>
@@ -200,15 +190,13 @@
                 :label="$t('metric.edit.metricAggregateLabel')"
                 label-class="text-primary"
               >
-                <vue-select
+                <c-input-select
                   v-model="edit.operation"
                   :disabled="edit.metricField === 'count'"
                   :placeholder="$t('metric.edit.metricSelectAggregate')"
                   :options="aggregationOperations"
                   :get-option-key="getOptionAggregationOperationKey"
                   :reduce="a => a.operation"
-                  :calculate-position="calculateDropdownPosition"
-                  class="bg-white rounded"
                 />
               </b-form-group>
 
@@ -272,7 +260,7 @@
                   />
                 </template>
 
-                <vue-select
+                <c-input-select
                   v-model="edit.drillDown.blockID"
                   :options="drillDownOptions"
                   :disabled="!edit.drillDown.enabled"
@@ -281,7 +269,6 @@
                   :clearable="true"
                   :placeholder="$t('metric.drillDown.openInModal')"
                   append-to-body
-                  class="block-selector bg-white w-100 rounded"
                 />
               </b-form-group>
             </fieldset>
@@ -341,7 +328,6 @@ import base from '../base'
 import MStyle from './MStyle'
 import { mapGetters } from 'vuex'
 import MetricBase from '../MetricBase'
-import { VueSelect } from 'vue-select'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 
 export default {
@@ -353,7 +339,6 @@ export default {
   components: {
     MStyle,
     MetricBase,
-    VueSelect,
   },
   extends: base,
 

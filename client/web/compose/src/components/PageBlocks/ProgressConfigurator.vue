@@ -33,15 +33,13 @@
             :label="$t('progress.module.label')"
             label-class="text-primary"
           >
-            <vue-select
+            <c-input-select
               v-model="options.value.moduleID"
               label="name"
               :placeholder="$t('progress.module.select')"
               :options="modules"
               :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
-              :calculate-position="calculateDropdownPosition"
-              class="bg-white rounded"
             />
           </b-form-group>
         </b-col>
@@ -81,14 +79,12 @@
               :label="$t('progress.field.label')"
               label-class="text-primary"
             >
-              <vue-select
+              <c-input-select
                 v-model="options.value.field"
                 :placeholder="$t('progress.field.select')"
                 :options="valueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white rounded"
                 @input="fieldChanged($event, options.value)"
               />
             </b-form-group>
@@ -102,7 +98,7 @@
               :label="$t('progress.aggregate.label')"
               label-class="text-primary"
             >
-              <vue-select
+              <c-input-select
                 v-model="options.value.operation"
                 label="name"
                 :disabled="!options.value.field || options.value.field === 'count'"
@@ -110,8 +106,6 @@
                 :options="aggregationOperations"
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white rounded"
               />
             </b-form-group>
           </b-col>
@@ -151,15 +145,13 @@
             :label="$t('progress.module.label')"
             label-class="text-primary"
           >
-            <vue-select
+            <c-input-select
               v-model="options.minValue.moduleID"
               label="name"
               :placeholder="$t('progress.module.select')"
               :options="modules"
               :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
-              :calculate-position="calculateDropdownPosition"
-              class="bg-white rounded"
             />
           </b-form-group>
         </b-col>
@@ -199,14 +191,12 @@
               :label="$t('progress.field.label')"
               label-class="text-primary"
             >
-              <vue-select
+              <c-input-select
                 v-model="options.minValue.field"
                 :placeholder="$t('progress.field.select')"
                 :options="minValueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white rounded"
                 @input="fieldChanged($event, options.minValue)"
               />
             </b-form-group>
@@ -220,7 +210,7 @@
               :label="$t('progress.aggregate.label')"
               label-class="text-primary"
             >
-              <vue-select
+              <c-input-select
                 v-model="options.minValue.operation"
                 label="name"
                 :disabled="!options.minValue.field || options.minValue.field === 'count'"
@@ -228,8 +218,6 @@
                 :options="aggregationOperations"
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white rounded"
               />
             </b-form-group>
           </b-col>
@@ -269,15 +257,13 @@
             :label="$t('progress.module.label')"
             label-class="text-primary"
           >
-            <vue-select
+            <c-input-select
               v-model="options.maxValue.moduleID"
               label="name"
               :placeholder="$t('progress.module.select')"
               :options="modules"
               :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
-              :calculate-position="calculateDropdownPosition"
-              class="bg-white rounded"
             />
           </b-form-group>
         </b-col>
@@ -317,14 +303,13 @@
               :label="$t('progress.field.label')"
               label-class="text-primary"
             >
-              <vue-select
+              <c-input-select
                 v-model="options.maxValue.field"
                 :placeholder="$t('progress.field.select')"
                 :options="maxValueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white rounded"
+                class="bg-white"
                 @input="fieldChanged($event, options.maxValue)"
               />
             </b-form-group>
@@ -338,7 +323,7 @@
               :label="$t('progress.aggregate.label')"
               label-class="text-primary"
             >
-              <vue-select
+              <c-input-select
                 v-model="options.maxValue.operation"
                 label="name"
                 :disabled="!options.maxValue.field || options.maxValue.field === 'count'"
@@ -346,8 +331,7 @@
                 :options="aggregationOperations"
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white rounded"
+                class="bg-white"
               />
             </b-form-group>
           </b-col>
@@ -373,9 +357,11 @@
             :label="$t('progress.default-variant')"
             label-class="text-primary"
           >
-            <b-form-select
+            <c-input-select
               v-model="options.display.variant"
               :options="variants"
+              label="text"
+              :reduce="v => v.value"
             />
           </b-form-group>
         </b-col>
@@ -449,6 +435,7 @@
                 {{ $t('progress.threshold.variant') }}
               </small>
             </template>
+
             <b-row
               v-for="(t, i) in options.display.thresholds"
               :key="i"
@@ -467,6 +454,7 @@
                   />
                 </b-input-group>
               </b-col>
+
               <b-col
                 class="d-flex align-items-center justify-content-center"
               >
@@ -555,7 +543,6 @@
 import base from './base'
 import { mapGetters } from 'vuex'
 import { compose, validator } from '@cortezaproject/corteza-js'
-import { VueSelect } from 'vue-select'
 import FieldViewer from '../ModuleFields/Viewer'
 
 export default {
@@ -566,7 +553,6 @@ export default {
   name: 'ProgressConfigurator',
 
   components: {
-    VueSelect,
     FieldViewer,
   },
 

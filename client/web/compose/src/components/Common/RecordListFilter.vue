@@ -58,31 +58,29 @@
                     >
                       {{ $t('recordList.filter.where') }}
                     </h6>
+
                     <b-form-select
                       v-else
                       v-model="filter.condition"
                       :options="conditions"
                     />
                   </b-td>
+
                   <b-td
                     class="px-2"
                   >
-                    <vue-select
+                    <c-input-select
                       v-model="filter.name"
                       :options="fieldOptions"
                       :get-option-key="getOptionKey"
                       :clearable="false"
                       :placeholder="$t('recordList.filter.fieldPlaceholder')"
-                      option-value="name"
-                      option-text="label"
                       :reduce="f => f.name"
-                      append-to-body
-                      :calculate-position="calculateDropdownPosition"
                       :class="{ 'filter-field-picker': !!filter.name }"
-                      class="field-selector bg-white rounded"
                       @input="onChange($event, groupIndex, index)"
                     />
                   </b-td>
+
                   <b-td
                     v-if="getField(filter.name)"
                     :class="{ 'pr-2': getField(filter.name) }"
@@ -250,7 +248,6 @@
 <script>
 import FieldEditor from '../ModuleFields/Editor'
 import { compose, validator } from '@cortezaproject/corteza-js'
-import { VueSelect } from 'vue-select'
 
 export default {
   i18nOptions: {
@@ -259,7 +256,6 @@ export default {
 
   components: {
     FieldEditor,
-    VueSelect,
   },
 
   props: {

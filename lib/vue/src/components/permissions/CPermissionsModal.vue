@@ -43,17 +43,16 @@
             :label="labels.edit.label"
             label-class="text-primary"
           >
-            <vue-select
-              v-model="currentRole"
+            <c-input-select
+              v-model="currentRoleID"
               data-test-id="select-user-list-roles"
               key="roleID"
               label="name"
               :clearable="false"
               :options="roles"
               :get-option-key="getOptionRoleKey"
+              :reduce="o => o.roleID"
               append-to-body
-              :calculate-position="calculateDropdownPosition"
-              class="h-100 bg-white rounded"
               @input="onRoleChange"
             />
           </b-form-group>
@@ -75,6 +74,7 @@
           >
             {{ n }}
           </label>
+
           <font-awesome-icon
             :icon="['fas', 'plus']"
             class="text-secondary rotate mt-1"
@@ -105,6 +105,7 @@
         style="min-height: 50vh;"
       >
         <b-spinner />
+
         <div>
           {{ labels.loading }}
         </div>
@@ -122,6 +123,7 @@
             :rules.sync="rules"
           />
         </b-col>
+
         <b-col
           v-for="(e, i) in evaluate"
           :key="i"
@@ -142,11 +144,13 @@
                 :icon="['fas', 'question']"
                 class="text-secondary"
               />
+
               <font-awesome-icon
                 v-else-if="r.access === 'allow'"
                 :icon="['fas', 'check']"
                 class="text-success"
               />
+
               <font-awesome-icon
                 v-else
                 :icon="['fas', 'times']"
@@ -191,7 +195,7 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <vue-select
+        <c-input-select
           data-test-id="select-role"
           key="roleID"
           v-model="add.roleID"
@@ -202,8 +206,6 @@
           clearable
           :disabled="!!add.userID"
           :placeholder="labels.add.role.placeholder"
-          :calculate-position="calculateDropdownPosition"
-          class="bg-white rounded"
         />
       </b-form-group>
 
@@ -212,7 +214,7 @@
         label-class="text-primary"
         class="mt-3 mb-0"
       >
-        <vue-select
+        <c-input-select
           data-test-id="select-user"
           key="userID"
           v-model="add.userID"
@@ -220,11 +222,10 @@
           :options="userOptions"
           :get-option-label="getUserLabel"
           :get-option-key="getOptionUserKey"
+          :reduce="o => o.userID"
           label="name"
           clearable
           :placeholder="labels.add.user.placeholder"
-          :calculate-position="calculateDropdownPosition"
-          class="bg-white rounded"
           @search="searchUsers"
         />
       </b-form-group>
@@ -243,9 +244,8 @@
 </template>
 <script lang="js">
 import { modalOpenEventName, split } from './def.ts'
-import { VueSelect } from 'vue-select'
+import CInputSelect from '../input/CInputSelect.vue'
 import Rules from './form/Rules.vue'
-import calculateDropdownPosition from '../../mixins/vue-select-position'
 
 export default {
   i18nOptions: {
@@ -254,12 +254,8 @@ export default {
 
   components: {
     Rules,
-    VueSelect,
+    CInputSelect,
   },
-
-  mixins: [
-    calculateDropdownPosition
-  ],
 
   props: {
     labels: {
@@ -291,8 +287,7 @@ export default {
       // List of all available roles
       roles: [],
 
-      // Current role object
-      currentRole: undefined,
+      currentRoleID: undefined,
 
       evaluate: [],
 
@@ -370,8 +365,8 @@ export default {
       this.fetchPermissions().then(() => {
         if (!this.roles.length) {
           return this.fetchRoles()
-        } else if (this.currentRole) {
-          const { roleID } = this.currentRole
+        } else if (this.currentRoleID) {
+          const roleID = this.currentRoleID
           this.processing = true
 
           return this.fetchRules(roleID).then(() => {
@@ -404,7 +399,7 @@ export default {
       this.target = undefined
     },
 
-    onRoleChange ({ roleID }) {
+    onRoleChange (roleID) {
       this.fetchRules(roleID)
     },
 
@@ -412,7 +407,7 @@ export default {
       this.processing = true
 
       const rules = this.collectChangedRules()
-      const { roleID } = this.currentRole
+      const roleID = this.currentRoleID
 
       this.api.permissionsUpdate({ roleID, rules }).then(() => {
         this.fetchRules(roleID)
@@ -455,8 +450,8 @@ export default {
           .sort((a, b) => a.roleID.localeCompare(b.roleID))
 
         if (this.roles.length > 0) {
-          this.currentRole = this.roles[0]
-          this.onRoleChange(this.currentRole)
+          this.currentRoleID = this.roles[0].roleID
+          this.onRoleChange(this.currentRoleID)
         }
       }).finally(() => {
         this.processing = false
@@ -490,7 +485,7 @@ export default {
     },
 
     onAddEval () {
-      const { userID } = this.add.userID || {}
+      const userID = this.add.userID || {}
       let { roleID = [] } = this.add
       roleID = roleID.map(({ roleID }) => roleID)
 
@@ -513,9 +508,9 @@ export default {
       this.evaluate.splice(i, 1)
     },
 
-    getEvalName ({ roleID, userID }) {
+    getEvalName ({ userID, roleID }) {
       if (userID) {
-        const { name, username, email, handle } = userID
+        const { name, username, email, handle } = this.userOptions.find(({ userID: id }) => id === userID) || {}
         return [name || username || email || handle || userID || '']
       } else {
         return roleID.map(({ name }) => name)
@@ -615,7 +610,7 @@ export default {
       this.permissions = []
       this.rules = []
       this.roles = []
-      this.currentRole = undefined
+      this.currentRoleID = undefined
       this.evaluate = []
       this.add = {}
     },

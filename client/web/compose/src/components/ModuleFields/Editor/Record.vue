@@ -40,22 +40,17 @@
       :removable="field.options.selectType !== 'multiple'"
     >
       <template v-slot:single>
-        <vue-select
+        <c-input-select
           v-if="field.options.selectType === 'multiple'"
           v-model="multipleSelected"
           :options="options"
           :get-option-key="getOptionKey"
           :disabled="!module"
           :loading="processing"
-          option-value="recordID"
-          option-text="label"
-          :append-to-body="appendToBody"
-          :calculate-position="calculateDropdownPosition"
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
           :selectable="option => option.selectable"
-          class="bg-white w-100 rounded"
           :placeholder="placeholder"
           multiple
           @search="search"
@@ -68,8 +63,9 @@
             @prev="goToPage(false)"
             @next="goToPage(true)"
           />
-        </vue-select>
-        <vue-select
+        </c-input-select>
+
+        <c-input-select
           v-else
           ref="singleSelect"
           :options="options"
@@ -78,13 +74,10 @@
           :loading="processing"
           option-value="recordID"
           option-text="label"
-          :append-to-body="appendToBody"
-          :calculate-position="calculateDropdownPosition"
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
           :selectable="option => option.selectable"
-          class="bg-white w-100 rounded"
           :placeholder="placeholder"
           @input="selectChange($event)"
           @search="search"
@@ -97,10 +90,11 @@
             @prev="goToPage(false)"
             @next="goToPage(true)"
           />
-        </vue-select>
+        </c-input-select>
       </template>
+
       <template v-slot:default="ctx">
-        <vue-select
+        <c-input-select
           v-if="field.options.selectType === 'each'"
           :options="options"
           :get-option-key="getOptionKey"
@@ -108,13 +102,10 @@
           :loading="processing"
           option-value="recordID"
           option-text="label"
-          :append-to-body="appendToBody"
-          :calculate-position="calculateDropdownPosition"
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
           :selectable="option => option.selectable"
-          class="bg-white w-100 rounded"
           :placeholder="placeholder"
           :value="getRecord(ctx.index)"
           @input="setRecord($event, ctx.index)"
@@ -128,7 +119,8 @@
             @prev="goToPage(false)"
             @next="goToPage(true)"
           />
-        </vue-select>
+        </c-input-select>
+
         <b-spinner
           v-else-if="processing"
           variant="primary"
@@ -139,10 +131,11 @@
         </span>
       </template>
     </multi>
+
     <template
       v-else
     >
-      <vue-select
+      <c-input-select
         v-model="selected"
         :options="options"
         :get-option-key="getOptionKey"
@@ -150,13 +143,10 @@
         :loading="processing"
         option-value="recordID"
         option-text="label"
-        :append-to-body="appendToBody"
-        :calculate-position="calculateDropdownPosition"
         :placeholder="placeholder"
         :filterable="false"
         :searchable="searchable"
         :selectable="option => option.selectable"
-        class="bg-white w-100 rounded"
         @search="search"
       >
         <pagination
@@ -167,7 +157,8 @@
           @prev="goToPage(false)"
           @next="goToPage(true)"
         />
-      </vue-select>
+      </c-input-select>
+
       <errors :errors="errors" />
     </template>
   </b-form-group>
@@ -177,7 +168,6 @@ import base from './base'
 import { debounce } from 'lodash'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapActions, mapGetters } from 'vuex'
-import { VueSelect } from 'vue-select'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import Pagination from '../Common/Pagination.vue'
 
@@ -187,7 +177,6 @@ export default {
   },
 
   components: {
-    VueSelect,
     Pagination,
   },
 

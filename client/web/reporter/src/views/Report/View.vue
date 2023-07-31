@@ -7,14 +7,13 @@
     </portal>
 
     <portal to="topbar-tools">
-      <vue-select
+      <c-input-select
         v-if="scenarioOptions.length"
         v-model="scenarios.selected"
         :options="scenarioOptions"
         :get-option-key="getOptionKey"
         :placeholder="$t('pick-scenario')"
-        :calculate-position="calculateDropdownPosition"
-        class="bg-white rounded mr-2"
+        class="mr-2"
         style="max-width: 300px;"
         @input="refreshReport()"
       />
@@ -71,7 +70,6 @@
 import { system } from '@cortezaproject/corteza-js'
 import Grid from 'corteza-webapp-reporter/src/components/Report/Grid'
 import Block from 'corteza-webapp-reporter/src/components/Report/Blocks'
-import VueSelect from 'vue-select'
 
 export default {
   name: 'ReportView',
@@ -83,7 +81,6 @@ export default {
   components: {
     Grid,
     Block,
-    VueSelect,
   },
 
   data () {

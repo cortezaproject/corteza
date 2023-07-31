@@ -65,7 +65,7 @@
         :label="$t('reminder.edit.assigneeLabel')"
         label-class="text-primary"
       >
-        <vue-select
+        <c-input-select
           v-model="reminder.assignedTo"
           data-test-id="select-assignee"
           :options="assignees"
@@ -73,10 +73,8 @@
           :get-option-key="getOptionKey"
           :loading="processingUsers"
           :placeholder="$t('field.kind.user.suggestionPlaceholder')"
-          :calculate-position="calculateDropdownPosition"
           :reduce="user => user.userID"
           option-value="userID"
-          class="bg-white rounded"
           @search="searchUsers"
         />
       </b-form-group>
@@ -150,7 +148,6 @@
 
 <script>
 import _ from 'lodash'
-import { VueSelect } from 'vue-select'
 import { system } from '@cortezaproject/corteza-js'
 import { components } from '@cortezaproject/corteza-vue'
 const { CInputDateTime } = components
@@ -161,7 +158,6 @@ export default {
   },
 
   components: {
-    VueSelect,
     CInputDateTime,
   },
 

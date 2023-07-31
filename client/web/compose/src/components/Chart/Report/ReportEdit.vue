@@ -17,20 +17,14 @@
             :label="$t('edit.module.label')"
             label-class="text-primary"
           >
-            <b-form-select
+            <c-input-select
               v-model="moduleID"
               :options="modules"
-              text-field="name"
-              value-field="moduleID"
-            >
-              <template slot="first">
-                <option
-                  :value="undefined"
-                >
-                  {{ $t('edit.module.placeholder') }}
-                </option>
-              </template>
-            </b-form-select>
+              label="name"
+              :reduce="module => module.moduleID"
+              :get-option-key="option => option.moduleID"
+              :placeholder="$t('edit.module.placeholder')"
+            />
           </b-form-group>
         </b-col>
 
@@ -43,16 +37,13 @@
             :label="$t('edit.filter.preset')"
             label-class="text-primary"
           >
-            <b-form-select
+            <c-input-select
               v-model="report.filter"
               :options="predefinedFilters"
-            >
-              <template slot="first">
-                <b-form-select-option :value="defaultFilterOption">
-                  {{ $t('edit.filter.noFilter') }}
-                </b-form-select-option>
-              </template>
-            </b-form-select>
+              label="text"
+              :reduce="filter => filter.value"
+              :placeholder="$t('edit.filter.noFilter')"
+            />
           </b-form-group>
         </b-col>
 
@@ -110,19 +101,14 @@
                 :label="$t('edit.dimension.fieldLabel')"
                 label-class="text-primary"
               >
-                <b-form-select
+                <c-input-select
                   v-model="d.field"
                   :options="dimensionFields"
-                  @change="onDimFieldChange($event, d)"
-                >
-                  <template slot="first">
-                    <option
-                      :value="undefined"
-                    >
-                      {{ $t('edit.dimension.fieldPlaceholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                  label="text"
+                  :reduce="field => field.value"
+                  :placeholder="$t('edit.dimension.fieldPlaceholder')"
+                  @input="value => onDimFieldChange(value, d)"
+                />
               </b-form-group>
             </b-col>
 
@@ -134,20 +120,15 @@
                 :label="$t('edit.dimension.function.label')"
                 label-class="text-primary"
               >
-                <b-form-select
+                <c-input-select
                   v-model="d.modifier"
                   :disabled="!d.field || !isTemporalField(d.field)"
                   :options="dimensionModifiers"
+                  label="text"
+                  :reduce="modifier => modifier.value"
+                  :placeholder="$t('edit.dimension.function.placeholder')"
                   @change="onDimModifierChange($event, d)"
-                >
-                  <template slot="first">
-                    <option
-                      :value="undefined"
-                    >
-                      {{ $t('edit.dimension.function.placeholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                />
               </b-form-group>
             </b-col>
           </b-row>
@@ -268,19 +249,14 @@
                 :label="$t('edit.metric.fieldLabel')"
                 label-class="text-primary"
               >
-                <b-form-select
+                <c-input-select
                   v-model="m.field"
                   :options="metricFields"
-                  @change="onMetricFieldChange($event, m)"
-                >
-                  <template slot="first">
-                    <option
-                      :value="undefined"
-                    >
-                      {{ $t('edit.metric.fieldPlaceholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                  :get-option-key="option => option.text"
+                  label="text"
+                  :reduce="option => option.value"
+                  @input="value => onMetricFieldChange(value, m)"
+                />
               </b-form-group>
             </b-col>
 
@@ -292,19 +268,16 @@
                 :label="$t('edit.metric.function.label')"
                 label-class="text-primary"
               >
-                <b-form-select
+                <c-input-select
                   v-model="m.aggregate"
                   :disabled="!m.field || m.field === 'count'"
                   :options="metricAggregates"
-                >
-                  <template slot="first">
-                    <option
-                      :value="undefined"
-                    >
-                      {{ $t('edit.metric.function.placeholder') }}
-                    </option>
-                  </template>
-                </b-form-select>
+                  label="text"
+                  :reduce="option => option.value"
+                  :get-option-key="option => option.text"
+                  :placeholder="$t('edit.metric.function.placeholder')"
+                  @input="value => onMetricFieldChange(value, m)"
+                />
               </b-form-group>
             </b-col>
           </b-row>

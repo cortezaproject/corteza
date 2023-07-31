@@ -49,19 +49,12 @@
             label-class="text-primary"
             class="mb-0"
           >
-            <vue-select
+            <c-input-select
               v-model="options.colorScheme"
               :options="colorSchemes"
               :get-option-key="getOptionKey"
               :reduce="cs => cs.value"
               :placeholder="$t('general:label.default')"
-              label="label"
-              option-text="label"
-              option-value="value"
-              clearable
-              :calculate-position="calculateDropdownPosition"
-              class="mw-100 rounded"
-              style="min-width: 100%;"
             >
               <template #option="option">
                 <p
@@ -69,6 +62,7 @@
                 >
                   {{ option.label }}
                 </p>
+
                 <div
                   v-for="(color, index) in option.colors"
                   :key="`${option.value}-${index}`"
@@ -76,7 +70,7 @@
                   class="d-inline-block color-box mr-1 mb-1"
                 />
               </template>
-            </vue-select>
+            </c-input-select>
 
             <template
               v-if="currentColorScheme"
@@ -581,13 +575,11 @@
 import base from './base'
 import ColumnSelector from 'corteza-webapp-reporter/src/components/Common/ColumnSelector.vue'
 import ColumnPicker from 'corteza-webapp-reporter/src/components/Common/ColumnPicker'
-import VueSelect from 'vue-select'
 import { reporter, shared } from '@cortezaproject/corteza-js'
 const { colorschemes } = shared
 
 export default {
   components: {
-    VueSelect,
     ColumnSelector,
     ColumnPicker,
   },

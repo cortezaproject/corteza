@@ -2,13 +2,12 @@
   <b-tab :title="$t('recordOrganizer.label')">
     <b-form-group
       :label="$t('general.module')"
-      label-class="text-primary"
     >
-      <b-form-select
+      <c-input-select
         v-model="options.moduleID"
         :options="moduleOptions"
-        text-field="name"
-        value-field="moduleID"
+        label="name"
+        :reduce="m => m.moduleID"
         required
       />
     </b-form-group>
@@ -26,9 +25,12 @@
               class="field"
             >
               <span v-if="field.label">{{ field.label }} ({{ field.name }})</span>
+
               <span v-else>{{ field.name }}</span>
+
               <span class="small float-right">
                 <span v-if="field.isSystem">{{ $t('field.selector.systemField') }}</span>
+
                 <span v-else>{{ field.kind }}</span>
               </span>
             </div>
@@ -68,18 +70,13 @@
         breakpoint="md"
         label-class="text-primary"
       >
-        <b-form-select v-model="options.labelField">
-          <option value="">
-            {{ $t('general.label.none') }}
-          </option>
-          <option
-            v-for="(field, index) in selectedModuleFields"
-            :key="index"
-            :value="field.name"
-          >
-            {{ field.label || field.name }} ({{ field.kind }})
-          </option>
-        </b-form-select>
+        <c-input-select
+          v-model="options.labelField"
+          :options="selectedModuleFields"
+          :reduce="o => o.name"
+          :get-option-label="fieldLabel"
+          :placeholder="$t('general.label.none')"
+        />
         <b-form-text>{{ $t('recordOrganizer.labelField.footnote') }}</b-form-text>
       </b-form-group>
 
@@ -90,18 +87,14 @@
         breakpoint="md"
         label-class="text-primary"
       >
-        <b-form-select v-model="options.descriptionField">
-          <option value="">
-            {{ $t('general.label.none') }}
-          </option>
-          <option
-            v-for="(field, index) in selectedModuleFields"
-            :key="index"
-            :value="field.name"
-          >
-            {{ field.label || field.name }} ({{ field.kind }})
-          </option>
-        </b-form-select>
+        <c-input-select
+          v-model="options.descriptionField"
+          :options="selectedModuleFields"
+          :reduce="o => o.name"
+          :get-option-label="descriptionLabel"
+          :placeholder="$t('general.label.none')"
+        />
+
         <b-form-text class="text-secondary small">
           {{ $t('recordOrganizer.descriptionField.footnote') }}
         </b-form-text>
@@ -138,18 +131,14 @@
         breakpoint="md"
         label-class="text-primary"
       >
-        <b-form-select v-model="options.groupField">
-          <option value="">
-            {{ $t('general.label.none') }}
-          </option>
-          <option
-            v-for="(field, index) in groupFields"
-            :key="index"
-            :value="field.name"
-          >
-            {{ field.label || field.name }}
-          </option>
-        </b-form-select>
+        <c-input-select
+          v-model="options.groupField"
+          :options="groupFields"
+          :reduce="o => o.name"
+          :get-option-label="groupFieldLabel"
+          :placeholder="$t('general.label.none')"
+        />
+
         <b-form-text class="text-secondary small">
           {{ $t('recordOrganizer.groupField.footnote') }}
         </b-form-text>
@@ -325,6 +314,18 @@ export default {
   methods: {
     setDefaultValues () {
       this.mock = []
+    },
+
+    fieldLabel (option) {
+      return `${option.label || option.name} (${option.kind})`
+    },
+
+    descriptionLabel (option) {
+      return `${option.label || option.name} (${option.kind})`
+    },
+
+    groupFieldLabel (option) {
+      return `${option.label || option.name}`
     },
   },
 }

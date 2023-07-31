@@ -5,19 +5,16 @@
         v-if="!hideNamespaceList"
         class="d-flex w-100 mt-2"
       >
-        <vue-select
-          key="namespaceID"
+        <c-input-select
           data-test-id="select-namespace"
-          label="name"
           :clearable="false"
           :options="filteredNamespaces"
-          :get-option-key="getOptionKey"
-          :value="namespace"
+          :get-option-label="getOptionLabel"
+          :value="namespace.namespaceID"
           :selectable="option => option.namespaceID !== namespace.namespaceID"
           :placeholder="$t('pickNamespace')"
-          :calculate-position="calculateDropdownPosition"
           :autoscroll="false"
-          class="bg-white rounded"
+          :append-to-body="false"
           @option:selected="namespaceSelected"
         >
           <template #list-header>
@@ -34,7 +31,7 @@
               </router-link>
             </li>
           </template>
-        </vue-select>
+        </c-input-select>
 
         <b-input-group-append v-if="canManageNamespaces">
           <b-button
@@ -68,6 +65,7 @@
           >
             {{ $t('publicPages') }}
           </b-button>
+
           <b-button
             v-else-if="namespace.canManageNamespace"
             data-test-id="button-admin"
@@ -77,6 +75,7 @@
           >
             {{ $t('adminPanel') }}
           </b-button>
+
           <c-input-search
             v-model.trim="query"
             :disabled="loading"
@@ -119,8 +118,6 @@ import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
 import { components, filter } from '@cortezaproject/corteza-vue'
 import { Portal } from 'portal-vue'
-import { VueSelect } from 'vue-select'
-
 const { CSidebarNavItems, CInputSearch } = components
 
 const moduleWrap = (module, pageName) => {
@@ -164,7 +161,6 @@ export default {
 
   components: {
     Portal,
-    VueSelect,
     CSidebarNavItems,
     CInputSearch,
   },
@@ -455,8 +451,11 @@ export default {
       })
     },
 
-    getOptionKey ({ namespaceID }) {
-      return namespaceID
+    getOptionLabel (value) {
+      if (typeof value === 'string') {
+        return this.filteredNamespaces.find(({ namespaceID }) => namespaceID === value).name
+      }
+      return value.name
     },
   },
 }

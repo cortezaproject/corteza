@@ -216,7 +216,7 @@
                   <b-form-group class="w-100">
                     <table
                       data-test-id="table-module-fields"
-                      class="table table-sm table-borderless table-responsive-lg"
+                      class="table table-sm table-borderless table-responsive"
                     >
                       <thead>
                         <tr>

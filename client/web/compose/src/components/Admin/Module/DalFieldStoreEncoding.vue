@@ -33,12 +33,13 @@
     <b-col
       cols="3"
     >
-      <b-form-select
+      <c-input-select
         v-show="strategy !== 'omit'"
         v-model="strategy"
         :options="strategies"
         :disabled="!use"
-        size="sm"
+        label="text"
+        :reduce="strategy => strategy.value"
       />
     </b-col>
 

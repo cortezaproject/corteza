@@ -5,19 +5,17 @@
       label-class="text-primary"
     >
       <b-input-group class="d-flex w-100">
-        <vue-select
+        <c-input-select
           v-model="block.options.chartID"
           :options="charts"
           :get-option-key="getOptionKey"
           :placeholder="$t('chart.pick')"
           :reduce="option => option.chartID"
-          :calculate-position="calculateDropdownPosition"
           label="name"
-          append-to-body
           :selectable="c => !c.deletedAt"
-          class="bg-white rounded"
           @input="chartSelected"
         />
+
         <b-input-group-append>
           <b-button
             v-b-tooltip.hover="{ title: $t('chart.openInBuilder'), container: '#body' }"
@@ -38,27 +36,22 @@
         label-class="d-flex align-items-center text-primary"
         class="mb-1"
       >
-        <template #label>
-          {{ $t('chart.drillDown.label') }}
-          <b-form-checkbox
-            v-model="options.drillDown.enabled"
-            switch
-            class="ml-1"
-          />
-        </template>
+        <c-input-checkbox
+          v-model="options.drillDown.enabled"
+          switch
+          :labels="checkboxLabel"
+          class="mb-2"
+        />
 
-        <vue-select
+        <c-input-select
           v-model="options.drillDown.blockID"
           :options="drillDownOptions"
           :get-option-key="getOptionKey"
           :disabled="!options.drillDown.enabled"
           :get-option-label="o => o.title || o.kind"
           :reduce="option => option.blockID"
-          :calculate-position="calculateDropdownPosition"
           :clearable="true"
           :placeholder="$t('chart.drillDown.openInModal')"
-          append-to-body
-          class="bg-white w-100 rounded"
         />
       </b-form-group>
     </template>
@@ -68,7 +61,6 @@
 import base from './base'
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
-import { VueSelect } from 'vue-select'
 
 export default {
   i18nOptions: {
@@ -77,11 +69,16 @@ export default {
 
   name: 'Chart',
 
-  components: {
-    VueSelect,
-  },
-
   extends: base,
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+    }
+  },
 
   computed: {
     ...mapGetters({

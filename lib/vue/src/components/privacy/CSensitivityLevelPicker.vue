@@ -1,5 +1,5 @@
 <template>
-  <vue-select
+  <c-input-select
     data-test-id="select-sens-lvl"
     key="type"
     :value="_value"
@@ -10,25 +10,18 @@
     :placeholder="placeholder"
     :reduce="l => l.sensitivityLevelID"
     append-to-body
-    :calculate-position="calculateDropdownPosition"
-    class="bg-white rounded"
     @input="onInput"
   />
 </template>
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
-import { VueSelect } from 'vue-select'
-import calculateDropdownPosition from '../../mixins/vue-select-position'
+import CInputSelect from '../input/CInputSelect.vue'
 
 export default {
   components: {
-    VueSelect,
+    CInputSelect,
   },
-
-  mixins: [
-    calculateDropdownPosition
-  ],
 
   props: {
     value: {

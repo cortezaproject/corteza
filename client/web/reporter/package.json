@@ -36,7 +36,6 @@
     "vue-echarts": "^6.2.3",
     "vue-grid-layout": "^2.3.12",
     "vue-router": "3.1.5",
-    "vue-select": "^3.12.2",
     "vue-split-panel": "^1.0.4",
     "vue-swatches": "^2.1.1",
     "vuedraggable": "^2.24.3",

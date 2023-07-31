@@ -6,7 +6,7 @@
     <div
       class="text-center m-2"
     >
-      <vue-select
+      <c-input-select
         v-model="value"
         :options="options"
         :get-option-key="getOptionKey"
@@ -17,7 +17,7 @@
         option-text="label"
         placeholder="Select record"
         :filterable="false"
-        class="bg-white w-100 mb-3 rounded"
+        class="w-100 mb-3"
         @search="search"
       >
         <c-pagination
@@ -28,7 +28,7 @@
           @prev="goToPage(false)"
           @next="goToPage(true)"
         />
-      </vue-select>
+      </c-input-select>
 
       <b-button
         @click="$emit('submit', { value: encodeValue() })"
@@ -43,7 +43,7 @@
 import base from './base.vue'
 import CPagination from '../common/CPagination.vue'
 import { pVal } from '../utils.ts'
-import { VueSelect } from 'vue-select'
+import CInputSelect from '../../input/CInputSelect.vue'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { createPopper } from '@popperjs/core'
 import { debounce } from 'lodash'
@@ -53,7 +53,7 @@ export default {
   name: 'c-prompt-compose-record-picker',
 
   components: {
-    VueSelect,
+    CInputSelect,
     CPagination,
   },
 

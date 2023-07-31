@@ -27,15 +27,13 @@
         v-model="param.value"
       />
 
-      <vue-select
+      <c-input-select
         v-else-if="param.label === 'workflow'"
         v-model="param.value"
         :options="workflows"
         :get-option-key="getOptionKey"
         :reduce="wf => wf.workflowID"
         :placeholder="$t('filters.placeholders.workflow')"
-        :calculate-position="calculateDropdownPosition"
-        class="bg-white rounded"
       />
 
       <b-form-select
@@ -112,6 +110,7 @@
           v-model="param.value"
           max-rows="6"
         />
+
         <b-input-group v-else>
           <b-input-group-prepend
             v-if="param.label === 'expr'"
@@ -120,6 +119,7 @@
               ƒ
             </b-button>
           </b-input-group-prepend>
+
           <b-form-input
             v-if="param.label === 'expr'"
             v-model="param.value"
@@ -136,13 +136,7 @@
 </template>
 
 <script>
-import { VueSelect } from 'vue-select'
-
 export default {
-  components: {
-    VueSelect,
-  },
-
   props: {
     filter: {
       type: Object,

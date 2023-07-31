@@ -10,7 +10,6 @@
       <b-select
         v-model="options.srcField"
         type="url"
-        class="form-control"
         :options="fieldOptions"
       />
     </b-form-group>
@@ -21,7 +20,6 @@
     >
       <b-form-input
         v-model="options.src"
-        class="form-control"
         type="url"
       />
     </b-form-group>

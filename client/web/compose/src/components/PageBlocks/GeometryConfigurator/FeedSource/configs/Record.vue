@@ -9,18 +9,14 @@
         label-class="text-primary"
       >
         <b-input-group>
-          <b-form-select
+          <c-input-select
             v-model="feed.options.moduleID"
             :options="modules"
-            value-field="moduleID"
-            text-field="name"
-          >
-            <template slot="first">
-              <option value="0">
-                {{ $t('geometry.recordFeed.modulePlaceholder') }}
-              </option>
-            </template>
-          </b-form-select>
+            :reduce="o => o.moduleID"
+            :placeholder="$t('calendar.recordFeed.modulePlaceholder')"
+            default-value="0"
+            label="name"
+          />
         </b-input-group>
       </b-form-group>
 
@@ -54,19 +50,13 @@
           breakpoint="md"
           label-class="text-primary"
         >
-          <b-form-select
+          <c-input-select
             v-model="feed.titleField"
             :options="titleFields | optionizeFields"
-          >
-            <template slot="first">
-              <option
-                disabled
-                value=""
-              >
-                {{ $t('geometry.recordFeed.titlePlaceholder') }}
-              </option>
-            </template>
-          </b-form-select>
+            :reduce="o => o.value"
+            label="text"
+            :placeholder="$t('geometry.recordFeed.titlePlaceholder')"
+          />
         </b-form-group>
 
         <b-form-group

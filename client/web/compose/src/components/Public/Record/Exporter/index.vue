@@ -147,14 +147,12 @@
             {{ $t('recordList.export.specifyTimezone') }}
           </b-form-checkbox>
 
-          <vue-select
+          <c-input-select
             v-if="forTimezone"
             v-model="exportTimezone"
             :options="timezones"
             :get-option-key="getOptionKey"
-            :calculate-position="calculateDropdownPosition"
             :placeholder="$t('recordList.export.timezonePlaceholder')"
-            class="bg-white rounded"
           />
         </b-form-group>
       </template>
@@ -206,7 +204,6 @@ import { components } from '@cortezaproject/corteza-vue'
 import moment from 'moment'
 import { throttle } from 'lodash'
 import tz from 'compact-timezone-list'
-import { VueSelect } from 'vue-select'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import { getFieldFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
@@ -220,7 +217,6 @@ export default {
 
   components: {
     FieldPicker,
-    VueSelect,
     CInputDateTime,
   },
 

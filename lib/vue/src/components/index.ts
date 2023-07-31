@@ -20,6 +20,7 @@ export {
   CInputColorPicker,
   CAceEditor,
   CButtonSubmit,
+  CInputSelect,
 } from './input'
 
 export {

@@ -10,6 +10,7 @@
         :options="selectOptions"
       />
     </b-form-group>
+
     <b-form-group
       :label="$t('socialFeed.twitterProfileLabel')"
       label-class="text-primary"

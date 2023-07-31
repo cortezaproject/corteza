@@ -1,0 +1,228 @@
+<template>
+  <vue-select
+    v-model="_value"
+    v-bind="$attrs"
+    :clearable="clearable"
+    :options="options"
+    :searchable="searchable"
+    :calculate-position="calculateDropdownPosition"
+    :append-to-body="appendToBody"
+    class="bg-white rounded"
+    :class="sizeClass"
+    v-on="$listeners"
+  >
+    <template
+      v-for="(_, name) in $scopedSlots"
+      v-slot:[name]="data"
+    >
+      <slot
+        :name="name"
+        v-bind="data"
+      />
+    </template>
+  </vue-select>
+</template>
+
+<script>
+import { VueSelect } from 'vue-select'
+import { createPopper } from '@popperjs/core'
+import 'vue-select/dist/vue-select.css';
+
+export default {
+  name: 'CInputSelect',
+
+  components: {
+    VueSelect,
+  },
+
+  props: {
+    value: {
+      type: [String, Array],
+      default: () => '',
+    },
+
+    options: {
+      type: Array,
+      default: () => {
+        return []
+      },
+    },
+
+    clearable: {
+      type: Boolean,
+      default: true,
+    },
+
+    searchable: {
+      type: Boolean,
+      default: true,
+    },
+
+    appendToBody: {
+      type: Boolean,
+      default: true,
+    },
+
+    defaultValue: {
+      type: [String, Array],
+      default: () => '',
+    },
+
+    size: {
+      type: String,
+      default: 'md',
+    },
+  },
+
+  computed: {
+    _value: {
+      get () {
+        const fallbackValue = this.$attrs.multiple ? [] : ''
+        return !!this.defaultValue && (this.value === this.defaultValue) ? fallbackValue : this.value
+      },
+
+      set (v) {
+        this.$emit('input', !v ? this.defaultValue : v)
+      }
+    },
+
+    sizeClass () {
+      return this.size === 'sm' ? 'c-input-sm' : this.size === 'lg' ? 'c-input-lg' : ''
+    },
+  },
+
+  methods: {
+     calculateDropdownPosition (dropdownList, component, { width }) {
+      /**
+       * We need to explicitly define the dropdown width since
+       * it is usually inherited from the parent with CSS.
+       */
+      dropdownList.style.width = width
+
+      /**
+       * Here we position the dropdownList relative to the $refs.toggle Element.
+       *
+       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
+       * the dropdownList overlap by 1 pixel.
+       *
+       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
+       * wrapper so that we can set some styles for when the dropdown is placed
+       * above.
+       */
+      const popper = createPopper(component.$refs.toggle, dropdownList, {
+        placement: 'bottom',
+        modifiers: [
+          {
+            name: 'offset',
+            options: {
+              offset: [0, -1],
+            },
+          },
+          {
+            name: 'toggleClass',
+            enabled: true,
+            phase: 'write',
+            fn ({ state }) {
+              component.$el.classList.toggle('drop-up', state.placement === 'top')
+            },
+          }],
+      })
+
+      /**
+       * To prevent memory leaks Popper needs to be destroyed.
+       * If you return function, it will be called just before dropdown is removed from DOM.
+       */
+      return () => popper.destroy()
+    },
+  },
+}
+</script>
+
+<style lang="scss">
+
+.v-select {
+  min-width: auto;
+  position: relative;
+  -ms-flex: 1 1 auto;
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  font-size: .9rem;
+  border-radius: 0.25rem;
+
+  .vs__selected-options {
+    // do not allow growing
+    width: 0;
+  }
+
+  .vs__selected {
+    display: block;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .vs__search {
+    margin-top: 0.375rem;
+  }
+
+  &:not(.vs--open) .vs__selected + .vs__search {
+    // force this to not use any space
+    // we still need it to be rendered for the focus
+    width: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    height: 0;
+  }
+
+  .vs__dropdown-toggle {
+    padding: 0.375rem;
+    padding-top: 0;
+    border-width: 2px;
+    border-color: var(--light);
+
+    .vs__selected {
+      margin-top: 0.375rem;
+    }
+
+    .vs__actions {
+      padding-top: 0.375rem;
+    }
+  }
+
+  .vs__clear,
+  .vs__open-indicator {
+    fill: var(--gray-900);
+    display: inline-flex;
+  }
+
+  .vs__clear {
+    padding: 0;
+    border: 0;
+    background-color: transparent;
+    cursor: pointer;
+    margin-right: 8px
+  }
+}
+
+.vs__dropdown-menu {
+  z-index: 1090;
+}
+
+.c-input-sm {
+  height: calc(1.5em + .5rem + 2px);
+  padding-top: .25rem;
+  padding-bottom: .25rem;
+  padding-left: .5rem;
+  font-size: .875rem;
+}
+.c-input-lg {
+  height: calc(1.5em + 1rem + 2px);
+  padding-top: .5rem;
+  padding-bottom: .5rem;
+  padding-left: 1rem;
+  font-size: 1.25rem;
+}
+
+</style>

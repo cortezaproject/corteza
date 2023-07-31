@@ -6,26 +6,29 @@
           :label="$t('report.label')"
           label-class="text-primary"
         >
-          <b-form-select
+          <c-input-select
             v-model="options.reportID"
-            :options="reportOptions"
-            text-field="label"
-            value-field="reportID"
+            :options="reports"
+            :get-option-label="o => o.meta.name || o.handle"
+            default-value="0"
+            :reduce="o => o.reportID"
+            @input="handleReportChange"
           />
         </b-form-group>
       </b-col>
+
       <b-col
-        v-if="selectedReport && scenarioOptions.length > 1"
+        v-if="selectedReport && selectedReport.scenarios && selectedReport.scenarios.length > 1"
       >
         <b-form-group
           :label="$t('report.scenario.label')"
           label-class="text-primary"
         >
-          <b-form-select
+          <c-input-select
             v-model="options.scenarioID"
-            :options="scenarioOptions"
-            text-field="label"
-            value-field="scenarioID"
+            :options="selectedReport.scenarios"
+            default-value="0"
+            :reduce="o => o.scenarioID"
           />
         </b-form-group>
       </b-col>
@@ -37,12 +40,33 @@
       :description="$t('report.element.description')"
       label-class="text-primary"
     >
-      <b-form-select
+      <c-input-select
         v-model="options.elementID"
-        :options="elementOptions"
-        text-field="name"
-        value-field="elementID"
-      />
+        :options="selectedReport.blocks"
+        :reduce="o => o.elements[0].elementID"
+        :get-option-label="getElementsOptionLabel"
+        default-value="0"
+      >
+        <template #option="option">
+          <div v-if="option.elements.length > 0">
+            <strong>{{ option.title || `${$t('general:label.block')} ${option.key}` }}</strong>
+
+            <ul class="list-unstyled">
+              <li
+                v-for="subOption in option.elements"
+                :key="subOption.name"
+                class="ml-2"
+              >
+                {{ subOption.name || subOption.kind }}
+              </li>
+            </ul>
+          </div>
+
+          <div v-else>
+            {{ option.name }}
+          </div>
+        </template>
+      </c-input-select>
     </b-form-group>
   </b-tab>
 </template>
@@ -64,13 +88,6 @@ export default {
   },
 
   computed: {
-    reportOptions () {
-      return [
-        { reportID: NoID, label: this.$t('general:label.none') },
-        ...this.reports.map(r => ({ ...r, label: r.meta.name || r.handle })),
-      ]
-    },
-
     selectedReport () {
       const { reportID = NoID } = this.options
 
@@ -79,30 +96,6 @@ export default {
       }
 
       return undefined
-    },
-
-    scenarioOptions () {
-      const { scenarios = [] } = this.selectedReport || {}
-
-      return [
-        { scenarioID: NoID, label: this.$t('general:label.none') },
-        ...scenarios,
-      ]
-    },
-
-    elementOptions () {
-      const elements = [{ elementID: NoID, name: this.$t('general:label.none') }]
-
-      if (this.selectedReport) {
-        this.selectedReport.blocks.forEach(b => {
-          elements.push({
-            label: b.title || `${this.$t('general:label.block')} ${b.key}`,
-            options: b.elements.map(({ elementID, name, kind }) => ({ elementID, name: name || kind })),
-          })
-        })
-      }
-
-      return elements
     },
   },
 
@@ -131,6 +124,18 @@ export default {
 
     setDefaultValues () {
       this.reports = []
+    },
+
+    getElementsOptionLabel (o) {
+      const blockTitle = o.title.length > 1 ? `${o.title} - ` : ''
+      return `${blockTitle}${o.elements[0].name}` || o.elements[0].kind
+    },
+
+    handleReportChange () {
+      if (this.options.elementID) {
+        this.options.elementID = NoID
+        this.options.scenarioID = NoID
+      }
     },
   },
 }

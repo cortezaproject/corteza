@@ -52,11 +52,6 @@ export default {
       default: false,
     },
 
-    appendToBody: {
-      type: Boolean,
-      default: true,
-    },
-
     horizontal: {
       type: Boolean,
       default: false,

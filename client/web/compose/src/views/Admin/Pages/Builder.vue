@@ -11,16 +11,14 @@
     </portal>
 
     <portal to="topbar-tools">
-      <b-form-select
+      <c-input-select
         v-if="layout && layouts.length > 1"
         ref="layoutSelect"
-        size="sm"
         :value="layout.pageLayoutID"
         :options="layouts"
-        value-field="pageLayoutID"
-        text-field="label"
+        :reduce="layout => layout.pageLayoutID"
         style="max-width: 300px;"
-        @change="setLayout"
+        @input="setLayout"
       />
 
       <b-button-group

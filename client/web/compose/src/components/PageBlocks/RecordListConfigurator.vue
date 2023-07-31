@@ -22,11 +22,11 @@
               variant="primary"
               label-class="text-primary"
             >
-              <b-form-select
+              <c-input-select
                 v-model="options.moduleID"
                 :options="moduleOptions"
-                text-field="name"
-                value-field="moduleID"
+                label="name"
+                :reduce="o => o.moduleID"
                 required
               />
             </b-form-group>
@@ -262,6 +262,7 @@
                   v-model="options.prefilter"
                   :placeholder="$t('recordList.record.prefilterPlaceholder')"
                 />
+
                 <b-form-text>
                   <i18next
                     path="recordList.record.prefilterFootnote"
@@ -359,15 +360,13 @@
                           class="text-center align-middle"
                           style="min-width: 200px;"
                         >
-                          <vue-select
+                          <c-input-select
                             v-model="filter.roles"
                             :options="roleOptions"
                             :get-option-label="getRoleLabel"
                             :get-option-key="getOptionKey"
                             :placeholder="$t('recordList.filter.role.placeholder')"
                             :reduce="role => role.roleID"
-                            :calculate-position="calculateDropdownPosition"
-                            append-to-body
                             multiple
                             class="bg-white rounded"
                           />
@@ -816,7 +815,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
-import { VueSelect } from 'vue-select'
 import Draggable from 'vuedraggable'
 import base from './base'
 import AutomationTab from './Shared/AutomationTab'
@@ -837,7 +835,6 @@ export default {
     FieldPicker,
     CInputPresort,
     RecordListFilter,
-    VueSelect,
     Draggable,
   },
 

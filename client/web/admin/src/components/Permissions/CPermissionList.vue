@@ -219,7 +219,7 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <vue-select
+        <c-input-select
           key="roleID"
           v-model="add.roleID"
           :data-test-id="`select-${add.mode}-roles`"
@@ -227,11 +227,8 @@
           :get-option-key="getOptionRoleKey"
           :multiple="add.mode === 'eval'"
           label="name"
-          clearable
           :disabled="add.mode === 'eval' && !!add.userID"
           :placeholder="$t('ui.add.role.placeholder')"
-          :calculate-position="calculateDropdownPosition"
-          class="bg-white rounded"
         />
       </b-form-group>
 
@@ -241,7 +238,7 @@
         label-class="text-primary"
         class="mt-3 mb-0"
       >
-        <vue-select
+        <c-input-select
           key="userID"
           v-model="add.userID"
           :data-test-id="`select-${add.mode}-users`"
@@ -250,10 +247,7 @@
           :options="userOptions"
           :get-option-label="getUserLabel"
           label="name"
-          clearable
           :placeholder="$t('ui.add.user.placeholder')"
-          :calculate-position="calculateDropdownPosition"
-          class="bg-white rounded"
           @search="searchUsers"
         />
       </b-form-group>
@@ -262,16 +256,11 @@
 </template>
 
 <script>
-import { VueSelect } from 'vue-select'
 import _ from 'lodash'
 
 export default {
   i18nOptions: {
     namespaces: 'permissions',
-  },
-
-  components: {
-    VueSelect,
   },
 
   props: {

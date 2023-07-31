@@ -11,3 +11,4 @@ export { default as CAceEditor } from './CAceEditor.vue'
 export {
   CButtonSubmit
 } from './button'
+export { default as CInputSelect } from './CInputSelect.vue'

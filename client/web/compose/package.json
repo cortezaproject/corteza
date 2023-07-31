@@ -82,7 +82,6 @@
     "vue-grid-layout": "^2.3.3",
     "vue-native-websocket": "^2.0.14",
     "vue-router": "3.1.5",
-    "vue-select": "^3.1.0",
     "vue-sortable-tree": "^1.2.2",
     "vue-tweet-embed": "^2.3.0",
     "vue2-brace-editor": "^2.0.2",

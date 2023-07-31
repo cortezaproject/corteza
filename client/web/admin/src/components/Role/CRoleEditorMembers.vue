@@ -14,15 +14,13 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <vue-select
+        <c-input-select
           ref="picker"
           data-test-id="input-role-members"
           :options="options"
           :get-option-key="u => u.value"
           :get-option-label="u => getUserLabel(u)"
-          :calculate-position="calculateDropdownPosition"
           :placeholder="$t('admin:picker.member.placeholder')"
-          class="bg-white w-100 rounded"
           multiple
           @search="search"
           @input="updateValue($event)"
@@ -70,16 +68,11 @@
 
 <script>
 import { debounce } from 'lodash'
-import { VueSelect } from 'vue-select'
 
 export default {
   i18nOptions: {
     namespaces: 'system.roles',
     keyPrefix: 'editor.members',
-  },
-
-  components: {
-    VueSelect,
   },
 
   props: {

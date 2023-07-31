@@ -2,15 +2,13 @@
   <div
     data-test-id="role-picker"
   >
-    <vue-select
+    <c-input-select
       ref="picker"
       data-test-id="input-role-picker"
       :options="filtered"
       :get-option-key="r => r.value"
       :get-option-label="r => getRoleLabel(r)"
-      :calculate-position="calculateDropdownPosition"
       :placeholder="$t('admin:picker.role.placeholder')"
-      class="bg-white w-100 rounded"
       multiple
       @search="search"
       @input="updateValue($event)"
@@ -45,17 +43,12 @@
 
 <script>
 import { debounce } from 'lodash'
-import { VueSelect } from 'vue-select'
 
 function roleSorter (a, b) {
   return `${a.name} ${a.handle} ${a.roleID}`.localeCompare(`${b.name} ${b.handle} ${b.roleID}`)
 }
 
 export default {
-  components: {
-    VueSelect,
-  },
-
   props: {
     label: {
       type: String,

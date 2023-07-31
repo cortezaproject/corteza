@@ -9,8 +9,9 @@
         class="text-light grab"
       />
     </td>
+
     <td
-      style="width: 25%;"
+      style="min-width: 250px;"
     >
       <b-form-input
         v-model="value.name"
@@ -18,16 +19,18 @@
         :readonly="disabled"
         :state="nameState"
         type="text"
-        class="form-control"
       />
     </td>
-    <td>
+
+    <td
+      style="min-width: 250px;"
+    >
       <b-input-group>
         <b-form-input
           v-model="value.label"
           type="text"
-          class="form-control"
         />
+
         <b-input-group-append>
           <field-translator
             :field.sync="value"
@@ -38,21 +41,20 @@
         </b-input-group-append>
       </b-input-group>
     </td>
-    <td>
+
+    <td
+      style="min-width: 250px;"
+    >
       <b-input-group class="field-type">
-        <b-select
+        <c-input-select
           v-model="value.kind"
+          :options="fieldKinds"
+          :reduce="kind => kind.kind"
           :disabled="disabled"
-          @change="$emit('updateKind')"
-        >
-          <option
-            v-for="({ kind, label }) in fieldKinds"
-            :key="kind"
-            :value="kind"
-          >
-            {{ label }}
-          </option>
-        </b-select>
+          :clearable="false"
+          @input="$emit('updateKind')"
+        />
+
         <b-input-group-append>
           <b-button
             v-b-tooltip.hover="{ title: $t('tooltip.field'), container: '#body' }"
@@ -67,8 +69,10 @@
         </b-input-group-append>
       </b-input-group>
     </td>
+
     <td />
     <td />
+
     <td
       class="align-middle text-center"
     >

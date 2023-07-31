@@ -1,21 +1,21 @@
 <template>
   <b-tab :title="$t('comment.label')">
     <b-form-group
-      :label="$t('general.module')"
       label-class="text-primary"
+      :label="$t('general.module')"
     >
-      <b-form-select
+      <c-input-select
         v-model="options.moduleID"
         :options="moduleOptions"
-        text-field="name"
-        value-field="moduleID"
+        label="name"
+        :reduce="module => module.moduleID"
         required
       />
     </b-form-group>
+
     <div v-if="selectedModule">
       <b-form-group
         :label="$t('field.selector.available')"
-        label-class="text-primary"
       >
         <div class="d-flex">
           <div class="border fields w-100 p-2">
@@ -25,9 +25,12 @@
               class="field"
             >
               <span v-if="field.label">{{ field.label }} ({{ field.name }})</span>
+
               <span v-else>{{ field.name }}</span>
+
               <span class="small float-right">
                 <span v-if="field.isSystem">{{ $t('field.selector.systemField') }}</span>
+
                 <span v-else>{{ field.kind }}</span>
               </span>
             </div>
@@ -47,6 +50,7 @@
           :value="true"
           :placeholder="$t('recordList.record.prefilterPlaceholder')"
         />
+
         <b-form-text>
           <i18next
             path="recordList.record.prefilterFootnote"
@@ -71,6 +75,7 @@
           <option value="">
             {{ $t('general.label.none') }}
           </option>
+
           <option
             v-for="(field, index) in selectedModuleFieldsByType('String')"
             :key="index"

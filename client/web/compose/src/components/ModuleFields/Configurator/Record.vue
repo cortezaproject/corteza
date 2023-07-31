@@ -4,11 +4,11 @@
       :label="$t('kind.record.moduleLabel')"
       label-class="text-primary"
     >
-      <b-form-select
+      <c-input-select
         v-model="f.options.moduleID"
         :options="moduleOptions"
-        text-field="name"
-        value-field="moduleID"
+        label="name"
+        :reduce="module => module.moduleID"
       />
     </b-form-group>
 
@@ -24,9 +24,11 @@
           />
         </template>
 
-        <b-form-select
+        <c-input-select
           v-model="f.options.labelField"
           :options="fieldOptions"
+          label="text"
+          :reduce="field => field.value"
         />
       </b-form-group>
 
@@ -51,7 +53,6 @@
       >
         <b-form-select
           v-model="f.options.queryFields"
-          class="form-control"
           :options="queryFieldOptions"
           multiple
         />
@@ -63,7 +64,6 @@
       >
         <b-form-textarea
           v-model="f.options.prefilter"
-          class="form-control"
           :placeholder="$t('kind.record.prefilterPlaceholder')"
         />
         <b-form-text>

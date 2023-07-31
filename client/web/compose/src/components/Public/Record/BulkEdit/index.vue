@@ -51,17 +51,14 @@
       </b-card>
 
       <template #modal-footer>
-        <vue-select
+        <c-input-select
           v-model="selectedField"
           :placeholder="getFieldSelectorPlaceholder"
           :get-option-label="getFieldLabel"
           :get-option-key="getOptionKey"
           :options="moduleFields"
-          append-to-body
-          :calculate-position="calculateDropdownPosition"
           :selectable="option => !fields.includes(option.name)"
           :reduce="f => f.name"
-          class="bg-white position-relative rounded"
           @input="addField"
         />
 
@@ -103,7 +100,6 @@
 
 <script>
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
-import { VueSelect } from 'vue-select'
 import { compose } from '@cortezaproject/corteza-js'
 import record from 'corteza-webapp-compose/src/mixins/record.js'
 
@@ -115,7 +111,6 @@ export default {
   name: 'BulkEdit',
 
   components: {
-    VueSelect,
     FieldEditor,
   },
 

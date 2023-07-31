@@ -1,12 +1,10 @@
 <template>
-  <vue-select
+  <c-input-select
     data-test-id="select-user"
     :options="user.options"
     :get-option-label="getOptionLabel"
     :get-option-key="getOptionKey"
     :value="user.value"
-    :calculate-position="calculateDropdownPosition"
-    class="bg-white rounded"
     @search="search"
     @input="updateRunAs"
   />
@@ -14,13 +12,8 @@
 
 <script>
 import { debounce } from 'lodash'
-import { VueSelect } from 'vue-select'
 
 export default {
-  components: {
-    VueSelect,
-  },
-
   props: {
     userID: {
       type: String,

@@ -96,15 +96,13 @@
                         label-class="text-primary"
                       >
                         <b-input-group class="d-flex w-100">
-                          <vue-select
+                          <c-input-select
                             v-model="chart.config.colorScheme"
                             :options="colorSchemes"
                             :reduce="cs => cs.id"
                             label="name"
                             :get-option-key="o => o.id"
                             :placeholder="$t('colorScheme.placeholder')"
-                            :calculate-position="calculateDropdownPosition"
-                            class="bg-white rounded"
                           >
                             <template #option="option">
                               <p
@@ -112,6 +110,7 @@
                               >
                                 {{ option.name }}
                               </p>
+
                               <div
                                 v-for="(color, index) in option.colors"
                                 :key="index"
@@ -134,7 +133,7 @@
                                 </b-button>
                               </li>
                             </template>
-                          </vue-select>
+                          </c-input-select>
 
                           <b-input-group-append v-if="showEditColorSchemeButton">
                             <b-button
@@ -443,7 +442,6 @@ import draggable from 'vuedraggable'
 import ReportItem from 'corteza-webapp-compose/src/components/Chart/ReportItem'
 import Reports from 'corteza-webapp-compose/src/components/Chart/Report'
 import { chartConstructor } from 'corteza-webapp-compose/src/lib/charts'
-import VueSelect from 'vue-select'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 const { CInputCheckbox, CInputColorPicker } = components
@@ -466,7 +464,6 @@ export default {
     ChartComponent,
     draggable,
     ReportItem,
-    VueSelect,
     CInputCheckbox,
     CInputColorPicker,
   },

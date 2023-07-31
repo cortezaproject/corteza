@@ -41,6 +41,7 @@
           </b-form-select>
         </b-form-group>
       </b-col>
+
       <b-col cols="6">
         <b-form-group
           :label="$t('datasources:secondary.source')"
@@ -77,6 +78,7 @@
           />
         </b-form-group>
       </b-col>
+
       <b-col cols="6">
         <b-form-group
           v-if="step.join.foreignSource"

@@ -24,14 +24,13 @@
       <div class="d-flex align-items-center justify-content-between flex-wrap w-100">
         <b-form-group>
           <b-input-group>
-            <vue-select
+            <c-input-select
               v-model="rule.currentField"
               :placeholder="$t('searchFields')"
               :get-option-label="getOptionLabel"
               :get-option-key="getOptionKey"
               :options="filterFieldOptions(rule)"
-              :calculate-position="calculateDropdownPosition"
-              class="bg-white rounded"
+              :reduce="o => o.name"
               style="min-width: 300px;"
             />
 
@@ -92,7 +91,9 @@
               :key="`constraint-${consIndex}`"
             >
               <td>{{ getOptionLabel(getField(constraint.attribute)) }}</td>
+
               <td>{{ getField(constraint.attribute).kind }}</td>
+
               <td>
                 <b-form-select
                   v-model="constraint.modifier"
@@ -100,6 +101,7 @@
                   size="sm"
                 />
               </td>
+
               <td>
                 <b-form-select
                   v-model="constraint.multiValue"
@@ -108,6 +110,7 @@
                   size="sm"
                 />
               </td>
+
               <td class="text-right p-0 px-4 align-middle">
                 <c-input-confirm
                   show-icon
@@ -141,16 +144,11 @@
 
 <script>
 import { compose } from '@cortezaproject/corteza-js'
-import { VueSelect } from 'vue-select'
 
 export default {
   i18nOptions: {
     namespaces: 'module',
     keyPrefix: 'edit.config.uniqueValues',
-  },
-
-  components: {
-    VueSelect,
   },
 
   props: {
@@ -206,6 +204,8 @@ export default {
     },
 
     updateRuleConstraint (rule) {
+      rule.currentField = this.module.fields.find(({ name }) => name === rule.currentField)
+
       if (!rule.constraints) {
         rule.constraints = []
       }

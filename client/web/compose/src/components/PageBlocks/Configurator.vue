@@ -73,10 +73,12 @@
             :label="$t('general.headerStyle')"
             label-class="text-primary"
           >
-            <b-form-select
+            <c-input-select
               id="color"
               v-model="block.style.variants.headerText"
               :options="textVariants"
+              :reduce="o => o.value"
+              label="text"
             />
           </b-form-group>
 
