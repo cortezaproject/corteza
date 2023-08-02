@@ -13,6 +13,7 @@ export default {
       processingUndelete: false,
       processingSubmit: false,
       record: undefined,
+      initialRecordState: undefined,
       errors: new validator.Validated(),
     }
   },
@@ -163,6 +164,8 @@ export default {
           } else {
             this.inCreating = false
             this.inEditing = false
+            // reset the record initial state in cases where the record edit page is redirected to the record view page
+            this.initialRecordState = this.record.clone()
 
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })
@@ -172,6 +175,9 @@ export default {
 
             if (!isNew) {
               this.record = record
+              // reset the record initial state in cases where the record edit page is opened on a modal
+              this.initialRecordState = this.record.clone()
+
               this.determineLayout().then(() => {
                 this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
               })
@@ -230,6 +236,7 @@ export default {
             this.inCreating = false
             this.inEditing = false
             this.record = record
+            this.initialRecordState = this.record.clone()
 
             this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
           }
@@ -326,6 +333,7 @@ export default {
           this.onModalHide()
           this.fields = []
           this.record = new compose.Record(this.module, {})
+          this.initialRecordState = this.record.clone()
           this.$emit('save')
         })
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkRecordUpdateFailed')))

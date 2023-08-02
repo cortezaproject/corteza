@@ -3,7 +3,6 @@
     <portal to="topbar-title">
       {{ title }}
     </portal>
-
     <portal to="topbar-tools">
       <b-button-group
         v-if="isEdit"
@@ -567,6 +566,10 @@ export default {
       return this.$route.name === 'admin.modules.edit' ? this.$t('edit.edit') : this.$t('edit.create')
     },
 
+    isNew () {
+      return this.moduleID === NoID
+    },
+
     trModule: {
       get () {
         if (!this.module) {
@@ -708,11 +711,16 @@ export default {
     }),
 
     checkUnsavedModule (next) {
-      if (!this.module.deletedAt) {
-        return next(!isEqual(this.module.clone(), this.initialModuleState.clone()) ? window.confirm(this.$t('general.unsavedChanges')) : true)
-      }
+      if (this.isNew) {
+        next(true)
+      } else if (!this.module.deletedAt) {
+        const moduleState = this.module ? this.module.clone() : {}
+        const initialModuleState = this.initialModuleState ? this.initialModuleState.clone() : {}
 
-      next()
+        next(!isEqual(moduleState, initialModuleState) ? window.confirm(this.$t('general.unsavedChanges')) : true)
+      } else {
+        next(true)
+      }
     },
 
     handleNewField () {

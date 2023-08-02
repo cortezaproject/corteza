@@ -110,6 +110,7 @@
 </template>
 
 <script>
+import { isEqual } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
@@ -295,7 +296,11 @@ export default {
       immediate: true,
       handler () {
         this.record = undefined
+        this.initialRecordState = undefined
         this.refresh()
+        this.loadRecord().then(() => {
+          this.determineLayout()
+        })
       },
     },
 
@@ -339,12 +344,26 @@ export default {
 
   mounted () {
     this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
+
+    if (this.showRecordModal) {
+      this.$root.$on('bv::modal::hide', this.checkUnsavedChangesOnModal)
+    }
   },
 
   beforeDestroy () {
     this.abortRequests()
     this.destroyEvents()
     this.setDefaultValues()
+  },
+
+  // Destroy event before route leave to ensure it doesn't destroy the newly created one
+  beforeRouteLeave (to, from, next) {
+    this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
   },
 
   methods: {
@@ -374,6 +393,7 @@ export default {
             .then(record => {
               return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
                 this.record = new compose.Record(module, record)
+                this.initialRecordState = this.record.clone()
               })
             })
             .catch(e => {
@@ -384,6 +404,7 @@ export default {
             })
         } else {
           this.record = new compose.Record(module, { values: this.values })
+          this.initialRecordState = this.record.clone()
 
           this.inEditing = true
           this.inCreating = true
@@ -431,6 +452,7 @@ export default {
       this.inEditing = true
       this.inCreating = true
       this.record = new compose.Record(this.module, { values: this.values })
+      this.initialRecordState = this.record.clone()
       this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
     },
 
@@ -442,6 +464,8 @@ export default {
 
       this.inEditing = true
       this.inCreating = true
+      this.record = new compose.Record(this.module, { values: this.record.values })
+      this.initialRecordState = this.record.clone()
       this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, values: this.record.values })
     },
 
@@ -607,6 +631,35 @@ export default {
 
     destroyEvents () {
       this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
+
+      if (this.showRecordModal) {
+        this.$root.$off('bv::modal::hide', this.checkUnsavedChangesOnModal)
+      }
+    },
+
+    compareRecordValues () {
+      const recordValues = JSON.parse(JSON.stringify(this.record ? this.record.values : {}))
+      const initialRecordState = JSON.parse(JSON.stringify(this.initialRecordState ? this.initialRecordState.values : {}))
+
+      return !isEqual(recordValues, initialRecordState)
+    },
+
+    checkUnsavedChanges (next, to) {
+      if (this.inCreating) {
+        next(true)
+      } else {
+        next(this.compareRecordValues() ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
+    },
+
+    checkUnsavedChangesOnModal (bvEvent, modalId) {
+      if (modalId === 'record-modal' && !this.inCreating) {
+        const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:editor.unsavedChanges')) : true
+
+        if (!recordStateChange) {
+          bvEvent.preventDefault()
+        }
+      }
     },
   },
 }

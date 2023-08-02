@@ -782,15 +782,17 @@ export default {
     },
 
     checkUnsavedNamespace (next) {
-      if (!this.namespace.deletedAt) {
+      if (this.isNew) {
+        next(true)
+      } else if (!this.namespace.deletedAt) {
         const namespaceState = !isEqual(this.namespace.clone(), this.initialNamespaceState.clone())
         const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
         const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
 
         return next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
+      } else {
+        next(true)
       }
-
-      next()
     },
 
     setDefaultValues () {

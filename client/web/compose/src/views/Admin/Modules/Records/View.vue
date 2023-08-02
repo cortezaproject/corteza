@@ -101,6 +101,7 @@
 
 <script>
 import axios from 'axios'
+import { isEqual } from 'lodash'
 import { mapGetters } from 'vuex'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
@@ -155,6 +156,10 @@ export default {
     ...mapGetters({
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
     }),
+
+    isNew () {
+      return this.record.recordID === NoID
+    },
 
     title () {
       const { name, handle } = this.module
@@ -232,11 +237,20 @@ export default {
   created () {
     this.createBlocks()
     this.record = new compose.Record(this.module, { values: this.values })
+    this.initialRecordState = this.record.clone()
   },
 
   beforeDestroy () {
     this.abortRequests()
     this.setDefaultValues()
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
   },
 
   methods: {
@@ -267,6 +281,7 @@ export default {
         response()
           .then(record => {
             this.record = new compose.Record(module, record)
+            this.initialRecordState = this.record.clone()
           })
           .catch((e) => {
             if (!axios.isCancel(e)) {
@@ -321,6 +336,17 @@ export default {
       this.abortableRequests.forEach((cancel) => {
         cancel()
       })
+    },
+
+    checkUnsavedChanges (next, to) {
+      if (this.isNew) {
+        return true
+      } else {
+        const recordValues = JSON.parse(JSON.stringify(this.record.values))
+        const initialRecordState = JSON.parse(JSON.stringify(this.initialRecordState.values))
+
+        next(!isEqual(recordValues, initialRecordState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
     },
   },
 }
