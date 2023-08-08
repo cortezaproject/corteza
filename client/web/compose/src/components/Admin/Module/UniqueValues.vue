@@ -48,7 +48,7 @@
 
         <b-col
           cols="12"
-          lg="6"
+          lg="5"
         >
           <b-form-group
             :label="$t('preventRecordsSave')"
