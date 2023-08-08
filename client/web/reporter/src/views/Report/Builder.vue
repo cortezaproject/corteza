@@ -69,6 +69,7 @@
         </b-button>
         <b-button
           variant="primary"
+          class="d-flex align-items-center justify-content-center"
           style="margin-left:2px;"
           :title="$t('builder:tooltip.edit.report')"
           :disabled="!canUpdate"
