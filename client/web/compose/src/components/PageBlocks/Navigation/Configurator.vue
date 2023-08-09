@@ -269,6 +269,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     addNavigationItem () {
       this.block.options.navigationItems.push(
@@ -290,6 +294,14 @@ export default {
           },
         }),
       )
+    },
+
+    setDefaultValues () {
+      this.appearanceOptions = []
+      this.alignmentOptions = []
+      this.justifyOptions = []
+      this.backgroundColors = []
+      this.navigationItemTypes = []
     },
   },
 }

@@ -306,6 +306,16 @@ export default {
       },
     },
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues () {
+      this.mock = []
+    },
+  },
 }
 </script>
 <style lang="scss" scoped>

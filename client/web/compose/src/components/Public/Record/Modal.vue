@@ -109,7 +109,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('show-record-modal')
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -162,6 +163,17 @@ export default {
           },
         })
       }, 300)
+    },
+
+    setDefaultValues () {
+      this.showModal = false
+      this.recordID = undefined
+      this.module = undefined
+      this.page = undefined
+    },
+
+    destroyEvents () {
+      this.$root.$off('show-record-modal')
     },
   },
 }

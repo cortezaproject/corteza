@@ -212,6 +212,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
@@ -304,6 +308,12 @@ export default {
       }
 
       return !expressions.value
+    },
+
+    setDefaultValues () {
+      this.referenceRecord = undefined
+      this.referenceModule = undefined
+      this.inlineEdit = {}
     },
   },
 }

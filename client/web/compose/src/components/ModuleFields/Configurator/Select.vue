@@ -219,6 +219,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     handleAddOption () {
       this.f.options.options.push({
@@ -233,6 +237,11 @@ export default {
       if (!allowDuplicates) {
         this.f.options.isUniqueMultiValue = true
       }
+    },
+
+    setDefaultValues () {
+      this.newOption = {}
+      this.options = []
     },
   },
 }

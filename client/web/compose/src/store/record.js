@@ -59,6 +59,8 @@ export default function (ComposeAPI) {
           commit(types.updateSet, set)
         }).finally(() => {
           commit(types.completed)
+          existing.clear()
+          recordIDs = []
         })
       },
 

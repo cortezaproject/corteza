@@ -654,6 +654,10 @@ export default {
     this.mock.record = new compose.Record(this.mock.module, { mockField: 15 })
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     addThreshold () {
       this.options.display.thresholds.push({ value: 0, variant: 'success' })
@@ -681,6 +685,12 @@ export default {
 
     getOptionAggregationOperationKey ({ operation }) {
       return operation
+    },
+
+    setDefaultValues () {
+      this.aggregationOperations = []
+      this.variants = []
+      this.mock = {}
     },
   },
 }

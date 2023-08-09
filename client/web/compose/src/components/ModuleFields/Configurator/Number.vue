@@ -399,6 +399,10 @@ export default {
     this.liveExample = this.field.options.display === 'number' ? 123.45679 : 33.45679
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     addThreshold () {
       this.field.options.thresholds.push({ value: 0, variant: 'success' })
@@ -408,6 +412,13 @@ export default {
       if (index > -1) {
         this.field.options.thresholds.splice(index, 1)
       }
+    },
+
+    setDefaultValues () {
+      this.liveExample = undefined
+      this.displayOptions = []
+      this.variants = []
+      this.mock = {}
     },
   },
 }

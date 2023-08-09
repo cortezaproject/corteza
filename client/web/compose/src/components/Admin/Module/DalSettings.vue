@@ -195,6 +195,10 @@ export default {
     this.fetchConnections()
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     async fetchConnections () {
       this.processing = true
@@ -262,6 +266,17 @@ export default {
 
     getOptionKey ({ connectionID }) {
       return connectionID
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.connections = []
+      this.moduleFields = []
+      this.moduleFieldEncoding = []
+      this.selectedGroup = ''
+      this.systemFields = []
+      this.systemFieldEncoding = []
+      this.optionsGroups = []
     },
   },
 }

@@ -312,7 +312,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('builder-createRequestFulfilled', this.createRequestFulfilled)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -362,6 +363,15 @@ export default {
 
     getOptionKey ({ blockID }) {
       return blockID
+    },
+
+    setDefaultValues () {
+      this.activeIndex = null
+      this.style = {}
+    },
+
+    destroyEvents () {
+      this.$root.$off('builder-createRequestFulfilled', this.createRequestFulfilled)
     },
   },
 }

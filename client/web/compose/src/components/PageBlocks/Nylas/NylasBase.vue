@@ -126,6 +126,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     processPrefillValues () {
       if (this.module) {
@@ -174,6 +178,14 @@ export default {
             }, 3000)
           }
         })
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.isExternalConfigured = false
+      this.accessToken = undefined
+      this.tokenCheckInterval = undefined
+      this.prefillValues = {}
     },
   },
 }

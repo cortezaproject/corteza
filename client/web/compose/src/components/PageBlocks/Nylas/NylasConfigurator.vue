@@ -196,6 +196,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     getFieldLabel ({ name, label }) {
       return label || name
@@ -203,6 +207,11 @@ export default {
 
     getOptionKey ({ fieldID }) {
       return fieldID
+    },
+
+    setDefaultValues () {
+      this.nylasComponentKinds = []
+      this.checkboxLabels = {}
     },
   },
 }

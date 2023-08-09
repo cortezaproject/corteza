@@ -151,6 +151,15 @@ export default {
     },
   },
 
+  mounted () {
+    this.setDocumentFocusObserver()
+  },
+
+  beforeDestroy () {
+    this.clearDocumentFocusObserver()
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       resume: 'wfPrompts/resume',
@@ -188,15 +197,13 @@ export default {
           this.hasFocus = f
         }
       }, 1000)
-    }
-  },
+    },
 
-  mounted () {
-    this.setDocumentFocusObserver()
-  },
-
-  beforeDestroy () {
-    this.clearDocumentFocusObserver()
+    setDefaultValues () {
+      this.passive.clear()
+      this.hasFocus = null
+      this.hasFocusObserver = 0
+    },
   },
 }
 </script>

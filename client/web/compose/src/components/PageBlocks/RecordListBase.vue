@@ -1052,6 +1052,7 @@ export default {
   },
 
   beforeDestroy () {
+    this.setDefaultValues()
     this.destroyEvents()
   },
 
@@ -1248,6 +1249,7 @@ export default {
 
       // If required fields are satisfied, then the validation passes
       resolve({ valid: !req.size })
+      req.clear()
     },
 
     handleDeleteInline (item, i) {
@@ -1486,6 +1488,7 @@ export default {
             this.handleRestoreInline(item, index)
           }
         })
+        sel.clear()
       } else {
         this.processing = true
 
@@ -1514,6 +1517,7 @@ export default {
             this.handleDeleteInline(this.items[i], i)
           }
         }
+        sel.clear()
       } else {
         this.processing = true
 
@@ -1834,6 +1838,29 @@ export default {
       if (!roles.length) return true
 
       return roles.some(roleID => this.authUserRoles.includes(roleID))
+    },
+
+    setDefaultValues () {
+      this.uniqueID = undefined
+      this.processing = false
+      this.prefilter = undefined
+      this.recordListFilter = []
+      this.drillDownFilter = undefined
+      this.query = null
+      this.filter = {}
+      this.pagination = {}
+      this.selected = []
+      this.inlineEdit = {}
+      this.sortBy = undefined
+      this.sortDirecton = undefined
+      this.ctr = 0
+      this.items = []
+      this.showingDeletedRecords = false
+      this.activeFilters = []
+      this.customPresetFilters = []
+      this.currentCustomPresetFilter = undefined
+      this.showCustomPresetFilterModal = false
+      this.selectedAllRecords = false
     },
   },
 }

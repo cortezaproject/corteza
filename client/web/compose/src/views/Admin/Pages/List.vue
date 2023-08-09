@@ -128,6 +128,10 @@ export default {
     this.loadTree()
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       createPage: 'page/create',
@@ -158,6 +162,12 @@ export default {
 
     handleReorder () {
       this.loadTree()
+    },
+
+    setDefaultValues () {
+      this.tree = []
+      this.page = {}
+      this.processing = false
     },
   },
 }

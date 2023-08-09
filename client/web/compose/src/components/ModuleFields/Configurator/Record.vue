@@ -109,7 +109,6 @@ export default {
 
   data () {
     return {
-      selected: null,
       selectOptions: [
         { text: this.$t('kind.select.optionType.default'), value: 'default', allowDuplicates: true },
         { text: this.$t('kind.select.optionType.multiple'), value: 'multiple' },

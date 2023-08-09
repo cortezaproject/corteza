@@ -1064,6 +1064,10 @@ export default {
     this.fetchRoles()
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       findPageByID: 'page/findByID',
@@ -1259,6 +1263,21 @@ export default {
       const pageStateChange = !isEqual(this.page, this.initialPageState)
 
       next((layoutsStateChange || pageStateChange) ? window.confirm(this.$t('unsavedChanges')) : true)
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.page = {}
+      this.initialPageState = {}
+      this.showIconModal = false
+      this.attachments = []
+      this.selectedAttachmentID = ''
+      this.linkUrl = ''
+      this.layouts = []
+      this.layoutEditor = {}
+      this.removedLayouts.clear()
+      this.roles = {}
+      this.checkboxLabel = {}
     },
   },
 }

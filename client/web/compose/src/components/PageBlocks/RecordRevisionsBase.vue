@@ -216,6 +216,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   created () {
     this.refreshBlock(this.refresh)
   },
@@ -246,6 +250,14 @@ export default {
     refresh () {
       this.loadedRevisions = true
       this.loadRevisions()
+    },
+
+    setDefaultValues () {
+      this.error = null
+      this.processing = false
+      this.loadedRevisions = false
+      this.revisions = []
+      this.columns = []
     },
   },
 }

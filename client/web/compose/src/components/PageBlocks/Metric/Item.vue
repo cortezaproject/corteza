@@ -85,6 +85,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     update () {
       this.$nextTick(() => {
@@ -111,6 +115,10 @@ export default {
       }
 
       return d
+    },
+
+    setDefaultValues () {
+      this.vvb = []
     },
   },
 }

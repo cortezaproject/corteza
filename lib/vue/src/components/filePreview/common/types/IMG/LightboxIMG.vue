@@ -61,6 +61,16 @@ export default {
       }]
     },
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues() {
+      this.options = {}
+    },
+  },
 }
 </script>
 

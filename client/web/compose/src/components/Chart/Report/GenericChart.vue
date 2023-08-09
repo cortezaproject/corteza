@@ -519,6 +519,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     hasRelativeDisplay: compose.chartUtil.hasRelativeDisplay,
 
@@ -535,6 +539,15 @@ export default {
 
     chartTypeChanged (metric) {
       metric.relativeValue = false
+    },
+
+    setDefaultValues () {
+      this.chartTypes = []
+      this.legendPositions = []
+      this.axisLabelPositions = []
+      this.tensionSteps = []
+      this.lineStyleOptions = []
+      this.scatterSymbolOptions = []
     },
   },
 }

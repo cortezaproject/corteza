@@ -277,6 +277,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   computed: {
     _fields () {
       const select = this.selectable ? [
@@ -394,6 +398,11 @@ export default {
       }
 
       this.$router.replace({ query: { ...this.$route.query, page, pageCursor } })
+    },
+
+    setDefaultValues () {
+      this.selected = [],
+      this.selectableItemIDs = []
     },
   },
 }

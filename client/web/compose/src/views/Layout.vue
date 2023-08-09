@@ -193,9 +193,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('alert')
-    this.$root.$off('reminder.show', this.showReminder)
-    this.$root.$off('check-namespace-sidebar', this.checkNamespaceSidebar)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -286,6 +285,19 @@ export default {
       } else {
         this.toasts.push(r)
       }
+    },
+
+    setDefaultValues () {
+      this.expanded = false
+      this.pinned = false
+      this.toasts = []
+      this.disabledRoutes = []
+    },
+
+    destroyEvents () {
+      this.$root.$off('alert')
+      this.$root.$off('reminder.show', this.showReminder)
+      this.$root.$off('check-namespace-sidebar', this.checkNamespaceSidebar)
     },
   },
 }

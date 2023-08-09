@@ -92,6 +92,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   created () {
     this.loadPages()
   },
@@ -120,6 +124,12 @@ export default {
 
     getOptionKey ({ pageID }) {
       return pageID
+    },
+
+    setDefaultValues () {
+      this.pageList = []
+      this.checkboxLabel = {}
+      this.targetOptions = []
     },
   },
 }

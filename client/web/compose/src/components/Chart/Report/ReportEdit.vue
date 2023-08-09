@@ -639,6 +639,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     hasRelativeDisplay: compose.chartUtil.hasRelativeDisplay,
 
@@ -674,6 +678,14 @@ export default {
 
     isTemporalField (name) {
       return this.dimensionFields.some(f => f.value === name && f.kind === 'DateTime')
+    },
+
+    setDefaultValues () {
+      this.metricAggregates = []
+      this.dimensionModifiers = []
+      this.predefinedFilters = []
+      this.alignments = []
+      this.orientations = []
     },
   },
 }

@@ -155,6 +155,10 @@ export default {
     this.loadLatest()
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     encodeValue () {
       if (!this.value) {
@@ -291,6 +295,16 @@ export default {
 
     getOptionKey ({ recordID }) {
       return recordID
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.query = ''
+      this.filter = {}
+      this.namespaceID = NoID
+      this.module = undefined
+      this.options = []
+      this.value = undefined
     },
   },
 }

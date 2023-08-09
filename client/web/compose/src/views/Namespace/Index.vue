@@ -72,5 +72,18 @@ export default {
       this.remindersVisible = true
     })
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues () {
+      this.loaded = false
+      this.query = ''
+      this.namespaces = []
+      this.remindersVisible = false
+    },
+  },
 }
 </script>

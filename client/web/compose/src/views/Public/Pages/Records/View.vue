@@ -322,7 +322,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('refetch-record-blocks')
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one
@@ -520,6 +521,20 @@ export default {
         block.xywh = xywh
         return block
       })
+    },
+
+    setDefaultValues () {
+      this.inEditing = false
+      this.inCreating = false
+      this.layouts = []
+      this.layout = undefined
+      this.layoutButtons.clear()
+      this.blocks = undefined
+      this.recordNavigation = {}
+    },
+
+    destroyEvents () {
+      this.$root.$off('refetch-record-blocks')
     },
   },
 }

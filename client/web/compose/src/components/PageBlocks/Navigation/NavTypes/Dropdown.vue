@@ -149,6 +149,17 @@ export default {
       ],
     }
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues () {
+      this.aligns = []
+      this.targetOptions = []
+    },
+  },
 }
 </script>
 

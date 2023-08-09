@@ -232,6 +232,10 @@ export default {
     this.record = new compose.Record(this.module, { values: this.values })
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     createBlocks () {
       this.fields.forEach(f => {
@@ -285,6 +289,12 @@ export default {
       this.$router.push({
         params: { ...this.$route.params, recordID },
       })
+    },
+
+    setDefaultValues () {
+      this.inEditing = false
+      this.blocks = []
+      this.bindParams = {}
     },
   },
 }

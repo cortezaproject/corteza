@@ -215,6 +215,10 @@ export default {
     this.refreshBlock(this.refresh)
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     getFormattedDate (date) {
       return fmt.fullDateTime(date)
@@ -337,6 +341,13 @@ export default {
       return this.$ComposeAPI
         .recordList(params)
         .then(({ set }) => set.map(r => Object.freeze(new compose.Record(module, r))))
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.filter = false
+      this.records = []
+      this.newRecord = {}
     },
   },
 }

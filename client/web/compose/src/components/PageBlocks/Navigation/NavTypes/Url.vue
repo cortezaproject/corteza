@@ -43,6 +43,17 @@ export default {
       ],
     }
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues () {
+      this.value = {}
+      this.openInType = []
+    },
+  },
 }
 </script>
 

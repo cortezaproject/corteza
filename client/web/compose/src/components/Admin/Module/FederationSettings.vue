@@ -295,7 +295,6 @@ export default {
   },
 
   computed: {
-
     //
     // shared modules
     //
@@ -380,6 +379,10 @@ export default {
 
   async mounted () {
     this.preload()
+  },
+
+  beforeDestroy () {
+    this.setDefaultValues()
   },
 
   methods: {
@@ -731,6 +734,19 @@ export default {
       }
 
       this.moduleMappings[nodeID] = mm
+    },
+
+    setDefaultValues () {
+      this.showModal = false
+      this.servers = []
+      this.moduleFields = []
+      this.sharedModule = null
+      this.sharedModules = {}
+      this.sharedModulesMapped = {}
+      this.exposedModules = {}
+      this.moduleMappings = {}
+      this.downstream = {}
+      this.upstream = {}
     },
   },
 }

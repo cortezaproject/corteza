@@ -109,6 +109,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   created () {
     this.fetchReports()
   },
@@ -120,6 +124,10 @@ export default {
           this.reports = set
         })
         .catch(this.toastErrorHandler(this.$t('notification:report.listFetchFailed')))
+    },
+
+    setDefaultValues () {
+      this.reports = []
     },
   },
 }

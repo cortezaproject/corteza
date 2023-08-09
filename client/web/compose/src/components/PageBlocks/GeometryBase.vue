@@ -153,6 +153,10 @@ export default {
     this.bounds = this.options.bounds
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
@@ -298,6 +302,15 @@ export default {
       } else {
         this.$router.push(route)
       }
+    },
+
+    setDefaultValues () {
+      this.map = undefined
+      this.processing = false
+      this.show = false
+      this.geometries = []
+      this.colors = []
+      this.markers = []
     },
   },
 }

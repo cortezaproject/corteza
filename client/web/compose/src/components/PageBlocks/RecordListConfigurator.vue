@@ -914,6 +914,10 @@ export default {
     this.fetchRoles()
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     getRoleLabel ({ name }) {
       return name
@@ -939,6 +943,11 @@ export default {
 
     getOptionKey ({ roleID }) {
       return roleID
+    },
+
+    setDefaultValues () {
+      this.checkboxLabel = {}
+      this.roleOptions = []
     },
   },
 }

@@ -161,6 +161,7 @@ export default {
       sortDirections: [{ label: this.$t('comment.sortDirection.asc'), value: 'asc' }, { label: this.$t('comment.sortDirection.desc'), value: 'desc' }],
     }
   },
+
   computed: {
     ...mapGetters({
       modules: 'module/set',
@@ -237,6 +238,12 @@ export default {
       this.options.sortDirection = 'desc'
     }
   },
+
+  beforeDestroy () {
+    this.referenceList = []
+    this.sortDirections = []
+  },
+
   methods: {
     selectedModuleFieldsByType (type) {
       return (this.selectedModuleFields || []).filter((f) => {

@@ -150,6 +150,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     isRef (f) {
       return this.isRecord(f) || this.isUser(f)
@@ -166,6 +170,12 @@ export default {
     refModuleName ({ options: { moduleID = NoID } }) {
       const m = moduleID === NoID ? null : this.getModuleByID(moduleID)
       return m ? m.name || m.handle : this.$t('errors.invalid-module-id')
+    },
+
+    setDefaultValues () {
+      this.displayAllFields = false
+      this.displayedFieldsBackup = []
+      this.columns = []
     },
   },
 }

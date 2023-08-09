@@ -153,11 +153,16 @@ export default {
               const fields = [...existingFields].map(name => this.module.fields.find(field => field.name === name))
 
               this[value].result.push({ lang, fields })
+              existingFields.clear()
             })
           })
         }
       },
     },
+  },
+
+  beforeDestroy () {
+    this.setDefaultValues()
   },
 
   methods: {
@@ -181,6 +186,14 @@ export default {
         ...this.module.meta,
         discovery,
       })
+    },
+
+    setDefaultValues () {
+      this.public = {}
+      this.private = {}
+      this.protected = {}
+      this.currentTabIndex = 0
+      this.currentLang = undefined
     },
   },
 }

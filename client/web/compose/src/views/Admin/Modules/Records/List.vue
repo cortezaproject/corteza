@@ -150,6 +150,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       updateModule: 'module/update',
@@ -167,6 +171,11 @@ export default {
       this.updateModule(this.module).then(() => {
         this.toastSuccess(this.$t('notification:module.columns.saved'))
       }).catch(this.toastErrorHandler(this.$t('notification:module.columns.saveFailed')))
+    },
+
+    setDefaultValues () {
+      this.block = undefined
+      this.namespace = {}
     },
   },
 }

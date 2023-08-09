@@ -395,6 +395,10 @@ export default {
     })
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     _disableDragging (e) {
       if (this.disabledDragging && e.to !== e.from) {
@@ -473,6 +477,12 @@ export default {
 
     frozen () {
       return this.options.map(Object.freeze)
+    },
+
+    setDefaultValues () {
+      this.query = ''
+      this.available = []
+      this.selected = []
     },
   },
 }

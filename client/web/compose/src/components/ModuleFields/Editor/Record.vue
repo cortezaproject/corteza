@@ -296,6 +296,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
@@ -465,6 +469,7 @@ export default {
             }
 
             mappedIDs[r.recordID] = relatedRecordValue.join(relatedLabelField.options.multiDelimiter)
+            relatedRecordIDs.clear()
           }
         } else if (relatedField.kind === 'User') {
           this.processing = true
@@ -514,6 +519,14 @@ export default {
 
     getOptionKey ({ value }) {
       return value
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.query = ''
+      this.records = []
+      this.recordValues = {}
+      this.filter = {}
     },
   },
 }

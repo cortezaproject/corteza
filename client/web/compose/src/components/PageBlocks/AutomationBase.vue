@@ -63,5 +63,16 @@ export default {
         this.processing = false
       })
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues () {
+      this.processing = false
+      this.automationScripts = []
+    },
+  },
 }
 </script>

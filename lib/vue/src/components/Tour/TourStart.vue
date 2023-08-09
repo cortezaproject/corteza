@@ -31,20 +31,22 @@ export default {
       }
     })
   },
+
   methods: {
     onSave () {
       this.updateStorage(true)
       this.$emit('start')
       this.showModal = false
     },
+
     onCancel () {
       this.updateStorage(false)
       this.showModal = false
     },
+
     updateStorage (status) {
       window.localStorage.setItem('corteza.tour', JSON.stringify(status))
     },
-
   },
 }
 </script>

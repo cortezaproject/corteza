@@ -174,6 +174,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     updateCenter (coordinates) {
       let { lat = 0, lng = 0 } = coordinates || {}
@@ -212,6 +216,13 @@ export default {
     onLocationFound ({ latitude, longitude }) {
       const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
       this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
+    },
+
+    setDefaultValues () {
+      this.map = {}
+      this.localValue = {}
+      this.center = []
+      this.bounds = null
     },
   },
 }

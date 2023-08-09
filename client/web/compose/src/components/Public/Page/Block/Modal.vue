@@ -89,7 +89,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('magnify-page-block', this.magnifyPageBlock)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -147,6 +148,18 @@ export default {
           },
         })
       }, 300)
+    },
+
+    setDefaultValues () {
+      this.showModal = false
+      this.block = undefined
+      this.record = undefined
+      this.page = undefined
+      this.customBlock = undefined
+    },
+
+    destroyEvents () {
+      this.$root.$off('magnify-page-block', this.magnifyPageBlock)
     },
   },
 }

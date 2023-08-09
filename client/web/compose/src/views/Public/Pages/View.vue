@@ -200,7 +200,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('refetch-records')
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   beforeRouteLeave (to, from, next) {
@@ -307,6 +308,17 @@ export default {
         block.xywh = xywh
         return block
       })
+    },
+
+    setDefaultValues () {
+      this.layouts = []
+      this.layout = undefined
+      this.blocks = undefined
+      this.pageTitle = ''
+    },
+
+    destroyEvents () {
+      this.$root.$off('refetch-records')
     },
   },
 }

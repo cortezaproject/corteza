@@ -222,6 +222,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     isOptionDisabled (type) {
       return (!this.recordPage && type.recordPageOnly) || this.disabledKinds.includes(type.block.kind)
@@ -229,6 +233,12 @@ export default {
 
     getBlockLabel ({ title, kind }) {
       return title || kind
+    },
+
+    setDefaultValues () {
+      this.current = undefined
+      this.selectedExistingBlock = undefined
+      this.types = []
     },
   },
 }

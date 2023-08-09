@@ -93,6 +93,10 @@ export default {
     })
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     getOptionKey ({ roleID }) {
       return roleID
@@ -103,6 +107,11 @@ export default {
       if (!allowDuplicates) {
         this.f.options.isUniqueMultiValue = true
       }
+    },
+
+    setDefaultValues () {
+      this.selectOptions = []
+      this.roleOptions = []
     },
   },
 }

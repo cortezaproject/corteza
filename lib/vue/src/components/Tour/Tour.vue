@@ -96,20 +96,25 @@ export default {
   i18nOptions: {
     namespaces: 'onboarding-tour',
   },
+
   props: {
     name: String,
+
     callbacks: {
       type: Object,
     },
+
     steps: {
       default: () => [],
       type: Array,
     },
   },
+
   computed: {
     labels () {
       return this.tour.labels
     },
+
     tour () {
       return  {
         name: this.name,
@@ -126,16 +131,19 @@ export default {
       }
     },
   },
+
   methods: {
     onStart () {
       if (JSON.parse(localStorage.getItem('corteza.tour')) && this.tour.steps.length) {
         this.$tours[this.tour.name].start()
       }
     },
+
     onStop () {
       localStorage.setItem('corteza.tour', JSON.stringify(false))
       this.$tours[this.tour.name].stop()
     },
+
     onStartClick () {
       localStorage.setItem('corteza.tour', JSON.stringify(true))
       this.onStart()

@@ -698,6 +698,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   beforeRouteUpdate (to, from, next) {
     this.checkUnsavedModule(next)
   },
@@ -853,6 +857,19 @@ export default {
         .finally(() => {
           this.processing = false
         })
+    },
+
+    setDefaultValues () {
+      this.activeTab = 0
+      this.connection = undefined
+      this.sensitivityLevels = []
+      this.updateField = null
+      this.module = undefined
+      this.initialModuleState = undefined
+      this.hasRecords = true
+      this.processing = false
+      this.federationSettings = {}
+      this.discoverySettings = {}
     },
   },
 }

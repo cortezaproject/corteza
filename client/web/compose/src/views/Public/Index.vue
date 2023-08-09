@@ -233,6 +233,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       createModule: 'module/create',
@@ -283,6 +287,12 @@ export default {
       this.createPage(newPage).then((page) => {
         this.$router.push({ name: 'admin.pages.builder', params: { pageID: page.pageID } })
       }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
+    },
+
+    setDefaultValues () {
+      this.navVisible = false
+      this.documentWidth = 0
+      this.loaded = false
     },
   },
 }

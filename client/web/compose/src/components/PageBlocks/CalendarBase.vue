@@ -230,6 +230,10 @@ export default {
     this.refreshBlock(this.refresh)
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
@@ -376,6 +380,16 @@ export default {
         event.backgroundColor = feed.options.color
         return event
       })
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.show = false
+      this.events = []
+      this.locale = undefined
+      this.title = ''
+      this.loaded = {}
+      this.refreshing = false
     },
   },
 }

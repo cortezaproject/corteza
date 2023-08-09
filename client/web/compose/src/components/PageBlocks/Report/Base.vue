@@ -57,6 +57,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   created () {
     this.refreshBlock(this.refresh)
   },
@@ -137,6 +141,12 @@ export default {
       this.fetchReport(this.options.reportID).then(() => {
         this.key++
       })
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.report = undefined
+      this.displayElement = undefined
     },
   },
 }

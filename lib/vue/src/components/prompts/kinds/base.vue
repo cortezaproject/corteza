@@ -20,7 +20,7 @@ export default {
   },
 
   methods: {
-     pVal (k, def = undefined) {
+    pVal (k, def = undefined) {
       return pVal(this.payload, k, def)
     },
 

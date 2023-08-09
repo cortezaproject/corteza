@@ -251,7 +251,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -482,6 +483,16 @@ export default {
 
     refresh () {
       this.pullRecords()
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.filter = {}
+      this.records = []
+    },
+
+    destroyEvents () {
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
     },
   },
 }

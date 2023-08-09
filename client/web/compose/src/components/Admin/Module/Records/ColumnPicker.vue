@@ -68,9 +68,17 @@ export default {
     })
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     onSave () {
       this.$emit('updateFields', this.filteredFields)
+    },
+
+    setDefaultValues () {
+      this.filteredFields = []
     },
   },
 }

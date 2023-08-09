@@ -92,8 +92,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('metric.update', this.refresh)
-    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   created () {
@@ -203,6 +203,17 @@ export default {
         })
         this.$root.$emit('magnify-page-block', { block })
       }
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.reports = []
+    },
+
+    destroyEvents () {
+      this.$root.$off('metric.update', this.refresh)
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+      this.$root.$off('drill-down-chart', this.drillDown)
     },
   },
 }

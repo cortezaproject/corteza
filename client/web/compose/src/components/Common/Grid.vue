@@ -146,7 +146,8 @@ export default {
   },
 
   beforeDestroy () {
-    window.removeEventListener('resize', this.windowResizeThrottledHandler)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -166,6 +167,15 @@ export default {
       this.$emit('update:blocks', this.layout.map(
         ({ x, y, w, h, i }) => new compose.PageBlockMaker({ ...this.blocks[i], xywh: [x, y, w, h] }),
       ))
+    },
+
+    setDefaultValues () {
+      this.layout = []
+      this.boundingRects = []
+    },
+
+    destroyEvents () {
+      window.removeEventListener('resize', this.windowResizeThrottledHandler)
     },
   },
 }

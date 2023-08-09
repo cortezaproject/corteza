@@ -271,6 +271,10 @@ export default {
     this.fetchUsers()
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       resolveUsers: 'user/resolveUsers',
@@ -361,6 +365,12 @@ export default {
 
     goToPage (next = true) {
       this.filter.pageCursor = next ? this.filter.nextPage : this.filter.prevPage
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.users = []
+      this.filter = {}
     },
   },
 }

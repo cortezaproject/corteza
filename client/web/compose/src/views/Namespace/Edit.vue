@@ -445,6 +445,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   beforeRouteUpdate (to, from, next) {
     this.checkUnsavedNamespace(next)
   },
@@ -739,6 +743,18 @@ export default {
       const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
 
       next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.namespace = undefined
+      this.initialNamespaceState = undefined
+      this.namespaceAssets = {}
+      this.namespaceAssetsInitialState = {}
+      this.namespaceEnabled = false
+      this.application = undefined
+      this.isApplication = false
+      this.isApplicationInitialState = false
     },
   },
 }

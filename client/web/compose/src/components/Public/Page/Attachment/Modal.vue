@@ -85,8 +85,8 @@ export default {
   },
 
   beforeDestroy () {
-    window.removeEventListener('keyup', this.onKeyUp)
-    this.$root.$off('showAttachmentsModal')
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -94,6 +94,15 @@ export default {
       if (key === 'Escape') {
         this.attachment = undefined
       }
+    },
+
+    setDefaultValues () {
+      this.attachment = undefined
+    },
+
+    destroyEvents () {
+      window.removeEventListener('keyup', this.onKeyUp)
+      this.$root.$off('showAttachmentsModal')
     },
   },
 }

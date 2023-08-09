@@ -204,6 +204,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   created () {
     this.record = new compose.Record(this.module, {})
   },
@@ -267,6 +271,12 @@ export default {
 
     getOptionKey ({ fieldID }) {
       return fieldID
+    },
+
+    setDefaultValues () {
+      this.showModal = false
+      this.selectedField = undefined
+      this.fields = []
     },
   },
 }

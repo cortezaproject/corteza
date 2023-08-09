@@ -485,9 +485,8 @@ export default {
   },
 
   beforeDestroy () {
-    window.removeEventListener('paste', this.pasteBlock)
-    this.$root.$off('tab-editRequest', this.fulfilEditRequest)
-    this.$root.$off('tab-createRequest', this.fulfilCreateRequest)
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -591,6 +590,7 @@ export default {
         this.blocks[index].meta.hidden = false
         this.calculateNewBlockPosition(this.blocks[index])
       })
+      tabbedBlocks.clear()
     },
 
     onBlockUpdated (index) {
@@ -963,6 +963,25 @@ export default {
           behavior: 'smooth',
         })
       })
+    },
+
+    setDefaultValues () {
+      this.title = ''
+      this.processing = false
+      this.processingLayout = false
+      this.page = undefined
+      this.layout = undefined
+      this.layouts = []
+      this.blocks = []
+      this.editor = undefined
+      this.unsavedBlocks.clear()
+    },
+
+    destroyEvents () {
+      window.removeEventListener('paste', this.pasteBlock)
+      this.$root.$off('tab-editRequest', this.fulfilEditRequest)
+      this.$root.$off('tab-createRequest', this.fulfilCreateRequest)
+      this.$root.$off('tabChange', this.untabBlock)
     },
   },
 }

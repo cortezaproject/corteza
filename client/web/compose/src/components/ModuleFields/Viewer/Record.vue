@@ -82,6 +82,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
@@ -141,6 +145,7 @@ export default {
             }
 
             mappedIDs[r.recordID] = relatedRecordValue.join(relatedLabelField.options.multiDelimiter)
+            relatedRecordIDs.clear()
           }
         } else if (relatedField.kind === 'User') {
           this.processing = true
@@ -183,6 +188,12 @@ export default {
       } else if (this.extraOptions.recordSelectorDisplayOption === 'newTab') {
         window.open(this.$router.resolve(route).href, '_blank')
       }
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.recordValues = {}
+      this.relRecords = []
     },
   },
 }

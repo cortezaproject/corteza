@@ -430,6 +430,10 @@ export default {
     this.edit = this.metrics[0]
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     addMetric () {
       const m = {
@@ -466,6 +470,12 @@ export default {
 
     getOptionAggregationOperationKey ({ operation }) {
       return operation
+    },
+
+    setDefaultValues () {
+      this.edit = undefined
+      this.dimensionModifiers = []
+      this.aggregationOperations = []
     },
   },
 }

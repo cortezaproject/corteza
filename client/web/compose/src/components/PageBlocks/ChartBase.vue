@@ -48,6 +48,11 @@ export default {
     this.$root.$on('drill-down-chart', this.drillDown)
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+    this.destroyEvents()
+  },
+
   methods: {
     ...mapActions({
       findChartByID: 'chart/findByID',
@@ -156,7 +161,17 @@ export default {
         this.$root.$emit('magnify-page-block', { block })
       }
     },
-  },
 
+    setDefaultValues () {
+      this.chart = null
+      this.filter = undefined
+      this.drillDownFilter = undefined
+    },
+
+    destroyEvents () {
+      this.$root.$off('drill-down-chart')
+      this.$root.$off('magnify-page-block')
+    },
+  },
 }
 </script>

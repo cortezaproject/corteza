@@ -126,6 +126,10 @@ export default {
     this.$nextTick(() => this.init())
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     /**
      * Helper to handle on preview click. It either requests a retry or
@@ -287,6 +291,13 @@ export default {
     stdErr (err) {
       this.loadError = err
       this.$emit('error', err)
+    },
+
+    setDefaultValues () {
+      this.document = null
+      this.pages = []
+      this.show = false
+      this.loadError = undefined
     },
   },
 }

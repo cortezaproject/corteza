@@ -125,6 +125,10 @@ export default {
     this.error = ''
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     prepareNamespace () {
       if (!this.namespace) {
@@ -173,6 +177,12 @@ export default {
       }
 
       return Promise.reject(error)
+    },
+
+    setDefaultValues () {
+      this.loaded = false
+      this.error = ''
+      this.namespace = null
     },
   },
 }

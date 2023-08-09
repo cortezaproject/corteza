@@ -298,6 +298,10 @@ export default {
     }
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     openMap (index) {
       this.localValueIndex = index
@@ -420,6 +424,13 @@ export default {
       }).catch(() => {
         this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.locationSearchFailed'))()
       })
+    },
+
+    setDefaultValues () {
+      this.localValue = undefined
+      this.localValueIndex = undefined
+      this.map = {}
+      this.geoSearch = {}
     },
   },
 }

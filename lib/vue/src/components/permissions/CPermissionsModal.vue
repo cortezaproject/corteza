@@ -368,8 +368,9 @@ export default {
     })
   },
 
-  destroyed () {
-    this.$root.$off(modalOpenEventName)
+  beforeDestroy () {
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -578,6 +579,26 @@ export default {
 
     getOptionUserKey ({ userID }) {
       return userID
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.backendComponentName = undefined
+      this.resource = undefined
+      this.title = undefined
+      this.target = undefined
+      this.allSpecific = false
+      this.userOptions = []
+      this.permissions = []
+      this.rules = []
+      this.roles = []
+      this.currentRole = undefined
+      this.evaluate = []
+      this.add = {}
+    },
+
+    destroyEvents() {
+      this.$root.$off(modalOpenEventName)
     },
   },
 }

@@ -264,6 +264,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     size (a) {
       return numeral(a.meta.original.size).format('0b')
@@ -341,6 +345,11 @@ export default {
       }
 
       return {}
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.attachments = []
     },
   },
 }

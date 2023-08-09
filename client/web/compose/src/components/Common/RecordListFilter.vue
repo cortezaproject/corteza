@@ -353,6 +353,10 @@ export default {
     },
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   created () {
     // Change all module fields to single value to keep multi value fields and single value
     const module = JSON.parse(JSON.stringify(this.module || {}))
@@ -657,6 +661,13 @@ export default {
 
     getOptionKey ({ name }) {
       return name
+    },
+
+    setDefaultValues () {
+      this.componentFilter = []
+      this.conditions = []
+      this.mock = {}
+      this.preventPopoverClose = false
     },
   },
 }

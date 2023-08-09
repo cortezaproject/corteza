@@ -206,5 +206,16 @@ export default {
       },
     },
   },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
+  methods: {
+    setDefaultValues () {
+      this.items = []
+      this.textInput = false
+    },
+  },
 }
 </script>
