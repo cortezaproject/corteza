@@ -338,7 +338,14 @@ export class Auth {
 
     this.log.info('redirecting back to final destination', finalLocation)
     this.cleanFlags()
-    this.location.assign(finalLocation)
+
+    //removes code from the final location query params 
+    const finalUrl = new URL(finalLocation)
+    if (finalUrl.searchParams.get('code')) {
+      finalUrl.searchParams.delete('code')
+    }
+
+    this.location.assign(finalUrl.toString())
     return rsp
   }
 

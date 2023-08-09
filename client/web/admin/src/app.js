@@ -96,18 +96,6 @@ export default (options = {}) => {
           ))
           .then(() => {
             this.loaded = true
-
-            // This bit removes code from the query params
-            //
-            // Vue router can't be used here because when on any child route there is no
-            // guarantee that the route has loaded and so it may redirect us to the root page.
-            //
-            // @todo dig a bit deeper if there is a better vue-like solution; atm none were ok.
-            const url = new URL(window.location.href)
-            if (url.searchParams.get('code')) {
-              url.searchParams.delete('code')
-              window.location.replace(url.toString())
-            }
           })
       }).catch((err) => {
         if (err instanceof Error && err.message === 'Unauthenticated') {
