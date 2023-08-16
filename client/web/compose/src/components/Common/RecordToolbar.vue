@@ -21,8 +21,7 @@
           @click.prevent="$emit('back')"
         >
           <font-awesome-icon
-
-            :icon="['fas', showRecordModal && !inEditing ? 'times' : 'chevron-left']"
+            :icon="['fas', showRecordModal ? 'times' : 'chevron-left']"
             class="back-icon"
           />
           {{ backLabel }}

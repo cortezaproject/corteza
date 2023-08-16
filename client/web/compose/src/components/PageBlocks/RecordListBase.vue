@@ -4,7 +4,7 @@
     v-bind="$props"
     :scrollable-body="false"
     v-on="$listeners"
-    @refreshBlock="refresh(false, false)"
+    @refreshBlock="refresh(true, false)"
   >
     <template
       v-if="isFederated"
@@ -1535,13 +1535,12 @@ export default {
       }
     },
 
-    refresh (resetPagination = false, checkSelected = false) {
+    async refresh (resetPagination = false, checkSelected = false) {
       // Prevent refresh if records are selected or inline editing
       if (checkSelected && (this.selected.length || this.inlineEdit.recordIDs.length)) return
 
-      this.$nextTick(() => {
-        return this.pullRecords(resetPagination)
-      })
+      await this.$nextTick()
+      return this.pullRecords(resetPagination)
     },
 
     /**
@@ -1566,9 +1565,6 @@ export default {
       const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.recordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
-      if (this.filter.pageCursor) {
-        this.filter.sort = ''
-      }
 
       let paginationOptions = {}
       if (resetPagination) {
@@ -1578,6 +1574,8 @@ export default {
           incPageNavigation: fullPageNavigation,
           incTotal: showTotalCount,
         }
+      } else if (this.filter.pageCursor) {
+        this.filter.sort = ''
       }
 
       // Filter's out deleted records when filter.deleted is 2, and undeleted records when filter.deleted is 0

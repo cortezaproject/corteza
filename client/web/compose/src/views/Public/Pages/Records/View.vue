@@ -157,6 +157,20 @@ export default {
       default: '',
     },
 
+    // When creating from related record blocks
+    refRecord: {
+      type: compose.Record,
+      required: false,
+      default: () => ({}),
+    },
+
+    // If component was called (via router) with some pre-seed values
+    values: {
+      type: Object,
+      required: false,
+      default: () => ({}),
+    },
+
     // Open record in a modal
     showRecordModal: {
       type: Boolean,
@@ -343,7 +357,16 @@ export default {
               this.handleBack()
             })
         } else {
-          this.record = new compose.Record(module, {})
+          this.record = new compose.Record(module, { values: this.values })
+        }
+
+        if (this.refRecord) {
+          // Record create form called from a related records block,
+          // we'll try to find an appropriate field and cross-link this new record to ref
+          const recRefField = this.module.fields.find(f => f.kind === 'Record' && f.options.moduleID === this.refRecord.moduleID)
+          if (recRefField) {
+            this.record.values[recRefField.name] = this.refRecord.recordID
+          }
         }
       }
     },
@@ -352,7 +375,12 @@ export default {
       /**
        * Not the best way since we can not always know where we
        * came from (and "where" is back).
-       */
+      */
+      if (this.showRecordModal) {
+        this.$bvModal.hide('record-modal')
+        return
+      }
+
       const previousPage = await this.popPreviousPages()
       const extraPop = !this.inCreating
       this.$router.push(previousPage || { name: 'pages', params: { slug: this.namespace.slug || this.namespace.namespaceID } })
@@ -382,8 +410,7 @@ export default {
 
       this.inEditing = true
       this.inCreating = true
-      this.record = new compose.Record(this.module, { values: this.record.values })
-      this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID })
+      this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, values: this.record.values })
     },
 
     handleEdit () {

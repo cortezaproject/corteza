@@ -73,6 +73,7 @@ export default {
       this.processingSubmit = true
       this.processing = true
 
+      let record
       const isNew = this.record.recordID === NoID
       const queue = []
 
@@ -142,8 +143,8 @@ export default {
 
           throw err
         })
-        .then(record => {
-          this.record = new compose.Record(this.module, record)
+        .then(r => {
+          record = new compose.Record(this.module, r)
         })
         .then(() => this.dispatchUiEvent('afterFormSubmit', this.record, { $records: records }))
         .then(() => this.updatePrompts())
@@ -151,8 +152,20 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            this.inCreating = false
+            if (isNew) {
+              this.inCreating = false
+              this.inEditing = false
+            } else {
+              this.record = record
+            }
+
+            if (this.showRecordModal) {
+              this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })
+            } else {
+              this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
+            }
           }
+
           this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
         })
         .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
@@ -170,6 +183,7 @@ export default {
       this.processingSubmit = true
       this.processing = true
 
+      let record
       const isNew = this.record.recordID === NoID
 
       return this
@@ -192,15 +206,22 @@ export default {
 
           throw err
         })
-        .then(record => {
-          this.record = new compose.Record(this.module, record)
+        .then(r => {
+          record = new compose.Record(this.module, r)
         })
-        .then(() => this.dispatchUiEvent('beforeFormSubmit', this.record))
+        .then(() => this.dispatchUiEvent('afterFormSubmit', record))
         .then(() => this.updatePrompts())
         .then(() => {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
+            if (isNew) {
+              this.inCreating = false
+              this.inEditing = false
+            } else {
+              this.record = record
+            }
+
             this.$router.push({ name: route, params: { ...this.$route.params, recordID: this.record.recordID } })
           }
         })

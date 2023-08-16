@@ -13,20 +13,8 @@ export default {
   data () {
     return {
       inEditing: true,
+      inCreating: false,
     }
-  },
-
-  computed: {
-    title () {
-      const { name, handle } = this.module
-      return this.$t('allRecords.edit.title', { name: name || handle, interpolation: { escapeValue: false } })
-    },
-  },
-
-  methods: {
-    handleBack () {
-      this.$router.push({ name: 'admin.modules.record.view' })
-    },
   },
 }
 </script>

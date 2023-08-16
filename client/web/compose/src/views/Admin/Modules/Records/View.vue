@@ -102,7 +102,6 @@
 <script>
 import { mapGetters } from 'vuex'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
-import users from 'corteza-webapp-compose/src/mixins/users'
 import record from 'corteza-webapp-compose/src/mixins/record'
 import { compose } from '@cortezaproject/corteza-js'
 import RecordBase from 'corteza-webapp-compose/src/components/PageBlocks/RecordBase'
@@ -124,12 +123,21 @@ export default {
   mixins: [
     // The record mixin contains all of the logic for creating/editing/deleting the record
     record,
-    users,
   ],
+
+  props: {
+    // If component was called (via router) with some pre-seed values
+    values: {
+      type: Object,
+      required: false,
+      default: () => ({}),
+    },
+  },
 
   data () {
     return {
       inEditing: false,
+      inCreating: false,
 
       blocks: [],
 
@@ -148,7 +156,9 @@ export default {
 
     title () {
       const { name, handle } = this.module
-      return this.$t('allRecords.view.title', { name: name || handle, interpolation: { escapeValue: false } })
+      const titlePrefix = this.inCreating ? 'create' : this.inEditing ? 'edit' : 'view'
+
+      return this.$t(`allRecords.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })
     },
 
     module () {
@@ -219,6 +229,7 @@ export default {
 
   created () {
     this.createBlocks()
+    this.record = new compose.Record(this.module, { values: this.values })
   },
 
   methods: {
