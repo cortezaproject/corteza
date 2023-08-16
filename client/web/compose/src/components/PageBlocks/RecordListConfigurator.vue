@@ -32,7 +32,7 @@
           </b-col>
 
           <b-col
-            v-if="onRecordPage || options.editable"
+            v-if="recordListModule && (onRecordPage || options.editable)"
             cols="12"
             md="6"
           >
