@@ -354,6 +354,7 @@ export default {
   computed: {
     ...mapGetters({
       pages: 'page/set',
+      getModuleByID: 'module/getByID',
     }),
 
     trPage: {
@@ -743,23 +744,21 @@ export default {
       }
 
       // Inline record lists
-      const queue = []
       this.usedBlocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
-          const p = new Promise((resolve) => {
-            const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID, b.blockID, false].map(v => v || NoID).join('-')
-            this.$root.$emit(`page-block:validate:${recordListUniqueID}`, resolve)
-          })
+          const recordListModule = this.getModuleByID(b.options.moduleID)
+          const req = new Set(recordListModule.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
 
-          queue.push(p)
+          // Check if all required fields are there
+          for (const f of b.options.editFields) {
+            req.delete(f.name)
+          }
+
+          if (req.size) {
+            this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
+          }
         }
       })
-
-      const validated = await Promise.all(queue)
-      if (validated.find(({ valid }) => !valid)) {
-        this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
-        return
-      }
 
       this.processing = true
 
@@ -929,21 +928,24 @@ export default {
 
       blocks.forEach(({ blockID, xywh, meta = {} }) => {
         let block = this.page.blocks.find(b => b.blockID === blockID)
-        block.xywh = xywh
-        block.meta.hidden = !!meta.hidden
-        tempBlocks.push(block)
 
-        if (block.kind === 'Tabs') {
-          const { tabs = [] } = block.options
-          tabs.forEach(tab => {
-            if (blocks.some(b => b.blockID === tab.blockID)) return
+        if (block) {
+          block.xywh = xywh
+          block.meta.hidden = !!meta.hidden
+          tempBlocks.push(block)
 
-            block = this.page.blocks.find(b => b.blockID === tab.blockID)
+          if (block.kind === 'Tabs') {
+            const { tabs = [] } = block.options
+            tabs.forEach(tab => {
+              if (blocks.some(b => b.blockID === tab.blockID)) return
 
-            if (block) {
-              tempBlocks.push(block)
-            }
-          })
+              block = this.page.blocks.find(b => b.blockID === tab.blockID)
+
+              if (block) {
+                tempBlocks.push(block)
+              }
+            })
+          }
         }
       })
 
