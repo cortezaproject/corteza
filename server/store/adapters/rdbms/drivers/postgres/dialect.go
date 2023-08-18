@@ -226,14 +226,20 @@ func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (exp
 		return drivers.OpHandlerNotIn(d, n, args...)
 
 	case "like", "nlike":
-		dalType := n.Args[0].Meta["dal.Attribute"].(*dal.Attribute).Type
-		// if the type is id (numeric) data type, then cast it to text
-		if dalType != nil && dalType.Type() == dal.AttributeTypeID {
-			op := "LIKE"
-			if ref == "nlike" {
-				op = "NOT LIKE"
+		if dalType, ok := n.Args[0].Meta["dal.Attribute"].(*dal.Attribute); ok {
+			col, err := d.AttributeToColumn(dalType)
+			if err != nil {
+				return nil, err
 			}
-			return castColumnDataToText(op, args...)
+
+			// if the type is id (numeric) data type, then cast it to text
+			if col.Type.Name == "NUMERIC" {
+				op := "LIKE"
+				if ref == "nlike" {
+					op = "NOT LIKE"
+				}
+				return castColumnDataToText(op, args...)
+			}
 		}
 	}
 
