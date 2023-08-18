@@ -78,6 +78,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 	var (
 		client = request.GetOauth2Client(req.Session)
+		params = request.GetOAuth2AuthParams(req.Session)
 	)
 
 	if client == nil {
@@ -111,7 +112,7 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 		// Client is trusted, no need to show this screen
 		// move forward and authorize oauth2 request
 		request.SetOauth2ClientAuthorized(req.Session, true)
-		req.RedirectTo = GetLinks().OAuth2Authorize
+		req.RedirectTo = GetLinks().OAuth2Authorize + "?" + params.Encode()
 		return nil
 	}
 
