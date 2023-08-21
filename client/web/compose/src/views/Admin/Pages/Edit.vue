@@ -1063,6 +1063,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.setDefaultValues()
+
     this.abortRequests.forEach((cancel) => {
       cancel()
     })
@@ -1070,10 +1072,6 @@ export default {
 
   created () {
     this.fetchRoles()
-  },
-
-  beforeDestroy () {
-    this.setDefaultValues()
   },
 
   methods: {
