@@ -706,6 +706,9 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.abortRequests.forEach((cancel) => {
+      cancel()
+    })
   },
 
   beforeRouteUpdate (to, from, next) {
@@ -714,12 +717,6 @@ export default {
 
   beforeRouteLeave (to, from, next) {
     this.checkUnsavedModule(next)
-  },
-
-  beforeDestroy () {
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   methods: {

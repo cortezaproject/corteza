@@ -231,6 +231,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.setDefaultValues()
+
     this.abortRequests.forEach((cancel) => {
       cancel()
     })
@@ -239,10 +241,6 @@ export default {
   created () {
     this.createBlocks()
     this.record = new compose.Record(this.module, { values: this.values })
-  },
-
-  beforeDestroy () {
-    this.setDefaultValues()
   },
 
   methods: {
