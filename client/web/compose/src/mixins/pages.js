@@ -69,11 +69,24 @@ export default {
             handle: '',
           }
 
-          return this.createPage({ namespaceID, ...page }).then(this.updateTabbedBlockIDs)
+          return this.createPage({ namespaceID, ...page }).then((page) => {
+            return this.cloneLayouts(page.pageID).then(() => {
+              return this.updateTabbedBlockIDs(page)
+            })
+          })
         }).then(({ pageID }) => {
           this.$router.push({ name: this.$route.name, params: { pageID } })
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
+    },
+
+    cloneLayouts (pageID) {
+      const layouts = [...this.layouts]
+      return Promise.all(layouts.map(layout => {
+        layout.pageID = pageID
+        layout.pageLayoutID = NoID
+        return this.createPageLayout(layout)
+      }))
     },
 
     async updateTabbedBlockIDs (page) {
