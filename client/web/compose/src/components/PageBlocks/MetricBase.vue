@@ -182,7 +182,7 @@ export default {
      * Based on drill down configuration, either changes the linked block on the page
      * or opens it in a modal wit the filter and dimensions from the chart and the clicked value
      */
-    drillDown ({ label: name, filter, moduleID, drillDown }, metricIndex) {
+    drillDown ({ label: name = '', filter, moduleID, drillDown }, metricIndex) {
       if (!drillDown.enabled) {
         return
       }

@@ -186,6 +186,7 @@
                   :reduce="f => f.name"
                   :calculate-position="calculateDropdownPosition"
                   class="bg-white"
+                  @input="onMetricFieldChange"
                 />
               </b-form-group>
 
@@ -415,11 +416,6 @@ export default {
         this.edit.dateFormat = this.edit.dateFormat || 'YYYY-MM-DD'
       }
     },
-    'edit.metricField': function (mf) {
-      if (mf === 'count') {
-        this.edit.operation = undefined
-      }
-    },
   },
 
   created () {
@@ -470,6 +466,14 @@ export default {
 
     getOptionAggregationOperationKey ({ operation }) {
       return operation
+    },
+
+    onMetricFieldChange (field) {
+      if (field === 'count') {
+        this.edit.operation = undefined
+      } else if (!this.edit.operation) {
+        this.edit.operation = this.aggregationOperations[0].operation
+      }
     },
 
     setDefaultValues () {
