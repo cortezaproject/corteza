@@ -41,7 +41,7 @@ export default {
 
       automationScripts: [],
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -52,11 +52,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
-
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   created () {
@@ -74,7 +71,7 @@ export default {
       const { response, cancel } = this.$ComposeAPI
         .automationListCancellable({ eventTypes: ['onManual'], excludeInvalid: true })
 
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       return response()
         .then(({ set = [] }) => {
@@ -88,6 +85,13 @@ export default {
     setDefaultValues () {
       this.processing = false
       this.automationScripts = []
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

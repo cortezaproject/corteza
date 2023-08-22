@@ -330,7 +330,16 @@ export default {
   mounted () {
     this.searchUsers('', () => {})
 
-    this.$root.$on(modalOpenEventName, ({ resource, title, target, allSpecific }) => {
+    this.$root.$on(modalOpenEventName, this.loadModal)
+  },
+
+  beforeDestroy () {
+    this.setDefaultValues()
+    this.destroyEvents()
+  },
+
+  methods: {
+    loadModal ({ resource, title, target, allSpecific }) {
       this.resource = resource
       this.title = title
       this.target = target
@@ -364,16 +373,8 @@ export default {
           })
         }
       })
+    },
 
-    })
-  },
-
-  beforeDestroy () {
-    this.setDefaultValues()
-    this.destroyEvents()
-  },
-
-  methods: {
     onHide () {
       this.clear()
     },

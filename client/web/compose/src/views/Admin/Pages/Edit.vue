@@ -904,7 +904,7 @@ export default {
         off: this.$t('general:label.no'),
       },
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -1062,16 +1062,13 @@ export default {
     this.checkUnsavedComposePage(next)
   },
 
-  beforeDestroy () {
-    this.setDefaultValues()
-
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
-  },
-
   created () {
     this.fetchRoles()
+  },
+
+  beforeDestroy () {
+    this.abortRequests()
+    this.setDefaultValues()
   },
 
   methods: {
@@ -1100,7 +1097,7 @@ export default {
       const { response, cancel } = this.$SystemAPI
         .roleListCancellable({})
 
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       response()
         .then(({ set: roles = [] }) => {
@@ -1290,6 +1287,13 @@ export default {
       this.removedLayouts.clear()
       this.roles = {}
       this.checkboxLabel = {}
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

@@ -146,7 +146,7 @@ export default {
 
       records: [],
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -254,12 +254,9 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
     this.destroyEvents()
-    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   methods: {
@@ -446,7 +443,7 @@ export default {
       const { response, cancel } = this.$ComposeAPI
         .recordListCancellable({ namespaceID, moduleID, query, sort })
 
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       return response()
         .then(({ set }) => {
@@ -503,10 +500,17 @@ export default {
       this.processing = false
       this.filter = {}
       this.records = []
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
 
     destroyEvents () {
-      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
     },
   },
 }

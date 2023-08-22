@@ -141,7 +141,7 @@ export default {
 
     onHidden () {
       setTimeout(() => {
-        this.$router.push({
+        this.$router.replace({
           query: {
             ...this.$route.query,
             magnifiedBlockID: undefined,

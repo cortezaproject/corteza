@@ -154,7 +154,7 @@ export default {
 
     onHidden () {
       setTimeout(() => {
-        this.$router.push({
+        this.$router.replace({
           query: {
             ...this.$route.query,
             recordID: undefined,
@@ -173,7 +173,7 @@ export default {
     },
 
     destroyEvents () {
-      this.$root.$off('show-record-modal')
+      this.$root.$off('show-record-modal', this.loadRecord)
     },
   },
 }

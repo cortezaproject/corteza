@@ -830,7 +830,7 @@ export default {
       showCustomPresetFilterModal: false,
       selectedAllRecords: false,
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -1055,6 +1055,7 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
     this.destroyEvents()
   },
@@ -1088,17 +1089,6 @@ export default {
       this.$root.$on(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)
       this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
         this.refresh(true)
-      })
-    },
-
-    destroyEvents () {
-      this.$root.$off(`record-line:collect:${this.uniqueID}`)
-      this.$root.$off(`page-block:validate:${this.uniqueID}`)
-      this.$root.$off(`drill-down-recordList:${this.uniqueID}`)
-      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
-
-      this.abortRequests.forEach((cancel) => {
-        cancel()
       })
     },
 
@@ -1505,7 +1495,7 @@ export default {
         const { response, cancel } = this.$ComposeAPI
           .recordBulkUndeleteCancellable({ moduleID, namespaceID, query })
 
-        this.abortRequests.push(cancel)
+        this.abortableRequests.push(cancel)
 
         response()
           .then(() => {
@@ -1539,7 +1529,7 @@ export default {
         const { response, cancel } = this.$ComposeAPI
           .recordBulkDeleteCancellable({ moduleID, namespaceID, query })
 
-        this.abortRequests.push(cancel)
+        this.abortableRequests.push(cancel)
 
         response()
           .then(() => this.refresh(true))
@@ -1601,7 +1591,7 @@ export default {
       this.showingDeletedRecords ? this.filter.deleted = 2 : this.filter.deleted = 0
 
       const { response, cancel } = this.$ComposeAPI.recordListCancellable({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions })
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       return response()
         .then(({ set, filter }) => {
@@ -1883,6 +1873,24 @@ export default {
       this.currentCustomPresetFilter = undefined
       this.showCustomPresetFilterModal = false
       this.selectedAllRecords = false
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
+    },
+
+    destroyEvents () {
+      const { pageID = NoID } = this.page
+
+      this.$root.$on(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
+      this.$root.$on(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
+      this.$root.$on(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)
+      this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
+        this.refresh(true)
+      })
     },
   },
 }

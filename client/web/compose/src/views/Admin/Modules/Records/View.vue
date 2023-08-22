@@ -148,7 +148,7 @@ export default {
         namespace: this.$attrs.namespace,
       },
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -230,17 +230,14 @@ export default {
     },
   },
 
-  beforeDestroy () {
-    this.setDefaultValues()
-
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
-  },
-
   created () {
     this.createBlocks()
     this.record = new compose.Record(this.module, { values: this.values })
+  },
+
+  beforeDestroy () {
+    this.abortRequests()
+    this.setDefaultValues()
   },
 
   methods: {
@@ -263,7 +260,7 @@ export default {
         const { response, cancel } = this.$ComposeAPI
           .recordReadCancellable({ namespaceID, moduleID, recordID })
 
-        this.abortRequests.push(cancel)
+        this.abortableRequests.push(cancel)
 
         response()
           .then(record => {
@@ -311,6 +308,13 @@ export default {
       this.inEditing = false
       this.blocks = []
       this.bindParams = {}
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

@@ -67,7 +67,7 @@ export default {
       processing: false,
       reports: [],
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -94,14 +94,9 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
     this.destroyEvents()
-    this.$root.$off('metric.update', this.refresh)
-    this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
-
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   created () {
@@ -147,7 +142,7 @@ export default {
           const { response, cancel } = this.$ComposeAPI
             .recordReportCancellable({ ...r, namespaceID })
 
-          this.abortRequests.push(cancel)
+          this.abortableRequests.push(cancel)
 
           return response()
         }
@@ -204,18 +199,20 @@ export default {
           options: {
             moduleID,
             prefilter: filter,
-            presort: '',
+            presort: 'createdAt DESC',
             hideRecordReminderButton: true,
             hideRecordViewButton: false,
             hideConfigureFieldsButton: false,
             hideImportButton: true,
+            enableRecordPageNavigation: true,
             selectable: true,
             allowExport: true,
             perPage: 14,
             showTotalCount: true,
-            magnifyOption: 'modal',
+            recordDisplayOption: 'modal',
           },
         })
+
         this.$root.$emit('magnify-page-block', { block })
       }
     },
@@ -223,11 +220,18 @@ export default {
     setDefaultValues () {
       this.processing = false
       this.reports = []
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
 
     destroyEvents () {
       this.$root.$off('metric.update', this.refresh)
-      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
       this.$root.$off('drill-down-chart', this.drillDown)
     },
   },

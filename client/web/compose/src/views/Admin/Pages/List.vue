@@ -122,7 +122,7 @@ export default {
       tree: [],
       page: new compose.Page({ visible: true }),
       processing: false,
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -131,10 +131,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   methods: {
@@ -150,7 +148,7 @@ export default {
       const { response, cancel } = this.$ComposeAPI
         .pageTreeCancellable({ namespaceID })
 
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       response()
         .then((tree) => {
@@ -188,6 +186,13 @@ export default {
       this.tree = []
       this.page = {}
       this.processing = false
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

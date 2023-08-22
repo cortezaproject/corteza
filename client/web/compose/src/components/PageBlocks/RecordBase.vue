@@ -139,7 +139,7 @@ export default {
         initialRecord: {},
       },
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -216,10 +216,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   methods: {
@@ -265,7 +263,7 @@ export default {
       const { response, cancel } = this.$ComposeAPI
         .recordReadCancellable({ namespaceID, moduleID, recordID })
 
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       response()
         .then(record => {
@@ -327,6 +325,13 @@ export default {
       this.referenceRecord = undefined
       this.referenceModule = undefined
       this.inlineEdit = {}
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

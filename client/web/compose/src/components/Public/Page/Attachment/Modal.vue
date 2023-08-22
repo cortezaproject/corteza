@@ -71,17 +71,7 @@ export default {
 
   created () {
     window.addEventListener('keyup', this.onKeyUp)
-    this.$root.$on('showAttachmentsModal', ({ url, download, name, document = undefined, meta, enableDownload }) => {
-      this.attachment = {
-        document,
-        download,
-        meta,
-        src: url,
-        name: name,
-        caption: name,
-        enableDownload,
-      }
-    })
+    this.$root.$on('showAttachmentsModal', this.showAttachmentModal)
   },
 
   beforeDestroy () {
@@ -96,13 +86,25 @@ export default {
       }
     },
 
+    showAttachmentModal ({ url, download, name, document = undefined, meta, enableDownload }) {
+      this.attachment = {
+        document,
+        download,
+        meta,
+        src: url,
+        name: name,
+        caption: name,
+        enableDownload,
+      }
+    },
+
     setDefaultValues () {
       this.attachment = undefined
     },
 
     destroyEvents () {
       window.removeEventListener('keyup', this.onKeyUp)
-      this.$root.$off('showAttachmentsModal')
+      this.$root.$off('showAttachmentsModal', this.showAttachmentModal)
     },
   },
 }

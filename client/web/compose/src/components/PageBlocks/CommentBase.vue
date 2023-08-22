@@ -124,7 +124,7 @@ export default {
         content: '',
       },
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -218,11 +218,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
-
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   methods: {
@@ -346,7 +343,7 @@ export default {
 
       const { response, cancel } = this.$ComposeAPI
         .recordListCancellable(params)
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       return response()
         .then(({ set }) => set.map(r => Object.freeze(new compose.Record(module, r))))
@@ -357,6 +354,13 @@ export default {
       this.filter = false
       this.records = []
       this.newRecord = {}
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

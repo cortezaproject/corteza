@@ -218,15 +218,12 @@ export default {
   created () {
     this.checkIfMobile()
 
-    this.$root.$on('close-sidebar', () => {
-      this.isExpanded = false
-      this.isPinned = false
-    })
+    this.$root.$on('close-sidebar', this.closeSidebar)
     window.addEventListener('resize', this.checkIfMobile)
   },
 
   beforeDestroy () {
-    this.$root.$off('close-sidebar')
+    this.$root.$off('close-sidebar', this.closeSidebar)
     window.removeEventListener('resize', this.checkIfMobile)
   },
 

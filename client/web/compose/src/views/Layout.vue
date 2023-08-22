@@ -186,9 +186,8 @@ export default {
      * Listen for incoming warnings, alerts and other messages
      * from the (mostly) Corredor scripts and display them using toasts
      */
-    this.$root.$on('alert', ({ message, ...params }) => this.toast(message, params))
+    this.$root.$on('alert', this.showAlert)
     this.$root.$on('reminder.show', this.showReminder)
-
     this.$root.$on('check-namespace-sidebar', this.checkNamespaceSidebar)
   },
 
@@ -236,6 +235,10 @@ export default {
           this.removeToast(reminderID)
           this.$root.$emit('reminder.updated', reminderID)
         })
+    },
+
+    showAlert ({ message, ...params }) {
+      this.toast(message, params)
     },
 
     showReminder (r) {
@@ -295,7 +298,7 @@ export default {
     },
 
     destroyEvents () {
-      this.$root.$off('alert')
+      this.$root.$off('alert', this.showAlert)
       this.$root.$off('reminder.show', this.showReminder)
       this.$root.$off('check-namespace-sidebar', this.checkNamespaceSidebar)
     },

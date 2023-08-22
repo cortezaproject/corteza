@@ -140,7 +140,7 @@ export default {
     },
 
     destroyEvents () {
-      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`)
+      this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
     },
   },
 }

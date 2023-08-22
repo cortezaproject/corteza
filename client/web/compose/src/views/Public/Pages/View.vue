@@ -193,10 +193,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('refetch-records', () => {
-      // If on a record page, let it take care of events else just refetch non record-blocks (that use records)
-      this.$root.$emit(this.page.moduleID !== NoID ? 'refetch-record-blocks' : `refetch-non-record-blocks:${this.page.pageID}`)
-    })
+    this.$root.$on('refetch-records', this.refetchRecords)
   },
 
   beforeDestroy () {
@@ -310,6 +307,11 @@ export default {
       })
     },
 
+    refetchRecords () {
+      // If on a record page, let it take care of events else just refetch non record-blocks (that use records)
+      this.$root.$emit(this.page.moduleID !== NoID ? 'refetch-record-blocks' : `refetch-non-record-blocks:${this.page.pageID}`)
+    },
+
     setDefaultValues () {
       this.layouts = []
       this.layout = undefined
@@ -318,7 +320,7 @@ export default {
     },
 
     destroyEvents () {
-      this.$root.$off('refetch-records')
+      this.$root.$off('refetch-records', this.refetchRecords)
     },
   },
 }

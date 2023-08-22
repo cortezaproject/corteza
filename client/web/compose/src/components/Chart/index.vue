@@ -75,8 +75,9 @@ export default {
   },
 
   beforeDestroy () {
-    const { pageID = NoID } = this.$route.params
-    this.$root.$off(`refetch-non-record-blocks:${pageID}`)
+    this.abortRequests()
+    this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -198,6 +199,16 @@ export default {
     error (msg) {
       /* eslint-disable no-console */
       console.error(msg)
+    },
+
+    setDefaultValues () {
+      this.processing = false
+      this.rendeder = undefined
+    },
+
+    destroyEvents () {
+      const { pageID = NoID } = this.$route.params
+      this.$root.$off(`refetch-non-record-blocks:${pageID}`)
     },
   },
 }

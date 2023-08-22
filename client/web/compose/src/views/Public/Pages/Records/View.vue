@@ -194,7 +194,7 @@ export default {
         next: undefined,
       },
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -312,31 +312,18 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('refetch-record-blocks', () => {
-      // Don't refresh when creating and prompt user before refreshing when editing
-      if (this.inCreating || (this.inEditing && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
-        return
-      }
-
-      // Refetch the record and other page blocks that use records
-      this.loadRecord()
-      this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
-    })
+    this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
     this.destroyEvents()
-    this.$root.$off('refetch-record-blocks')
-
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one
   beforeRouteLeave (to, from, next) {
-    this.$root.$off('refetch-record-blocks')
+    this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
     next()
   },
 
@@ -360,7 +347,7 @@ export default {
           const { response, cancel } = this.$ComposeAPI
             .recordReadCancellable({ namespaceID, moduleID, recordID })
 
-          this.abortRequests.push(cancel)
+          this.abortableRequests.push(cancel)
 
           return response()
             .then(record => {
@@ -538,6 +525,17 @@ export default {
       })
     },
 
+    refetchRecordBlocks () {
+      // Don't refresh when creating and prompt user before refreshing when editing
+      if (this.inCreating || (this.inEditing && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
+        return
+      }
+
+      // Refetch the record and other page blocks that use records
+      this.loadRecord()
+      this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+    },
+
     setDefaultValues () {
       this.inEditing = false
       this.inCreating = false
@@ -546,10 +544,17 @@ export default {
       this.layoutButtons.clear()
       this.blocks = undefined
       this.recordNavigation = {}
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
 
     destroyEvents () {
-      this.$root.$off('refetch-record-blocks')
+      this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
     },
   },
 }

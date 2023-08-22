@@ -530,7 +530,7 @@ export default {
         modal: false,
       },
 
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -686,7 +686,7 @@ export default {
             const { response, cancel } = this.$ComposeAPI
               .recordListCancellable({ moduleID, namespaceID, limit: 1 })
 
-            this.abortRequests.push(cancel)
+            this.abortableRequests.push(cancel)
 
             response()
               .then(({ set }) => { this.hasRecords = (set.length > 0) })
@@ -705,10 +705,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   beforeRouteUpdate (to, from, next) {
@@ -879,6 +877,13 @@ export default {
       this.processing = false
       this.federationSettings = {}
       this.discoverySettings = {}
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

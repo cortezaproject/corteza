@@ -43,7 +43,7 @@ export default {
       processing: false,
       report: undefined,
       displayElement: undefined,
-      abortRequests: [],
+      abortableRequests: [],
     }
   },
 
@@ -60,10 +60,8 @@ export default {
   },
 
   beforeDestroy () {
+    this.abortRequests()
     this.setDefaultValues()
-    this.abortRequests.forEach((cancel) => {
-      cancel()
-    })
   },
 
   created () {
@@ -77,7 +75,7 @@ export default {
       const { response, cancel } = this.$SystemAPI
         .reportReadCancellable({ reportID })
 
-      this.abortRequests.push(cancel)
+      this.abortableRequests.push(cancel)
 
       return response()
         .then(report => {
@@ -161,6 +159,13 @@ export default {
       this.processing = false
       this.report = undefined
       this.displayElement = undefined
+      this.abortableRequests = []
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
     },
   },
 }

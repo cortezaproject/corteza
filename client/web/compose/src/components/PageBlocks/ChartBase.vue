@@ -153,7 +153,6 @@ export default {
             allowExport: true,
             perPage: 14,
             showTotalCount: true,
-            magnifyOption: 'modal',
             recordDisplayOption: 'modal',
           },
         })
@@ -169,8 +168,7 @@ export default {
     },
 
     destroyEvents () {
-      this.$root.$off('drill-down-chart')
-      this.$root.$off('magnify-page-block')
+      this.$root.$off('drill-down-chart', this.drillDown)
     },
   },
 }
