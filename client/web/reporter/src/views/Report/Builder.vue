@@ -818,8 +818,9 @@ export default {
       // Fetch saved report and merge with datasources
       return this.$SystemAPI.reportRead({ reportID }).then(report => {
         return this.$SystemAPI.reportUpdate(new system.Report({ ...report, sources }))
-      }).then(({ sources }) => {
-        this.report.sources = (new system.Report({ sources })).sources
+      }).then(report => {
+        report.scenarios = this.report.scenarios
+        this.report = new system.Report(report)
         this.refreshReport()
         this.datasources.showConfigurator = false
         this.toastSuccess(this.$t('notification:report.datasources.updated'))
