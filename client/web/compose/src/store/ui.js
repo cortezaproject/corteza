@@ -11,6 +11,8 @@ const types = {
   setPreviousPages: 'setPreviousPages',
   pushPreviousPages: 'pushPreviousPages',
   popPreviousPages: 'popPreviousPages',
+  previousPage: 'previousPage',
+  setPreviousPage: 'setPreviousPage',
 }
 
 export default function (ComposeAPI) {
@@ -24,6 +26,7 @@ export default function (ComposeAPI) {
       recordPaginationUsable: false,
 
       previousPages: [],
+      previousPage: null,
     },
 
     getters: {
@@ -34,6 +37,8 @@ export default function (ComposeAPI) {
       recordPaginationUsable: (state) => state.recordPaginationUsable,
 
       previousPages: (state) => state.previousPages,
+
+      previousPage: (state) => state.previousPage,
 
       getNextAndPrevRecord: ({ recordPaginationIDs }) => (recordID) => {
         const recordIndex = recordPaginationIDs.indexOf(recordID)
@@ -86,6 +91,16 @@ export default function (ComposeAPI) {
         commit(types.popPreviousPages)
         return new Promise((resolve) => resolve(previousPage))
       },
+
+      setPreviousPage ({ commit }, value) {
+        const shouldNotSavePage = value.name !== 'admin.pages.builder' &&
+              !value.query.layoutID && value.name !== 'admin.modules.create' &&
+                value.name !== 'admin.charts.create'
+
+        if (value && value.name && shouldNotSavePage) {
+          commit(types.setPreviousPage, value)
+        }
+      },
     },
 
     mutations: {
@@ -127,6 +142,10 @@ export default function (ComposeAPI) {
 
       [types.popPreviousPages] (state) {
         return state.previousPages.pop()
+      },
+
+      [types.setPreviousPage] (state, value) {
+        state.previousPage = value
       },
     },
   }

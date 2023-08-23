@@ -254,13 +254,13 @@
 
     <portal to="admin-toolbar">
       <editor-toolbar
-        :back-link="{name: 'admin.pages'}"
         :hide-save="!page.canUpdatePage"
         :processing="processing"
         @save="handleSaveLayout()"
         @delete="handleDeleteLayout()"
         @saveAndClose="handleSaveLayout({ closeOnSuccess: true })"
         @clone="handleCloneLayout()"
+        @back="$router.push(previousPage || { name: 'admin.pages' })"
       >
         <b-button
           v-if="page.canUpdatePage"
@@ -355,6 +355,7 @@ export default {
     ...mapGetters({
       pages: 'page/set',
       getModuleByID: 'module/getByID',
+      previousPage: 'ui/previousPage',
     }),
 
     trPage: {
@@ -795,7 +796,7 @@ export default {
         this.toastSuccess(this.$t('notification:page.page-layout.save.success'))
 
         if (closeOnSuccess) {
-          this.$router.push({ name: 'admin.pages' })
+          this.$router.push(this.previousPage || { name: 'admin.pages' })
           return
         }
 

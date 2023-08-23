@@ -439,7 +439,6 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :processing="processing"
-        :back-link="{ name: 'admin.modules' }"
         :hide-delete="hideDelete"
         hide-clone
         :hide-save="hideSave"
@@ -447,6 +446,7 @@
         @delete="handleDelete"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
+        @back="$router.push(previousPage || { name: 'admin.modules' })"
       />
     </portal>
   </div>
@@ -537,6 +537,7 @@ export default {
   computed: {
     ...mapGetters({
       pages: 'page/set',
+      previousPage: 'ui/previousPage',
     }),
 
     title () {
@@ -799,7 +800,7 @@ export default {
 
           this.toastSuccess(this.$t('notification:module.created'))
           if (closeOnSuccess) {
-            this.$router.push({ name: 'admin.modules' })
+            this.$router.push(this.previousPage || { name: 'admin.modules' })
           } else {
             this.$router.push({ name: 'admin.modules.edit', params: { moduleID: this.module.moduleID } })
           }

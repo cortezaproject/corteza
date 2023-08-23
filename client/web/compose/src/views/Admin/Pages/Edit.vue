@@ -790,7 +790,6 @@
 
     <portal to="admin-toolbar">
       <editor-toolbar
-        :back-link="{ name: 'admin.pages' }"
         :hide-delete="hideDelete"
         :hide-clone="hideClone"
         :hide-save="hideSave"
@@ -800,6 +799,7 @@
         @delete="handleDeletePage()"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
+        @back="$router.push(previousPage || { name: 'admin.pages' })"
       >
         <template #delete>
           <b-dropdown
@@ -911,6 +911,7 @@ export default {
   computed: {
     ...mapGetters({
       pages: 'page/set',
+      previousPage: 'ui/previousPage',
     }),
 
     titleState () {
@@ -1178,7 +1179,7 @@ export default {
 
           this.toastSuccess(this.$t('notification:page.saved'))
           if (closeOnSuccess) {
-            this.$router.push({ name: 'admin.pages' })
+            this.$router.push(this.previousPage || { name: 'admin.pages' })
           }
         }).finally(() => {
           this.processing = false

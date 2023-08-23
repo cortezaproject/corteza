@@ -12,12 +12,11 @@
         class="wrap-with-vertical-gutters align-items-center"
       >
         <b-button
-          v-if="backLink"
           data-test-id="button-back-without-save"
           variant="link"
-          :to="backLink"
           :disabled="processing"
           class="text-dark back mr-auto"
+          @click="$emit('back')"
         >
           <font-awesome-icon
             :icon="['fas', 'chevron-left']"

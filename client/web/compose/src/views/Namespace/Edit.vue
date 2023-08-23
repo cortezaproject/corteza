@@ -275,11 +275,11 @@
 
     <editor-toolbar
       :processing="processing"
-      :back-link="{ name: 'namespace.manage' }"
       :hide-delete="hideDelete"
       :hide-clone="!isEdit"
       :hide-save="hideSave"
       :disable-save="disableSave"
+      @back="$router.go(-1)"
       @delete="handleDelete"
       @save="handleSave()"
       @clone="$router.push({ name: 'namespace.clone', params: { namespaceID: namespace.namespaceID }})"
@@ -617,7 +617,7 @@ export default {
       this.processing = false
 
       if (closeOnSuccess) {
-        this.$router.push({ name: 'namespace.manage' })
+        this.$router.go(-1)
       } else if (!this.isEdit || this.isClone) {
         this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
       }

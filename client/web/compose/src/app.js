@@ -179,5 +179,11 @@ export default (options = {}) => {
     ...options,
   }
 
+  options.router.beforeEach((to, from, next) => {
+    store.dispatch('ui/setPreviousPage', from)
+
+    next()
+  })
+
   return new Vue(options)
 }

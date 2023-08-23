@@ -298,7 +298,6 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :processing="processing"
-        :back-link="{ name: 'admin.charts' }"
         :hide-delete="hideDelete"
         :hide-save="hideSave"
         hide-clone
@@ -306,6 +305,7 @@
         @delete="handleDelete()"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
+        @back="$router.push(previousPage || { name: 'admin.charts' })"
       />
     </portal>
   </div>
@@ -386,6 +386,7 @@ export default {
     ...mapGetters({
       modules: 'module/set',
       modByID: 'module/getByID',
+      previousPage: 'ui/previousPage',
     }),
 
     colorSchemes () {
@@ -651,7 +652,7 @@ export default {
     },
 
     redirect () {
-      this.$router.push({ name: 'admin.charts' })
+      this.$router.push(this.previousPage || { name: 'admin.charts' })
     },
 
     onEditReport (i) {
