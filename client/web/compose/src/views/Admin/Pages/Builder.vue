@@ -898,7 +898,7 @@ export default {
     // Trigger browser dialog on page leave to prevent unsaved changes
     checkUnsavedBlocks (next, to = { query: {} }) {
       // Check if additional query params will be appended to url
-      const queryParams = Object.keys(to.query).filter(key => key !== 'layoutID')
+      const queryParams = Object.keys(to.query).filter(key => key !== 'layoutID').length > 0
       next(!this.unsavedBlocks.size || queryParams || window.confirm(this.$t('build.unsavedChanges')))
     },
 

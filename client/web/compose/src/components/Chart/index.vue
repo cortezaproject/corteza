@@ -75,7 +75,6 @@ export default {
   },
 
   beforeDestroy () {
-    this.abortRequests()
     this.setDefaultValues()
     this.destroyEvents()
   },
