@@ -47,14 +47,15 @@
                 </template>
 
                 <template v-else-if="!inlineEditing && (recordPageID || options.allRecords)">
-                  <router-link
+                  <button
                     v-if="!options.hideAddButton"
                     data-test-id="button-add-record"
                     class="btn btn-lg btn-primary mr-1"
-                    :to="newRecordRoute"
+                    @click="handleAddRecord()"
                   >
                     + {{ $t('recordList.addRecord') }}
-                  </router-link>
+                  </button>
+
                   <importer-modal
                     v-if="!options.hideImportButton"
                     :module="recordListModule"
@@ -974,21 +975,6 @@ export default {
       return this.items.filter(({ id, r }) => this.selected.includes(id) && r.canUndeleteRecord).length
     },
 
-    newRecordRoute () {
-      const refRecord = this.options.linkToParent ? this.record : undefined
-      const pageID = this.recordPageID
-
-      if (pageID || this.options.rowCreateUrl) {
-        return {
-          name: this.options.rowCreateUrl || 'page.record.create',
-          params: { pageID, refRecord },
-          query: null,
-        }
-      }
-
-      return undefined
-    },
-
     isCloneRecordActionVisible () {
       return !this.options.hideRecordCloneButton && this.recordListModule.canCreateRecord && (this.options.rowCreateUrl || this.recordPageID || this.inlineEditing)
     },
@@ -1415,13 +1401,13 @@ export default {
         query: null,
       }
 
-      if (this.options.recordDisplayOption === 'newTab') {
-        window.open(this.$router.resolve(route).href)
-      } else if (this.options.recordDisplayOption === 'modal') {
+      if (this.options.recordDisplayOption === 'modal' || this.inModal) {
         this.$root.$emit('show-record-modal', {
           recordID,
           recordPageID: this.recordPageID,
         })
+      } else if (this.options.recordDisplayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
       } else {
         this.$router.push(route)
       }
@@ -1891,6 +1877,26 @@ export default {
       this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
         this.refresh(true)
       })
+    },
+
+    handleAddRecord () {
+      const refRecord = this.options.linkToParent ? this.record : undefined
+      const pageID = this.recordPageID
+
+      if (!(pageID || this.options.rowCreateUrl)) return
+
+      if (this.inModal) {
+        this.$root.$emit('show-record-modal', {
+          recordID: NoID,
+          recordPageID: this.recordPageID,
+        })
+      } else {
+        this.$router.push({
+          name: this.options.rowCreateUrl || 'page.record.create',
+          params: { pageID, refRecord },
+          query: null,
+        })
+      }
     },
   },
 }

@@ -361,6 +361,9 @@ export default {
             })
         } else {
           this.record = new compose.Record(module, { values: this.values })
+
+          this.inEditing = true
+          this.inCreating = true
         }
 
         if (this.refRecord) {

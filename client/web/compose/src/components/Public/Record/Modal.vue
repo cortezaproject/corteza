@@ -86,6 +86,10 @@ export default {
     '$route.query.recordPageID': {
       immediate: true,
       handler (recordPageID, oldRecordPageID) {
+        if (!recordPageID) {
+          this.showModal = false
+        }
+
         if (recordPageID !== oldRecordPageID) {
           // If the page changed we need to clear the record pagination since its not relevant anymore
           if (this.recordPaginationUsable) {

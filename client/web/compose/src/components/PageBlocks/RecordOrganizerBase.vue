@@ -335,7 +335,14 @@ export default {
         values[groupField] = group
       }
 
-      this.$router.push({ name: 'page.record.create', params: { pageID, values: values, refRecord: this.record } })
+      if (this.inModal) {
+        this.$root.$emit('show-record-modal', {
+          recordID: NoID,
+          recordPageID: (this.roRecordPage || {}).pageID,
+        })
+      } else {
+        this.$router.push({ name: 'page.record.create', params: { pageID, values: values, refRecord: this.record } })
+      }
     },
 
     expandFilter () {
@@ -480,13 +487,13 @@ export default {
         query: null,
       }
 
-      if (this.options.displayOption === 'newTab') {
-        window.open(this.$router.resolve(route).href)
-      } else if (this.options.displayOption === 'modal') {
+      if (this.options.displayOption === 'modal' || this.inModal) {
         this.$root.$emit('show-record-modal', {
           recordID: record.recordID,
           recordPageID: (this.roRecordPage || {}).pageID,
         })
+      } else if (this.options.displayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
       } else {
         this.$router.push(route)
       }

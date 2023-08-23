@@ -94,6 +94,13 @@ export default {
     autoRefreshEnabled () {
       return this.options.refreshRate >= 5 && ['page', 'page.record'].includes(this.$route.name)
     },
+
+    // detect when a page block is opened in a modal through magnification or record open type
+    inModal () {
+      const { recordPageID, magnifiedBlockID } = this.$route.query
+
+      return !!recordPageID || !!magnifiedBlockID
+    },
   },
 
   beforeDestroy () {
