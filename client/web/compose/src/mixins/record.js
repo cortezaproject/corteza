@@ -222,7 +222,7 @@ export default {
               this.record = record
             }
 
-            this.$router.push({ name: route, params: { ...this.$route.params, recordID: this.record.recordID } })
+            this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
           }
         })
         .catch(this.toastErrorHandler(this.$t(

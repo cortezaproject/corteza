@@ -104,7 +104,7 @@ import axios from 'axios'
 import { mapGetters } from 'vuex'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 import RecordBase from 'corteza-webapp-compose/src/components/PageBlocks/RecordBase'
 import RecordEditor from 'corteza-webapp-compose/src/components/PageBlocks/RecordEditor'
 
@@ -252,10 +252,13 @@ export default {
     },
 
     loadRecord () {
-      if (this.$attrs.recordID && this.$attrs.moduleID) {
+      const { moduleID = NoID, recordID = NoID } = this.$attrs
+
+      if (!moduleID || moduleID === NoID) return
+      const module = Object.freeze(this.getModuleByID(moduleID).clone())
+
+      if (recordID && recordID !== NoID) {
         const { namespaceID } = this.$attrs.namespace
-        const { moduleID, recordID } = this.$attrs
-        const module = Object.freeze(this.getModuleByID(moduleID).clone())
 
         const { response, cancel } = this.$ComposeAPI
           .recordReadCancellable({ namespaceID, moduleID, recordID })
@@ -271,6 +274,10 @@ export default {
               this.toastErrorHandler(this.$t('notification:record.loadFailed'))(e)
             }
           })
+      } else {
+        this.record = new compose.Record(module, { values: this.values })
+        this.inEditing = true
+        this.inCreating = true
       }
     },
 
