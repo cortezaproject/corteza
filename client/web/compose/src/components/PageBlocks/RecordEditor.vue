@@ -15,14 +15,11 @@
       v-else-if="module"
       class="mt-3"
     >
-      <div
-        v-for="field in fields"
-        :key="field.id"
-        class="field"
-        :class="{ 'mb-3 px-3': canDisplay(field) }"
-      >
-        <template
+      <template v-for="field in fields">
+        <div
           v-if="canDisplay(field)"
+          :key="field.id"
+          class="field mb-3 px-3"
         >
           <field-editor
             v-if="isFieldEditable(field)"
@@ -74,8 +71,8 @@
               </i>
             </div>
           </b-form-group>
-        </template>
-      </div>
+        </div>
+      </template>
     </div>
   </wrap>
 </template>

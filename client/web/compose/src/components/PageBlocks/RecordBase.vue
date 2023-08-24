@@ -14,72 +14,74 @@
       v-else-if="fieldModule"
       class="mt-3"
     >
-      <b-form-group
-        v-for="(field, index) in fields"
-        :key="index"
-        :label-cols-md="options.horizontalFieldLayoutEnabled && '5'"
-        :label-cols-xl="options.horizontalFieldLayoutEnabled && '4'"
-        :content-cols-md="options.horizontalFieldLayoutEnabled && '7'"
-        :content-cols-xl="options.horizontalFieldLayoutEnabled && '8'"
-        :class="{ 'field-container mb-3 px-3': canDisplay(field) }"
-      >
-        <template #label>
-          <div
-            class="d-flex align-items-center text-primary mb-0"
-          >
-            <span class="d-inline-block mw-100 py-1">
-              {{ field.label || field.name }}
-            </span>
+      <template v-for="field in fields">
+        <b-form-group
+          v-if="canDisplay(field)"
+          :key="field.id"
+          :label-cols-md="options.horizontalFieldLayoutEnabled && '5'"
+          :label-cols-xl="options.horizontalFieldLayoutEnabled && '4'"
+          :content-cols-md="options.horizontalFieldLayoutEnabled && '7'"
+          :content-cols-xl="options.horizontalFieldLayoutEnabled && '8'"
+          class="field-container mb-3 px-3"
+        >
+          <template #label>
+            <div
+              class="d-flex align-items-center text-primary mb-0"
+            >
+              <span class="d-inline-block mw-100 py-1">
+                {{ field.label || field.name }}
+              </span>
 
-            <hint
-              :id="field.fieldID"
-              :text="((field.options.hint || {}).view || '')"
-            />
+              <hint
+                :id="field.fieldID"
+                :text="((field.options.hint || {}).view || '')"
+              />
+
+              <div
+                v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
+                class="inline-actions ml-2"
+              >
+                <b-button
+                  :title="$t('field.inlineEdit.button.title')"
+                  variant="outline-light"
+                  size="sm"
+                  :disabled="editable"
+                  class="text-secondary border-0"
+                  @click="editInlineField(fieldRecord, field)"
+                >
+                  <font-awesome-icon
+                    :icon="['fas', 'pen']"
+                  />
+                </b-button>
+              </div>
+            </div>
 
             <div
-              v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
-              class="inline-actions ml-2"
+              class="small text-muted"
+              :class="{ 'mb-1': !!(field.options.description || {}).view }"
             >
-              <b-button
-                :title="$t('field.inlineEdit.button.title')"
-                variant="outline-light"
-                size="sm"
-                :disabled="editable"
-                class="text-secondary border-0"
-                @click="editInlineField(fieldRecord, field)"
-              >
-                <font-awesome-icon
-                  :icon="['fas', 'pen']"
-                />
-              </b-button>
+              {{ (field.options.description || {}).view }}
             </div>
-          </div>
+          </template>
 
           <div
-            class="small text-muted"
-            :class="{ 'mb-1': !!(field.options.description || {}).view }"
+            v-if="field.canReadRecordValue"
+            class="value mt-1 align-self-center"
           >
-            {{ (field.options.description || {}).view }}
+            <field-viewer
+              v-bind="{ ...$props, field }"
+              :extra-options="options"
+              :record="fieldRecord"
+            />
           </div>
-        </template>
-
-        <div
-          v-if="field.canReadRecordValue"
-          class="value mt-1 align-self-center"
-        >
-          <field-viewer
-            v-bind="{ ...$props, field }"
-            :extra-options="options"
-            :record="fieldRecord"
-          />
-        </div>
-        <i
-          v-else
-          class="text-primary"
-        >
-          {{ $t('field.noPermission') }}
-        </i>
-      </b-form-group>
+          <i
+            v-else
+            class="text-primary"
+          >
+            {{ $t('field.noPermission') }}
+          </i>
+        </b-form-group>
+      </template>
     </div>
 
     <!-- Modal for inline editing -->
