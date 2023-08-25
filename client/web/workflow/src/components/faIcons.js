@@ -23,6 +23,7 @@ import {
   faAngleRight,
   faAngleLeft,
   faEllipsisV,
+  faBars,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -60,4 +61,5 @@ library.add(
   faAngleRight,
   faAngleLeft,
   faEllipsisV,
+  faBars,
 )

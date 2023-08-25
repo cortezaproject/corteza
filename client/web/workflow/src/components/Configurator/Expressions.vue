@@ -116,7 +116,7 @@ export default {
         {
           key: 'target',
           label: this.$t('steps:expressions.configurator.target'),
-          thClass: 'pl-3',
+          thClass: 'pl-4 ml-1',
           formatter: (item) => {
             return `${item.target}(${item.type})`
           },
@@ -124,7 +124,7 @@ export default {
         {
           key: 'expr',
           label: this.$t('steps:expressions.configurator.expression'),
-          thClass: 'mr-3',
+          thClass: 'pl-1 mr-3',
         },
       ]
     },

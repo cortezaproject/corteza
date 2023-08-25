@@ -1,6 +1,6 @@
 <template>
   <div class="table-responsive">
-    <b-row class="header pl-3">
+    <b-row class="header pl-4">
       <b-col
         v-for="(field, index) in fields"
         :key="index"
@@ -12,6 +12,7 @@
 
     <draggable
       :list="items"
+      handle=".grab"
       @end="$root.$emit('change-detected')"
     >
       <div
@@ -23,6 +24,13 @@
           no-gutters
           @click="$set(item, '_showDetails', !item._showDetails)"
         >
+          <div class="p-2 grab">
+            <font-awesome-icon
+              :icon="['fas', 'bars']"
+              class="text-light"
+            />
+          </div>
+
           <b-col
             v-for="(field, i) in fields"
             :key="i"
@@ -185,5 +193,9 @@ export default {
 
 .expr-item:hover {
   background-color: #F3F3F5;
+
+  .grab > * {
+    color: $secondary !important;
+  }
 }
 </style>
