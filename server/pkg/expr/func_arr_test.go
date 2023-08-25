@@ -447,34 +447,34 @@ func Test_hasAll(t *testing.T) {
 	}
 }
 
-func Test_slice(t *testing.T) {
+func Test_splice(t *testing.T) {
 	tcc := []struct {
-		vals   []int
+		vals   []float64
 		arr    interface{}
 		expect interface{}
 	}{
 		{
-			vals:   []int{0, 3},
+			vals:   []float64{0, 3},
 			arr:    []string{"1", "2", "3"},
 			expect: []string{"1", "2", "3"},
 		},
 		{
-			vals:   []int{0, 1},
+			vals:   []float64{0, 1},
 			arr:    []string{"1", "2", "3"},
 			expect: []string{"1"},
 		},
 		{
-			vals:   []int{2, 3},
+			vals:   []float64{2, 3},
 			arr:    []bool{true, true},
 			expect: []bool{true, true},
 		},
 		{
-			vals:   []int{1, -1},
+			vals:   []float64{1, -1},
 			arr:    []int{4, 5, 6, 7},
 			expect: []int{5, 6, 7},
 		},
 		{
-			vals:   []int{3, -1},
+			vals:   []float64{3, -1},
 			arr:    []float64{11.1, 12.4},
 			expect: []float64{11.1, 12.4},
 		},
@@ -484,7 +484,7 @@ func Test_slice(t *testing.T) {
 		t.Run(fmt.Sprintf("%d", p), func(t *testing.T) {
 			var (
 				req = require.New(t)
-				ss  = slice(tc.arr, tc.vals[0], tc.vals[1])
+				ss  = splice(tc.arr, tc.vals[0], tc.vals[1])
 			)
 
 			req.Equal(tc.expect, ss)
