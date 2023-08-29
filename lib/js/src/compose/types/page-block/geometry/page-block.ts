@@ -16,6 +16,8 @@ interface Options {
   zoomMax: number;
   bounds: Bounds | null;
   lockBounds: boolean;
+  refreshRate: number;
+  showRefresh: boolean;
   magnifyOption: string;
   displayOption: string;
 }
@@ -29,6 +31,8 @@ const defaults: Readonly<Options> = Object.freeze({
   zoomMax: 18,
   bounds: null,
   lockBounds: false,
+  refreshRate: 0,
+  showRefresh: false,
   magnifyOption: '',
   displayOption: 'sameTab'
 })
@@ -54,8 +58,8 @@ export class PageBlockGeometry extends PageBlock {
     this.options.bounds = (o.bounds || null)
 
     Apply(this.options, o, String, 'magnifyOption', 'displayOption')
-    Apply(this.options, o, Number, 'zoomStarting', 'zoomMin', 'zoomMax')
-    Apply(this.options, o, Boolean, 'lockBounds')
+    Apply(this.options, o, Number, 'zoomStarting', 'zoomMin', 'zoomMax', 'refreshRate')
+    Apply(this.options, o, Boolean, 'lockBounds', 'showRefresh')
   }
 
   static makeFeed (f?: FeedInput): Feed {

@@ -211,6 +211,13 @@ export default {
         this.refresh()
       },
     },
+
+    options: {
+      deep: true,
+      handler () {
+        this.refresh()
+      },
+    },
   },
 
   created () {

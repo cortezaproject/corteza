@@ -586,6 +586,7 @@ export default {
 
     reporter (r) {
       const nr = { ...r }
+
       if (nr.filter) {
         nr.filter = evaluatePrefilter(nr.filter, {
           record: this.record,
@@ -594,6 +595,7 @@ export default {
           userID: (this.$auth.user || {}).userID || NoID,
         })
       }
+
       return this.$ComposeAPI.recordReport({ namespaceID: this.namespace.namespaceID, ...nr })
     },
 

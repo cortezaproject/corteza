@@ -168,6 +168,7 @@ export default {
         title: `${this.$t('forModule.recordList')} "${name || moduleID}"`,
         namespaceID,
         blocks,
+        visible: true,
       })
 
       this.createPage(page)

@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     v-on="$listeners"
+    @refreshBlock="refresh"
   >
     <div
       v-if="processing"
@@ -71,7 +72,7 @@ import { LPolygon, LControl } from 'vue2-leaflet'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapGetters, mapActions } from 'vuex'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
-import { throttle, isNumber } from 'lodash'
+import { isNumber } from 'lodash'
 
 import base from './base'
 
@@ -146,14 +147,11 @@ export default {
         this.loadEvents()
       },
     },
-
-    boundingRect: throttle(function () {
-      this.loadEvents()
-    }, 300),
   },
 
   created () {
     this.bounds = this.options.bounds
+    this.refreshBlock(this.refresh)
   },
 
   beforeDestroy () {
@@ -272,9 +270,11 @@ export default {
         return latLng(lat, lng)
       }
     },
+
     disableMap () {
       if (this.editable) this.$refs.map.mapObject._handlers.forEach(handler => handler.disable())
     },
+
     enableMap () {
       if (this.editable) this.$refs.map.mapObject._handlers.forEach(handler => handler.enable())
     },
@@ -306,6 +306,10 @@ export default {
       } else {
         this.$router.push(route)
       }
+    },
+
+    refresh () {
+      this.loadEvents()
     },
 
     setDefaultValues () {

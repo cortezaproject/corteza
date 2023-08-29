@@ -30,23 +30,34 @@ interface CalendarOptionsHeader {
   hideTitle: boolean;
 }
 
-class CalendarOptions {
-  public defaultView = ''
-  public feeds: Array<Feed> = []
-  public header: Partial<CalendarOptionsHeader> = {}
-  public locale = 'en-gb'
-  public refreshRate = 0
-  public showRefresh = false
-  public magnifyOption = ''
-  public eventDisplayOption = 'sameTab'
+interface Options {
+  defaultView: string;
+  feeds: Array<Feed>;
+  header: Partial<CalendarOptionsHeader>;
+  locale: string;
+  refreshRate: number;
+  showRefresh: boolean;
+  magnifyOption: string;
+  eventDisplayOption: string;
 }
+
+const defaults: Readonly<Options> = Object.freeze({
+  defaultView: '',
+  feeds: [],
+  header: {},
+  locale: 'en-gb',
+  refreshRate: 0,
+  showRefresh: false,
+  magnifyOption: '',
+  eventDisplayOption: 'sameTab'
+})
 
 /**
  * Helper class to help define calendar's functionality
  */
 export class PageBlockCalendar extends PageBlock {
   readonly kind = kind
-  public options = new CalendarOptions()
+  public options: Options = { ...defaults }
 
   static feedResources = Object.freeze({
     record: 'compose:record',
@@ -55,10 +66,10 @@ export class PageBlockCalendar extends PageBlock {
 
   constructor (i?: PageBlock | Partial<PageBlock>) {
     super(i)
-    this.applyOptions(i?.options as Partial<CalendarOptions>)
+    this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<CalendarOptions>): void {
+  applyOptions (o?: Partial<Options>): void {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
 

@@ -41,6 +41,15 @@ export default {
     }
   },
 
+  watch: {
+    options: {
+      deep: true,
+      handler () {
+        this.refresh()
+      },
+    },
+  },
+
   mounted () {
     this.fetchChart()
     this.refreshBlock(this.refresh)

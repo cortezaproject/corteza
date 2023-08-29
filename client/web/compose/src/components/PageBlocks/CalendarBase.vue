@@ -211,13 +211,14 @@ export default {
   },
 
   watch: {
-    'block.options': {
+    options: {
       deep: true,
       handler () {
         this.updateSize()
         this.refresh()
       },
     },
+
     boundingRect: {
       deep: true,
       handler () {
@@ -331,6 +332,7 @@ export default {
         .finally(() => {
           this.processing = false
           this.refreshing = false
+
           setTimeout(() => {
             this.updateSize()
           })
