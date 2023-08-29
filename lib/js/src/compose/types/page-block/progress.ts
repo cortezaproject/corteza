@@ -113,8 +113,7 @@ export class PageBlockProgress extends PageBlock {
   /**
    * Helper function to fetch and parse reporter's reports.
    */
-  fetch (options: Options, api: ComposeAPI, namespaceID: string): Promise<object> {
-    options = _.merge(this.options, options)
+  fetch (additionalOptions: Options, api: ComposeAPI, namespaceID: string): Promise<object> {
     const reports = []
     const dimensions = dimensionFunctions.convert({ modifier: 'YEAR', field: 'createdAt' })
 
@@ -123,42 +122,42 @@ export class PageBlockProgress extends PageBlock {
     // Construct value report
     const { field: valueField, operation: valueOperation = '' } = this.options.value
 
-    if (options.value.moduleID && valueField) {
+    if (this.options.value.moduleID && valueField) {
       if (valueOperation && valueField !== 'count') {
         metrics = `${valueOperation}(${valueField}) AS rp`
       }
 
-      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...options.value }))
+      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...this.options.value, ...additionalOptions.value }))
     } else {
-      reports.push(new Promise(resolve => resolve(options.value.default)))
+      reports.push(new Promise(resolve => resolve(this.options.value.default)))
     }
 
     // Construct minValue report
     const { field: minValueField, operation: minValueOperation = '' } = this.options.minValue
 
-    if (options.minValue.moduleID && minValueField) {
+    if (this.options.minValue.moduleID && minValueField) {
       metrics = ''
       if (minValueOperation && minValueField !== 'count') {
         metrics = `${minValueOperation}(${minValueField}) AS rp`
       }
 
-      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...options.minValue }))
+      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...this.options.minValue, ...additionalOptions.minValue }))
     } else {
-      reports.push(new Promise(resolve => resolve(options.minValue.default)))
+      reports.push(new Promise(resolve => resolve(this.options.minValue.default)))
     }
 
     // Construct minValue report
     const { field: maxValueField, operation: maxValueOperation = '' } = this.options.maxValue
 
-    if (options.maxValue.moduleID && maxValueField) {
+    if (this.options.maxValue.moduleID && maxValueField) {
       metrics = ''
       if (maxValueOperation && maxValueField !== 'count') {
         metrics = `${maxValueOperation}(${maxValueField}) AS rp`
       }
 
-      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...options.maxValue }))
+      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...this.options.maxValue, ...additionalOptions.maxValue }))
     } else {
-      reports.push(new Promise(resolve => resolve(options.maxValue.default)))
+      reports.push(new Promise(resolve => resolve(this.options.maxValue.default)))
     }
 
     return Promise.all(reports).then(([value, min, max]: Array<any>) => {
