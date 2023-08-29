@@ -22,7 +22,7 @@
 				{{ tr "signup.template.form.email.label" }}
             </label>
             <input
-								data-test-id="input-email"
+				data-test-id="input-email"
                 type="email"
                 class="form-control"
                 name="email"
@@ -59,20 +59,6 @@
 				value="{{ .form.name }}"
 				autocomplete="name"
 				aria-label="{{ tr "signup.template.form.name.label" }}">
-        </div>
-        <div class="mb-3">
-            <label>
-                {{ tr "signup.template.form.nickname.label" }}
-            </label>
-			<input
-				data-test-id="input-handle"
-				type="text"
-				class="form-control handle-mask"
-				name="handle"
-				placeholder="{{ tr "signup.template.form.nickname.placeholder" }}"
-				value="{{ .form.handle }}"
-				autocomplete="handle"
-				aria-label="{{ tr "signup.template.form.nickname.label" }}">
         </div>
 		<div>
 			<button

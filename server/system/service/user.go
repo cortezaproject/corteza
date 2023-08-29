@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/mail"
@@ -1033,20 +1034,24 @@ func uniqueUserCheck(ctx context.Context, s store.Storer, u *types.User) (err er
 
 func createUserHandle(ctx context.Context, s store.Users, u *types.User) {
 	if u.Handle == "" {
+		n := []string{
+			fmt.Sprintf("%s_%s", u.Name, u.Username),
+			regexp.
+				MustCompile("(@.*)$").
+				ReplaceAllString(u.Email, ""),
+		}
+
+		for i := 1; i <= 10; i++ {
+			n = append(n, fmt.Sprintf("%s_%s%d", u.Name, u.Username, i))
+		}
+
 		u.Handle, _ = handle.Cast(
 			// Must not exist before
 			func(lookup string) bool {
 				e, err := s.LookupUserByHandle(ctx, lookup)
 				return err == store.ErrNotFound && (e == nil || e.ID == u.ID)
 			},
-			// use name or username
-			u.Name,
-			u.Username,
-			// use email w/o domain
-			regexp.
-				MustCompile("(@.*)$").
-				ReplaceAllString(u.Email, ""),
-			//
+			n...,
 		)
 	}
 }
