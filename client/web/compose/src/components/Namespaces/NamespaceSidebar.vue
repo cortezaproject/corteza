@@ -37,6 +37,7 @@
 
         <b-input-group-append v-if="canManageNamespaces">
           <b-button
+            data-test-id="button-namespace-edit"
             :disabled="!canUpdateNamespace"
             :title="$t('editNamespace')"
             variant="primary"
