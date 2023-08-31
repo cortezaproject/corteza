@@ -200,7 +200,13 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 	return
 }
 
-// generatePageNavigation page nav for given record set using iterator
+// generatePageNavigation generates page navigation for a given record set using an iterator and filter limit.
+// If the limit is not defined, the page navigation will consist of only one page without a cursor.
+// If the limit is defined and is greater than the total number of records in the set,
+// the page navigation will consist of only one page without a cursor.
+// If the limit is defined and is less than the total number of records in the set,
+// the page navigation will have multiple pages with cursor(s) based on the total number of records and the provided limit.
+// @todo revisit and clean up this function properly
 func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.Module, p types.RecordFilter, set types.RecordSet) (out types.RecordFilter, err error) {
 	const (
 		howMuchMore = 1000
@@ -223,6 +229,7 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 			},
 		}
 
+		// generatePage generates pageNavigation for given record set
 		generatePage = func(last *types.Record) (err error) {
 			if !p.IncPageNavigation || p.Limit == 0 || len(pageNavigation) == 0 {
 				return
@@ -234,25 +241,34 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 				return
 			}
 
-			// prep page
-			if (total % p.Limit) == 0 {
+			if total < p.Limit {
+				pageNavigation[lastNavPageNo].Count = total
+			}
+
+			// prepare page
+			if total != 0 && (total%p.Limit) == 0 {
 				pageNavigation[lastNavPageNo].Count = p.Limit
 				page = filter.Page{
 					Page:   uint(len(pageNavigation) + 1),
-					Count:  0,
+					Count:  p.Limit,
 					Cursor: nextPage,
 				}
-			} else {
-				page.Count += 1
 			}
 
-			// push page when limit is matched with page item size
-			if p.Limit == 1 || pageNavigation[lastNavPageNo].Count == p.Limit {
-				pageNavigation = append(pageNavigation, &filter.Page{
-					Page:   page.Page,
-					Count:  page.Count,
-					Cursor: page.Cursor,
-				})
+			expectedItemCountUpToPage := uint(lastNavPageNo+1) * p.Limit
+			if p.Limit == 1 {
+				expectedItemCountUpToPage = uint(lastNavPageNo) * p.Limit
+			}
+
+			if expectedItemCountUpToPage < total {
+				// push page when limit is matched with the previous page item size
+				if pageNavigation[lastNavPageNo].Count == p.Limit {
+					pageNavigation = append(pageNavigation, &filter.Page{
+						Page:   page.Page,
+						Count:  total % p.Limit,
+						Cursor: page.Cursor, // prev cursor
+					})
+				}
 			}
 
 			return
@@ -261,10 +277,10 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 
 	if setLen == 0 {
 		return
-	} else {
-		first = set[0]
-		last = set[setLen-1]
 	}
+
+	first = set[0]
+	last = set[setLen-1]
 
 	// Limit
 	out.Limit = p.Limit
@@ -273,7 +289,7 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 	out.Sort = dal.IteratorSorting(iter)
 
 	// No need to generate prev/next cursor
-	// 		if limit is not defined and set is empty
+	// if limit is not defined and set is empty
 	if p.Limit > 0 && len(set) > 0 {
 		// PrevPage
 		out.PrevPage, err = dal.PreLoadCursor(ctx, iter, 1, true, first)
@@ -336,6 +352,16 @@ func generatePageNavigation(ctx context.Context, iter dal.Iterator, mod *types.M
 
 	// Page navigation
 	if p.IncPageNavigation {
+		// Ensure that the last page count is correct if it's not equal to the limit.
+		lastPageCount := pageNavigation[len(pageNavigation)-1].Count
+		if lastPageCount > 0 && lastPageCount != p.Limit && lastPageCount != total%p.Limit {
+			pageNavigation[len(pageNavigation)-1].Count = total % p.Limit
+		}
+
+		if p.Limit == 1 {
+			pageNavigation = pageNavigation[:len(pageNavigation)-1]
+		}
+
 		out.PageNavigation = pageNavigation
 	}
 
