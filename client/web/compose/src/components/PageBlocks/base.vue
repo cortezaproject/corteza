@@ -72,6 +72,11 @@ export default {
       required: false,
       default: false,
     },
+
+    unsavedBlocks: {
+      type: Set,
+      default: () => new Set(),
+    },
   },
 
   data () {

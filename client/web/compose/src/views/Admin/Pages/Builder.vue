@@ -151,8 +151,11 @@
             :module="module"
             :record="record"
             :resizing="resizing"
+            :unsaved-blocks="unsavedBlocks"
             editable
             class="p-2"
+            @edit-block="editBlock"
+            @delete-tab="deleteTab"
           />
         </div>
       </template>
@@ -613,6 +616,17 @@ export default {
       if (this.editor) this.editor = undefined
     },
 
+    deleteTab ({ blockIndex, tabIndex }) {
+      const { blockID } = this.blocks[blockIndex] || {}
+
+      if (!blockID) return
+
+      this.unsavedBlocks.add(blockID)
+      this.blocks[blockIndex].options.tabs.splice(tabIndex, 1)
+
+      this.showUntabbedHiddenBlocks()
+    },
+
     // Changes meta.hidden property to false, for all blocks that are hidden but not in a tab
     showUntabbedHiddenBlocks () {
       const tabbedBlocks = new Set()
@@ -678,33 +692,12 @@ export default {
 
           tabbedBlock.meta.hidden = true
         })
-        this.showUnusedHiddenBlocks()
+        this.showUntabbedHiddenBlocks()
       }
 
       if (this.editor.block.kind === block.kind) {
         this.editor = undefined
       }
-    },
-
-    showUnusedHiddenBlocks () {
-      const allTabBlocks = this.blocks.filter(({ kind }) => kind === 'Tabs')
-
-      this.blocks.forEach(block => {
-        if (!block.meta.hidden) return
-
-        const hiddenBlockID = fetchID(block)
-
-        // Go through all hidden blocks to see if they are tabbed anywhere
-        const tabbed = allTabBlocks.some(({ options }) => {
-          const { tabs = [] } = options
-          return tabs.some(({ blockID }) => blockID === hiddenBlockID)
-        })
-
-        if (!tabbed) {
-          this.calculateNewBlockPosition(block)
-          block.meta.hidden = false
-        }
-      })
     },
 
     cloneBlock (index) {

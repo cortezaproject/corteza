@@ -2,6 +2,7 @@
   <wrap
     v-bind="$props"
     :scrollable-body="false"
+    card-class="tabs-base-block-container"
     v-on="$listeners"
   >
     <div
@@ -35,13 +36,50 @@
       <b-tab
         v-for="(tab, index) in tabbedBlocks"
         :key="`${getTabTitle(tab, index)}-${index}`"
-        :title="getTabTitle(tab, index)"
         class="h-100"
         :title-item-class="getTitleItemClass(index)"
         :title-link-class="getTitleItemClass(index)"
         no-body
         :lazy="isTabLazy(tab)"
       >
+        <template #title>
+          <span>
+            {{ getTabTitle(tab, index) }}
+          </span>
+
+          <div
+            v-if="editable"
+            class="d-inline ml-3"
+          >
+            <div
+              v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
+              :title="$t('tabs.unsavedChanges')"
+              class="btn border-0"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'exclamation-triangle']"
+                class="text-warning"
+              />
+            </div>
+
+            <b-button
+              size="sm"
+              variant="outline-light"
+              class="text-primary border-0 edit-block-btn"
+              @click="editTabbedBlock(tab)"
+            >
+              <font-awesome-icon
+                :icon="['far', 'edit']"
+              />
+            </b-button>
+
+            <c-input-confirm
+              class="ml-1"
+              @confirmed="deleteTab(index)"
+            />
+          </div>
+        </template>
+
         <page-block-tab
           v-if="tab.block"
           v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index }"
@@ -78,6 +116,7 @@ export default {
   components: {
     PageBlockTab: () => import('corteza-webapp-compose/src/components/PageBlocks'),
   },
+
   extends: base,
 
   computed: {
@@ -129,6 +168,17 @@ export default {
   },
 
   methods: {
+    editTabbedBlock (tab) {
+      const blockIndex = this.blocks.findIndex(block => fetchID(block) === tab.block.blockID)
+      if (blockIndex > -1) {
+        this.$emit('edit-block', blockIndex)
+      }
+    },
+
+    deleteTab (tabIndex) {
+      this.$emit('delete-tab', { tabIndex, blockIndex: this.blockIndex })
+    },
+
     getTitleItemClass (index) {
       const { justify, alignment } = this.block.options.style
       return `order-${index} text-truncate text-${alignment} ${justify !== 'none' ? 'flex-fill' : ''}`
@@ -146,3 +196,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.tabs-base-block-container .nav-pills {
+  .active .edit-block-btn {
+    color: $white !important;
+  }
+}
+</style>
