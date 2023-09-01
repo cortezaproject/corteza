@@ -10,8 +10,9 @@
     >
       <b-form-group
         :label="$t('new')"
-        label-cols="2"
         :description="getPasswordWarning"
+        label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="password"
@@ -25,8 +26,9 @@
 
       <b-form-group
         :label="$t('confirm')"
-        label-cols="2"
         :description="getConfirmPasswordWarning"
+        label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

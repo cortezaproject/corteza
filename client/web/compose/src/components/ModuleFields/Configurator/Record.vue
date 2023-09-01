@@ -2,6 +2,7 @@
   <div>
     <b-form-group
       :label="$t('kind.record.moduleLabel')"
+      label-class="text-primary"
     >
       <b-form-select
         v-model="f.options.moduleID"
@@ -16,6 +17,7 @@
     >
       <b-form-group
         :label="$t('kind.record.moduleField')"
+        label-class="text-primary"
       >
         <b-form-select
           v-model="f.options.labelField"
@@ -28,6 +30,7 @@
       >
         <b-form-group
           :label="$t('kind.record.fieldFromModuleField')"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="f.options.recordLabelField"
@@ -39,6 +42,7 @@
 
       <b-form-group
         :label="$t('kind.record.queryFieldsLabel')"
+        label-class="text-primary"
       >
         <b-form-select
           v-model="f.options.queryFields"
@@ -50,6 +54,7 @@
 
       <b-form-group
         :label="$t('kind.record.prefilterLabel')"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model="f.options.prefilter"
@@ -73,6 +78,7 @@
     <template v-if="field.isMulti">
       <b-form-group
         :label="$t('kind.select.optionType.label')"
+        label-class="text-primary"
       >
         <b-form-radio-group
           v-model="f.options.selectType"
@@ -82,7 +88,9 @@
         />
       </b-form-group>
 
-      <b-form-group v-if="shouldAllowDuplicates">
+      <b-form-group
+        v-if="shouldAllowDuplicates"
+      >
         <b-form-checkbox
           v-model="f.options.isUniqueMultiValue"
           :value="false"

@@ -4,6 +4,7 @@
       horizontal
       :description="$t('kind.file.view.modeFootnote')"
       :label="$t('kind.file.view.modeLabel')"
+      label-class="text-primary"
     >
       <b-form-radio-group
         v-model="options.mode"

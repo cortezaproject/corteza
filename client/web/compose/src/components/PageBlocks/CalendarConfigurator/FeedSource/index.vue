@@ -7,8 +7,9 @@
     >
       <!-- define feed resource; eg. module, reminders, google calendar, ... -->
       <b-form-group
-        horizontal
         :label="$t('calendar.feedLabel')"
+        horizontal
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-select
@@ -41,7 +42,9 @@
         </b-input-group>
       </b-form-group>
 
-      <b-form-group horizontal>
+      <b-form-group
+        horizontal
+      >
         <!-- source configurator -->
         <component
           :is="configurator(feed)"

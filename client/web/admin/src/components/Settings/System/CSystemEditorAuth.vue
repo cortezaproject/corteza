@@ -12,6 +12,7 @@
         :label="$t('internal.title')"
         label-size="lg"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-checkbox
           v-model="settings['auth.internal.enabled']"
@@ -52,8 +53,8 @@
         </b-form-checkbox>
       </b-form-group>
       <b-form-group
-        label-cols="2"
         :description="$t('internal.signup.split-credentials-check.description')"
+        label-cols="2"
       >
         <b-form-checkbox
           v-model="settings['auth.internal.split-credentials-check']"
@@ -82,6 +83,7 @@
         :label="$t('internal.password-constraints.min-upper-case-length')"
         :description="$t('internal.password-constraints.min-upper-case-description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model.number="settings['auth.internal.password-constraints.min-upper-case']"
@@ -95,6 +97,7 @@
         :label="$t('internal.password-constraints.min-lower-case-length')"
         :description="$t('internal.password-constraints.min-lower-case-description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model.number="settings['auth.internal.password-constraints.min-lower-case']"
@@ -108,6 +111,7 @@
         :label="$t('internal.password-constraints.min-length')"
         :description="$t('internal.password-constraints.min-length-description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model.number="settings['auth.internal.password-constraints.min-length']"
@@ -121,6 +125,7 @@
         :label="$t('internal.password-constraints.min-num-count')"
         :description="$t('internal.password-constraints.min-num-count-description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model.number="settings['auth.internal.password-constraints.min-num-count']"
@@ -134,6 +139,7 @@
         :label="$t('internal.password-constraints.min-special-count')"
         :description="$t('internal.password-constraints.min-special-count-description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model.number="settings['auth.internal.password-constraints.min-special-count']"
@@ -149,7 +155,9 @@
         {{ $t('mfa.title') }}
       </h5>
 
-      <b-form-group label-cols="2">
+      <b-form-group
+        label-cols="2"
+      >
         <b-form-checkbox
           v-model="settings['auth.multi-factor.email-otp.enabled']"
           data-test-id="checkbox-enable-emailOTP"
@@ -159,7 +167,9 @@
           {{ $t('mfa.emailOTP.enabled') }}
         </b-form-checkbox>
       </b-form-group>
-      <b-form-group label-cols="2">
+      <b-form-group
+        label-cols="2"
+      >
         <b-form-checkbox
           v-model="settings['auth.multi-factor.email-otp.enforced']"
           :value="true"
@@ -172,6 +182,7 @@
         :label="$t('mfa.emailOTP.expires.label')"
         :description="$t('mfa.emailOTP.expires.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input-group append="seconds">
           <b-form-input
@@ -181,7 +192,9 @@
           />
         </b-input-group>
       </b-form-group>
-      <b-form-group label-cols="2">
+      <b-form-group
+        label-cols="2"
+      >
         <b-form-checkbox
           v-model="settings['auth.multi-factor.totp.enabled']"
           data-test-id="checkbox-enable-TOTP"
@@ -191,7 +204,9 @@
           {{ $t('mfa.TOTP.enabled') }}
         </b-form-checkbox>
       </b-form-group>
-      <b-form-group label-cols="2">
+      <b-form-group
+        label-cols="2"
+      >
         <b-form-checkbox
           v-model="settings['auth.multi-factor.totp.enforced']"
           :value="true"
@@ -205,6 +220,7 @@
         :label="$t('mfa.TOTP.issuer.label')"
         :description="$t('mfa.TOTP.issuer.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input
@@ -222,8 +238,9 @@
 
       <b-form-group
         :label="$t('mail.from-address')"
-        label-cols="2"
         :description="$t('mail.validate-email')"
+        label-cols="2"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input
@@ -235,6 +252,7 @@
       <b-form-group
         :label="$t('mail.from-name')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input v-model="settings['auth.mail.from-name']" />
@@ -248,8 +266,8 @@
       </h5>
 
       <b-form-group
-        label-cols="2"
         :description="$t('internal.send-user-invite-email.description')"
+        label-cols="2"
       >
         <b-form-checkbox
           v-model="settings['auth.internal.send-user-invite-email.enabled']"
@@ -263,6 +281,7 @@
         :label="$t('internal.send-user-invite-email.expires.label')"
         :description="$t('internal.send-user-invite-email.expires.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input-group append="hours">
           <b-form-input

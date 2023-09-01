@@ -35,8 +35,8 @@
 
         <b-form-group
           v-if="item.triggers.resourceType"
-          label-class="text-primary"
           :label="$t('steps:trigger.configurator.event*')"
+          label-class="text-primary"
         >
           <vue-select
             v-model="item.triggers.eventType"

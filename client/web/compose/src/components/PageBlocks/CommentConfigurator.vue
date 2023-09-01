@@ -1,7 +1,9 @@
 <template>
   <b-tab :title="$t('comment.label')">
-    <b-form-group>
-      <label>{{ $t('general.module') }}</label>
+    <b-form-group
+      :label="$t('general.module')"
+      label-class="text-primary"
+    >
       <b-form-select
         v-model="options.moduleID"
         :options="moduleOptions"
@@ -11,8 +13,10 @@
       />
     </b-form-group>
     <div v-if="selectedModule">
-      <b-form-group>
-        <label>{{ $t('field.selector.available') }}</label>
+      <b-form-group
+        :label="$t('field.selector.available')"
+        label-class="text-primary"
+      >
         <div class="d-flex">
           <div class="border fields w-100 p-2">
             <div
@@ -34,8 +38,9 @@
       <b-form-group
         horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('recordList.record.prefilterLabel')"
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model.trim="options.filter"
@@ -58,8 +63,9 @@
       <b-form-group
         horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('comment.titleField.label')"
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.titleField">
           <option value="">
@@ -79,8 +85,9 @@
       <b-form-group
         horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('comment.contentField.label')"
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.contentField">
           <option value="">
@@ -101,8 +108,9 @@
       <b-form-group
         horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('comment.referenceField.label')"
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.referenceField">
           <option value="">
@@ -124,8 +132,9 @@
     <b-form-group
       horizontal
       :label-cols="3"
-      breakpoint="md"
       :label="$t('comment.sortDirection.label')"
+      breakpoint="md"
+      label-class="text-primary"
     >
       <b-form-select v-model="options.sortDirection">
         <option

@@ -1,10 +1,11 @@
 <template>
   <div>
     <b-form-group
-      horizontal
       :label-cols="3"
-      breakpoint="md"
       :label="$t('calendar.reminderFeed.colorLabel')"
+      horizontal
+      breakpoint="md"
+      label-class="text-primary"
     >
       <c-input-color-picker
         v-model="feed.options.color"

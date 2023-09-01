@@ -17,8 +17,9 @@
           @submit.prevent="search"
         >
           <b-form-group
-            label-cols-lg="2"
             :label="$t('filter.searchQuery')"
+            label-cols-lg="2"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="filter.query"

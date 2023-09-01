@@ -56,6 +56,7 @@
                     >
                       <b-form-group
                         :label="$t('name')"
+                        label-class="text-primary"
                         class="text-primary"
                       >
                         <b-form-input
@@ -71,6 +72,7 @@
                     >
                       <b-form-group
                         :label="$t('handle')"
+                        label-class="text-primary"
                         class="text-primary"
                       >
                         <b-form-input
@@ -166,6 +168,7 @@
                     >
                       <b-form-group
                         :label="$t('edit.animation.label')"
+                        label-class="text-primary"
                         class="text-primary"
                       >
                         <c-input-checkbox

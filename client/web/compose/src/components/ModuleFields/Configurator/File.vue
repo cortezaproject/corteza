@@ -2,6 +2,7 @@
   <div>
     <b-form-group
       :label="$t('kind.file.view.maxSizeLabel')"
+      label-class="text-primary"
     >
       <b-input-group>
         <b-form-input
@@ -15,6 +16,7 @@
     <b-form-group
       :label="$t('kind.file.view.mimetypesLabel')"
       :description="$t('kind.file.view.mimetypesFootnote')"
+      label-class="text-primary"
       class="mt-2"
     >
       <b-form-input
@@ -25,6 +27,7 @@
     <b-form-group
       :description="$t('kind.file.view.modeFootnote')"
       :label="$t('kind.file.view.modeLabel')"
+      label-class="text-primary"
     >
       <b-form-radio-group
         v-model="f.options.mode"

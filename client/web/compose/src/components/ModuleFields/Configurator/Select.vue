@@ -3,6 +3,7 @@
     <b-col>
       <b-form-group
         :label="$t('kind.select.optionsLabel')"
+        label-class="text-primary"
       >
         <b-table-simple
           borderless
@@ -109,6 +110,7 @@
 
       <b-form-group
         :label="$t('kind.select.optionType.label')"
+        label-class="text-primary"
       >
         <b-form-radio-group
           v-model="f.options.selectType"
@@ -118,7 +120,9 @@
         />
       </b-form-group>
 
-      <b-form-group v-if="shouldAllowDuplicates">
+      <b-form-group
+        v-if="shouldAllowDuplicates"
+      >
         <b-form-checkbox
           v-model="f.options.isUniqueMultiValue"
           :value="false"

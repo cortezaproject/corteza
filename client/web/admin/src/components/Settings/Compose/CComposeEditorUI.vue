@@ -15,6 +15,7 @@
     >
       <b-form-group
         :label="$t('sidebar.title')"
+        label-class="text-primary"
       >
         <b-form-checkbox
           v-model="sidebar.hideNamespaceList"
@@ -30,6 +31,7 @@
 
       <b-form-group
         :label="$t('record-toolbar.title')"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-checkbox

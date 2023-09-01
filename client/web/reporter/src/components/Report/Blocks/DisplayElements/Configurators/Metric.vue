@@ -52,6 +52,7 @@
       <b-col>
         <b-form-group
           :label="$t('color.text')"
+          label-class="text-primary"
         >
           <c-input-color-picker
             v-model="options.color"
@@ -66,6 +67,7 @@
       <b-col>
         <b-form-group
           :label="$t('color.background')"
+          label-class="text-primary"
         >
           <c-input-color-picker
             v-model="options.backgroundColor"

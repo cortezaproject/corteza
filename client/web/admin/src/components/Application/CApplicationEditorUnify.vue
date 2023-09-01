@@ -12,6 +12,7 @@
         :label="$t('name.label')"
         :description="$t('name.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="unify.name"
@@ -23,6 +24,7 @@
         :label="$t('logo.label')"
         :description="$t('logo.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <template #label>
           <div
@@ -80,6 +82,7 @@
         :label="$t('url.label')"
         :description="$t('url.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="unify.url"
@@ -113,6 +116,7 @@
       <b-form-group
         :label="$t('config.label')"
         :description="$t('config.description')"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-textarea

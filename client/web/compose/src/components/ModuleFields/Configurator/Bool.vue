@@ -2,6 +2,7 @@
   <div>
     <b-form-group
       :label="$t('kind.bool.checkedValueLabel')"
+      label-class="text-primary"
     >
       <b-input-group>
         <b-form-input
@@ -25,6 +26,7 @@
 
     <b-form-group
       :label="$t('kind.bool.uncheckedValueLabel')"
+      label-class="text-primary"
     >
       <b-input-group>
         <b-form-input
@@ -48,6 +50,7 @@
 
     <b-form-group
       :label="$t('kind.bool.toggleTypeLabel')"
+      label-class="text-primary"
     >
       <b-form-checkbox v-model="f.options.switch">
         {{ $t('kind.bool.toggleType') }}

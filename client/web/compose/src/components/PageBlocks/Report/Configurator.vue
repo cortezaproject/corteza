@@ -4,6 +4,7 @@
       <b-col>
         <b-form-group
           :label="$t('report.label')"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="options.reportID"
@@ -18,6 +19,7 @@
       >
         <b-form-group
           :label="$t('report.scenario.label')"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="options.scenarioID"
@@ -33,6 +35,7 @@
       v-if="selectedReport"
       :label="$t('report.element.label')"
       :description="$t('report.element.description')"
+      label-class="text-primary"
     >
       <b-form-select
         v-model="options.elementID"

@@ -2,7 +2,10 @@
   <tr>
     <td />
     <td>
-      <b-form-group :label="$t('navigation.fieldLabel')">
+      <b-form-group
+        :label="$t('navigation.fieldLabel')"
+        label-class="text-primary"
+      >
         <b-form-input
           v-model="options.item.label"
           type="text"
@@ -10,7 +13,10 @@
       </b-form-group>
     </td>
     <td style="min-width: 200px;">
-      <b-form-group :label="$t('navigation.composePage')">
+      <b-form-group
+        :label="$t('navigation.composePage')"
+        label-class="text-primary"
+      >
         <vue-select
           key="pageID"
           v-model="options.item.pageID"
@@ -29,7 +35,10 @@
       </b-form-group>
     </td>
     <td>
-      <b-form-group :label="$t('navigation.openIn')">
+      <b-form-group
+        :label="$t('navigation.openIn')"
+        label-class="text-primary"
+      >
         <b-form-select
           v-model="options.item.target"
           :options="targetOptions"
@@ -44,7 +53,7 @@
     >
       <b-form-group
         :label="$t('navigation.displaySubPages')"
-        label-class="text-nowrap"
+        label-class="text-nowrap text-primary"
         class="d-flex align-items-center justify-content-center mb-0"
       >
         <c-input-checkbox

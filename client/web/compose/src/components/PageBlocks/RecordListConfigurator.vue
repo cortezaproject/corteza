@@ -18,9 +18,9 @@
             md="6"
           >
             <b-form-group
-              class="form-group text-primary"
-              variant="primary"
               :label="$t('general.module')"
+              variant="primary"
+              label-class="text-primary"
             >
               <b-form-select
                 v-model="options.moduleID"
@@ -90,7 +90,8 @@
           <b-form-group
             v-if="recordListModule && options.editable"
             :label="$t('recordList.editFields')"
-            class="mb-0 text-primary"
+            label-class="text-primary"
+            class="mb-0"
           >
             <field-picker
               :module="recordListModule"

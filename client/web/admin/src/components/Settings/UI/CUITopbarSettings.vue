@@ -64,7 +64,7 @@
           </b-col>
           <b-col>
             <b-form-group
-              label-class="pb-1"
+              label-class="pb-1 text-primary"
             >
               <template #label>
                 {{ $t('links.title') }}
@@ -143,7 +143,7 @@
           </b-col>
           <b-col>
             <b-form-group
-              label-class="pb-1"
+              label-class="pb-1 text-primary"
             >
               <template #label>
                 {{ $t('links.title') }}

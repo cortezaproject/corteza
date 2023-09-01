@@ -19,8 +19,9 @@
           @submit.prevent="search"
         >
           <b-form-group
-            label-cols-lg="2"
             :label="$t('filter.from')"
+            label-cols-lg="2"
+            label-class="text-primary"
           >
             <c-input-date-time
               v-model="filter.from"
@@ -34,8 +35,9 @@
             />
           </b-form-group>
           <b-form-group
-            label-cols-lg="2"
             :label="$t('filter.to')"
+            label-cols-lg="2"
+            label-class="text-primary"
           >
             <c-input-date-time
               v-model="filter.to"
@@ -50,8 +52,9 @@
             />
           </b-form-group>
           <b-form-group
-            label-cols-lg="2"
             :label="$t('filter.resource')"
+            label-cols-lg="2"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="filter.resource"
@@ -60,8 +63,9 @@
             />
           </b-form-group>
           <b-form-group
-            label-cols-lg="2"
             :label="$t('filter.action')"
+            label-cols-lg="2"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="filter.action"
@@ -70,8 +74,9 @@
             />
           </b-form-group>
           <b-form-group
-            label-cols-lg="2"
             :label="$t('filter.actor')"
+            label-cols-lg="2"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="filter.actorID"

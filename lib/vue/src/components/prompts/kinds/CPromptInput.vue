@@ -3,6 +3,7 @@
     <p v-html="message"></p>
     <b-form-group
       :label="label"
+      label-class="text-primary"
     >
       <b-input
         :type="type"

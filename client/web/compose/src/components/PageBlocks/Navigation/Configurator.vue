@@ -15,9 +15,10 @@
             class="mb-2 mb-sm-0"
           >
             <b-form-group
+              :label="$t('navigation.appearance')"
               horizontal
               variant="primary"
-              :label="$t('navigation.appearance')"
+              label-class="text-primary"
             >
               <b-form-radio-group
                 v-model="options.display.appearance"
@@ -35,8 +36,9 @@
             class="mb-2 mb-sm-0"
           >
             <b-form-group
-              horizontal
               :label="$t('navigation.justify')"
+              horizontal
+              label-class="text-primary"
             >
               <b-form-radio-group
                 v-model="options.display.justify"
@@ -54,8 +56,9 @@
             class="mb-2 mb-sm-0"
           >
             <b-form-group
-              horizontal
               :label="$t('navigation.alignment')"
+              horizontal
+              label-class="text-primary"
             >
               <b-form-radio-group
                 v-model="options.display.alignment"

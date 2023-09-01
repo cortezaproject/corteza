@@ -7,7 +7,9 @@
       class="flex-fill overflow-auto p-2 text-primary"
       @submit.prevent
     >
-      <b-form-group v-if="reminder.reminderID !== '0'">
+      <b-form-group
+        v-if="reminder.reminderID !== '0'"
+      >
         <b-form-checkbox
           :checked="!!reminder.dismissedAt"
           class="mt-2"
@@ -17,7 +19,10 @@
         </b-form-checkbox>
       </b-form-group>
 
-      <b-form-group :label="$t('reminder.edit.titleLabel')">
+      <b-form-group
+        :label="$t('reminder.edit.titleLabel')"
+        label-class="text-primary"
+      >
         <b-form-input
           v-model="reminder.payload.title"
           data-test-id="input-title"
@@ -26,7 +31,10 @@
         />
       </b-form-group>
 
-      <b-form-group :label="$t('reminder.edit.notesLabel')">
+      <b-form-group
+        :label="$t('reminder.edit.notesLabel')"
+        label-class="text-primary"
+      >
         <b-form-textarea
           v-model="reminder.payload.notes"
           data-test-id="textarea-notes"
@@ -36,7 +44,10 @@
         />
       </b-form-group>
 
-      <b-form-group :label="$t('reminder.edit.remindAtLabel')">
+      <b-form-group
+        :label="$t('reminder.edit.remindAtLabel')"
+        label-class="text-primary"
+      >
         <c-input-date-time
           v-model="reminder.remindAt"
           data-test-id="select-remind-at"
@@ -50,7 +61,10 @@
         />
       </b-form-group>
 
-      <b-form-group :label="$t('reminder.edit.assigneeLabel')">
+      <b-form-group
+        :label="$t('reminder.edit.assigneeLabel')"
+        label-class="text-primary"
+      >
         <vue-select
           v-model="reminder.assignedTo"
           data-test-id="select-assignee"
@@ -70,6 +84,7 @@
       <b-form-group
         v-if="reminder.payload.link"
         :label="$t('reminder.routesTo')"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input
@@ -94,6 +109,7 @@
       <b-form-group
         v-if="reminder.dismissedAt"
         :label="$t('reminder.dismissedAt')"
+        label-class="text-primary"
       >
         {{ reminder.dismissedAt | locFullDateTime }}
       </b-form-group>
@@ -101,6 +117,7 @@
       <b-form-group
         v-if="reminder.snoozeCount"
         :label="$t('reminder.snooze.count')"
+        label-class="text-primary"
       >
         {{ reminder.snoozeCount }}
       </b-form-group>

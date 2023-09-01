@@ -10,6 +10,7 @@
     >
       <b-form-group
         :label="$t('count', { count: members.filter(({ dirty }) => dirty).length })"
+        label-class="text-primary"
         class="mb-0"
       >
         <vue-select

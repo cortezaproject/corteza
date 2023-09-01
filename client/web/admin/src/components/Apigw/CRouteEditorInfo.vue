@@ -12,6 +12,7 @@
         v-if="route.routeID"
         :label="$t('id')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="route.routeID"
@@ -60,6 +61,7 @@
       <b-form-group
         :label="$t('method')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-select
           v-model="route.method"
@@ -73,6 +75,7 @@
         v-if="route.meta"
         :label="$t('description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model="route.meta.description"
@@ -95,6 +98,7 @@
         v-if="route.updatedAt"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="route.updatedAt | locFullDateTime"
@@ -108,6 +112,7 @@
         v-if="route.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="route.deletedAt | locFullDateTime"
@@ -122,6 +127,7 @@
         data-test-id="input-create-at"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

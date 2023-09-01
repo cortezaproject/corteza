@@ -49,6 +49,7 @@
       >
         <b-form-group
           :label="$t('geometry.zoom.zoomStartingLabel')"
+          label-class="text-primary"
           class="rounded-left"
         >
           <b-form-input
@@ -67,6 +68,7 @@
         <b-form-group
           :label="$t('geometry.zoom.zoomMinLabel')"
           :description="`${options.zoomMin}`"
+          label-class="text-primary"
           class="rounded-0"
         >
           <b-form-input
@@ -86,6 +88,7 @@
         <b-form-group
           :label="$t('geometry.zoom.zoomMaxLabel')"
           :description="`${options.zoomMax}`"
+          label-class="text-primary"
         >
           <b-form-input
             v-model="options.zoomMax"
@@ -103,6 +106,7 @@
       >
         <b-form-group
           :label="$t('geometry.bounds.lockBounds')"
+          label-class="text-primary"
           class="rounded-left"
         >
           <b-form-checkbox

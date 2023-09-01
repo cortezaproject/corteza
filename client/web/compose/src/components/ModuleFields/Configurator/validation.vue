@@ -5,6 +5,7 @@
     <b-form-group
       :label="$t('sanitizers.label')"
       label-size="lg"
+      label-class="text-primary"
     >
       <template #label>
         <div
@@ -44,8 +45,9 @@
     <hr>
 
     <b-form-group
-      class="mt-3"
       label-size="lg"
+      label-class="text-primary"
+      class="mt-3"
     >
       <template #label>
         <div

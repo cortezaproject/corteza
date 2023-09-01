@@ -19,6 +19,7 @@
         <b-form-group
           :label="$t('form.' + kebabCase(prop) + '.notes.label')"
           :description="$t('form.' + kebabCase(prop) + '.notes.description')"
+          label-class="text-primary"
           class="ml-4"
         >
           <b-form-textarea

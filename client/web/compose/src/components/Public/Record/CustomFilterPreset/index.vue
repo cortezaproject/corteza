@@ -14,7 +14,7 @@
       >
         <b-form-group
           :label="$t('recordList.filterPresets.filterName')"
-          label-class="primary"
+          label-class="text-primary"
         >
           <b-form-input
             v-model="filterName"

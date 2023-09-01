@@ -3,6 +3,7 @@
     <b-form-group
       v-if="field.isMulti"
       :label="$t('options.multiDelimiter.label')"
+      label-class="text-primary"
     >
       <b-form-radio-group
         v-model="field.options.multiDelimiter"
@@ -11,8 +12,9 @@
       />
 
       <b-form-group
-        class="mt-2"
         :label="$t('options.multiDelimiter.customLabel')"
+        class="mt-2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="field.options.multiDelimiter"

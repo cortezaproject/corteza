@@ -2,6 +2,7 @@
   <b-tab :title="$t('chart.label')">
     <b-form-group
       :label="$t('chart.display')"
+      label-class="text-primary"
     >
       <b-input-group class="d-flex w-100">
         <vue-select
@@ -34,7 +35,7 @@
     <template v-if="isDrillDownAvailable">
       <b-form-group
         :description="$t('chart.drillDown.description')"
-        label-class="d-flex align-items-center"
+        label-class="d-flex align-items-center text-primary"
         class="mb-1"
       >
         <template #label>

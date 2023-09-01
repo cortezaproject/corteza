@@ -58,6 +58,7 @@
             <fieldset>
               <b-form-group
                 :label="$t('metric.edit.labelLabel')"
+                label-class="text-primary"
               >
                 <b-form-input
                   v-model="edit.label"
@@ -74,6 +75,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.moduleLabel')"
+                label-class="text-primary"
               >
                 <b-form-select
                   v-model="edit.moduleID"
@@ -149,7 +151,10 @@
                 </b-form-group>
               </template> -->
 
-              <b-form-group :label="$t('metric.edit.filterLabel')">
+              <b-form-group
+                :label="$t('metric.edit.filterLabel')"
+                label-class="text-primary"
+              >
                 <b-form-textarea
                   v-model="edit.filter"
                   placeholder="(A > B) OR (A < C)"
@@ -177,6 +182,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.metricFieldLabel')"
+                label-class="text-primary"
               >
                 <vue-select
                   v-model="edit.metricField"
@@ -192,6 +198,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.metricAggregateLabel')"
+                label-class="text-primary"
               >
                 <vue-select
                   v-model="edit.operation"
@@ -207,6 +214,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.transformFunctionLabel')"
+                label-class="text-primary"
               >
                 <b-form-textarea
                   v-model="edit.transformFx"
@@ -219,6 +227,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.numberFormat')"
+                label-class="text-primary"
               >
                 <b-form-input
                   v-model="edit.numberFormat"
@@ -229,6 +238,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.prefixLabel')"
+                label-class="text-primary"
               >
                 <b-form-input
                   v-model="edit.prefix"
@@ -239,6 +249,7 @@
 
               <b-form-group
                 :label="$t('metric.edit.suffixLabel')"
+                label-class="text-primary"
               >
                 <b-form-input
                   v-model="edit.suffix"
@@ -249,7 +260,6 @@
 
               <b-form-group
                 :description="$t('metric.drillDown.description')"
-                label-class="d-flex align-items-center"
                 class="mb-1"
               >
                 <template #label>

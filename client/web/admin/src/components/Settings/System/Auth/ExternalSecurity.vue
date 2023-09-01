@@ -4,6 +4,7 @@
     <b-form-group
       :label="$t('permitted-roles.label')"
       label-cols="3"
+      label-class="text-primary"
       class="mb-0"
     >
       <c-role-picker
@@ -19,6 +20,7 @@
     <b-form-group
       :label="$t('prohibited-roles.label')"
       label-cols="3"
+      label-class="text-primary"
       class="mb-0"
     >
       <c-role-picker
@@ -34,6 +36,7 @@
     <b-form-group
       :label="$t('forced-roles.label')"
       label-cols="3"
+      label-class="text-primary"
       class="mb-0"
     >
       <c-role-picker

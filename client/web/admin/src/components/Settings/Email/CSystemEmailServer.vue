@@ -11,6 +11,7 @@
         :label="$t('host.label')"
         :description="$t('host.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-input
@@ -41,6 +42,7 @@
         :label="$t('user.label')"
         :description="$t('user.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input
           v-model="server.user"
@@ -54,6 +56,7 @@
         :label="$t('password.label')"
         :description="$t('password.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input
           v-model="server.pass"
@@ -70,6 +73,7 @@
         :label="$t('from.label')"
         :description="$t('from.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input
           v-model="server.from"
@@ -99,6 +103,7 @@
         :label="$t('tlsServerName.label')"
         :description="$t('tlsServerName.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-input
           v-model="server.tlsServerName"

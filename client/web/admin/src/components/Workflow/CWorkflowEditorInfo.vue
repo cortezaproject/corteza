@@ -11,6 +11,7 @@
         v-if="workflow.workflowID"
         :label="$t('id')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="workflow.workflowID"
@@ -23,6 +24,7 @@
         v-if="workflow.meta"
         :label="$t('name')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="workflow.meta.name"
@@ -34,6 +36,7 @@
       <b-form-group
         :label="$t('handle')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="workflow.handle"
@@ -47,6 +50,7 @@
       <b-form-group
         label-cols="2"
         :class="{ 'mb-0': !workflow.workflowID }"
+        label-class="text-primary"
       >
         <b-form-checkbox
           v-model="workflow.enabled"
@@ -72,6 +76,7 @@
         v-if="workflow.updatedAt"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="workflow.updatedAt | locFullDateTime"
@@ -84,6 +89,7 @@
         v-if="workflow.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="workflow.deletedAt | locFullDateTime"
@@ -96,6 +102,7 @@
         v-if="workflow.createdAt"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

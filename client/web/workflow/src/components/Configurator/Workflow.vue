@@ -2,6 +2,7 @@
   <div>
     <b-form-group
       :label="$t('label')"
+      label-class="text-primary"
     >
       <b-form-input
         v-model="workflow.meta.name"
@@ -13,6 +14,7 @@
 
     <b-form-group
       :label="$t('general:handle')"
+      label-class="text-primary"
     >
       <b-form-input
         v-model="workflow.handle"
@@ -31,6 +33,7 @@
 
     <b-form-group
       :label="$t('general:description')"
+      label-class="text-primary"
     >
       <b-form-textarea
         v-model="workflow.meta.description"
@@ -42,6 +45,7 @@
     <b-form-group
       :label="$t('workflow.run-as')"
       :description="$t('workflow.not-setup-properly')"
+      label-class="text-primary"
     >
       <vue-select
         :options="user.options"

@@ -459,6 +459,7 @@
             v-if="p.lookup"
             :label="p.label"
             :description="p.description"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="p.value"

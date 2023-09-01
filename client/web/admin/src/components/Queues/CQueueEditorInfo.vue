@@ -9,6 +9,7 @@
       <b-form-group
         :label="$t('name')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="queue.queue"
@@ -26,6 +27,7 @@
       <b-form-group
         :label="$t('consumer')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-select
           v-model="queue.consumer"
@@ -38,6 +40,7 @@
         label-cols="2"
         :label="$t('poll_delay')"
         :description="metaPollDelayDescription()"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="(queue.meta || {}).poll_delay"
@@ -52,6 +55,7 @@
         :label="$t('dispatch_events')"
         :description="$t('dispatch_events_desc')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-checkbox
           v-model="queue.meta.dispatch_events"
@@ -66,6 +70,7 @@
         data-test-id="input-created-at"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ queue.createdAt | locFullDateTime }}
       </b-form-group>
@@ -75,6 +80,7 @@
         data-test-id="input-updated-at"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ queue.updatedAt | locFullDateTime }}
       </b-form-group>
@@ -84,6 +90,7 @@
         data-test-id="input-deleted-at"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ queue.deletedAt | locFullDateTime }}
       </b-form-group>

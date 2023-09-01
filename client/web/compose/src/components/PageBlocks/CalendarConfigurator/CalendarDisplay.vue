@@ -1,8 +1,9 @@
 <template>
   <fieldset class="form-group">
     <b-form-group
-      horizontal
       :label="$t('calendar.calendarHeader')"
+      horizontal
+      label-class="text-primary"
     >
       <b-form-checkbox
         v-model="options.header.hide"
@@ -29,8 +30,9 @@
       </b-form-checkbox>
     </b-form-group>
     <b-form-group
-      horizontal
       :label="$t('calendar.view.enabled')"
+      horizontal
+      label-class="text-primary"
     >
       <b-form-checkbox-group
         v-model="options.header.views"
@@ -44,9 +46,10 @@
     </b-form-group>
 
     <b-form-group
-      horizontal
       :description="$t('calendar.view.footnote')"
       :label="$t('calendar.view.default')"
+      horizontal
+      label-class="text-primary"
     >
       <b-form-radio-group
         v-model="options.defaultView"

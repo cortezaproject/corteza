@@ -10,6 +10,7 @@
       <b-form-group
         :label="$t('id')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -23,6 +24,7 @@
         v-if="session.workflowID"
         :label="$t('workflowID')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="session.workflowID"
@@ -34,6 +36,7 @@
       <b-form-group
         :label="$t('status')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -47,6 +50,7 @@
         v-if="session.error"
         :label="$t('error')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="session.error"
@@ -60,6 +64,7 @@
         v-if="session.resourceType"
         :label="$t('resourceType')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -73,6 +78,7 @@
         v-if="session.eventType"
         :label="$t('eventType')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="session.eventType"
@@ -110,6 +116,7 @@
         v-if="session.createdBy"
         :label="$t('createdByUserID')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -123,6 +130,7 @@
         v-if="createdByUserName"
         :label="$t('createdByUserName')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -136,6 +144,7 @@
         v-if="session.completedAt"
         :label="$t('completedAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -149,6 +158,7 @@
         v-if="session.createdAt"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -162,6 +172,7 @@
         v-if="session.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="session.deletedAt | locFullDateTime"

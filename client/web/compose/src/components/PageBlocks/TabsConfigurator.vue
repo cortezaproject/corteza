@@ -12,7 +12,10 @@
         cols="12"
         md="4"
       >
-        <b-form-group :label="$t('tabs.style.appearance.label')">
+        <b-form-group
+          :label="$t('tabs.style.appearance.label')"
+          label-class="text-primary"
+        >
           <b-form-radio-group
             v-model="block.options.style.appearance"
             :options="style.appearance"
@@ -27,7 +30,10 @@
         cols="12"
         md="4"
       >
-        <b-form-group :label="$t('tabs.style.orientation.label')">
+        <b-form-group
+          :label="$t('tabs.style.orientation.label')"
+          label-class="text-primary"
+        >
           <b-form-radio-group
             v-model="block.options.style.orientation"
             :options="style.orientation"
@@ -42,7 +48,10 @@
         cols="12"
         md="4"
       >
-        <b-form-group :label="$t('tabs.style.position.label')">
+        <b-form-group
+          :label="$t('tabs.style.position.label')"
+          label-class="text-primary"
+        >
           <b-form-radio-group
             v-model="block.options.style.position"
             :options="style.position"
@@ -57,7 +66,10 @@
         cols="12"
         md="4"
       >
-        <b-form-group :label="$t('tabs.style.alignment.label')">
+        <b-form-group
+          :label="$t('tabs.style.alignment.label')"
+          label-class="text-primary"
+        >
           <b-form-radio-group
             v-model="block.options.style.alignment"
             :options="style.alignment"
@@ -72,7 +84,10 @@
         cols="12"
         md="4"
       >
-        <b-form-group :label="$t('tabs.style.justify.label')">
+        <b-form-group
+          :label="$t('tabs.style.justify.label')"
+          label-class="text-primary"
+        >
           <b-form-radio-group
             v-model="block.options.style.justify"
             :options="style.justifyOptions"

@@ -2,10 +2,11 @@
   <div>
     <template v-if="feed.options">
       <b-form-group
-        horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('geometry.recordFeed.moduleLabel')"
+        horizontal
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-select
@@ -25,10 +26,11 @@
 
       <template v-if="module">
         <b-form-group
-          horizontal
           :label-cols="3"
-          breakpoint="md"
           :label="$t('geometry.recordFeed.geometryFieldLabel')"
+          horizontal
+          breakpoint="md"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="feed.geometryField"
@@ -46,10 +48,11 @@
         </b-form-group>
 
         <b-form-group
-          horizontal
           :label-cols="3"
-          breakpoint="md"
           :label="$t('geometry.recordFeed.titleLabel')"
+          horizontal
+          breakpoint="md"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="feed.titleField"
@@ -67,10 +70,11 @@
         </b-form-group>
 
         <b-form-group
-          horizontal
           :label-cols="3"
-          breakpoint="md"
           :label="$t('calendar.recordFeed.prefilterLabel')"
+          horizontal
+          breakpoint="md"
+          label-class="text-primary"
         >
           <b-form-textarea
             v-model="feed.options.prefilter"
@@ -80,10 +84,11 @@
         </b-form-group>
 
         <b-form-group
-          horizontal
           :label-cols="3"
-          breakpoint="md"
           :label="$t('geometry.recordFeed.colorLabel')"
+          horizontal
+          breakpoint="md"
+          label-class="text-primary"
         >
           <c-input-color-picker
             v-model="feed.options.color"
@@ -96,10 +101,11 @@
         </b-form-group>
 
         <b-form-group
-          horizontal
           :label-cols="3"
-          breakpoint="md"
           :label="$t('geometry.recordFeed.displayMarker')"
+          horizontal
+          breakpoint="md"
+          label-class="text-primary"
         >
           <b-form-checkbox
             v-model="feed.displayMarker"
@@ -110,10 +116,11 @@
         </b-form-group>
 
         <b-form-group
-          horizontal
           :label-cols="3"
-          breakpoint="md"
           :label="$t('geometry.recordFeed.displayPolygon')"
+          horizontal
+          breakpoint="md"
+          label-class="text-primary"
         >
           <b-form-checkbox
             v-model="feed.displayPolygon"

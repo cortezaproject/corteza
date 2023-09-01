@@ -12,6 +12,7 @@
       <b-form-group
         :label="$t('name')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="resource.meta.name"
@@ -24,6 +25,7 @@
       <b-form-group
         :label="$t('handle.label')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="resource.handle"
@@ -49,6 +51,7 @@
       <b-form-group
         :label="$t('redirectURI')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-button
           data-test-id="button-add-redirect-uris"
@@ -91,6 +94,7 @@
         v-if="!fresh"
         :label="$t('secret')"
         label-cols="3"
+        label-class="text-primary"
         class="mb-3"
       >
         <div class="d-flex">
@@ -144,8 +148,9 @@
       <b-form-group
         data-test-id="valid-from"
         :label="$t('validFrom.label')"
-        label-cols="3"
         :description="$t('validFrom.description')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <c-input-date-time
           v-model="resource.validFrom"
@@ -162,8 +167,9 @@
       <b-form-group
         data-test-id="expires-at"
         :label="$t('expiresAt.label')"
-        label-cols="3"
         :description="$t('expiresAt.description')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <c-input-date-time
           v-model="resource.expiresAt"
@@ -245,9 +251,10 @@
       <div v-if="isClientCredentialsGrant">
         <b-form-group
           data-test-id="impersonate-user"
-          label-cols="3"
           :label="$t('security.impersonateUser.label')"
           :description="$t('security.impersonateUser.description')"
+          label-cols="3"
+          label-class="text-primary"
         >
           <c-select-user
             :user-i-d="resource.security.impersonateUser"
@@ -255,7 +262,9 @@
           />
         </b-form-group>
         <div v-if="!fresh">
-          <b-form-group label-cols="3">
+          <b-form-group
+            label-cols="3"
+          >
             <b-button
               data-test-id="button-cURL-snippet"
               variant="light"
@@ -274,6 +283,7 @@
             v-if="curlVisible"
             :label="$t('cUrl')"
             label-cols="3"
+            label-class="text-primary"
             class="curl"
           >
             <div class="w-100">
@@ -340,6 +350,7 @@ curl -X POST {{ curlURL }} \
         data-test-id="permitted-roles"
         :label="$t('security.permittedRoles.label')"
         label-cols="3"
+        label-class="text-primary"
         class="mb-0"
       >
         <c-role-picker
@@ -356,6 +367,7 @@ curl -X POST {{ curlURL }} \
         :label="$t('security.prohibitedRoles.label')"
         data-test-id="prohibited-roles"
         label-cols="3"
+        label-class="text-primary"
         class="mb-0"
       >
         <c-role-picker
@@ -372,6 +384,7 @@ curl -X POST {{ curlURL }} \
         data-test-id="forced-roles"
         :label="$t('security.forcedRoles.label')"
         label-cols="3"
+        label-class="text-primary"
         class="mb-0"
       >
         <c-role-picker
@@ -388,6 +401,7 @@ curl -X POST {{ curlURL }} \
         v-if="resource.createdAt"
         :label="$t('createdAt')"
         label-cols="3"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input
@@ -402,6 +416,7 @@ curl -X POST {{ curlURL }} \
         v-if="resource.updatedAt"
         :label="$t('updatedAt')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="updated-at"
@@ -415,6 +430,7 @@ curl -X POST {{ curlURL }} \
         v-if="resource.deletedAt"
         :label="$t('deletedAt')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="deleted-at"

@@ -3,6 +3,7 @@
     <p v-html="message"></p>
     <b-form-group
       :label="pVal('label', 'Input')"
+      label-class="text-primary"
     >
       <b-form-select
         v-if="type === 'select'"

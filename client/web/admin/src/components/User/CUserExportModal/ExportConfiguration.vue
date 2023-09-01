@@ -16,10 +16,11 @@
     </b-form-group>
 
     <b-form-group
+      :description="!inclRoleMembership
+        ? $t('export.membershipRequiredLabel')
+        : ''
+      "
       class="mb-0"
-      :description="!inclRoleMembership ?
-        $t('export.membershipRequiredLabel') :
-        ''"
     >
       <b-form-checkbox
         v-model="inclRoles"

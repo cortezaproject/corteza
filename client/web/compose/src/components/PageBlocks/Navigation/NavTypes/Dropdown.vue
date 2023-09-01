@@ -8,7 +8,10 @@
     >
       <div class="d-flex">
         <th style="min-width: 200px;">
-          <b-form-group :label="$t('navigation.fieldLabel')">
+          <b-form-group
+            :label="$t('navigation.fieldLabel')"
+            label-class="text-primary"
+          >
             <b-form-input
               v-model="options.item.dropdown.label"
               type="text"
@@ -18,8 +21,9 @@
 
         <th style="min-width: 200px;">
           <b-form-group
-            horizontal
             :label="$t('navigation.drop')"
+            horizontal
+            label-class="text-primary"
           >
             <b-form-radio-group
               v-model="options.item.align"

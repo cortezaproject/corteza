@@ -12,7 +12,8 @@
         <b-form-group
           :label="$t('form.name.label')"
           :description="$t('form.name.description')"
-          class="mb-3 text-primary"
+          label-class="text-primary"
+          class="mb-3"
         >
           <b-form-input
             v-model="connection.meta.name"
@@ -30,7 +31,8 @@
         <b-form-group
           :label="$t('form.handle.label')"
           :description="$t('form.handle.description')"
-          class="mb-3 text-primary"
+          label-class="text-primary"
+          class="mb-3"
         >
           <b-form-input
             v-model="connection.handle"
@@ -52,6 +54,7 @@
         <b-form-group
           :label="$t('form.location-name.label')"
           :description="$t('form.location-name.description')"
+          label-class="text-primary"
         >
           <b-form-input
             v-model="connection.meta.location.properties.name"
@@ -106,7 +109,8 @@
         <b-form-group
           :label="$t('form.ownership.label')"
           :description="$t('form.ownership.description')"
-          class="mb-3 text-primary"
+          label-class="text-primary"
+          class="mb-3"
         >
           <b-form-input
             v-model="connection.meta.ownership"
@@ -122,7 +126,7 @@
         <b-form-group
           :label="$t('form.sensitivity-level.label')"
           :description="$t('form.sensitivity-level.description')"
-          class="text-primary"
+          label-class="text-primary"
         >
           <c-sensitivity-level-picker
             v-model="connection.config.privacy.sensitivityLevelID"

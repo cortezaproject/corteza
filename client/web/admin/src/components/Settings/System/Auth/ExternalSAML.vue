@@ -1,6 +1,8 @@
 <template>
   <div>
-    <b-form-group label-cols="3">
+    <b-form-group
+      label-cols="3"
+    >
       <b-form-checkbox
         v-model="value.enabled"
         :value="true"
@@ -15,6 +17,7 @@
         :label="$t('name')"
         :description="$t('desc.name')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input v-model.trim="value.name" />
@@ -27,8 +30,9 @@
 
       <b-form-group
         :label="$t('cert.public')"
-        label-cols="3"
         :description="$t('desc.cert.public')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-textarea
@@ -38,8 +42,9 @@
       </b-form-group>
       <b-form-group
         :label="$t('cert.private')"
-        label-cols="3"
         :description="$t('desc.cert.private')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-textarea v-model.trim="value.key" />
@@ -52,8 +57,9 @@
 
       <b-form-group
         :label="$t('requests.sign-requests')"
-        label-cols="3"
         :description="$t('desc.requests.sign-requests')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-checkbox
@@ -63,8 +69,9 @@
       </b-form-group>
       <b-form-group
         :label="$t('requests.sign-method')"
-        label-cols="3"
         :description="$t('desc.requests.sign-method')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-select
@@ -85,8 +92,9 @@
 
       <b-form-group
         :label="$t('requests.binding')"
-        label-cols="3"
         :description="$t('desc.requests.binding')"
+        label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-select
@@ -115,6 +123,7 @@
         :label="$t('idp.url')"
         :description="$t('desc.idp.url')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input v-model.trim="value.idp.url" />
@@ -125,6 +134,7 @@
         :label="$t('idp.ident-name')"
         :description="$t('desc.idp.ident-name')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input v-model.trim="value.idp['ident-name']" />
@@ -135,6 +145,7 @@
         :label="$t('idp.ident-handle')"
         :description="$t('desc.idp.ident-handle')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input v-model.trim="value.idp['ident-handle']" />
@@ -145,6 +156,7 @@
         :label="$t('idp.ident-identifier')"
         :description="$t('desc.idp.ident-identifier')"
         label-cols="3"
+        label-class="text-primary"
       >
         <b-input-group>
           <b-form-input v-model.trim="value.idp['ident-identifier']" />

@@ -15,6 +15,7 @@
         >
           <b-form-group
             :label="$t('name')"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="sensitivityLevel.meta.name"
@@ -31,6 +32,7 @@
         >
           <b-form-group
             :label="$t('handle.label')"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="sensitivityLevel.handle"
@@ -46,6 +48,7 @@
 
       <b-form-group
         :label="$t('level', sensitivityLevel)"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="sensitivityLevel.level"
@@ -58,6 +61,7 @@
 
       <b-form-group
         :label="$t('description')"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model="sensitivityLevel.meta.description"
@@ -68,6 +72,7 @@
         v-if="sensitivityLevel.updatedAt"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="sensitivityLevel.updatedAt | locFullDateTime"
@@ -80,6 +85,7 @@
         v-if="sensitivityLevel.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="sensitivityLevel.deletedAt | locFullDateTime"
@@ -92,6 +98,7 @@
         v-if="sensitivityLevel.createdAt"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

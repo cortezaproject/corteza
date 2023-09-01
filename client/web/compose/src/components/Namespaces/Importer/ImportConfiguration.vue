@@ -8,12 +8,15 @@
       <b-form-input
         v-model="name"
         data-test-id="input-name"
-        class="mt-1"
         :placeholder="$t('name.placeholder')"
+        class="mt-1"
       />
     </b-form-group>
 
-    <b-form-group :label="$t('slug.label')">
+    <b-form-group
+      :label="$t('slug.label')"
+      label-class="text-primary"
+    >
       <b-form-input
         v-model="slug"
         data-test-id="input-handle"

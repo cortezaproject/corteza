@@ -4,7 +4,7 @@
       <b-col>
         <b-form-group
           :label="$t('datasources:namespace')"
-          class="text-primary"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="namespace"
@@ -27,7 +27,7 @@
         <b-form-group
           v-if="namespace"
           :label="$t('datasources:module')"
-          class="text-primary"
+          label-class="text-primary"
         >
           <b-form-select
             v-model="module"

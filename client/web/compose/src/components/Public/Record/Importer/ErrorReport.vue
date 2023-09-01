@@ -5,6 +5,7 @@
   >
     <b-form-group
       :label="$t('recordList.import.report.title')"
+      label-class="text-primary"
     >
       <div
         class="small pl-2"
@@ -39,6 +40,7 @@
 
     <b-form-group
       :label="$t('recordList.import.report.detectedErrors')"
+      label-class="text-primary"
     >
       <b-table
         id="error-list"
@@ -54,6 +56,7 @@
 
     <b-form-group
       :label="$t('recordList.import.report.failedEntries')"
+      label-class="text-primary"
     >
       <div
         v-for="(ee, ix) in progress.failLog.records"

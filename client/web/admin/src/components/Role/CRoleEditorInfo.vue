@@ -11,6 +11,7 @@
       <b-form-group
         :label="$t('name')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="role.name"
@@ -23,6 +24,7 @@
       <b-form-group
         :label="$t('handle')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="role.handle"
@@ -40,6 +42,7 @@
         v-if="role.meta"
         :label="$t('description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model="role.meta.description"
@@ -66,6 +69,7 @@
           <b-form-group
             :label="$t('context.expression-label')"
             label-cols="3"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="role.meta.context.expr"
@@ -76,6 +80,7 @@
           <b-form-group
             :label="$t('context.resource-types-label')"
             label-cols="3"
+            label-class="text-primary"
           >
             <b-checkbox-group
               v-model="role.meta.context.resourceTypes"
@@ -91,6 +96,7 @@
         v-if="role.updatedAt"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="input-updated-at"
@@ -104,6 +110,7 @@
         v-if="role.archivedAt"
         :label="$t('archivedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="input-archived-at"
@@ -117,6 +124,7 @@
         v-if="role.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="input-deleted-at"
@@ -130,6 +138,7 @@
         v-if="role.createdAt"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

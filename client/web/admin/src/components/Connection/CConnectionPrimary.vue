@@ -34,7 +34,8 @@
         >
           <b-form-group
             :label="$t('name')"
-            class="mb-3 text-primary"
+            label-class="text-primary"
+            class="mb-3"
           >
             {{ connection.meta.name || '-' }}
           </b-form-group>

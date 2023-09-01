@@ -15,6 +15,7 @@
       <b-form-group
         :label="$t('general.id')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="hit.ID"
@@ -26,6 +27,7 @@
       <b-form-group
         :label="$t('general.route')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.route"
@@ -38,6 +40,7 @@
       <b-form-group
         :label="$t('general.URL')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.url"
@@ -49,6 +52,7 @@
       <b-form-group
         :label="$t('general.method')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.method"
@@ -60,6 +64,7 @@
       <b-form-group
         :label="$t('general.statusCode')"
         label-cols="2"
+        label-class="text-primary"
       >
         <div
           class="d-flex align-items-center h-100"
@@ -75,6 +80,7 @@
       <b-form-group
         :label="$t('general.remoteAddress')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.remoteAddress"
@@ -86,6 +92,7 @@
       <b-form-group
         :label="$t('general.duration')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.duration"
@@ -97,6 +104,7 @@
       <b-form-group
         :label="$t('general.start')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.start"
@@ -108,6 +116,7 @@
       <b-form-group
         :label="$t('general.end')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="request.end"
@@ -145,6 +154,7 @@
         :key="header.label"
         :label="header.label"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="header.value"

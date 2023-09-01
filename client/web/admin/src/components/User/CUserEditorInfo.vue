@@ -11,6 +11,7 @@
       <b-form-group
         :label="$t('email')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="user.email"
@@ -24,6 +25,7 @@
       <b-form-group
         :label="$t('name')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="user.name"
@@ -34,8 +36,9 @@
 
       <b-form-group
         :label="$t('handle')"
-        label-cols="2"
         :class="{ 'mb-0': !user.userID }"
+        label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="user.handle"
@@ -52,6 +55,7 @@
         v-if="user.updatedAt"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="input-updated-at"
@@ -65,6 +69,7 @@
         v-if="user.suspendedAt"
         :label="$t('suspendedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="input-suspended-at"
@@ -78,6 +83,7 @@
         v-if="user.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           data-test-id="input-deleted-at"
@@ -91,6 +97,7 @@
         v-if="user.createdAt"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

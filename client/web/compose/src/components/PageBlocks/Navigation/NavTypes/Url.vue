@@ -2,7 +2,10 @@
   <tr>
     <td />
     <td>
-      <b-form-group :label="$t('navigation.fieldLabel')">
+      <b-form-group
+        :label="$t('navigation.fieldLabel')"
+        label-class="text-primary"
+      >
         <b-form-input
           v-model="options.item.label"
           type="text"
@@ -10,7 +13,10 @@
       </b-form-group>
     </td>
     <td>
-      <b-form-group :label="$t('navigation.url')">
+      <b-form-group
+        :label="$t('navigation.url')"
+        label-class="text-primary"
+      >
         <b-form-input
           v-model="options.item.url"
           type="text"
@@ -18,7 +24,10 @@
       </b-form-group>
     </td>
     <td>
-      <b-form-group :label="$t('navigation.openIn')">
+      <b-form-group
+        :label="$t('navigation.openIn')"
+        label-class="text-primary"
+      >
         <b-form-select
           v-model="options.item.target"
           :options="openInType"

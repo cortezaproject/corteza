@@ -10,6 +10,7 @@
       <b-form-group
         :label="$t('name')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="node.name"
@@ -20,6 +21,7 @@
       <b-form-group
         :label="$t('url')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="node.baseURL"
@@ -32,6 +34,7 @@
       <b-form-group
         :label="$t('email')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="node.contact"
@@ -43,6 +46,7 @@
       <!-- <b-form-group
         :label="$t('tags.label')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-tags
           v-model="node.tags"
@@ -59,6 +63,7 @@
         v-if="node.status"
         :label="$t('status')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="node.status"
@@ -69,6 +74,7 @@
 
       <!-- <b-form-group
         label-cols="2"
+        label-class="text-primary"
         :class="{ 'mb-0': !node.nodeID }"
       >
         <b-form-checkbox
@@ -82,6 +88,7 @@
         v-if="node.updatedAt"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="node.updatedAt | locFullDateTime"
@@ -94,6 +101,7 @@
         v-if="node.deletedAt"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           :value="node.deletedAt | locFullDateTime"
@@ -106,6 +114,7 @@
         v-if="node.createdAt"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input

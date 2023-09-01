@@ -35,6 +35,7 @@
     <b-form-group
       :label="$t('module-fields.label')"
       :description="$t('module-fields.description')"
+      label-class="text-primary"
     >
       <dal-field-store-encoding
         v-for="({ field, storeIdent, label, isMulti }) in moduleFields"

@@ -5,6 +5,7 @@
   >
     <b-form-group
       :label="$t('buttonLabel')"
+      label-class="text-primary"
     >
       <b-input-group>
         <b-form-input
@@ -15,6 +16,7 @@
 
     <b-form-group
       :label="$t('buttonVariant')"
+      label-class="text-primary"
     >
       <b-select
         v-model="button.variant"

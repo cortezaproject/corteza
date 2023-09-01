@@ -5,6 +5,7 @@
     <fieldset>
       <b-form-group
         :label="$t('metric.editStyle.color')"
+        label-class="text-primary"
       >
         <c-input-color-picker
           v-model="options.color"
@@ -19,6 +20,7 @@
 
       <b-form-group
         :label="$t('metric.editStyle.backgroundColor')"
+        label-class="text-primary"
       >
         <c-input-color-picker
           v-model="options.backgroundColor"
@@ -33,6 +35,7 @@
 
       <b-form-group
         :label="$t('metric.editStyle.fontSize')"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="options.fontSize"

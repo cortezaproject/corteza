@@ -1,7 +1,9 @@
 <template>
   <b-tab :title="$t('recordOrganizer.label')">
-    <b-form-group>
-      <label>{{ $t('general.module') }}</label>
+    <b-form-group
+      :label="$t('general.module')"
+      label-class="text-primary"
+    >
       <b-form-select
         v-model="options.moduleID"
         :options="moduleOptions"
@@ -12,8 +14,10 @@
     </b-form-group>
 
     <div v-if="selectedModule">
-      <b-form-group>
-        <label>{{ $t('field.selector.available') }}</label>
+      <b-form-group
+        :label="$t('field.selector.available')"
+        label-class="text-primary"
+      >
         <div class="d-flex">
           <div class="border fields w-100 p-2">
             <div
@@ -33,10 +37,11 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('recordList.record.prefilterLabel')"
+        horizontal
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model.trim="options.filter"
@@ -57,10 +62,11 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('recordOrganizer.labelField.label')"
+        horizontal
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.labelField">
           <option value="">
@@ -78,10 +84,11 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('recordOrganizer.descriptionField.label')"
+        horizontal
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.descriptionField">
           <option value="">
@@ -101,10 +108,11 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('recordOrganizer.positionField.label')"
+        horizontal
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.positionField">
           <option value="">
@@ -124,10 +132,11 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
         :label-cols="3"
-        breakpoint="md"
         :label="$t('recordOrganizer.groupField.label')"
+        horizontal
+        breakpoint="md"
+        label-class="text-primary"
       >
         <b-form-select v-model="options.groupField">
           <option value="">
@@ -152,6 +161,7 @@
         :label-cols="3"
         breakpoint="md"
         horizontal
+        label-class="text-primary"
       >
         <field-editor
           class="mb-0"
@@ -169,6 +179,7 @@
         :label-cols="3"
         breakpoint="md"
         horizontal
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-select

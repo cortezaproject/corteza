@@ -12,6 +12,7 @@
     <b-form-group
       v-if="module"
       :label="$t('fields.label')"
+      label-class="text-primary"
     >
       <b-form-checkbox
         v-model="displayAllFields"

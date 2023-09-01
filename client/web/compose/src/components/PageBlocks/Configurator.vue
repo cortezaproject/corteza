@@ -17,6 +17,7 @@
         >
           <b-form-group
             :label="$t('general.titleLabel')"
+            label-class="text-primary"
           >
             <b-input-group>
               <b-form-input
@@ -43,6 +44,7 @@
         >
           <b-form-group
             :label="$t('general.descriptionLabel')"
+            label-class="text-primary"
           >
             <b-input-group>
               <b-form-textarea
@@ -71,6 +73,7 @@
         >
           <b-form-group
             :label="$t('general.headerStyle')"
+            label-class="text-primary"
           >
             <b-form-select
               id="color"
@@ -112,6 +115,7 @@
           <b-form-group
             :label="$t('general.refresh.auto')"
             :description="$t('general.refresh.description')"
+            label-class="text-primary"
             class="mb-1"
           >
             <b-input-group append="s">
@@ -140,6 +144,7 @@
         >
           <b-form-group
             :label="$t('general.magnifyLabel')"
+            label-class="text-primary"
           >
             <b-form-select
               v-model="block.options.magnifyOption"

@@ -95,7 +95,7 @@
                 >
                   <b-form-group
                     :label="$t('name-with-star')"
-                    class="text-primary"
+                    label-class="text-primary"
                   >
                     <b-form-input
                       v-model="report.meta.name"
@@ -114,7 +114,7 @@
                 >
                   <b-form-group
                     :label="$t('handle-with-star')"
-                    class="text-primary"
+                    label-class="text-primary"
                   >
                     <b-form-input
                       v-model="report.handle"
@@ -136,7 +136,7 @@
 
               <b-form-group
                 :label="$t('description')"
-                class="text-primary"
+                label-class="text-primary"
               >
                 <b-form-textarea
                   v-model="report.meta.description"

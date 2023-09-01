@@ -46,6 +46,7 @@
       <div class="form-row mt-3">
         <b-form-group
           :label="$t('initial.color')"
+          label-class="text-primary"
           class="col"
         >
           <c-input-color-picker
@@ -61,6 +62,7 @@
 
         <b-form-group
           :label="$t('initial.backgroundColor')"
+          label-class="text-primary"
           class="col"
         >
           <c-input-color-picker

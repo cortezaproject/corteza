@@ -84,7 +84,10 @@
           footer-bg-variant="warning"
         >
           <b-form>
-            <b-form-group :label="$t('name.label')">
+            <b-form-group
+              :label="$t('name.label')"
+              label-class="text-primary"
+            >
               <b-input-group>
                 <b-form-input
                   id="ns-nm"
@@ -108,6 +111,7 @@
             <b-form-group
               :label="$t('slug.label')"
               :description="$t('slug.description')"
+              label-class="text-primary"
             >
               <b-form-input
                 v-model="namespace.slug"
@@ -209,7 +213,10 @@
               />
             </b-form-group> -->
 
-            <b-form-group :label="$t('subtitle.label')">
+            <b-form-group
+              :label="$t('subtitle.label')"
+              label-class="text-primary"
+            >
               <b-input-group>
                 <b-form-input
                   v-model="namespace.meta.subtitle"
@@ -230,6 +237,7 @@
 
             <b-form-group
               :label="$t('description.label')"
+              label-class="text-primary"
               class="mb-3"
             >
               <b-input-group>
@@ -253,6 +261,7 @@
 
             <b-form-group
               :label="$t('sidebar.configure')"
+              label-class="text-primary"
             >
               <b-form-checkbox
                 v-model="namespace.meta.hideSidebar"

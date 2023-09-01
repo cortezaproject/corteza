@@ -11,6 +11,7 @@
       <b-form-group
         :label="$t('meta.short')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="template.meta.short"
@@ -22,8 +23,9 @@
 
       <b-form-group
         :label="$t('handle')"
-        label-cols="2"
         :class="{ 'mb-0': !template.templateID }"
+        label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="template.handle"
@@ -39,6 +41,7 @@
       <b-form-group
         :label="$t('meta.description')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-textarea
           v-model="template.meta.description"
@@ -49,6 +52,7 @@
       <b-form-group
         :label="$t('type')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-select
           v-model="template.type"
@@ -61,6 +65,7 @@
         :label="$t('partial')"
         :description="$t('partialDescription')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-checkbox
           v-model="template.partial"
@@ -76,6 +81,7 @@
         data-test-id="input-created-at"
         :label="$t('createdAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ template.createdAt | locFullDateTime }}
       </b-form-group>
@@ -85,6 +91,7 @@
         data-test-id="input-updated-at"
         :label="$t('updatedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ template.updatedAt | locFullDateTime }}
       </b-form-group>
@@ -94,6 +101,7 @@
         data-test-id="input-deleted-at"
         :label="$t('deletedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ template.deletedAt | locFullDateTime }}
       </b-form-group>
@@ -102,6 +110,7 @@
         v-if="template.lastUsedAt"
         :label="$t('lastUsedAt')"
         label-cols="2"
+        label-class="text-primary"
       >
         {{ template.lastUsedAt | locFullDateTime }}
       </b-form-group>

@@ -11,6 +11,7 @@
       <b-form-group
         :label="$t('attachments.max-size')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="basic['compose.page.attachments.max-size']"
@@ -22,6 +23,7 @@
         :label="$t('attachments.type.whitelist')"
         :description="$t('attachments.type.description')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input v-model="pageAttachmentWhitelist" />
@@ -33,6 +35,7 @@
       <b-form-group
         :label="$t('attachments.max-size')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="basic['compose.record.attachments.max-size']"
@@ -44,6 +47,7 @@
         :label="$t('attachments.type.whitelist')"
         :description="$t('attachments.type.description')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input v-model="recordAttachmentWhitelist" />
@@ -55,6 +59,7 @@
       <b-form-group
         :label="$t('attachments.max-size')"
         label-cols="2"
+        label-class="text-primary"
       >
         <b-form-input
           v-model="basic['compose.icon.attachments.max-size']"
@@ -66,6 +71,7 @@
         :label="$t('attachments.type.whitelist')"
         :description="$t('attachments.type.description')"
         label-cols="2"
+        label-class="text-primary"
         class="mb-0"
       >
         <b-form-input v-model="iconAttachmentWhitelist" />

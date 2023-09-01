@@ -35,6 +35,7 @@
     <b-form-group
       v-if="showValueExpr"
       :label="$t('valueExpr.label')"
+      label-class="text-primary"
       class="mt-2"
     >
       <b-input-group>
@@ -66,6 +67,7 @@
     <b-form-group
       v-else-if="showDefaultField"
       :label="$t('defaultFieldValue')"
+      label-class="text-primary"
       class="mt-3 mb-0"
     >
       <field-editor
@@ -78,6 +80,7 @@
 
     <b-form-group
       :label="$t(`options.description.label.${noDescriptionEdit ? 'default' : 'view'}`)"
+      label-class="text-primary"
       class="mt-2"
     >
       <b-input-group>
@@ -101,6 +104,7 @@
     <b-form-group
       v-if="!noDescriptionEdit"
       :label="$t('options.description.label.edit')"
+      label-class="text-primary"
       class="mt-2"
     >
       <b-input-group>
@@ -133,6 +137,7 @@
 
     <b-form-group
       :label="$t(`options.hint.label.${noHintEdit ? 'default' : 'view'}`)"
+      label-class="text-primary"
       class="mt-2"
     >
       <b-input-group>
@@ -156,6 +161,7 @@
     <b-form-group
       v-if="!noHintEdit"
       :label="$t('options.hint.label.edit')"
+      label-class="text-primary"
       class="mt-2"
     >
       <b-input-group>

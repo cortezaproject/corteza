@@ -16,6 +16,7 @@
           <b-form-group
             :label="$t('progress.value.default.label')"
             :description="$t('progress.value.default.description')"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="options.value.default"
@@ -30,6 +31,7 @@
         >
           <b-form-group
             :label="$t('progress.module.label')"
+            label-class="text-primary"
           >
             <vue-select
               v-model="options.value.moduleID"
@@ -48,7 +50,10 @@
           <b-col
             cols="12"
           >
-            <b-form-group :label="$t('metric.edit.filterLabel')">
+            <b-form-group
+              :label="$t('metric.edit.filterLabel')"
+              label-class="text-primary"
+            >
               <b-form-textarea
                 v-model="options.value.filter"
                 placeholder="(A > B) OR (A < C)"
@@ -74,6 +79,7 @@
           >
             <b-form-group
               :label="$t('progress.field.label')"
+              label-class="text-primary"
             >
               <vue-select
                 v-model="options.value.field"
@@ -94,6 +100,7 @@
           >
             <b-form-group
               :label="$t('progress.aggregate.label')"
+              label-class="text-primary"
             >
               <vue-select
                 v-model="options.value.operation"
@@ -127,6 +134,7 @@
           <b-form-group
             :label="$t('progress.value.default.label')"
             :description="$t('progress.value.default.description')"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="options.minValue.default"
@@ -141,6 +149,7 @@
         >
           <b-form-group
             :label="$t('progress.module.label')"
+            label-class="text-primary"
           >
             <vue-select
               v-model="options.minValue.moduleID"
@@ -159,7 +168,10 @@
           <b-col
             cols="12"
           >
-            <b-form-group :label="$t('metric.edit.filterLabel')">
+            <b-form-group
+              :label="$t('metric.edit.filterLabel')"
+              label-class="text-primary"
+            >
               <b-form-textarea
                 v-model="options.minValue.filter"
                 placeholder="(A > B) OR (A < C)"
@@ -185,6 +197,7 @@
           >
             <b-form-group
               :label="$t('progress.field.label')"
+              label-class="text-primary"
             >
               <vue-select
                 v-model="options.minValue.field"
@@ -205,6 +218,7 @@
           >
             <b-form-group
               :label="$t('progress.aggregate.label')"
+              label-class="text-primary"
             >
               <vue-select
                 v-model="options.minValue.operation"
@@ -238,6 +252,7 @@
           <b-form-group
             :label="$t('progress.value.default.label')"
             :description="$t('progress.value.default.description')"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="options.maxValue.default"
@@ -252,6 +267,7 @@
         >
           <b-form-group
             :label="$t('progress.module.label')"
+            label-class="text-primary"
           >
             <vue-select
               v-model="options.maxValue.moduleID"
@@ -270,7 +286,10 @@
           <b-col
             cols="12"
           >
-            <b-form-group :label="$t('metric.edit.filterLabel')">
+            <b-form-group
+              :label="$t('metric.edit.filterLabel')"
+              label-class="text-primary"
+            >
               <b-form-textarea
                 v-model="options.maxValue.filter"
                 placeholder="(A > B) OR (A < C)"
@@ -296,6 +315,7 @@
           >
             <b-form-group
               :label="$t('progress.field.label')"
+              label-class="text-primary"
             >
               <vue-select
                 v-model="options.maxValue.field"
@@ -316,6 +336,7 @@
           >
             <b-form-group
               :label="$t('progress.aggregate.label')"
+              label-class="text-primary"
             >
               <vue-select
                 v-model="options.maxValue.operation"
@@ -350,6 +371,7 @@
         >
           <b-form-group
             :label="$t('progress.default-variant')"
+            label-class="text-primary"
           >
             <b-form-select
               v-model="options.display.variant"

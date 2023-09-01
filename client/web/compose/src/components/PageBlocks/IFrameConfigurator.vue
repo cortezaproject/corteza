@@ -2,10 +2,10 @@
   <b-tab :title="$t('iframe.label')">
     <b-form-group
       v-if="enableFromRecordURL"
-      class="form-group"
       :label="$t('iframe.srcFieldLabel')"
       :description="$t('iframe.srcFieldDesc')"
       :disabled="!fields.length"
+      label-class="text-primary"
     >
       <b-select
         v-model="options.srcField"
@@ -15,9 +15,9 @@
       />
     </b-form-group>
     <b-form-group
-      class="form-group"
       :label="$t('iframe.srcLabel')"
       :description="enableFromRecordURL ? $t('iframe.srcDesc') : ''"
+      label-class="text-primary"
     >
       <b-form-input
         v-model="options.src"

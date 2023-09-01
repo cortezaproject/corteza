@@ -12,15 +12,19 @@
         <b-col
           cols="12"
         >
-          <label>{{ $t('connectivity-issues') }}</label>
-          <b-alert
-            v-for="issue in issues"
-            :key="issue"
-            show
-            variant="danger"
+          <b-form-group
+            :label="$t('connectivity-issues')"
+            label-class="text-primary"
           >
-            {{ issue }}
-          </b-alert>
+            <b-alert
+              v-for="issue in issues"
+              :key="issue"
+              show
+              variant="danger"
+            >
+              {{ issue }}
+            </b-alert>
+          </b-form-group>
         </b-col>
       </b-row>
       <b-row>
@@ -31,6 +35,7 @@
           <b-form-group
             :label="$t('form.model-ident.label')"
             :description="$t('form.model-ident.description', { interpolation: { prefix: '{{{', suffix: '}}}' } })"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="dal.modelIdent"
@@ -48,6 +53,7 @@
           <b-form-group
             :label="$t('form.type.label')"
             :description="$t('form.type.description')"
+            label-class="text-primary"
           >
             <b-form-input
               v-model="dal.type"
@@ -65,6 +71,7 @@
           <b-form-group
             :label="$t('form.params.label')"
             :description="$t('form.params.description')"
+            label-class="text-primary"
           >
             <b-form-textarea
               v-model="paramsJson"
