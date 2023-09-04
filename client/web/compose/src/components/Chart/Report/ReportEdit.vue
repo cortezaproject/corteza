@@ -154,7 +154,6 @@
           <template v-if="!unSkippable">
             <b-row>
               <b-col
-                v-if="!d.skipMissing"
                 cols="12"
                 md="6"
               >

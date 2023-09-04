@@ -117,7 +117,15 @@ export class BaseChart {
     this.config = (conf ? _.merge(this.defConfig(), conf) : false) || this.config || this.defConfig()
     this.config.reports?.forEach(report => {
       const { dimensions = [], metrics = [] } = report || {}
-      report.dimensions = dimensions.map(d => _.merge(this.defDimension(), d))
+      report.dimensions = dimensions.map(d => {
+        //Legacy support
+        if (d.modifier === 'auto') {
+          d.timeLabels = true
+          d.modifier = '(no grouping / buckets)'
+        }
+
+        return _.merge(this.defDimension(), d)
+      })
       report.metrics = metrics.map(m => _.merge(this.defMetrics(), m))
     })
   }
@@ -131,7 +139,8 @@ export class BaseChart {
     if (!this.config.reports || !this.config.reports.length) {
       throw new Error('notification.chart.invalidConfig.missingReports')
     }
-    this.config.reports.map(({ moduleID, dimensions, metrics }) => {
+
+    this.config.reports.forEach(({ moduleID, dimensions, metrics }) => {
       if (!moduleID) {
         throw new Error('notification.chart.invalidConfig.missingModuleID')
       }

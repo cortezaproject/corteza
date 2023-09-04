@@ -3,6 +3,14 @@
     :report.sync="editReport"
     :modules="modules"
   >
+    <template #dimension-options-options="{ dimension }">
+      <b-form-checkbox
+        v-model="dimension.timeLabels"
+      >
+        {{ $t('edit.dimension.timeLabels') }}
+      </b-form-checkbox>
+    </template>
+
     <template #dimension-options="{ dimension }">
       <b-row>
         <b-col

@@ -81,7 +81,7 @@ export default class Chart extends BaseChart {
 
         const xAxis = {
           nameLocation: 'center',
-          type: dimension.modifier === 'auto' ? 'time' : 'category',
+          type: dimension.timeLabels ? 'time' : 'category',
           axisLabel: {
             interval: 0,
             overflow: 'break',

@@ -31,6 +31,7 @@ export interface Dimension {
   modifier?: string;
   default?: string;
   skipMissing?: boolean;
+  timeLabels?: boolean;
   autoSkip?: boolean;
   rotateLabel?: number;
 }
@@ -168,12 +169,6 @@ dimensionFunctions.push(...[
   {
     text: 'none',
     value: '(no grouping / buckets)',
-    convert: (f: string) => f,
-  },
-
-  {
-    text: 'auto',
-    value: 'auto',
     convert: (f: string) => f,
   },
 

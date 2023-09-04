@@ -35,6 +35,7 @@ edit:
     gaugeSteps: Steps
     label: Dimensions
     skipMissingValues: Skip missing values
+    timeLabels: Time labels
     options:
       label: Options
     optionsPicker:
