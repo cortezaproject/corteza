@@ -150,8 +150,6 @@ export class UIHooks {
       resourceType = [resourceType]
     }
 
-    resourceType = [...resourceType, 'ui:' + this.app]
-
     return this.set
       .filter(b => {
         if (!resourceType.includes(b.resourceType)) {
