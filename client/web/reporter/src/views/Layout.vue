@@ -35,7 +35,7 @@
         :pinned.sync="pinned"
         :icon="icon"
         :logo="logo"
-        :disabled-routes="['report.list', 'report.create', 'report.edit']"
+        :disabled-routes="disabledRoutes"
         expand-on-hover
       >
         <template #header-expanded>
@@ -128,6 +128,11 @@ export default {
     return {
       expanded: undefined,
       pinned: undefined,
+      disabledRoutes: [
+        'report.list',
+        'report.create',
+        'report.edit'
+      ],
     }
   },
 
