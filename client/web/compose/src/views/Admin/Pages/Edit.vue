@@ -13,6 +13,7 @@
         class="mr-1"
       >
         <b-button
+          data-test-id="button-page-builder"
           variant="primary"
           class="d-flex align-items-center"
           :to="{ name: 'admin.pages.builder' }"

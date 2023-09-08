@@ -63,6 +63,7 @@
         class="d-flex justify-content-center align-items-center h-50 w-100"
       >
         <h3
+          data-test-id="no-namespaces-found"
           class="text-left"
         >
           {{ $t('noResults') }}

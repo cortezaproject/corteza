@@ -22,6 +22,7 @@
       <b-tab
         v-for="(step, index) in steps"
         :key="index"
+        :button-id="steps[index]"
         class="border-0"
         :title="$t(`filters.step_title.${step}`)"
         @click="onActivateTab(index)"

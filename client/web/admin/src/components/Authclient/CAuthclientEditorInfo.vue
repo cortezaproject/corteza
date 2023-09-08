@@ -257,6 +257,7 @@
         <div v-if="!fresh">
           <b-form-group label-cols="3">
             <b-button
+              data-test-id="button-cURL-snippet"
               variant="light"
               class="align-top"
               @click="toggleCurlSnippet()"
@@ -279,7 +280,7 @@
               <div class="d-flex">
                 <pre
                   ref="cUrl"
-                  data-test-id="cURL"
+                  data-test-id="cURL-string"
                   style="word-break: break-word;"
                 >
 curl -X POST {{ curlURL }} \
@@ -288,7 +289,7 @@ curl -X POST {{ curlURL }} \
 -u {{ resource.authClientID }}:{{ secret || 'PLACE-YOUR-CLIENT-SECRET-HERE' }}
                 </pre>
                 <b-button
-                  data-test-id="copy-cURL"
+                  data-test-id="button-copy-cURL"
                   variant="link"
                   class="align-top ml-auto fit-content text-secondary mr-5"
                   @click="copyToClipboard('cUrl')"
