@@ -711,12 +711,12 @@ export default {
       })
     },
 
-    validateModuleFieldSelection (module, page) {
+    checkRequiredRecordFields () {
       // Find all required fields
-      const req = new Set(module.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
+      const req = new Set(this.module.fields.filter(({ isRequired = false }) => isRequired).map(({ name }) => name))
 
       // Check if all required fields are there
-      for (const b of page.blocks) {
+      for (const b of this.usedBlocks) {
         if (b.kind !== 'Record') {
           continue
         }
@@ -739,7 +739,7 @@ export default {
       const { namespaceID } = this.namespace
 
       // Record blocks
-      if (this.module && !this.validateModuleFieldSelection(this.module, this.page)) {
+      if (this.module && !this.checkRequiredRecordFields()) {
         this.toastErrorHandler(this.$t('notification:page.saveFailedRequired'))()
         return
       }
