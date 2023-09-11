@@ -19,7 +19,7 @@
         <div
           v-if="canDisplay(field)"
           :key="field.id"
-          class="field mb-3 px-3"
+          class="mb-3 px-3"
         >
           <field-editor
             v-if="isFieldEditable(field)"
@@ -218,14 +218,8 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-.field {
-  legend {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-}
 
+<style lang="scss">
 .value {
   min-height: 1.2rem;
 }
