@@ -46,7 +46,6 @@ ui:
   #############################################################################
   # Inline permission table UI:
   click-on-cell-to-allow: Click on permission/role cell to allow a specific operation
-  alt-click-to-deny: Use Alt-Click to set explicit deny on operation
 
   title:
     automation: Automation permissions

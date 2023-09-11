@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="h-100">
     <b-card
       class="shadow h-100"
       header-class="p-0"
@@ -22,8 +22,6 @@
           >
             <small>
               {{ $t('ui.click-on-cell-to-allow') }}
-              <br>
-              {{ $t('ui.alt-click-to-deny') }}
             </small>
           </b-col>
           <b-col
@@ -93,7 +91,7 @@
           :key="type"
         >
           <b-row
-            class="bg-light border-bottom text-primary"
+            class="bg-light border-bottom text-primary sticky-top"
             align-v="stretch"
             no-gutters
           >
@@ -429,18 +427,10 @@ export default {
         this.$set(this.permissionChanges.find(r => r.ID === ID).rules, key, access)
       }
 
-      if (event.altKey) {
-        if (access === 'deny') {
-          access = 'inherit'
-        } else {
-          access = 'deny'
-        }
+      if (access === 'allow') {
+        access = 'inherit'
       } else {
-        if (access === 'allow') {
-          access = 'inherit'
-        } else {
-          access = 'allow'
-        }
+        access = 'allow'
       }
 
       this.$set(this.rolePermissions.find(r => r.ID === ID).rules, key, access)
