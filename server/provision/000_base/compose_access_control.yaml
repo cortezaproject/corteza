@@ -19,6 +19,9 @@ allow:
     corteza::compose:page/*/*:
       - read
 
+    corteza::compose:page-layout/*/*/*:
+      - read
+
     corteza::compose:chart/*/*:
       - read
 
@@ -68,6 +71,11 @@ allow:
       - delete
 
     corteza::compose:page/*/*:
+      - read
+      - update
+      - delete
+
+    corteza::compose:page-layout/*/*/*:
       - read
       - update
       - delete
