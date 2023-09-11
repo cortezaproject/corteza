@@ -365,6 +365,7 @@ export default {
   computed: {
     ...mapGetters({
       can: 'rbac/can',
+      previousPage: 'ui/previousPage',
     }),
 
     canCreateApplication () {
@@ -617,7 +618,7 @@ export default {
       this.processing = false
 
       if (closeOnSuccess) {
-        this.$router.go(-1)
+        this.$router.push(this.previousPage || { name: 'namespace.manage' })
       } else if (!this.isEdit || this.isClone) {
         this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
       }

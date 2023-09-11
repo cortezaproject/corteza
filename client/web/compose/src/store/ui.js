@@ -93,9 +93,11 @@ export default function (ComposeAPI) {
       },
 
       setPreviousPage ({ commit }, value) {
+        // This prevents saving previous page for pages that causes incorrect redirection even though they are previous pages
         const shouldNotSavePage = value.name !== 'admin.pages.builder' &&
               !value.query.layoutID && value.name !== 'admin.modules.create' &&
-                value.name !== 'admin.charts.create'
+                value.name !== 'admin.charts.create' &&
+                  value.name !== 'namespace.create'
 
         if (value && value.name && shouldNotSavePage) {
           commit(types.setPreviousPage, value)
