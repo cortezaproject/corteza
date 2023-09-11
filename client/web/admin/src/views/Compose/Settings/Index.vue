@@ -100,6 +100,7 @@ export default {
         .then(() => {
           this.animateSuccess(type)
           this.toastSuccess(this.$t('notification:settings.compose.update.success'))
+          this.initialSettingsState = cloneDeep(this.settings)
         })
         .catch(this.toastErrorHandler(this.$t('notification:settings.compose.update.error')))
         .finally(() => {
