@@ -116,7 +116,54 @@
         />
 
         <b-dropdown
-          v-if="m.canGrant || m.canDeleteModule"
+          v-if="m.canGrant"
+          data-test-id="dropdown-permissions"
+          size="sm"
+          variant="light"
+          :title="$t('permissions:resources.compose.module.tooltip')"
+          class="permissions-dropdown ml-1"
+        >
+          <template #button-content>
+            <font-awesome-icon :icon="['fas', 'lock']" />
+          </template>
+
+          <b-dropdown-item>
+            <c-permissions-button
+              :title="m.name || m.handle || m.moduleID"
+              :target="m.name || m.handle || m.moduleID"
+              :resource="`corteza::compose:module/${namespace.namespaceID}/${m.moduleID}`"
+              :button-label="$t('general:label.module.single')"
+              :show-button-icon="false"
+              button-variant="white text-left w-100"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item>
+            <c-permissions-button
+              :title="m.name || m.handle || m.moduleID"
+              :target="m.name || m.handle || m.moduleID"
+              :resource="`corteza::compose:module-field/${namespace.namespaceID}/${m.moduleID}/*`"
+              :button-label="$t('general:label.field')"
+              :show-button-icon="false"
+              all-specific
+              button-variant="white text-left w-100"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item>
+            <c-permissions-button
+              :title="m.name || m.handle || m.moduleID"
+              :target="m.name || m.handle || m.moduleID"
+              :resource="`corteza::compose:record/${namespace.namespaceID}/${m.moduleID}/*`"
+              :button-label="$t('general:label.record')"
+              :show-button-icon="false"
+              all-specific
+              button-variant="white text-left w-100"
+            />
+          </b-dropdown-item>
+        </b-dropdown>
+
+        <b-dropdown
           variant="outline-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-1"
           no-caret
@@ -139,20 +186,6 @@
               class="text-primary"
             />
             {{ $t('allRecords.label') }}
-          </b-dropdown-item>
-
-          <b-dropdown-item
-            v-if="m.canGrant"
-            link-class="p-0"
-          >
-            <c-permissions-button
-              :title="m.name || m.handle || m.moduleID"
-              :target="m.name || m.handle || m.moduleID"
-              :resource="`corteza::compose:module/${m.namespaceID}/${m.moduleID}`"
-              :tooltip="$t('permissions:resources.compose.module.tooltip')"
-              :button-label="$t('permissions:ui.label')"
-              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-            />
           </b-dropdown-item>
 
           <c-input-confirm
@@ -343,11 +376,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.permissions-dropdown {
-  .dropdown-item {
-    padding: 0;
-  }
-}
-</style>

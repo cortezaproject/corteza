@@ -889,11 +889,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.permissions-dropdown {
-  .dropdown-item {
-    padding: 0;
-  }
-}
-</style>

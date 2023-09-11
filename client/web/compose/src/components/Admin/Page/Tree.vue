@@ -12,17 +12,14 @@
       <template
         slot-scope="{item}"
       >
-        <b-row
+        <div
           v-if="item.pageID"
           no-gutters
-          class="wrap d-flex pr-2"
+          class="d-flex flex-wrap align-content-center justify-content-between pr-2"
         >
-          <b-col
-            cols="12"
-            xl="6"
-            lg="5"
-            class="flex-fill pl-2 overflow-hidden"
-            :class="{'grab': namespace.canCreatePage}"
+          <div
+            class="px-2 flex-fill overflow-hidden text-truncate"
+            :class="{'grab': namespace.canCreatePage }"
           >
             {{ item.title }}
             <span
@@ -40,17 +37,12 @@
             >
               {{ $t('invalid') }}
             </b-badge>
-          </b-col>
-          <b-col
-            cols="12"
-            xl="6"
-            lg="7"
-            class="text-right"
-          >
+          </div>
+
+          <div class="px-2">
             <b-button-group
               v-if="item.canUpdatePage"
               size="sm"
-              class="mr-1"
             >
               <b-button
                 data-test-id="button-page-builder"
@@ -92,17 +84,45 @@
               </b-button>
             </b-button-group>
 
-            <c-permissions-button
-              v-if="item.canGrant"
-              :title="item.title || item.handle || item.pageID"
-              :target="item.title || item.handle || item.pageID"
-              :resource="`corteza::compose:page/${namespace.namespaceID}/${item.pageID}`"
-              :tooltip="$t('permissions:resources.compose.page.tooltip')"
-              button-variant="outline-light"
-              class="text-dark d-print-none border-0"
-            />
-          </b-col>
-        </b-row>
+            <b-dropdown
+              v-if="item.canGrant || namespace.canGrant"
+              data-test-id="dropdown-permissions"
+              variant="light"
+              size="sm"
+              :title="$t('permissions:resources.compose.page.tooltip')"
+              class="permissions-dropdown ml-1"
+            >
+              <template #button-content>
+                <font-awesome-icon :icon="['fas', 'lock']" />
+              </template>
+
+              <b-dropdown-item>
+                <c-permissions-button
+                  v-if="namespace.canGrant"
+                  :title="item.title || item.handle || item.pageID"
+                  :target="item.title || item.handle || item.pageID"
+                  :resource="`corteza::compose:page/${namespace.namespaceID}/${item.pageID}`"
+                  :button-label="$t('general:label.page')"
+                  :show-button-icon="false"
+                  button-variant="white text-left w-100"
+                />
+              </b-dropdown-item>
+
+              <b-dropdown-item>
+                <c-permissions-button
+                  v-if="item.canGrant"
+                  :title="item.title || item.handle || item.pageID"
+                  :target="item.title || item.handle || item.pageID"
+                  :resource="`corteza::compose:page-layout/${namespace.namespaceID}/${item.pageID}/*`"
+                  :button-label="$t('general:label.pageLayout')"
+                  :show-button-icon="false"
+                  all-specific
+                  button-variant="white text-left w-100"
+                />
+              </b-dropdown-item>
+            </b-dropdown>
+          </div>
+        </div>
       </template>
     </sortable-tree>
 
@@ -235,9 +255,126 @@ export default {
   },
 }
 </script>
+
 <style lang="scss" scoped>
 .grab {
   cursor: grab;
+  z-index: 1;
+}
+</style>
+
+<style lang="scss">
+//!important usage to over-ride library styling
+$input-height: 42px;
+$content-height: 48px;
+$blank-li-height: 10px;
+$left-padding: 5px;
+$border-color: $light;
+$hover-color: $gray-200;
+$dropping-color: $secondary;
+
+.page-name-input {
+  height: $input-height;
+}
+
+.list-group {
+  .content {
+    height: 0 !important;
+  }
+
+  ul {
+    .content {
+      height: 100% !important;
+      min-height: $content-height !important;
+      line-height: $content-height !important;
+
+      &:hover {
+        background: $hover-color;
+      }
+    }
+  }
+
+  li {
+    white-space: nowrap;
+    background: $white;
+
+    &.blank-li {
+      height: $blank-li-height !important;
+
+      .sortable-tree {
+        max-height: 100%;
+      }
+
+      &:nth-last-of-type(1)::before {
+        border-left-color: $white !important;
+        height: 0;
+      }
+    }
+
+    &::before {
+      top: $content-height / -2 !important;
+      border-left-color: $white !important;
+    }
+
+    &::after {
+      height: $content-height !important;
+      top: $content-height / 2 !important;
+      border-color: $white !important;
+    }
+
+    &.parent-li:nth-last-child(2)::before {
+      height: $content-height !important;
+      top: $content-height / -2 !important;
+    }
+  }
+
+  .parent-li {
+    border-top: 1px solid $border-color;
+
+    .exist-li, .blank-li {
+      border-top: none;
+
+      &::after {
+        border-top: 2px solid $border-color !important;
+        margin-left: 0;
+      }
+
+      &::before {
+        border-left: 2px solid $border-color !important;
+      }
+    }
+
+    &.blank-li {
+      &::before {
+        border-left: 2px solid $border-color !important;
+      }
+    }
+
+    &.exist-li {
+      &::before {
+        border-color: $white !important;
+      }
+
+      .parent-li {
+        &.exist-li {
+          &::before {
+            border-color: $border-color !important;
+          }
+        }
+      }
+    }
+  }
+}
+
+.droper {
+  background: $dropping-color !important;
+}
+
+.pages-list-header {
+  min-height: $content-height;
+  background-color: $gray-200;
+  margin-bottom: -1.8rem !important;
+  border-bottom: 2px solid $light;
   z-index: 1;
 }
 </style>

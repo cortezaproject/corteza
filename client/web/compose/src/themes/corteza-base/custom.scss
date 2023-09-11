@@ -348,6 +348,16 @@ input[type="search"]::-webkit-search-cancel-button {
   cursor: pointer;
 }
 
+.permissions-dropdown {
+  li {
+    line-height: initial;
+  }
+
+  .dropdown-item {
+    padding: 0;
+  }
+}
+
 // Supporting CSS to improve print-to-PDF option
 @media print {
   @page {

@@ -1305,11 +1305,3 @@ export default {
   outline: 2px solid $success;
 }
 </style>
-
-<style lang="scss">
-.permissions-dropdown {
-  .dropdown-item {
-    padding: 0;
-  }
-}
-</style>

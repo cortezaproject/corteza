@@ -47,13 +47,38 @@
             </b-input-group>
           </div>
           <div class="d-flex justify-content-sm-end flex-grow-1">
-            <c-permissions-button
+            <b-dropdown
               v-if="namespace.canGrant"
-              :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
-              class="btn-lg"
-              :button-label="$t('label.permissions')"
-              button-variant="light"
-            />
+              data-test-id="dropdown-permissions"
+              size="lg"
+              variant="light"
+              class="permissions-dropdown"
+            >
+              <template #button-content>
+                <font-awesome-icon :icon="['fas', 'lock']" />
+                <span>
+                  {{ $t('label.permissions') }}
+                </span>
+              </template>
+
+              <b-dropdown-item>
+                <c-permissions-button
+                  :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
+                  :button-label="$t('general:label.page')"
+                  :show-button-icon="false"
+                  button-variant="white text-left w-100"
+                />
+              </b-dropdown-item>
+
+              <b-dropdown-item>
+                <c-permissions-button
+                  :resource="`corteza::compose:page-layout/${namespace.namespaceID}/*/*`"
+                  :button-label="$t('general:label.pageLayout')"
+                  :show-button-icon="false"
+                  button-variant="white text-left w-100"
+                />
+              </b-dropdown-item>
+            </b-dropdown>
           </div>
         </b-row>
         <b-row
@@ -197,119 +222,3 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-//!important usage to over-ride library styling
-$input-height: 42px;
-$content-height: 48px;
-$blank-li-height: 10px;
-$left-padding: 5px;
-$border-color: $light;
-$hover-color: $gray-200;
-$dropping-color: $secondary;
-
-.page-name-input {
-  height: $input-height;
-}
-
-.sortable-tree {
-  .content {
-    height: 0 !important;
-  }
-
-  ul {
-    .content {
-      height: 100% !important;
-      min-height: $content-height !important;
-      line-height: $content-height !important;
-
-      &:hover {
-        background: $hover-color;
-      }
-    }
-  }
-
-  li {
-    white-space: nowrap;
-    background: $white;
-
-    &.blank-li {
-      height: $blank-li-height !important;
-
-      .sortable-tree {
-        max-height: 100%;
-      }
-
-      &:nth-last-of-type(1)::before {
-        border-left-color: $white !important;
-        height: 0;
-      }
-    }
-
-    &::before {
-      top: $content-height / -2 !important;
-      border-left-color: $white !important;
-    }
-
-    &::after {
-      height: $content-height !important;
-      top: $content-height / 2 !important;
-      border-color: $white !important;
-    }
-
-    &.parent-li:nth-last-child(2)::before {
-      height: $content-height !important;
-      top: $content-height / -2 !important;
-    }
-  }
-
-  .parent-li {
-    border-top: 1px solid $border-color;
-
-    .exist-li, .blank-li {
-      border-top: none;
-
-      &::after {
-        border-top: 2px solid $border-color !important;
-        margin-left: 0;
-      }
-
-      &::before {
-        border-left: 2px solid $border-color !important;
-      }
-    }
-
-    &.blank-li {
-      &::before {
-        border-left: 2px solid $border-color !important;
-      }
-    }
-
-    &.exist-li {
-      &::before {
-        border-color: $white !important;
-      }
-
-      .parent-li {
-        &.exist-li {
-          &::before {
-            border-color: $border-color !important;
-          }
-        }
-      }
-    }
-  }
-}
-
-.droper {
-  background: $dropping-color !important;
-}
-
-.pages-list-header {
-  min-height: $content-height;
-  background-color: $gray-200;
-  margin-bottom: -1.8rem !important;
-  border-bottom: 2px solid $light;
-  z-index: 1;
-}
-
-</style>
