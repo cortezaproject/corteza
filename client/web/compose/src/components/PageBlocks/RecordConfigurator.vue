@@ -55,7 +55,7 @@
               :get-option-label="getFieldLabel"
               :get-option-key="getOptionKey"
               :placeholder="$t('record.referenceRecordFieldPlaceholder')"
-              :reduce="field => field.fieldID"
+              :reduce="getOptionKey"
               :calculate-position="calculateDropdownPosition"
               append-to-body
               class="bg-white"
@@ -231,7 +231,7 @@ import base from './base'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import { VueSelect } from 'vue-select'
 import { mapActions } from 'vuex'
-import { compose } from '@cortezaproject/corteza-js'
+import { NoID, compose } from '@cortezaproject/corteza-js'
 
 export default {
   i18nOptions: {
@@ -275,6 +275,7 @@ export default {
         { value: 'modal', text: this.$t('record.openInModal') },
       ]
     },
+
     recordSelectorFields () {
       return this.module.fields.filter(f => f.kind === 'Record' && !f.isMulti)
     },
@@ -318,8 +319,8 @@ export default {
       return label || name
     },
 
-    getOptionKey ({ fieldID }) {
-      return fieldID
+    getOptionKey ({ fieldID, name }) {
+      return fieldID !== NoID ? fieldID : name
     },
 
     updateReferenceModule (fieldID, fields) {

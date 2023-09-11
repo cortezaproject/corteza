@@ -71,7 +71,7 @@
                   :get-option-label="getFieldLabel"
                   :get-option-key="getOptionKey"
                   :placeholder="$t('prefill.selectField')"
-                  :reduce="field => field.fieldID"
+                  :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
                   class="bg-white"
@@ -92,7 +92,7 @@
                   :get-option-label="getFieldLabel"
                   :get-option-key="getOptionKey"
                   :placeholder="$t('prefill.selectField')"
-                  :reduce="field => field.fieldID"
+                  :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
                   class="bg-white"
@@ -113,7 +113,7 @@
                   :get-option-label="getFieldLabel"
                   :get-option-key="getOptionKey"
                   :placeholder="$t('prefill.selectField')"
-                  :reduce="field => field.fieldID"
+                  :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
                   class="bg-white"
@@ -137,7 +137,7 @@
                   :get-option-label="getFieldLabel"
                   :get-option-key="getOptionKey"
                   :placeholder="$t('prefill.selectField')"
-                  :reduce="field => field.fieldID"
+                  :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
                   class="bg-white"
@@ -205,8 +205,8 @@ export default {
       return label || name
     },
 
-    getOptionKey ({ fieldID }) {
-      return fieldID
+    getOptionKey ({ fieldID, name }) {
+      return fieldID !== NoID ? fieldID : name
     },
 
     setDefaultValues () {

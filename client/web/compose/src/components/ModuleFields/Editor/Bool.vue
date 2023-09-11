@@ -22,7 +22,6 @@
         </span>
 
         <hint
-          :id="field.fieldID"
           :text="hint"
         />
 
@@ -48,7 +47,6 @@
         {{ label }}
 
         <hint
-          :id="field.fieldID"
           :text="hint"
         />
       </div>

@@ -33,7 +33,6 @@
               </span>
 
               <hint
-                :id="field.fieldID"
                 :text="((field.options.hint || {}).view || '')"
               />
 

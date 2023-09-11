@@ -28,7 +28,7 @@
       >
         <div
           v-for="(field, index) in fields"
-          :key="field.fieldID"
+          :key="index"
           class="position-relative"
         >
           <field-editor

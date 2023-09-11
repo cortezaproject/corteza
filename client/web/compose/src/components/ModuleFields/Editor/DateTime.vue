@@ -21,7 +21,6 @@
         </span>
 
         <hint
-          :id="field.fieldID"
           :text="hint"
         />
 

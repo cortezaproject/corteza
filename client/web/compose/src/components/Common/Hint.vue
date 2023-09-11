@@ -1,22 +1,12 @@
 <template>
   <div
     v-if="text"
-    :id="id"
+    v-b-popover.hover.right="{ variant: 'dark', content: text }"
     class="d-flex align-items-center ml-2"
   >
     <font-awesome-icon
       :icon="['far', 'question-circle']"
     />
-
-    <b-tooltip
-      :target="id"
-      triggers="hover"
-      placement="right"
-      variant="dark"
-      custom-class="m-1"
-    >
-      {{ text }}
-    </b-tooltip>
   </div>
 </template>
 
@@ -26,10 +16,6 @@ export default {
     text: {
       type: String,
       default: '',
-    },
-    id: {
-      type: String,
-      required: true,
     },
   },
 }
