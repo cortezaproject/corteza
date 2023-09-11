@@ -3,8 +3,9 @@
     :report.sync="editReport"
     :modules="modules"
   >
-    <template #dimension-options-options="{ dimension }">
+    <template #dimension-options-options="{ dimension, isTemporal }">
       <b-form-checkbox
+        v-if="isTemporal && !['WEEK', 'QUARTER'].includes(dimension.modifier)"
         v-model="dimension.timeLabels"
       >
         {{ $t('edit.dimension.timeLabels') }}

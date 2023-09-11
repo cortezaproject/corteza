@@ -186,6 +186,7 @@
                   <slot
                     name="dimension-options-options"
                     :dimension="d"
+                    :isTemporal="isTemporalField(d.field)"
                   />
                 </b-form-group>
               </b-col>
