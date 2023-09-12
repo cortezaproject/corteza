@@ -224,9 +224,14 @@ export default {
     this.refreshBlock(this.refresh)
   },
 
+  mounted () {
+    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+  },
+
   beforeDestroy () {
     this.abortRequests()
     this.setDefaultValues()
+    this.destroyEvents()
   },
 
   methods: {
@@ -237,6 +242,12 @@ export default {
     getAuthor (userID) {
       const user = this.findByID(userID) || {}
       return user.name || user.handle || user.email || ''
+    },
+
+    refreshOnRelatedRecordsUpdate (module) {
+      if (this.options.moduleID === module.moduleID) {
+        this.refresh()
+      }
     },
 
     refresh () {
@@ -368,6 +379,10 @@ export default {
       this.abortableRequests.forEach((cancel) => {
         cancel()
       })
+    },
+
+    destroyEvents () {
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
   },
 }

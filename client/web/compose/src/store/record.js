@@ -38,15 +38,11 @@ export default function (ComposeAPI) {
       /**
        * Similar to fetchRecords but it only fetches unknown (not in set) ids
        */
-      async resolveRecords ({ commit, getters }, { namespaceID, moduleID, recordIDs }) {
+      async resolveRecords ({ commit }, { namespaceID, moduleID, recordIDs }) {
         if (recordIDs.length === 0) {
           // save ourselves some work
           return
         }
-
-        // exclude existing & make unique
-        const existing = new Set(getters.set.map(({ recordID }) => recordID))
-        recordIDs = [...new Set(recordIDs.filter(recordID => !existing.has(recordID)))]
 
         if (recordIDs.length === 0) {
           // Check for values again
@@ -59,7 +55,6 @@ export default function (ComposeAPI) {
           commit(types.updateSet, set)
         }).finally(() => {
           commit(types.completed)
-          existing.clear()
           recordIDs = []
         })
       },
@@ -97,7 +92,7 @@ export default function (ComposeAPI) {
         const existing = new Set(state.set.map(({ recordID }) => recordID))
 
         set.forEach(newItem => {
-          const oldIndex = !existing.has(newItem.recordID) ? state.set.findIndex(({ recordID }) => recordID === newItem.recordID) : -1
+          const oldIndex = existing.has(newItem.recordID) ? state.set.findIndex(({ recordID }) => recordID === newItem.recordID) : -1
           if (oldIndex > -1) {
             state.set.splice(oldIndex, 1, newItem)
           } else {

@@ -48,6 +48,8 @@ export default {
       recordValues: {},
 
       relRecords: [],
+
+      relatedModuleID: undefined,
     }
   },
 
@@ -84,6 +86,11 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.destroyEvents()
+  },
+
+  mounted () {
+    this.$root.$on('module-records-updated', this.refreshOnRelatedModuleUpdate)
   },
 
   methods: {
@@ -92,6 +99,12 @@ export default {
       resolveUsers: 'user/resolveUsers',
       resolveRecords: 'record/resolveRecords',
     }),
+
+    refreshOnRelatedModuleUpdate (module) {
+      if (this.relatedModuleID === module.moduleID) {
+        this.formatRecordValues(this.value)
+      }
+    },
 
     linkToRecord (recordID) {
       if (!this.recordPage || !recordID) {
@@ -126,6 +139,8 @@ export default {
 
           const relatedModule = await this.findModuleByID({ namespaceID, moduleID: relatedField.options.moduleID })
           const relatedRecordIDs = new Set()
+
+          this.relatedModuleID = relatedModule.moduleID
 
           records.forEach(r => {
             const recordValue = relatedField.isMulti ? r.values[relatedField.name] : [r.values[relatedField.name]]
@@ -197,6 +212,11 @@ export default {
       this.processing = false
       this.recordValues = {}
       this.relRecords = []
+      this.relatedModuleID = undefined
+    },
+
+    destroyEvents () {
+      this.$root.$off('module-records-updated', this.refreshOnRelatedModuleUpdate)
     },
   },
 }

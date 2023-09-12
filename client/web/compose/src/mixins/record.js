@@ -185,6 +185,10 @@ export default {
           }
 
           this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
+
+          this.$root.$emit('module-records-updated', {
+            moduleID: this.module.moduleID,
+          })
         })
         .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
         .finally(() => {
@@ -239,6 +243,10 @@ export default {
             this.initialRecordState = this.record.clone()
 
             this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
+
+            this.$root.$emit('module-records-updated', {
+              moduleID: this.module.moduleID,
+            })
           }
         })
         .catch(this.toastErrorHandler(this.$t(
@@ -335,6 +343,8 @@ export default {
           this.record = new compose.Record(this.module, {})
           this.initialRecordState = this.record.clone()
           this.$emit('save')
+
+          this.$root.$emit('module-records-updated', { moduleID })
         })
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkRecordUpdateFailed')))
         .finally(() => {

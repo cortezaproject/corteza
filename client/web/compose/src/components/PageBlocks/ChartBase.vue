@@ -55,6 +55,8 @@ export default {
     this.refreshBlock(this.refresh)
 
     this.$root.$on('drill-down-chart', this.drillDown)
+
+    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
   },
 
   beforeDestroy () {
@@ -66,6 +68,12 @@ export default {
     ...mapActions({
       findChartByID: 'chart/findByID',
     }),
+
+    refreshOnRelatedRecordsUpdate (module) {
+      if (this.filter.moduleID === module.moduleID) {
+        this.refresh()
+      }
+    },
 
     async fetchChart (params = {}) {
       const { chartID } = this.options
@@ -178,6 +186,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('drill-down-chart', this.drillDown)
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
   },
 }
