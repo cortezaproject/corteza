@@ -14,58 +14,48 @@
         />
       </h5>
 
-      <b-row no-gutters>
-        <b-col
-          cols="12"
-          md="6"
-        >
-          <b-form-group>
-            <b-input-group>
-              <vue-select
-                v-model="rule.currentField"
-                :placeholder="$t('searchFields')"
-                :get-option-label="getOptionLabel"
-                :get-option-key="getOptionKey"
-                :options="filterFieldOptions(rule)"
-                :calculate-position="calculateDropdownPosition"
-                class="bg-white"
-                style="min-width: 300px;"
-              />
-
-              <b-input-group-append>
-                <b-button
-                  variant="primary"
-                  class="px-4"
-                  :disabled="!rule.currentField"
-                  @click="updateRuleConstraint(rule)"
-                >
-                  {{ $t("add") }}
-                </b-button>
-              </b-input-group-append>
-            </b-input-group>
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="12"
-          lg="5"
-        >
-          <b-form-group
-            :label="$t('preventRecordsSave')"
-            label-class="text-primary ml-auto mt-2"
-          >
-            <c-input-checkbox
-              v-model="rule.strict"
-              switch
-              :labels="checkboxLabel"
+      <div class="d-flex align-items-center justify-content-between flex-wrap w-100">
+        <b-form-group>
+          <b-input-group>
+            <vue-select
+              v-model="rule.currentField"
+              :placeholder="$t('searchFields')"
+              :get-option-label="getOptionLabel"
+              :get-option-key="getOptionKey"
+              :options="filterFieldOptions(rule)"
+              :calculate-position="calculateDropdownPosition"
+              class="bg-white"
+              style="min-width: 300px;"
             />
-          </b-form-group>
-        </b-col>
-      </b-row>
+
+            <b-input-group-append>
+              <b-button
+                variant="primary"
+                class="px-4"
+                :disabled="!rule.currentField"
+                @click="updateRuleConstraint(rule)"
+              >
+                {{ $t("add") }}
+              </b-button>
+            </b-input-group-append>
+          </b-input-group>
+        </b-form-group>
+
+        <b-form-group
+          :label="$t('preventRecordsSave')"
+          label-class="text-primary ml-auto"
+        >
+          <c-input-checkbox
+            v-model="rule.strict"
+            switch
+            :labels="checkboxLabel"
+          />
+        </b-form-group>
+      </div>
 
       <div
         v-if="rule.constraints && rule.constraints.length > 0"
-        class="rounded border border-light p-3 mt-3"
+        class="rounded border border-light p-3"
         style="background-color: #F9FAFB;"
       >
         <b-table-simple

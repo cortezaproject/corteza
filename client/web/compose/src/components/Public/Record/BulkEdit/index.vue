@@ -220,6 +220,7 @@ export default {
         this.fields = []
         this.record = new compose.Record(this.module, {})
       }
+
       this.$emit('close')
     },
 
