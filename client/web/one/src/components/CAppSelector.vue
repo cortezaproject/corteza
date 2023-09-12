@@ -286,7 +286,7 @@ export default {
 <style lang="scss" scoped>
 .app-selector {
   .logo {
-    max-height: 25vh;
+    max-height: 20vh;
     max-width: 500px;
     width: auto;
   }
