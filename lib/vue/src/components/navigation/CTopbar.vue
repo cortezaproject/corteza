@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center sticky-top pr-3">
+  <div class="header-navigation d-flex flex-wrap align-items-center pr-3">
     <div
       class="spacer"
       :class="{
@@ -290,12 +290,6 @@ $nav-user-icon-size: 50px;
   padding-left: calc(3.5rem + 6px);
 }
 
-.topbar-dropdown-menu {
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-
 .avatar {
   border-radius: 50%;
   background-size: cover;
@@ -349,5 +343,11 @@ $nav-user-icon-size: 50px;
     justify-content: end;
     flex-wrap: wrap;
   }
+}
+</style>
+
+<style lang="scss">
+.topbar-dropdown-menu {
+  z-index: 1100;
 }
 </style>
