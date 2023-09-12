@@ -13,7 +13,7 @@
           justified: options.display.justify === 'justify'
         }"
         :align="options.display.alignment"
-        class="border-0 h-100"
+        class="border-0 h-100 overflow-auto"
       >
         <b-nav-item
           v-for="(navItem, index) in options.navigationItems"

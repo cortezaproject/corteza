@@ -14,67 +14,60 @@
         :list.sync="attachments"
         :disabled="!enableOrder"
       >
-        <div
+        <b-row
           v-for="(a, index) in attachments"
           :key="a.attachmentID"
-          class="item mb-2"
+          no-gutters
+          class="flex-nowrap item mb-2"
         >
-          <b-row no-gutters>
-            <b-col
-              cols="auto"
+          <b-col cols="auto">
+            <div
+              v-if="enableOrder"
+              class="d-inline p-1 mr-2"
             >
-              <div
-                v-if="enableOrder"
-                class="d-inline p-1 mr-2"
-              >
-                <font-awesome-icon
-                  v-b-tooltip.hover
-                  :icon="['fas', 'bars']"
-                  :title="$t('general.tooltip.dragAndDrop')"
-                  class="handle text-light"
-                />
-              </div>
-            </b-col>
-
-            <b-col>
-              <div class="d-flex align-items-center">
-                <font-awesome-icon
-                  :title="ext(a)"
-                  :icon="['far', `file-${ext(a)}`]"
-                  class="text-dark h5 float-left mb-0 mr-2"
-                />
-
-                <attachment-link :attachment="a" />
-              </div>
-
-              <i18next
-                path="general.label.attachmentFileInfo"
-                tag="small"
-                class="d-block text-muted"
-              >
-                <span>{{ size(a) }}</span>
-
-                <span>{{ uploadedAt(a) }}</span>
-              </i18next>
-            </b-col>
-
-            <b-col cols="auto">
-              <b-button
-                v-if="a.download"
-                :href="a.download"
-                variant="outline-light"
-                class="border-0 text-primary px-2 mr-2"
-              >
-                <font-awesome-icon :icon="['fas', 'download']" />
-              </b-button>
-
-              <c-input-confirm
-                v-if="enableDelete"
-                @confirmed="deleteAttachment(index)"
+              <font-awesome-icon
+                v-b-tooltip.hover
+                :icon="['fas', 'bars']"
+                :title="$t('general.tooltip.dragAndDrop')"
+                class="handle text-light"
               />
-            </b-col>
-          </b-row>
-        </div>
+            </div>
+          </b-col>
+
+          <b-col style="word-break:break-all;">
+            <attachment-link :attachment="a" />
+
+            <i18next
+              path="general.label.attachmentFileInfo"
+              tag="small"
+              class="d-block text-muted"
+            >
+              <span>{{ size(a) }}</span>
+
+              <span>{{ uploadedAt(a) }}</span>
+            </i18next>
+          </b-col>
+
+          <b-col
+            cols="auto"
+            class="d-flex align-items-start"
+          >
+            <b-button
+              v-if="a.download"
+              :href="a.download"
+              variant="outline-light"
+              class="border-0 text-primary px-2 ml-2"
+            >
+              <font-awesome-icon :icon="['fas', 'download']" />
+            </b-button>
+
+            <c-input-confirm
+              v-if="enableDelete"
+              class="ml-2"
+              @confirmed="deleteAttachment(index)"
+            />
+          </b-col>
+        </b-row>
       </draggable>
     </div>
 
@@ -85,7 +78,8 @@
       <div
         v-for="a in attachments"
         :key="a.attachmentID"
-        :class="{ 'h-100': attachments.length === 1 }"
+        :class="{ 'h-100': attachments.length === 1, 'w-100': !canPreview(a) }"
+        class="item mb-2"
       >
         <c-preview-inline
           v-if="canPreview(a)"
@@ -99,22 +93,32 @@
 
           ]"
           :labels="previewLabels"
+          class="mb-1"
           @openPreview="openLightbox({ ...a, ...$event })"
         />
 
-        <div v-else>
-          <font-awesome-icon
-            :icon="['far', 'file-'+ext(a)]"
-          />
-        </div>
-
         <div
           v-if="!hideFileName"
-          class="text-center"
+          class="d-flex align-items-start justify-content-between"
+          :class="{ 'w-100': canPreview(a) }"
         >
-          <attachment-link
-            :attachment="a"
-          />
+          <div
+            :class="{ 'text-center': canPreview(a) }"
+            class="text-wrap"
+          >
+            <attachment-link
+              :attachment="a"
+            />
+          </div>
+
+          <b-button
+            v-if="a.download"
+            :href="a.download"
+            variant="outline-light"
+            class="border-0 text-primary px-2"
+          >
+            <font-awesome-icon :icon="['fas', 'download']" />
+          </b-button>
         </div>
       </div>
     </div>

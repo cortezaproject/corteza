@@ -27,6 +27,7 @@ interface FileOptions extends Options {
   backgroundColor?: string;
   clickToView?: boolean;
   enableDownload?: boolean;
+  multiDelimiter: string;
 }
 
 const defaults = (): Readonly<FileOptions> => Object.freeze({
@@ -47,6 +48,7 @@ const defaults = (): Readonly<FileOptions> => Object.freeze({
   backgroundColor: '#FFFFFF00',
   clickToView: true,
   enableDownload: true,
+  multiDelimiter: '\n',
 })
 
 export class ModuleFieldFile extends ModuleField {
