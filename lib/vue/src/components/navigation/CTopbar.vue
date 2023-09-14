@@ -18,6 +18,7 @@
     <div class="d-flex align-items-center ml-auto">
       <b-button
         v-if="!hideAppSelector && !settings.hideAppSelector"
+        data-test-id="app-selector"
         variant="outline-light"
         :href="appSelectorURL"
         title="Apps"
