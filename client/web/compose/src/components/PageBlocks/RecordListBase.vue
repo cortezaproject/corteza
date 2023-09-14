@@ -1036,10 +1036,6 @@ export default {
     },
   },
 
-  mounted () {
-    this.createEvents()
-  },
-
   beforeDestroy () {
     this.abortRequests()
     this.setDefaultValues()
@@ -1063,10 +1059,7 @@ export default {
 
       // Set uniqueID so that events dont mix
       if (this.uniqueID) {
-        this.$root.$off(`record-line:collect:${this.uniqueID}`)
-        this.$root.$off(`page-block:validate:${this.uniqueID}`)
-        this.$root.$off(`drill-down-recordList:${this.uniqueID}`)
-        this.$root.$off(`refetch-non-record-blocks:${pageID}`)
+        this.destroyEvents()
       }
 
       this.uniqueID = [pageID, recordID, this.block.blockID, this.magnified].map(v => v || NoID).join('-')
