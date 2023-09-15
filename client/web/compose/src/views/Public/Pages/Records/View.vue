@@ -56,7 +56,7 @@
         :hide-clone="!layoutButtons.has('clone')"
         :hide-edit="!layoutButtons.has('edit')"
         :hide-submit="!layoutButtons.has('submit')"
-        :has-back="previousPages.length > 0"
+        :has-back="viewHasBack"
         @add="handleAdd()"
         @clone="handleClone()"
         @edit="handleEdit()"
@@ -203,6 +203,7 @@ export default {
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
       getPageLayouts: 'pageLayout/getByPageID',
       previousPages: 'ui/previousPages',
+      modalPreviousPages: 'ui/modalPreviousPages',
     }),
 
     portalTopbarTitle () {
@@ -274,6 +275,14 @@ export default {
       const { recordID } = this.record || {}
       return this.getNextAndPrevRecord(recordID)
     },
+
+    viewHasBack () {
+      if (this.showRecordModal) {
+        return this.modalPreviousPages.length > 1
+      }
+
+      return this.previousPages.length > 0
+    },
   },
 
   watch: {
@@ -327,6 +336,7 @@ export default {
     ...mapActions({
       popPreviousPages: 'ui/popPreviousPages',
       clearRecordSet: 'record/clearSet',
+      popModalPreviousPage: 'ui/popModalPreviousPage',
     }),
 
     async loadRecord (recordID = this.recordID) {
@@ -381,7 +391,10 @@ export default {
        * came from (and "where" is back).
       */
       if (this.showRecordModal) {
-        this.$bvModal.hide('record-modal')
+        this.popModalPreviousPage().then(({ recordID, recordPageID }) => {
+          this.$emit('on-modal-back', { recordID, recordPageID, pushModalPreviousPage: false })
+        })
+
         return
       }
 

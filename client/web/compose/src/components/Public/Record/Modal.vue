@@ -26,6 +26,7 @@
       :ref-record="refRecord"
       show-record-modal
       @handle-record-redirect="loadRecord"
+      @on-modal-back="loadRecord"
     />
 
     <template #modal-footer>
@@ -81,6 +82,7 @@ export default {
       getModuleByID: 'module/getByID',
       getPageByID: 'page/getByID',
       recordPaginationUsable: 'ui/recordPaginationUsable',
+      modalPreviousPages: 'ui/modalPreviousPages',
     }),
   },
 
@@ -90,6 +92,7 @@ export default {
       handler (recordPageID, oldRecordPageID) {
         if (!recordPageID) {
           this.showModal = false
+          this.clearModalPreviousPage()
         }
 
         if (recordPageID !== oldRecordPageID) {
@@ -124,14 +127,21 @@ export default {
     ...mapActions({
       setRecordPaginationUsable: 'ui/setRecordPaginationUsable',
       clearRecordIDs: 'ui/clearRecordIDs',
+      pushModalPreviousPage: 'ui/pushModalPreviousPage',
+      clearModalPreviousPage: 'ui/clearModalPreviousPage',
     }),
 
-    loadRecord ({ recordID, recordPageID, values, refRecord }) {
+    loadRecord ({ recordID, recordPageID, values, refRecord, pushModalPreviousPage = true }) {
       this.recordID = recordID
       this.values = values
       this.refRecord = refRecord
 
       this.loadModal({ recordID, recordPageID })
+
+      // Push the previous modal view page to the modal route history stack on the store so we can go back to it
+      if (pushModalPreviousPage) {
+        this.pushModalPreviousPage({ recordID, recordPageID })
+      }
 
       setTimeout(() => {
         this.$router.push({
@@ -190,6 +200,7 @@ export default {
       this.page = undefined
       this.values = undefined
       this.refRecord = undefined
+      this.clearModalPreviousPage()
     },
 
     destroyEvents () {
