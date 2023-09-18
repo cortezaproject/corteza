@@ -47,6 +47,8 @@
         >
           {{ $t('label.delete') }}
         </c-input-confirm>
+
+        <slot name="saveAsCopy" />
         <b-button
           v-if="!hideClone"
           data-test-id="button-clone"
@@ -59,6 +61,7 @@
         >
           {{ $t('label.saveAsCopy') }}
         </b-button>
+
         <b-button
           v-if="!hideSave"
           data-test-id="button-save-and-close"
@@ -70,6 +73,7 @@
         >
           {{ $t('label.saveAndClose') }}
         </b-button>
+
         <b-button
           v-if="!hideSave"
           data-test-id="button-save"

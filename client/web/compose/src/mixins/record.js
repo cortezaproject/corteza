@@ -152,12 +152,9 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            if (isNew) {
-              this.inCreating = false
-              this.inEditing = false
-            } else {
-              this.record = record
-            }
+            this.inCreating = false
+            this.inEditing = false
+            this.record = record
 
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })

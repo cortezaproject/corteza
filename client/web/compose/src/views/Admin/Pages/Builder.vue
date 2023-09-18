@@ -256,10 +256,10 @@
       <editor-toolbar
         :hide-save="!page.canUpdatePage"
         :processing="processing"
+        hide-clone
         @save="handleSaveLayout()"
         @delete="handleDeleteLayout()"
         @saveAndClose="handleSaveLayout({ closeOnSuccess: true })"
-        @clone="handleCloneLayout()"
         @back="$router.push(previousPage || { name: 'admin.pages' })"
       >
         <b-button
@@ -272,6 +272,31 @@
         >
           + {{ $t('build.addBlock') }}
         </b-button>
+
+        <template #saveAsCopy>
+          <b-dropdown
+            v-if="page.canUpdatePage"
+            data-test-id="dropdown-saveAsCopy"
+            :text="$t('general:label.saveAsCopy')"
+            :disabled="processing"
+            size="lg"
+            variant="light"
+            class="ml-2"
+          >
+            <b-dropdown-item
+              data-test-id="dropdown-item-saveAsCopy-ref"
+              @click="handleCloneLayout({ ref: true })"
+            >
+              {{ $t('build.saveAsCopy.ref') }}
+            </b-dropdown-item>
+            <b-dropdown-item
+              data-test-id="dropdown-item-saveAsCopy-noRef"
+              @click="handleCloneLayout({ ref: false })"
+            >
+              {{ $t('build.saveAsCopy.noRef') }}
+            </b-dropdown-item>
+          </b-dropdown>
+        </template>
       </editor-toolbar>
     </portal>
 
@@ -676,7 +701,7 @@ export default {
     appendBlock (block, msg) {
       this.calculateNewBlockPosition(block)
 
-      this.editor = { index: undefined, block: compose.PageBlockMaker(block) }
+      this.editor = { index: undefined, block }
       this.updateBlocks()
 
       if (!this.editor) {
@@ -735,7 +760,7 @@ export default {
       return !req.size
     },
 
-    async handleSaveLayout ({ closeOnSuccess = false, previewOnSuccess = false } = {}) {
+    async handleSaveLayout ({ closeOnSuccess = false, previewOnSuccess = false, alert = true } = {}) {
       const { namespaceID } = this.namespace
 
       // Record blocks
@@ -788,26 +813,27 @@ export default {
             layout = await this.updatePageLayout({ ...layout, blocks })
             return { page, layout }
           })
-      }).then(({ page, layout }) => {
-        this.page = new compose.Page(page)
-        this.layout = new compose.PageLayout(layout)
-        this.unsavedBlocks.clear()
-
-        this.toastSuccess(this.$t('notification:page.page-layout.save.success'))
-
+      }).then(async ({ page, layout }) => {
         if (closeOnSuccess) {
           this.$router.push(this.previousPage || { name: 'admin.pages' })
           return
         }
 
-        return this.fetchPageLayouts()
+        if (alert) {
+          this.toastSuccess(this.$t('notification:page.page-layout.save.success'))
+        }
+
+        this.page = new compose.Page(page)
+        await this.fetchPageLayouts()
+        this.setLayout(layout.pageLayoutID)
       }).finally(() => {
         this.processing = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
     },
 
-    handleCloneLayout () {
+    async handleCloneLayout ({ ref = false }) {
       this.processing = true
+      this.processingLayout = true
 
       const layout = {
         ...this.layout.clone(),
@@ -817,13 +843,46 @@ export default {
 
       layout.meta.title = `${this.$t('copyOf')}${layout.meta.title}`
 
-      this.createPageLayout(layout).then(({ pageLayoutID }) => {
-        return this.fetchPageLayouts().then(() => {
-          this.setLayout(pageLayoutID)
-          this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
+      // If we are cloning a layout with references, we need to clone the blocks
+      if (!ref) {
+        const oldBlockIDs = {}
+        layout.blocks = []
+
+        // Sort based on if tab or not
+        this.blocks = this.blocks.toSorted((a, b) => {
+          if (a.kind === 'Tabs' && b.kind !== 'Tabs') {
+            return 1 // Move 'Tabs' to the end
+          } else if (a.kind !== 'Tabs' && b.kind === 'Tabs') {
+            return -1 // Keep 'Tabs' before other elements
+          } else {
+            return 0 // No change in order
+          }
+        }).map(block => {
+          const oldBlockID = block.blockID
+
+          if (block.kind === 'Tabs') {
+            block.options.tabs = block.options.tabs.map(tab => {
+              tab.blockID = oldBlockIDs[tab.blockID]
+              return tab
+            })
+          }
+
+          block = block.clone()
+          oldBlockIDs[oldBlockID] = block.meta.tempID
+
+          return block
         })
+      }
+
+      this.createPageLayout(layout).then(layout => {
+        this.layout = layout
+        this.layouts.push({ ...layout, label: layout.meta.title || layout.handle || layout.pageLayoutID })
+        return this.handleSaveLayout({ alert: false })
+      }).then(() => {
+        this.toastSuccess(this.$t('notification:page.page-layout.clone.success'))
       }).finally(() => {
         this.processing = false
+        this.processingLayout = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.clone.failed')))
     },
 
@@ -884,7 +943,7 @@ export default {
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
         try {
-          const block = JSON.parse(paste)
+          const block = compose.pageBlockMaker(JSON.parse(paste))
           const valid = this.isValid(block)
 
           if (valid) {

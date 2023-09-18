@@ -1,6 +1,7 @@
 import { merge } from 'lodash'
 import { Apply, NoID } from '../../../cast'
 import { generateUID } from '../../helpers/idgen'
+import { PageBlockMaker } from '.'
 
 interface PageBlockStyleVariants {
   [_: string]: string;
@@ -105,7 +106,7 @@ export class PageBlock {
   }
 
   clone (): PageBlockInput {
-    return { ...JSON.parse(JSON.stringify(this)), blockID: NoID, meta: { tempID: '' } }
+    return PageBlockMaker({ ...JSON.parse(JSON.stringify(this)), blockID: NoID, meta: { tempID: generateUID() } })
   }
 }
 

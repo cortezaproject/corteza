@@ -61,6 +61,9 @@ build:
   addBlock: Add block
   selectBlockTitle: Select type of the new block
   unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
+  saveAsCopy:
+    ref: With references
+    noRef: Without references
 createLabel: Create page
 edit:
   create: Create page
