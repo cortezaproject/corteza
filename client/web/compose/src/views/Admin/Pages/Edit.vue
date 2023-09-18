@@ -482,6 +482,16 @@
             v-model="layoutEditor.layout.config.visibility.expression"
             :placeholder="$t('page-layout.condition.placeholder')"
           />
+          <b-input-group-append>
+            <b-button
+              variant="outline-secondary"
+              :href="documentationURL"
+              class="d-flex justify-content-center align-items-center"
+              target="_blank"
+            >
+              ?
+            </b-button>
+          </b-input-group-append>
         </b-input-group>
 
         <b-form-text>
@@ -998,6 +1008,12 @@ export default {
       }
 
       return this.icon.type === 'link' ? this.icon.src : this.makeAttachmentUrl(this.icon.src)
+    },
+
+    documentationURL () {
+      // eslint-disable-next-line no-undef
+      const [year, month] = VERSION.split('.')
+      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/compose-configuration/page-layouts.html#visibility-condition`
     },
 
     currentLayoutRoles: {

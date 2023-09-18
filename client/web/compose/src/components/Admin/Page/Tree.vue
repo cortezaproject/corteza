@@ -79,7 +79,7 @@
                 style="margin-left:2px;"
               >
                 <font-awesome-icon
-                  :icon="['fas', 'pen']"
+                  :icon="['far', 'edit']"
                 />
               </b-button>
             </b-button-group>
