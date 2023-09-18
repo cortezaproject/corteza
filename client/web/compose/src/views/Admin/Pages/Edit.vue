@@ -338,7 +338,8 @@
                     </b-td>
 
                     <td
-                      class="text-center align-middle"
+                      class="text-right align-middle"
+                      style="min-width: 100px;"
                     >
                       <c-permissions-button
                         v-if="page.canGrant && layout.pageLayoutID !== '0'"

@@ -84,7 +84,7 @@ export default {
     },
     variantCancel: {
       type: String,
-      default: undefined,
+      default: 'light',
     },
     sizeConfirm: {
       type: String,
