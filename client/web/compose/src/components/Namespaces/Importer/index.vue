@@ -26,6 +26,7 @@
 
       <component
         :is="stepComponent"
+        v-else
         v-bind="$props"
         :session="session"
         @fileUploaded="onFileUploaded"

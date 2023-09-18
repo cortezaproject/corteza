@@ -2,6 +2,7 @@
   <b-card
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex justify-content-between align-items-center"
   >
     <b-form-group :label="$t('name.label')">
       <b-form-input
@@ -25,26 +26,29 @@
       </b-form-invalid-feedback>
     </b-form-group>
 
-    <div slot="footer">
+    <template #footer>
       <b-button
         data-test-id="button-back"
-        variant="outline-dark"
-        class="float-left"
+        variant="link"
+        class="back px-0"
         @click="$emit('back')"
       >
+        <font-awesome-icon
+          :icon="['fas', showRecordModal ? 'times' : 'chevron-left']"
+          class="back-icon"
+        />
         {{ $t('import.back') }}
       </b-button>
 
       <b-button
         data-test-id="button-import"
-        variant="dark"
+        variant="primary"
         :disabled="submitDisabled"
-        class="float-right"
         @click="nextStep"
       >
         {{ $t('import.import') }}
       </b-button>
-    </div>
+    </template>
   </b-card>
 </template>
 
