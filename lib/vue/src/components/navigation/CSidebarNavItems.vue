@@ -41,9 +41,9 @@
         v-if="children.length"
       >
         <b-button
-          variant="link"
-          class="p-0 float-right"
-          :disabled="showChildren({ params, children })"
+          variant="outline-light"
+          size="sm"
+          class="text-primary p-0 border-0 float-right mr-1"
           @click.self.stop.prevent="toggle(page)"
         >
           <font-awesome-icon
@@ -59,7 +59,7 @@
         </b-button>
 
         <b-collapse
-          :visible="collapses[pageIndex(page)] || showChildren({ params, children })"
+          :visible="collapses[pageIndex(page)]"
           @click.stop.prevent
         >
           <c-sidebar-nav-items
@@ -111,10 +111,10 @@ export default {
     items: {
       immediate: true,
       handler (items = []) {
-        items.forEach(({ page }) => {
+        items.forEach(({ page, params, children }) => {
           const px = this.pageIndex(page)
           // Apply startExpanded only if page isn't currently expanded
-          this.$set(this.collapses, px, this.startExpanded || page.expanded)
+          this.$set(this.collapses, px, this.startExpanded || page.expanded || this.showChildren({ params, children }))
         })
       },
     },
@@ -136,7 +136,7 @@ export default {
       this.$set(this.collapses, px, !this.collapses[px])
     },
 
-    // Recursively check for child pages that are open, so that parents can open aswell
+    // Recursively check for child pages that are open, so that parents can open as well
     showChildren ({ params = {}, children = [] }) {
       const partialParamsMatch = Object.entries(params).some(([key, value]) => {
         return this.$route.params[key] === value
