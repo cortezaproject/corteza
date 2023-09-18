@@ -13,6 +13,7 @@ page-layout:
   condition:
     label: Condition
     placeholder: When will the layout be shown
+    description: "You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}"
   roles:
     label: Roles
     placeholder: Pick roles that the layout will be shown to
