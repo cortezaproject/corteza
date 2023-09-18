@@ -83,7 +83,7 @@
             data-test-id="block-toolbox"
           >
             <div
-              v-if="unsavedBlocks.has(index)"
+              v-if="unsavedBlocks.has(block.blockID !== '0' ? block.blockID : block.meta.tempID)"
               :title="$t('tooltip.unsavedChanges')"
               class="btn border-0"
             >
@@ -589,12 +589,17 @@ export default {
         })
       }
 
-      const { kind } = this.blocks[index]
+      const block = this.blocks[index]
 
       this.blocks.splice(index, 1)
-      this.unsavedBlocks.add(index)
 
-      if (kind === 'Tabs') {
+      if (block.blockID !== NoID) {
+        this.unsavedBlocks.add(block.blockID)
+      } else {
+        this.unsavedBlocks.delete(block.meta.tempID)
+      }
+
+      if (block.kind === 'Tabs') {
         this.showUntabbedHiddenBlocks()
       }
 
@@ -617,11 +622,12 @@ export default {
         this.blocks[index].meta.hidden = false
         this.calculateNewBlockPosition(this.blocks[index])
       })
+
       tabbedBlocks.clear()
     },
 
     onBlockUpdated (index) {
-      this.unsavedBlocks.add(index)
+      this.unsavedBlocks.add(fetchID(this.blocks[index]))
     },
 
     // When debugging this, make sure to remove the @hide event handle from the block editor/creator modals
@@ -646,10 +652,10 @@ export default {
         }
 
         this.blocks.splice(this.editor.index, 1, block)
-        this.unsavedBlocks.add(this.editor.index)
+        this.unsavedBlocks.add(fetchID(block))
       } else {
         this.blocks.push(block)
-        this.unsavedBlocks.add(this.blocks.length - 1)
+        this.unsavedBlocks.add(fetchID(block))
         this.scrollToBottom()
       }
 
@@ -711,6 +717,10 @@ export default {
         msg && this.toastErrorHandler(this.$t('notification:page.duplicateFailed'))
         return false
       }
+    },
+
+    isBlockUnsaved (block) {
+      return this.unsavedBlocks.has(block.blockID)
     },
 
     calculateNewBlockPosition (block) {
