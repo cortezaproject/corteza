@@ -44,6 +44,7 @@ label:
   name: Name
   next: Next
   no: No
+  all: All
   noHandle: No handle
   none: None
   now: Now

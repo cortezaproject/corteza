@@ -414,6 +414,8 @@ recordList:
     showing: '{{from}} - {{to}} of {{count}} records'
     single: One record
     single_plural: '{{count}} records'
+    recordsPerPage: 'Records per page:'
+    selectLabel: Select an option
   positionField:
     footnote: Records will be sorted based on this field
     label: Record sort field
@@ -464,6 +466,7 @@ recordList:
     presortInputLabel: Presort
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
+    showRecordPerPageOption: Allow users to select records per page
     showDeletedRecordsOption: Show option to see deleted records
     setCustomFilterPresets: User will be able to set custom filter presets
     openInSameTab: Open record in the same tab
