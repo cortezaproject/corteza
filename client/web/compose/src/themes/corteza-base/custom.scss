@@ -43,6 +43,18 @@ button:disabled {
   cursor: pointer;
 }
 
+.gap-1{
+  gap: 0.5rem;
+}
+
+.gap-2 {
+  gap: 1rem;
+}
+
+.gap-col-3 {
+  column-gap: 1.5rem;
+}
+
 .grab {
   cursor: grab;
 }
@@ -78,7 +90,7 @@ th {
   -ms-flex: 1 1 auto;
   flex: 1 1 auto;
   margin-bottom: 0;
-  font-size: .9rem;
+  font-size: 0.9rem;
   border-radius: 0.25rem;
 
   .vs__selected-options {

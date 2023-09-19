@@ -620,24 +620,23 @@
       />
     </template>
 
-    <template
-      #footer
-    >
+    <template #footer>
       <div
         v-if="showFooter"
-        class="d-flex align-items-center justify-content-between p-2"
+        class="d-flex align-items-center flex-wrap justify-content-between p-2"
       >
-        <div class="text-truncate">
+        <div class="d-flex gap-col-3 align-items-center flex-wrap">
           <div
             v-if="options.showTotalCount"
-            class="ml-2 text-nowrap my-1"
+            class="ml-2 text-nowrap my-1 text-truncate"
           >
             <span
-              v-if="pagination.count > options.perPage"
+              v-if="pagination.count > recordsPerPage"
               data-test-id="pagination-range"
             >
               {{ $t('recordList.pagination.showing', getPagination) }}
             </span>
+
             <span
               v-else
               data-test-id="pagination-single-number"
@@ -645,11 +644,26 @@
               {{ $t('recordList.pagination.single', getPagination) }}
             </span>
           </div>
+
+          <div
+            v-if="options.showRecordPerPageOption"
+            class="d-flex align-items-center ml-2 my-1 gap-1 text-nowrap"
+          >
+            <span>
+              {{ $t('recordList.pagination.recordsPerPage') }}
+            </span>
+
+            <b-form-select
+              v-model="recordsPerPage"
+              :options="perPageOptions"
+              @change="handlePerPageChange"
+            />
+          </div>
         </div>
 
         <div
           v-if="showPageNavigation"
-          class="d-flex align-items-center justify-content-end"
+          class="d-flex align-items-center justify-content-end "
         >
           <b-pagination
             v-if="options.fullPageNavigation"
@@ -667,15 +681,19 @@
             <template #first-text>
               <font-awesome-icon :icon="['fas', 'angle-double-left']" />
             </template>
+
             <template #prev-text>
               <font-awesome-icon :icon="['fas', 'angle-left']" />
             </template>
+
             <template #next-text>
               <font-awesome-icon :icon="['fas', 'angle-right']" />
             </template>
+
             <template #last-text>
               <font-awesome-icon :icon="['fas', 'angle-double-right']" />
             </template>
+
             <template #elipsis-text>
               <font-awesome-icon :icon="['fas', 'ellipsis-h']" />
             </template>
@@ -691,6 +709,7 @@
             >
               <font-awesome-icon :icon="['fas', 'angle-double-left']" />
             </b-button>
+
             <b-button
               :disabled="!hasPrevPage || processing"
               data-test-id="previous-page"
@@ -704,6 +723,7 @@
               />
               {{ $t('recordList.pagination.prev') }}
             </b-button>
+
             <b-button
               :disabled="!hasNextPage || processing"
               data-test-id="next-page"
@@ -833,6 +853,7 @@ export default {
       selectedAllRecords: false,
 
       abortableRequests: [],
+      recordsPerPage: undefined,
     }
   },
 
@@ -847,12 +868,26 @@ export default {
     },
 
     showFooter () {
-      return this.showPageNavigation || this.options.showTotalCount
+      return this.showPageNavigation || this.options.showTotalCount || this.options.showRecordPerPageOption
+    },
+
+    perPageOptions () {
+      const defaultText = this.options.perPage === 0 ? this.$t('general:label.all') : this.options.perPage.toString()
+      return [
+        { text: defaultText, value: this.options.perPage },
+        { text: '25', value: 25 },
+        { text: '50', value: 50 },
+        { text: '100', value: 100 },
+      ].filter((v, i) => i === 0 || v.value !== this.options.perPage).sort((a, b) => {
+        if (a.value === 0) return 1
+        if (b.value === 0) return -1
+        return a.value - b.value
+      })
     },
 
     getPagination () {
       const { page = 1, count = 0 } = this.pagination
-      const { perPage = 10 } = this.options
+      const perPage = this.recordsPerPage
 
       return {
         from: ((page - 1) * perPage) + 1,
@@ -877,6 +912,10 @@ export default {
 
     showPageNavigation () {
       return this.items.length && !this.options.hidePaging
+    },
+
+    showPerPageSelector () {
+      return this.options.showRecordPerPageOption
     },
 
     disableSelectAll () {
@@ -1099,6 +1138,11 @@ export default {
       this.refresh(true)
     },
 
+    handlePerPageChange () {
+      this.filter.limit = this.recordsPerPage
+      this.refresh(true)
+    },
+
     onSaveFilterPreset (filter = []) {
       this.currentCustomPresetFilter = {
         filter,
@@ -1249,7 +1293,8 @@ export default {
     // Sanitizes record list config and
     // prepares prefilter
     prepRecordList () {
-      const { moduleID, presort, prefilter, editable, perPage, refField, positionField } = this.options
+      this.recordsPerPage = this.options.perPage
+      const { moduleID, presort, prefilter, editable, refField, positionField } = this.options
 
       // Validate props
       if (!moduleID) {
@@ -1298,7 +1343,7 @@ export default {
       }
 
       this.prefilter = filter.join(' AND ')
-      const limit = perPage
+      const limit = this.recordsPerPage
       this.filter = {
         limit,
         sort,
@@ -1594,7 +1639,7 @@ export default {
               if (!paginationOptions.incTotal) {
                 if (pages.length > 1) {
                   const lastPageCount = pages[pages.length - 1].items
-                  count = ((pages.length - 1) * this.options.perPage) + lastPageCount
+                  count = ((pages.length - 1) * this.recordsPerPage) + lastPageCount
                 } else {
                   count = records.length
                 }
