@@ -26,6 +26,8 @@
     <c-system-editor-auth-bg-screen
       :settings="getAuthBackground"
       :can-manage="canManage"
+      :processing="authBackground.processing"
+      :success="authBackground.success"
       class="mt-3"
       @onUpload="onBackgroundImageUpload"
       @resetAttachment="onResetBackgroundImage"

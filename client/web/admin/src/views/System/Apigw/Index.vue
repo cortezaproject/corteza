@@ -11,6 +11,8 @@
     >
       <c-settings-editor
         :settings="apigwSettings"
+        :processing="settings.processing"
+        :success="settings.success"
         class="mb-3"
         @submit="onSettingsSubmit"
       />

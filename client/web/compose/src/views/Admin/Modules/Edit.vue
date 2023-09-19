@@ -439,6 +439,8 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :processing="processing"
+        :processing-save="processingSave"
+        :processing-save-and-close="processingSaveAndClose"
         :hide-delete="hideDelete"
         hide-clone
         :hide-save="hideSave"
@@ -521,6 +523,8 @@ export default {
       initialModuleState: undefined,
       hasRecords: true,
       processing: false,
+      processingSave: false,
+      processingSaveAndClose: false,
 
       federationSettings: {
         modal: false,
@@ -768,6 +772,12 @@ export default {
       const resourceTranslationLanguage = this.currentLanguage
       this.processing = true
 
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = true
+      } else {
+        this.processingSave = true
+      }
+
       if (!this.isEdit) {
         // Filter out record fields that reference this not yet created module
         let fields = []
@@ -807,6 +817,12 @@ export default {
         }).catch(this.toastErrorHandler(this.$t('notification:module.saveFailed')))
           .finally(() => {
             this.processing = false
+
+            if (closeOnSuccess) {
+              this.processingSaveAndClose = false
+            } else {
+              this.processingSave = false
+            }
           })
       } else {
         this.updateModule({ ...this.module, resourceTranslationLanguage }).then(module => {
@@ -820,6 +836,12 @@ export default {
         }).catch(this.toastErrorHandler(this.$t('notification:module.saveFailed')))
           .finally(() => {
             this.processing = false
+
+            if (closeOnSuccess) {
+              this.processingSaveAndClose = false
+            } else {
+              this.processingSave = false
+            }
           })
       }
     },
@@ -876,6 +898,8 @@ export default {
       this.initialModuleState = undefined
       this.hasRecords = true
       this.processing = false
+      this.processingSaveAndClose = false
+      this.processingSave = false
       this.federationSettings = {}
       this.discoverySettings = {}
       this.abortableRequests = []

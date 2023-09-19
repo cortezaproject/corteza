@@ -116,17 +116,13 @@
             placeholder=""
           />
           <b-input-group-append>
-            <c-submit-button
-              button-class="px-4"
-              variant="outline-primary"
-              icon-variant="text-primary"
+            <c-button-submit
               :disabled="!pair.url"
+              :text="$t('pair.confirm')"
               :processing="pair.processing"
               :success="pair.success"
               @submit="pairNode()"
-            >
-              {{ $t('pair.confirm') }}
-            </c-submit-button>
+            />
           </b-input-group-append>
         </b-input-group>
 
@@ -171,16 +167,12 @@
           </h2>
         </div>
 
-        <c-submit-button
-          button-class="px-5 mt-4"
-          variant="outline-primary"
-          icon-variant="text-primary"
+        <c-button-submit
           :processing="pair.processing"
           :success="pair.success"
+          :text="$t('pair.confirm')"
           @submit="confirmPending()"
-        >
-          {{ $t('pair.confirm') }}
-        </c-submit-button>
+        />
       </div>
     </b-modal>
   </b-container>
@@ -190,7 +182,6 @@
 import moment from 'moment'
 import { mapGetters } from 'vuex'
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import { components } from '@cortezaproject/corteza-vue'
 const { CResourceList } = components
 
@@ -203,7 +194,6 @@ export default {
   },
 
   components: {
-    CSubmitButton,
     CResourceList,
   },
 

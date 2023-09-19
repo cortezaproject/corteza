@@ -255,8 +255,11 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :hide-save="!page.canUpdatePage"
-        :processing="processing"
         hide-clone
+        :processing="processing"
+        :processing-save="processingSave"
+        :processing-save-and-close="processingSaveAndClose"
+        :processing-clone="processingClone"
         @save="handleSaveLayout()"
         @delete="handleDeleteLayout()"
         @saveAndClose="handleSaveLayout({ closeOnSuccess: true })"
@@ -361,6 +364,9 @@ export default {
       title: '',
 
       processing: false,
+      processingSave: false,
+      processingSaveAndClose: false,
+      processingClone: false,
 
       processingLayout: false,
 
@@ -798,6 +804,12 @@ export default {
 
       this.processing = true
 
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = true
+      } else {
+        this.processingSave = true
+      }
+
       return Promise.all([
         this.findPageByID({ ...this.page, force: true }),
         this.findLayoutByID({ ...this.layout }),
@@ -839,12 +851,19 @@ export default {
         this.setLayout(layout.pageLayoutID, false)
       }).finally(() => {
         this.processing = false
+
+        if (closeOnSuccess) {
+          this.processingSaveAndClose = false
+        } else {
+          this.processingSave = false
+        }
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
     },
 
     async handleCloneLayout ({ ref = false }) {
       this.processing = true
       this.processingLayout = true
+      this.processingClone = true
 
       const layout = {
         ...this.layout.clone(),
@@ -894,6 +913,7 @@ export default {
       }).finally(() => {
         this.processing = false
         this.processingLayout = false
+        this.processingClone = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.clone.failed')))
     },
 
@@ -1056,6 +1076,9 @@ export default {
     setDefaultValues () {
       this.title = ''
       this.processing = false
+      this.processingSaveAndClose = false
+      this.processingSave = false
+      this.processingClone = false
       this.processingLayout = false
       this.page = undefined
       this.layout = undefined

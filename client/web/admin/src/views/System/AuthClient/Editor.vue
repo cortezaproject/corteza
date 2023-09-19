@@ -155,6 +155,7 @@ export default {
             this.authclient = new system.AuthClient(ac)
             this.initialAuthclientState = this.authclient.clone()
 
+            this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:authclient.update.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:authclient.update.error')))
@@ -167,6 +168,7 @@ export default {
             this.authclient = new system.AuthClient(ac)
             this.initialAuthclientState = this.authclient.clone()
             const { authClientID } = ac
+
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:authclient.create.success'))
 

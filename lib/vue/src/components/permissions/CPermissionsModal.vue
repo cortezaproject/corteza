@@ -7,15 +7,10 @@
       :title="translatedTitle"
       lazy
       scrollable
-      :ok-disabled="submitDisabled"
-      :ok-title="labels.save"
-      :cancel-title="labels.cancel"
-      cancel-variant="light"
       no-fade
       body-class="d-flex flex-column p-0"
       class="h-100 overflow-hidden"
       @hide="onHide"
-      @ok="onSubmit"
     >
       <b-row
         no-gutters
@@ -165,6 +160,24 @@
           class="d-none d-lg-block pt-4 border-left"
         />
       </b-row>
+
+      <template #modal-footer>
+        <b-button
+          data-test-id="button-cancel"
+          variant="light"
+          @click="onHide"
+        >
+          {{ labels.cancel }}
+        </b-button>
+
+        <c-button-submit
+          data-test-id="button-save"
+          :disabled="submitDisabled"
+          :processing="processing"
+          :button-text="labels.save"
+          @submit="onSubmit"
+        />
+      </template>
     </b-modal>
 
     <b-modal
@@ -219,6 +232,24 @@
           @search="searchUsers"
         />
       </b-form-group>
+      <template #modal-footer>
+        <b-button
+          data-test-id="button-cancel"
+          variant="light"
+          @click="onHide"
+        >
+          {{ labels.cancel }}
+        </b-button>
+
+        <c-button-submit
+          v-if="false"
+          data-test-id="button-save"
+          :disabled="submitDisabled"
+          :processing="processing"
+          :button-text="labels.save"
+          @submit="onSubmit"
+        />
+      </template>
     </b-modal>
   </div>
 </template>
@@ -399,6 +430,7 @@ export default {
         this.fetchRules(roleID)
       }).finally(() => {
         this.processing = false
+        this.onHide()
       })
     },
 

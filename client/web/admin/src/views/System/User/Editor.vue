@@ -155,18 +155,22 @@ export default {
         processing: false,
         success: false,
       },
+
       avatar: {
         processing: false,
         success: false,
       },
+
       password: {
         processing: false,
         success: false,
       },
+
       mfa: {
         processing: false,
         success: false,
       },
+
       roles: {
         processing: false,
         success: false,

@@ -196,26 +196,18 @@
         class="d-flex flex-column flex-shrink position-absolute fixed-bottom m-2"
         style="z-index: 1; width: 20vw;"
       >
-        <b-button
+        <c-button-submit
           v-if="changeDetected"
+          data-test-id="button-save-workflow"
           variant="dark"
-          :disabled="processingSave || !canUpdateWorkflow"
           block
+          :disabled="processing || !canUpdateWorkflow"
+          :processing="processingSave"
+          :text="$t('editor:detected-changes') + `${canUpdateWorkflow ? this.$t('editor:click-to-save') : ''}`"
+          :loading-text="$t('editor:saving')"
           class="rounded-0 py-2 px-3"
-          @click="saveWorkflow()"
-        >
-          <span
-            v-if="processingSave"
-            class="saving mx-2"
-          >
-            Saving
-          </span>
-          <span
-            v-else
-          >
-            {{ $t('editor:detected-changes') + `${canUpdateWorkflow ? this.$t('editor:click-to-save') : ''}` }}
-          </span>
-        </b-button>
+          @submit="saveWorkflow()"
+        />
       </div>
 
       <div
@@ -383,15 +375,14 @@
             {{ $t('editor:back') }}
           </b-button>
 
-          <b-button
-            variant="primary"
+          <c-button-submit
             data-test-id="button-save-workflow"
-            class="ml-auto"
             :disabled="canSave"
-            @click="saveWorkflow()"
-          >
-            {{ $t('editor:save') }}
-          </b-button>
+            :processing="processingSave"
+            :text="$t('editor:save')"
+            class="ml-auto"
+            @submit="saveWorkflow()"
+          />
         </div>
       </template>
     </b-modal>

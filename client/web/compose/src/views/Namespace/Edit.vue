@@ -284,6 +284,8 @@
 
     <editor-toolbar
       :processing="processing"
+      :processing-save="processingSave"
+      :processing-save-and-close="processingSaveAndClose"
       :hide-delete="hideDelete"
       :hide-clone="!isEdit"
       :hide-save="hideSave"
@@ -349,6 +351,8 @@ export default {
   data () {
     return {
       processing: false,
+      processingSave: false,
+      processingSaveAndClose: false,
 
       namespace: undefined,
       initialNamespaceState: undefined,
@@ -550,6 +554,12 @@ export default {
     async handleSave ({ closeOnSuccess = false } = {}) {
       this.processing = true
 
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = true
+      } else {
+        this.processingSave = true
+      }
+
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
@@ -591,6 +601,12 @@ export default {
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.saveFailed'))(e)
           this.processing = false
+
+          if (closeOnSuccess) {
+            this.processingSaveAndClose = false
+          } else {
+            this.processingSave = false
+          }
           return
         }
       } else if (this.isClone) {
@@ -614,6 +630,12 @@ export default {
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.createFailed'))(e)
           this.processing = false
+
+          if (closeOnSuccess) {
+            this.processingSaveAndClose = false
+          } else {
+            this.processingSave = false
+          }
           return
         }
       }
@@ -625,6 +647,12 @@ export default {
       this.isApplicationInitialState = this.isApplication
 
       this.processing = false
+
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = false
+      } else {
+        this.processingSave = false
+      }
 
       if (closeOnSuccess) {
         this.$router.push(this.previousPage || { name: 'namespace.manage' })
@@ -757,6 +785,8 @@ export default {
 
     setDefaultValues () {
       this.processing = false
+      this.processingSaveAndClose = false
+      this.processingSave = false
       this.namespace = undefined
       this.initialNamespaceState = undefined
       this.namespaceAssets = {}

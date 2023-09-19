@@ -120,22 +120,22 @@
     </template>
 
     <template #footer>
-      <c-submit-button
+      <c-button-submit
+        data-test-id="button-smtp"
         :disabled="disabled"
-        :processing="processing"
-        :success="success"
-        :cypress-i-d="'button-smtp'"
+        :processing="processingSMTPTest"
+        :success="successSMTPTest"
+        :text="$t('testSmtpConfigs.button')"
         variant="light"
         class="float-left"
         @submit="smtpConnectionCheck()"
-      >
-        {{ $t('testSmtpConfigs.button') }}
-      </c-submit-button>
+      />
 
-      <c-submit-button
+      <c-button-submit
         :disabled="disabled"
         :processing="processing"
         :success="success"
+        :text="$t('admin:general.label.submit')"
         class="float-right"
         @submit="submit()"
       />
@@ -145,7 +145,6 @@
 
 <script>
 import Vue from 'vue'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 
 export default {
   name: 'CComposeEditorBasic',
@@ -153,10 +152,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.email',
     keyPrefix: 'editor.server',
-  },
-
-  components: {
-    CSubmitButton,
   },
 
   props: {
@@ -170,7 +165,17 @@ export default {
       value: false,
     },
 
+    processingSMTPTest: {
+      type: Boolean,
+      value: false,
+    },
+
     success: {
+      type: Boolean,
+      value: false,
+    },
+
+    successSMTPTest: {
       type: Boolean,
       value: false,
     },

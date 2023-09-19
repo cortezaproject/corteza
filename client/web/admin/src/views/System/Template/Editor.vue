@@ -213,6 +213,7 @@ export default {
             this.template = new system.Template(template)
             this.initialTemplateState = this.template.clone()
 
+            this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:template.update.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:template.update.error')))

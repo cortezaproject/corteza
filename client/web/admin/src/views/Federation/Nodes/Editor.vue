@@ -57,17 +57,13 @@
           placeholder="email@example.com"
         />
         <b-input-group-append>
-          <c-submit-button
-            button-class="px-4"
-            variant="outline-primary"
-            icon-variant="text-primary"
+          <c-button-submit
+            :disabled="!generate.url || !generate.email"
             :processing="generate.processing"
             :success="generate.success"
-            :disabled="!generate.url || !generate.email"
+            :text="$t('generate.sendEmail')"
             @submit="sendEmail()"
-          >
-            {{ $t('generate.sendEmail') }}
-          </c-submit-button>
+          />
         </b-input-group-append>
       </b-input-group>
 
@@ -130,7 +126,6 @@
 import { mapGetters } from 'vuex'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CFederationEditorInfo from 'corteza-webapp-admin/src/components/Federation/CFederationEditorInfo'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import { cloneDeep, isEqual } from 'lodash'
 
 export default {
@@ -141,7 +136,6 @@ export default {
 
   components: {
     CFederationEditorInfo,
-    CSubmitButton,
   },
 
   mixins: [

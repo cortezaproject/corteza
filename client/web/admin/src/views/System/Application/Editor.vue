@@ -94,10 +94,12 @@ export default {
         processing: false,
         success: false,
       },
+
       unify: {
         processing: false,
         success: false,
       },
+
       unifyAssetStateChange: false,
     }
   },
@@ -260,6 +262,7 @@ export default {
 
             this.unifyAssetStateChange = false
 
+            this.animateSuccess('unify')
             this.toastSuccess(this.$t('notification:application.update.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:application.update.error')))

@@ -247,16 +247,13 @@
     <b-modal
       v-model="datasources.showConfigurator"
       :title="$t('builder:datasources.label')"
-      :ok-title="$t('general:label.saveAndClose')"
-      ok-variant="primary"
-      :ok-disabled="datasourceSaveDisabled"
       cancel-variant="link"
       :cancel-disabled="datasources.processing"
       scrollable
       size="xl"
       body-class="py-3"
       no-fade
-      @ok="saveDatasources"
+      @hide="hideDatasourceConfigurator"
     >
       <configurator
         v-if="report"
@@ -286,6 +283,16 @@
           />
         </template>
       </configurator>
+
+      <template #modal-footer>
+        <c-button-submit
+          data-test-id="button-save"
+          :disabled="datasourceSaveDisabled"
+          :processing="datasources.processing"
+          :text="$t('general:label.saveAndClose')"
+          @submit="saveDatasources"
+        />
+      </template>
     </b-modal>
 
     <b-modal
@@ -363,6 +370,7 @@
         :delete-disabled="!canDelete"
         :save-disabled="!canUpdate"
         :processing="processing"
+        :processing-save="processingSave"
         @delete="handleDelete"
         @save="handleReportSave"
       >
@@ -421,6 +429,8 @@ export default {
   data () {
     return {
       processing: false,
+      processingSave: false,
+
       showReport: true,
 
       report: undefined,
@@ -807,9 +817,8 @@ export default {
       this.datasources.showConfigurator = true
     },
 
-    saveDatasources (hideEvent) {
+    saveDatasources () {
       // Prevent closing of modal and manually close it when request is complete
-      hideEvent.preventDefault()
       this.datasources.processing = true
 
       const sources = this.datasources.tempItems
@@ -822,7 +831,7 @@ export default {
         report.scenarios = this.report.scenarios
         this.report = new system.Report(report)
         this.refreshReport()
-        this.datasources.showConfigurator = false
+        this.hideDatasourceConfigurator()
         this.toastSuccess(this.$t('notification:report.datasources.updated'))
       }).catch(this.toastErrorHandler(this.$t('notification:report.datasources.updateFailed')))
         .finally(() => {
@@ -832,6 +841,8 @@ export default {
 
     // Blocks
     handleReportSave () {
+      this.processingSave = true
+
       this.report.blocks = this.reportBlocks.map(({ moved, x, y, w, h, i, ...p }) => {
         return { ...p, key: `${i}`, xywh: [x, y, w, h] }
       })
@@ -841,6 +852,9 @@ export default {
           this.mapBlocks()
           this.refreshReport()
           this.unsavedBlocks.clear()
+        })
+        .finally(() => {
+          this.processingSave = false
         })
     },
 

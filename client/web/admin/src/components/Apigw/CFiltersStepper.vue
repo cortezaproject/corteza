@@ -53,10 +53,11 @@
           :filters="getSelectedFiltersByStep"
           @addFilter="onAddFilter"
         />
-        <c-submit-button
+        <c-button-submit
+          :disabled="disabled"
           :processing="processing"
           :success="success"
-          :disabled="disabled"
+          :text="$t('admin:general.label.submit')"
           @submit="$emit('submit')"
         />
       </div>
@@ -65,7 +66,6 @@
 </template>
 <script>
 import CFilterModal from 'corteza-webapp-admin/src/components/Apigw/CFilterModal'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import CFiltersTable from 'corteza-webapp-admin/src/components/Apigw/CFiltersTable'
 import CFiltersDropdown from 'corteza-webapp-admin/src/components/Apigw/CFiltersDropdown'
 
@@ -78,31 +78,36 @@ const mapKindToStep = {
 export default {
   components: {
     CFilterModal,
-    CSubmitButton,
     CFiltersTable,
     CFiltersDropdown,
   },
+
   props: {
     fetching: {
       type: Boolean,
       value: false,
     },
+
     processing: {
       type: Boolean,
       value: false,
     },
+
     success: {
       type: Boolean,
       value: false,
     },
+
     filters: {
       type: Array,
       required: true,
     },
+
     availableFilters: {
       type: Array,
       required: true,
     },
+
     steps: {
       type: Array,
       required: true,

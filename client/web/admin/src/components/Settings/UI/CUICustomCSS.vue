@@ -45,10 +45,11 @@
     </b-modal>
 
     <template #footer>
-      <c-submit-button
+      <c-button-submit
         :disabled="!canManage"
         :processing="processing"
         :success="success"
+        :text="$t('admin:general.label.submit')"
         class="float-right mt-2"
         @submit="onSubmit"
       />
@@ -57,7 +58,6 @@
 </template>
 
 <script>
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import { components } from '@cortezaproject/corteza-vue'
 const { CAceEditor } = components
 
@@ -70,7 +70,6 @@ export default {
   },
 
   components: {
-    CSubmitButton,
     CAceEditor,
   },
 

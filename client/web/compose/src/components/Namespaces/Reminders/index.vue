@@ -13,6 +13,8 @@
       v-else
       :edit="edit"
       :users="users"
+      :disable-save="disableSave"
+      :processing-save="processingSave"
       class="flex-fill"
       @dismiss="onDismiss"
       @back="onCancel()"
@@ -37,6 +39,8 @@ export default {
     return {
       reminders: [],
       edit: null,
+      disableSave: false,
+      processingSave: false,
     }
   },
 
@@ -55,9 +59,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.$root.$off('reminders.pull', this.fetchReminders)
-    this.$root.$off('reminder.updated', this.fetchReminders)
-    this.$root.$off('reminder.create', this.onEdit)
+    this.destroyEvents()
+    this.setDefaultValues()
   },
 
   methods: {
@@ -76,12 +79,16 @@ export default {
     },
 
     onSave (r) {
+      this.processingSave = true
       const endpoint = r.reminderID && r.reminderID !== NoID ? 'reminderUpdate' : 'reminderCreate'
+
       this.$SystemAPI[endpoint](r).then(() => {
         return this.fetchReminders()
       }).then(() => {
         this.onCancel()
         this.$Reminder.prefetch()
+      }).finally(() => {
+        this.processingSave = false
       })
     },
 
@@ -109,6 +116,19 @@ export default {
       }).then(({ set: reminders = [] }) => {
         this.reminders = reminders.map(r => new system.Reminder(r))
       })
+    },
+
+    setDefaultValues () {
+      this.reminder = []
+      this.edit = null
+      this.disableSave = false
+      this.processingSave = false
+    },
+
+    destroyEvents () {
+      this.$root.$off('reminders.pull', this.fetchReminders)
+      this.$root.$off('reminder.updated', this.fetchReminders)
+      this.$root.$off('reminder.create', this.onEdit)
     },
   },
 

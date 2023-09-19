@@ -412,6 +412,8 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :processing="processing"
+        :processing-save="processingSave"
+        :processing-save-and-close="processingSaveAndClose"
         :hide-delete="hideDelete"
         :hide-save="hideSave"
         hide-clone
@@ -489,6 +491,8 @@ export default {
       chart: undefined,
       initialChartState: undefined,
       processing: false,
+      processingSave: false,
+      processingSaveAndClose: false,
 
       editReportIndex: undefined,
 
@@ -757,6 +761,14 @@ export default {
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
+      this.processing = true
+
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = true
+      } else {
+        this.processingSave = true
+      }
+
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
@@ -774,7 +786,17 @@ export default {
           } else {
             this.$router.push({ name: 'admin.charts.edit', params: { chartID: chartID } })
           }
-        }).catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
+        })
+          .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
+          .finally(() => {
+            this.processing = false
+
+            if (closeOnSuccess) {
+              this.processingSaveAndClose = false
+            } else {
+              this.processingSave = false
+            }
+          })
       } else {
         this.updateChart(c).then((chart) => {
           this.chart = chartConstructor(chart)
@@ -783,15 +805,29 @@ export default {
           if (closeOnSuccess) {
             this.redirect()
           }
-        }).catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
+        })
+          .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
+          .finally(() => {
+            this.processing = false
+
+            if (closeOnSuccess) {
+              this.processingSaveAndClose = false
+            } else {
+              this.processingSave = false
+            }
+          })
       }
     },
 
     handleDelete () {
+      this.processing = true
+
       this.deleteChart(this.chart).then(() => {
         this.toastSuccess(this.$t('notification:chart.deleted'))
         this.$router.push({ name: 'admin.charts' })
-      }).catch(this.toastErrorHandler(this.$t('notification:chart.deleteFailed')))
+      })
+        .catch(this.toastErrorHandler(this.$t('notification:chart.deleteFailed')))
+        .finally(() => { this.processing = false })
     },
 
     redirect () {

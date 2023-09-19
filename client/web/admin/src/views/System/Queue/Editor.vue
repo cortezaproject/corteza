@@ -158,6 +158,7 @@ export default {
 
     onSubmit (queue) {
       this.incLoader()
+
       if (this.queueID) {
         this.$SystemAPI.queuesUpdate(queue)
           .then(queue => {

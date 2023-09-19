@@ -43,11 +43,12 @@
         </template>
 
         <template #footer>
-          <c-submit-button
+          <c-button-submit
             :disabled="!canCreate"
-            class="float-right"
             :processing="processing"
             :success="success"
+            :text="$t('admin:general.label.submit')"
+            class="float-right"
             @submit="$emit('submit', template)"
           />
         </template>
@@ -116,21 +117,19 @@
 </template>
 
 <script>
+import 'brace/mode/json'
+import 'brace/theme/chrome'
+
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import EditorToolbox from './EditorToolbox'
 import EditorTextHtml from './EditorTextHtml'
 import EditorTextPlain from './EditorTextPlain'
 import EditorUnsupported from './EditorUnsupported'
 import { Ace as AceEditor } from 'vue2-brace-editor'
 
-import 'brace/mode/json'
-import 'brace/theme/chrome'
-
 export default {
 
   components: {
-    CSubmitButton,
     AceEditor,
     EditorToolbox,
   },

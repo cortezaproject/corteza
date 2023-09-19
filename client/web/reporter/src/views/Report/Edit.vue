@@ -168,6 +168,7 @@
         :delete-disabled="!canDelete"
         :save-disabled="!canSave"
         :processing="processing"
+        :processing-save="processingSave"
         @delete="handleDelete"
         @save="handleSave"
       />

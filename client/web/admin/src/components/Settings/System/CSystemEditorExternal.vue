@@ -83,11 +83,12 @@
     </template>
 
     <template #footer>
-      <c-submit-button
-        class="float-right"
+      <c-button-submit
         :disabled="!dirty || !canManage"
         :processing="processing"
         :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="float-right"
         @submit="$emit('submit', changes)"
       />
     </template>
@@ -96,7 +97,6 @@
 
 <script>
 import _ from 'lodash'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import OidcExternal from 'corteza-webapp-admin/src/components/Settings/System/Auth/ExternalOIDC'
 import StandardExternal from 'corteza-webapp-admin/src/components/Settings/System/Auth/ExternalStd'
 import SamlExternal from 'corteza-webapp-admin/src/components/Settings/System/Auth/ExternalSAML'
@@ -224,7 +224,6 @@ export default {
   },
 
   components: {
-    CSubmitButton,
     OidcExternal,
     StandardExternal,
     SamlExternal,

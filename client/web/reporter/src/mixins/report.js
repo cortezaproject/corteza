@@ -4,6 +4,7 @@ export default {
   data () {
     return {
       processing: false,
+      processingSave: false,
       report: undefined,
     }
   },
@@ -25,6 +26,7 @@ export default {
 
     async handleSave () {
       this.processing = true
+      this.processingSave = true
 
       const { blocks } = this.report
 
@@ -53,6 +55,7 @@ export default {
           .catch(this.toastErrorHandler(this.$t('notification:report.createFailed')))
           .finally(() => {
             this.processing = false
+            this.processingSave = false
           })
       } else {
         return this.$SystemAPI.reportUpdate(report)
@@ -65,6 +68,7 @@ export default {
           .catch(this.toastErrorHandler(this.$t('notification:report.updateFailed')))
           .finally(() => {
             this.processing = false
+            this.processingSave = false
           })
       }
     },

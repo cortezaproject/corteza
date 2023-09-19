@@ -143,6 +143,7 @@ export default {
             this.sensitivityLevel = sensitivityLevel
             this.initialSensitivityLevelState = cloneDeep(sensitivityLevel)
 
+            this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:sensitivityLevel.update.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:sensitivityLevel.update.error')))

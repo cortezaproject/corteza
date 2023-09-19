@@ -859,6 +859,9 @@
         :hide-save="hideSave"
         :disable-save="disableSave"
         :processing="processing"
+        :processing-save="processingSave"
+        :processing-save-and-close="processingSaveAndClose"
+        :processing-clone="processingClone"
         @clone="handleClone()"
         @delete="handleDeletePage()"
         @save="handleSave()"
@@ -941,6 +944,9 @@ export default {
     return {
       processing: false,
       processingIcon: false,
+      processingSave: false,
+      processingSaveAndClose: false,
+      processingClone: false,
 
       page: new compose.Page(),
       initialPageState: new compose.Page(),
@@ -1229,6 +1235,12 @@ export default {
     handleSave ({ closeOnSuccess = false } = {}) {
       this.processing = true
 
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = true
+      } else {
+        this.processingSave = true
+      }
+
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
@@ -1254,6 +1266,12 @@ export default {
           }
         }).finally(() => {
           this.processing = false
+
+          if (closeOnSuccess) {
+            this.processingSaveAndClose = false
+          } else {
+            this.processingSave = false
+          }
         }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 
@@ -1383,6 +1401,9 @@ export default {
 
     setDefaultValues () {
       this.processing = false
+      this.processingSaveAndClose = false
+      this.processingSave = false
+      this.processingClone = false
       this.page = {}
       this.initialPageState = {}
       this.showIconModal = false

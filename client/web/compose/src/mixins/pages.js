@@ -2,6 +2,12 @@ import { NoID } from '@cortezaproject/corteza-js'
 import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
 export default {
+  data () {
+    return {
+      processingClone: false,
+    }
+  },
+
   methods: {
     countDuplicateTitles (pages, pattern) {
       let substrTitle = this.page.title
@@ -18,6 +24,7 @@ export default {
     },
 
     handleClone () {
+      this.processingClone = true
       const { namespaceID = NoID } = this.namespace
       const pattern = /\([0-9]+\)/
 
@@ -78,6 +85,7 @@ export default {
           this.$router.push({ name: this.$route.name, params: { pageID } })
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
+        .finally(() => { this.processingClone = false })
     },
 
     cloneLayouts (pageID) {

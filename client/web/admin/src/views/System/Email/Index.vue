@@ -9,8 +9,10 @@
     <c-system-email-server
       :key="JSON.stringify(server)"
       v-model="server"
-      :processing="auth.processing"
-      :success="auth.success"
+      :processing="external.processing"
+      :processing-smtp-test="auth.processing"
+      :success="external.success"
+      :success-smtp-tes="auth.success"
       :disabled="!canManage"
       @submit="onEmailServerSubmit($event)"
       @smtpConnectionCheck="onSmtpConnectionCheck($event)"

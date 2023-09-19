@@ -24,6 +24,7 @@ reset: Reset
 'required-namespace': Namespace required
 'required-namespace-and-module': Namespace and Module required
 save: Save
+saving: Saving
 spinning: Spinning
 'test-in-progress': "Testing in progress. If your workflow includes Prompt or Delay steps, it may be waiting for them to complete"
 'unsupported-browser': Browser is not supported!

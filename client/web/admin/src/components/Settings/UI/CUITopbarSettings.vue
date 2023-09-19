@@ -200,11 +200,12 @@
     </b-form>
 
     <template #footer>
-      <c-submit-button
-        class="float-right"
+      <c-button-submit
         :disabled="!canManage"
         :processing="processing"
         :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="float-right"
         @submit="onSubmit"
       />
     </template>
@@ -212,7 +213,6 @@
 </template>
 
 <script>
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 
 export default {
   name: 'CUITopbarSettings',
@@ -220,10 +220,6 @@ export default {
   i18nOptions: {
     namespaces: 'ui.settings',
     keyPrefix: 'editor.topbar',
-  },
-
-  components: {
-    CSubmitButton,
   },
 
   props: {

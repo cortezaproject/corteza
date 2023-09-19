@@ -137,13 +137,13 @@
         {{ $t('label.back') }}
       </b-button>
 
-      <b-button
+      <c-button-submit
         data-test-id="button-save"
-        variant="primary"
-        @click="$emit('save', reminder)"
-      >
-        {{ $t('label.save') }}
-      </b-button>
+        :disabled="disableSave"
+        :processing="processingSave"
+        :text="$t('label.save')"
+        @submit="$emit('save', reminder)"
+      />
     </div>
   </div>
 </template>
@@ -164,6 +164,7 @@ export default {
     VueSelect,
     CInputDateTime,
   },
+
   props: {
     edit: {
       type: Object,
@@ -175,6 +176,16 @@ export default {
       type: Array,
       required: true,
       default: () => [],
+    },
+
+    disableSave: {
+      type: Boolean,
+      default: false,
+    },
+
+    processingSave: {
+      type: Boolean,
+      default: false,
     },
   },
 

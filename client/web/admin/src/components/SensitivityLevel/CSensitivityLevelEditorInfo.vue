@@ -126,11 +126,12 @@
     </template>
 
     <template #footer>
-      <c-submit-button
-        class="float-right"
+      <c-button-submit
+        :disabled="saveDisabled"
         :processing="processing"
         :success="success"
-        :disabled="saveDisabled"
+        :text="$t('admin:general.label.submit')"
+        class="float-right"
         @submit="$emit('submit', sensitivityLevel)"
       />
 
@@ -148,7 +149,6 @@
 import { NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
 import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 
 export default {
   name: 'CSensitivityLevelEditorInfo',
@@ -160,7 +160,6 @@ export default {
 
   components: {
     ConfirmationToggle,
-    CSubmitButton,
   },
 
   props: {

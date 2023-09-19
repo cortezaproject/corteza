@@ -56,10 +56,11 @@
     </template>
 
     <template #footer>
-      <c-submit-button
-        class="float-right"
+      <c-button-submit
         :processing="processing"
         :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="float-right"
         @submit="$emit('submit')"
       />
     </template>
@@ -69,7 +70,6 @@
 <script>
 import { debounce } from 'lodash'
 import { VueSelect } from 'vue-select'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import { components } from '@cortezaproject/corteza-vue/'
 const { CInputConfirm } = components
 
@@ -80,7 +80,6 @@ export default {
   },
 
   components: {
-    CSubmitButton,
     VueSelect,
     CInputConfirm,
   },

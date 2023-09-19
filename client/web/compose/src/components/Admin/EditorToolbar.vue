@@ -47,44 +47,41 @@
         >
           {{ $t('label.delete') }}
         </c-input-confirm>
-
         <slot name="saveAsCopy" />
-        <b-button
+
+        <c-button-submit
           v-if="!hideClone"
           data-test-id="button-clone"
-          :title="cloneTooltip"
           :disabled="disableClone || processing"
+          :title="cloneTooltip"
+          :processing="processingClone"
           variant="light"
+          :text="$t('label.saveAsCopy')"
           size="lg"
           class="ml-2"
-          @click="$emit('clone')"
-        >
-          {{ $t('label.saveAsCopy') }}
-        </b-button>
-
-        <b-button
+          @submit="$emit('clone')"
+        />
+        <c-button-submit
           v-if="!hideSave"
           data-test-id="button-save-and-close"
           :disabled="disableSave || processing"
+          :processing="processingSaveAndClose"
           variant="light"
+          :text="$t('label.saveAndClose')"
           size="lg"
           class="ml-2"
-          @click.prevent="$emit('saveAndClose')"
-        >
-          {{ $t('label.saveAndClose') }}
-        </b-button>
-
-        <b-button
+          @submit="$emit('saveAndClose')"
+        />
+        <c-button-submit
           v-if="!hideSave"
           data-test-id="button-save"
           :disabled="disableSave || processing"
-          variant="primary"
+          :processing="processingSave"
+          :text="$t('label.save')"
           size="lg"
           class="ml-2"
-          @click.prevent="$emit('save')"
-        >
-          {{ $t('label.save') }}
-        </b-button>
+          @submit="$emit('save')"
+        />
       </div>
     </b-row>
   </b-container>
@@ -103,42 +100,66 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    processingSave: {
+      type: Boolean,
+      default: false,
+    },
+
+    processingSaveAndClose: {
+      type: Boolean,
+      default: false,
+    },
+
+    processingClone: {
+      type: Boolean,
+      default: false,
+    },
+
     backLink: {
       type: Object,
       required: false,
       default: undefined,
     },
+
     hideDelete: {
       type: Boolean,
       required: false,
     },
+
     hideSave: {
       type: Boolean,
       required: false,
     },
+
     hideClone: {
       type: Boolean,
       required: false,
     },
+
     disableDelete: {
       type: Boolean,
       required: false,
       default: false,
     },
+
     disableSave: {
       type: Boolean,
       required: false,
       default: false,
     },
+
     disableClone: {
       type: Boolean,
       default: false,
     },
+
     deleteTooltip: {
       type: String,
       required: false,
       default: '',
     },
+
     cloneTooltip: {
       type: String,
       default: '',

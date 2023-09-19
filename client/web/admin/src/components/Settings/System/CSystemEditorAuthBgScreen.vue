@@ -63,10 +63,11 @@
             }"
           />
 
-          <c-submit-button
+          <c-button-submit
             :disabled="!canManage"
             :processing="processing"
             :success="success"
+            :text="$t('admin:general.label.submit')"
             class="float-right mt-2"
             @submit="$emit('submit', settings['auth.ui.styles'])"
           />
@@ -77,12 +78,11 @@
 </template>
 
 <script>
-import { Ace as AceEditor } from 'vue2-brace-editor'
-import CUploaderWithPreview from 'corteza-webapp-admin/src/components/CUploaderWithPreview'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
-
 import 'brace/mode/css'
 import 'brace/theme/chrome'
+
+import { Ace as AceEditor } from 'vue2-brace-editor'
+import CUploaderWithPreview from 'corteza-webapp-admin/src/components/CUploaderWithPreview'
 
 export default {
   name: 'CSystemEditorAuthBgImage',
@@ -95,7 +95,6 @@ export default {
   components: {
     CUploaderWithPreview,
     AceEditor,
-    CSubmitButton,
   },
 
   props: {

@@ -85,11 +85,12 @@
     </template>
 
     <template #footer>
-      <c-submit-button
-        class="float-right"
+      <c-button-submit
         :disabled="!canManage"
         :processing="processing"
         :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="float-right"
         @submit="$emit('submit', basic)"
       />
     </template>
@@ -97,7 +98,6 @@
 </template>
 
 <script>
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 
 export default {
   name: 'CComposeEditorBasic',
@@ -105,10 +105,6 @@ export default {
   i18nOptions: {
     namespaces: 'compose.settings',
     keyPrefix: 'editor.basic',
-  },
-
-  components: {
-    CSubmitButton,
   },
 
   props: {

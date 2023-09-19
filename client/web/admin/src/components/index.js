@@ -33,6 +33,7 @@ Vue.component('font-awesome-icon', FontAwesomeIcon)
 Vue.component('c-content-header', CContentHeader)
 Vue.component('c-resource-list-status-filter', CResourceListStatusFilter)
 Vue.component('c-input-confirm', CInputConfirm)
+Vue.component('c-button-submit', components.CButtonSubmit)
 
 // Map things
 Vue.component('l-map', LMap)

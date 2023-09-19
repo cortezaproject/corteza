@@ -138,12 +138,12 @@
     </template>
 
     <template #footer>
-      <c-submit-button
-        data-test-id="button-submit"
-        class="float-right"
+      <c-button-submit
+        :disabled="disabled"
         :processing="processing"
         :success="success"
-        :disabled="disabled"
+        :text="$t('admin:general.label.submit')"
+        class="float-right"
         @submit="$emit('submit', { unify, unifyAssets })"
       />
     </template>
@@ -152,7 +152,6 @@
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 
 export default {
   name: 'CApplicationEditorUnify',
@@ -160,10 +159,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.applications',
     keyPrefix: 'editor.unify',
-  },
-
-  components: {
-    CSubmitButton,
   },
 
   props: {
