@@ -34,7 +34,7 @@
         @click="$emit('back')"
       >
         <font-awesome-icon
-          :icon="['fas', showRecordModal ? 'times' : 'chevron-left']"
+          :icon="['fas', 'chevron-left']"
           class="back-icon"
         />
         {{ $t('import.back') }}
