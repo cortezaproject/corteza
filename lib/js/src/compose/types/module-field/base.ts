@@ -4,8 +4,8 @@ import { Apply, CortezaID, NoID } from '../../../cast'
 
 export const FieldNameValidator = /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$/
 
-const unsortableFieldKinds = ['User', 'Record', 'File', 'Geometry']
-const unsortableSysFields = ['recordID', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy']
+const unsortableFieldKinds = ['File', 'Geometry']
+const unsortableSysFields = ['recordID']
 
 const unfilterableFieldKinds = ['File', 'Geometry']
 
@@ -126,16 +126,16 @@ export class ModuleField {
         ...this.options.description,
         ...o.description,
       }
-      
+
       this.options.description.edit = this.options.description.edit || undefined
     }
-    
+
     if (o.hint) {
       this.options.hint = {
         ...this.options.hint,
         ...o.hint,
       }
-      
+
       this.options.hint.edit = this.options.hint.edit || undefined
     }
   }
@@ -177,6 +177,7 @@ export class ModuleField {
     if (this.isSystem) {
       this.canUpdateRecordValue = true
       this.canReadRecordValue = true
+
       if (unsortableSysFields.includes(this.name)) {
         this.isSortable = false
       }
