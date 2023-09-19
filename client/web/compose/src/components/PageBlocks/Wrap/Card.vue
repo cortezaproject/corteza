@@ -2,7 +2,7 @@
   <div class="h-100">
     <b-card
       no-body
-      class="d-flex flex-column h-100 shadow overflow-hidden"
+      class="d-flex flex-column h-100 shadow overflow-hidden position-static"
       :class="[blockClass, cardClass]"
     >
       <b-card-header

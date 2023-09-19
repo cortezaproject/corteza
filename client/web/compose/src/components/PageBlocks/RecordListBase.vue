@@ -80,37 +80,36 @@
                 @export="onExport"
               />
 
-              <template v-if="filterPresets.length">
-                <b-button
-                  :id="`${uniqueID}-filter-preset`"
-                  variant="light"
-                  size="lg"
-                  class="mr-1"
+              <b-dropdown
+                v-if="filterPresets.length"
+                variant="light"
+                right
+                size="lg"
+                menu-class="shadow-sm"
+                boundary="viewport"
+                class="mr-1"
+                :text="$t('recordList.filter.filters.label')"
+              >
+                <li
+                  v-for="(f, idx) in filterPresets"
+                  :key="idx"
+                  class="d-flex align-items-center justify-content-between"
                 >
-                  {{ $t('recordList.filter.filters.label') }}
-                </b-button>
+                  <button
+                    class="dropdown-item"
+                    :disabled="activeFilters.includes(f.name)"
+                    @click="updateFilter(f.filter, f.name)"
+                  >
+                    {{ f.name }}
+                  </button>
 
-                <b-popover
-                  :target="`${uniqueID}-filter-preset`"
-                  triggers="click blur"
-                  placement="bottom"
-                >
-                  <ul class="list-style-none">
-                    <li
-                      v-for="(f, idx) in filterPresets"
-                      :key="idx"
-                    >
-                      <button
-                        class="dropdown-item"
-                        :disabled="activeFilters.includes(f.name)"
-                        @click="updateFilter(f.filter, f.name)"
-                      >
-                        {{ f.name }}
-                      </button>
-                    </li>
-                  </ul>
-                </b-popover>
-              </template>
+                  <c-input-confirm
+                    v-if="!f.roles"
+                    class="mr-1"
+                    @confirmed="removeStorageRecordListFilterPreset(f.name)"
+                  />
+                </li>
+              </b-dropdown>
 
               <column-picker
                 v-if="!options.hideConfigureFieldsButton"
@@ -153,7 +152,7 @@
                 variant="secondary"
                 pill
                 class="ml-2"
-                @remove="removeFilter(title)"
+                @remove="removeFilter(i)"
               />
             </b-form-tags>
           </div>
@@ -987,7 +986,7 @@ export default {
 
     filterPresets () {
       return [
-        ...this.options.filterPresets.filter(({ name }) => name),
+        ...this.options.filterPresets.filter(({ name, roles }) => name && this.isUserRoleMember(roles)),
         ...this.customPresetFilters,
       ]
     },
@@ -1691,6 +1690,16 @@ export default {
 
       try {
         setItem(`record-list-preset-${this.uniqueID}`, currentListFilters)
+      } catch (e) {
+        console.warn(this.$t('notification:record-list.corrupted-filter'))
+      }
+    },
+
+    removeStorageRecordListFilterPreset (name) {
+      this.customPresetFilters = this.customPresetFilters.filter(f => f.name !== name)
+
+      try {
+        setItem(`record-list-preset-${this.uniqueID}`, this.customPresetFilters)
       } catch (e) {
         console.warn(this.$t('notification:record-list.corrupted-filter'))
       }

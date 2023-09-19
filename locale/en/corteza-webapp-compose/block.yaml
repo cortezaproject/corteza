@@ -329,7 +329,6 @@ recordList:
   fields: Module fields
   filter:
     addField: Add new filter field
-    addFilter: + Add filter
     byValue: Filter records based on field value
     addFilterToPreset: Save as preset
     conditions:
@@ -368,7 +367,7 @@ recordList:
       placeholder: Filter name
     role:
       label: Role(s)
-      placeholder: Select role(s) to apply filter to
+      placeholder: Select role(s) that will be able to use preset
   hideRecordCloneButton: Hide clone record button
   hideRecordEditButton: Hide edit record button
   hideRecordPermissionsButton: Hide record permissions button

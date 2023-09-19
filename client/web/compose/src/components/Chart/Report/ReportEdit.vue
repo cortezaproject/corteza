@@ -230,8 +230,7 @@
         <div
           v-for="(m,i) in metrics"
           :key="i"
-          class="rounded border border-light p-3 mb-3"
-          style="background-color: #F9FAFB;"
+          class="metric rounded border border-light p-3 mb-3"
         >
           <h5
             v-if="metrics.length > 1"
@@ -690,3 +689,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.metrics {
+  .metric {
+    background-color: $body-bg;
+  }
+}
+</style>

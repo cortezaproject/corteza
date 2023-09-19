@@ -250,117 +250,128 @@
             </b-col>
           </b-row>
 
+          <hr>
+
           <b-row>
             <b-col>
               <b-form-group
-                :label="$t('recordList.filter.presets')"
+                :label="$t('recordList.record.setCustomFilterPresets')"
+                label-class="text-primary"
               >
-                <b-table-simple
-                  v-if="recordListModule"
-                  borderless
-                  small
-                  responsive="lg"
-                  class="mb-1"
-                >
-                  <b-thead>
-                    <b-tr>
-                      <b-th
-                        class="text-primary"
-                        style="min-width: 300px;"
-                      >
-                        {{ $t('recordList.filter.name.label') }}
-                      </b-th>
-                      <b-th
-                        class="text-primary"
-                        style="width: 45%; min-width: 250px;"
-                      >
-                        {{ $t('recordList.filter.role.label') }}
-                      </b-th>
-
-                      <b-th
-                        style="width: 100px;"
-                      />
-                    </b-tr>
-                  </b-thead>
-                  <b-tbody>
-                    <b-tr
-                      v-for="(filter, index) in options.filterPresets"
-                      :key="index"
-                    >
-                      <b-td>
-                        <b-input-group>
-                          <b-form-input
-                            v-model="filter.name"
-                            :placeholder="$t('recordList.filter.name.placeholder')"
-                          />
-
-                          <b-input-group-append class="border-0">
-                            <record-list-filter
-                              class="d-print-none"
-                              :target="`record-filter-${index}`"
-                              :namespace="namespace"
-                              :module="recordListModule"
-                              :selected-field="recordListModule.fields[0]"
-                              :record-list-filter="filter.filter"
-                              variant="primary"
-                              button-class="px-2 pt-2 text-white"
-                              button-style="padding-bottom: calc(0.5rem - 2px);"
-                              @filter="(filter) => onFilter(filter, index)"
-                            />
-                          </b-input-group-append>
-                        </b-input-group>
-                      </b-td>
-
-                      <b-td>
-                        <vue-select
-                          v-model="filter.roles"
-                          :options="roleOptions"
-                          :get-option-label="getRoleLabel"
-                          :get-option-key="getOptionKey"
-                          :placeholder="$t('recordList.filter.role.placeholder')"
-                          :reduce="role => role.roleID"
-                          :calculate-position="calculateDropdownPosition"
-                          append-to-body
-                          multiple
-                          class="bg-white"
-                        />
-                      </b-td>
-
-                      <b-td
-                        class="text-center align-middle pr-2"
-                      >
-                        <c-input-confirm
-                          @confirmed="options.filterPresets.splice(index, 1)"
-                        />
-                      </b-td>
-                    </b-tr>
-                  </b-tbody>
-                </b-table-simple>
-
-                <b-button
-                  variant="primary"
-                  size="sm"
-                  class="ml-1"
-                  @click="addFilterPreset"
-                >
-                  {{ $t('recordList.filter.addFilter') }}
-                </b-button>
+                <c-input-checkbox
+                  v-model="options.customFilterPresets"
+                  switch
+                  :labels="checkboxLabel"
+                />
               </b-form-group>
+            </b-col>
+          </b-row>
 
-              <b-row class="mb-3">
-                <b-col>
-                  <b-form-group
-                    :label="$t('recordList.record.setCustomFilterPresets')"
-                    label-class="text-primary"
+          <b-row>
+            <b-col>
+              <div class="list-background rounded border border-light p-1">
+                <b-form-group
+                  :label="$t('recordList.filter.presets')"
+                  label-class="text-primary"
+                  class="mb-0"
+                >
+                  <b-table-simple
+                    v-if="recordListModule"
+                    borderless
+                    small
+                    responsive="lg"
+                    class="mb-0"
                   >
-                    <c-input-checkbox
-                      v-model="options.customFilterPresets"
-                      switch
-                      :labels="checkboxLabel"
+                    <draggable
+                      :list.sync="options.filterPresets"
+                      group="sort"
+                      handle=".grab"
+                      tag="tbody"
+                    >
+                      <b-tr
+                        v-for="(filter, index) in options.filterPresets"
+                        :key="index"
+                      >
+                        <b-td
+                          class="grab text-center align-middle"
+                          style="width: 40px;"
+                        >
+                          <font-awesome-icon
+                            :icon="['fas', 'bars']"
+                          />
+                        </b-td>
+
+                        <b-td
+                          class="align-middle"
+                          style="min-width: 150px;"
+                        >
+                          <b-input-group>
+                            <b-form-input
+                              v-model="filter.name"
+                              :placeholder="$t('recordList.filter.name.placeholder')"
+                            />
+
+                            <b-input-group-append class="border-0">
+                              <record-list-filter
+                                class="d-print-none"
+                                :target="`record-filter-${index}`"
+                                :namespace="namespace"
+                                :module="recordListModule"
+                                :selected-field="recordListModule.fields[0]"
+                                :record-list-filter="filter.filter"
+                                variant="light"
+                                button-class="px-2 pt-2"
+                                button-style="padding-bottom: calc(0.5rem - 2px);"
+                                @filter="(filter) => onFilter(filter, index)"
+                              />
+                            </b-input-group-append>
+                          </b-input-group>
+                        </b-td>
+
+                        <b-td
+                          class="text-center align-middle"
+                          style="min-width: 200px;"
+                        >
+                          <vue-select
+                            v-model="filter.roles"
+                            :options="roleOptions"
+                            :get-option-label="getRoleLabel"
+                            :get-option-key="getOptionKey"
+                            :placeholder="$t('recordList.filter.role.placeholder')"
+                            :reduce="role => role.roleID"
+                            :calculate-position="calculateDropdownPosition"
+                            append-to-body
+                            multiple
+                            class="bg-white"
+                          />
+                        </b-td>
+
+                        <b-td
+                          class="text-right align-middle"
+                          style="min-width: 80px; width: 80px;"
+                        >
+                          <c-input-confirm
+                            @confirmed="options.filterPresets.splice(index, 1)"
+                          />
+                        </b-td>
+                      </b-tr>
+                    </draggable>
+                  </b-table-simple>
+
+                  <b-button
+                    variant="primary"
+                    size="sm"
+                    class="mt-1"
+                    @click="addFilterPreset"
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'plus']"
+                      class="mr-1"
                     />
-                  </b-form-group>
-                </b-col>
-              </b-row>
+                    {{ $t('general:label.add') }}
+                  </b-button>
+                </b-form-group>
+              </div>
             </b-col>
           </b-row>
         </div>
@@ -373,7 +384,8 @@
           <h5 class="mb-3">
             {{ $t('recordList.record.presortLabel') }}
           </h5>
-          <b-row class="mb-3">
+
+          <b-row>
             <b-col>
               <b-form-group
                 :label="$t('recordList.record.presortHideSort')"
@@ -391,26 +403,28 @@
 
           <b-row>
             <b-col>
-              <b-form-group
-                :label="$t('recordList.record.presortInputLabel')"
-                label-class="text-primary"
-              >
-                <c-input-presort
-                  v-model="options.presort"
-                  :fields="recordListModuleFields"
-                  :labels="{
-                    add: $t('general:label.add'),
-                    ascending: $t('general:label.ascending'),
-                    descending: $t('general:label.descending'),
-                    none: $t('general:label.none'),
-                    placeholder: $t('recordList.record.presortPlaceholder'),
-                    footnote: $t('recordList.record.presortFootnote'),
-                    toggleInput: $t('recordList.record.presortToggleInput'),
-                  }"
-                  allow-text-input
-                  class="mb-2"
-                />
-              </b-form-group>
+              <div class="list-background rounded border border-light p-1">
+                <b-form-group
+                  :label="$t('recordList.record.presortInputLabel')"
+                  label-class="text-primary"
+                  class="mb-0"
+                >
+                  <c-input-presort
+                    v-model="options.presort"
+                    :fields="recordListModuleFields"
+                    :labels="{
+                      add: $t('general:label.add'),
+                      ascending: $t('general:label.ascending'),
+                      descending: $t('general:label.descending'),
+                      none: $t('general:label.none'),
+                      placeholder: $t('recordList.record.presortPlaceholder'),
+                      footnote: $t('recordList.record.presortFootnote'),
+                      toggleInput: $t('recordList.record.presortToggleInput'),
+                    }"
+                    allow-text-input
+                  />
+                </b-form-group>
+              </div>
             </b-col>
           </b-row>
         </div>
@@ -739,6 +753,7 @@
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
 import { VueSelect } from 'vue-select'
+import Draggable from 'vuedraggable'
 import base from './base'
 import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
@@ -759,6 +774,7 @@ export default {
     CInputPresort,
     RecordListFilter,
     VueSelect,
+    Draggable,
   },
 
   extends: base,
@@ -956,5 +972,11 @@ export default {
 <style>
 .w-fit {
   width: fit-content;
+}
+</style>
+
+<style lang="scss" scoped>
+.list-background {
+  background-color: $body-bg;
 }
 </style>

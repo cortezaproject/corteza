@@ -1,67 +1,77 @@
 <template>
   <div>
-    <draggable
+    <b-table-simple
       v-if="!textInput"
-      :list.sync="items"
-      group="sort"
-      handle=".grab"
+      borderless
+      small
+      responsive="lg"
+      class="mb-0"
     >
-      <b-form-row
-        v-for="(column, index) in items"
-        :key="index"
-        class="mb-1"
+      <draggable
+        :list.sync="items"
+        group="sort"
+        handle=".grab"
+        tag="tbody"
       >
-        <b-col
-          cols="1"
-          class="d-flex align-items-center justify-content-center"
+        <tr
+          v-for="(column, index) in items"
+          :key="index"
         >
-          <font-awesome-icon
-            :icon="['fas', 'bars']"
-            class="grab text-grey"
-          />
-        </b-col>
-
-        <b-col
-          cols="5"
-        >
-          <b-form-select
-            v-model="column.field"
-            :options="availableFields"
-            text-field="label"
-            value-field="name"
-            class="rounded"
+          <td
+            class="grab text-center align-middle"
+            style="width: 40px;"
           >
-            <template #first>
-              <b-form-select-option
-                :value="undefined"
-                disabled
-              >
-                {{ labels.none }}
-              </b-form-select-option>
-            </template>
-          </b-form-select>
-        </b-col>
+            <font-awesome-icon
+              :icon="['fas', 'bars']"
+            />
+          </td>
 
-        <b-col
-          cols="6"
-          class="d-flex align-items-center justify-content-around"
-        >
-          <b-form-radio-group
-            v-model="column.descending"
-            :options="sortDirections"
-            buttons
-            size="sm"
-            button-variant="outline-primary"
-          />
-          <c-input-confirm
-            variant="link"
-            size="lg"
-            button-class="text-dark px-0"
-            @confirmed="items.splice(index, 1)"
-          />
-        </b-col>
-      </b-form-row>
-    </draggable>
+          <td
+            class="align-middle"
+            style="min-width: 250px;"
+          >
+            <b-form-select
+              v-model="column.field"
+              :options="availableFields"
+              text-field="label"
+              value-field="name"
+              class="rounded"
+            >
+              <template #first>
+                <b-form-select-option
+                  :value="undefined"
+                  disabled
+                >
+                  {{ labels.none }}
+                </b-form-select-option>
+              </template>
+            </b-form-select>
+          </td>
+
+          <td
+            class="text-center align-middle"
+            style="min-width: 200px;"
+          >
+            <b-form-radio-group
+              v-model="column.descending"
+              :options="sortDirections"
+              buttons
+              button-variant="outline-primary"
+              class="bg-white"
+            />
+          </td>
+
+          <td
+            class="align-middle text-right"
+            style="min-width: 80px; width: 80px;"
+          >
+            <c-input-confirm
+              @confirmed="items.splice(index, 1)"
+            />
+          </td>
+        </tr>
+      </draggable>
+    </b-table-simple>
 
     <div
       v-else
@@ -76,17 +86,16 @@
     </div>
 
     <div
-      class="d-flex align-items-center"
+      class="d-flex align-items-center mt-1"
     >
       <b-button
         v-if="!textInput"
-        variant="link"
-        class="d-flex align-items-center px-0 text-decoration-none"
+        variant="primary"
+        size="sm"
         @click="items.push({ field: undefined, descending: false })"
       >
         <font-awesome-icon
           :icon="['fas', 'plus']"
-          size="sm"
           class="mr-1"
         />
         {{ labels.add }}
