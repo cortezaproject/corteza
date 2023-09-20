@@ -441,7 +441,7 @@ export default {
 
       return this.findModuleByID({ namespace: this.namespace, moduleID }).then(async module => {
         const relatedField = module.fields.find(({ name }) => name === labelField)
-        const records = this.findRecordsByIDs(recordIDs).map(r => new compose.Record(module, r))
+        let records = this.findRecordsByIDs(recordIDs).map(r => new compose.Record(module, r))
         const mappedIDs = {}
 
         if (relatedField.kind === 'Record' && recordLabelField) {
@@ -480,6 +480,9 @@ export default {
           })
 
           await this.resolveUsers([...relatedUserIDs])
+        } else if (records.length === 0) {
+          await this.resolveRecords({ namespaceID, moduleID, recordIDs: [...recordIDs] })
+          records = this.findRecordsByIDs(recordIDs).map(r => new compose.Record(module, r))
         }
 
         records.forEach(record => {
