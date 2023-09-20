@@ -34,27 +34,29 @@
             >
               <template v-if="recordListModule.canCreateRecord">
                 <template v-if="inlineEditing">
-                  <b-btn
+                  <b-button
                     v-if="!options.hideAddButton"
                     data-test-id="button-add-record"
                     variant="primary"
                     size="lg"
-                    class="float-left mr-1"
-                    @click="addInline"
+                    class="mr-1"
+                    @click="addInlineRecord()"
                   >
                     + {{ $t('recordList.addRecord') }}
-                  </b-btn>
+                  </b-button>
                 </template>
 
                 <template v-else-if="!inlineEditing && (recordPageID || options.allRecords)">
-                  <button
+                  <b-button
                     v-if="!options.hideAddButton"
                     data-test-id="button-add-record"
-                    class="btn btn-lg btn-primary mr-1"
+                    variant="primary"
+                    size="lg"
+                    class="mr-1"
                     @click="handleAddRecord()"
                   >
                     + {{ $t('recordList.addRecord') }}
-                  </button>
+                  </b-button>
 
                   <importer-modal
                     v-if="!options.hideImportButton"
@@ -1176,7 +1178,7 @@ export default {
       }
     },
 
-    addInline () {
+    addInlineRecord () {
       const r = new compose.Record(this.recordListModule, {})
 
       // Set record values that should be prefilled
@@ -1882,6 +1884,7 @@ export default {
         this.$root.$emit('show-record-modal', {
           recordID: NoID,
           recordPageID: this.recordPageID,
+          refRecord,
         })
       } else {
         this.$router.push({

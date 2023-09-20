@@ -23,6 +23,7 @@
       :module="module"
       :record-i-d="recordID"
       :values="values"
+      :ref-record="refRecord"
       show-record-modal
       @handle-record-redirect="loadRecord"
     />
@@ -71,6 +72,7 @@ export default {
       module: undefined,
       page: undefined,
       values: undefined,
+      refRecord: undefined,
     }
   },
 
@@ -123,8 +125,10 @@ export default {
       clearRecordIDs: 'ui/clearRecordIDs',
     }),
 
-    loadRecord ({ recordID, recordPageID, values }) {
+    loadRecord ({ recordID, recordPageID, values, refRecord }) {
       this.values = values
+      this.refRecord = refRecord
+
       this.loadModal({ recordID, recordPageID })
 
       setTimeout(() => {
@@ -174,6 +178,8 @@ export default {
       this.recordID = undefined
       this.module = undefined
       this.page = undefined
+      this.values = undefined
+      this.refRecord = undefined
     },
 
     destroyEvents () {
