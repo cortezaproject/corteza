@@ -197,8 +197,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.setDefaultValues()
     this.destroyEvents()
+    this.setDefaultValues()
   },
 
   beforeRouteLeave (to, from, next) {

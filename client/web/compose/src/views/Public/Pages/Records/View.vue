@@ -317,8 +317,8 @@ export default {
 
   beforeDestroy () {
     this.abortRequests()
-    this.setDefaultValues()
     this.destroyEvents()
+    this.setDefaultValues()
   },
 
   // Destroy event before route leave to ensure it doesn't destroy the newly created one

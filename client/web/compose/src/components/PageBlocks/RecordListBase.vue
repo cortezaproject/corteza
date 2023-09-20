@@ -1194,9 +1194,9 @@ export default {
      * at the given point in time.
      *
      * It:
-     *    * assures that local records have a sequencial indexing
-     *    * appends aditional meta fields
-     *    * resolves payloadediting
+     *    * assures that local records have a sequential indexing
+     *    * appends additional meta fields
+     *    * resolves payload editing
      */
     resolveRecords (resolve) {
       this.ctr = 0

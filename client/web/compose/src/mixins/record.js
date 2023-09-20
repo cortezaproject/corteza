@@ -88,6 +88,7 @@ export default {
           queue.push(p)
         }
       })
+
       const pairs = await Promise.all(queue)
 
       for (const p of pairs) {
@@ -103,18 +104,26 @@ export default {
 
       // Construct batch record payload
       const records = pairs.reduce((acc, cur) => {
-        acc.push({
-          refField: cur.refField,
-          set: cur.items
-            .map(({ r }) => r)
-            .filter(({ deletedAt, recordID }) => recordID !== NoID || !deletedAt),
-          module: cur.module,
-          idPrefix: cur.idPrefix,
-        })
+        if (cur.idPrefix) {
+          // If same module exists, use latest to avoid stale data
+          const existingIndex = acc.findIndex(({ module }) => module.moduleID === cur.module.moduleID)
+          if (existingIndex !== -1) {
+            acc[existingIndex].set = cur.items.map(({ r }) => r).filter(({ deletedAt, recordID }) => recordID !== NoID || !deletedAt)
+          } else {
+            acc.push({
+              refField: cur.refField,
+              set: cur.items.map(({ r }) => r).filter(({ deletedAt, recordID }) => recordID !== NoID || !deletedAt),
+              module: cur.module,
+              idPrefix: cur.idPrefix,
+            })
+          }
+        }
+
         return acc
       }, [])
 
       const { recordID = NoID } = this.record || {}
+
       // Append after the payload construction, so it is not presented as a
       // sub record.
       pairs.push({
@@ -152,15 +161,19 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            this.inCreating = false
-            this.inEditing = false
-            this.record = record
-
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })
             } else {
               this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
             }
+
+            // Refresh record
+            this.inCreating = false
+            this.inEditing = false
+            this.record = undefined
+            this.loadRecord().then(() => {
+              this.determineLayout()
+            })
           }
 
           this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
