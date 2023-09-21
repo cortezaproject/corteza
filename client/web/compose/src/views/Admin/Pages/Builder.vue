@@ -834,8 +834,11 @@ export default {
         }
 
         this.page = new compose.Page(page)
-        await this.fetchPageLayouts()
-        this.setLayout(layout.pageLayoutID)
+
+        if (layout.pageLayoutID !== this.layout.pageLayoutID) {
+          await this.fetchPageLayouts()
+          this.setLayout(layout.pageLayoutID)
+        }
       }).finally(() => {
         this.processing = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
@@ -973,6 +976,18 @@ export default {
     },
 
     async setLayout (layoutID) {
+      const oldLayoutID = this.$route.query.layoutID
+
+      // Cancelable redirect
+      if (layoutID && oldLayoutID !== layoutID) {
+        try {
+          await this.$router.replace({ ...this.$route, query: { ...this.$route.query, layoutID } })
+        } catch {
+          this.$refs.layoutSelect.localValue = oldLayoutID
+          return
+        }
+      }
+
       this.processingLayout = true
 
       layoutID = layoutID || this.$route.query.layoutID
@@ -987,6 +1002,7 @@ export default {
         return this.$router.push(this.pageEditor)
       }
 
+      // If no previous layout was set and it exists, replace the URL with the proper layoutID
       if (this.$route.query.layoutID !== this.layout.pageLayoutID) {
         this.$router.replace({ ...this.$route, query: { ...this.$route.query, layoutID: this.layout.pageLayoutID } })
       }

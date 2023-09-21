@@ -1040,8 +1040,8 @@ export default {
 
   beforeDestroy () {
     this.abortRequests()
-    this.setDefaultValues()
     this.destroyEvents()
+    this.setDefaultValues()
   },
 
   created () {

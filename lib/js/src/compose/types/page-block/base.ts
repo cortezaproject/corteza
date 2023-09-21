@@ -105,8 +105,8 @@ export class PageBlock {
     this.meta.tempID = this.meta.tempID || generateUID()
   }
 
-  clone (): PageBlockInput {
-    return PageBlockMaker({ ...JSON.parse(JSON.stringify(this)), blockID: NoID, meta: { tempID: generateUID() } })
+  clone (): this {
+    return new (this.constructor as new (i?: PageBlockInput) => this)({ ...JSON.parse(JSON.stringify(this)), blockID: NoID, meta: { tempID: '' } })
   }
 }
 
