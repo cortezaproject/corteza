@@ -346,8 +346,8 @@ export default {
       }
     },
 
-    refreshOnRelatedRecordsUpdate (module) {
-      if (this.options.moduleID === module.moduleID) {
+    refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
+      if (this.options.moduleID === moduleID && this.page.pageID !== notPageID) {
         this.refresh()
       }
     },

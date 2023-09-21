@@ -29,6 +29,7 @@ export default {
   components: {
     ChartComponent,
   },
+
   extends: base,
 
   data () {
@@ -69,8 +70,8 @@ export default {
       findChartByID: 'chart/findByID',
     }),
 
-    refreshOnRelatedRecordsUpdate (module) {
-      if (this.filter.moduleID === module.moduleID) {
+    refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
+      if (this.filter.moduleID === moduleID && this.page.pageID !== notPageID) {
         this.refresh()
       }
     },

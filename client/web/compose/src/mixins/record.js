@@ -169,6 +169,12 @@ export default {
 
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })
+
+              // If we are in a modal we need to refresh blocks not in modal
+              this.$root.$emit('module-records-updated', {
+                moduleID: this.module.moduleID,
+                notPageID: this.page.pageID,
+              })
             } else {
               this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
             }
@@ -185,10 +191,6 @@ export default {
           }
 
           this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
-
-          this.$root.$emit('module-records-updated', {
-            moduleID: this.module.moduleID,
-          })
         })
         .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
         .finally(() => {
@@ -243,10 +245,6 @@ export default {
             this.initialRecordState = this.record.clone()
 
             this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
-
-            this.$root.$emit('module-records-updated', {
-              moduleID: this.module.moduleID,
-            })
           }
         })
         .catch(this.toastErrorHandler(this.$t(

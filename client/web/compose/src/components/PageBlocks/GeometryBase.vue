@@ -154,15 +154,28 @@ export default {
     this.refreshBlock(this.refresh)
   },
 
+  mounted () {
+    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+  },
+
   beforeDestroy () {
     this.setDefaultValues()
     this.abortRequests()
+    this.destroyEvents()
   },
 
   methods: {
     ...mapActions({
       findModuleByID: 'module/findByID',
     }),
+
+    refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
+      this.options.feeds.forEach((feed) => {
+        if (feed.options.moduleID === moduleID && this.page.pageID !== notPageID) {
+          this.refresh()
+        }
+      })
+    },
 
     loadEvents () {
       this.geometries = []
@@ -328,6 +341,10 @@ export default {
 
     abortRequests () {
       this.cancelTokenSource.cancel(`abort-request-${this.block.blockID}`)
+    },
+
+    destroyEvents () {
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
   },
 }

@@ -85,8 +85,8 @@ export default {
   },
 
   beforeDestroy () {
-    this.setDefaultValues()
     this.destroyEvents()
+    this.setDefaultValues()
   },
 
   mounted () {
@@ -100,8 +100,8 @@ export default {
       resolveRecords: 'record/resolveRecords',
     }),
 
-    refreshOnRelatedModuleUpdate (module) {
-      if (this.relatedModuleID === module.moduleID) {
+    refreshOnRelatedModuleUpdate ({ moduleID }) {
+      if (this.relatedModuleID === moduleID) {
         this.formatRecordValues(this.value)
       }
     },

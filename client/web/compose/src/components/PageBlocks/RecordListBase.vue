@@ -1103,13 +1103,17 @@ export default {
       this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
 
-    refreshOnRelatedRecordsUpdate (module) {
-      if (this.recordListModule.moduleID === module.moduleID) {
+    refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
+      if (this.page.pageID === notPageID) {
+        return
+      }
+
+      if (this.recordListModule.moduleID === moduleID) {
         this.refresh(true)
       } else {
         const recordFields = this.fields.filter((f) => f.moduleField.kind === 'Record')
         const hasMatchingModule = recordFields.some((r) => {
-          return r.moduleField.options.moduleID === module.moduleID
+          return r.moduleField.options.moduleID === moduleID
         })
 
         if (hasMatchingModule) {

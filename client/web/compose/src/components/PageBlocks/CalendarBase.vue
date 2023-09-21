@@ -234,9 +234,14 @@ export default {
     this.refreshBlock(this.refresh)
   },
 
+  mounted () {
+    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+  },
+
   beforeDestroy () {
     this.setDefaultValues()
     this.abortRequests()
+    this.destroyEvents()
   },
 
   methods: {
@@ -249,6 +254,18 @@ export default {
 
       await this.$nextTick(() => {
         this.show = true
+      })
+    },
+
+    refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
+      this.options.feeds.forEach((feed) => {
+        const { moduleID: feedModuleID } = feed.options
+
+        if (feedModuleID) {
+          if (feedModuleID === moduleID && this.page.pageID !== notPageID) {
+            this.refresh()
+          }
+        }
       })
     },
 
@@ -405,6 +422,10 @@ export default {
 
     abortRequests () {
       this.cancelTokenSource.cancel(`cancel-record-list-request-${this.block.blockID}`)
+    },
+
+    destroyEvents () {
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
   },
 }

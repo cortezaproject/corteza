@@ -218,13 +218,24 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.destroyEvents()
   },
 
   created () {
     this.refreshBlock(this.refresh)
   },
 
+  mounted () {
+    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+  },
+
   methods: {
+    refreshOnRelatedRecordsUpdate ({ moduleID }) {
+      if (this.module.moduleID === moduleID) {
+        this.refresh()
+      }
+    },
+
     async loadRevisions () {
       if (this.revisionsDisabledOnModule) {
         return
@@ -258,6 +269,10 @@ export default {
       this.loadedRevisions = false
       this.revisions = []
       this.columns = []
+    },
+
+    destroyEvents () {
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
   },
 }

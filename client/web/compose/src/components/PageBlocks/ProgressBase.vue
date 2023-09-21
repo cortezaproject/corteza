@@ -78,6 +78,7 @@ export default {
 
   mounted () {
     this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
+    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
   },
 
   beforeDestroy () {
@@ -132,6 +133,12 @@ export default {
         })
     },
 
+    refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
+      if (this.options.value.moduleID === moduleID && this.page.pageID !== notPageID) {
+        this.refresh()
+      }
+    },
+
     setDefaultValues () {
       this.processing = false
       this.value = undefined
@@ -141,6 +148,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
   },
 }
