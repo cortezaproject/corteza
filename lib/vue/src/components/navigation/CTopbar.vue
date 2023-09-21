@@ -288,7 +288,6 @@ $nav-user-icon-size: 50px;
   width: 100vw;
   min-height: $header-height;
   background-color: #F9FAFB !important;
-  padding-left: calc(3.5rem + 6px);
 }
 
 .avatar {
@@ -325,6 +324,7 @@ $nav-user-icon-size: 50px;
   display: flex;
   align-items: center;
   min-height: $header-height;
+  padding-left: calc(3.5rem + 6px);
 
   .vue-portal-target {
     display: -webkit-box; /* For Safari and old versions of Chrome */

@@ -225,12 +225,9 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            if (isNew) {
-              this.inCreating = false
-              this.inEditing = false
-            } else {
-              this.record = record
-            }
+            this.inCreating = false
+            this.inEditing = false
+            this.record = record
 
             this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
           }
