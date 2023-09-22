@@ -106,6 +106,7 @@ export default {
 
   mounted () {
     this.$root.$on('show-record-modal', this.loadRecord)
+    this.$root.$on('refetch-records', this.refetchRecords)
 
     const { recordID, recordPageID } = this.$route.query
 
@@ -173,6 +174,10 @@ export default {
       }, 300)
     },
 
+    refetchRecords () {
+      this.$root.$emit('refetch-record-blocks')
+    },
+
     setDefaultValues () {
       this.showModal = false
       this.recordID = undefined
@@ -184,6 +189,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('show-record-modal', this.loadRecord)
+      this.$root.$off('refetch-records', this.refetchRecords)
     },
   },
 }

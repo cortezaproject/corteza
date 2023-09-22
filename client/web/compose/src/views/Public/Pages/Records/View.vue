@@ -321,12 +321,6 @@ export default {
     this.setDefaultValues()
   },
 
-  // Destroy event before route leave to ensure it doesn't destroy the newly created one
-  beforeRouteLeave (to, from, next) {
-    this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
-    next()
-  },
-
   methods: {
     ...mapActions({
       popPreviousPages: 'ui/popPreviousPages',
