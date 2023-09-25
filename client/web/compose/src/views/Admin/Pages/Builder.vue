@@ -835,10 +835,8 @@ export default {
 
         this.page = new compose.Page(page)
 
-        if (layout.pageLayoutID !== this.layout.pageLayoutID) {
-          await this.fetchPageLayouts()
-          this.setLayout(layout.pageLayoutID)
-        }
+        await this.fetchPageLayouts()
+        this.setLayout(layout.pageLayoutID, false)
       }).finally(() => {
         this.processing = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
@@ -975,7 +973,7 @@ export default {
       next(!this.unsavedBlocks.size || queryParams || window.confirm(this.$t('build.unsavedChanges')))
     },
 
-    async setLayout (layoutID) {
+    async setLayout (layoutID, processing = true) {
       const oldLayoutID = this.$route.query.layoutID
 
       // Cancelable redirect
@@ -988,7 +986,9 @@ export default {
         }
       }
 
-      this.processingLayout = true
+      if (processing) {
+        this.processingLayout = true
+      }
 
       layoutID = layoutID || this.$route.query.layoutID
 
