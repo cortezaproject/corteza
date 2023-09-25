@@ -119,12 +119,13 @@ import { NoID } from '@cortezaproject/corteza-js'
 import { components, filter } from '@cortezaproject/corteza-vue'
 import { Portal } from 'portal-vue'
 import { VueSelect } from 'vue-select'
+
 const { CSidebarNavItems, CInputSearch } = components
 
-const moduleWrap = (module) => {
+const moduleWrap = (module, pageName) => {
   return {
     page: {
-      name: 'admin.modules.edit',
+      name: pageName,
       pageID: `module-${module.moduleID}`,
       selfID: 'modules',
       rootSelfID: 'modules',
@@ -137,6 +138,7 @@ const moduleWrap = (module) => {
     },
   }
 }
+
 const chartWrap = (chart) => {
   return {
     page: {
@@ -230,6 +232,7 @@ export default {
       if (this.namespace) {
         // If on admin page, show admin pages. Otherwise show public pages
         const pages = [...(this.isAdminPage ? this.adminRoutes() : this.publicPageWrap(this.publicRoutes))]
+
         if (!this.query) {
           return pages
         }
@@ -347,6 +350,9 @@ export default {
     },
 
     adminRoutes () {
+      const routeName = this.$route.name
+      const pageName = routeName.startsWith('admin.modules.record') ? 'admin.modules.record.list' : 'admin.modules.edit'
+
       return [
         {
           page: {
@@ -358,7 +364,7 @@ export default {
           },
           children: [],
         },
-        ...this.modules.map(moduleWrap),
+        ...this.modules.map((m) => moduleWrap(m, pageName)),
         {
           page: {
             pageID: 'pages',
@@ -428,9 +434,11 @@ export default {
           iconSrc = `${this.$ComposeAPI.baseURL}${src}`
         }
 
+        const pageName = this.$route.name === 'admin.pages.edit' ? 'admin.pages.edit' : 'admin.pages.builder'
+
         return {
           page: {
-            name: 'admin.pages.builder',
+            name: pageName,
             pageID: `page-${pageID}`,
             selfID: selfID !== NoID ? `page-${selfID}` : 'pages',
             rootSelfID: 'pages',

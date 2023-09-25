@@ -76,8 +76,8 @@ export default {
     },
 
     module () {
-      if (this.$attrs.moduleID) {
-        return this.getModuleByID(this.$attrs.moduleID)
+      if (this.$route.params.moduleID) {
+        return this.getModuleByID(this.$route.params.moduleID)
       } else {
         return undefined
       }
@@ -102,8 +102,24 @@ export default {
     },
   },
 
+  watch: {
+    module: {
+      handler (module) {
+        if (module) {
+          const { meta = { ui: {} }, moduleID } = module || {}
+
+          let fields = ((meta.ui || {}).admin || {}).fields || []
+          fields = fields.length ? fields : module.fields
+
+          this.block.options.moduleID = moduleID
+          this.block.options.fields = fields
+        }
+      },
+    },
+  },
+
   created () {
-    const { meta = { ui: {} } } = this.module || {}
+    const { meta = { ui: {} }, moduleID } = this.module || {}
 
     let fields = ((meta.ui || {}).admin || {}).fields || []
     fields = fields.length ? fields : this.module.fields
@@ -112,7 +128,7 @@ export default {
     const block = new compose.PageBlockRecordList({
       blockIndex: 0,
       options: {
-        moduleID: this.$attrs.moduleID,
+        moduleID,
         fields,
         hideRecordReminderButton: true,
         hideRecordViewButton: true,
