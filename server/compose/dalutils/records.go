@@ -3,6 +3,7 @@ package dalutils
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -129,9 +130,10 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 	}
 
 	var (
-		ok      bool
-		fetched uint
-		r       *types.Record
+		ok       bool
+		fetched  uint
+		filtered uint
+		r        *types.Record
 	)
 
 	// Get the requested number of record
@@ -144,6 +146,7 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 	for f.Limit == 0 || uint(len(set)) < f.Limit {
 		// reset counters every drain
 		fetched = 0
+		filtered = 0
 
 		err = WalkIterator(ctx, iter, mod, func(r *types.Record) error {
 			// check fetched record
@@ -151,6 +154,7 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 				if ok, err = f.Check(r); err != nil {
 					return err
 				} else if !ok {
+					filtered++
 					return nil
 				}
 			}
@@ -166,11 +170,12 @@ func drainIterator(ctx context.Context, iter dal.Iterator, mod *types.Module, f 
 			return
 		}
 
-		if fetched == 0 || f.Limit == 0 || (0 < f.Limit && fetched < f.Limit) {
+		total := fetched + filtered
+		if total == 0 || f.Limit == 0 || (0 < f.Limit && total < f.Limit) {
 			// do not re-fetch if:
 			// 1) nothing was fetch in the previous run
 			// 2) there was no limit (everything was fetched)
-			// 3) there are less fetched items then value of limit
+			// 3) there are less total (fetched and filtered) items then value of limit
 			break
 		}
 
