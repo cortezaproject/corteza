@@ -161,19 +161,20 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
+            this.inCreating = false
+            this.inEditing = false
+
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })
             } else {
               this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
             }
 
-            // Refresh record
-            this.inCreating = false
-            this.inEditing = false
-            this.record = undefined
-            this.loadRecord().then(() => {
+            if (!isNew) {
+              this.record = record
               this.determineLayout()
-            })
+              this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+            }
           }
 
           this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))

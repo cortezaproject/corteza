@@ -127,6 +127,7 @@ export default {
     }),
 
     loadRecord ({ recordID, recordPageID, values, refRecord }) {
+      this.recordID = recordID
       this.values = values
       this.refRecord = refRecord
 
@@ -162,6 +163,8 @@ export default {
     },
 
     onHidden () {
+      this.setDefaultValues()
+
       setTimeout(() => {
         this.$router.replace({
           query: {
@@ -203,5 +206,11 @@ export default {
 
 .position-initial {
   position: initial;
+}
+
+#record-modal .modal-header {
+  h5 {
+    min-height: 27px;
+  }
 }
 </style>

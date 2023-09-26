@@ -251,12 +251,16 @@ export default {
       const { useTitle = false } = config
 
       if (useTitle) {
-        return evaluatePrefilter(meta.title, {
-          record: this.record,
-          recordID: (this.record || {}).recordID || NoID,
-          ownerID: (this.record || {}).ownedBy || NoID,
-          userID: (this.$auth.user || {}).userID || NoID,
-        })
+        try {
+          return evaluatePrefilter(meta.title, {
+            record: this.record,
+            recordID: (this.record || {}).recordID || NoID,
+            ownerID: (this.record || {}).ownedBy || NoID,
+            userID: (this.$auth.user || {}).userID || NoID,
+          })
+        } catch (e) {
+          return ''
+        }
       }
 
       const { name, handle } = this.module
@@ -277,9 +281,7 @@ export default {
       immediate: true,
       handler () {
         this.record = undefined
-        this.loadRecord().then(() => {
-          this.determineLayout()
-        })
+        this.refresh()
       },
     },
 
@@ -345,7 +347,9 @@ export default {
 
           return response()
             .then(record => {
-              this.record = new compose.Record(module, record)
+              setTimeout(() => {
+                this.record = new compose.Record(module, record)
+              }, 300)
             })
             .catch(e => {
               if (!axios.isCancel(e)) {
@@ -419,8 +423,15 @@ export default {
     },
 
     handleView () {
-      this.inEditing = false
-      this.inCreating = false
+      this.processing = true
+
+      this.refresh().then(() => {
+        this.inEditing = false
+        this.inCreating = false
+        this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+      }).finally(() => {
+        this.processing = false
+      })
     },
 
     handleRedirectToPrevOrNext (recordID) {
@@ -531,6 +542,12 @@ export default {
       // Refetch the record and other page blocks that use records
       this.loadRecord()
       this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+    },
+
+    async refresh () {
+      return this.loadRecord().then(() => {
+        return this.determineLayout()
+      })
     },
 
     setDefaultValues () {

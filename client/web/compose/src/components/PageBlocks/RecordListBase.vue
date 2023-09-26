@@ -1067,9 +1067,7 @@ export default {
       this.$root.$on(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
       this.$root.$on(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
       this.$root.$on(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)
-      this.$root.$on(`refetch-non-record-blocks:${pageID}`, () => {
-        this.refresh(true)
-      })
+      this.$root.$on(`refetch-non-record-blocks:${pageID}`, this.refreshAndResetPagination)
     },
 
     onFilter (filter = []) {
@@ -1872,15 +1870,17 @@ export default {
       })
     },
 
+    refreshAndResetPagination () {
+      this.refresh(true)
+    },
+
     destroyEvents () {
       const { pageID = NoID } = this.page
 
       this.$root.$off(`record-line:collect:${this.uniqueID}`, this.resolveRecords)
       this.$root.$off(`page-block:validate:${this.uniqueID}`, this.validatePageBlock)
       this.$root.$off(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)
-      this.$root.$off(`refetch-non-record-blocks:${pageID}`, () => {
-        this.refresh(true)
-      })
+      this.$root.$off(`refetch-non-record-blocks:${pageID}`, this.refreshAndResetPagination)
     },
 
     handleAddRecord () {
