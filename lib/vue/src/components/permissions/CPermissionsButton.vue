@@ -1,18 +1,9 @@
 <template>
-  <a
-    v-if="link"
-    data-test-id="link-permissions"
-    class="pointer"
-    :title="tooltip"
-    @click="onClick"
-  >
-    <font-awesome-icon :icon="['fas', 'lock']" />
-  </a>
   <b-button
-    v-else
     data-test-id="button-permissions"
     :title="tooltip"
     :variant="buttonVariant"
+    :size="size"
     @click="onClick"
   >
     <slot>
@@ -32,8 +23,9 @@ library.add(faLock)
 
 export default {
   props: {
-    link: {
-      type: Boolean,
+    size: {
+      type: String,
+      default: 'md',
     },
 
     buttonVariant: {

@@ -97,12 +97,13 @@
     >
       <c-permissions-button
         v-if="canGrant && exists"
-        class="text-dark px-0 mr-2"
-        button-variant="link"
+        button-variant="outline-light"
+        size="sm"
         :title="value.label || value.name || value.fieldID"
         :target="value.label || value.name || value.fieldID"
         :tooltip="$t('permissions:resources.compose.module-field.tooltip')"
         :resource="`corteza::compose:module-field/${module.namespaceID}/${module.moduleID}/${value.fieldID}`"
+        class="text-dark border-0 mr-2"
       />
 
       <c-input-confirm

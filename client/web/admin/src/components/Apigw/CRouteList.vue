@@ -63,8 +63,8 @@
           v-if="canGrant"
           data-test-id="button-permissions"
           resource="corteza::system:apigw-route/*"
-          button-variant="link text-decoration-none text-dark regular-font rounded-0"
-          class="text-dark d-print-none border-0"
+          button-variant="light"
+          class="ml-1 text-dark d-print-none"
         >
           <font-awesome-icon :icon="['fas', 'lock']" />
           {{ $t('permissions') }}

@@ -86,12 +86,13 @@
 
           <b-dropdown-item
             v-if="a.authClientID && canGrant"
+            link-class="p-0"
           >
             <c-permissions-button
               :title="a.meta.name || a.handle || a.authClientID"
               :target="a.meta.name || a.handle || a.authClientID"
               :resource="`corteza::system:auth-client/${a.authClientID}`"
-              button-variant="link text-decoration-none text-dark regular-font rounded-0"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
               class="text-dark d-print-none border-0"
             >
               <font-awesome-icon :icon="['fas', 'lock']" />
@@ -101,12 +102,13 @@
 
           <b-dropdown-item
             v-if="!a.isDefault && a.canDeleteAuthClient"
+            link-class="p-0"
           >
             <c-input-confirm
               borderless
               variant="link"
               size="md"
-              button-class="text-decoration-none text-dark regular-font rounded-0"
+              button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
               class="w-100"
               @confirmed="handleDelete(a)"
             >

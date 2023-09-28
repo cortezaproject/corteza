@@ -343,12 +343,13 @@
                     >
                       <c-permissions-button
                         v-if="page.canGrant && layout.pageLayoutID !== '0'"
-                        button-variant="link"
+                        button-variant="outline-light"
+                        size="sm"
                         :title="layout.meta.title || layout.handle || layout.pageLayoutID"
                         :target="layout.meta.title || layout.handle || layout.pageLayoutID"
                         :tooltip="$t('permissions:resources.compose.page-layout.tooltip')"
                         :resource="`corteza::compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`"
-                        class="text-dark px-0 mr-3"
+                        class="text-dark border-0 mr-2"
                       />
 
                       <c-input-confirm
