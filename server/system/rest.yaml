@@ -559,7 +559,6 @@ endpoints:
         title: Email
       - name: name
         type: string
-        required: true
         title: Name
       - name: handle
         type: string
