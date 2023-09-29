@@ -79,7 +79,7 @@
             data-test-id="button-edit-route"
             variant="link"
             class="p-0"
-            :to="{ name: 'system.apigw.profiler.hit.list', params: { hitID: row.item.hitID } }"
+            :to="{ name: 'system.apigw.profiler.hit', params: { hitID: row.item.hitID } }"
           >
             <font-awesome-icon
               :icon="['fas', 'info-circle']"

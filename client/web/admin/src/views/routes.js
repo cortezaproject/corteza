@@ -101,7 +101,7 @@ export default [
           r('system.apigw.edit', 'apigw/edit/:routeID', 'System/Apigw/Editor'),
           r('system.apigw.profiler', 'apigw/profiler', 'System/Apigw/Profiler/Index'),
           r('system.apigw.profiler.route.list', 'apigw/profiler/route/:routeID', 'System/Apigw/Profiler/Route'),
-          r('system.apigw.profiler.hit.list', 'apigw/profiler/hit/:hitID', 'System/Apigw/Profiler/Hit'),
+          r('system.apigw.profiler.hit', 'apigw/profiler/hit/:hitID', 'System/Apigw/Profiler/Hit'),
 
           r('system.permissions', 'permissions', 'System/Permissions/Index'),
           r('system.actionlog', 'actionlog', 'System/Actionlog/Index'),
