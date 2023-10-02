@@ -139,28 +139,15 @@
 
           <c-input-confirm
             v-if="u.canDeleteUser"
+            :text="inputConfirmText(u.deletedAt)"
+            show-icon
             borderless
             variant="link"
             size="md"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(u)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-
-            <span
-              v-if="!u.deletedAt"
-              class="p-1"
-            >{{ $t('delete') }}</span>
-
-            <span
-              v-else
-              class="p-1"
-            >{{ $t('undelete') }}</span>
-          </c-input-confirm>
+          />
         </b-dropdown>
       </template>
     </c-resource-list>
@@ -295,6 +282,10 @@ export default {
         resource: user,
         resourceName: 'user',
       })
+    },
+
+    inputConfirmText (deletedAt) {
+      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

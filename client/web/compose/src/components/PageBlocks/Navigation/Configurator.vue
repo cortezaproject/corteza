@@ -163,6 +163,7 @@
                     </td>
                     <td class="align-middle">
                       <c-input-confirm
+                        show-icon
                         button-class="px-2"
                         size="md"
                         @confirmed="options.navigationItems.splice(index, 1)"

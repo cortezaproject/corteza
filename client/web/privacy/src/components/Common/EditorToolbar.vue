@@ -39,15 +39,14 @@
           <c-input-confirm
             v-if="deleteConfirm"
             :disabled="deleteDisabled || processing"
-            :borderless="false"
+            :processing="processingDelete"
+            :text="deleteLabel"
             variant="danger"
             size="lg"
             size-confirm="lg"
             class="ml-1"
             @confirmed="$emit('delete')"
-          >
-            {{ deleteLabel }}
-          </c-input-confirm>
+          />
 
           <b-button
             v-else
@@ -85,7 +84,10 @@ export default {
   props: {
     processing: {
       type: Boolean,
-      required: false,
+    },
+
+    processingDelete: {
+      type: Boolean,
     },
 
     backLink: {
@@ -95,12 +97,10 @@ export default {
 
     deleteShow: {
       type: Boolean,
-      required: false,
     },
 
     deleteDisabled: {
       type: Boolean,
-      required: false,
     },
 
     deleteConfirm: {
@@ -115,12 +115,10 @@ export default {
 
     submitShow: {
       type: Boolean,
-      required: false,
     },
 
     submitDisabled: {
       type: Boolean,
-      required: false,
     },
 
     submitLabel: {

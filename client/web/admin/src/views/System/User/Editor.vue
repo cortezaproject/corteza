@@ -55,7 +55,7 @@
     <c-user-editor-avatar
       v-if="user && userID && $Settings.get('auth.internal.profile-avatar.Enabled', false)"
       :user="user"
-      :processing="avatar.processing"
+      :processing-avatar="avatar.processing"
       :success="avatar.success"
       class="mt-3"
       @submit="onAvatarSubmit"
@@ -507,6 +507,8 @@ export default {
     },
 
     onResetAvatar () {
+      this.avatar.processing = true
+
       const userID = this.userID
 
       this.$SystemAPI.userDeleteAvatar({ userID })
@@ -515,6 +517,9 @@ export default {
           this.toastSuccess(this.$t('notification:user.avatarDelete.success'))
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.avatarDelete.error')))
+        .finally(() => {
+          this.avatar.processing = false
+        })
     },
 
     checkUnsavedChanges (next, to) {

@@ -9,6 +9,7 @@
       <h5 class="d-flex align-items-center">
         {{ $t('uniqueValueConstraint', { index: index + 1 }) }}
         <c-input-confirm
+          show-icon
           class="ml-2"
           @confirmed="rules.splice(index, 1)"
         />
@@ -103,6 +104,7 @@
               </td>
               <td class="text-right p-0 px-4 align-middle">
                 <c-input-confirm
+                  show-icon
                   button-class="text-right"
                   @confirmed="rule.constraints.splice(consIndex, 1)"
                 />

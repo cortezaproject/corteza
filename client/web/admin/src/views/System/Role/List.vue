@@ -132,28 +132,15 @@
 
           <c-input-confirm
             v-if="r.canDeleteRole"
+            :text="inputConfirmText(r.deletedAt)"
+            show-icon
             borderless
             variant="link"
             size="md"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(r)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-
-            <span
-              v-if="!r.deletedAt"
-              class="p-1"
-            >{{ $t('delete') }}</span>
-
-            <span
-              v-else
-              class="p-1"
-            >{{ $t('undelete') }}</span>
-          </c-input-confirm>
+          />
         </b-dropdown>
       </template>
     </c-resource-list>
@@ -261,6 +248,10 @@ export default {
         resource: role,
         resourceName: 'role',
       })
+    },
+
+    inputConfirmText (deletedAt) {
+      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

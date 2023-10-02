@@ -39,6 +39,7 @@
               <td class="text-right">
                 <c-input-confirm
                   data-test-id="button-remove-member"
+                  show-icon
                   no-prompt
                   @confirmed="removeMember(user.userID)"
                 />

@@ -121,19 +121,16 @@
 
           <c-input-confirm
             v-if="r.canDeleteReport"
+            :processing="processingDelete"
+            :text="$t('report.delete')"
             borderless
             variant="link"
             size="md"
+            show-icon
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(r)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-            {{ $t('report.delete') }}
-          </c-input-confirm>
+          />
         </b-dropdown>
       </template>
     </c-resource-list>
@@ -164,6 +161,8 @@ export default {
   data () {
     return {
       primaryKey: 'reportID',
+
+      processingDelete: false,
 
       filter: {
         query: '',
@@ -241,12 +240,17 @@ export default {
     },
 
     handleDelete (report) {
+      this.processingDelete = true
+
       return this.$SystemAPI.reportDelete(report)
         .then(() => {
           this.toastSuccess(this.$t('notification:report.delete'))
           this.filterList()
         })
         .catch(this.toastErrorHandler(this.$t('notification:report.deleteFailed')))
+        .finally(() => {
+          this.processingDelete = false
+        })
     },
   },
 }

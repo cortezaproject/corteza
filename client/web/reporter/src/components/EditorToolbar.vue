@@ -39,12 +39,12 @@
           size="lg"
           size-confirm="lg"
           variant="danger"
-          :disabled="deleteDisabled || processing"
+          :disabled="deleteDisabled || processingDelete"
+          :processing="processingDelete"
+          :text="$t('general:label.delete')"
           :borderless="false"
           @confirmed="$emit('delete')"
-        >
-          {{ $t('general:label.delete') }}
-        </c-input-confirm>
+        />
 
         <c-button-submit
           data-test-id="button-save"
@@ -71,28 +71,26 @@ export default {
 
     hideDelete: {
       type: Boolean,
-      required: false,
     },
 
     deleteDisabled: {
       type: Boolean,
-      required: false,
     },
 
     hideSave: {
       type: Boolean,
-      required: false,
     },
 
     saveDisabled: {
       type: Boolean,
-      required: false,
-      default: false,
     },
 
     processing: {
       type: Boolean,
-      required: false,
+    },
+
+    processingDelete: {
+      type: Boolean,
     },
 
     processingSave: {

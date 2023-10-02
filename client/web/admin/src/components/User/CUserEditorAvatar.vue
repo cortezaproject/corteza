@@ -33,14 +33,14 @@
 
         <c-input-confirm
           v-if="uploadedAvatar('avatar') && isKindAvatar"
+          :processing="processingAvatar"
+          :text="$t('general:label.delete')"
           size="lg"
           size-confirm="lg"
           variant="danger"
           class="ml-2 h-100"
           @confirmed="$emit('resetAttachment', 'avatar')"
-        >
-          {{ $t('general:label.delete') }}
-        </c-input-confirm>
+        />
       </div>
 
       <div class="form-row mt-3">
@@ -116,12 +116,14 @@ export default {
 
     processing: {
       type: Boolean,
-      value: false,
+    },
+
+    processingAvatar: {
+      type: Boolean,
     },
 
     success: {
       type: Boolean,
-      value: false,
     },
   },
 

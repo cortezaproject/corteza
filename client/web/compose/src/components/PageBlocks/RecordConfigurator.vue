@@ -205,6 +205,7 @@
               style="width: 100px;"
             >
               <c-input-confirm
+                show-icon
                 @confirmed="deleteRule(i)"
               />
             </b-td>

@@ -205,6 +205,7 @@ export default {
 
     handleItemDelete ({ resource, resourceName, locale, api = 'system' }) {
       this.incLoader()
+
       const { deletedAt = '' } = resource
       const method = deletedAt ? `${resourceName}Undelete` : `${resourceName}Delete`
       const event = deletedAt ? 'undelete' : 'delete'

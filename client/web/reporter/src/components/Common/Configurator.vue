@@ -57,11 +57,10 @@
           size="lg"
           size-confirm="lg"
           :borderless="false"
+          :text="$t('general:label.delete')"
           class="d-flex"
           @confirmed="$emit('delete')"
-        >
-          {{ $t('general:label.delete') }}
-        </c-input-confirm>
+        />
       </b-col>
     </b-row>
   </b-container>

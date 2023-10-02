@@ -441,6 +441,7 @@
         :processing="processing"
         :processing-save="processingSave"
         :processing-save-and-close="processingSaveAndClose"
+        :processing-delete="processingDelete"
         :hide-delete="hideDelete"
         hide-clone
         :hide-save="hideSave"
@@ -525,6 +526,7 @@ export default {
       processing: false,
       processingSave: false,
       processingSaveAndClose: false,
+      processingDelete: false,
 
       federationSettings: {
         modal: false,
@@ -848,16 +850,19 @@ export default {
 
     handleDelete () {
       this.processing = true
+      this.processingDelete = true
 
       this.deleteModule(this.module).then(() => {
         const moduleRecordPage = this.pages.find(p => p.moduleID === this.module.moduleID)
         if (moduleRecordPage) {
           return this.deletePage({ ...moduleRecordPage, strategy: 'rebase' })
         }
-      }).catch(this.toastErrorHandler(this.$t('notification:module.deleteFailed')))
+      })
+        .catch(this.toastErrorHandler(this.$t('notification:module.deleteFailed')))
         .finally(() => {
           this.toastSuccess(this.$t('notification:module.deleted'))
           this.processing = false
+          this.processingDelete = false
           this.$router.push({ name: 'admin.modules' })
         })
     },

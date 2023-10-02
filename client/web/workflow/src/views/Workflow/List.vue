@@ -174,40 +174,26 @@
             borderless
             variant="link"
             size="md"
+            show-icon
+            :text="$t('delete')"
+            text-class="p-1"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(w)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-            <span
-              class="p-1"
-            >
-              {{ $t('delete') }}
-            </span>
-          </c-input-confirm>
+          />
 
           <c-input-confirm
             v-if="w.canUndeleteWorkflow && w.deletedAt"
             borderless
             variant="link"
             size="md"
+            show-icon
+            :text="$t('undelete')"
+            text-class="p-1"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(w)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-            <span
-              class="p-1"
-            >
-              {{ $t('undelete') }}
-            </span>
-          </c-input-confirm>
+          />
         </b-dropdown>
       </template>
     </c-resource-list>

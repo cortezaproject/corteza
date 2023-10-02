@@ -108,6 +108,7 @@
 
             <td class="align-middle text-center">
               <c-input-confirm
+                show-icon
                 @confirmed="options.item.dropdown.items.splice(dropIndex, 1)"
               />
             </td>

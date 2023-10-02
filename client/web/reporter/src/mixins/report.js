@@ -5,6 +5,7 @@ export default {
     return {
       processing: false,
       processingSave: false,
+      processingDelete: false,
       report: undefined,
     }
   },
@@ -75,6 +76,7 @@ export default {
 
     handleDelete () {
       this.processing = true
+      this.processingDelete = true
 
       return this.$SystemAPI.reportDelete(this.report)
         .then(() => {
@@ -84,6 +86,7 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:report.deleteFailed')))
         .finally(() => {
           this.processing = false
+          this.processingDelete = false
         })
     },
   },

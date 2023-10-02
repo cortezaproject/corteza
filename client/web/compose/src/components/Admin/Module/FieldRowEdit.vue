@@ -107,6 +107,7 @@
       />
 
       <c-input-confirm
+        show-icon
         @confirmed="$emit('delete')"
       />
     </td>

@@ -286,6 +286,7 @@
       :processing="processing"
       :processing-save="processingSave"
       :processing-save-and-close="processingSaveAndClose"
+      :processing-delete="processingDelete"
       :hide-delete="hideDelete"
       :hide-clone="!isEdit"
       :hide-save="hideSave"
@@ -353,6 +354,7 @@ export default {
       processing: false,
       processingSave: false,
       processingSaveAndClose: false,
+      processingDelete: false,
 
       namespace: undefined,
       initialNamespaceState: undefined,
@@ -663,6 +665,7 @@ export default {
 
     handleDelete () {
       this.processing = true
+      this.processingDelete = true
 
       const { namespaceID } = this.namespace
       const { applicationID } = this.application || {}
@@ -680,6 +683,7 @@ export default {
         })
         .finally(() => {
           this.processing = false
+          this.processingDelete = false
         })
     },
 

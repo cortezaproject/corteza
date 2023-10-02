@@ -215,7 +215,8 @@
             style="min-width: 80px;"
           >
             <c-input-confirm
-              :title="$t('tabs.tooltip.delete')"
+              :tooltip="$t('tabs.tooltip.delete')"
+              show-icon
               @confirmed="deleteTab(index)"
             />
           </td>

@@ -250,8 +250,8 @@ export default {
      * has been deleted.
      */
     handleDelete: throttle(function () {
-      this.processingDelete = true
       this.processing = true
+      this.processingDelete = true
 
       return this
         .dispatchUiEvent('beforeDelete')
@@ -265,8 +265,8 @@ export default {
         .then(this.toastSuccess(this.$t('notification:record.deleteSuccess')))
         .catch(this.toastErrorHandler(this.$t('notification:record.deleteFailed')))
         .finally(() => {
-          this.processingDelete = false
           this.processing = false
+          this.processingDelete = false
         })
     }, 500),
 

@@ -87,26 +87,15 @@
           </template>
 
           <c-input-confirm
+            :text="inputConfirmText(q.deletedAt)"
+            show-icon
             borderless
             variant="link"
             size="md"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(q)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-
-            <span v-if="!q.deletedAt">
-              {{ $t('delete') }}
-            </span>
-
-            <span v-else>
-              {{ $t('undelete') }}
-            </span>
-          </c-input-confirm>
+          />
         </b-dropdown>
       </template>
     </c-resource-list>
@@ -201,6 +190,10 @@ export default {
         resourceName: 'queues',
         locale: 'queue',
       })
+    },
+
+    inputConfirmText (deletedAt) {
+      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

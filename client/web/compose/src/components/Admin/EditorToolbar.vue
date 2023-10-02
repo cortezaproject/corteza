@@ -38,15 +38,16 @@
           v-if="!hideDelete"
           v-b-tooltip.hover
           :disabled="disableDelete || processing"
+          :processing="processingDelete"
+          :text="$t('label.delete')"
           size="lg"
           size-confirm="lg"
           variant="danger"
           :title="deleteTooltip"
           :borderless="false"
           @confirmed="$emit('delete')"
-        >
-          {{ $t('label.delete') }}
-        </c-input-confirm>
+        />
+
         <slot name="saveAsCopy" />
 
         <c-button-submit
@@ -114,6 +115,10 @@ export default {
     processingClone: {
       type: Boolean,
       default: false,
+    },
+
+    processingDelete: {
+      type: Boolean,
     },
 
     backLink: {

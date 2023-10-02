@@ -26,6 +26,7 @@
           <!-- no prompt/confirmation on empty input -->
           <c-input-confirm
             :no-prompt="value[e].length === 0"
+            show-icon
             @confirmed="$emit('remove', e)"
           />
         </b-input-group-addon>

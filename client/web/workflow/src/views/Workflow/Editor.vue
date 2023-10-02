@@ -7,6 +7,7 @@
     :change-detected="changeDetected"
     :can-create="canCreate"
     :processing-save="processingSave"
+    :processing-delete="processingDelete"
     class="overflow-hidden"
     @save="saveWorkflow"
     @delete="deleteWorkflow"
@@ -31,6 +32,7 @@ export default {
     return {
       processing: true,
       processingSave: false,
+      processingDelete: false,
 
       workflow: {},
       triggers: [],
@@ -189,6 +191,8 @@ export default {
 
     deleteWorkflow () {
       if (this.workflow.workflowID) {
+        this.processingDelete = true
+
         this.$AutomationAPI.workflowDelete(this.workflow)
           .then(() => {
             // Disable unsaved changes prompt
@@ -197,11 +201,16 @@ export default {
             this.toastSuccess(this.$t('notification:delete.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:delete.failed')))
+          .finally(() => {
+            this.processingDelete = false
+          })
       }
     },
 
     undeleteWorkflow () {
       if (this.workflow.workflowID) {
+        this.processingDelete = true
+
         this.$AutomationAPI.workflowUndelete(this.workflow)
           .then(() => {
             this.workflow.deletedAt = undefined
@@ -209,6 +218,9 @@ export default {
             this.toastSuccess(this.$t('notification:undelete.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:undelete.failed')))
+          .finally(() => {
+            this.processingDelete = false
+          })
       }
     },
   },

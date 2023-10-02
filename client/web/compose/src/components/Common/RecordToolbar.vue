@@ -70,47 +70,29 @@
           <c-input-confirm
             v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
             :disabled="!record || !canDeleteRecord"
+            :processing="processingDelete"
+            :text="labels.delete || $t('label.delete')"
             size="lg"
             size-confirm="lg"
             variant="danger"
-            :borderless="false"
             button-class="d-flex align-items-center justify-content-center w-100 h-100"
             style="min-height: 42px; min-width: 85px;"
             @confirmed="$emit('delete')"
-          >
-            <b-spinner
-              v-if="processingDelete"
-              small
-              type="grow"
-            />
-
-            <span v-else>
-              {{ labels.delete || $t('label.delete') }}
-            </span>
-          </c-input-confirm>
+          />
 
           <c-input-confirm
             v-if="isDeleted && !(hideDelete || settings.hideDelete)"
             :disabled="!record || !canUndeleteRecord"
+            :processing="processingUndelete"
+            :text="$t('label.restore')"
             size="lg"
             size-confirm="lg"
             variant="warning"
             variant-ok="warning"
-            :borderless="false"
             button-class="d-flex align-items-center justify-content-center w-100 h-100"
             style="min-height: 42px; min-width: 95px;"
             @confirmed="$emit('undelete')"
-          >
-            <b-spinner
-              v-if="processingUndelete"
-              small
-              type="grow"
-            />
-
-            <span v-else>
-              {{ $t('label.restore') }}
-            </span>
-          </c-input-confirm>
+          />
 
           <b-button
             v-if="isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"

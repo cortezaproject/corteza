@@ -219,7 +219,7 @@
 
     <!--
       no-enforce-focus flag doesn't set focus to sidebar when it is opened.
-      Bad for Accesability, since keyboard only users can't use sidebar.
+      Bad for Accessability, since keyboard only users can't use sidebar.
     -->
     <b-sidebar
       v-model="sidebar.show"
@@ -281,11 +281,10 @@
             size="md"
             size-confirm="md"
             variant="danger"
-            :borderless="false"
+            :processing="processingDelete"
+            :text="$t('editor:delete')"
             @confirmed="sidebarDelete()"
-          >
-            {{ $t('editor:delete') }}
-          </c-input-confirm>
+          />
 
           <div
             class="ml-auto"
@@ -351,21 +350,21 @@
             v-if="workflow.canDeleteWorkflow && !isDeleted"
             size="md"
             size-confirm="md"
+            :processing="processingDelete"
+            :text="$t('editor:delete')"
             :borderless="false"
             @confirmed="$emit('delete')"
-          >
-            {{ $t('editor:delete') }}
-          </c-input-confirm>
+          />
 
           <c-input-confirm
             v-else-if="isDeleted"
             size="md"
             size-confirm="md"
+            :processing="processingDelete"
+            :text="$t('editor:undelete')"
             :borderless="false"
             @confirmed="$emit('undelete')"
-          >
-            {{ $t('editor:undelete') }}
-          </c-input-confirm>
+          />
 
           <b-button
             v-if="workflow.workflowID === '0'"
@@ -551,17 +550,18 @@ export default {
 
     changeDetected: {
       type: Boolean,
-      default: false,
     },
 
     canCreate: {
       type: Boolean,
-      default: false,
     },
 
     processingSave: {
       type: Boolean,
-      default: false,
+    },
+
+    processingDelete: {
+      type: Boolean,
     },
   },
 

@@ -42,12 +42,11 @@
               </b-button>
               <c-input-confirm
                 v-if="buttons.length"
+                :text="$t('automation.removeAll')"
                 variant="link"
                 size="md"
                 @confirmed="removeAllButtons"
-              >
-                {{ $t('automation.removeAll') }}
-              </c-input-confirm>
+              />
             </template>
           </b-card>
         </b-col>

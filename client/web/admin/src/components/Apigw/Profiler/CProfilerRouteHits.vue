@@ -34,12 +34,11 @@
 
         <c-input-confirm
           :disabled="!items.length"
-          :borderless="false"
+          :processing="processingPurge"
+          :text="$t('purge.this')"
           variant="danger"
           @confirmed="purgeRequests"
-        >
-          {{ $t('purge.this') }}
-        </c-input-confirm>
+        />
       </div>
     </template>
 
@@ -127,6 +126,8 @@ export default {
 
   data () {
     return {
+      processingPurge: false,
+
       filter: {
         routeID: '',
         next: '',
@@ -254,6 +255,8 @@ export default {
     },
 
     purgeRequests () {
+      this.processingPurge = false
+
       const { routeID } = this.filter
       this.$SystemAPI.apigwProfilerPurge({ routeID })
         .then(() => {
@@ -261,6 +264,9 @@ export default {
           this.toastSuccess(this.$t('notification:gateway.profiler.purge.success'))
         })
         .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.purge.error')))
+        .finally(() => {
+          this.processingPurge = true
+        })
     },
 
     resetItems (sorting = this.sorting) {

@@ -414,6 +414,7 @@
         :processing="processing"
         :processing-save="processingSave"
         :processing-save-and-close="processingSaveAndClose"
+        :processing-delete="processingDelete"
         :hide-delete="hideDelete"
         :hide-save="hideSave"
         hide-clone
@@ -493,6 +494,7 @@ export default {
       processing: false,
       processingSave: false,
       processingSaveAndClose: false,
+      processingDelete: false,
 
       editReportIndex: undefined,
 
@@ -820,14 +822,16 @@ export default {
     },
 
     handleDelete () {
-      this.processing = true
+      this.processingDelete = true
 
       this.deleteChart(this.chart).then(() => {
         this.toastSuccess(this.$t('notification:chart.deleted'))
         this.$router.push({ name: 'admin.charts' })
       })
         .catch(this.toastErrorHandler(this.$t('notification:chart.deleteFailed')))
-        .finally(() => { this.processing = false })
+        .finally(() => {
+          this.processingDelete = false
+        })
     },
 
     redirect () {

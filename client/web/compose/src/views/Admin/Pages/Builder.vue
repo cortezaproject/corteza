@@ -131,6 +131,7 @@
 
             <c-input-confirm
               :title="$t('tooltip.delete.block')"
+              show-icon
               link
               size="md"
               class="ml-1"
@@ -224,12 +225,10 @@
           size="md"
           size-confirm="md"
           variant="danger"
-          :title="$t('label.delete')"
-          :borderless="false"
+          :text="$t('label.delete')"
+          :tooltip="$t('label.delete')"
           @confirmed="deleteBlock(editor.index)"
-        >
-          {{ $t('label.delete') }}
-        </c-input-confirm>
+        />
 
         <div>
           <b-button
@@ -255,11 +254,12 @@
     <portal to="admin-toolbar">
       <editor-toolbar
         :hide-save="!page.canUpdatePage"
-        hide-clone
         :processing="processing"
         :processing-save="processingSave"
         :processing-save-and-close="processingSaveAndClose"
+        :processing-delete="processingDelete"
         :processing-clone="processingClone"
+        hide-clone
         @save="handleSaveLayout()"
         @delete="handleDeleteLayout()"
         @saveAndClose="handleSaveLayout({ closeOnSuccess: true })"
@@ -367,6 +367,7 @@ export default {
       processingSave: false,
       processingSaveAndClose: false,
       processingClone: false,
+      processingDelete: false,
 
       processingLayout: false,
 
@@ -919,6 +920,7 @@ export default {
 
     handleDeleteLayout () {
       this.processing = true
+      this.processingDelete = true
 
       this.deletePageLayout({ ...this.layout }).then(() => {
         return this.fetchPageLayouts()
@@ -927,6 +929,7 @@ export default {
         this.toastSuccess(this.$t('notification:page.page-layout.delete.success'))
       }).finally(() => {
         this.processing = false
+        this.processingDelete = false
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.delete.failed')))
     },
 

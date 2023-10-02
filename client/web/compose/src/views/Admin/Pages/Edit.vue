@@ -353,6 +353,7 @@
                       />
 
                       <c-input-confirm
+                        show-icon
                         @confirmed="removeLayout(index)"
                       />
                     </td>
@@ -707,6 +708,7 @@
                   class="align-middle text-center"
                 >
                   <c-input-confirm
+                    show-icon
                     class="ml-2"
                     @confirmed="removeLayoutAction(index)"
                   />
@@ -861,6 +863,7 @@
         :processing="processing"
         :processing-save="processingSave"
         :processing-save-and-close="processingSaveAndClose"
+        :processing-delete="processingDelete"
         :processing-clone="processingClone"
         @clone="handleClone()"
         @delete="handleDeletePage()"
@@ -947,6 +950,7 @@ export default {
       processingSave: false,
       processingSaveAndClose: false,
       processingClone: false,
+      processingDelete: false,
 
       page: new compose.Page(),
       initialPageState: new compose.Page(),
@@ -1276,9 +1280,15 @@ export default {
     },
 
     handleDeletePage (strategy = 'abort') {
+      this.processingDelete = true
+
       this.deletePage({ ...this.page, strategy }).then(() => {
         this.$router.push({ name: 'admin.pages' })
-      }).catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
+      })
+        .catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
+        .finally(() => {
+          this.processingDelete = false
+        })
     },
 
     uploadAttachment ({ attachmentID }) {

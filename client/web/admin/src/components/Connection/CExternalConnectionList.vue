@@ -74,29 +74,15 @@
           </template>
 
           <c-input-confirm
+            :text="inputConfirmText(c.deletedAt)"
+            show-icon
             borderless
             variant="link"
             size="md"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(c)"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-              class="text-danger"
-            />
-            <span
-              v-if="!c.deletedAt"
-              class="p-1"
-            >{{ $t('delete') }}
-            </span>
-
-            <span
-              v-else
-              class="p-1"
-            >{{ $t('undelete') }}
-            </span>
-          </c-input-confirm>
+          />
         </b-dropdown>
       </template>
     </c-resource-list>
@@ -186,6 +172,10 @@ export default {
         resourceName: 'dalConnection',
         locale: 'connection',
       })
+    },
+
+    inputConfirmText (deletedAt) {
+      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

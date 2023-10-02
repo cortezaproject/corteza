@@ -353,6 +353,7 @@
                           style="min-width: 80px; width: 80px;"
                         >
                           <c-input-confirm
+                            show-icon
                             @confirmed="options.filterPresets.splice(index, 1)"
                           />
                         </b-td>

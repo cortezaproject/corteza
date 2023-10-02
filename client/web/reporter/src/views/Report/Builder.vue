@@ -134,7 +134,7 @@
 
             <c-input-confirm
               :tooltip="$t('builder:tooltip.delete.block')"
-              link
+              show-icon
               size="md"
               class="ml-1"
               @confirmed="deleteBlock(index)"
@@ -371,6 +371,7 @@
         :save-disabled="!canUpdate"
         :processing="processing"
         :processing-save="processingSave"
+        :processing-delete="processingDelete"
         @delete="handleDelete"
         @save="handleReportSave"
       >
@@ -430,6 +431,7 @@ export default {
     return {
       processing: false,
       processingSave: false,
+      processingDelete: false,
 
       showReport: true,
 
