@@ -35,7 +35,6 @@
           :block="blocks[item.i]"
           :index="index"
           :block-index="item.i"
-          :bounding-rect="boundingRects[index]"
           v-on="$listeners"
         />
       </grid-item>
@@ -78,9 +77,6 @@ export default {
     return {
       // All blocks in vue-grid friendly structure
       grid: undefined,
-
-      // Grid items bounding rect info
-      boundingRects: [],
     }
   },
 

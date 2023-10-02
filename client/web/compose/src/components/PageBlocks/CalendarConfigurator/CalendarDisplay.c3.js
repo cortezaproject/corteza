@@ -15,7 +15,6 @@ const props = {
     },
   }),
   blockIndex: 7,
-  boundingRect: {},
   mode: 'configurator',
   module: null,
   namespace: new compose.Namespace(),

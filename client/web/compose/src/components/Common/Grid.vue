@@ -19,6 +19,7 @@
       :responsive="!editable"
       :use-css-transforms="false"
       class="flex-grow-1 d-flex w-100 h-100"
+      @layout-updated="onLayoutUpdated"
     >
       <template
         v-for="(item, index) in layout"
@@ -37,6 +38,8 @@
           :class="{ 'h-100': isStretchable }"
           class="grid-item"
           style="touch-action: none;"
+          @move="onGridAction"
+          @resize="onGridAction"
           @moved="onBlockUpdated(index)"
           @resized="onBlockUpdated(index)"
         >
@@ -44,7 +47,7 @@
             :block="blocks[item.i]"
             :index="index"
             :block-index="item.i"
-            :bounding-rect="boundingRects[index]"
+            :resizing="resizing"
             v-on="$listeners"
           />
         </grid-item>
@@ -64,8 +67,6 @@
 
 <script>
 import { GridLayout, GridItem } from 'vue-grid-layout'
-import { throttle } from 'lodash'
-import { compose } from '@cortezaproject/corteza-js'
 
 export default {
   i18nOptions: {
@@ -93,8 +94,7 @@ export default {
       // all blocks in vue-grid friendly structure
       layout: [],
 
-      // Grid items bounding rect info
-      boundingRects: [],
+      resizing: false,
     }
   },
 
@@ -137,42 +137,31 @@ export default {
     },
   },
 
-  mounted () {
-    window.addEventListener('resize', this.windowResizeThrottledHandler)
-    this.recalculateBoundingRect()
-  },
-
   beforeDestroy () {
-    this.destroyEvents()
     this.setDefaultValues()
   },
 
   methods: {
-    windowResizeThrottledHandler: throttle(function () { this.recalculateBoundingRect() }, 500),
-
-    // Fetch bounding boxes of all grid items
-    recalculateBoundingRect () {
-      this.boundingRects = (this.$refs.items || [])
-        .map(({ $el }) => {
-          const { x, y, width: w, height: h } = $el.getBoundingClientRect()
-          return { x, y, w, h }
-        })
-    },
-
     onBlockUpdated (index) {
       this.$emit('item-updated', index)
-      this.$emit('update:blocks', this.layout.map(
-        ({ x, y, w, h, i }) => new compose.PageBlockMaker({ ...this.blocks[i], xywh: [x, y, w, h] }),
-      ))
+
+      const { x, y, w, h } = this.layout[index]
+      this.blocks[index].xywh = [x, y, w, h]
+    },
+
+    onLayoutUpdated () {
+      this.resizing = false
+    },
+
+    onGridAction () {
+      if (!this.resizing) {
+        this.resizing = true
+      }
     },
 
     setDefaultValues () {
       this.layout = []
-      this.boundingRects = []
-    },
-
-    destroyEvents () {
-      window.removeEventListener('resize', this.windowResizeThrottledHandler)
+      this.resizing = false
     },
   },
 }

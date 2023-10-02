@@ -4,7 +4,6 @@ import { compose } from '@cortezaproject/corteza-js'
 
 const props = {
   block: new compose.PageBlock(),
-  boundingRect: {},
 }
 
 export default {

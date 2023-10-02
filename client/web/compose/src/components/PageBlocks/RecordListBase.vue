@@ -316,7 +316,7 @@
           </b-thead>
 
           <draggable
-            v-if="items.length && !processing"
+            v-if="items.length && !processing && !resizing"
             v-model="items"
             :disabled="!inlineEditing || !options.draggable"
             group="items"

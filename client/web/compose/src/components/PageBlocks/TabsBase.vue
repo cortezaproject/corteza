@@ -44,7 +44,7 @@
       >
         <page-block-tab
           v-if="tab.block"
-          v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index, boundingRect: { xywh: block.xywh} }"
+          v-bind="{ ...$attrs, ...$props, page, block: tab.block, blockIndex: index }"
           :record="record"
           :module="module"
           :magnified="magnified"

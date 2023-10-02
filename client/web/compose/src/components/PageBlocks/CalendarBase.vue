@@ -219,7 +219,7 @@ export default {
       },
     },
 
-    boundingRect: {
+    'block.xywh': {
       deep: true,
       handler () {
         setTimeout(() => {

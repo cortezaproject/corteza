@@ -144,7 +144,6 @@ export default {
 
       bindParams: {
         page: new compose.Page(),
-        boundingRect: {},
         namespace: this.$attrs.namespace,
       },
 

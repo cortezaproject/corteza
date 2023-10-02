@@ -72,7 +72,7 @@
       @item-updated="onBlockUpdated"
     >
       <template
-        slot-scope="{ boundingRect, block, index }"
+        slot-scope="{ index, block, resizing }"
       >
         <div
           :data-test-id="`block-${block.kind}`"
@@ -149,7 +149,7 @@
             :block="block"
             :module="module"
             :record="record"
-            :bounding-rect="boundingRect"
+            :resizing="resizing"
             editable
             class="p-2"
           />

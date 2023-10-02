@@ -4,14 +4,13 @@
     :editable="false"
   >
     <template
-      slot-scope="{ boundingRect, block, index }"
+      slot-scope="{ index, block }"
     >
       <page-block
         v-bind="{ ...$attrs }"
         :page="page"
         :blocks="blocks"
         :block="block"
-        :bounding-rect="boundingRect"
         :block-index="index"
         class="p-2"
         v-on="$listeners"

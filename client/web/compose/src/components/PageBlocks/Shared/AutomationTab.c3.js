@@ -18,7 +18,6 @@ const props = {
   namespace: new compose.Namespace(),
   module: new compose.Module(),
   field: new compose.ModuleFieldBool(),
-  boundingRect: {},
   blockIndex: -1,
   page: new compose.Page(),
   block: new compose.PageBlock(),

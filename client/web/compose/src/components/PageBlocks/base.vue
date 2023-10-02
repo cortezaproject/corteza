@@ -12,12 +12,6 @@ export default {
   },
 
   props: {
-    boundingRect: {
-      type: Object,
-      required: false,
-      default: undefined,
-    },
-
     blockIndex: {
       type: Number,
       default: -1,
@@ -62,6 +56,12 @@ export default {
     },
 
     editable: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
+
+    resizing: {
       type: Boolean,
       required: false,
       default: false,
