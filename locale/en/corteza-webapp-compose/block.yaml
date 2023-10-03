@@ -186,6 +186,7 @@ iframe:
   srcFieldLabel: Field (URL) from record to use for the iframe
   srcLabel: URL to show in the iframe
 metric:
+  metricDrillDown: Metric drill down
   defaultMetricLabel: Unnamed metric
   drillDown:
     label: Drill down

@@ -38,7 +38,7 @@
               </b-button>
 
               <b-button
-                v-if="block.options.magnifyOption"
+                v-if="block.options.magnifyOption || isBlockMagnified"
                 :title="isBlockMagnified ? '' : $t('general.label.magnify')"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"

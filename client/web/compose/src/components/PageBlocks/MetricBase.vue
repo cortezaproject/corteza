@@ -47,6 +47,10 @@ import { NoID, compose } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
+  i18nOptions: {
+    namespaces: 'block',
+  },
+
   components: {
     MetricItem,
   },
@@ -194,7 +198,7 @@ export default {
         const metricID = `${this.block.blockID}-${name.replace(/\s+/g, '-').toLowerCase()}-${moduleID}-${metricIndex}`
 
         const block = new compose.PageBlockRecordList({
-          title: name,
+          title: name || this.$t('metric.metricDrillDown'),
           blockID: `drillDown-${metricID}`,
           options: {
             moduleID,

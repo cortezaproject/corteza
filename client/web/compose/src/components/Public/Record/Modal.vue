@@ -24,6 +24,7 @@
       :record-i-d="recordID"
       :values="values"
       :ref-record="refRecord"
+      :edit="edit"
       show-record-modal
       @handle-record-redirect="loadRecord"
       @on-modal-back="loadRecord"
@@ -74,6 +75,7 @@ export default {
       page: undefined,
       values: undefined,
       refRecord: undefined,
+      edit: false,
     }
   },
 
@@ -131,10 +133,11 @@ export default {
       clearModalPreviousPage: 'ui/clearModalPreviousPage',
     }),
 
-    loadRecord ({ recordID, recordPageID, values, refRecord, pushModalPreviousPage = true }) {
+    loadRecord ({ recordID, recordPageID, values, refRecord, edit, pushModalPreviousPage = true }) {
       this.recordID = recordID
       this.values = values
       this.refRecord = refRecord
+      this.edit = edit
 
       this.loadModal({ recordID, recordPageID })
 

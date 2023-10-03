@@ -71,6 +71,7 @@ export default {
       return [
         this.block.options.magnifyOption,
         this.block.options.showRefresh,
+        this.isBlockMagnified
       ].some(c => !!c)
     },
 

@@ -497,7 +497,7 @@
 
                     <b-dropdown-item
                       v-if="isEditRecordActionVisible(item.r)"
-                      :to="{ name: options.rowEditUrl || 'page.record.edit', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                      @click="handleEditRecordAction(item.r.recordID)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'edit']"
@@ -508,7 +508,7 @@
 
                     <b-dropdown-item
                       v-if="isCloneRecordActionVisible"
-                      :to="{ name: options.rowCreateUrl || 'page.record.create', params: { pageID: recordPageID, values: item.r.values }, query: null }"
+                      @click="handleCloneRecordAction(item.r.recordID, item.r.values)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'clone']"
@@ -1937,6 +1937,39 @@ export default {
         this.$router.push({
           name: this.options.rowCreateUrl || 'page.record.create',
           params: { pageID, refRecord },
+          query: null,
+        })
+      }
+    },
+
+    handleEditRecordAction (recordID) {
+      if (this.inModal) {
+        this.$root.$emit('show-record-modal', {
+          recordID: recordID,
+          recordPageID: this.recordPageID,
+          edit: true,
+        })
+      } else {
+        this.$router.push({
+          name: this.options.rowCreateUrl || 'page.record.edit',
+          params: { pageID: this.recordPageID, recordID },
+          query: null,
+        })
+      }
+    },
+
+    handleCloneRecordAction (recordID, values) {
+      if (this.inModal) {
+        this.$root.$emit('show-record-modal', {
+          recordID: recordID,
+          recordPageID: this.recordPageID,
+          values,
+          edit: true,
+        })
+      } else {
+        this.$router.push({
+          name: this.options.rowCreateUrl || 'page.record.create',
+          params: { pageID: this.recordPageID, values },
           query: null,
         })
       }
