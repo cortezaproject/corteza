@@ -197,7 +197,10 @@ export default {
         .then(() => {
           this.fetchQueue()
           this.toastSuccess(this.$t(`notification:queue.${event}.success`))
-          if (!deletedAt) this.$router.push({ name: 'system.queue' })
+          if (!deletedAt) {
+            this.queue.deletedAt = new Date()
+            this.$router.push({ name: 'system.queue' })
+          }
         })
         .catch(this.toastErrorHandler(this.$t(`notification:queue.${event}.error`)))
         .finally(() => {
@@ -208,7 +211,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.queue.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.queue, this.initialQueueState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

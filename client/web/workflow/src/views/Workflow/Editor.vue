@@ -94,7 +94,7 @@ export default {
   },
 
   beforeRouteLeave (to, from, next) {
-    if (this.changeDetected) {
+    if (this.changeDetected && !this.workflow.deletedAt) {
       next(window.confirm(this.$t('notification:confirm-unsaved-changes')))
     } else {
       window.onbeforeunload = null
@@ -197,6 +197,7 @@ export default {
           .then(() => {
             // Disable unsaved changes prompt
             this.workflow = {}
+            this.workflow.deletedAt = new Date()
             this.$router.push({ name: 'workflow.list' })
             this.toastSuccess(this.$t('notification:delete.success'))
           })

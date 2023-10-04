@@ -349,6 +349,7 @@ export default {
           .then(() => {
             this.fetchUser()
 
+            this.user.deletedAt = new Date()
             this.toastSuccess(this.$t('notification:user.delete.success'))
             this.$router.push({ name: 'system.user' })
           })
@@ -525,7 +526,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.user.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         let userChangesStatus = !isEqual(this.user, this.initialUserState)

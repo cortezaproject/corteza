@@ -229,6 +229,7 @@ export default {
           .then(() => {
             this.fetchRole()
 
+            this.role.deletedAt = new Date()
             this.toastSuccess(this.$t('notification:role.delete.success'))
             this.$router.push({ name: 'system.role' })
           })
@@ -334,7 +335,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.role.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         const isDirty = (this.roleMembers || []).some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)

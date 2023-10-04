@@ -673,6 +673,8 @@ export default {
       this.deleteNamespace({ namespaceID })
         .catch(this.toastErrorHandler(this.$t('notification:namespace.deleteFailed')))
         .then(() => {
+          this.namespace.deletedAt = new Date()
+
           if (applicationID) {
             return this.$SystemAPI.applicationDelete({ applicationID })
           }
@@ -780,11 +782,15 @@ export default {
     },
 
     checkUnsavedNamespace (next) {
-      const namespaceState = !isEqual(this.namespace.clone(), this.initialNamespaceState.clone())
-      const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
-      const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
+      if (!this.namespace.deletedAt) {
+        const namespaceState = !isEqual(this.namespace.clone(), this.initialNamespaceState.clone())
+        const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
+        const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
 
-      next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
+        return next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
+      }
+
+      next()
     },
 
     setDefaultValues () {

@@ -975,6 +975,10 @@ export default {
 
     // Trigger browser dialog on page leave to prevent unsaved changes
     checkUnsavedBlocks (next) {
+      if (this.report.deletedAt) {
+        return next(true)
+      }
+
       next(!this.unsavedBlocks.size || window.confirm(this.$t('builder:unsaved-changes')))
     },
 

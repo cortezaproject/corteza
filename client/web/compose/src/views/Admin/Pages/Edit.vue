@@ -1283,6 +1283,8 @@ export default {
       this.processingDelete = true
 
       this.deletePage({ ...this.page, strategy }).then(() => {
+        this.page.deletedAt = new Date()
+
         this.$router.push({ name: 'admin.pages' })
       })
         .catch(this.toastErrorHandler(this.$t('notification:page.deleteFailed')))
@@ -1403,10 +1405,14 @@ export default {
     },
 
     checkUnsavedComposePage (next) {
-      const layoutsStateChange = this.layouts.some((layout) => layout.meta.updated)
-      const pageStateChange = !isEqual(this.page, this.initialPageState)
+      if (!this.page.deletedAt) {
+        const layoutsStateChange = this.layouts.some((layout) => layout.meta.updated)
+        const pageStateChange = !isEqual(this.page, this.initialPageState)
 
-      next((layoutsStateChange || pageStateChange) ? window.confirm(this.$t('unsavedChanges')) : true)
+        return next((layoutsStateChange || pageStateChange) ? window.confirm(this.$t('unsavedChanges')) : true)
+      }
+
+      next()
     },
 
     setDefaultValues () {

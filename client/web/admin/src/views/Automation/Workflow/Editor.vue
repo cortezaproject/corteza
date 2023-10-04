@@ -206,7 +206,6 @@ export default {
         this.$AutomationAPI.workflowUndelete({ workflowID: this.workflowID })
           .then(() => {
             this.fetchWorkflow()
-
             this.toastSuccess(this.$t('notification:workflow.undelete.success'))
           })
           .catch(this.toastErrorHandler(this.$t('notification:workflow.undelete.error')))
@@ -217,6 +216,7 @@ export default {
         this.$AutomationAPI.workflowDelete({ workflowID: this.workflowID })
           .then(() => {
             this.fetchWorkflow()
+            this.workflow.deletedAt = new Date()
 
             this.toastSuccess(this.$t('notification:workflow.delete.success'))
             this.$router.push({ name: 'automation.workflow' })
@@ -236,7 +236,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.workflow.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.workflow, this.initialWorkflowState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

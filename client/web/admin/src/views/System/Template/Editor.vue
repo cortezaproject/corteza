@@ -193,6 +193,7 @@ export default {
           .then(() => {
             this.fetchTemplate()
 
+            this.template.deletedAt = new Date()
             this.toastSuccess(this.$t('notification:template.delete.success'))
             this.$router.push({ name: 'system.template' })
           })
@@ -240,7 +241,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.template.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.template, this.initialTemplateState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

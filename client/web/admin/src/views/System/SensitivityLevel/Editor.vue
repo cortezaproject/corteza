@@ -188,6 +188,7 @@ export default {
           .then(() => {
             this.fetchSensitivityLevel()
 
+            this.sensitivityLevel.deletedAt = new Date()
             this.toastSuccess(this.$t('notification:sensitivityLevel.delete.success'))
             this.$router.push({ name: 'system.sensitivityLevel' })
           })
@@ -199,7 +200,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.sensitivityLevel.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.sensitivityLevel, this.initialSensitivityLevelState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

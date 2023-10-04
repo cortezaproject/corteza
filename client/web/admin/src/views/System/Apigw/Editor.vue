@@ -226,6 +226,8 @@ export default {
           .then(() => {
             this.fetchRoute()
 
+            this.route.deletedAt = new Date()
+
             this.toastSuccess(this.$t('notification:gateway.delete.success'))
             this.$router.push({ name: 'system.apigw' })
           })
@@ -347,7 +349,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.route.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         const routeState = !isEqual(this.route, this.initialRouteState)

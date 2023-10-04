@@ -247,6 +247,7 @@ export default {
             /**
              * Resource deleted, move back to the list
              */
+            this.connection.deletedAt = new Date()
             this.$router.push({ name: `system.connection` })
           } else {
             this.connection.deletedAt = null
@@ -261,7 +262,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.connection.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.connection, this.initialConnectionState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

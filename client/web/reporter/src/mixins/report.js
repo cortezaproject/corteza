@@ -80,6 +80,7 @@ export default {
 
       return this.$SystemAPI.reportDelete(this.report)
         .then(() => {
+          this.report.deletedAt = new Date()
           this.toastSuccess(this.$t('notification:report.delete'))
           this.$router.push({ name: 'report.list' })
         })

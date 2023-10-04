@@ -330,6 +330,8 @@ export default {
           .then(() => {
             this.fetchApplication()
 
+            this.application.deletedAt = new Date()
+
             this.toastSuccess(this.$t('notification:application.delete.success'))
             this.$router.push({ name: 'system.application' })
           })
@@ -343,7 +345,7 @@ export default {
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
 
-      if (isNewPage) {
+      if (isNewPage || this.application.deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.application, this.initialApplicationState) || this.unifyAssetStateChange ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

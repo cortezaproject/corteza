@@ -299,6 +299,10 @@ export default {
     },
 
     checkUnsavedChart (next) {
+      if (this.report.deletedAt) {
+        return next(true)
+      }
+
       const reportState = {
         handle: this.report.handle,
         meta: {
