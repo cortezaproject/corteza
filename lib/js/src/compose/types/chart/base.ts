@@ -389,6 +389,10 @@ export class BaseChart {
   get resourceType (): string {
     return 'compose:chart'
   }
+  
+  clone (): BaseChart {
+    return new BaseChart(JSON.parse(JSON.stringify(this)))
+  }
 }
 
 export { chartUtil } from './util'

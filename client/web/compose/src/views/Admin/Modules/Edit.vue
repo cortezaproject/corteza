@@ -443,12 +443,13 @@
         :processing-save-and-close="processingSaveAndClose"
         :processing-delete="processingDelete"
         :hide-delete="hideDelete"
-        hide-clone
+        :hide-clone="!isEdit"
         :hide-save="hideSave"
         :disable-save="disableSave"
         @delete="handleDelete"
         @save="handleSave()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
+        @clone="handleClone"
         @back="$router.push(previousPage || { name: 'admin.modules' })"
       />
     </portal>
@@ -667,6 +668,7 @@ export default {
             { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: this.$t('general.placeholder.sample') })] },
             this.namespace,
           )
+
           this.initialModuleState = this.module.clone()
         } else {
           const params = {
@@ -770,7 +772,7 @@ export default {
       this.module.config = { ...this.module.config, ...changes }
     },
 
-    handleSave ({ closeOnSuccess = false } = {}) {
+    handleSave ({ closeOnSuccess = false, module = this.module } = {}) {
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
@@ -784,11 +786,11 @@ export default {
         this.processingSave = true
       }
 
-      if (!this.isEdit) {
+      if (module.moduleID === NoID) {
         // Filter out record fields that reference this not yet created module
         let fields = []
         const toBeUpdatedFields = []
-        this.module.fields.forEach(f => {
+        module.fields.forEach(f => {
           if (f.kind === 'Record' && f.options.moduleID === '-1') {
             toBeUpdatedFields.push(f)
           } else {
@@ -798,7 +800,7 @@ export default {
 
         // If such fields exist , after module is created add fields, map moduleID and update module
         // Unfortunately this ruins the initial field order, but we can improve this later
-        this.createModule({ ...this.module, fields, resourceTranslationLanguage }).then(async module => {
+        this.createModule({ ...module, fields, resourceTranslationLanguage }).then(async module => {
           if (toBeUpdatedFields.length) {
             fields = [
               ...module.fields,
@@ -831,7 +833,7 @@ export default {
             }
           })
       } else {
-        this.updateModule({ ...this.module, resourceTranslationLanguage }).then(module => {
+        this.updateModule({ ...module, resourceTranslationLanguage }).then(module => {
           this.module = new compose.Module({ ...module }, this.namespace)
           this.initialModuleState = this.module.clone()
 
@@ -871,6 +873,15 @@ export default {
           this.processingDelete = false
           this.$router.push({ name: 'admin.modules' })
         })
+    },
+
+    handleClone () {
+      const module = this.module.clone()
+      module.moduleID = NoID
+      module.name = `${this.module.name} (copy)`
+      module.handle = this.module.handle ? `${this.module.handle}_copy` : ''
+
+      this.handleSave({ module })
     },
 
     async fetchConnection (connectionID) {

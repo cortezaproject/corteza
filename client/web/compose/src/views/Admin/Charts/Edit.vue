@@ -417,10 +417,11 @@
         :processing-delete="processingDelete"
         :hide-delete="hideDelete"
         :hide-save="hideSave"
-        hide-clone
+        :hide-clone="!isEdit"
         :disable-save="disableSave"
         @delete="handleDelete()"
         @save="handleSave()"
+        @clone="handleClone()"
         @saveAndClose="handleSave({ closeOnSuccess: true })"
         @back="$router.push(previousPage || { name: 'admin.charts' })"
       />
@@ -677,6 +678,7 @@ export default {
 
         if (chartID === NoID) {
           let c = new compose.Chart({ namespaceID: this.namespace.namespaceID })
+
           switch (this.category) {
             case 'gauge':
               c = new compose.GaugeChart(c)
@@ -762,7 +764,7 @@ export default {
       this.processing = false
     },
 
-    handleSave ({ closeOnSuccess = false } = {}) {
+    handleSave ({ closeOnSuccess = false, chart = this.chart } = {}) {
       this.processing = true
 
       if (closeOnSuccess) {
@@ -777,9 +779,9 @@ export default {
        */
       const resourceTranslationLanguage = this.currentLanguage
 
-      const c = Object.assign({}, this.chart, resourceTranslationLanguage)
+      const c = Object.assign({}, chart, resourceTranslationLanguage)
 
-      if (this.chart.chartID === NoID) {
+      if (chart.chartID === NoID) {
         this.createChart(c).then(({ chartID }) => {
           this.toastSuccess(this.$t('notification:chart.saved'))
           this.initialChartState = cloneDeep(chartConstructor(this.chart))
@@ -834,6 +836,15 @@ export default {
         .finally(() => {
           this.processingDelete = false
         })
+    },
+
+    handleClone () {
+      const chart = this.chart.clone()
+      chart.chartID = NoID
+      chart.name = `${this.chart.name} (copy)`
+      chart.handle = this.chart.handle ? `${this.chart.handle}_copy` : ''
+
+      this.handleSave({ chart })
     },
 
     redirect () {
