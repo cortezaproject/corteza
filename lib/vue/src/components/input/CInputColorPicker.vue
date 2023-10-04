@@ -51,13 +51,10 @@
     <b-modal
       :visible="showModal"
       :title="translations.modalTitle"
-      :ok-title="translations.saveBtnLabel"
       centered
-      size="sm"
+      size="md"
       body-class="p-0"
-      cancel-variant="link"
       no-fade
-      @ok="$emit('input', currentColor || value)"
       @hide="closeMenu"
     >
       <chrome
@@ -65,6 +62,25 @@
         class="w-100 shadow-none"
         @input="updateColor"
       />
+
+      <template #modal-footer>
+        <slot name="footer" />
+
+        <b-button
+          variant="link"
+          class="ml-auto"
+          @click="closeMenu"
+        >
+          {{ translations.cancelBtnLabel }}
+        </b-button>
+
+        <b-button
+          variant="primary"
+          @click="saveColor"
+        >
+          {{ translations.saveBtnLabel }}
+        </b-button>
+      </template>
     </b-modal>
   </div>
 </template>
@@ -121,6 +137,11 @@ export default {
       } else {
         this.openMenu()
       }
+    },
+
+    saveColor () {
+      this.$emit('input', this.currentColor || this.value)
+      this.closeMenu()
     },
 
     openMenu () {

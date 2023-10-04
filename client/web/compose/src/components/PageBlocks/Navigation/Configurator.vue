@@ -134,6 +134,7 @@
                         v-model="item.options.textColor"
                         :translations="{
                           modalTitle: $t('navigation.colorPicker'),
+                          cancelBtnLabel: $t('general:label.cancel'),
                           saveBtnLabel: $t('general:label.saveAndClose')
                         }"
                         class="w-100"
@@ -144,6 +145,7 @@
                         v-model="item.options.backgroundColor"
                         :translations="{
                           modalTitle: $t('navigation.colorPicker'),
+                          cancelBtnLabel: $t('general:label.cancel'),
                           saveBtnLabel: $t('general:label.saveAndClose')
                         }"
                         class="w-100"

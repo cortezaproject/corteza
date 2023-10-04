@@ -275,7 +275,7 @@ export default class Chart extends BaseChart {
 
 
     return {
-      color: getColorschemeColors(colorScheme),
+      color: getColorschemeColors(colorScheme, data.customColorSchemes),
       textStyle: {
         fontFamily: 'Poppins-Regular',
         overflow: 'break',

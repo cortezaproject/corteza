@@ -10,6 +10,7 @@
         v-model="feed.options.color"
         :translations="{
           modalTitle: $t('calendar.recordFeed.colorPicker'),
+          cancelBtnLabel: $t('general:label.cancel'),
           saveBtnLabel: $t('general:label.saveAndClose')
         }"
       />

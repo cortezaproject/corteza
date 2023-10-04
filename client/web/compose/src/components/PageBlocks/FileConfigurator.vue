@@ -172,6 +172,7 @@
               v-model="options.backgroundColor"
               :translations="{
                 modalTitle: $t('kind.file.view.colorPicker'),
+                cancelBtnLabel: $t('general:label.cancel'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
             />

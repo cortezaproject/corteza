@@ -2,6 +2,15 @@ colorLabel: '{{count}} colors'
 colorScheme:
   label: Color scheme
   placeholder: Pick a color scheme
+  pickAColor: Pick a color
+  custom:
+    add: Add color scheme
+    edit: Edit color scheme
+    modal:
+      name:
+        label: Name
+      colors:
+        label: Colors
 configure:
   reportsLabel: Reports
 general:

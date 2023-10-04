@@ -57,6 +57,7 @@
             v-model="options.color"
             :translations="{
               modalTitle: $t('color.picker'),
+              cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />
@@ -70,6 +71,7 @@
             v-model="options.backgroundColor"
             :translations="{
               modalTitle: $t('color.picker'),
+              cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />

@@ -53,6 +53,7 @@
             data-test-id="input-text-color"
             :translations="{
               modalTitle: $t('colorPicker'),
+              cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />
@@ -67,6 +68,7 @@
             data-test-id="input-background-color"
             :translations="{
               modalTitle: $t('colorPicker'),
+              cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
           />

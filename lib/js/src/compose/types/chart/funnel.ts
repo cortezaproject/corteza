@@ -90,7 +90,7 @@ export default class FunnelChart extends BaseChart {
 
     const { labels, datasets = [], tooltip } = data
     const { legend: l } = reports[0] || {}
-    const colors = getColorschemeColors(colorScheme)
+    const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
     const tooltipFormatter = `{b}<br />{c} ${tooltip.relative ? ' ({d}%)' : ''}`
     const labelFormatter = `{c}${tooltip.relative ? ' ({d}%)' : ''}`

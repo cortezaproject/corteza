@@ -10,6 +10,7 @@
           v-model="options.color"
           :translations="{
             modalTitle: $t('metric.editStyle.colorPicker'),
+            cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
           class="mb-1"
@@ -23,6 +24,7 @@
           v-model="options.backgroundColor"
           :translations="{
             modalTitle: $t('geometry.recordFeed.colorPicker'),
+            cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
           class="mb-1"

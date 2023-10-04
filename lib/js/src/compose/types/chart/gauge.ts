@@ -79,7 +79,7 @@ export default class GaugeChart extends BaseChart {
 
     const { datasets = [] } = data
     const { steps = [], name, value, max, tooltip, startAngle, endAngle } = datasets.find(({ value }: any) => value) || datasets[0]
-    const colors = getColorschemeColors(colorScheme)
+    const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
     const color = steps.map((s: any, i: number) => {
       return [s.value / max, colors[i]]

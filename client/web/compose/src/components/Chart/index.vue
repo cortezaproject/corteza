@@ -168,6 +168,7 @@ export default {
           }
 
           data.labels = data.labels.map(l => l === 'undefined' ? this.$t('chart:undefined') : l)
+          data.customColorSchemes = this.$Settings.get('ui.charts.colorSchemes', [])
 
           this.renderer = chart.makeOptions(data)
         } else {

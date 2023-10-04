@@ -93,31 +93,58 @@
                         :label="$t('colorScheme.label')"
                         label-class="text-primary"
                       >
-                        <vue-select
-                          v-model="chart.config.colorScheme"
-                          :options="colorSchemes"
-                          :reduce="cs => cs.value"
-                          label="label"
-                          option-text="label"
-                          option-value="value"
-                          :placeholder="$t('colorScheme.placeholder')"
-                          :calculate-position="calculateDropdownPosition"
-                          class="bg-white w-100"
-                        >
-                          <template #option="option">
-                            <p
-                              class="mb-1"
+                        <b-input-group class="d-flex w-100">
+                          <vue-select
+                            v-model="chart.config.colorScheme"
+                            :options="colorSchemes"
+                            :reduce="cs => cs.id"
+                            label="name"
+                            :get-option-key="o => o.id"
+                            :placeholder="$t('colorScheme.placeholder')"
+                            :calculate-position="calculateDropdownPosition"
+                            class="bg-white"
+                          >
+                            <template #option="option">
+                              <p
+                                class="mb-1"
+                              >
+                                {{ option.name }}
+                              </p>
+                              <div
+                                v-for="(color, index) in option.colors"
+                                :key="index"
+                                :style="`background: ${color};`"
+                                class="d-inline-block color-box mr-1 mb-1"
+                              />
+                            </template>
+
+                            <template
+                              v-if="canManageColorSchemes"
+                              #list-header
                             >
-                              {{ option.label }}
-                            </p>
-                            <div
-                              v-for="(color, index) in option.colors"
-                              :key="`${option.value}-${index}`"
-                              :style="`background: ${color};`"
-                              class="d-inline-block color-box mr-1 mb-1"
-                            />
-                          </template>
-                        </vue-select>
+                              <li class="border-bottom text-center mb-1">
+                                <b-button
+                                  variant="link"
+                                  class="text-decoration-none"
+                                  @click="createColorScheme"
+                                >
+                                  {{ $t('colorScheme.custom.add') }}
+                                </b-button>
+                              </li>
+                            </template>
+                          </vue-select>
+
+                          <b-input-group-append v-if="showEditColorSchemeButton">
+                            <b-button
+                              :title="$t('colorScheme.custom.edit')"
+                              variant="light"
+                              class="d-flex align-items-center"
+                              @click="editColorScheme()"
+                            >
+                              <font-awesome-icon :icon="['far', 'edit']" />
+                            </b-button>
+                          </b-input-group-append>
+                        </b-input-group>
 
                         <template
                           v-if="currentColorScheme"
@@ -295,6 +322,90 @@
       </b-row>
     </b-container>
 
+    <b-modal
+      v-model="colorSchemeModal.show"
+      :title="colorSchemeModalTitle"
+      :ok-title="$t('general:label.saveAndClose')"
+      centered
+      size="md"
+      cancel-variant="link"
+      no-fade
+    >
+      <b-form-group
+        :label="$t('colorScheme.custom.modal.name.label')"
+        label-class="text-primary"
+      >
+        <b-form-input
+          v-model="colorSchemeModal.colorscheme.name"
+        />
+      </b-form-group>
+
+      <b-form-group
+        label-class="text-primary"
+        class="mb-0"
+      >
+        <template #label>
+          {{ $t('colorScheme.custom.modal.colors.label') }}
+          <b-button
+            variant="outline-light"
+            size="sm"
+            class="text-primary border-0"
+            @click="addColor"
+          >
+            <font-awesome-icon :icon="['fa', 'plus']" />
+          </b-button>
+        </template>
+
+        <c-input-color-picker
+          v-for="(color, index) in colorSchemeModal.colorscheme.colors"
+          :key="index"
+          v-model="colorSchemeModal.colorscheme.colors[index]"
+          data-test-id="input-scheme-color"
+          :translations="{
+            modalTitle: $t('colorScheme.pickAColor'),
+            cancelBtnLabel: $t('general:label.cancel'),
+            saveBtnLabel: $t('general:label.saveAndClose')
+          }"
+          class="d-inline-flex mr-1"
+        >
+          <template #footer>
+            <c-input-confirm
+              variant="danger"
+              size="md"
+              @confirmed="removeColor(index)"
+            />
+          </template>
+        </c-input-color-picker>
+      </b-form-group>
+
+      <template #modal-footer>
+        <c-input-confirm
+          v-if="colorSchemeModal.edit"
+          variant="danger"
+          size="md"
+          :disabled="colorSchemeModal.processing"
+          @confirmed="deleteColorScheme()"
+        />
+
+        <b-button
+          variant="link"
+          class="ml-auto"
+          :disabled="colorSchemeModal.processing"
+          @click="closeColorSchemeModal"
+        >
+          {{ $t('general:label.cancel') }}
+        </b-button>
+
+        <b-button
+          variant="primary"
+          :disabled="!colorSchemeModal.colorscheme.name || !colorSchemeModal.colorscheme.colors.length || colorSchemeModal.processing"
+          @click="saveColorScheme"
+        >
+          {{ $t('general:label.saveAndClose') }}
+        </b-button>
+      </template>
+    </b-modal>
+
     <portal to="admin-toolbar">
       <editor-toolbar
         :processing="processing"
@@ -325,7 +436,7 @@ import { chartConstructor } from 'corteza-webapp-compose/src/lib/charts'
 import VueSelect from 'vue-select'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
-const { CInputCheckbox } = components
+const { CInputConfirm, CInputCheckbox, CInputColorPicker } = components
 const { colorschemes } = shared
 
 const defaultReport = {
@@ -347,6 +458,8 @@ export default {
     ReportItem,
     VueSelect,
     CInputCheckbox,
+    CInputColorPicker,
+    CInputConfirm,
   },
 
   props: {
@@ -375,6 +488,15 @@ export default {
       processing: false,
 
       editReportIndex: undefined,
+
+      customColorSchemes: [],
+      colorSchemeModal: {
+        show: false,
+        processing: false,
+        edit: false,
+        colorscheme: {},
+      },
+
       checkboxLabel: {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
@@ -387,6 +509,7 @@ export default {
       modules: 'module/set',
       modByID: 'module/getByID',
       previousPage: 'ui/previousPage',
+      can: 'rbac/can',
     }),
 
     colorSchemes () {
@@ -399,15 +522,15 @@ export default {
         }
       }
 
-      const rr = []
+      const rr = [...this.customColorSchemes]
       for (const g in colorschemes) {
         for (const sc in colorschemes[g]) {
           const gn = splicer(sc)
 
           rr.push({
-            label: `${capitalize(g)}: ${capitalize(gn.label)} (${this.$t('colorLabel', gn)})`,
+            id: `${g}.${sc}`,
+            name: `${capitalize(g)}: ${capitalize(gn.label)} (${this.$t('colorLabel', gn)})`,
             colors: [...colorschemes[g][sc]],
-            value: `${g}.${sc}`,
           })
         }
       }
@@ -416,7 +539,15 @@ export default {
     },
 
     currentColorScheme () {
-      return this.colorSchemes.find(({ value }) => value === this.chart.config.colorScheme)
+      return this.colorSchemes.find(({ id }) => id === this.chart.config.colorScheme)
+    },
+
+    canManageColorSchemes () {
+      return this.can('system/', 'settings.manage')
+    },
+
+    colorSchemeModalTitle () {
+      return this.$t(`colorScheme.custom.${this.colorSchemeModal.edit ? 'edit' : 'add'}`)
     },
 
     defaultReport () {
@@ -515,6 +646,11 @@ export default {
         { value: 'xy', text: this.$t('edit.toolbox.timeline.options.xy') },
       ]
     },
+
+    showEditColorSchemeButton () {
+      const { config = {} } = this.chart || {}
+      return config.colorScheme && config.colorScheme.includes('custom') && this.canManageColorSchemes
+    },
   },
 
   watch: {
@@ -525,6 +661,10 @@ export default {
         this.initialChartState = undefined
 
         const { namespaceID } = this.namespace
+
+        if (this.canManageColorSchemes) {
+          this.fetchCustomColorSchemes()
+        }
 
         if (chartID === NoID) {
           let c = new compose.Chart({ namespaceID: this.namespace.namespaceID })
@@ -668,6 +808,101 @@ export default {
 
     onAddReport () {
       this.reports.push(this.chart.defReport())
+    },
+
+    async fetchCustomColorSchemes () {
+      return this.$SystemAPI.settingsList({ prefix: 'ui.charts.colorSchemes' })
+        .then(settings => {
+          const { value = [] } = settings[0] || {}
+          this.customColorSchemes = value
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:chart.colorScheme.fetch.failed')))
+    },
+
+    async saveColorScheme () {
+      this.colorSchemeModal.processing = true
+
+      const action = this.colorSchemeModal.edit ? 'update' : 'create'
+
+      if (this.colorSchemeModal.edit) {
+        const index = this.customColorSchemes.findIndex(({ id }) => id === this.colorSchemeModal.colorscheme.id)
+        this.customColorSchemes.splice(index, 1, this.colorSchemeModal.colorscheme)
+      } else {
+        this.customColorSchemes.push(this.colorSchemeModal.colorscheme)
+      }
+
+      const values = [
+        { name: 'ui.charts.colorSchemes', value: this.customColorSchemes },
+      ]
+
+      return this.$SystemAPI.settingsUpdate({ values })
+        .then(() => {
+          this.chart.config.colorScheme = this.colorSchemeModal.colorscheme.id
+          this.closeColorSchemeModal()
+          this.toastSuccess(this.$t(`notification:chart.colorScheme.${action}.success`))
+          return this.$Settings.fetch().then(() => {
+            return this.update()
+          })
+        })
+        .catch(this.toastErrorHandler(this.$t(`notification:chart.colorScheme.${action}.failed`)))
+        .finally(() => {
+          this.colorSchemeModal.processing = false
+        })
+    },
+
+    async deleteColorScheme () {
+      this.colorSchemeModal.processing = true
+
+      const value = this.customColorSchemes.filter(({ id }) => id !== this.colorSchemeModal.colorscheme.id)
+      const values = [
+        { name: 'ui.charts.colorSchemes', value },
+      ]
+
+      return this.$SystemAPI.settingsUpdate({ values })
+        .then(() => {
+          this.chart.config.colorScheme = undefined
+          this.customColorSchemes = value
+          this.closeColorSchemeModal()
+          this.toastSuccess(this.$t('notification:chart.colorScheme.delete.success'))
+          return this.$Settings.fetch()
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:chart.colorScheme.delete.success')))
+        .finally(() => {
+          this.colorSchemeModal.processing = false
+        })
+    },
+
+    createColorScheme () {
+      this.colorSchemeModal.edit = false
+      this.colorSchemeModal.colorscheme = {
+        id: `custom-${Date.now()}`,
+        name: '',
+        colors: ['#6C757D', '#000000'],
+      }
+
+      this.colorSchemeModal.show = true
+    },
+
+    editColorScheme () {
+      this.colorSchemeModal.edit = true
+      this.colorSchemeModal.colorscheme = {
+        id: this.currentColorScheme.id,
+        name: this.currentColorScheme.name,
+        colors: [...this.currentColorScheme.colors],
+      }
+      this.colorSchemeModal.show = true
+    },
+
+    closeColorSchemeModal () {
+      this.colorSchemeModal.show = false
+    },
+
+    addColor () {
+      this.colorSchemeModal.colorscheme.colors.push('#000000')
+    },
+
+    removeColor (index) {
+      this.colorSchemeModal.colorscheme.colors.splice(index, 1)
     },
 
     getOptionKey ({ value }) {

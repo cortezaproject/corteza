@@ -46,7 +46,7 @@ export default class RadarChart extends BaseChart {
     })
 
     return {
-      color: getColorschemeColors(colorScheme),
+      color: getColorschemeColors(colorScheme, data.customColorSchemes),
       animation: !noAnimation,
       textStyle: {
         fontFamily: 'Poppins-Regular',

@@ -18,6 +18,18 @@ chart:
   saveFailed: Could not save this chart
   saved: Chart saved
   unsupportedRenderer: Unsupported renderer
+  colorScheme:
+    fetch:
+      failed: Failed to fetch custom color schemes
+    create:
+      success: Color scheme created
+      failed: Failed to create color scheme
+    update:
+      success: Color scheme updated
+      failed: Failed to update color scheme
+    delete:
+      success: Color scheme deleted
+      failed: Failed to delete color scheme
 color:
   RGBA:
     invalid: Invalid RGBA color format

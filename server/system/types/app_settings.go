@@ -272,6 +272,14 @@ type (
 					NewTab bool   `json:"newTab"`
 				} `json:"profileLinks"`
 			} `kv:"topbar,final" json:"topbar"`
+
+			Charts struct {
+				ColorSchemes []struct {
+					ID     string   `json:"id"`
+					Name   string   `json:"name"`
+					Colors []string `json:"colors"`
+				} `kv:"colorSchemes" json:"colorSchemes"`
+			} `kv:"charts" json:"charts"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {
