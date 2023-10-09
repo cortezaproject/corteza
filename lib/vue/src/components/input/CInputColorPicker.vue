@@ -48,7 +48,7 @@
             />
           </svg>
         </b-button>
-        <span v-show="showColorCodeText" class="ml-2">
+        <span v-if="showColorCodeText" class="ml-2">
           {{ value }}
         </span>
     </div>

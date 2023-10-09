@@ -2,9 +2,8 @@ package webapp
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"github.com/bep/godartsass/v2"
-	"github.com/cortezaproject/corteza/server/assets"
 	"io"
 	"net/http"
 	"os"
@@ -12,6 +11,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/bep/godartsass/v2"
+	"github.com/cortezaproject/corteza/server/assets"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -150,19 +151,27 @@ func serveConfig(r chi.Router, config webappConfig) {
 	r.Get(options.CleanBase(config.appUrl, "custom.css"), func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/css")
 
-		var sassString string
+		var stringsBuilder strings.Builder
 
 		assetFiles := assets.Files(logger.Default(), "")
 
-		if len(config.settings.UI.Branding.Variables) > 0 {
-			sassString += strings.Join(config.settings.UI.Branding.Variables, ";\n") + ";"
+		// process BrandingSASS
+		if config.settings.UI.BrandingSASS != "" {
+			brandingSassString, err := jsonToSass(config.settings.UI.BrandingSASS)
+			if err != nil {
+				logger.Default().Error("failed to parse branding SASS", zap.Error(err))
+				return
+			}
+			stringsBuilder.WriteString(brandingSassString)
 		}
 
 		// Get SASS variables from the custom CSS editor and give them precedence over branding variables
 		variablesPattern := regexp.MustCompile(`(\$[a-zA-Z_-]+):\s*([^;]+);`)
 		customVariables := variablesPattern.FindAllString(config.settings.UI.CustomCSS, -1)
 
-		sassString += strings.Join(customVariables, "\n")
+		for _, customVariable := range customVariables {
+			stringsBuilder.WriteString(fmt.Sprintf("%s \n", customVariable))
+		}
 
 		// Boostrap, bootstrap-vue and custom variables scss files
 		fileNames := assets.FileNames("scss")
@@ -176,16 +185,16 @@ func serveConfig(r chi.Router, config webappConfig) {
 			if err != nil {
 				return
 			}
-			sassString += string(fileContent)
+			stringsBuilder.WriteString(string(fileContent))
 		}
 
 		//Custom CSS editor selector block
 		selectorBlock := variablesPattern.ReplaceAllString(config.settings.UI.CustomCSS, "")
-		sassString += selectorBlock
+		stringsBuilder.WriteString(selectorBlock)
 
 		// Process Sass
 		args := godartsass.Args{
-			Source: sassString,
+			Source: stringsBuilder.String(),
 		}
 
 		t, err := godartsass.Start(godartsass.Options{
@@ -234,4 +243,23 @@ func replaceBaseHrefPlaceholder(buf []byte, app, baseHref string) []byte {
 	}
 
 	return fixed
+}
+
+// jsonToSass converts JSON string to SASS variable assignment string
+func jsonToSass(jsonStr string) (string, error) {
+	var (
+		colorMap       map[string]string
+		stringsBuilder strings.Builder
+	)
+
+	err := json.Unmarshal([]byte(jsonStr), &colorMap)
+	if err != nil {
+		return "", err
+	}
+
+	for key, value := range colorMap {
+		stringsBuilder.WriteString(fmt.Sprintf("$%s: %s;\n", key, value))
+	}
+
+	return stringsBuilder.String(), nil
 }

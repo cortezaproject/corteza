@@ -10,29 +10,28 @@
       </h3>
     </template>
 
-    <div class="row row-cols-2 mx-2">
-      <div
-        v-for="(colorInfo, key) in colorData"
+    <b-row class="mx-2">
+      <b-col
+        v-for="key in Object.keys(brandingVariables)"
         :key="key"
-        class="p-2 border"
+        cols="6"
+        class="p-2"
       >
-        <label
-          :for="key"
-          class="text-primary"
-        >{{ colorInfo.label }}</label>
-        <div class="form-group row">
+        <b-form-group
+          :label="$t(`brandVariables.${key}`)"
+          class="row px-3"
+        >
           <c-input-color-picker
-            v-model="colorInfo.value"
+            v-model="brandingVariables[key]"
             :data-test-id="`input-${key}-color`"
             width="24px"
             height="24px"
             :show-color-code-text="true"
-            class="px-3"
             :translations="colorTranslations"
           />
-        </div>
-      </div>
-    </div>
+        </b-form-group>
+      </b-col>
+    </b-row>
 
     <template #footer>
       <c-submit-button
@@ -88,59 +87,20 @@ export default {
 
   data () {
     return {
-      colorData: {
-        white: {
-          label: 'White',
-          value: '#FFFFFF',
-        },
-        black: {
-          label: 'Black',
-          value: '#162425',
-        },
-        primary: {
-          label: 'Primary',
-          value: '#0B344E',
-        },
-        secondary: {
-          label: 'Secondary',
-          value: '#758D9B',
-        },
-        success: {
-          label: 'Success',
-          value: '#43AA8B',
-        },
-        warning: {
-          label: 'Warning',
-          value: '#E2A046',
-        },
-        danger: {
-          label: 'Danger',
-          value: '#E54122',
-        },
-        light: {
-          label: 'Light',
-          value: '#E4E9EF',
-        },
-        extraLight: {
-          label: 'Extra Light',
-          value: '#F3F5F7',
-        },
-        dark: {
-          label: 'Dark',
-          value: '#162425',
-        },
-        tertiary: {
-          label: 'Tertiary',
-          value: '#5E727E',
-        },
-        gray200: {
-          label: 'Gray-200',
-          value: '#F9FAFB ',
-        },
-        bodyBg: {
-          label: 'Body Background',
-          value: '#F9FAFB',
-        },
+      brandingVariables: {
+        white: '#FFFFFF',
+        black: '#162425',
+        primary: '#0B344E',
+        secondary: '#758D9B',
+        success: '#43AA8B',
+        warning: '#E2A046',
+        danger: '#E54122',
+        light: '#E4E9EF',
+        extraLight: '#F3F5F7',
+        dark: '#162425',
+        tertiary: '#5E727E',
+        gray200: '#F9FAFB',
+        bodyBg: '#F9FAFB',
       },
       colorTranslations: {
         modalTitle: this.$t('colorPicker'),
@@ -153,10 +113,8 @@ export default {
     settings: {
       immediate: true,
       handler (settings) {
-        const brandingVariables = settings['ui.branding.variables'] || []
-        if (brandingVariables.length !== 0) {
-          this.colorData.primary.value = this.brandColorValue(brandingVariables, 'primary')
-          this.colorData.secondary.value = this.brandColorValue(brandingVariables, 'secondary')
+        if (settings['ui.branding-sass']) {
+          this.brandingVariables = JSON.parse(settings['ui.branding-sass'])
         }
       },
     },
@@ -164,16 +122,7 @@ export default {
 
   methods: {
     onSubmit () {
-      const brandVariables = Object.keys(this.colorData).map(key => {
-        return `$${key}: ${this.colorData[key].value}`
-      })
-
-      this.$emit('submit', { 'ui.branding.variables': brandVariables })
-    },
-
-    brandColorValue (brandingVariables, variable) {
-      const brandingVariable = brandingVariables.find(item => item.includes(`$${variable}:`))
-      return brandingVariable.split(':')[1]
+      this.$emit('submit', { 'ui.branding-sass': JSON.stringify(this.brandingVariables) })
     },
   },
 }

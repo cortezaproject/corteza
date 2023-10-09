@@ -133,6 +133,11 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:settings.ui.update.error')))
         .finally(() => {
           this[type].processing = false
+
+          // Refresh the page if branding or custom CSS was updated
+          if (type === 'branding' || type === 'customCSS') {
+            window.location.reload()
+          }
         })
     },
   },

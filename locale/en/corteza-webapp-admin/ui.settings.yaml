@@ -25,6 +25,20 @@ editor:
   corteza-studio:
     title: Branding
     colorPicker: Choose a color
+    brandVariables:
+      white: White
+      black: Black
+      primary: Primary
+      secondary: Secondary
+      success: Success
+      warning: Warning
+      danger: Danger
+      light: Light
+      extraLight: Extra light
+      dark: Dark
+      tertiary: Tertiary
+      gray200: Gray 200
+      bodyBg: Body background
   
   custom-css:
     title: Custom CSS
