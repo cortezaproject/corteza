@@ -240,10 +240,10 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 	}
 
 	ou := &RecordDatasource{
-		provider: &iteratorProvider{iter: iter},
+		Provider: &iteratorProvider{iter: iter},
 		refToID:  make(map[string]uint64),
 		// @todo consider providing defaults from the outside
-		mapping: datasourceMapping{
+		Mapping: envoyx.DatasourceMapping{
 			KeyField:    []string{"id"},
 			Defaultable: true,
 		},

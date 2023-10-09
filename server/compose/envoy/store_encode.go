@@ -13,6 +13,18 @@ import (
 )
 
 func (e StoreEncoder) encode(ctx context.Context, p envoyx.EncodeParams, s store.Storer, rt string, nn envoyx.NodeSet, tree envoyx.Traverser) (err error) {
+	dl, err := e.grabDal(p)
+	if err != nil {
+		return
+	}
+
+	switch rt {
+	case ComposeRecordDatasourceAuxType:
+		err = e.encodeRecordDatasources(ctx, p, s, dl, nn, tree)
+		if err != nil {
+			return
+		}
+	}
 	return
 }
 

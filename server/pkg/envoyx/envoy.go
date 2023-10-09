@@ -87,6 +87,7 @@ type (
 		Encoder EncoderConfig
 
 		// @note these are only used by records since v1 did just that
+		// @todo make these more expanded
 		DeferOk  func()
 		DeferNok func(error) error
 		Defer    func()

@@ -9,23 +9,29 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/envoy"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/json"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+
+	envoyCsv "github.com/cortezaproject/corteza/server/pkg/envoyx/csv"
+	envoyJson "github.com/cortezaproject/corteza/server/pkg/envoyx/json"
 )
 
 type (
-	recordSet []*recordImportSession
+	recordSet []*RecordImportSession
 
 	importSession struct {
 		l       sync.Mutex
 		records recordSet
 	}
 
+	countableProvider interface {
+		envoyx.Provider
+		Count() uint64
+		Fields() []string
+	}
+
 	ImportSessionService interface {
-		Create(ctx context.Context, f io.ReadSeeker, name, contentType string, namespaceID, moduleID uint64) (*recordImportSession, error)
-		FindByID(ctx context.Context, sessionID uint64) (*recordImportSession, error)
+		Create(ctx context.Context, f io.ReadSeeker, name, contentType string, namespaceID, moduleID uint64) (*RecordImportSession, error)
+		FindByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error)
 		DeleteByID(ctx context.Context, sessionID uint64) error
 	}
 )
@@ -46,12 +52,12 @@ func (svc *importSession) indexOf(userID, sessionID uint64) int {
 	return -1
 }
 
-func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, contentType string, namespaceID, moduleID uint64) (*recordImportSession, error) {
+func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, contentType string, namespaceID, moduleID uint64) (_ *RecordImportSession, err error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 
 	// Prepare the session
-	sh := &recordImportSession{
+	sh := &RecordImportSession{
 		Name:        name,
 		SessionID:   nextID(),
 		UserID:      auth.GetIdentityFromContext(ctx).Identity(),
@@ -66,49 +72,31 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, con
 		UpdatedAt: time.Now(),
 	}
 
-	// Decoders; We only need to do csv & yaml here
-	cd := csv.Decoder()
-	jd := json.Decoder()
-
-	// This will really be at most 1
-	var err error
-	do := &envoy.DecoderOpts{
-		Name: name,
-		Path: "",
-	}
-
-	sh.Resources, err = func() ([]resource.Interface, error) {
-		if cd.CanDecodeFile(f) || cd.CanDecodeMime(contentType) {
+	rd, err := func() (pp countableProvider, err error) {
+		if envoyCsv.CanDecodeFile(f) || envoyCsv.CanDecodeMime(contentType) {
 			f.Seek(0, 0)
-			return cd.Decode(ctx, f, do)
+			return envoyCsv.Decoder(f, name)
 		}
 
-		f.Seek(0, 0)
-		if jd.CanDecodeFile(f) || jd.CanDecodeMime(contentType) {
+		if envoyJson.CanDecodeFile(f) || envoyJson.CanDecodeMime(contentType) {
 			f.Seek(0, 0)
-			return jd.Decode(ctx, f, do)
+			return envoyJson.Decoder(f, name)
 		}
 
 		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
 	}()
-
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	// Get some metadata
-	n, ok := (sh.Resources[0]).(*resource.ResourceDataset)
-	if !ok {
-		// @todo move this logic to service and use action/error pattern
-		return nil, fmt.Errorf("compose.service.RecordImportFormatNotSupported")
-	}
+	sh.Providers = append(sh.Providers, rd)
 
 	prepKey := func(k string) string {
 		return strings.TrimSpace(strings.ToLower(k))
 	}
 
-	sh.Progress.EntryCount = n.P.Count()
-	for _, f := range n.P.Fields() {
+	sh.Progress.EntryCount = rd.Count()
+	for _, f := range rd.Fields() {
 		sh.Fields[f] = ""
 
 		// @todo improve this bit
@@ -123,7 +111,7 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, con
 	return sh, nil
 }
 
-func (svc *importSession) FindByID(ctx context.Context, sessionID uint64) (*recordImportSession, error) {
+func (svc *importSession) FindByID(ctx context.Context, sessionID uint64) (*RecordImportSession, error) {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 

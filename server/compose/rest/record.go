@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	composeEnvoy "github.com/cortezaproject/corteza/server/compose/envoy"
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -19,9 +20,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoy"
 	"github.com/cortezaproject/corteza/server/pkg/envoy/csv"
-	ejson "github.com/cortezaproject/corteza/server/pkg/envoy/json"
-	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
+	envoyJson "github.com/cortezaproject/corteza/server/pkg/envoy/json"
 	estore "github.com/cortezaproject/corteza/server/pkg/envoy/store"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/cortezaproject/corteza/server/store"
@@ -393,113 +394,207 @@ func (ctrl *Record) ImportInit(ctx context.Context, r *request.RecordImportInit)
 	return ctrl.importSession.Create(ctx, f, r.Upload.Filename, ct, r.NamespaceID, r.ModuleID)
 }
 
-func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (interface{}, error) {
+// @todo :')
+func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (_ interface{}, err error) {
 	var (
-		err error
+		ns  *types.Namespace
+		mod *types.Module
 	)
-
-	// Access control.
-	if _, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
+	if mod, err = ctrl.module.FindByID(ctx, r.NamespaceID, r.ModuleID); err != nil {
+		return nil, err
+	}
+	if ns, err = ctrl.namespace.FindByID(ctx, r.NamespaceID); err != nil {
 		return nil, err
 	}
 
-	// Check if session ok
-	ses, err := ctrl.importSession.FindByID(ctx, r.SessionID)
-	if err != nil {
-		return nil, err
-	}
-
-	ses.Fields = make(map[string]string)
-	err = json.Unmarshal(r.Fields, &ses.Fields)
-	if err != nil {
-		return nil, err
-	}
-
-	ses.OnError = r.OnError
-
-	// Errors are presented in the session
+	var importSession *service.RecordImportSession
 	err = func() (err error) {
-		if ses.Progress.StartedAt != nil {
-			return fmt.Errorf("unable to start import: import session already active")
+		// Check if session ok
+		{
+			importSession, err = ctrl.importSession.FindByID(ctx, r.SessionID)
+			if err != nil {
+				return
+			}
+
+			if importSession.Progress.StartedAt != nil {
+				return fmt.Errorf("unable to start import: import session already active")
+			}
 		}
 
 		sa := time.Now()
-		ses.Progress.StartedAt = &sa
+		importSession.Progress.StartedAt = &sa
 
-		// Prepare additional metadata
-		tpl := resource.NewComposeRecordTemplate(
-			strconv.FormatUint(ses.ModuleID, 10),
-			strconv.FormatUint(ses.NamespaceID, 10),
-			ses.Name,
-			false,
-			resource.MapToMappingTplSet(ses.Fields),
-			ses.Key,
+		// Some prereq
+		{
+			importSession.Fields = make(map[string]string)
+			err = json.Unmarshal(r.Fields, &importSession.Fields)
+			if err != nil {
+				return err
+			}
+
+			importSession.OnError = r.OnError
+		}
+
+		// Prep envoy bits
+		var (
+			envoySvc     *envoyx.Service
+			encodeParams envoyx.EncodeParams
+
+			nodeScope    envoyx.Scope
+			nodes        envoyx.NodeSet
+			node         *envoyx.Node
+			storeEncoder = composeEnvoy.StoreEncoder{}
 		)
+		{
+			envoySvc = envoyx.New()
+			// @todo add when/if needed
+			envoySvc.AddEncoder(envoyx.EncodeTypeStore,
+				storeEncoder,
+			)
 
-		// Shape the data
-		ses.Resources = append(ses.Resources, tpl)
-		rt := resource.ComposeRecordShaper()
-		ses.Resources, err = resource.Shape(ses.Resources, rt)
+			encodeParams = envoyx.EncodeParams{
+				Type: envoyx.EncodeTypeStore,
+				Params: map[string]any{
+					"storer": service.DefaultStore,
+					"dal":    dal.Service(),
+				},
+				DeferOk: func() {
+					importSession.Progress.Completed++
+				},
+				DeferNok: func(err error) error {
+					importSession.Progress.Failed++
 
-		// Build
-		cfg := &estore.EncoderConfig{
-			// For now the identifier is ignored, so this will never occur
-			OnExisting: resource.Skip,
-			DeferOk: func() {
-				ses.Progress.Completed++
-			},
-		}
-		cfg.DeferNok = func(err error) error {
-			ses.Progress.Failed++
-
-			if ses.Progress.FailLog == nil {
-				ses.Progress.FailLog = &service.FailLog{
-					Errors: make(service.ErrorIndex),
-				}
-			}
-
-			if rve, is := err.(*types.RecordValueErrorSet); is {
-				for _, ve := range rve.Set {
-					for k, v := range ve.Meta {
-						ses.Progress.FailLog.Errors.Add(fmt.Sprintf("%s %s %v", ve.Kind, k, v))
+					if importSession.Progress.FailLog == nil {
+						importSession.Progress.FailLog = &service.FailLog{
+							Errors: make(service.ErrorIndex),
+						}
 					}
+
+					if rve, is := err.(*types.RecordValueErrorSet); is {
+						for _, ve := range rve.Set {
+							for k, v := range ve.Meta {
+								importSession.Progress.FailLog.Errors.Add(fmt.Sprintf("%s %s %v", ve.Kind, k, v))
+							}
+						}
+					} else {
+						importSession.Progress.FailLog.Errors.Add(err.Error())
+					}
+
+					if len(importSession.Progress.FailLog.Records) < service.IMPORT_ERROR_MAX_INDEX_COUNT {
+						// +1 because we indexed them with 1 before
+						importSession.Progress.FailLog.Records = append(importSession.Progress.FailLog.Records, int(importSession.Progress.Completed)+1)
+					} else {
+						importSession.Progress.FailLog.RecordsTruncated = true
+					}
+
+					if importSession.OnError == service.IMPORT_ON_ERROR_SKIP {
+						return nil
+					}
+					return err
+				},
+			}
+
+			nodeScope = envoyx.Scope{
+				ResourceType: types.NamespaceResourceType,
+				Identifiers:  envoyx.MakeIdentifiers(importSession.NamespaceID),
+			}
+
+			fieldMapping := map[string]envoyx.MapEntry{}
+			for c, f := range importSession.Fields {
+				fieldMapping[c] = envoyx.MapEntry{
+					Column: c,
+					Field:  f,
 				}
-			} else {
-				ses.Progress.FailLog.Errors.Add(err.Error())
 			}
 
-			if len(ses.Progress.FailLog.Records) < service.IMPORT_ERROR_MAX_INDEX_COUNT {
-				// +1 because we indexed them with 1 before
-				ses.Progress.FailLog.Records = append(ses.Progress.FailLog.Records, int(ses.Progress.Completed)+1)
-			} else {
-				ses.Progress.FailLog.RecordsTruncated = true
+			nsNode := &envoyx.Node{
+				Resource:     ns,
+				ResourceType: types.NamespaceResourceType,
+				Identifiers:  envoyx.MakeIdentifiers(ns.Slug, ns.ID),
+				Scope:        nodeScope,
+				Placeholder:  true,
 			}
 
-			if ses.OnError == service.IMPORT_ON_ERROR_SKIP {
-				return nil
+			modNode := &envoyx.Node{
+				Resource:     mod,
+				ResourceType: types.ModuleResourceType,
+				Identifiers:  envoyx.MakeIdentifiers(mod.Handle, mod.ID),
+				Scope:        nodeScope,
+				References: map[string]envoyx.Ref{
+					"NamespaceID": {
+						ResourceType: types.NamespaceResourceType,
+						Identifiers:  nsNode.Identifiers,
+						Scope:        nsNode.Scope,
+					},
+				},
+				Placeholder: true,
 			}
-			return err
-		}
-		se := estore.NewStoreEncoder(service.DefaultStore, dal.Service(), cfg)
-		bld := envoy.NewBuilder(se)
-		g, err := bld.Build(ctx, ses.Resources...)
-		if err != nil {
-			return err
+
+			node = &envoyx.Node{
+				Datasource: &composeEnvoy.RecordDatasource{
+					Mapping: envoyx.DatasourceMapping{
+						SourceIdent: importSession.Name,
+						References:  map[string]string{},
+						Scope:       map[string]string{},
+						Defaultable: false,
+						Mapping: envoyx.FieldMapping{
+							Map: fieldMapping,
+						},
+					},
+				},
+				ResourceType: composeEnvoy.ComposeRecordDatasourceAuxType,
+				Identifiers:  envoyx.MakeIdentifiers(importSession.Name),
+
+				References: map[string]envoyx.Ref{
+					"ModuleID": {
+						ResourceType: types.ModuleResourceType,
+						Identifiers:  envoyx.MakeIdentifiers(importSession.ModuleID),
+						Scope:        nodeScope,
+					},
+					"NamespaceID": {
+						ResourceType: types.NamespaceResourceType,
+						Identifiers:  envoyx.MakeIdentifiers(importSession.NamespaceID),
+						Scope:        nodeScope,
+					},
+				},
+				Scope: nodeScope,
+			}
+
+			nodes = envoyx.NodeSet{nsNode, modNode, node}
 		}
 
-		// Encode
-		err = envoy.Encode(ctx, g, se)
-		now := time.Now()
-		ses.Progress.FinishedAt = &now
-		if err != nil {
-			ses.Progress.FailReason = err.Error()
-			return err
-		}
+		// encoding stuff
+		var (
+			depGraph *envoyx.DepGraph
+		)
+		{
+			depGraph, err = envoySvc.Bake(ctx, encodeParams, importSession.Providers, nodes...)
+			if err != nil {
+				return
+			}
 
-		return
+			{
+				// @todo this is temporary because the service's logic is a bit flawed for this case
+				err = storeEncoder.Prepare(ctx, encodeParams, composeEnvoy.ComposeRecordDatasourceAuxType, envoyx.NodeSet{node})
+				if err != nil {
+					return
+				}
+
+				err = storeEncoder.Encode(ctx, encodeParams, composeEnvoy.ComposeRecordDatasourceAuxType, envoyx.NodeSet{node}, depGraph)
+				// @note err is handled lower down; bare with
+			}
+
+			// err = envoySvc.Encode(ctx, encodeParams, depGraph)
+			now := time.Now()
+			importSession.Progress.FinishedAt = &now
+			if err != nil {
+				importSession.Progress.FailReason = err.Error()
+				return
+			}
+			return
+		}
 	}()
-
-	return ses, ctrl.record.RecordImport(ctx, err)
+	return importSession, ctrl.record.RecordImport(ctx, err)
 }
 
 func (ctrl *Record) ImportProgress(ctx context.Context, r *request.RecordImportProgress) (interface{}, error) {
@@ -559,7 +654,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		switch strings.ToLower(r.Ext) {
 		case "json", "jsonl", "ldjson", "ndjson":
 			contentType = "application/jsonl"
-			encoder = ejson.NewBulkRecordEncoder(&ejson.EncoderConfig{
+			encoder = envoyJson.NewBulkRecordEncoder(&envoyJson.EncoderConfig{
 				Fields:   fx,
 				Timezone: r.Timezone,
 			})

@@ -2,6 +2,7 @@ package envoy
 
 import (
 	"context"
+	"strconv"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
@@ -13,8 +14,10 @@ type (
 	// RecordDatasource provides a mechanism for you to access large
 	// record datasets optimally
 	RecordDatasource struct {
-		mapping  datasourceMapping
-		provider envoyx.Provider
+		Mapping  envoyx.DatasourceMapping
+		Provider envoyx.Provider
+
+		currentIndex int
 
 		// Reusable buffer for reading records
 		rowCache map[string]string
@@ -36,11 +39,11 @@ type (
 )
 
 func (rd *RecordDatasource) SetProvider(s envoyx.Provider) bool {
-	if rd.mapping.SourceIdent != s.Ident() {
+	if rd.Mapping.SourceIdent != s.Ident() {
 		return false
 	}
 
-	rd.provider = s
+	rd.Provider = s
 	return true
 }
 
@@ -49,27 +52,34 @@ func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (id
 		rd.rowCache = make(map[string]string)
 	}
 
-	more, err = rd.provider.Next(ctx, rd.rowCache)
+	more, err = rd.Provider.Next(ctx, rd.rowCache)
 	if err != nil || !more {
 		return
 	}
 
 	rd.applyMapping(rd.rowCache, out)
 
-	for _, k := range rd.mapping.KeyField {
-		ident = append(ident, rd.rowCache[k])
+	if len(rd.Mapping.KeyField) == 0 {
+		ident = append(ident, strconv.FormatInt(int64(rd.currentIndex), 10))
+	} else {
+		for _, k := range rd.Mapping.KeyField {
+			ident = append(ident, rd.rowCache[k])
+		}
 	}
+
+	rd.currentIndex++
 
 	return
 }
 
 func (rd *RecordDatasource) Reset(ctx context.Context) (err error) {
-	return rd.provider.Reset(ctx)
+	rd.currentIndex = 0
+	return rd.Provider.Reset(ctx)
 }
 
 func (rd *RecordDatasource) applyMapping(in, out map[string]string) {
-	if len(rd.mapping.Mapping.m) == 0 {
-		if !rd.mapping.Defaultable {
+	if len(rd.Mapping.Mapping.Map) == 0 {
+		if !rd.Mapping.Defaultable {
 			return
 		}
 
@@ -79,7 +89,7 @@ func (rd *RecordDatasource) applyMapping(in, out map[string]string) {
 		return
 	}
 
-	if rd.mapping.Defaultable {
+	if rd.Mapping.Defaultable {
 		rd.applyMappingWithDefaults(in, out)
 	} else {
 		rd.applyMappingWoDefaults(in, out)
@@ -87,8 +97,8 @@ func (rd *RecordDatasource) applyMapping(in, out map[string]string) {
 }
 
 func (rd *RecordDatasource) applyMappingWithDefaults(in, out map[string]string) {
-	maps := make(map[string]mapEntry)
-	for k, v := range rd.mapping.Mapping.m {
+	maps := make(map[string]envoyx.MapEntry)
+	for k, v := range rd.Mapping.Mapping.Map {
 		maps[k] = v
 	}
 
@@ -105,7 +115,7 @@ func (rd *RecordDatasource) applyMappingWithDefaults(in, out map[string]string) 
 }
 
 func (rd *RecordDatasource) applyMappingWoDefaults(in, out map[string]string) {
-	for _, m := range rd.mapping.Mapping.m {
+	for _, m := range rd.Mapping.Mapping.Map {
 		if m.Skip {
 			continue
 		}

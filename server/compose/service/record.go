@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/spf13/cast"
@@ -153,7 +154,7 @@ type (
 		Country() string
 	}
 
-	recordImportSession struct {
+	RecordImportSession struct {
 		Name        string `json:"-"`
 		SessionID   uint64 `json:"sessionID,string"`
 		UserID      uint64 `json:"userID,string"`
@@ -169,6 +170,7 @@ type (
 		UpdatedAt time.Time `json:"updatedAt"`
 
 		Resources []resource.Interface `json:"-"`
+		Providers []envoyx.Provider    `json:"-"`
 	}
 
 	RecordImportProgress struct {
