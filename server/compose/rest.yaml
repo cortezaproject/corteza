@@ -562,6 +562,16 @@ endpoints:
         - name: icon
           type: "*multipart.FileHeader"
           title: Icon to upload
+  - name: delete
+    path: "/{iconID}"
+    method: DELETE
+    title: Delete icon
+    parameters:
+      path:
+        - type: uint64
+          name: iconID
+          required: true
+          title: Icon ID
 
 - title: Page Layouts
   description: Compose page layouts

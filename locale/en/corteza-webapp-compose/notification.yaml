@@ -98,6 +98,8 @@ page:
   cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page
   iconFetchFailed: Could not fetch list of icons
+  iconDeleteFailed:  Could not delete selected icon
+  iconDeleteSuccess: Icon deleted
   loadFailed: Could not load the page tree
   noPages: No pages found
   saveFailed: Could not save this page

@@ -733,14 +733,39 @@
     <b-modal
       v-model="showIconModal"
       :title="$t('icon.configure')"
-      :ok-title="$t('label.saveAndClose')"
       size="lg"
       label-class="text-primary"
-      cancel-variant="link"
+      footer-class="d-flex align-items-center"
       no-fade
-      @close="closeIconModal"
-      @ok="saveIconModal"
     >
+      <template #modal-footer>
+        <c-input-confirm
+          v-if="attachments && selectedAttachmentID"
+          :disabled="(attachments && !selectedAttachmentID) || processingIcon"
+          size="md"
+          variant="danger"
+          @confirmed="deleteIcon"
+        >
+          {{ $t('icon.delete') }}
+        </c-input-confirm>
+
+        <div class="ml-auto">
+          <b-button
+            variant="link"
+            class="text-primary"
+            @click="closeIconModal"
+          >
+            {{ $t('general:label.cancel') }}
+          </b-button>
+          <b-button
+            variant="primary"
+            class="ml-2"
+            @click="saveIconModal"
+          >
+            {{ $t('general:label.saveAndClose') }}
+          </b-button>
+        </div>
+      </template>
       <b-form-group
         :label="$t('icon.upload')"
         label-class="text-primary"
@@ -787,7 +812,7 @@
           label-class="text-primary"
         >
           <div
-            v-if="processing"
+            v-if="processingIcon"
             class="d-flex align-items-center justify-content-center h-100"
           >
             <b-spinner />
@@ -915,6 +940,7 @@ export default {
   data () {
     return {
       processing: false,
+      processingIcon: false,
 
       page: new compose.Page(),
       initialPageState: new compose.Page(),
@@ -1243,12 +1269,16 @@ export default {
     },
 
     async fetchAttachments () {
+      this.processingIcon = true
+
       return this.$ComposeAPI.iconList({ sort: 'id DESC' })
         .then(({ set: attachments = [] }) => {
           const baseURL = this.$ComposeAPI.baseURL
           this.attachments = []
 
-          if (attachments) {
+          if (attachments.length === 0) {
+            this.icon = {}
+          } else {
             attachments.forEach(a => {
               const src = !a.url.includes(baseURL) ? this.makeAttachmentUrl(a.url) : a.url
               this.attachments.push({ ...a, src })
@@ -1256,6 +1286,9 @@ export default {
           }
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.iconFetchFailed')))
+        .finally(() => {
+          this.processingIcon = false
+        })
     },
 
     addLayoutAction () {
@@ -1281,7 +1314,7 @@ export default {
 
     openIconModal () {
       this.linkUrl = this.icon.type === 'link' ? this.icon.src : ''
-      this.selectedAttachmentID = (this.attachments.find(a => a.url === this.icon.src) || {}).attachmentID
+      this.setCurrentIcon()
       this.showIconModal = true
     },
 
@@ -1294,11 +1327,39 @@ export default {
       }
 
       this.icon = { type, src }
+
+      if (type === 'link' && !src) {
+        this.icon = {}
+      }
+
+      this.showIconModal = false
+    },
+
+    deleteIcon () {
+      this.processingIcon = true
+
+      return this.$ComposeAPI.iconDelete({ iconID: this.selectedAttachmentID }).then(() => {
+        return this.fetchAttachments().then(() => {
+          this.setCurrentIcon()
+          this.toastSuccess(this.$t('notification:page.iconDeleteSuccess'))
+        })
+      }).finally(() => {
+        this.processingIcon = false
+      }).catch(this.toastErrorHandler(this.$t('notification:page.iconDeleteFailed')))
     },
 
     closeIconModal () {
       this.linkUrl = this.icon.type === 'link' ? this.icon.src : ''
+      this.setCurrentIcon()
+      this.showIconModal = false
+    },
+
+    setCurrentIcon () {
       this.selectedAttachmentID = (this.attachments.find(a => a.url === this.icon.src) || {}).attachmentID
+
+      if (!this.selectedAttachmentID) {
+        this.icon = {}
+      }
     },
 
     makeAttachmentUrl (src) {

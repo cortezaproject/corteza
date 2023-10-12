@@ -79,6 +79,7 @@ icon:
   page: Page icon
   upload: Upload icon
   list: Uploaded icons
+  delete: Delete selected icon
 url:
   label: Or add URL to icon
 import: 'Import page(s):'

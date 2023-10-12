@@ -1337,6 +1337,44 @@ export default class Compose {
     return '/icon/'
   }
 
+  // Delete icon
+  async iconDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      iconID,
+    } = (a as KV) || {}
+    if (!iconID) {
+      throw Error('field iconID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.iconDeleteEndpoint({
+        iconID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  iconDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.iconDelete(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
+  iconDeleteEndpoint (a: KV): string {
+    const {
+      iconID,
+    } = a || {}
+    return `/icon/${iconID}`
+  }
+
   // List available page layouts
   async pageLayoutListNamespace (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
