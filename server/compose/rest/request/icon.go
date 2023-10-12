@@ -61,6 +61,13 @@ type (
 		// Icon to upload
 		Icon *multipart.FileHeader
 	}
+
+	IconDelete struct {
+		// IconID PATH parameter
+		//
+		// Icon ID
+		IconID uint64 `json:",string"`
+	}
 )
 
 // NewIconList request
@@ -185,6 +192,41 @@ func (r *IconUpload) Fill(req *http.Request) (err error) {
 
 		if _, r.Icon, err = req.FormFile("icon"); err != nil {
 			return fmt.Errorf("error processing uploaded file: %w", err)
+		}
+
+	}
+
+	return err
+}
+
+// NewIconDelete request
+func NewIconDelete() *IconDelete {
+	return &IconDelete{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r IconDelete) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"iconID": r.IconID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r IconDelete) GetIconID() uint64 {
+	return r.IconID
+}
+
+// Fill processes request and fills internal variables
+func (r *IconDelete) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "iconID")
+		r.IconID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
 		}
 
 	}

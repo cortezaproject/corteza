@@ -2,6 +2,9 @@ package rest
 
 import (
 	"context"
+	"github.com/cortezaproject/corteza/server/pkg/api"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"mime/multipart"
 
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
@@ -56,6 +59,9 @@ func (ctrl *Icon) List(ctx context.Context, r *request.IconList) (interface{}, e
 		return nil, err
 	}
 
+	//Get only the undeleted icons
+	f.Deleted = filter.StateExcluded
+
 	set, f, err = ctrl.attachment.Find(ctx, f)
 	return ctrl.makeIconFilterPayload(ctx, set, f, err)
 }
@@ -104,4 +110,17 @@ func (ctrl *Icon) makeIconFilterPayload(ctx context.Context, nn types.Attachment
 	}
 
 	return res, nil
+}
+
+func (ctrl *Icon) Delete(ctx context.Context, r *request.IconDelete) (interface{}, error) {
+	if !auth.GetIdentityFromContext(ctx).Valid() {
+		return nil, errors.Unauthorized("cannot delete icon")
+	}
+
+	_, err := ctrl.attachment.FindByID(ctx, 0, r.IconID)
+	if err != nil {
+		return nil, err
+	}
+
+	return api.OK(), ctrl.attachment.DeleteByID(ctx, 0, r.IconID)
 }

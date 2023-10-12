@@ -120,6 +120,13 @@ func DefaultFilters() (f *extendedFilters) {
 			return
 		}
 
+		// Add a filter expression for deleted attachments
+		if f.Deleted == filter.StateExcluded {
+			ee = append(ee, goqu.C("deleted_at").IsNull())
+		} else if f.Deleted == filter.StateExclusive {
+			ee = append(ee, goqu.C("deleted_at").IsNotNull())
+		}
+
 		return ee, f, nil
 	}
 

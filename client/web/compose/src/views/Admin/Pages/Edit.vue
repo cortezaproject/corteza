@@ -785,17 +785,28 @@
             v-else
             class="d-flex flex-wrap"
           >
-            <img
+            <div
               v-for="a in attachments"
               :key="a.attachmentID"
-              :src="a.src"
-              :alt="a.name"
-              width="auto"
-              height="50"
-              :class="{ 'selected-icon': selectedAttachmentID === a.attachmentID }"
-              class="rounded pointer m-2"
-              @click="toggleSelectedIcon(a.attachmentID)"
+              class="d-flex flex-column align-items-center"
             >
+              <img
+                :src="a.src"
+                :alt="a.name"
+                width="auto"
+                height="50"
+                :class="{ 'selected-icon': selectedAttachmentID === a.attachmentID }"
+                class="rounded pointer m-2"
+                @click="toggleSelectedIcon(a.attachmentID)"
+              >
+              <b-button
+                variant="outline-danger"
+                size="sm"
+                @click="deleteAttachment(a.attachmentID)"
+              >
+                X
+              </b-button>
+            </div>
           </div>
         </b-form-group>
       </template>
@@ -1236,6 +1247,11 @@ export default {
           const baseURL = this.$ComposeAPI.baseURL
           this.attachments = []
 
+          // If there are no attachments, clear the icon from page config
+          if (attachments.length === 0) {
+            this.page.config.navItem.icon = {}
+          }
+
           if (attachments) {
             attachments.forEach(a => {
               const src = !a.url.includes(baseURL) ? this.makeAttachmentUrl(a.url) : a.url
@@ -1244,6 +1260,13 @@ export default {
           }
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.iconFetchFailed')))
+    },
+
+    async deleteAttachment (attachmentID) {
+      return this.$ComposeAPI.iconDelete({ iconID: attachmentID })
+        .then(() => {
+          this.fetchAttachments()
+        })
     },
 
     addLayoutAction () {
