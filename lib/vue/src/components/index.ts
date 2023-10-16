@@ -93,4 +93,8 @@ export {
   CHint,
 } from './hint'
 
+export {
+  CMap,
+} from './map'
+
 export { default as C3 } from './c3'

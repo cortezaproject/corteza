@@ -59,7 +59,7 @@
       <connection-map
         :connections="connections"
         style="min-height: 400px;"
-        class="align-self-center justify-self-center flex-grow-1 rounded-lg shadow-lg"
+        class="rounded-lg shadow-lg"
       />
     </div>
   </b-container>

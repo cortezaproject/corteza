@@ -1,50 +1,40 @@
 <template>
-  <l-map
-    :zoom="zoom"
+  <c-map
+    :map="{
+      zoom,
+    }"
+    hide-geo-search
+    hide-current-location-button
+    :markers="validMarkerValues"
+    style="min-height: 400px;height: 100% !important;"
   >
-    <l-tile-layer
-      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      :attribution="attribution"
-    />
-
-    <l-marker
-      v-for="connection in validMarkers"
-      :key="connection.name"
-      :lat-lng="getLocationCoordinates(connection)"
-    >
-      <l-tooltip
-        :options="{
-          offset: [-14, 10],
-          direction: 'bottom',
-        }"
+    <template #marker-tooltip="{ marker }">
+      <h5
+        class="text-primary"
       >
-        <h5
-          class="text-primary"
-        >
-          {{ $t('server-details') }}
-        </h5>
-        <b-form-group
-          :label="$t('name')"
-          label-class="text-primary"
-        >
-          {{ connection.meta.name }}
-        </b-form-group>
+        {{ $t('server-details') }}
+      </h5>
+      <b-form-group
+        :label="$t('name')"
+        label-class="text-primary"
+      >
+        {{ marker.meta.name }}
+      </b-form-group>
 
-        <b-form-group
-          :label="$t('location')"
-          label-class="text-primary"
-        >
-          {{ getLocationName(connection) }}
-        </b-form-group>
-      </l-tooltip>
-    </l-marker>
-  </l-map>
+      <b-form-group
+        :label="$t('location')"
+        label-class="text-primary"
+      >
+        {{ getLocationName(marker) }}
+      </b-form-group>
+    </template>
+  </c-map>
 </template>
 
 <script>
-import { latLng } from 'leaflet'
-import { isNumber } from 'lodash'
-import { LMap, LTileLayer, LMarker, LTooltip } from 'vue2-leaflet'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CMap } = components
 
 export default {
   i18nOptions: {
@@ -52,10 +42,7 @@ export default {
   },
 
   components: {
-    LMap,
-    LTileLayer,
-    LMarker,
-    LTooltip,
+    CMap,
   },
 
   props: {
@@ -68,21 +55,26 @@ export default {
   data () {
     return {
       zoom: 2,
-      center: [47.313220, -1.319482],
-      rotation: 0,
-      attribution: '&copy; <a target="_blank" rel="noopener noreferrer" href="http://osm.org/copyright">OpenStreetMap</a>',
     }
   },
 
   computed: {
-    validMarkers () {
-      return this.connections.filter(({ meta = {} }) => {
-        const { location = {} } = meta
-        const { geometry = {} } = location
-        const { coordinates = [] } = geometry
+    validMarkerValues () {
+      return this.connections
+        .filter(({ meta = {} }) => {
+          const { location = {} } = meta
+          const { geometry = {} } = location
+          const { coordinates = [] } = geometry
 
-        return coordinates && !!coordinates.length
-      })
+          return coordinates && !!coordinates.length
+        })
+        .map((connection) => {
+          return {
+            id: connection.id,
+            value: this.getLocationCoordinates(connection),
+            ...connection,
+          }
+        })
     },
   },
 
@@ -90,19 +82,11 @@ export default {
     getLocationCoordinates ({ meta = {} }) {
       const { location = {} } = meta
       const { geometry = {} } = location
-      return this.getLatLng(geometry.coordinates)
+      return geometry.coordinates
     },
 
     getLocationName (connection) {
       return connection.meta.location.properties.name || this.$t('unnamed-location')
-    },
-
-    getLatLng (coordinates = [0, 0]) {
-      const [lat, lng] = coordinates
-
-      if (isNumber(lat) && isNumber(lng)) {
-        return latLng(lat, lng)
-      }
     },
   },
 }

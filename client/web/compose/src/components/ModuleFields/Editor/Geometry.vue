@@ -156,75 +156,27 @@
         {{ $t('clickToPlaceMarker') }}
       </template>
 
-      <div
-        v-if="!field.options.hideGeoSearch"
-        class="geosearch-container"
-      >
-        <c-input-search
-          v-model="geoSearch.query"
-          :placeholder="$t('geosearchInputPlaceholder')"
-          :autocomplete="'off'"
-          :debounce="300"
-          @input="onGeoSearch"
-        />
-
-        <div class="geosearch-results">
-          <div
-            v-for="(result, idx) in geoSearch.results"
-            :key="idx"
-            class="geosearch-result"
-            @click="placeGeoSearchMarker(result)"
-          >
-            {{ result.label }}
-          </div>
-        </div>
-      </div>
-
-      <l-map
-        ref="map"
-        :zoom="map.zoom"
-        :center="map.center"
+      <c-map
+        :map="map"
+        :hide-geo-search="field.options.hideGeoSearch"
+        :hide-current-location-button="field.options.hideCurrentLocationButton"
+        :markers="markers"
+        :labels="{
+          tooltip: { 'goToCurrentLocation': $t('tooltip.goToCurrentLocation') }
+        }"
         style="height: 75vh; width: 100%; cursor: pointer;"
-        @click="placeMarker"
-        @locationfound="onLocationFound"
-      >
-        <l-tile-layer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          :attribution="map.attribution"
-        />
-        <l-marker
-          v-for="(marker, i) in markers"
-          :key="i"
-          :lat-lng="marker"
-          :opacity="localValueIndex === undefined || i == localValueIndex ? 1.0 : 0.6"
-          @click="removeMarker(i)"
-        />
-        <l-control class="leaflet-bar">
-          <a
-            v-if="!field.options.hideCurrentLocationButton"
-            :title="$t('tooltip.goToCurrentLocation')"
-            role="button"
-            class="d-flex justify-content-center align-items-center"
-            @click="goToCurrentLocation"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'location-arrow']"
-              class="text-primary"
-            />
-          </a>
-        </l-control>
-      </l-map>
+        @on-map-click="placeMarker"
+        @on-marker-click="removeMarker"
+        @on-geosearch-error="onGeoSearchError"
+      />
     </b-modal>
   </b-form-group>
 </template>
 <script>
 import base from './base'
-import { latLng } from 'leaflet'
-import { LControl } from 'vue2-leaflet'
-import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import { components } from '@cortezaproject/corteza-vue'
 import { isNumber } from 'lodash'
-const { CInputSearch } = components
+const { CMap } = components
 
 export default {
   i18nOptions: {
@@ -233,8 +185,7 @@ export default {
   },
 
   components: {
-    LControl,
-    CInputSearch,
+    CMap,
   },
 
   extends: base,
@@ -246,29 +197,22 @@ export default {
 
       map: {
         show: false,
-        zoom: 3,
-        center: [30, 30],
-        rotation: 0,
-        attribution: '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a>',
-      },
-
-      geoSearch: {
-        query: '',
-        provider: new OpenStreetMapProvider(),
-        results: [],
       },
     }
   },
 
   computed: {
     markers () {
-      let markers = [this.localValue.coordinates]
+      let markers = [{ value: this.localValue.coordinates, opacity: 1.0 }]
 
       if (this.field.isMulti) {
-        markers = this.localValue.map(({ coordinates }) => coordinates && coordinates.length ? coordinates : undefined)
+        markers = this.localValue.map(({ coordinates }, i) => ({
+          value: coordinates && coordinates.length ? coordinates : undefined,
+          opacity: this.localValueIndex === undefined || i === this.localValueIndex ? 1.0 : 0.6,
+        }))
       }
 
-      return markers.map(this.getLatLng).filter(c => c)
+      return markers
     },
   },
 
@@ -319,18 +263,6 @@ export default {
 
       this.map.zoom = index >= 0 ? 13 : this.field.options.zoom
       this.map.show = true
-
-      setTimeout(() => {
-        this.$refs.map.mapObject.invalidateSize()
-      }, 100)
-    },
-
-    getLatLng (coordinates = [undefined, undefined]) {
-      const [lat, lng] = coordinates
-
-      if (isNumber(lat) && isNumber(lng)) {
-        return latLng(lat, lng)
-      }
     },
 
     placeMarker (e, index = this.localValueIndex) {
@@ -353,9 +285,9 @@ export default {
       }
     },
 
-    removeMarker (i) {
+    removeMarker ({ index }) {
       if (this.field.isMulti) {
-        this.localValue.splice(i, 1)
+        this.localValue.splice(index, 1)
       } else {
         this.localValue = { coordinates: [] }
       }
@@ -394,48 +326,14 @@ export default {
       }
     },
 
-    goToCurrentLocation () {
-      this.$refs.map.mapObject.locate()
-    },
-
-    onLocationFound ({ latitude, longitude }) {
-      const zoom = this.$refs.map.mapObject._zoom >= 15 ? this.$refs.map.mapObject._zoom : 15
-      const latlng = { lat: latitude, lng: longitude }
-      this.placeMarker({ latlng })
-      this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
-    },
-
-    placeGeoSearchMarker (result) {
-      const zoom = this.$refs.map.mapObject._zoom >= 15 ? this.$refs.map.mapObject._zoom : 15
-      this.$refs.map.mapObject.flyTo([result.latlng.lat, result.latlng.lng], zoom, { animate: false })
-      this.placeMarker(result)
-      this.geoSearch.results = []
-    },
-
-    onGeoSearch (query) {
-      if (!query) {
-        this.geoSearch.results = []
-        return
-      }
-
-      this.geoSearch.provider.search({ query }).then(results => {
-        this.geoSearch.results = results.map(result => ({
-          ...result,
-          latlng: {
-            lat: result.raw.lat,
-            lng: result.raw.lon,
-          },
-        }))
-      }).catch(() => {
-        this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.locationSearchFailed'))()
-      })
+    onGeoSearchError () {
+      this.toastErrorHandler(this.$t('notification:field-geometry.geolocationErrors.locationSearchFailed'))()
     },
 
     setDefaultValues () {
       this.localValue = undefined
       this.localValueIndex = undefined
       this.map = {}
-      this.geoSearch = {}
     },
   },
 }

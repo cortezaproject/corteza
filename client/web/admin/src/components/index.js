@@ -6,9 +6,6 @@ import CContentHeader from './CContentHeader'
 import CSystemFields from './CSystemFields'
 import CResourceListStatusFilter from './CResourceListStatusFilter'
 import { components } from '@cortezaproject/corteza-vue'
-import { LMap, LTileLayer, LMarker } from 'vue2-leaflet'
-import 'leaflet/dist/leaflet.css'
-import { Icon } from 'leaflet'
 
 // import ECharts modules manually to reduce bundle size
 import ECharts from 'vue-echarts'
@@ -37,12 +34,6 @@ Vue.component('c-input-confirm', CInputConfirm)
 Vue.component('c-button-submit', CButtonSubmit)
 Vue.component('c-input-checkbox', CInputCheckbox)
 Vue.component('c-system-fields', CSystemFields)
-
-// Map things
-Vue.component('l-map', LMap)
-Vue.component('l-tile-layer', LTileLayer)
-Vue.component('l-marker', LMarker)
-
 use([
   LineChart,
   SVGRenderer,
@@ -52,10 +43,3 @@ use([
 ])
 
 Vue.component('e-charts', ECharts)
-
-delete Icon.Default.prototype._getIconUrl
-Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-})

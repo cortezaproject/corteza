@@ -1,39 +1,19 @@
 <template>
   <div>
     <div class="my-2">
-      <l-map
-        ref="map"
-        :zoom="options.zoomStarting"
-        :min-zoom="options.zoomMin"
-        :max-zoom="options.zoomMax"
-        :center="options.center"
-        :bounds="bounds"
-        :max-bounds="options.bounds"
+      <c-map
+        :map="mapOptions"
+        :labels="{
+          tooltip: { 'goToCurrentLocation': $t('geometry.tooltip.goToCurrentLocation') },
+        }"
+        hide-geo-search
         class="w-100 cursor-pointer"
         style="height: 45vh;"
-        @update:zoom="zoomUpdated"
-        @update:center="updateCenter"
-        @update:bounds="boundsUpdated"
-        @locationfound="onLocationFound"
-      >
-        <l-tile-layer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          :attribution="map.attribution"
-        />
-        <l-control class="leaflet-bar">
-          <a
-            :title="$t('geometry.tooltip.goToCurrentLocation')"
-            role="button"
-            class="d-flex justify-content-center align-items-center"
-            @click="goToCurrentLocation"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'location-arrow']"
-              class="text-primary"
-            />
-          </a>
-        </l-control>
-      </l-map>
+        @on-bounds-update="boundsUpdated"
+        @on-center="updateCenter"
+        @on-zoom="options.zoomStarting = $event"
+      />
+
       <b-form-text id="password-help-block">
         {{ $t('geometry.mapHelpText') }}
       </b-form-text>
@@ -139,7 +119,8 @@
 
 <script>
 import base from '../base'
-import { LControl } from 'vue2-leaflet'
+import { components } from '@cortezaproject/corteza-vue'
+const { CMap } = components
 
 export default {
   i18nOptions: {
@@ -147,21 +128,14 @@ export default {
   },
 
   components: {
-    LControl,
+    CMap,
   },
 
   extends: base,
 
   data () {
     return {
-      map: {
-        show: false,
-        zoom: 3,
-        center: [30, 30],
-        rotation: 0,
-        attribution: '&copy; <a target="_blank" href="http://osm.org/copyright">OpenStreetMap</a>',
-      },
-
+      map: {},
       localValue: { coordinates: [] },
       center: [],
       bounds: null,
@@ -175,6 +149,28 @@ export default {
         { value: 'newTab', text: this.$t('geometry.openInNewTab') },
         { value: 'modal', text: this.$t('geometry.openInModal') },
       ]
+    },
+
+    mapOptions: {
+      get () {
+        return {
+          zoom: this.options.zoomStarting,
+          minZoom: this.options.zoomMin,
+          maxZoom: this.options.zoomMax,
+          center: this.options.center,
+          bounds: this.bounds,
+          maxBounds: this.options.bounds,
+        }
+      },
+
+      set (options) {
+        this.options.zoomStarting = options.zoom
+        this.options.zoomMin = options.minZoom
+        this.options.zoomMax = options.maxZoom
+        this.options.center = options.center
+        this.options.bounds = options.center
+        this.bounds = options.maxBounds
+      },
     },
   },
 
@@ -204,22 +200,13 @@ export default {
 
     updateBounds (value) {
       if (value) {
-        const bounds = this.bounds || this.$refs.map.mapObject.getBounds()
+        const bounds = this.bounds || this.bounds
         const { _northEast, _southWest } = bounds
 
         this.options.bounds = [Object.values(_northEast), Object.values(_southWest)]
       } else {
         this.options.bounds = null
       }
-    },
-
-    goToCurrentLocation () {
-      this.$refs.map.mapObject.locate()
-    },
-
-    onLocationFound ({ latitude, longitude }) {
-      const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
-      this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
     },
 
     setDefaultValues () {

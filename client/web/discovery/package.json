@@ -27,13 +27,11 @@
     "html-parse-stringify": "^3.0.1",
     "i18next": "^17.0.9",
     "i18next-browser-languagedetector": "^3.0.2",
-    "leaflet": "^1.7.1",
     "lodash": "^4.17.21",
     "portal-vue": "^2.1.7",
     "vue": "2.6.14",
     "vue-router": "^3.4.9",
     "vue-text-highlight": "^2.0.10",
-    "vue2-leaflet": "^2.7.1",
     "vuelayers": "^0.11.37",
     "vuex": "^3.1.1"
   },

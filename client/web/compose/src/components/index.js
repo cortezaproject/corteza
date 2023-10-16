@@ -3,9 +3,6 @@ import { FontAwesomeIcon, FontAwesomeLayers } from '@fortawesome/vue-fontawesome
 import PortalVue from 'portal-vue'
 import './faIcons'
 import { components } from '@cortezaproject/corteza-vue'
-import { LMap, LTileLayer, LMarker } from 'vue2-leaflet'
-import 'leaflet/dist/leaflet.css'
-import { Icon } from 'leaflet'
 
 // import ECharts modules manually to reduce bundle size
 import ECharts from 'vue-echarts'
@@ -62,15 +59,3 @@ Vue.component('c-resource-list', components.CResourceList)
 Vue.component('c-input-checkbox', components.CInputCheckbox)
 Vue.component('c-button-submit', components.CButtonSubmit)
 Vue.component('c-hint', components.CHint)
-
-// Map things
-Vue.component('l-map', LMap)
-Vue.component('l-tile-layer', LTileLayer)
-Vue.component('l-marker', LMarker)
-
-delete Icon.Default.prototype._getIconUrl
-Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-})

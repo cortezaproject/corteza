@@ -49,6 +49,7 @@ import {
   faInfoCircle,
   faEllipsisV,
   faTrashRestore,
+  faLocationArrow,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -117,4 +118,5 @@ library.add(
   faEllipsisV,
   faTrashRestore,
   faEdit,
+  faLocationArrow
 )
