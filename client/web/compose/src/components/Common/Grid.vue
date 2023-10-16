@@ -25,7 +25,7 @@
         v-for="(item, index) in layout"
       >
         <grid-item
-          v-if="!blocks[item.i].meta.hidden"
+          v-if="blocks[item.i] && !blocks[item.i].meta.hidden"
           :key="item.i"
           ref="items"
           :i="item.i"
