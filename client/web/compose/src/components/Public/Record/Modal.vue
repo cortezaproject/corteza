@@ -166,14 +166,16 @@ export default {
       this.setDefaultValues()
 
       setTimeout(() => {
-        this.$router.replace({
-          query: {
-            ...this.$route.query,
-            recordID: undefined,
-            moduleID: undefined,
-            recordPageID: undefined,
-          },
-        })
+        if (this.recordID === undefined && this.page === undefined) {
+          this.$router.replace({
+            query: {
+              ...this.$route.query,
+              recordID: undefined,
+              moduleID: undefined,
+              recordPageID: undefined,
+            },
+          })
+        }
       }, 300)
     },
 
