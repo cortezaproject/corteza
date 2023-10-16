@@ -55,13 +55,13 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 		return
 	}
 
-	r, err = out.flushTemp(r)
+	err = out.flushTemp(r)
 	defer out.src.Seek(0, 0)
 	if err != nil {
 		return
 	}
 
-	out.reader = json.NewDecoder(r)
+	out.reader = json.NewDecoder(out.src)
 
 	seenHeader := make(map[string]bool)
 
@@ -113,7 +113,12 @@ func (d *decoder) Fields() []string {
 // Reset resets the decoder to the start
 func (d *decoder) Reset(_ context.Context) error {
 	_, err := d.src.Seek(0, 0)
-	return err
+	if err != nil {
+		return err
+	}
+
+	d.reader = json.NewDecoder(d.src)
+	return nil
 }
 
 // Next returns the field: value mapping for the next row
@@ -140,12 +145,12 @@ func (d *decoder) Count() uint64 {
 	return d.count
 }
 
-func (d *decoder) flushTemp(r io.Reader) (_ io.Reader, err error) {
+func (d *decoder) flushTemp(r io.Reader) (err error) {
 	_, err = io.Copy(d.src, r)
 	if err != nil {
 		return
 	}
 
 	d.src.Seek(0, 0)
-	return d.src, nil
+	return nil
 }
