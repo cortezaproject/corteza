@@ -172,8 +172,9 @@ export default {
 
             if (!isNew) {
               this.record = record
-              this.determineLayout()
-              this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+              this.determineLayout().then(() => {
+                this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+              })
             }
           }
 

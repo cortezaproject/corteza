@@ -497,15 +497,27 @@
 
         <b-form-text>
           <i18next
-            path="page-layout.condition.description"
-            tag="label"
+            v-if="isRecordPage"
+            path="page-layout.condition.description.record-page"
+            tag="span"
           >
-            <code>"record.values.fieldName"</code>
-            <code>"user.(userID/email...)"</code>
-            <code>"screen.(width/height)"</code>
-            <code>"isView/isCreate/isEdit"</code>
-            <code>"user.userID == record.values.createdBy"</code>
-            <code>"screen.width &lt; 1024"</code>
+            <code>record.values.fieldName</code>
+            <code>user.(userID/email...)</code>
+            <code>screen.(width/height)</code>
+            <code>isView/isCreate/isEdit</code>
+            <code>user.userID == record.values.createdBy</code>
+            <code>screen.width &lt; 1024</code>
+          </i18next>
+
+          <i18next
+            v-else
+            path="page-layout.condition.description.non-record-page"
+            tag="span"
+          >
+            <code>user.(userID/email...)</code>
+            <code>screen.(width/height)</code>
+            <code>user.email == "test@mail.com"</code>
+            <code>screen.width &lt; 1024</code>
           </i18next>
         </b-form-text>
       </b-form-group>

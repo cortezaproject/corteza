@@ -347,9 +347,9 @@ export default {
 
           return response()
             .then(record => {
-              setTimeout(() => {
+              return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
                 this.record = new compose.Record(module, record)
-              }, 300)
+              })
             })
             .catch(e => {
               if (!axios.isCancel(e)) {
@@ -418,16 +418,25 @@ export default {
     },
 
     handleEdit () {
-      this.inEditing = true
-      this.inCreating = false
+      this.processing = true
+
+      this.refresh({ isView: false, isEdit: true, isCreate: false }).then(() => {
+        this.inEditing = true
+        this.inCreating = false
+
+        this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
+      }).finally(() => {
+        this.processing = false
+      })
     },
 
     handleView () {
       this.processing = true
 
-      this.refresh().then(() => {
+      this.refresh({ isView: true, isEdit: false, isCreate: false }).then(() => {
         this.inEditing = false
         this.inCreating = false
+
         this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
       }).finally(() => {
         this.processing = false
@@ -447,11 +456,11 @@ export default {
       }
     },
 
-    evaluateLayoutExpressions () {
+    evaluateLayoutExpressions (variables = {}) {
       const expressions = {}
-      const variables = {
+      variables = {
         user: this.$auth.user,
-        record: this.record.serialize() || {},
+        record: this.record ? this.record.serialize() : {},
         screen: {
           width: window.innerWidth,
           height: window.innerHeight,
@@ -460,9 +469,10 @@ export default {
         },
         oldLayout: this.layout,
         layout: undefined,
-        isView: this.$route.name === 'page.record',
-        isCreate: this.$route.name === 'page.record.create',
-        isEdit: this.$route.name === 'page.record.edit',
+        isView: !this.inEditing && !this.inCreating,
+        isCreate: this.inCreating,
+        isEdit: this.inEditing,
+        ...variables,
       }
 
       this.layouts.forEach(layout => {
@@ -482,14 +492,14 @@ export default {
       })
     },
 
-    async determineLayout (pageLayoutID) {
+    async determineLayout (pageLayoutID, variables = {}) {
       // Clear stored records so they can be refetched with latest values
       this.clearRecordSet()
       let expressions = {}
 
       // Only evaluate if one of the layouts has an expressions variable
       if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
-        expressions = await this.evaluateLayoutExpressions()
+        expressions = await this.evaluateLayoutExpressions(variables)
       }
 
       // Check layouts for expressions/roles and find the first one that fits
@@ -544,9 +554,9 @@ export default {
       this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
     },
 
-    async refresh () {
+    async refresh (variables = {}) {
       return this.loadRecord().then(() => {
-        return this.determineLayout()
+        return this.determineLayout(undefined, variables)
       })
     },
 

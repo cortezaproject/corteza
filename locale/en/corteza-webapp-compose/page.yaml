@@ -13,7 +13,9 @@ page-layout:
   condition:
     label: Condition
     placeholder: When will the layout be shown
-    description: "You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}"
+    description:
+      record-page: "You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}"
+      non-record-page: "You can use {{0}}, {{1}} inside  the expression, for example: {{2}} or {{3}}"
   roles:
     label: Roles
     placeholder: Pick roles that the layout will be shown to
