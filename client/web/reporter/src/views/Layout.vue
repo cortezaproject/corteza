@@ -131,7 +131,7 @@ export default {
       disabledRoutes: [
         'report.list',
         'report.create',
-        'report.edit'
+        'report.edit',
       ],
     }
   },
