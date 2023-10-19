@@ -36,14 +36,14 @@
       <template #header>
         <div class="flex-grow-1">
           <div
-            class="wrap-with-vertical-gutters"
+            class="gap-1 d-flex flex-wrap flex-md-row flex-column"
           >
             <b-btn
               v-if="namespace.canCreateModule"
               data-test-id="button-create"
               variant="primary"
               size="lg"
-              class="mr-1 float-left"
+              class="mr-1"
               :to="{ name: 'admin.modules.create' }"
             >
               {{ $t('createLabel') }}
@@ -53,14 +53,14 @@
               v-if="namespace.canCreateModule"
               :namespace="namespace"
               type="module"
-              class="mr-1 float-left"
+              class="mr-1"
               @importSuccessful="onImportSuccessful"
             />
 
             <export
               :list="modules"
               type="module"
-              class="mr-1 float-left"
+              class="mr-1"
             />
 
             <b-dropdown

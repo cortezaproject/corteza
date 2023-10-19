@@ -127,10 +127,10 @@
       #footer
     >
       <div
-        class="d-flex align-items-center justify-content-between"
+        class="d-flex align-items-center justify-content-between flex-wrap"
       >
         <div
-          class="text-truncate"
+          class="text-truncate ml-3 ml-sm-0"
         >
           <div
             v-if="!hideTotal"
@@ -151,6 +151,7 @@
           >
             <font-awesome-icon :icon="['fas', 'angle-double-left']" />
           </b-button>
+
           <b-button
             :disabled="!hasPrevPage"
             variant="outline-light"
@@ -163,6 +164,7 @@
             />
             {{ translations.prevPagination }}
           </b-button>
+
           <b-button
             :disabled="!hasNextPage"
             variant="outline-light"

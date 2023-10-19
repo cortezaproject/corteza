@@ -3,7 +3,7 @@
     <b-btn
       variant="light"
       size="lg"
-      class="float-left"
+      class="w-100"
       @click="showModal=true"
     >
       {{ $t('label.import') }}

@@ -6,16 +6,16 @@
   >
     <b-row
       no-gutters
-      class="wrap-with-vertical-gutters align-items-center"
+      class="gap-1 gap-col-3 flex-column flex-md-row align-items-md-center"
     >
       <div
-        class="wrap-with-vertical-gutters align-items-center"
+        class="d-flex gap-1 align-items-center"
       >
         <b-button
           data-test-id="button-back-without-save"
           variant="link"
           :disabled="processing"
-          class="text-dark back mr-auto"
+          class="text-dark back mr-auto p-1"
           @click="$emit('back')"
         >
           <font-awesome-icon
@@ -25,15 +25,18 @@
           {{ $t('label.backWithoutSave') }}
         </b-button>
       </div>
+
       <div
-        class="ml-auto"
+        class="ml-md-auto d-flex flex-column d-inline-block-md"
       >
         <slot />
       </div>
+
       <div
-        class="d-flex wrap-with-vertical-gutters align-items-center ml-auto"
+        class="d-flex gap-1 flex-md-row flex-column align-items-md-center ml-md-auto"
       >
         <slot name="delete" />
+
         <c-input-confirm
           v-if="!hideDelete"
           v-b-tooltip.hover
@@ -45,6 +48,7 @@
           variant="danger"
           :title="deleteTooltip"
           :borderless="false"
+          class="d-flex flex-column"
           @confirmed="$emit('delete')"
         />
 
@@ -59,9 +63,10 @@
           variant="light"
           :text="$t('label.saveAsCopy')"
           size="lg"
-          class="ml-2"
+          class="ml-md-2"
           @submit="$emit('clone')"
         />
+
         <c-button-submit
           v-if="!hideSave"
           data-test-id="button-save-and-close"
@@ -70,9 +75,10 @@
           variant="light"
           :text="$t('label.saveAndClose')"
           size="lg"
-          class="ml-2"
+          class="ml-md-2"
           @submit="$emit('saveAndClose')"
         />
+
         <c-button-submit
           v-if="!hideSave"
           data-test-id="button-save"
@@ -80,7 +86,7 @@
           :processing="processingSave"
           :text="$t('label.save')"
           size="lg"
-          class="ml-2"
+          class="ml-md-2"
           @submit="$emit('save')"
         />
       </div>
