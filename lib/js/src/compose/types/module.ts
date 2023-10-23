@@ -230,6 +230,12 @@ export class Module {
     }
 
     if (IsOf(m, 'meta')) {
+      if (m.meta.ui && m.meta.ui.admin && m.meta.ui.admin.fields) {
+        if (!AreStrings(m.meta.ui.admin.fields)) {
+          m.meta.ui.admin.fields = m.meta.ui.admin.fields.map((f: any) => f.fieldID)
+        }
+      }
+
       this.meta = { ...m.meta }
     }
 
@@ -301,19 +307,19 @@ export class Module {
     }
 
     if (!AreStrings(requested)) {
-      requested = (requested as ModuleField[]).map((f: ModuleField) => f.name)
+      requested = (requested as ModuleField[]).map((f: ModuleField) => f.name || f.fieldID)
     }
 
     const out: ModuleField[] = []
 
     for (const r of requested) {
-      const sf = this.systemFields().find(f => r === f.name)
+      const sf = this.systemFields().find(f => r === f.name ||  r === f.fieldID)
       if (sf) {
         out.push(sf)
         continue
       }
 
-      const mf = this.fields.find(f => r === f.name)
+      const mf = this.fields.find(f => r === f.name ||  r === f.fieldID)
       if (mf) {
         out.push(mf)
       }

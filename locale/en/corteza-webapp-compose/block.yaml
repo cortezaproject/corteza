@@ -373,6 +373,7 @@ recordList:
   hideRecordEditButton: Hide edit record button
   hideRecordPermissionsButton: Hide record permissions button
   hideRecordReminderButton: Hide record reminder button
+  hideConfigureFieldsButton: Hide configure columns
   hideRecordViewButton: Hide view record button
   enableRecordPageNavigation: Users will be able to navigate to previous/next record
   import:

@@ -846,6 +846,8 @@ export default {
 
       abortableRequests: [],
       recordsPerPage: undefined,
+
+      customConfiguredFields: [],
     }
   },
 
@@ -965,7 +967,9 @@ export default {
         ? []
         : this.options.editFields.map(({ name }) => name)
 
-      if (this.options.fields.length > 0) {
+      if (this.customConfiguredFields.length > 0) {
+        fields = this.recordListModule.filterFields(this.customConfiguredFields)
+      } else if (this.options.fields.length > 0) {
         fields = this.recordListModule.filterFields(this.options.fields)
       } else {
         // Record list block does not have any configured fields
@@ -1062,6 +1066,7 @@ export default {
         this.createEvents()
         this.getStorageRecordListFilter()
         this.getStorageRecordListFilterPreset()
+        this.getStorageRecordListConfiguredFields()
         this.prepRecordList()
         this.refresh(true)
       },
@@ -1167,7 +1172,30 @@ export default {
 
     onUpdateFields (fields = []) {
       this.options.fields = [...fields]
+      this.setStorageRecordListConfiguredFields()
+
       this.$emit('save-fields', this.options.fields)
+    },
+
+    setStorageRecordListConfiguredFields () {
+      try {
+        // Get record list configured fields from localStorage
+        setItem(`record-list-configured-columns-${this.uniqueID}`, this.options.fields.map((f) => f.fieldID))
+      } catch (e) {
+        console.warn(this.$t('notification:record-list.corrupted-configured-fields'))
+      }
+    },
+
+    getStorageRecordListConfiguredFields () {
+      try {
+        // Get record list configured fields from localStorage
+        this.customConfiguredFields = getItem(`record-list-configured-columns-${this.uniqueID}`)
+      } catch (e) {
+        // Land here if the configured fields is corrupted
+        console.warn(this.$t('notification:record-list.corrupted-configured-fields'))
+        // Remove filter from the local storage
+        removeItem(`record-list-configured-columns-${this.uniqueID}`)
+      }
     },
 
     onSelectRow (selected, item) {
@@ -1727,7 +1755,6 @@ export default {
 
       try {
         // Get record list filters from localStorage
-        currentListFilters = getItem(`record-list-filters-${this.uniqueID}`)
         currentListFilters = this.recordListFilter
         setItem(`record-list-filters-${this.uniqueID}`, currentListFilters)
       } catch (e) {

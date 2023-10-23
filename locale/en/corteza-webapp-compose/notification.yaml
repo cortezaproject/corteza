@@ -166,6 +166,7 @@ record:
     failed: Failed to evaluate record block field conditions
 record-list:
   corrupted-filter: Corrupted filter
+  corrupted-configured-fields: Corrupted configured columns
   incorrect-filter-structure: Incorrect structure of filter {{filterID}}
 report:
   listFetchFailed: Failed to fetch reports

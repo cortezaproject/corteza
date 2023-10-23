@@ -753,6 +753,10 @@
                 <b-form-checkbox v-model="options.hideRecordReminderButton">
                   {{ $t('recordList.hideRecordReminderButton') }}
                 </b-form-checkbox>
+
+                <b-form-checkbox v-model="options.hideConfigureFieldsButton">
+                  {{ $t('recordList.hideConfigureFieldsButton') }}
+                </b-form-checkbox>
               </b-form-group>
             </b-col>
           </b-row>

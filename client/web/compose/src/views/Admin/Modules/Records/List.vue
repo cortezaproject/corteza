@@ -178,6 +178,8 @@ export default {
     }),
 
     handleFieldsSave (fields = []) {
+      fields = fields.map((f) => f.fieldID)
+
       if (!this.module.meta.ui) {
         this.module.meta.ui = { admin: { fields } }
       } else {
