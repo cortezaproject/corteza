@@ -74,7 +74,7 @@
             :variant="action.meta.style.variant"
             size="lg"
             class="ml-2"
-            @click.prevent="determineLayout(action.params.pageLayoutID)"
+            @click.prevent="handleAction(action)"
           >
             {{ action.meta.label }}
           </b-button>
@@ -86,7 +86,7 @@
             :key="index"
             :variant="action.meta.style.variant"
             size="lg"
-            @click.prevent="determineLayout(action.params.pageLayoutID)"
+            @click.prevent="handleAction(action)"
           >
             {{ action.meta.label }}
           </b-button>
@@ -99,7 +99,7 @@
             :variant="action.meta.style.variant"
             size="lg"
             class="ml-2"
-            @click.prevent="determineLayout(action.params.pageLayoutID)"
+            @click.prevent="handleAction(action)"
           >
             {{ action.meta.label }}
           </b-button>
@@ -610,6 +610,14 @@ export default {
       return this.loadRecord().then(() => {
         return this.determineLayout(undefined, variables)
       })
+    },
+
+    handleAction ({ kind, params = {} }) {
+      if (kind === 'toLayout') {
+        this.determineLayout(params.pageLayoutID)
+      } else if (kind === 'toURL') {
+        window.open(params.url, params.openIn === 'newTab' ? '_blank' : '_self')
+      }
     },
 
     setDefaultValues () {

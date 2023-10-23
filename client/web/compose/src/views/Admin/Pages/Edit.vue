@@ -231,148 +231,154 @@
             cols="12"
           >
             <hr>
-            <b-form-group
-              label="Layouts"
-              label-class="text-primary"
-            >
-              <b-table-simple
-                responsive="lg"
-                borderless
-                small
+            <div class="list-background rounded border border-light p-1">
+              <b-form-group
+                :label="$t('page-layout.layouts')"
+                label-class="text-primary"
+                class="mb-0"
               >
-                <b-thead>
-                  <tr>
-                    <th />
-
-                    <th
-                      class="text-primary"
-                      style="min-width: 300px;"
-                    >
-                      {{ $t('page-layout.title') }}
-                    </th>
-
-                    <th
-                      class="text-primary"
-                      style="min-width: 300px;"
-                    >
-                      {{ $t('page-layout.handle') }}
-                    </th>
-
-                    <th style="min-width: 100px;" />
-                  </tr>
-                </b-thead>
-
-                <draggable
-                  v-model="layouts"
-                  handle=".handle"
-                  group="layouts"
-                  tag="b-tbody"
+                <b-table-simple
+                  v-if="layouts.length > 0"
+                  responsive="lg"
+                  borderless
+                  small
                 >
-                  <tr
-                    v-for="(layout, index) in layouts"
-                    :key="index"
+                  <b-thead>
+                    <tr>
+                      <th style="width: 40px;" />
+
+                      <th
+                        class="text-primary"
+                        style="min-width: 300px;"
+                      >
+                        {{ $t('page-layout.title') }}
+                      </th>
+
+                      <th
+                        class="text-primary"
+                        style="min-width: 300px;"
+                      >
+                        {{ $t('page-layout.handle') }}
+                      </th>
+
+                      <th style="min-width: 100px;" />
+                    </tr>
+                  </b-thead>
+
+                  <draggable
+                    v-model="layouts"
+                    handle=".grab"
+                    group="layouts"
+                    tag="b-tbody"
                   >
-                    <b-td class="handle text-center align-middle pr-2">
-                      <font-awesome-icon
-                        :icon="['fas', 'bars']"
-                        class="grab m-0 text-light p-0"
-                      />
-                    </b-td>
-
-                    <b-td
-                      class="align-middle"
+                    <tr
+                      v-for="(layout, index) in layouts"
+                      :key="index"
                     >
-                      <b-input-group>
-                        <b-form-input
-                          v-model="layout.meta.title"
-                          :state="layoutTitleState(layout.meta.title)"
-                          @input="layout.meta.updated = true"
+                      <b-td
+                        class="grab text-center align-middle"
+                      >
+                        <font-awesome-icon
+                          :icon="['fas', 'bars']"
                         />
+                      </b-td>
 
-                        <b-input-group-append>
-                          <page-layout-translator
-                            :page-layout="layout"
-                            :disabled="layout.pageLayoutID === '0'"
-                            highlight-key="meta.title"
-                            button-variant="light"
+                      <b-td
+                        class="align-middle"
+                      >
+                        <b-input-group>
+                          <b-form-input
+                            v-model="layout.meta.title"
+                            :state="layoutTitleState(layout.meta.title)"
+                            @input="layout.meta.updated = true"
                           />
-                        </b-input-group-append>
-                      </b-input-group>
-                    </b-td>
 
-                    <b-td
-                      class="align-middle"
-                    >
-                      <b-input-group>
-                        <b-form-input
-                          v-model="layout.handle"
-                          :state="layoutHandleState(layout.handle)"
-                          @input="layout.meta.updated = true"
+                          <b-input-group-append>
+                            <page-layout-translator
+                              :page-layout="layout"
+                              :disabled="layout.pageLayoutID === '0'"
+                              highlight-key="meta.title"
+                              button-variant="light"
+                            />
+                          </b-input-group-append>
+                        </b-input-group>
+                      </b-td>
+
+                      <b-td
+                        class="align-middle"
+                      >
+                        <b-input-group>
+                          <b-form-input
+                            v-model="layout.handle"
+                            :state="layoutHandleState(layout.handle)"
+                            @input="layout.meta.updated = true"
+                          />
+
+                          <b-input-group-append>
+                            <b-button
+                              variant="light"
+                              class="d-flex align-items-center px-3"
+                              :title="$t('page-layout.tooltip.configure')"
+                              @click="configureLayout(index)"
+                            >
+                              <font-awesome-icon
+                                :icon="['fas', 'wrench']"
+                              />
+                            </b-button>
+
+                            <b-button
+                              variant="primary"
+                              :disabled="layout.pageLayoutID === '0'"
+                              :title="$t('page-layout.tooltip.builder')"
+                              class="d-flex align-items-center"
+                              :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID } }"
+                            >
+                              <font-awesome-icon
+                                :icon="['fas', 'tools']"
+                              />
+                            </b-button>
+                          </b-input-group-append>
+                        </b-input-group>
+                      </b-td>
+
+                      <td
+                        class="text-right align-middle"
+                        style="min-width: 100px;"
+                      >
+                        <c-permissions-button
+                          v-if="page.canGrant && layout.pageLayoutID !== '0'"
+                          button-variant="outline-light"
+                          size="sm"
+                          :title="layout.meta.title || layout.handle || layout.pageLayoutID"
+                          :target="layout.meta.title || layout.handle || layout.pageLayoutID"
+                          :tooltip="$t('permissions:resources.compose.page-layout.tooltip')"
+                          :resource="`corteza::compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`"
+                          class="text-dark border-0 mr-2"
                         />
 
-                        <b-input-group-append>
-                          <b-button
-                            variant="light"
-                            class="d-flex align-items-center px-3"
-                            :title="$t('page-layout.tooltip.configure')"
-                            @click="configureLayout(index)"
-                          >
-                            <font-awesome-icon
-                              :icon="['fas', 'wrench']"
-                            />
-                          </b-button>
+                        <c-input-confirm
+                          show-icon
+                          @confirmed="removeLayout(index)"
+                        />
+                      </td>
+                    </tr>
+                  </draggable>
+                </b-table-simple>
 
-                          <b-button
-                            variant="primary"
-                            :disabled="layout.pageLayoutID === '0'"
-                            :title="$t('page-layout.tooltip.builder')"
-                            class="d-flex align-items-center"
-                            :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID } }"
-                          >
-                            <font-awesome-icon
-                              :icon="['fas', 'tools']"
-                            />
-                          </b-button>
-                        </b-input-group-append>
-                      </b-input-group>
-                    </b-td>
-
-                    <td
-                      class="text-right align-middle"
-                      style="min-width: 100px;"
-                    >
-                      <c-permissions-button
-                        v-if="page.canGrant && layout.pageLayoutID !== '0'"
-                        button-variant="outline-light"
-                        size="sm"
-                        :title="layout.meta.title || layout.handle || layout.pageLayoutID"
-                        :target="layout.meta.title || layout.handle || layout.pageLayoutID"
-                        :tooltip="$t('permissions:resources.compose.page-layout.tooltip')"
-                        :resource="`corteza::compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`"
-                        class="text-dark border-0 mr-2"
-                      />
-
-                      <c-input-confirm
-                        show-icon
-                        @confirmed="removeLayout(index)"
-                      />
-                    </td>
-                  </tr>
-                </draggable>
-
-                <tr>
-                  <td />
-                  <td>
-                    <b-button
-                      variant="primary"
-                      @click="addLayout"
-                    >
-                      {{ $t('page-layout.add') }}
-                    </b-button>
-                  </td>
-                </tr>
-              </b-table-simple>
-            </b-form-group>
+                <b-button
+                  variant="primary"
+                  size="sm"
+                  class="mt-1"
+                  @click="addLayout"
+                >
+                  <font-awesome-icon
+                    :icon="['fas', 'plus']"
+                    class="mr-1"
+                  />
+                  {{ $t('general:label.add') }}
+                </b-button>
+              </b-form-group>
+            </div>
           </b-col>
         </b-form-row>
       </b-card>
@@ -589,146 +595,179 @@
           </b-form-checkbox>
         </b-form-group>
 
-        <b-form-group
-          :label="$t('page-layout.recordToolbar.actions.label')"
-          label-class="text-primary"
-        >
-          <b-table-simple
-            responsive
-            borderless
-            small
+        <div class="list-background rounded border border-light p-1">
+          <b-form-group
+            :label="$t('page-layout.recordToolbar.actions.label')"
+            label-class="text-primary"
+            class="mb-0"
           >
-            <b-thead>
-              <tr>
-                <th style="width: 1%;" />
-
-                <th
-                  class="text-primary"
-                  style="min-width: 250px;"
-                >
-                  {{ $t('page-layout.recordToolbar.actions.buttonLabel') }}
-                </th>
-
-                <th
-                  class="text-primary"
-                  style="min-width: 250px;"
-                >
-                  {{ $t('page-layout.recordToolbar.actions.layout.label') }}
-                </th>
-
-                <th
-                  style="min-width: 150px;"
-                  class="text-primary"
-                >
-                  {{ $t('page-layout.recordToolbar.actions.variant') }}
-                </th>
-
-                <th
-                  style="min-width: 100px;"
-                  class="text-primary"
-                >
-                  {{ $t('page-layout.recordToolbar.actions.placement.label') }}
-                </th>
-
-                <th
-                  style="min-width: 80px;"
-                  class="text-primary text-center"
-                >
-                  {{ $t('page-layout.recordToolbar.actions.visible') }}
-                </th>
-
-                <th style="min-width: 80px;" />
-              </tr>
-            </b-thead>
-
-            <draggable
-              v-model="layoutEditor.layout.config.actions"
-              handle=".handle"
-              group="actions"
-              tag="b-tbody"
+            <b-table-simple
+              v-if="layoutEditor.layout.config.actions.length > 0"
+              responsive
+              borderless
+              small
+              class="layout-actions"
             >
-              <tr
-                v-for="(action, index) in layoutEditor.layout.config.actions"
-                :key="index"
+              <draggable
+                v-model="layoutEditor.layout.config.actions"
+                handle=".grab"
+                group="actions"
+                tag="b-tbody"
               >
-                <b-td class="handle text-center align-middle pr-2">
-                  <font-awesome-icon
-                    :icon="['fas', 'bars']"
-                    class="grab m-0 text-light p-0"
-                  />
-                </b-td>
-
-                <b-td
-                  class="align-middle"
+                <tr
+                  v-for="(action, index) in layoutEditor.layout.config.actions"
+                  :key="index"
+                  :class="{ 'border-top border-light': index > 0 }"
                 >
-                  <b-form-input
-                    v-model="action.meta.label"
-                  />
-                </b-td>
+                  <b-td style="width: 40px;">
+                    <div
+                      class="grab d-flex align-items-center justify-content-center"
+                      style="height: calc(1.5em + 0.75rem + 45px);"
+                    >
+                      <font-awesome-icon
+                        :icon="['fas', 'bars']"
+                      />
+                    </div>
+                  </b-td>
 
-                <b-td
-                  class="align-middle"
-                >
-                  <b-form-select
-                    v-model="action.params.pageLayoutID"
-                    :options="actionLayoutOptions"
-                    value-field="pageLayoutID"
-                    text-field="label"
-                  />
-                </b-td>
+                  <b-td style="min-width: 250px;">
+                    <b-form-group
+                      :label="$t('page-layout.recordToolbar.actions.buttonLabel')"
+                      label-class="text-primary"
+                      class="mb-1"
+                    >
+                      <b-form-input
+                        v-model="action.meta.label"
+                        class="mb-1"
+                      />
+                    </b-form-group>
 
-                <b-td
-                  class="align-middle"
-                >
-                  <b-form-select
-                    v-model="action.meta.style.variant"
-                    :options="actionVariantOptions"
-                  />
-                </b-td>
+                    <b-form-group
+                      v-if="action.kind === 'toLayout'"
+                      :label="$t('page-layout.recordToolbar.actions.toLayout.label')"
+                      label-class="text-primary"
+                      class="mb-0"
+                    >
+                      <b-form-select
+                        v-model="action.params.pageLayoutID"
+                        :options="actionLayoutOptions"
+                        value-field="pageLayoutID"
+                        text-field="label"
+                      />
+                    </b-form-group>
 
-                <b-td
-                  class="align-middle"
-                >
-                  <b-form-select
-                    v-model="action.placement"
-                    :options="actionPlacementOptions"
-                  />
-                </b-td>
+                    <b-form-group
+                      v-if="action.kind === 'toURL'"
+                      :label="$t('page-layout.recordToolbar.actions.toURL.label')"
+                      label-class="text-primary"
+                      class="mb-0"
+                    >
+                      <b-form-input
+                        v-model="action.params.url"
+                        type="url"
+                        :placeholder="$t('page-layout.recordToolbar.actions.toURL.placeholder')"
+                      />
+                    </b-form-group>
+                  </b-td>
 
-                <b-td
-                  class="align-middle text-center"
-                >
-                  <b-form-checkbox
-                    v-model="action.enabled"
-                    class="ml-2"
-                  />
-                </b-td>
+                  <b-td style="min-width: 250px;">
+                    <b-form-group
+                      :label="$t('page-layout.recordToolbar.actions.kind.label')"
+                      label-class="text-primary"
+                      class="mb-1"
+                    >
+                      <b-form-select
+                        v-model="action.kind"
+                        :options="actionKindOptions"
+                        class="mb-1"
+                        @change="onActionKindChange(action)"
+                      />
+                    </b-form-group>
 
-                <b-td
-                  class="align-middle text-center"
-                >
-                  <c-input-confirm
-                    show-icon
-                    class="ml-2"
-                    @confirmed="removeLayoutAction(index)"
-                  />
-                </b-td>
-              </tr>
-            </draggable>
+                    <b-form-group
+                      v-if="action.kind === 'toURL'"
+                      :label="$t('page-layout.recordToolbar.actions.openIn.label')"
+                      label-class="text-primary"
+                      class="mb-0"
+                    >
+                      <b-form-select
+                        v-model="action.params.openIn"
+                        :options="actionOpenInOptions"
+                      />
+                    </b-form-group>
+                  </b-td>
 
-            <tr>
-              <td />
-              <td>
-                <b-button
-                  variant="primary"
-                  @click="addLayoutAction"
-                >
-                  {{ $t('page-layout.recordToolbar.actions.add') }}
-                </b-button>
-              </td>
-            </tr>
-          </b-table-simple>
-        </b-form-group>
+                  <b-td style="min-width: 150px;">
+                    <b-form-group
+                      :label="$t('page-layout.recordToolbar.actions.variant')"
+                      label-class="text-primary"
+                    >
+                      <b-form-select
+                        v-model="action.meta.style.variant"
+                        :options="actionVariantOptions"
+                      />
+                    </b-form-group>
+                  </b-td>
+
+                  <b-td style="min-width: 100px;">
+                    <b-form-group
+                      :label="$t('page-layout.recordToolbar.actions.placement.label')"
+                      label-class="text-primary"
+                    >
+                      <b-form-select
+                        v-model="action.placement"
+                        :options="actionPlacementOptions"
+                      />
+                    </b-form-group>
+                  </b-td>
+
+                  <b-td style="min-width: 80px;">
+                    <b-form-group
+                      :label="$t('page-layout.recordToolbar.actions.visible')"
+                      label-class="text-primary text-center"
+                    >
+                      <div
+                        class="d-flex align-items-center justify-content-center"
+                        style="height: calc(1.5em + 0.75rem + 2px);"
+                      >
+                        <b-form-checkbox
+                          v-model="action.enabled"
+                          class="ml-2"
+                        />
+                      </div>
+                    </b-form-group>
+                  </b-td>
+
+                  <b-td style="min-width: 80px;">
+                    <div
+                      class="d-flex align-items-center justify-content-end"
+                      style="height: calc(1.5em + 0.75rem + 45px);"
+                    >
+                      <c-input-confirm
+                        show-icon
+                        class="ml-2"
+                        @confirmed="removeLayoutAction(index)"
+                      />
+                    </div>
+                  </b-td>
+                </tr>
+              </draggable>
+            </b-table-simple>
+
+            <b-button
+              variant="primary"
+              size="sm"
+              class="mt-1"
+              @click="addLayoutAction"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'plus']"
+                class="mr-1"
+              />
+              {{ $t('general:label.add') }}
+            </b-button>
+          </b-form-group>
+        </div>
       </template>
     </b-modal>
 
@@ -1079,19 +1118,25 @@ export default {
       },
     },
 
+    actionKindOptions () {
+      return [
+        { value: 'toLayout', text: this.$t('page-layout.recordToolbar.actions.kind.toLayout') },
+        { value: 'toURL', text: this.$t('page-layout.recordToolbar.actions.kind.toURL') },
+      ]
+    },
+
     actionLayoutOptions () {
       return [
-        { pageLayoutID: '', label: this.$t('page-layout.recordToolbar.actions.layout.placeholder') },
+        { pageLayoutID: '', label: this.$t('page-layout.recordToolbar.actions.toLayout.placeholder') },
         ...this.layouts.filter(({ pageLayoutID }) => pageLayoutID !== NoID)
           .map(({ pageLayoutID, handle, meta }) => ({ pageLayoutID, label: meta.title || handle || pageLayoutID })),
       ]
     },
 
-    actionPlacementOptions () {
+    actionOpenInOptions () {
       return [
-        { value: 'start', text: this.$t('page-layout.recordToolbar.actions.placement.start') },
-        { value: 'center', text: this.$t('page-layout.recordToolbar.actions.placement.center') },
-        { value: 'end', text: this.$t('page-layout.recordToolbar.actions.placement.end') },
+        { value: 'sameTab', text: this.$t('page-layout.recordToolbar.actions.openIn.sameTab') },
+        { value: 'newTab', text: this.$t('page-layout.recordToolbar.actions.openIn.newTab') },
       ]
     },
 
@@ -1105,6 +1150,14 @@ export default {
         { value: 'info', text: this.$t('general:variants.info') },
         { value: 'light', text: this.$t('general:variants.light') },
         { value: 'dark', text: this.$t('general:variants.dark') },
+      ]
+    },
+
+    actionPlacementOptions () {
+      return [
+        { value: 'start', text: this.$t('page-layout.recordToolbar.actions.placement.start') },
+        { value: 'center', text: this.$t('page-layout.recordToolbar.actions.placement.center') },
+        { value: 'end', text: this.$t('page-layout.recordToolbar.actions.placement.end') },
       ]
     },
   },
@@ -1329,6 +1382,12 @@ export default {
       this.layoutEditor.layout.config.actions.splice(index, 1)
     },
 
+    onActionKindChange (action) {
+      if (action.kind === 'toURL' && !action.params.openIn) {
+        this.$set(action.params, 'openIn', 'sameTab')
+      }
+    },
+
     async saveIcon () {
       return this.$ComposeAPI.pageUpdateIcon({
         namespaceID: this.namespace.namespaceID,
@@ -1446,5 +1505,19 @@ export default {
 <style lang="scss" scoped>
 .selected-icon {
   outline: 2px solid $success;
+}
+
+.list-background {
+  background-color: $body-bg;
+}
+
+.layout-actions {
+  tr:not(:first-child) td {
+    padding-top: 0.75rem;
+  }
+
+  tr td {
+    padding-bottom: 0.75rem;
+  }
 }
 </style>

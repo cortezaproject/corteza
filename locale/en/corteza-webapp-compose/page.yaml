@@ -1,4 +1,5 @@
 page-layout:
+  layouts: Layouts
   title: Title *
   handle: Handle
   add: Add layout
@@ -35,14 +36,25 @@ page-layout:
       buttonLabel: Label
       variant: Variant
       visible: Visible
+      kind:
+        label: Type
+        toLayout: Redirect to layout
+        toURL: Redirect to URL
       placement:
         label: Placement
         start: Start
         center: Center
         end: End
-      layout:
+      openIn:
+        label: Open in
+        sameTab: Same tab
+        newTab: New tab
+      toLayout:
         label: Redirect to layout
         placeholder: No layout selected
+      toURL:
+        label: Redirect to URL
+        placeholder: No URL specified
 
 block:
   general:
