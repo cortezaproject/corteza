@@ -557,7 +557,6 @@
                     <c-input-confirm
                       v-else-if="isRestoreActionVisible(item.r)"
                       :text="$t('recordList.record.tooltip.restore')"
-                      icon-type="trash-restore"
                       :icon="['fas', 'trash-restore']"
                       borderless
                       variant="link"

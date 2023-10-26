@@ -22,7 +22,6 @@
         <slot v-else>
           <font-awesome-icon
             v-if="showIcon"
-            :class="iconClass"
             :icon="icon"
           />
           <span
@@ -88,11 +87,6 @@ export default {
     buttonClass: {
       type: String,
       default: '',
-    },
-
-    iconClass: {
-      type: String,
-      default: 'text-danger',
     },
 
     textClass: {
