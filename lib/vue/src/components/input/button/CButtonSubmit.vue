@@ -47,10 +47,6 @@
 export default {
   name: 'CButtonSubmit',
 
-  i18nOptions: {
-    namespaces: 'admin',
-  },
-
   props: {
     processing: {
       type: Boolean,

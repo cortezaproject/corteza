@@ -109,6 +109,7 @@
 
     <template #footer>
       <c-button-submit
+        :disabled="saveDisabled"
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"

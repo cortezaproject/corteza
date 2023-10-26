@@ -174,7 +174,7 @@
           data-test-id="button-save"
           :disabled="submitDisabled"
           :processing="processing"
-          :button-text="labels.save"
+          :text="labels.save"
           @submit="onSubmit"
         />
       </template>
@@ -246,7 +246,7 @@
           data-test-id="button-save"
           :disabled="submitDisabled"
           :processing="processing"
-          :button-text="labels.save"
+          :text="labels.save"
           @submit="onSubmit"
         />
       </template>
