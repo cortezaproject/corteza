@@ -1,6 +1,8 @@
 package dal
 
 import (
+	"encoding/json"
+	"reflect"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -58,4 +60,21 @@ func TestModelFindByRefs(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAttributeMarshling(t *testing.T) {
+	a := &Attribute{
+		Ident: "foo",
+		Type:  &TypeBlob{},
+		Store: &CodecPlain{},
+	}
+
+	bb, err := json.Marshal(a)
+	require.NoError(t, err)
+
+	b := &Attribute{}
+	err = json.Unmarshal(bb, &b)
+	require.NoError(t, err)
+
+	require.True(t, reflect.DeepEqual(a, b))
 }

@@ -189,7 +189,8 @@ func (e StoreEncoder) encodeModuleExtend(ctx context.Context, p envoyx.EncodePar
 	}
 
 	// @note there is only one model so this is ok
-	return dl.ReplaceModel(ctx, models[0])
+	_, err = dl.ReplaceModel(ctx, nil, models[0])
+	return
 }
 
 func (e StoreEncoder) postModulesEncode(ctx context.Context, p envoyx.EncodeParams, s store.Storer, tree envoyx.Traverser, nn envoyx.NodeSet) (err error) {

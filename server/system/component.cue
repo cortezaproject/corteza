@@ -31,6 +31,7 @@ component: schema.#component & {
     "user":                  				user
     "dal-connection":        				dal_connection
     "dal-sensitivity-level": 				dal_sensitivity_level
+    "dal-schema-alteration": 				dal_schema_alteration
 	}
 
 	rbac: operations: {
@@ -72,6 +73,8 @@ component: schema.#component & {
 		"apigw-routes.search": description: "List search or filter API gateway routes"
 
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
+
+		"dal-schema-alterations.manage": description: "List, search, apply, or dismiss DAL alterations"
 
 		"data-privacy-request.create": description:  "Create data privacy requests"
 		"data-privacy-requests.search": description: "List, search or filter data privacy requests"

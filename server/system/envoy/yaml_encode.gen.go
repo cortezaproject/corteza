@@ -160,6 +160,7 @@ func (e YamlEncoder) Encode(ctx context.Context, p envoyx.EncodeParams, rt strin
 		if err != nil {
 			return
 		}
+
 	default:
 		out, err = e.encode(ctx, out, p, rt, nodes, tt)
 		if err != nil {

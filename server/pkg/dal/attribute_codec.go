@@ -52,11 +52,17 @@ type (
 	}
 )
 
-func (*CodecPlain) Type() AttributeCodecType { return "corteza::dal:attribute-codec:plain" }
+const (
+	AttributeCodecPlain              AttributeCodecType = "corteza::dal:attribute-codec:plain"
+	AttributeCodecRecordValueSetJSON AttributeCodecType = "corteza::dal:attribute-codec:record-value-set-json"
+	AttributeCodecAlias              AttributeCodecType = "corteza::dal:attribute-codec:alias"
+)
+
+func (*CodecPlain) Type() AttributeCodecType { return AttributeCodecPlain }
 func (*CodecRecordValueSetJSON) Type() AttributeCodecType {
-	return "corteza::dal:attribute-codec:record-value-set-json"
+	return AttributeCodecRecordValueSetJSON
 }
-func (*CodecAlias) Type() AttributeCodecType { return "corteza::dal:attribute-codec:alias" }
+func (*CodecAlias) Type() AttributeCodecType { return AttributeCodecAlias }
 
 func (*CodecPlain) SingleValueOnly() bool              { return true }
 func (*CodecRecordValueSetJSON) SingleValueOnly() bool { return false }

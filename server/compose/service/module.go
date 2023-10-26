@@ -40,7 +40,8 @@ type (
 		store     store.Storer
 		locale    ResourceTranslationsManagerService
 
-		dal dalModelManager
+		dal              dalModelManager
+		schemaAltManager schemaAltManager
 	}
 
 	moduleAccessController interface {
@@ -78,10 +79,9 @@ type (
 		GetConnectionByID(ID uint64) *dal.ConnectionWrap
 		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
 
-		ReplaceModel(context.Context, *dal.Model) error
+		ReplaceModel(context.Context, []*dal.Alteration, *dal.Model) (newAlts []*dal.Alteration, err error)
 		RemoveModel(ctx context.Context, connectionID, ID uint64) error
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) (err error)
-		SearchModelIssues(ID uint64) []error
+		SearchModelIssues(ID uint64) []dal.Issue
 	}
 )
 
@@ -146,14 +146,15 @@ var (
 	})
 )
 
-func Module() *module {
+func Module(am schemaAltManager) *module {
 	return &module{
-		ac:        DefaultAccessControl,
-		eventbus:  eventbus.Service(),
-		actionlog: DefaultActionlog,
-		store:     DefaultStore,
-		locale:    DefaultResourceTranslation,
-		dal:       dal.Service(),
+		ac:               DefaultAccessControl,
+		eventbus:         eventbus.Service(),
+		actionlog:        DefaultActionlog,
+		store:            DefaultStore,
+		locale:           DefaultResourceTranslation,
+		dal:              dal.Service(),
+		schemaAltManager: am,
 	}
 }
 
@@ -307,15 +308,9 @@ func (svc module) procDal(m *types.Module) {
 		return
 	}
 
-	ii := svc.dal.SearchModelIssues(m.ID)
-	if len(ii) == 0 {
+	m.Issues = svc.dal.SearchModelIssues(m.ID)
+	if len(m.Issues) == 0 {
 		m.Issues = nil
-		return
-	}
-
-	m.Issues = make([]string, len(ii))
-	for i, err := range ii {
-		m.Issues[i] = err.Error()
 	}
 }
 
@@ -334,10 +329,6 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			if systemFields[f.Name] {
 				return ModuleErrFieldNameReserved()
 			}
-		}
-
-		if err != nil {
-
 		}
 
 		if ns, err = loadNamespace(ctx, s, new.NamespaceID); err != nil {
@@ -416,7 +407,7 @@ func (svc module) Create(ctx context.Context, new *types.Module) (*types.Module,
 			return
 		}
 
-		if err = DalModelReplace(ctx, svc.dal, ns, new); err != nil {
+		if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, new); err != nil {
 			return err
 		}
 
@@ -445,7 +436,7 @@ func (svc module) UndeleteByID(ctx context.Context, namespaceID, moduleID uint64
 //
 // Directly using store so we don't spam the action log
 func (svc *module) ReloadDALModels(ctx context.Context) (err error) {
-	return DalModelReload(ctx, svc.store, svc.dal)
+	return DalModelReload(ctx, svc.store, svc.schemaAltManager, svc.dal)
 }
 
 // SearchSensitive will list all module with at least one private module field
@@ -630,10 +621,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
 				return err
 			}
-			if err = DalModelReplace(ctx, svc.dal, ns, old, m); err != nil {
-				return err
-			}
-			if err = dalAttributeReplace(ctx, svc.dal, ns, old, m, hasRecords); err != nil {
+			if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, old, m); err != nil {
 				return err
 			}
 		} else {
@@ -1106,7 +1094,7 @@ func loadModuleLabels(ctx context.Context, s store.Labels, set ...*types.Module)
 }
 
 // DalModelReload reloads all defined compose modules into the DAL
-func DalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (err error) {
+func DalModelReload(ctx context.Context, s store.Storer, am schemaAltManager, dmm dalModelManager) (err error) {
 	// Get all available namespaces
 	nn, _, err := store.SearchComposeNamespaces(ctx, s, types.NamespaceFilter{})
 	if err != nil {
@@ -1126,7 +1114,7 @@ func DalModelReload(ctx context.Context, s store.Storer, dmm dalModelManager) (e
 
 	// Reload!
 	for _, ns := range nn {
-		err = DalModelReplace(ctx, dmm, ns, modulesForNamespace(ns, mm)...)
+		err = DalModelReplace(ctx, s, am, dmm, ns, modulesForNamespace(ns, mm)...)
 		if err != nil {
 			return
 		}
@@ -1149,9 +1137,11 @@ func modulesForNamespace(ns *types.Namespace, mm types.ModuleSet) (out types.Mod
 }
 
 // Replaces all given connections
-func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (err error) {
+func DalModelReplace(ctx context.Context, s store.Storer, am schemaAltManager, dmm dalModelManager, ns *types.Namespace, modules ...*types.Module) (err error) {
 	var (
-		models dal.ModelSet
+		models      dal.ModelSet
+		currentAlts []*dal.Alteration
+		newAlts     []*dal.Alteration
 	)
 
 	models, err = ModulesToModelSet(dmm, ns, modules...)
@@ -1160,30 +1150,18 @@ func DalModelReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespa
 	}
 
 	for _, m := range models {
-		err = dmm.ReplaceModel(ctx, m)
+		currentAlts, err = am.ModelAlterations(ctx, m)
 		if err != nil {
 			return
 		}
-	}
 
-	return
-}
+		newAlts, err = dmm.ReplaceModel(ctx, currentAlts, m)
+		if err != nil {
+			return
+		}
 
-func dalAttributeReplace(ctx context.Context, dmm dalModelManager, ns *types.Namespace, old, new *types.Module, hasRecords bool) (err error) {
-	oldModel, err := ModulesToModelSet(dmm, ns, old)
-	if err != nil {
-		return
-	}
-	newModel, err := ModulesToModelSet(dmm, ns, new)
-	if err != nil {
-		return
-	}
-
-	diff := oldModel[0].Diff(newModel[0])
-
-	// TODO handle the fact that diff is a list of changes so the same field could be present more than once.
-	for _, d := range diff {
-		if err = dmm.ReplaceModelAttribute(ctx, oldModel[0], d, hasRecords); err != nil {
+		err = am.SetAlterations(ctx, s, m, currentAlts, newAlts...)
+		if err != nil {
 			return
 		}
 	}
@@ -1445,7 +1423,7 @@ func moduleSystemFieldsToAttributes(mod *types.Module) (out dal.AttributeSet, er
 		dal.FullAttribute(sysModuleID, &dal.TypeID{}, mfc(colSysModuleID, sysEnc.ModuleID)),
 		dal.FullAttribute(sysDeletedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}, Nullable: true}, mfc(colSysDeletedBy, sysEnc.DeletedBy)),
 		dal.FullAttribute(sysNamespaceID, &dal.TypeID{}, mfc(colSysNamespaceID, sysEnc.NamespaceID)),
-		dal.FullAttribute(sysRevision, &dal.TypeID{}, mfc(colSysRevision, sysEnc.Revision)),
+		dal.FullAttribute(sysRevision, &dal.TypeNumber{HasDefault: true, DefaultValue: 0, Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}}, mfc(colSysRevision, sysEnc.Revision)),
 		dal.FullAttribute(sysMeta, &dal.TypeJSON{}, mfc(colSysMeta, sysEnc.Meta)),
 		dal.FullAttribute(sysOwnedBy, &dal.TypeRef{RefModel: &dal.ModelRef{ResourceType: "corteza::system:user"}}, mfc(colSysOwnedBy, sysEnc.OwnedBy)),
 		dal.FullAttribute(sysCreatedAt, &dal.TypeTimestamp{}, mfc(colSysCreatedAt, sysEnc.CreatedAt)),

@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
@@ -47,7 +48,7 @@ func (i *informationSchema) columnSelect() *goqu.SelectDataset {
 		"TABLE_NAME",
 		"COLUMN_NAME",
 		"IS_NULLABLE",
-		"DATA_TYPE",
+		"COLUMN_TYPE",
 	).
 		From("information_schema.columns").
 		Order(
@@ -67,7 +68,7 @@ func (i *informationSchema) scanColumns(ctx context.Context, sd *goqu.SelectData
 			Table      string `db:"TABLE_NAME"`
 			Column     string `db:"COLUMN_NAME"`
 			IsNullable string `db:"IS_NULLABLE"`
-			Type       string `db:"DATA_TYPE"`
+			Type       string `db:"COLUMN_TYPE"`
 		}, 0)
 	)
 

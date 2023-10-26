@@ -1,0 +1,367 @@
+<template>
+  <b-modal
+    v-model="showModal"
+    :title="$t('title')"
+    size="xl"
+    body-class="p-0 border-top-0 position-relative"
+    header-class="p-3 pb-0 border-bottom-0"
+    no-fade
+    @hide="$emit('hide')"
+    @change="$emit('change', $event)"
+  >
+    <b-table-simple
+      borderless
+      sticky-header
+      responsive
+      head-variant="light"
+      class="mb-0"
+      style="min-height: 300px; max-height: 75vh;"
+    >
+      <b-thead>
+        <b-tr>
+          <b-th
+            class="text-primary"
+          >
+            {{ $t('alteration') }}
+          </b-th>
+
+          <b-th
+            class="text-primary"
+            style="max-width: 300px;"
+          >
+            {{ $t('change') }}
+          </b-th>
+
+          <b-th
+            class="text-primary text-center"
+          >
+            {{ $t('status') }}
+          </b-th>
+
+          <b-th style="min-width: 200px;" />
+        </b-tr>
+      </b-thead>
+
+      <b-tbody v-if="sortedAlterations.length && !loading">
+        <b-tr
+          v-for="a in sortedAlterations"
+          :key="a.alterationID"
+          class="border-top"
+          :class="{ 'bg-gray': a.alterationID === dependOnHover }"
+          @mouseover="dependOnHover = a.dependsOn"
+          @mouseleave="dependOnHover = undefined"
+        >
+          <b-td>
+            {{ a.alterationID }}
+          </b-td>
+
+          <b-td>
+            {{ stringifyParams(a.params) }}
+          </b-td>
+
+          <b-td class="text-center align-top">
+            <b-badge
+              v-if="a.error"
+              variant="danger"
+            >
+              {{ a.error || '' }}
+            </b-badge>
+
+            <b-badge
+              v-else-if="a.completedAt"
+              variant="success"
+            >
+              {{ $t('resolved') }}
+            </b-badge>
+
+            <b-badge
+              v-else-if="a.dependsOn"
+              variant="secondary"
+            >
+              {{ $t('waitingFor', { id:a.dependsOn }) }}
+            </b-badge>
+          </b-td>
+
+          <b-td class="text-right">
+            <b-spinner
+              v-if="a.processing"
+              variant="primary"
+              small
+            />
+
+            <template v-else>
+              <c-input-confirm
+                v-if="!a.completedAt"
+                :disabled="!canResolve(a) || a.processing || processing"
+                variant="primary"
+                size="sm"
+                class="mx-1"
+                @click.stop
+                @confirmed="onResolve(a)"
+              >
+                {{ $t('resolve') }}
+              </c-input-confirm>
+
+              <c-input-confirm
+                v-if="!a.completedAt"
+                :disabled="!canDismiss(a) || a.processing || processing"
+                variant="light"
+                size="sm"
+                class="mx-1"
+                @click.stop
+                @confirmed="onDismiss(a)"
+              >
+                {{ $t('dismiss') }}
+              </c-input-confirm>
+            </template>
+          </b-td>
+        </b-tr>
+      </b-tbody>
+
+      <div
+        v-else
+        class="position-absolute text-center mt-5 d-print-none"
+        style="left: 0; right: 0;"
+      >
+        <b-spinner
+          v-if="loading"
+        />
+
+        <p
+          v-else-if="!sortedAlterations.length"
+          class="mb-0 mx-2"
+        >
+          {{ $t('noAlterations') }}
+        </p>
+      </div>
+    </b-table-simple>
+
+    <template #modal-footer>
+      <b-button
+        variant="link"
+        size="sm"
+        :disabled="processing"
+        class="text-decoration-none"
+        @click="$emit('cancel')"
+      >
+        {{ canResolveAlterations ? $t('general:label.cancel') : $t('general:label.close') }}
+      </b-button>
+
+      <c-input-confirm
+        v-if="canResolveAlterations"
+        variant="primary"
+        :disabled="processing"
+        :borderless="false"
+        @confirmed="onResolve()"
+      >
+        {{ $t('resolveAuto') }}
+        <b-spinner
+          v-if="processing"
+          variant="white"
+          small
+        />
+      </c-input-confirm>
+    </template>
+  </b-modal>
+</template>
+<script>
+import { compose } from '@cortezaproject/corteza-js'
+
+export default {
+  i18nOptions: {
+    namespaces: 'module',
+    keyPrefix: 'schemaAlterations',
+  },
+
+  props: {
+    modal: {
+      type: Boolean,
+      required: false,
+    },
+
+    module: {
+      type: compose.Module,
+      required: true,
+    },
+
+    batch: {
+      type: String,
+      required: false,
+      default: undefined,
+    },
+  },
+
+  data () {
+    return {
+      showModal: false,
+
+      loading: false,
+      processing: false,
+
+      dependOnHover: undefined,
+
+      alterations: [],
+
+      alterationProcessing: {},
+    }
+  },
+
+  computed: {
+    sortedAlterations () {
+      return this.alterations.toSorted((a, b) => (a.batchID || '').localeCompare(b.batchID || '') || (a.dependsOn || '').localeCompare(b.dependsOn || ''))
+    },
+
+    canResolveAlterations () {
+      return this.sortedAlterations.some(this.canResolve)
+    },
+  },
+
+  watch: {
+    modal: {
+      immediate: true,
+      handler (show = false) {
+        this.showModal = show
+      },
+    },
+
+    batch: {
+      immediate: true,
+      handler (batch) {
+        this.load(batch)
+      },
+    },
+  },
+
+  methods: {
+    async onDismiss (alteration) {
+      this.processing = true
+
+      alteration = alteration ? [alteration] : this.alterations
+
+      const alterationID = []
+      for (const a of alteration) {
+        alterationID.push(a.alterationID)
+        a.processing = true
+      }
+
+      this.$SystemAPI.dalSchemaAlterationDismiss({ alterationID }).then(() => {
+        this.toastSuccess(this.$t('notification:module.schemaAlterations.dismiss.success'))
+      }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.dismiss.error')))
+        .finally(() => {
+          for (const a of alteration) {
+            a.processing = false
+          }
+          this.load(this.batch)
+          this.processing = false
+        })
+    },
+
+    async onResolve (alteration) {
+      this.processing = true
+
+      alteration = alteration ? [alteration] : this.alterations
+
+      const alterationID = []
+      for (const a of alteration) {
+        alterationID.push(a.alterationID)
+        a.processing = true
+      }
+
+      this.$SystemAPI.dalSchemaAlterationApply({ alterationID }).then(() => {
+        this.toastSuccess(this.$t('notification:module.schemaAlterations.resolve.success'))
+      }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.resolve.error')))
+        .finally(() => {
+          for (const a of alteration) {
+            a.processing = false
+          }
+          this.load(this.batch)
+          this.processing = false
+        })
+    },
+
+    async load (batchID) {
+      if (!batchID) {
+        this.alterations = []
+        return
+      }
+
+      this.loading = true
+
+      return this.$SystemAPI.dalSchemaAlterationList({ batchID }).then(({ set }) => {
+        this.alterations = set
+
+        if (!this.alterations.length) {
+          this.$emit('hide')
+        }
+      }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.load.error')))
+        .finally(() => {
+          this.loading = false
+        })
+    },
+
+    stringifyParams (params) {
+      switch (true) {
+        case !!params.attributeAdd:
+          return this.stringifyAttributeAddParams(params.attributeAdd)
+
+        case !!params.attributeDelete:
+          return this.stringifyAttributeDeleteParams(params.attributeDelete)
+
+        case !!params.attributeReType:
+          return this.stringifyAttributeReTypeParams(params.attributeReType)
+
+        case !!params.attributeReEncode:
+          return this.stringifyAttributeReEncodeParams(params.attributeReEncode)
+
+        case !!params.modelAdd:
+          return this.stringifyModelAddParams(params.modelAdd)
+
+        case !!params.modelDelete:
+          return this.stringifyModelDeleteParams(params.modelDelete)
+      }
+
+      throw new Error('Unknown alteration type')
+    },
+
+    stringifyAttributeAddParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.add', { ident: attr.ident, storeType: attr.store.type, attrType: attr.type.type })
+    },
+
+    stringifyAttributeDeleteParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, storeType: attr.store.type })
+    },
+
+    stringifyAttributeReTypeParams ({ attr = {}, to = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.reType', { ident: attr.ident, toType: to.type })
+    },
+
+    stringifyAttributeReEncodeParams ({ attr = {}, to = {} }) {
+      return this.$t('module.schemaAlteration.params.attribute.reEncode', { ident: attr.ident, toType: to.type })
+    },
+
+    stringifyModelAddParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.model.add', { ident: attr.ident })
+    },
+
+    stringifyModelDeleteParams ({ attr = {} }) {
+      return this.$t('module.schemaAlteration.params.model.delete', { ident: attr.ident })
+    },
+
+    canDismiss (alteration) {
+      if (alteration.completedAt) {
+        return false
+      }
+
+      if (alteration.dependsOn) {
+        return this.alterations.some(a => a.alterationID === alteration.dependsOn && !a.completedAt)
+      }
+
+      return true
+    },
+
+    canResolve (alteration) {
+      return this.canDismiss(alteration)
+    },
+  },
+}
+</script>

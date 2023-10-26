@@ -380,7 +380,6 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Limit:      app.Opt.Limit,
 		Attachment: app.Opt.Attachment,
 	})
-
 	if err != nil {
 		return
 	}
@@ -409,10 +408,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	// Note: this is a legacy approach, all services from all 3 apps
 	// will most likely be merged in the future
 	err = cmpService.Initialize(ctx, app.Log, app.Store, cmpService.Config{
-		ActionLog:  app.Opt.ActionLog,
-		Discovery:  app.Opt.Discovery,
-		Storage:    app.Opt.ObjStore,
-		UserFinder: sysService.DefaultUser,
+		ActionLog:        app.Opt.ActionLog,
+		Discovery:        app.Opt.Discovery,
+		Storage:          app.Opt.ObjStore,
+		UserFinder:       sysService.DefaultUser,
+		SchemaAltManager: sysService.DefaultDalSchemaAlteration,
 	})
 
 	if err != nil {
@@ -474,6 +474,8 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	ctx = actionlog.RequestOriginToContext(ctx, actionlog.RequestOrigin_APP_Activate)
 	defer sentry.Recover()
+
+	ctx = auth.SetIdentityToContext(ctx, auth.ServiceUser())
 
 	// Start scheduler
 	if app.Opt.Eventbus.SchedulerEnabled {

@@ -3,6 +3,7 @@ package ddl
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/jmoiron/sqlx"
@@ -56,11 +57,18 @@ type (
 		Old     string
 		New     string
 	}
+
+	ReTypeColumn struct {
+		Dialect dialect
+		Table   string
+		Column  string
+		Type    *ColumnType
+	}
 )
 
 // Exec is a utility for executing series of commands
 //
-// Parameters can be string, Stringer interface or goqu's exp.SQLExpression
+// # Parameters can be string, Stringer interface or goqu's exp.SQLExpression
 //
 // Any other type will result in panic
 func Exec(ctx context.Context, db sqlx.ExtContext, ss ...any) (err error) {
@@ -281,6 +289,15 @@ func (c *RenameColumn) ToSQL() (sql string, aa []interface{}, err error) {
 		c.Dialect.QuoteIdent(c.Table),
 		c.Dialect.QuoteIdent(c.Old),
 		c.Dialect.QuoteIdent(c.New),
+	), nil, nil
+}
+
+func (c *ReTypeColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`ALTER TABLE %s MODIFY COLUMN %s %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Column),
+		c.Type.Name,
 	), nil, nil
 }
 

@@ -383,6 +383,7 @@
                 v-if="module.issues.length > 0"
                 :title="$t('edit.issues.label', { count: module.issues.length })"
                 title-link-class="text-danger"
+                @click="checkAlterations"
               >
                 <b-alert
                   v-for="(issue, index) in module.issues"
@@ -390,7 +391,7 @@
                   show
                   variant="danger"
                 >
-                  {{ issue }}
+                  {{ issue.issue }}
                 </b-alert>
               </b-tab>
             </b-tabs>
@@ -420,6 +421,14 @@
           :sensitivity-levels="sensitivityLevels"
         />
       </b-modal>
+
+      <dal-schema-alterations
+        :modal="dalSchemaAlterations.modal"
+        :batch="dalSchemaAlterations.batchID"
+        :module="module"
+        @hide="fetchModuleWithAlterations"
+        @cancel="dalSchemaAlterations.modal = ($event || false)"
+      />
 
       <federation-settings
         v-if="federationEnabled"
@@ -464,6 +473,7 @@ import FieldConfigurator from 'corteza-webapp-compose/src/components/ModuleField
 import FieldRowEdit from 'corteza-webapp-compose/src/components/Admin/Module/FieldRowEdit'
 import FieldRowView from 'corteza-webapp-compose/src/components/Admin/Module/FieldRowView'
 import FederationSettings from 'corteza-webapp-compose/src/components/Admin/Module/FederationSettings'
+import DalSchemaAlterations from 'corteza-webapp-compose/src/components/Admin/Module/DalSchemaAlterations'
 import DiscoverySettings from 'corteza-webapp-compose/src/components/Admin/Module/DiscoverySettings'
 import DalSettings from 'corteza-webapp-compose/src/components/Admin/Module/DalSettings'
 import RecordRevisionsSettings from 'corteza-webapp-compose/src/components/Admin/Module/RecordRevisionsSettings'
@@ -489,6 +499,7 @@ export default {
     FieldRowEdit,
     FieldRowView,
     FederationSettings,
+    DalSchemaAlterations,
     DiscoverySettings,
     DalSettings,
     RecordRevisionsSettings,
@@ -531,6 +542,11 @@ export default {
 
       federationSettings: {
         modal: false,
+      },
+
+      dalSchemaAlterations: {
+        modal: false,
+        batchID: undefined,
       },
 
       discoverySettings: {
@@ -654,55 +670,10 @@ export default {
   watch: {
     moduleID: {
       immediate: true,
-      handler (moduleID) {
-        this.module = undefined
-        this.initialModuleState = undefined
-
-        /**
-         * Every time module changes we switch to the 1st tab
-         */
-        this.activeTab = 0
-
-        if (moduleID === NoID) {
-          this.module = new compose.Module(
-            { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: this.$t('general.placeholder.sample') })] },
-            this.namespace,
-          )
-
-          this.initialModuleState = this.module.clone()
-        } else {
-          const params = {
-            // make sure module is loaded from the API every time!
-            force: true,
-            namespace: this.namespace,
-            moduleID: moduleID,
-          }
-
-          this.findModuleByID(params).then((module) => {
-            // Make a copy so that we do not change store item by ref
-            this.module = module.clone()
-            this.initialModuleState = module.clone()
-
-            const { moduleID, namespaceID, issues = [] } = this.module
-
-            if (issues.length > 0) {
-              // do not proceed with record search as it's
-              // likely to fail due to issues on a module
-              return
-            }
-
-            // Count existing records to see what we can do with this module
-            const { response, cancel } = this.$ComposeAPI
-              .recordListCancellable({ moduleID, namespaceID, limit: 1 })
-
-            this.abortableRequests.push(cancel)
-
-            response()
-              .then(({ set }) => { this.hasRecords = (set.length > 0) })
-          })
-        }
-
+      async handler (moduleID) {
+        await this.fetchModule(moduleID)
         this.fetchSensitivityLevels()
+        this.checkAlterations()
       },
     },
 
@@ -852,6 +823,77 @@ export default {
             }
           })
       }
+    },
+
+    async fetchModuleWithAlterations () {
+      await this.fetchModule(this.moduleID)
+      this.checkAlterations()
+    },
+
+    async fetchModule (moduleID = this.moduleID) {
+      this.module = undefined
+      this.initialModuleState = undefined
+
+      /**
+       * Every time module changes we switch to the 1st tab
+       */
+      this.activeTab = 0
+
+      if (moduleID === NoID) {
+        this.module = new compose.Module(
+          { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: this.$t('general.placeholder.sample') })] },
+          this.namespace,
+        )
+      } else {
+        const params = {
+          // make sure module is loaded from the API every time!
+          force: true,
+          namespace: this.namespace,
+          moduleID: moduleID,
+        }
+
+        await this.findModuleByID(params).then((module) => {
+          // Make a copy so that we do not change store item by ref
+          this.module = module.clone()
+          this.initialModuleState = module.clone()
+
+          const { moduleID, namespaceID, issues = [] } = this.module
+          if (issues.length > 0) {
+            // do not proceed with record search as it's
+            // likely to fail due to issues on a module
+            return
+          }
+
+          // Count existing records to see what we can do with this module
+          const { response, cancel } = this.$ComposeAPI
+            .recordListCancellable({ moduleID, namespaceID, limit: 1 })
+
+          this.abortableRequests.push(cancel)
+
+          response()
+            .then(({ set }) => { this.hasRecords = (set.length > 0) })
+        })
+      }
+    },
+
+    checkAlterations () {
+      if (!this.module) {
+        return
+      }
+
+      // Check if module has Alterations to resolve
+      let modal = false
+      let batchID
+      for (const i of this.module.issues) {
+        if (i.meta.batchID) {
+          modal = true
+          batchID = i.meta.batchID
+          break
+        }
+      }
+
+      this.dalSchemaAlterations.modal = modal
+      this.dalSchemaAlterations.batchID = batchID
     },
 
     handleDelete () {

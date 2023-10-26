@@ -233,6 +233,100 @@ func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 	return
 }
 
+// target is the existing one
+func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
+	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
+	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
+
+	// If everything matches up perfectly use that
+	if assertType == targetType {
+		return true
+	}
+
+	// See if we can guess it
+	// [the type of the target column][what types fit the target col. type]
+	matches := map[string]map[string]bool{
+		"bigint unsigned": {
+			"varchar": true,
+			"text":    true,
+
+			"decimal": true,
+		},
+		"bigint signed": {
+			"varchar": true,
+			"text":    true,
+
+			"decimal": true,
+		},
+		"bigint": {
+			"varchar": true,
+			"text":    true,
+
+			"decimal": true,
+		},
+		"datetime": {
+			"varchar": true,
+			"text":    true,
+		},
+		"time": {
+			"varchar": true,
+			"text":    true,
+
+			"datetime": true,
+		},
+		"date": {
+			"varchar": true,
+			"text":    true,
+
+			"datetime": true,
+		},
+		"decimal": {
+			"varchar": true,
+			"text":    true,
+		},
+		"varchar": {
+			"text": true,
+		},
+		"text": {
+			"varchar": true,
+		},
+		"json": {},
+		"blob": {},
+		"tinyint": {
+			"varchar": true,
+			"text":    true,
+			"bigint":  true,
+			"decimal": true,
+		},
+		"char": {
+			"varchar": true,
+			"text":    true,
+		},
+	}
+
+	baseMatch := assertName == targetName || matches[assertName][targetName]
+
+	// Special cases
+	switch {
+	case assertName == "varchar" && targetName == "varchar":
+		// Check varchar size
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0])
+
+	case assertName == "decimal" && targetName == "decimal":
+		// Check numeric size and precision
+		for i := len(assertMeta); i < 2; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		for i := len(targetMeta); i < 2; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0]) && cast.ToInt(assertMeta[1]) <= cast.ToInt(targetMeta[1])
+	}
+
+	return baseMatch
+}
+
 func (d mysqlDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
 	case "in":

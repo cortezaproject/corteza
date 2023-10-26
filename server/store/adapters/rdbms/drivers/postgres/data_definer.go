@@ -2,6 +2,8 @@ package postgres
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/jmoiron/sqlx"
@@ -14,6 +16,13 @@ type (
 		conn   *sqlx.DB
 		is     *informationSchema
 		d      *postgresDialect
+	}
+
+	reTypeColumn struct {
+		Dialect *postgresDialect
+		Table   string
+		Column  string
+		Type    *ddl.ColumnType
 	}
 )
 
@@ -78,6 +87,15 @@ func (dd *dataDefiner) ColumnRename(ctx context.Context, t string, o string, n s
 	})
 }
 
+func (dd *dataDefiner) ColumnReType(ctx context.Context, t string, col string, tp *ddl.ColumnType) error {
+	return ddl.Exec(ctx, dd.conn, &reTypeColumn{
+		Dialect: dd.d,
+		Table:   t,
+		Column:  col,
+		Type:    tp,
+	})
+}
+
 func (dd *dataDefiner) IndexLookup(ctx context.Context, i, t string) (*ddl.Index, error) {
 	if index, err := dd.is.IndexLookup(ctx, i, t, dd.dbName); err != nil {
 		return nil, err
@@ -98,4 +116,13 @@ func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
 		Dialect: dd.d,
 		Ident:   i,
 	})
+}
+
+func (c *reTypeColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`ALTER TABLE %s ALTER COLUMN %s TYPE %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Column),
+		c.Type.Name,
+	), nil, nil
 }

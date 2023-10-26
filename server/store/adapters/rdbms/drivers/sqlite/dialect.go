@@ -218,6 +218,57 @@ func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, er
 	return
 }
 
+func (sqliteDialect) ColumnFits(target, assert *ddl.Column) bool {
+	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
+	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
+
+	// If everything matches up perfectly use that
+	if assertType == targetType {
+		return true
+	}
+
+	// See if we can guess it
+	// [the type of the target column][what types fit the target col. type]
+	matches := map[string]map[string]bool{
+		"bigint": {
+			"text": true,
+			"char": true,
+		},
+		"timestamp": {
+			"text": true,
+			"char": true,
+		},
+		"text": {
+			"char": true,
+		},
+		"numeric": {
+			"text": true,
+			"char": true,
+		},
+		"blob": {},
+		"boolean": {
+			"text":    true,
+			"char":    true,
+			"bigint":  true,
+			"numeric": true,
+		},
+		"char": {
+			"text": true,
+		},
+	}
+
+	baseMatch := matches[assertName][targetName]
+
+	// Special cases
+	switch {
+	case assertName == "char" && targetName == "char":
+		// Check char size
+		return baseMatch && assertMeta[0] <= targetMeta[0]
+	}
+
+	return baseMatch
+}
+
 func (d sqliteDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
 	case "concat":

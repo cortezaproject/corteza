@@ -70,6 +70,11 @@ type (
 	// This type is auto-generated.
 	DalConnectionSet []*DalConnection
 
+	// DalSchemaAlterationSet slice of DalSchemaAlteration
+	//
+	// This type is auto-generated.
+	DalSchemaAlterationSet []*DalSchemaAlteration
+
 	// DalSensitivityLevelSet slice of DalSensitivityLevel
 	//
 	// This type is auto-generated.
@@ -700,6 +705,62 @@ func (set DalConnectionSet) FindByID(ID uint64) *DalConnection {
 //
 // This function is auto-generated.
 func (set DalConnectionSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(DalSchemaAlteration) err
+//
+// This function is auto-generated.
+func (set DalSchemaAlterationSet) Walk(w func(*DalSchemaAlteration) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(DalSchemaAlteration) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set DalSchemaAlterationSet) Filter(f func(*DalSchemaAlteration) (bool, error)) (out DalSchemaAlterationSet, err error) {
+	var ok bool
+	out = DalSchemaAlterationSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set DalSchemaAlterationSet) FindByID(ID uint64) *DalSchemaAlteration {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set DalSchemaAlterationSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

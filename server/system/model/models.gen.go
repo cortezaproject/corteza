@@ -1117,6 +1117,205 @@ var DalConnection = &dal.Model{
 	},
 }
 
+var DalSchemaAlteration = &dal.Model{
+	Ident:        "dal_schema_alterations",
+	ResourceType: types.DalSchemaAlterationResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "BatchID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "batch_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "DependsOn",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:dal-schema-alteration",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "depends_on"},
+		},
+
+		&dal.Attribute{
+			Ident: "Resource",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "resource"},
+		},
+
+		&dal.Attribute{
+			Ident: "ResourceType",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "resource_type"},
+		},
+
+		&dal.Attribute{
+			Ident: "ConnectionID",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:dal-connection",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "connection_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Kind",
+			Type:  &dal.TypeText{Length: 256},
+			Store: &dal.CodecAlias{Ident: "kind"},
+		},
+
+		&dal.Attribute{
+			Ident: "Params",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "params"},
+		},
+
+		&dal.Attribute{
+			Ident: "Error",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "error"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CompletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "completed_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DismissedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "dismissed_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "created_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "updated_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "CompletedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "completed_by"},
+		},
+
+		&dal.Attribute{
+			Ident: "DismissedBy",
+			Type: &dal.TypeRef{HasDefault: true,
+				DefaultValue: 0,
+
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "dismissed_by"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+
+		&dal.Index{
+			Ident:  "dal_schema_alterations_uniqueAlteration",
+			Type:   "BTREE",
+			Unique: true,
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+
+				{
+					AttributeIdent: "BatchID",
+				},
+			},
+		},
+	},
+}
+
 var DalSensitivityLevel = &dal.Model{
 	Ident:        "dal_sensitivity_levels",
 	ResourceType: types.DalSensitivityLevelResourceType,
@@ -2493,6 +2692,7 @@ func init() {
 		AuthSession,
 		Credential,
 		DalConnection,
+		DalSchemaAlteration,
 		DalSensitivityLevel,
 		DataPrivacyRequest,
 		DataPrivacyRequestComment,

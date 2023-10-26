@@ -18,11 +18,11 @@
           >
             <b-alert
               v-for="issue in issues"
-              :key="issue"
+              :key="issue.issue"
               show
               variant="danger"
             >
-              {{ issue }}
+              {{ issue.issue }}
             </b-alert>
           </b-form-group>
         </b-col>

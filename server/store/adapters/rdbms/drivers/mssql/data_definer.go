@@ -2,6 +2,7 @@ package mssql
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
@@ -15,6 +16,29 @@ type (
 		conn   *sqlx.DB
 		is     *informationSchema
 		d      *mssqlDialect
+	}
+
+	// Custom ddl commands tweaked to SQL server specifics.
+	// It might be cleaner to solve this with goqu or some custom string templates
+	// but this will do for now.
+	addColumn struct {
+		Dialect *mssqlDialect
+		Table   string
+		Column  *ddl.Column
+	}
+
+	renameColumn struct {
+		Dialect *mssqlDialect
+		Table   string
+		Old     string
+		New     string
+	}
+
+	reTypeColumn struct {
+		Dialect *mssqlDialect
+		Table   string
+		Column  string
+		Type    *ddl.ColumnType
 	}
 )
 
@@ -78,7 +102,7 @@ func (dd *dataDefiner) TableLookup(ctx context.Context, t string) (*ddl.Table, e
 }
 
 func (dd *dataDefiner) ColumnAdd(ctx context.Context, t string, c *ddl.Column) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.AddColumn{
+	return ddl.Exec(ctx, dd.conn, &addColumn{
 		Dialect: dd.d,
 		Table:   t,
 		Column:  c,
@@ -94,11 +118,20 @@ func (dd *dataDefiner) ColumnDrop(ctx context.Context, t, col string) error {
 }
 
 func (dd *dataDefiner) ColumnRename(ctx context.Context, t string, o string, n string) error {
-	return ddl.Exec(ctx, dd.conn, &ddl.RenameColumn{
+	return ddl.Exec(ctx, dd.conn, &renameColumn{
 		Dialect: dd.d,
 		Table:   t,
 		Old:     o,
 		New:     n,
+	})
+}
+
+func (dd *dataDefiner) ColumnReType(ctx context.Context, t string, col string, tp *ddl.ColumnType) error {
+	return ddl.Exec(ctx, dd.conn, &reTypeColumn{
+		Dialect: dd.d,
+		Table:   t,
+		Column:  col,
+		Type:    tp,
 	})
 }
 
@@ -123,4 +156,43 @@ func (dd *dataDefiner) IndexDrop(ctx context.Context, t, i string) error {
 		Dialect: dd.d,
 		Ident:   i,
 	})
+}
+
+func (c *addColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	sql = fmt.Sprintf(
+		`ALTER TABLE %s ADD %s %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Column.Ident),
+		c.Column.Type.Name,
+	)
+
+	if !c.Column.Type.Null {
+		sql += " NOT NULL"
+	}
+
+	if len(c.Column.Default) > 0 {
+		// @todo right now we can (and need to) trust that default
+		//       values are unharmful!
+		sql += " DEFAULT " + c.Column.Default
+	}
+
+	return
+}
+
+func (c *renameColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`EXEC sp_RENAME '%s.%s' , '%s', 'COLUMN'`,
+		c.Table,
+		c.Old,
+		c.New,
+	), nil, nil
+}
+
+func (c *reTypeColumn) ToSQL() (sql string, aa []interface{}, err error) {
+	return fmt.Sprintf(
+		`ALTER TABLE %s MODIFY COLUMN %s %s`,
+		c.Dialect.QuoteIdent(c.Table),
+		c.Dialect.QuoteIdent(c.Column),
+		c.Type.Name,
+	), nil, nil
 }

@@ -823,3 +823,91 @@ func (r *DalSensitivityLevel) SetValue(name string, pos uint, value any) (err er
 	}
 	return nil
 }
+
+func (r DalSchemaAlteration) GetID() uint64 { return r.ID }
+
+func (r *DalSchemaAlteration) GetValue(name string, pos uint) (any, error) {
+	switch name {
+	case "batchID", "BatchID":
+		return r.BatchID, nil
+	case "completedAt", "CompletedAt":
+		return r.CompletedAt, nil
+	case "completedBy", "CompletedBy":
+		return r.CompletedBy, nil
+	case "connectionID", "ConnectionID":
+		return r.ConnectionID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "dependsOn", "DependsOn":
+		return r.DependsOn, nil
+	case "dismissedAt", "DismissedAt":
+		return r.DismissedAt, nil
+	case "dismissedBy", "DismissedBy":
+		return r.DismissedBy, nil
+	case "error", "Error":
+		return r.Error, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "kind", "Kind":
+		return r.Kind, nil
+	case "resource", "Resource":
+		return r.Resource, nil
+	case "resourceType", "ResourceType":
+		return r.ResourceType, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err error) {
+	switch name {
+	case "batchID", "BatchID":
+		return cast2.Uint64(value, &r.BatchID)
+	case "completedAt", "CompletedAt":
+		return cast2.TimePtr(value, &r.CompletedAt)
+	case "completedBy", "CompletedBy":
+		return cast2.Uint64(value, &r.CompletedBy)
+	case "connectionID", "ConnectionID":
+		return cast2.Uint64(value, &r.ConnectionID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "dependsOn", "DependsOn":
+		return cast2.Uint64(value, &r.DependsOn)
+	case "dismissedAt", "DismissedAt":
+		return cast2.TimePtr(value, &r.DismissedAt)
+	case "dismissedBy", "DismissedBy":
+		return cast2.Uint64(value, &r.DismissedBy)
+	case "error", "Error":
+		return cast2.String(value, &r.Error)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "kind", "Kind":
+		return cast2.String(value, &r.Kind)
+	case "resource", "Resource":
+		return cast2.String(value, &r.Resource)
+	case "resourceType", "ResourceType":
+		return cast2.String(value, &r.ResourceType)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}

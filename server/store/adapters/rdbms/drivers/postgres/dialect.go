@@ -214,6 +214,91 @@ func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, 
 	return
 }
 
+func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
+	targetType, targetName, targetMeta := ddl.ParseColumnTypes(target)
+	assertType, assertName, assertMeta := ddl.ParseColumnTypes(assert)
+
+	// If everything matches up perfectly use that
+	if assertType == targetType {
+		return true
+	}
+
+	// See if we can guess it
+	// [the type of the target column][what types fit the target col. type]
+	matches := map[string]map[string]bool{
+		"numeric": {
+			"text":    true,
+			"varchar": true,
+		},
+		"timestamp": {
+			"text":    true,
+			"varchar": true,
+
+			"timestamptz": true,
+		},
+		"timestamptz": {
+			"text":    true,
+			"varchar": true,
+		},
+		"time": {
+			"text":    true,
+			"varchar": true,
+
+			"timetz": true,
+		},
+		"timetz": {
+			"text":    true,
+			"varchar": true,
+		},
+		"date": {
+			"text":    true,
+			"varchar": true,
+		},
+		"text": {},
+		"varchar": {
+			"text": true,
+		},
+		"jsonb": {},
+		"bytea": {},
+		"boolean": {
+			"numeric": true,
+		},
+		"uuid": {
+			"text":    true,
+			"varchar": true,
+		},
+	}
+
+	baseMatch := assertName == targetName || matches[assertName][targetName]
+
+	// Special cases
+	switch {
+	case assertName == "varchar" && targetName == "varchar":
+		// Check varchar size
+		for i := len(assertMeta); i < 1; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		for i := len(targetMeta); i < 1; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0])
+
+	case assertName == "numeric" && targetName == "numeric":
+		// Check numeric size and precision
+		for i := len(assertMeta); i < 2; i++ {
+			assertMeta = append(assertMeta, "0")
+		}
+		for i := len(targetMeta); i < 2; i++ {
+			targetMeta = append(targetMeta, "0")
+		}
+
+		return baseMatch && cast.ToInt(assertMeta[0]) <= cast.ToInt(targetMeta[0]) && cast.ToInt(assertMeta[1]) <= cast.ToInt(targetMeta[1])
+	}
+
+	return baseMatch
+}
+
 func (d postgresDialect) ExprHandler(n *ql.ASTNode, args ...exp.Expression) (expr exp.Expression, err error) {
 	switch ref := strings.ToLower(n.Ref); ref {
 	case "concat":

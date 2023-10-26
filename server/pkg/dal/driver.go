@@ -7,7 +7,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"go.uber.org/zap"
@@ -80,12 +79,12 @@ type (
 		// Only metadata (such as idents) are affected; attributes can not be changed here
 		UpdateModel(ctx context.Context, old *Model, new *Model) error
 
-		// UpdateModelAttribute requests for the model attribute change
-		//
-		// Specific operations require data transformations (type change).
-		// Some basic ops. should be implemented on DB driver level, but greater controll can be
-		// achieved via the trans functions.
-		UpdateModelAttribute(ctx context.Context, sch *Model, diff *ModelDiff, hasRecords bool, trans ...TransformationFunction) error
+		// AssertSchemaAlterations returns a new set of Alterations based on what the underlying
+		// schema already provides -- it discards alterations for column additions that already exist, etc.
+		AssertSchemaAlterations(ctx context.Context, sch *Model, aa ...*Alteration) ([]*Alteration, error)
+
+		// ApplyAlteration applies the given alterations to the underlying schema
+		ApplyAlteration(ctx context.Context, sch *Model, aa ...*Alteration) []error
 	}
 
 	ConnectionCloser interface {
@@ -93,8 +92,6 @@ type (
 		// cleanup operations
 		Close(ctx context.Context) error
 	}
-
-	TransformationFunction func(*Model, Attribute, expr.TypedValue) (expr.TypedValue, bool, error)
 
 	// Store provides an interface which CRS uses to interact with the underlying database
 

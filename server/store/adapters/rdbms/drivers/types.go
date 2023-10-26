@@ -10,6 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/google/uuid"
+	"github.com/modern-go/reflect2"
 	"github.com/spf13/cast"
 )
 
@@ -132,7 +133,11 @@ func (t *TypeTimestamp) Decode(raw any) (any, bool, error) {
 }
 
 func (t *TypeTimestamp) Encode(val any) (driver.Value, error) {
-	return val, nil
+	if reflect2.IsNil(val) {
+		return nil, nil
+	}
+
+	return cast.ToTimeE(val)
 }
 
 func (t *TypeTime) Decode(raw any) (any, bool, error) {
@@ -157,7 +162,11 @@ func (t *TypeTime) Decode(raw any) (any, bool, error) {
 }
 
 func (t *TypeTime) Encode(val any) (driver.Value, error) {
-	return val, nil
+	if reflect2.IsNil(val) {
+		return nil, nil
+	}
+
+	return cast.ToTimeE(val)
 }
 
 func (t *TypeDate) Decode(raw any) (any, bool, error) {
@@ -170,7 +179,11 @@ func (t *TypeDate) Decode(raw any) (any, bool, error) {
 }
 
 func (t *TypeDate) Encode(val any) (driver.Value, error) {
-	return val, nil
+	if reflect2.IsNil(val) {
+		return nil, nil
+	}
+
+	return cast.ToTimeE(val)
 }
 
 func (t *TypeNumber) Decode(raw any) (any, bool, error) {

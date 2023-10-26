@@ -1,33 +1,35 @@
 package dal
 
 type (
-	modelDiffType     string
-	ModelModification string
+	modelDiffType string
 	// ModelDiff defines one identified missmatch between two models
 	ModelDiff struct {
-		Type         modelDiffType
-		Modification ModelModification
+		Type modelDiffType
 		// Original will be nil when a new attribute is being added
 		Original *Attribute
-		// Inserted will be nil wen an existing attribute is being removed
-		Inserted *Attribute
+		// Asserted will be nil wen an existing attribute is being removed
+		Asserted *Attribute
 	}
 
 	ModelDiffSet []*ModelDiff
 )
 
 const (
-	AttributeMissing             modelDiffType     = "attributeMissing"
-	AttributeTypeMissmatch       modelDiffType     = "typeMissmatch"
-	AttributeSensitivityMismatch modelDiffType     = "sensitivityMismatch"
-	AttributeCodecMismatch       modelDiffType     = "codecMismatch"
-	AttributeDeleted             ModelModification = "deleted"
-	AttributeAdded               ModelModification = "added"
-	AttributeChanged             ModelModification = "changed"
+	AttributeMissing             modelDiffType = "attributeMissing"
+	AttributeTypeMissmatch       modelDiffType = "typeMissmatch"
+	AttributeSensitivityMismatch modelDiffType = "sensitivityMismatch"
+	AttributeCodecMismatch       modelDiffType = "codecMismatch"
 )
 
 // Diff calculates the diff between models a and b where a is used as base
 func (a *Model) Diff(b *Model) (out ModelDiffSet) {
+	if a == nil {
+		a = &Model{}
+	}
+	if b == nil {
+		b = &Model{}
+	}
+
 	bIndex := make(map[string]struct {
 		found bool
 		attr  *Attribute
@@ -68,9 +70,8 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		attrBAux, ok := bIndex[attrA.Ident]
 		if !ok {
 			out = append(out, &ModelDiff{
-				Type:         AttributeMissing,
-				Modification: AttributeDeleted,
-				Original:     attrA,
+				Type:     AttributeMissing,
+				Original: attrA,
 			})
 			continue
 		}
@@ -78,10 +79,9 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		// Typecheck
 		if attrA.Type.Type() != attrBAux.attr.Type.Type() {
 			out = append(out, &ModelDiff{
-				Type:         AttributeTypeMissmatch,
-				Modification: AttributeChanged,
-				Original:     attrA,
-				Inserted:     attrBAux.attr,
+				Type:     AttributeTypeMissmatch,
+				Original: attrA,
+				Asserted: attrBAux.attr,
 			})
 		}
 
@@ -89,18 +89,16 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		// @todo improve; for now it'll do
 		if attrA.SensitivityLevelID != attrBAux.attr.SensitivityLevelID {
 			out = append(out, &ModelDiff{
-				Type:         AttributeSensitivityMismatch,
-				Modification: AttributeChanged,
-				Original:     attrA,
-				Inserted:     attrBAux.attr,
+				Type:     AttributeSensitivityMismatch,
+				Original: attrA,
+				Asserted: attrBAux.attr,
 			})
 		}
 		if attrA.Store.Type() != attrBAux.attr.Store.Type() {
 			out = append(out, &ModelDiff{
-				Type:         AttributeCodecMismatch,
-				Modification: AttributeChanged,
-				Original:     attrA,
-				Inserted:     attrBAux.attr,
+				Type:     AttributeCodecMismatch,
+				Original: attrA,
+				Asserted: attrBAux.attr,
 			})
 		}
 	}
@@ -113,12 +111,77 @@ func (a *Model) Diff(b *Model) (out ModelDiffSet) {
 		_, ok := aIndex[attrB.Ident]
 		if !ok {
 			out = append(out, &ModelDiff{
-				Type:         AttributeMissing,
-				Modification: AttributeAdded,
-				Original:     nil,
-				Inserted:     attrB,
+				Type:     AttributeMissing,
+				Original: nil,
+				Asserted: attrB,
 			})
 			continue
+		}
+	}
+
+	return
+}
+
+func (dd ModelDiffSet) Alterations() (out []*Alteration) {
+	add := func(a *Alteration) {
+		out = append(out, a)
+	}
+
+	for _, d := range dd {
+		switch d.Type {
+		case AttributeMissing:
+			if d.Asserted == nil {
+				// @todo if this was the last attribute we can consider dropping this column
+				if d.Original.Store.Type() == AttributeCodecRecordValueSetJSON {
+					break
+				}
+
+				add(&Alteration{
+					AttributeDelete: &AttributeDelete{
+						Attr: d.Original,
+					},
+				})
+			} else {
+				if d.Asserted.Store.Type() == AttributeCodecRecordValueSetJSON {
+					add(&Alteration{
+						AttributeAdd: &AttributeAdd{
+							Attr: &Attribute{
+								Ident: d.Asserted.StoreIdent(),
+								Type:  &TypeJSON{Nullable: false},
+								Store: &CodecPlain{},
+							},
+						},
+					})
+				} else {
+					add(&Alteration{
+						AttributeAdd: &AttributeAdd{
+							Attr: d.Asserted,
+						},
+					})
+				}
+
+			}
+
+		case AttributeTypeMissmatch:
+			// @todo we might have to do some validation earlier on
+			if d.Original.Store.Type() == AttributeCodecRecordValueSetJSON {
+				break
+			}
+
+			add(&Alteration{
+				AttributeReType: &AttributeReType{
+					Attr: d.Asserted,
+					To:   d.Asserted.Type,
+				},
+			})
+
+		case AttributeCodecMismatch:
+			add(&Alteration{
+				AttributeReEncode: &AttributeReEncode{
+					Attr: d.Asserted,
+					To:   d.Asserted.Store,
+				},
+			})
 		}
 	}
 

@@ -14,8 +14,7 @@ import (
 
 type (
 	DBOpt struct {
-		DSN                           string `env:"DB_DSN"`
-		AllowDestructiveSchemaChanges bool   `env:"DB_ALLOW_DESTRUCTIVE_SCHEMA_CHANGES"`
+		DSN string `env:"DB_DSN"`
 	}
 
 	HTTPClientOpt struct {
@@ -275,8 +274,7 @@ type (
 // This function is auto-generated
 func DB() (o *DBOpt) {
 	o = &DBOpt{
-		DSN:                           "sqlite3://file::memory:?cache=shared&mode=memory",
-		AllowDestructiveSchemaChanges: false,
+		DSN: "sqlite3://file::memory:?cache=shared&mode=memory",
 	}
 
 	// Custom defaults

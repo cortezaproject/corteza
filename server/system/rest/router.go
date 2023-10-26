@@ -34,6 +34,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewDalConnection(DalConnection{}.New()).MountRoutes(r)
 			handlers.NewDalSensitivityLevel(SensitivityLevel{}.New()).MountRoutes(r)
 			handlers.NewDalDriver(DalDriver{}.New()).MountRoutes(r)
+			handlers.NewDalSchemaAlteration(DalSchemaAlteration{}.New()).MountRoutes(r)
 			handlers.NewRole(Role{}.New()).MountRoutes(r)
 			handlers.NewPermissions(Permissions{}.New()).MountRoutes(r)
 			handlers.NewApplication(Application{}.New()).MountRoutes(r)
