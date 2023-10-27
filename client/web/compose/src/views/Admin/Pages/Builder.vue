@@ -970,7 +970,7 @@ export default {
         const paste = (event.clipboardData || window.clipboardData).getData('text')
         // Doing this to handle JSON parse error
         try {
-          const block = compose.pageBlockMaker(JSON.parse(paste))
+          const block = compose.PageBlockMaker(JSON.parse(paste))
           const valid = this.isValid(block)
 
           if (valid) {

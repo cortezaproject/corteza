@@ -118,9 +118,9 @@ page:
   cloneSuccess: Block has been cloned to the bottom of the page
   pasteSuccess: Block has been pasted to the bottom of the page
   duplicateFailed: Could not duplicate block
-  blockWaiting: There is a page-block awaiting
-  copyFailed: Could not copy block {{reason}}
-  invalidBlock: Not a valid page-block
+  blockWaiting: There is a page block awaiting
+  copyFailed: Could not copy page block {{reason}}
+  invalidBlock: Not a valid page block
   page-layout:
     notFound:
       edit: No page layout, create one to edit it
