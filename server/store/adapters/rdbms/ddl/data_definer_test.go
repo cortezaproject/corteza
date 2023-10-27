@@ -1,6 +1,7 @@
 package ddl
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -37,6 +38,28 @@ func (mockDriver) AttributeToColumn(attr *dal.Attribute) (col *Column, err error
 
 func (d mockDriver) IndexFieldModifiers(attr *dal.Attribute, mm ...dal.IndexFieldModifier) (string, error) {
 	return IndexFieldModifiers(attr, d.QuoteIdent, mm...)
+}
+
+// Copied over to avoid import cycle
+// @todo improve
+func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, mm ...dal.IndexFieldModifier) (string, error) {
+	var (
+		modifier string
+		out      = quoteIdent(attr.StoreIdent())
+	)
+
+	for _, m := range mm {
+		switch m {
+		case dal.IndexFieldModifierLower:
+			modifier = "LOWER"
+		default:
+			return "", fmt.Errorf("unknown index field modifier: %s", m)
+		}
+
+		out = fmt.Sprintf("%s(%s)", modifier, out)
+	}
+
+	return out, nil
 }
 
 func TestModelToTable(t *testing.T) {

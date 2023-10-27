@@ -8,16 +8,6 @@ import (
 )
 
 type (
-	dalModeler interface {
-		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
-		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
-		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-
-		GetConnectionByID(uint64) *dal.ConnectionWrap
-
-		SearchModelIssues(resourceID uint64) (out []error)
-	}
-
 	dalDater interface {
 		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
 		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
@@ -26,10 +16,5 @@ type (
 		Lookup(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
 		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
 		Truncate(ctx context.Context, m dal.ModelRef, operations dal.OperationSet) (err error)
-	}
-
-	dalService interface {
-		dalModeler
-		dalDater
 	}
 )

@@ -18,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+	sysService "github.com/cortezaproject/corteza/server/system/service"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,7 +61,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 		case store.Storer:
 			t.Log("using custom Store to initialize Record service")
 			svc.store = c
-		case dalService:
+		case dal.FullService:
 			t.Log("using custom DAL to initialize Record service")
 			t.Log("make sure you manually reload models!")
 			svc.dal = c
@@ -117,7 +118,7 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 		req.NoError(err)
 
 		t.Log("reloading DAL models")
-		req.NoError(DalModelReload(ctx, svc.store, dalAux))
+		req.NoError(DalModelReload(ctx, svc.store, sysService.DefaultDalSchemaAlteration, dalAux))
 	}
 
 	return svc

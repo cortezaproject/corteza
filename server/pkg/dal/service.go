@@ -59,6 +59,9 @@ type (
 		Run(ctx context.Context, pp Pipeline) (iter Iterator, err error)
 		Dryrun(ctx context.Context, pp Pipeline) (err error)
 
+		ApplyAlteration(ctx context.Context, alts ...*Alteration) (errs []error, err error)
+		ReloadModel(ctx context.Context, currentAlts []*Alteration, model *Model) (newAlts []*Alteration, err error)
+
 		SearchConnectionIssues(connectionID uint64) (out []Issue)
 		SearchModelIssues(resourceID uint64) (out []Issue)
 	}

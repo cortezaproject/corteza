@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/sqlite"
+	sysService "github.com/cortezaproject/corteza/server/system/service"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 )
@@ -50,7 +51,7 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 		case store.Storer:
 			t.Log("using custom Store to initialize Module service")
 			svc.store = c
-		case dalService:
+		case dal.FullService:
 			t.Log("using custom DAL to initialize Module service")
 			t.Log("make sure you manually reload models!")
 			svc.dal = c
@@ -104,7 +105,7 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 		svc.dal = dalAux
 
 		t.Log("reloading DAL models")
-		req.NoError(DalModelReload(ctx, svc.store, dalAux))
+		req.NoError(DalModelReload(ctx, svc.store, sysService.DefaultDalSchemaAlteration, dalAux))
 	}
 
 	return svc

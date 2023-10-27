@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/modern-go/reflect2"
 	"go.uber.org/zap"
 
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
@@ -40,7 +41,7 @@ type (
 		store     store.Storer
 		locale    ResourceTranslationsManagerService
 
-		dal              dalModelManager
+		dal              dal.FullService
 		schemaAltManager schemaAltManager
 	}
 
@@ -1150,9 +1151,12 @@ func DalModelReplace(ctx context.Context, s store.Storer, am schemaAltManager, d
 	}
 
 	for _, m := range models {
-		currentAlts, err = am.ModelAlterations(ctx, m)
-		if err != nil {
-			return
+		if !reflect2.IsNil(am) {
+			// @todo this would need to use s from here, not service
+			currentAlts, err = am.ModelAlterations(ctx, m)
+			if err != nil {
+				return
+			}
 		}
 
 		newAlts, err = dmm.ReplaceModel(ctx, currentAlts, m)
@@ -1160,9 +1164,11 @@ func DalModelReplace(ctx context.Context, s store.Storer, am schemaAltManager, d
 			return
 		}
 
-		err = am.SetAlterations(ctx, s, m, currentAlts, newAlts...)
-		if err != nil {
-			return
+		if !reflect2.IsNil(am) {
+			err = am.SetAlterations(ctx, s, m, currentAlts, newAlts...)
+			if err != nil {
+				return
+			}
 		}
 	}
 

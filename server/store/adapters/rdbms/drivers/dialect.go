@@ -93,6 +93,7 @@ func init() {
 	goqu.SetDefaultPrepared(true)
 }
 
+// @note copied to data_definer_test to avoid import cycle; if modified, fixup both parts
 func IndexFieldModifiers(attr *dal.Attribute, quoteIdent func(i string) string, mm ...dal.IndexFieldModifier) (string, error) {
 	var (
 		modifier string

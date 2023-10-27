@@ -2,10 +2,11 @@ package tests
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestModelManagement(t *testing.T) {
@@ -41,7 +42,7 @@ func TestModelManagement(t *testing.T) {
 	req.NoError(err)
 	req.NoError(svc.ReplaceConnection(ctx, cw, true))
 
-	req.NoError(svc.ReplaceModel(ctx, &dal.Model{
+	_, err = svc.ReplaceModel(ctx, nil, &dal.Model{
 		Ident:        dalTableName,
 		ConnectionID: dalConnID,
 		Attributes: dal.AttributeSet{
@@ -59,7 +60,8 @@ func TestModelManagement(t *testing.T) {
 				Store:    &dal.CodecAlias{Ident: "rel_owner"},
 			},
 		},
-	}))
+	})
+	req.NoError(err)
 
 	_, err = conn.db.Exec("DROP TABLE " + dalTableName)
 	req.NoError(err)
