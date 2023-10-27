@@ -111,7 +111,12 @@ export default function (ComposeAPI) {
         }
       },
 
-      pushModalPreviousPage ({ commit }, value) {
+      pushModalPreviousPage ({ commit, state }, value) {
+        const previousPage = state.modalPreviousPages[state.modalPreviousPages.length - 1] || {}
+        if (previousPage.recordID === value.recordID && previousPage.recordPageID === value.recordPageID) {
+          return
+        }
+
         commit(types.pushModalPreviousPage, value)
       },
 

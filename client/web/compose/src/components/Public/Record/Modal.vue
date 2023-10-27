@@ -93,7 +93,7 @@ export default {
       immediate: true,
       handler (recordPageID, oldRecordPageID) {
         if (!recordPageID) {
-          this.showModal = false
+          this.setDefaultValues()
           this.clearModalPreviousPage()
         }
 
@@ -134,6 +134,11 @@ export default {
     }),
 
     loadRecord ({ recordID, recordPageID, values, refRecord, edit, pushModalPreviousPage = true }) {
+      if (!recordID && !recordPageID) {
+        this.onHidden()
+        return
+      }
+
       this.recordID = recordID
       this.values = values
       this.refRecord = refRecord
