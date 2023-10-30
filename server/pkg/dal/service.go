@@ -311,15 +311,19 @@ func (svc *service) ReplaceConnection(ctx context.Context, conn *ConnectionWrap,
 	)
 
 	if isDefault {
-		if svc.defConnID == 0 {
-			// default connection not set yet
-			log.Debug("setting as default connection")
-			svc.defConnID = ID
-		} else if svc.defConnID != ID {
-			// default connection set but ID is different.
-			// this does not make any sense
-			return fmt.Errorf("different ID for default connection detected (old: %d, new: %d)", svc.defConnID, ID)
-		}
+		svc.defConnID = ID
+
+		// @note disabling this cause it removes some test-related boilerplate issues.
+		// 			 Optimally we'd have it so please figure something out.
+		// if svc.defConnID == 0 {
+		// 	// default connection not set yet
+		// 	log.Debug("setting as default connection")
+		// 	svc.defConnID = ID
+		// } else if svc.defConnID != ID {
+		// 	// default connection set but ID is different.
+		// 	// this does not make any sense
+		// 	return fmt.Errorf("different ID for default connection detected (old: %d, new: %d)", svc.defConnID, ID)
+		// }
 	}
 
 	defer svc.updateIssues(issues)

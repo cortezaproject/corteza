@@ -3,6 +3,10 @@ package dal
 import (
 	"context"
 	"fmt"
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -12,9 +16,6 @@ import (
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
-	"strings"
-	"testing"
-	"time"
 )
 
 func TestSortingAndPagination(t *testing.T) {
@@ -191,7 +192,7 @@ func TestSortingAndPagination(t *testing.T) {
 		}
 	)
 
-	require.NoError(t, service.DalModelReplace(ctx, ds, ns, mod))
+	require.NoError(t, service.DalModelReplace(ctx, service.DefaultStore, nil, ds, ns, mod))
 
 	t.Run("search", func(t *testing.T) {
 		t.Run("by record attributes", func(t *testing.T) {
@@ -716,7 +717,7 @@ func TestSortingAndPagination(t *testing.T) {
 				kind string
 				ptrn string
 			}{
-				{kind: "DateTime", ptrn: "2021-02-0%sT01:00:00.000Z"},
+				{kind: "DateTime", ptrn: "2021-02-0%sT01:00:00Z"},
 				{kind: "Email", ptrn: "test+e%s@test.tld"},
 				{kind: "Select", ptrn: "opt%s"},
 				{kind: "Number", ptrn: "%s"},

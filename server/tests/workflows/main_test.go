@@ -21,7 +21,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/envoy/yaml"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
@@ -30,31 +29,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type (
-	dalSvc interface {
-		Purge(ctx context.Context)
-
-		GetConnectionByID(uint64) *dal.ConnectionWrap
-
-		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
-		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) (err error)
-		SearchModelIssues(resourceID uint64) (out []error)
-
-		Create(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) error
-		Update(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
-		Search(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (dal.Iterator, error)
-		Lookup(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
-		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
-		Truncate(ctx context.Context, m dal.ModelRef, operations dal.OperationSet) (err error)
-	}
-)
-
 var (
 	defApp   *app.CortezaApp
 	defStore store.Storer
-	defDal   dalSvc
+	defDal   dal.FullService
 	eventBus = eventbus.New()
 )
 
@@ -71,7 +49,7 @@ func TestMain(m *testing.M) {
 		app.Opt.ActionLog.WorkflowFunctionsEnabled = true
 		defStore = app.Store
 		eventbus.Set(eventBus)
-		
+
 		return nil
 	})
 

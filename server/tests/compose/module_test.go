@@ -58,7 +58,7 @@ func (h helper) createModule(ns *types.Namespace, res *types.Module) *types.Modu
 
 	h.noError(store.CreateComposeModuleField(context.Background(), service.DefaultStore, res.Fields...))
 
-	h.noError(service.DalModelReplace(context.Background(), defDal, ns, res))
+	h.noError(service.DalModelReplace(context.Background(), service.DefaultStore, nil, defDal, ns, res))
 
 	return res
 }

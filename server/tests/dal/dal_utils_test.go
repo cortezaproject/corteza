@@ -10,7 +10,6 @@ import (
 	composeTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -25,35 +24,6 @@ type (
 		name  string
 		dsn   string
 		setup func(ctx context.Context, t wrapTest, dsn string)
-	}
-
-	dalService interface {
-		Drivers() (drivers []dal.Driver)
-
-		ReplaceSensitivityLevel(levels ...dal.SensitivityLevel) (err error)
-		RemoveSensitivityLevel(levelIDs ...uint64) (err error)
-
-		ReplaceConnection(ctx context.Context, cw *dal.ConnectionWrap, isDefault bool) (err error)
-		RemoveConnection(ctx context.Context, ID uint64) (err error)
-
-		SearchModels(ctx context.Context) (out dal.ModelSet, err error)
-		ReplaceModel(ctx context.Context, model *dal.Model) (err error)
-		RemoveModel(ctx context.Context, connectionID, ID uint64) (err error)
-		ReplaceModelAttribute(ctx context.Context, model *dal.Model, diff *dal.ModelDiff, hasRecords bool, trans ...dal.TransformationFunction) (err error)
-
-		FindModelByResourceID(connectionID uint64, resourceID uint64) *dal.Model
-		FindModelByResourceIdent(connectionID uint64, resourceType, resourceIdent string) *dal.Model
-		FindModelByIdent(connectionID uint64, ident string) *dal.Model
-
-		Create(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
-		Update(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, rr ...dal.ValueGetter) (err error)
-		Search(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, f filter.Filter) (iter dal.Iterator, err error)
-		Lookup(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, lookup dal.ValueGetter, dst dal.ValueSetter) (err error)
-		Delete(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet, vv ...dal.ValueGetter) (err error)
-		Truncate(ctx context.Context, mf dal.ModelRef, operations dal.OperationSet) (err error)
-
-		SearchConnectionIssues(connectionID uint64) (out []error)
-		SearchModelIssues(resourceID uint64) (out []error)
 	}
 
 	dalConnectionRestRsp struct {
@@ -135,7 +105,7 @@ func (h helper) cleanupDal() {
 	h.a.NoError(composeService.DefaultModule.ReloadDALModels(ctx))
 }
 
-func initSvc(ctx context.Context, d driver) (dalService, error) {
+func initSvc(ctx context.Context, d driver) (dal.FullService, error) {
 	c := makeConnectionDefinition(d.dsn)
 
 	cm := dal.ConnectionConfig{
@@ -201,7 +171,7 @@ func setupBench(b *testing.B) (ctx context.Context, h helper, log *zap.Logger) {
 	return ctx, h, log
 }
 
-func bootstrap(rootTest *testing.T, run func(context.Context, *testing.T, helper, dalService)) {
+func bootstrap(rootTest *testing.T, run func(context.Context, *testing.T, helper, dal.FullService)) {
 	var (
 		ctx, h, log = setup(rootTest)
 		drivers     = collectDrivers()
@@ -224,7 +194,7 @@ func bootstrap(rootTest *testing.T, run func(context.Context, *testing.T, helper
 	}
 }
 
-func bootstrapWithModel(rootTest *testing.T, ident string, run func(context.Context, *testing.T, helper, dalService, *dal.Model)) {
+func bootstrapWithModel(rootTest *testing.T, ident string, run func(context.Context, *testing.T, helper, dal.FullService, *dal.Model)) {
 	var (
 		ctx, h, log = setup(rootTest)
 		drivers     = collectDrivers()
@@ -244,14 +214,15 @@ func bootstrapWithModel(rootTest *testing.T, ident string, run func(context.Cont
 
 			driver.setup(ctx, rootTest, driver.dsn)
 
-			require.NoError(t, svc.ReplaceModel(ctx, model))
+			_, err = svc.ReplaceModel(ctx, nil, model)
+			require.NoError(t, err)
 
 			run(ctx, t, h, svc, model)
 		})
 	}
 }
 
-func bootstrapBenchmark(rootTest *testing.B, run func(context.Context, *testing.B, helper, dalService)) {
+func bootstrapBenchmark(rootTest *testing.B, run func(context.Context, *testing.B, helper, dal.FullService)) {
 	var (
 		ctx, h, log = setupBench(rootTest)
 		drivers     = collectDrivers()

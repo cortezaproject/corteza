@@ -53,8 +53,9 @@ func Test_dal_codec_plain(t *testing.T) {
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vBlob", Value: "0110101"})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vUUID", Value: "ba485865-54f9-44de-bde8-6965556c022a"})
 
-	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dalService) {
-		h.a.NoError(svc.ReplaceModel(ctx, model))
+	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dal.FullService) {
+		_, err := svc.ReplaceModel(ctx, nil, model)
+		h.a.NoError(err)
 		h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(), &rIn))
 
 		h.a.NoError(svc.Lookup(ctx, model.ToFilter(), dal.LookupOperations(), dal.PKValues{"id": rIn.ID}, &rOut))
@@ -110,8 +111,9 @@ func benchmark_dal_codec_plain(b *testing.B, count int) {
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vBlob", Value: "0110101"})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "vUUID", Value: "ba485865-54f9-44de-bde8-6965556c022a"})
 
-	bootstrapBenchmark(b, func(ctx context.Context, b *testing.B, h helper, svc dalService) {
-		h.a.NoError(svc.ReplaceModel(ctx, model))
+	bootstrapBenchmark(b, func(ctx context.Context, b *testing.B, h helper, svc dal.FullService) {
+		_, err := svc.ReplaceModel(ctx, nil, model)
+		h.a.NoError(err)
 
 		ctr := uint64(1)
 		for rep := 0; rep < b.N; rep++ {

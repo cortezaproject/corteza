@@ -54,10 +54,11 @@ func Test_dal_codec_alias(t *testing.T) {
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "intr_vBlob", Value: "0110101"})
 	rIn.Values = rIn.Values.Set(&types.RecordValue{Name: "intr_vUUID", Value: "ba485865-54f9-44de-bde8-6965556c022a"})
 
-	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dalService) {
+	bootstrap(t, func(ctx context.Context, t *testing.T, h helper, svc dal.FullService) {
 		h.cleanupDal()
 
-		h.a.NoError(svc.ReplaceModel(ctx, model))
+		_, err := svc.ReplaceModel(ctx, nil, model)
+		h.a.NoError(err)
 
 		h.a.NoError(svc.Create(ctx, model.ToFilter(), dal.CreateOperations(), &rIn))
 
