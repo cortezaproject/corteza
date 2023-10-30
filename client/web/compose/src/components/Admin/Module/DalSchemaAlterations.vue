@@ -324,27 +324,27 @@ export default {
     },
 
     stringifyAttributeAddParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.add', { ident: attr.ident, storeType: attr.store.type, attrType: attr.type.type })
+      return this.$t('params.attribute.add', { ident: attr.ident, storeType: attr.store.type, attrType: attr.type.type })
     },
 
     stringifyAttributeDeleteParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.delete', { ident: attr.ident, storeType: attr.store.type })
+      return this.$t('params.attribute.delete', { ident: attr.ident, storeType: attr.store.type })
     },
 
     stringifyAttributeReTypeParams ({ attr = {}, to = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.reType', { ident: attr.ident, toType: to.type })
+      return this.$t('params.attribute.reType', { ident: attr.ident, toType: to.type })
     },
 
     stringifyAttributeReEncodeParams ({ attr = {}, to = {} }) {
-      return this.$t('module.schemaAlteration.params.attribute.reEncode', { ident: attr.ident, toType: to.type })
+      return this.$t('params.attribute.reEncode', { ident: attr.ident, toType: to.type })
     },
 
     stringifyModelAddParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.model.add', { ident: attr.ident })
+      return this.$t('params.model.add', { ident: attr.ident })
     },
 
     stringifyModelDeleteParams ({ attr = {} }) {
-      return this.$t('module.schemaAlteration.params.model.delete', { ident: attr.ident })
+      return this.$t('params.model.delete', { ident: attr.ident })
     },
 
     canDismiss (alteration) {

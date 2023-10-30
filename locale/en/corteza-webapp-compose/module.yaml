@@ -252,3 +252,22 @@ searchPlaceholder: Type here to search all modules in this namespace
 title: List of Modules
 tooltip:
   permissions: Module permissions
+
+schemaAlterations:
+  title: Schema Alterations
+  alteration: AlterationID
+  change: Change
+  status: Status
+  resolve: Resolve
+  resolveAuto: Resolve automatically
+  dismiss: Dismiss
+
+  params:
+    attribute:
+      add: Add attribute
+      delete: Delete attribute
+      reType: Change attribute type
+      reEncode: Change attribute encoding
+    model:
+      add: Add model
+      delete: Delete model
