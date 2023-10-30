@@ -121,8 +121,9 @@
 
           <c-input-confirm
             v-if="t.canDeleteTemplate"
-            :text="inputConfirmText(t.deletedAt)"
+            :text="getActionText(t)"
             show-icon
+            :icon="getActionIcon(t)"
             borderless
             variant="link"
             size="md"
@@ -226,10 +227,6 @@ export default {
         resource: template,
         resourceName: 'template',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

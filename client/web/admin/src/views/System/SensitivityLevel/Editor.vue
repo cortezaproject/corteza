@@ -6,18 +6,13 @@
     <c-content-header
       :title="title"
     >
-      <span
-        class="text-nowrap"
+      <b-button
+        v-if="sensitivityLevelID && canCreate"
+        variant="primary"
+        :to="{ name: 'system.sensitivityLevel.new' }"
       >
-        <b-button
-          v-if="sensitivityLevelID && canCreate"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.sensitivityLevel.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
     </c-content-header>
 
     <c-sensitivity-level-editor-info

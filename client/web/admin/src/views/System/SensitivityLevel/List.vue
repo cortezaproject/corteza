@@ -72,8 +72,9 @@
           </template>
 
           <c-input-confirm
-            :text="inputConfirmText(s.deletedAt)"
+            :text="getActionText(s)"
             show-icon
+            :icon="getActionIcon(s)"
             borderless
             variant="link"
             size="md"
@@ -171,10 +172,6 @@ export default {
         resourceName: 'dalSensitivityLevel',
         locale: 'sensitivityLevel',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

@@ -5,16 +5,13 @@
     <c-content-header
       :title="title"
     >
-      <b-button-group
+      <b-button
         v-if="nodeID"
+        variant="link"
+        @click="generate.modal = true"
       >
-        <b-button
-          variant="link"
-          @click="generate.modal = true"
-        >
-          {{ $t('generateUri') }}
-        </b-button>
-      </b-button-group>
+        {{ $t('generateUri') }}
+      </b-button>
     </c-content-header>
 
     <c-federation-editor-info

@@ -6,28 +6,24 @@
     <c-content-header
       :title="title"
     >
-      <span
-        class="text-nowrap"
+      <b-button
+        v-if="workflowID && canCreate"
+        variant="primary"
+        :to="{ name: 'automation.workflow.new' }"
       >
-        <b-button
-          v-if="workflowID && canCreate"
-          variant="primary"
-          :to="{ name: 'automation.workflow.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-        <c-permissions-button
-          v-if="workflowID && canGrant"
-          :title="workflow.meta.name || workflow.handle || workflowID"
-          :target="workflow.meta.name || workflow.handle || workflowID"
-          :resource="`corteza::automation:workflow/${workflowID}`"
-          button-variant="light"
-          class="ml-2"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
+
+      <c-permissions-button
+        v-if="workflowID && canGrant"
+        :title="workflow.meta.name || workflow.handle || workflowID"
+        :target="workflow.meta.name || workflow.handle || workflowID"
+        :resource="`corteza::automation:workflow/${workflowID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t('permissions') }}
+      </c-permissions-button>
     </c-content-header>
 
     <c-workflow-editor-info

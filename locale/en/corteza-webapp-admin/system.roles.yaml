@@ -3,6 +3,7 @@ editor:
     archive: Archive
     archivedAt: Archived at
     createdAt: Created at
+    createdBy: Created by
     delete: Delete
     deletedAt: Deleted at
     handle: Handle

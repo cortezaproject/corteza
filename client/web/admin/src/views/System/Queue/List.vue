@@ -87,8 +87,9 @@
           </template>
 
           <c-input-confirm
-            :text="inputConfirmText(q.deletedAt)"
+            :text="getActionText(q)"
             show-icon
+            :icon="getActionIcon(q)"
             borderless
             variant="link"
             size="md"
@@ -190,10 +191,6 @@ export default {
         resourceName: 'queues',
         locale: 'queue',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

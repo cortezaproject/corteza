@@ -8,289 +8,446 @@
     <b-form
       @submit.prevent="$emit('submit', settings)"
     >
-      <b-form-group
-        :label="$t('internal.title')"
-        label-size="lg"
-        label-cols="2"
-        label-class="text-primary"
+      <b-row
+        class="text-primary"
       >
-        <b-form-checkbox
-          v-model="settings['auth.internal.enabled']"
-          :value="true"
-          :unchecked-value="false"
-          class="mt-3"
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('internal.enabled') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="settings['auth.internal.password-reset.enabled']"
-          data-test-id="checkbox-password-reset"
-          :value="true"
-          :unchecked-value="false"
+          <b-form-group
+            :label="$t('internal.title')"
+          >
+            <c-input-checkbox
+              v-model="settings['auth.internal.enabled']"
+              :value="true"
+              switch
+              :unchecked-value="false"
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('internal.password-reset.enabled') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="settings['auth.internal.signup.email-confirmation-required']"
-          :value="true"
-          :unchecked-value="false"
+          <b-form-group
+            :label="$t('internal.enabled')"
+          >
+            <c-input-checkbox
+              v-model="settings['auth.internal.enabled']"
+              switch
+              :value="true"
+              :unchecked-value="false"
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('internal.signup.email-confirmation-required') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="settings['auth.internal.signup.enabled']"
-          :value="true"
-          :unchecked-value="false"
+          <b-form-group
+            :label="$t('internal.password-reset.enabled')"
+          >
+            <c-input-checkbox
+              v-model="settings['auth.internal.password-reset.enabled']"
+              switch
+              data-test-id="checkbox-password-reset"
+              :value="true"
+              :labels="checkboxLabel"
+              :unchecked-value="false"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('internal.signup.enabled') }}
-        </b-form-checkbox>
-        <b-form-checkbox
-          v-model="settings['auth.internal.profile-avatar.enabled']"
-          :value="true"
-          :unchecked-value="false"
+          <b-form-group
+            :label="$t('internal.signup.email-confirmation-required')"
+          >
+            <c-input-checkbox
+              v-model="settings['auth.internal.signup.email-confirmation-required']"
+              switch
+              :value="true"
+              :labels="checkboxLabel"
+              :unchecked-value="false"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('internal.profile-avatar.enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
-      <b-form-group
-        :description="$t('internal.signup.split-credentials-check.description')"
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="settings['auth.internal.split-credentials-check']"
-          :value="true"
-          :unchecked-value="false"
+          <b-form-group :label="$t('internal.signup.enabled')">
+            <c-input-checkbox
+              v-model="settings['auth.internal.signup.enabled']"
+              :value="true"
+              :unchecked-value="false"
+              :labels="checkboxLabel"
+              switch
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('internal.signup.split-credentials-check.label') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group :label="$t('internal.profile-avatar.enabled')">
+            <c-input-checkbox
+              v-model="settings['auth.internal.profile-avatar.enabled']"
+              :value="true"
+              :unchecked-value="false"
+              :labels="checkboxLabel"
+              switch
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group :label="$t('internal.signup.split-credentials-check.label')">
+            <c-input-checkbox
+              v-model="settings['auth.internal.split-credentials-check']"
+              :value="true"
+              :unchecked-value="false"
+              :labels="checkboxLabel"
+              switch
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
 
       <hr>
 
-      <h5>
-        {{ $t('internal.password-constraints.title') }}
-      </h5>
+      <div>
+        <h5>
+          {{ $t('internal.password-constraints.title') }}
+        </h5>
 
-      <b-alert
-        v-if="!$Settings.get('auth.internal.passwordConstraints.passwordSecurity')"
-        variant="warning"
-        show
-      >
-        {{ $t('internal.password-constraints.ignored-security') }}
-      </b-alert>
+        <b-alert
+          v-if="!$Settings.get('auth.internal.passwordConstraints.passwordSecurity')"
+          variant="warning"
+          show
+        >
+          {{ $t('internal.password-constraints.ignored-security') }}
+        </b-alert>
 
-      <b-form-group
-        :label="$t('internal.password-constraints.min-upper-case-length')"
-        :description="$t('internal.password-constraints.min-upper-case-description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model.number="settings['auth.internal.password-constraints.min-upper-case']"
-          type="number"
-          :placeholder="`${defaultMinUppCaseChrs}`"
-          :min="defaultMinUppCaseChrs"
-        />
-      </b-form-group>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.password-constraints.min-upper-case-length')"
+              :description="$t('internal.password-constraints.min-upper-case-description')"
+              label-class="text-primary"
+            >
+              <b-form-input
+                v-model.number="settings['auth.internal.password-constraints.min-upper-case']"
+                type="number"
+                :placeholder="`${defaultMinUppCaseChrs}`"
+                :min="defaultMinUppCaseChrs"
+              />
+            </b-form-group>
+          </b-col>
 
-      <b-form-group
-        :label="$t('internal.password-constraints.min-lower-case-length')"
-        :description="$t('internal.password-constraints.min-lower-case-description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model.number="settings['auth.internal.password-constraints.min-lower-case']"
-          type="number"
-          :placeholder="`${defaultMinLowCaseChrs}`"
-          :min="defaultMinLowCaseChrs"
-        />
-      </b-form-group>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.password-constraints.min-lower-case-length')"
+              :description="$t('internal.password-constraints.min-lower-case-description')"
+              label-class="text-primary"
+            >
+              <b-form-input
+                v-model.number="settings['auth.internal.password-constraints.min-lower-case']"
+                type="number"
+                :placeholder="`${defaultMinLowCaseChrs}`"
+                :min="defaultMinLowCaseChrs"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
 
-      <b-form-group
-        :label="$t('internal.password-constraints.min-length')"
-        :description="$t('internal.password-constraints.min-length-description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model.number="settings['auth.internal.password-constraints.min-length']"
-          :placeholder="`${defaultMinPwd}`"
-          :min="defaultMinPwd"
-          type="number"
-        />
-      </b-form-group>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.password-constraints.min-length')"
+              :description="$t('internal.password-constraints.min-length-description')"
+              label-class="text-primary"
+            >
+              <b-form-input
+                v-model.number="settings['auth.internal.password-constraints.min-length']"
+                :placeholder="`${defaultMinPwd}`"
+                :min="defaultMinPwd"
+                type="number"
+              />
+            </b-form-group>
+          </b-col>
 
-      <b-form-group
-        :label="$t('internal.password-constraints.min-num-count')"
-        :description="$t('internal.password-constraints.min-num-count-description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model.number="settings['auth.internal.password-constraints.min-num-count']"
-          placeholder="0"
-          min="0"
-          type="number"
-        />
-      </b-form-group>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.password-constraints.min-num-count')"
+              :description="$t('internal.password-constraints.min-num-count-description')"
+              label-class="text-primary"
+            >
+              <b-form-input
+                v-model.number="settings['auth.internal.password-constraints.min-num-count']"
+                placeholder="0"
+                min="0"
+                type="number"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
 
-      <b-form-group
-        :label="$t('internal.password-constraints.min-special-count')"
-        :description="$t('internal.password-constraints.min-special-count-description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model.number="settings['auth.internal.password-constraints.min-special-count']"
-          placeholder="0"
-          min="0"
-          type="number"
-        />
-      </b-form-group>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.password-constraints.min-special-count')"
+              :description="$t('internal.password-constraints.min-special-count-description')"
+              label-class="text-primary"
+            >
+              <b-form-input
+                v-model.number="settings['auth.internal.password-constraints.min-special-count']"
+                placeholder="0"
+                min="0"
+                type="number"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
 
       <hr>
 
-      <h5>
-        {{ $t('mfa.title') }}
-      </h5>
+      <div>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.emailOTP.enabled')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="settings['auth.multi-factor.email-otp.enabled']"
+                data-test-id="checkbox-enable-emailOTP"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                switch
+              />
+            </b-form-group>
+          </b-col>
 
-      <b-form-group
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="settings['auth.multi-factor.email-otp.enabled']"
-          data-test-id="checkbox-enable-emailOTP"
-          :value="true"
-          :unchecked-value="false"
-        >
-          {{ $t('mfa.emailOTP.enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
-      <b-form-group
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="settings['auth.multi-factor.email-otp.enforced']"
-          :value="true"
-          :unchecked-value="false"
-        >
-          {{ $t('mfa.emailOTP.enforced') }}
-        </b-form-checkbox>
-      </b-form-group>
-      <b-form-group
-        :label="$t('mfa.emailOTP.expires.label')"
-        :description="$t('mfa.emailOTP.expires.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input-group append="seconds">
-          <b-form-input
-            v-model="settings['auth.multi-factor.email-otp.expires']"
-            type="number"
-            placeholder="60"
-          />
-        </b-input-group>
-      </b-form-group>
-      <b-form-group
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="settings['auth.multi-factor.totp.enabled']"
-          data-test-id="checkbox-enable-TOTP"
-          :value="true"
-          :unchecked-value="false"
-        >
-          {{ $t('mfa.TOTP.enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
-      <b-form-group
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="settings['auth.multi-factor.totp.enforced']"
-          :value="true"
-          :unchecked-value="false"
-        >
-          {{ $t('mfa.TOTP.enforced') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.emailOTP.enforced')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="settings['auth.multi-factor.email-otp.enforced']"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                switch
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
 
-      <b-form-group
-        :label="$t('mfa.TOTP.issuer.label')"
-        :description="$t('mfa.TOTP.issuer.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input-group>
-          <b-form-input
-            v-model="settings['auth.multi-factor.totp.issuer']"
-            placeholder="Corteza"
-          />
-        </b-input-group>
-      </b-form-group>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.TOTP.enabled')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="settings['auth.multi-factor.totp.enabled']"
+                data-test-id="checkbox-enable-TOTP"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                switch
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.TOTP.enforced')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="settings['auth.multi-factor.totp.enforced']"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                switch
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.emailOTP.expires.label')"
+              :description="$t('mfa.emailOTP.expires.description')"
+              label-class="text-primary"
+            >
+              <b-input-group append="seconds">
+                <b-form-input
+                  v-model="settings['auth.multi-factor.email-otp.expires']"
+                  type="number"
+                  placeholder="60"
+                />
+              </b-input-group>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.TOTP.issuer.label')"
+              :description="$t('mfa.TOTP.issuer.description')"
+              label-class="text-primary"
+            >
+              <b-input-group>
+                <b-form-input
+                  v-model="settings['auth.multi-factor.totp.issuer']"
+                  placeholder="Corteza"
+                />
+              </b-input-group>
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
 
       <hr>
 
-      <h5>
-        {{ $t('mail.title') }}
-      </h5>
+      <div>
+        <h5>
+          {{ $t('mail.title') }}
+        </h5>
 
-      <b-form-group
-        :label="$t('mail.from-address')"
-        :description="$t('mail.validate-email')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input-group>
-          <b-form-input
-            v-model="settings['auth.mail.from-address']"
-            type="email"
-          />
-        </b-input-group>
-      </b-form-group>
-      <b-form-group
-        :label="$t('mail.from-name')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input-group>
-          <b-form-input v-model="settings['auth.mail.from-name']" />
-        </b-input-group>
-      </b-form-group>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mail.from-address')"
+              :description="$t('mail.validate-email')"
+              label-class="text-primary"
+            >
+              <b-input-group>
+                <b-form-input
+                  v-model="settings['auth.mail.from-address']"
+                  type="email"
+                />
+              </b-input-group>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mail.from-name')"
+              label-class="text-primary"
+            >
+              <b-input-group>
+                <b-form-input v-model="settings['auth.mail.from-name']" />
+              </b-input-group>
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
 
       <hr>
 
-      <h5>
-        {{ $t('internal.send-user-invite-email.title') }}
-      </h5>
+      <div>
+        <h5>
+          {{ $t('internal.send-user-invite-email.title') }}
+        </h5>
 
-      <b-form-group
-        :description="$t('internal.send-user-invite-email.description')"
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="settings['auth.internal.send-user-invite-email.enabled']"
-          :value="true"
-          :unchecked-value="false"
-        >
-          {{ $t('internal.send-user-invite-email.enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
-      <b-form-group
-        :label="$t('internal.send-user-invite-email.expires.label')"
-        :description="$t('internal.send-user-invite-email.expires.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input-group append="hours">
-          <b-form-input
-            v-model="settings['auth.internal.send-user-invite-email.expires']"
-            type="number"
-            placeholder="72"
-          />
-        </b-input-group>
-      </b-form-group>
+        <b-row>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.send-user-invite-email.enabled')"
+              :description="$t('internal.send-user-invite-email.description')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="settings['auth.internal.send-user-invite-email.enabled']"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                switch
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('internal.send-user-invite-email.expires.label')"
+              :description="$t('internal.send-user-invite-email.expires.description')"
+              label-class="text-primary"
+            >
+              <b-input-group append="hours">
+                <b-form-input
+                  v-model="settings['auth.internal.send-user-invite-email.expires']"
+                  type="number"
+                  placeholder="72"
+                />
+              </b-input-group>
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </div>
     </b-form>
 
     <template #header>
@@ -349,6 +506,10 @@ export default {
       defaultMinPwd: 8,
       defaultMinUppCaseChrs: 0,
       defaultMinLowCaseChrs: 0,
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
     }
   },
 }

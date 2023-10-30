@@ -4,91 +4,52 @@
     data-test-id="card-application-info"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form
       @submit.prevent="$emit('submit', application)"
     >
-      <b-form-group
-        v-if="application.applicationID"
-        :label="$t('id')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="application.applicationID"
-          data-test-id="input-application-id"
-          plaintext
-          disabled
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('name')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="application.name"
-          data-test-id="input-name"
-          :state="nameState"
-          required
-        />
-      </b-form-group>
-
-      <b-form-group
-        label-cols="2"
-        :class="{ 'mb-0': !application.applicationID }"
-      >
-        <b-form-checkbox
-          v-model="application.enabled"
-          data-test-id="checkbox-enabled"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            :label="$t('name')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="application.name"
+              data-test-id="input-name"
+              :state="nameState"
+              required
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="application.updatedAt"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          data-test-id="input-updated-at"
-          :value="application.updatedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('enabled')"
+            :class="{ 'mb-0': !application.applicationID }"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="application.enabled"
+              data-test-id="checkbox-enabled"
+              :labels="checkboxLabel"
+              switch
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
 
-      <b-form-group
-        v-if="application.deletedAt"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          data-test-id="input-deleted-at"
-          :value="application.deletedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
-
-      <b-form-group
-        v-if="application.createdAt"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-        class="mb-0"
-      >
-        <b-form-input
-          data-test-id="input-created-at"
-          :value="application.createdAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+      <c-system-fields
+        :id="application.applicationID"
+        :resource="application"
+      />
 
       <!--
         include hidden input to enable
@@ -164,6 +125,15 @@ export default {
       type: Boolean,
       required: true,
     },
+  },
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
+    }
   },
 
   computed: {

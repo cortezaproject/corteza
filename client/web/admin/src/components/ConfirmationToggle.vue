@@ -1,26 +1,34 @@
 <template>
-  <span>
-    <span v-if="!inConfirmation">
+  <div>
+    <template v-if="!inConfirmation">
       <b-button
         :variant="ctaClass"
         :disabled="disabled"
         class="confirmation-prompt"
         @click.prevent="onPrompt"
-      ><slot /></b-button>
-    </span>
-    <span v-if="inConfirmation">
+      >
+        <slot />
+      </b-button>
+    </template>
+
+    <template v-if="inConfirmation">
       <b-button
         :variant="confirmationClass"
         class="confirmation-confirm"
         @click.prevent="onConfirmation()"
-      >{{ $t('label.yes') }}</b-button>
+      >
+        {{ $t('label.yes') }}
+      </b-button>
+
       <b-button
         variant="secondary"
         class="confirmation-cancel"
         @click.prevent="inConfirmation=false"
-      >{{ $t('label.no') }}</b-button>
-    </span>
-  </span>
+      >
+        {{ $t('label.no') }}
+      </b-button>
+    </template>
+  </div>
 </template>
 <script>
 export default {

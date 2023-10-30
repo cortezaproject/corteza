@@ -113,8 +113,9 @@
 
           <c-input-confirm
             v-if="a.canDeleteApplication"
-            :text="inputConfirmText(a.deletedAt)"
+            :text="getActionText(a)"
             show-icon
+            :icon="getActionIcon(a)"
             borderless
             variant="link"
             size="md"
@@ -225,10 +226,6 @@ export default {
         resource: application,
         resourceName: 'application',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

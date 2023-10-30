@@ -4,96 +4,88 @@
     class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form @submit="$emit('submit', queue)">
-      <b-form-group
-        :label="$t('name')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="queue.queue"
-          data-test-id="input-name"
-          :state="handleState"
-        />
-        <b-form-invalid-feedback
-          :state="handleState"
-          data-test-id="feedback-invalid-name"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('invalid-handle-characters') }}
-        </b-form-invalid-feedback>
-      </b-form-group>
+          <b-form-group
+            :label="$t('name')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="queue.queue"
+              data-test-id="input-name"
+              :state="handleState"
+            />
+            <b-form-invalid-feedback
+              :state="handleState"
+              data-test-id="feedback-invalid-name"
+            >
+              {{ $t('invalid-handle-characters') }}
+            </b-form-invalid-feedback>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        :label="$t('consumer')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-select
-          v-model="queue.consumer"
-          data-test-id="input-consumer"
-          :options="consumers"
-        />
-      </b-form-group>
-
-      <b-form-group
-        label-cols="2"
-        :label="$t('poll_delay')"
-        :description="metaPollDelayDescription()"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="(queue.meta || {}).poll_delay"
-          data-test-id="input-polling"
-          class="col-xs-2 col-lg-2"
-          :state="durationState"
-        />
-      </b-form-group>
-
-      <b-form-group
-        v-if="isMetaDispatchEvents"
-        :label="$t('dispatch_events')"
-        :description="$t('dispatch_events_desc')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-checkbox
-          v-model="queue.meta.dispatch_events"
-          name="checkbox-1"
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t("dispatch_events") }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            :label="$t('consumer')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="queue.consumer"
+              data-test-id="input-consumer"
+              :options="consumers"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="queue.createdAt"
-        data-test-id="input-created-at"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ queue.createdAt | locFullDateTime }}
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('poll_delay')"
+            :description="metaPollDelayDescription()"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="(queue.meta || {}).poll_delay"
+              data-test-id="input-polling"
+              :state="durationState"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="queue.updatedAt"
-        data-test-id="input-updated-at"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ queue.updatedAt | locFullDateTime }}
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            v-if="isMetaDispatchEvents"
+            :label="$t('dispatch_events')"
+            :description="$t('dispatch_events_desc')"
+            label-class="text-primary"
+          >
+            <b-form-checkbox
+              v-model="queue.meta.dispatch_events"
+              name="checkbox-1"
+            >
+              {{ $t("dispatch_events") }}
+            </b-form-checkbox>
+          </b-form-group>
+        </b-col>
+      </b-row>
 
-      <b-form-group
-        v-if="queue.deletedAt"
-        data-test-id="input-deleted-at"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ queue.deletedAt | locFullDateTime }}
-      </b-form-group>
+      <c-system-fields
+        :resource="queue"
+      />
     </b-form>
 
     <template #header>

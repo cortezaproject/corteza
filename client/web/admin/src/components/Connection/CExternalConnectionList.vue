@@ -74,8 +74,9 @@
           </template>
 
           <c-input-confirm
-            :text="inputConfirmText(c.deletedAt)"
+            :text="getActionText(c)"
             show-icon
+            :icon="getActionIcon(c)"
             borderless
             variant="link"
             size="md"
@@ -172,10 +173,6 @@ export default {
         resourceName: 'dalConnection',
         locale: 'connection',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

@@ -4,116 +4,105 @@
     data-test-id="card-template-info"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form
       @submit="$emit('submit', template)"
     >
-      <b-form-group
-        :label="$t('meta.short')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="template.meta.short"
-          data-test-id="input-short-name"
-          required
-          :state="shortState"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('handle')"
-        :class="{ 'mb-0': !template.templateID }"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="template.handle"
-          data-test-id="input-handle"
-          :state="handleState"
-          :placeholder="$t('placeholder-handle')"
-        />
-        <b-form-invalid-feedback :state="handleState">
-          {{ $t('invalid-handle-characters') }}
-        </b-form-invalid-feedback>
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('meta.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-textarea
-          v-model="template.meta.description"
-          data-test-id="textarea-description"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('type')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-select
-          v-model="template.type"
-          data-test-id="select-template-type"
-          :options="contentTypes"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('partial')"
-        :description="$t('partialDescription')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-checkbox
-          v-model="template.partial"
-          data-test-id="checkbox-is-partial-template"
-          name="checkbox-1"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('partial') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            :label="$t('meta.short')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="template.meta.short"
+              data-test-id="input-short-name"
+              required
+              :state="shortState"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="template.createdAt"
-        data-test-id="input-created-at"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ template.createdAt | locFullDateTime }}
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('handle')"
+            label-class="text-primary"
+            :class="{ 'mb-0': !template.templateID }"
+          >
+            <b-form-input
+              v-model="template.handle"
+              data-test-id="input-handle"
+              :state="handleState"
+              :placeholder="$t('placeholder-handle')"
+            />
 
-      <b-form-group
-        v-if="template.updatedAt"
-        data-test-id="input-updated-at"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ template.updatedAt | locFullDateTime }}
-      </b-form-group>
+            <b-form-invalid-feedback :state="handleState">
+              {{ $t('invalid-handle-characters') }}
+            </b-form-invalid-feedback>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="template.deletedAt"
-        data-test-id="input-deleted-at"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ template.deletedAt | locFullDateTime }}
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('type')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="template.type"
+              data-test-id="select-template-type"
+              :options="contentTypes"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="template.lastUsedAt"
-        :label="$t('lastUsedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        {{ template.lastUsedAt | locFullDateTime }}
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('meta.description')"
+            label-class="text-primary"
+          >
+            <b-form-textarea
+              v-model="template.meta.description"
+              data-test-id="textarea-description"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('partial')"
+            :description="$t('partialDescription')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="template.partial"
+              data-test-id="checkbox-is-partial-template"
+              switch
+              :labels="checkboxLabel"
+              name="checkbox-1"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <c-system-fields
+        :resource="template"
+      />
 
       <!--
         include hidden input to enable
@@ -198,6 +187,10 @@ export default {
         { value: 'text/html', text: this.$t('contentType.text_html') },
         { value: 'text/plain', text: this.$t('contentType.text_plain') },
       ],
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
     }
   },
 

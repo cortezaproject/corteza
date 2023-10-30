@@ -4,14 +4,17 @@
     header-bg-variant="white"
     footer-bg-variant="white"
   >
-    <b-form-group>
-      <b-form-checkbox
+    <b-form-group
+      :label="$t('enabled')"
+      label-class="text-primary"
+    >
+      <c-input-checkbox
         v-model="external.enabled"
         :value="true"
         :unchecked-value="false"
-      >
-        {{ $t('enabled') }}
-      </b-form-checkbox>
+        :labels="checkboxLabel"
+        switch
+      />
     </b-form-group>
 
     <b-button
@@ -266,6 +269,10 @@ export default {
       external: prepareExternal(this.value),
 
       roles: [],
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
     }
   },
 

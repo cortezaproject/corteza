@@ -1,30 +1,32 @@
 <template>
   <b-container class="py-3">
-    <c-content-header :title="$t('title')">
-      <span class="text-nowrap">
-        <b-button
-          v-if="routeID && canCreate"
-          data-test-id="button-add"
-          variant="primary"
-          :to="{ name: 'system.apigw.new' }"
-        >
-          {{ $t("new") }}
-        </b-button>
-        <c-permissions-button
-          v-if="routeID && canGrant"
-          :title="route.endpoint || routeID"
-          :target="route.endpoint || routeID"
-          :resource="`corteza::system:apigw-route/${routeID}`"
-          button-variant="light"
-          class="ml-2"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t("permissions") }}
-        </c-permissions-button>
-      </span>
+    <c-content-header
+      :title="$t('title')"
+      class="mb-2"
+    >
+      <b-button
+        v-if="routeID && canCreate"
+        data-test-id="button-add"
+        variant="primary"
+        :to="{ name: 'system.apigw.new' }"
+      >
+        {{ $t("new") }}
+      </b-button>
+
+      <c-permissions-button
+        v-if="routeID && canGrant"
+        :title="route.endpoint || routeID"
+        :target="route.endpoint || routeID"
+        :resource="`corteza::system:apigw-route/${routeID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t("permissions") }}
+      </c-permissions-button>
     </c-content-header>
 
     <c-route-editor-info
+      v-if="Object.keys(route).length"
       :route="route"
       :processing="info.processing"
       :success="info.success"

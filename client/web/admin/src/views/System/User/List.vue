@@ -139,8 +139,9 @@
 
           <c-input-confirm
             v-if="u.canDeleteUser"
-            :text="inputConfirmText(u.deletedAt)"
+            :text="getActionText(u)"
             show-icon
+            :icon="getActionIcon(u)"
             borderless
             variant="link"
             size="md"
@@ -282,10 +283,6 @@ export default {
         resource: user,
         resourceName: 'user',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

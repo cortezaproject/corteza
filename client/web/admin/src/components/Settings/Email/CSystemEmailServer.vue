@@ -7,110 +7,115 @@
     <b-form
       @submit.prevent="submit()"
     >
-      <b-form-group
-        :label="$t('host.label')"
-        :description="$t('host.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input-group>
-          <b-input
-            v-model="server.host"
-            data-test-id="input-server"
-            :disabled="disabled"
-            placeholder="host.domain.tld"
-            autocomplete="off"
-            required
-          />
-          <b-input-group-append is-text>
-            :
-          </b-input-group-append>
-          <b-input-group-append>
-            <b-input
-              v-model="server.port"
-              data-test-id="input-server-port"
-              type="number"
-              :disabled="disabled"
-              step="1"
-              required
-            />
-          </b-input-group-append>
-        </b-input-group>
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('user.label')"
-        :description="$t('user.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input
-          v-model="server.user"
-          data-test-id="input-user"
-          :disabled="disabled"
-          autocomplete="off"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('password.label')"
-        :description="$t('password.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input
-          v-model="server.pass"
-          data-test-id="input-password"
-          type="password"
-          :disabled="disabled"
-          autocomplete="off"
-        />
-      </b-form-group>
-
-      <hr>
-
-      <b-form-group
-        :label="$t('from.label')"
-        :description="$t('from.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input
-          v-model="server.from"
-          data-test-id="input-sender-address"
-          type="email"
-          :disabled="disabled"
-          autocomplete="off"
-        />
-      </b-form-group>
-
-      <hr>
-
-      <b-form-group
-        :description="$t('tlsInsecure.description')"
-        label-cols="2"
-      >
-        <b-form-checkbox
-          v-model="server.tlsInsecure"
-          data-test-id="checkbox-allow-invalid-certificates"
-          :disabled="disabled"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('tlsInsecure.label') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            :label="$t('host.label')"
+            :description="$t('host.description')"
+          >
+            <b-input-group>
+              <b-input
+                v-model="server.host"
+                data-test-id="input-server"
+                :disabled="disabled"
+                placeholder="host.domain.tld"
+                autocomplete="off"
+                required
+              />
 
-      <b-form-group
-        :label="$t('tlsServerName.label')"
-        :description="$t('tlsServerName.description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-input
-          v-model="server.tlsServerName"
-          data-test-id="input-tls-server-name"
-          :disabled="disabled"
-        />
-      </b-form-group>
+              <b-input-group-append is-text>
+                :
+              </b-input-group-append>
+
+              <b-input-group-append>
+                <b-input
+                  v-model="server.port"
+                  data-test-id="input-server-port"
+                  type="number"
+                  :disabled="disabled"
+                  step="1"
+                  required
+                />
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('user.label')"
+            :description="$t('user.description')"
+          >
+            <b-input
+              v-model="server.user"
+              data-test-id="input-user"
+              :disabled="disabled"
+              autocomplete="off"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('from.label')"
+            :description="$t('from.description')"
+          >
+            <b-input
+              v-model="server.from"
+              data-test-id="input-sender-address"
+              type="email"
+              :disabled="disabled"
+              autocomplete="off"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :description="$t('tlsInsecure.description')"
+          >
+            <b-form-checkbox
+              v-model="server.tlsInsecure"
+              data-test-id="checkbox-allow-invalid-certificates"
+              :disabled="disabled"
+            >
+              {{ $t('tlsInsecure.label') }}
+            </b-form-checkbox>
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('tlsServerName.label')"
+            :description="$t('tlsServerName.description')"
+          >
+            <b-input
+              v-model="server.tlsServerName"
+              data-test-id="input-tls-server-name"
+              :disabled="disabled"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </b-form>
 
     <template #header>

@@ -11,6 +11,7 @@ editor:
   generateUri: Generate Federation Link
   info:
     createdAt: Created at
+    createdBy: Created by
     delete: Delete
     deletedAt: Deleted at
     email: Admin Email

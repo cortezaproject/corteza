@@ -28,6 +28,19 @@ button:disabled {
   cursor: pointer;
 }
 
+
+.gap-1 {
+  gap: 0.5rem;
+}
+
+.gap-2 {
+  gap: 1rem;
+}
+
+.gap-3 {
+    gap: 1.5rem;
+}
+
 .grab {
   cursor: grab;
 }

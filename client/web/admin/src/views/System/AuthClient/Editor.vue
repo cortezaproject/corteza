@@ -6,28 +6,24 @@
     <c-content-header
       :title="title"
     >
-      <span
-        class="text-nowrap"
+      <b-button
+        v-if="authClientID && canCreate"
+        variant="primary"
+        :to="{ name: 'system.authClient.new' }"
       >
-        <b-button
-          v-if="authClientID && canCreate"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.authClient.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-        <c-permissions-button
-          v-if="authClientID && canGrant"
-          :title="authclient.meta.name || authclient.handle || authClientID"
-          :target="authclient.meta.name || authclient.handle || authClientID"
-          :resource="`corteza::system:auth-client/${authClientID}`"
-          button-variant="light"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
+
+      <c-permissions-button
+        v-if="authClientID && canGrant"
+        :title="authclient.meta.name || authclient.handle || authClientID"
+        :target="authclient.meta.name || authclient.handle || authClientID"
+        :resource="`corteza::system:auth-client/${authClientID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t('permissions') }}
+      </c-permissions-button>
     </c-content-header>
 
     <c-authclient-editor-info

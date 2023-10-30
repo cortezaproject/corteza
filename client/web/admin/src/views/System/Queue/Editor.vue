@@ -5,20 +5,16 @@
   >
     <c-content-header
       :title="title"
+      class="mb-2"
     >
-      <span
-        class="text-nowrap"
+      <b-button
+        v-if="queueID && canCreate"
+        data-test-id="button-add"
+        variant="primary"
+        :to="{ name: 'system.queue.new' }"
       >
-        <b-button
-          v-if="queueID && canCreate"
-          data-test-id="button-add"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.queue.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
     </c-content-header>
 
     <c-queue-editor-info

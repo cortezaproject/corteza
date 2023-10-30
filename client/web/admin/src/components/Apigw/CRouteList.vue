@@ -117,8 +117,9 @@
 
           <c-input-confirm
             v-if="r.canDeleteApigwRoute"
-            :text="inputConfirmText(r.deletedAt)"
+            :text="getActionText(r)"
             show-icon
+            :icon="getActionIcon(r)"
             borderless
             variant="link"
             size="md"
@@ -228,10 +229,6 @@ export default {
         resourceName: 'apigwRoute',
         locale: 'gateway',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

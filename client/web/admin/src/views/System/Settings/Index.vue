@@ -7,6 +7,7 @@
     />
 
     <c-system-editor-auth
+      v-if="Object.keys(getAuth).length"
       :settings="getAuth"
       :processing="auth.processing"
       :success="auth.success"

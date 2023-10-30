@@ -6,30 +6,26 @@
     <c-content-header
       :title="title"
     >
-      <span
-        v-if="userID"
-        class="text-nowrap"
+      <b-button
+        v-if="userID && canCreate"
+        data-test-id="button-new-user"
+        variant="primary"
+        :to="{ name: 'system.user.new' }"
       >
-        <b-button
-          v-if="canCreate"
-          data-test-id="button-new-user"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.user.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-        <c-permissions-button
-          v-if="canGrant"
-          :title="user.name || user.handle || user.email || userID"
-          :target="user.name || user.handle || user.email || userID"
-          :resource="`corteza::system:user/${userID}`"
-          button-variant="light"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
+
+      <c-permissions-button
+        v-if="userID && canGrant"
+        :title="user.name || user.handle || user.email || userID"
+        :target="user.name || user.handle || user.email || userID"
+        :resource="`corteza::system:user/${userID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t('permissions') }}
+      </c-permissions-button>
+
       <c-corredor-manual-buttons
         ui-page="user/editor"
         ui-slot="toolbar"

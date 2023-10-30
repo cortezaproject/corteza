@@ -6,36 +6,28 @@
     <c-content-header
       :title="title"
     >
-      <span
-        class="text-nowrap"
+      <b-button
+        v-if="roleID && canCreate"
+        data-test-id="button-new-role"
+        variant="primary"
+        :to="{ name: 'system.role.new' }"
       >
-        <b-button
-          v-if="roleID && canCreate"
-          data-test-id="button-new-role"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.role.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-
-        <c-permissions-button
-          v-if="roleID && canGrant"
-          :title="role.name || role.handle || role.roleID"
-          :target="role.name || role.handle || role.roleID"
-          :resource="`corteza::system:role/${roleID}`"
-          button-variant="light"
-          class="mr-2"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-
-        <c-permission-clone
-          v-if="roleID && canGrant"
-          :role-id="roleID"
-        />
-      </span>
+        {{ $t('new') }}
+      </b-button>
+      <c-permissions-button
+        v-if="roleID && canGrant"
+        :title="role.name || role.handle || role.roleID"
+        :target="role.name || role.handle || role.roleID"
+        :resource="`corteza::system:role/${roleID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t('permissions') }}
+      </c-permissions-button>
+      <c-permission-clone
+        v-if="roleID && canGrant"
+        :role-id="roleID"
+      />
 
       <c-corredor-manual-buttons
         ui-page="role/editor"

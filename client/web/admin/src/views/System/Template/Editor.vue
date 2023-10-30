@@ -6,29 +6,26 @@
     <c-content-header
       :title="title"
     >
-      <span
-        class="text-nowrap"
+      <b-button
+        v-if="templateID && canCreate"
+        data-test-id="button-new-template"
+        variant="primary"
+        :to="{ name: 'system.template.new' }"
       >
-        <b-button
-          v-if="templateID && canCreate"
-          data-test-id="button-new-template"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.template.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-        <c-permissions-button
-          v-if="templateID && canGrant"
-          :title="template.meta.short || template.handle || template.templateID"
-          :target="template.meta.short || template.handle || template.templateID"
-          :resource="`corteza::system:template/${templateID}`"
-          button-variant="light"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
+
+      <c-permissions-button
+        v-if="templateID && canGrant"
+        :title="template.meta.short || template.handle || template.templateID"
+        :target="template.meta.short || template.handle || template.templateID"
+        :resource="`corteza::system:template/${templateID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t('permissions') }}
+      </c-permissions-button>
+
       <c-corredor-manual-buttons
         ui-page="template/editor"
         ui-slot="toolbar"

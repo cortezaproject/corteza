@@ -1,14 +1,11 @@
 <template>
   <div
-    class="d-flex justify-content-end mb-2"
+    class="d-flex justify-content-end flex-wrap gap-1 mb-2"
   >
     <portal to="topbar-title">
       {{ title }}
     </portal>
-
-    <b-button-toolbar>
-      <slot />
-    </b-button-toolbar>
+    <slot />
   </div>
 </template>
 

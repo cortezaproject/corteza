@@ -6,30 +6,25 @@
     <c-content-header
       :title="title"
     >
-      <span
-        v-if="applicationID"
-        class="text-nowrap"
+      <b-button
+        v-if="applicationID && canCreate"
+        data-test-id="button-new-application"
+        variant="primary"
+        :to="{ name: 'system.application.new' }"
       >
-        <b-button
-          v-if="canCreate"
-          data-test-id="button-new-application"
-          variant="primary"
-          :to="{ name: 'system.application.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-        <c-permissions-button
-          v-if="canGrant"
-          :title="application.name || applicationID"
-          :target="application.name || applicationID"
-          :resource="`corteza::system:application/${applicationID}`"
-          button-variant="light"
-          class="ml-2"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
+        {{ $t('new') }}
+      </b-button>
+
+      <c-permissions-button
+        v-if="applicationID && canGrant"
+        :title="application.name || applicationID"
+        :target="application.name || applicationID"
+        :resource="`corteza::system:application/${applicationID}`"
+        button-variant="light"
+      >
+        <font-awesome-icon :icon="['fas', 'lock']" />
+        {{ $t('permissions') }}
+      </c-permissions-button>
     </c-content-header>
 
     <c-application-editor-info

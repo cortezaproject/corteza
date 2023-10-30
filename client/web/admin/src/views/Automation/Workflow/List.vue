@@ -112,7 +112,6 @@
 
           <c-input-confirm
             v-if="(w.canDeleteWorkflow && !w.deletedAt) || (w.canUndeleteWorkflow && w.deletedAt)"
-            :text="inputConfirmText(w.deletedAt)"
             show-icon
             borderless
             variant="link"
@@ -120,6 +119,8 @@
             text-class="p-1"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
+            :icon="getActionIcon(w)"
+            :text="getActionText(w)"
             @confirmed="handleDelete(w)"
           />
         </b-dropdown>
@@ -223,10 +224,6 @@ export default {
         resourceName: 'workflow',
         api: 'automation',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

@@ -2,7 +2,7 @@ editor:
   info:
     completedAt: Completed at
     createdAt: Created at
-    createdByUserID: Created by - ID
+    createdBy: Created by - ID
     createdByUserName: Created by - Name
     delete: Delete
     deletedAt: Deleted at

@@ -13,6 +13,7 @@ editor:
     description: Description
     level: Level {{level}}
     createdAt: Created at
+    createdBy: Created by
     delete: Delete
     deletedAt: Deleted at
     undelete: Undelete

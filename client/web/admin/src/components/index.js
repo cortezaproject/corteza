@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import PortalVue from 'portal-vue'
 import './faIcons'
 import CContentHeader from './CContentHeader'
+import CSystemFields from './CSystemFields'
 import CResourceListStatusFilter from './CResourceListStatusFilter'
 import { components } from '@cortezaproject/corteza-vue'
 import { LMap, LTileLayer, LMarker } from 'vue2-leaflet'
@@ -24,7 +25,7 @@ import {
   TooltipComponent,
 } from 'echarts/components'
 
-const { CCorredorManualButtons, CPermissionsButton, CInputConfirm, CButtonSubmit } = components
+const { CCorredorManualButtons, CPermissionsButton, CInputConfirm, CButtonSubmit, CInputCheckbox } = components
 
 Vue.use(PortalVue)
 Vue.component('c-corredor-manual-buttons', CCorredorManualButtons)
@@ -34,6 +35,8 @@ Vue.component('c-content-header', CContentHeader)
 Vue.component('c-resource-list-status-filter', CResourceListStatusFilter)
 Vue.component('c-input-confirm', CInputConfirm)
 Vue.component('c-button-submit', CButtonSubmit)
+Vue.component('c-input-checkbox', CInputCheckbox)
+Vue.component('c-system-fields', CSystemFields)
 
 // Map things
 Vue.component('l-map', LMap)

@@ -132,8 +132,9 @@
 
           <c-input-confirm
             v-if="r.canDeleteRole"
-            :text="inputConfirmText(r.deletedAt)"
+            :text="getActionText(r)"
             show-icon
+            :icon="getActionIcon(r)"
             borderless
             variant="link"
             size="md"
@@ -248,10 +249,6 @@ export default {
         resource: role,
         resourceName: 'role',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

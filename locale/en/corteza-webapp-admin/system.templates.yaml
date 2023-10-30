@@ -24,6 +24,7 @@ editor:
       text_html: HTML
       text_plain: Plain text
     createdAt: Created at
+    createdBy: Created by
     delete: Delete
     deletedAt: Deleted at
     handle: Handle

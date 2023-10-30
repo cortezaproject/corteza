@@ -16,66 +16,108 @@
         <b-form
           @submit.prevent="search"
         >
-          <b-form-group
-            :label="$t('filter.searchQuery')"
-            label-cols-lg="2"
-            label-class="text-primary"
-          >
-            <b-form-input
-              v-model="filter.query"
-              size="sm"
-            />
-          </b-form-group>
-          <b-form-group
-            label-cols-lg="2"
-          >
-            <b-form-checkbox
-              v-model="filter.incScriptsWithErrors"
-              size="sm"
+          <b-row>
+            <b-col
+              cols="12"
+              lg="6"
             >
-              {{ $t('filter.incScriptsWithErrors', { count: totalScriptsWithErrors}) }}
-            </b-form-checkbox>
-          </b-form-group>
-          <b-form-group
-            label-cols-lg="2"
-          >
-            <b-form-checkbox
-              v-model="filter.incScriptsWithTriggers"
-              size="sm"
+              <b-form-group
+                :label="$t('filter.searchQuery')"
+                label-class="text-primary"
+              >
+                <b-form-input
+                  v-model="filter.query"
+                  size="sm"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              lg="6"
             >
-              {{ $t('filter.incScriptsWithTriggers', { count: totalScriptsWithTriggers}) }}
-            </b-form-checkbox>
-          </b-form-group>
-          <b-form-group
-            label-cols-lg="2"
-          >
-            <b-form-checkbox
-              v-model="filter.incScriptsWithIterator"
-              size="sm"
+              <b-form-group
+                :label="$t('filter.incScriptsWithErrors', { count: totalScriptsWithErrors})"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="filter.incScriptsWithErrors"
+                  size="sm"
+                  :labels="checkboxLabel"
+                  switch
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+
+          <b-row>
+            <b-col
+              cols="12"
+              lg="6"
             >
-              {{ $t('filter.incScriptsWithIterator', { count: totalScriptsWithIterator}) }}
-            </b-form-checkbox>
-          </b-form-group>
-          <b-form-group
-            label-cols-lg="2"
-          >
-            <b-form-checkbox
-              v-model="filter.incScriptsWithSecurity"
-              size="sm"
+              <b-form-group
+                :label="$t('filter.incScriptsWithTriggers', { count: totalScriptsWithTriggers})"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="filter.incScriptsWithTriggers"
+                  size="sm"
+                  :labels="checkboxLabel"
+                  switch
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              lg="6"
             >
-              {{ $t('filter.incScriptsWithSecurity', { count: totalScriptsWithSecurity}) }}
-            </b-form-checkbox>
-          </b-form-group>
-          <b-form-group
-            label-cols-lg="2"
-          >
-            <b-form-checkbox
-              v-model="filter.absoluteTime"
-              size="sm"
+              <b-form-group
+                :label="$t('filter.incScriptsWithIterator', { count: totalScriptsWithIterator})"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="filter.incScriptsWithIterator"
+                  size="sm"
+                  :labels="checkboxLabel"
+                  switch
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+
+          <b-row>
+            <b-col
+              cols="12"
+              lg="6"
             >
-              {{ $t('filter.absoluteTime') }}
-            </b-form-checkbox>
-          </b-form-group>
+              <b-form-group
+                :label="$t('filter.incScriptsWithSecurity', { count: totalScriptsWithSecurity})"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="filter.incScriptsWithSecurity"
+                  size="sm"
+                  :labels="checkboxLabel"
+                  switch
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
+                :label="$t('filter.absoluteTime')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="filter.absoluteTime"
+                  size="sm"
+                  :labels="checkboxLabel"
+                  switch
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
         </b-form>
       </template>
 
@@ -113,11 +155,13 @@
               >
                 {{ label }}
               </span>
+
               <span
                 v-else
                 class="text-secondary"
               >{{ $t('labelMissing') }}
               </span>
+
               <b-badge
                 v-if="r.security"
                 class="rounded m-1 py-1 px-2 pointer"
@@ -126,6 +170,7 @@
               >
                 {{ $t('flags.security') }}
               </b-badge>
+
               <b-badge
                 v-if="r.triggers"
                 class="rounded m-1 py-1 px-2 pointer"
@@ -134,6 +179,7 @@
               >
                 {{ $t('flags.triggers') }}
               </b-badge>
+
               <b-badge
                 v-if="r.iterator"
                 class="rounded m-1 py-1 px-2 pointer"
@@ -143,13 +189,16 @@
                 {{ $t('flags.iterator') }}
               </b-badge>
             </div>
+
             <p
               v-if="description"
               class="text-secondary"
             >
               {{ description }}
             </p>
+
             <div><small><code>{{ name }}</code></small></div>
+
             <b-alert
               v-for="(error, i) in errors"
               :key="i"
@@ -159,6 +208,7 @@
               {{ error }}
             </b-alert>
           </template>
+
           <template v-slot:row-details="{ item: r }">
             <b-card>
               <pre>{{ r.triggers }}</pre>
@@ -166,6 +216,7 @@
               <pre>{{ r.security }}</pre>
             </b-card>
           </template>
+
           <template #cell(updatedAt)="{ value }">
             <time
               :datetime="value.toISOString()"
@@ -226,6 +277,10 @@ export default {
         label: this.$t(`columns.${c.key}`),
         ...c,
       })),
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
     }
   },
 

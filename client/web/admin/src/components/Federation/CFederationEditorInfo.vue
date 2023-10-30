@@ -3,126 +3,77 @@
     class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form
       @submit.prevent="$emit('submit', node)"
     >
-      <b-form-group
-        :label="$t('name')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="node.name"
-          :state="nameState"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('url')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="node.baseURL"
-          placeholder="https://example.com/federation"
-          type="url"
-          :state="urlState"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('email')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="node.contact"
-          placeholder="email@example.com"
-          type="email"
-        />
-      </b-form-group>
-
-      <!-- <b-form-group
-        :label="$t('tags.label')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-tags
-          v-model="node.tags"
-          tag-variant="warning"
-          tag-class="rounded"
-          input-class="h4"
-          :placeholder="$t('tags.placeholder')"
-          size="lg"
-          class="py-1 px-2"
-        />
-      </b-form-group> -->
-
-      <b-form-group
-        v-if="node.status"
-        :label="$t('status')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="node.status"
-          plaintext
-          disabled
-        />
-      </b-form-group>
-
-      <!-- <b-form-group
-        label-cols="2"
-        label-class="text-primary"
-        :class="{ 'mb-0': !node.nodeID }"
-      >
-        <b-form-checkbox
-          v-model="node.enabled"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('enabled') }}
-        </b-form-checkbox>
-      </b-form-group> -->
+          <b-form-group
+            :label="$t('name')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="node.name"
+              :state="nameState"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="node.updatedAt"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          :value="node.updatedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('url')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="node.baseURL"
+              placeholder="https://example.com/federation"
+              type="url"
+              :state="urlState"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="node.deletedAt"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          :value="node.deletedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('email')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="node.contact"
+              placeholder="email@example.com"
+              type="email"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="node.createdAt"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-        class="mb-0"
-      >
-        <b-form-input
-          :value="node.createdAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            v-if="node.status"
+            :label="$t('status')"
+            label-class="text-primary"
+          >
+            {{ node.status }}
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <c-system-fields
+        :resource="node"
+      />
 
       <!--
         include hidden input to enable

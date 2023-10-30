@@ -2,6 +2,7 @@ editor:
   info:
     consumer: Consumer
     createdAt: Created at
+    createdBy: Created by
     delete: Delete
     deletedAt: Deleted at
     dispatch_events: Dispatch events
@@ -23,6 +24,7 @@ list:
     actions: ''
     consumer: Consumer
     createdAt: Created At
+    createdBy: Created by
     state: State
     queue: Queue
   export: Export

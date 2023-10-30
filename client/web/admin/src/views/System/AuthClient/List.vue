@@ -105,8 +105,9 @@
             link-class="p-0"
           >
             <c-input-confirm
-              :text="inputConfirmText(a.deletedAt)"
+              :text="getActionText(a)"
               show-icon
+              :icon="getActionIcon(a)"
               borderless
               variant="link"
               size="md"
@@ -214,10 +215,6 @@ export default {
         resourceName: 'authClient',
         locale: 'authclient',
       })
-    },
-
-    inputConfirmText (deletedAt) {
-      return deletedAt ? this.$t('undelete') : this.$t('delete')
     },
   },
 }

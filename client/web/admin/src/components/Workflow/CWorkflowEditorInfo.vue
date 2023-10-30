@@ -3,114 +3,70 @@
     class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form
       @submit.prevent="$emit('submit', workflow)"
     >
-      <b-form-group
-        v-if="workflow.workflowID"
-        :label="$t('id')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="workflow.workflowID"
-          plaintext
-          disabled
-        />
-      </b-form-group>
-
-      <b-form-group
-        v-if="workflow.meta"
-        :label="$t('name')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="workflow.meta.name"
-          required
-          :state="nameState"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('handle')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="workflow.handle"
-          :state="handleState"
-        />
-        <b-form-invalid-feedback :state="handleState">
-          {{ $t('invalid-handle-characters') }}
-        </b-form-invalid-feedback>
-      </b-form-group>
-
-      <b-form-group
-        label-cols="2"
-        :class="{ 'mb-0': !workflow.workflowID }"
-        label-class="text-primary"
-      >
-        <b-form-checkbox
-          v-model="workflow.enabled"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            v-if="workflow.meta"
+            :label="$t('name')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="workflow.meta.name"
+              required
+              :state="nameState"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="workflow.workflowID"
-        label-cols="2"
-      >
-        <b-button
-          variant="light"
-          class="align-top"
-          @click="openWorkflowBuilder()"
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('openBuilder') }}
-        </b-button>
-      </b-form-group>
+          <b-form-group
+            :label="$t('handle')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="workflow.handle"
+              :state="handleState"
+            />
 
-      <b-form-group
-        v-if="workflow.updatedAt"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          :value="workflow.updatedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+            <b-form-invalid-feedback :state="handleState">
+              {{ $t('invalid-handle-characters') }}
+            </b-form-invalid-feedback>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="workflow.deletedAt"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          :value="workflow.deletedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('enabled')"
+            label-class="text-primary"
+            :class="{ 'mb-0': !workflow.workflowID }"
+          >
+            <c-input-checkbox
+              v-model="workflow.enabled"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
 
-      <b-form-group
-        v-if="workflow.createdAt"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-        class="mb-0"
-      >
-        <b-form-input
-          :value="workflow.createdAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+      <c-system-fields
+        :id="workflow.workflowID"
+        :resource="workflow"
+      />
 
       <!--
         include hidden input to enable
@@ -146,6 +102,16 @@
       >
         {{ getDeleteStatus }}
       </confirmation-toggle>
+
+      <div v-if="workflow.workflowID">
+        <b-button
+          variant="light"
+          class="align-top"
+          @click="openWorkflowBuilder()"
+        >
+          {{ $t('openBuilder') }}
+        </b-button>
+      </div>
     </template>
   </b-card>
 </template>
@@ -187,6 +153,15 @@ export default {
       type: Boolean,
       required: true,
     },
+  },
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
+    }
   },
 
   computed: {

@@ -18,83 +18,104 @@
         <b-form
           @submit.prevent="search"
         >
-          <b-form-group
-            :label="$t('filter.from')"
-            label-cols-lg="2"
-            label-class="text-primary"
-          >
-            <c-input-date-time
-              v-model="filter.from"
-              data-test-id="filter-starting-from"
-              :labels="{
-                clear: $t('general:label.clear'),
-                none: $t('general:label.none'),
-                now: $t('general:label.now'),
-                today: $t('general:label.today'),
-              }"
-            />
-          </b-form-group>
-          <b-form-group
-            :label="$t('filter.to')"
-            label-cols-lg="2"
-            label-class="text-primary"
-          >
-            <c-input-date-time
-              v-model="filter.to"
-              data-test-id="filter-ending-at"
-              only-past
-              :labels="{
-                clear: $t('general:label.clear'),
-                none: $t('general:label.none'),
-                now: $t('general:label.now'),
-                today: $t('general:label.today'),
-              }"
-            />
-          </b-form-group>
-          <b-form-group
-            :label="$t('filter.resource')"
-            label-cols-lg="2"
-            label-class="text-primary"
-          >
-            <b-form-input
-              v-model="filter.resource"
-              data-test-id="input-resource"
-              size="sm"
-            />
-          </b-form-group>
-          <b-form-group
-            :label="$t('filter.action')"
-            label-cols-lg="2"
-            label-class="text-primary"
-          >
-            <b-form-input
-              v-model="filter.action"
-              data-test-id="input-action"
-              size="sm"
-            />
-          </b-form-group>
-          <b-form-group
-            :label="$t('filter.actor')"
-            label-cols-lg="2"
-            label-class="text-primary"
-          >
-            <b-form-input
-              v-model="filter.actorID"
-              data-test-id="input-user-id"
-              size="sm"
-            />
-          </b-form-group>
-
-          <b-form-group
-            label-cols-lg="2"
-          >
-            <b-button
-              data-test-id="button-submit"
-              type="submit"
+          <b-row>
+            <b-col
+              cols="12"
+              lg="6"
             >
-              {{ $t('filter.search') }}
-            </b-button>
-          </b-form-group>
+              <b-form-group
+                :label="$t('filter.from')"
+                label-class="text-primary"
+              >
+                <c-input-date-time
+                  v-model="filter.from"
+                  data-test-id="filter-starting-from"
+                  :labels="{
+                    clear: $t('general:label.clear'),
+                    none: $t('general:label.none'),
+                    now: $t('general:label.now'),
+                    today: $t('general:label.today'),
+                  }"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
+                :label="$t('filter.to')"
+                label-class="text-primary"
+              >
+                <c-input-date-time
+                  v-model="filter.to"
+                  data-test-id="filter-ending-at"
+                  only-past
+                  :labels="{
+                    clear: $t('general:label.clear'),
+                    none: $t('general:label.none'),
+                    now: $t('general:label.now'),
+                    today: $t('general:label.today'),
+                  }"
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+
+          <b-row>
+            <b-col
+              cols="12"
+              lg="4"
+            >
+              <b-form-group
+                :label="$t('filter.resource')"
+                label-class="text-primary"
+              >
+                <b-form-input
+                  v-model="filter.resource"
+                  data-test-id="input-resource"
+                  size="sm"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              lg="4"
+            >
+              <b-form-group
+                :label="$t('filter.action')"
+                label-class="text-primary"
+              >
+                <b-form-input
+                  v-model="filter.action"
+                  data-test-id="input-action"
+                  size="sm"
+                />
+              </b-form-group>
+            </b-col>
+            <b-col
+              cols="12"
+              lg="4"
+            >
+              <b-form-group
+                :label="$t('filter.actor')"
+                label-class="text-primary"
+              >
+                <b-form-input
+                  v-model="filter.actorID"
+                  data-test-id="input-user-id"
+                  size="sm"
+                />
+              </b-form-group>
+            </b-col>
+          </b-row>
+          <b-button
+            data-test-id="button-submit"
+            type="submit"
+            class="text-primary"
+          >
+            {{ $t('filter.search') }}
+          </b-button>
         </b-form>
       </template>
 

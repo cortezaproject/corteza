@@ -1,4 +1,7 @@
 label:
+  general:
+    yes: Yes
+    no: No
   template:
     single: Template
     plural: Templates

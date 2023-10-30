@@ -233,5 +233,13 @@ export default {
       })
       return condition
     },
+
+    getActionText (r) {
+      return r.deletedAt ? this.$t('undelete') : this.$t('delete')
+    },
+
+    getActionIcon (r) {
+      return r.deletedAt ? ['fa', 'trash-restore'] : ['far', 'trash-alt']
+    },
   },
 }

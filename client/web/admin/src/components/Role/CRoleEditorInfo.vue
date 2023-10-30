@@ -4,71 +4,58 @@
     data-test-id="card-role-info"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form
       @submit.prevent="submit()"
     >
-      <b-form-group
-        :label="$t('name')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="role.name"
-          data-test-id="input-name"
-          :state="nameState"
-          :disabled="!editable"
-        />
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('handle')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="role.handle"
-          data-test-id="input-handle"
-          :state="handleState"
-          :disabled="!editable"
-          :placeholder="$t('placeholder-handle')"
-        />
-        <b-form-invalid-feedback :state="handleState">
-          {{ $t('invalid-handle-characters') }}
-        </b-form-invalid-feedback>
-      </b-form-group>
-
-      <b-form-group
-        v-if="role.meta"
-        :label="$t('description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-textarea
-          v-model="role.meta.description"
-          data-test-id="textarea-description"
-          :disabled="!editable"
-        />
-      </b-form-group>
-
-      <b-form-group
-        label-cols="2"
-      >
-        <b-form-group
-          label-cols="0"
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          <b-form-checkbox
-            v-model="isContextual"
-            data-test-id="checkbox-is-contextual"
-            :disabled="!editable"
-          >
-            {{ $t('context.label') }}
-          </b-form-checkbox>
-        </b-form-group>
-        <div v-if="isContextual">
           <b-form-group
+            :label="$t('name')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="role.name"
+              data-test-id="input-name"
+              :state="nameState"
+              :disabled="!editable"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('handle')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="role.handle"
+              data-test-id="input-handle"
+              :state="handleState"
+              :disabled="!editable"
+              :placeholder="$t('placeholder-handle')"
+            />
+
+            <b-form-invalid-feedback :state="handleState">
+              {{ $t('invalid-handle-characters') }}
+            </b-form-invalid-feedback>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            v-if="true"
             :label="$t('context.expression-label')"
-            label-cols="3"
             label-class="text-primary"
           >
             <b-form-input
@@ -77,77 +64,73 @@
               :disabled="!editable"
             />
           </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
           <b-form-group
-            :label="$t('context.resource-types-label')"
-            label-cols="3"
+            v-if="role.meta"
+            :label="$t('description')"
             label-class="text-primary"
           >
-            <b-checkbox-group
-              v-model="role.meta.context.resourceTypes"
-              data-test-id="checkbox-resource-types-list"
+            <b-form-textarea
+              v-model="role.meta.description"
+              data-test-id="textarea-description"
               :disabled="!editable"
-              :options="resourceTypeOptions"
             />
           </b-form-group>
-        </div>
-      </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="role.updatedAt"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          data-test-id="input-updated-at"
-          :value="role.updatedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('context.label')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="isContextual"
+              switch
+              :labels="checkboxLabel"
+              :disabled="!editable"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
 
-      <b-form-group
-        v-if="role.archivedAt"
-        :label="$t('archivedAt')"
-        label-cols="2"
-        label-class="text-primary"
+      <div
+        v-if="isContextual"
+        class="my-3"
       >
-        <b-form-input
-          data-test-id="input-archived-at"
-          :value="role.archivedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <h5 class="mb-3">
+          {{ $t('context.resource-types-label') }}
+        </h5>
 
-      <b-form-group
-        v-if="role.deletedAt"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          data-test-id="input-deleted-at"
-          :value="role.deletedAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-row>
+          <b-col
+            v-for="(resourceType, i) in resourceTypeOptions"
+            :key="i"
+            cols="12"
+            md="4"
+          >
+            <b-checkbox
+              v-model="role.meta.context.resourceTypes"
+              data-test-id="checkbox-resource-types-list"
+              :value="resourceType.value"
+              :disabled="!editable"
+            >
+              {{ resourceType.text }}
+            </b-checkbox>
+          </b-col>
+        </b-row>
+      </div>
 
-      <b-form-group
-        v-if="role.createdAt"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-        class="mb-0"
-      >
-        <b-form-input
-          data-test-id="input-created-at"
-          :value="role.createdAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+      <c-system-fields
+        :resource="role"
+      />
 
       <!--
         include hidden input to enable
@@ -187,7 +170,6 @@
       <confirmation-toggle
         v-if="!fresh && editable && !isDataPrivacyOfficer"
         :data-test-id="archivedButtonStatusCypressId"
-        class="ml-2"
         cta-class="secondary"
         @confirmed="$emit('status')"
       >
@@ -239,6 +221,15 @@ export default {
       type: Boolean,
       required: true,
     },
+  },
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
+    }
   },
 
   computed: {
@@ -336,7 +327,6 @@ export default {
         this.role.meta.context.resourceTypes = []
         this.role.meta.context.expr = ''
       }
-
       this.$emit('submit', this.role)
     },
   },

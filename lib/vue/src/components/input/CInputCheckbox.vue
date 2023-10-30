@@ -33,7 +33,6 @@ export default {
   props: {
     value: {
       type: Boolean,
-      required: true,
     },
 
     labels: {

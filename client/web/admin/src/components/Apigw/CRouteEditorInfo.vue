@@ -4,138 +4,109 @@
     data-test-id="card-route-edit"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap gap-1"
   >
     <b-form
       @submit.prevent="$emit('submit', route)"
     >
-      <b-form-group
-        v-if="route.routeID"
-        :label="$t('id')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          v-model="route.routeID"
-          data-test-id="input-route-id"
-          plaintext
-          disabled
-        />
-      </b-form-group>
-
-      <b-form-group
-        label-cols="2"
-        :description="routeEndpointDescription"
-      >
-        <template
-          #label
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
         >
-          <label
-            label-for="endpoint"
-            class="mb-0"
+          <b-form-group
+            :description="routeEndpointDescription"
+            label-class="text-primary"
           >
-            {{ $t('endpoint') }}
-          </label>
+            <template
+              #label
+            >
+              <label
+                label-for="endpoint"
+                class="mb-0"
+              >
+                {{ $t('endpoint') }}
+              </label>
 
-          <font-awesome-icon
-            id="endpoint_info"
-            class="ml-1"
-            :icon="['far', 'question-circle']"
-          />
-          <b-tooltip
-            target="endpoint_info"
-            triggers="hover"
-          >
-            {{ $t('tooltip') }}
-          </b-tooltip>
-        </template>
+              <font-awesome-icon
+                id="endpoint_info"
+                class="ml-1"
+                :icon="['far', 'question-circle']"
+              />
 
-        <b-form-input
-          id="endpoint"
-          v-model="route.endpoint"
-          data-test-id="input-endpoint"
-          :state="isValidEndpoint"
-          required
-        />
-      </b-form-group>
+              <b-tooltip
+                target="endpoint_info"
+                triggers="hover"
+              >
+                {{ $t('tooltip') }}
+              </b-tooltip>
+            </template>
 
-      <b-form-group
-        :label="$t('method')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-select
-          v-model="route.method"
-          data-test-id="select-method"
-          :options="methods"
-          required
-        />
-      </b-form-group>
+            <b-form-input
+              id="endpoint"
+              v-model="route.endpoint"
+              data-test-id="input-endpoint"
+              :state="isValidEndpoint"
+              required
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="route.meta"
-        :label="$t('description')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-textarea
-          v-model="route.meta.description"
-        />
-      </b-form-group>
-
-      <b-form-group
-        label-cols="2"
-        :class="{ 'mb-0': !route.routeID }"
-      >
-        <b-form-checkbox
-          v-model="route.enabled"
-          data-test-id="checkbox-enabled"
+        <b-col
+          cols="12"
+          lg="6"
         >
-          {{ $t('enabled') }}
-        </b-form-checkbox>
-      </b-form-group>
+          <b-form-group
+            :label="$t('method')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="route.method"
+              data-test-id="select-method"
+              :options="methods"
+              required
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="route.updatedAt"
-        :label="$t('updatedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          :value="route.updatedAt | locFullDateTime"
-          data-test-id="input-updated-at"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          v-if="route.meta"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('description')"
+            label-class="text-primary"
+          >
+            <b-form-textarea
+              v-model="route.meta.description"
+            />
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="route.deletedAt"
-        :label="$t('deletedAt')"
-        label-cols="2"
-        label-class="text-primary"
-      >
-        <b-form-input
-          :value="route.deletedAt | locFullDateTime"
-          data-test-id="input-delete-at"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('enabled')"
+            :class="{ 'mb-0': !route.routeID }"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="route.enabled"
+              switch
+              :labels="checkboxLabel"
+              data-test-id="checkbox-enabled"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
 
-      <b-form-group
-        v-if="route.createdAt"
-        data-test-id="input-create-at"
-        :label="$t('createdAt')"
-        label-cols="2"
-        label-class="text-primary"
-        class="mb-0"
-      >
-        <b-form-input
-          :value="route.createdAt | locFullDateTime"
-          plaintext
-          disabled
-        />
-      </b-form-group>
+      <c-system-fields
+        :id="route.routeID"
+        :resource="route"
+      />
     </b-form>
 
     <template #header>
@@ -206,6 +177,10 @@ export default {
   data () {
     return {
       methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      checkboxLabel: {
+        on: this.$t('general:label.general.yes'),
+        off: this.$t('general:label.general.no'),
+      },
     }
   },
 

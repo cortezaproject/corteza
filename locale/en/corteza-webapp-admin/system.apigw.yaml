@@ -68,6 +68,8 @@ editor:
     updatedAt: Updated at
     createdAt: Created at
 
+    createdBy: Created by
+
     tooltip: Endpoint must begin with a slash "/" and can not contain any special characters except for the underscore "_" and hyphen "-"
     validation:
       slash: Endpoint must begin with a slash "/"

@@ -48,6 +48,7 @@ import {
   faStamp,
   faInfoCircle,
   faEllipsisV,
+  faTrashRestore,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -113,4 +114,5 @@ library.add(
   faStamp,
   faInfoCircle,
   faEllipsisV,
+  faTrashRestore,
 )
