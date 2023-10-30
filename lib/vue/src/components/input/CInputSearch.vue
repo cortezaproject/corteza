@@ -1,6 +1,7 @@
 <template>
   <b-input-group
     :size="size"
+    class="input-group-border border-light rounded"
   >
     <b-input
       ref="searchInput"
@@ -12,28 +13,28 @@
       :disabled="disabled"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
-      class="h-100 pr-0 border-light border-right-0 text-truncate bg-white"
+      class="h-100 pr-0 border-0 text-truncate bg-white"
+      @input="onInput"
       @update="search"
       @keyup.enter="submitQuery"
     />
     <b-input-group-append
-      :class="{ 'border-left': showSubmittable }"
-      class="bg-white border-light rounded-right append-group-border"
+      v-if="showSubmittable"
+      :class="{ 'search-icon-border border-light': showSubmittableAndClearable }"
+      class="bg-white m-0"
     >
       <b-button
-        v-if="showSubmittable"
-        variant="link"
+        :variant="isSubmittable ? 'outline-light' : 'link'"
         :disabled="disabled"
-        class="py-0"
+        class="border-0 rounded-0 py-0"
         :class="{
-          'search-icon-border': showSubmittableAndClearable,
           'cursor-default': !isSubmittable
         }"
         @[isSubmittable]="submitQuery"
       >
         <font-awesome-icon
           :icon="['fas', 'search']"
-          class="align-middle"
+          class="text-primary"
         />
       </b-button>
     </b-input-group-append>
@@ -70,6 +71,7 @@ export default {
 
     submittable: {
       type: Boolean,
+      default: false,
     },
 
     autocomplete: {
@@ -83,13 +85,19 @@ export default {
     },
   },
 
+  data () {
+    return {
+      localValue: this.value,
+    }
+  },
+
   computed: {
     inputType () {
       return this.clearable ? 'search' : 'text'
     },
 
     showSubmittable () {
-      return !this.value || (this.value && this.showSubmittableAndClearable)
+      return !this.localValue || this.showSubmittableAndClearable
     },
 
     isSubmittable () {
@@ -102,6 +110,10 @@ export default {
   },
 
   methods: {
+    onInput (value) {
+      this.localValue = value
+    },
+
     search (e) {
       if (!this.submittable) {
         this.$emit('input', e)
@@ -113,35 +125,33 @@ export default {
         this.$emit('search', this.$refs.searchInput.localValue)
       }
     },
-
-    clearQuery () {
-      this.$refs.searchInput.focus()
-      this.$emit('input', '')
-    },
   },
 }
 </script>
-<style lang="scss" scoped>
-$border-color: 2px solid #F3F5F7;
 
+<style lang="scss" scoped>
 input:focus::placeholder {
   color: transparent;
 }
 
 input[type="search"]::-webkit-search-cancel-button {
-  height: 13px;
-  width: 13px;
-  padding-left: 12px;
+  -webkit-appearance: none;
+  height: 1em;
+  width: 1em;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
   cursor: pointer;
-  background: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
+  margin-right: 13px;
+  margin-top: 2px;
 }
 
-.append-group-border {
-  border: $border-color;
+.input-group-border {
+  border-width: 2px;
+  border-style: solid;
 }
 
 .search-icon-border {
-  border-left: $border-color;
+  border-width: 0px 0px 0px 2px;
+  border-style: solid;
 }
 
 .cursor-default {
