@@ -119,7 +119,7 @@ export default {
 
 <style lang="scss">
 .vue-grid-item.vue-grid-placeholder {
-  background: var(--primary)!important;
+  background: var(--primary) !important;
 }
 </style>
 

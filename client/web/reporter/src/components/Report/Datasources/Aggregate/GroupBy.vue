@@ -134,7 +134,7 @@ export default {
 .btn-add-group {
   &:hover, &:active {
     background-color: var(--primary) !important;
-    color: var(--white)!important;
+    color: var(--white) !important;
   }
 }
 
