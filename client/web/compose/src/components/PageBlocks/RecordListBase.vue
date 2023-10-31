@@ -1172,6 +1172,7 @@ export default {
 
     onUpdateFields (fields = []) {
       this.options.fields = [...fields]
+      this.customConfiguredFields = fields.map((f) => f.isSystem ? f.name : f.fieldID)
       this.setStorageRecordListConfiguredFields()
 
       this.$emit('save-fields', this.options.fields)
@@ -1180,7 +1181,7 @@ export default {
     setStorageRecordListConfiguredFields () {
       try {
         // Get record list configured fields from localStorage
-        setItem(`record-list-configured-columns-${this.uniqueID}`, this.options.fields.map((f) => f.fieldID))
+        setItem(`record-list-configured-columns-${this.uniqueID}`, this.customConfiguredFields)
       } catch (e) {
         console.warn(this.$t('notification:record-list.corrupted-configured-fields'))
       }
