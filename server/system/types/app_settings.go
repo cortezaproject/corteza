@@ -248,8 +248,8 @@ type (
 				Disabled bool `json:"disabled"`
 			} `kv:"sidebar,final" json:"sidebar"`
 
+			CustomCSS string `kv:"custom-css" json:"customCSS"`
 			Studio struct {
-				CustomCSS     string `kv:"custom-css" json:"customCSS"`
 				BrandingSASS  string `kv:"branding-sass" json:"branding-sass"`
 				SassInstalled bool   `kv:"sass-installed" json:"sass-installed"`
 			} `kv:"studio" json:"studio"`

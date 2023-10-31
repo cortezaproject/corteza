@@ -246,7 +246,7 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 
 	for _, v := range vv {
 		// if branding-sass or custom-css is updated, empty stylesheet cache
-		if v.Name == "ui.studio.branding-sass" || v.Name == "ui.studio.custom-css" {
+		if v.Name == "ui.studio.branding-sass" || v.Name == "ui.custom-css" {
 			sass.StylesheetCache.Set(map[string]string{})
 		}
 

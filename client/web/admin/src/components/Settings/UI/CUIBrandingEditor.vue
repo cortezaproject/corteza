@@ -27,7 +27,7 @@
       >
         <b-form-group
           :label="$t(`brandVariables.${key}`)"
-          label-class="primary"
+          label-class="text-primary"
         >
           <c-input-color-picker
             v-model="brandingVariables[key]"
