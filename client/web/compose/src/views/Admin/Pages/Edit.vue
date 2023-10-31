@@ -1512,12 +1512,12 @@ export default {
 }
 
 .layout-actions {
-  tr:not(:first-child) td {
-    padding-top: 0.75rem;
-  }
-
   tr td {
     padding-bottom: 0.75rem;
+  }
+
+  tr:not(:first-child) td {
+    padding-top: 0.75rem;
   }
 }
 </style>
