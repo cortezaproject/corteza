@@ -50,35 +50,31 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
-        <div
-          class="wrap-with-vertical-gutters"
+        <b-btn
+          v-if="canCreate"
+          data-test-id="button-create"
+          :to="{ name: 'namespace.create' }"
+          variant="primary"
+          size="lg"
+          class="mr-1 float-left"
         >
-          <b-btn
-            v-if="canCreate"
-            data-test-id="button-create"
-            :to="{ name: 'namespace.create' }"
-            variant="primary"
-            size="lg"
-            class="mr-1 float-left"
-          >
-            {{ $t('toolbar.buttons.create') }}
-          </b-btn>
+          {{ $t('toolbar.buttons.create') }}
+        </b-btn>
 
-          <importer-modal
-            v-if="canImport"
-            class="mr-1 float-left"
-            @imported="onImported"
-            @failed="onFailed"
-          />
+        <importer-modal
+          v-if="canImport"
+          class="mr-1 float-left"
+          @imported="onImported"
+          @failed="onFailed"
+        />
 
-          <c-permissions-button
-            v-if="canGrant"
-            resource="corteza::compose:namespace/*"
-            button-variant="light"
-            :button-label="$t('toolbar.buttons.permissions')"
-            class="btn-lg float-left"
-          />
-        </div>
+        <c-permissions-button
+          v-if="canGrant"
+          resource="corteza::compose:namespace/*"
+          button-variant="light"
+          :button-label="$t('toolbar.buttons.permissions')"
+          class="btn-lg float-left"
+        />
       </template>
 
       <template #enabled="{ item }">

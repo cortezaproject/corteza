@@ -12,18 +12,19 @@
         fluid
         align-v="center"
       >
-        <b-row>
+        <b-row class="gap-1">
           <b-col
             lg="8"
+            class="gap-1 d-flex flex-wrap flex-sm-row flex-column"
           >
             <slot
               name="header"
               :selected="selected"
             />
           </b-col>
+
           <b-col
             v-if="!hideSearch"
-            class='pt-1 pt-lg-0'
           >
             <c-input-search
               v-model.trim="filter[queryField]"

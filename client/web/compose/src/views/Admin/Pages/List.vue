@@ -13,16 +13,14 @@
     >
       <b-card-header
         header-bg-variant="white"
-        class="border-bottom"
+        class="d-flex flex-column border-bottom gap-1"
       >
-        <b-row
-          no-gutters
-          class="justify-content-between wrap-with-vertical-gutters"
-        >
+        <div class="d-flex align-items-stretch align-items-sm-center justify-content-between flex-column flex-sm-row gap-1">
           <div class="flex-grow-1">
             <b-input-group
               v-if="namespace.canCreatePage"
               class="h-100"
+              style="min-width: 300px;"
             >
               <b-input
                 id="name"
@@ -38,7 +36,6 @@
                   data-test-id="button-create-page"
                   type="submit"
                   variant="primary"
-                  size="lg"
                   @click="handleAddPageFormSubmit"
                 >
                   {{ $t('createLabel') }}
@@ -46,13 +43,14 @@
               </b-input-group-append>
             </b-input-group>
           </div>
-          <div class="d-flex justify-content-sm-end flex-grow-1">
+
+          <div class="d-flex justify-content-sm-end flex-fill flex-grow-1">
             <b-dropdown
               v-if="namespace.canGrant"
               data-test-id="dropdown-permissions"
               size="lg"
               variant="light"
-              class="permissions-dropdown"
+              class="d-flex align-items-center flex-sm-grow-0 flex-sm-shrink-0 flex-fill permissions-dropdown"
             >
               <template #button-content>
                 <font-awesome-icon :icon="['fas', 'lock']" />
@@ -80,18 +78,11 @@
               </b-dropdown-item>
             </b-dropdown>
           </div>
-        </b-row>
-        <b-row
-          class="align-content-center mt-2"
-        >
-          <b-col
-            cols="12"
-          >
-            <span class="text-muted font-italic">
-              {{ $t('instructions') }}
-            </span>
-          </b-col>
-        </b-row>
+        </div>
+
+        <span class="text-muted font-italic">
+          {{ $t('instructions') }}
+        </span>
       </b-card-header>
 
       <div

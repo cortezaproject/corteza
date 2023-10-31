@@ -47,6 +47,7 @@ import {
   faEyeSlash,
   faQuestion,
   faEllipsisV,
+  faTools,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -110,4 +111,5 @@ library.add(
   faEyeSlash,
   faQuestion,
   faEllipsisV,
+  faTools,
 )

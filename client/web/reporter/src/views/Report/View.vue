@@ -35,7 +35,7 @@
           {{ $t('report.builder') }}
           <font-awesome-icon
             class="ml-2"
-            :icon="['fas', 'cogs']"
+            :icon="['fas', 'tools']"
           />
         </b-button>
         <b-button

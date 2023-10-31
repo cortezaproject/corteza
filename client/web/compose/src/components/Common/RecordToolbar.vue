@@ -1,173 +1,158 @@
 <template>
-  <b-container
-    fluid
-    :class="{ 'shadow border-top': !showRecordModal }"
-    class="bg-white p-3"
-  >
-    <b-row
-      align-v="stretch"
-      no-gutters
-      class="wrap-with-vertical-gutters"
-    >
-      <b-col
-        class="d-flex align-items-center justify-content-start"
+  <c-toolbar :class="{ 'shadow border-top': !showRecordModal }">
+    <template #start>
+      <b-button
+        v-if="!(hideBack || settings.hideBack)"
+        data-test-id="button-back"
+        variant="link"
+        :disabled="processing"
+        class="text-dark back text-left text-nowrap p-1"
+        @click.prevent="$emit('back')"
       >
+        <font-awesome-icon
+          :icon="['fas', hasBack ? 'chevron-left' : 'times']"
+          class="back-icon"
+        />
+        {{ backLabel }}
+      </b-button>
+
+      <slot name="start-actions" />
+    </template>
+
+    <template #center>
+      <b-button-group v-if="recordNavigation.prev || recordNavigation.next">
         <b-button
-          v-if="!(hideBack || settings.hideBack)"
-          data-test-id="button-back"
-          variant="link"
-          :disabled="processing"
-          class="text-dark back"
-          @click.prevent="$emit('back')"
+          pill
+          size="lg"
+          variant="outline-primary"
+          :disabled="!record || processing || !recordNavigation.prev"
+          :title="$t('recordNavigation.prev')"
+          @click="navigateToRecord(recordNavigation.prev)"
         >
-          <font-awesome-icon
-            :icon="['fas', hasBack ? 'chevron-left' : 'times']"
-            class="back-icon"
-          />
-          {{ backLabel }}
+          <font-awesome-icon :icon="['fas', 'angle-left']" />
         </b-button>
 
-        <slot name="start-actions" />
-      </b-col>
-
-      <b-col
-        class="d-flex align-items-center justify-content-center"
-      >
-        <b-button-group v-if="recordNavigation.prev || recordNavigation.next">
-          <b-button
-            pill
-            size="lg"
-            variant="outline-primary"
-            class="mr-2"
-            :disabled="!record || processing || !recordNavigation.prev"
-            :title="$t('recordNavigation.prev')"
-            @click="navigateToRecord(recordNavigation.prev)"
-          >
-            <font-awesome-icon :icon="['fas', 'angle-left']" />
-          </b-button>
-
-          <b-button
-            size="lg"
-            pill
-            variant="outline-primary"
-            :disabled="!record || processing || !recordNavigation.next"
-            :title="$t('recordNavigation.next')"
-            @click="navigateToRecord(recordNavigation.next)"
-          >
-            <font-awesome-icon :icon="['fas', 'angle-right']" />
-          </b-button>
-        </b-button-group>
-
-        <slot name="center-actions" />
-      </b-col>
-
-      <b-col
-        class="d-flex align-items-center justify-content-end text-nowrap"
-      >
-        <template
-          v-if="module"
+        <b-button
+          size="lg"
+          pill
+          variant="outline-primary"
+          :disabled="!record || processing || !recordNavigation.next"
+          :title="$t('recordNavigation.next')"
+          @click="navigateToRecord(recordNavigation.next)"
         >
-          <c-input-confirm
-            v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
-            :disabled="!record || !canDeleteRecord"
-            :processing="processingDelete"
-            :text="labels.delete || $t('label.delete')"
-            size="lg"
-            size-confirm="lg"
-            variant="danger"
-            button-class="d-flex align-items-center justify-content-center w-100 h-100"
-            style="min-height: 42px; min-width: 85px;"
-            @confirmed="$emit('delete')"
-          />
+          <font-awesome-icon :icon="['fas', 'angle-right']" />
+        </b-button>
+      </b-button-group>
 
-          <c-input-confirm
-            v-if="isDeleted && !(hideDelete || settings.hideDelete)"
-            :disabled="!record || !canUndeleteRecord"
-            :processing="processingUndelete"
-            :text="$t('label.restore')"
-            size="lg"
-            size-confirm="lg"
-            variant="warning"
-            variant-ok="warning"
-            button-class="d-flex align-items-center justify-content-center w-100 h-100"
-            style="min-height: 42px; min-width: 95px;"
-            @confirmed="$emit('undelete')"
-          />
+      <slot name="center-actions" />
+    </template>
 
-          <b-button
-            v-if="isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
-            data-test-id="button-clone"
-            variant="light"
-            size="lg"
-            :disabled="!record || processing"
-            class="ml-2"
-            @click.prevent="$emit('clone')"
-          >
-            {{ labels.clone || $t('label.saveAsCopy') }}
-          </b-button>
+    <template
+      v-if="module"
+      #end
+    >
+      <slot name="end-actions" />
 
-          <b-button
-            v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
-            data-test-id="button-edit"
-            :disabled="!record || !record.canUpdateRecord || processing"
-            variant="light"
-            size="lg"
-            class="ml-2"
-            @click.prevent="$emit('edit')"
-          >
-            {{ labels.edit || $t('label.edit') }}
-          </b-button>
+      <c-input-confirm
+        v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
+        :disabled="!record || !canDeleteRecord"
+        :processing="processingDelete"
+        :text="labels.delete || $t('label.delete')"
+        size="lg"
+        size-confirm="lg"
+        variant="danger"
+        button-class="d-flex align-items-center justify-content-center w-100 h-100"
+        style="min-height: 42px; min-width: 85px;"
+        @confirmed="$emit('delete')"
+      />
 
-          <b-button
-            v-else-if="inEditing && isCreated && !(hideEdit || settings.hideEdit)"
-            data-test-id="button-view"
-            :disabled="!record || !record.canUpdateRecord || processing"
-            variant="light"
-            size="lg"
-            class="ml-2"
-            @click.prevent="$emit('view')"
-          >
-            {{ labels.edit || $t('label.view') }}
-          </b-button>
+      <c-input-confirm
+        v-if="isDeleted && !(hideDelete || settings.hideDelete)"
+        :disabled="!record || !canUndeleteRecord"
+        :processing="processingUndelete"
+        :text="$t('label.restore')"
+        size="lg"
+        size-confirm="lg"
+        variant="warning"
+        variant-ok="warning"
+        button-class="d-flex align-items-center justify-content-center w-100 h-100"
+        style="min-height: 42px; min-width: 95px;"
+        @confirmed="$emit('undelete')"
+      />
 
-          <b-button
-            v-if="!inEditing && module.canCreateRecord && !(hideNew || settings.hideNew)"
-            data-test-id="button-add-new"
-            variant="primary"
-            size="lg"
-            :disabled="!record || processing"
-            class="ml-2"
-            @click.prevent="$emit('add')"
-          >
-            {{ labels.new || $t('label.addNew') }}
-          </b-button>
+      <b-button
+        v-if="isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
+        data-test-id="button-clone"
+        variant="light"
+        size="lg"
+        :disabled="!record || processing"
+        class="text-nowrap"
+        @click.prevent="$emit('clone')"
+      >
+        {{ labels.clone || $t('label.saveAsCopy') }}
+      </b-button>
 
-          <c-button-submit
-            v-if="inEditing && !(hideSubmit || settings.hideSubmit)"
-            data-test-id="button-save"
-            :disabled="!record || !canSaveRecord || processingSubmit"
-            :processing="processingSubmit"
-            :text="labels.submit || $t('label.save')"
-            size="lg"
-            style="min-height: 42px; min-width: 73px;"
-            class="ml-2"
-            @submit="$emit('submit')"
-          />
+      <b-button
+        v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
+        data-test-id="button-edit"
+        :disabled="!record || !record.canUpdateRecord || processing"
+        variant="light"
+        size="lg"
+        @click.prevent="$emit('edit')"
+      >
+        {{ labels.edit || $t('label.edit') }}
+      </b-button>
 
-          <slot name="end-actions" />
-        </template>
-      </b-col>
-    </b-row>
-  </b-container>
+      <b-button
+        v-else-if="inEditing && isCreated && !(hideEdit || settings.hideEdit)"
+        data-test-id="button-view"
+        :disabled="!record || !record.canUpdateRecord || processing"
+        variant="light"
+        size="lg"
+        @click.prevent="$emit('view')"
+      >
+        {{ labels.edit || $t('label.view') }}
+      </b-button>
+
+      <b-button
+        v-if="!inEditing && module.canCreateRecord && !(hideNew || settings.hideNew)"
+        data-test-id="button-add-new"
+        variant="primary"
+        size="lg"
+        :disabled="!record || processing"
+        class="text-nowrap"
+        @click.prevent="$emit('add')"
+      >
+        {{ labels.new || $t('label.addNew') }}
+      </b-button>
+
+      <c-button-submit
+        v-if="inEditing && !(hideSubmit || settings.hideSubmit)"
+        data-test-id="button-save"
+        :disabled="!record || !canSaveRecord || processingSubmit"
+        :processing="processingSubmit"
+        :text="labels.submit || $t('label.save')"
+        size="lg"
+        style="min-height: 42px; min-width: 73px;"
+        @submit="$emit('submit')"
+      />
+    </template>
+  </c-toolbar>
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { throttle } from 'lodash'
+const { CToolbar } = components
 
 export default {
   i18nOptions: {
     namespaces: 'general',
+  },
+
+  components: {
+    CToolbar,
   },
 
   props: {

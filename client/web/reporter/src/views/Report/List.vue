@@ -66,14 +66,36 @@
       </template>
 
       <template #actions="{ item: r }">
-        <b-button
+        <b-button-group
           v-if="r.canUpdateReport"
-          variant="light"
-          class="mr-2"
-          :to="{ name: 'report.builder', params: { reportID: r.reportID } }"
+          size="sm"
         >
-          {{ $t('report.builder') }}
-        </b-button>
+          <b-button
+            data-test-id="button-report-builder"
+            variant="primary"
+            size="sm"
+            :to="{ name: 'report.builder', params: { reportID: r.reportID } }"
+          >
+            {{ $t('report.builder') }}
+            <font-awesome-icon
+              :icon="['fas', 'tools']"
+              class="ml-2"
+            />
+          </b-button>
+
+          <b-button
+            data-test-id="button-report-edit"
+            variant="primary"
+            :title="$t('report.edit')"
+            :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
+            class="d-flex align-items-center"
+            style="margin-left:2px;"
+          >
+            <font-awesome-icon
+              :icon="['far', 'edit']"
+            />
+          </b-button>
+        </b-button-group>
       </template>
 
       <template #moreActions="{ item: r }">
@@ -90,18 +112,6 @@
               :icon="['fas', 'ellipsis-v']"
             />
           </template>
-
-          <b-dropdown-item
-            v-if="r.canUpdateReport"
-            :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
-          >
-            <font-awesome-icon
-              :icon="['fa', 'pen']"
-              class="text-dark"
-            />
-
-            {{ $t('report.edit') }}
-          </b-dropdown-item>
 
           <b-dropdown-item
             v-if="r.canGrant"
@@ -127,6 +137,7 @@
             variant="link"
             size="md"
             show-icon
+            text-class="p-1"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
             class="w-100"
             @confirmed="handleDelete(r)"

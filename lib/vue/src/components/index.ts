@@ -85,4 +85,8 @@ export {
   CProgress,
 } from './progress'
 
+export {
+  CToolbar,
+} from './toolbar'
+
 export { default as C3 } from './c3'

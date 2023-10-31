@@ -1,67 +1,63 @@
 <template>
-  <b-container
-    fluid
-    class="bg-white shadow border-top p-3"
+  <c-toolbar
+    class="bg-white shadow border-top"
   >
-    <b-row
-      no-gutters
-      class="align-items-center"
-    >
-      <b-col>
-        <b-button
-          v-if="backLink"
-          data-test-id="button-back"
-          variant="link"
-          size="lg"
-          :to="backLink"
-          class="d-flex align-items-center p-0 text-dark back"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'chevron-left']"
-            class="back-icon mr-1"
-          />
-          {{ $t('general:label.back') }}
-        </b-button>
-      </b-col>
-
-      <b-col
-        class="d-flex justify-content-center"
+    <template #start>
+      <b-button
+        v-if="backLink"
+        data-test-id="button-back"
+        variant="link"
+        size="lg"
+        :to="backLink"
+        class="text-dark back text-left text-nowrap p-1"
       >
-        <slot />
-      </b-col>
-
-      <b-col
-        class="d-flex justify-content-end"
-      >
-        <c-input-confirm
-          v-if="!hideDelete"
-          class="mr-1"
-          size="lg"
-          size-confirm="lg"
-          variant="danger"
-          :disabled="deleteDisabled || processingDelete"
-          :processing="processingDelete"
-          :text="$t('general:label.delete')"
-          :borderless="false"
-          @confirmed="$emit('delete')"
+        <font-awesome-icon
+          :icon="['fas', 'chevron-left']"
+          class="back-icon"
         />
+        {{ $t('general:label.back') }}
+      </b-button>
+    </template>
 
-        <c-button-submit
-          data-test-id="button-save"
-          :disabled="saveDisabled || processing"
-          :processing="processingSave"
-          :text="$t('general:label.save')"
-          size="lg"
-          @submit="$emit('save')"
-        />
-      </b-col>
-    </b-row>
-  </b-container>
+    <template #center>
+      <slot />
+    </template>
+
+    <template #end>
+      <c-input-confirm
+        v-if="!hideDelete"
+        size="lg"
+        size-confirm="lg"
+        variant="danger"
+        :disabled="deleteDisabled || processingDelete"
+        :processing="processingDelete"
+        :text="$t('general:label.delete')"
+        :borderless="false"
+        class="d-flex flex-column"
+        @confirmed="$emit('delete')"
+      />
+
+      <c-button-submit
+        data-test-id="button-save"
+        :disabled="saveDisabled || processing"
+        :processing="processingSave"
+        :text="$t('general:label.save')"
+        size="lg"
+        @submit="$emit('save')"
+      />
+    </template>
+  </c-toolbar>
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+const { CToolbar } = components
 
 export default {
+  components: {
+    CToolbar,
+  },
+
   props: {
     backLink: {
       type: Object,

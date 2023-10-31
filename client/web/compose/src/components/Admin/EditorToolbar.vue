@@ -1,103 +1,96 @@
 <template>
-  <b-container
-    fluid
+  <c-toolbar
     data-test-id="editor-toolbar"
-    class="bg-white shadow border-top p-3"
+    class="bg-white shadow border-top"
   >
-    <b-row
-      no-gutters
-      class="gap-1 gap-col-3 flex-column flex-md-row align-items-md-center"
-    >
-      <div
-        class="d-flex gap-1 align-items-center"
+    <template #start>
+      <b-button
+        data-test-id="button-back-without-save"
+        variant="link"
+        :disabled="processing"
+        class="text-dark back text-left text-nowrap p-1"
+        @click="$emit('back')"
       >
-        <b-button
-          data-test-id="button-back-without-save"
-          variant="link"
-          :disabled="processing"
-          class="text-dark back mr-auto p-1"
-          @click="$emit('back')"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'chevron-left']"
-            class="back-icon"
-          />
-          {{ $t('label.backWithoutSave') }}
-        </b-button>
-      </div>
-
-      <div
-        class="ml-md-auto d-flex flex-column d-inline-block-md"
-      >
-        <slot />
-      </div>
-
-      <div
-        class="d-flex gap-1 flex-md-row flex-column align-items-md-center ml-md-auto"
-      >
-        <slot name="delete" />
-
-        <c-input-confirm
-          v-if="!hideDelete"
-          v-b-tooltip.hover
-          :disabled="disableDelete || processing"
-          :processing="processingDelete"
-          :text="$t('label.delete')"
-          size="lg"
-          size-confirm="lg"
-          variant="danger"
-          :title="deleteTooltip"
-          :borderless="false"
-          class="d-flex flex-column"
-          @confirmed="$emit('delete')"
+        <font-awesome-icon
+          :icon="['fas', 'chevron-left']"
+          class="back-icon"
         />
+        {{ $t('label.backWithoutSave') }}
+      </b-button>
+    </template>
 
-        <slot name="saveAsCopy" />
+    <template #center>
+      <slot />
+    </template>
 
-        <c-button-submit
-          v-if="!hideClone"
-          data-test-id="button-clone"
-          :disabled="disableClone || processing"
-          :title="cloneTooltip"
-          :processing="processingClone"
-          variant="light"
-          :text="$t('label.saveAsCopy')"
-          size="lg"
-          class="ml-md-2"
-          @submit="$emit('clone')"
-        />
+    <template #end>
+      <slot name="delete" />
 
-        <c-button-submit
-          v-if="!hideSave"
-          data-test-id="button-save-and-close"
-          :disabled="disableSave || processing"
-          :processing="processingSaveAndClose"
-          variant="light"
-          :text="$t('label.saveAndClose')"
-          size="lg"
-          class="ml-md-2"
-          @submit="$emit('saveAndClose')"
-        />
+      <c-input-confirm
+        v-if="!hideDelete"
+        v-b-tooltip.hover
+        :disabled="disableDelete || processing"
+        :processing="processingDelete"
+        :text="$t('label.delete')"
+        size="lg"
+        size-confirm="lg"
+        variant="danger"
+        :title="deleteTooltip"
+        :borderless="false"
+        class="d-flex flex-column"
+        @confirmed="$emit('delete')"
+      />
 
-        <c-button-submit
-          v-if="!hideSave"
-          data-test-id="button-save"
-          :disabled="disableSave || processing"
-          :processing="processingSave"
-          :text="$t('label.save')"
-          size="lg"
-          class="ml-md-2"
-          @submit="$emit('save')"
-        />
-      </div>
-    </b-row>
-  </b-container>
+      <slot name="saveAsCopy" />
+
+      <c-button-submit
+        v-if="!hideClone"
+        data-test-id="button-clone"
+        :disabled="disableClone || processing"
+        :title="cloneTooltip"
+        :processing="processingClone"
+        variant="light"
+        :text="$t('label.saveAsCopy')"
+        size="lg"
+        class="text-nowrap"
+        @submit="$emit('clone')"
+      />
+
+      <c-button-submit
+        v-if="!hideSave"
+        data-test-id="button-save-and-close"
+        :disabled="disableSave || processing"
+        :processing="processingSaveAndClose"
+        variant="light"
+        :text="$t('label.saveAndClose')"
+        size="lg"
+        class="text-nowrap"
+        @submit="$emit('saveAndClose')"
+      />
+
+      <c-button-submit
+        v-if="!hideSave"
+        data-test-id="button-save"
+        :disabled="disableSave || processing"
+        :processing="processingSave"
+        :text="$t('label.save')"
+        size="lg"
+        @submit="$emit('save')"
+      />
+    </template>
+  </c-toolbar>
 </template>
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+const { CToolbar } = components
 
 export default {
   i18nOptions: {
     namespaces: 'general',
+  },
+
+  components: {
+    CToolbar,
   },
 
   inheritAttrs: true,

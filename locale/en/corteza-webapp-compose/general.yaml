@@ -94,6 +94,7 @@ navigation:
   namespace: Namespaces
   module: Modules
   page: Pages
+  pageLayout: Page Layouts
 placeholder:
   handle: handle (a - z, 0 - 9, underscore, dash)
   sample: Sample

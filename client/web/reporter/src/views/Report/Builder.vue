@@ -383,7 +383,6 @@
           <font-awesome-icon
             :icon="['fas', 'plus']"
             size="sm"
-            class="mr-1"
           />
           {{ $t('general:label.add') }}
         </b-button>

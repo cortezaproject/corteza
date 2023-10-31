@@ -33,63 +33,57 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
-        <div
-          class="wrap-with-vertical-gutters"
+        <b-dropdown
+          v-if="namespace.canCreateChart"
+          variant="primary"
+          size="lg"
+          :text="$t('chart.add')"
         >
-          <b-dropdown
-            v-if="namespace.canCreateChart"
-            variant="primary"
-            size="lg"
-            class="float-left mr-1"
-            :text="$t('chart.add')"
+          <b-dropdown-item-button
+            variant="dark"
+            @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })"
           >
-            <b-dropdown-item-button
-              variant="dark"
-              @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })"
-            >
-              {{ $t('chart.addGeneric') }}
-            </b-dropdown-item-button>
-            <b-dropdown-item-button
-              variant="dark"
-              @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })"
-            >
-              {{ $t('chart.addFunnel') }}
-            </b-dropdown-item-button>
-            <b-dropdown-item-button
-              variant="dark"
-              @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })"
-            >
-              {{ $t('chart.addGauge') }}
-            </b-dropdown-item-button>
-            <b-dropdown-item-button
-              variant="dark"
-              @click="$router.push({ name: 'admin.charts.create', params: { category: 'radar' } })"
-            >
-              {{ $t('chart.addRadar') }}
-            </b-dropdown-item-button>
-          </b-dropdown>
+            {{ $t('chart.addGeneric') }}
+          </b-dropdown-item-button>
+          <b-dropdown-item-button
+            variant="dark"
+            @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })"
+          >
+            {{ $t('chart.addFunnel') }}
+          </b-dropdown-item-button>
+          <b-dropdown-item-button
+            variant="dark"
+            @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })"
+          >
+            {{ $t('chart.addGauge') }}
+          </b-dropdown-item-button>
+          <b-dropdown-item-button
+            variant="dark"
+            @click="$router.push({ name: 'admin.charts.create', params: { category: 'radar' } })"
+          >
+            {{ $t('chart.addRadar') }}
+          </b-dropdown-item-button>
+        </b-dropdown>
 
-          <import
-            v-if="namespace.canCreateChart"
-            :namespace="namespace"
-            type="chart"
-            class="float-left mr-1"
-            @importSuccessful="onImportSuccessful"
-          />
+        <import
+          v-if="namespace.canCreateChart"
+          :namespace="namespace"
+          type="chart"
+          @importSuccessful="onImportSuccessful"
+        />
 
-          <export
-            :list="charts"
-            type="chart"
-            class="float-left mr-1"
-          />
-          <c-permissions-button
-            v-if="namespace.canGrant"
-            :resource="`corteza::compose:chart/${namespace.namespaceID}/*`"
-            :button-label="$t('general.label.permissions')"
-            button-variant="light"
-            class="btn-lg"
-          />
-        </div>
+        <export
+          :list="charts"
+          type="chart"
+        />
+
+        <c-permissions-button
+          v-if="namespace.canGrant"
+          :resource="`corteza::compose:chart/${namespace.namespaceID}/*`"
+          :button-label="$t('general.label.permissions')"
+          button-variant="light"
+          class="btn-lg"
+        />
       </template>
 
       <template #actions="{ item: c }">

@@ -73,7 +73,7 @@
             :key="index"
             :variant="action.meta.style.variant"
             size="lg"
-            class="ml-2"
+            class="text-nowrap"
             @click.prevent="handleAction(action)"
           >
             {{ action.meta.label }}
@@ -86,6 +86,7 @@
             :key="index"
             :variant="action.meta.style.variant"
             size="lg"
+            class="text-nowrap"
             @click.prevent="handleAction(action)"
           >
             {{ action.meta.label }}
@@ -98,7 +99,7 @@
             :key="index"
             :variant="action.meta.style.variant"
             size="lg"
-            class="ml-2"
+            class="text-nowrap"
             @click.prevent="handleAction(action)"
           >
             {{ action.meta.label }}

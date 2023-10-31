@@ -274,7 +274,6 @@
           data-test-id="button-add-block"
           variant="light"
           size="lg"
-          class="mr-1"
         >
           + {{ $t('build.addBlock') }}
         </b-button>
@@ -287,7 +286,6 @@
             :disabled="processing"
             size="lg"
             variant="light"
-            class="ml-md-2"
           >
             <b-dropdown-item
               data-test-id="dropdown-item-saveAsCopy-ref"
