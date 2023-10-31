@@ -1508,7 +1508,7 @@ export default {
 }
 
 .list-background {
-  background-color: $body-bg;
+  background-color: var(--body-bg);
 }
 
 .layout-actions {
