@@ -39,11 +39,13 @@
             class="ml-2"
           />
         </b-button>
+
         <page-translator
           :page.sync="trPage"
           :page-layout.sync="layout"
           style="margin-left:2px;"
         />
+
         <b-button
           variant="primary"
           :title="$t('tooltip.edit.page')"
@@ -204,14 +206,26 @@
     </b-modal>
 
     <b-modal
-      :title="$t('changeBlock')"
       size="xl"
       :visible="showEditor"
       body-class="p-0 border-top-0"
       footer-class="d-flex justify-content-between"
-      header-class="p-3 pb-0 border-bottom-0"
       @hide="editor = undefined"
     >
+      <template #modal-title>
+        <div class="d-flex gap-1 align-items-center">
+          <h5 class="mb-0">
+            {{ $t('changeBlock') }}
+          </h5>
+          <font-awesome-icon
+            v-if="isEditorBlockReferenced"
+            v-b-popover.hover.right="{ content: 'This block is used in other layouts' }"
+            :icon="['fas', 'exclamation-circle']"
+            class="text-warning"
+          />
+        </div>
+      </template>
+
       <configurator
         v-if="showEditor"
         :namespace="namespace"
@@ -474,6 +488,27 @@ export default {
         ...this.blocks.filter(({ blockID }) => !tabbedIDs.has(blockID)),
         ...this.page.blocks.filter(({ blockID }) => tabbedIDs.has(blockID)),
       ]
+    },
+
+    otherLayoutBlocks () {
+      let set
+      if (!set) {
+        set = new Set()
+      }
+
+      return set
+    },
+
+    isEditorBlockReferenced () {
+      if (!this.editor || this.editor.block.blockID === NoID) return
+
+      // All blockIDs in other layouts except this one
+      const otherLayoutBlockIDs = this.layouts.reduce((acc, { blocks, pageLayoutID }) => {
+        if (pageLayoutID === this.layout.pageLayoutID) return acc
+        blocks.forEach(({ blockID }) => acc.add(blockID))
+        return acc
+      }, this.otherLayoutBlocks)
+      return otherLayoutBlockIDs.has(this.editor.block.blockID)
     },
   },
 

@@ -61,6 +61,7 @@ import {
   faQuestion,
   faSync,
   faExclamationTriangle,
+  faExclamationCircle,
   faEllipsisV,
   faLocationArrow,
   faTools,
@@ -176,4 +177,5 @@ library.add(
   faEllipsisV,
   faLocationArrow,
   faTools,
+  faExclamationCircle,
 )
