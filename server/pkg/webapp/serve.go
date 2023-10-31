@@ -154,7 +154,7 @@ func serveConfig(r chi.Router, config webappConfig) {
 
 		ctx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
 
-		stylesheet, err := service.GenerateCSS(ctx, config.settings.UI.Studio.BrandingSASS, config.settings.UI.Studio.CustomCSS, config.scssDirPath)
+		stylesheet, err := service.GenerateCSS(ctx, config.settings.UI.Studio.BrandingSASS, config.settings.UI.CustomCSS, config.scssDirPath)
 		if err != nil {
 			logger.Default().Error("failed to generate CSS", zap.Error(err))
 		}

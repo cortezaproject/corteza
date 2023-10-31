@@ -107,14 +107,14 @@ export default {
     settings: {
       immediate: true,
       handler (settings) {
-        this.customCSS = settings['ui.studio.custom-css'] || ''
+        this.customCSS = settings['ui.custom-css'] || ''
       },
     },
   },
 
   methods: {
     onSubmit () {
-      this.$emit('submit', { 'ui.studio.custom-css': this.customCSS })
+      this.$emit('submit', { 'ui.custom-css': this.customCSS })
     },
 
     openEditorModal () {
