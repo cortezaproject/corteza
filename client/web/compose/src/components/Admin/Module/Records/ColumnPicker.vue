@@ -11,12 +11,20 @@
       id="columns"
       size="lg"
       scrollable
-      :title="$t('allRecords.columns.title')"
       :ok-title="$t('general.label.saveAndClose')"
       cancel-variant="link"
       body-class="p-0"
+      title-class="d-flex align-items-center p-0"
       @ok="onSave"
     >
+      <template #modal-title>
+        {{ $t('allRecords.columns.title') }}
+        <c-hint
+          :tooltip="$t('allRecords.tooltip.configureColumns')"
+          icon-class="text-warning"
+        />
+      </template>
+
       <b-card-body
         class="d-flex flex-column mh-100"
       >

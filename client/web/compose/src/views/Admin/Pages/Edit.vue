@@ -477,9 +477,15 @@
       </h5>
 
       <b-form-group
-        :label="$t('page-layout.condition.label')"
-        label-class="text-primary"
+        label-class="d-flex align-items-center text-primary mb-0"
       >
+        <template #label>
+          {{ $t('page-layout.condition.label') }}
+          <c-hint
+            :tooltip="$t('page-layout.tooltip.performance.condition')"
+            icon-class="text-warning"
+          />
+        </template>
         <b-input-group>
           <b-input-group-prepend>
             <b-button variant="dark">

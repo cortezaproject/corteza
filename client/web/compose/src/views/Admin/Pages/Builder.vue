@@ -200,7 +200,7 @@
           </h5>
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
-            v-b-tooltip.hover.right="{ title: $t('referencedBlock') }"
+            v-b-tooltip.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />
@@ -233,7 +233,7 @@
           </h5>
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
-            v-b-tooltip.hover.right="{ title: $t('referencedBlock') }"
+            v-b-tooltip.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />

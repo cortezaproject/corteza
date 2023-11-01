@@ -38,9 +38,16 @@
             md="6"
           >
             <b-form-group
-              :label="$t('recordList.record.inlineEditorAllow')"
-              label-class="text-primary"
+              label-class="d-flex align-items-center text-primary"
             >
+              <template #label>
+                {{ $t('recordList.record.inlineEditorAllow') }}
+                <c-hint
+                  :tooltip="$t('recordList.tooltip.performance.impact')"
+                  icon-class="text-warning"
+                />
+              </template>
+
               <c-input-checkbox
                 v-model="options.editable"
                 switch
@@ -56,9 +63,14 @@
 
         <div class="px-3">
           <div class="mb-3">
-            <h5 class="mb-1">
+            <h5 class="d-flex align-items-center text-primary mb-1">
               {{ $t('module:general.fields') }}
+              <c-hint
+                :tooltip="$t('recordList.tooltip.performance.moduleFields')"
+                icon-class="text-warning"
+              />
             </h5>
+
             <small class="text-muted">
               {{ $t('recordList.moduleFieldsFootnote') }}
             </small>
@@ -71,8 +83,21 @@
               <field-picker
                 :module="recordListModule"
                 :fields.sync="options.fields"
+                class="mb-2"
                 style="height: 40vh;"
               />
+
+              <b-form-group
+                :label="$t('recordList.hideConfigureFieldsButton')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.hideConfigureFieldsButton"
+                  switch
+                  invert
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
             </b-col>
           </b-row>
         </div>
@@ -463,9 +488,16 @@
               <b-form-group
                 horizontal
                 breakpoint="md"
-                :label="$t('recordList.record.perPage')"
-                label-class="text-primary"
+                label-class="d-flex align-items-center text-primary p-0"
               >
+                <template #label>
+                  {{ $t('recordList.record.perPage') }}
+                  <c-hint
+                    :tooltip="$t('recordList.tooltip.performance.perPage')"
+                    icon-class="text-warning"
+                  />
+                </template>
+
                 <b-form-input
                   v-model.number="options.perPage"
                   data-test-id="input-records-per-page"
@@ -517,9 +549,16 @@
               md="6"
             >
               <b-form-group
-                :label="$t('recordList.record.fullPageNavigation')"
-                label-class="text-primary"
+                label-class="d-flex align-items-center text-primary p-0"
               >
+                <template #label>
+                  {{ $t('recordList.record.fullPageNavigation') }}
+                  <c-hint
+                    :tooltip="$t('recordList.tooltip.performance.impact')"
+                    icon-class="text-warning"
+                  />
+                </template>
+
                 <c-input-checkbox
                   v-model="options.fullPageNavigation"
                   switch
@@ -693,9 +732,15 @@
               md="6"
             >
               <b-form-group
-                :label="$t('recordList.enableRecordPageNavigation')"
-                label-class="text-primary"
+                label-class="d-flex align-items-center text-primary mb-0"
               >
+                <template #label>
+                  {{ $t('recordList.enableRecordPageNavigation') }}
+                  <c-hint
+                    :tooltip="$t('recordList.tooltip.performance.impact')"
+                    icon-class="text-warning"
+                  />
+                </template>
                 <c-input-checkbox
                   v-model="options.enableRecordPageNavigation"
                   switch
@@ -752,10 +797,6 @@
 
                 <b-form-checkbox v-model="options.hideRecordReminderButton">
                   {{ $t('recordList.hideRecordReminderButton') }}
-                </b-form-checkbox>
-
-                <b-form-checkbox v-model="options.hideConfigureFieldsButton">
-                  {{ $t('recordList.hideConfigureFieldsButton') }}
                 </b-form-checkbox>
               </b-form-group>
             </b-col>

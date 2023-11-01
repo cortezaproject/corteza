@@ -258,13 +258,15 @@ record:
   openInNewTab: Open record in a new tab
   openInModal: Open record in a modal
   fieldConditions:
-    label: Field conditions
+    label: Conditional fields
     action: + Add
     placeholder: When should this field be displayed?
     selectPlaceholder: Select field
     help: Example
     field: Field
     condition: Condition
+    tooltip:
+      performance: Using conditional fields will impact performance
 recordList:
   addRecord: Add
   cancelSelection: Cancel
@@ -290,6 +292,10 @@ recordList:
       label: 'Chart drill down'
   tooltip:
     deleteSelected: Delete selected records
+    performance:
+      impact: Using this feature will impact performance
+      moduleFields: Selecting a large number of fields or displaying record/user fields will impact performance
+      perPage: Displaying a large amount of records per page will impact performance, especially if you are displaying record/user fields
     restoreSelected: Restore selected records
   editFields: Editable module fields
   export:
@@ -372,8 +378,8 @@ recordList:
   hideRecordEditButton: Hide edit record button
   hideRecordPermissionsButton: Hide record permissions button
   hideRecordReminderButton: Hide record reminder button
-  hideConfigureFieldsButton: Hide configure columns
   hideRecordViewButton: Hide view record button
+  hideConfigureFieldsButton: Users will be able to configure which fields to display
   enableRecordPageNavigation: Users will be able to navigate to previous/next record
   import:
     dropzoneFileAdded: '{{name}} was uploaded and is ready for import ({{count}} record)'

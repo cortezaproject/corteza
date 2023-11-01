@@ -127,6 +127,11 @@
       <h5 class="d-flex align-items-center justify-content-between mb-3">
         {{ $t('record.fieldConditions.label') }}
 
+        <c-hint
+          :tooltip="$t('record.fieldConditions.tooltip.performance')"
+          icon-class="text-warning"
+        />
+
         <b-button
           variant="link"
           :href="`${documentationURL}#value-sanitizers`"

@@ -5,31 +5,27 @@
     <b-form-group
       :label="$t('sanitizers.label')"
       label-size="lg"
-      label-class="text-primary"
+      label-class="d-flex align-items-center text-primary"
     >
       <template #label>
-        <div
-          class="d-flex"
+        {{ $t('sanitizers.label') }}
+
+        <b-button
+          variant="link"
+          class="p-0 ml-1 mr-auto"
+          @click="field.expressions.sanitizers.push('')"
         >
-          {{ $t('sanitizers.label') }}
+          {{ $t('sanitizers.add') }}
+        </b-button>
 
-          <b-button
-            variant="link"
-            class="p-0 ml-1 mr-auto"
-            @click="field.expressions.sanitizers.push('')"
-          >
-            {{ $t('sanitizers.add') }}
-          </b-button>
-
-          <b-button
-            variant="link"
-            :href="`${documentationURL}#value-sanitizers`"
-            target="_blank"
-            class="p-0 ml-1"
-          >
-            {{ $t('sanitizers.examples') }}
-          </b-button>
-        </div>
+        <b-button
+          variant="link"
+          :href="`${documentationURL}#value-sanitizers`"
+          target="_blank"
+          class="p-0 ml-1"
+        >
+          {{ $t('sanitizers.examples') }}
+        </b-button>
       </template>
 
       <field-expressions
@@ -46,32 +42,28 @@
 
     <b-form-group
       label-size="lg"
-      label-class="text-primary"
+      label-class="d-flex text-primary"
       class="mt-3"
     >
       <template #label>
-        <div
-          class="d-flex"
+        {{ $t('validators.label') }}
+
+        <b-button
+          variant="link"
+          class="p-0 ml-1 mr-auto"
+          @click="field.expressions.validators.push({ test: '', error: '' })"
         >
-          {{ $t('validators.label') }}
+          {{ $t('sanitizers.add') }}
+        </b-button>
 
-          <b-button
-            variant="link"
-            class="p-0 ml-1 mr-auto"
-            @click="field.expressions.validators.push({ test: '', error: '' })"
-          >
-            {{ $t('sanitizers.add') }}
-          </b-button>
-
-          <b-button
-            variant="link"
-            :href="`${documentationURL}#value-validators`"
-            target="_blank"
-            class="p-0 ml-1"
-          >
-            {{ $t('sanitizers.examples') }}
-          </b-button>
-        </div>
+        <b-button
+          variant="link"
+          :href="`${documentationURL}#value-validators`"
+          target="_blank"
+          class="p-0 ml-1"
+        >
+          {{ $t('sanitizers.examples') }}
+        </b-button>
       </template>
 
       <field-expressions
@@ -121,8 +113,19 @@
 
     <hr>
 
-    <div>
-      <h5>{{ $t('constraints.label') }}</h5>
+    <b-form-group
+      label-size="lg"
+      label-class="d-flex align-items-center text-primary"
+      class="mt-3"
+    >
+      <template #label>
+        {{ $t('constraints.label') }}
+        <c-hint
+          :tooltip="$t('constraints.tooltip.performance')"
+          icon-class="text-warning"
+        />
+      </template>
+
       <b-form-checkbox
         v-model="fieldConstraint.exists"
         class="mt-3"
@@ -173,7 +176,7 @@
           </i>
         </b-col>
       </b-row>
-    </div>
+    </b-form-group>
   </div>
 </template>
 

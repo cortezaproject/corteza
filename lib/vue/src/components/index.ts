@@ -89,4 +89,8 @@ export {
   CToolbar,
 } from './toolbar'
 
+export {
+  CHint,
+} from './hint'
+
 export { default as C3 } from './c3'

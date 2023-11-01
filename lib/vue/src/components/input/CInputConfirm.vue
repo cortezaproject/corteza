@@ -23,6 +23,7 @@
           <font-awesome-icon
             v-if="showIcon"
             :icon="icon"
+            :class="iconClass"
           />
           <span
             v-if="text"
@@ -85,6 +86,11 @@ export default {
     },
 
     buttonClass: {
+      type: String,
+      default: '',
+    },
+
+    iconClass: {
       type: String,
       default: '',
     },

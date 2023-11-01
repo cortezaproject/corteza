@@ -11,6 +11,8 @@ page-layout:
     title: Use the layout title instead of the record page default. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     configure: Configure layout
     builder: Open layout in builder
+    performance:
+      condition: Using visibility conditions will impact performance
   condition:
     label: Condition
     placeholder: When will the layout be shown

@@ -109,6 +109,8 @@ kind:
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     prefilterLabel: Prefilter records
     prefilterPlaceholder: field1 = 1 AND field2 = 232
+    tooltip:
+      moduleField: Selecting a record field will impact performance
   select:
     allow-duplicates: Allow duplicates
     label: Select
@@ -240,7 +242,7 @@ label:
   required: Required
   multi: Multi value
 constraints:
-  label: Unique value constraint
+  label: Unique value constraints
   description: Use unique value constraints for this field
   ignoreCase: Ignore case
   fuzzyMatch: Fuzzy match
@@ -252,3 +254,6 @@ constraints:
   valueModifiers: Value modifiers
   multiValues: Multi-field values
   totalFieldConstraintCount: The field is used in {{total}} other unique value constraint. See "unique values" tab on module editor.
+  tooltip:
+    performance: Using unique value constraints will impact performance
+

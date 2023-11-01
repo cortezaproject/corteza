@@ -15,10 +15,15 @@
     <template
       v-if="selectedModule"
     >
-      <b-form-group
-        :label="$t('kind.record.moduleField')"
-        label-class="text-primary"
-      >
+      <b-form-group label-class="d-flex align-items-center text-primary p-0">
+        <template #label>
+          {{ $t('kind.record.moduleField') }}
+          <c-hint
+            :tooltip="$t('kind.record.tooltip.moduleField')"
+            icon-class="text-warning"
+          />
+        </template>
+
         <b-form-select
           v-model="f.options.labelField"
           :options="fieldOptions"

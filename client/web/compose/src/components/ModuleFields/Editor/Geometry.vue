@@ -21,9 +21,7 @@
           {{ label }}
         </span>
 
-        <hint
-          :text="hint"
-        />
+        <c-hint :tooltip="hint" />
 
         <slot name="tools" />
       </div>

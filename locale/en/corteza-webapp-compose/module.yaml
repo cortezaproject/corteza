@@ -9,6 +9,8 @@ allRecords:
   columns:
     title: Configure columns
     description: The columns picked won't be saved after you refresh the page
+  tooltip:
+    configureColumns: Selecting a large number of fields or displaying record/user fields will impact performance
   view:
     title: View record for module "{{name}}"
 block:
@@ -205,6 +207,8 @@ edit:
       none: None
       addNewConstraint: Add new constraint
       uniqueValueConstraint: "Unique value constraint #{{index}}"
+      tooltip:
+        performance: Using unique value constraints will impact performance
 
 federated: Federated
 forModule:

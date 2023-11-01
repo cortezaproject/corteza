@@ -22,37 +22,32 @@
           :label-cols-xl="options.horizontalFieldLayoutEnabled && '4'"
           :content-cols-md="options.horizontalFieldLayoutEnabled && '7'"
           :content-cols-xl="options.horizontalFieldLayoutEnabled && '8'"
+          label-class="d-flex align-items-center text-primary mb-0"
           class="field-container mb-3 px-3"
         >
           <template #label>
+            <span class="d-inline-block mw-100 py-1">
+              {{ field.label || field.name }}
+            </span>
+
+            <c-hint :tooltip="((field.options.hint || {}).view || '')" />
+
             <div
-              class="d-flex align-items-center text-primary mb-0"
+              v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
+              class="inline-actions ml-2"
             >
-              <span class="d-inline-block mw-100 py-1">
-                {{ field.label || field.name }}
-              </span>
-
-              <hint
-                :text="((field.options.hint || {}).view || '')"
-              />
-
-              <div
-                v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
-                class="inline-actions ml-2"
+              <b-button
+                :title="$t('field.inlineEdit.button.title')"
+                variant="outline-light"
+                size="sm"
+                :disabled="editable"
+                class="text-secondary border-0"
+                @click="editInlineField(fieldRecord, field)"
               >
-                <b-button
-                  :title="$t('field.inlineEdit.button.title')"
-                  variant="outline-light"
-                  size="sm"
-                  :disabled="editable"
-                  class="text-secondary border-0"
-                  @click="editInlineField(fieldRecord, field)"
-                >
-                  <font-awesome-icon
-                    :icon="['fas', 'pen']"
-                  />
-                </b-button>
-              </div>
+                <font-awesome-icon
+                  :icon="['fas', 'pen']"
+                />
+              </b-button>
             </div>
 
             <div
@@ -106,7 +101,6 @@ import axios from 'axios'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/BulkEdit'
-import Hint from 'corteza-webapp-compose/src/components/Common/Hint.vue'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
 import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
@@ -118,7 +112,6 @@ export default {
 
   components: {
     FieldViewer,
-    Hint,
     BulkEditModal,
   },
 

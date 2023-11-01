@@ -35,19 +35,14 @@
             :label-cols-xl="horizontal && '4'"
             :content-cols-md="horizontal && '7'"
             :content-cols-xl="horizontal && '8'"
+            label-class="d-flex align-items-center text-primary mb-0"
           >
             <template #label>
-              <div
-                class="d-flex align-items-center text-primary mb-0"
-              >
-                <span class="d-inline-block text-truncate mw-100 py-1">
-                  {{ field.label || field.name }}
-                </span>
+              <span class="d-inline-block text-truncate mw-100 py-1">
+                {{ field.label || field.name }}
+              </span>
 
-                <hint
-                  :text="((field.options.hint || {}).view || '')"
-                />
-              </div>
+              <c-hint :tooltip="((field.options.hint || {}).view || '')" />
             </template>
 
             <div
@@ -82,7 +77,6 @@ import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
-import Hint from 'corteza-webapp-compose/src/components/Common/Hint.vue'
 import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
 import { debounce } from 'lodash'
 
@@ -94,7 +88,6 @@ export default {
   components: {
     FieldEditor,
     FieldViewer,
-    Hint,
   },
 
   extends: base,

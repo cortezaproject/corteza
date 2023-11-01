@@ -1,5 +1,11 @@
 <template>
   <div>
+    <c-hint
+      :tooltip="$t('tooltip.performance')"
+      icon-class="text-warning"
+      class="float-right"
+    />
+
     <div
       v-for="(rule, index) in rules"
       :key="index"

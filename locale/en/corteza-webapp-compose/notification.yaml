@@ -163,7 +163,7 @@ record:
   validationWarnings: Record saved successfully, check warning messages on the form
   staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?
   fieldConditions:
-    failed: Failed to evaluate record block field conditions
+    failed: Failed to evaluate record block conditional fields
 record-list:
   corrupted-filter: Corrupted filter
   corrupted-configured-fields: Corrupted configured columns
