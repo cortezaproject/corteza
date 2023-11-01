@@ -58,7 +58,6 @@ page-layout:
 
 block:
   general:
-    changeBlock: Change existing block
     label:
       cancel: Cancel
       noHandle: No handle
@@ -70,6 +69,7 @@ block:
     title: Add new block
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
 changeBlock: Change existing block
+referencedBlock: This block is used in other layouts
 copyOf: "Copy of {{title}}"
 build:
   addBlock: Add block

@@ -127,7 +127,6 @@ file:
   preview:
     label: File block
 general:
-  changeBlock: Change existing block
   descriptionLabel: Description
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)

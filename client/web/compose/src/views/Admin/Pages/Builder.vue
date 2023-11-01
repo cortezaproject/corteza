@@ -182,7 +182,6 @@
     </b-modal>
 
     <b-modal
-      :title="$t('block.general.title')"
       :ok-title="$t('build.addBlock')"
       ok-variant="primary"
       cancel-variant="link"
@@ -194,6 +193,20 @@
       @ok="updateBlocks()"
       @hide="editor = undefined"
     >
+      <template #modal-title>
+        <div class="d-flex gap-1 align-items-center">
+          <h5 class="mb-0">
+            {{ $t('block.general.title') }}
+          </h5>
+          <font-awesome-icon
+            v-if="isEditorBlockReferenced"
+            v-b-tooltip.hover.right="{ title: $t('referencedBlock') }"
+            :icon="['fas', 'exclamation-circle']"
+            class="text-warning"
+          />
+        </div>
+      </template>
+
       <configurator
         v-if="showCreator"
         :namespace="namespace"
@@ -210,6 +223,7 @@
       :visible="showEditor"
       body-class="p-0 border-top-0"
       footer-class="d-flex justify-content-between"
+      header-class="p-3 pb-0 border-bottom-0"
       @hide="editor = undefined"
     >
       <template #modal-title>
@@ -219,7 +233,7 @@
           </h5>
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
-            v-b-popover.hover.right="{ content: 'This block is used in other layouts' }"
+            v-b-tooltip.hover.right="{ title: $t('referencedBlock') }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />
@@ -490,25 +504,25 @@ export default {
       ]
     },
 
-    otherLayoutBlocks () {
-      let set
-      if (!set) {
-        set = new Set()
-      }
+    // Set of blockIDs used on other layouts
+    otherLayoutBlockIDs () {
+      const set = new Set()
 
-      return set
+      return this.layouts.reduce((acc, { blocks, pageLayoutID }) => {
+        if (pageLayoutID === this.layout.pageLayoutID) return acc
+
+        blocks.forEach(({ blockID }) => acc.add(blockID))
+
+        return acc
+      }, set)
     },
 
+    // Is block open in editor referenced on other layouts
     isEditorBlockReferenced () {
-      if (!this.editor || this.editor.block.blockID === NoID) return
+      const { block } = this.editor || {}
+      if (!block || block.blockID === NoID) return
 
-      // All blockIDs in other layouts except this one
-      const otherLayoutBlockIDs = this.layouts.reduce((acc, { blocks, pageLayoutID }) => {
-        if (pageLayoutID === this.layout.pageLayoutID) return acc
-        blocks.forEach(({ blockID }) => acc.add(blockID))
-        return acc
-      }, this.otherLayoutBlocks)
-      return otherLayoutBlockIDs.has(this.editor.block.blockID)
+      return this.otherLayoutBlockIDs.has(this.editor.block.blockID)
     },
   },
 
