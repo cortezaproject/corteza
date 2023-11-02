@@ -1,11 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
     header-bg-variant="white"
-    footer-bg-variant="white"
+    class="shadow-sm"
   >
-    <b-row>
-      <b-col cols="8">
+    <div class="d-flex align-items-center flex-wrap">
+      <div>
         <span
           v-if="mfa.enforcedEmailOTP"
           v-html="$t('emailOTP.enabled.text')"
@@ -14,11 +13,8 @@
           v-else
           v-html="$t('emailOTP.disabled.text')"
         />
-      </b-col>
-      <b-col
-        cols="4"
-        class="text-right"
-      >
+      </div>
+      <div class="ml-auto">
         <b-button
           v-if="mfa.enforcedEmailOTP"
           @click="$emit('patch', '/meta/securityPolicy/mfa/enforcedEmailOTP', false)"
@@ -31,10 +27,11 @@
         >
           {{ $t('emailOTP.enable.label') }}
         </b-button>
-      </b-col>
-    </b-row>
-    <b-row class="mt-2 pt-2 border-top">
-      <b-col cols="8">
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center justify-content-between flex-wrap mt-2 pt-2 border-top">
+      <div>
         <span
           v-if="mfa.enforcedTOTP"
           v-html="$t('TOTP.enabled.text')"
@@ -43,19 +40,16 @@
           v-else
           v-html="$t('TOTP.disabled.text')"
         />
-      </b-col>
-      <b-col
-        cols="4"
-        class="text-right"
-      >
+      </div>
+      <div class="ml-auto">
         <b-button
           :disabled="!mfa.enforcedTOTP"
           @click="$emit('patch', '/meta/securityPolicy/mfa/enforcedTOTP', false)"
         >
           {{ $t('TOTP.remove.label') }}
         </b-button>
-      </b-col>
-    </b-row>
+      </div>
+    </div>
     <template #header>
       <h3 class="m-0">
         {{ $t('title') }}

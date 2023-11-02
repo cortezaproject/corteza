@@ -63,7 +63,7 @@
       <div
         v-if="rule.constraints && rule.constraints.length > 0"
         class="rounded border border-light p-3"
-        style="background-color: #F9FAFB;"
+        style="background-color: var(--gray-200);"
       >
         <b-table-simple
           borderless

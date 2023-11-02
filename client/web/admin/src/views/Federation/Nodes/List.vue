@@ -2,26 +2,7 @@
   <b-container
     fluid="xl"
   >
-    <c-content-header
-      :title="$t('title')"
-    >
-      <b-button
-        v-if="canCreate"
-        variant="primary"
-        class="mr-2"
-        :to="{ name: 'federation.nodes.new' }"
-      >
-        {{ $t('new') }}
-      </b-button>
-
-      <b-button
-        v-if="canCreate"
-        variant="light"
-        @click="openPairModal()"
-      >
-        {{ $t('pair.label') }}
-      </b-button>
-    </c-content-header>
+    <c-content-header :title="$t('title')" />
 
     <c-resource-list
       :primary-key="primaryKey"
@@ -47,6 +28,26 @@
       @row-clicked="handleRowClicked"
       @search="filterList"
     >
+      <template #header>
+        <b-button
+          v-if="canCreate"
+          variant="primary"
+          size="lg"
+          :to="{ name: 'federation.nodes.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+
+        <b-button
+          v-if="canCreate"
+          variant="light"
+          size="lg"
+          @click="openPairModal()"
+        >
+          {{ $t('pair.label') }}
+        </b-button>
+      </template>
+
       <template #actions="{ item: n }">
         <b-dropdown
           v-if="n.nodeID === n.sharedNodeID && (n.status || '').toLowerCase() === 'pair_requested'"

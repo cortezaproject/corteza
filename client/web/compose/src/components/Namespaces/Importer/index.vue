@@ -1,9 +1,10 @@
 <template>
-  <div>
+  <div class="d-flex">
     <b-button
       data-test-id="button-import"
       size="lg"
       variant="light"
+      class="flex-fill"
       @click="showModal=true"
     >
       {{ $t('import.buttonLabel') }}

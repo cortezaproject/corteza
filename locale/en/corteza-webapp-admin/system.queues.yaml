@@ -15,7 +15,7 @@ editor:
     title: Basic information
     undelete: Undelete
     updatedAt: Updated at
-  new: New
+  new: New Queue
   title:
     edit: Edit queue
     new: Add a queue
@@ -46,5 +46,5 @@ list:
     inclusive:
       label: Including
   loading: Loading messaging queues
-  new: New
+  new: New Queue
   title: Messaging queues

@@ -18,7 +18,6 @@
             :highlight-key="`meta.bool.true.label`"
             size="sm"
             :disabled="isNew"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>
@@ -42,7 +41,6 @@
             :highlight-key="`meta.bool.fals.label`"
             size="sm"
             :disabled="isNew"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>

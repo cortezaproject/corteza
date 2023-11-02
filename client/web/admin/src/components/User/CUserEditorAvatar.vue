@@ -1,9 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
     data-test-id="card-user-profile-avatar"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <template #header>
       <h3 class="m-0">
@@ -43,39 +44,47 @@
         />
       </div>
 
-      <div class="form-row mt-3">
-        <b-form-group
-          :label="$t('initial.color')"
-          label-class="text-primary"
-          class="col"
+      <b-row class="mt-3">
+        <b-col
+          cols="12"
+          md="6"
         >
-          <c-input-color-picker
-            v-model="user.meta.avatarColor"
-            data-test-id="input-text-color"
-            :translations="{
-              modalTitle: $t('colorPicker'),
-              cancelBtnLabel: $t('general:label.cancel'),
-              saveBtnLabel: $t('general:label.saveAndClose')
-            }"
-          />
-        </b-form-group>
+          <b-form-group
+            :label="$t('initial.color')"
+            label-class="text-primary"
+          >
+            <c-input-color-picker
+              v-model="user.meta.avatarColor"
+              data-test-id="input-text-color"
+              :translations="{
+                modalTitle: $t('colorPicker'),
+                cancelBtnLabel: $t('general:label.cancel'),
+                saveBtnLabel: $t('general:label.saveAndClose')
+              }"
+            />
+          </b-form-group>
+        </b-col>
 
-        <b-form-group
-          :label="$t('initial.backgroundColor')"
-          label-class="text-primary"
-          class="col"
+        <b-col
+          cols="12"
+          md="6"
         >
-          <c-input-color-picker
-            v-model="user.meta.avatarBgColor"
-            data-test-id="input-background-color"
-            :translations="{
-              modalTitle: $t('colorPicker'),
-              cancelBtnLabel: $t('general:label.cancel'),
-              saveBtnLabel: $t('general:label.saveAndClose')
-            }"
-          />
-        </b-form-group>
-      </div>
+          <b-form-group
+            :label="$t('initial.backgroundColor')"
+            label-class="text-primary"
+          >
+            <c-input-color-picker
+              v-model="user.meta.avatarBgColor"
+              data-test-id="input-background-color"
+              :translations="{
+                modalTitle: $t('colorPicker'),
+                cancelBtnLabel: $t('general:label.cancel'),
+                saveBtnLabel: $t('general:label.saveAndClose')
+              }"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </b-form>
 
     <template #footer>
@@ -83,7 +92,7 @@
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="$emit('submit', user)"
       />
     </template>

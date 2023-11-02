@@ -73,7 +73,6 @@
             :title="namespace.name || namespace.slug || namespace.namespaceID"
             :target="namespace.name || namespace.slug || namespace.namespaceID"
             :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
-            button-variant="light"
             :button-label="$t('label.permissions')"
             class="ml-1 btn-lg"
           />
@@ -102,7 +101,6 @@
                   <namespace-translator
                     :namespace="namespace"
                     highlight-key="name"
-                    button-variant="light"
                     :disabled="isNew"
                   />
                 </b-input-group-append>
@@ -228,7 +226,6 @@
                   <namespace-translator
                     :namespace="namespace"
                     highlight-key="meta.subtitle"
-                    button-variant="light"
                     :disabled="isNew"
                   />
                 </b-input-group-append>
@@ -251,7 +248,6 @@
                   <namespace-translator
                     :namespace="namespace"
                     highlight-key="meta.description"
-                    button-variant="light"
                     :disabled="isNew"
                   />
                 </b-input-group-append>

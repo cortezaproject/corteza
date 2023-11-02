@@ -55,7 +55,7 @@ editor:
           Email OTP protection is enabled for this user
           User will receive email with the security code on each login
     title: Multi-factor authentication
-  new: New
+  new: New Role
   password:
     confirm: Confirm password
     length: The passwords must be at least {{length}} characters long!
@@ -107,7 +107,7 @@ list:
     suspended:
       label: suspended users
   loading: Loading users
-  new: New
+  new: New User
   numFound: '{{count}} user found'
   numFound_plural: '{{count}} users found'
   permissions: Permissions

@@ -1,8 +1,9 @@
 <template>
   <b-card
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <template #header>
       <h3 class="m-0">
@@ -32,9 +33,6 @@
           <c-input-color-picker
             v-model="brandingVariables[key]"
             :data-test-id="`input-${key}-color`"
-            width="32px"
-            height="32px"
-            show-color-code-text
             :translations="colorTranslations"
           />
         </b-form-group>
@@ -42,11 +40,12 @@
     </b-row>
 
     <template #footer>
-      <c-submit-button
+      <c-button-submit
         :disabled="!canManage"
         :processing="processing"
         :success="success"
-        class="float-right mt-2"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
         @submit="onSubmit"
       />
     </template>
@@ -54,7 +53,6 @@
 </template>
 
 <script>
-import CSubmitButton from 'corteza-webapp-admin/src/components/CSubmitButton'
 import { components } from '@cortezaproject/corteza-vue'
 const { CInputColorPicker } = components
 
@@ -68,7 +66,6 @@ export default {
 
   components: {
     CInputColorPicker,
-    CSubmitButton,
   },
 
   props: {

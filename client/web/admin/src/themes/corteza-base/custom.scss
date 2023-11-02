@@ -62,14 +62,6 @@ th {
   white-space: nowrap;
 }
 
-.wrap-with-vertical-gutters {
-  margin-top: -0.25rem;
-
-  > * {
-    margin-top: 0.25rem;
-  }
-}
-
 // custom height for resource lists with buttons
 .custom-resource-list-height {
   height: calc(100vh - 120px);
@@ -201,6 +193,12 @@ fieldset.required {
 
 .gap-col-3 {
   column-gap: 1.5rem;
+}
+
+@media (max-width: 576px) {
+  .flex-fill-child > * {
+    flex: 1 1 auto !important;
+  }
 }
 
 @keyframes ellipsis {

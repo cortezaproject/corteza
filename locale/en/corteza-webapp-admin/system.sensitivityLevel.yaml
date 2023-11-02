@@ -1,5 +1,5 @@
 editor:
-  new: New
+  new: New Sensitivity Level
   title:
     create: Create sensitivity level
     edit: Edit sensitivity level
@@ -22,7 +22,7 @@ editor:
 list:
   title: Sensitivity Levels
   loading: Loading sensitivity levels
-  new: New
+  new: New Sensitivity Level
   columns:
     actions: ''
     'meta.name': Name

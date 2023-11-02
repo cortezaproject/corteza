@@ -32,7 +32,6 @@
                   :block.sync="block"
                   :disabled="isNew"
                   :highlight-key="`pageBlock.${block.blockID}.title`"
-                  button-variant="light"
                 />
               </b-input-group-append>
             </b-input-group>
@@ -59,7 +58,6 @@
                   :block.sync="block"
                   :disabled="isNew"
                   :highlight-key="`pageBlock.${block.blockID}.description`"
-                  button-variant="light"
                 />
               </b-input-group-append>
             </b-input-group>

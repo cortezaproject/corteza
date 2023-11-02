@@ -33,7 +33,6 @@
         :processing="processingDelete"
         :text="$t('general:label.delete')"
         :borderless="false"
-        class="d-flex flex-column"
         @confirmed="$emit('delete')"
       />
 

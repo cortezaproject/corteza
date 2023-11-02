@@ -1,30 +1,27 @@
 <template>
-  <b-row cols="12">
+  <b-row>
     <b-col
-      cols="6"
+      cols="12"
+      lg="6"
     >
       <b-card
-        class="shadow-sm"
+        header-class="d-flex align-items-center justify-content-between pr-2"
+        class="shadow-sm mb-3"
       >
-        <div
-          class="d-flex justify-content-between"
-        >
-          <h4
-            class="card-title"
-          >
+        <template #header>
+          <h3 class="mb-0">
             {{ $t('mainLogo.title') }}
-          </h4>
-          <b-button
+          </h3>
+
+          <c-input-confirm
             v-if="uploadedFile('ui.main-logo')"
-            variant="link"
-            class="d-flex align-items-top text-dark p-1"
-            @click="resetAttachment('ui.main-logo')"
+            @confirmed="resetAttachment('ui.main-logo')"
           >
             <font-awesome-icon
               :icon="['far', 'trash-alt']"
             />
-          </b-button>
-        </div>
+          </c-input-confirm>
+        </template>
 
         <c-uploader-with-preview
           :value="uploadedFile('ui.main-logo')"
@@ -35,31 +32,29 @@
         />
       </b-card>
     </b-col>
+
     <b-col
-      cols="6"
+      cols="12"
+      lg="6"
     >
       <b-card
-        class="shadow-sm"
+        header-class="d-flex align-items-center justify-content-between"
+        class="shadow-sm mb-3"
       >
-        <div
-          class="d-flex justify-content-between"
-        >
-          <h4
-            class="card-title"
-          >
+        <template #header>
+          <h3 class="mb-0">
             {{ $t('iconLogo.title') }}
-          </h4>
-          <b-button
+          </h3>
+
+          <c-input-confirm
             v-if="uploadedFile('ui.icon-logo')"
-            variant="link"
-            class="d-flex align-items-top text-dark p-1"
-            @click="resetAttachment('ui.icon-logo')"
+            @confirmed="resetAttachment('ui.icon-logo')"
           >
             <font-awesome-icon
               :icon="['far', 'trash-alt']"
             />
-          </b-button>
-        </div>
+          </c-input-confirm>
+        </template>
 
         <c-uploader-with-preview
           :value="uploadedFile('ui.icon-logo')"

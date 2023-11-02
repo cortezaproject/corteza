@@ -2,7 +2,7 @@ title: Integration Gateway
 list:
   export: Export
   title: Routes
-  new: New
+  new: New Route
   permissions: Permissions
   profiler: Profiler
   yaml: YAML
@@ -49,7 +49,7 @@ settings:
 
 editor:
   title: Edit route
-  new: New
+  new: New Route
   permissions: Permissions
 
   info:

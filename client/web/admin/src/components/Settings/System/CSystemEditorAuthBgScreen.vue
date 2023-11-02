@@ -2,6 +2,7 @@
   <b-card
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <template #header>
@@ -11,22 +12,23 @@
     </template>
 
     <b-row cols="12">
-      <b-col cols="6">
-        <div class="shadow-sm">
-          <div class="d-flex justify-content-between">
-            <h5>
-              {{ $t("image.uploader.title") }}
-            </h5>
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          label-class="d-flex align-items-center text-primary"
+        >
+          <template #label>
+            {{ $t('image.uploader.label') }}
 
-            <b-button
+            <c-input-confirm
               v-if="uploadedFile('auth.ui.background-image-src')"
-              variant="link"
-              class="d-flex align-items-top text-dark p-1"
-              @click="$emit('resetAttachment', 'auth.ui.background-image-src')"
-            >
-              <font-awesome-icon :icon="['far', 'trash-alt']" />
-            </b-button>
-          </div>
+              show-icon
+              class="ml-auto"
+              @confirmed="$emit('resetAttachment', 'auth.ui.background-image-src')"
+            />
+          </template>
 
           <c-uploader-with-preview
             :value="uploadedFile('auth.ui.background-image-src')"
@@ -36,14 +38,26 @@
             @upload="$emit('onUpload')"
             @clear="$emit('resetAttachment', 'auth.ui.background-image-src')"
           />
-        </div>
+        </b-form-group>
       </b-col>
 
-      <b-col cols="6">
-        <div class="shadow-sm">
-          <h5>
-            {{ $t("image.editor.title") }}
-          </h5>
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          label-class="text-primary"
+        >
+          <template #label>
+            {{ $t("image.editor.label") }}
+
+            <c-input-confirm
+              v-if="uploadedFile('auth.ui.background-image-src')"
+              show-icon
+              class="ml-auto"
+              @confirmed="$emit('resetAttachment', 'auth.ui.background-image-src')"
+            />
+          </template>
 
           <ace-editor
             data-test-id="auth-bg-image-styling-editor"
@@ -51,29 +65,32 @@
             :show-print-margin="true"
             :show-gutter="true"
             :highlight-active-line="true"
-            width="100%"
-            height="200px"
             mode="css"
             theme="chrome"
+            height="h-100"
             name="editor/css"
             :on-change="v => (settings['auth.ui.styles'] = v)"
             :value="settings['auth.ui.styles']"
             :editor-props="{
               $blockScrolling: false
             }"
+            class="flex-fill w-100"
+            style="min-height: 300px;"
           />
-
-          <c-button-submit
-            :disabled="!canManage"
-            :processing="processing"
-            :success="success"
-            :text="$t('admin:general.label.submit')"
-            class="float-right mt-2"
-            @submit="$emit('submit', settings['auth.ui.styles'])"
-          />
-        </div>
+        </b-form-group>
       </b-col>
     </b-row>
+
+    <template #footer>
+      <c-button-submit
+        :disabled="!canManage"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', settings['auth.ui.styles'])"
+      />
+    </template>
   </b-card>
 </template>
 

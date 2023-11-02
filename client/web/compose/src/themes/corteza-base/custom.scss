@@ -300,14 +300,6 @@ fieldset.required {
   height: 4em;
 }
 
-.wrap-with-vertical-gutters {
-  margin-top: -0.25rem;
-
-  > * {
-    margin-top: 0.25rem;
-  }
-}
-
 // to remove the gap on top of the sticky header table
 .b-table-sticky-header > .table.b-table > thead > tr > th {
   border: 0;

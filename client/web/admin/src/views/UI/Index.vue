@@ -16,7 +16,6 @@
       :processing="branding.processing"
       :success="branding.success"
       :can-manage="canManage"
-      class="mt-3"
       @submit="onSubmit($event, 'branding')"
     />
 

@@ -48,7 +48,7 @@
     </portal>
 
     <div
-      class="flex-grow-1 overflow-auto d-flex px-2 w-100"
+      class="flex-grow-1 overflow-auto d-flex p-2 w-100"
     >
       <router-view
         v-if="isRecordPage"

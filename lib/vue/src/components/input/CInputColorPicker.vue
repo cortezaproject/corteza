@@ -48,7 +48,7 @@
           />
         </svg>
       </b-button>
-      <span v-if="showColorCodeText" class="ml-2">
+      <span v-if="showText" class="ml-2">
         {{ value }}
       </span>
     </div>
@@ -120,9 +120,9 @@ export default {
       default: "32px",
     },
 
-    showColorCodeText: {
+    showText: {
       type: Boolean,
-      default: false,
+      default: true,
     }
   },
 

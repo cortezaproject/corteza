@@ -20,7 +20,6 @@
         :title="application.name || applicationID"
         :target="application.name || applicationID"
         :resource="`corteza::system:application/${applicationID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}

@@ -12,10 +12,11 @@
       body-class="p-0"
       header-bg-variant="white"
       footer-bg-variant="white"
-      footer-class="d-flex align-items-center justify-content-center"
+      footer-class="d-flex flex-wrap flex-fill-child gap-1"
     >
       <template #header>
         <b-form
+          class="d-flex flex-column w-100"
           @submit.prevent="search"
         >
           <b-row>
@@ -109,13 +110,18 @@
               </b-form-group>
             </b-col>
           </b-row>
-          <b-button
-            data-test-id="button-submit"
-            type="submit"
-            class="text-primary"
-          >
-            {{ $t('filter.search') }}
-          </b-button>
+
+          <div class="d-flex flex-wrap flex-fill-child gap-1">
+            <b-button
+              data-test-id="button-submit"
+              type="submit"
+              :disabled="processing"
+              variant="primary"
+              class="ml-auto"
+            >
+              {{ $t('filter.search') }}
+            </b-button>
+          </div>
         </b-form>
       </template>
 
@@ -315,6 +321,7 @@
           v-if="items.length"
           data-test-id="button-load-older-actions"
           variant="light"
+          class="mx-auto"
           @click.stop="load()"
         >
           {{ $t('loadOlder') }}
@@ -325,7 +332,6 @@
 </template>
 
 <script>
-import { debounce } from 'lodash'
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import { components } from '@cortezaproject/corteza-vue'
 const { CInputDateTime } = components
@@ -439,7 +445,7 @@ export default {
       }
     },
 
-    load: debounce(function (reset = false) {
+    load (reset = false) {
       if (reset) {
         this.items.length = 0
         this.pagination.beforeActionID = undefined
@@ -471,7 +477,7 @@ export default {
         .finally(() => {
           this.processing = false
         })
-    }, 300),
+    },
 
     // Resets pagination & sorting and adds filtering params for drill-down
     drillDownLink (query = {}) {

@@ -1,9 +1,16 @@
 <template>
   <b-card
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
+    <template #header>
+      <h3 class="m-0">
+        {{ $t('title') }}
+      </h3>
+    </template>
+
     <b-form-group
       :label="$t('enabled')"
       label-class="text-primary"
@@ -79,19 +86,13 @@
       />
     </b-modal>
 
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('title') }}
-      </h3>
-    </template>
-
     <template #footer>
       <c-button-submit
         :disabled="!dirty || !canManage"
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="$emit('submit', changes)"
       />
     </template>

@@ -92,7 +92,7 @@
         slot-scope="{ block, index }"
       >
         <div
-          class="h-100 editable-block"
+          class="h-100"
         >
           <div
             class="toolbox border-0 p-2 m-0 text-light text-center"

@@ -1,5 +1,8 @@
 <template>
-  <b-button-group>
+  <b-button-group
+    v-if="buttons.length"
+    :size="size"
+  >
     <b-button
       v-for="(b, i) in buttons"
       :key="i"
@@ -35,6 +38,11 @@ export default {
     buttonClass: {
       type: String,
       default: () => 'mr-1'
+    },
+
+    size: {
+      type: String,
+      default: () => 'md'
     },
   },
 

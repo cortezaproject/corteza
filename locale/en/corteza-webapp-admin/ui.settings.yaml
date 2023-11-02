@@ -23,7 +23,7 @@ editor:
       uploading: 'Uploading favicon'
 
   corteza-studio:
-    title: Branding
+    title: Theming
     colorPicker: Choose a color
     sassNotInstalled: No dart-sass binaries were detected. For guidance on how to set it up, refer to
     installSassDocs: docs here
@@ -39,13 +39,13 @@ editor:
       extra-light: Extra light
       dark: Dark
       tertiary: Tertiary
-      gray-200: Gray 200
+      gray-200: Gray
       body-bg: Body background
-  
+
   custom-css:
     title: Custom CSS
     modal:
-     editor: Custom CSS editor
+    editor: Custom CSS editor
 
   topbar:
     title: Topbar

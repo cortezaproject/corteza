@@ -60,7 +60,7 @@
           v-if="namespace.canGrant"
           size="lg"
           variant="light"
-          class="permissions-dropdown mr-1"
+          class="permissions-dropdown"
         >
           <template #button-content>
             <font-awesome-icon :icon="['fas', 'lock']" />
@@ -104,6 +104,7 @@
           :module="m"
           size="sm"
           boundary="scrollParent"
+          class="d-inline-block"
         />
 
         <b-dropdown
@@ -112,7 +113,7 @@
           size="sm"
           variant="light"
           :title="$t('permissions:resources.compose.module.tooltip')"
-          class="permissions-dropdown"
+          class="permissions-dropdown ml-2"
         >
           <template #button-content>
             <font-awesome-icon :icon="['fas', 'lock']" />
@@ -156,7 +157,7 @@
 
         <b-dropdown
           variant="outline-light"
-          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-1"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-2"
           no-caret
           dropleft
           lazy

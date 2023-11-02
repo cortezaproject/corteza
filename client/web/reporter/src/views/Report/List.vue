@@ -33,28 +33,22 @@
       @row-clicked="viewReport"
     >
       <template #header>
-        <div class="flex-fill">
-          <div class="wrap-with-vertical-gutters">
-            <b-button
-              v-if="canCreate"
-              data-test-id="button-create-report"
-              variant="primary"
-              size="lg"
-              class="mr-1"
-              :to="{ name: 'report.create' }"
-            >
-              {{ $t('report.new') }}
-            </b-button>
+        <b-button
+          v-if="canCreate"
+          data-test-id="button-create-report"
+          variant="primary"
+          size="lg"
+          :to="{ name: 'report.create' }"
+        >
+          {{ $t('report.new') }}
+        </b-button>
 
-            <c-permissions-button
-              v-if="canGrant"
-              resource="corteza::system:report/*"
-              :button-label="$t('permissions')"
-              button-variant="light"
-              class="btn-lg"
-            />
-          </div>
-        </div>
+        <c-permissions-button
+          v-if="canGrant"
+          resource="corteza::system:report/*"
+          :button-label="$t('permissions')"
+          size="lg"
+        />
       </template>
 
       <template #name="{ item: r }">

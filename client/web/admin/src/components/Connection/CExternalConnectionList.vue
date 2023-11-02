@@ -12,6 +12,7 @@
         {{ $t('title') }}
       </h3>
     </template>
+
     <c-resource-list
       :primary-key="primaryKey"
       :filter="filter"
@@ -34,17 +35,21 @@
       }"
       clickable
       hide-search
-      class="h-100"
+      card-header-class="rounded-0"
+      class="h-100 bg-transparent"
       @row-clicked="handleRowClicked"
     >
       <template #header>
         <b-button
           variant="primary"
+          size="lg"
           :to="{ name: 'system.connection.new' }"
         >
           {{ $t('add-button') }}
         </b-button>
+      </template>
 
+      <template #toolbar>
         <c-resource-list-status-filter
           v-model="filter.deleted"
           data-test-id="filter-deleted-connections"

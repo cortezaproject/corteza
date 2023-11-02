@@ -4,7 +4,7 @@
     data-test-id="card-user-info"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
   >
     <b-form
       @submit.prevent="$emit('submit', user)"
@@ -88,15 +88,6 @@
     </template>
 
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="$emit('submit', user)"
-      />
-
       <confirmation-toggle
         v-if="!fresh && user.canDeleteUser"
         :data-test-id="deletedButtonStatusCypressId"
@@ -138,6 +129,15 @@
         resource-type="system:user"
         default-variant="secondary"
         @click="dispatchCortezaSystemUserEvent($event, { user })"
+      />
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', user)"
       />
     </template>
   </b-card>

@@ -2,6 +2,7 @@
   <b-card
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <b-form
@@ -132,7 +133,6 @@
         :success="successSMTPTest"
         :text="$t('testSmtpConfigs.button')"
         variant="light"
-        class="float-left"
         @submit="smtpConnectionCheck()"
       />
 
@@ -141,7 +141,7 @@
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="submit()"
       />
     </template>

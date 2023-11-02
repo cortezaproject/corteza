@@ -8,7 +8,7 @@
     <template
       #header
     >
-      <h3 class="m-0">
+      <h3 class="mb-0">
         {{ $t('title') }}
       </h3>
     </template>
@@ -34,8 +34,9 @@
         resourcePlural: $t('general:label.route.plural')
 
       }"
-      class="h-100"
       clickable
+      card-header-class="rounded-0"
+      class="h-100 bg-transparent"
       @search="filterList"
       @row-clicked="handleRowClicked"
     >
@@ -44,6 +45,7 @@
           v-if="canCreate"
           data-test-id="button-add"
           variant="primary"
+          size="lg"
           :to="{ name: 'system.apigw.new' }"
         >
           {{ $t('new') }}
@@ -52,8 +54,8 @@
         <b-button
           v-if="$Settings.get('apigw.profiler.enabled', false)"
           data-test-id="button-profiler"
-          class="ml-1"
           variant="info"
+          size="lg"
           :to="{ name: 'system.apigw.profiler' }"
         >
           {{ $t('profiler') }}
@@ -63,13 +65,12 @@
           v-if="canGrant"
           data-test-id="button-permissions"
           resource="corteza::system:apigw-route/*"
-          button-variant="light"
-          class="ml-1 text-dark d-print-none"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
+          :button-label="$t('permissions')"
+          size="lg"
+        />
+      </template>
 
+      <template #toolbar>
         <c-resource-list-status-filter
           v-model="filter.deleted"
           data-test-id="filter-deleted-routes"
@@ -77,7 +78,6 @@
           :excluded-label="$t('filterForm.excluded.label')"
           :inclusive-label="$t('filterForm.inclusive.label')"
           :exclusive-label="$t('filterForm.exclusive.label')"
-          class="mt-3"
           @change="filterList"
         />
       </template>
@@ -233,3 +233,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.route-list {
+  .card-header {
+    border-radius: 0;
+  }
+}
+</style>

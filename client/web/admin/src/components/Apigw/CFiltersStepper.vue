@@ -4,26 +4,25 @@
     header-bg-variant="white"
     footer-bg-variant="white"
     body-class="p-0"
-    class="apigw shadow-sm mt-3"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm mt-3"
   >
-    <c-filter-modal
-      :visible="!!selectedFilter"
-      :filter="selectedFilter"
-      @submit="onSubmit"
-      @reset="onReset"
-    />
+    <template #header>
+      <h3 class="m-0">
+        {{ $t('filters.title') }}
+      </h3>
+    </template>
 
     <b-tabs
       data-test-id="filter-steps"
-      active-nav-item-class="active-tab bg-white"
-      class="border-0"
-      content-class="border-bottom"
+      nav-wrapper-class="bg-white white border-bottom rounded-0"
+      card
     >
       <b-tab
         v-for="(step, index) in steps"
         :key="index"
         :button-id="steps[index]"
-        class="border-0"
+        class="border-0 p-0"
         :title="$t(`filters.step_title.${step}`)"
         @click="onActivateTab(index)"
       >
@@ -38,32 +37,32 @@
       </b-tab>
     </b-tabs>
 
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('filters.title') }}
-      </h3>
+    <template #footer>
+      <c-filters-dropdown
+        :available-filters="getAvailableFiltersByStep"
+        :filters="getSelectedFiltersByStep"
+        @addFilter="onAddFilter"
+      />
+
+      <c-button-submit
+        :disabled="disabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit')"
+      />
     </template>
 
-    <template #footer>
-      <div
-        class="d-flex justify-content-between"
-      >
-        <c-filters-dropdown
-          :available-filters="getAvailableFiltersByStep"
-          :filters="getSelectedFiltersByStep"
-          @addFilter="onAddFilter"
-        />
-        <c-button-submit
-          :disabled="disabled"
-          :processing="processing"
-          :success="success"
-          :text="$t('admin:general.label.submit')"
-          @submit="$emit('submit')"
-        />
-      </div>
-    </template>
+    <c-filter-modal
+      :visible="!!selectedFilter"
+      :filter="selectedFilter"
+      @submit="onSubmit"
+      @reset="onReset"
+    />
   </b-card>
 </template>
+
 <script>
 import CFilterModal from 'corteza-webapp-admin/src/components/Apigw/CFilterModal'
 import CFiltersTable from 'corteza-webapp-admin/src/components/Apigw/CFiltersTable'
@@ -207,18 +206,3 @@ export default {
   },
 }
 </script>
-<style lang="scss" >
-
-.apigw {
-  .nav-link {
-    color: var(--primary);
-    border-width: 0 0 3px 0 !important;
-    border-color: transparent !important;
-  }
-
-  .active-tab {
-    color: var(--primary) !important;
-    border-color: var(--primary) !important;
-  }
-}
-</style>

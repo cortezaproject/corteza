@@ -95,7 +95,6 @@
             :module="module"
             :disabled="isNew"
             :highlight-key="`meta.description.view`"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>
@@ -119,7 +118,6 @@
             :module="module"
             :disabled="isNew"
             :highlight-key="`meta.description.edit`"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>
@@ -152,7 +150,6 @@
             :module="module"
             :disabled="isNew"
             :highlight-key="`meta.hint.view`"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>
@@ -176,7 +173,6 @@
             :module="module"
             :disabled="isNew"
             :highlight-key="`meta.hint.edit`"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>

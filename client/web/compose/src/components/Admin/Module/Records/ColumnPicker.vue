@@ -1,12 +1,14 @@
 <template>
-  <div>
+  <div class="d-flex">
     <b-button
       v-b-modal.columns
       size="lg"
       variant="light"
+      class="flex-fill"
     >
       {{ $t('allRecords.columns.title') }}
     </b-button>
+
     <b-modal
       id="columns"
       size="lg"

@@ -56,7 +56,6 @@
             variant="danger"
             size="lg"
             size-confirm="lg"
-            class="ml-1"
             @confirmed="handleSelectedRequests(selected, 'rejected')"
           />
         </template>

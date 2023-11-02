@@ -287,7 +287,7 @@ $nav-user-icon-size: 50px;
 .header-navigation {
   width: 100vw;
   min-height: $header-height;
-  background-color: var(--gray-200) !important;
+  background-color: var(--body-bg);
 }
 
 .avatar {

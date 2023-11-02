@@ -2,10 +2,10 @@
   <b-card
     v-if="resource"
     data-test-id="card-auth-client-info"
-    class="shadow-sm auth-clients"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm auth-clients"
   >
     <b-form
       @submit.prevent="submit"
@@ -59,9 +59,7 @@
           </b-form-group>
         </b-col>
 
-        <b-col
-          cols="12"
-        >
+        <b-col cols="12">
           <b-form-group
             :label="$t('redirectURI')"
             label-class="text-primary"
@@ -103,12 +101,8 @@
             </div>
           </b-form-group>
         </b-col>
-      </b-row>
 
-      <b-row>
-        <b-col
-          cols="6"
-        >
+        <b-col cols="12">
           <b-form-group
             v-if="!fresh"
             :label="$t('secret')"
@@ -151,7 +145,8 @@
         </b-col>
 
         <b-col
-          cols="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             label-class="text-primary"
@@ -166,53 +161,10 @@
             />
           </b-form-group>
         </b-col>
-      </b-row>
-
-      <b-row>
-        <b-col
-          cols="6"
-        >
-          <b-form-group
-            data-test-id="valid-from"
-            :label="$t('validFrom.label')"
-            :description="$t('validFrom.description')"
-          >
-            <c-input-date-time
-              v-model="resource.validFrom"
-              data-test-id="input-valid-from"
-              :labels="{
-                clear: $t('general:label.clear'),
-                none: $t('general:label.none'),
-                now: $t('general:label.now'),
-                today: $t('general:label.today'),
-              }"
-            />
-          </b-form-group>
-        </b-col>
 
         <b-col
-          cols="6"
-        >
-          <b-form-group
-            data-test-id="expires-at"
-            :label="$t('expiresAt.label')"
-            :description="$t('expiresAt.description')"
-          >
-            <c-input-date-time
-              v-model="resource.expiresAt"
-              data-test-id="input-expires-at"
-              :labels="{
-                clear: $t('general:label.clear'),
-                none: $t('general:label.none'),
-                now: $t('general:label.now'),
-                today: $t('general:label.today'),
-              }"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group>
             <b-form-checkbox
@@ -248,17 +200,56 @@
               {{ $t('discovery') }}
             </b-form-checkbox>
           </b-form-group>
+        </b-col>
 
-          <b-form-group>
-            <b-form-checkbox
-              v-model="resource.trusted"
-              data-test-id="checkbox-is-client-trusted"
-            >
-              {{ $t('trusted.label') }}
-            </b-form-checkbox>
-            <b-form-text>{{ $t('trusted.description') }}</b-form-text>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            data-test-id="valid-from"
+            :label="$t('validFrom.label')"
+            :description="$t('validFrom.description')"
+          >
+            <c-input-date-time
+              v-model="resource.validFrom"
+              data-test-id="input-valid-from"
+              :labels="{
+                clear: $t('general:label.clear'),
+                none: $t('general:label.none'),
+                now: $t('general:label.now'),
+                today: $t('general:label.today'),
+              }"
+            />
           </b-form-group>
+        </b-col>
 
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            data-test-id="expires-at"
+            :label="$t('expiresAt.label')"
+            :description="$t('expiresAt.description')"
+          >
+            <c-input-date-time
+              v-model="resource.expiresAt"
+              data-test-id="input-expires-at"
+              :labels="{
+                clear: $t('general:label.clear'),
+                none: $t('general:label.none'),
+                now: $t('general:label.now'),
+                today: $t('general:label.today'),
+              }"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
           <b-form-group>
             <b-form-checkbox
               v-model="resource.enabled"
@@ -268,12 +259,24 @@
               {{ $t('enabled.label') }}
             </b-form-checkbox>
 
-            <template
-              v-if="resource.isDefault"
-              #description
-            >
+            <b-form-text v-if="resource.isDefault">
               {{ $t('enabled.disabledFootnote') }}
-            </template>
+            </b-form-text>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group>
+            <b-form-checkbox
+              v-model="resource.trusted"
+              data-test-id="checkbox-is-client-trusted"
+            >
+              {{ $t('trusted.label') }}
+            </b-form-checkbox>
+            <b-form-text>{{ $t('trusted.description') }}</b-form-text>
           </b-form-group>
         </b-col>
       </b-row>
@@ -466,15 +469,6 @@
     </template>
 
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="submit"
-      />
-
       <template
         v-if="canDelete"
       >
@@ -496,6 +490,15 @@
           {{ $t('delete') }}
         </confirmation-toggle>
       </template>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="submit"
+      />
     </template>
   </b-card>
 </template>

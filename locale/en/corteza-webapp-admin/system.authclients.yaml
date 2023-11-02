@@ -60,7 +60,7 @@ editor:
     testCurl: Test auth
     discovery: Allow client access to Corteza Discovery API on behalf of user
     openid: Allow client to use OIDC and verify the user's identity
-  new: New
+  new: New Auth Client
   permissions: Permissions
   title:
     create: Create client
@@ -90,7 +90,7 @@ list:
       label: Filter clients list
       placeholder: Filter clients
   loading: Loading clients
-  new: New
+  new: New Auth Client
   numFound: '{{count}} clients found'
   numFound_plural: '{{count}} clients found'
   permissions: Permissions

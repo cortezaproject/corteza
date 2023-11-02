@@ -91,7 +91,6 @@
             :module="module"
             :highlight-key="`expression.validator.${value.validatorID}.error`"
             :disabled="isNew(value)"
-            button-variant="light"
           />
         </b-input-group-append>
       </field-expressions>

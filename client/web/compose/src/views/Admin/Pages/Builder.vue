@@ -3,7 +3,7 @@
     v-if="page"
     id="page-builder"
     ref="pageBuilder"
-    class="flex-grow-1 overflow-auto d-flex px-2 w-100"
+    class="flex-grow-1 overflow-auto d-flex p-2 w-100"
     tabIndex="1"
   >
     <portal to="topbar-title">
@@ -78,7 +78,7 @@
       >
         <div
           :data-test-id="`block-${block.kind}`"
-          class="h-100 editable-block"
+          class="h-100"
         >
           <div
             class="toolbox border-0 p-2 m-0 text-light text-center"

@@ -56,110 +56,105 @@
             >
               <b-row
                 no-gutters
-                class="wrap-with-vertical-gutters align-items-center"
+                class="d-flex align-items-center flex-fill-child gap-1"
               >
-                <div class="flex-grow-1 wrap-with-vertical-gutters">
-                  <b-button
-                    v-if="federationEnabled"
-                    data-test-id="button-federation-settings"
-                    variant="light"
-                    size="lg"
-                    class="mr-1"
-                    @click="federationSettings.modal = true"
-                  >
-                    <font-awesome-icon
-                      :icon="['fas', 'share-alt']"
-                    />
-
-                    {{ $t('edit.federationSettings.title') }}
-                  </b-button>
-
-                  <b-button
-                    v-if="discoveryEnabled"
-                    data-test-id="button-discovery-settings"
-                    variant="light"
-                    size="lg"
-                    class="mr-1"
-                    @click="discoverySettings.modal = true"
-                  >
-                    <font-awesome-icon
-                      :icon="['fas', 'search-location']"
-                    />
-                    {{ $t('edit.discoverySettings.title') }}
-                  </b-button>
-
-                  <export
-                    :list="[module]"
-                    type="module"
-                    class="mr-1"
-                  />
-
-                  <b-dropdown
-                    v-if="module.canGrant"
-                    data-test-id="dropdown-permissions"
-                    size="lg"
-                    variant="light"
-                    class="permissions-dropdown mr-1"
-                  >
-                    <template #button-content>
-                      <font-awesome-icon :icon="['fas', 'lock']" />
-                      <span>
-                        {{ $t('general.label.permissions') }}
-                      </span>
-                    </template>
-
-                    <b-dropdown-item>
-                      <c-permissions-button
-                        :title="module.name || module.handle || module.moduleID"
-                        :target="module.name || module.handle || module.moduleID"
-                        :resource="`corteza::compose:module/${namespace.namespaceID}/${module.moduleID}`"
-                        :button-label="$t('general:label.module.single')"
-                        :show-button-icon="false"
-                        button-variant="white text-left w-100"
-                      />
-                    </b-dropdown-item>
-
-                    <b-dropdown-item>
-                      <c-permissions-button
-                        :title="module.name || module.handle || module.moduleID"
-                        :target="module.name || module.handle || module.moduleID"
-                        :resource="`corteza::compose:module-field/${namespace.namespaceID}/${module.moduleID}/*`"
-                        :button-label="$t('general:label.field')"
-                        :show-button-icon="false"
-                        all-specific
-                        button-variant="white text-left w-100"
-                      />
-                    </b-dropdown-item>
-
-                    <b-dropdown-item>
-                      <c-permissions-button
-                        :title="module.name || module.handle || module.moduleID"
-                        :target="module.name || module.handle || module.moduleID"
-                        :resource="`corteza::compose:record/${namespace.namespaceID}/${module.moduleID}/*`"
-                        :button-label="$t('general:label.record')"
-                        :show-button-icon="false"
-                        all-specific
-                        button-variant="white text-left w-100"
-                      />
-                    </b-dropdown-item>
-                  </b-dropdown>
-                </div>
-
-                <div
-                  class="flex-grow-1 d-flex justify-content-md-end"
+                <b-button
+                  v-if="federationEnabled"
+                  data-test-id="button-federation-settings"
+                  variant="light"
+                  size="lg"
+                  class="mr-1"
+                  @click="federationSettings.modal = true"
                 >
-                  <related-pages
-                    :namespace="namespace"
-                    :module="module"
-                    size="lg"
+                  <font-awesome-icon
+                    :icon="['fas', 'share-alt']"
                   />
-                </div>
+
+                  {{ $t('edit.federationSettings.title') }}
+                </b-button>
+
+                <b-button
+                  v-if="discoveryEnabled"
+                  data-test-id="button-discovery-settings"
+                  variant="light"
+                  size="lg"
+                  class="mr-1"
+                  @click="discoverySettings.modal = true"
+                >
+                  <font-awesome-icon
+                    :icon="['fas', 'search-location']"
+                  />
+                  {{ $t('edit.discoverySettings.title') }}
+                </b-button>
+
+                <export
+                  :list="[module]"
+                  type="module"
+                  class="mr-1"
+                />
+
+                <b-dropdown
+                  v-if="module.canGrant"
+                  data-test-id="dropdown-permissions"
+                  size="lg"
+                  variant="light"
+                  class="permissions-dropdown mr-1"
+                >
+                  <template #button-content>
+                    <font-awesome-icon :icon="['fas', 'lock']" />
+                    <span>
+                      {{ $t('general.label.permissions') }}
+                    </span>
+                  </template>
+
+                  <b-dropdown-item>
+                    <c-permissions-button
+                      :title="module.name || module.handle || module.moduleID"
+                      :target="module.name || module.handle || module.moduleID"
+                      :resource="`corteza::compose:module/${namespace.namespaceID}/${module.moduleID}`"
+                      :button-label="$t('general:label.module.single')"
+                      :show-button-icon="false"
+                      button-variant="white text-left w-100"
+                    />
+                  </b-dropdown-item>
+
+                  <b-dropdown-item>
+                    <c-permissions-button
+                      :title="module.name || module.handle || module.moduleID"
+                      :target="module.name || module.handle || module.moduleID"
+                      :resource="`corteza::compose:module-field/${namespace.namespaceID}/${module.moduleID}/*`"
+                      :button-label="$t('general:label.field')"
+                      :show-button-icon="false"
+                      all-specific
+                      button-variant="white text-left w-100"
+                    />
+                  </b-dropdown-item>
+
+                  <b-dropdown-item>
+                    <c-permissions-button
+                      :title="module.name || module.handle || module.moduleID"
+                      :target="module.name || module.handle || module.moduleID"
+                      :resource="`corteza::compose:record/${namespace.namespaceID}/${module.moduleID}/*`"
+                      :button-label="$t('general:label.record')"
+                      :show-button-icon="false"
+                      all-specific
+                      button-variant="white text-left w-100"
+                    />
+                  </b-dropdown-item>
+                </b-dropdown>
+
+                <related-pages
+                  :namespace="namespace"
+                  :module="module"
+                  size="lg"
+                  class="d-flex ml-auto"
+                />
               </b-row>
             </b-card-header>
 
             <b-tabs
               v-model="activeTab"
-              nav-wrapper-class="bg-white white border-bottom"
+              nav-wrapper-class="bg-white white border-bottom rounded-0"
               card
             >
               <b-tab
@@ -985,3 +980,11 @@ export default {
   },
 }
 </script>
+
+<style scoped lang="scss">
+@media (max-width: 576px) {
+  .flex-fill-child > * {
+    flex-grow: 1;
+  }
+}
+</style>

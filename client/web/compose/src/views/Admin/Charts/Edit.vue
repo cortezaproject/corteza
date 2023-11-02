@@ -363,6 +363,7 @@
           v-for="(color, index) in colorSchemeModal.colorscheme.colors"
           :key="index"
           v-model="colorSchemeModal.colorscheme.colors[index]"
+          :show-text="false"
           data-test-id="input-scheme-color"
           :translations="{
             modalTitle: $t('colorScheme.pickAColor'),
@@ -375,6 +376,7 @@
             <c-input-confirm
               variant="danger"
               size="md"
+              show-icon
               @confirmed="removeColor(index)"
             />
           </template>

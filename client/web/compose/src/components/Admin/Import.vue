@@ -1,9 +1,9 @@
 <template>
-  <div>
+  <div class="d-flex">
     <b-btn
       variant="light"
       size="lg"
-      class="w-100"
+      class="flex-fill"
       @click="showModal=true"
     >
       {{ $t('label.import') }}

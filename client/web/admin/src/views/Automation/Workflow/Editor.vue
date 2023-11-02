@@ -19,7 +19,6 @@
         :title="workflow.meta.name || workflow.handle || workflowID"
         :target="workflow.meta.name || workflow.handle || workflowID"
         :resource="`corteza::automation:workflow/${workflowID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}

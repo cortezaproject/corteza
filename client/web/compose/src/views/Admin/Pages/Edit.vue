@@ -298,7 +298,6 @@
                               :page-layout="layout"
                               :disabled="layout.pageLayoutID === '0'"
                               highlight-key="meta.title"
-                              button-variant="light"
                             />
                           </b-input-group-append>
                         </b-input-group>
@@ -424,7 +423,6 @@
                   :page-layout="layoutEditor.layout"
                   :disabled="layoutEditor.layout.pageLayoutID === '0'"
                   highlight-key="meta.title"
-                  button-variant="light"
                 />
               </b-input-group-append>
             </b-input-group>

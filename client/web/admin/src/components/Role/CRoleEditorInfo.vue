@@ -1,10 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
     data-test-id="card-role-info"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form
       @submit.prevent="submit()"
@@ -49,27 +49,7 @@
           </b-form-group>
         </b-col>
 
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            v-if="true"
-            :label="$t('context.expression-label')"
-            label-class="text-primary"
-          >
-            <b-form-input
-              v-model="role.meta.context.expr"
-              data-test-id="input-expression"
-              :disabled="!editable"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
+        <b-col cols="12">
           <b-form-group
             v-if="role.meta"
             :label="$t('description')"
@@ -101,22 +81,35 @@
         </b-col>
       </b-row>
 
-      <div
+      <b-row
         v-if="isContextual"
         class="my-3"
       >
-        <h5 class="mb-3">
-          {{ $t('context.resource-types-label') }}
-        </h5>
+        <b-col
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('context.expression-label')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="role.meta.context.expr"
+              data-test-id="input-expression"
+              :disabled="!editable"
+            />
+          </b-form-group>
+        </b-col>
 
-        <b-row>
-          <b-col
-            v-for="(resourceType, i) in resourceTypeOptions"
-            :key="i"
-            cols="12"
-            md="4"
+        <b-col
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('context.resource-types-label')"
+            label-class="text-primary"
           >
             <b-checkbox
+              v-for="(resourceType, i) in resourceTypeOptions"
+              :key="i"
               v-model="role.meta.context.resourceTypes"
               data-test-id="checkbox-resource-types-list"
               :value="resourceType.value"
@@ -124,9 +117,9 @@
             >
               {{ resourceType.text }}
             </b-checkbox>
-          </b-col>
-        </b-row>
-      </div>
+          </b-form-group>
+        </b-col>
+      </b-row>
 
       <c-system-fields
         :resource="role"
@@ -150,15 +143,6 @@
     </template>
 
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="submit()"
-      />
-
       <confirmation-toggle
         v-if="!fresh && editable && role.canDeleteRole && !isDataPrivacyOfficer"
         :data-test-id="deletedButtonStatusCypressId"
@@ -175,6 +159,15 @@
       >
         {{ getArchiveStatus }}
       </confirmation-toggle>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="submit()"
+      />
     </template>
   </b-card>
 </template>

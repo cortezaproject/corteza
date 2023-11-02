@@ -34,36 +34,31 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
-        <div class="flex-grow-1">
-          <div class="wrap-with-vertical-gutters">
-            <b-button
-              v-if="canCreate"
-              data-test-id="button-create-workflow"
-              variant="primary"
-              size="lg"
-              class="float-left mr-1"
-              :to="{ name: 'workflow.create' }"
-            >
-              {{ $t('general:new-workflow') }}
-            </b-button>
-            <import
-              v-if="canCreate"
-              :disabled="importProcessing"
-              class="float-left mr-1"
-              @import="importJSON"
-            />
-            <export
-              class="float-left mr-1"
-            />
-            <c-permissions-button
-              v-if="canGrant"
-              resource="corteza::automation:workflow/*"
-              :button-label="$t('general:permissions')"
-              button-variant="light"
-              class="float-left btn-lg"
-            />
-          </div>
-        </div>
+        <b-button
+          v-if="canCreate"
+          data-test-id="button-create-workflow"
+          variant="primary"
+          size="lg"
+          :to="{ name: 'workflow.create' }"
+        >
+          {{ $t('general:new-workflow') }}
+        </b-button>
+
+        <import
+          v-if="canCreate"
+          :disabled="importProcessing"
+          class="d-flex"
+          @import="importJSON"
+        />
+
+        <export />
+
+        <c-permissions-button
+          v-if="canGrant"
+          resource="corteza::automation:workflow/*"
+          :button-label="$t('general:permissions')"
+          size="lg"
+        />
       </template>
 
       <template #toolbar>

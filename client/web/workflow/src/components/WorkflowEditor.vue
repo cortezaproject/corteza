@@ -331,7 +331,6 @@
           :target="workflow.meta.name || workflow.handle || workflow.workflowID"
           :resource="`corteza::automation:workflow/${workflow.workflowID}`"
           :button-label="$t('general:permissions')"
-          button-variant="light"
           class="btn-lg ml-1"
         />
       </div>

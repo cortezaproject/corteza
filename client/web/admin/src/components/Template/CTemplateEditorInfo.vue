@@ -1,10 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
     data-test-id="card-template-info"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form
       @submit="$emit('submit', template)"
@@ -122,15 +122,6 @@
     </template>
 
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="$emit('submit', template)"
-      />
-
       <confirmation-toggle
         v-if="!fresh && template.canDeleteTemplate"
         :data-test-id="getDeletedButtonStatusCypressId"
@@ -138,6 +129,15 @@
       >
         {{ getDeleteStatus }}
       </confirmation-toggle>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', template)"
+      />
     </template>
   </b-card>
 </template>

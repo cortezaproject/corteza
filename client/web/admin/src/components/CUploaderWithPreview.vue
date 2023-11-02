@@ -4,11 +4,11 @@
   >
     <div
       v-if="value"
-      class="preview d-flex justify-content-center align-items-center w-100 mb-2"
+      class="preview d-flex w-100 mb-2"
     >
       <b-img
         :src="value"
-        class="mh-100 mw-100 h-auto"
+        class="w-100 h-auto"
       />
     </div>
 

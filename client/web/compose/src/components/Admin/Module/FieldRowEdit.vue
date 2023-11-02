@@ -34,7 +34,6 @@
             :module="module"
             :disabled="isNew"
             highlight-key="label"
-            button-variant="light"
           />
         </b-input-group-append>
       </b-input-group>

@@ -19,7 +19,6 @@
         :title="role.name || role.handle || role.roleID"
         :target="role.name || role.handle || role.roleID"
         :resource="`corteza::system:role/${roleID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}

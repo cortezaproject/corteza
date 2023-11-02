@@ -37,7 +37,6 @@
         variant="danger"
         :title="deleteTooltip"
         :borderless="false"
-        class="d-flex flex-column"
         @confirmed="$emit('delete')"
       />
 

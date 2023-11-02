@@ -18,7 +18,6 @@
         :title="route.endpoint || routeID"
         :target="route.endpoint || routeID"
         :resource="`corteza::system:apigw-route/${routeID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t("permissions") }}

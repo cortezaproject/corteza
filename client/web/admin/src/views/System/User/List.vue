@@ -2,61 +2,7 @@
   <b-container
     fluid="xl"
   >
-    <c-content-header
-      :title="$t('title')"
-    >
-      <span
-        class="text-nowrap"
-      >
-        <b-button
-          variant="primary"
-          data-test-id="button-new-user"
-          class="mr-2 float-left"
-          :to="{ name: 'system.user.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-
-        <c-user-import-modal
-          class="mr-1 float-left"
-          @imported="onImported"
-        />
-
-        <c-user-export-modal
-          class="mr-1 float-left"
-          @export="onExport"
-        />
-
-        <c-permissions-button
-          v-if="canGrant"
-          resource="corteza::system:user/*"
-          button-variant="light"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
-
-      <b-dropdown
-        v-if="false"
-        variant="link"
-        right
-        menu-class="shadow-sm"
-        :text="$t('export')"
-      >
-        <b-dropdown-item-button variant="link">
-          {{ $t('yaml') }}
-        </b-dropdown-item-button>
-      </b-dropdown>
-
-      <c-corredor-manual-buttons
-        ui-page="user/list"
-        ui-slot="toolbar"
-        resource-type="system"
-        class="mr-1"
-        @click="dispatchCortezaSystemEvent($event)"
-      />
-    </c-content-header>
+    <c-content-header :title="$t('title')" />
 
     <c-resource-list
       :primary-key="primaryKey"
@@ -85,6 +31,40 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
+        <b-button
+          variant="primary"
+          size="lg"
+          data-test-id="button-new-user"
+          :to="{ name: 'system.user.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+
+        <c-user-import-modal
+          @imported="onImported"
+        />
+
+        <c-user-export-modal
+          @export="onExport"
+        />
+
+        <c-permissions-button
+          v-if="canGrant"
+          resource="corteza::system:user/*"
+          :button-label="$t('permissions')"
+          size="lg"
+        />
+
+        <c-corredor-manual-buttons
+          ui-page="user/list"
+          ui-slot="toolbar"
+          resource-type="system"
+          size="lg"
+          @click="dispatchCortezaSystemEvent($event)"
+        />
+      </template>
+
+      <template #toolbar>
         <c-resource-list-status-filter
           v-model="filter.deleted"
           data-test-id="filter-deleted-users"
@@ -94,6 +74,7 @@
           :exclusive-label="$t('filterForm.exclusive.label')"
           @change="filterList"
         />
+
         <c-resource-list-status-filter
           v-model="filter.suspended"
           data-test-id="filter-suspended-users"
@@ -103,6 +84,8 @@
           :exclusive-label="$t('filterForm.exclusive.label')"
           @change="filterList"
         />
+
+        <b-col />
       </template>
 
       <template #actions="{ item: u }">

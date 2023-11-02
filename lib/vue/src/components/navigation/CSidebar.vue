@@ -336,7 +336,7 @@ $header-height: 64px;
 
 <style lang="scss">
 $nav-width: 320px;
-$sidebar-bg: #F4F7FA;
+$sidebar-bg: var(--gray-200);
 
 .sidebar {
   display: flex !important;
@@ -350,7 +350,7 @@ $sidebar-bg: #F4F7FA;
     background-color: var(--white);
 
     &.expanded {
-      background-color: $sidebar-bg !important;
+      background-color: $sidebar-bg;
     }
   }
 
@@ -375,7 +375,7 @@ $sidebar-bg: #F4F7FA;
       background-color: var(--white);
 
       &.expanded {
-        background-color: $sidebar-bg !important;
+        background-color: $sidebar-bg;
       }
     }
 

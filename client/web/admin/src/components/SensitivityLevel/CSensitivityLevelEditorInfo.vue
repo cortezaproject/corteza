@@ -1,10 +1,10 @@
 <template>
   <b-card
     data-test-id="card-sens-lvl-info"
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form
       @submit.prevent="$emit('submit', sensitivityLevel)"
@@ -98,21 +98,21 @@
     </template>
 
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="$emit('submit', sensitivityLevel)"
-      />
-
       <confirmation-toggle
         v-if="sensitivityLevel && sensitivityLevel.sensitivityLevelID"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
       </confirmation-toggle>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', sensitivityLevel)"
+      />
     </template>
   </b-card>
 </template>

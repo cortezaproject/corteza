@@ -1,9 +1,10 @@
 <template>
   <b-card
     data-test-id="card-role-edit-members"
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form
       @submit.prevent="$emit('submit')"

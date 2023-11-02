@@ -1,8 +1,9 @@
 <template>
-  <div class="d-inline-block">
+  <div class="d-flex">
     <b-button
       size="lg"
       variant="light"
+      class="flex-fill"
       @click="showModal=true"
     >
       {{ $t('general.label.import') }}

@@ -13,7 +13,7 @@ editor:
     title: Basic information
     undelete: Undelete
     updatedAt: Updated at
-  new: New
+  new: New Workflow
   permissions: Permissions
   title:
     create: Create workflow
@@ -53,7 +53,7 @@ list:
       label: Filter workflows list
       placeholder: Filter workflows by name
   loading: Loading workflows
-  new: New
+  new: New Workflow
   numFound: '{{count}} workflow found'
   numFound_plural: '{{count}} workflows found'
   permissions: Permissions

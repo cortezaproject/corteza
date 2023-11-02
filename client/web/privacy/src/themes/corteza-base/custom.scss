@@ -223,14 +223,6 @@ fieldset.required {
   height: 4em;
 }
 
-.wrap-with-vertical-gutters {
-  margin-top: -0.25rem;
-
-  > * {
-    margin-top: 0.25rem;
-  }
-}
-
 .card-hover-popup {
   transition: all 0.1s ease-in-out;
 

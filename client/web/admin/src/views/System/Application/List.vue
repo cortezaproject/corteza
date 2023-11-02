@@ -2,44 +2,7 @@
   <b-container
     fluid="xl"
   >
-    <c-content-header
-      :title="$t('title')"
-    >
-      <span
-        class="text-nowrap"
-      >
-        <b-button
-          v-if="canCreate"
-          data-test-id="button-new-application"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.application.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-
-        <c-permissions-button
-          v-if="canGrant"
-          resource="corteza::system:application/*"
-          button-variant="light"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
-
-      <b-dropdown
-        v-if="false"
-        variant="link"
-        right
-        menu-class="shadow-sm"
-        :text="$t('export')"
-      >
-        <b-dropdown-item-button variant="link">
-          {{ $t('yaml') }}
-        </b-dropdown-item-button>
-      </b-dropdown>
-    </c-content-header>
+    <c-content-header :title="$t('title')" />
 
     <c-resource-list
       :primary-key="primaryKey"
@@ -68,6 +31,25 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
+        <b-button
+          v-if="canCreate"
+          data-test-id="button-new-application"
+          variant="primary"
+          size="lg"
+          :to="{ name: 'system.application.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+
+        <c-permissions-button
+          v-if="canGrant"
+          resource="corteza::system:application/*"
+          :button-label="$t('permissions')"
+          size="lg"
+        />
+      </template>
+
+      <template #toolbar>
         <c-resource-list-status-filter
           v-model="filter.deleted"
           data-test-id="filter-deleted-apps"

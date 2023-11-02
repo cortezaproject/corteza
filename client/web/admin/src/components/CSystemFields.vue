@@ -10,11 +10,7 @@
         :label="$t('id')"
         label-class="text-primary"
       >
-        <b-form-input
-          v-model="id"
-          plaintext
-          disabled
-        />
+        {{ id }}
       </b-form-group>
     </b-col>
 

@@ -1,11 +1,12 @@
 <template>
   <div class="h-100">
     <b-card
-      class="shadow h-100"
       header-class="p-0"
       body-class="overflow-auto p-0"
       header-bg-variant="white"
       footer-bg-variant="white"
+      footer-class="d-flex flex-wrap flex-fill-child gap-1"
+      class="shadow h-100"
     >
       <template
         v-if="loaded && canGrant"
@@ -183,7 +184,7 @@
           :processing="processing"
           :success="success"
           :text="$t('ui.save')"
-          class="float-right"
+          class="ml-auto"
           @submit="onSubmit"
         />
       </template>

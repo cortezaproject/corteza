@@ -2,43 +2,7 @@
   <b-container
     fluid="xl"
   >
-    <c-content-header
-      :title="$t('title')"
-    >
-      <span
-        class="text-nowrap"
-      >
-        <b-button
-          v-if="canCreate"
-          variant="primary"
-          :to="{ name: 'automation.workflow.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-
-        <c-permissions-button
-          v-if="canGrant"
-          resource="corteza::automation:workflow/*"
-          button-variant="light"
-          class="ml-2"
-        >
-          <font-awesome-icon :icon="['fas', 'lock']" />
-          {{ $t('permissions') }}
-        </c-permissions-button>
-      </span>
-
-      <b-dropdown
-        v-if="false"
-        variant="link"
-        right
-        menu-class="shadow-sm"
-        :text="$t('export')"
-      >
-        <b-dropdown-item-button variant="link">
-          {{ $t('yaml') }}
-        </b-dropdown-item-button>
-      </b-dropdown>
-    </c-content-header>
+    <c-content-header :title="$t('title')" />
 
     <c-resource-list
       :primary-key="primaryKey"
@@ -67,6 +31,24 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
+        <b-button
+          v-if="canCreate"
+          variant="primary"
+          size="lg"
+          :to="{ name: 'automation.workflow.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+
+        <c-permissions-button
+          v-if="canGrant"
+          resource="corteza::automation:workflow/*"
+          :button-label="$t('permissions')"
+          size="lg"
+        />
+      </template>
+
+      <template #toolbar>
         <c-resource-list-status-filter
           v-model="filter.deleted"
           :label="$t('filterForm.deleted.label')"

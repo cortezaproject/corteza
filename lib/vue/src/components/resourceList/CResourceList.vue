@@ -1,30 +1,31 @@
 <template>
   <b-card
     no-body
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="border-top"
+    footer-class="d-flex align-items-center flex-wrap gap-1 border-top"
+    :header-class="cardHeaderClass"
+    class="shadow-sm"
   >
     <template #header>
       <b-container
-        class="p-0"
         fluid
-        align-v="center"
+        class="d-flex flex-column p-0 gap-2 d-print-none"
       >
-        <b-row class="gap-1">
-          <b-col
-            lg="8"
-            class="gap-1 d-flex flex-wrap flex-sm-row flex-column"
-          >
+        <b-row
+          no-gutters
+          class="d-flex align-items-center justify-content-between gap-1"
+        >
+          <div :class="`d-flex align-items-center flex-grow-1 flex-wrap flex-fill-child gap-1 ${headerClass}`">
             <slot
               name="header"
               :selected="selected"
             />
-          </b-col>
+          </div>
 
-          <b-col
+          <div
             v-if="!hideSearch"
+            class="flex-fill"
           >
             <c-input-search
               v-model.trim="filter[queryField]"
@@ -32,11 +33,12 @@
               :debounce="300"
               @input="$emit('search')"
             />
-          </b-col>
+          </div>
         </b-row>
 
         <b-row
-          :class="{ 'mt-3': !!$slots.toolbar }"
+          v-if="$slots.toolbar"
+          class="gap-1"
         >
           <slot
             name="toolbar"
@@ -128,58 +130,51 @@
       #footer
     >
       <div
-        class="d-flex align-items-center justify-content-between flex-wrap"
+        v-if="!hideTotal"
+        class="text-nowrap"
       >
-        <div
-          class="text-truncate ml-3 ml-sm-0"
-        >
-          <div
-            v-if="!hideTotal"
-            class="text-nowrap"
-          >
-            {{ getPagination }}
-          </div>
-        </div>
-
-        <b-button-group
-          v-if="!hidePagination"
-        >
-          <b-button
-            :disabled="!hasPrevPage"
-            variant="outline-light"
-            class="d-flex align-items-center justify-content-center text-primary border-0"
-            @click="goToPage()"
-          >
-            <font-awesome-icon :icon="['fas', 'angle-double-left']" />
-          </b-button>
-
-          <b-button
-            :disabled="!hasPrevPage"
-            variant="outline-light"
-            class="d-flex align-items-center justify-content-center text-primary border-0"
-            @click="goToPage('prevPage')"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'angle-left']"
-              class="mr-1"
-            />
-            {{ translations.prevPagination }}
-          </b-button>
-
-          <b-button
-            :disabled="!hasNextPage"
-            variant="outline-light"
-            class="d-flex align-items-center justify-content-center text-primary border-0"
-            @click="goToPage('nextPage')"
-          >
-            {{ translations.nextPagination }}
-            <font-awesome-icon
-              :icon="['fas', 'angle-right']"
-              class="ml-1"
-            />
-          </b-button>
-        </b-button-group>
+        {{ getPagination }}
       </div>
+
+      <b-button-group
+        v-if="!hidePagination"
+        class="ml-auto"
+      >
+        <b-button
+          :disabled="!hasPrevPage"
+          variant="outline-light"
+          class="d-flex align-items-center text-primary border-0"
+          @click="goToPage()"
+        >
+          <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+        </b-button>
+
+        <b-button
+          :disabled="!hasPrevPage"
+          variant="outline-light"
+          class="d-flex align-items-center text-primary border-0"
+          @click="goToPage('prevPage')"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'angle-left']"
+            class="mr-1"
+          />
+          {{ translations.prevPagination }}
+        </b-button>
+
+        <b-button
+          :disabled="!hasNextPage"
+          variant="outline-light"
+          class="d-flex align-items-center justify-content-center text-primary border-0"
+          @click="goToPage('nextPage')"
+        >
+          {{ translations.nextPagination }}
+          <font-awesome-icon
+            :icon="['fas', 'angle-right']"
+            class="ml-1"
+          />
+        </b-button>
+      </b-button-group>
     </template>
   </b-card>
 </template>
@@ -255,6 +250,16 @@ export default {
     isItemSelectable: {
       type: Function,
       default: () => true,
+    },
+
+    cardHeaderClass: {
+      type: String,
+      default: '',
+    },
+
+    headerClass: {
+      type: String,
+      default: '',
     },
 
     rowClass: {
@@ -413,6 +418,10 @@ export default {
 
 <style lang="scss">
 #resource-list {
+  th {
+    background-color: var(--gray-200) !important;
+  }
+
   td.actions {
     padding-top: 8px;
     right: 0;
@@ -428,8 +437,14 @@ export default {
 
   tr:hover td.actions {
     opacity: 1;
-    background-color: #F9FAFB;
+    background-color: var(--gray-200);
     z-index: 1;
+  }
+}
+
+@media (max-width: 576px) {
+  .flex-fill-child > * {
+    flex: 1 1 auto !important;
   }
 }
 </style>

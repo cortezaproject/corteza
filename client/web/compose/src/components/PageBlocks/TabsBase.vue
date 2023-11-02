@@ -149,13 +149,13 @@ export default {
     navClass () {
       const { orientation } = this.block.options.style
       const style = orientation === 'vertical' ? 'px-3' : 'px-2'
-      return `bg-white ${style}`
+      return `${style}`
     },
 
     navWrapperClass () {
       const { orientation, position } = this.block.options.style
       let border = 'border-bottom'
-      let style = 'bg-white mh-100'
+      let style = 'rounded mh-100'
 
       if (orientation === 'vertical') {
         border = position === 'end' ? 'border-left' : 'border-right'
@@ -199,9 +199,20 @@ export default {
 </script>
 
 <style lang="scss">
-.tabs-base-block-container .nav-pills {
-  .active .edit-block-btn {
-    color: var(--white) !important;
+.tabs-base-block-container {
+  .nav-pills {
+    .active .edit-block-btn {
+      color: var(--white) !important;
+    }
+  }
+
+  .tabs  {
+    .card {
+      border-radius: 0;
+    }
+    .card-header {
+      border-radius: 0;
+    }
   }
 }
 </style>

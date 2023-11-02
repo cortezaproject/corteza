@@ -3,9 +3,7 @@
     fluid="xl"
     class="d-flex flex-column h-100 py-3"
   >
-    <c-content-header
-      :title="$t('title')"
-    />
+    <c-content-header :title="$t('title')" />
 
     <c-resource-list
       :primary-key="primaryKey"
@@ -34,52 +32,45 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
-        <b-row>
-          <b-col
-            cols="12"
-            sm="5"
-          >
-            <b-form-group
-              :label="$t('columns.sessionID')"
-              label-class="text-primary"
-              class="mb-2"
-            >
-              <c-input-search
-                :value="filter.sessionID"
-                size="sm"
-                @input="filterBySessionID"
-              />
-            </b-form-group>
-          </b-col>
+        <b-form-group
+          :label="$t('columns.sessionID')"
+          label-class="text-primary"
+          class="mb-0"
+        >
+          <c-input-search
+            :value="filter.sessionID"
+            size="sm"
+            @input="filterBySessionID"
+          />
+        </b-form-group>
 
-          <b-col
-            cols="12"
-            sm="5"
-          >
-            <b-form-group
-              :label="$t('columns.workflowID')"
-              label-class="text-primary"
-            >
-              <c-input-search
-                :value="filter.workflowID"
-                size="sm"
-                @input="filterByWorkflowID"
-              />
-            </b-form-group>
-          </b-col>
-        </b-row>
+        <b-form-group
+          :label="$t('columns.workflowID')"
+          label-class="text-primary"
+          class="mb-0"
+        >
+          <c-input-search
+            :value="filter.workflowID"
+            size="sm"
+            @input="filterByWorkflowID"
+          />
+        </b-form-group>
+      </template>
 
-        <b-form-radio-group
-          v-model="filter.status"
-          :options="statusOptions"
-          buttons
-          button-variant="outline-primary"
-          size="sm"
-          @change="filterList"
-        />
-        <span class="ml-2 text-nowrap">
-          {{ $t('filterForm.sessions.label') }}
-        </span>
+      <template #toolbar>
+        <b-col>
+          <b-form-radio-group
+            v-model="filter.status"
+            :options="statusOptions"
+            buttons
+            button-variant="outline-primary"
+            size="sm"
+            @change="filterList"
+          />
+          <span class="ml-2 text-nowrap">
+            {{ $t('filterForm.sessions.label') }}
+          </span>
+        </b-col>
       </template>
 
       <template #sessionID="{ item }">

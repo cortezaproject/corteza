@@ -1,9 +1,10 @@
 <template>
   <b-card
     data-test-id="card-user-password"
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form
       @submit.prevent="onPasswordSubmit"
@@ -63,27 +64,26 @@
     <template #footer>
       <confirmation-toggle
         data-test-id="button-remove-password"
-        class="ml-1"
         cta-class="light"
         @confirmed="$emit('submit')"
       >
         {{ $t('removePassword') }}
       </confirmation-toggle>
 
-      <c-button-submit
-        :disabled="!passwordState || !confirmPasswordState"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="onPasswordSubmit"
-      />
-
       <c-corredor-manual-buttons
         ui-page="user/editor"
         ui-slot="passwordFooter"
         default-variant="secondary"
         @click="dispatchCortezaSystemEvent($event)"
+      />
+
+      <c-button-submit
+        :disabled="!passwordState || !confirmPasswordState"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="onPasswordSubmit"
       />
     </template>
   </b-card>

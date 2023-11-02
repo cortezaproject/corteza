@@ -56,14 +56,12 @@
           :to="{ name: 'namespace.create' }"
           variant="primary"
           size="lg"
-          class="mr-1 float-left"
         >
           {{ $t('toolbar.buttons.create') }}
         </b-btn>
 
         <importer-modal
           v-if="canImport"
-          class="mr-1 float-left"
           @imported="onImported"
           @failed="onFailed"
         />
@@ -71,9 +69,8 @@
         <c-permissions-button
           v-if="canGrant"
           resource="corteza::compose:namespace/*"
-          button-variant="light"
           :button-label="$t('toolbar.buttons.permissions')"
-          class="btn-lg float-left"
+          size="lg"
         />
       </template>
 

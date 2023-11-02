@@ -12,10 +12,8 @@
         {{ $t('general:label.requests') }}
       </h3>
 
-      <div
-        class="d-flex align-items-center justify-content-between"
-      >
-        <div>
+      <div class="d-flex align-items-center flex-wrap flex-fill mt-2 gap-1">
+        <div class="flex-fill">
           <b-button
             data-test-id="button-refresh"
             variant="primary"

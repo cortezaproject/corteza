@@ -1,9 +1,16 @@
 <template>
   <b-card
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
+    <template #header>
+      <h3 class="m-0">
+        {{ $t('title') }}
+      </h3>
+    </template>
+
     <b-form
       @submit.prevent="$emit('submit', basic)"
     >
@@ -17,6 +24,7 @@
           >
             <b-form-group
               :label="$t('attachments.max-size')"
+              label-class="text-primary"
             >
               <b-form-input
                 v-model="basic['compose.page.attachments.max-size']"
@@ -33,6 +41,7 @@
             <b-form-group
               :label="$t('attachments.type.whitelist')"
               :description="$t('attachments.type.description')"
+              label-class="text-primary"
               class="mb-0"
             >
               <b-form-input v-model="pageAttachmentWhitelist" />
@@ -51,6 +60,7 @@
           >
             <b-form-group
               :label="$t('attachments.max-size')"
+              label-class="text-primary"
             >
               <b-form-input
                 v-model="basic['compose.record.attachments.max-size']"
@@ -67,6 +77,7 @@
             <b-form-group
               :label="$t('attachments.type.whitelist')"
               :description="$t('attachments.type.description')"
+              label-class="text-primary"
               class="mb-0"
             >
               <b-form-input v-model="recordAttachmentWhitelist" />
@@ -85,6 +96,7 @@
           >
             <b-form-group
               :label="$t('attachments.max-size')"
+              label-class="text-primary"
             >
               <b-form-input
                 v-model="basic['compose.icon.attachments.max-size']"
@@ -101,6 +113,7 @@
             <b-form-group
               :label="$t('attachments.type.whitelist')"
               :description="$t('attachments.type.description')"
+              label-class="text-primary"
               class="mb-0"
             >
               <b-form-input v-model="iconAttachmentWhitelist" />
@@ -110,19 +123,13 @@
       </div>
     </b-form>
 
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('title') }}
-      </h3>
-    </template>
-
     <template #footer>
       <c-button-submit
         :disabled="!canManage"
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="$emit('submit', basic)"
       />
     </template>

@@ -41,12 +41,12 @@ list:
       label: Filter servers list
       placeholder: Filter servers by name
   loading: Loading federated nodes
-  new: New
+  new: New Federated Node
   numFound: '{{count}} server found'
   numFound_plural: '{{count}} servers found'
   pair:
     confirm: Confirm
-    label: Pair Federation Node
+    label: Pair Federated Node
     networkEstablished: Federated network will be established after the final confirmation from the administrator of another Corteza Federation Node.
     note: 'Note:'
     status:

@@ -29,7 +29,7 @@ editor:
     searchUsers: Search users
     title: Role members
     unnamed: Unnamed user
-  new: New
+  new: New Role
   permissions: Permissions
   title:
     create: Create role
@@ -65,7 +65,7 @@ list:
       label: Filter roles list
       placeholder: Filter roles by name
   loading: Loading roles
-  new: New
+  new: New Role
   numFound: '{{count}} role found'
   numFound_plural: '{{count}} roles found'
   permissions: Permissions

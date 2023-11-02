@@ -137,9 +137,9 @@ editor:
 
     image:
       uploader:
-        title: Background image
+        label: Background image
         instructions: Click or drop background image here to upload
         uploading: Uploading auth background image
 
       editor:
-        title: Styles editor
+        label: Custom CSS

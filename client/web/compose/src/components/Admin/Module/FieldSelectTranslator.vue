@@ -1,7 +1,6 @@
 <template>
   <c-translator-button
     v-if="canManageResourceTranslations && resourceTranslationsEnabled"
-    button-variant="light"
     v-bind="$props"
     :title="$t('tooltip')"
     :size="size"

@@ -1,14 +1,12 @@
 <template>
-  <div
-    class="d-inline-block"
-  >
+  <div>
     <b-dropdown
       v-if="recordPage"
       :size="size"
       variant="primary"
       :text="$t('related-pages')"
       :boundary="boundary"
-      class="related-pages-dropdown"
+      class="related-pages-dropdown flex-fill"
     >
       <b-dropdown-item>
         <b-button

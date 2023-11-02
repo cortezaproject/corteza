@@ -76,7 +76,6 @@
                     :target="report.meta.name || report.handle || report.reportID"
                     :resource="`corteza::system:report/${report.reportID}`"
                     :button-label="$t('permissions')"
-                    button-variant="light"
                     class="btn-lg ml-1"
                   />
                 </div>

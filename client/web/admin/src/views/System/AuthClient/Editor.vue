@@ -19,7 +19,6 @@
         :title="authclient.meta.name || authclient.handle || authClientID"
         :target="authclient.meta.name || authclient.handle || authClientID"
         :resource="`corteza::system:auth-client/${authClientID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}

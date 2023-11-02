@@ -70,6 +70,6 @@ export default {
 <style lang="scss">
 .reminder-sidebar-header {
   height: 64px;
-  background-color: #F4F7FA;
+  background-color: var(--gray-200);
 }
 </style>

@@ -30,7 +30,7 @@ export default {
 
     buttonVariant: {
       type: String,
-      default: undefined,
+      default: 'light',
     },
 
     resource: {

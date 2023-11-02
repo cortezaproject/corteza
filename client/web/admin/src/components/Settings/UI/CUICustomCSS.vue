@@ -1,8 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
+    body-class="p-0"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <template #header>
       <h3 class="m-0">
@@ -50,7 +52,7 @@
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right mt-2"
+        class="ml-auto"
         @submit="onSubmit"
       />
     </template>

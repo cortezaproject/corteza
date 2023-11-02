@@ -1,8 +1,10 @@
 <template>
-  <div>
+  <div class="d-flex">
     <b-button
       data-test-id="button-export"
       variant="light"
+      size="lg"
+      class="flex-fill"
       @click="showModal=true"
     >
       {{ $t('export.buttonLabel') }}

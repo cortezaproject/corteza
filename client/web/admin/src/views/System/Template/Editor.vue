@@ -20,7 +20,6 @@
         :title="template.meta.short || template.handle || template.templateID"
         :target="template.meta.short || template.handle || template.templateID"
         :resource="`corteza::system:template/${templateID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}

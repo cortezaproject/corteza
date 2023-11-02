@@ -28,7 +28,6 @@
               :chart="chart"
               :disabled="isNew"
               :highlight-key="`dimensions.${dimension.dimensionID}.meta.steps.${step.stepID}.label`"
-              button-variant="light"
             />
           </b-input-group-append>
 

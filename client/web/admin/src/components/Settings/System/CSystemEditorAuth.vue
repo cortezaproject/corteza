@@ -1,22 +1,28 @@
 <template>
   <b-card
     data-test-id="card-edit-authentication"
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
+    <template #header>
+      <h3 class="m-0">
+        {{ $t('title') }}
+      </h3>
+    </template>
+
     <b-form
       @submit.prevent="$emit('submit', settings)"
     >
-      <b-row
-        class="text-primary"
-      >
+      <b-row>
         <b-col
           cols="12"
           lg="6"
         >
           <b-form-group
             :label="$t('internal.title')"
+            label-class="text-primary"
           >
             <c-input-checkbox
               v-model="settings['auth.internal.enabled']"
@@ -34,6 +40,7 @@
         >
           <b-form-group
             :label="$t('internal.enabled')"
+            label-class="text-primary"
           >
             <c-input-checkbox
               v-model="settings['auth.internal.enabled']"
@@ -51,6 +58,7 @@
         >
           <b-form-group
             :label="$t('internal.password-reset.enabled')"
+            label-class="text-primary"
           >
             <c-input-checkbox
               v-model="settings['auth.internal.password-reset.enabled']"
@@ -69,6 +77,7 @@
         >
           <b-form-group
             :label="$t('internal.signup.email-confirmation-required')"
+            label-class="text-primary"
           >
             <c-input-checkbox
               v-model="settings['auth.internal.signup.email-confirmation-required']"
@@ -84,7 +93,10 @@
           cols="12"
           lg="6"
         >
-          <b-form-group :label="$t('internal.signup.enabled')">
+          <b-form-group
+            :label="$t('internal.signup.enabled')"
+            label-class="text-primary"
+          >
             <c-input-checkbox
               v-model="settings['auth.internal.signup.enabled']"
               :value="true"
@@ -99,7 +111,10 @@
           cols="12"
           lg="6"
         >
-          <b-form-group :label="$t('internal.profile-avatar.enabled')">
+          <b-form-group
+            :label="$t('internal.profile-avatar.enabled')"
+            label-class="text-primary"
+          >
             <c-input-checkbox
               v-model="settings['auth.internal.profile-avatar.enabled']"
               :value="true"
@@ -114,7 +129,10 @@
           cols="12"
           lg="6"
         >
-          <b-form-group :label="$t('internal.signup.split-credentials-check.label')">
+          <b-form-group
+            :label="$t('internal.signup.split-credentials-check.label')"
+            label-class="text-primary"
+          >
             <c-input-checkbox
               v-model="settings['auth.internal.split-credentials-check']"
               :value="true"
@@ -450,19 +468,13 @@
       </div>
     </b-form>
 
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('title') }}
-      </h3>
-    </template>
-
     <template #footer>
       <c-button-submit
         :disabled="!canManage"
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="$emit('submit', settings)"
       />
     </template>

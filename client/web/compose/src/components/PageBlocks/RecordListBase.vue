@@ -21,120 +21,112 @@
     <template #toolbar>
       <b-container
         ref="toolbar"
-        class="py-2 d-print-none"
         fluid
+        class="d-flex flex-column gap-1 py-2 d-print-none"
       >
         <b-row
           no-gutters
-          class="justify-content-between wrap-with-vertical-gutters"
+          class="d-flex align-items-center justify-content-between gap-1"
         >
-          <div class="text-nowrap flex-grow-1">
-            <div
-              class="d-flex align-items-center flex-wrap wrap-with-vertical-gutters"
-            >
-              <template v-if="recordListModule.canCreateRecord">
-                <template v-if="inlineEditing">
-                  <b-button
-                    v-if="!options.hideAddButton"
-                    data-test-id="button-add-record"
-                    variant="primary"
-                    size="lg"
-                    class="mr-1"
-                    @click="addInlineRecord()"
-                  >
-                    + {{ $t('recordList.addRecord') }}
-                  </b-button>
-                </template>
-
-                <template v-else-if="!inlineEditing && (recordPageID || options.allRecords)">
-                  <b-button
-                    v-if="!options.hideAddButton"
-                    data-test-id="button-add-record"
-                    variant="primary"
-                    size="lg"
-                    class="mr-1"
-                    @click="handleAddRecord()"
-                  >
-                    + {{ $t('recordList.addRecord') }}
-                  </b-button>
-
-                  <importer-modal
-                    v-if="!options.hideImportButton"
-                    :module="recordListModule"
-                    :namespace="namespace"
-                    class="mr-1"
-                    @importSuccessful="onImportSuccessful"
-                  />
-                </template>
+          <div class="d-flex align-items-center flex-grow-1 flex-wrap flex-fill-child gap-1">
+            <template v-if="recordListModule.canCreateRecord">
+              <template v-if="inlineEditing">
+                <b-button
+                  v-if="!options.hideAddButton"
+                  data-test-id="button-add-record"
+                  variant="primary"
+                  size="lg"
+                  @click="addInlineRecord()"
+                >
+                  + {{ $t('recordList.addRecord') }}
+                </b-button>
               </template>
 
-              <exporter-modal
-                v-if="options.allowExport && !inlineEditing"
-                :module="recordListModule"
-                :filter="filter.query"
-                :selection="selected"
-                :selected-all-records="selectedAllRecords"
-                :processing="processing"
-                :preselected-fields="fields.map(({ moduleField }) => moduleField)"
-                class="mr-1"
-                @export="onExport"
-              />
-
-              <b-dropdown
-                v-if="filterPresets.length"
-                variant="light"
-                right
-                size="lg"
-                menu-class="shadow-sm"
-                boundary="viewport"
-                class="mr-1"
-                :text="$t('recordList.filter.filters.label')"
-              >
-                <li
-                  v-for="(f, idx) in filterPresets"
-                  :key="idx"
-                  class="d-flex align-items-center justify-content-between"
+              <template v-else-if="!inlineEditing && (recordPageID || options.allRecords)">
+                <b-button
+                  v-if="!options.hideAddButton"
+                  data-test-id="button-add-record"
+                  variant="primary"
+                  size="lg"
+                  @click="handleAddRecord()"
                 >
-                  <button
-                    class="dropdown-item"
-                    :disabled="activeFilters.includes(f.name)"
-                    @click="updateFilter(f.filter, f.name)"
-                  >
-                    {{ f.name }}
-                  </button>
+                  + {{ $t('recordList.addRecord') }}
+                </b-button>
 
-                  <c-input-confirm
-                    v-if="!f.roles"
-                    show-icon
-                    class="mr-1"
-                    @confirmed="removeStorageRecordListFilterPreset(f.name)"
-                  />
-                </li>
-              </b-dropdown>
+                <importer-modal
+                  v-if="!options.hideImportButton"
+                  :module="recordListModule"
+                  :namespace="namespace"
+                  @importSuccessful="onImportSuccessful"
+                />
+              </template>
+            </template>
 
-              <column-picker
-                v-if="!options.hideConfigureFieldsButton"
-                :module="recordListModule"
-                :fields="fields"
-                class="mr-1"
-                @updateFields="onUpdateFields"
-              />
-            </div>
+            <exporter-modal
+              v-if="options.allowExport && !inlineEditing"
+              :module="recordListModule"
+              :filter="filter.query"
+              :selection="selected"
+              :selected-all-records="selectedAllRecords"
+              :processing="processing"
+              :preselected-fields="fields.map(({ moduleField }) => moduleField)"
+              @export="onExport"
+            />
+
+            <b-dropdown
+              v-if="filterPresets.length"
+              variant="light"
+              right
+              size="lg"
+              menu-class="shadow-sm"
+              boundary="viewport"
+              :text="$t('recordList.filter.filters.label')"
+            >
+              <li
+                v-for="(f, idx) in filterPresets"
+                :key="idx"
+                class="d-flex align-items-center justify-content-between"
+              >
+                <button
+                  class="dropdown-item"
+                  :disabled="activeFilters.includes(f.name)"
+                  @click="updateFilter(f.filter, f.name)"
+                >
+                  {{ f.name }}
+                </button>
+
+                <c-input-confirm
+                  v-if="!f.roles"
+                  show-icon
+                  class="mr-1"
+                  @confirmed="removeStorageRecordListFilterPreset(f.name)"
+                />
+              </li>
+            </b-dropdown>
+
+            <column-picker
+              v-if="!options.hideConfigureFieldsButton"
+              :module="recordListModule"
+              :fields="fields"
+              @updateFields="onUpdateFields"
+            />
           </div>
+
           <div
             v-if="!options.hideSearch"
-            class="d-flex align-items-center flex-grow-1 w-25"
+            class="flex-fill"
           >
             <c-input-search
               v-model.trim="query"
               :placeholder="$t('general.label.search')"
+              :debounce="500"
             />
           </div>
         </b-row>
 
         <div
           v-if="activeFilters.length || drillDownFilter || options.showDeletedRecordsOption"
-          class="d-flex mt-2"
+          class="d-flex"
         >
           <div
             v-if="activeFilters.length"
@@ -187,7 +179,7 @@
             {{ selectedAllRecords ? $t('recordList.unselectAllRecords') : $t('recordList.selectAllRecords') }}
           </b-button>
 
-          <div class="d-flex align-items-center ml-auto">
+          <div class="d-flex align-items-center ml-auto gap-1">
             <automation-buttons
               class="d-inline m-0 mr-2"
               :buttons="options.selectionButtons"
@@ -737,7 +729,7 @@
 </template>
 <script>
 import axios from 'axios'
-import { debounce, isEqual } from 'lodash'
+import { isEqual } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
@@ -905,7 +897,7 @@ export default {
     },
 
     showPageNavigation () {
-      return this.items.length && !this.options.hidePaging
+      return !this.options.hidePaging
     },
 
     showPerPageSelector () {
@@ -1048,9 +1040,11 @@ export default {
   },
 
   watch: {
-    query: debounce(function (e) {
-      this.refresh(true)
-    }, 500),
+    query: {
+      handler () {
+        this.refresh(true)
+      },
+    },
 
     options: {
       deep: true,
@@ -2069,16 +2063,22 @@ td:hover .inline-actions {
 </style>
 
 <style lang="scss">
-.record-list-table .actions {
-  padding-top: 8px;
-  position: sticky;
-  right: 0;
-  opacity: 0;
-  transition: opacity 0.25s;
-  width: 1%;
+.record-list-table {
+  th {
+    background-color: var(--gray-200) !important;
+  }
 
-  .regular-font {
-    font-family: var(--font-regular) !important;
+  .actions {
+    padding-top: 8px;
+    position: sticky;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.25s;
+    width: 1%;
+
+    .regular-font {
+      font-family: var(--font-regular) !important;
+    }
   }
 }
 
@@ -2086,5 +2086,11 @@ td:hover .inline-actions {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+@media (max-width: 576px) {
+  .flex-fill-child > * {
+    flex-grow: 1;
+  }
 }
 </style>

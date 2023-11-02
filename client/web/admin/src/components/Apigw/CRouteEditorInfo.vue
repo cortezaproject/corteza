@@ -1,11 +1,17 @@
 <template>
   <b-card
-    class="shadow-sm"
     data-test-id="card-route-edit"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
+    <template #header>
+      <h3 class="m-0">
+        {{ $t('title') }}
+      </h3>
+    </template>
+
     <b-form
       @submit.prevent="$emit('submit', route)"
     >
@@ -109,22 +115,7 @@
       />
     </b-form>
 
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('title') }}
-      </h3>
-    </template>
-
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="$emit('submit', route)"
-      />
-
       <confirmation-toggle
         v-if="route && route.routeID && route.canDeleteApigwRoute"
         :data-test-id="deletedButtonStatusCypressId"
@@ -132,6 +123,15 @@
       >
         {{ getDeleteStatus }}
       </confirmation-toggle>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', route)"
+      />
     </template>
   </b-card>
 </template>

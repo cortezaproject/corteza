@@ -2,23 +2,7 @@
   <b-container
     fluid="xl"
   >
-    <c-content-header
-      :title="$t('title')"
-    >
-      <span
-        class="text-nowrap"
-      >
-        <b-button
-          v-if="canCreate"
-          data-test-id="button-new-sens-lvl"
-          variant="primary"
-          class="mr-2"
-          :to="{ name: 'system.sensitivityLevel.new' }"
-        >
-          {{ $t('new') }}
-        </b-button>
-      </span>
-    </c-content-header>
+    <c-content-header :title="$t('title')" />
 
     <c-resource-list
       :primary-key="primaryKey"
@@ -46,6 +30,18 @@
       @row-clicked="handleRowClicked"
     >
       <template #header>
+        <b-button
+          v-if="canCreate"
+          data-test-id="button-new-sens-lvl"
+          variant="primary"
+          size="lg"
+          :to="{ name: 'system.sensitivityLevel.new' }"
+        >
+          {{ $t('new') }}
+        </b-button>
+      </template>
+
+      <template #toolbar>
         <c-resource-list-status-filter
           v-model="filter.deleted"
           :label="$t('filterForm.deleted.label')"

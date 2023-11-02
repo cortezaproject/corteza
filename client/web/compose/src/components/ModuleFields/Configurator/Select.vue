@@ -75,7 +75,6 @@
                       :highlight-key="`meta.options.${option.value}.text`"
                       size="sm"
                       :disabled="isNew || option.new"
-                      button-variant="light"
                     />
                   </b-input-group-append>
                 </b-input-group>

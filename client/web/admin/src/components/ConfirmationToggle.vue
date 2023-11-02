@@ -1,10 +1,10 @@
 <template>
-  <div>
+  <div class="d-inline-flex">
     <template v-if="!inConfirmation">
       <b-button
         :variant="ctaClass"
         :disabled="disabled"
-        class="confirmation-prompt"
+        class="confirmation-prompt flex-fill"
         @click.prevent="onPrompt"
       >
         <slot />
@@ -14,7 +14,7 @@
     <template v-if="inConfirmation">
       <b-button
         :variant="confirmationClass"
-        class="confirmation-confirm"
+        class="confirmation-confirm flex-fill mr-1"
         @click.prevent="onConfirmation()"
       >
         {{ $t('label.yes') }}
@@ -22,7 +22,7 @@
 
       <b-button
         variant="secondary"
-        class="confirmation-cancel"
+        class="confirmation-cancel flex-fill"
         @click.prevent="inConfirmation=false"
       >
         {{ $t('label.no') }}

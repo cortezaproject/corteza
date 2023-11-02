@@ -1,8 +1,5 @@
 <template>
-  <div
-    :class="{ 'text-center': inConfirmation }"
-    class="d-inline-block"
-  >
+  <div class="d-inline-flex">
     <template v-if="!inConfirmation">
       <b-button
         data-test-id="button-delete"
@@ -10,7 +7,7 @@
         :size="size"
         :disabled="disabled || processing"
         :title="tooltip"
-        :class="`${buttonClass} ${borderless ? 'border-0' : ''}`"
+        :class="`${buttonClass} ${borderless ? 'border-0' : ''} flex-fill`"
         @click.stop.prevent="onPrompt"
       >
         <b-spinner
@@ -40,8 +37,8 @@
         :variant="variantOk"
         :size="sizeConfirm"
         :disabled="okDisabled"
-        class="mr-1"
-        :class="[ borderless && 'border-0' ]"
+        :class="{ 'border-0': borderless }"
+        class="flex-fill mr-1"
         @blur.prevent="onCancel()"
         @click.prevent.stop="onConfirmation()"
       >
@@ -58,6 +55,7 @@
         :size="sizeConfirm"
         :disabled="cancelDisabled"
         :class="[ borderless && 'border-0' ]"
+        class="flex-fill"
         @click.prevent.stop="onCancel()"
       >
         <slot name="no">

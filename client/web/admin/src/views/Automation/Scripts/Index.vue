@@ -3,9 +3,7 @@
     fluid="xl"
     class="d-flex flex-column h-100 py-3"
   >
-    <c-content-header
-      :title="$t('title')"
-    />
+    <c-content-header :title="$t('title')" />
 
     <b-card
       no-body
@@ -31,6 +29,9 @@
                 />
               </b-form-group>
             </b-col>
+          </b-row>
+
+          <b-row>
             <b-col
               cols="12"
               lg="6"
@@ -47,9 +48,7 @@
                 />
               </b-form-group>
             </b-col>
-          </b-row>
 
-          <b-row>
             <b-col
               cols="12"
               lg="6"
@@ -66,6 +65,7 @@
                 />
               </b-form-group>
             </b-col>
+
             <b-col
               cols="12"
               lg="6"
@@ -82,9 +82,7 @@
                 />
               </b-form-group>
             </b-col>
-          </b-row>
 
-          <b-row>
             <b-col
               cols="12"
               lg="6"
@@ -101,6 +99,7 @@
                 />
               </b-form-group>
             </b-col>
+
             <b-col
               cols="12"
               lg="6"

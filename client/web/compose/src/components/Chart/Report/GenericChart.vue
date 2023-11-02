@@ -60,7 +60,6 @@
                     :chart="chart"
                     :disabled="isNew"
                     highlight-key="yAxis.label"
-                    button-variant="light"
                   />
                 </b-input-group-append>
               </b-input-group>
@@ -190,7 +189,6 @@
                   :chart="chart"
                   :disabled="isNew"
                   :highlight-key="`metrics.${metric.metricID}.label`"
-                  button-variant="light"
                 />
               </b-input-group-append>
             </b-input-group>

@@ -1,10 +1,10 @@
 <template>
   <b-card
     data-test-id="card-queue-edit"
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form @submit="$emit('submit', queue)">
       <b-row>
@@ -95,15 +95,6 @@
     </template>
 
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="$emit('submit', queue)"
-      />
-
       <confirmation-toggle
         v-if="queue && queue.queueID && queue.canDeleteQueue"
         :data-test-id="deleteButtonStatusCypressId"
@@ -111,6 +102,15 @@
       >
         {{ getDeleteStatus }}
       </confirmation-toggle>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', queue)"
+      />
     </template>
   </b-card>
 </template>

@@ -7,13 +7,11 @@
     >
       <b-card-header
         v-if="showHeader"
-        class="border-0 text-nowrap pl-3 pr-2 mr-1"
+        class="border-0 text-nowrap pl-3 pr-2"
         header-bg-variant="white"
         :header-text-variant="block.style.variants.headerText"
       >
-        <div
-          v-if="!headerSet"
-        >
+        <div v-if="!headerSet">
           <div class="d-flex">
             <h5
               v-if="block.title"

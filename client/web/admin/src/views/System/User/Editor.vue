@@ -20,7 +20,6 @@
         :title="user.name || user.handle || user.email || userID"
         :target="user.name || user.handle || user.email || userID"
         :resource="`corteza::system:user/${userID}`"
-        button-variant="light"
       >
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}

@@ -10,7 +10,7 @@ editor:
     title: Basic information
     undelete: Undelete
     updatedAt: Updated at
-  new: New
+  new: New Application
   permissions: Permissions
   title:
     create: Create application
@@ -58,7 +58,7 @@ list:
       label: Filter applications list
       placeholder: Filter applications by name
   loading: Loading applications
-  new: New
+  new: New Application
   numFound: '{{count}} application found'
   numFound_plural: '{{count}} applications found'
   permissions: Permissions

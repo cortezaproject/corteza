@@ -1,10 +1,16 @@
 <template>
   <b-card
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex flex-wrap gap-1"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
+    <template #header>
+      <h3 class="m-0">
+        {{ $t('title') }}
+      </h3>
+    </template>
+
     <b-form
       @submit.prevent="$emit('submit', workflow)"
     >
@@ -79,22 +85,7 @@
       >
     </b-form>
 
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('title') }}
-      </h3>
-    </template>
-
     <template #footer>
-      <c-button-submit
-        :disabled="saveDisabled"
-        :processing="processing"
-        :success="success"
-        :text="$t('admin:general.label.submit')"
-        class="float-right"
-        @submit="$emit('submit', workflow)"
-      />
-
       <confirmation-toggle
         v-if="workflow && workflow.workflowID && workflow.canDeleteWorkflow"
         :disabled="deleteDisabled"
@@ -103,15 +94,22 @@
         {{ getDeleteStatus }}
       </confirmation-toggle>
 
-      <div v-if="workflow.workflowID">
-        <b-button
-          variant="light"
-          class="align-top"
-          @click="openWorkflowBuilder()"
-        >
-          {{ $t('openBuilder') }}
-        </b-button>
-      </div>
+      <b-button
+        v-if="workflow.workflowID"
+        variant="light"
+        @click="openWorkflowBuilder()"
+      >
+        {{ $t('openBuilder') }}
+      </b-button>
+
+      <c-button-submit
+        :disabled="saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit', workflow)"
+      />
     </template>
   </b-card>
 </template>

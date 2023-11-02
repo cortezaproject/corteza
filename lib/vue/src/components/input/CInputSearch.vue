@@ -2,6 +2,7 @@
   <b-input-group
     :size="size"
     class="input-group-border border-light rounded"
+    style="min-width: 200px;"
   >
     <b-input
       ref="searchInput"
@@ -13,7 +14,7 @@
       :disabled="disabled"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
-      class="h-100 pr-0 border-0 text-truncate bg-white"
+      class="h-100 pr-0 border-0 rounded-0 text-truncate bg-white"
       @input="onInput"
       @update="search"
       @keyup.enter="submitQuery"
@@ -34,7 +35,7 @@
       >
         <font-awesome-icon
           :icon="['fas', 'search']"
-          class="text-primary"
+          class="align-middle text-primary"
         />
       </b-button>
     </b-input-group-append>

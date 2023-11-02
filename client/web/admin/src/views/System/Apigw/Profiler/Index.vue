@@ -21,14 +21,13 @@
         </h3>
         <em>{{ description }}</em>
 
-        <div
-          class="d-flex align-items-center justify-content-between mt-2"
-        >
-          <div>
+        <div class="d-flex align-items-center flex-wrap flex-fill mt-2 gap-1">
+          <div class="flex-fill">
             <b-button
               data-test-id="button-refresh"
               variant="primary"
               :disabled="loading"
+              size="lg"
               @click="loadItems()"
             >
               {{ $t('general:label.refresh') }}
@@ -46,6 +45,9 @@
             :processing="processingPurgeRequests"
             :text="$t('purge.all')"
             variant="danger"
+            size="lg"
+            button-class="flex-fill"
+            class="d-flex justify-content-end ml-auto"
             @confirmed="purgeRequests"
           />
         </div>

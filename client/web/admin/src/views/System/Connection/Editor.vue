@@ -31,18 +31,10 @@
         :can-manage="connection.canManageDalConfig"
         class="mt-4"
       />
-      <!--
-        include hidden input to enable
-        trigger submit event w/ ENTER
-      -->
-      <input
-        type="submit"
-        class="d-none"
-        :disabled="saveDisabled"
-      >
 
-      <div
-        class="d-flex mt-2"
+      <b-card
+        body-class="d-flex flex-wrap flex-fill-child gap-1"
+        class="mt-4"
       >
         <confirmation-toggle
           v-if="connection && connectionID && !isPrimary && !disabled"
@@ -59,7 +51,7 @@
           class="ml-auto"
           @submit="onSubmit"
         />
-      </div>
+      </b-card>
     </b-form>
   </b-container>
 </template>

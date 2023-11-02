@@ -29,7 +29,7 @@
       fluid="xl"
     >
       <b-row
-        class="wrap-with-vertical-gutters my-3"
+        class="my-3"
         no-gutters
       >
         <b-col

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex justify-content-end flex-wrap gap-1 mb-2"
+    class="d-flex justify-content-end flex-wrap gap-1 mb-2 flex-fill-child"
   >
     <portal to="topbar-title">
       {{ title }}

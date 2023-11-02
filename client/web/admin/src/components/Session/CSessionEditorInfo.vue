@@ -10,20 +10,9 @@
     >
       <b-row>
         <b-col
-          cols="12"
-        >
-          <b-form-group
-            :label="$t('id')"
-            label-class="text-primary"
-            class="mb-0"
-          >
-            {{ session.sessionID }}
-          </b-form-group>
-        </b-col>
-
-        <b-col
           v-if="session.workflowID"
           cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('workflowID')"
@@ -35,6 +24,7 @@
 
         <b-col
           cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('status')"
@@ -48,6 +38,7 @@
         <b-col
           v-if="session.error"
           cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('error')"
@@ -60,6 +51,7 @@
         <b-col
           v-if="session.resourceType"
           cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('resourceType')"
@@ -72,6 +64,7 @@
         <b-col
           v-if="session.eventType"
           cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('eventType')"
@@ -100,6 +93,7 @@
       </b-row>
 
       <c-system-fields
+        :id="session.sessionID"
         :resource="session"
       >
         <template #custom-field>

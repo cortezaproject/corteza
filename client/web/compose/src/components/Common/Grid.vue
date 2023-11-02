@@ -166,12 +166,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.editable {
-  .grid-item {
-    background-image: linear-gradient(45deg, var(--gray-200) 25%, var(--white) 25%, var(--white) 50%, var(--gray-200) 50%, var(--gray-200) 75%, var(--white) 75%, var(--white) 100%);
-    background-size: 28.28px 28.28px;
-  }
-}
-</style>

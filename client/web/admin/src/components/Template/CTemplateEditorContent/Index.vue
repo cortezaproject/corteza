@@ -18,10 +18,12 @@
       lg="9"
     >
       <b-card
-        class="shadow-sm"
+        body-class="p-0"
         header-bg-variant="white"
         header-class="d-flex align-items-center"
         footer-bg-variant="white"
+        footer-class="d-flex flex-wrap flex-fill-child gap-1"
+        class="shadow-sm"
       >
         <component
           :is="editor"
@@ -48,7 +50,7 @@
             :processing="processing"
             :success="success"
             :text="$t('admin:general.label.submit')"
-            class="float-right"
+            class="ml-auto"
             @submit="$emit('submit', template)"
           />
         </template>
@@ -57,9 +59,11 @@
       <!-- Preview configuration -->
       <b-card
         v-if="!template.partial"
-        class="shadow-sm mt-3"
+        body-class="p-0"
         header-bg-variant="white"
         footer-bg-variant="white"
+        footer-class="d-flex flex-wrap flex-fill-child gap-1"
+        class="shadow-sm mt-3"
       >
         <!-- Partial templates can't be previewed -->
         <ace-editor
@@ -68,7 +72,6 @@
           :show-print-margin="true"
           :show-gutter="true"
           :highlight-active-line="true"
-          class="mt-1"
           width="100%"
           height="500px"
           mode="json"
@@ -88,28 +91,23 @@
         </template>
 
         <template #footer>
-          <div
-            class="float-right"
+          <b-btn
+            v-if="canPreviewHTML"
+            data-test-id="button-preview-html-template"
+            variant="light"
+            @click="openPreview('html')"
           >
-            <b-btn
-              v-if="canPreviewHTML"
-              data-test-id="button-preview-html-template"
-              variant="light"
-              class="mr-2"
-              @click="openPreview('html')"
-            >
-              {{ $t('preview.html') }}
-            </b-btn>
+            {{ $t('preview.html') }}
+          </b-btn>
 
-            <b-btn
-              v-if="canPreviewPDF"
-              data-test-id="button-preview-pdf-template"
-              variant="light"
-              @click="openPreview('pdf')"
-            >
-              {{ $t('preview.pdf') }}
-            </b-btn>
-          </div>
+          <b-btn
+            v-if="canPreviewPDF"
+            data-test-id="button-preview-pdf-template"
+            variant="light"
+            @click="openPreview('pdf')"
+          >
+            {{ $t('preview.pdf') }}
+          </b-btn>
         </template>
       </b-card>
     </b-col>

@@ -2,9 +2,7 @@
   <b-container
     class="py-3"
   >
-    <c-content-header
-      :title="$t('title')"
-    />
+    <c-content-header :title="$t('title')" />
 
     <div
       class="d-flex flex-column h-100"

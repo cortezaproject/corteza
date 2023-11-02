@@ -43,7 +43,7 @@
           <div
             v-if="$store.state.processing || !total.actual"
             class="position-absolute d-flex align-items-center justify-content-center w-100 h-100"
-            style="opacity: 0.8; z-index: 1; background-color: #F9FAFB;"
+            style="opacity: 0.8; z-index: 1; background-color: var(--gray-200);"
           >
             <h5
               class="mb-5"

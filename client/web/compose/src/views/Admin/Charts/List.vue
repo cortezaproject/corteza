@@ -81,7 +81,6 @@
           v-if="namespace.canGrant"
           :resource="`corteza::compose:chart/${namespace.namespaceID}/*`"
           :button-label="$t('general.label.permissions')"
-          button-variant="light"
           class="btn-lg"
         />
       </template>
