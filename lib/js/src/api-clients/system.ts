@@ -2532,6 +2532,7 @@ export default class System {
       kind,
       deleted,
       completed,
+      dismissed,
       incTotal,
     } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
@@ -2545,10 +2546,23 @@ export default class System {
       kind,
       deleted,
       completed,
+      dismissed,
       incTotal,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.dalSchemaAlterationList(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   dalSchemaAlterationListEndpoint (): string {
@@ -2574,63 +2588,23 @@ export default class System {
     return this.api().request(cfg).then(result => stdResolve(result))
   }
 
+  dalSchemaAlterationReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.dalSchemaAlterationRead(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
+  }
+
   dalSchemaAlterationReadEndpoint (a: KV): string {
     const {
       alterationID,
     } = a || {}
     return `/dal/schema/alterations/${alterationID}`
-  }
-
-  // Remove alteration
-  async dalSchemaAlterationDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
-    if (!alterationID) {
-      throw Error('field alterationID is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'delete',
-      url: this.dalSchemaAlterationDeleteEndpoint({
-        alterationID,
-      }),
-    }
-
-    return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  dalSchemaAlterationDeleteEndpoint (a: KV): string {
-    const {
-      alterationID,
-    } = a || {}
-    return `/dal/schema/alterations/${alterationID}`
-  }
-
-  // Undelete alteration
-  async dalSchemaAlterationUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      alterationID,
-    } = (a as KV) || {}
-    if (!alterationID) {
-      throw Error('field alterationID is empty')
-    }
-    const cfg: AxiosRequestConfig = {
-      ...extra,
-      method: 'post',
-      url: this.dalSchemaAlterationUndeleteEndpoint({
-        alterationID,
-      }),
-    }
-
-    return this.api().request(cfg).then(result => stdResolve(result))
-  }
-
-  dalSchemaAlterationUndeleteEndpoint (a: KV): string {
-    const {
-      alterationID,
-    } = a || {}
-    return `/dal/schema/alterations/${alterationID}/undelete`
   }
 
   // Apply alterations
@@ -2651,6 +2625,18 @@ export default class System {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationApplyCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.dalSchemaAlterationApply(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   dalSchemaAlterationApplyEndpoint (): string {
@@ -2675,6 +2661,18 @@ export default class System {
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  dalSchemaAlterationDismissCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    let options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+        response: () => this.dalSchemaAlterationDismiss(a, options),
+        cancel: () => {
+          cancelTokenSource.cancel();
+        }
+    }
   }
 
   dalSchemaAlterationDismissEndpoint (): string {
