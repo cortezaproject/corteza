@@ -15,7 +15,7 @@
       class="bg-warning rounded p-2 mb-3"
     >
       {{ $t('sassNotInstalled') }}
-      [<a :href="installSassDocs">{{ $t('installSassDocs') }}</a>]
+      <a :href="installSassDocs">{{ $t('installSassDocs') }}</a>
     </div>
 
     <b-row>
@@ -124,7 +124,7 @@ export default {
     installSassDocs () {
       // eslint-disable-next-line no-undef
       const [year, month] = VERSION.split('.')
-      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}`
+      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/corteza-studio/index.html`
     },
   },
 
