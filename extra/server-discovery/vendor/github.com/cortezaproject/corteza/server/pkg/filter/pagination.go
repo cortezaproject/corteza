@@ -252,7 +252,7 @@ func (p *PagingCursor) UnmarshalJSON(in []byte) error {
 		}
 	}
 
-	if err := json.Unmarshal(in, &aux); err != nil {
+	if err = json.Unmarshal(in, &aux); err != nil {
 		return err
 	}
 
@@ -287,10 +287,10 @@ func (p *PagingCursor) Decode(cursor string) error {
 }
 
 // Sort returns:
-//  - sort if cursor is nil
-//  - sort from cursor when sort is empty
-//  - sort from cursor when sort is compatible with cursor
-//  - error if sort & cursor are incompatible
+//   - sort if cursor is nil
+//   - sort from cursor when sort is empty
+//   - sort from cursor when sort is compatible with cursor
+//   - error if sort & cursor are incompatible
 func (p *PagingCursor) Sort(sort SortExprSet) (SortExprSet, error) {
 	if p == nil {
 		return sort, nil

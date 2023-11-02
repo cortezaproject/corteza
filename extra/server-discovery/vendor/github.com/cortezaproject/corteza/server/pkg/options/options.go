@@ -29,6 +29,7 @@ type (
 		Discovery   DiscoveryOpt
 		Apigw       ApigwOpt
 		Attachment  AttachmentOpt
+		Webapp      WebappOpt
 	}
 )
 
@@ -61,5 +62,6 @@ func Init() *Options {
 		Discovery:   *Discovery(),
 		Apigw:       *Apigw(),
 		Attachment:  *Attachment(),
+		Webapp:      *Webapp(),
 	}
 }

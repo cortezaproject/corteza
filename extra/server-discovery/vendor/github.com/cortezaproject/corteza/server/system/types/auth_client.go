@@ -85,7 +85,7 @@ type (
 	}
 
 	AuthClientFilter struct {
-		AuthClientID []uint64 `json:"authClientID"`
+		AuthClientID []string `json:"authClientID"`
 
 		Handle string `json:"handle"`
 

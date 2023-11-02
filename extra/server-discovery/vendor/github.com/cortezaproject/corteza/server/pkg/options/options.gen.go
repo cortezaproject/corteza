@@ -14,8 +14,7 @@ import (
 
 type (
 	DBOpt struct {
-		DSN                           string `env:"DB_DSN"`
-		AllowDestructiveSchemaChanges bool   `env:"DB_ALLOW_DESTRUCTIVE_SCHEMA_CHANGES"`
+		DSN string `env:"DB_DSN"`
 	}
 
 	HTTPClientOpt struct {
@@ -268,6 +267,10 @@ type (
 		AvatarInitialsBackgroundColor string `env:"AVATAR_INITIALS_BACKGROUND_COLOR"`
 		AvatarInitialsColor           string `env:"AVATAR_INITIALS_COLOR"`
 	}
+
+	WebappOpt struct {
+		ScssDirPath string `env:"WEBAPP_SCSS_DIR_PATH"`
+	}
 )
 
 // DB initializes and returns a DBOpt with default values
@@ -275,8 +278,7 @@ type (
 // This function is auto-generated
 func DB() (o *DBOpt) {
 	o = &DBOpt{
-		DSN:                           "sqlite3://file::memory:?cache=shared&mode=memory",
-		AllowDestructiveSchemaChanges: false,
+		DSN: "sqlite3://file::memory:?cache=shared&mode=memory",
 	}
 
 	// Custom defaults
@@ -1081,6 +1083,31 @@ func Attachment() (o *AttachmentOpt) {
 		AvatarInitialsBackgroundColor: "#F3F3F3",
 		AvatarInitialsColor:           "#162425",
 	}
+
+	// Custom defaults
+	func(o interface{}) {
+		if def, ok := o.(interface{ Defaults() }); ok {
+			def.Defaults()
+		}
+	}(o)
+
+	fill(o)
+
+	// Custom cleanup
+	func(o interface{}) {
+		if def, ok := o.(interface{ Cleanup() }); ok {
+			def.Cleanup()
+		}
+	}(o)
+
+	return
+}
+
+// Webapp initializes and returns a WebappOpt with default values
+//
+// This function is auto-generated
+func Webapp() (o *WebappOpt) {
+	o = &WebappOpt{}
 
 	// Custom defaults
 	func(o interface{}) {

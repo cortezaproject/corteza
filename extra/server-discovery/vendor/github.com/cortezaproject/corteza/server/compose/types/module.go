@@ -32,7 +32,7 @@ type (
 
 		Labels map[string]string `json:"labels,omitempty"`
 
-		Issues []string `json:"issues,omitempty"`
+		Issues []dal.Issue `json:"issues,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
@@ -112,7 +112,7 @@ type (
 	}
 
 	ModuleFilter struct {
-		ModuleID    []uint64 `json:"moduleID"`
+		ModuleID    []string `json:"moduleID"`
 		NamespaceID uint64   `json:"namespaceID,string"`
 		Query       string   `json:"query"`
 		Handle      string   `json:"handle"`

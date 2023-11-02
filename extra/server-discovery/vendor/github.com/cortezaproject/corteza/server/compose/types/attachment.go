@@ -36,6 +36,8 @@ type (
 		FieldName   string `json:"fieldName,omitempty"`
 		Filter      string `json:"filter"`
 
+		Deleted filter.State `json:"deleted"`
+
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
 		//

@@ -3,8 +3,9 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 )
@@ -44,7 +45,7 @@ type (
 	}
 
 	TemplateFilter struct {
-		TemplateID []uint64 `json:"templateID"`
+		TemplateID []string `json:"templateID"`
 		Query      string   `json:"query"`
 		Handle     string   `json:"handle"`
 		Type       string   `json:"type"`

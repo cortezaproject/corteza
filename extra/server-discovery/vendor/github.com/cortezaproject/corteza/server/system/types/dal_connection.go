@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/geolocation"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
@@ -24,7 +25,7 @@ type (
 		// use this connection and how it affects their behaviour
 		Config ConnectionConfig `json:"config"`
 
-		Issues []string `json:"issues,omitempty"`
+		Issues []dal.Issue `json:"issues,omitempty"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -97,7 +98,7 @@ type (
 	// ........................................................................
 
 	DalConnectionFilter struct {
-		DalConnectionID []uint64 `json:"connectionID,string"`
+		DalConnectionID []string `json:"connectionID"`
 		Handle          string   `json:"handle"`
 		Type            string   `json:"type"`
 

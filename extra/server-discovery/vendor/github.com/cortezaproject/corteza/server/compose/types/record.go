@@ -101,10 +101,11 @@ type (
 )
 
 const (
-	OperationTypeCreate OperationType = "create"
-	OperationTypeUpdate OperationType = "update"
-	OperationTypeDelete OperationType = "delete"
-	OperationTypePatch  OperationType = "patch"
+	OperationTypeCreate   OperationType = "create"
+	OperationTypeUpdate   OperationType = "update"
+	OperationTypeDelete   OperationType = "delete"
+	OperationTypePatch    OperationType = "patch"
+	OperationTypeUndelete OperationType = "undelete"
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
@@ -233,6 +234,18 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 
 		default:
 			auxv, err = cast.ToStringE(aux)
+
+			if r.module != nil {
+				f := r.module.Fields.FindByName(name)
+				if f != nil {
+					switch f.Kind {
+					case "DateTime":
+						// @note temporary solution to make timestamps consistent; we should handle
+						// timezones (or the lack of) more properly
+						auxv = cast.ToTime(auxv).Format(time.RFC3339)
+					}
+				}
+			}
 		}
 		if err != nil {
 			return

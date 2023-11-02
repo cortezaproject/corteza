@@ -84,6 +84,8 @@ type (
 
 		Buttons PageLayoutButtonConfig `json:"buttons"`
 		Actions []PageLayoutAction     `json:"actions,omitempty"`
+
+		UseTitle bool `json:"useTitle"`
 	}
 
 	PageLayoutVisibility struct {
@@ -113,7 +115,7 @@ type (
 	}
 
 	PageLayoutFilter struct {
-		PageLayoutID []uint64 `json:"pageLayoutID,string"`
+		PageLayoutID []string `json:"pageLayoutID"`
 		NamespaceID  uint64   `json:"namespaceID,string"`
 		PageID       uint64   `json:"pageID,string,omitempty"`
 		ParentID     uint64   `json:"ParentID,string,omitempty"`

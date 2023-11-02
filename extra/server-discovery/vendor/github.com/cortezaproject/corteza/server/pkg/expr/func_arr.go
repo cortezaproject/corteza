@@ -19,6 +19,7 @@ func ArrayFunctions() []gval.Language {
 		gval.Function("hasAll", hasAll),
 		gval.Function("find", find),
 		gval.Function("sort", sortSlice),
+		gval.Function("splice", splice),
 	}
 }
 
@@ -210,9 +211,17 @@ func find(arr interface{}, v interface{}) (p int, err error) {
 	return -1, nil
 }
 
-// slice slices slices
-func slice(arr interface{}, start, end int) interface{} {
-	arr = UntypedValue(arr)
+// splice slices slice
+func splice(arr interface{}, s, e float64) interface{} {
+	var (
+		err   error
+		start = int(s)
+		end   = int(e)
+	)
+
+	if arr, err = toSlice(arr); err != nil {
+		return nil
+	}
 
 	v := reflect.ValueOf(arr)
 

@@ -129,7 +129,7 @@ type (
 	}
 
 	ReportFilter struct {
-		ReportID []uint64 `json:"reportID"`
+		ReportID []string `json:"reportID"`
 
 		Handle string `json:"handle"`
 		Query  string `json:"query"`

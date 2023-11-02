@@ -58,6 +58,12 @@ type (
 				// Can users reset their passwords
 				PasswordReset struct{ Enabled bool } `json:"-" kv:"password-reset"`
 
+				// When enabled, users added via CLI will receive an email with a link to reset their password.
+				SendUserInviteEmail struct {
+					Enabled bool
+					Expires uint
+				} `kv:"send-user-invite-email" json:"sendUserInviteEmail"`
+
 				// PasswordCreate setting for create password for user via generated link with token
 				// If user has no password then link redirects to create password page
 				// Otherwise it redirects to profile page of that user
@@ -242,6 +248,12 @@ type (
 				Disabled bool `json:"disabled"`
 			} `kv:"sidebar,final" json:"sidebar"`
 
+			CustomCSS string `kv:"custom-css" json:"customCSS"`
+			Studio struct {
+				BrandingSASS  string `kv:"branding-sass" json:"branding-sass"`
+				SassInstalled bool   `kv:"sass-installed" json:"sass-installed"`
+			} `kv:"studio" json:"studio"`
+
 			Topbar struct {
 				HideAppSelector        bool `json:"hideAppSelector"`
 				HideHelp               bool `json:"hideHelp"`
@@ -264,6 +276,14 @@ type (
 					NewTab bool   `json:"newTab"`
 				} `json:"profileLinks"`
 			} `kv:"topbar,final" json:"topbar"`
+
+			Charts struct {
+				ColorSchemes []struct {
+					ID     string   `json:"id"`
+					Name   string   `json:"name"`
+					Colors []string `json:"colors"`
+				} `kv:"colorSchemes" json:"colorSchemes"`
+			} `kv:"charts" json:"charts"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {

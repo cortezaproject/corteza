@@ -30,5 +30,6 @@ const (
 	UserResourceType                      = "corteza::system:user"
 	DalConnectionResourceType             = "corteza::system:dal-connection"
 	DalSensitivityLevelResourceType       = "corteza::system:dal-sensitivity-level"
+	DalSchemaAlterationResourceType       = "corteza::system:dal-schema-alteration"
 	ComponentResourceType                 = "corteza::system"
 )
