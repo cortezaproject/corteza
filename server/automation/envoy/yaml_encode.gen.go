@@ -346,3 +346,12 @@ func (e YamlEncoder) getWriter(p envoyx.EncodeParams) (out io.Writer, err error)
 	err = errors.Errorf("YAML encoder expects a writer conforming to io.Writer interface")
 	return
 }
+
+func safeParentIdentifier(tt envoyx.Traverser, n *envoyx.Node, ref envoyx.Ref) (out string) {
+	aux := tt.ParentForRef(n, ref)
+	if aux == nil {
+		return ref.Identifiers.FriendlyIdentifier()
+	}
+
+	return aux.Identifiers.FriendlyIdentifier()
+}

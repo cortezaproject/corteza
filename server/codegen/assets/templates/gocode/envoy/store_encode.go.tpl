@@ -215,16 +215,9 @@ func (e StoreEncoder) encode{{.expIdent}}(ctx context.Context, p envoyx.EncodePa
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -509,3 +502,12 @@ func (e StoreEncoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*e
 	return
 }
 {{ end }}
+
+func safeParentID(tt envoyx.Traverser, n *envoyx.Node, ref envoyx.Ref) (out uint64) {
+	rn := tt.ParentForRef(n, ref)
+	if rn == nil {
+		return
+	}
+
+	return rn.Resource.GetID()
+}

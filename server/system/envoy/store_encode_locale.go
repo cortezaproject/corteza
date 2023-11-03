@@ -57,18 +57,7 @@ func (e StoreEncoder) encodeResourceTranslation(ctx context.Context, p envoyx.En
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
-			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
-			}
-
+			auxID = safeParentID(tree, n, ref)
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
 			if err != nil {
 				return

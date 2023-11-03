@@ -221,16 +221,9 @@ func (e StoreEncoder) encodeChart(ctx context.Context, p envoyx.EncodeParams, s 
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -440,16 +433,9 @@ func (e StoreEncoder) encodeModule(ctx context.Context, p envoyx.EncodeParams, s
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -674,16 +660,9 @@ func (e StoreEncoder) encodeModuleField(ctx context.Context, p envoyx.EncodePara
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -896,16 +875,9 @@ func (e StoreEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -1132,16 +1104,9 @@ func (e StoreEncoder) encodePage(ctx context.Context, p envoyx.EncodeParams, s s
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -1356,16 +1321,9 @@ func (e StoreEncoder) encodePageLayout(ctx context.Context, p envoyx.EncodeParam
 	var auxID uint64
 	err = func() (err error) {
 		for fieldLabel, ref := range n.References {
-			rn := tree.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxID = rn.Resource.GetID()
+			auxID = safeParentID(tree, n, ref)
 			if auxID == 0 {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxID)
@@ -1582,4 +1540,13 @@ func (e StoreEncoder) makeNamespaceFilter(scope *envoyx.Node, refs map[string]*e
 	out.NamespaceID = id.Strings(scope.Resource.GetID())
 
 	return
+}
+
+func safeParentID(tt envoyx.Traverser, n *envoyx.Node, ref envoyx.Ref) (out uint64) {
+	rn := tt.ParentForRef(n, ref)
+	if rn == nil {
+		return
+	}
+
+	return rn.Resource.GetID()
 }

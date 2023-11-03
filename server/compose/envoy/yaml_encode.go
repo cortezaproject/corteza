@@ -25,15 +25,9 @@ func (e YamlEncoder) encodeChartConfigC(ctx context.Context, p envoyx.EncodePara
 			continue
 		}
 
-		mNode := tt.ParentForRef(n, modRef)
-		if mNode == nil {
-			err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-			return
-		}
-
 		r, err := y7s.MakeMap(
 			"filter", r.Filter,
-			"module", mNode.Identifiers.FriendlyIdentifier(),
+			"module", safeParentIdentifier(tt, n, modRef),
 			"metrics", r.Metrics,
 			"dimensions", r.Dimensions,
 			"yAxis", r.YAxis,
@@ -69,25 +63,14 @@ func (e YamlEncoder) encodeModuleFieldOptionsC(ctx context.Context, p envoyx.Enc
 	switch f.Kind {
 	case "Record":
 		modRef := n.References["Options.ModuleID"]
-		mNode := tt.ParentForRef(n, modRef)
-		if mNode == nil {
-			err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-			return
-		}
-		opt["module"] = mNode.Identifiers.FriendlyIdentifier()
+		opt["module"] = safeParentIdentifier(tt, n, modRef)
 		delete(opt, "moduleID")
 
 	case "User":
 		aux := make([]string, 0, 2)
 		for i := range opt.Strings("roles") {
 			roleRef := n.References[fmt.Sprintf("Options.RoleID.%d", i)]
-			rNode := tt.ParentForRef(n, roleRef)
-			if rNode == nil {
-				err = fmt.Errorf("invalid role reference %v: role does not exist", roleRef)
-				return
-			}
-
-			aux = append(aux, rNode.Identifiers.FriendlyIdentifier())
+			aux = append(aux, safeParentIdentifier(tt, n, roleRef))
 		}
 		opt["roles"] = aux
 		delete(opt, "role")
@@ -131,34 +114,19 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		b = e.cleanupPageblockRecordList(b)
 
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
-		node := tt.ParentForRef(n, modRef)
-		if node == nil {
-			err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-			return
-		}
-		b.Options["module"] = node.Identifiers.FriendlyIdentifier()
+		b.Options["module"] = safeParentIdentifier(tt, n, modRef)
 		delete(b.Options, "moduleID")
 		break
 
 	case "RecordOrganizer":
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
-		node := tt.ParentForRef(n, modRef)
-		if node == nil {
-			err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-			return
-		}
-		b.Options["module"] = node.Identifiers.FriendlyIdentifier()
+		b.Options["module"] = safeParentIdentifier(tt, n, modRef)
 		delete(b.Options, "moduleID")
 		break
 
 	case "Chart":
 		chrRef := n.References[fmt.Sprintf("Blocks.%d.Options.ChartID", index)]
-		node := tt.ParentForRef(n, chrRef)
-		if node == nil {
-			err = fmt.Errorf("invalid chart reference %v: chart does not exist", chrRef)
-			return
-		}
-		b.Options["chart"] = node.Identifiers.FriendlyIdentifier()
+		b.Options["chart"] = safeParentIdentifier(tt, n, chrRef)
 		delete(b.Options, "chartID")
 		break
 
@@ -169,12 +137,7 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 			fOpts, _ := (feed["options"]).(map[string]interface{})
 
 			modRef := n.References[fmt.Sprintf("Blocks.%d.Options.feeds.%d.ModuleID", index, i)]
-			node := tt.ParentForRef(n, modRef)
-			if node == nil {
-				err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-				return
-			}
-			fOpts["module"] = node.Identifiers.FriendlyIdentifier()
+			fOpts["module"] = safeParentIdentifier(tt, n, modRef)
 			delete(fOpts, "moduleID")
 		}
 		break
@@ -188,13 +151,7 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 			}
 
 			wfRef := n.References[fmt.Sprintf("Blocks.%d.Options.buttons.%d.WorkflowID", index, i)]
-			node := tt.ParentForRef(n, wfRef)
-			if node == nil {
-				err = fmt.Errorf("invalid workflow reference %v: workflow does not exist", wfRef)
-				return
-			}
-
-			button["workflow"] = node.Identifiers.FriendlyIdentifier()
+			button["workflow"] = safeParentIdentifier(tt, n, wfRef)
 			delete(button, "workflowID")
 			i++
 		}
@@ -204,26 +161,16 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		mm, _ := b.Options["metrics"].([]interface{})
 		for i, m := range mm {
 			modRef := n.References[fmt.Sprintf("Blocks.%d.Options.metrics.%d.ModuleID", index, i)]
-			node := tt.ParentForRef(n, modRef)
-			if node == nil {
-				err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-				return
-			}
 
 			mops, _ := m.(map[string]interface{})
-			mops["module"] = node.Identifiers.FriendlyIdentifier()
+			mops["module"] = safeParentIdentifier(tt, n, modRef)
 			delete(mops, "moduleID")
 		}
 		break
 
 	case "Comment":
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
-		node := tt.ParentForRef(n, modRef)
-		if node == nil {
-			err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-			return
-		}
-		b.Options["module"] = node.Identifiers.FriendlyIdentifier()
+		b.Options["module"] = safeParentIdentifier(tt, n, modRef)
 		delete(b.Options, "moduleID")
 		break
 
@@ -254,14 +201,8 @@ func (e YamlEncoder) encodeProgressPageblockVal(k string, index int, n *envoyx.N
 	}
 
 	modRef := n.References[fmt.Sprintf("Blocks.%d.Options.%s.ModuleID", index, k)]
-	node := tt.ParentForRef(n, modRef)
-	if node == nil {
-		err = fmt.Errorf("invalid module reference %v: module does not exist", modRef)
-		return
-	}
-
 	opt := b.Options[k].(map[string]any)
-	opt["moduleID"] = node.Identifiers.FriendlyIdentifier()
+	opt["moduleID"] = safeParentIdentifier(tt, n, modRef)
 	delete(opt, "moduleID")
 
 	return
