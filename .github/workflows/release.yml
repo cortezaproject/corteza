@@ -20,6 +20,7 @@ env:
   NODE_VERSION: 16
 
   RELEASE_BASE_URL: "https://releases.cortezaproject.org/files"
+  SASS_VERSION: 1.69.5
 
 jobs:
   server-test:
@@ -433,6 +434,7 @@ jobs:
         run: |
           docker build \
             --build-arg "VERSION=${{ env.DOCKER_IMAGE_TAG }}" \
+            --build-arg "SASS_VERSION=${{ env.SASS_VERSION }}" \
             --tag ${{ matrix.image }}:${{ env.DOCKER_IMAGE_TAG }} \
             ${{ matrix.context }}
 
