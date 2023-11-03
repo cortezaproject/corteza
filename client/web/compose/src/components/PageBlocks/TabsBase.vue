@@ -206,7 +206,7 @@ export default {
     }
   }
 
-  .tabs  {
+  .tabs {
     .card {
       border-radius: 0;
     }
