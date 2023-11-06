@@ -1365,6 +1365,7 @@ export default {
 
           if (attachments.length === 0) {
             this.icon = {}
+            this.initialPageState.config.navItem.icon = {}
           } else {
             attachments.forEach(a => {
               const src = !a.url.includes(baseURL) ? this.makeAttachmentUrl(a.url) : a.url
