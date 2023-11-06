@@ -6,9 +6,17 @@
         class="h-100"
       >
         <div class="bg-white sticky-top py-2">
+          <b-button
+            data-test-id="button-report-list"
+            variant="light"
+            class="w-100 mb-2"
+            :to="{ name: 'report.list' }"
+          >
+            {{ $t('report-list') }}
+          </b-button>
           <c-input-search
             v-model.trim="query"
-            :placeholder="$t('sidebar:search-reports')"
+            :placeholder="$t('search-reports')"
           />
         </div>
 
@@ -24,7 +32,7 @@
         v-else
         class="d-flex justify-content-center mt-5"
       >
-        {{ $t('sidebar:no-reports') }}
+        {{ $t('no-reports') }}
       </h5>
     </portal>
   </div>
@@ -35,6 +43,10 @@ import { components } from '@cortezaproject/corteza-vue'
 const { CSidebarNavItems, CInputSearch } = components
 
 export default {
+  i18nOptions: {
+    namespaces: 'sidebar',
+  },
+
   components: {
     CSidebarNavItems,
     CInputSearch,
