@@ -10,40 +10,17 @@
 
     <div
       v-else
-      class="loader flex-column w-100 h-100"
+      class="loader flex-column align-items-center justify-content-center w-100 h-50"
     >
-      <div>
-        <div class="logo w-100" />
+      <h1>
+        {{ namespace ? (namespace.name || namespace.slug || namespace.namespaceID) : '...' }}
+      </h1>
 
-        <h1 class="text-center">
-          {{ namespace ? (namespace.name || namespace.slug || namespace.namespaceID) : '...' }}
-        </h1>
-
-        <div>
-          <div
-            v-for="(pending, part) in parts"
-            :key="part"
-            class="p-1"
-          >
-            <div
-              class="pending pr-3 d-inline-block text-right"
-            >
-              <b-spinner
-                v-if="pending"
-                small
-              />
-              <font-awesome-icon
-                v-else
-                :icon="['fas', 'check']"
-              />
-            </div>
-            <div
-              class="d-inline-block"
-            >
-              {{ $t('navigation.' + part) }}
-            </div>
-          </div>
-        </div>
+      <div class="d-flex align-items-center justify-content-center mt-4">
+        <b-spinner />
+        <h4 class="mb-0 ml-2">
+          {{ $t('general:label.loading') }}
+        </h4>
       </div>
     </div>
 
@@ -168,7 +145,9 @@ export default {
           .catch(this.errHandler),
 
       ]).catch(this.errHandler).then(() => {
-        this.loaded = true
+        setTimeout(() => {
+          this.loaded = true
+        }, 500)
       })
     },
 
