@@ -110,6 +110,7 @@
             variant="link"
             size="md"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(t)"
           />

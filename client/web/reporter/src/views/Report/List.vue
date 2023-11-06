@@ -132,7 +132,8 @@
             size="md"
             show-icon
             text-class="p-1"
-            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            button-class="dropdown-item text-decoration-none regular-font rounded-0"
+            icon-class="text-danger"
             class="w-100"
             @confirmed="handleDelete(r)"
           />

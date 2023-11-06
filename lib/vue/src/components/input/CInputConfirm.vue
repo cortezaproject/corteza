@@ -16,18 +16,21 @@
           class="align-middle"
           small
         />
+
         <slot v-else>
-          <font-awesome-icon
-            v-if="showIcon"
-            :icon="icon"
-            :class="iconClass"
-          />
-          <span
-            v-if="text"
-            :class="textClass"
-          >
-            {{ text }}
-          </span>
+          <template v-if="!$slots.default">
+            <font-awesome-icon
+              v-if="showIcon"
+              :icon="icon"
+              :class="iconClass"
+            />
+            <span
+              v-if="text"
+              :class="textClass"
+            >
+              {{ text }}
+            </span>
+          </template>
         </slot>
       </b-button>
     </template>

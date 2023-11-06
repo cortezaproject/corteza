@@ -100,6 +100,7 @@
             size="md"
             text-class="p-1"
             button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            icon-class="text-danger"
             class="w-100"
             :icon="getActionIcon(w)"
             :text="getActionText(w)"
