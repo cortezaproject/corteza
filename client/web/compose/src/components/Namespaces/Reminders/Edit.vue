@@ -76,7 +76,7 @@
           :calculate-position="calculateDropdownPosition"
           :reduce="user => user.userID"
           option-value="userID"
-          class="bg-white"
+          class="bg-white rounded"
           @search="searchUsers"
         />
       </b-form-group>

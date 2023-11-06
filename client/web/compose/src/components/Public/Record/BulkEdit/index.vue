@@ -61,7 +61,7 @@
           :calculate-position="calculateDropdownPosition"
           :selectable="option => !fields.includes(option.name)"
           :reduce="f => f.name"
-          class="bg-white position-relative"
+          class="bg-white position-relative rounded"
           @input="addField"
         />
 

@@ -6,7 +6,7 @@
     :get-option-key="getOptionKey"
     :value="user.value"
     :calculate-position="calculateDropdownPosition"
-    class="bg-white"
+    class="bg-white rounded"
     @search="search"
     @input="updateRunAs"
   />

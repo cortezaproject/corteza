@@ -19,7 +19,7 @@
           :get-option-key="getOptionKey"
           :placeholder="$t('connection.placeholder')"
           :calculate-position="calculateDropdownPosition"
-          class="h-100 bg-white"
+          class="h-100 bg-white rounded"
         />
       </b-form-group>
     </b-card>

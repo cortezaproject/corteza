@@ -29,7 +29,7 @@
           :reduce="f => f.pageID"
           option-value="pageID"
           option-text="title"
-          class="bg-white"
+          class="bg-white rounded"
           @input="updateLabelValue"
         />
       </b-form-group>

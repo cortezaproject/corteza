@@ -60,7 +60,7 @@
               option-value="value"
               clearable
               :calculate-position="calculateDropdownPosition"
-              class="mw-100"
+              class="mw-100 rounded"
               style="min-width: 100%;"
             >
               <template #option="option">

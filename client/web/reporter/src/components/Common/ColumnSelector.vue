@@ -9,7 +9,7 @@
     :reduce="r => r.name"
     append-to-body
     :calculate-position="calculateDropdownPosition"
-    class="column-selector bg-white"
+    class="column-selector bg-white rounded"
     v-on="$listeners"
   />
 </template>

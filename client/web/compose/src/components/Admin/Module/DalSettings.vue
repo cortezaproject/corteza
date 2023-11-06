@@ -17,7 +17,7 @@
         :placeholder="$t('connection.placeholder')"
         :get-option-label="getConnectionLabel"
         :calculate-position="calculateDropdownPosition"
-        class="bg-white"
+        class="bg-white rounded"
       />
     </b-form-group>
 

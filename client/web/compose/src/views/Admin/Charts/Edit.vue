@@ -104,7 +104,7 @@
                             :get-option-key="o => o.id"
                             :placeholder="$t('colorScheme.placeholder')"
                             :calculate-position="calculateDropdownPosition"
-                            class="bg-white"
+                            class="bg-white rounded"
                           >
                             <template #option="option">
                               <p

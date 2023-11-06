@@ -11,7 +11,7 @@
     :reduce="l => l.sensitivityLevelID"
     append-to-body
     :calculate-position="calculateDropdownPosition"
-    class="bg-white"
+    class="bg-white rounded"
     @input="onInput"
   />
 </template>

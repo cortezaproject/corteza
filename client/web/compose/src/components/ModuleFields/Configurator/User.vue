@@ -24,7 +24,7 @@
         :calculate-position="calculateDropdownPosition"
         multiple
         label="name"
-        class="bg-white"
+        class="bg-white rounded"
       />
     </b-form-group>
 

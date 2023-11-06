@@ -41,7 +41,7 @@
               :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
               :calculate-position="calculateDropdownPosition"
-              class="bg-white"
+              class="bg-white rounded"
             />
           </b-form-group>
         </b-col>
@@ -88,7 +88,7 @@
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
                 @input="fieldChanged($event, options.value)"
               />
             </b-form-group>
@@ -111,7 +111,7 @@
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
               />
             </b-form-group>
           </b-col>
@@ -159,7 +159,7 @@
               :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
               :calculate-position="calculateDropdownPosition"
-              class="bg-white"
+              class="bg-white rounded"
             />
           </b-form-group>
         </b-col>
@@ -206,7 +206,7 @@
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
                 @input="fieldChanged($event, options.minValue)"
               />
             </b-form-group>
@@ -229,7 +229,7 @@
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
               />
             </b-form-group>
           </b-col>
@@ -277,7 +277,7 @@
               :get-option-key="getOptionModuleKey"
               :reduce="m => m.moduleID"
               :calculate-position="calculateDropdownPosition"
-              class="bg-white"
+              class="bg-white rounded"
             />
           </b-form-group>
         </b-col>
@@ -324,7 +324,7 @@
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
                 @input="fieldChanged($event, options.maxValue)"
               />
             </b-form-group>
@@ -347,7 +347,7 @@
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
               />
             </b-form-group>
           </b-col>

@@ -74,7 +74,7 @@
                   :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
-                  class="bg-white"
+                  class="bg-white rounded"
                 />
               </b-form-group>
             </b-col>
@@ -95,7 +95,7 @@
                   :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
-                  class="bg-white"
+                  class="bg-white rounded"
                 />
               </b-form-group>
             </b-col>
@@ -116,7 +116,7 @@
                   :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
-                  class="bg-white"
+                  class="bg-white rounded"
                 />
               </b-form-group>
             </b-col>
@@ -140,7 +140,7 @@
                   :reduce="getOptionKey"
                   :calculate-position="calculateDropdownPosition"
                   append-to-body
-                  class="bg-white"
+                  class="bg-white rounded"
                 />
               </b-form-group>
             </b-col>

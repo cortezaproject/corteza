@@ -35,6 +35,7 @@
             :filter="functionFilter"
             :placeholder="$t('steps:function.configurator.select-function')"
             :calculate-position="calculateDropdownPosition"
+            class="bg-white rounded"
             @input="functionChanged"
           />
         </b-form-group>
@@ -111,6 +112,7 @@
                   :filter="argTypeFilter"
                   :clearable="false"
                   :calculate-position="calculateDropdownPosition"
+                  class="bg-white rounded"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>
@@ -148,6 +150,7 @@
                     :reduce="a => a.value"
                     :placeholder="$t('steps:function.configurator.option-select')"
                     :calculate-position="calculateDropdownPosition"
+                    class="bg-white rounded"
                     @input="$root.$emit('change-detected')"
                   />
 

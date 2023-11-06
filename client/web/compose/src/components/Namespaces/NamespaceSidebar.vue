@@ -17,7 +17,7 @@
           :placeholder="$t('pickNamespace')"
           :calculate-position="calculateDropdownPosition"
           :autoscroll="false"
-          class="bg-white"
+          class="bg-white rounded"
           @option:selected="namespaceSelected"
         >
           <template #list-header>

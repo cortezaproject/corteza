@@ -17,7 +17,7 @@
         option-text="label"
         placeholder="Select record"
         :filterable="false"
-        class="bg-white w-100 mb-3"
+        class="bg-white w-100 mb-3 rounded"
         @search="search"
       >
         <c-pagination

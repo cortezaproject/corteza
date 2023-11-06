@@ -31,7 +31,7 @@
               :get-option-key="getOptionKey"
               :options="filterFieldOptions(rule)"
               :calculate-position="calculateDropdownPosition"
-              class="bg-white"
+              class="bg-white rounded"
               style="min-width: 300px;"
             />
 

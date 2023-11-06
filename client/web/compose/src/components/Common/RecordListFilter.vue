@@ -79,7 +79,7 @@
                       append-to-body
                       :calculate-position="calculateDropdownPosition"
                       :class="{ 'filter-field-picker': !!filter.name }"
-                      class="field-selector bg-white"
+                      class="field-selector bg-white rounded"
                       @input="onChange($event, groupIndex, index)"
                     />
                   </b-td>

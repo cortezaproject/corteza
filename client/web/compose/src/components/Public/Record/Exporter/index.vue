@@ -154,7 +154,7 @@
             :get-option-key="getOptionKey"
             :calculate-position="calculateDropdownPosition"
             :placeholder="$t('recordList.export.timezonePlaceholder')"
-            class="bg-white"
+            class="bg-white rounded"
           />
         </b-form-group>
       </template>

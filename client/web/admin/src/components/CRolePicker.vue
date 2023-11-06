@@ -10,7 +10,7 @@
       :get-option-label="r => getRoleLabel(r)"
       :calculate-position="calculateDropdownPosition"
       :placeholder="$t('admin:picker.role.placeholder')"
-      class="bg-white w-100"
+      class="bg-white w-100 rounded"
       multiple
       @search="search"
       @input="updateValue($event)"

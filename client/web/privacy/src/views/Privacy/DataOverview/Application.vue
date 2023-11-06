@@ -23,7 +23,7 @@
           :calculate-position="calculateDropdownPosition"
           :get-option-label="({ handle, meta }) => meta.name || handle"
           :get-option-key="getOptionKey"
-          class="h-100 bg-white"
+          class="h-100 bg-white rounded"
         />
       </b-form-group>
     </b-card>

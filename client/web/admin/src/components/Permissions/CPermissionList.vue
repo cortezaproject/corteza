@@ -231,7 +231,7 @@
           :disabled="add.mode === 'eval' && !!add.userID"
           :placeholder="$t('ui.add.role.placeholder')"
           :calculate-position="calculateDropdownPosition"
-          class="bg-white"
+          class="bg-white rounded"
         />
       </b-form-group>
 
@@ -253,7 +253,7 @@
           clearable
           :placeholder="$t('ui.add.user.placeholder')"
           :calculate-position="calculateDropdownPosition"
-          class="bg-white"
+          class="bg-white rounded"
           @search="searchUsers"
         />
       </b-form-group>

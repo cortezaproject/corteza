@@ -15,7 +15,7 @@
           label="name"
           append-to-body
           :selectable="c => !c.deletedAt"
-          class="bg-white"
+          class="bg-white rounded"
           @input="chartSelected"
         />
         <b-input-group-append>
@@ -58,7 +58,7 @@
           :clearable="true"
           :placeholder="$t('chart.drillDown.openInModal')"
           append-to-body
-          class="bg-white w-100"
+          class="bg-white w-100 rounded"
         />
       </b-form-group>
     </template>

@@ -55,7 +55,7 @@
           :filterable="false"
           :searchable="searchable"
           :selectable="option => option.selectable"
-          class="bg-white w-100"
+          class="bg-white w-100 rounded"
           :placeholder="placeholder"
           multiple
           @search="search"
@@ -84,7 +84,7 @@
           :filterable="false"
           :searchable="searchable"
           :selectable="option => option.selectable"
-          class="bg-white w-100"
+          class="bg-white w-100 rounded"
           :placeholder="placeholder"
           @input="selectChange($event)"
           @search="search"
@@ -114,7 +114,7 @@
           :filterable="false"
           :searchable="searchable"
           :selectable="option => option.selectable"
-          class="bg-white w-100"
+          class="bg-white w-100 rounded"
           :placeholder="placeholder"
           :value="getRecord(ctx.index)"
           @input="setRecord($event, ctx.index)"
@@ -156,7 +156,7 @@
         :filterable="false"
         :searchable="searchable"
         :selectable="option => option.selectable"
-        class="bg-white w-100"
+        class="bg-white w-100 rounded"
         @search="search"
       >
         <pagination

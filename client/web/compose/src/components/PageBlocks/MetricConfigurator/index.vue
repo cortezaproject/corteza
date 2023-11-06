@@ -191,7 +191,7 @@
                   :get-option-key="getOptionMetricFieldKey"
                   :reduce="f => f.name"
                   :calculate-position="calculateDropdownPosition"
-                  class="bg-white"
+                  class="bg-white rounded"
                   @input="onMetricFieldChange"
                 />
               </b-form-group>
@@ -208,7 +208,7 @@
                   :get-option-key="getOptionAggregationOperationKey"
                   :reduce="a => a.operation"
                   :calculate-position="calculateDropdownPosition"
-                  class="bg-white"
+                  class="bg-white rounded"
                 />
               </b-form-group>
 
@@ -280,7 +280,7 @@
                   :clearable="true"
                   :placeholder="$t('metric.drillDown.openInModal')"
                   append-to-body
-                  class="block-selector bg-white w-100"
+                  class="block-selector bg-white w-100 rounded"
                 />
               </b-form-group>
             </fieldset>

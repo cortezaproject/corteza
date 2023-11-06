@@ -22,7 +22,7 @@
           :get-option-label="u => getUserLabel(u)"
           :calculate-position="calculateDropdownPosition"
           :placeholder="$t('admin:picker.member.placeholder')"
-          class="bg-white w-100"
+          class="bg-white w-100 rounded"
           multiple
           @search="search"
           @input="updateValue($event)"

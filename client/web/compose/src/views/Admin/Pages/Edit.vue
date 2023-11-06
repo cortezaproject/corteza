@@ -547,7 +547,7 @@
           :selectable="role => !currentLayoutRoles.includes(role.roleID)"
           append-to-body
           multiple
-          class="bg-white"
+          class="bg-white rounded"
         />
       </b-form-group>
 

@@ -53,7 +53,7 @@
               :get-option-key="getOptionRoleKey"
               append-to-body
               :calculate-position="calculateDropdownPosition"
-              class="h-100 bg-white"
+              class="h-100 bg-white rounded"
               @input="onRoleChange"
             />
           </b-form-group>
@@ -207,7 +207,7 @@
           :disabled="!!add.userID"
           :placeholder="labels.add.role.placeholder"
           :calculate-position="calculateDropdownPosition"
-          class="bg-white"
+          class="bg-white rounded"
         />
       </b-form-group>
 
@@ -228,7 +228,7 @@
           clearable
           :placeholder="labels.add.user.placeholder"
           :calculate-position="calculateDropdownPosition"
-          class="bg-white"
+          class="bg-white rounded"
           @search="searchUsers"
         />
       </b-form-group>
@@ -242,7 +242,6 @@
         </b-button>
 
         <c-button-submit
-          v-if="false"
           data-test-id="button-save"
           :disabled="submitDisabled"
           :processing="processing"

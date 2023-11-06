@@ -369,7 +369,7 @@
                             :calculate-position="calculateDropdownPosition"
                             append-to-body
                             multiple
-                            class="bg-white"
+                            class="bg-white rounded"
                           />
                         </b-td>
 

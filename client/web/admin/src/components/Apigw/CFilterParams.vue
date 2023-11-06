@@ -1,146 +1,139 @@
 <template>
-  <div>
+  <div v-if="filter.params.length">
     <b-form-group
-      v-if="filter.params.length"
-      class="w-100 mb-0"
+      v-for="(param, index) in filter.params"
+      :key="index"
+      class="text-primary"
     >
-      <template
-        v-for="(param, index) in filter.params"
-      >
-        <b-form-group
-          :key="index"
-        >
-          <template slot="label">
-            {{ $t(`filters.labels.${param.label}`) }}
+      <template slot="label">
+        {{ $t(`filters.labels.${param.label}`) }}
 
-            <template v-if="param.label === 'expr'">
-              <a
-                v-if="param.label === 'expr'"
-                :href="documentationURL"
-                target="_blank"
+        <template v-if="param.label === 'expr'">
+          <a
+            v-if="param.label === 'expr'"
+            :href="documentationURL"
+            target="_blank"
+          >
+            <font-awesome-icon
+              :icon="['far', 'question-circle']"
+            />
+          </a>
+        </template>
+      </template>
+
+      <!-- TODO create multi field component-->
+      <b-form-checkbox
+        v-if="param.type === 'bool'"
+        v-model="param.value"
+      />
+
+      <vue-select
+        v-else-if="param.label === 'workflow'"
+        v-model="param.value"
+        :options="workflows"
+        :get-option-key="getOptionKey"
+        :reduce="wf => wf.workflowID"
+        :placeholder="$t('filters.placeholders.workflow')"
+        :calculate-position="calculateDropdownPosition"
+        class="bg-white rounded"
+      />
+
+      <b-form-select
+        v-else-if="param.label === 'status'"
+        v-model="param.value"
+        :options="httpStatusOptions"
+      >
+        <template #first>
+          <b-form-select-option
+            :value="undefined"
+          >
+            {{ $t('filters.httpStatus.none') }}
+          </b-form-select-option>
+        </template>
+      </b-form-select>
+
+      <template v-else-if="filter.ref === 'response'">
+        <template v-if="param.type === 'input'">
+          <b-form-select
+            v-model="param.value.type"
+            :options="inputTypeOptions"
+            class="mb-2"
+          />
+
+          <b-input-group>
+            <b-input-group-prepend>
+              <b-button variant="dark">
+                ƒ
+              </b-button>
+            </b-input-group-prepend>
+            <b-form-input
+              v-model="param.value.expr"
+              :placeholder="$t('filters.help.expression.example')"
+            />
+          </b-input-group>
+        </template>
+
+        <template v-else>
+          <b-input-group
+            v-for="(header, hIndex) in param.value"
+            :key="`header-${hIndex}`"
+            class="mb-2"
+          >
+            <b-form-input
+              v-model="header.name"
+              :placeholder="$t('filters.labels.name')"
+            />
+            <b-form-input
+              v-model="header.expr"
+              :placeholder="$t('filters.labels.value')"
+            />
+
+            <b-input-group-append>
+              <b-button
+                variant="danger"
+                @click="param.value.splice(hIndex, 1)"
               >
                 <font-awesome-icon
-                  :icon="['far', 'question-circle']"
+                  :icon="['far', 'trash-alt']"
                 />
-              </a>
-            </template>
-          </template>
-
-          <!-- TODO create multi field component-->
-          <b-form-checkbox
-            v-if="param.type === 'bool'"
-            v-model="param.value"
-          />
-
-          <vue-select
-            v-else-if="param.label === 'workflow'"
-            v-model="param.value"
-            :options="workflows"
-            :get-option-key="getOptionKey"
-            :reduce="wf => wf.workflowID"
-            :placeholder="$t('filters.placeholders.workflow')"
-            :calculate-position="calculateDropdownPosition"
-            class="bg-white"
-          />
-
-          <b-form-select
-            v-else-if="param.label === 'status'"
-            v-model="param.value"
-            :options="httpStatusOptions"
-          >
-            <template #first>
-              <b-form-select-option
-                :value="undefined"
-              >
-                {{ $t('filters.httpStatus.none') }}
-              </b-form-select-option>
-            </template>
-          </b-form-select>
-
-          <template v-else-if="filter.ref === 'response'">
-            <template v-if="param.type === 'input'">
-              <b-form-select
-                v-model="param.value.type"
-                :options="inputTypeOptions"
-                class="mb-2"
-              />
-
-              <b-input-group>
-                <b-input-group-prepend>
-                  <b-button variant="dark">
-                    ƒ
-                  </b-button>
-                </b-input-group-prepend>
-                <b-form-input
-                  v-model="param.value.expr"
-                  :placeholder="$t('filters.help.expression.example')"
-                />
-              </b-input-group>
-            </template>
-
-            <template v-else>
-              <b-input-group
-                v-for="(header, hIndex) in param.value"
-                :key="`header-${hIndex}`"
-                class="mb-2"
-              >
-                <b-form-input
-                  v-model="header.name"
-                  :placeholder="$t('filters.labels.name')"
-                />
-                <b-form-input
-                  v-model="header.expr"
-                  :placeholder="$t('filters.labels.value')"
-                />
-
-                <b-input-group-append>
-                  <b-button
-                    variant="danger"
-                    @click="param.value.splice(hIndex, 1)"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'trash-alt']"
-                    />
-                  </b-button>
-                </b-input-group-append>
-              </b-input-group>
-
-              <b-button
-                variant="link"
-                class="text-decoration-none px-0"
-                @click="param.value.push({ name: '', expr: '' })"
-              >
-                + {{ $t('filters.addHeader') }}
               </b-button>
-            </template>
-          </template>
+            </b-input-group-append>
+          </b-input-group>
 
-          <template v-else>
-            <b-form-textarea
-              v-if="param.label === 'jsfunc'"
-              v-model="param.value"
-              max-rows="6"
-            />
-            <b-input-group v-else>
-              <b-input-group-prepend
-                v-if="param.label === 'expr'"
-              >
-                <b-button variant="dark">
-                  ƒ
-                </b-button>
-              </b-input-group-prepend>
-              <b-form-input
-                v-if="param.label === 'expr'"
-                v-model="param.value"
-                :placeholder="$t('filters.help.expression.example')"
-              />
-              <b-form-input
-                v-else
-                v-model="param.value"
-              />
-            </b-input-group>
-          </template>
-        </b-form-group>
+          <b-button
+            variant="link"
+            class="text-decoration-none px-0"
+            @click="param.value.push({ name: '', expr: '' })"
+          >
+            + {{ $t('filters.addHeader') }}
+          </b-button>
+        </template>
+      </template>
+
+      <template v-else>
+        <b-form-textarea
+          v-if="param.label === 'jsfunc'"
+          v-model="param.value"
+          max-rows="6"
+        />
+        <b-input-group v-else>
+          <b-input-group-prepend
+            v-if="param.label === 'expr'"
+          >
+            <b-button variant="dark">
+              ƒ
+            </b-button>
+          </b-input-group-prepend>
+          <b-form-input
+            v-if="param.label === 'expr'"
+            v-model="param.value"
+            :placeholder="$t('filters.help.expression.example')"
+          />
+          <b-form-input
+            v-else
+            v-model="param.value"
+          />
+        </b-input-group>
       </template>
     </b-form-group>
   </div>

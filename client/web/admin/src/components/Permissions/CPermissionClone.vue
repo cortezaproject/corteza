@@ -37,7 +37,7 @@
           multiple
           :placeholder="$t('ui.clone.pick-role')"
           :calculate-position="calculateDropdownPosition"
-          class="bg-white"
+          class="bg-white rounded"
         />
       </b-form-group>
     </b-modal>

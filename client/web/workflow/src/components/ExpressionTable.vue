@@ -97,6 +97,7 @@
                   :filter="varFilter"
                   append-to-body
                   :calculate-position="calculateDropdownPosition"
+                  class="bg-white rounded"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>

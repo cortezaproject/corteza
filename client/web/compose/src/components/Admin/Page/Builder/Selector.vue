@@ -50,7 +50,7 @@
             :calculate-position="calculateDropdownPosition"
             :placeholder="$t('selector.selectableBlocks.placeholder')"
             append-to-body
-            class="bg-white"
+            class="bg-white rounded"
           />
 
           <b-input-group-append>

@@ -58,7 +58,7 @@
               :reduce="getOptionKey"
               :calculate-position="calculateDropdownPosition"
               append-to-body
-              class="bg-white"
+              class="bg-white rounded"
               @input="updateReferenceModule($event, [])"
             />
           </b-form-group>
@@ -184,7 +184,7 @@
                 :get-option-key="getOptionKey"
                 :reduce="option => option.isSystem ? option.name : option.fieldID"
                 :calculate-position="calculateDropdownPosition"
-                class="bg-white"
+                class="bg-white rounded"
               />
             </b-td>
 

@@ -11,6 +11,14 @@
       <h3 class="m-0">
         {{ $t('filters.title') }}
       </h3>
+
+      <div class="d-flex flex-wrap flex-fill-child gap-1">
+        <c-filters-dropdown
+          :available-filters="getAvailableFiltersByStep"
+          :filters="getSelectedFiltersByStep"
+          @addFilter="onAddFilter"
+        />
+      </div>
     </template>
 
     <b-tabs
@@ -38,12 +46,6 @@
     </b-tabs>
 
     <template #footer>
-      <c-filters-dropdown
-        :available-filters="getAvailableFiltersByStep"
-        :filters="getSelectedFiltersByStep"
-        @addFilter="onAddFilter"
-      />
-
       <c-button-submit
         :disabled="disabled"
         :processing="processing"

@@ -175,7 +175,7 @@
                 :reduce="option => option.value"
                 :calculate-position="calculateDropdownPosition"
                 append-to-body
-                class="bg-white"
+                class="bg-white rounded"
               />
 
               <b-input-group-append>
