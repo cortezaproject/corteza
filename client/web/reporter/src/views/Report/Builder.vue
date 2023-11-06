@@ -76,7 +76,7 @@
           :to="reportEditor"
         >
           <font-awesome-icon
-            :icon="['fas', 'pen']"
+            :icon="['far', 'edit']"
           />
         </b-button>
       </b-button-group>
@@ -526,7 +526,7 @@ export default {
 
     pageTitle () {
       const title = this.report ? (this.report.meta.name || this.report.handle) : ''
-      return `${this.$t('builder:report.builder')} - '${title}'` || this.$t('builder:report.builder')
+      return `${this.$t('builder:report.builder')} - "${title}"` || this.$t('builder:report.builder')
     },
 
     canRead () {

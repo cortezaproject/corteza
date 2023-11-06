@@ -342,6 +342,7 @@ $nav-user-icon-size: 50px;
   .vue-portal-target {
     display: flex;
     justify-content: end;
+    align-items: center;
     flex-wrap: wrap;
   }
 }

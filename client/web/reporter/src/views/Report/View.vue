@@ -46,7 +46,7 @@
           :to="reportEditor"
         >
           <font-awesome-icon
-            :icon="['fas', 'pen']"
+            :icon="['far', 'edit']"
           />
         </b-button>
       </b-button-group>

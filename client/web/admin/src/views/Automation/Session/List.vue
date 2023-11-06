@@ -98,7 +98,7 @@
           :to="{ name: editRoute, params: { [primaryKey]: item[primaryKey] } }"
         >
           <font-awesome-icon
-            :icon="['fas', 'pen']"
+            :icon="['far', 'edit']"
           />
         </b-button>
       </template>

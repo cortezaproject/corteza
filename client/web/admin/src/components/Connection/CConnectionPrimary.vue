@@ -18,7 +18,7 @@
           :to="{ name: 'system.connection.edit', params: { connectionID: (connection || {}).connectionID } }"
         >
           <font-awesome-icon
-            :icon="['fas', 'pen']"
+            :icon="['far', 'edit']"
           />
         </b-button>
       </h3>

@@ -46,7 +46,7 @@
         lg="6"
       >
         <b-form-group
-          label-class="text-primary"
+          label-class="d-flex align-items-center text-primary"
         >
           <template #label>
             {{ $t("image.editor.label") }}

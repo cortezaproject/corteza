@@ -45,7 +45,7 @@
               @click.stop="onRowClick(filter, index)"
             >
               <font-awesome-icon
-                :icon="['fas', 'pen']"
+                :icon="['far', 'edit']"
               />
             </b-button>
             <c-input-confirm
