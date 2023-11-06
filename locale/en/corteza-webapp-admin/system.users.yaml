@@ -55,7 +55,7 @@ editor:
           Email OTP protection is enabled for this user
           User will receive email with the security code on each login
     title: Multi-factor authentication
-  new: New Role
+  new: New User
   password:
     confirm: Confirm password
     length: The passwords must be at least {{length}} characters long!
