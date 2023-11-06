@@ -197,11 +197,10 @@
         style="z-index: 1; width: 20vw;"
       >
         <c-button-submit
-          v-if="changeDetected"
+          v-if="changeDetected && canUpdateWorkflow"
           data-test-id="button-save-workflow"
           variant="dark"
           block
-          :disabled="processing || !canUpdateWorkflow"
           :processing="processingSave"
           :text="$t('editor:detected-changes') + `${canUpdateWorkflow ? this.$t('editor:click-to-save') : ''}`"
           :loading-text="$t('editor:saving')"

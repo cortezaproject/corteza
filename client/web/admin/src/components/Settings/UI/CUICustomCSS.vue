@@ -48,7 +48,7 @@
 
     <template #footer>
       <c-button-submit
-        :disabled="!canManage"
+        v-if="canManage"
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
