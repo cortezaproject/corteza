@@ -240,9 +240,12 @@ export default {
              * Resource deleted, move back to the list
              */
             this.connection.deletedAt = new Date()
+            this.initialConnectionState.deletedAt = this.connection.deletedAt
+
             this.$router.push({ name: `system.connection` })
           } else {
             this.connection.deletedAt = null
+            this.initialConnectionState.deletedAt = null
           }
         })
         .catch(this.toastErrorHandler(this.$t(`notification:connection.${op}.error`)))
