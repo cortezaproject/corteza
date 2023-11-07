@@ -154,7 +154,7 @@
 
             <b-tabs
               v-model="activeTab"
-              nav-wrapper-class="bg-white white border-bottom rounded-0"
+              :nav-wrapper-class="`bg-white white border-bottom ${isEdit ? 'rounded-0' : ''}`"
               card
             >
               <b-tab
@@ -858,7 +858,6 @@ export default {
         await this.findModuleByID(params).then((module) => {
           // Make a copy so that we do not change store item by ref
           this.module = module.clone()
-          this.initialModuleState = module.clone()
 
           const { moduleID, namespaceID, issues = [] } = this.module
           if (issues.length > 0) {
@@ -877,6 +876,8 @@ export default {
             .then(({ set }) => { this.hasRecords = (set.length > 0) })
         })
       }
+
+      this.initialModuleState = this.module.clone()
     },
 
     checkAlterations () {
