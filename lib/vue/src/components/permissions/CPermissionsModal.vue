@@ -184,11 +184,7 @@
       id="permissions-modal-eval"
       :title="labels.add.title"
       centered
-      ok-only
-      :ok-title="labels.add.save"
-      :ok-disabled="!addEnabled"
       no-fade
-      @ok="onAddEval"
     >
       <b-form-group
         :label="labels.add.role.label"
@@ -232,21 +228,14 @@
           @search="searchUsers"
         />
       </b-form-group>
-      <template #modal-footer>
-        <b-button
-          data-test-id="button-cancel"
-          variant="light"
-          @click="onHide"
-        >
-          {{ labels.cancel }}
-        </b-button>
 
+      <template #modal-footer>
         <c-button-submit
           data-test-id="button-save"
-          :disabled="submitDisabled"
+          :disabled="!addEnabled"
           :processing="processing"
-          :text="labels.save"
-          @submit="onSubmit"
+          :text="labels.add.save"
+          @submit="onAddEval"
         />
       </template>
     </b-modal>
@@ -515,6 +504,8 @@ export default {
           roleID: [],
           userID: undefined,
         }
+
+        this.$bvModal.hide('permissions-modal-eval')
       })
     },
 
