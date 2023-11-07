@@ -135,7 +135,7 @@
             {{ $t('recordList.filter.filters.active') }}
             <b-form-tags
               size="lg"
-              class="d-flex align-items-center border-0 p-0"
+              class="d-flex align-items-center border-0 p-0 bg-transparent"
               style="width: fit-content;"
             >
               <b-form-tag
