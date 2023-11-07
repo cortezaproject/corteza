@@ -46,19 +46,9 @@
         lg="6"
       >
         <b-form-group
+          :label="$t('image.editor.label')"
           label-class="d-flex align-items-center text-primary"
         >
-          <template #label>
-            {{ $t("image.editor.label") }}
-
-            <c-input-confirm
-              v-if="uploadedFile('auth.ui.background-image-src')"
-              show-icon
-              class="ml-auto"
-              @confirmed="$emit('resetAttachment', 'auth.ui.background-image-src')"
-            />
-          </template>
-
           <ace-editor
             data-test-id="auth-bg-image-styling-editor"
             :font-size="14"

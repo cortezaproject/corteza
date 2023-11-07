@@ -4,7 +4,10 @@
     footer-bg-variant="white"
     footer-class="d-flex justify-content-between align-items-center"
   >
-    <b-form-group :label="$t('name.label')">
+    <b-form-group
+      :label="$t('name.label')"
+      label-class="text-primary"
+    >
       <b-form-input
         v-model="name"
         data-test-id="input-name"
@@ -14,7 +17,7 @@
     </b-form-group>
 
     <b-form-group
-      :label="$t('slug.label')"
+      :label="$t('import.slug.label')"
       label-class="text-primary"
     >
       <b-form-input
@@ -33,7 +36,7 @@
       <b-button
         data-test-id="button-back"
         variant="link"
-        class="back px-0"
+        class="text-dark back text-left text-nowrap p-1"
         @click="$emit('back')"
       >
         <font-awesome-icon
@@ -80,7 +83,7 @@ export default {
 
   computed: {
     submitDisabled () {
-      return [this.nameState, this.slugState].includes(false)
+      return [this.nameState, this.slugState, this.slug].includes(false)
     },
 
     nameState () {

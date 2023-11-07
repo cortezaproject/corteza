@@ -10,6 +10,8 @@ import:
   uploadFilePlaceholder: Click or drop file here to upload (.zip format)
   back: Back
   import: Import
+  slug:
+    label: Short name *
 description:
   label: Namespace description
   placeholder: Enter namespace description
