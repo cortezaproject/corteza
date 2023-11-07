@@ -7,11 +7,13 @@
     />
 
     <c-ui-logo-editor
+      v-if="settings"
       :settings="settings"
       :can-manage="canManage"
     />
 
     <c-ui-branding-editor
+      v-if="settings"
       :settings="settings"
       :processing="branding.processing"
       :success="branding.success"
@@ -20,6 +22,7 @@
     />
 
     <c-ui-custom-css
+      v-if="settings"
       :settings="settings"
       :processing="customCSS.processing"
       :success="customCSS.success"
@@ -29,6 +32,7 @@
     />
 
     <c-ui-topbar-settings
+      v-if="settings"
       :settings="settings"
       :processing="topbar.processing"
       :success="topbar.success"
@@ -68,7 +72,7 @@ export default {
 
   data () {
     return {
-      settings: {},
+      settings: undefined,
 
       topbar: {
         processing: false,
@@ -106,6 +110,8 @@ export default {
       this.incLoader()
       this.$SystemAPI.settingsList({ prefix: prefix })
         .then(settings => {
+          this.settings = {}
+
           settings.forEach(({ name, value }) => {
             this.$set(this.settings, name, value)
           })
