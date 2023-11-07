@@ -52,6 +52,7 @@
           </b-td>
           <b-td class="align-middle">
             <c-input-confirm
+              show-icon
               @confirmed="deleteGroup(index)"
             />
           </b-td>

@@ -161,7 +161,7 @@
                         :labels="{}"
                       />
                     </td>
-                    <td class="align-middle">
+                    <td class="text-right align-middle">
                       <c-input-confirm
                         show-icon
                         button-class="px-2"

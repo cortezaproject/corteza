@@ -111,7 +111,6 @@
               <td class="text-right p-0 px-4 align-middle">
                 <c-input-confirm
                   show-icon
-                  button-class="text-right"
                   @confirmed="rule.constraints.splice(consIndex, 1)"
                 />
               </td>

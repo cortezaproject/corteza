@@ -114,10 +114,7 @@
             class="fit text-center align-middle pl-2 pr-0"
           >
             <c-input-confirm
-              variant="link"
               show-icon
-              size="lg"
-              button-class="text-dark px-0"
               @confirmed="deleteFilter(groupIndex, argIndex)"
             />
           </td>

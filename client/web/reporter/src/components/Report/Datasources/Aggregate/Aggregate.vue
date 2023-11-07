@@ -50,14 +50,9 @@
               :placeholder="$t('datasources:expression')"
             />
           </b-td>
-          <b-td
-            class="d-flex align-items-center justify-content-center pl-2 pr-0"
-          >
+          <b-td class="align-middle">
             <c-input-confirm
-              variant="link"
-              size="lg"
               show-icon
-              button-class="text-dark px-0"
               @confirmed="deleteColumn(index)"
             />
           </b-td>

@@ -61,8 +61,6 @@
         size="lg"
         size-confirm="lg"
         variant="danger"
-        button-class="d-flex align-items-center justify-content-center w-100 h-100"
-        style="min-height: 42px; min-width: 85px;"
         @confirmed="$emit('delete')"
       />
 
@@ -75,8 +73,6 @@
         size-confirm="lg"
         variant="warning"
         variant-ok="warning"
-        button-class="d-flex align-items-center justify-content-center w-100 h-100"
-        style="min-height: 42px; min-width: 95px;"
         @confirmed="$emit('undelete')"
       />
 
