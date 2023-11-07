@@ -7,20 +7,17 @@
     </portal>
 
     <portal to="topbar-tools">
-      <div
+      <vue-select
         v-if="scenarioOptions.length"
-        class="d-inline-block mr-2"
-      >
-        <vue-select
-          v-model="scenarios.selected"
-          :options="scenarioOptions"
-          :get-option-key="getOptionKey"
-          :placeholder="$t('pick-scenario')"
-          :calculate-position="calculateDropdownPosition"
-          class="bg-white rounded"
-          @input="refreshReport()"
-        />
-      </div>
+        v-model="scenarios.selected"
+        :options="scenarioOptions"
+        :get-option-key="getOptionKey"
+        :placeholder="$t('pick-scenario')"
+        :calculate-position="calculateDropdownPosition"
+        class="bg-white rounded mr-2"
+        style="max-width: 300px;"
+        @input="refreshReport()"
+      />
 
       <b-button-group
         v-if="canUpdate"

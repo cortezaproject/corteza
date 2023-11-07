@@ -7,45 +7,37 @@
     </portal>
 
     <portal to="topbar-tools">
-      <div
-        class="d-inline-block mr-2"
-      >
-        <b-input-group
-          size="sm"
-          class="flex-nowrap"
-        >
-          <vue-select
-            v-model="scenarios.selected"
-            :options="scenarioOptions"
-            :get-option-key="getOptionKey"
-            :placeholder="$t('builder:pick-scenario')"
-            :calculate-position="calculateDropdownPosition"
-            class="bg-white rounded"
-            @input="refreshReport()"
-          />
+      <b-input-group style="max-width: 300px;">
+        <vue-select
+          v-model="scenarios.selected"
+          :options="scenarioOptions"
+          :get-option-key="getOptionKey"
+          :placeholder="$t('builder:pick-scenario')"
+          :calculate-position="calculateDropdownPosition"
+          class="bg-white rounded"
+          @input="refreshReport()"
+        />
 
-          <b-input-group-append>
-            <b-button
-              variant="light"
-              :disabled="!canUpdate"
-              size="sm"
-              :title="$t('builder:tooltip.configure-scenarios')"
-              @click="openScenarioConfigurator"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'cog']"
-                class="text-primary"
-              />
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
-      </div>
+        <b-input-group-append>
+          <b-button
+            variant="light"
+            :disabled="!canUpdate"
+            :title="$t('builder:tooltip.configure-scenarios')"
+            @click="openScenarioConfigurator"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'cog']"
+              class="text-primary"
+            />
+          </b-button>
+        </b-input-group-append>
+      </b-input-group>
 
       <b-button
         :disabled="!canUpdate"
         variant="info"
         size="sm"
-        class="mr-1"
+        class="mr-1 ml-2"
         @click="openDatasourceConfigurator"
       >
         {{ $t('builder:datasources.label') }}
