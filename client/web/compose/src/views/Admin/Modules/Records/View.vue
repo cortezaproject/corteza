@@ -340,7 +340,7 @@ export default {
 
     checkUnsavedChanges (next, to) {
       if (this.isNew) {
-        return true
+        return next()
       } else {
         const recordValues = JSON.parse(JSON.stringify(this.record.values))
         const initialRecordState = JSON.parse(JSON.stringify(this.initialRecordState.values))
