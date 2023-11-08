@@ -64,7 +64,7 @@
         <c-button-submit
           v-if="submitShow"
           :data-test-id="buttonLabelCypressId(submitLabel)"
-          :disabled="submitDisabled || processing"
+          :disabled="submitDisabled"
           :processing="processing"
           :text="submitLabel"
           size="lg"

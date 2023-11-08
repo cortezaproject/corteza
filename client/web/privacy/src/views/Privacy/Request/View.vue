@@ -47,6 +47,7 @@
 
         <c-input-confirm
           v-else
+          :disabled="!request || !isPending"
           :processing="processingApprove"
           :text="$t('approve')"
           variant="primary"
