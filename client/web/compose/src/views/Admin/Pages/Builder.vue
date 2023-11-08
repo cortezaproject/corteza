@@ -20,7 +20,7 @@
         value-field="pageLayoutID"
         text-field="label"
         style="max-width: 300px;"
-        @change="setLayout()"
+        @change="setLayout"
       />
 
       <b-button-group
