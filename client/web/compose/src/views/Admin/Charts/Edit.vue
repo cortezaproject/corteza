@@ -386,9 +386,10 @@
       <template #modal-footer>
         <c-input-confirm
           v-if="colorSchemeModal.edit"
+          :disabled="colorSchemeModal.processing"
           variant="danger"
           size="md"
-          :disabled="colorSchemeModal.processing"
+          show-icon
           @confirmed="deleteColorScheme()"
         />
 
