@@ -70,7 +70,7 @@
           }"
         />
       </template>
-      <div class="d-flex flex-column w-100">
+      <div class="d-flex flex-column w-100 flex-fill">
         <router-view />
       </div>
     </main>

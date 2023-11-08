@@ -1,7 +1,7 @@
 <template>
   <b-container
     fluid="xl"
-    class="d-flex flex-column h-100 py-3"
+    class="d-flex flex-column flex-fill pt-2 pb-3"
   >
     <c-content-header :title="$t('title')" />
 
@@ -28,7 +28,7 @@
       sticky-header
       hide-search
       :hide-total="!pagination.incTotal"
-      class="custom-resource-list-height-no-buttons"
+      class="custom-resource-list-height flex-fill"
       @row-clicked="handleRowClicked"
     >
       <template #header>

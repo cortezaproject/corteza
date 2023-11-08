@@ -1,6 +1,7 @@
 <template>
   <b-container
-    class="py-3 h-100"
+    fluid="xl"
+    class="d-flex flex-column flex-fill pt-2 pb-3"
   >
     <c-content-header
       :title="$t('title')"
@@ -14,7 +15,7 @@
       />
 
       <c-external-connection-list
-        class="mb-4 flex-fill"
+        class="flex-fill"
       />
 
       <!-- <c-federated-node-list /> -->

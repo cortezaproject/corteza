@@ -1,5 +1,5 @@
 <template>
-  <b-container class="py-3">
+  <b-container class="pt-2 pb-3">
     <c-content-header
       :title="$t('title')"
       class="mb-2"

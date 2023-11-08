@@ -1,7 +1,7 @@
 <template>
   <b-container
     fluid="xl"
-    class="py-3 d-flex flex-column"
+    class="d-flex flex-column py-3"
   >
     <portal to="topbar-title">
       {{ $t('general:workflow-list') }}
@@ -29,7 +29,7 @@
       }"
       clickable
       sticky-header
-      class="h-100"
+      class="h-100 flex-fill"
       @search="filterList"
       @row-clicked="handleRowClicked"
     >

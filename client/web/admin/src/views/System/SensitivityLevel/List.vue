@@ -1,6 +1,7 @@
 <template>
   <b-container
     fluid="xl"
+    class="d-flex flex-column flex-fill pt-2 pb-3"
   >
     <c-content-header :title="$t('title')" />
 
@@ -26,7 +27,7 @@
       clickable
       sticky-header
       hide-search
-      class="custom-resource-list-height"
+      class="custom-resource-list-height flex-fill"
       @row-clicked="handleRowClicked"
     >
       <template #header>

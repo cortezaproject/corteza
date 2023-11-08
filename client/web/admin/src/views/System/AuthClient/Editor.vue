@@ -1,7 +1,7 @@
 <template>
   <b-container
     v-if="authclient"
-    class="py-3"
+    class="pt-2 pb-3"
   >
     <c-content-header
       :title="title"

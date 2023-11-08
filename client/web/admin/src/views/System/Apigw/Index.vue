@@ -1,6 +1,7 @@
 <template>
   <b-container
-    class="py-3"
+    fluid="xl"
+    class="d-flex flex-column flex-fill pt-2 pb-3"
   >
     <c-content-header :title="$t('title')" />
 
@@ -16,7 +17,7 @@
       />
 
       <c-route-list
-        class="mb-4 flex-fill"
+        class="flex-fill"
       />
     </div>
   </b-container>

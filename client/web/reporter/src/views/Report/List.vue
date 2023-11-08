@@ -28,7 +28,7 @@
       }"
       sticky-header
       clickable
-      class="h-100"
+      class="h-100 flex-fill"
       @search="filterList"
       @row-clicked="viewReport"
     >

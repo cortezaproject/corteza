@@ -1,6 +1,6 @@
 <template>
   <b-container
-    class="d-flex flex-column py-3 flex-fill"
+    class="d-flex flex-column pt-2 pb-3 flex-fill"
   >
     <c-content-header
       :title="$t('title')"
@@ -9,7 +9,6 @@
         ui-page="dashboard"
         ui-slot="toolbar"
         resource-type="system'"
-        class="mr-1"
         @click="dispatchCortezaSystemEvent($event)"
       />
     </c-content-header>

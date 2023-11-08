@@ -1,6 +1,6 @@
 <template>
   <div
-    class="app-selector d-flex flex-column h-100"
+    class="app-selector d-flex flex-column h-100 mt-3"
   >
     <div class="d-flex justify-content-center align-items-center">
       <b-img

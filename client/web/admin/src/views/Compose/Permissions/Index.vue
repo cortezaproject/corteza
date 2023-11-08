@@ -1,7 +1,7 @@
 <template>
   <b-container
     fluid
-    class="d-flex flex-column h-100 py-3"
+    class="d-flex flex-column h-100 pt-2 pb-3"
   >
     <c-content-header
       :title="$t('ui.title.compose')"

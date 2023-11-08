@@ -1,7 +1,8 @@
 <template>
   <b-container
     data-tets-id="profiler"
-    class="py-3"
+    fluid="xl"
+    class="d-flex flex-column flex-fill pt-2 pb-3"
   >
     <c-content-header
       :title="$t('title')"
@@ -10,7 +11,7 @@
     <b-card
       no-body
       data-test-id="card-profiler"
-      class="shadow-sm"
+      class="flex-fill shadow-sm"
       footer-class="d-flex align-items-center justify-content-center"
       footer-bg-variant="white"
       header-bg-variant="white"
