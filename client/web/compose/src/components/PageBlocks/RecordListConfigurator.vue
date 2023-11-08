@@ -83,7 +83,7 @@
               <field-picker
                 :module="recordListModule"
                 :fields.sync="options.fields"
-                class="mb-2"
+                class="mb-3"
                 style="height: 40vh;"
               />
 

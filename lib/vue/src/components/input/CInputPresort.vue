@@ -66,6 +66,7 @@
             style="min-width: 80px; width: 80px;"
           >
             <c-input-confirm
+              show-icon
               @confirmed="items.splice(index, 1)"
             />
           </td>

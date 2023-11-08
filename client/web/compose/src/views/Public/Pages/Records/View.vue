@@ -430,6 +430,8 @@ export default {
       if (this.showRecordModal) {
         this.popModalPreviousPage().then(({ recordID, recordPageID }) => {
           this.$emit('on-modal-back', { recordID, recordPageID, pushModalPreviousPage: false })
+          this.inCreating = recordID === NoID
+          this.inEditing = false
         })
 
         return

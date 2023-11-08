@@ -961,7 +961,7 @@ export default {
         ? []
         : this.options.editFields.map(({ name }) => name)
 
-      if (this.customConfiguredFields.length > 0) {
+      if (!this.options.hideConfigureFieldsButton && this.customConfiguredFields.length > 0) {
         fields = this.recordListModule.filterFields(this.customConfiguredFields)
       } else if (this.options.fields.length > 0) {
         fields = this.recordListModule.filterFields(this.options.fields)

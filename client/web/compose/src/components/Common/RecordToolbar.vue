@@ -129,7 +129,6 @@
         :processing="processingSubmit"
         :text="labels.submit || $t('label.save')"
         size="lg"
-        style="min-height: 42px; min-width: 73px;"
         @submit="$emit('submit')"
       />
     </template>

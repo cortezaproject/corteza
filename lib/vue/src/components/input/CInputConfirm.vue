@@ -20,7 +20,7 @@
         <slot v-else>
           <template v-if="!$slots.default">
             <font-awesome-icon
-              v-if="showIcon"
+              v-if="showIcon || !text"
               :icon="icon"
               :class="iconClass"
             />

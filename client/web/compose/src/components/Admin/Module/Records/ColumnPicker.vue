@@ -1,16 +1,17 @@
 <template>
   <div class="d-flex">
     <b-button
-      v-b-modal.columns
       size="lg"
       variant="light"
       class="flex-fill"
+      @click="showModal = true"
     >
       {{ $t('allRecords.columns.title') }}
     </b-button>
 
     <b-modal
       id="columns"
+      v-model="showModal"
       size="lg"
       scrollable
       :ok-title="$t('general.label.saveAndClose')"
@@ -68,6 +69,8 @@ export default {
 
   data () {
     return {
+      showModal: false,
+
       filteredFields: [],
     }
   },
