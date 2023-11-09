@@ -27,10 +27,10 @@
       <b-button
         :variant="isSubmittable ? 'outline-light' : 'link'"
         :disabled="disabled"
-        class="border-0 rounded-0 py-0"
         :class="{
           'cursor-default': !isSubmittable
         }"
+        class="d-inline-flex align-items-center border-0 rounded-0 py-0"
         @[isSubmittable]="submitQuery"
       >
         <font-awesome-icon
