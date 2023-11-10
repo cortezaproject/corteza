@@ -59,17 +59,12 @@
                   <font-awesome-icon :icon="['far', 'edit']" />
                 </b-button>
 
-                <b-button
+                <c-input-confirm
                   data-test-id="button-delete-reminder"
-                  variant="outline-light"
-                  :title="$t('reminder.delete')"
-                  class="d-flex align-items-center py-2 text-danger border-0"
-                  @click.prevent="$emit('delete', r)"
-                >
-                  <font-awesome-icon
-                    :icon="['far', 'trash-alt']"
-                  />
-                </b-button>
+                  show-icon
+                  :tooltip="$t('reminder.delete')"
+                  @confirmed="$emit('delete', r)"
+                />
               </b-button-group>
             </div>
           </div>

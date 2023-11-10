@@ -40,7 +40,7 @@
               v-for="(option, index) in f.options.options"
               :key="index"
             >
-              <b-td class="d-flex align-items-center justify-content-center">
+              <b-td class="align-middle">
                 <font-awesome-icon
                   :icon="['fas', 'bars']"
                   class="grab text-light"
@@ -80,14 +80,11 @@
                 </b-input-group>
               </b-td>
 
-              <b-td class="d-flex align-items-center justify-content-center">
-                <b-button
-                  variant="outline-danger"
-                  class="border-0"
-                  @click.prevent="f.options.options.splice(index, 1)"
-                >
-                  <font-awesome-icon :icon="['far', 'trash-alt']" />
-                </b-button>
+              <b-td class="align-middle text-right">
+                <c-input-confirm
+                  show-icon
+                  @confirmed="f.options.options.splice(index, 1)"
+                />
               </b-td>
             </b-tr>
 

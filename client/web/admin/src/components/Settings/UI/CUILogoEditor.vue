@@ -15,12 +15,9 @@
 
           <c-input-confirm
             v-if="uploadedFile('ui.main-logo')"
+            show-icon
             @confirmed="resetAttachment('ui.main-logo')"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-            />
-          </c-input-confirm>
+          />
         </template>
 
         <c-uploader-with-preview
@@ -48,12 +45,9 @@
 
           <c-input-confirm
             v-if="uploadedFile('ui.icon-logo')"
+            show-icon
             @confirmed="resetAttachment('ui.icon-logo')"
-          >
-            <font-awesome-icon
-              :icon="['far', 'trash-alt']"
-            />
-          </c-input-confirm>
+          />
         </template>
 
         <c-uploader-with-preview

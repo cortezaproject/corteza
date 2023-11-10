@@ -39,13 +39,10 @@
           />
 
           <b-input-group-append>
-            <b-button
-              variant="link"
-              class="border-0 text-danger"
-              @click.prevent="dimension.meta.steps.splice(i, 1)"
-            >
-              <font-awesome-icon :icon="['far', 'trash-alt']" />
-            </b-button>
+            <c-input-confirm
+              show-icon
+              @confirmed="dimension.meta.steps.splice(i, 1)"
+            />
           </b-input-group-append>
         </b-input-group>
 

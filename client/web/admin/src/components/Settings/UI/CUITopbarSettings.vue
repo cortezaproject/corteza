@@ -104,15 +104,10 @@
                   />
                 </template>
                 <template #cell(actions)="data">
-                  <b-button
-                    variant="outline-danger"
-                    class="border-0 px-1"
-                    @click="topbarSettings.helpLinks.splice(data.index, 1)"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'trash-alt']"
-                    />
-                  </b-button>
+                  <c-input-confirm
+                    show-icon
+                    @confirmed="topbarSettings.helpLinks.splice(data.index, 1)"
+                  />
                 </template>
               </b-table>
             </b-form-group>
@@ -183,15 +178,10 @@
                   />
                 </template>
                 <template #cell(actions)="data">
-                  <b-button
-                    variant="outline-danger"
-                    class="border-0 px-1"
-                    @click="topbarSettings.profileLinks.splice(data.index, 1)"
-                  >
-                    <font-awesome-icon
-                      :icon="['far', 'trash-alt']"
-                    />
-                  </b-button>
+                  <c-input-confirm
+                    show-icon
+                    @confirmed="topbarSettings.profileLinks.splice(data.index, 1)"
+                  />
                 </template>
               </b-table>
             </b-form-group>

@@ -446,7 +446,7 @@ import { chartConstructor } from 'corteza-webapp-compose/src/lib/charts'
 import VueSelect from 'vue-select'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
-const { CInputConfirm, CInputCheckbox, CInputColorPicker } = components
+const { CInputCheckbox, CInputColorPicker } = components
 const { colorschemes } = shared
 
 const defaultReport = {
@@ -469,7 +469,6 @@ export default {
     VueSelect,
     CInputCheckbox,
     CInputColorPicker,
-    CInputConfirm,
   },
 
   props: {

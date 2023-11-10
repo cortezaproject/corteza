@@ -14,13 +14,11 @@
         <template
           v-if="feed.resource"
         >
-          <b-button
-            variant="outline-danger"
-            class="border-0"
-            @click="onRemoveFeed(i)"
-          >
-            <font-awesome-icon :icon="['far', 'trash-alt']" />
-          </b-button>
+          <c-input-confirm
+            show-icon
+            size="md"
+            @confirmed="onRemoveFeed(i)"
+          />
         </template>
       </div>
 

@@ -41,7 +41,6 @@
                 <c-input-confirm
                   data-test-id="button-remove-member"
                   show-icon
-                  no-prompt
                   @confirmed="removeMember(user.userID)"
                 />
               </td>
@@ -72,8 +71,6 @@
 <script>
 import { debounce } from 'lodash'
 import { VueSelect } from 'vue-select'
-import { components } from '@cortezaproject/corteza-vue/'
-const { CInputConfirm } = components
 
 export default {
   i18nOptions: {
@@ -83,7 +80,6 @@ export default {
 
   components: {
     VueSelect,
-    CInputConfirm,
   },
 
   props: {
