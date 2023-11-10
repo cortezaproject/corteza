@@ -190,7 +190,7 @@ func (c *renameColumn) ToSQL() (sql string, aa []interface{}, err error) {
 
 func (c *reTypeColumn) ToSQL() (sql string, aa []interface{}, err error) {
 	return fmt.Sprintf(
-		`ALTER TABLE %s MODIFY COLUMN %s %s`,
+		`ALTER TABLE %s ALTER COLUMN %s %s`,
 		c.Dialect.QuoteIdent(c.Table),
 		c.Dialect.QuoteIdent(c.Column),
 		c.Type.Name,
