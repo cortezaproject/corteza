@@ -417,11 +417,9 @@
       </b-modal>
 
       <dal-schema-alterations
-        :modal="dalSchemaAlterations.modal"
         :batch="dalSchemaAlterations.batchID"
         :module="module"
-        @hide="fetchModuleWithAlterations"
-        @cancel="dalSchemaAlterations.modal = ($event || false)"
+        @hide="onDalAlterationsHide"
       />
 
       <federation-settings
@@ -828,9 +826,9 @@ export default {
       }
     },
 
-    async fetchModuleWithAlterations () {
+    async onDalAlterationsHide () {
       await this.fetchModule(this.moduleID)
-      this.checkAlterations()
+      this.dalSchemaAlterations.batchID = undefined
     },
 
     async fetchModule (moduleID = this.moduleID) {
@@ -881,23 +879,20 @@ export default {
     },
 
     checkAlterations () {
-      if (!this.module) {
+      const { issues = [] } = this.module || {}
+
+      if (!issues.length) {
         return
       }
 
       // Check if module has Alterations to resolve
-      let modal = false
-      let batchID
+      this.dalSchemaAlterations.batchID = undefined
       for (const i of this.module.issues) {
         if (i.meta.batchID) {
-          modal = true
-          batchID = i.meta.batchID
+          this.dalSchemaAlterations.batchID = i.meta.batchID
           break
         }
       }
-
-      this.dalSchemaAlterations.modal = modal
-      this.dalSchemaAlterations.batchID = batchID
     },
 
     handleDelete () {

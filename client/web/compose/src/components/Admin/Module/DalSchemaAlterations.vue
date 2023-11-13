@@ -6,8 +6,7 @@
     body-class="p-0 border-top-0 position-relative"
     header-class="p-3 pb-0 border-bottom-0"
     no-fade
-    @hide="$emit('hide')"
-    @change="$emit('change', $event)"
+    v-on="$listeners"
   >
     <b-table-simple
       borderless
@@ -138,11 +137,10 @@
 
     <template #modal-footer>
       <b-button
-        variant="link"
-        size="sm"
+        variant="outline-light"
         :disabled="processing"
-        class="text-decoration-none"
-        @click="$emit('cancel')"
+        class="text-primary border-0"
+        @click="showModal = false"
       >
         {{ canResolveAlterations ? $t('general:label.cancel') : $t('general:label.close') }}
       </b-button>
@@ -151,7 +149,7 @@
         v-if="canResolveAlterations"
         variant="primary"
         :disabled="processing"
-        :borderless="false"
+        size="md"
         @confirmed="onResolve()"
       >
         {{ $t('resolveAuto') }}
@@ -217,17 +215,11 @@ export default {
   },
 
   watch: {
-    modal: {
-      immediate: true,
-      handler (show = false) {
-        this.showModal = show
-      },
-    },
-
     batch: {
-      immediate: true,
       handler (batch) {
-        this.load(batch)
+        if (batch) {
+          this.load(batch)
+        }
       },
     },
   },
@@ -290,8 +282,8 @@ export default {
       return this.$SystemAPI.dalSchemaAlterationList({ batchID }).then(({ set }) => {
         this.alterations = set
 
-        if (!this.alterations.length) {
-          this.$emit('hide')
+        if (this.alterations.length) {
+          this.showModal = true
         }
       }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.load.error')))
         .finally(() => {

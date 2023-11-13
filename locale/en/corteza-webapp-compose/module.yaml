@@ -92,7 +92,7 @@ edit:
     resolveAuto: Resolve automatically
     resolved: Resolved
     dismiss: Dismiss
-    waitingFor: Waiting for {{id}}
+    waitingFor: 'Waiting for {{id}}'
     noAlterations: No schema alterations need to be resolved
     params:
       attribute:
