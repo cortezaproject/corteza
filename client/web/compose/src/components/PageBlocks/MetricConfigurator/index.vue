@@ -260,6 +260,7 @@
 
               <b-form-group
                 :description="$t('metric.drillDown.description')"
+                label-class="d-flex align-items-center text-primary"
                 class="mb-1"
               >
                 <template #label>
