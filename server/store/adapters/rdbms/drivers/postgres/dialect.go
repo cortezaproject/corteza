@@ -229,6 +229,15 @@ func (postgresDialect) ColumnFits(target, assert *ddl.Column) bool {
 		"numeric": {
 			"text":    true,
 			"varchar": true,
+			"bigint":  true,
+			// @note this isn't entirely correct, but record revision lapsus made us
+			"integer": true,
+		},
+		"integer": {
+			"text":    true,
+			"varchar": true,
+			"bigint":  true,
+			"numeric": true,
 		},
 		"timestamp": {
 			"text":    true,

@@ -3,11 +3,12 @@ package revisions
 import (
 	"encoding/json"
 	"fmt"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/cast2"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
-	"time"
 )
 
 type (
@@ -18,7 +19,7 @@ type (
 
 		ResourceID uint64 `json:"resourceID,string"`
 
-		Revision  uint      `json:"revision"`
+		Revision  int       `json:"revision"`
 		Operation Operation `json:"operation"`
 
 		UserID uint64 `json:"userID,string"`
@@ -47,7 +48,7 @@ var (
 	}
 )
 
-func Make(op Operation, revision uint, resourceID, userID uint64) (rev *Revision) {
+func Make(op Operation, revision int, resourceID, userID uint64) (rev *Revision) {
 	return &Revision{
 		ID:         id.Next(),
 		Timestamp:  now(),
@@ -190,7 +191,7 @@ func (r *Revision) SetValue(name string, _ uint, value any) error {
 		return cast2.Uint64(value, &r.ResourceID)
 
 	case "revision":
-		return cast2.Uint(value, &r.Revision)
+		return cast2.Int(value, &r.Revision)
 
 	case "operation":
 		return cast2.String(value, &r.Operation)
