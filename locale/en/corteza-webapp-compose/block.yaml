@@ -795,6 +795,7 @@ geometry:
       goToCurrentLocation: Go to current location
 
 tabs:
+  label: Tabs
   alertTitle: Set a title for your block
   title: Tabs
   addTab: + Add
@@ -839,8 +840,8 @@ tabs:
         label: Block
   tooltip:
     edit: Edit block
-    editDisabled: Editing tabbed blocks is disabled until you save this block
-    addTab: Add tab
-    addBlock: Add new block
+    clone: Clone block & tab
+    copy: Copy block
     delete: Delete tab
-  label: Tabs
+    editDisabled: Editing tabbed blocks is disabled until you save this block
+    addBlock: Add new block

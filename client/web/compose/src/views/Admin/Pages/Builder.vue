@@ -157,6 +157,8 @@
             editable
             class="p-2"
             @edit-block="editBlock"
+            @clone-block="cloneTabbedBlock"
+            @copy-block="copyBlock"
             @delete-tab="deleteTab"
           />
         </div>
@@ -739,6 +741,7 @@ export default {
 
           tabbedBlock.meta.hidden = true
         })
+
         this.showUntabbedHiddenBlocks()
       }
 
@@ -749,6 +752,19 @@ export default {
 
     cloneBlock (index) {
       this.appendBlock(this.blocks[index].clone(), this.$t('notification:page.cloneSuccess'))
+    },
+
+    cloneTabbedBlock ({ tabbedBlockIndex, tabBlockIndex, title }) {
+      const block = this.blocks[tabbedBlockIndex].clone()
+      block.meta.hidden = true
+
+      this.blocks[tabBlockIndex].options.tabs.push({
+        blockID: fetchID(block),
+        title,
+      })
+
+      this.blocks.push(block)
+      this.unsavedBlocks.add(fetchID(block))
     },
 
     appendBlock (block, msg) {

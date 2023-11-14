@@ -10,7 +10,7 @@
       class="d-flex h-100 align-items-center justify-content-center"
     >
       <p class="mb-0">
-        {{ $t('tabs.noTabs') }}
+        {{ $t('noTabs') }}
       </p>
     </div>
 
@@ -53,7 +53,7 @@
           >
             <div
               v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
-              :title="$t('tabs.unsavedChanges')"
+              :title="$t('unsavedChanges')"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -62,18 +62,43 @@
               />
             </div>
 
-            <b-button
-              size="sm"
-              variant="outline-light"
-              class="text-primary border-0 edit-block-btn"
-              @click="editTabbedBlock(tab)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'edit']"
-              />
-            </b-button>
+            <b-button-group size="sm">
+              <b-button
+                :title="$t('tooltip.edit')"
+                variant="outline-light"
+                class="text-primary border-0 toolbox-button"
+                @click="editTabbedBlock(tab)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'edit']"
+                />
+              </b-button>
+
+              <b-button
+                :title="$t('tooltip.clone')"
+                variant="outline-light"
+                class="text-primary border-0 toolbox-button"
+                @click="cloneTabbedBlock(tab)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'clone']"
+                />
+              </b-button>
+
+              <b-button
+                :title="$t('tooltip.copy')"
+                variant="outline-light"
+                class="text-primary border-0 toolbox-button"
+                @click="copyTabbedBlock(tab)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'copy']"
+                />
+              </b-button>
+            </b-button-group>
 
             <c-input-confirm
+              :tooltip="$t('tooltip.delete')"
               show-icon
               class="ml-1"
               @confirmed="deleteTab(index)"
@@ -94,7 +119,7 @@
           class="d-flex h-100 align-items-center justify-content-center"
         >
           <p class="mb-0">
-            {{ $t('tabs.noBlock') }}
+            {{ $t('noBlock') }}
           </p>
         </div>
       </b-tab>
@@ -110,6 +135,7 @@ import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 export default {
   i18nOptions: {
     namespaces: 'block',
+    keyPrefix: 'tabs',
   },
 
   name: 'TabBase',
@@ -170,9 +196,23 @@ export default {
 
   methods: {
     editTabbedBlock (tab) {
-      const blockIndex = this.blocks.findIndex(block => fetchID(block) === tab.block.blockID)
+      const blockIndex = this.blocks.findIndex(block => fetchID(block) === fetchID(tab.block))
       if (blockIndex > -1) {
         this.$emit('edit-block', blockIndex)
+      }
+    },
+
+    cloneTabbedBlock (tab) {
+      const tabbedBlockIndex = this.blocks.findIndex(block => fetchID(block) === fetchID(tab.block))
+      if (tabbedBlockIndex > -1) {
+        this.$emit('clone-block', { tabbedBlockIndex, tabBlockIndex: this.blockIndex, title: tab.title })
+      }
+    },
+
+    copyTabbedBlock (tab) {
+      const tabbedBlockIndex = this.blocks.findIndex(block => fetchID(block) === fetchID(tab.block))
+      if (tabbedBlockIndex > -1) {
+        this.$emit('copy-block', tabbedBlockIndex)
       }
     },
 
@@ -187,7 +227,7 @@ export default {
 
     getTabTitle ({ title, block = {} }, tabIndex) {
       const { title: blockTitle, kind } = block
-      return title || blockTitle || kind || `${this.$t('tabs.tab')} ${tabIndex + 1}`
+      return title || blockTitle || kind || `${this.$t('tab')} ${tabIndex + 1}`
     },
 
     isTabLazy ({ block = {} }) {
@@ -201,7 +241,7 @@ export default {
 <style lang="scss">
 .tabs-base-block-container {
   .nav-pills {
-    .active .edit-block-btn {
+    .active .toolbox-button {
       color: var(--white) !important;
     }
   }
