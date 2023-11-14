@@ -20,7 +20,10 @@
     </template>
 
     <template #center>
-      <b-button-group v-if="recordNavigation.prev || recordNavigation.next">
+      <div
+        v-if="recordNavigation.prev || recordNavigation.next"
+        class="d-flex align-items-center fill-width gap-1"
+      >
         <b-button
           pill
           size="lg"
@@ -42,7 +45,7 @@
         >
           <font-awesome-icon :icon="['fas', 'angle-right']" />
         </b-button>
-      </b-button-group>
+      </div>
 
       <slot name="center-actions" />
     </template>
