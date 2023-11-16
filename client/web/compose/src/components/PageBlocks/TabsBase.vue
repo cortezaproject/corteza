@@ -149,13 +149,13 @@ export default {
     navClass () {
       const { orientation } = this.block.options.style
       const style = orientation === 'vertical' ? 'px-3' : 'px-2'
-      return `${style}`
+      return `bg-transparent ${style}`
     },
 
     navWrapperClass () {
       const { orientation, position } = this.block.options.style
       let border = 'border-bottom'
-      let style = 'rounded mh-100'
+      let style = 'bg-transparent rounded mh-100'
 
       if (orientation === 'vertical') {
         border = position === 'end' ? 'border-left' : 'border-right'
