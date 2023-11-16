@@ -1,0 +1,238 @@
+name: "E2e test on main branch push"
+
+# These jobs can be tested with nektos/act tool
+# https://github.com/nektos/act
+#
+# Look for "!env.ACT" in the DRY_RUN expression below
+
+on:
+  push:
+    branches:
+      - '202[2-9].[39].x'
+
+env:
+  BUILD_OS: linux
+  BUILD_ARCH: amd64
+
+  GO_VERSION: 1.19
+  GOFLAGS: -mod=readonly
+
+  NODE_VERSION: 16
+  CYPRESS_VERSION: 13.5.0
+  CYPRESS_HOST: http://localhost:8888
+  CYPRESS_BASE_URL: http://localhost:8888
+  CYPRESS_ADMIN_URL: http://localhost:8080
+  CYPRESS_COMPOSE_URL: http://localhost:8081
+  CYPRESS_WORKFLOW_URL: http://localhost:8082
+  CYPRESS_REPORTER_URL: http://localhost:8083
+  CYPRESS_ONE_URL: http://localhost:8086
+  CYPRESS_PRIVACY_URL: http://localhost:8087
+  CYPRESS_USER_EMAIL: cypress@test.com
+  CYPRESS_USER_PASSWORD: cypress123
+  CYPRESS_USER_PASSWORD_NEW: newcypress123
+  CYPRESS_USER_EMAIL_NEW: permissions@email.com
+  CYPRESS_USER_DPO: dpo@email.com
+  CYPRESS_USER_DPO_PASSWORD: dpo@email.com
+
+jobs:
+  server-client-setup:
+    name: server and client test
+    strategy:
+      matrix:
+        client:
+          - { port: 8081, name: compose }
+          - { port: 8080, name: admin }
+          - { port: 8082, name: workflow }
+          - { port: 8083, name: reporter }
+          - { port: 8086, name: one }
+          # - { port: 8087, name: privacy }
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Setup environment
+        env:
+          RELEASE_CRUST_SFTP_KEY: ${{ secrets.RELEASE_CRUST_SFTP_KEY }}
+          RELEASE_CRUST_SFTP_URI: ${{ secrets.RELEASE_CRUST_SFTP_URI }}
+          CLIENT_NAME: ${{ matrix.client.name }}
+        run: |
+          echo "SCREENSHOTS_GEN_FOLDER=$(date +"%Y%m%d%H%M%S")_$CLIENT_NAME" >> $GITHUB_ENV && \
+          echo "TMP_KEY=$(mktemp)" >> $GITHUB_ENV
+          echo $SCREENSHOTS_GEN_FOLDER
+
+      - name: Create crust key
+        env:
+          RELEASE_CRUST_SFTP_KEY: ${{ secrets.RELEASE_CRUST_SFTP_KEY }}
+          RELEASE_CRUST_KEY_FILE: ${{ env.TMP_KEY }}
+        run: |
+          echo ${RELEASE_CRUST_SFTP_KEY} | base64 -d > ${RELEASE_CRUST_KEY_FILE} && \
+          echo ${RELEASE_CRUST_SFTP_KEY} > /tmp/foo
+
+      - name: Make folder for uploaded screenshots
+        env:
+          RELEASE_CRUST_SFTP_URI: ${{ secrets.RELEASE_CRUST_SFTP_URI }}
+          RELEASE_CRUST_KEY_FILE: ${{ env.TMP_KEY }}
+          SCREENSHOTS_GEN_FOLDER: ${{ env.SCREENSHOTS_GEN_FOLDER }}
+        run: |
+          printf '%s\n' 'cd screenshots' "mkdir ${SCREENSHOTS_GEN_FOLDER}" | sftp -o "StrictHostKeyChecking no" -i ${RELEASE_CRUST_KEY_FILE} ${RELEASE_CRUST_SFTP_URI}
+
+      - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
+
+      - uses: actions/setup-go@v3
+        with: { go-version: "${{ env.GO_VERSION }}" }
+
+      - name: Setup YARN
+        run: npm install -g yarn @vue/cli-service
+
+      - name: Checkout corteza repo
+        uses: actions/checkout@v3
+        with:
+          path: corteza
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref_name }}
+
+      - name: Copy server language files
+        working-directory: corteza/server/pkg/locale
+        run: make src/en
+
+      - name: Copy assets
+        working-directory: corteza
+        env:
+          CLIENT_NAME: ${{ matrix.client.name }}
+        run: |
+          mv ./.github/workflows/assets/docker-compose.yaml ./
+          cp .github/workflows/assets/client/vue.config-builder.js client/web/${CLIENT_NAME}/public/vue.config-builder.js
+          cp .github/workflows/assets/client/config.js client/web/${CLIENT_NAME}/public/config.js
+
+      - name: Run server and db
+        working-directory: corteza
+        run: |
+          docker-compose run -d --name backend backend
+          docker-compose run -d --name postgres postgres
+
+      - name: Build js
+        working-directory: corteza/lib/js
+        run: |
+          yarn install
+          yarn build
+
+      - name: Build vue
+        working-directory: corteza/lib/vue
+        run: |
+          yarn install
+          yarn build
+
+      - name: Run ${{ matrix.client.name }}
+        working-directory: corteza
+        # re-link the packages for each app
+        env:
+          CLIENT_NAME: ${{ matrix.client.name }}
+          CLIENT_PORT: ${{ matrix.client.port }}
+        run: |
+          docker-compose \
+            run -d \
+            --name "${CLIENT_NAME}" \
+            --use-aliases \
+            client \
+            sh -c "ls && cd /corteza/lib/js && yarn link && \
+                  cd /corteza/lib/vue && yarn link && \
+                  cd /corteza/client/web/${CLIENT_NAME} && \
+                  yarn link @cortezaproject/corteza-vue && \
+                  yarn link @cortezaproject/corteza-js && \
+                  yarn install && \
+                  yarn serve --port ${CLIENT_PORT}"
+
+      - name: Clone CY repo
+        uses: actions/checkout@v3
+        with:
+          repository: cortezaproject/corteza-e2e-cypress
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref_name }}
+          path: corteza-e2e-cypress
+
+      # github actions do not support docker-compose --wait
+      - name: Wait for postgres healthcheck
+        run: timeout 180s sh -c 'until docker ps | grep postgres | grep -q healthy; do echo "Waiting for container to be healthy..."; sleep 1; done'
+
+      - name: Wait for ${{ matrix.client.name }} healthcheck
+        env:
+          CLIENT_NAME: ${{ matrix.client.name }}
+        run: |
+          timeout 180s sh -c 'until docker ps | grep ${CLIENT_NAME} | grep -q healthy; do echo "Waiting for container to be healthy..."; sleep 1; done'
+
+      - name: Wait for backend healthcheck
+        run: timeout 180s sh -c 'until docker ps | grep backend | grep -q healthy; do echo "Waiting for container to be healthy..."; sleep 1; done'
+
+      - name: Run CY tests for ${{ matrix.client.name }}
+        env:
+          CLIENT_NAME: ${{ matrix.client.name }}
+          CLIENT_PORT: ${{ matrix.client.port }}
+        working-directory: corteza-e2e-cypress
+        run: |
+          yarn install
+
+          docker-compose run \
+            --entrypoint="bash -c \" \
+              cypress run --spec cypress/e2e/basic-functionalities/server/Create_user.cy.js --browser chrome \
+            \"" \
+          cypress
+
+          docker-compose run \
+            --entrypoint="bash -c \" \
+              cypress run --spec cypress/e2e/basic-functionalities/${CLIENT_NAME}/index.cy.js --browser chrome \
+            \"" \
+          cypress
+
+          docker-compose run \
+            --entrypoint="bash -c \" \
+              cypress run --spec cypress/e2e/basic-functionalities/topbar/${CLIENT_NAME}/index.cy.js --browser chrome \
+            \"" \
+          cypress
+
+      - name: Upload screenshots
+        if: failure()
+        env:
+          RELEASE_CRUST_SFTP_URI: ${{ secrets.RELEASE_CRUST_SFTP_URI }}
+          RELEASE_CRUST_KEY_FILE: ${{ env.TMP_KEY }}
+          SCREENSHOTS_GEN_FOLDER: ${{ env.SCREENSHOTS_GEN_FOLDER }}
+        run: |
+          printf '%s\n' "cd screenshots/${SCREENSHOTS_GEN_FOLDER}" 'put -r corteza-e2e-cypress/cypress/screenshots/*' | sftp -q -o "StrictHostKeyChecking no" -i ${RELEASE_CRUST_KEY_FILE} ${RELEASE_CRUST_SFTP_URI}
+
+  notify-failure:
+    needs: [ server-client-setup ]
+    runs-on: ubuntu-20.04
+    if: failure()
+    steps:
+      - name: Send message on failed testing results
+        uses: fadenb/matrix-chat-message@v0.0.6
+        env:
+          E2E_REPORTS_USER: ${{ secrets.E2E_REPORTS_USER }}
+          E2E_REPORTS_PASS: ${{ secrets.E2E_REPORTS_PASS }}
+        with:
+          homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
+          token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
+          channel: ${{ secrets.MATRIX_ROOM_ID }}
+          message: |
+            ❌ E2e tests did not pass, screenshots provided
+
+            🔗 https://${{ secrets.E2E_REPORTS_USER }}:${{ secrets.E2E_REPORTS_PASS }}@releases.cortezaproject.org/e2e-reports/
+
+            📷 https://${{ secrets.E2E_REPORTS_USER }}:${{ secrets.E2E_REPORTS_PASS }}@releases.cortezaproject.org/e2e-reports/screenshots/${{ env.SCREENSHOTS_GEN_FOLDER }}/
+
+  notify-success:
+    needs: [ server-client-setup ]
+    runs-on: ubuntu-20.04
+    if: success()
+    steps:
+      - name: Send message on successful testing results
+        uses: fadenb/matrix-chat-message@v0.0.6
+        env:
+          E2E_REPORTS_USER: ${{ secrets.E2E_REPORTS_USER }}
+          E2E_REPORTS_PASS: ${{ secrets.E2E_REPORTS_PASS }}
+        with:
+          homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
+          token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
+          channel: ${{ secrets.MATRIX_ROOM_ID }}
+          message: |
+            ✅ E2e tests passed 🙌 🎉
+
+            🔗 https://${{ secrets.E2E_REPORTS_USER }}:${{ secrets.E2E_REPORTS_PASS }}@releases.cortezaproject.org/e2e-reports/

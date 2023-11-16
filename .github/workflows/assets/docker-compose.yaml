@@ -1,0 +1,59 @@
+version: "3.5"
+
+services:
+  backend:
+    network_mode: host
+    image: golang:latest
+    volumes:
+      - "${PWD}:/corteza"
+    entrypoint: |
+      sh -c "
+        git config --global --add safe.directory /corteza &&
+        go run /corteza/server/cmd/corteza/main.go serve-api
+      "
+    working_dir: /corteza/server
+    environment:
+      - DB_DSN=postgres://corteza:root@localhost:5432/corteza_cy_test?sslmode=disable
+      - HTTP_ADDR=:8888
+      - HTTP_ENABLE_DEBUG_ROUTE=true
+      - HTTP_WEBAPP_ENABLED=true
+      - ENVIRONMENT=dev
+    healthcheck:
+      test: curl --silent --fail-early --fail http://localhost:8888/healthcheck || exit 1
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+
+  postgres:
+    network_mode: host
+    image: postgres:15
+    environment:
+      POSTGRES_USER: corteza
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: corteza_cy_test
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  client:
+    network_mode: host
+    image: node:16.20-alpine3.16
+    volumes:
+      - "${PWD}:/corteza"
+    working_dir: /corteza
+    environment:
+      BUILD_VERSION: 2023.9.1-6-g3ad38a1be
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+
+    deploy:
+      resources:
+        limits:
+          memory: 2g
