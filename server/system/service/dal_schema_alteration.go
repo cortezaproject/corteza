@@ -94,10 +94,11 @@ func (svc dalSchemaAlteration) ModelAlterations(ctx context.Context, m *dal.Mode
 
 func (svc dalSchemaAlteration) modelAlterations(ctx context.Context, s store.Storer, m *dal.Model) (out []*dal.Alteration, err error) {
 	aux, _, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
-		Resource:  []string{m.Resource},
-		Deleted:   filter.StateExcluded,
-		Completed: filter.StateExcluded,
-		Dismissed: filter.StateExcluded,
+		Resource:     []string{m.Resource},
+		ResourceType: m.ResourceType,
+		Deleted:      filter.StateExcluded,
+		Completed:    filter.StateExcluded,
+		Dismissed:    filter.StateExcluded,
 	})
 	if err != nil {
 		return nil, err

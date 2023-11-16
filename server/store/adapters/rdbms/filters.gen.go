@@ -823,6 +823,10 @@ func DalSchemaAlterationFilter(d drivers.Dialect, f systemType.DalSchemaAlterati
 		ee = append(ee, goqu.C("resource").In(ss))
 	}
 
+	if val := strings.TrimSpace(f.ResourceType); len(val) > 0 {
+		ee = append(ee, goqu.C("resource_type").Eq(f.ResourceType))
+	}
+
 	if len(f.AlterationID) > 0 {
 		ee = append(ee, goqu.C("id").In(f.AlterationID))
 	}

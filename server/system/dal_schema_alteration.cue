@@ -84,6 +84,7 @@ dal_schema_alteration: {
 	filter: {
 		struct: {
 			resource: {goType: "[]string", ident: "resource" }
+			resourceType: {goType: "string", ident: "resourceType", storeIdent: "resource_type" }
 			alteration_id: {goType: "[]uint64", ident: "alterationID", storeIdent: "id" }
 			batch_id: {goType: "uint64", ident: "batchID" }
 			kind: {}
@@ -92,7 +93,7 @@ dal_schema_alteration: {
 			dismissed: {goType: "filter.State", storeIdent: "dismissed_at"}
 		}
 
-		byValue: ["kind", "resource", "alteration_id", "batch_id"]
+		byValue: ["kind", "resource", "resourceType", "alteration_id", "batch_id"]
 		byNilState: ["deleted", "completed", "dismissed"]
 	}
 

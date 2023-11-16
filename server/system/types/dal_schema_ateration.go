@@ -52,6 +52,7 @@ type (
 		BatchID      uint64   `json:"batchID,string"`
 		Kind         string   `json:"kind"`
 		Resource     []string `json:"resource"`
+		ResourceType string   `json:"resourceType"`
 
 		Deleted   filter.State `json:"deleted"`
 		Completed filter.State `json:"completed"`
