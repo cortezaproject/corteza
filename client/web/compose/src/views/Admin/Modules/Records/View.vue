@@ -51,7 +51,7 @@
     </b-alert>
 
     <b-row
-      v-if="module && record"
+      v-if="module"
       no-gutters
     >
       <b-col
@@ -59,6 +59,7 @@
         :key="index"
         md="3"
         cols="12"
+        style="max-height: 650px; height: 650px;"
       >
         <component
           :is="getRecordComponent"
@@ -148,6 +149,11 @@ export default {
         namespace: this.$attrs.namespace,
       },
 
+      recordNavigation: {
+        prev: undefined,
+        next: undefined,
+      },
+
       abortableRequests: [],
     }
   },
@@ -219,7 +225,7 @@ export default {
       return undefined
     },
 
-    recordNavigation () {
+    currentRecordNavigation () {
       const { recordID } = this.record || {}
       return this.getNextAndPrevRecord(recordID)
     },
@@ -229,15 +235,32 @@ export default {
     '$attrs.recordID': {
       immediate: true,
       handler () {
+        this.record = undefined
+        this.initialRecordState = undefined
         this.loadRecord()
+      },
+    },
+
+    currentRecordNavigation: {
+      handler (rn, oldRn) {
+        // To prevent hiding and then showing the record navigation
+        // We use the old value if its valid and the current one isn't
+        if (rn.prev || rn.next) {
+          this.recordNavigation = rn
+        } else if (this.recordID !== NoID && (oldRn.prev || oldRn.next)) {
+          this.recordNavigation = oldRn
+        } else {
+          this.recordNavigation = {
+            prev: undefined,
+            next: undefined,
+          }
+        }
       },
     },
   },
 
   created () {
     this.createBlocks()
-    this.record = new compose.Record(this.module, { values: this.values })
-    this.initialRecordState = this.record.clone()
   },
 
   beforeDestroy () {
