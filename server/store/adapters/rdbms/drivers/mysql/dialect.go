@@ -247,60 +247,81 @@ func (mysqlDialect) ColumnFits(target, assert *ddl.Column) bool {
 	// [the type of the target column][what types fit the target col. type]
 	matches := map[string]map[string]bool{
 		"bigint unsigned": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
 
 			"decimal": true,
 		},
 		"bigint signed": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
 
 			"decimal": true,
 		},
 		"bigint": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
 
 			"decimal": true,
 		},
 		"datetime": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
 		},
 		"time": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
 
 			"datetime": true,
 		},
 		"date": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
 
 			"datetime": true,
 		},
 		"decimal": {
-			"varchar": true,
-			"text":    true,
+			"double":     true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
 		},
 		"varchar": {
-			"text": true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
+			"char":       true,
 		},
 		"text": {
-			"varchar": true,
+			"varchar":  true,
+			"char":     true,
+			"longtext": true,
 		},
 		"json": {},
 		"blob": {},
 		"tinyint": {
-			"varchar": true,
-			"text":    true,
-			"bigint":  true,
-			"decimal": true,
+			"varchar":    true,
+			"bigint":     true,
+			"decimal":    true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
 		},
 		"char": {
-			"varchar": true,
-			"text":    true,
+			"varchar":    true,
+			"text":       true,
+			"mediumtext": true,
+			"longtext":   true,
 		},
 	}
 
