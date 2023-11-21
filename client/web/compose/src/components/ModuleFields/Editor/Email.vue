@@ -15,8 +15,8 @@
         class="d-flex align-items-center text-primary p-0"
       >
         <span
-          class="d-inline-block mw-100 py-1"
           :title="label"
+          class="d-inline-block mw-100 py-1"
         >
           {{ label }}
         </span>

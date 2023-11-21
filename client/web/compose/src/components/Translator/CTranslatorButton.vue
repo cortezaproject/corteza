@@ -1,5 +1,6 @@
 <template>
   <b-button
+    v-b-tooltip.hover="{ title: tooltip, container: '#body' }"
     data-test-id="button-translation"
     :variant="buttonVariant"
     :class="buttonClass"
@@ -49,6 +50,11 @@ export default {
      * See CTranslatorForm for description
      */
     highlightKey: {
+      type: String,
+      default: '',
+    },
+
+    tooltip: {
       type: String,
       default: '',
     },

@@ -130,10 +130,10 @@
 
               <b-button
                 v-else
+                v-b-tooltip.hover="{ title: $t('tooltip.regenerate-secret'), container: '#body' }"
                 data-test-id="button-regenerate-client-secret"
                 class="ml-1 text-primary"
                 variant="link"
-                :title="$t('tooltip.regenerate-secret')"
                 @click="$emit('regenerate-secret')"
               >
                 <font-awesome-icon

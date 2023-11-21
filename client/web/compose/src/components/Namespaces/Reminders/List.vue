@@ -11,16 +11,15 @@
         <hr v-if="r.dismissedAt && sortedReminders[i - 1] ? !sortedReminders[i - 1].dismissedAt : false ">
 
         <div
-          class="overflow-auto border card shadow-sm my-2 p-1"
+          class="border card shadow-sm my-2 p-1"
         >
           <div
             class="d-flex flex-row flex-nowrap align-items-center"
           >
             <b-form-checkbox
-              v-b-tooltip.hover.left.350
+              v-b-tooltip.hover.left.350="{ title: $t(`reminder.${!!r.dismissedAt ? 'undismiss' : 'dismiss'}`), container: '#body' }"
               data-test-id="checkbox-dismiss-reminder"
               :checked="!!r.dismissedAt"
-              :title="$t(`reminder.${!!r.dismissedAt ? 'undismiss' : 'dismiss'}`)"
               class="my-2 ml-2"
               @change="$emit('dismiss', r, $event)"
             />
@@ -41,8 +40,8 @@
               >
                 <b-button
                   v-if="r.payload.link"
+                  v-b-tooltip.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
                   :to="recordViewer(r.payload.link)"
-                  :title="$t('reminder.recordPageLink')"
                   variant="outline-light"
                   class="d-flex align-items-center py-2 text-primary border-0"
                 >
@@ -50,9 +49,9 @@
                 </b-button>
 
                 <b-button
+                  v-b-tooltip.hover="{ title: $t('reminder.edit.label'), container: '#body' }"
                   data-test-id="button-edit-reminder"
                   variant="outline-light"
-                  :title="$t('reminder.edit.label')"
                   class="d-flex align-items-center py-2 text-primary border-0"
                   @click="$emit('edit', r)"
                 >
@@ -74,8 +73,8 @@
             class="text-secondary small px-2 pb-1"
           >
             <font-awesome-icon
+              v-b-tooltip.hover="{ title: $t('reminder.snooze.count', { count: r.snoozeCount }), container: '#body' }"
               data-test-id="icon-remind-at"
-              :title="$t('reminder.snooze.count', { count: r.snoozeCount })"
               :icon="['far', 'bell']"
               class="text-primary"
             />

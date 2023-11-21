@@ -47,8 +47,8 @@
         />
 
         <b-button
+          v-b-tooltip.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
           variant="primary"
-          :title="$t('tooltip.edit.page')"
           :to="pageEditor"
           class="d-flex align-items-center"
           style="margin-left:2px;"
@@ -86,7 +86,7 @@
           >
             <div
               v-if="unsavedBlocks.has(block.blockID !== '0' ? block.blockID : block.meta.tempID)"
-              :title="$t('tooltip.unsavedChanges')"
+              v-b-tooltip.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -97,8 +97,8 @@
 
             <b-button-group>
               <b-button
+                v-b-tooltip.hover="{ title: $t('tooltip.edit.block'), container: '#body' }"
                 data-test-id="button-edit"
-                :title="$t('tooltip.edit.block')"
                 variant="outline-light"
                 class="border-0"
                 @click="editBlock(index)"
@@ -109,7 +109,7 @@
               </b-button>
 
               <b-button
-                :title="$t('tooltip.clone.block')"
+                v-b-tooltip.hover="{ title: $t('tooltip.clone.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="cloneBlock(index)"
@@ -120,7 +120,7 @@
               </b-button>
 
               <b-button
-                :title="$t('tooltip.copy.block')"
+                v-b-tooltip.hover="{ title: $t('tooltip.copy.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="copyBlock(index)"
@@ -132,7 +132,7 @@
             </b-button-group>
 
             <c-input-confirm
-              :title="$t('tooltip.delete.block')"
+              :tooltip="$t('tooltip.delete.block')"
               show-icon
               link
               size="md"
@@ -265,8 +265,8 @@
 
         <div>
           <b-button
+            v-b-tooltip.hover="{ title: $t('label.cancel'), container: '#body' }"
             variant="link"
-            :title="$t('label.cancel')"
             class="text-decoration-none"
             @click="cancel()"
           >

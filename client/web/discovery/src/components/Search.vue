@@ -84,9 +84,9 @@
           class="position-fixed map-button"
         >
           <b-button
+            v-b-tooltip.hover="{ title: $t('tooltip.map'), container: '#body' }"
             variant="warning"
             class="rounded-circle p-3"
-            :title="$t('tooltip.map')"
             @click="toggleMap"
           >
             <font-awesome-icon

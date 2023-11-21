@@ -1,7 +1,7 @@
 <template>
   <b-card
-    class="shadow-sm"
     :title="$t('title')"
+    class="shadow-sm"
   >
     <b-row
       v-for="prop in list"

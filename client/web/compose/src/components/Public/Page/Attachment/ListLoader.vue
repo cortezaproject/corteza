@@ -26,9 +26,8 @@
               class="d-inline p-1 mr-2"
             >
               <font-awesome-icon
-                v-b-tooltip.hover
+                v-b-tooltip.hover="{ title: $t('general.tooltip.dragAndDrop'), container: '#body' }"
                 :icon="['fas', 'bars']"
-                :title="$t('general.tooltip.dragAndDrop')"
                 class="handle text-light"
               />
             </div>

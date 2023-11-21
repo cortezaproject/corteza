@@ -33,8 +33,8 @@
           style="margin-left:2px;"
         />
         <b-button
+          v-b-tooltip.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
           data-test-id="button-page-edit"
-          :title="$t('tooltip.edit.page')"
           :to="pageEditor"
           variant="primary"
           class="d-flex align-items-center"

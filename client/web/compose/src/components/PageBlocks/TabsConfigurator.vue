@@ -182,9 +182,9 @@
                 <b-button
                   v-if="tab.blockID"
                   id="popover-edit"
+                  v-b-tooltip.hover="{ title: $t('tabs.tooltip.edit'), container: '#body' }"
                   size="sm"
                   variant="light"
-                  :title="$t('tabs.tooltip.edit')"
                   class="d-flex align-items-center justify-content-center"
                   style="width: 40px;"
                   @click="editBlock(tab.blockID)"
@@ -195,9 +195,9 @@
                 </b-button>
                 <b-button
                   v-else
+                  v-b-tooltip.hover="{ title: $t('tabs.tooltip.addBlock'), container: '#body' }"
                   size="sm"
                   variant="light"
-                  :title="$t('tabs.tooltip.addBlock')"
                   class="d-flex align-items-center justify-content-center"
                   style="width: 40px;"
                   @click="showBlockSelector(index)"

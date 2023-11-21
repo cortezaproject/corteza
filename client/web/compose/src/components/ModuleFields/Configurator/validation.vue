@@ -76,7 +76,10 @@
           :placeholder="$t('validators.expression.placeholder')"
         />
         <b-input-group-prepend>
-          <b-button variant="warning">
+          <b-button
+            v-b-tooltip.hover="{ title: $t('validators.error.tooltip'), container: '#body' }"
+            variant="warning"
+          >
             !
           </b-button>
         </b-input-group-prepend>

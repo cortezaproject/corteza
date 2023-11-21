@@ -8,8 +8,8 @@
     <b-tab
       data-test-id="general-tab"
       active
-      title-item-class="order-first"
       :title="$t('general.label.general')"
+      title-item-class="order-first"
     >
       <b-row>
         <b-col

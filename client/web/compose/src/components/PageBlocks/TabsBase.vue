@@ -53,7 +53,7 @@
           >
             <div
               v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
-              :title="$t('unsavedChanges')"
+              v-b-tooltip.hover="{ title: $t('unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon

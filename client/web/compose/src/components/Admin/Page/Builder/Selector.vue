@@ -55,7 +55,7 @@
 
           <b-input-group-append>
             <b-button
-              :title="$t('selector.tooltip.clone.noRef')"
+              v-b-tooltip.hover="{ title: $t('selector.tooltip.clone.noRef'), container: '#body' }"
               variant="light"
               :disabled="!selectedExistingBlock"
               class="d-flex align-items-center"
@@ -66,7 +66,7 @@
               />
             </b-button>
             <b-button
-              :title="$t('selector.tooltip.clone.ref')"
+              v-b-tooltip.hover="{ title: $t('selector.tooltip.clone.ref'), container: '#body' }"
               variant="light"
               :disabled="!selectedExistingBlock"
               class="d-flex align-items-center"

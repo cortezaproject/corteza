@@ -55,8 +55,8 @@
         </b-select>
         <b-input-group-append>
           <b-button
+            v-b-tooltip.hover="{ title: $t('tooltip.field'), container: '#body' }"
             variant="light"
-            :title="$t('tooltip.field')"
             :disabled="!value.cap.configurable"
             @click.prevent="$emit('edit')"
           >

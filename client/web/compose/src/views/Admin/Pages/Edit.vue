@@ -32,8 +32,8 @@
         />
 
         <b-button
+          v-b-tooltip.hover="{ title: $t('tooltip.view'), container: '#body' }"
           variant="primary"
-          :title="$t('tooltip.view')"
           :to="pageViewer"
           class="d-flex align-items-center"
           style="margin-left:2px;"
@@ -178,7 +178,7 @@
               <template #label>
                 {{ $t('icon.page') }}
                 <b-button
-                  :title="$t('icon.configure')"
+                  v-b-tooltip.hover="{ title: $t('icon.configure'), container: '#body' }"
                   variant="outline-light"
                   class="d-flex align-items-center px-1 text-primary border-0 ml-1"
                   @click="openIconModal"
@@ -315,9 +315,9 @@
 
                           <b-input-group-append>
                             <b-button
+                              v-b-tooltip.hover="{ title: $t('page-layout.tooltip.configure'), container: '#body' }"
                               variant="light"
                               class="d-flex align-items-center px-3"
-                              :title="$t('page-layout.tooltip.configure')"
                               @click="configureLayout(index)"
                             >
                               <font-awesome-icon
@@ -326,9 +326,9 @@
                             </b-button>
 
                             <b-button
+                              v-b-tooltip.hover="{ title: $t('page-layout.tooltip.builder'), container: '#body' }"
                               variant="primary"
                               :disabled="layout.pageLayoutID === '0'"
-                              :title="$t('page-layout.tooltip.builder')"
                               class="d-flex align-items-center"
                               :to="{ name: 'admin.pages.builder', query: { layoutID: layout.pageLayoutID } }"
                             >
@@ -836,7 +836,7 @@
             <b-input-group-append>
               <b-button
                 v-b-modal.logo
-                :title="$t('tooltip.preview-link')"
+                v-b-tooltip.hover="{ title: $t('tooltip.preview-link'), container: '#body' }"
                 :disabled="!linkUrl"
                 variant="light"
                 rounded

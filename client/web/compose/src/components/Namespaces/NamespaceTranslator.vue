@@ -1,8 +1,8 @@
 <template>
   <c-translator-button
     v-if="canManageResourceTranslations && resourceTranslationsEnabled"
+    :tooltip="$t('tooltip')"
     v-bind="$props"
-    :title="$t('tooltip')"
     :resource="resource"
     :titles="titles"
     :fetcher="fetcher"

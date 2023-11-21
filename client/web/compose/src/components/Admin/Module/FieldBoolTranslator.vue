@@ -3,7 +3,7 @@
     v-if="canManageResourceTranslations && resourceTranslationsEnabled"
     v-bind="$props"
     :size="size"
-    :title="$t('tooltip')"
+    :tooltip="$t('tooltip')"
     :resource="resource"
     :fetcher="fetcher"
     :updater="updater"

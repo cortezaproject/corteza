@@ -231,8 +231,10 @@ validators:
   disableBuiltIn: Disable built-in validators
   error:
     placeholder: Text displayed when expression is true
+    tooltip: Warning text
   expression:
     placeholder: value == ""
+    tooltip: Expression
   label: Value validation
 valueExpr:
   description: Insert a formula or expression that calculates numeric values or combines and manipulates text values

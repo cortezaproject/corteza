@@ -20,7 +20,7 @@
         />
         <b-input-group-append>
           <b-button
-            :title="$t('chart.openInBuilder')"
+            v-b-tooltip.hover="{ title: $t('chart.openInBuilder'), container: '#body' }"
             :disabled="!selectedChart || (!selectedChart.canUpdateChart && !selectedChart.canDeleteChart)"
             variant="light"
             class="d-flex align-items-center"

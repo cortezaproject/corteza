@@ -20,9 +20,9 @@
 
         <b-input-group-append>
           <b-button
+            v-b-tooltip.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
             variant="light"
             :disabled="!canUpdate"
-            :title="$t('builder:tooltip.configure-scenarios')"
             @click="openScenarioConfigurator"
           >
             <font-awesome-icon
@@ -60,10 +60,10 @@
           />
         </b-button>
         <b-button
+          v-b-tooltip.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
           variant="primary"
           class="d-flex align-items-center justify-content-center"
           style="margin-left:2px;"
-          :title="$t('builder:tooltip.edit.report')"
           :disabled="!canUpdate"
           :to="reportEditor"
         >
@@ -91,7 +91,7 @@
           >
             <div
               v-if="unsavedBlocks.has(index)"
-              :title="$t('tooltip.unsavedChanges')"
+              v-b-tooltip.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -102,7 +102,7 @@
 
             <b-button-group>
               <b-button
-                :title="$t('builder:tooltip.add.displayElement')"
+                v-b-tooltip.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="openDisplayElementSelector(index)"
@@ -113,7 +113,7 @@
               </b-button>
 
               <b-button
-                :title="$t('builder:tooltip.edit.block')"
+                v-b-tooltip.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="editBlock(index)"

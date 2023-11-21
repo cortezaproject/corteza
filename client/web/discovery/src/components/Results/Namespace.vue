@@ -11,8 +11,7 @@
           {{ hit.value.name || hit.value.slug }}
         </h5>
         <b-avatar
-          v-b-tooltip.hover
-          :title="$t('types.namespace')"
+          v-b-tooltip.hover="{ title: $t('types.namespace'), container: '#body' }"
           size="sm"
           icon="code-square"
           class="align-center bg-light text-dark"

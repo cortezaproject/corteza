@@ -94,9 +94,9 @@
 
           <b-input-group-append>
             <b-button
+              v-b-tooltip.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
               :disabled="!recordViewer"
               :to="recordViewer"
-              :title="$t('reminder.recordPageLink')"
               variant="light"
               class="d-flex align-items-center text-primary"
             >

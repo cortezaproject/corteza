@@ -2,11 +2,12 @@
   <c-translator-button
     v-if="canManageResourceTranslations && resourceTranslationsEnabled"
     v-bind="$props"
-    class="ml-auto py-1 px-3"
+    :tooltip="$t('tooltip')"
     :resource="resource"
     :titles="titles"
     :fetcher="fetcher"
     :updater="updater"
+    class="ml-auto py-1 px-3"
   />
 </template>
 

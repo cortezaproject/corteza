@@ -78,9 +78,9 @@
           </b-button>
 
           <b-button
+            v-b-tooltip.hover="{ title: $t('report.edit'), container: '#body' }"
             data-test-id="button-report-edit"
             variant="primary"
-            :title="$t('report.edit')"
             :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
             class="d-flex align-items-center"
             style="margin-left:2px;"

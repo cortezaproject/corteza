@@ -141,7 +141,7 @@
             <b-col
               v-for="role in roles"
               :key="role.ID"
-              :title="getRuleTooltip(checkRule(role.ID, permissions[type].any, operation, 'unknown-context'), !!role.userID)"
+              v-b-tooltip.hover="{ title: getRuleTooltip(checkRule(role.ID, permissions[type].any, operation, 'unknown-context'), !!role.userID), container: '#body' }"
               class="d-flex align-items-center justify-content-center border-bottom border-left p-3 pointer active-cell h5 mb-0"
               :class="{
                 'not-allowed bg-extra-light': role.mode === 'eval',

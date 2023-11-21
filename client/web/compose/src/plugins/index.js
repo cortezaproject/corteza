@@ -1,5 +1,4 @@
 import Vue from 'vue'
-import VTooltip from 'v-tooltip'
 import BootstrapVue from 'bootstrap-vue'
 import Router from 'vue-router'
 import VueNativeSock from 'vue-native-websocket'
@@ -12,7 +11,6 @@ const notProduction = (process.env.NODE_ENV !== 'production')
 const verboseUIHooks = window.location.search.includes('verboseUIHooks')
 const verboseEventbus = window.location.search.includes('verboseEventbus')
 
-Vue.use(VTooltip)
 Vue.use(BootstrapVue, {
   BToast: {
     // see https://bootstrap-vue.org/docs/components/toast#comp-ref-b-toast-props

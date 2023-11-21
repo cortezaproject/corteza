@@ -27,8 +27,8 @@
               class="text-danger"
             >
               <font-awesome-icon
+                v-b-tooltip.hover="{ title: $t('notVisible'), container: '#body' }"
                 :icon="['fas', 'eye-slash']"
-                :title="$t('notVisible')"
               />
             </span>
             <b-badge
@@ -58,9 +58,9 @@
               </b-button>
 
               <b-button
+                v-b-tooltip.hover="{ title: $t('tooltip.view'), container: '#body' }"
                 data-test-id="button-page-view"
                 variant="primary"
-                :title="$t('tooltip.view')"
                 :to="pageViewer(item)"
                 class="d-flex align-items-center"
                 style="margin-left:2px;"
@@ -71,9 +71,9 @@
               </b-button>
 
               <b-button
+                v-b-tooltip.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
                 data-test-id="button-page-edit"
                 variant="primary"
-                :title="$t('tooltip.edit.page')"
                 :to="{name: 'admin.pages.edit', params: { pageID: item.pageID }}"
                 class="d-flex align-items-center"
                 style="margin-left:2px;"
@@ -86,10 +86,10 @@
 
             <b-dropdown
               v-if="item.canGrant || namespace.canGrant"
+              v-b-tooltip.hover="{ title: $t('permissions:resources.compose.page.tooltip'), container: '#body' }"
               data-test-id="dropdown-permissions"
               variant="light"
               size="sm"
-              :title="$t('permissions:resources.compose.page.tooltip')"
               class="permissions-dropdown ml-1"
             >
               <template #button-content>

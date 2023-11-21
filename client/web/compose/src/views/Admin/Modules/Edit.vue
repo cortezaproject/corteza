@@ -232,8 +232,7 @@
                             >
                               {{ $t('general.label.name') }}
                               <div
-                                v-b-tooltip.hover.topright
-                                :title="$t('edit.tooltip.name')"
+                                v-b-tooltip.hover.topright="{ title: $t('edit.tooltip.name'), container: '#body' }"
                                 class="ml-1"
                               >
                                 <font-awesome-icon
@@ -251,8 +250,7 @@
                             >
                               {{ $t('general.label.title') }}
                               <div
-                                v-b-tooltip.hover.topright
-                                :title="$t('edit.tooltip.title')"
+                                v-b-tooltip.hover.topright="{ title: $t('edit.tooltip.title'), container: '#body' }"
                                 class="ml-1"
                               >
                                 <font-awesome-icon

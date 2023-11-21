@@ -39,7 +39,7 @@
                 class="inline-actions ml-2"
               >
                 <b-button
-                  :title="$t('field.inlineEdit.button.title')"
+                  v-b-tooltip.hover="{ title: $t('field.inlineEdit.button.title'), container: '#body' }"
                   variant="outline-light"
                   size="sm"
                   :disabled="editable"

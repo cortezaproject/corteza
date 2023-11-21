@@ -6,6 +6,7 @@ translator:
 resources:
   chart:
     title: Chart "{{ handle }}"
+    tooltip: Chart translations
   namespace:
     title: Namespace "{{ handle }}"
     tooltip: Namespace translations

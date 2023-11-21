@@ -25,22 +25,22 @@
         class="d-flex align-items-center fill-width gap-1"
       >
         <b-button
+          v-b-tooltip.hover="{ title: $t('recordNavigation.prev'), container: '#body' }"
           pill
           size="lg"
           variant="outline-primary"
           :disabled="!record || processing || !recordNavigation.prev"
-          :title="$t('recordNavigation.prev')"
           @click="navigateToRecord(recordNavigation.prev)"
         >
           <font-awesome-icon :icon="['fas', 'angle-left']" />
         </b-button>
 
         <b-button
+          v-b-tooltip.hover="{ title: $t('recordNavigation.next'), container: '#body' }"
           size="lg"
           pill
           variant="outline-primary"
           :disabled="!record || processing || !recordNavigation.next"
-          :title="$t('recordNavigation.next')"
           @click="navigateToRecord(recordNavigation.next)"
         >
           <font-awesome-icon :icon="['fas', 'angle-right']" />

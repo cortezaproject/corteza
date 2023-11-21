@@ -269,8 +269,8 @@
 
                   <b-button
                     v-if="field.sortable"
+                    v-b-tooltip.hover="{ title: $t('recordList.sort.tooltip'), container: '#body' }"
                     variant="outline-light"
-                    :title="$t('recordList.sort.tooltip')"
                     class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
                     @click="handleSort(field)"
                   >
@@ -328,9 +328,8 @@
                 @click.stop
               >
                 <font-awesome-icon
-                  v-b-tooltip.hover
+                  v-b-tooltip.hover="{ title: $t('general.tooltip.dragAndDrop'), container: '#body' }"
                   :icon="['fas', 'bars']"
-                  :title="$t('general.tooltip.dragAndDrop')"
                   class="handle text-light my-1"
                 />
               </b-td>
@@ -397,7 +396,7 @@
                     class="inline-actions"
                   >
                     <b-button
-                      :title="$t('recordList.inlineEdit.button.title')"
+                      v-b-tooltip.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
                       variant="outline-light"
                       size="sm"
                       class="text-secondary border-0 ml-1"

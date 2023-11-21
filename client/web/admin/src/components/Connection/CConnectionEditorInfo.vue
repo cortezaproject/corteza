@@ -1,8 +1,8 @@
 <template>
   <b-card
     data-test-id="card-connection-settings"
-    class="shadow-sm"
     :title="$t('title')"
+    class="shadow-sm"
   >
     <b-row>
       <b-col

@@ -36,10 +36,10 @@
           />
         </b-button>
         <b-button
+          v-b-tooltip.hover="{ title: $t('tooltip.edit.report'), container: '#body' }"
           variant="primary"
           class="d-flex align-items-center justify-content-center"
           style="margin-left:2px;"
-          :title="$t('tooltip.edit.report')"
           :to="reportEditor"
         >
           <font-awesome-icon

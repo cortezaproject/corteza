@@ -218,8 +218,8 @@
 
           <template #cell(updatedAt)="{ value }">
             <time
+              v-b-tooltip.hover="{ title: value, container: '#body' }"
               :datetime="value.toISOString()"
-              :title="value"
             >
               {{ filter.absoluteTime ? value : value.fromNow() }}
             </time>

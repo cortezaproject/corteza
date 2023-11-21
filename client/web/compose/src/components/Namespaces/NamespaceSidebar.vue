@@ -38,9 +38,9 @@
 
         <b-input-group-append v-if="canManageNamespaces">
           <b-button
+            v-b-tooltip.hover="{ title: $t('editNamespace'), container: '#body' }"
             data-test-id="button-namespace-edit"
             :disabled="!canUpdateNamespace"
-            :title="$t('editNamespace')"
             variant="primary"
             class="d-flex align-items-center"
             :to="{ name: 'namespace.edit', params: { namespaceID: namespaceID } }"

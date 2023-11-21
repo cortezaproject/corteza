@@ -36,8 +36,7 @@
             {{ $t('general:federated') }}
           </b-badge>
           <b-avatar
-            v-b-tooltip.hover
-            :title="$t('filters:types.record')"
+            v-b-tooltip.hover="{ title: $t('filters:types.record'), container: '#body' }"
             size="sm"
             icon="file-earmark-text"
             class="align-center bg-light text-dark"

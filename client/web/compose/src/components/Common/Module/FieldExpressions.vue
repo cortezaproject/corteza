@@ -10,7 +10,10 @@
     >
       <b-input-group>
         <b-input-group-prepend>
-          <b-button variant="dark">
+          <b-button
+            v-b-tooltip.hover="{ title: $t('validators.expression.tooltip'), container: '#body' }"
+            variant="dark"
+          >
             ƒ
           </b-button>
         </b-input-group-prepend>
@@ -37,6 +40,10 @@
 <script>
 
 export default {
+  i18nOptions: {
+    namespaces: 'field',
+  },
+
   props: {
     value: {
       type: Array,

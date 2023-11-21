@@ -28,7 +28,7 @@
         </b-button>
         <b-button
           v-if="namespace.canManageNamespace"
-          :title="$t('configure')"
+          v-b-tooltip.hover="{ title: $t('configure'), container: '#body' }"
           data-test-id="button-visit-admin-panel"
           variant="primary"
           class="d-flex align-items-center"

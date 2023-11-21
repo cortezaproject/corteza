@@ -14,9 +14,9 @@
         class="d-flex align-items-center text-primary p-0"
       >
         <span
+          :title="label"
           class="d-inline-block mw-100 pt-0"
           :class="{ 'py-1': !horizontal }"
-          :title="label"
         >
           {{ label }}
         </span>
