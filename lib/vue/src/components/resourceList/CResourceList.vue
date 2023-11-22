@@ -3,7 +3,7 @@
     no-body
     header-bg-variant="white"
     footer-bg-variant="white"
-    footer-class="d-flex align-items-center flex-wrap gap-1 border-top"
+    footer-class="p-0 border-top"
     :header-class="cardHeaderClass"
     class="shadow-sm"
   >
@@ -130,51 +130,73 @@
       #footer
     >
       <div
-        v-if="!hideTotal"
-        class="text-nowrap"
+        class="d-flex align-items-center flex-wrap justify-content-between p-2 w-100"
       >
-        {{ getPagination }}
+        <div class="d-flex gap-col-3 align-items-center flex-wrap">
+          <div
+            v-if="!hideTotal"
+            class="text-nowrap ml-2"
+          >
+            {{ getPagination }}
+          </div>
+        
+          <div class="d-flex align-items-center ml-2 my-1 gap-1 text-nowrap">
+            <span>
+                {{ $t('general:resourceList.pagination.recordsPerPage') }}
+            </span>
+
+            <b-form-select
+              :value="pagination.limit"
+              :options="perPageOptions"
+              @change="handlePerPageChange"
+            />
+          </div>
+        </div>
+
+        <div
+          v-if="!hidePagination"
+          class="d-flex align-items-center justify-content-end"
+        >
+          <b-button-group>
+            <b-button
+              :disabled="!hasPrevPage"
+              variant="outline-light"
+              class="d-flex align-items-center text-primary border-0"
+              @click="goToPage()"
+            >
+              <font-awesome-icon :icon="['fas', 'angle-double-left']" />
+            </b-button>
+
+            <b-button
+              :disabled="!hasPrevPage"
+              variant="outline-light"
+              class="d-flex align-items-center text-primary border-0"
+              @click="goToPage('prevPage')"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'angle-left']"
+                class="mr-1"
+              />
+
+              {{ translations.prevPagination }}
+            </b-button>
+
+            <b-button
+              :disabled="!hasNextPage"
+              variant="outline-light"
+              class="d-flex align-items-center justify-content-center text-primary border-0"
+              @click="goToPage('nextPage')"
+            >
+              {{ translations.nextPagination }}
+
+              <font-awesome-icon
+                :icon="['fas', 'angle-right']"
+                class="ml-1"
+              />
+            </b-button>
+          </b-button-group>
+        </div>
       </div>
-
-      <b-button-group
-        v-if="!hidePagination"
-        class="ml-auto"
-      >
-        <b-button
-          :disabled="!hasPrevPage"
-          variant="outline-light"
-          class="d-flex align-items-center text-primary border-0"
-          @click="goToPage()"
-        >
-          <font-awesome-icon :icon="['fas', 'angle-double-left']" />
-        </b-button>
-
-        <b-button
-          :disabled="!hasPrevPage"
-          variant="outline-light"
-          class="d-flex align-items-center text-primary border-0"
-          @click="goToPage('prevPage')"
-        >
-          <font-awesome-icon
-            :icon="['fas', 'angle-left']"
-            class="mr-1"
-          />
-          {{ translations.prevPagination }}
-        </b-button>
-
-        <b-button
-          :disabled="!hasNextPage"
-          variant="outline-light"
-          class="d-flex align-items-center justify-content-center text-primary border-0"
-          @click="goToPage('nextPage')"
-        >
-          {{ translations.nextPagination }}
-          <font-awesome-icon
-            :icon="['fas', 'angle-right']"
-            class="ml-1"
-          />
-        </b-button>
-      </b-button-group>
     </template>
   </b-card>
 </template>
@@ -276,6 +298,11 @@ export default {
       type: String,
       default: 'query',
     },
+
+    hidePerPageOption: {
+      type: Boolean,
+      default: false
+    }
   },
 
   data () {
@@ -314,6 +341,21 @@ export default {
       ].filter(s => s !== 'header')
     },
 
+    perPageOptions () {
+      const defaultText = this.pagination.limit === 0 ? this.$t('general:label.all') : this.pagination.limit.toString()
+
+      return [
+        { text: defaultText, value: this.pagination.limit },
+        { text: '25', value: 25 },
+        { text: '50', value: 50 },
+        { text: '100', value: 100 },
+      ].filter((v, i) => i === 0 || v.value !== this.pagination.limit).sort((a, b) => {
+        if (a.value === 0) return 1
+        if (b.value === 0) return -1
+        return a.value - b.value
+      })
+    },
+
     disableSelectAll () {
       return !this.selectableItemIDs.length
     },
@@ -345,7 +387,7 @@ export default {
     },
 
     showFooter () {
-      return !(this.hideTotal && this.hidePagination)
+      return !(this.hideTotal && this.hidePagination && this.hidePerPageOption)
     }
   },
 
@@ -406,6 +448,11 @@ export default {
       }
 
       this.$router.replace({ query: { ...this.$route.query, page, pageCursor } })
+    },
+
+    handlePerPageChange (limit) {
+      this.$router.replace({ query: { ...this.$route.query, page: 1, limit } })
+      this.$refs.resourceList.refresh()
     },
 
     setDefaultValues () {

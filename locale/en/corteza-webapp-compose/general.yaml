@@ -36,6 +36,7 @@ label:
   here: here
   home: Home
   import: Import
+  all: All
   importPlaceholder: Upload files to import
   loading: Loading
   makeDefault: Make default
@@ -44,7 +45,6 @@ label:
   name: Name
   next: Next
   no: No
-  all: All
   noHandle: No handle
   none: None
   now: Now
@@ -164,6 +164,7 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
+    recordsPerPage: 'Records per page:'
 recordNavigation:
   next: Next record
   prev: Previous record

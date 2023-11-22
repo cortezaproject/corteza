@@ -11,7 +11,9 @@ import:
   label: Import
   reassign-run-as: "NOTE: the Run as workflow property won't be imported and should be reassigned"
   upload-files: Browse or drop files to upload...
-label: Label
+label:
+  all: All
+  label: Label
 loading: Loading
 name: Name
 new-workflow: New Workflow 
@@ -46,6 +48,7 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
+    recordsPerPage: 'Records per page:'
 
 tooltip:
   permissions: Workflow permissions

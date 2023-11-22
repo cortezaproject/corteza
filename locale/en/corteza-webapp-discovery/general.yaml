@@ -1,2 +1,7 @@
 federated: Federated
 no-values: No values
+label:
+  all: All
+resourceList:
+  pagination:
+    recordsPerPage: 'Records per page:'

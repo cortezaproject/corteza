@@ -1,5 +1,6 @@
 label:
   back: Back
+  all: All
   privacy_request:
     single: Privacy Request
     plural: Privacy Requests
@@ -19,3 +20,4 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
+    recordsPerPage: 'Records per page:'
