@@ -2,7 +2,11 @@ package automation
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
@@ -272,13 +276,14 @@ func (h recordsHandler) new(ctx context.Context, args *recordsNewArgs) (*records
 
 func (h recordsHandler) create(ctx context.Context, args *recordsCreateArgs) (results *recordsCreateResults, err error) {
 	results = &recordsCreateResults{}
-	results.Record, _, err = h.rec.Create(ctx, args.Record)
+	results.Record, err = wrapRecordValueErrorSet(h.rec.Create(ctx, args.Record))
+
 	return
 }
 
 func (h recordsHandler) update(ctx context.Context, args *recordsUpdateArgs) (results *recordsUpdateResults, err error) {
 	results = &recordsUpdateResults{}
-	results.Record, _, err = h.rec.Update(ctx, args.Record)
+	results.Record, err = wrapRecordValueErrorSet(h.rec.Update(ctx, args.Record))
 	return
 }
 
@@ -397,4 +402,37 @@ func (i *recordSetIterator) Next(context.Context, *Vars) (out *Vars, err error) 
 
 	i.ptr++
 	return out, nil
+}
+
+func wrapRecordValueErrorSet(rr *types.Record, res *types.RecordValueErrorSet, ee error) (r *types.Record, err error) {
+	var (
+		ss string
+		j  []byte
+		e  error
+	)
+
+	r = rr
+	err = ee
+
+	if res = types.IsRecordValueErrorSet(err); res == nil {
+		return
+	}
+
+	if !res.Safe() {
+		return rr, err
+	}
+
+	for _, vv := range res.Set {
+		if j, e = json.Marshal(vv.Meta); e != nil {
+			continue
+		}
+
+		ss = fmt.Sprintf("%s, %s (%s)", ss, strings.ToLower(vv.Message), j)
+
+	}
+
+	re := regexp.MustCompile("^,\\s")
+	ss = re.ReplaceAllString(ss, "")
+
+	return rr, errors.New(ss)
 }
