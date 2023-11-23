@@ -73,6 +73,7 @@
           >
             <c-input-checkbox
               v-model="isContextual"
+              data-test-id="checkbox-is-contextual"
               switch
               :labels="checkboxLabel"
               :disabled="!editable"
@@ -111,7 +112,7 @@
               v-for="(resourceType, i) in resourceTypeOptions"
               :key="i"
               v-model="role.meta.context.resourceTypes"
-              data-test-id="checkbox-resource-types-list"
+              :data-test-id="`checkbox-resource-type-${resourceType.text}`"
               :value="resourceType.value"
               :disabled="!editable"
             >
