@@ -137,7 +137,10 @@
             </span>
           </div>
         </template>
-        <b-dropdown-text class="text-muted mb-2">
+        <b-dropdown-text
+          data-test-id="dropdown-item-username"
+          class="text-muted mb-2"
+        >
           {{ labels.userSettingsLoggedInAs }}
         </b-dropdown-text>
         <div>
