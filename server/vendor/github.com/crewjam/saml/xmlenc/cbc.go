@@ -31,7 +31,7 @@ func (e CBC) Algorithm() string {
 
 // Encrypt encrypts plaintext with key, which should be a []byte of length KeySize().
 // It returns an xenc:EncryptedData element.
-func (e CBC) Encrypt(key interface{}, plaintext []byte, nonce []byte) (*etree.Element, error) {
+func (e CBC) Encrypt(key interface{}, plaintext []byte, _ []byte) (*etree.Element, error) {
 	keyBuf, ok := key.([]byte)
 	if !ok {
 		return nil, ErrIncorrectKeyType("[]byte")
