@@ -84,16 +84,16 @@ edit:
 
   schemaAlterations:
     title: Schema alterations
-    columns:
-      alteration: Alteration
-      change: Change
-      status: Status
     resolve: Resolve
     resolveAuto: Resolve automatically
     resolved: Resolved
     dismiss: Dismiss
     waitingFor: 'Waiting for {{id}}'
     noAlterations: No schema alterations need to be resolved
+    columns:
+      alteration: Alteration
+      change: Change
+      status: Status
     params:
       attribute:
         add: Add column {{ident}} encoded as {{storeType}} of type {{attrType}}
@@ -103,6 +103,7 @@ edit:
       model:
         add: Add schema for model {{ident}}
         delete: Delete schema for model {{ident}}
+
   config:
     dal:
       title: Data store
@@ -256,22 +257,3 @@ searchPlaceholder: Type here to search all modules in this namespace
 title: List of Modules
 tooltip:
   permissions: Module permissions
-
-schemaAlterations:
-  title: Schema Alterations
-  alteration: AlterationID
-  change: Change
-  status: Status
-  resolve: Resolve
-  resolveAuto: Resolve automatically
-  dismiss: Dismiss
-
-  params:
-    attribute:
-      add: Add attribute
-      delete: Delete attribute
-      reType: Change attribute type
-      reEncode: Change attribute encoding
-    model:
-      add: Add model
-      delete: Delete model

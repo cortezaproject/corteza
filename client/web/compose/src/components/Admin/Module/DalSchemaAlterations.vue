@@ -21,20 +21,20 @@
           <b-th
             class="text-primary"
           >
-            {{ $t('alteration') }}
+            {{ $t('columns.alteration') }}
           </b-th>
 
           <b-th
             class="text-primary"
             style="max-width: 300px;"
           >
-            {{ $t('change') }}
+            {{ $t('columns.change') }}
           </b-th>
 
           <b-th
             class="text-primary text-center"
           >
-            {{ $t('status') }}
+            {{ $t('columns.status') }}
           </b-th>
 
           <b-th style="min-width: 200px;" />
@@ -168,7 +168,7 @@ import { compose } from '@cortezaproject/corteza-js'
 export default {
   i18nOptions: {
     namespaces: 'module',
-    keyPrefix: 'schemaAlterations',
+    keyPrefix: 'edit.schemaAlterations',
   },
 
   props: {
@@ -238,7 +238,7 @@ export default {
 
       this.$SystemAPI.dalSchemaAlterationDismiss({ alterationID }).then(() => {
         this.toastSuccess(this.$t('notification:module.schemaAlterations.dismiss.success'))
-      }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.dismiss.error')))
+      }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.dismiss.error')))
         .finally(() => {
           for (const a of alteration) {
             a.processing = false
@@ -261,7 +261,7 @@ export default {
 
       this.$SystemAPI.dalSchemaAlterationApply({ alterationID }).then(() => {
         this.toastSuccess(this.$t('notification:module.schemaAlterations.resolve.success'))
-      }).catch(this.toastErrorHandler(this.$t('notification:schemaAlterations.resolve.error')))
+      }).catch(this.toastErrorHandler(this.$t('notification:module.schemaAlterations.resolve.error')))
         .finally(() => {
           for (const a of alteration) {
             a.processing = false
@@ -331,12 +331,12 @@ export default {
       return this.$t('params.attribute.reEncode', { ident: attr.ident, toType: to.type })
     },
 
-    stringifyModelAddParams ({ attr = {} }) {
-      return this.$t('params.model.add', { ident: attr.ident })
+    stringifyModelAddParams ({ model = {} }) {
+      return this.$t('params.model.add', { ident: model.ident })
     },
 
-    stringifyModelDeleteParams ({ attr = {} }) {
-      return this.$t('params.model.delete', { ident: attr.ident })
+    stringifyModelDeleteParams ({ model = {} }) {
+      return this.$t('params.model.delete', { ident: model.ident })
     },
 
     canDismiss (alteration) {
