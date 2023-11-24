@@ -51,7 +51,7 @@
     "@nylas/components-email": "^1.1.7-canary.32",
     "@nylas/components-mailbox": "^1.1.6-canary.27",
     "@popperjs/core": "^2.4.0",
-    "axios": "^0.21.2",
+    "axios": "^1.6.0",
     "bootstrap-vue": "^2.21.2",
     "c3": "^0.7.12",
     "compact-timezone-list": "^1.0.6",
