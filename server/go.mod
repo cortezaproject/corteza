@@ -71,9 +71,9 @@ require (
 	go.uber.org/atomic v1.9.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
-	golang.org/x/image v0.5.0
+	golang.org/x/image v0.10.0
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
-	golang.org/x/text v0.8.0
+	golang.org/x/text v0.11.0
 	google.golang.org/grpc v1.46.0
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/mail.v2 v2.3.1
