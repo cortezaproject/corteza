@@ -22,7 +22,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.9",
     "@panter/vue-i18next": "^0.15.0",
-    "axios": "^0.24.0",
+    "axios": "^1.6.0",
     "bootstrap-vue": "^2.21.2",
     "html-parse-stringify": "^3.0.1",
     "i18next": "^17.0.9",
