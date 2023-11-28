@@ -6,7 +6,7 @@
     v-on="$listeners"
   >
     <div
-      v-if="!options.tabs.length"
+      v-if="!tabbedBlocks.length"
       class="d-flex h-100 align-items-center justify-content-center"
     >
       <p class="mb-0">
@@ -48,7 +48,7 @@
           </span>
 
           <div
-            v-if="editable"
+            v-if="tab.block && editable"
             class="d-inline ml-3"
           >
             <div
@@ -115,7 +115,7 @@
         />
 
         <div
-          v-else
+          v-else-if="!tab.block"
           class="d-flex h-100 align-items-center justify-content-center"
         >
           <p class="mb-0">
@@ -148,11 +148,15 @@ export default {
 
   computed: {
     tabbedBlocks () {
-      return this.block.options.tabs.map(({ blockID, title }) => {
-        const unparsedBlock = this.blocks.find(b => fetchID(b) === blockID)
+      return this.block.options.tabs.reduce((acc, { blockID, title }) => {
+        const unparsedBlock = blockID ? this.blocks.find(b => fetchID(b) === blockID) : undefined
 
         if (!unparsedBlock) {
-          return { title }
+          if (!blockID && title) {
+            acc.push({ title })
+          }
+
+          return acc
         }
 
         let block = JSON.parse(JSON.stringify(unparsedBlock))
@@ -161,11 +165,14 @@ export default {
         block.style.wrap.kind = 'Plain'
         block.style.border.enabled = false
         block = compose.PageBlockMaker(block)
-        return {
+
+        acc.push({
           block,
           title,
-        }
-      })
+        })
+
+        return acc
+      }, [])
     },
 
     contentClass () {
