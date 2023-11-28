@@ -1,8 +1,5 @@
 <template>
-  <div
-    class="d-flex flex-column flex-grow-1 w-100 h-100 overflow-auto"
-    style="overflow-x: hidden !important;"
-  >
+  <div class="d-flex flex-grow-1 w-100 h-100">
     <b-alert
       v-if="isDeleted"
       show
@@ -19,7 +16,7 @@
 
     <div
       v-if="!layout"
-      class="d-flex align-items-center justify-content-center h-100"
+      class="d-flex align-items-center justify-content-center w-100 h-100"
     >
       <b-spinner />
     </div>
