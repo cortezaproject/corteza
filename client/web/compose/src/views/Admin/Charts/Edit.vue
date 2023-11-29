@@ -786,6 +786,7 @@ export default {
       if (chart.chartID === NoID) {
         this.createChart(c).then(({ chartID }) => {
           this.toastSuccess(this.$t('notification:chart.saved'))
+          this.chart = chartConstructor(chart)
           this.initialChartState = cloneDeep(chartConstructor(this.chart))
           if (closeOnSuccess) {
             this.redirect()
