@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -154,7 +154,7 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 }
 
 func ToError(resp *http.Response) error {
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if body == nil || err != nil {
 		return fmt.Errorf("unexpected response (%d, %s)", resp.StatusCode, err)
 	}

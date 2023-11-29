@@ -3,7 +3,7 @@ package automation
 import (
 	"context"
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -176,7 +176,7 @@ func Test_jsenvHandler(t *testing.T) {
 }
 
 func makeRequest(t *testing.T, b string) *h.Request {
-	r, err := http.NewRequest("POST", "/foo", ioutil.NopCloser(strings.NewReader(b)))
+	r, err := http.NewRequest("POST", "/foo", io.NopCloser(strings.NewReader(b)))
 
 	if err != nil {
 		t.Error(err)

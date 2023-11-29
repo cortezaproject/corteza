@@ -2,7 +2,6 @@ package types
 
 import (
 	"io"
-	"io/ioutil"
 	"net/mail"
 	"time"
 )
@@ -83,7 +82,7 @@ func NewMailMessage(r io.Reader) (out *MailMessage, err error) {
 		}
 	}
 
-	if out.RawBody, err = ioutil.ReadAll(msg.Body); err != nil {
+	if out.RawBody, err = io.ReadAll(msg.Body); err != nil {
 		return
 	}
 

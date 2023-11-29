@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"math"
 	"sort"
 	"time"
@@ -97,7 +97,7 @@ func (svc *apigwProfiler) Hits(ctx context.Context, filter types.ApigwProfilerFi
 
 		// fetch body only on hit details
 		if filter.Hit != "" {
-			hh.Body, _ = ioutil.ReadAll(hh.Request.Body)
+			hh.Body, _ = io.ReadAll(hh.Request.Body)
 		}
 
 		r = append(r, hh)

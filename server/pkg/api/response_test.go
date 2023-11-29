@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 )
 
@@ -17,7 +17,7 @@ func TestTests(t *testing.T) {
 		r := &http.Request{Header: http.Header{}}
 		r.Header.Add("accept", "application/json")
 		Send(w, r, output)
-		body, _ := ioutil.ReadAll(w.Result().Body)
+		body, _ := io.ReadAll(w.Result().Body)
 		return string(body)
 	}
 

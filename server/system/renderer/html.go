@@ -3,14 +3,14 @@ package renderer
 import (
 	"encoding/base64"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/Masterminds/sprig"
 )
 
 func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
-	bb, err := ioutil.ReadAll(pl.Template)
+	bb, err := io.ReadAll(pl.Template)
 	if err != nil {
 		return nil, err
 	}
@@ -26,7 +26,7 @@ func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
 			// 	}
 
 			// 	// Process source
-			// 	bb, err := ioutil.ReadAll(att.Source)
+			// 	bb, err := io.ReadAll(att.Source)
 			// 	if err != nil {
 			// 		return template.URL(fmt.Sprintf("error: %s", err.Error()))
 			// 	}
@@ -42,7 +42,7 @@ func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
 
 				defer rsp.Body.Close()
 
-				bb, err := ioutil.ReadAll(rsp.Body)
+				bb, err := io.ReadAll(rsp.Body)
 				if err != nil {
 					return "", err
 				}
@@ -61,7 +61,7 @@ func preprocHTMLTemplate(pl *driverPayload) (*template.Template, error) {
 
 	// Prep partials
 	for _, p := range pl.Partials {
-		bb, err = ioutil.ReadAll(p)
+		bb, err = io.ReadAll(p)
 		if err != nil {
 			return nil, err
 		}

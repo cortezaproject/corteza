@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -127,7 +126,7 @@ func (h attachmentHandler) create(ctx context.Context, args *attachmentCreateArg
 			// file which we then use as a reader
 
 			// Preparations
-			tmpf, err := ioutil.TempFile("", "reader")
+			tmpf, err := os.CreateTemp("", "reader")
 			if err != nil {
 				return nil, err
 			}

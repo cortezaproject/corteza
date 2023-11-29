@@ -2,14 +2,13 @@ package renderer
 
 import (
 	"io"
-	"io/ioutil"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
 )
 
 func preprocPlainTemplate(tpl io.Reader, pp map[string]io.Reader) (*template.Template, error) {
-	bb, err := ioutil.ReadAll(tpl)
+	bb, err := io.ReadAll(tpl)
 	if err != nil {
 		return nil, err
 	}
@@ -28,7 +27,7 @@ func preprocPlainTemplate(tpl io.Reader, pp map[string]io.Reader) (*template.Tem
 
 	// Prep partials
 	for _, p := range pp {
-		bb, err = ioutil.ReadAll(p)
+		bb, err = io.ReadAll(p)
 		if err != nil {
 			return nil, err
 		}

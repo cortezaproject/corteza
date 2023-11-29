@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/csv"
 	"io"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -52,7 +51,7 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 		ident: ident,
 	}
 
-	out.src, err = ioutil.TempFile(os.TempDir(), "*.csv")
+	out.src, err = os.CreateTemp(os.TempDir(), "*.csv")
 	if err != nil {
 		return
 	}

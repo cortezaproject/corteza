@@ -3,7 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -85,7 +85,7 @@ func TestSyncer_response(t *testing.T) {
 				client: *NewHttpClient(func(req *http.Request) *http.Response {
 					return &http.Response{
 						StatusCode: 500,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error":{"message":"common error response"}}`)),
+						Body:       io.NopCloser(bytes.NewBufferString(`{"error":{"message":"common error response"}}`)),
 						Header:     make(http.Header),
 					}
 				}),
@@ -100,7 +100,7 @@ func TestSyncer_response(t *testing.T) {
 				client: *NewHttpClient(func(req *http.Request) *http.Response {
 					return &http.Response{
 						StatusCode: 200,
-						Body:       ioutil.NopCloser(bytes.NewBufferString(`{"error":{"message":"common error response"}}`)),
+						Body:       io.NopCloser(bytes.NewBufferString(`{"error":{"message":"common error response"}}`)),
 						Header:     make(http.Header),
 					}
 				}),
@@ -138,7 +138,7 @@ func TestSyncer_authTokenCorrectlySet(t *testing.T) {
 
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewBufferString("OK")),
+				Body:       io.NopCloser(bytes.NewBufferString("OK")),
 				Header:     make(http.Header),
 			}
 		}),

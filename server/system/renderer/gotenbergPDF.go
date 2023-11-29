@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -110,7 +109,7 @@ func (d *gotenbergPDFDriver) Render(ctx context.Context, pl *driverPayload) (io.
 		return nil, err
 	}
 
-	ss, err := ioutil.ReadAll(resp.Body)
+	ss, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

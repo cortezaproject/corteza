@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -32,7 +31,7 @@ func loadTemplates(rTpl *template.Template, rootDir string) (*template.Template,
 			return err
 		}
 
-		b, err := ioutil.ReadFile(path)
+		b, err := os.ReadFile(path)
 		if err != nil {
 			return err
 		}
@@ -50,7 +49,7 @@ func writeFormattedGo(dst string, tpl *template.Template, payload interface{}) e
 			org, bb []byte
 		)
 
-		if org, err = ioutil.ReadAll(in); err != nil {
+		if org, err = io.ReadAll(in); err != nil {
 			return
 		}
 
