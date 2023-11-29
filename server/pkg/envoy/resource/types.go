@@ -98,9 +98,7 @@ func (ri Identifiers) Add(ii ...string) Identifiers {
 
 func (ri Identifiers) Clone() Identifiers {
 	out := make(Identifiers, 0, len(ri))
-	for _, i := range ri {
-		out = append(out, i)
-	}
+	 out = append(out, ri...)
 
 	return out
 }
