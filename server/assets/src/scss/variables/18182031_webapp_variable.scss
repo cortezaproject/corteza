@@ -132,13 +132,3 @@ $corteza-specific: map-merge(
   ),
   $corteza-specific
 );
-
-/* stylelint-disable */
-// This is used within corteza-webapp-compose/src/lib/block/Calendar/feedLoader/
-// to determine default event colors
-:export {
-  primary: $primary;
-  danger: $danger;
-  secondary: $secondary;
-}
-/* stylelint-enable */

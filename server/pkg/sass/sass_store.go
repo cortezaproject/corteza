@@ -13,10 +13,11 @@ func newStylesheetCache() *stylesheetCache {
 	}
 }
 
-func (c *stylesheetCache) Set(value map[string]string) {
+func (c *stylesheetCache) Set(key, value string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	c.stylesheet = value
+
+	c.stylesheet[key] = value
 }
 
 func (c *stylesheetCache) Get(key string) string {
@@ -30,7 +31,17 @@ func (c *stylesheetCache) Get(key string) string {
 	return value
 }
 
-func (c *stylesheetCache) Empty() bool {
+func (c *stylesheetCache) Keys() (keys []string) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	for k := range c.stylesheet {
+		keys = append(keys, k)
+	}
+	return
+}
+
+func (c *stylesheetCache) IsEmpty() bool {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 

@@ -47,6 +47,7 @@ type (
 		AvatarBgColor string `json:"avatarBgColor,omitempty"`
 
 		PreferredLanguage string `json:"preferredLanguage"`
+		Theme             string `json:"theme"`
 
 		// User's security policy settings
 		SecurityPolicy struct {
@@ -163,3 +164,13 @@ func (u *User) Clone() *User {
 
 func (meta *UserMeta) Scan(src any) error           { return sql.ParseJSON(src, meta) }
 func (meta *UserMeta) Value() (driver.Value, error) { return json.Marshal(meta) }
+
+func ParseUserMeta(ss []string) (p *UserMeta, err error) {
+	p = &UserMeta{}
+
+	if len(ss) == 0 {
+		return
+	}
+
+	return p, json.Unmarshal([]byte(ss[0]), p)
+}

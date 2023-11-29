@@ -1442,6 +1442,7 @@ export default class System {
       handle,
       kind,
       labels,
+      meta,
       updatedAt,
     } = (a as KV) || {}
     if (!userID) {
@@ -1463,6 +1464,7 @@ export default class System {
       handle,
       kind,
       labels,
+      meta,
       updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
