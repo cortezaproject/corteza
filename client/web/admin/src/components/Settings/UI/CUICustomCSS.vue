@@ -12,39 +12,51 @@
       </h3>
     </template>
 
-    <c-ace-editor
-      v-model="customCSS"
-      lang="css"
-      height="300px"
-      font-size="14px"
-      show-line-numbers
-      :border="false"
-      :show-popout="true"
-      @open="openEditorModal"
-    />
-
-    <b-modal
-      id="custom-css-editor"
-      v-model="showEditorModal"
-      :title="$t('modal.editor')"
-      cancel-variant="link"
-      size="lg"
-      :ok-title="$t('general:label.saveAndClose')"
-      :cancel-title="$t('general:label.cancel')"
-      body-class="p-0"
-      @ok="saveCustomCSSInput"
-      @hidden="resetCustomCSSInput"
+    <b-tabs
+      data-test-id="theme-tabs"
+      nav-wrapper-class="bg-white white border-bottom rounded-0"
+      card
     >
-      <c-ace-editor
-        v-model="modalCSSInput"
-        lang="scss"
-        height="500px"
-        font-size="14px"
-        show-line-numbers
-        :border="false"
-        :show-popout="false"
-      />
-    </b-modal>
+      <b-tab
+        v-for="theme in themes"
+        :key="theme.id"
+        :title="$t(`tabs.${theme.id}`)"
+      >
+        <c-ace-editor
+          v-model="theme.values"
+          lang="css"
+          height="300px"
+          font-size="14px"
+          show-line-numbers
+          :border="false"
+          :show-popout="true"
+          @open="openEditorModal(theme.id)"
+        />
+
+        <b-modal
+          id="custom-css-editor"
+          v-model="theme.showEditorModal"
+          :title="$t('modal.editor')"
+          cancel-variant="link"
+          size="lg"
+          :ok-title="$t('general:label.saveAndClose')"
+          :cancel-title="$t('general:label.cancel')"
+          body-class="p-0"
+          @ok="saveCustomCSSInput(theme.id)"
+          @hidden="resetCustomCSSInput(theme.id)"
+        >
+          <c-ace-editor
+            v-model="theme.modalValue"
+            lang="scss"
+            height="500px"
+            font-size="14px"
+            show-line-numbers
+            :border="false"
+            :show-popout="false"
+          />
+        </b-modal>
+      </b-tab>
+    </b-tabs>
 
     <template #footer>
       <c-button-submit
@@ -99,9 +111,29 @@ export default {
 
   data () {
     return {
-      customCSS: '',
-      modalCSSInput: undefined,
-      showEditorModal: false,
+      themes: [
+        {
+          'id': 'general',
+          'title': 'General',
+          'values': '',
+          'modalValue': undefined,
+          showEditorModal: false,
+        },
+        {
+          'id': 'light',
+          'title': 'Light mode',
+          'values': '',
+          'modalValue': undefined,
+          showEditorModal: false,
+        },
+        {
+          'id': 'dark',
+          'title': 'Dark mode',
+          'values': '',
+          'modalValue': undefined,
+          showEditorModal: false,
+        },
+      ],
     }
   },
 
@@ -109,27 +141,57 @@ export default {
     settings: {
       immediate: true,
       handler (settings) {
-        this.customCSS = settings['ui.custom-css'] || ''
+        if (settings['ui.studio.custom-css']) {
+          this.themes = settings['ui.studio.custom-css'].map((theme) => {
+            return {
+              id: theme.id,
+              title: theme.title,
+              values: theme.values,
+              modalValue: undefined,
+              showEditorModal: false,
+            }
+          })
+        }
       },
     },
   },
 
   methods: {
     onSubmit () {
-      this.$emit('submit', { 'ui.custom-css': this.customCSS })
+      this.$emit('submit', {
+        'ui.studio.custom-css': this.themes.map((theme) => {
+          return {
+            id: theme.id,
+            title: theme.title,
+            values: theme.values,
+          }
+        }),
+      })
     },
 
-    openEditorModal () {
-      this.modalCSSInput = this.customCSS
-      this.showEditorModal = true
+    openEditorModal (themeId) {
+      this.themes.forEach((theme) => {
+        if (theme.id === themeId) {
+          theme.modalValue = theme.values
+          theme.showEditorModal = true
+        }
+      })
     },
 
-    saveCustomCSSInput () {
-      this.customCSS = this.modalCSSInput
+    saveCustomCSSInput (themeId) {
+      this.themes.forEach((theme) => {
+        if (theme.id === themeId) {
+          theme.values = theme.modalValue
+        }
+      })
     },
 
-    resetCustomCSSInput () {
-      this.modalCSSInput = undefined
+    resetCustomCSSInput (themeId) {
+      this.themes.forEach((theme) => {
+        if (theme.id === themeId) {
+          theme.modalValue = undefined
+        }
+      })
     },
   },
 

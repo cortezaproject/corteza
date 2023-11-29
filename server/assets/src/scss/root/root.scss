@@ -1,0 +1,47 @@
+// Do not forget to update getting-started/theming.md!
+@if $theme-mode == "light" {
+  /* stylelint-disable */
+  // This is used within corteza-webapp-compose/src/lib/block/Calendar/feedLoader/
+  // to determine default event colors
+  :export {
+    primary: $primary;
+    danger: $danger;
+    secondary: $secondary;
+  }
+
+  /* stylelint-enable */
+  :root,
+  [data-color-mode="light"] {
+    // Custom variable values only support SassScript inside `#{}`.
+    @each $color, $value in $colors {
+      --#{$color}: #{$value};
+    }
+
+    @each $color, $value in $theme-colors {
+      --#{$color}: #{$value};
+    }
+
+    @each $bp, $value in $grid-breakpoints {
+      --breakpoint-#{$bp}: #{$value};
+    }
+
+    @each $variable, $value in $corteza-specific {
+      --#{$variable}: #{$value};
+    }
+
+    // Use `inspect` for lists so that quoted items keep the quotes.
+    // See https://github.com/sass/sass/issues/2383#issuecomment-336349172
+    --font-family-sans-serif: #{inspect($font-family-sans-serif)};
+    --font-family-monospace: #{inspect($font-family-monospace)};
+  }
+} @else {
+  [data-color-mode="#{$theme-mode}"] {
+    @each $color, $value in $theme-colors {
+      --#{$color}: #{$value};
+    }
+
+    @each $variable, $value in $corteza-specific {
+      --#{$variable}: #{$value};
+    }
+  }
+}

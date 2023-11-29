@@ -3,7 +3,6 @@ package webapp
 import (
 	"bytes"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"io"
 	"net/http"
 	"os"
@@ -27,7 +26,6 @@ type (
 		webappBaseUrl       string
 		discoveryApiBaseUrl string
 		sentryUrl           string
-		scssDirPath         string
 		settings            *types.AppSettings
 	}
 )
@@ -36,7 +34,7 @@ var (
 	baseHrefMatcher = regexp.MustCompile(`<base\s+href="?.+?"?\s*\/?>`)
 )
 
-func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt options.AuthOpt, discoveryOpt options.DiscoveryOpt, sentryOpt options.SentryOpt, webappOpt options.WebappOpt) func(r chi.Router) {
+func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt options.AuthOpt, discoveryOpt options.DiscoveryOpt, sentryOpt options.SentryOpt) func(r chi.Router) {
 	var (
 		apiBaseUrl          = options.CleanBase(httpSrvOpt.BaseUrl, httpSrvOpt.ApiBaseUrl)
 		webappSentryUrl     = sentryOpt.WebappDSN
@@ -74,7 +72,6 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 				discoveryApiBaseUrl: discoveryApiBaseUrl,
 				sentryUrl:           webappSentryUrl,
 				settings:            service.CurrentSettings,
-				scssDirPath:         webappOpt.ScssDirPath,
 			})
 			r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[app], fs))
 		}
@@ -88,7 +85,6 @@ func MakeWebappServer(log *zap.Logger, httpSrvOpt options.HttpServerOpt, authOpt
 			discoveryApiBaseUrl: discoveryApiBaseUrl,
 			sentryUrl:           webappSentryUrl,
 			settings:            service.CurrentSettings,
-			scssDirPath:         webappOpt.ScssDirPath,
 		})
 		r.Get(webBaseUrl+"*", serveIndex(httpSrvOpt, appIndexHTMLs[""], fs))
 	}
@@ -152,12 +148,7 @@ func serveConfig(r chi.Router, config webappConfig) {
 	r.Get(options.CleanBase(config.appUrl, "custom.css"), func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "text/css")
 
-		ctx := auth.SetIdentityToContext(r.Context(), auth.ServiceUser())
-
-		stylesheet, err := service.GenerateCSS(ctx, config.settings.UI.Studio.BrandingSASS, config.settings.UI.CustomCSS, config.scssDirPath)
-		if err != nil {
-			logger.Default().Error("failed to generate CSS", zap.Error(err))
-		}
+		stylesheet := service.FetchCSS()
 
 		_, _ = fmt.Fprint(w, stylesheet)
 	})

@@ -1399,3 +1399,110 @@ $rfs-breakpoint-unit-cache: unit($rfs-breakpoint);
   @include deprecate("The `float-none` mixin", "v4.3.0", "v5");
 }
 
+//bootstrap-vue
+$b-toast-background-opacity: alpha($toast-background-color) !default;
+@mixin bv-custom-range-validation-state($state, $color) {
+  .input-group .custom-range {
+    .was-validated &:#{$state},
+    &.is-#{$state} {
+      border-color: $color;
+
+      &:focus {
+        border-color: $color;
+        box-shadow: 0 0 0 $input-focus-width rgba($color, 0.25);
+      }
+    }
+  }
+
+  .custom-range {
+    .was-validated &:#{$state},
+    &.is-#{$state} {
+      // Pseudo-elements must be split across multiple rulesets to have an affect
+      &:focus {
+        &::-webkit-slider-thumb {
+          box-shadow: 0 0 0 1px $body-bg, 0 0 0 $input-btn-focus-width lighten($color, 35%);
+        }
+        &::-moz-range-thumb {
+          box-shadow: 0 0 0 1px $body-bg, 0 0 0 $input-btn-focus-width lighten($color, 35%);
+        }
+        &::-ms-thumb {
+          box-shadow: 0 0 0 1px $body-bg, 0 0 0 $input-btn-focus-width lighten($color, 35%);
+        }
+      }
+
+      &::-webkit-slider-thumb {
+        background-color: $color;
+        background-image: none;
+
+        &:active {
+          background-color: lighten($color, 35%);
+          background-image: none;
+        }
+      }
+
+      &::-webkit-slider-runnable-track {
+        background-color: rgba($color, 0.35);
+      }
+
+      &::-moz-range-thumb {
+        background-color: $color;
+        background-image: none;
+
+        &:active {
+          background-color: lighten($color, 35%);
+          background-image: none;
+        }
+      }
+
+      &::-moz-range-track {
+        background: rgba($color, 0.35);
+      }
+
+      ~ .#{$state}-feedback,
+      ~ .#{$state}-tooltip {
+        display: block;
+      }
+
+      &::-ms-thumb {
+        background-color: $color;
+        background-image: none;
+
+        &:active {
+          background-color: lighten($color, 35%);
+          background-image: none;
+        }
+      }
+
+      &::-ms-track-lower {
+        background: rgba($color, 0.35);
+      }
+      &::-ms-track-upper {
+        background: rgba($color, 0.35);
+      }
+    }
+  }
+}
+@mixin b-toast-variant($background, $border, $color) {
+  // Based on alert-variant mixin
+  .toast {
+    background-color: rgba(lighten($background, 5%), $b-toast-background-opacity);
+    border-color: rgba($border, $b-toast-background-opacity);
+    color: $color;
+
+    .toast-header {
+      color: $color;
+      background-color: rgba($background, $b-toast-background-opacity);
+      border-bottom-color: rgba($border, $b-toast-background-opacity);
+    }
+
+    // .toast-body[href] {
+    //   color: darken($color, 10%);
+    // }
+  }
+
+  &.b-toast-solid {
+    .toast {
+      background-color: rgba(lighten($background, 5%), 1);
+    }
+  }
+}

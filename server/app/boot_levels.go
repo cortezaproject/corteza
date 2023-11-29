@@ -34,6 +34,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/provision"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/pkg/scheduler"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
@@ -379,6 +380,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		RBAC:       app.Opt.RBAC,
 		Limit:      app.Opt.Limit,
 		Attachment: app.Opt.Attachment,
+		Webapps:    app.Opt.Webapp,
 	})
 	if err != nil {
 		return
@@ -555,7 +557,14 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	updateDiscoverySettings(app.Opt.Discovery, service.CurrentSettings)
 	updateLocaleSettings(app.Opt.Locale)
 
+	updateSassInstallSettings(ctx, app.Log)
+
 	app.AuthService.Watch(ctx)
+
+	//Generate CSS for webapps
+	if err = service.GenerateCSS(sysService.CurrentSettings, app.Opt.Webapp.ScssDirPath); err != nil {
+		return fmt.Errorf("could not generate css for webapps: %w", err)
+	}
 
 	// messagebus reloader and consumer listeners
 	if app.Opt.Messagebus.Enabled {
@@ -955,6 +964,20 @@ func updateSmtpSettings(log *zap.Logger, current *types.AppSettings) {
 		setupSmtpDialer(log, appSettings.SMTP.Servers...)
 	})
 	setupSmtpDialer(log, current.SMTP.Servers...)
+}
+
+func updateSassInstallSettings(ctx context.Context, log *zap.Logger) {
+	var sassInstalled bool
+
+	if sass.DartSassTranspiler(log) != nil {
+		sassInstalled = true
+	}
+
+	// update dart-sass installed setting
+	err := updateSetting(ctx, "ui.studio.sass-installed", sassInstalled)
+	if err != nil {
+		log.Warn("failed to set ui.studio.sass-installed setting", zap.Error(err))
+	}
 }
 
 func setupSmtpDialer(log *zap.Logger, servers ...types.SmtpServers) {

@@ -170,6 +170,16 @@
         >
           {{ labels.userSettingsChangePassword }}
         </b-dropdown-item>
+        <b-dropdown
+         id="theme-dropleft"
+         dropleft
+         text="Theme"
+         variant="outline-link"
+         class="ml-2"
+        >
+          <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
+          <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
+        </b-dropdown>
         <b-dropdown-divider />
         <b-dropdown-item
           data-test-id="dropdown-profile-logout"
@@ -185,7 +195,18 @@
 </template>
 
 <script>
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faMoon, faSun} from '@fortawesome/free-solid-svg-icons'
+
+library.add(faMoon, faSun)
+
 export default {
+  data() {
+    return {
+      isThemeDropdownVisible: false,
+    }
+  },
+
   props: {
     sidebarPinned: {
       type: Boolean,
@@ -261,7 +282,35 @@ export default {
     avatarExists () {
       return this.$auth.user.meta.avatarID !== "0" && this.$auth.user.meta.avatarID
     },
-  }
+  },
+
+  mounted()  {
+    this.$root.$on('bv::dropdown::show', bvEvent => {
+      if(bvEvent.componentId === 'theme-dropleft') {
+        this.isThemeDropdownVisible = true;
+      }
+    })
+    this.$root.$on('bv::dropdown::hide', bvEvent => {
+      if(bvEvent.componentId === 'theme-dropleft') {
+        this.isThemeDropdownVisible = false;
+      }
+      if(this.isThemeDropdownVisible) {
+        bvEvent.preventDefault()
+      }
+    })
+  },
+
+  methods: {
+   async saveThemeMode (mode) {
+      this.$auth.user.meta.theme = mode
+
+      this.$SystemAPI.userUpdate(this.$auth.user)
+          .then(() => {
+            document.getElementsByTagName('html')[0].setAttribute('data-color-mode', mode)
+          })
+          .catch(console.error)
+    },
+  },
 }
 </script>
 

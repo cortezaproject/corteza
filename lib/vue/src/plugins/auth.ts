@@ -47,6 +47,7 @@ interface OAuth2TokenResponse {
   email?: string;
   preferred_language?: string;
   avatarID?: string;
+  theme?: string;
 }
 
 interface PluginOpts {
@@ -582,6 +583,9 @@ export class Auth {
     }
 
     u.meta.avatarID = oa2tkn.avatarID
+
+    // theme
+    u.meta.theme = oa2tkn.theme
 
     this[accessToken] = oa2tkn.access_token
     this[user] = u

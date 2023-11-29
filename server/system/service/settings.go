@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
@@ -26,6 +26,7 @@ type (
 		accessControl accessController
 		logger        *zap.Logger
 		m             sync.RWMutex
+		webappsConf   options.WebappOpt
 
 		// Holds reference to the "current" settings that
 		// are used by the services
@@ -49,13 +50,14 @@ type (
 	}
 )
 
-func Settings(ctx context.Context, s store.SettingValues, log *zap.Logger, ac accessController, al actionlog.Recorder, current interface{}) *settings {
+func Settings(ctx context.Context, s store.SettingValues, log *zap.Logger, ac accessController, al actionlog.Recorder, current interface{}, webappsConf options.WebappOpt) *settings {
 	svc := &settings{
 		actionlog:     al,
 		store:         s,
 		accessControl: ac,
 		logger:        log.Named("settings"),
 		current:       current,
+		webappsConf:   webappsConf,
 		listeners:     make([]registeredSettingsListener, 0, 2),
 		update:        make(chan types.SettingValueSet, 0),
 	}
@@ -245,9 +247,16 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 	}
 
 	for _, v := range vv {
-		// if branding-sass or custom-css is updated, empty stylesheet cache
-		if v.Name == "ui.studio.branding-sass" || v.Name == "ui.custom-css" {
-			sass.StylesheetCache.Set(map[string]string{})
+		// if any of webapps stylesheet settings is updated, we need to recompute and update affected theme css
+		if v.Name == "ui.studio.themes" || v.Name == "ui.studio.custom-css" {
+			var compStyles *types.SettingValue
+			if v.Name == "ui.studio.themes" {
+				compStyles = current.FindByName("ui.studio.custom-css")
+			} else {
+				compStyles = current.FindByName("ui.studio.themes")
+			}
+
+			updateCSS(v, current.FindByName(v.Name), compStyles, v.Name, svc.webappsConf.ScssDirPath, svc.logger)
 		}
 
 		svc.logChange(ctx, v)

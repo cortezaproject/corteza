@@ -19,25 +19,52 @@
       <a :href="installSassDocs">{{ $t('installSassDocs') }}</a>
     </div>
 
-    <b-row>
-      <b-col
-        v-for="key in Object.keys(brandingVariables)"
-        :key="key"
-        md="6"
-        cols="12"
+    <b-tabs
+      data-test-id="theme-tabs"
+      nav-wrapper-class="bg-white white border-bottom rounded-0"
+      card
+    >
+      <b-tab
+        v-for="theme in themes"
+        :key="theme.id"
+        :title="$t(`tabs.${theme.id}`)"
       >
-        <b-form-group
-          :label="$t(`brandVariables.${key}`)"
-          label-class="text-primary"
-        >
-          <c-input-color-picker
-            v-model="brandingVariables[key]"
-            :data-test-id="`input-${key}-color`"
-            :translations="colorTranslations"
-          />
-        </b-form-group>
-      </b-col>
-    </b-row>
+        <b-row>
+          <b-col
+            v-for="(key, index) in themeInputs"
+            :key="key"
+            md="6"
+            cols="12"
+          >
+            <b-form-group
+              :label="$t(`theme.values.${key}`)"
+              label-class="text-primary"
+            >
+              <c-input-color-picker
+                ref="picker"
+                v-model="theme.values[key]"
+                :data-test-id="`input-${key}-color`"
+                :translations="{
+                  modalTitle: $t('colorPicker'),
+                  cancelBtnLabel: $t('general:label.cancel'),
+                  saveBtnLabel: $t('general:label.saveAndClose')
+                }"
+              >
+                <template v-slot:footer>
+                  <b-button
+                    variant="outline-primary"
+                    class="mr-auto"
+                    @click="resetColor(key, index, theme.id)"
+                  >
+                    {{ $t('label.default') }}
+                  </b-button>
+                </template>
+              </c-input-color-picker>
+            </b-form-group>
+          </b-col>
+        </b-row>
+      </b-tab>
+    </b-tabs>
 
     <template #footer>
       <c-button-submit
@@ -92,7 +119,22 @@ export default {
 
   data () {
     return {
-      brandingVariables: {
+      themeInputs: [
+        'white',
+        'black',
+        'primary',
+        'secondary',
+        'success',
+        'warning',
+        'danger',
+        'light',
+        'extra-light',
+        'dark',
+        'tertiary',
+        'gray-200',
+        'body-bg',
+      ],
+      lightModeVariables: {
         'white': '#FFFFFF',
         'black': '#162425',
         'primary': '#0B344E',
@@ -107,10 +149,22 @@ export default {
         'gray-200': '#F9FAFB',
         'body-bg': '#F9FAFB',
       },
-      colorTranslations: {
-        modalTitle: this.$t('colorPicker'),
-        saveBtnLabel: this.$t('general:label.saveAndClose'),
+      darkModeVariables: {
+        'white': '#162425',
+        'black': '#FFFFFF',
+        'primary': '#43AA8B',
+        'secondary': '#E4E9EF',
+        'success': '#E2A046',
+        'warning': '#758D9B',
+        'danger': '#E54122',
+        'light': '#5E727E',
+        'extra-light': '#F3F5F7',
+        'dark': '#0B344E',
+        'tertiary': '#F9FAFB',
+        'gray-200': '#162425',
+        'body-bg': '#162425',
       },
+      themes: [],
     }
   },
 
@@ -129,8 +183,24 @@ export default {
     settings: {
       immediate: true,
       handler (settings) {
-        if (settings['ui.studio.branding-sass']) {
-          this.brandingVariables = JSON.parse(settings['ui.studio.branding-sass'])
+        if (settings['ui.studio.themes']) {
+          this.themes = settings['ui.studio.themes'].map(theme => {
+            theme.values = JSON.parse(theme.values)
+            return theme
+          })
+        } else {
+          this.themes = [
+            {
+              id: 'light',
+              title: this.$t('light'),
+              values: this.lightModeVariables,
+            },
+            {
+              id: 'dark',
+              title: this.$t('dark'),
+              values: this.darkModeVariables,
+            },
+          ]
         }
       },
     },
@@ -138,8 +208,20 @@ export default {
 
   methods: {
     onSubmit () {
-      this.$emit('submit', { 'ui.studio.branding-sass': JSON.stringify(this.brandingVariables) })
+      this.$emit('submit', { 'ui.studio.themes': this.themes.map(theme => {
+        theme.values = JSON.stringify(theme.values)
+        return theme
+      }),
+      })
     },
+
+    resetColor (key, index, mode) {
+      this.themes.forEach(theme => {
+        theme.values[key] = mode === 'light' ? this.lightModeVariables[key] : this.darkModeVariables[key]
+      })
+      this.$refs.picker[index].closeMenu()
+    },
+
   },
 }
 </script>

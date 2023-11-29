@@ -42,20 +42,44 @@ func DefaultCSS(log *zap.Logger, customCSS string) string {
 
 	processedCSS := strBuilder.String()
 
-	StylesheetCache.Set(
-		map[string]string{
-			"css": processedCSS,
-		},
-	)
+	StylesheetCache.Set("default-theme", processedCSS)
 
 	return processedCSS
 }
 
-func Transpiler(log *zap.Logger, brandingSass, customCSS, sassDirPath string, transpiler *godartsass.Transpiler) error {
-	var stringsBuilder strings.Builder
+func Transpile(transpiler *godartsass.Transpiler, log *zap.Logger, themeID, themeSASS, customCSS, sassDirPath string) (err error) {
+	// process root section
+	err = processSass(transpiler, log, "root", themeID, themeSASS, customCSS, sassDirPath)
+	if err != nil {
+		return err
+	}
 
-	if brandingSass != "" {
-		err := jsonToSass(brandingSass, &stringsBuilder)
+	// process main section
+	err = processSass(transpiler, log, "main", themeID, themeSASS, customCSS, sassDirPath)
+	if err != nil {
+		return err
+	}
+
+	//process theme section
+	err = processSass(transpiler, log, "theme", themeID, themeSASS, customCSS, sassDirPath)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func processSass(transpiler *godartsass.Transpiler, log *zap.Logger, section, themeID, themeSASS, customCSS, sassDirPath string) (err error) {
+	var (
+		stringsBuilder         strings.Builder
+		isCustomCssSyntaxValid bool
+	)
+
+	// add theme-mode variable to the top of the section
+	stringsBuilder.WriteString(fmt.Sprintf("$theme-mode: %s;\n", themeID))
+
+	if themeSASS != "" {
+		err = jsonToSass(themeSASS, &stringsBuilder)
 		if err != nil {
 			log.Error("failed to unmarshal branding sass variables", zap.Error(err))
 			return err
@@ -63,20 +87,34 @@ func Transpiler(log *zap.Logger, brandingSass, customCSS, sassDirPath string, tr
 	}
 
 	if customCSS != "" {
-		// Get SASS variables from the custom CSS editor and give them precedence over branding variables
-		customVariables := sassVariablesPattern.FindAllString(customCSS, -1)
-
-		for _, customVariable := range customVariables {
-			stringsBuilder.WriteString(fmt.Sprintf("%s \n", customVariable))
+		_, err = transpileSass(transpiler, customCSS)
+		if err != nil {
+			log.Error("sass compilation for custom css failed", zap.Error(err))
+		} else {
+			isCustomCssSyntaxValid = true
+			// Get SASS variables from the custom CSS editor and give them precedence over branding variables
+			customVariables := sassVariablesPattern.FindAllString(customCSS, -1)
+			for _, customVariable := range customVariables {
+				stringsBuilder.WriteString(fmt.Sprintf("%s \n", customVariable))
+			}
 		}
 	}
 
-	// get Boostrap, bootstrap-vue and custom variables sass content
-	mainSass, err := readSassFiles(log, "scss")
+	//Save branding sass variables to cache
+	sassVariables, err := readSassFiles(log, "scss/variables")
 	if err != nil {
 		return err
 	}
-	stringsBuilder.WriteString(mainSass)
+	stringsBuilder.WriteString(sassVariables)
+	StylesheetCache.Set("sass", stringsBuilder.String())
+
+	// start processing a section
+	sassSection, err := readSassFiles(log, path.Join("scss", section))
+	if err != nil {
+		return err
+	}
+	stringsBuilder.WriteString(StylesheetCache.Get("sass"))
+	stringsBuilder.WriteString(sassSection)
 
 	// when a user provides sets WEBAPP_SCSS_DIR_PATH environment variable
 	if sassDirPath != "" {
@@ -87,33 +125,49 @@ func Transpiler(log *zap.Logger, brandingSass, customCSS, sassDirPath string, tr
 		stringsBuilder.WriteString(customSass)
 	}
 
-	if customCSS != "" {
+	if customCSS != "" && isCustomCssSyntaxValid {
 		//Custom CSS editor selector block
 		selectorBlock := sassVariablesPattern.ReplaceAllString(customCSS, "")
 		stringsBuilder.WriteString(selectorBlock)
 	}
 
-	// compute sass content to CSS
-	args := godartsass.Args{
-		Source: stringsBuilder.String(),
-	}
-	execute, err := transpiler.Execute(args)
+	transpiledCss, err := transpileSass(transpiler, stringsBuilder.String())
 	if err != nil {
 		log.Error("sass compilation failure", zap.Error(err))
-		return err
 	}
 
-	// save computed css to Stylesheet in-memory cache
-	StylesheetCache.Set(
-		map[string]string{
-			"css": execute.CSS,
-		},
-	)
+	// in case of sass error in custom css sass compilation,
+	// use compiled css from branding sass and append custom css value to it
+	if !isCustomCssSyntaxValid {
+		stringsBuilder.Reset()
+		stringsBuilder.WriteString(transpiledCss)
+		stringsBuilder.WriteString(customCSS)
+
+		// append un-compiled custom css content to transpiled css
+		transpiledCss = stringsBuilder.String()
+	}
+
+	//save the transpiled css to stylesheet cache
+	sectionKey := fmt.Sprintf("%s-%s", section, themeID)
+	StylesheetCache.Set(sectionKey, transpiledCss)
 
 	return nil
 }
 
-func DartSass(log *zap.Logger) *godartsass.Transpiler {
+// transpileSass computes sass to css by the transpiler
+func transpileSass(transpiler *godartsass.Transpiler, sass string) (string, error) {
+	args := godartsass.Args{
+		Source: sass,
+	}
+	execute, err := transpiler.Execute(args)
+	if err != nil {
+		return "", err
+	}
+
+	return execute.CSS, nil
+}
+
+func DartSassTranspiler(log *zap.Logger) *godartsass.Transpiler {
 	transpiler, err := godartsass.Start(godartsass.Options{
 		DartSassEmbeddedFilename: "sass",
 	})

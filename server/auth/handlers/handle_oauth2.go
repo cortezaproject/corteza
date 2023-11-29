@@ -445,6 +445,9 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		response["avatarID"] = strconv.FormatUint(user.Meta.AvatarID, 10)
 	}
 
+	//include user's theme
+	response["theme"] = user.Meta.Theme
+
 	// in case client is configured with "openid" scope,
 	// we'll add "id_token" with all required (by OIDC) details encoded
 	if strings.Contains(client.Scope, "openid") {

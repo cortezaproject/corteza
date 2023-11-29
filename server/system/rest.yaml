@@ -572,6 +572,10 @@ endpoints:
         name: labels
         title: Labels
         parser: label.ParseStrings
+      - name: meta
+        type: "*types.UserMeta"
+        title: Additional user info
+        parser: types.ParseUserMeta
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: partialUpdate
     method: PATCH

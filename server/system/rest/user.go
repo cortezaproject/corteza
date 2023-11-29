@@ -153,6 +153,7 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 		Handle:    r.Handle,
 		Kind:      r.Kind,
 		Labels:    r.Labels,
+		Meta:      r.Meta,
 		UpdatedAt: r.UpdatedAt,
 	}
 

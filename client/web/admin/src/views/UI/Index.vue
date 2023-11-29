@@ -139,8 +139,8 @@ export default {
         .finally(() => {
           this[type].processing = false
 
-          // Refresh the page if branding or custom CSS was updated
-          if (type === 'branding' || type === 'customCSS') {
+          // Refresh the page if branding variables is updated and sass installed or custom CSS was updated
+          if ((type === 'branding' && this.settings['ui.studio.sass-installed']) || type === 'customCSS') {
             window.location.reload()
           }
         })
