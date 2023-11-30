@@ -13,13 +13,13 @@
 
     <div
       v-else-if="module"
-      class="mt-3"
+      class="mt-3 px-3"
     >
       <template v-for="field in fields">
         <div
           v-if="canDisplay(field)"
           :key="field.id"
-          class="mb-3 px-3"
+          class="mb-3"
         >
           <field-editor
             v-if="isFieldEditable(field)"
@@ -35,14 +35,24 @@
             :label-cols-xl="horizontal && '4'"
             :content-cols-md="horizontal && '7'"
             :content-cols-xl="horizontal && '8'"
-            label-class="d-flex align-items-center text-primary mb-0"
           >
             <template #label>
-              <span class="d-inline-block text-truncate mw-100 py-1">
-                {{ field.label || field.name }}
-              </span>
+              <div
+                class="d-flex align-items-center text-primary mb-0"
+              >
+                <span class="d-inline-block mw-100 py-1">
+                  {{ field.label || field.name }}
+                </span>
 
-              <c-hint :tooltip="((field.options.hint || {}).view || '')" />
+                <c-hint :tooltip="((field.options.hint || {}).view || '')" />
+              </div>
+
+              <div
+                class="small text-muted"
+                :class="{ 'mb-1': !!(field.options.description || {}).view }"
+              >
+                {{ (field.options.description || {}).view }}
+              </div>
             </template>
 
             <div

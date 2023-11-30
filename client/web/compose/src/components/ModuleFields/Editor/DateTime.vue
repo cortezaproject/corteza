@@ -4,7 +4,6 @@
     :label-cols-xl="horizontal && '4'"
     :content-cols-md="horizontal && '7'"
     :content-cols-xl="horizontal && '8'"
-    label-class="text-primary"
     :class="formGroupStyleClasses"
   >
     <template

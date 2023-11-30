@@ -367,6 +367,16 @@ fieldset.required {
 
 .col-form-label {
   padding: 0;
+  padding-right: 5px !important;
+}
+
+.form-row {
+  margin: 0;
+
+  [class*="col-"] {
+    padding-right: 0;
+    padding-left: 0;
+  }
 }
 
 // Supporting CSS to improve print-to-PDF option

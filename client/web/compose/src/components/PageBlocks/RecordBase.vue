@@ -12,42 +12,45 @@
 
     <div
       v-else-if="fieldModule"
-      class="mt-3"
+      class="mt-3 px-3"
     >
       <template v-for="field in fields">
         <b-form-group
           v-if="canDisplay(field)"
           :key="field.id"
-          :label-cols-md="options.horizontalFieldLayoutEnabled && '5'"
-          :label-cols-xl="options.horizontalFieldLayoutEnabled && '4'"
-          :content-cols-md="options.horizontalFieldLayoutEnabled && '7'"
-          :content-cols-xl="options.horizontalFieldLayoutEnabled && '8'"
-          label-class="d-flex align-items-center text-primary mb-0"
-          class="field-container mb-3 px-3"
+          :label-cols-md="options.horizontalFieldLayoutEnabled && '6'"
+          :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
+          :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
+          :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
+          class="field-container mb-3"
         >
           <template #label>
-            <span class="d-inline-block mw-100 py-1">
-              {{ field.label || field.name }}
-            </span>
-
-            <c-hint :tooltip="((field.options.hint || {}).view || '')" />
-
             <div
-              v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
-              class="inline-actions ml-2"
+              class="d-flex align-items-center text-primary mb-0"
             >
-              <b-button
-                :title="$t('field.inlineEdit.button.title')"
-                variant="outline-light"
-                size="sm"
-                :disabled="editable"
-                class="text-secondary border-0"
-                @click="editInlineField(fieldRecord, field)"
+              <span class="d-inline-block mw-100 py-1">
+                {{ field.label || field.name }}
+              </span>
+
+              <c-hint :tooltip="((field.options.hint || {}).view || '')" />
+
+              <div
+                v-if="options.inlineRecordEditEnabled && isFieldEditable(field)"
+                class="inline-actions ml-2"
               >
-                <font-awesome-icon
-                  :icon="['fas', 'pen']"
-                />
-              </b-button>
+                <b-button
+                  :title="$t('field.inlineEdit.button.title')"
+                  variant="outline-light"
+                  size="sm"
+                  :disabled="editable"
+                  class="text-secondary border-0"
+                  @click="editInlineField(fieldRecord, field)"
+                >
+                  <font-awesome-icon
+                    :icon="['fas', 'pen']"
+                  />
+                </b-button>
+              </div>
             </div>
 
             <div
