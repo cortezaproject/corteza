@@ -38,8 +38,8 @@
       label-class="text-primary"
     >
       <dal-field-store-encoding
-        v-for="({ field, storeIdent, label, isMulti }) in moduleFields"
-        :key="field"
+        v-for="({ field, storeIdent, label, isMulti }, i) in moduleFields"
+        :key="i"
         :config="moduleFieldEncoding[field] || {}"
         :field="field"
         :label="label"
@@ -70,8 +70,8 @@
       </div>
 
       <dal-field-store-encoding
-        v-for="({ field, storeIdent, label, disabled }) in systemFields"
-        :key="field"
+        v-for="({ field, storeIdent, label, disabled }, i) in systemFields"
+        :key="i"
         :config="systemFieldEncoding[field] || {}"
         :field="field"
         :label="label"

@@ -279,20 +279,28 @@ export default {
         this.value = this.field.isMulti ? value.filter(v => (v || {}).coordinates).map(v => JSON.stringify(v)) : JSON.stringify(value)
       },
     },
-  },
 
-  created () {
-    if (this.field.isMulti) {
-      this.localValue = this.value.map(v => {
-        return JSON.parse(v || '{"coordinates":[]}')
-      })
-    } else {
-      this.localValue = JSON.parse(this.value || '{"coordinates":[]}')
-    }
+    'field.isMulti': {
+      immediate: true,
+      handler (value) {
+        if (this.field.isMulti) {
+          this.localValue = this.value.map(v => {
+            return JSON.parse(v || '{"coordinates":[]}')
+          })
+        } else {
+          this.localValue = JSON.parse(this.value || '{"coordinates":[]}')
+        }
+      },
+    },
 
-    if (this.field.options.prefillWithCurrentLocation) {
-      this.useCurrentLocation()
-    }
+    'field.options.prefillWithCurrentLocation': {
+      immediate: true,
+      handler (value) {
+        if (value) {
+          this.useCurrentLocation()
+        }
+      },
+    },
   },
 
   beforeDestroy () {
@@ -325,7 +333,7 @@ export default {
       }
     },
 
-    placeMarker (e, index) {
+    placeMarker (e, index = this.localValueIndex) {
       const { lat = 0, lng = 0 } = e.latlng || {}
       const coords = {
         coordinates: [
