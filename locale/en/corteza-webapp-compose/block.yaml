@@ -601,24 +601,24 @@ field:
     modal:
       title: Update record values
 comment:
-  label: 'Comments'
+  label: Comments
   titleField:
-    label: 'Title field'
-    footnote: 'Field value will be used as record title'
+    label: Title field
+    footnote: Field value will be used as record title
   contentField:
-    label: 'Content field'
-    footnote: 'Field value will be used as record content'
-  titleInput: 'Enter comment title'
-  contentInput: 'Enter comment content'
-  submit: 'Submit'
+    label: Content field *
+    footnote: Field value will be used as record content
+  titleInput: Enter comment title
+  contentInput: Enter comment content
+  submit: Submit
   sortDirection:
-    label: 'Sort direction'
-    footnote: 'Field value will be used as sorting direction reference'
-    asc: 'ASC'
-    desc: 'DESC'
+    label: Sort direction
+    footnote: Field value will be used as sorting direction reference
+    asc: ASC
+    desc: DESC
   referenceField:
-    label: 'Reference field'
-    footnote: 'Field value will be used as reference'
+    label: Reference field
+    footnote: Field value will be used as reference
 navigation:
   chart: Charts
   colorPicker: Choose a color
@@ -845,3 +845,5 @@ tabs:
     delete: Delete tab
     editDisabled: Editing tabbed blocks is disabled until you save this block
     addBlock: Add new block
+
+noConfiguration: Block not configured correctly

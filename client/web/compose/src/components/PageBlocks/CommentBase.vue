@@ -5,84 +5,94 @@
     @refreshBlock="refresh"
   >
     <div
-      v-if="processing"
-      class="d-flex align-items-center justify-content-center h-100"
+      v-if="!isBlockConfigured"
+      class="d-flex h-100 align-items-center justify-content-center"
     >
-      <b-spinner />
+      <p class="mb-0">
+        {{ $t('noConfiguration') }}
+      </p>
     </div>
-    <template v-else-if="roModule && contentField">
-      <section
-        v-if="canAddRecord"
-        class="d-flex flex-column px-3 py-2"
-      >
-        <b-form-input
-          v-if="titleField"
-          v-model="newRecord.title"
-          class="mb-2"
-          :placeholder="$t('comment.titleInput')"
-        />
-        <b-form-textarea
-          v-model.trim="newRecord.content"
-          :value="true"
-          :placeholder="$t('comment.contentInput')"
-        />
-        <b-button
-          variant="primary"
-          class="ml-auto mt-2 mb-2"
-          :disabled="!isValid"
-          @click="createNewRecord()"
-        >
-          {{ $t('comment.submit') }}
-        </b-button>
-      </section>
+    <template v-else>
       <div
-        v-if="sortableRecords.length && canAddRecord"
-        class="border w-100 mb-3"
-      />
-      <section v-if="sortableRecords.length">
-        <b-list-group class="px-3 py-2">
-          <b-list-group-item
-            v-for="record in sortableRecords"
-            :key="record.recordID"
-            class="p-0 pb-3 border-0"
+        v-if="processing"
+        class="d-flex align-items-center justify-content-center h-100"
+      >
+        <b-spinner />
+      </div>
+      <template v-else-if="roModule">
+        <section
+          v-if="canAddRecord"
+          class="d-flex flex-column px-3 py-2"
+        >
+          <b-form-input
+            v-if="titleField"
+            v-model="newRecord.title"
+            class="mb-2"
+            :placeholder="$t('comment.titleInput')"
+          />
+          <b-form-textarea
+            v-model.trim="newRecord.content"
+            :value="true"
+            :placeholder="$t('comment.contentInput')"
+          />
+          <b-button
+            variant="primary"
+            class="ml-auto mt-2 mb-2"
+            :disabled="!isValid"
+            @click="createNewRecord()"
           >
-            <div class="d-flex flex-wrap border p-2">
-              <div class="text-primary">
-                {{ getAuthor(record.ownedBy) }}
+            {{ $t('comment.submit') }}
+          </b-button>
+        </section>
+        <div
+          v-if="sortableRecords.length && canAddRecord"
+          class="border w-100 mb-3"
+        />
+        <section v-if="sortableRecords.length">
+          <b-list-group class="px-3 py-2">
+            <b-list-group-item
+              v-for="record in sortableRecords"
+              :key="record.recordID"
+              class="p-0 pb-3 border-0"
+            >
+              <div class="d-flex flex-wrap border p-2">
+                <div class="text-primary">
+                  {{ getAuthor(record.ownedBy) }}
+                </div>
+                <span class="ml-auto text-muted">
+                  {{ getFormattedDate((record || {}).updatedAt || (record || {}).createdAt) }}
+                </span>
               </div>
-              <span class="ml-auto text-muted">
-                {{ getFormattedDate((record || {}).updatedAt || (record || {}).createdAt) }}
-              </span>
-            </div>
-            <div class="border p-3 d-flex flex-column">
-              <field-viewer
-                v-if="titleField && titleField.canReadRecordValue"
-                class="mb-3 text-muted font-weight-bold"
-                :field="titleField"
-                :record="record"
-                :namespace="namespace"
-                value-only
-              />
-              <template v-else-if="!options.titleField" />
-              <i
-                v-else
-                class="text-secondary h6"
-              >{{ $t('field.noPermission') }}</i>
-              <field-viewer
-                v-if="contentField.canReadRecordValue"
-                :field="contentField"
-                :record="record"
-                :namespace="namespace"
-                value-only
-              />
-              <i
-                v-else
-                class="text-secondary h6"
-              >{{ $t('field.noPermission') }}</i>
-            </div>
-          </b-list-group-item>
-        </b-list-group>
-      </section>
+              <div class="border p-3 d-flex flex-column">
+                <field-viewer
+                  v-if="titleField && titleField.canReadRecordValue"
+                  class="mb-3 text-muted font-weight-bold"
+                  :field="titleField"
+                  :record="record"
+                  :namespace="namespace"
+                  value-only
+                />
+                <template v-else-if="!options.titleField" />
+                <i
+                  v-else
+                  class="text-secondary h6"
+                >{{ $t('field.noPermission') }}</i>
+                <field-viewer
+                  v-if="contentField.canReadRecordValue"
+                  :field="contentField"
+                  :record="record"
+                  :namespace="namespace"
+                  value-only
+                />
+                <i
+                  v-else
+                  class="text-secondary h6"
+                >{{ $t('field.noPermission') }}</i>
+              </div>
+            </b-list-group-item>
+          </b-list-group>
+        </section>
+      </template>
     </template>
   </wrap>
 </template>
@@ -201,6 +211,10 @@ export default {
         return this.record.recordID !== NoID ? this.record.recordID : ''
       }
       return NoID
+    },
+
+    isBlockConfigured () {
+      return !!this.contentField
     },
   },
 
