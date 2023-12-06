@@ -1,6 +1,8 @@
 clear: Clear
 description: Description
 enabled: Enabled
+enable: Enable
+disable: Disable
 error: Error
 error-expression: Error message (expression)
 export: Export

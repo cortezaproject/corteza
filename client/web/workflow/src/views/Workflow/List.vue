@@ -51,7 +51,7 @@
           @import="importJSON"
         />
 
-        <export />
+        <export size="lg" />
 
         <c-permissions-button
           v-if="canGrant"
@@ -163,6 +163,28 @@
               button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
             />
           </b-dropdown-item>
+
+          <b-dropdown-item>
+            <font-awesome-icon
+              :icon="['fas', 'file-export']"
+            />
+
+            <export
+              data-test-id="button-export-workflow"
+              :workflows="([w.workflowID])"
+              :file-name="w.meta.name || w.handle"
+              variant="link"
+              size="md"
+              class="text-decoration-none p-0 ml-1"
+            />
+          </b-dropdown-item>
+
+          <b-dropdown-item-button @click="handleStatusChange(w)">
+            <font-awesome-icon
+              :icon="['fas', w.enabled ? 'toggle-off' : 'toggle-on']"
+            />
+            {{ statusText(w) }}
+          </b-dropdown-item-button>
 
           <c-input-confirm
             v-if="w.canDeleteWorkflow && !w.deletedAt"
@@ -367,6 +389,22 @@ export default {
           this.filterList()
         })
         .catch(this.toastErrorHandler(this.$t(`notification:${event}.failed`)))
+    },
+
+    statusText (w) {
+      return w.enabled ? this.$t('general:disable') : this.$t('general:enable')
+    },
+
+    handleStatusChange ({ workflowID, enabled }) {
+      enabled = !enabled
+      const notificationKey = enabled ? 'enable' : 'disable'
+
+      this.$AutomationAPI.workflowRead({ workflowID }).then((w) => {
+        return this.$AutomationAPI.workflowUpdate({ ...w, enabled }).then((w) => {
+          this.toastSuccess(this.$t(`notification:list.${notificationKey}.success`))
+          this.filterList()
+        })
+      }).catch(this.toastErrorHandler(this.$t(`notification:list.${notificationKey}.failed`)))
     },
   },
 }

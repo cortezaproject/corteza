@@ -1,7 +1,7 @@
 <template>
   <b-button
-    variant="light"
-    size="lg"
+    :variant="variant"
+    :size="size"
     @click="jsonExport(workflows)"
   >
     {{ $t('general:export') }}
@@ -21,6 +21,16 @@ export default {
     fileName: {
       type: String,
       default: 'workflows-export',
+    },
+
+    size: {
+      type: String,
+      default: 'md',
+    },
+
+    variant: {
+      type: String,
+      default: 'light',
     },
   },
 

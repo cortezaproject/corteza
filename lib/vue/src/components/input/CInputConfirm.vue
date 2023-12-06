@@ -24,6 +24,7 @@
               :icon="icon"
               :class="iconClass"
             />
+
             <span
               v-if="text"
               :class="textClass"
@@ -34,6 +35,7 @@
         </slot>
       </b-button>
     </template>
+
     <template v-else>
       <b-button
         data-test-id="button-delete-confirm"
@@ -52,6 +54,7 @@
           />
         </slot>
       </b-button>
+
       <b-button
         data-test-id="button-delete-cancel"
         :variant="variantCancel"
@@ -71,6 +74,7 @@
     </template>
   </div>
 </template>
+
 <script lang="js">
 export default {
   props: {

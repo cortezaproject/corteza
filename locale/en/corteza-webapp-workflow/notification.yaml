@@ -19,6 +19,12 @@ general:
 list:
   load:
     error: Failed to fetch workflows
+  enable:
+    success: Workflow enabled
+    failed: Failed to enable workflow
+  disable:
+    success: Workflow disabled
+    failed: Failed to disable workflow
 import:
   'failed-import': Failed to import
   'imported-workflows': Workflows imported
