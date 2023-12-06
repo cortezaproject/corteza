@@ -95,8 +95,8 @@ export default class Chart extends BaseChart {
           type: yType === 'linear' ? 'value' : 'log',
           position,
           nameLocation: labelPosition,
-          min: beginAtZero ? 0 : min || undefined,
-          max: max || undefined,
+          min: beginAtZero ? 0 : Number(min) || undefined,
+          max: Number(max) || undefined,
           axisLabel: {
             interval: 0,
             overflow: 'break',
