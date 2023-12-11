@@ -31,7 +31,7 @@ interface CalendarOptionsHeader {
 }
 
 interface Options {
-  defaultView: string;
+  initialView: string;
   feeds: Array<Feed>;
   header: Partial<CalendarOptionsHeader>;
   locale: string;
@@ -42,7 +42,7 @@ interface Options {
 }
 
 const defaults: Readonly<Options> = Object.freeze({
-  defaultView: '',
+  initialView: '',
   feeds: [],
   header: {},
   locale: 'en-gb',
@@ -77,7 +77,7 @@ export class PageBlockCalendar extends PageBlock {
 
     Apply(this.options, o, String, 'magnifyOption', 'eventDisplayOption')
 
-    this.options.defaultView = PageBlockCalendar.handleLegacyView(o.defaultView) || 'dayGridMonth'
+    this.options.initialView = PageBlockCalendar.handleLegacyView(o.initialView) || 'dayGridMonth'
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
     this.options.header = merge(
       {},

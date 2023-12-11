@@ -52,7 +52,7 @@
       label-class="text-primary"
     >
       <b-form-radio-group
-        v-model="options.defaultView"
+        v-model="options.initialView"
         buttons
         button-variant="outline-secondary"
         size="sm"

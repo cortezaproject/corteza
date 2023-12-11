@@ -257,7 +257,7 @@ pages:
         kind: Chart
       - title: My Calendar
         options:
-          defaultView: dayGridMonth
+          initialView: dayGridMonth
           feeds:
             - allDay: false
               endField: EndDateTime
@@ -4496,7 +4496,7 @@ pages:
         kind: Chart
       - title: Event Calendar
         options:
-          defaultView: dayGridMonth
+          initialView: dayGridMonth
           feeds:
             - allDay: false
               endField: EndDateTime

@@ -89,10 +89,7 @@
           v-show="show && !processing"
           :ref="`fc-${blockIndex}`"
           :key="key"
-          :height="getHeight()"
-          :events="events"
-          v-bind="config"
-          @eventClick="handleEventClick"
+          :options="config"
         />
       </div>
     </div>
@@ -171,12 +168,14 @@ export default {
 
     config () {
       return {
-        header: false,
         themeSystem: 'corteza',
-        defaultView: this.options.defaultView,
+        initialView: this.options.initialView,
         editable: false,
-        eventLimit: true,
+        dayMaxEventRows: true,
         locale: this.locale,
+        events: this.events,
+        height: this.getHeight,
+        eventClick: this.handleEventClick,
         // @todo could be loaded on demand
         plugins: [
           dayGridPlugin,
@@ -190,7 +189,7 @@ export default {
         ],
 
         // Handle event fetching when view/date-range changes
-        datesRender: ({ view: { activeStart, activeEnd, title } = {} } = {}) => {
+        datesSet: ({ view: { activeStart, activeEnd, title } = {} } = {}) => {
           this.loadEvents(moment(activeStart), moment(activeEnd))
           this.title = title
         },
@@ -281,7 +280,7 @@ export default {
         lng = 'en-gb'
       }
 
-      this.locale = require(`@fullcalendar/core/locales/${lng}`)
+      this.locale = lng
     },
 
     // Proxy to the FC API
@@ -430,13 +429,7 @@ export default {
   },
 }
 </script>
-<style lang="scss" scoped>
-@import '~@fullcalendar/core/main.css';
-@import '~@fullcalendar/daygrid/main.css';
-@import '~@fullcalendar/timegrid/main.css';
-@import '~@fullcalendar/list/main.css';
-
-</style>
+<!-- Check if this need changing -->
 <style lang="scss">
 .calendar-container {
   .fc-content, .event-record {

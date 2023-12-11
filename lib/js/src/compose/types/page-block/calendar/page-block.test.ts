@@ -7,12 +7,12 @@ describe(__filename, () => {
       const cal = new PageBlockCalendar({
         title: 'My Calendar',
         options: {
-          defaultView: 'month',
+          initialView: 'month',
           feeds: [
             { endField: 'EndDateTime', moduleID: '69055788747849745', startField: 'ActivityDate', titleField: 'Subject' },
             { endField: null, moduleID: '69055789049839633', startField: 'ActivityDate', titleField: 'Subject' },
           ],
-          header: { views: ['timeGridWeek', 'dayGridMonth', 'timeGridDay', 'dayGridMonth', 'month'] },
+          headerToolbar: { views: ['timeGridWeek', 'dayGridMonth', 'timeGridDay', 'dayGridMonth', 'month'] },
         },
         style: { variants: { bodyBg: 'white', border: 'dark', headerBg: 'white', headerText: 'dark' } },
         kind: 'Calendar',

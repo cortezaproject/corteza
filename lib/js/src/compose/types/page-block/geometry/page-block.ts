@@ -8,7 +8,7 @@ const kind = 'Geometry'
 type Bounds = number[][]
 
 interface Options {
-  defaultView: string;
+  initialView: string;
   center: Array<number>;
   feeds: Array<Feed>;
   zoomStarting: number;
@@ -23,7 +23,7 @@ interface Options {
 }
 
 const defaults: Readonly<Options> = Object.freeze({
-  defaultView: '',
+  initialView: '',
   center: [35, -30],
   feeds: [],
   zoomStarting: 2,
