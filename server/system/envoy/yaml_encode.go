@@ -268,16 +268,9 @@ func (e YamlEncoder) resolveRulePathDeps(ctx context.Context, tt envoyx.Traverse
 				continue
 			}
 
-			rn := tt.ParentForRef(n, ref)
-			if rn == nil {
-				err = fmt.Errorf("parent reference %v not found", ref)
-				return
-			}
-
-			auxIdent = rn.Identifiers.FriendlyIdentifier()
+			auxIdent = safeParentIdentifier(tt, n, ref)
 			if auxIdent == "" || auxIdent == "0" {
-				err = fmt.Errorf("parent reference does not provide an identifier")
-				return
+				continue
 			}
 
 			err = n.Resource.SetValue(fieldLabel, 0, auxIdent)
