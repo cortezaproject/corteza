@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"net/url"
 	"os"
 	"regexp"
@@ -34,7 +35,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/provision"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/pkg/scheduler"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
@@ -562,7 +562,7 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	app.AuthService.Watch(ctx)
 
 	//Generate CSS for webapps
-	if err = service.GenerateCSS(sysService.CurrentSettings, app.Opt.Webapp.ScssDirPath); err != nil {
+	if err = service.GenerateCSS(sysService.CurrentSettings, app.Opt.Webapp.ScssDirPath, app.Log); err != nil {
 		return fmt.Errorf("could not generate css for webapps: %w", err)
 	}
 
@@ -967,11 +967,7 @@ func updateSmtpSettings(log *zap.Logger, current *types.AppSettings) {
 }
 
 func updateSassInstallSettings(ctx context.Context, log *zap.Logger) {
-	var sassInstalled bool
-
-	if sass.DartSassTranspiler(log) != nil {
-		sassInstalled = true
-	}
+	sassInstalled := sass.DartSassTranspiler(log) != nil
 
 	// update dart-sass installed setting
 	err := updateSetting(ctx, "ui.studio.sass-installed", sassInstalled)

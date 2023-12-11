@@ -542,6 +542,10 @@ endpoints:
         name: labels
         title: Labels
         parser: label.ParseStrings
+      - name: meta
+        type: "*types.UserMeta"
+        title: Additional user info
+        parser: types.ParseUserMeta
   - name: update
     method: PUT
     title: Update user details

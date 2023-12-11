@@ -1,26 +1,25 @@
 package service
 
 import (
+	"fmt"
+	"github.com/cespare/xxhash/v2"
 	"strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/sass"
-	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
 
 // GenerateCSS takes care of creating CSS for webapps by reading SASS content from embedded assets,
-// combining it with brandingSass and customCSS, and then transpiling it using the dart-sass compiler.
+// combining it with different themeSASS and customCSS themes, and then transpiling it using the dart-sass compiler.
 //
 // If dart sass isn't installed on the host machine, it will default to css content from the minified-custom.css which is
 // generated from [Boostrap, bootstrap-vue and custom variables sass content].
 // If dart isn't installed on the host machine, customCustom css will continue to function, but without sass support.
 //
 // In case of an error, it will return default css and log out the error
-func GenerateCSS(settings *types.AppSettings, sassDirPath string) (err error) {
+func GenerateCSS(settings *types.AppSettings, sassDirPath string, log *zap.Logger) (err error) {
 	var (
-		log          = logger.Default()
 		studio       = settings.UI.Studio
 		customCSSMap = make(map[string]string)
 	)
@@ -29,7 +28,7 @@ func GenerateCSS(settings *types.AppSettings, sassDirPath string) (err error) {
 		customCSSMap[customCSS.ID] = customCSS.Values
 	}
 
-	sass.DefaultCSS(log, customCSSMap["general"])
+	sass.DefaultCSS(log, customCSSMap[sass.GeneralTheme])
 
 	if studio.Themes == nil && studio.CustomCSS == nil {
 		return
@@ -62,7 +61,7 @@ func GenerateCSS(settings *types.AppSettings, sassDirPath string) (err error) {
 	} else {
 		if studio.CustomCSS != nil {
 			for key := range customCSSMap {
-				if key == "general" {
+				if key == sass.GeneralTheme {
 					continue
 				}
 
@@ -83,7 +82,7 @@ func GenerateCSS(settings *types.AppSettings, sassDirPath string) (err error) {
 func processCustomCSS(themeID string, customCSSMap map[string]string) (customCSS string) {
 	var stringsBuilder strings.Builder
 
-	stringsBuilder.WriteString(customCSSMap["general"])
+	stringsBuilder.WriteString(customCSSMap[sass.GeneralTheme])
 	stringsBuilder.WriteString("\n")
 	stringsBuilder.WriteString(customCSSMap[themeID])
 
@@ -107,7 +106,7 @@ func updateCSS(current, old, compStyles *types.SettingValue, name, sassDirPath s
 	}
 
 	for key := range currentThemesMap {
-		if str.HashStringSHA256(oldThemesMap[key]) == str.HashStringSHA256(currentThemesMap[key]) {
+		if xxhash.Sum64String(oldThemesMap[key]) == xxhash.Sum64String(currentThemesMap[key]) {
 			continue
 		}
 
@@ -116,10 +115,9 @@ func updateCSS(current, old, compStyles *types.SettingValue, name, sassDirPath s
 			continue
 		}
 
-		if key == "general" {
+		if key == sass.GeneralTheme {
 			if complimentaryStylesMap == nil {
-				themeID := "light"
-				transpileSASS(themeID, complimentaryStylesMap[themeID], currentThemesMap)
+				transpileSASS(sass.LightTheme, complimentaryStylesMap[sass.LightTheme], currentThemesMap)
 				continue
 			}
 
@@ -131,7 +129,6 @@ func updateCSS(current, old, compStyles *types.SettingValue, name, sassDirPath s
 
 		transpileSASS(key, complimentaryStylesMap[key], currentThemesMap)
 	}
-
 }
 
 func themeMap(settingsValue *types.SettingValue) (themeMap map[string]string) {
@@ -152,25 +149,27 @@ func themeMap(settingsValue *types.SettingValue) (themeMap map[string]string) {
 }
 
 func FetchCSS() string {
-	var stringsBuilder strings.Builder
+	var (
+		stringsBuilder strings.Builder
+		rootLight      = sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionRoot, sass.LightTheme))
+	)
 
-	if sass.StylesheetCache.Get("root-light") == "" {
+	if rootLight == "" {
 		return sass.StylesheetCache.Get("default-theme")
 	}
 
 	// root css section
-	stringsBuilder.WriteString(sass.StylesheetCache.Get("root-light"))
+	stringsBuilder.WriteString(rootLight)
 	stringsBuilder.WriteString("\n")
-	stringsBuilder.WriteString(sass.StylesheetCache.Get("root-dark"))
-
+	stringsBuilder.WriteString(sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionRoot, sass.DarkTheme)))
 	stringsBuilder.WriteString("\n")
 
 	//theme css section
-	stringsBuilder.WriteString(sass.StylesheetCache.Get("theme-dark"))
+	stringsBuilder.WriteString(sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionTheme, sass.DarkTheme)))
 	stringsBuilder.WriteString("\n")
 
 	// body css section
-	stringsBuilder.WriteString(sass.StylesheetCache.Get("main-light"))
+	stringsBuilder.WriteString(sass.StylesheetCache.Get(fmt.Sprintf("%s-%s", sass.SectionMain, sass.LightTheme)))
 	stringsBuilder.WriteString("\n")
 
 	return stringsBuilder.String()
