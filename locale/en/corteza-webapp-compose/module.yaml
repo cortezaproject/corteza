@@ -190,6 +190,7 @@ edit:
 
     uniqueValues:
       title: Unique values
+      enabled: Enable duplication detection
       preventRecordsSave: Prevent record saving if duplicate values are found
       warningLabel: Warning or error message toast when constraint matches
       valueModifiers: Value modifiers
@@ -209,7 +210,7 @@ edit:
       addNewConstraint: Add new constraint
       uniqueValueConstraint: "Unique value constraint #{{index}}"
       tooltip:
-        performance: Using unique value constraints will impact performance
+        performance: Using duplication detection will impact performance
 
 federated: Federated
 forModule:
