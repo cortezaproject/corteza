@@ -3,13 +3,15 @@ package provision
 import (
 	"context"
 	"encoding/json"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 	"strconv"
-	"unicode"
 )
 
+// updateWebappTheme is a function that provisions webapp themes.
+// It migrates the old custom css and branding sass settings to the new webapp themes setting.
 func updateWebappTheme(ctx context.Context, log *zap.Logger, s store.Storer) (err error) {
 	vv, _, err := store.SearchSettingValues(ctx, s, types.SettingsFilter{})
 	if err != nil {
@@ -27,31 +29,25 @@ func updateWebappTheme(ctx context.Context, log *zap.Logger, s store.Storer) (er
 
 		var themes []types.Theme
 		for _, themeID := range themeIDs {
-			title := []rune(themeID)
-			title[0] = unicode.ToUpper(title[0])
-
-			if len(themeIDs) > 2 {
-				if themeID == "general" {
-					themes = append(themes, types.Theme{
-						ID:     themeID,
-						Title:  string(title),
-						Values: oldValueStr,
-					})
-					continue
-				}
-
+			if len(themeIDs) == 2 {
 				themes = append(themes, types.Theme{
 					ID:     themeID,
-					Title:  string(title),
-					Values: "",
+					Values: oldValueStr,
+				})
+				continue
+			}
+
+			if themeID == sass.GeneralTheme {
+				themes = append(themes, types.Theme{
+					ID:     themeID,
+					Values: oldValueStr,
 				})
 				continue
 			}
 
 			themes = append(themes, types.Theme{
 				ID:     themeID,
-				Title:  string(title),
-				Values: oldValueStr,
+				Values: "",
 			})
 		}
 
@@ -71,7 +67,7 @@ func updateWebappTheme(ctx context.Context, log *zap.Logger, s store.Storer) (er
 			return err
 		}
 
-		// delete old custom css from the database
+		// delete old custom css and branding sass settings from the database
 		err = store.DeleteSettingValue(ctx, s, oldValue)
 		if err != nil {
 			return err
@@ -82,7 +78,7 @@ func updateWebappTheme(ctx context.Context, log *zap.Logger, s store.Storer) (er
 
 	// provision custom CSS
 	if !oldCustomCSS.IsNull() {
-		err = provisionTheme("ui.studio.custom-css", oldCustomCSS, "general", "light", "dark")
+		err = provisionTheme("ui.studio.custom-css", oldCustomCSS, sass.GeneralTheme, sass.LightTheme, sass.DarkTheme)
 		if err != nil {
 			return err
 		}
@@ -90,7 +86,7 @@ func updateWebappTheme(ctx context.Context, log *zap.Logger, s store.Storer) (er
 
 	// provision branding sass
 	if !oldBranding.IsNull() {
-		err = provisionTheme("ui.studio.themes", oldBranding, "light", "dark")
+		err = provisionTheme("ui.studio.themes", oldBranding, sass.LightTheme, sass.DarkTheme)
 	}
 
 	return nil

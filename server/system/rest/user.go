@@ -139,6 +139,7 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Handle: r.Handle,
 		Kind:   r.Kind,
 		Labels: r.Labels,
+		Meta:   r.Meta,
 	}
 
 	res, err := ctrl.user.Create(ctx, user)

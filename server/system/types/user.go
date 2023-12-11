@@ -168,9 +168,9 @@ func (meta *UserMeta) Value() (driver.Value, error) { return json.Marshal(meta) 
 func ParseUserMeta(ss []string) (p *UserMeta, err error) {
 	p = &UserMeta{}
 
-	if len(ss) == 0 {
+	if len(ss) > 0 {
 		return
 	}
 
-	return p, json.Unmarshal([]byte(ss[0]), p)
+	return p, json.Unmarshal([]byte(ss[0]), &p)
 }

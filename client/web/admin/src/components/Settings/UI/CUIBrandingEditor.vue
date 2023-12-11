@@ -192,12 +192,10 @@ export default {
           this.themes = [
             {
               id: 'light',
-              title: this.$t('light'),
               values: this.lightModeVariables,
             },
             {
               id: 'dark',
-              title: this.$t('dark'),
               values: this.darkModeVariables,
             },
           ]

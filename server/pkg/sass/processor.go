@@ -15,6 +15,15 @@ import (
 	"go.uber.org/zap"
 )
 
+const (
+	GeneralTheme = "general"
+	LightTheme   = "light"
+	DarkTheme    = "dark"
+	SectionRoot  = "root"
+	SectionMain  = "main"
+	SectionTheme = "theme"
+)
+
 var (
 	StylesheetCache      = newStylesheetCache()
 	sassVariablesPattern = regexp.MustCompile(`(\$[a-zA-Z_-]+):\s*([^;]+);`)
@@ -49,19 +58,21 @@ func DefaultCSS(log *zap.Logger, customCSS string) string {
 
 func Transpile(transpiler *godartsass.Transpiler, log *zap.Logger, themeID, themeSASS, customCSS, sassDirPath string) (err error) {
 	// process root section
-	err = processSass(transpiler, log, "root", themeID, themeSASS, customCSS, sassDirPath)
+	err = processSass(transpiler, log, SectionRoot, themeID, themeSASS, customCSS, sassDirPath)
 	if err != nil {
 		return err
 	}
 
 	// process main section
-	err = processSass(transpiler, log, "main", themeID, themeSASS, customCSS, sassDirPath)
-	if err != nil {
-		return err
+	if themeID == LightTheme {
+		err = processSass(transpiler, log, SectionMain, themeID, themeSASS, customCSS, sassDirPath)
+		if err != nil {
+			return err
+		}
 	}
 
 	//process theme section
-	err = processSass(transpiler, log, "theme", themeID, themeSASS, customCSS, sassDirPath)
+	err = processSass(transpiler, log, SectionTheme, themeID, themeSASS, customCSS, sassDirPath)
 	if err != nil {
 		return err
 	}
