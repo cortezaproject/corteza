@@ -106,29 +106,29 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list'
 import { compose, NoID } from '@cortezaproject/corteza-js'
-import { BootstrapTheme } from '@fullcalendar/bootstrap'
+// import { BootstrapTheme } from '@fullcalendar/bootstrap'
 import { createPlugin } from '@fullcalendar/core'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 /**
  * FullCalendar Corteza theme definition.
  */
-export class CortezaTheme extends BootstrapTheme {}
-CortezaTheme.prototype.classes.widget = 'corteza-unthemed'
-CortezaTheme.prototype.classes.button = 'btn btn-outline-primary'
+// export class CortezaTheme {}
+// CortezaTheme.prototype.classes.widget = 'corteza-unthemed'
+// CortezaTheme.prototype.classes.button = 'btn btn-outline-primary'
 
-CortezaTheme.prototype.baseIconClass = 'fc-icon'
-CortezaTheme.prototype.iconClasses = {
-  close: 'fc-icon-x',
-  prev: 'fc-icon-chevron-left',
-  next: 'fc-icon-chevron-right',
-  prevYear: 'fc-icon-chevrons-left',
-  nextYear: 'fc-icon-chevrons-right',
-}
+// CortezaTheme.prototype.baseIconClass = 'fc-icon'
+// CortezaTheme.prototype.iconClasses = {
+//   close: 'fc-icon-x',
+//   prev: 'fc-icon-chevron-left',
+//   next: 'fc-icon-chevron-right',
+//   prevYear: 'fc-icon-chevrons-left',
+//   nextYear: 'fc-icon-chevrons-right',
+// }
 
-CortezaTheme.prototype.iconOverrideOption = 'buttonIcons'
-CortezaTheme.prototype.iconOverrideCustomButtonOption = 'icon'
-CortezaTheme.prototype.iconOverridePrefix = 'fc-icon-'
+// CortezaTheme.prototype.iconOverrideOption = 'buttonIcons'
+// CortezaTheme.prototype.iconOverrideCustomButtonOption = 'icon'
+// CortezaTheme.prototype.iconOverridePrefix = 'fc-icon-'
 
 export default {
   i18nOptions: {
@@ -181,11 +181,11 @@ export default {
           dayGridPlugin,
           timeGridPlugin,
           listPlugin,
-          createPlugin({
-            themeClasses: {
-              corteza: CortezaTheme,
-            },
-          }),
+          // createPlugin({
+          //   themeClasses: {
+          //     corteza: CortezaTheme,
+          //   },
+          // }),
         ],
 
         // Handle event fetching when view/date-range changes
@@ -429,15 +429,19 @@ export default {
   },
 }
 </script>
-<!-- Check if this need changing -->
 <style lang="scss">
 .calendar-container {
-  .fc-content, .event-record {
-    cursor: pointer;
+  // * {
+  //   height: 100% !important;
+  //   width: 100% !important;
+  // }
+
+  .fc-col-header {
+    width: 100% !important;
   }
 
-  .fc-day-header {
-    white-space: pre-wrap;
+  .fc-media-screen {
+    height: 100% !important;
   }
 }
 </style>

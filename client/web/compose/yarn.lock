@@ -887,70 +887,39 @@
   resolved "https://registry.yarnpkg.com/@fortawesome/vue-fontawesome/-/vue-fontawesome-0.1.10.tgz#eeeec1e4e8850bed0468f938292b06cda793bf34"
   integrity sha512-b2+SLF31h32LSepVcXe+BQ63yvbq5qmTCy4KfFogCYm2bn68H5sDWUnX+U7MBqnM2aeEk9M7xSoqGnu+wSdY6w==
 
-"@fullcalendar/bootstrap@5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/bootstrap/-/bootstrap-5.0.0.tgz#1a019f1c5457ac3a41fab4fd198e8bc277f580ef"
-  integrity sha512-bkZZ9PzR7FbtXrYT7rHnx+q0L/sh7HlnkgTr37maZ8fgRetch4cSbTnCovUfkmTNsbx4DiEZXPu29M/tekafLw==
-  dependencies:
-    "@fullcalendar/common" "~5.0.0"
-    tslib "^2.0.0"
+"@fullcalendar/bootstrap@^6.1.10":
+  version "6.1.10"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/bootstrap/-/bootstrap-6.1.10.tgz#747b434f40c1a319628c4223a3e714684117e24f"
+  integrity sha512-WCvF0HvQUAmLuW4wSZYx9QNb1bAIQjYvex7b0BOlgP36NQvaVPBVZk+Mwkk+56KytwmOilZ3/eWG5ilnxfXiUw==
 
-"@fullcalendar/common@~5.0.0":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/common/-/common-5.0.1.tgz#0f685cbf7224d41d1f1c362855634e42b2ce4995"
-  integrity sha512-QpiDBQ072F7hMgI7SdDEiyQWYMHSRjfvNZbtXGisF4LxnVYdfDuLJWHlvZc6jp4L+PynCfONJDxlT5rtt4oouQ==
+"@fullcalendar/core@^6.1.10":
+  version "6.1.10"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/core/-/core-6.1.10.tgz#54eca62345243ec5b2f853102086da7200cd6f03"
+  integrity sha512-oTXGJSAGpCf1oY+CKp5qYjMHkJCPBkJ3SHitl63n8Q6xKeiwQ4EF6Au451euUovREwJpLmD1AyZrCnWmtB9AVg==
   dependencies:
-    tslib "^2.0.0"
+    preact "~10.12.1"
 
-"@fullcalendar/core@5.0.0", "@fullcalendar/core@~5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/core/-/core-5.0.0.tgz#007ce602bc52adc0d867aed839850de39fff5f3b"
-  integrity sha512-FPw8f8m8FI9/ofjWBxm/4cCiM5NHFnCBNj31HiJE/beNFUk034RJnFDxTa1pTWqLK8Wjj06xj4/IRMsIAi8FoA==
-  dependencies:
-    "@fullcalendar/common" "~5.0.0"
-    preact "^10.0.5"
-    tslib "^2.0.0"
+"@fullcalendar/daygrid@^6.1.10", "@fullcalendar/daygrid@~6.1.10":
+  version "6.1.10"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-6.1.10.tgz#1012907ac02993e9896dda08502109a85ca8c308"
+  integrity sha512-Z4GRm1IyHKgxXFTWGcEI0nTsvYOIkpE0aMt3/o3ER2SZkF+hfwcDFhtj0c9+WhMjXFIWYeoTnA9rUOY7Zl/nxA==
 
-"@fullcalendar/daygrid@5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-5.0.0.tgz#9677d46add515df182720d0b1d40f5f3d93debe1"
-  integrity sha512-22WZsZ+BqGZp8IL4wyY/12kBRR7/y5Kqv6DcCRtELFQF1QA4lWx7SQYbylZgQqLr1mJzTOjgq7WrRXmb/0UQxw==
-  dependencies:
-    "@fullcalendar/common" "~5.0.0"
-    tslib "^2.0.0"
+"@fullcalendar/list@^6.1.10":
+  version "6.1.10"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/list/-/list-6.1.10.tgz#677b2530102cac16ee8beb6ccc7e1551d7225907"
+  integrity sha512-WE4vuSUCzol4tJd0ZP0cNxeyRPaZcsVVYs2I3qdf3OZQkXwDCdSyWEz0Hluf+XZWcZXt21aEYKlxRjwUpQcf4Q==
 
-"@fullcalendar/daygrid@~5.0.0":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/daygrid/-/daygrid-5.0.1.tgz#dfa39737f9d9f7b9c247020a17e099e4a9c17a26"
-  integrity sha512-9KhEkwgTZqRDQb1S5S/MELKqovm0c7QU2r9655W47mizoutf+ssWaS3lvsqlKjypYZuWsGDuFKv5GcmUbhVg7g==
+"@fullcalendar/timegrid@^6.1.10":
+  version "6.1.10"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/timegrid/-/timegrid-6.1.10.tgz#4215e520924e441888edba9ac99ce816446d84b3"
+  integrity sha512-hFKyQXJaPbNyq1reZmvkCmM64O99krHoIcJAbDS+dntCm3FzZUcDtAcRKIbMiantHrezCG/1MEYk3m9e3aKvIQ==
   dependencies:
-    "@fullcalendar/common" "~5.0.0"
-    tslib "^2.0.0"
+    "@fullcalendar/daygrid" "~6.1.10"
 
-"@fullcalendar/list@5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/list/-/list-5.0.0.tgz#4443ed09da0e5e9c22bd8d1daba9d276f9cfe27a"
-  integrity sha512-2digHvhac1e0/LyQkN93kU6uO53EUC0CiyM/pbvKPoT9458x2aFzLsPd1rGXlbVrkmptEZzHbVJ6GXMyNrMNSQ==
-  dependencies:
-    "@fullcalendar/common" "~5.0.0"
-    tslib "^2.0.0"
-
-"@fullcalendar/timegrid@5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/timegrid/-/timegrid-5.0.0.tgz#6f9b29b51164e20538a00565bb7dca8032eeb6c0"
-  integrity sha512-MBuQsxRsWwJpT2BuN/J9FIOxk6N1WRGZ2aiScHy5AVbYr9rTVznAfO/aaLxCRMRpxvDggmX7LQzKGHtTLGzB7g==
-  dependencies:
-    "@fullcalendar/common" "~5.0.0"
-    "@fullcalendar/daygrid" "~5.0.0"
-    tslib "^2.0.0"
-
-"@fullcalendar/vue@5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/vue/-/vue-5.0.0.tgz#09735426373713f5dba078523d5535721a5c472f"
-  integrity sha512-RA4BIDVtWC7p95TGntOGjOd2Iq3ySnHbK93hAHausGvf7zLfg8n4oWxSLp/INjETRcWYCH8L4tNxLU0gvIMwsw==
-  dependencies:
-    "@fullcalendar/core" "~5.0.0"
-    tslib "^2.0.0"
+"@fullcalendar/vue@^6.1.10":
+  version "6.1.10"
+  resolved "https://registry.yarnpkg.com/@fullcalendar/vue/-/vue-6.1.10.tgz#bb4d067bcc0858d78db7c66f47d99ce7ca9da88b"
+  integrity sha512-bQAuBEX7XA96ovAHFBBVH9j9xWzfwAjfqd1BCD2dWgMzdjRmP5FyR/aHjYuIs+lqvA4MR7aF8BcIT27FCgvALA==
 
 "@googlemaps/js-api-loader@^1.14.3":
   version "1.16.2"
@@ -9215,10 +9184,10 @@ postcss@^8.2.15:
     nanoid "^3.1.23"
     source-map-js "^0.6.2"
 
-preact@^10.0.5:
-  version "10.19.3"
-  resolved "https://registry.yarnpkg.com/preact/-/preact-10.19.3.tgz#7a7107ed2598a60676c943709ea3efb8aaafa899"
-  integrity sha512-nHHTeFVBTHRGxJXKkKu5hT8C/YWBkPso4/Gad6xuj5dbptt9iF9NZr9pHbPhBrnT2klheu7mHTxTZ/LjwJiEiQ==
+preact@~10.12.1:
+  version "10.12.1"
+  resolved "https://registry.yarnpkg.com/preact/-/preact-10.12.1.tgz#8f9cb5442f560e532729b7d23d42fd1161354a21"
+  integrity sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==
 
 prelude-ls@~1.1.2:
   version "1.1.2"
@@ -11318,11 +11287,6 @@ tslib@^1.9.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
-
-tslib@^2.0.0:
-  version "2.6.2"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.6.2.tgz#703ac29425e7b37cd6fd456e92404d46d1f3e4ae"
-  integrity sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==
 
 tty-browserify@0.0.0:
   version "0.0.0"
