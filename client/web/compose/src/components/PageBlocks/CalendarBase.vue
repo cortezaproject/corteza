@@ -193,6 +193,7 @@ export default {
         // Handle event fetching when view/date-range changes
         datesRender: ({ view: { activeStart, activeEnd, title } = {} } = {}) => {
           this.loadEvents(moment(activeStart), moment(activeEnd))
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
           this.title = title
         },
       }

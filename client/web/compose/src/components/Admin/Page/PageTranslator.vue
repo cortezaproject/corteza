@@ -147,11 +147,13 @@ export default {
 
             let tr = find('title')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.page.title = tr.message
             }
 
             tr = find('description')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.page.description = tr.message
             }
 
@@ -278,14 +280,18 @@ export default {
             }
 
             if (this.block) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.block = updateBlockTranslations(this.block)
             } else {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.page.blocks = this.page.blocks.map(block => updateBlockTranslations(block))
             }
 
             if (this.pageLayout) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.pageLayout = updatePageLayoutTranslations(this.pageLayout)
             } else {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.pageLayouts = this.pageLayouts.map(pageLayout => updatePageLayoutTranslations(pageLayout))
             }
 

@@ -9,7 +9,7 @@
     "serve": "vue-cli-service serve",
     "dev-env": "vue-cli-service serve src/dev-env.js",
     "build": "vue-cli-service build --mode production",
-    "lint": "vue-cli-service lint",
+    "lint": "vue-cli-service lint --no-fix",
     "test:unit": "vue-cli-service test:unit",
     "test:unit:cc": "nyc vue-cli-service test:unit",
     "cdeps": "yarn upgrade @cortezaproject/corteza-js @cortezaproject/corteza-vue"
@@ -64,6 +64,7 @@
     "postcss-rtl": "^1.7.3",
     "resolve-url-loader": "^3.1.2",
     "eslint": "^5.8.0",
+    "eslint-config-corteza-client": "file:../../../lib/eslint-client",
     "eslint-plugin-vue": "5.2.3",
     "null-loader": "^4.0.1",
     "nyc": "^14.1.1",

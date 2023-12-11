@@ -120,11 +120,13 @@ export default {
             let tr
             tr = find('meta.bool.true.label')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.field.options.trueLabel = tr.message
             }
 
             tr = find('meta.bool.false.label')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.field.options.falseLabel = tr.message
             }
           })

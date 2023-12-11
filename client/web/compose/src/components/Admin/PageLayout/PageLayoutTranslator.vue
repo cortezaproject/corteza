@@ -101,11 +101,13 @@ export default {
 
             let tr = find('title')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.pageLayout.meta.title = tr.message
             }
 
             tr = find('description')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.pageLayout.meta.description = tr.message
             }
 

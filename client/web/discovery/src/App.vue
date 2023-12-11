@@ -11,7 +11,6 @@
 
 <script>
 export default {
-
   data: () => ({
     loaded: false,
     i18nLoaded: false,

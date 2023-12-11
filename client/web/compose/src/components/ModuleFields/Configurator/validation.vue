@@ -67,8 +67,8 @@
       </template>
 
       <field-expressions
-        v-slot:default="{ value }"
         v-model="field.expressions.validators"
+        v-slot:default="{ value }"
         @remove="field.expressions.validators.splice($event,1)"
       >
         <b-form-input

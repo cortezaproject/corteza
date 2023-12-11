@@ -13,7 +13,7 @@
   "scripts": {
     "build": "rollup -c --environment BUILD:production",
     "build:dev": "rollup -c",
-    "lint": "eslint src/** --ext .js,.ts",
+    "lint": "eslint src/** --ext .js,.ts --no-fix",
     "test:unit": "mocha",
     "test:unit:cc": "nyc mocha",
     "codegen:corteza-api-client": "node -r esm tools/codegen/corteza-api-client.js"
@@ -39,20 +39,24 @@
     "@types/mocha": "^5.2.7",
     "@types/numeral": "^0.0.26",
     "@types/pino": "^5.15.3",
-    "@typescript-eslint/eslint-plugin": "^2.16.0",
-    "@typescript-eslint/parser": "^2.16.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.1",
+    "@typescript-eslint/parser": "^2.11.0",
+    "@vue/cli-plugin-eslint": "4.1.2",
+    "@vue/eslint-config-standard": "5.1.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "esformatter": "^0.11.2",
     "esformatter-add-trailing-commas": "^1.1.0",
-    "eslint": "^6.7.2",
+    "eslint": "^8.7.2",
+    "eslint-config-corteza-lib": "file:../eslint-lib",
     "eslint-config-standard": "^14.1.0",
     "eslint-import-resolver-typescript": "^2.0.0",
-    "eslint-plugin-import": "2.20.0",
+    "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-json": "^2.0.1",
     "eslint-plugin-node": "11.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-vue": "6.1.2",
     "esm": "^3.2.25",
     "handlebars": "^4.7.6",
     "js-yaml": "^3.14.0",
@@ -67,7 +71,8 @@
     "ts-node": "^9.0.0",
     "ts-node-dev": "^1.1.0",
     "ts-sinon": "^1.0.25",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.4",
+    "vue-eslint-parser": "^9.3.2"
   },
   "resolutions": {
     "**/**/moment": "^2.29.2"

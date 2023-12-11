@@ -1,0 +1,43 @@
+#!/bin/sh
+
+ROOT_DIR=${PWD}
+
+exit_code=0
+
+# Check for changes in web app dir
+for webap_dir in $(git diff --name-only --cached | grep 'client/web' | awk -F/ '{print $1"/"$2"/"$3}' | uniq); do
+	echo "\nRun lint for ${webap_dir}"
+
+	cd ${webap_dir}
+
+	# Run the lint
+	npm run lint 2>/dev/null
+	exit_code=$?
+
+	if [ $exit_code -ne 0 ]; then
+		echo "Linting failed on ${webap_dir}. Please fix the linting issues before commiting"
+		exit 1
+	fi
+
+	cd ${ROOT_DIR}
+done
+
+cd ${ROOT_DIR}
+
+# Check for changes in lib dir
+for lib_dir in $(git diff --name-only --cached | grep 'lib/' | awk -F/ '{print $1"/"$2}' | uniq); do
+	echo "\nRun lint for ${lib_dir}"
+
+	cd ${lib_dir}
+
+	# Run the lint
+	npm run lint 2>/dev/null
+	exit_code=$?
+
+	if [ $exit_code -ne 0 ]; then
+		echo "Linting failed on ${lib_dir}. Please fix the linting issues before commiting"
+		exit 1
+	fi
+done
+
+exit 0

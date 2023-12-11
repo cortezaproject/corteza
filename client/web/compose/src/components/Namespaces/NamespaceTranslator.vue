@@ -99,16 +99,19 @@ export default {
 
             tr = find('name')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.namespace.name = tr.message
             }
 
             tr = find('meta.subtitle')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.namespace.meta.subtitle = tr.message
             }
 
             tr = find('meta.description')
             if (tr !== undefined) {
+              // eslint-disable-next-line vue/no-side-effects-in-computed-properties
               this.namespace.meta.description = tr.message
             }
           })
