@@ -183,7 +183,7 @@ export default {
     },
 
     batch: {
-      type: String,
+      type: Array,
       required: false,
       default: undefined,
     },
@@ -217,8 +217,8 @@ export default {
   watch: {
     batch: {
       handler (batch) {
-        if (batch) {
-          this.load(batch)
+        if (batch && batch.length) {
+          this.load(...batch)
         }
       },
     },
@@ -243,7 +243,7 @@ export default {
           for (const a of alteration) {
             a.processing = false
           }
-          this.load(this.batch)
+          this.load(...this.batch)
           this.processing = false
         })
     },
@@ -266,13 +266,13 @@ export default {
           for (const a of alteration) {
             a.processing = false
           }
-          this.load(this.batch)
+          this.load(...this.batch)
           this.processing = false
         })
     },
 
-    async load (batchID) {
-      if (!batchID) {
+    async load (...batchID) {
+      if (!batchID || (batchID && !batchID.length)) {
         this.alterations = []
         return
       }

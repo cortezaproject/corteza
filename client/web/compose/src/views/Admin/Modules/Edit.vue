@@ -885,11 +885,12 @@ export default {
 
       // Check if module has Alterations to resolve
       this.dalSchemaAlterations.batchID = undefined
-      for (const i of this.module.issues) {
-        if (i.meta.batchID) {
-          this.dalSchemaAlterations.batchID = i.meta.batchID
-          break
-        }
+      // Pull all batchIDs as they can differ in cases where a related resource
+      // also requires alterations.
+      // @todo this should probably perhaps change but I'm not entirely sure how
+      const aux = (this.module.issues || []).map(({ meta }) => meta.batchID).filter(b => b)
+      if (aux.length > 0) {
+        this.dalSchemaAlterations.batchID = aux
       }
     },
 

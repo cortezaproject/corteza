@@ -86,7 +86,7 @@ dal_schema_alteration: {
 			resource: {goType: "[]string", ident: "resource" }
 			resourceType: {goType: "string", ident: "resourceType", storeIdent: "resource_type" }
 			alteration_id: {goType: "[]uint64", ident: "alterationID", storeIdent: "id" }
-			batch_id: {goType: "uint64", ident: "batchID" }
+			batch_id: {goType: "[]uint64", ident: "batchID" }
 			kind: {}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 			completed: {goType: "filter.State", storeIdent: "completed_at"}

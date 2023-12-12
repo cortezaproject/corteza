@@ -42,7 +42,17 @@ type (
 		// BatchID GET parameter
 		//
 		// Filter by batch ID
-		BatchID uint64 `json:",string"`
+		BatchID []string
+
+		// Resource GET parameter
+		//
+		// Search by resource
+		Resource []string
+
+		// ResourceType GET parameter
+		//
+		// Search by resource type
+		ResourceType string
 
 		// Kind GET parameter
 		//
@@ -102,6 +112,8 @@ func (r DalSchemaAlterationList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"alterationID": r.AlterationID,
 		"batchID":      r.BatchID,
+		"resource":     r.Resource,
+		"resourceType": r.ResourceType,
 		"kind":         r.Kind,
 		"deleted":      r.Deleted,
 		"completed":    r.Completed,
@@ -116,8 +128,18 @@ func (r DalSchemaAlterationList) GetAlterationID() []string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalSchemaAlterationList) GetBatchID() uint64 {
+func (r DalSchemaAlterationList) GetBatchID() []string {
 	return r.BatchID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationList) GetResource() []string {
+	return r.Resource
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r DalSchemaAlterationList) GetResourceType() string {
+	return r.ResourceType
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -163,8 +185,30 @@ func (r *DalSchemaAlterationList) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
-		if val, ok := tmp["batchID"]; ok && len(val) > 0 {
-			r.BatchID, err = payload.ParseUint64(val[0]), nil
+		if val, ok := tmp["batchID[]"]; ok {
+			r.BatchID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["batchID"]; ok {
+			r.BatchID, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resource[]"]; ok {
+			r.Resource, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["resource"]; ok {
+			r.Resource, err = val, nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resourceType"]; ok && len(val) > 0 {
+			r.ResourceType, err = val[0], nil
 			if err != nil {
 				return err
 			}

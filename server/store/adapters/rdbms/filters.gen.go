@@ -831,8 +831,8 @@ func DalSchemaAlterationFilter(d drivers.Dialect, f systemType.DalSchemaAlterati
 		ee = append(ee, goqu.C("id").In(f.AlterationID))
 	}
 
-	if f.BatchID > 0 {
-		ee = append(ee, goqu.C("batch_id").Eq(f.BatchID))
+	if len(f.BatchID) > 0 {
+		ee = append(ee, goqu.C("batch_id").In(f.BatchID))
 	}
 
 	return ee, f, err

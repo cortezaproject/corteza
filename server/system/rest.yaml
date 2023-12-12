@@ -932,8 +932,14 @@ endpoints:
         type: "[]string"
         title: Filter by alteration ID
       - name: batchID
-        type: "uint64"
+        type: "[]string"
         title: Filter by batch ID
+      - name: resource
+        type: "[]string"
+        title: Search by resource
+      - name: resourceType
+        type: string
+        title: Search by resource type
       - type: string
         name: kind
         title: Search by kind

@@ -2529,6 +2529,8 @@ export default class System {
     const {
       alterationID,
       batchID,
+      resource,
+      resourceType,
       kind,
       deleted,
       completed,
@@ -2543,6 +2545,8 @@ export default class System {
     cfg.params = {
       alterationID,
       batchID,
+      resource,
+      resourceType,
       kind,
       deleted,
       completed,

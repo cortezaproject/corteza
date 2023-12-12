@@ -402,25 +402,37 @@ func (svc dalSchemaAlteration) toPkgAlterations(ctx context.Context, aa ...*type
 }
 
 func (svc dalSchemaAlteration) reloadAlteredModels(ctx context.Context, s store.Storer, alts types.DalSchemaAlterationSet) (err error) {
-	if len(alts) == 0 {
-		return
+	// Skip any models whish were already reloaded by some alterations.
+	// These might be mixed up so we'll need to do it like so.
+	processed := make(map[string]bool, 3)
+	mkKey := func(a *types.DalSchemaAlteration) string {
+		return fmt.Sprintf("%s;%s", a.ResourceType, a.Resource)
 	}
 
-	// @todo consider lifting this constraint and handle arbitrary sets of alterations
 	for _, a := range alts {
-		if a.Resource != alts[0].Resource {
-			panic("reloadAlteredModels requires all alterations to be for the same resource")
+		k := mkKey(a)
+		if processed[k] {
+			continue
+		}
+		processed[k] = true
+
+		err = svc.reloadAlteredModel(ctx, s, a)
+		if err != nil {
+			return
 		}
 	}
 
-	alt := alts[0]
+	return
+}
 
+func (svc dalSchemaAlteration) reloadAlteredModel(ctx context.Context, s store.Storer, alt *types.DalSchemaAlteration) (err error) {
 	// Fetch current alterations to see if there are any left over
 	_, f, err := store.SearchDalSchemaAlterations(ctx, s, types.DalSchemaAlterationFilter{
-		Resource:  []string{alt.Resource},
-		Deleted:   filter.StateExcluded,
-		Completed: filter.StateExcluded,
-		Dismissed: filter.StateExcluded,
+		Resource:     []string{alt.Resource},
+		ResourceType: alt.ResourceType,
+		Deleted:      filter.StateExcluded,
+		Completed:    filter.StateExcluded,
+		Dismissed:    filter.StateExcluded,
 
 		Paging: filter.Paging{
 			IncTotal: true,

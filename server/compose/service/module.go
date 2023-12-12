@@ -310,6 +310,7 @@ func (svc module) procDal(m *types.Module) {
 	}
 
 	m.Issues = svc.dal.SearchModelIssues(m.ID)
+	m.Issues = append(m.Issues, svc.dal.SearchResourceIssues("corteza::system:revision", m.RbacResource())...)
 	if len(m.Issues) == 0 {
 		m.Issues = nil
 	}
