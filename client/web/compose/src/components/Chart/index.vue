@@ -203,7 +203,7 @@ export default {
 
     setDefaultValues () {
       this.processing = false
-      this.rendeder = undefined
+      this.renderer = undefined
     },
 
     destroyEvents () {

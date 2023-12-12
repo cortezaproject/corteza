@@ -128,18 +128,27 @@ export default {
      * Based on drill down configuration, either changes the linked block on the page
      * or opens it in a modal wit the filter and dimensions from the chart and the clicked value
      */
-    drillDown ({ name }) {
+    drillDown ({ name, value }) {
       const { chartID, drillDown } = this.options
 
       if (!drillDown.enabled) {
         return
       }
 
+      const report = this.chart.config.reports[0] || {}
+      const { yAxis = {} } = report
+
+      // If name exists we use it as value, otherwise we need to look at the actual value based on if it is horizontal or vertical
+      let drillDownValue = name
+      if (!name) {
+        drillDownValue = yAxis.horizontal ? value[1] : value[0]
+      }
+
       // Get recordListID that is linked
       let { moduleID, dimensions, filter } = this.filter
 
       // Construct filter
-      const dimensionFilter = dimensions ? `(${dimensions} = '${name}')` : ''
+      const dimensionFilter = dimensions ? `(${dimensions} = '${drillDownValue}')` : ''
       filter = filter ? `(${filter})` : ''
       const prefilter = [dimensionFilter, filter].filter(f => f).join(' AND ')
 
@@ -156,7 +165,7 @@ export default {
 
         // Open in modal
         const block = new compose.PageBlockRecordList({
-          title: title ? `${title} - "${name}"` : name,
+          title: title ? `${title} - "${drillDownValue}"` : drillDownValue,
           blockID: `drillDown-${chartID}`,
           options: {
             moduleID,

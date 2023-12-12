@@ -138,6 +138,7 @@
                   v-model="d.modifier"
                   :disabled="!d.field || !isTemporalField(d.field)"
                   :options="dimensionModifiers"
+                  @change="onDimModifierChange($event, d)"
                 >
                   <template slot="first">
                     <option
@@ -661,9 +662,16 @@ export default {
     onDimFieldChange (f, d) {
       if (!this.isTemporalField(f)) {
         this.$set(d, 'modifier', this.dimensionModifiers[0].value)
+        this.$set(d, 'timeLabels', false)
       }
 
       this.$set(d.meta, 'fields', [])
+    },
+
+    onDimModifierChange (modifier, d) {
+      if (['WEEK', 'QUARTER'].includes(modifier)) {
+        this.$set(d, 'timeLabels', false)
+      }
     },
 
     onMetricFieldChange (field, m) {
