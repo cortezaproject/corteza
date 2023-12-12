@@ -358,7 +358,7 @@ func (c *connection) applyAlterationAttributeAdd(ctx context.Context, model *dal
 }
 
 func (c *connection) applyAlterationAttributeDelete(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
-	return c.dataDefiner.ColumnDrop(ctx, model.Ident, alt.AttributeDelete.Attr.Ident)
+	return c.dataDefiner.ColumnDrop(ctx, model.Ident, alt.AttributeDelete.Attr.StoreIdent())
 }
 
 func (c *connection) applyAlterationAttributeReType(ctx context.Context, model *dal.Model, alt *dal.Alteration) (err error) {
@@ -490,7 +490,7 @@ func (c *connection) assertAlterationAttributeDelete(table *ddl.Table, colIndex 
 func (c *connection) assertAlterationAttributeReType(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
 	col := colIndex[alt.AttributeReType.Attr.StoreIdent()]
 	if col == nil {
-		err = fmt.Errorf("cannot alter %s, column does not exist", alt.AttributeReType.Attr.Ident)
+		err = fmt.Errorf("cannot alter %s, column does not exist", alt.AttributeReType.Attr.StoreIdent())
 		return
 	}
 
