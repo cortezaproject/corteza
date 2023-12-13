@@ -289,7 +289,7 @@ recordList:
     reset: Reset
   drillDown:
     filter:
-      label: 'Chart drill down'
+      label: Drill down filter
   tooltip:
     deleteSelected: Delete selected records
     performance:

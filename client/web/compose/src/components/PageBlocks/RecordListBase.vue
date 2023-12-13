@@ -1789,6 +1789,10 @@ export default {
     },
 
     setDrillDownFilter (drillDownFilter) {
+      if (this.activeFilters.includes(this.$t('recordList.drillDown.filter.label'))) {
+        this.removeFilter(this.activeFilters.indexOf(this.$t('recordList.drillDown.filter.label')))
+      }
+
       if (drillDownFilter) {
         this.activeFilters.push(this.$t('recordList.drillDown.filter.label'))
       }
