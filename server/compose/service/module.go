@@ -623,7 +623,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 			if err = svc.eventbus.WaitFor(ctx, event.ModuleAfterUpdate(m, old, ns)); err != nil {
 				return err
 			}
-			if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, old, m); err != nil {
+			if err = DalModelReplace(ctx, s, svc.schemaAltManager, svc.dal, ns, m); err != nil {
 				return err
 			}
 		} else {

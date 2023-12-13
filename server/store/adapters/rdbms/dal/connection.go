@@ -513,9 +513,23 @@ func (c *connection) assertAlterationAttributeReType(table *ddl.Table, colIndex 
 	return
 }
 
-// @todo might consider droppig this one for now
+// @todo for now it just creates a new column; we should add some migration in the future
 func (c *connection) assertAlterationAttributeReEncode(table *ddl.Table, colIndex map[string]*ddl.Column, alt *dal.Alteration) (out []*dal.Alteration, err error) {
-	// ...
+	auxCodec := *alt.AttributeReEncode.Attr
+	auxCodec.Store = alt.AttributeReEncode.To
+
+	out = append(out, &dal.Alteration{
+		ID:           alt.ID,
+		BatchID:      alt.BatchID,
+		DependsOn:    alt.DependsOn,
+		Resource:     alt.Resource,
+		ResourceType: alt.ResourceType,
+		ConnectionID: alt.ConnectionID,
+
+		AttributeAdd: &dal.AttributeAdd{
+			Attr: &auxCodec,
+		},
+	})
 	return
 }
 
