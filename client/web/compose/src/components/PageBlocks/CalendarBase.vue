@@ -106,29 +106,7 @@ import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list'
 import { compose, NoID } from '@cortezaproject/corteza-js'
-// import { BootstrapTheme } from '@fullcalendar/bootstrap'
-import { createPlugin } from '@fullcalendar/core'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
-
-/**
- * FullCalendar Corteza theme definition.
- */
-// export class CortezaTheme {}
-// CortezaTheme.prototype.classes.widget = 'corteza-unthemed'
-// CortezaTheme.prototype.classes.button = 'btn btn-outline-primary'
-
-// CortezaTheme.prototype.baseIconClass = 'fc-icon'
-// CortezaTheme.prototype.iconClasses = {
-//   close: 'fc-icon-x',
-//   prev: 'fc-icon-chevron-left',
-//   next: 'fc-icon-chevron-right',
-//   prevYear: 'fc-icon-chevrons-left',
-//   nextYear: 'fc-icon-chevrons-right',
-// }
-
-// CortezaTheme.prototype.iconOverrideOption = 'buttonIcons'
-// CortezaTheme.prototype.iconOverrideCustomButtonOption = 'icon'
-// CortezaTheme.prototype.iconOverridePrefix = 'fc-icon-'
 
 export default {
   i18nOptions: {
@@ -168,24 +146,24 @@ export default {
 
     config () {
       return {
-        themeSystem: 'corteza',
         initialView: this.options.initialView,
         editable: false,
         dayMaxEventRows: true,
+        headerToolbar: false,
+        // Remove
+        // headerToolbar: {
+        //   left: 'prev,next',
+        //   center: 'title',
+        //   right: 'listMonth, timeGridDay, dayGridMonth, timeGridWeek' // user can switch between the two
+        // },
         locale: this.locale,
         events: this.events,
-        height: this.getHeight,
         eventClick: this.handleEventClick,
         // @todo could be loaded on demand
         plugins: [
           dayGridPlugin,
           timeGridPlugin,
           listPlugin,
-          // createPlugin({
-          //   themeClasses: {
-          //     corteza: CortezaTheme,
-          //   },
-          // }),
         ],
 
         // Handle event fetching when view/date-range changes
@@ -388,13 +366,6 @@ export default {
       }
     },
 
-    getHeight () {
-      if (this.$refs[`cc-${this.blockIndex}`]) {
-        return this.$refs[`cc-${this.blockIndex}`].clientHeight
-      }
-      return 'auto'
-    },
-
     refresh () {
       this.refreshing = true
       new Promise(resolve => resolve(this.api().refetchEvents()))
@@ -435,6 +406,24 @@ export default {
   //   height: 100% !important;
   //   width: 100% !important;
   // }
+  .fc-daygrid-body,
+  .fc-timegrid-body,
+  .fc-timegrid-slots table,
+  // messes up day and partially week
+  // .fc-timegrid-cols table,
+  table .fc-scrollgrid-sync-table {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .fc-event-main-frame {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .fc-scroller {
+    overflow: hidden scroll !important;
+  }
 
   .fc-col-header {
     width: 100% !important;
@@ -442,6 +431,10 @@ export default {
 
   .fc-media-screen {
     height: 100% !important;
+  }
+
+  .fc-event-main-frame {
+    cursor: pointer;
   }
 }
 </style>
