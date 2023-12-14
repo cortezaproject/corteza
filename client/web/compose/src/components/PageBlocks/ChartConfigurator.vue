@@ -109,7 +109,7 @@ export default {
 
       const { metrics = [] } = (this.selectedChart.config.reports[0] || {})
 
-      return !metrics.some(({ type }) => type === 'gauge')
+      return !metrics.some(({ type }) => type === 'gauge' || type === 'radar')
     },
 
     drillDownOptions () {
