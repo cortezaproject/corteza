@@ -104,7 +104,7 @@
         no-body
         class="shadow-sm"
       >
-        <b-form-row
+        <b-row
           v-if="page"
           class="px-4 py-3"
         >
@@ -379,7 +379,7 @@
               </b-form-group>
             </div>
           </b-col>
-        </b-form-row>
+        </b-row>
       </b-card>
     </b-container>
 

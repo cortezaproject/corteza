@@ -169,7 +169,6 @@
                   <b-col
                     cols="12"
                     md="6"
-                    xl="4"
                   >
                     <b-form-group
                       :label="$t('newLabel')"
@@ -188,7 +187,6 @@
                   <b-col
                     cols="12"
                     md="6"
-                    xl="4"
                   >
                     <b-form-group
                       :label="$t('general.label.handle')"
