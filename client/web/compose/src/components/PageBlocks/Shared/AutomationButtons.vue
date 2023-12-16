@@ -8,12 +8,13 @@
       :class="buttonClass"
       @click.prevent="handle(b)"
     >
-      {{ b.label || '-' }}
+      {{ handleButtonLabel(b.label) || '-' }}
     </b-button>
   </div>
 </template>
 <script>
-import { compose, automation } from '@cortezaproject/corteza-js'
+import { compose, automation, NoID } from '@cortezaproject/corteza-js'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from '../base'
 
 export default {
@@ -180,6 +181,15 @@ export default {
         this.toastErrorHandler(this.$t('notification:automation.scriptFailed'))(e)
         this.processing = false
       }
+    },
+
+    handleButtonLabel (label) {
+      return evaluatePrefilter(label, {
+        record: this.record,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
     },
   },
 }

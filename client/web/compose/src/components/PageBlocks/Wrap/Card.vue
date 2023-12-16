@@ -14,10 +14,10 @@
         <div v-if="!headerSet">
           <div class="d-flex">
             <h5
-              v-if="block.title"
+              v-if="blockTitle"
               class="text-truncate mb-0"
             >
-              {{ block.title }}
+              {{ blockTitle }}
 
               <slot name="title-badge" />
             </h5>

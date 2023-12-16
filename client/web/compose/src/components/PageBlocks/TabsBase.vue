@@ -129,8 +129,9 @@
 
 <script>
 import base from './base'
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 import { fetchID } from 'corteza-webapp-compose/src/lib/block'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -234,7 +235,14 @@ export default {
 
     getTabTitle ({ title, block = {} }, tabIndex) {
       const { title: blockTitle, kind } = block
-      return title || blockTitle || kind || `${this.$t('tab')} ${tabIndex + 1}`
+      const prefilteredTitle = evaluatePrefilter(blockTitle, {
+        record: this.record,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
+
+      return title || prefilteredTitle || blockTitle || kind || `${this.$t('tab')} ${tabIndex + 1}`
     },
 
     isTabLazy ({ block = {} }) {
@@ -257,6 +265,7 @@ export default {
     .card {
       border-radius: 0;
     }
+
     .card-header {
       border-radius: 0;
     }

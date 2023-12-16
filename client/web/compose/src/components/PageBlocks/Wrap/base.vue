@@ -1,5 +1,6 @@
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -78,6 +79,15 @@ export default {
     magnifyParams () {
       const params = this.block.blockID === NoID ? { block: this.block } : { blockID: this.block.blockID }
       return this.isBlockMagnified ? undefined : params
+    },
+
+    blockTitle () {
+      return evaluatePrefilter(this.block.title, {
+        record: this.$attrs.record,
+        recordID: (this.$attrs.record || {}).recordID || NoID,
+        ownerID: (this.$attrs.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
     },
   },
 }

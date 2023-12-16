@@ -198,8 +198,9 @@ metric:
     dimensionFieldLabel: Field
     dimensionFieldPlaceholder: Dimension field
     dimensionLabel: Dimension
-    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     filterLabel: Filter
+    filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
+    transformFootnote: Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     labelLabel: Label
     labelPlaceholder: Label
     metricFieldLabel: Field

@@ -25,6 +25,7 @@
                 v-model="block.title"
                 :placeholder="$t('general.titlePlaceholder')"
               />
+
               <b-input-group-append>
                 <page-translator
                   v-if="page"

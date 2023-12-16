@@ -208,9 +208,21 @@
                   v-model="edit.transformFx"
                   placeholder="v"
                   class="mb-1"
+                  @change="evaluateTransformation"
                 />
 
                 <small>{{ $t('metric.edit.transformFunctionDescription') }}</small>
+                <b-form-text>
+                  <i18next
+                    path="metric.edit.transformFootnote"
+                    tag="label"
+                  >
+                    <code>${record.values.fieldName}</code>
+                    <code>${recordID}</code>
+                    <code>${ownerID}</code>
+                    <code>${userID}</code>
+                  </i18next>
+                </b-form-text>
               </b-form-group>
 
               <b-form-group
@@ -329,6 +341,7 @@ import MStyle from './MStyle'
 import { mapGetters } from 'vuex'
 import MetricBase from '../MetricBase'
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -476,6 +489,15 @@ export default {
       this.edit = undefined
       this.dimensionModifiers = []
       this.aggregationOperations = []
+    },
+
+    evaluateTransformation (t) {
+      this.edit.transformFx = evaluatePrefilter(t, {
+        record: this.record,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
     },
   },
 }

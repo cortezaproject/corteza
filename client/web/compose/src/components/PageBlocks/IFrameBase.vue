@@ -14,6 +14,8 @@
 </template>
 <script>
 import base from './base'
+import { NoID } from '@cortezaproject/corteza-js'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   extends: base,
@@ -29,7 +31,14 @@ export default {
         }
       }
 
-      return src || blank
+      const prefilteredSource = evaluatePrefilter(src, {
+        record: this.record,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
+
+      return prefilteredSource || blank
     },
   },
 

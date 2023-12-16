@@ -17,7 +17,7 @@
             <h5
               class="text-truncate mb-0"
             >
-              {{ block.title }}
+              {{ blockTitle }}
 
               <slot name="title-badge" />
             </h5>
