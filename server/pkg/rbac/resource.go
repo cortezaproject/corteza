@@ -1,9 +1,10 @@
 package rbac
 
 import (
-	"github.com/spf13/cast"
 	"path"
 	"strings"
+
+	"github.com/spf13/cast"
 )
 
 type (
@@ -94,7 +95,7 @@ func matchResource(matcher, resource string) (m bool) {
 }
 
 func hasWildcards(resource string) bool {
-	return strings.Index(resource, wildcard) != -1
+	return strings.Contains(resource, wildcard)
 }
 
 // returns level for the given resource match
