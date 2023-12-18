@@ -450,7 +450,7 @@ func (r *Record) SetValue(name string, pos uint, value any) (err error) {
 	case "ownedBy", "OwnedBy", "owned_by":
 		return cast2.Uint64(value, &r.OwnedBy)
 	case "revision", "Revision":
-		return cast2.Uint(value, &r.Revision)
+		return cast2.Int(value, &r.Revision)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy", "updated_by":

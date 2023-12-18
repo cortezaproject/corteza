@@ -64,6 +64,7 @@ type (
 
 		SearchConnectionIssues(connectionID uint64) (out []Issue)
 		SearchModelIssues(resourceID uint64) (out []Issue)
+		SearchResourceIssues(resourceType, resource string) (out []Issue)
 	}
 )
 
@@ -790,6 +791,41 @@ func (svc *service) ReplaceModel(ctx context.Context, currentAlts []*Alteration,
 
 // ApplyAlteration updates the underlying schema with the requested changes
 func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (errs []error, err error) {
+	if len(alts) == 0 {
+		return
+	}
+
+	altsIndexed := make(map[uint64]map[string]map[string][]*Alteration)
+	for _, a := range alts {
+		if _, ok := altsIndexed[a.ConnectionID]; !ok {
+			altsIndexed[a.ConnectionID] = make(map[string]map[string][]*Alteration)
+		}
+
+		if _, ok := altsIndexed[a.ConnectionID][a.ResourceType]; !ok {
+			altsIndexed[a.ConnectionID][a.ResourceType] = make(map[string][]*Alteration)
+		}
+
+		altsIndexed[a.ConnectionID][a.ResourceType][a.Resource] = append(altsIndexed[a.ConnectionID][a.ResourceType][a.Resource], a)
+	}
+
+	var auxErrs []error
+	for _, byCon := range altsIndexed {
+		for _, byRt := range byCon {
+			for _, byR := range byRt {
+				auxErrs, err = svc.applyAlteration(ctx, byR...)
+				if err != nil {
+					return
+				}
+
+				errs = append(errs, auxErrs...)
+			}
+		}
+	}
+
+	return
+}
+
+func (svc *service) applyAlteration(ctx context.Context, alts ...*Alteration) (errs []error, err error) {
 	if len(alts) == 0 {
 		return
 	}
