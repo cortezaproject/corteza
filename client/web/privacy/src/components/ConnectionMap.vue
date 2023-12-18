@@ -6,7 +6,7 @@
     hide-geo-search
     hide-current-location-button
     :markers="validMarkerValues"
-    style="min-height: 400px;height: 100% !important;"
+    style="min-height: 400px; height: 100% !important;"
   >
     <template #marker-tooltip="{ marker }">
       <h5
