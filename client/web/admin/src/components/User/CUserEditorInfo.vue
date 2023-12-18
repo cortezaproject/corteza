@@ -1,10 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
     data-test-id="card-user-info"
     header-bg-variant="white"
     footer-bg-variant="white"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    class="shadow-sm"
   >
     <b-form
       @submit.prevent="$emit('submit', user)"

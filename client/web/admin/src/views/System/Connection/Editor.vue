@@ -13,58 +13,42 @@
       <c-connection-editor-info
         :connection="connection"
         :sensitivity-levels="sensitivityLevels"
+        :processing="info.processing"
+        :success="info.success"
+        :can-create="canCreate"
         :disabled="disabled"
-        :is-primary="isPrimary"
+        @submit="updateInfo"
+        @delete="toggleDelete"
       />
 
       <c-connection-editor-properties
+        v-if="connectionID && connection.meta.properties"
         :properties="connection.meta.properties"
-        :disabled="disabled"
+        :processing="properties.processing"
+        :success="properties.success"
         class="mt-4"
+        @submit="updateProperties"
       />
 
       <c-connection-editor-dal
-        v-if="connection.config.dal"
+        v-if="connectionID && connection.config.dal && canManage"
         :dal="connection.config.dal"
         :issues="connection.issues || []"
-        :disabled="disabled"
         :can-manage="connection.canManageDalConfig"
         class="mt-4"
+        @submit="updateDal"
       />
-
-      <b-card
-        body-class="d-flex flex-wrap flex-fill-child gap-1"
-        class="mt-4"
-      >
-        <confirmation-toggle
-          v-if="connection && connectionID && !isPrimary && !disabled"
-          @confirmed="toggleDelete"
-        >
-          {{ connection.deletedAt ? $t('general:label.undelete') : $t('general:label.delete') }}
-        </confirmation-toggle>
-
-        <c-button-submit
-          :disabled="disabled || saveDisabled"
-          :processing="info.processing"
-          :success="info.success"
-          :text="$t('admin:general.label.submit')"
-          class="ml-auto"
-          @submit="onSubmit"
-        />
-      </b-card>
     </b-form>
   </b-container>
 </template>
 
 <script>
 import { isEqual } from 'lodash'
-import { system, NoID } from '@cortezaproject/corteza-js'
-import { handle } from '@cortezaproject/corteza-vue'
+import { system } from '@cortezaproject/corteza-js'
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CConnectionEditorInfo from 'corteza-webapp-admin/src/components/Connection/CConnectionEditorInfo'
 import CConnectionEditorProperties from 'corteza-webapp-admin/src/components/Connection/CConnectionEditorProperties'
 import CConnectionEditorDal from 'corteza-webapp-admin/src/components/Connection/CConnectionEditorDAL'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -72,7 +56,6 @@ export default {
     CConnectionEditorInfo,
     CConnectionEditorDal,
     CConnectionEditorProperties,
-    ConfirmationToggle,
   },
 
   i18nOptions: {
@@ -98,6 +81,16 @@ export default {
         success: false,
       },
 
+      properties: {
+        processing: false,
+        success: false,
+      },
+
+      dal: {
+        processing: false,
+        success: false,
+      },
+
       connection: undefined,
       initialConnectionState: undefined,
 
@@ -114,34 +107,13 @@ export default {
       return this.can('system/', 'dal-connection.create')
     },
 
-    isPrimary () {
-      return this.connection.type === 'corteza::system:primary-dal-connection'
+    canManage () {
+      return this.connection.canManageDalConfig
     },
 
     disabled () {
-      return this.info.processing
+      return this.info.processing || this.properties.processing || this.dal.processing
     },
-
-    fresh () {
-      return !this.connection.connectionID || this.connection.connectionID === NoID
-    },
-
-    editable () {
-      return this.fresh ? this.canCreate : true // this.user.canUpdateUser
-    },
-
-    nameState () {
-      return this.connection.meta.name ? null : false
-    },
-
-    handleState () {
-      return handle.handleState(this.connection.handle)
-    },
-
-    saveDisabled () {
-      return !this.editable || [this.nameState, this.handleState].includes(false)
-    },
-
   },
 
   beforeRouteUpdate (to, from, next) {
@@ -195,7 +167,7 @@ export default {
         })
     },
 
-    onSubmit () {
+    updateInfo () {
       const updating = !!this.connectionID
       const op = updating ? 'update' : 'create'
       const fn = updating ? 'dalConnectionUpdate' : 'dalConnectionCreate'
@@ -203,22 +175,85 @@ export default {
       this.info.processing = true
       this.incLoader()
 
-      return this.$SystemAPI[fn](this.connection)
-        .then(connection => {
-          const { connectionID } = connection
+      const connection = new system.DalConnection(this.initialConnectionState)
+      connection.meta.name = this.connection.meta.name
+      connection.handle = this.connection.handle
+      connection.meta.location.properties.name = this.connection.meta.location.properties.name
+      connection.meta.location.geometry.coordinates = this.connection.meta.location.geometry.coordinates
+      connection.meta.ownership = this.connection.meta.ownership
+      connection.config.privacy.sensitivityLevelID = this.connection.config.privacy.sensitivityLevelID
 
-          this.animateSuccess('info')
-          this.toastSuccess(this.$t(`notification:connection.${op}.success`))
-          if (!updating) {
-            this.$router.push({ name: `system.connection.edit`, params: { connectionID } })
-          } else {
-            this.connection = new system.DalConnection(connection)
-            this.initialConnectionState = this.connection.clone()
-          }
-        })
-        .catch(this.toastErrorHandler(this.$t(`notification:connection.${op}.error`)))
+      return this.$SystemAPI[fn](connection).then(connection => {
+        this.animateSuccess('info')
+        this.toastSuccess(this.$t(`notification:connection.${op}.success`))
+
+        if (!updating) {
+          const { connectionID } = connection
+          this.$router.push({ name: `system.connection.edit`, params: { connectionID } })
+        } else {
+          connection.config.dal = this.connection.config.dal
+          connection.meta.properties = this.connection.meta.properties
+
+          this.connection = new system.DalConnection(connection)
+          this.initialConnectionState = this.connection.clone()
+        }
+      }).catch(this.toastErrorHandler(this.$t('notification:connection.update.error')))
         .finally(() => {
           this.info.processing = false
+        })
+    },
+
+    updateProperties () {
+      this.properties.processing = true
+      this.incLoader()
+
+      const connection = new system.DalConnection(this.initialConnectionState)
+      connection.meta.properties = this.connection.meta.properties
+
+      return this.$SystemAPI.dalConnectionUpdate(connection).then(connection => {
+        this.animateSuccess('properties')
+        this.toastSuccess(this.$t('notification:connection.update.success'))
+
+        connection.meta.name = this.connection.meta.name
+        connection.handle = this.connection.handle
+        connection.meta.location.properties.name = this.connection.meta.location.properties.name
+        connection.meta.location.geometry.coordinates = this.connection.meta.location.geometry.coordinates
+        connection.meta.ownership = this.connection.meta.ownership
+        connection.config.privacy.sensitivityLevelID = this.connection.config.privacy.sensitivityLevelID
+        connection.config.dal = this.connection.config.dal
+
+        this.connection = new system.DalConnection(connection)
+        this.initialConnectionState = this.connection.clone()
+      }).catch(this.toastErrorHandler(this.$t('notification:connection.update.error')))
+        .finally(() => {
+          this.properties.processing = false
+        })
+    },
+
+    updateDal () {
+      this.dal.processing = true
+      this.incLoader()
+
+      const connection = new system.DalConnection(this.initialConnectionState)
+      connection.config.dal = this.connection.config.dal
+
+      return this.$SystemAPI.dalConnectionUpdate(connection).then(connection => {
+        this.animateSuccess('dal')
+        this.toastSuccess(this.$t('notification:connection.update.success'))
+
+        connection.meta.name = this.connection.meta.name
+        connection.handle = this.connection.handle
+        connection.meta.location.properties.name = this.connection.meta.location.properties.name
+        connection.meta.location.geometry.coordinates = this.connection.meta.location.geometry.coordinates
+        connection.meta.ownership = this.connection.meta.ownership
+        connection.config.privacy.sensitivityLevelID = this.connection.config.privacy.sensitivityLevelID
+        connection.meta.properties = this.connection.meta.properties
+
+        this.connection = new system.DalConnection(connection)
+        this.initialConnectionState = this.connection.clone()
+      }).catch(this.toastErrorHandler(this.$t('notification:connection.update.error')))
+        .finally(() => {
+          this.dal.processing = false
         })
     },
 

@@ -1,6 +1,8 @@
 <template>
   <b-card
     :title="$t('title')"
+    footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <b-row
@@ -10,7 +12,6 @@
       <b-col cols="12">
         <b-form-checkbox
           v-model="properties[prop].enabled"
-          :disabled="disabled"
           class="mb-1"
         >
           {{ $t('form.' + kebabCase(prop) + '.checkbox.label') }}
@@ -24,11 +25,21 @@
         >
           <b-form-textarea
             v-model="properties[prop].notes"
-            :disabled="disabled"
           />
         </b-form-group>
       </b-col>
     </b-row>
+
+    <template #footer>
+      <c-button-submit
+        :disabled="disabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit')"
+      />
+    </template>
   </b-card>
 </template>
 <script>
@@ -41,11 +52,24 @@ export default {
   },
 
   props: {
-    disabled: { type: Boolean, default: false },
-
     properties: {
       type: Object,
       required: true,
+    },
+
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    processing: {
+      type: Boolean,
+      value: false,
+    },
+
+    success: {
+      type: Boolean,
+      value: false,
     },
   },
 

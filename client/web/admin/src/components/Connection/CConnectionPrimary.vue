@@ -14,7 +14,8 @@
           v-if="connection"
           data-test-id="button-edit"
           size="sm"
-          variant="link"
+          variant="outline-light"
+          class="d-flex align-items-center text-primary border-0"
           :to="{ name: 'system.connection.edit', params: { connectionID: (connection || {}).connectionID } }"
         >
           <font-awesome-icon

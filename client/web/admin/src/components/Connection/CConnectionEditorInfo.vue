@@ -2,6 +2,8 @@
   <b-card
     data-test-id="card-connection-settings"
     :title="$t('title')"
+    footer-bg-variant="white"
+    footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <b-row>
@@ -18,7 +20,6 @@
           <b-form-input
             v-model="connection.meta.name"
             required
-            :disabled="disabled"
             :placeholder="$t('form.name.placeholder')"
             :state="nameState"
           />
@@ -60,7 +61,6 @@
         >
           <b-form-input
             v-model="connection.meta.location.properties.name"
-            :disabled="disabled"
             :placeholder="$t('form.location-name.placeholder')"
           />
         </b-form-group>
@@ -117,7 +117,6 @@
         >
           <b-form-input
             v-model="connection.meta.ownership"
-            :disabled="disabled"
             :placeholder="$t('form.ownership.placeholder')"
           />
         </b-form-group>
@@ -135,18 +134,37 @@
           <c-sensitivity-level-picker
             v-model="connection.config.privacy.sensitivityLevelID"
             :options="sensitivityLevels"
-            :disabled="disabled"
             :placeholder="$t('form.sensitivity-level.placeholder')"
           />
         </b-form-group>
       </b-col>
     </b-row>
+
+    <template #footer>
+      <confirmation-toggle
+        v-if="!fresh && !isPrimary && !disabled"
+        @confirmed="$emit('delete')"
+      >
+        {{ connection.deletedAt ? $t('general:label.undelete') : $t('general:label.delete') }}
+      </confirmation-toggle>
+
+      <c-button-submit
+        :disabled="disabled || saveDisabled"
+        :processing="processing"
+        :success="success"
+        :text="$t('admin:general.label.submit')"
+        class="ml-auto"
+        @submit="$emit('submit')"
+      />
+    </template>
   </b-card>
 </template>
 
 <script>
+import { NoID } from '@cortezaproject/corteza-js'
 import { components, handle } from '@cortezaproject/corteza-vue'
 import CLocation from 'corteza-webapp-admin/src/components/CLocation'
+import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 const { CSensitivityLevelPicker } = components
 
 export default {
@@ -158,12 +176,10 @@ export default {
   components: {
     CLocation,
     CSensitivityLevelPicker,
+    ConfirmationToggle,
   },
 
   props: {
-    disabled: { type: Boolean, default: false },
-    isPrimary: { type: Boolean, required: true },
-
     connection: {
       type: Object,
       required: true,
@@ -173,15 +189,51 @@ export default {
       type: Array,
       required: true,
     },
+
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    processing: {
+      type: Boolean,
+      value: false,
+    },
+
+    success: {
+      type: Boolean,
+      value: false,
+    },
+
+    canCreate: {
+      type: Boolean,
+      required: true,
+    },
   },
 
   computed: {
+    isPrimary () {
+      return this.connection.type === 'corteza::system:primary-dal-connection'
+    },
+
+    fresh () {
+      return !this.connection.connectionID || this.connection.connectionID === NoID
+    },
+
+    editable () {
+      return this.fresh ? this.canCreate : true
+    },
+
     nameState () {
       return this.connection.meta.name ? null : false
     },
 
     handleState () {
       return handle.handleState(this.connection.handle)
+    },
+
+    saveDisabled () {
+      return !this.editable || [this.nameState, this.handleState].includes(false)
     },
 
     locationCoordinates () {
