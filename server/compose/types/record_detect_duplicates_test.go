@@ -2,10 +2,11 @@ package types
 
 import (
 	"context"
+	"testing"
+
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/spf13/cast"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestDeDupRule_checkCaseSensitiveDuplication(t *testing.T) {
@@ -121,6 +122,44 @@ func Test_matchValue(t *testing.T) {
 			if got := matchValue(tt.modifier, tt.input, tt.target); got != tt.want {
 				t.Errorf("matchValue() = %v, want %v", got, tt.want)
 			}
+		})
+	}
+}
+
+func Test_rulesetValidation(t *testing.T) {
+	var (
+		req = require.New(t)
+
+		tests = []struct {
+			name    string
+			ruleset DeDupRuleSet
+		}{
+			{
+				name: "no constraint",
+				ruleset: DeDupRuleSet{&DeDupRule{
+					Name:          "",
+					Strict:        true,
+					ConstraintSet: []*DeDupRuleConstraint{},
+				}},
+			},
+			{
+				name: "invalid constraint",
+				ruleset: DeDupRuleSet{&DeDupRule{
+					Name:   "",
+					Strict: true,
+					ConstraintSet: []*DeDupRuleConstraint{
+						{
+							Attribute: "",
+						},
+					},
+				}},
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req.Error(tt.ruleset.Validate())
 		})
 	}
 }

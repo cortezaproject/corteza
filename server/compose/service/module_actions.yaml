@@ -116,3 +116,7 @@ errors:
   - error: notAllowedToUndelete
     message: "not allowed to undelete this module"
     log: "could not undelete {{module}}; insufficient permissions"
+
+  - error: dedupConfigurationInvalidMissingConstraint
+    message: "invalid deduplication configuration - constraint not defined"
+    log: "missing constraint on deduplication configuration for module"

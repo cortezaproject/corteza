@@ -710,6 +710,10 @@ func (svc module) handleUpdate(ctx context.Context, upd *types.Module) moduleUpd
 			return moduleUnchanged, err
 		}
 
+		if err = validateModuleDedupRules(ctx, upd); err != nil {
+			return moduleUnchanged, ModuleErrDedupConfigurationInvalidMissingConstraint()
+		}
+
 		if !svc.ac.CanUpdateModule(ctx, res) {
 			return moduleUnchanged, ModuleErrNotAllowedToUpdate()
 		}
@@ -1093,6 +1097,10 @@ func loadModuleLabels(ctx context.Context, s store.Labels, set ...*types.Module)
 	}
 
 	return nil
+}
+
+func validateModuleDedupRules(ctx context.Context, m *types.Module) error {
+	return m.Config.RecordDeDup.Rules.Validate()
 }
 
 // DalModelReload reloads all defined compose modules into the DAL

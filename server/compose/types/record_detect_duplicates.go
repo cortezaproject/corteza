@@ -3,10 +3,11 @@ package types
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/spf13/cast"
-	"strings"
 )
 
 type (
@@ -179,6 +180,24 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 	}
 
 	return
+}
+
+func (dr DeDupRuleSet) Validate() (err error) {
+	return dr.Walk(func(rule *DeDupRule) (err error) {
+		if !rule.HasAttributes() {
+			err = fmt.Errorf("deduplication not valid (no constraints)")
+			return
+		}
+
+		for _, a := range rule.Attributes() {
+			if a == "" {
+				err = fmt.Errorf("deduplication not valid (invalid field)")
+				return
+			}
+		}
+
+		return
+	})
 }
 
 func (c DeDupRuleConstraint) HasMultiValue() bool {

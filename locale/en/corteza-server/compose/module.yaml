@@ -16,3 +16,4 @@ errors:
   notAllowedToUpdate: not allowed to update this module
   notFound: module does not exist
   staleData: stale data
+  dedupConfigurationInvalidMissingConstraint: missing constraints on deduplication configuration
