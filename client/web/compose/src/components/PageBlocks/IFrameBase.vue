@@ -24,21 +24,22 @@ export default {
     src () {
       const { srcField, src } = this.options
       const blank = 'about:blank'
+      let url = src
 
       if (this.options.srcField) {
         if (this.record) {
-          return this.record.values[srcField] || blank
+          url = this.record.values[srcField]
         }
       }
 
-      const prefilteredSource = evaluatePrefilter(src, {
+      const interpolatedURL = evaluatePrefilter(url, {
         record: this.record,
         recordID: (this.record || {}).recordID || NoID,
         ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,
       })
 
-      return prefilteredSource || blank
+      return interpolatedURL || blank
     },
   },
 

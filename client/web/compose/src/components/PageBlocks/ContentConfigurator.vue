@@ -9,6 +9,17 @@
           openLinkInNewTab: $t('content.openLinkInNewTab'),
         }"
       />
+
+      <i18next
+        path="interpolationFootnote"
+        tag="small"
+        class="text-muted"
+      >
+        <code>${record.values.fieldName}</code>
+        <code>${recordID}</code>
+        <code>${ownerID}</code>
+        <code>${userID}</code>
+      </i18next>
     </b-form-group>
   </b-tab>
 </template>

@@ -23,24 +23,14 @@ export default {
 
   computed: {
     contentBody () {
-      const { body } = this.options
+      const { body = '' } = this.options
 
-      // Regular expression to match ${} tokens
-      const tokenRegex = /\${(.*?)}/g
-
-      // Replace each token with its prefiltered content
-      const prefilteredBody = body.replace(tokenRegex, (match, tokenContent) => {
-        const reconstructedToken = '${' + tokenContent + '}'
-
-        return evaluatePrefilter(reconstructedToken, {
-          record: this.record,
-          recordID: (this.record || {}).recordID || NoID,
-          ownerID: (this.record || {}).ownedBy || NoID,
-          userID: (this.$auth.user || {}).userID || NoID,
-        })
+      return evaluatePrefilter(body, {
+        record: this.record,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
       })
-
-      return prefilteredBody
     },
   },
 }

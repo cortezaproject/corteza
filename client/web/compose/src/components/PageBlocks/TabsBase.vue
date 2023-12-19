@@ -233,16 +233,23 @@ export default {
       return `order-${index} text-truncate text-${alignment} ${justify !== 'none' ? 'flex-fill' : ''}`
     },
 
-    getTabTitle ({ title, block = {} }, tabIndex) {
+    getTabTitle ({ title = '', block = {} }, tabIndex) {
       const { title: blockTitle, kind } = block
-      const prefilteredTitle = evaluatePrefilter(blockTitle, {
+      const interpolatedTitle = evaluatePrefilter(blockTitle, {
         record: this.record,
         recordID: (this.record || {}).recordID || NoID,
         ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,
       })
 
-      return title || prefilteredTitle || blockTitle || kind || `${this.$t('tab')} ${tabIndex + 1}`
+      title = evaluatePrefilter(title, {
+        record: this.record,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
+
+      return title || interpolatedTitle || kind || `${this.$t('tab')} ${tabIndex + 1}`
     },
 
     isTabLazy ({ block = {} }) {

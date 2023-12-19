@@ -57,17 +57,16 @@
                 placeholder="(A > B) OR (A < C)"
                 class="mb-1"
               />
-              <b-form-text>
-                <i18next
-                  path="metric.edit.filterFootnote"
-                  tag="label"
-                >
-                  <code>${record.values.fieldName}</code>
-                  <code>${recordID}</code>
-                  <code>${ownerID}</code>
-                  <code>${userID}</code>
-                </i18next>
-              </b-form-text>
+              <i18next
+                path="metric.edit.filterFootnote"
+                tag="small"
+                class="text-muted"
+              >
+                <code>${record.values.fieldName}</code>
+                <code>${recordID}</code>
+                <code>${ownerID}</code>
+                <code>${userID}</code>
+              </i18next>
             </b-form-group>
           </b-col>
 
@@ -169,17 +168,16 @@
                 placeholder="(A > B) OR (A < C)"
                 class="mb-1"
               />
-              <b-form-text>
-                <i18next
-                  path="metric.edit.filterFootnote"
-                  tag="label"
-                >
-                  <code>${record.values.fieldName}</code>
-                  <code>${recordID}</code>
-                  <code>${ownerID}</code>
-                  <code>${userID}</code>
-                </i18next>
-              </b-form-text>
+              <i18next
+                path="metric.edit.filterFootnote"
+                tag="small"
+                class="text-muted"
+              >
+                <code>${record.values.fieldName}</code>
+                <code>${recordID}</code>
+                <code>${ownerID}</code>
+                <code>${userID}</code>
+              </i18next>
             </b-form-group>
           </b-col>
 
@@ -281,17 +279,16 @@
                 placeholder="(A > B) OR (A < C)"
                 class="mb-1"
               />
-              <b-form-text>
-                <i18next
-                  path="metric.edit.filterFootnote"
-                  tag="label"
-                >
-                  <code>${record.values.fieldName}</code>
-                  <code>${recordID}</code>
-                  <code>${ownerID}</code>
-                  <code>${userID}</code>
-                </i18next>
-              </b-form-text>
+              <i18next
+                path="metric.edit.filterFootnote"
+                tag="small"
+                class="text-muted"
+              >
+                <code>${record.values.fieldName}</code>
+                <code>${recordID}</code>
+                <code>${ownerID}</code>
+                <code>${userID}</code>
+              </i18next>
             </b-form-group>
           </b-col>
 

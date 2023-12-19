@@ -7,11 +7,19 @@
       :label="$t('buttonLabel')"
       label-class="text-primary"
     >
-      <b-input-group>
-        <b-form-input
-          v-model="button.label"
-        />
-      </b-input-group>
+      <b-form-input
+        v-model="button.label"
+      />
+      <i18next
+        path="block:interpolationFootnote"
+        tag="small"
+        class="text-muted"
+      >
+        <code>${record.values.fieldName}</code>
+        <code>${recordID}</code>
+        <code>${ownerID}</code>
+        <code>${userID}</code>
+      </i18next>
     </b-form-group>
 
     <b-form-group

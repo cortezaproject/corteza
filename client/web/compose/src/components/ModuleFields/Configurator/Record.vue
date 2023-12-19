@@ -66,17 +66,16 @@
           v-model="f.options.prefilter"
           :placeholder="$t('kind.record.prefilterPlaceholder')"
         />
-        <b-form-text>
-          <i18next
-            path="kind.record.prefilterFootnote"
-            tag="label"
-          >
-            <code>${record.values.fieldName}</code>
-            <code>${recordID}</code>
-            <code>${ownerID}</code>
-            <code>${userID}</code>
-          </i18next>
-        </b-form-text>
+        <i18next
+          path="kind.record.prefilterFootnote"
+          tag="small"
+          class="text-muted"
+        >
+          <code>${record.values.fieldName}</code>
+          <code>${recordID}</code>
+          <code>${ownerID}</code>
+          <code>${userID}</code>
+        </i18next>
       </b-form-group>
     </template>
 

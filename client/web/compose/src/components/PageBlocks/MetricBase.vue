@@ -166,6 +166,15 @@ export default {
               })
             }
 
+            if (auxM.transformFx) {
+              auxM.transformFx = evaluatePrefilter(auxM.transformFx, {
+                record: this.record,
+                recordID: (this.record || {}).recordID || NoID,
+                ownerID: (this.record || {}).ownedBy || NoID,
+                userID: (this.$auth.user || {}).userID || NoID,
+              })
+            }
+
             const vals = await this.block.fetch({ m: auxM }, reporter)
             rtr.push(vals)
           }

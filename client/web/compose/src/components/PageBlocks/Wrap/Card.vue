@@ -50,10 +50,10 @@
           </div>
 
           <b-card-text
-            v-if="block.description"
+            v-if="blockDescription"
             class="text-dark text-wrap mt-1"
           >
-            {{ block.description }}
+            {{ blockDescription }}
           </b-card-text>
         </div>
 

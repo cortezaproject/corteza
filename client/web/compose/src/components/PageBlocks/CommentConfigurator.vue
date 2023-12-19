@@ -51,17 +51,16 @@
           :placeholder="$t('recordList.record.prefilterPlaceholder')"
         />
 
-        <b-form-text>
-          <i18next
-            path="recordList.record.prefilterFootnote"
-            tag="label"
-          >
-            <code>${record.values.fieldName}</code>
-            <code>${recordID}</code>
-            <code>${ownerID}</code>
-            <code>${userID}</code>
-          </i18next>
-        </b-form-text>
+        <i18next
+          path="recordList.record.prefilterFootnote"
+          tag="small"
+          class="text-muted"
+        >
+          <code>${record.values.fieldName}</code>
+          <code>${recordID}</code>
+          <code>${ownerID}</code>
+          <code>${userID}</code>
+        </i18next>
       </b-form-group>
 
       <b-form-group

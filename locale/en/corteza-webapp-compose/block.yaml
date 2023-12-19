@@ -200,7 +200,7 @@ metric:
     dimensionLabel: Dimension
     filterLabel: Filter
     filterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
-    transformFootnote: Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
+    transformFootnote: Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available). Make sure to wrap the variables with quotes ("")
     labelLabel: Label
     labelPlaceholder: Label
     metricFieldLabel: Field
@@ -848,3 +848,4 @@ tabs:
     addBlock: Add new block
 
 noConfiguration: Block not configured correctly
+interpolationFootnote: Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)

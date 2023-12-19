@@ -89,6 +89,15 @@ export default {
         userID: (this.$auth.user || {}).userID || NoID,
       })
     },
+
+    blockDescription () {
+      return evaluatePrefilter(this.block.description, {
+        record: this.$attrs.record,
+        recordID: (this.$attrs.record || {}).recordID || NoID,
+        ownerID: (this.$attrs.record || {}).ownedBy || NoID,
+        userID: (this.$auth.user || {}).userID || NoID,
+      })
+    },
   },
 }
 </script>

@@ -8,7 +8,7 @@
       :class="buttonClass"
       @click.prevent="handle(b)"
     >
-      {{ handleButtonLabel(b.label) || '-' }}
+      {{ buttonLabel(b.label) || '-' }}
     </b-button>
   </div>
 </template>
@@ -183,7 +183,7 @@ export default {
       }
     },
 
-    handleButtonLabel (label) {
+    buttonLabel (label = '') {
       return evaluatePrefilter(label, {
         record: this.record,
         recordID: (this.record || {}).recordID || NoID,
