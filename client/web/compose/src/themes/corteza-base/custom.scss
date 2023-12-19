@@ -233,18 +233,9 @@ fieldset.required {
   bottom: 75px;
 }
 
-.vs__spinner, .vs__spinner::after {
-  width: 4em;
-  height: 4em;
-}
-
 // to remove the gap on top of the sticky header table
 .b-table-sticky-header > .table.b-table > thead > tr > th {
   border: 0;
-}
-
-.vs__actions {
-  padding-top: 0;
 }
 
 .modal-content {

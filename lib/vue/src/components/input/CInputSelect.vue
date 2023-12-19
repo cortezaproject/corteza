@@ -92,7 +92,7 @@ export default {
   },
 
   methods: {
-     calculateDropdownPosition (dropdownList, component, { width }) {
+    calculateDropdownPosition (dropdownList, component, { width }) {
       /**
        * We need to explicitly define the dropdown width since
        * it is usually inherited from the parent with CSS.
@@ -139,19 +139,20 @@ export default {
 </script>
 
 <style lang="scss">
-
 .v-select {
   min-width: auto;
   position: relative;
   -ms-flex: 1 1 auto;
   flex: 1 1 auto;
   margin-bottom: 0;
-  font-size: .9rem;
+  font-size: .9rem !important;
   border-radius: 0.25rem;
+  color: #495057 !important;
 
   .vs__selected-options {
     // do not allow growing
     width: 0;
+    padding: 0;
   }
 
   .vs__selected {
@@ -160,10 +161,15 @@ export default {
     text-overflow: ellipsis;
     max-width: 100%;
     overflow: hidden;
+    border: 0;
   }
 
   .vs__search {
-    margin-top: 0.375rem;
+    font-size: .9rem;
+    border: 0;
+    padding: 0 2px;
+    padding-top: 0.375rem;
+    margin: 0;
   }
 
   &:not(.vs--open) .vs__selected + .vs__search {
@@ -177,17 +183,20 @@ export default {
   }
 
   .vs__dropdown-toggle {
-    padding: 0.375rem;
-    padding-top: 0;
+    min-height: calc(1.5em + 0.75rem + 4px);
+    padding: 0.375rem calc(0.75rem - 2px);
+    padding-top: 0 !important;
     border-width: 2px;
     border-color: var(--light);
 
     .vs__selected {
       margin-top: 0.375rem;
+      padding: 0 2px;
     }
 
     .vs__actions {
       padding-top: 0.375rem;
+      padding-right: 0;
     }
   }
 
@@ -204,6 +213,18 @@ export default {
     cursor: pointer;
     margin-right: 8px
   }
+
+  &.vs--single {
+    .vs__selected {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+}
+
+.vs__spinner, .vs__spinner::after {
+  width: 4em;
+  height: 4em;
 }
 
 .vs__dropdown-menu {
@@ -211,18 +232,46 @@ export default {
 }
 
 .c-input-sm {
-  height: calc(1.5em + .5rem + 2px);
-  padding-top: .25rem;
-  padding-bottom: .25rem;
-  padding-left: .5rem;
-  font-size: .875rem;
+  font-size: 0.7875rem !important;
+
+  .vs__search {
+    font-size: 0.7875rem;
+    padding-top: 0.25rem;
+  }
+
+  .vs__dropdown-toggle {
+    min-height: calc(1.5em + 0.5rem + 4px);
+    padding: 0.25rem calc(0.5rem - 2px);
+
+    .vs__selected {
+      margin-top: 0.25rem;
+    }
+
+    .vs__actions {
+      padding-top: 0.25rem;
+    }
+  }
 }
 .c-input-lg {
-  height: calc(1.5em + 1rem + 2px);
-  padding-top: .5rem;
-  padding-bottom: .5rem;
-  padding-left: 1rem;
-  font-size: 1.25rem;
+  font-size: 1.125rem !important;
+
+  .vs__search {
+    font-size: 1.125rem;
+    padding-top: .5rem;
+  }
+
+  .vs__dropdown-toggle {
+    min-height: calc(1.5em + 1rem + 4px);
+    padding: .5rem calc(1rem - 2px);
+
+    .vs__selected {
+      margin-top: .5rem;
+    }
+
+    .vs__actions {
+      padding-top: .5rem;
+    }
+  }
 }
 
 </style>

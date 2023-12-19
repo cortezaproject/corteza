@@ -15,7 +15,7 @@
         class="mb-0"
       >
         <c-input-select
-          v-model="connection"
+          v-model="connectionID"
           :disabled="processing.connections"
           :options="connections"
           :clearable="false"
@@ -35,7 +35,7 @@
     </div>
 
     <h5
-      v-else-if="!(connection && modules[connection])"
+      v-else-if="!(connectionID && modules[connectionID])"
       class="text-center mt-5"
     >
       {{ $t('no-data-available') }}
@@ -44,7 +44,7 @@
     <module-records
       v-else
       v-slot="{ value }"
-      :modules="modules[connection]"
+      :modules="modules[connectionID]"
     >
       <p
         v-for="(v, vi) in value.value"
@@ -67,7 +67,7 @@
           variant="light"
           size="lg"
           class="ml-1"
-          @click="$router.push({ name: 'request.create', params: { kind: 'delete', connectionObj } })"
+          @click="$router.push({ name: 'request.create', params: { kind: 'delete', connection } })"
         >
           {{ $t('request-deletion') }}
         </b-button>
@@ -78,7 +78,7 @@
           variant="primary"
           size="lg"
           class="ml-1"
-          @click="$router.push({ name: 'request.create', params: { kind: 'correct', connectionObj } })"
+          @click="$router.push({ name: 'request.create', params: { kind: 'correct', connection } })"
         >
           {{ $t('request-correction') }}
         </b-button>
@@ -111,22 +111,24 @@ export default {
         sensitiveData: true,
       },
 
-      connection: undefined,
+      connectionID: undefined,
 
       connections: [],
 
       modules: {},
-
-      connectionObj: {},
     }
   },
 
+  computed: {
+    connection () {
+      return this.connections.find(({ connectionID }) => connectionID === this.connectionID) || {}
+    },
+  },
+
   watch: {
-    connection: {
+    connectionID: {
       handler (connectionID = '') {
-        console.log('connection', connectionID)
         this.fetchSensitiveData(connectionID)
-        this.connectionObj = this.connections.find(({ connectionID: id }) => id === connectionID) || {}
       },
     },
   },
@@ -142,7 +144,8 @@ export default {
       this.$SystemAPI.dataPrivacyConnectionList()
         .then(({ set = [] }) => {
           this.connections = set
-          this.connection = set[0].connectionID
+          const { connectionID } = set[0] || {}
+          this.connectionID = connectionID
         })
         .catch(this.toastErrorHandler(this.$t('notification:connection-load-failed')))
         .finally(() => {
@@ -151,7 +154,6 @@ export default {
     },
 
     fetchSensitiveData (connectionID) {
-      console.log('fetchSensitiveData', connectionID)
       if (connectionID) {
         this.processing.sensitiveData = true
 

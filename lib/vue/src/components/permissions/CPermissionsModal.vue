@@ -70,7 +70,7 @@
             v-for="(n, index) in getEvalName(e)"
             :key="index"
             :title="n"
-            class="pointer text-center text-primary text-break mb-1"
+            class="pointer text-center text-primary mb-1"
           >
             {{ n }}
           </label>
@@ -88,7 +88,7 @@
           class="d-none d-lg-flex pointer border-bottom flex-column align-items-center justify-content-center overflow-hidden border-left p-3"
         >
           <label
-            class="pointer text-center text-primary text-break mb-1"
+            class="pointer text-center text-primary mb-1"
           >
             {{ labels.add.label }}
           </label>
@@ -136,7 +136,7 @@
             <h5
               v-for="r in e.rules"
               :key="r.operation"
-               v-b-tooltip.hover="{ title: getRuleTooltip(r.access === 'unknown-context', !!e.userID), container: '#body' }"
+              v-b-tooltip.hover="{ title: getRuleTooltip(r.access === 'unknown-context', !!e.userID), container: '#body' }"
               class="text-center mb-1 mt-2 w-100"
             >
               <font-awesome-icon
