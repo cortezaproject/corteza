@@ -30,9 +30,12 @@ $dark:          #162425 !default;
 $tertiary:      #5E727E !default;
 
 $gray-200:      #F9FAFB !default;
+$gray-300: $black !default;
+$gray-700: $black !default;
 
 // Body
 $body-bg: $gray-200 !default;
+$body-color: $black !default;
 
 $theme-colors: () !default;
 $theme-colors: map-merge(
