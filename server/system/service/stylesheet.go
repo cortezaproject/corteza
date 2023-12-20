@@ -42,36 +42,19 @@ func GenerateCSS(settings *types.AppSettings, sassDirPath string, log *zap.Logge
 	transpiler := sass.DartSassTranspiler(log)
 
 	// transpile sass to css for each theme
-	if studio.Themes != nil {
-		for _, theme := range studio.Themes {
-			if studio.CustomCSS == nil {
-				err := sass.Transpile(transpiler, log, theme.ID, theme.Values, "", sassDirPath)
-				if err != nil {
-					continue
-				}
-			}
-
-			customCSS := processCustomCSS(theme.ID, customCSSMap)
-			// transpile sass to css
-			err := sass.Transpile(transpiler, log, theme.ID, theme.Values, customCSS, sassDirPath)
+	for _, theme := range studio.Themes {
+		if studio.CustomCSS == nil {
+			err := sass.Transpile(transpiler, log, theme.ID, theme.Values, "", sassDirPath)
 			if err != nil {
 				continue
 			}
 		}
-	} else {
-		if studio.CustomCSS != nil {
-			for key := range customCSSMap {
-				if key == sass.GeneralTheme {
-					continue
-				}
 
-				customCSS := processCustomCSS(key, customCSSMap)
-				// transpile sass to css
-				err := sass.Transpile(transpiler, log, key, "", customCSS, sassDirPath)
-				if err != nil {
-					continue
-				}
-			}
+		customCSS := processCustomCSS(theme.ID, customCSSMap)
+		// transpile sass to css
+		err := sass.Transpile(transpiler, log, theme.ID, theme.Values, customCSS, sassDirPath)
+		if err != nil {
+			continue
 		}
 	}
 

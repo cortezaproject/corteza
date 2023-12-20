@@ -120,19 +120,19 @@ export default {
   data () {
     return {
       themeInputs: [
-        'white',
-        'black',
         'primary',
+        'black',
+        'white',
         'secondary',
+        'gray-200',
         'success',
         'warning',
         'danger',
         'light',
         'extra-light',
         'dark',
-        'tertiary',
-        'gray-200',
         'body-bg',
+        'tertiary',
       ],
       lightModeVariables: {
         'white': '#FFFFFF',
