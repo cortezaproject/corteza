@@ -49,7 +49,7 @@
               :key="view"
               variant="light"
               class="mr-1 mb-1"
-              @click="api().changeView(view)"
+              @click="changeView(view, 300)"
             >
               {{ $t(`calendar.view.${view}`) }}
             </b-btn>
@@ -150,12 +150,6 @@ export default {
         editable: false,
         dayMaxEventRows: true,
         headerToolbar: false,
-        // Remove
-        // headerToolbar: {
-        //   left: 'prev,next',
-        //   center: 'title',
-        //   right: 'listMonth, timeGridDay, dayGridMonth, timeGridWeek' // user can switch between the two
-        // },
         locale: this.locale,
         events: this.events,
         eventClick: this.handleEventClick,
@@ -213,6 +207,7 @@ export default {
 
   mounted () {
     this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.changeView(this.block.options.defaultView, 500)
   },
 
   beforeDestroy () {
@@ -397,40 +392,25 @@ export default {
     destroyEvents () {
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
+
+    changeView (view, timeout) {
+      this.api().changeView(view)
+
+      setTimeout(() => {
+        this.api().today()
+      }, timeout)
+    },
   },
 }
 </script>
 <style lang="scss">
 .calendar-container {
-  // * {
-  //   height: 100% !important;
-  //   width: 100% !important;
-  // }
-  .fc-daygrid-body,
-  .fc-timegrid-body,
-  .fc-timegrid-slots table,
-  // messes up day and partially week
-  // .fc-timegrid-cols table,
-  table .fc-scrollgrid-sync-table {
-    height: 100% !important;
-    width: 100% !important;
-  }
-
-  .fc-event-main-frame {
-    height: 100% !important;
-    width: 100% !important;
-  }
-
-  .fc-scroller {
-    overflow: hidden scroll !important;
-  }
-
   .fc-col-header {
-    width: 100% !important;
+    width: 100%;
   }
 
   .fc-media-screen {
-    height: 100% !important;
+    height: 100%;
   }
 
   .fc-event-main-frame {
