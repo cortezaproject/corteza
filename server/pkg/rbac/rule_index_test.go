@@ -16,108 +16,109 @@ func TestIndex(t *testing.T) {
 		role uint64
 		op   string
 		res  string
-	}{{
-		name: "empty",
-		in:   nil,
-		out:  nil,
+	}{
+		{
+			name: "empty",
+			in:   nil,
+			out:  nil,
 
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}, {
-		name: "match",
-		in: []*Rule{{
-			RoleID:    1,
-			Resource:  "a:b/c/d",
-			Operation: "read",
-			Access:    Allow,
-		}},
-		out: []int{0},
-
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}, {
-		name: "multiple matches",
-		in: []*Rule{{
-			RoleID:    1,
-			Resource:  "a:b/c/d",
-			Operation: "read",
-			Access:    Allow,
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
 		}, {
-			RoleID:    1,
-			Resource:  "a:b/*/*",
-			Operation: "read",
-			Access:    Inherit,
-		}},
-		out: []int{0, 1},
+			name: "match",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "read",
+				Access:    Allow,
+			}},
+			out: []int{0},
 
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}, {
-		name: "one match one role missmatch",
-		in: []*Rule{{
-			RoleID:    2,
-			Resource:  "a:b/c/d",
-			Operation: "read",
-			Access:    Allow,
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
 		}, {
-			RoleID:    1,
-			Resource:  "a:b/*/*",
-			Operation: "read",
-			Access:    Inherit,
-		}},
-		out: []int{1},
+			name: "multiple matches",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "read",
+				Access:    Allow,
+			}, {
+				RoleID:    1,
+				Resource:  "a:b/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}},
+			out: []int{0, 1},
 
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}, {
-		name: "role missmatch",
-		in: []*Rule{{
-			RoleID:    2,
-			Resource:  "a:b/c/d",
-			Operation: "read",
-			Access:    Allow,
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
 		}, {
-			RoleID:    3,
-			Resource:  "a:b/*/*",
-			Operation: "read",
-			Access:    Inherit,
-		}},
-		out: nil,
+			name: "one match one role missmatch",
+			in: []*Rule{{
+				RoleID:    2,
+				Resource:  "a:b/c/d",
+				Operation: "read",
+				Access:    Allow,
+			}, {
+				RoleID:    1,
+				Resource:  "a:b/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}},
+			out: []int{1},
 
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}, {
-		name: "path missmatch",
-		in: []*Rule{{
-			RoleID:    1,
-			Resource:  "a:b/c/e",
-			Operation: "read",
-			Access:    Allow,
-		}},
-		out: nil,
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
+		}, {
+			name: "role missmatch",
+			in: []*Rule{{
+				RoleID:    2,
+				Resource:  "a:b/c/d",
+				Operation: "read",
+				Access:    Allow,
+			}, {
+				RoleID:    3,
+				Resource:  "a:b/*/*",
+				Operation: "read",
+				Access:    Inherit,
+			}},
+			out: nil,
 
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}, {
-		name: "operation missmatch",
-		in: []*Rule{{
-			RoleID:    1,
-			Resource:  "a:b/c/d",
-			Operation: "write",
-			Access:    Allow,
-		}},
-		out: nil,
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
+		}, {
+			name: "path missmatch",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/e",
+				Operation: "read",
+				Access:    Allow,
+			}},
+			out: nil,
 
-		role: 1,
-		op:   "read",
-		res:  "a:b/c/d",
-	}}
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
+		}, {
+			name: "operation missmatch",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			out: nil,
+
+			role: 1,
+			op:   "read",
+			res:  "a:b/c/d",
+		}}
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
