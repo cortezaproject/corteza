@@ -229,14 +229,9 @@
                               class="d-flex align-items-center"
                             >
                               {{ $t('general.label.name') }}
-                              <div
-                                v-b-tooltip.hover.topright="{ title: $t('edit.tooltip.name'), container: '#body' }"
-                                class="ml-1"
-                              >
-                                <font-awesome-icon
-                                  :icon="['far', 'question-circle']"
-                                />
-                              </div>
+                              <c-hint
+                                :tooltip="$t('edit.tooltip.name')"
+                              />
                             </div>
                           </th>
 
@@ -247,14 +242,9 @@
                               class="d-flex align-items-center"
                             >
                               {{ $t('general.label.title') }}
-                              <div
-                                v-b-tooltip.hover.topright="{ title: $t('edit.tooltip.title'), container: '#body' }"
-                                class="ml-1"
-                              >
-                                <font-awesome-icon
-                                  :icon="['far', 'question-circle']"
-                                />
-                              </div>
+                              <c-hint
+                                :tooltip="$t('edit.tooltip.title')"
+                              />
                             </div>
                           </th>
 
