@@ -2025,6 +2025,10 @@ func (svc record) DupDetection(ctx context.Context, m *types.Module, rec *types.
 		config = m.Config.RecordDeDup
 	)
 
+	if !config.Enabled {
+		return
+	}
+
 	if len(config.Rules) > 0 {
 		records, _, err = svc.Find(ctx, types.RecordFilter{
 			ModuleID:    m.ID,

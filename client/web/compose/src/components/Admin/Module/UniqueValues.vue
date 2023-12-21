@@ -1,16 +1,27 @@
 <template>
   <div>
-    <c-hint
-      :tooltip="$t('tooltip.performance')"
-      icon-class="text-warning"
-      class="float-right"
-    />
+    <b-form-group label-class="d-flex align-items-center text-primary p-0">
+      <template #label>
+        {{ $t('enabled') }}
+        <c-hint
+          :tooltip="$t('tooltip.performance')"
+          icon-class="text-warning"
+        />
+      </template>
+
+      <c-input-checkbox
+        v-model="isEnabled"
+        switch
+        :labels="checkboxLabel"
+        data-test-id="checkbox-enabled"
+      />
+    </b-form-group>
 
     <div
       v-for="(rule, index) in rules"
       :key="index"
     >
-      <hr v-if="index">
+      <hr>
 
       <h5 class="d-flex align-items-center">
         {{ $t('uniqueValueConstraint', { index: index + 1 }) }}
@@ -127,9 +138,8 @@
 
     <div class="d-flex justify-content-end">
       <b-button
-        size="lg"
         variant="outline-light"
-        class="d-flex align-items-center border-0 text-primary mt-3"
+        class="d-flex align-items-center border-0 text-primary"
         @click="addNewConstraint"
       >
         <font-awesome-icon
@@ -172,8 +182,19 @@ export default {
       get () {
         return this.module.config.recordDeDup.rules
       },
+
       set (value) {
         this.module.config.recordDeDup.rules = value
+      },
+    },
+
+    isEnabled: {
+      get () {
+        return this.module.config.recordDeDup.enabled
+      },
+
+      set (value) {
+        this.module.config.recordDeDup.enabled = value
       },
     },
 
