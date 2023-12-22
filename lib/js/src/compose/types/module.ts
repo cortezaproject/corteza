@@ -58,7 +58,6 @@ interface Config {
   };
 
   recordDeDup: {
-    enabled: boolean;
     rules: RecordDeDupRule[];
   };
 }
@@ -175,7 +174,6 @@ export class Module {
     },
 
     recordDeDup: {
-      enabled: false,
       rules: [],
     },
   }
