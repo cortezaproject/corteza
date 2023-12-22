@@ -282,13 +282,15 @@ export default {
     },
 
     onBoundsUpdate (value) {
-      setTimeout(() => {
-        this.$refs.map.mapObject.invalidateSize()
-      }, 100)
-
-      value = value || this.$refs.map.mapObject.getBounds()
-
-      this.$emit('on-bounds-update', value)
+      if (this.$refs.map) {
+        setTimeout(() => {
+          this.$refs.map.mapObject.invalidateSize()
+        }, 100)
+  
+        value = value || this.$refs.map.mapObject.getBounds()
+  
+        this.$emit('on-bounds-update', value)
+      }
     }
   },
 }
