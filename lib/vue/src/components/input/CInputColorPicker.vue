@@ -178,4 +178,8 @@ export default {
 .vc-chrome {
   font-family: 'Poppins-Medium' !important;
 }
+
+.vc-chrome {
+  background-color: var(--white) !important;
+}
 </style>

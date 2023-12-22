@@ -139,7 +139,7 @@
           >
             {{ getPagination }}
           </div>
-        
+
           <div class="d-flex align-items-center ml-2 my-1 gap-1 text-nowrap">
             <span>
                 {{ $t('general:resourceList.pagination.recordsPerPage') }}
@@ -466,7 +466,8 @@ export default {
 <style lang="scss">
 #resource-list {
   th {
-    background-color: var(--gray-200) !important;
+    color: var(--black);
+    background-color: var(--extra-light) !important;
   }
 
   td.actions {
@@ -484,7 +485,6 @@ export default {
 
   tr:hover td.actions {
     opacity: 1;
-    background-color: var(--gray-200);
     z-index: 1;
   }
 }

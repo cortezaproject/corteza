@@ -164,7 +164,7 @@ export default {
 
 .nav-item > span {
   .title {
-    color: var(--tertiary);
+    color: var(--gray-200);
   }
 }
 

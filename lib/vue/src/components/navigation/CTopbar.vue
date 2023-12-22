@@ -137,15 +137,18 @@
             </span>
           </div>
         </template>
+
         <b-dropdown-text
           data-test-id="dropdown-item-username"
           class="text-muted mb-2"
         >
           {{ labels.userSettingsLoggedInAs }}
         </b-dropdown-text>
+
         <div>
           <slot name="avatar-dropdown" />
         </div>
+
         <b-dropdown-item
           v-for="(profileLink, index) in profileLinks"
           :key="index"
@@ -154,6 +157,7 @@
         >
           {{ profileLink.handle }}
         </b-dropdown-item>
+
         <b-dropdown-item
           v-if="!settings.hideProfileLink"
           data-test-id="dropdown-profile-user"
@@ -162,6 +166,7 @@
         >
           {{ labels.userSettingsProfile }}
         </b-dropdown-item>
+
         <b-dropdown-item
           v-if="!settings.hideChangePasswordLink"
           data-test-id="dropdown-profile-change-password"
@@ -170,17 +175,24 @@
         >
           {{ labels.userSettingsChangePassword }}
         </b-dropdown-item>
-        <b-dropdown
-         id="theme-dropleft"
-         dropleft
-         text="Theme"
-         variant="outline-link"
-         class="ml-2"
-        >
-          <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
-          <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
-        </b-dropdown>
+
+        <b-dropdown-item>
+          <b-dropdown
+            id="theme-dropleft"
+            dropleft
+            no-caret
+            text="Theme"
+            variant="outline-link"
+            class="p-0"
+            @click.prevent.stop
+          >
+            <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
+            <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
+          </b-dropdown>
+        </b-dropdown-item>
+
         <b-dropdown-divider />
+
         <b-dropdown-item
           data-test-id="dropdown-profile-logout"
           href=""
@@ -301,14 +313,12 @@ export default {
   },
 
   methods: {
-   async saveThemeMode (mode) {
+    async saveThemeMode (mode) {
       this.$auth.user.meta.theme = mode
 
-      this.$SystemAPI.userUpdate(this.$auth.user)
-          .then(() => {
-            document.getElementsByTagName('html')[0].setAttribute('data-color-mode', mode)
-          })
-          .catch(console.error)
+      this.$SystemAPI.userUpdate(this.$auth.user).then(() => {
+        document.getElementsByTagName('html')[0].setAttribute('data-color-mode', mode)
+      }).catch(console.error)
     },
   },
 }

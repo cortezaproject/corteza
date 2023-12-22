@@ -621,9 +621,7 @@ export default {
 .not-allowed {
   cursor: not-allowed;
 }
-.bg-extra-light {
-  background-color: #F3F5F7;
-}
+
 .pointer {
   cursor: pointer;
 }
@@ -633,7 +631,7 @@ export default {
 
 .hide-eval:hover {
   .rotate {
-    color: #162425 !important;
+    color: var(--primary) !important;
   }
 }
 </style>
