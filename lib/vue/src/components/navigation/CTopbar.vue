@@ -37,7 +37,7 @@
         size="lg"
         variant="outline-light"
         toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         right
         no-caret
         class="nav-icon mx-1 text-sm-nowrap"
@@ -111,7 +111,7 @@
         :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
         size="lg"
         right
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         no-caret
         class="nav-user-icon"
       >
@@ -137,15 +137,18 @@
             </span>
           </div>
         </template>
+
         <b-dropdown-text
           data-test-id="dropdown-item-username"
           class="text-muted mb-2"
         >
           {{ labels.userSettingsLoggedInAs }}
         </b-dropdown-text>
+
         <div>
           <slot name="avatar-dropdown" />
         </div>
+
         <b-dropdown-item
           v-for="(profileLink, index) in profileLinks"
           :key="index"
@@ -154,6 +157,7 @@
         >
           {{ profileLink.handle }}
         </b-dropdown-item>
+
         <b-dropdown-item
           v-if="!settings.hideProfileLink"
           data-test-id="dropdown-profile-user"
@@ -162,6 +166,7 @@
         >
           {{ labels.userSettingsProfile }}
         </b-dropdown-item>
+
         <b-dropdown-item
           v-if="!settings.hideChangePasswordLink"
           data-test-id="dropdown-profile-change-password"
@@ -170,17 +175,23 @@
         >
           {{ labels.userSettingsChangePassword }}
         </b-dropdown-item>
+
         <b-dropdown
-         id="theme-dropleft"
-         dropleft
-         text="Theme"
-         variant="outline-link"
-         class="ml-2"
+          id="theme-dropleft"
+          variant="link"
+          text="Theme"
+          dropleft
+          no-caret
+          toggle-class="text-decoration-none text-left dropdown-item rounded-0"
+          class="d-flex"
+          @click.prevent.stop
         >
           <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
           <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
         </b-dropdown>
+
         <b-dropdown-divider />
+
         <b-dropdown-item
           data-test-id="dropdown-profile-logout"
           href=""
@@ -301,14 +312,12 @@ export default {
   },
 
   methods: {
-   async saveThemeMode (mode) {
+    async saveThemeMode (mode) {
       this.$auth.user.meta.theme = mode
 
-      this.$SystemAPI.userUpdate(this.$auth.user)
-          .then(() => {
-            document.getElementsByTagName('html')[0].setAttribute('data-color-mode', mode)
-          })
-          .catch(console.error)
+      this.$SystemAPI.userUpdate(this.$auth.user).then(() => {
+        document.getElementsByTagName('html')[0].setAttribute('data-color-mode', mode)
+      }).catch(console.error)
     },
   },
 }
@@ -339,7 +348,6 @@ $nav-user-icon-size: 50px;
 .header-navigation {
   width: 100vw;
   min-height: $header-height;
-  background-color: var(--body-bg);
 }
 
 .avatar {
@@ -403,5 +411,11 @@ $nav-user-icon-size: 50px;
 <style lang="scss">
 .topbar-dropdown-menu {
   z-index: 1100;
+}
+
+#theme-dropleft {
+  .btn {
+    font-family: var(--font-regular);
+  }
 }
 </style>

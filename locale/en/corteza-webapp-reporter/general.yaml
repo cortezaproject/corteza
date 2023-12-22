@@ -19,7 +19,7 @@ label:
   today: Today
   urlPlaceholder: https://example.tld
   default: Default
-  report: 
+  report:
     single: Report
     plural: Reports
 
@@ -32,4 +32,4 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page

@@ -3,6 +3,7 @@
     header-bg-variant="white"
     footer-bg-variant="white"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    body-class="p-0"
     class="shadow-sm"
   >
     <template #header>
@@ -21,7 +22,7 @@
 
     <b-tabs
       data-test-id="theme-tabs"
-      nav-wrapper-class="bg-white white border-bottom rounded-0"
+      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab
@@ -50,7 +51,7 @@
                   saveBtnLabel: $t('general:label.saveAndClose')
                 }"
               >
-                <template v-slot:footer>
+                <template #footer>
                   <b-button
                     variant="outline-primary"
                     class="mr-auto"
@@ -63,8 +64,50 @@
             </b-form-group>
           </b-col>
         </b-row>
+
+        <!-- <b-row>
+          <b-col>
+            <b-form-group
+              :label="$t('custom-css')"
+              label-class="text-primary"
+            >
+              <c-ace-editor
+                v-model="theme.values"
+                lang="css"
+                height="300px"
+                font-size="14px"
+                show-line-numbers
+                :border="false"
+                :show-popout="true"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row> -->
       </b-tab>
     </b-tabs>
+
+    <!-- <b-modal
+      id="custom-css-editor"
+      v-model="theme.showEditorModal"
+      :title="$t('modal.editor')"
+      cancel-variant="link"
+      size="lg"
+      :ok-title="$t('general:label.saveAndClose')"
+      :cancel-title="$t('general:label.cancel')"
+      body-class="p-0"
+      @ok="saveCustomCSSInput(theme.id)"
+      @hidden="resetCustomCSSInput(theme.id)"
+    >
+      <c-ace-editor
+        v-model="theme.modalValue"
+        lang="scss"
+        height="500px"
+        font-size="14px"
+        show-line-numbers
+        :border="false"
+        :show-popout="false"
+      />
+    </b-modal> -->
 
     <template #footer>
       <c-button-submit
@@ -81,7 +124,7 @@
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputColorPicker } = components
+const { CInputColorPicker, CAceEditor } = components
 
 export default {
   name: 'CUIBrandingEditor',
@@ -93,6 +136,7 @@ export default {
 
   components: {
     CInputColorPicker,
+    CAceEditor,
   },
 
   props: {
@@ -120,48 +164,39 @@ export default {
   data () {
     return {
       themeInputs: [
-        'primary',
         'black',
         'white',
+        'primary',
         'secondary',
-        'gray-200',
         'success',
         'warning',
         'danger',
         'light',
         'extra-light',
-        'dark',
         'body-bg',
-        'tertiary',
       ],
       lightModeVariables: {
-        'white': '#FFFFFF',
         'black': '#162425',
+        'white': '#FFFFFF',
         'primary': '#0B344E',
         'secondary': '#758D9B',
         'success': '#43AA8B',
         'warning': '#E2A046',
         'danger': '#E54122',
-        'light': '#E4E9EF',
-        'extra-light': '#F3F5F7',
-        'dark': '#162425',
-        'tertiary': '#5E727E',
-        'gray-200': '#F9FAFB',
-        'body-bg': '#F9FAFB',
+        'light': '#F3F5F7',
+        'extra-light': '#E4E9EF',
+        'body-bg': '#F3F5F7',
       },
       darkModeVariables: {
-        'white': '#162425',
-        'black': '#FFFFFF',
-        'primary': '#43AA8B',
-        'secondary': '#E4E9EF',
-        'success': '#E2A046',
-        'warning': '#758D9B',
+        'black': '#FBF7F4',
+        'white': '#0B344E',
+        'primary': '#FF9661',
+        'secondary': '#758D9B',
+        'success': '#43AA8B',
+        'warning': '#E2A046',
         'danger': '#E54122',
-        'light': '#5E727E',
-        'extra-light': '#F3F5F7',
-        'dark': '#0B344E',
-        'tertiary': '#F9FAFB',
-        'gray-200': '#162425',
+        'light': '#768D9A',
+        'extra-light': '#23495F',
         'body-bg': '#162425',
       },
       themes: [],
@@ -213,10 +248,8 @@ export default {
       })
     },
 
-    resetColor (key, index, mode) {
-      this.themes.forEach(theme => {
-        theme.values[key] = mode === 'light' ? this.lightModeVariables[key] : this.darkModeVariables[key]
-      })
+    resetColor (key, index, id) {
+      this.themes.find(theme => theme.id === id).values[key] = id === 'light' ? this.lightModeVariables[key] : this.darkModeVariables[key]
       this.$refs.picker[index].closeMenu()
     },
 

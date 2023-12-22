@@ -23,7 +23,7 @@
 
     <b-tabs
       data-test-id="filter-steps"
-      nav-wrapper-class="bg-white white border-bottom rounded-0"
+      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab

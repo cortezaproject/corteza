@@ -14,7 +14,7 @@
 
     <b-tabs
       data-test-id="theme-tabs"
-      nav-wrapper-class="bg-white white border-bottom rounded-0"
+      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab

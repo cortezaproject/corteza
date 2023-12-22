@@ -52,7 +52,7 @@
       <template #actions="{ item: n }">
         <b-dropdown
           v-if="n.nodeID === n.sharedNodeID && (n.status || '').toLowerCase() === 'pair_requested'"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           dropleft

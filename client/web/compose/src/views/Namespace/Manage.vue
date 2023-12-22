@@ -85,51 +85,49 @@
       </template>
 
       <template #actions="{ item: n }">
-        <div>
-          <b-dropdown
-            v-if="n.canDeleteNamespace || n.canGrant"
-            variant="outline-light"
-            toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
-            no-caret
-            dropleft
-            lazy
-            menu-class="m-0"
-          >
-            <template #button-content>
-              <font-awesome-icon
-                :icon="['fas', 'ellipsis-v']"
-              />
-            </template>
-
-            <b-dropdown-item
-              v-if="n.canGrant"
-              link-class="p-0"
-              variant="light"
-            >
-              <c-permissions-button
-                :title="n.name || n.slug || n.namespaceID"
-                :target="n.name || n.slug || n.namespaceID"
-                :resource="`corteza::compose:namespace/${n.namespaceID}`"
-                :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
-                :button-label="$t('permissions:ui.label')"
-                button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
-              />
-            </b-dropdown-item>
-
-            <c-input-confirm
-              v-if="n.canDeleteNamespace"
-              :text="$t('delete')"
-              show-icon
-              borderless
-              variant="link"
-              size="md"
-              button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
-              icon-class="text-danger"
-              class="w-100"
-              @confirmed="handleDelete(n)"
+        <b-dropdown
+          v-if="n.canDeleteNamespace || n.canGrant"
+          variant="outline-extra-light"
+          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
+          no-caret
+          dropleft
+          lazy
+          menu-class="m-0"
+        >
+          <template #button-content>
+            <font-awesome-icon
+              :icon="['fas', 'ellipsis-v']"
             />
-          </b-dropdown>
-        </div>
+          </template>
+
+          <b-dropdown-item
+            v-if="n.canGrant"
+            link-class="p-0"
+            variant="light"
+          >
+            <c-permissions-button
+              :title="n.name || n.slug || n.namespaceID"
+              :target="n.name || n.slug || n.namespaceID"
+              :resource="`corteza::compose:namespace/${n.namespaceID}`"
+              :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
+              :button-label="$t('permissions:ui.label')"
+              button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            />
+          </b-dropdown-item>
+
+          <c-input-confirm
+            v-if="n.canDeleteNamespace"
+            :text="$t('delete')"
+            show-icon
+            borderless
+            variant="link"
+            size="md"
+            button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+            icon-class="text-danger"
+            class="w-100"
+            @confirmed="handleDelete(n)"
+          />
+        </b-dropdown>
       </template>
     </c-resource-list>
   </b-container>

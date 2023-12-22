@@ -7,12 +7,12 @@
         v-model="isExpanded"
         data-test-id="sidebar"
         :sidebar-class="`sidebar ${isExpanded ? 'expanded' : ''}`"
-        :header-class="`d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
+        :header-class="`bg-white d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
         :body-class="`bg-white ${isExpanded ? 'px-3' : ''}`"
         :footer-class="`bg-white rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"
         :backdrop="isMobile"
-        :shadow="isExpanded"
+        :shadow="isExpanded && 'sm'"
         no-slide
         :right="right"
         no-close-on-route-change
@@ -336,7 +336,6 @@ $header-height: 64px;
 
 <style lang="scss">
 $nav-width: 320px;
-$sidebar-bg: var(--gray-200);
 
 .sidebar {
   display: flex !important;
@@ -345,14 +344,6 @@ $sidebar-bg: var(--gray-200);
   -moz-transition: left 0.15s ease-in-out;
   -o-transition: left 0.15s ease-in-out;
   transition: left 0.15s ease-in-out;
-
-  header {
-    background-color: var(--white);
-
-    &.expanded {
-      background-color: $sidebar-bg;
-    }
-  }
 
   &.expanded {
     left: 0 !important;
@@ -370,14 +361,6 @@ $sidebar-bg: var(--gray-200);
     -moz-transition: right 0.15s ease-in-out;
     -o-transition: right 0.15s ease-in-out;
     transition: right 0.15s ease-in-out;
-
-    header {
-      background-color: var(--white);
-
-      &.expanded {
-        background-color: $sidebar-bg;
-      }
-    }
 
     &.expanded {
       right: 0 !important;

@@ -27,11 +27,12 @@ editor:
     colorPicker: Choose a color
     sassNotInstalled: No dart-sass binaries were detected. For guidance on how to set it up, refer to
     installSassDocs: docs here
+    custom-css: Custom CSS
     label:
-      default: Default 
+      default: Default
     tabs:
       light: Light
-      dark: Dark 
+      dark: Dark
     theme:
       values:
         white: White
@@ -43,19 +44,7 @@ editor:
         danger: Danger
         light: Light
         extra-light: Extra light
-        dark: Dark
-        tertiary: Tertiary
-        gray-200: Gray
         body-bg: Body background
-
-  custom-css:
-    title: Custom CSS
-    tabs:
-      general: General
-      light: Light
-      dark: Dark
-    modal:
-      editor: Custom CSS editor
 
   topbar:
     title: Topbar

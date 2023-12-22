@@ -3,11 +3,12 @@ package provision
 import (
 	"context"
 	"encoding/json"
+	"strconv"
+
 	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
-	"strconv"
 )
 
 // updateWebappTheme is a function that provisions new webapp themes,
@@ -98,36 +99,30 @@ func provisionTheme(ctx context.Context, s store.Storer, name string, themes []t
 func processNewTheme() (themes []types.Theme) {
 	lightModeValues := `
     {
+				"black":"#162425",
         "white":"#FFFFFF",
-        "black":"#162425",
-        "primary":"#2E15CCFF",
+        "primary":"#0B344E",
         "secondary":"#758D9B",
         "success":"#43AA8B",
         "warning":"#E2A046",
         "danger":"#E54122",
-        "light":"#E4E9EF",
-        "extra-light":"#F3F5F7",
-        "dark":"#162425",
-        "tertiary":"#5E727E",
-        "gray-200":"#F9FAFB",
-        "body-bg":"#F9FAFB"
+        "light":"#F3F5F7",
+        "extra-light":"#E4E9EF",
+        "body-bg":"#F3F5F7"
     }`
 
 	darkModeValues := `
     {
-        "white":"#162425",
-        "black":"#FFFFFF",
-        "primary":"#2E15CCFF",
+				"black":"#FBF7F4",
+        "white":"#0B344E",
+        "primary":"#FF9661",
         "secondary":"#758D9B",
         "success":"#43AA8B",
         "warning":"#E2A046",
         "danger":"#E54122",
-        "light":"#E4E9EF",
-        "extra-light":"#F3F5F7",
-        "dark":"#162425",
-        "tertiary":"#5E727E",
-        "gray-200":"#F9FAFB",
-        "body-bg":"#F9FAFB"
+        "light":"#768D9A",
+        "extra-light":"#23495F",
+        "body-bg":"#092B40"
     }`
 
 	themes = []types.Theme{

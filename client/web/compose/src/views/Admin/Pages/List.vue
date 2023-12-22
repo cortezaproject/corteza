@@ -64,7 +64,8 @@
                   :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
                   :button-label="$t('general:label.page')"
                   :show-button-icon="false"
-                  button-variant="white text-left w-100"
+                  button-variant="outline-light"
+                  class="border-0 text-dark text-left w-100"
                 />
               </b-dropdown-item>
 
@@ -73,7 +74,8 @@
                   :resource="`corteza::compose:page-layout/${namespace.namespaceID}/*/*`"
                   :button-label="$t('general:label.pageLayout')"
                   :show-button-icon="false"
-                  button-variant="white text-left w-100"
+                  button-variant="outline-light"
+                  class="border-0 text-dark text-left w-100"
                 />
               </b-dropdown-item>
             </b-dropdown>

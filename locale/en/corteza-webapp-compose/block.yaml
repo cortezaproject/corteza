@@ -422,7 +422,7 @@ recordList:
     showing: '{{from}} - {{to}} of {{count}} records'
     single: One record
     single_plural: '{{count}} records'
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page
     selectLabel: Select an option
   positionField:
     footnote: Records will be sorted based on this field

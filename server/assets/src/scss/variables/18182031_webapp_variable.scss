@@ -14,7 +14,7 @@ $font-bold: 'Poppins-Bold' !default;
 $font-size-base: 0.9rem !default;
 
 $font-family-base:      $font-regular !default;
-$headings-font-family:  $font-semibold !default;
+$headings-font-family:  $font-bold !default;
 
 // Color system
 $white:         #FFFFFF !default;
@@ -24,36 +24,47 @@ $secondary:     #758D9B !default;
 $success:       #43AA8B !default;
 $warning:       #E2A046 !default;
 $danger:        #E54122 !default;
-$light:         #E4E9EF !default;
-$extra-light:   #F3F5F7 !default;
-$dark:          #162425 !default;
-$tertiary:      #5E727E !default;
+$light:         #F3F5F7 !default;
+$extra-light:   #E4E9EF !default;
+$dark:          $black !default;
 
-$gray-200:      #F9FAFB !default;
-$gray-300: $black !default;
-$gray-700: $black !default;
+$gray-100: if(lightness($black) < lightness($white), mix($black, $white, 10%), mix($white, $black, 10%));
+$gray-200: if(lightness($black) < lightness($white), mix($black, $white, 20%), mix($white, $black, 20%));
+$gray-300: if(lightness($black) < lightness($white), mix($black, $white, 30%), mix($white, $black, 30%));
+$gray-400: if(lightness($black) < lightness($white), mix($black, $white, 40%), mix($white, $black, 40%));
+$gray-500: if(lightness($black) < lightness($white), mix($black, $white, 50%), mix($white, $black, 50%));
+$gray-600: if(lightness($black) < lightness($white), mix($black, $white, 60%), mix($white, $black, 60%));
+$gray-700: if(lightness($black) < lightness($white), mix($black, $white, 70%), mix($white, $black, 70%));
+$gray-800: if(lightness($black) < lightness($white), mix($black, $white, 80%), mix($white, $black, 80%));
+$gray-900: if(lightness($black) < lightness($white), mix($black, $white, 90%), mix($white, $black, 90%));
 
-// Body
-$body-bg: $gray-200 !default;
-$body-color: $black !default;
+// $yiq-text-dark:             $black !default;
+// $yiq-text-light:            $white !default;
 
 $theme-colors: () !default;
 $theme-colors: map-merge(
   (
     "white": $white,
-    "tertiary": $tertiary
+    "black": $black,
+    "extra-light": $extra-light,
   ),
   $theme-colors
 );
 
-// Grid - maybe not the smartest idea to change this but let's see
+// Grid
 $grid-breakpoints: (
   xs: 0,
   sm: 576px,
   md: 768px,
   lg: 992px,
-  xl: 1500px
+  xl: 1200px,
+  xxl: 1400px,
 ) !default;
+
+// Body
+$body-bg:  $light !default;
+$body-color: $black !default;
+$border-color: $extra-light !default;
 
 // Options
 $enable-rounded:   true !default;
@@ -61,27 +72,56 @@ $enable-gradients: false !default;
 $enable-responsive-font-sizes: true !default;
 
 // Card
+$card-border-color: $extra-light !default;
 $card-border-radius: 1rem !default;
 $card-border-width:  0 !default;
-$card-cap-bg:        $gray-200 !default;
+$card-cap-bg:        $white !default;
 
 // Tables
 $table-cell-padding-sm: 0.25rem !default;
-$table-hover-bg:     $gray-200 !default;
+$table-color:           $black !default;
+$table-head-color:      $black !default;
+$table-head-bg:         $light !default;
+$table-hover-bg:        $light !default;
+$table-border-color:    $extra-light !default;
 
 // Buttons
 $btn-font-size: $font-size-base !default;
 $btn-padding-y: 0.25em !default;
 $btn-padding-x: 1em !default;
+$input-btn-border-width: 1px !default;
 
-$btn-focus-width:       0.2rem !default;
+$btn-focus-width:       2px !default;
 $btn-focus-box-shadow:  none !default;
 $btn-active-box-shadow: none !default;
 
 $btn-font-size-lg:  16px !default;
-$btn-font-family:   $font-semibold !default;
+$btn-font-family:   $font-medium !default;
 
-$topbar-height:         64px !default;
+// Tabs
+$nav-link-color:                    $black !default;
+$nav-tabs-border-color:             transparent !default;
+$nav-tabs-border-width:             4px !default;
+$nav-tabs-border-radius:            0 !default;
+$nav-tabs-link-hover-border-color:  transparent transparent $secondary !default;
+$nav-tabs-link-active-color:        $black !default;
+$nav-tabs-link-active-bg:           transparent !default;
+$nav-tabs-link-active-border-color: transparent transparent $primary !default;
+
+.card-header-tabs {
+  border-bottom: 1px solid $border-color !important;
+}
+
+.card-header {
+  .nav-item {
+    font-family: $font-medium !important;
+    margin-bottom: 0 !important;
+
+    .nav-link {
+      color: var(--black) !important;
+    }
+  }
+}
 
 // Navbar
 $navbar-bg:             $white !default;
@@ -98,8 +138,11 @@ $navbar-padding-y:      0 !default;
 $navbar-padding-x:      0 !default;
 
 $navbar-toggler-font-size:  24px !default;
-$sidebar-width:         320px !default;
-$sidebar-bg:            #F4F7FA;
+
+// Dropdowns
+$dropdown-link-color:               $black !default;
+$dropdown-link-hover-color:         $black !default;
+$dropdown-link-hover-bg:            $light !default;
 
 // Pagination
 $pagination-color:        $primary !default;
@@ -109,19 +152,28 @@ $pagination-active-bg:    $primary !default;
 $pagination-border-width: 0 !default;
 
 // Forms
-$input-font-size: $font-size-base !default;
+$input-color: $black !default;
+$input-disabled-bg: $light !default;
 
-$input-border-color:  $light !default;
+$input-border-color:  $extra-light !default;
 $input-border-width:  2px !default;
 
-$input-btn-focus-width:     0 !default;
+$input-btn-focus-width:     2px !default;
 $input-focus-box-shadow:    none !default;
-$input-focus-border-color:  $primary !default;
+$input-focus-border-color:  $secondary !default;
+
+$input-placeholder-color: $extra-light !default;
+
+// Corteza specific variables
+// Topbar
+$topbar-height:         64px !default;
+
+// Sidebar
+$sidebar-width:         320px !default;
 
 $corteza-specific: () !default;
 $corteza-specific: map-merge(
   (
-    "gray-200": $gray-200,
     "body-bg": $body-bg,
     "sidebar-width": $sidebar-width,
     "font-regular": $font-regular,

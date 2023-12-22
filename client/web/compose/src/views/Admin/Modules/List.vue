@@ -74,7 +74,8 @@
               :resource="`corteza::compose:module/${namespace.namespaceID}/*`"
               :button-label="$t('general:label.module.single')"
               :show-button-icon="false"
-              button-variant="white text-left w-100"
+              button-variant="outline-light"
+              class="border-0 text-dark text-left w-100"
             />
           </b-dropdown-item>
 
@@ -83,7 +84,8 @@
               :resource="`corteza::compose:module-field/${namespace.namespaceID}/*/*`"
               :button-label="$t('general:label.field')"
               :show-button-icon="false"
-              button-variant="white text-left w-100"
+              button-variant="outline-light"
+              class="border-0 text-dark text-left w-100"
             />
           </b-dropdown-item>
 
@@ -92,7 +94,8 @@
               :resource="`corteza::compose:record/${namespace.namespaceID}/*/*`"
               :button-label="$t('general:label.record')"
               :show-button-icon="false"
-              button-variant="white text-left w-100"
+              button-variant="outline-light"
+              class="border-0 text-dark text-left w-100"
             />
           </b-dropdown-item>
         </b-dropdown>
@@ -111,7 +114,7 @@
           v-if="m.canGrant"
           data-test-id="dropdown-permissions"
           size="sm"
-          variant="light"
+          variant="extra-light"
           :title="$t('permissions:resources.compose.module.tooltip')"
           class="permissions-dropdown ml-2"
         >
@@ -126,7 +129,8 @@
               :resource="`corteza::compose:module/${namespace.namespaceID}/${m.moduleID}`"
               :button-label="$t('general:label.module.single')"
               :show-button-icon="false"
-              button-variant="white text-left w-100"
+              button-variant="outline-light"
+              class="border-0 text-dark text-left w-100"
             />
           </b-dropdown-item>
 
@@ -138,7 +142,8 @@
               :button-label="$t('general:label.field')"
               :show-button-icon="false"
               all-specific
-              button-variant="white text-left w-100"
+              button-variant="outline-light"
+              class="border-0 text-dark text-left w-100"
             />
           </b-dropdown-item>
 
@@ -150,13 +155,14 @@
               :button-label="$t('general:label.record')"
               :show-button-icon="false"
               all-specific
-              button-variant="white text-left w-100"
+              button-variant="outline-light"
+              class="border-0 text-dark text-left w-100"
             />
           </b-dropdown-item>
         </b-dropdown>
 
         <b-dropdown
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-2"
           no-caret
           dropleft

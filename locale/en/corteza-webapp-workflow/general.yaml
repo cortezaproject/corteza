@@ -18,7 +18,7 @@ label:
   label: Label
 loading: Loading
 name: Name
-new-workflow: New Workflow 
+new-workflow: New Workflow
 none: None
 now: Now
 
@@ -50,7 +50,7 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page
 
 tooltip:
   permissions: Workflow permissions

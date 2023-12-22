@@ -22,7 +22,7 @@
       <b-container
         ref="toolbar"
         fluid
-        class="d-flex flex-column gap-1 py-2 d-print-none"
+        class="d-flex flex-column gap-1 p-3 d-print-none"
       >
         <b-row
           no-gutters
@@ -152,7 +152,7 @@
 
           <b-button
             v-if="options.showDeletedRecordsOption"
-            variant="outline-light"
+            variant="outline-extra-light"
             size="sm"
             class="text-primary border-0 text-nowrap ml-auto"
             @click="handleShowDeleted()"
@@ -172,7 +172,7 @@
           <b-button
             v-if="!inlineEditing"
             size="sm"
-            variant="outline-light"
+            variant="outline-extra-light"
             class="text-primary border-0"
             @click="selectAllRecords()"
           >
@@ -229,7 +229,7 @@
           hover
           responsive
           sticky-header
-          class="record-list-table border-top mh-100 h-100 mb-0"
+          class="record-list-table mh-100 h-100 mb-0"
         >
           <b-thead>
             <b-tr :variant="showingDeletedRecords ? 'warning' : ''">
@@ -270,7 +270,7 @@
                   <b-button
                     v-if="field.sortable"
                     v-b-tooltip.hover="{ title: $t('recordList.sort.tooltip'), container: '#body' }"
-                    variant="outline-light"
+                    variant="outline-extra-light"
                     class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
                     @click="handleSort(field)"
                   >
@@ -296,6 +296,7 @@
                     :selected-field="field.moduleField"
                     :namespace="namespace"
                     :module="recordListModule"
+                    variant="outline-extra-light"
                     :record-list-filter="recordListFilter"
                     :allow-filter-preset-save="options.customFilterPresets"
                     class="d-print-none ml-1"
@@ -397,7 +398,7 @@
                   >
                     <b-button
                       v-b-tooltip.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
-                      variant="outline-light"
+                      variant="outline-extra-light"
                       size="sm"
                       class="text-secondary border-0 ml-1"
                       @click.stop="editInlineField(item.r, field.key)"
@@ -424,7 +425,7 @@
                 <b-dropdown
                   v-if="areActionsVisible(item.r)"
                   boundary="viewport"
-                  variant="outline-light"
+                  variant="outline-extra-light"
                   toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
                   no-caret
                   dropleft
@@ -529,7 +530,7 @@
                         :target="item.r.recordID"
                         :title="item.r.recordID"
                         :button-label="$t('recordList.record.tooltip.permissions')"
-                        button-variant="link dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                        button-variant="link dropdown-item text-decoration-none text-dark rounded-0"
                       />
                     </b-dropdown-item>
 
@@ -540,7 +541,7 @@
                       borderless
                       variant="link"
                       size="md"
-                      button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                      button-class="dropdown-item text-decoration-none text-dark rounded-0"
                       icon-class="text-danger"
                       class="w-100"
                       @confirmed="handleDeleteSelectedRecords(item.r.recordID)"
@@ -553,7 +554,7 @@
                       borderless
                       variant="link"
                       size="md"
-                      button-class="dropdown-item text-decoration-none text-dark regular-font rounded-0"
+                      button-class="dropdown-item text-decoration-none text-dark rounded-0"
                       icon-class="text-danger"
                       class="w-100"
                       @confirmed="handleRestoreSelectedRecords(item.r.recordID)"
@@ -605,15 +606,15 @@
       />
     </template>
 
-    <template #footer>
-      <div
-        v-if="showFooter"
-        class="d-flex align-items-center flex-wrap justify-content-between p-2"
-      >
-        <div class="d-flex gap-col-3 align-items-center flex-wrap">
+    <template
+      v-if="showFooter"
+      #footer
+    >
+      <div class="record-list-footer d-flex align-items-center flex-wrap justify-content-between px-3 py-2 gap-1">
+        <div class="d-flex align-items-center flex-wrap gap-1 gap-col-3">
           <div
             v-if="options.showTotalCount"
-            class="ml-2 text-nowrap my-1 text-truncate"
+            class="text-nowrap text-truncate"
           >
             <span
               v-if="pagination.count > recordsPerPage"
@@ -632,7 +633,7 @@
 
           <div
             v-if="options.showRecordPerPageOption"
-            class="d-flex align-items-center ml-2 my-1 gap-1 text-nowrap"
+            class="d-flex align-items-center gap-1 text-nowrap"
           >
             <span>
               {{ $t('recordList.pagination.recordsPerPage') }}
@@ -641,6 +642,7 @@
             <b-form-select
               v-model="recordsPerPage"
               :options="perPageOptions"
+              size="sm"
               @change="handlePerPageChange"
             />
           </div>
@@ -684,12 +686,15 @@
             </template>
           </b-pagination>
 
-          <b-button-group v-else>
+          <b-button-group
+            v-else
+            class="gap-1"
+          >
             <b-button
               :disabled="!hasPrevPage || processing"
               data-test-id="first-page"
-              variant="outline-light"
-              class="d-flex align-items-center justify-content-center text-primary border-0"
+              variant="outline-extra-light"
+              class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
               @click="goToPage()"
             >
               <font-awesome-icon :icon="['fas', 'angle-double-left']" />
@@ -698,8 +703,8 @@
             <b-button
               :disabled="!hasPrevPage || processing"
               data-test-id="previous-page"
-              variant="outline-light"
-              class="d-flex align-items-center justify-content-center text-primary border-0"
+              variant="outline-extra-light"
+              class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
               @click="goToPage('prevPage')"
             >
               <font-awesome-icon
@@ -712,8 +717,8 @@
             <b-button
               :disabled="!hasNextPage || processing"
               data-test-id="next-page"
-              variant="outline-light"
-              class="d-flex align-items-center justify-content-center text-primary border-0"
+              variant="outline-extra-light"
+              class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
               @click="goToPage('nextPage')"
             >
               {{ $t('recordList.pagination.next') }}
@@ -2046,8 +2051,8 @@ th .required::after {
 
 tr:hover td.actions {
   opacity: 1;
-  background-color: var(--gray-200);
   z-index: 1;
+  background-color: var(--light);
 }
 
 .inline-actions {
@@ -2059,7 +2064,6 @@ tr:hover td.actions {
 
 td:hover .inline-actions {
   opacity: 1;
-  background-color: var(--gray-200);
 
   button:hover {
     color: var(--primary) !important;
@@ -2069,28 +2073,23 @@ td:hover .inline-actions {
 
 <style lang="scss">
 .record-list-table {
-  th {
-    background-color: var(--gray-200) !important;
+  tr:first-child td {
+    border: none;
   }
 
   .actions {
     padding-top: 8px;
     position: sticky;
-    right: 0;
+    right: -1px;
     opacity: 0;
     transition: opacity 0.25s;
     width: 1%;
-
-    .regular-font {
-      font-family: var(--font-regular) !important;
-    }
+    font-family: var(--font-regular) !important;
   }
 }
 
-.list-style-none {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.record-list-footer {
+  font-family: var(--font-medium);
 }
 
 @media (max-width: 576px) {
