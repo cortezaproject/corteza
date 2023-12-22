@@ -58,6 +58,7 @@
         <b-input-group-append>
           <b-button
             v-b-tooltip.hover="{ title: $t('tooltip.field'), container: '#body' }"
+            data-test-id="button-configure-field"
             variant="light"
             :disabled="!value.cap.configurable"
             @click.prevent="$emit('edit')"

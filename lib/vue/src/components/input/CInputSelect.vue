@@ -2,6 +2,7 @@
   <vue-select
     v-model="_value"
     v-bind="$attrs"
+    data-test-id="select"
     :clearable="clearable"
     :options="options"
     :searchable="searchable"
