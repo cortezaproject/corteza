@@ -15,7 +15,7 @@
           :placeholder="$t('pickNamespace')"
           :autoscroll="false"
           :append-to-body="false"
-          @option:selected="namespaceSelected"
+          @input="namespaceSelected"
         >
           <template #list-header>
             <li

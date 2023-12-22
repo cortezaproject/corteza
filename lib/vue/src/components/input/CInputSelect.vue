@@ -9,7 +9,7 @@
     :append-to-body="appendToBody"
     class="bg-white rounded"
     :class="sizeClass"
-    v-on="$listeners"
+    @search="($event) => $emit('search', $event)"
   >
     <template
       v-for="(_, name) in $scopedSlots"

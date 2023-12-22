@@ -101,6 +101,7 @@
               v-model="block.style.variants.headerText"
               :options="textVariants"
               :reduce="o => o.value"
+              :placeholder="$t('general.label.none')"
               label="text"
             />
           </b-form-group>

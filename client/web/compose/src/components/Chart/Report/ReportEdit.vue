@@ -127,7 +127,7 @@
                   label="text"
                   :reduce="modifier => modifier.value"
                   :placeholder="$t('edit.dimension.function.placeholder')"
-                  @change="onDimModifierChange($event, d)"
+                  @input="onDimModifierChange($event, d)"
                 />
               </b-form-group>
             </b-col>

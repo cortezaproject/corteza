@@ -21,7 +21,6 @@
           :get-option-key="u => u.value"
           :get-option-label="u => getUserLabel(u)"
           :placeholder="$t('admin:picker.member.placeholder')"
-          multiple
           @search="search"
           @input="updateValue($event)"
         />
@@ -182,19 +181,13 @@ export default {
       this.fetchUsers()
     }, 300),
 
-    updateValue (user, index = -1) {
+    updateValue (user) {
       // reset picker value for better value presentation
       if (this.$refs.picker) {
         this.$refs.picker._data._value = undefined
       }
 
-      if (user[0]) {
-        this.addMember(user[0])
-      } else {
-        if (index >= 0) {
-          this.value.splice(index, 1)
-        }
-      }
+      this.addMember(user)
     },
 
     getUserLabel ({ label, name, handle, username, email }) {

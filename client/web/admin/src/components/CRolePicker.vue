@@ -9,7 +9,6 @@
       :get-option-key="r => r.value"
       :get-option-label="r => getRoleLabel(r)"
       :placeholder="$t('admin:picker.role.placeholder')"
-      multiple
       @search="search"
       @input="updateValue($event)"
     />
@@ -120,19 +119,13 @@ export default {
       this.preload()
     }, 300),
 
-    updateValue (role, index = -1) {
+    updateValue (role) {
       // reset picker value for better value presentation
       if (this.$refs.picker) {
         this.$refs.picker._data._value = undefined
       }
 
-      if (role[0]) {
-        this.addRole(role[0])
-      } else {
-        if (index >= 0) {
-          this.value.splice(index, 1)
-        }
-      }
+      this.addRole(role)
     },
 
     getRoleLabel ({ name, handle, roleID }) {
