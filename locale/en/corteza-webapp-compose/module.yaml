@@ -190,7 +190,7 @@ edit:
 
     uniqueValues:
       title: Unique values
-      enabled: Enable duplication detection
+      duplicationDetection: Duplication detection
       preventRecordsSave: Prevent record saving if duplicate values are found
       warningLabel: Warning or error message toast when constraint matches
       valueModifiers: Value modifiers

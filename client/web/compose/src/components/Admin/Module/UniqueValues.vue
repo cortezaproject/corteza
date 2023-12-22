@@ -1,36 +1,25 @@
 <template>
   <div>
-    <b-form-group label-class="d-flex align-items-center text-primary p-0">
-      <template #label>
-        {{ $t('enabled') }}
-        <c-hint
-          :tooltip="$t('tooltip.performance')"
-          icon-class="text-warning"
-        />
-      </template>
-
-      <c-input-checkbox
-        v-model="isEnabled"
-        switch
-        :labels="checkboxLabel"
-        data-test-id="checkbox-enabled"
+    <h5 class="d-flex align-items-center mb-3">
+      {{ $t('duplicationDetection') }}
+      <c-hint
+        :tooltip="$t('tooltip.performance')"
+        icon-class="text-warning"
       />
-    </b-form-group>
+    </h5>
 
     <div
       v-for="(rule, index) in rules"
       :key="index"
     >
-      <hr>
-
-      <h5 class="d-flex align-items-center">
+      <label class="d-flex align-items-center text-primary">
         {{ $t('uniqueValueConstraint', { index: index + 1 }) }}
         <c-input-confirm
           show-icon
           class="ml-2"
           @confirmed="rules.splice(index, 1)"
         />
-      </h5>
+      </label>
 
       <div class="d-flex align-items-center justify-content-between flex-wrap w-100">
         <b-form-group>
@@ -132,14 +121,14 @@
           </tbody>
         </b-table-simple>
       </div>
+
+      <hr>
     </div>
 
-    <hr>
-
-    <div class="d-flex justify-content-end">
+    <div class="d-flex">
       <b-button
         variant="outline-light"
-        class="d-flex align-items-center border-0 text-primary"
+        class="d-flex align-items-center border-0 text-primary ml-auto"
         @click="addNewConstraint"
       >
         <font-awesome-icon
