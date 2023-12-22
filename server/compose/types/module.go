@@ -90,8 +90,6 @@ type (
 	}
 
 	ModuleConfigRecordDeDup struct {
-		Enabled bool `json:"enabled"`
-
 		// strictly restrict record saving
 		// 		otherwise show a warning with list of duplicated records
 		Strict bool `json:"-"`

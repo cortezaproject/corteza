@@ -15,12 +15,14 @@ func invalidateDedupRules(ctx context.Context, log *zap.Logger, s store.Storer) 
 		return
 	}
 
+	// find only the invalid ones and empty the rules, leave the valid ones
+	// as they were
 	ll, _ = ll.Filter(func(m *types.Module) (bool, error) {
 		return m.Config.RecordDeDup.Rules.Validate() != nil, nil
 	})
 
 	ll.Walk(func(m *types.Module) error {
-		m.Config.RecordDeDup.Enabled = false
+		m.Config.RecordDeDup.Rules = types.DeDupRuleSet{}
 		return nil
 	})
 
