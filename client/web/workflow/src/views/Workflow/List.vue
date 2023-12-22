@@ -175,7 +175,7 @@
               :file-name="w.meta.name || w.handle"
               variant="link"
               size="md"
-              class="text-decoration-none p-0 ml-1"
+              class="text-decoration-none text-dark regular-font p-0 ml-1"
             />
           </b-dropdown-item>
 
