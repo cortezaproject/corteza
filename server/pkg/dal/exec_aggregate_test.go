@@ -3,6 +3,7 @@ package dal
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
@@ -632,7 +633,6 @@ func TestStepAggregate(t *testing.T) {
 			},
 			group: []simpleAttribute{{
 				ident: "d",
-				// @note will only run for a year then will need to be changed
 				expr: "year(now())",
 			}},
 			outAttributes: []simpleAttribute{{
@@ -647,7 +647,7 @@ func TestStepAggregate(t *testing.T) {
 			},
 
 			out: []simpleRow{
-				{"d": 2023, "users": float64(3)},
+				{"d": time.Now().Year(), "users": float64(3)},
 			},
 
 			f: internalFilter{
