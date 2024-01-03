@@ -7,12 +7,12 @@
       >
         <c-input-select
           data-test-id="select-namespace"
-          :clearable="false"
+          :value="currentNamespaceID"
           :options="filteredNamespaces"
-          :get-option-label="getOptionLabel"
-          :value="namespace.namespaceID"
+          :get-option-label="getNamespaceLabel"
           :selectable="option => option.namespaceID !== namespace.namespaceID"
           :placeholder="$t('pickNamespace')"
+          :clearable="false"
           :autoscroll="false"
           :append-to-body="false"
           @input="namespaceSelected"
@@ -191,6 +191,10 @@ export default {
       charts: 'chart/set',
       can: 'rbac/can',
     }),
+
+    currentNamespaceID () {
+      return this.namespace ? this.namespace.namespaceID : NoID
+    },
 
     // Loading is true only when a resource is being force loaded (API call)
     loading () {
@@ -451,10 +455,11 @@ export default {
       })
     },
 
-    getOptionLabel (value) {
+    getNamespaceLabel (value) {
       if (typeof value === 'string') {
-        return this.filteredNamespaces.find(({ namespaceID }) => namespaceID === value).name
+        value = this.filteredNamespaces.find(({ namespaceID }) => namespaceID === value) || {}
       }
+
       return value.name
     },
   },
