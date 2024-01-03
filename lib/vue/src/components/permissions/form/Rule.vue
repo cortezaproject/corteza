@@ -4,7 +4,7 @@
   >
     <p
       :title="title || `${operation} on ${resource}`"
-      class="mb-1"
+      class="mb-1 text-truncate"
     >
       {{ title || `${operation} on ${resource}` }}
     </p>

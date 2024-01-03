@@ -48,6 +48,7 @@
               data-test-id="select-user-list-roles"
               key="roleID"
               label="name"
+              :disabled="!currentRoleID"
               :clearable="false"
               :options="roles"
               :get-option-key="getOptionRoleKey"
@@ -177,7 +178,7 @@
         <c-button-submit
           data-test-id="button-save"
           :disabled="submitDisabled"
-          :processing="processing"
+          :processing="submitting"
           :text="labels.save"
           @submit="onSubmit"
         />
@@ -268,6 +269,7 @@ export default {
   data () {
     return {
       processing: false,
+      submitting: false,
 
       backendComponentName: undefined,
 
@@ -313,7 +315,7 @@ export default {
     },
 
     submitDisabled () {
-      return !this.dirty
+      return !this.dirty || this.processing || this.submitting
     },
 
     addEnabled () {
@@ -354,6 +356,8 @@ export default {
 
   methods: {
     loadModal ({ resource, title, target, allSpecific }) {
+      this.processing = true
+
       this.resource = resource
       this.title = title
       this.target = target
@@ -366,83 +370,57 @@ export default {
         if (!this.roles.length) {
           return this.fetchRoles()
         } else if (this.currentRoleID) {
-          const roleID = this.currentRoleID
-          this.processing = true
-
-          return this.fetchRules(roleID).then(() => {
-            return Promise.all(this.evaluate.map(e => {
-              const { userID } = e.userID || {}
-              let { roleID = [] } = e
-              roleID = roleID.map(({ roleID }) => roleID)
-
-              return this.evaluatePermissions({ roleID, userID }).then(rules => {
-                return {
-                  ...e,
-                  rules,
-                }
-              })
-            })).then(evaluate => {
-              this.evaluate = evaluate
-            })
-          })
+          return this.reevaluatePermissions(this.currentRoleID)
         }
+      }).finally(() => {
+        this.processing = false
       })
     },
 
     onHide () {
-      this.clear()
-    },
-
-    clear () {
       this.resource = undefined
       this.title = undefined
       this.target = undefined
     },
 
     onRoleChange (roleID) {
-      this.fetchRules(roleID)
+      this.processing = true
+
+      this.fetchRules(roleID).finally(() => {
+        this.processing = false
+      })
     },
 
     onSubmit () {
-      this.processing = true
+      this.submitting = true
 
       const rules = this.collectChangedRules()
       const roleID = this.currentRoleID
 
       this.api.permissionsUpdate({ roleID, rules }).then(() => {
-        this.fetchRules(roleID)
+        this.reevaluatePermissions(roleID)
       }).finally(() => {
-        this.processing = false
-        this.onHide()
+        this.submitting = false
       })
     },
 
     async fetchPermissions () {
-      this.processing = true
-
       // clean loaded rules
       this.rules = []
       this.permissions = []
 
       return this.api.permissionsList().then((pp) => {
         this.permissions = this.filterPermissions(pp)
-      }).finally(() => {
-        this.processing = false
       })
     },
 
     async fetchRules (roleID) {
-      this.processing = true
-
       return this.api.permissionsRead({ roleID, resource: this.resource }).then((rules) => {
         this.rules = this.normalizeRules(rules)
-      }).finally(() => {
-        this.processing = false
       })
     },
 
     async fetchRoles () {
-      this.processing = true
       // Roles are always fetched from $SystemAPI.
       return this.$SystemAPI.roleList().then(({ set }) => {
         this.roles = set
@@ -453,8 +431,6 @@ export default {
           this.currentRoleID = this.roles[0].roleID
           this.onRoleChange(this.currentRoleID)
         }
-      }).finally(() => {
-        this.processing = false
       })
     },
 
@@ -466,6 +442,24 @@ export default {
         .finally(() => {
           this.processing = false
         })
+    },
+
+    async reevaluatePermissions (roleID) {
+      return this.fetchRules(roleID).then(() => {
+        return Promise.all(this.evaluate.map(e => {
+          let { roleID = [], userID } = e
+          roleID = roleID.map(({ roleID }) => roleID)
+
+          return this.evaluatePermissions({ roleID, userID }).then(rules => {
+            return {
+              ...e,
+              rules,
+            }
+          })
+        })).then(evaluate => {
+          this.evaluate = evaluate
+        })
+      })
     },
 
     searchUsers (query = '', loading) {
@@ -601,6 +595,7 @@ export default {
 
     setDefaultValues () {
       this.processing = false
+      this.submitting = false
       this.backendComponentName = undefined
       this.resource = undefined
       this.title = undefined
