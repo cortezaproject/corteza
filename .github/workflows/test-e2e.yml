@@ -33,6 +33,7 @@ env:
   CYPRESS_USER_EMAIL_NEW: permissions@email.com
   CYPRESS_USER_DPO: dpo@email.com
   CYPRESS_USER_DPO_PASSWORD: dpo@email.com
+  CYPRESS_PROVISION_DB_DSN: postgres://corteza:root@localhost:5432/corteza_cy_test?sslmode=disable
 
 jobs:
   server-client-setup:
@@ -40,11 +41,15 @@ jobs:
     strategy:
       matrix:
         client:
-          - { port: 8081, name: compose }
           - { port: 8080, name: admin }
-          - { port: 8082, name: workflow }
-          - { port: 8083, name: reporter }
-          - { port: 8086, name: one }
+
+          # todo - these tests must first be provisioned in order to work,
+          # only admin for now
+          # - { port: 8080, name: server }
+          # - { port: 8081, name: compose }
+          # - { port: 8082, name: workflow }
+          # - { port: 8083, name: reporter }
+          # - { port: 8086, name: one }
           # - { port: 8087, name: privacy }
     runs-on: ubuntu-20.04
     steps:
@@ -172,19 +177,7 @@ jobs:
 
           docker-compose run \
             --entrypoint="bash -c \" \
-              cypress run --spec cypress/e2e/basic-functionalities/server/Create_user.cy.js --browser chrome \
-            \"" \
-          cypress
-
-          docker-compose run \
-            --entrypoint="bash -c \" \
               cypress run --spec cypress/e2e/basic-functionalities/${CLIENT_NAME}/index.cy.js --browser chrome \
-            \"" \
-          cypress
-
-          docker-compose run \
-            --entrypoint="bash -c \" \
-              cypress run --spec cypress/e2e/basic-functionalities/topbar/${CLIENT_NAME}/index.cy.js --browser chrome \
             \"" \
           cypress
 
