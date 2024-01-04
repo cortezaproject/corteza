@@ -21,8 +21,9 @@
     />
     <b-input-group-append
       v-if="showSubmittable"
-      :class="{ 'search-icon-border border-light': showSubmittableAndClearable }"
+      :class="{ 'search-icon-border border-light position-relative': showSubmittableAndClearable }"
       class="bg-white m-0"
+      style="position: absolute; right: 0; top: 25%; z-index: 4;"
     >
       <b-button
         :variant="isSubmittable ? 'outline-light' : 'link'"
