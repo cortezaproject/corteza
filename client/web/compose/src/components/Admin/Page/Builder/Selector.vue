@@ -182,11 +182,6 @@ export default {
           image: images.Report,
         },
         {
-          label: this.$t('socialFeed.label'),
-          block: new compose.PageBlockSocialFeed(),
-          image: images.SocialFeed,
-        },
-        {
           label: this.$t('progress.label'),
           block: new compose.PageBlockProgress(),
           image: images.Progress,
