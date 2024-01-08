@@ -190,6 +190,17 @@ jobs:
         run: |
           printf '%s\n' "cd screenshots/${SCREENSHOTS_GEN_FOLDER}" 'put -r corteza-e2e-cypress/cypress/screenshots/*' | sftp -q -o "StrictHostKeyChecking no" -i ${RELEASE_CRUST_KEY_FILE} ${RELEASE_CRUST_SFTP_URI}
 
+      - name: Publish results
+        # always() runs the step even when canceled manually
+        if: success() || failure()
+        env:
+          RELEASE_CRUST_SFTP_URI: ${{ secrets.RELEASE_CRUST_SFTP_URI }}
+          RELEASE_CRUST_KEY_FILE: ${{ env.TMP_KEY }}
+        run: |
+          npx mochawesome-merge "cypress/reports/*.json" > cypress/report.json && \
+          npx marge -o cypress/reports-build -f index.html -i cypress/report.json && \
+          echo "put cypress/reports-build/index.html" | sftp -q -o "StrictHostKeyChecking no" -i ${RELEASE_CRUST_KEY_FILE} ${RELEASE_CRUST_SFTP_URI}
+
   notify-failure:
     needs: [ server-client-setup ]
     runs-on: ubuntu-20.04
@@ -200,6 +211,7 @@ jobs:
         env:
           E2E_REPORTS_USER: ${{ secrets.E2E_REPORTS_USER }}
           E2E_REPORTS_PASS: ${{ secrets.E2E_REPORTS_PASS }}
+          SCREENSHOTS_GEN_FOLDER: ${{ env.SCREENSHOTS_GEN_FOLDER }}
         with:
           homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
           token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
