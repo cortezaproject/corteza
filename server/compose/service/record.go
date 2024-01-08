@@ -895,7 +895,7 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 func RecordValueSanitization(m *types.Module, vv types.RecordValueSet) (err error) {
 	var (
 		aProps  = &recordActionProps{}
-		numeric = regexp.MustCompile(`^[1-9](\d+)$`)
+		numeric = regexp.MustCompile(`^[1-9](\d*)$`)
 	)
 
 	err = vv.Walk(func(v *types.RecordValue) error {
