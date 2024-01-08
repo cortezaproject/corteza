@@ -15,9 +15,12 @@ services:
     environment:
       - DB_DSN=postgres://corteza:root@localhost:5432/corteza_cy_test?sslmode=disable
       - HTTP_ADDR=:8888
-      - HTTP_ENABLE_DEBUG_ROUTE=true
       - HTTP_WEBAPP_ENABLED=true
       - ENVIRONMENT=dev
+      - AUTH_REQUEST_RATE_LIMIT=0
+      - FEDERATION_ENABLED=true
+      - FEDERATION_HOST=http://corteza
+      - FEDERATION_LABEL=Corteza e2e federation host
     healthcheck:
       test: curl --silent --fail-early --fail http://localhost:8888/healthcheck || exit 1
       interval: 30s
