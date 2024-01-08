@@ -27,6 +27,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
 	"github.com/cortezaproject/corteza/server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/mail"
@@ -292,6 +293,9 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	if app.lvl >= bootLevelServicesInitialized {
 		return nil
 	}
+
+	// @todo place this somewhere better
+	id.Init(ctx)
 
 	err = app.initEnvoy(ctx, app.Log)
 	if err != nil {
