@@ -111,7 +111,7 @@
           v-if="m.canGrant"
           data-test-id="dropdown-permissions"
           size="sm"
-          variant="light"
+          variant="extra-light"
           :title="$t('permissions:resources.compose.module.tooltip')"
           class="permissions-dropdown ml-2"
         >
@@ -156,7 +156,7 @@
         </b-dropdown>
 
         <b-dropdown
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-2"
           no-caret
           dropleft

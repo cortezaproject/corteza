@@ -65,7 +65,7 @@
       <template #actions="{ item: a }">
         <b-dropdown
           v-if="(areActionsVisible({ resource: a, conditions: ['canDeleteApplication', 'canGrant'] }) && a.applicationID)"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           dropleft

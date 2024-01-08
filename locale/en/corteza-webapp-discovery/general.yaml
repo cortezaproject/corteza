@@ -4,4 +4,4 @@ label:
   all: All
 resourceList:
   pagination:
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page

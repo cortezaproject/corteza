@@ -7,20 +7,21 @@
     >
       <b-card-header
         v-if="showHeader"
-        class="border-0 text-nowrap pl-3 pr-2"
+        class="text-nowrap pl-3 pr-2"
         header-bg-variant="white"
         :header-text-variant="block.style.variants.headerText"
       >
         <div v-if="!headerSet">
           <div class="d-flex">
-            <h5
+            <h4
               v-if="blockTitle"
+              :title="blockTitle"
               class="text-truncate mb-0"
             >
               {{ blockTitle }}
 
               <slot name="title-badge" />
-            </h5>
+            </h4>
 
             <b-button-group
               v-if="showOptions"
@@ -51,6 +52,7 @@
 
           <b-card-text
             v-if="blockDescription"
+            :title="blockDescription"
             class="text-dark text-wrap mt-1"
           >
             {{ blockDescription }}
@@ -82,7 +84,7 @@
 
       <b-card-footer
         v-if="footerSet"
-        class="p-0 bg-white border-top"
+        class="p-0 bg-light"
       >
         <slot
           name="footer"

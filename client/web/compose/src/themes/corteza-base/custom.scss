@@ -13,19 +13,9 @@ body {
   height: 100%;
 }
 
-:focus {
-  outline-color: var(--primary);
-}
-
 button:disabled {
   cursor: not-allowed;
   pointer-events: all !important;
-}
-
-.btn-link {
-  &:focus {
-    text-decoration: none;
-  }
 }
 
 .back {
@@ -61,8 +51,7 @@ button:disabled {
 
 thead th,
 legend,
-label,
-.btn {
+label {
   font-family: var(--font-medium);
 }
 
@@ -85,7 +74,7 @@ th {
 }
 
 .loader {
-  height: calc(100vh - 2 * #{var(--opbar-height)});
+  height: calc(100vh - 2 * #{var(--topbar-height)});
   display: flex;
   align-items: center;
   justify-content: space-around;

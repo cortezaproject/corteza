@@ -188,7 +188,7 @@ export default {
     padding: 0.375rem calc(0.75rem - 2px);
     padding-top: 0 !important;
     border-width: 2px;
-    border-color: var(--light);
+    border-color: var(--extra-light);
 
     .vs__selected {
       margin-top: 0.375rem;

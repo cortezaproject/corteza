@@ -673,6 +673,12 @@
 
     @include table-row-variant(active, $table-active-bg);
     .table {
+      color: $table-color;
+
+      td {
+        border-color: $extra-light;
+      }
+
       .thead-dark {
         th {
           color: $table-dark-color;
@@ -1587,7 +1593,7 @@
               color: $table-color;
               // `$table-bg` is null by default in Bootstrap v4 variables
               // but could have a value set by the consumer
-              background-color: if($table-bg, $table-bg, $body-bg);
+              background-color: $table-head-bg;
             }
           }
 

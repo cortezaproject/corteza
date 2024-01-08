@@ -37,7 +37,7 @@
         size="lg"
         variant="outline-light"
         toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         right
         no-caret
         class="nav-icon mx-1 text-sm-nowrap"
@@ -111,7 +111,7 @@
         :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
         size="lg"
         right
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         no-caret
         class="nav-user-icon"
       >
@@ -176,20 +176,19 @@
           {{ labels.userSettingsChangePassword }}
         </b-dropdown-item>
 
-        <b-dropdown-item>
-          <b-dropdown
-            id="theme-dropleft"
-            dropleft
-            no-caret
-            text="Theme"
-            variant="outline-link"
-            class="p-0"
-            @click.prevent.stop
-          >
-            <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
-            <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
-          </b-dropdown>
-        </b-dropdown-item>
+        <b-dropdown
+          id="theme-dropleft"
+          variant="link"
+          text="Theme"
+          dropleft
+          no-caret
+          toggle-class="text-decoration-none text-left dropdown-item rounded-0"
+          class="d-flex"
+          @click.prevent.stop
+        >
+          <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
+          <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
+        </b-dropdown>
 
         <b-dropdown-divider />
 
@@ -349,7 +348,6 @@ $nav-user-icon-size: 50px;
 .header-navigation {
   width: 100vw;
   min-height: $header-height;
-  background-color: var(--body-bg);
 }
 
 .avatar {
@@ -413,5 +411,11 @@ $nav-user-icon-size: 50px;
 <style lang="scss">
 .topbar-dropdown-menu {
   z-index: 1100;
+}
+
+#theme-dropleft {
+  .btn {
+    font-family: var(--font-regular);
+  }
 }
 </style>

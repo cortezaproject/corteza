@@ -9,19 +9,9 @@ body {
   height: 100%;
 }
 
-:focus {
-  outline-color: var(--primary);
-}
-
 button:disabled {
   cursor: not-allowed;
   pointer-events: all !important;
-}
-
-.btn-link {
-  &:focus {
-    text-decoration: none;
-  }
 }
 
 .pointer {
@@ -34,8 +24,7 @@ button:disabled {
 
 thead th,
 legend,
-label,
-.btn {
+label {
   font-family: var(--font-medium);
 }
 

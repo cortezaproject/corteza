@@ -2,7 +2,7 @@
   <b-card
     no-body
     header-bg-variant="white"
-    footer-bg-variant="white"
+    footer-bg-variant="light"
     footer-class="p-0 border-top"
     :header-class="cardHeaderClass"
     class="shadow-sm"
@@ -53,7 +53,6 @@
       <b-table
         id="resource-list"
         ref="resourceList"
-        head-variant="light"
         :fields="_fields"
         :items="_items"
         :sort-by.sync="sorting.sortBy"
@@ -129,25 +128,27 @@
       v-if="showFooter"
       #footer
     >
-      <div
-        class="d-flex align-items-center flex-wrap justify-content-between p-2 w-100"
-      >
-        <div class="d-flex gap-col-3 align-items-center flex-wrap">
+      <div class="d-flex align-items-center flex-wrap justify-content-between p-2 gap-1">
+        <div class="d-flex align-items-center flex-wrap ml-2 gap-1 gap-col-3">
           <div
             v-if="!hideTotal"
-            class="text-nowrap ml-2"
+            class="text-nowrap text-truncate"
           >
             {{ getPagination }}
           </div>
 
-          <div class="d-flex align-items-center ml-2 my-1 gap-1 text-nowrap">
+          <div
+            v-if="!hidePerPageOption"
+            class="d-flex align-items-center gap-1 text-nowrap"
+          >
             <span>
-                {{ $t('general:resourceList.pagination.recordsPerPage') }}
+              {{ $t('general:resourceList.pagination.recordsPerPage') }}
             </span>
 
             <b-form-select
               :value="pagination.limit"
               :options="perPageOptions"
+              size="sm"
               @change="handlePerPageChange"
             />
           </div>
@@ -160,8 +161,8 @@
           <b-button-group>
             <b-button
               :disabled="!hasPrevPage"
-              variant="outline-light"
-              class="d-flex align-items-center text-primary border-0"
+              variant="outline-extra-light"
+              class="d-flex align-items-center text-dark border-0"
               @click="goToPage()"
             >
               <font-awesome-icon :icon="['fas', 'angle-double-left']" />
@@ -169,8 +170,8 @@
 
             <b-button
               :disabled="!hasPrevPage"
-              variant="outline-light"
-              class="d-flex align-items-center text-primary border-0"
+              variant="outline-extra-light"
+              class="d-flex align-items-center text-dark border-0"
               @click="goToPage('prevPage')"
             >
               <font-awesome-icon
@@ -183,8 +184,8 @@
 
             <b-button
               :disabled="!hasNextPage"
-              variant="outline-light"
-              class="d-flex align-items-center justify-content-center text-primary border-0"
+              variant="outline-extra-light"
+              class="d-flex align-items-center justify-content-center text-dark border-0"
               @click="goToPage('nextPage')"
             >
               {{ translations.nextPagination }}
@@ -200,6 +201,7 @@
     </template>
   </b-card>
 </template>
+
 <script>
 import CInputSearch from '../input/CInputSearch.vue'
 
@@ -465,9 +467,8 @@ export default {
 
 <style lang="scss">
 #resource-list {
-  th {
-    color: var(--black);
-    background-color: var(--extra-light) !important;
+  tr:first-child td {
+    border: none;
   }
 
   td.actions {
@@ -477,15 +478,13 @@ export default {
     position: sticky;
     transition: opacity 0.25s;
     width: 1%;
-
-    .regular-font {
-      font-family: 'Poppins-Regular' !important;
-    }
+    font-family: var(--font-regular) !important;
   }
 
   tr:hover td.actions {
     opacity: 1;
     z-index: 1;
+    background-color: var(--light);
   }
 }
 

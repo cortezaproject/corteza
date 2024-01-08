@@ -14,7 +14,7 @@ $font-bold: 'Poppins-Bold' !default;
 $font-size-base: 0.9rem !default;
 
 $font-family-base:      $font-regular !default;
-$headings-font-family:  $font-semibold !default;
+$headings-font-family:  $font-bold !default;
 
 // Color system
 $white:         #FFFFFF !default;
@@ -24,8 +24,8 @@ $secondary:     #758D9B !default;
 $success:       #43AA8B !default;
 $warning:       #E2A046 !default;
 $danger:        #E54122 !default;
-$light:         #E4E9EF !default;
-$extra-light:   #F3F5F7 !default;
+$light:         #F3F5F7 !default;
+$extra-light:   #E4E9EF !default;
 $dark:          $black !default;
 
 $gray-100: if(lightness($black) < lightness($white), mix($black, $white, 10%), mix($white, $black, 10%));
@@ -38,11 +38,15 @@ $gray-700: if(lightness($black) < lightness($white), mix($black, $white, 70%), m
 $gray-800: if(lightness($black) < lightness($white), mix($black, $white, 80%), mix($white, $black, 80%));
 $gray-900: if(lightness($black) < lightness($white), mix($black, $white, 90%), mix($white, $black, 90%));
 
+// $yiq-text-dark:             $black !default;
+// $yiq-text-light:            $white !default;
+
 $theme-colors: () !default;
 $theme-colors: map-merge(
   (
     "white": $white,
     "black": $black,
+    "extra-light": $extra-light,
   ),
   $theme-colors
 );
@@ -58,8 +62,9 @@ $grid-breakpoints: (
 ) !default;
 
 // Body
-$body-bg:  #F3F5F7 !default;
+$body-bg:  $light !default;
 $body-color: $black !default;
+$border-color: $extra-light !default;
 
 // Options
 $enable-rounded:   true !default;
@@ -73,21 +78,43 @@ $card-cap-bg:        $white !default;
 
 // Tables
 $table-cell-padding-sm: 0.25rem !default;
-$table-hover-bg:     $light !default;
+$table-color:           $black !default;
+$table-head-color:      $black !default;
+$table-head-bg:         $light !default;
+$table-hover-bg:        $light !default;
+$table-border-color:    $extra-light !default;
 
 // Buttons
 $btn-font-size: $font-size-base !default;
 $btn-padding-y: 0.25em !default;
 $btn-padding-x: 1em !default;
+$input-btn-border-width: 1px !default;
 
-$btn-focus-width:       0.2rem !default;
+$btn-focus-width:       2px !default;
 $btn-focus-box-shadow:  none !default;
 $btn-active-box-shadow: none !default;
 
 $btn-font-size-lg:  16px !default;
-$btn-font-family:   $font-semibold !default;
+$btn-font-family:   $font-medium !default;
 
-$topbar-height:         64px !default;
+// Tabs
+$nav-link-color:                    $black !default;
+$nav-tabs-border-color:             transparent !default;
+$nav-tabs-border-width:             4px !default;
+$nav-tabs-border-radius:            0 !default;
+$nav-tabs-link-hover-border-color:  transparent transparent $secondary !default;
+$nav-tabs-link-active-color:        $black !default;
+$nav-tabs-link-active-bg:           transparent !default;
+$nav-tabs-link-active-border-color: transparent transparent $primary !default;
+
+.card-header-tabs {
+  border-bottom: 1px solid $border-color !important;
+
+  .nav-item {
+    font-family: $font-medium !important;
+    margin-bottom: 0 !important;
+  }
+}
 
 // Navbar
 $navbar-bg:             $white !default;
@@ -104,7 +131,11 @@ $navbar-padding-y:      0 !default;
 $navbar-padding-x:      0 !default;
 
 $navbar-toggler-font-size:  24px !default;
-$sidebar-width:         320px !default;
+
+// Dropdowns
+$dropdown-link-color:               $black !default;
+$dropdown-link-hover-color:         $black !default;
+$dropdown-link-hover-bg:            $light !default;
 
 // Pagination
 $pagination-color:        $primary !default;
@@ -114,20 +145,27 @@ $pagination-active-bg:    $primary !default;
 $pagination-border-width: 0 !default;
 
 // Forms
-$input-font-size: $font-size-base !default;
+$input-color: $black !default;
 
-$input-border-color:  $light !default;
+$input-border-color:  $extra-light !default;
 $input-border-width:  2px !default;
 
-$input-btn-focus-width:     0 !default;
+$input-btn-focus-width:     2px !default;
 $input-focus-box-shadow:    none !default;
-$input-focus-border-color:  $primary !default;
+$input-focus-border-color:  $secondary !default;
+
+$input-placeholder-color: $extra-light !default;
+
+// Corteza specific variables
+// Topbar
+$topbar-height:         64px !default;
+
+// Sidebar
+$sidebar-width:         320px !default;
 
 $corteza-specific: () !default;
 $corteza-specific: map-merge(
   (
-    // "lighter-color": $lighter-color,
-    "extra-light": $extra-light,
     "body-bg": $body-bg,
     "sidebar-width": $sidebar-width,
     "font-regular": $font-regular,

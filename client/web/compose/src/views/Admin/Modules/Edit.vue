@@ -154,7 +154,7 @@
 
             <b-tabs
               v-model="activeTab"
-              :nav-wrapper-class="`bg-white white border-bottom ${isEdit ? 'rounded-0' : ''}`"
+              :nav-wrapper-class="`bg-white ${isEdit ? 'rounded-0' : ''}`"
               card
             >
               <b-tab

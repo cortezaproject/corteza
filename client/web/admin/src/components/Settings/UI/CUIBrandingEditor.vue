@@ -183,8 +183,8 @@ export default {
         'success': '#43AA8B',
         'warning': '#E2A046',
         'danger': '#E54122',
-        'light': '#E4E9EF',
-        'extra-light': '#F3F5F7',
+        'light': '#F3F5F7',
+        'extra-light': '#E4E9EF',
         'body-bg': '#F3F5F7',
       },
       darkModeVariables: {

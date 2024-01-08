@@ -95,7 +95,7 @@
       <template #moreActions="{ item: r }">
         <b-dropdown
           v-if="r.canUpdateReport || r.canGrant || r.canDeleteReport"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           lazy

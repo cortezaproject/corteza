@@ -56,4 +56,4 @@ editor:
   unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
 resourceList:
   pagination:
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page

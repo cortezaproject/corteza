@@ -7,7 +7,7 @@
         v-model="isExpanded"
         data-test-id="sidebar"
         :sidebar-class="`sidebar ${isExpanded ? 'expanded' : ''}`"
-        :header-class="`bg-white d-block sidebar-header ${isExpanded ? 'expanded p-2' : ''}`"
+        :header-class="`bg-white d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
         :body-class="`bg-white ${isExpanded ? 'px-3' : ''}`"
         :footer-class="`bg-white rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"

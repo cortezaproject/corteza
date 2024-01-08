@@ -1,8 +1,8 @@
 <template>
-  <b-input-group
-    :size="size"
-    class="input-group-border border-light rounded"
-    style="min-width: 200px;"
+  <div
+    style="min-width: 150px;"
+    :class="{ 'submittable': isSubmittable }"
+    class="c-input-search d-flex position-relative"
   >
     <b-input
       ref="searchInput"
@@ -14,33 +14,27 @@
       :disabled="disabled"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
-      class="h-100 pr-0 border-0 rounded-0 text-truncate bg-white"
+      :size="size"
+      class="pr-0 text-truncate"
       @input="onInput"
       @update="search"
       @keyup.enter="submitQuery"
     />
-    <b-input-group-append
+
+    <b-button
       v-if="showSubmittable"
-      :class="{ 'search-icon-border border-light position-relative': showSubmittableAndClearable }"
-      class="bg-white m-0"
-      style="position: absolute; right: 0; top: 25%; z-index: 4;"
+      :variant="isSubmittable ? 'outline-light' : 'link'"
+      :disabled="disabled"
+      :class="{ 'border-0 cursor-default': !isSubmittable }"
+      class="search-button d-inline-flex align-items-center rounded-0 border-light"
+      @[isSubmittable]="submitQuery"
     >
-      <b-button
-        :variant="isSubmittable ? 'outline-light' : 'link'"
-        :disabled="disabled"
-        :class="{
-          'cursor-default': !isSubmittable
-        }"
-        class="d-inline-flex align-items-center border-0 rounded-0 py-0"
-        @[isSubmittable]="submitQuery"
-      >
-        <font-awesome-icon
-          :icon="['fas', 'search']"
-          class="align-middle text-primary"
-        />
-      </b-button>
-    </b-input-group-append>
-  </b-input-group>
+      <font-awesome-icon
+        :icon="['fas', 'search']"
+        class="align-middle text-primary"
+      />
+    </b-button>
+  </div>
 </template>
 
 <script>
@@ -136,24 +130,33 @@ input:focus::placeholder {
   color: transparent;
 }
 
-input[type="search"]::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-  height: 1em;
-  width: 1em;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
-  cursor: pointer;
-  margin-right: 13px;
-  margin-top: 2px;
-}
+.c-input-search {
+  .search-button {
+    position: absolute;
+    right: 2px;
+    top: 2px;
+    bottom: 2px;
+    z-index: 4;
+    border-left-width: 2px;
+  }
 
-.input-group-border {
-  border-width: 2px;
-  border-style: solid;
-}
+  ::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    height: 1em;
+    width: 1em;
+    background: var(--black);
+    -webkit-mask-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
+    mask-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
+    cursor: pointer;
+    margin-right: 13px;
+    margin-left: 5px;
+  }
 
-.search-icon-border {
-  border-width: 0px 0px 0px 2px;
-  border-style: solid;
+  &.submittable {
+    ::-webkit-search-cancel-button {
+      margin-right: 56px;
+    }
+  }
 }
 
 .cursor-default {
