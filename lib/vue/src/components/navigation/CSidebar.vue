@@ -12,7 +12,7 @@
         :footer-class="`bg-white rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"
         :backdrop="isMobile"
-        :shadow="isExpanded"
+        :shadow="isExpanded && 'sm'"
         no-slide
         :right="right"
         no-close-on-route-change

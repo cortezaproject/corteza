@@ -4,7 +4,7 @@
     header-bg-variant="white"
     footer-bg-variant="light"
     footer-class="p-0 border-top"
-    :header-class="cardHeaderClass"
+    :header-class="`border-0 p-3 ${cardHeaderClass}`"
     class="shadow-sm"
   >
     <template #header>
@@ -128,8 +128,8 @@
       v-if="showFooter"
       #footer
     >
-      <div class="d-flex align-items-center flex-wrap justify-content-between p-2 gap-1">
-        <div class="d-flex align-items-center flex-wrap ml-2 gap-1 gap-col-3">
+      <div class="resource-list-footer d-flex align-items-center flex-wrap justify-content-between px-3 py-2 gap-1">
+        <div class="d-flex align-items-center flex-wrap gap-1 gap-col-3">
           <div
             v-if="!hideTotal"
             class="text-nowrap text-truncate"
@@ -158,11 +158,11 @@
           v-if="!hidePagination"
           class="d-flex align-items-center justify-content-end"
         >
-          <b-button-group>
+          <b-button-group class="gap-1">
             <b-button
               :disabled="!hasPrevPage"
               variant="outline-extra-light"
-              class="d-flex align-items-center text-dark border-0"
+              class="d-flex align-items-center text-dark border-0 p-1"
               @click="goToPage()"
             >
               <font-awesome-icon :icon="['fas', 'angle-double-left']" />
@@ -171,7 +171,7 @@
             <b-button
               :disabled="!hasPrevPage"
               variant="outline-extra-light"
-              class="d-flex align-items-center text-dark border-0"
+              class="d-flex align-items-center text-dark border-0 p-1"
               @click="goToPage('prevPage')"
             >
               <font-awesome-icon
@@ -185,7 +185,7 @@
             <b-button
               :disabled="!hasNextPage"
               variant="outline-extra-light"
-              class="d-flex align-items-center justify-content-center text-dark border-0"
+              class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
               @click="goToPage('nextPage')"
             >
               {{ translations.nextPagination }}
@@ -486,6 +486,10 @@ export default {
     z-index: 1;
     background-color: var(--light);
   }
+}
+
+.resource-list-footer {
+  font-family: var(--font-medium);
 }
 
 @media (max-width: 576px) {

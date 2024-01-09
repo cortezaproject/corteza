@@ -72,6 +72,7 @@ $enable-gradients: false !default;
 $enable-responsive-font-sizes: true !default;
 
 // Card
+$card-border-color: $extra-light !default;
 $card-border-radius: 1rem !default;
 $card-border-width:  0 !default;
 $card-cap-bg:        $white !default;
@@ -109,10 +110,16 @@ $nav-tabs-link-active-border-color: transparent transparent $primary !default;
 
 .card-header-tabs {
   border-bottom: 1px solid $border-color !important;
+}
 
+.card-header {
   .nav-item {
     font-family: $font-medium !important;
     margin-bottom: 0 !important;
+
+    .nav-link {
+      color: var(--black) !important;
+    }
   }
 }
 
@@ -146,6 +153,7 @@ $pagination-border-width: 0 !default;
 
 // Forms
 $input-color: $black !default;
+$input-disabled-bg: $light !default;
 
 $input-border-color:  $extra-light !default;
 $input-border-width:  2px !default;

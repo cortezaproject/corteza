@@ -188,8 +188,8 @@ export default {
 
     navWrapperClass () {
       const { orientation, position } = this.block.options.style
-      let border = 'border-bottom'
-      let style = 'bg-transparent rounded mh-100'
+      let border = ''
+      let style = 'bg-transparent mh-100'
 
       if (orientation === 'vertical') {
         border = position === 'end' ? 'border-left' : 'border-right'

@@ -223,6 +223,13 @@ export default {
   }
 }
 
+.input-group > .v-select:not(:last-child) {
+  .vs__dropdown-toggle {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
 .vs__spinner, .vs__spinner::after {
   width: 4em;
   height: 4em;
