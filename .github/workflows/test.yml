@@ -1,4 +1,4 @@
-name: "Test on main branch push"
+name: "Server and lib tests"
 
 # These jobs can be tested with nektos/act tool
 # https://github.com/nektos/act
@@ -6,6 +6,8 @@ name: "Test on main branch push"
 # Look for "!env.ACT" in the DRY_RUN expression below
 
 on:
+  pull_request:
+    types: [opened, reopened, synchronize]
   push:
     branches:
       - '202[2-9].[39].x'
