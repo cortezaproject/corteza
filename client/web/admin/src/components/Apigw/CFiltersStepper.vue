@@ -8,22 +8,13 @@
     class="shadow-sm mt-3"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('filters.title') }}
-      </h3>
-
-      <div class="d-flex flex-wrap flex-fill-child gap-1">
-        <c-filters-dropdown
-          :available-filters="getAvailableFiltersByStep"
-          :filters="getSelectedFiltersByStep"
-          @addFilter="onAddFilter"
-        />
-      </div>
+      </h4>
     </template>
 
     <b-tabs
       data-test-id="filter-steps"
-      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab
@@ -34,6 +25,13 @@
         class="border-0 p-0"
         @click="onActivateTab(index)"
       >
+        <c-filters-dropdown
+          :available-filters="getAvailableFiltersByStep"
+          :filters="getSelectedFiltersByStep"
+          class="p-3"
+          @addFilter="onAddFilter"
+        />
+
         <c-filters-table
           :filters="getSelectedFiltersByStep"
           :step="index"

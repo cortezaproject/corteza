@@ -3,8 +3,8 @@
     no-body
     header-bg-variant="white"
     footer-bg-variant="light"
-    footer-class="p-0 border-top"
-    :header-class="`border-0 p-3 ${cardHeaderClass}`"
+    footer-class="p-0"
+    :header-class="`border-0 ${cardHeaderClass}`"
     class="shadow-sm"
   >
     <template #header>
@@ -467,10 +467,6 @@ export default {
 
 <style lang="scss">
 #resource-list {
-  tr:first-child td {
-    border: none;
-  }
-
   td.actions {
     padding-top: 8px;
     right: 0;

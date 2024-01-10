@@ -14,13 +14,13 @@
           <div
             class="d-flex"
           >
-            <h5
+            <h4
               class="text-truncate mb-0"
             >
               {{ blockTitle }}
 
               <slot name="title-badge" />
-            </h5>
+            </h4>
 
             <b-button-group
               v-if="showOptions"

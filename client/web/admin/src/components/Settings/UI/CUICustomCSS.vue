@@ -1,20 +1,20 @@
 <template>
   <b-card
+    title="Foo"
     body-class="p-0"
     header-bg-variant="white"
     footer-bg-variant="white"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
-    <template #header>
-      <h3 class="m-0">
+    <!-- <template #header>
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
-    </template>
+      </h4>
+    </template> -->
 
     <b-tabs
       data-test-id="theme-tabs"
-      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab

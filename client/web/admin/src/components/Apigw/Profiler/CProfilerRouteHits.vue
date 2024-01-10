@@ -8,37 +8,37 @@
     header-bg-variant="white"
   >
     <template #header>
-      <h3>
+      <h4 class="mb-0">
         {{ $t('general:label.requests') }}
-      </h3>
-
-      <div class="d-flex align-items-center flex-wrap flex-fill mt-2 gap-1">
-        <div class="flex-fill">
-          <b-button
-            data-test-id="button-refresh"
-            variant="primary"
-            :disabled="loading"
-            @click="loadItems()"
-          >
-            {{ $t('general:label.refresh') }}
-          </b-button>
-          <span
-            class="ml-1"
-            :class="{ 'loading': loading }"
-          >
-            {{ autoRefreshLabel }}
-          </span>
-        </div>
-
-        <c-input-confirm
-          :disabled="!items.length"
-          :processing="processingPurge"
-          :text="$t('purge.this')"
-          variant="danger"
-          @confirmed="purgeRequests"
-        />
-      </div>
+      </h4>
     </template>
+
+    <div class="d-flex align-items-center flex-wrap flex-fill p-3 gap-1">
+      <div class="flex-fill">
+        <b-button
+          data-test-id="button-refresh"
+          variant="primary"
+          :disabled="loading"
+          @click="loadItems()"
+        >
+          {{ $t('general:label.refresh') }}
+        </b-button>
+        <span
+          class="ml-1"
+          :class="{ 'loading': loading }"
+        >
+          {{ autoRefreshLabel }}
+        </span>
+      </div>
+
+      <c-input-confirm
+        :disabled="!items.length"
+        :processing="processingPurge"
+        :text="$t('purge.this')"
+        variant="danger"
+        @confirmed="purgeRequests"
+      />
+    </div>
 
     <b-card-body
       class="p-0"
@@ -243,7 +243,7 @@ export default {
 
           return { filter, set }
         })
-        .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.purge.fetch')))
+        .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.fetch.error')))
         .finally(() => {
           if (!append) {
             this.filter.before = oldBeforeID

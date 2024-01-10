@@ -23,6 +23,7 @@
           >
             <font-awesome-icon
               :icon="['fas', 'bars']"
+              class="text-secondary"
             />
           </td>
 

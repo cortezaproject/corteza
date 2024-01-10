@@ -2,39 +2,43 @@
   <b-card
     header-bg-variant="white"
     footer-bg-variant="white"
+    body-class="p-0"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
-    <b-form-group
-      :label="$t('enabled')"
-      label-class="text-primary"
-    >
-      <c-input-checkbox
-        v-model="external.enabled"
-        :value="true"
-        :unchecked-value="false"
-        :labels="checkboxLabel"
-        switch
-      />
-    </b-form-group>
+    <div class="p-3">
+      <b-form-group
+        :label="$t('enabled')"
+        label-class="text-primary"
+      >
+        <c-input-checkbox
+          v-model="external.enabled"
+          :value="true"
+          :unchecked-value="false"
+          :labels="checkboxLabel"
+          switch
+        />
+      </b-form-group>
 
-    <b-button
-      class="my-3"
-      variant="primary"
-      @click="newOIDC()"
-    >
-      {{ $t('oidc.add') }}
-    </b-button>
+      <b-button
+        class="my-3"
+        variant="primary"
+        @click="newOIDC()"
+      >
+        {{ $t('oidc.add') }}
+      </b-button>
+    </div>
 
     <b-table
       :items="providers.items"
       :fields="providers.fields"
+      head-variant="light"
       :tbody-tr-class="(i) => i.rowBackground"
     >
       <template #cell(enabled)="{ item }">

@@ -8,7 +8,7 @@
   >
     <slot>
       <font-awesome-icon v-if="showButtonIcon" :icon="['fas', 'lock']" />
-      <span v-if="buttonLabel">
+      <span v-if="buttonLabel" class="permissions-button-label">
         {{ buttonLabel }}
       </span>
     </slot>
@@ -88,8 +88,3 @@ export default {
   },
 }
 </script>
-<style lang="scss" scoped>
-.pointer {
-  cursor: pointer;
-}
-</style>

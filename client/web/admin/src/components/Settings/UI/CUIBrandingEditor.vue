@@ -7,9 +7,9 @@
     class="shadow-sm"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <div
@@ -22,7 +22,6 @@
 
     <b-tabs
       data-test-id="theme-tabs"
-      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab

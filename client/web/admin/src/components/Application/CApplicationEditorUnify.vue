@@ -153,12 +153,12 @@
     </b-form>
 
     <template #header>
-      <h3
+      <h4
         data-test-id="card-title"
         class="m-0"
       >
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <template #footer>

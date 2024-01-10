@@ -7,9 +7,9 @@
       footer-bg-variant="white"
     >
       <template #header>
-        <h3 class="m-0">
+        <h4 class="m-0">
           {{ $t('general.label') }}
-        </h3>
+        </h4>
       </template>
 
       <b-row>
@@ -187,9 +187,9 @@
       class="shadow-sm mt-3"
     >
       <template #header>
-        <h3 class="m-0">
+        <h4 class="m-0">
           {{ $t('headers.label') }}
-        </h3>
+        </h4>
       </template>
 
       <b-row>
@@ -220,9 +220,9 @@
       class="shadow-sm mt-3"
     >
       <template #header>
-        <h3 class="m-0">
+        <h4 class="m-0">
           {{ $t('body.label') }}
-        </h3>
+        </h4>
       </template>
 
       <ace-editor

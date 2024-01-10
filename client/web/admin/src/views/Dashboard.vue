@@ -26,7 +26,7 @@
           class="shadow-sm h-100"
         >
           <template #header>
-            <b-card-title title-tag="h3">
+            <b-card-title title-tag="h4">
               <router-link
                 :to="{ name: 'system.user.list' }"
                 :area-label="`${users.valid} ${$t('users.title')}`"
@@ -115,7 +115,7 @@
           class="shadow-sm"
         >
           <template #header>
-            <b-card-title title-tag="h3">
+            <b-card-title title-tag="h4">
               <router-link
                 :to="{ name: 'system.role.list' }"
                 :aria-label="roles.valid + ' ' + $t('roles.title')"
@@ -197,7 +197,7 @@
           class="shadow-sm"
         >
           <template #header>
-            <b-card-title title-tag="h3">
+            <b-card-title title-tag="h4">
               <router-link
                 :to="{ name: 'system.application.list' }"
                 :aria-label="applications.valid + ' ' + $t('applications.title')"

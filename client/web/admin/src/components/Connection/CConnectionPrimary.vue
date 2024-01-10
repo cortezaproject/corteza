@@ -6,8 +6,8 @@
     header-bg-variant="white"
     footer-bg-variant="white"
   >
-    <template>
-      <h3 class="d-flex justify-content-between m-0 mb-3">
+    <template #header>
+      <h4 class="d-flex justify-content-between mb-0">
         {{ $t('title') }}
 
         <b-button
@@ -22,7 +22,7 @@
             :icon="['far', 'edit']"
           />
         </b-button>
-      </h3>
+      </h4>
     </template>
 
     <div

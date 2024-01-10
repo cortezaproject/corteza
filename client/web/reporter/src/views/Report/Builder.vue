@@ -158,7 +158,6 @@
     >
       <b-tabs
         v-if="currentBlock"
-        nav-wrapper-class="bg-white"
         active-tab-class="tab-content h-auto overflow-auto"
         card
       >
@@ -216,7 +215,7 @@
               {{ name || kind }}
               <font-awesome-icon
                 :icon="['fas', 'bars']"
-                class="grab"
+                class="text-secondary grab"
               />
             </template>
 

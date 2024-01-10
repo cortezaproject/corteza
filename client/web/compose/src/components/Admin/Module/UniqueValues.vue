@@ -61,8 +61,7 @@
 
       <div
         v-if="rule.constraints && rule.constraints.length > 0"
-        class="rounded border border-light p-3"
-        style="background-color: var(--gray-200);"
+        class="list-background rounded border border-light p-1"
       >
         <b-table-simple
           borderless
@@ -254,3 +253,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.list-background {
+  background-color: var(--body-bg);
+}
+</style>
