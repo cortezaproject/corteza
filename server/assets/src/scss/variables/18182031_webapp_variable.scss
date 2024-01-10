@@ -108,21 +108,6 @@ $nav-tabs-link-active-color:        $black !default;
 $nav-tabs-link-active-bg:           transparent !default;
 $nav-tabs-link-active-border-color: transparent transparent $primary !default;
 
-.card-header-tabs {
-  border-bottom: 1px solid $border-color !important;
-}
-
-.card-header {
-  .nav-item {
-    font-family: $font-medium !important;
-    margin-bottom: 0 !important;
-
-    .nav-link {
-      color: var(--black) !important;
-    }
-  }
-}
-
 // Navbar
 $navbar-bg:             $white !default;
 $navbar-color:          $black !default;
@@ -167,15 +152,18 @@ $input-placeholder-color: $extra-light !default;
 // Corteza specific variables
 // Topbar
 $topbar-height:         64px !default;
+$topbar-bg:             #F3F5F7 !default;
 
 // Sidebar
 $sidebar-width:         320px !default;
+$sidebar-bg:            #F3F5F7 !default;
 
 $corteza-specific: () !default;
 $corteza-specific: map-merge(
   (
     "body-bg": $body-bg,
     "sidebar-width": $sidebar-width,
+    "sidebar-bg": $sidebar-bg,
     "font-regular": $font-regular,
     "font-semibold": $font-semibold,
     "font-family-base": $font-family-base,
@@ -183,7 +171,8 @@ $corteza-specific: map-merge(
     "btn-font-family": $btn-font-family,
     "btn-padding-x": $btn-padding-x,
     "btn-padding-y": $btn-padding-y,
-    "topbar-height": $topbar-height
+    "topbar-height": $topbar-height,
+    "topbar-bg": $topbar-bg
   ),
   $corteza-specific
 );
