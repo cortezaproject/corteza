@@ -1,0 +1,14 @@
+.card-header-tabs {
+  border-bottom: 1px solid $border-color !important;
+}
+
+.card-header {
+  .nav-item {
+    font-family: $font-medium !important;
+    margin-bottom: 0 !important;
+
+    .nav-link {
+      color: $black !important;
+    }
+  }
+}
