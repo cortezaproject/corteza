@@ -193,6 +193,7 @@ jobs:
       - name: Publish results
         # always() runs the step even when canceled manually
         if: success() || failure()
+        working-directory: corteza-e2e-cypress
         env:
           RELEASE_CRUST_SFTP_URI: ${{ secrets.RELEASE_CRUST_SFTP_URI }}
           RELEASE_CRUST_KEY_FILE: ${{ env.TMP_KEY }}
