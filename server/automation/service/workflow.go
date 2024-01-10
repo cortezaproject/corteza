@@ -543,10 +543,12 @@ func (svc *workflow) updateCache(wf *types.Workflow, runAs intAuth.Identifiable,
 	svc.muxCache.Lock()
 
 	if wf.Executable() {
+		svc.wIndex[wf.Handle] = wf.ID
 		svc.cache[wf.ID] = &wfCacheItem{g: g, wf: wf, runAs: runAs}
 	} else {
 		// remove deleted
 		delete(svc.cache, wf.ID)
+		delete(svc.wIndex, wf.Handle)
 	}
 
 	return
