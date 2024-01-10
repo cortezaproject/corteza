@@ -8,9 +8,9 @@
     <template
       #header
     >
-      <h3 class="mb-0">
+      <h4 class="mb-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <c-resource-list

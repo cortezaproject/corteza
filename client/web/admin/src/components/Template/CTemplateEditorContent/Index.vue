@@ -31,9 +31,9 @@
         />
 
         <template #header>
-          <h3 class="m-0">
+          <h4 class="m-0">
             {{ $t('title') }}
-          </h3>
+          </h4>
           <b-badge
             v-if="template.partial"
             data-test-id="badge-partial-template"
@@ -85,9 +85,9 @@
         />
 
         <template #header>
-          <h3 class="m-0">
+          <h4 class="m-0">
             {{ $t('preview.title') }}
-          </h3>
+          </h4>
         </template>
 
         <template #footer>

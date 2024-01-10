@@ -149,7 +149,7 @@
           <b-td class="handle align-middle pr-2">
             <font-awesome-icon
               :icon="['fas', 'bars']"
-              class="grab m-0 text-light p-0"
+              class="grab m-0 text-secondary p-0"
             />
           </b-td>
 

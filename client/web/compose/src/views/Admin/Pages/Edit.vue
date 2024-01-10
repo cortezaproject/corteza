@@ -233,7 +233,7 @@
             cols="12"
           >
             <hr>
-            <div class="list-background rounded border border-light p-1">
+            <div class="list-background rounded border border-light p-3">
               <b-form-group
                 :label="$t('page-layout.layouts')"
                 label-class="text-primary"
@@ -282,6 +282,7 @@
                       >
                         <font-awesome-icon
                           :icon="['fas', 'bars']"
+                          class="text-secondary"
                         />
                       </b-td>
 
@@ -599,7 +600,7 @@
           </b-form-checkbox>
         </b-form-group>
 
-        <div class="list-background rounded border border-light p-1">
+        <div class="list-background rounded border border-light p-3">
           <b-form-group
             :label="$t('page-layout.recordToolbar.actions.label')"
             label-class="text-primary"
@@ -630,6 +631,7 @@
                     >
                       <font-awesome-icon
                         :icon="['fas', 'bars']"
+                        class="text-secondary"
                       />
                     </div>
                   </b-td>

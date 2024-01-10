@@ -9,9 +9,9 @@
         class="shadow-sm mb-3"
       >
         <template #header>
-          <h3 class="mb-0">
+          <h4 class="mb-0">
             {{ $t('mainLogo.title') }}
-          </h3>
+          </h4>
 
           <c-input-confirm
             v-if="uploadedFile('ui.main-logo')"
@@ -39,9 +39,9 @@
         class="shadow-sm mb-3"
       >
         <template #header>
-          <h3 class="mb-0">
+          <h4 class="mb-0">
             {{ $t('iconLogo.title') }}
-          </h3>
+          </h4>
 
           <c-input-confirm
             v-if="uploadedFile('ui.icon-logo')"

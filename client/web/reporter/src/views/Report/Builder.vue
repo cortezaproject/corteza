@@ -216,7 +216,7 @@
               {{ name || kind }}
               <font-awesome-icon
                 :icon="['fas', 'bars']"
-                class="grab"
+                class="text-secondary grab"
               />
             </template>
 

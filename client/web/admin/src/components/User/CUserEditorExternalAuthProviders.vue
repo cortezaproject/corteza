@@ -5,6 +5,12 @@
     header-bg-variant="white"
     footer-bg-variant="white"
   >
+    <template #header>
+      <h4 class="m-0">
+        {{ $t('title') }}
+      </h4>
+    </template>
+
     <b-table
       :items="value"
       :fields="fields"
@@ -17,11 +23,6 @@
         />
       </template>
     </b-table>
-    <template #header>
-      <h3 class="m-0">
-        {{ $t('title') }}
-      </h3>
-    </template>
   </b-card>
 </template>
 

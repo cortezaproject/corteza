@@ -22,14 +22,17 @@
         <b-tr
           v-for="(filter, index) in sortableFilters"
           :key="index"
+          class="pointer"
+          @click="onRowClick(filter, index)"
         >
           <td
             class="handle align-middle grab"
             style="width: 1%"
+            @click.stop
           >
             <font-awesome-icon
               :icon="['fas', 'bars']"
-              class="text-light"
+              class="text-secondary"
             />
           </td>
           <b-td class="align-middle">
@@ -39,15 +42,6 @@
             {{ $t(`filters.${filter.enabled ? 'enabled' : 'disabled'}`) }}
           </b-td>
           <b-td class="text-right align-middle">
-            <b-button
-              size="sm"
-              variant="link"
-              @click.stop="onRowClick(filter, index)"
-            >
-              <font-awesome-icon
-                :icon="['far', 'edit']"
-              />
-            </b-button>
             <c-input-confirm
               show-icon
               class="ml-1"

@@ -296,7 +296,7 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-1">
+              <div class="list-background rounded border border-light p-3">
                 <b-form-group
                   :label="$t('recordList.filter.presets')"
                   label-class="text-primary"
@@ -325,6 +325,7 @@
                         >
                           <font-awesome-icon
                             :icon="['fas', 'bars']"
+                            class="text-secondary"
                           />
                         </b-td>
 
@@ -348,7 +349,7 @@
                                 :record-list-filter="filter.filter"
                                 variant="light"
                                 button-class="px-2 pt-2"
-                                button-style="padding-bottom: calc(0.5rem - 2px);"
+                                button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
                                 @filter="(filter) => onFilter(filter, index)"
                               />
                             </b-input-group-append>
@@ -429,7 +430,7 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-1">
+              <div class="list-background rounded border border-light p-3">
                 <b-form-group
                   :label="$t('recordList.record.presortInputLabel')"
                   label-class="text-primary"

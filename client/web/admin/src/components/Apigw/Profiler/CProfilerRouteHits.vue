@@ -8,9 +8,9 @@
     header-bg-variant="white"
   >
     <template #header>
-      <h3>
+      <h4>
         {{ $t('general:label.requests') }}
-      </h3>
+      </h4>
 
       <div class="d-flex align-items-center flex-wrap flex-fill mt-2 gap-1">
         <div class="flex-fill">

@@ -163,6 +163,10 @@ export default {
 }
 
 .nav-item > span {
+  .icon {
+    color: var(--black)
+  }
+
   .title {
     font-family: var(--font-regular) !important;
     color: var(--black);
@@ -170,6 +174,10 @@ export default {
 }
 
 .nav-item:hover > span {
+  .icon {
+    color: var(--primary)
+  }
+
   .title {
     font-family: var(--font-semibold) !important;
     color: var(--primary);

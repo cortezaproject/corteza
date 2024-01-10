@@ -329,9 +329,8 @@
                 @click.stop
               >
                 <font-awesome-icon
-                  v-b-tooltip.hover="{ title: $t('general.tooltip.dragAndDrop'), container: '#body' }"
                   :icon="['fas', 'bars']"
-                  class="handle text-light my-1"
+                  class="handle text-secondary my-1"
                 />
               </b-td>
 

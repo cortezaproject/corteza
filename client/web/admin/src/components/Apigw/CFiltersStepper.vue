@@ -3,14 +3,15 @@
     data-test-id="card-filter-list"
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
     body-class="p-0"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm mt-3"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('filters.title') }}
-      </h3>
+      </h4>
 
       <div class="d-flex flex-wrap flex-fill-child gap-1">
         <c-filters-dropdown

@@ -130,7 +130,7 @@
                     <td class="align-middle">
                       <font-awesome-icon
                         :icon="['fas', 'bars']"
-                        class="grab text-light"
+                        class="grab text-secondary"
                       />
                     </td>
 

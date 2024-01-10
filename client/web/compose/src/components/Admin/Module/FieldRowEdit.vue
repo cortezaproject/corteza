@@ -2,11 +2,11 @@
   <tr>
     <td
       v-b-tooltip.hover
-      class="handle align-middle"
+      class="handle align-middle pr-2"
     >
       <font-awesome-icon
         :icon="['fas', 'bars']"
-        class="text-light grab"
+        class="text-secondary grab"
       />
     </td>
 
