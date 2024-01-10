@@ -22,7 +22,6 @@
 
     <b-tabs
       data-test-id="theme-tabs"
-      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab

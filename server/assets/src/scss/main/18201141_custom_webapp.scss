@@ -1,14 +1,86 @@
-.card-header-tabs {
-  border-bottom: 1px solid $border-color !important;
+:disabled, .disabled {
+  cursor: not-allowed;
+}
+
+a.btn:not(.btn-link) {
+  text-decoration: none;
+}
+
+
+.tabs > .card-header {
+  border-bottom: 1px solid var(--extra-light) !important;
+  padding-top: 0 !important;
+  padding-left: 0.8rem !important;
+  padding-right: 0.8rem !important;
+
+  .card-header-tabs {
+    border-bottom: 0 !important;
+  }
 }
 
 .card-header {
   .nav-item {
-    font-family: $font-medium !important;
+    font-family: var(--font-medium) !important;
     margin-bottom: 0 !important;
 
     .nav-link {
-      color: $black !important;
+      padding: 0.5rem !important;
+
+      &:not(.active) {
+        color: var(--dark) !important;
+      }
     }
   }
+}
+
+.table.b-table {
+  tr {
+    &:first-child td {
+      border: none;
+    }
+
+    th {
+      border: 0;
+    }
+  }
+}
+
+.dropdown-menu * {
+  font-family: var(--font-regular) !important;
+
+  .dropdown-item {
+    * {
+      border: 0 !important;
+      box-shadow: none !important;
+      background-color: transparent !important;
+    }
+
+    &:active * {
+      color: var(--white) !important;
+    }
+  }
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--extra-light);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 7px;
+
+  &:hover {
+    background-color: var(--primary);
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

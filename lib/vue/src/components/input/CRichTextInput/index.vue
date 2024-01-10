@@ -1,7 +1,7 @@
 <template>
   <b-card no-body class="editor rt-content">
     <template v-if="editor">
-      <b-card-header header-class="p-0 rounded-sm">
+      <b-card-header header-class="p-0 border-bottom">
         <editor-menu-bar
           :editor="editor"
           v-slot="{ commands, isActive, getMarkAttrs, getNodeAttrs }"
@@ -13,7 +13,7 @@
           :commands="commands"
           :is-active="isActive"
           :get-mark-attrs="getMarkAttrs"
-          :get-node-attrs="getNodeAttrs" 
+          :get-node-attrs="getNodeAttrs"
           :labels="labels"
           :current-value="currentValue"
         />

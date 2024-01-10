@@ -3,8 +3,6 @@
     data-test-id="dropdown-add-filter"
     :text="$t('filters.addFilter')"
     variant="primary"
-    size="lg"
-    class="d-inline-flex mt-3"
   >
     <template v-if="filterList.length">
       <b-dropdown-item

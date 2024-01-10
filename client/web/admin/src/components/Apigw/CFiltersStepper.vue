@@ -3,7 +3,6 @@
     data-test-id="card-filter-list"
     header-bg-variant="white"
     footer-bg-variant="white"
-    header-class="border-bottom"
     body-class="p-0"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm mt-3"
@@ -12,19 +11,10 @@
       <h4 class="m-0">
         {{ $t('filters.title') }}
       </h4>
-
-      <div class="d-flex flex-wrap flex-fill-child gap-1">
-        <c-filters-dropdown
-          :available-filters="getAvailableFiltersByStep"
-          :filters="getSelectedFiltersByStep"
-          @addFilter="onAddFilter"
-        />
-      </div>
     </template>
 
     <b-tabs
       data-test-id="filter-steps"
-      nav-wrapper-class="bg-white rounded-0"
       card
     >
       <b-tab
@@ -35,6 +25,13 @@
         class="border-0 p-0"
         @click="onActivateTab(index)"
       >
+        <c-filters-dropdown
+          :available-filters="getAvailableFiltersByStep"
+          :filters="getSelectedFiltersByStep"
+          class="p-3"
+          @addFilter="onAddFilter"
+        />
+
         <c-filters-table
           :filters="getSelectedFiltersByStep"
           :step="index"

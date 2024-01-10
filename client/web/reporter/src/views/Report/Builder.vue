@@ -158,7 +158,6 @@
     >
       <b-tabs
         v-if="currentBlock"
-        nav-wrapper-class="bg-white"
         active-tab-class="tab-content h-auto overflow-auto"
         card
       >

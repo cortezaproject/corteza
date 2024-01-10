@@ -54,7 +54,7 @@
             <div
               v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
               v-b-tooltip.hover="{ title: $t('unsavedChanges'), container: '#body' }"
-              class="btn border-0"
+              class="btn btn-sm border-0"
             >
               <font-awesome-icon
                 :icon="['fas', 'exclamation-triangle']"
@@ -64,7 +64,7 @@
 
             <b-button-group size="sm">
               <b-button
-                :title="$t('tooltip.edit')"
+                v-b-tooltip.hover="{ title: $t('tooltip.edit'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="editTabbedBlock(tab)"
@@ -75,7 +75,7 @@
               </b-button>
 
               <b-button
-                :title="$t('tooltip.clone')"
+                v-b-tooltip.hover="{ title: $t('tooltip.clone'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="cloneTabbedBlock(tab)"
@@ -86,7 +86,7 @@
               </b-button>
 
               <b-button
-                :title="$t('tooltip.copy')"
+                v-b-tooltip.hover="{ title: $t('tooltip.copy'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="copyTabbedBlock(tab)"

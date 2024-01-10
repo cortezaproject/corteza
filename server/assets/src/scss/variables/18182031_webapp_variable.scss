@@ -38,8 +38,9 @@ $gray-700: if(lightness($black) < lightness($white), mix($black, $white, 70%), m
 $gray-800: if(lightness($black) < lightness($white), mix($black, $white, 80%), mix($white, $black, 80%));
 $gray-900: if(lightness($black) < lightness($white), mix($black, $white, 90%), mix($white, $black, 90%));
 
-// $yiq-text-dark:             $black !default;
-// $yiq-text-light:            $white !default;
+$yiq-contrasted-threshold: 43; // Our magic number, we can pretend its 42..
+$yiq-text-dark:             $black !default;
+$yiq-text-light:            $white !default;
 
 $theme-colors: () !default;
 $theme-colors: map-merge(
@@ -72,6 +73,8 @@ $enable-gradients: false !default;
 $enable-responsive-font-sizes: true !default;
 
 // Card
+$card-spacer-y:                     1rem !default;
+$card-spacer-x:                     1rem !default;
 $card-border-color: $extra-light !default;
 $card-border-radius: 1rem !default;
 $card-border-width:  0 !default;

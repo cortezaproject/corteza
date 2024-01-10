@@ -63,7 +63,7 @@
 
         <div class="px-3">
           <div class="mb-3">
-            <h5 class="d-flex align-items-center text-primary mb-1">
+            <h5 class="d-flex align-items-center mb-1">
               {{ $t('module:general.fields') }}
               <c-hint
                 :tooltip="$t('recordList.tooltip.performance.moduleFields')"

@@ -2072,10 +2072,6 @@ td:hover .inline-actions {
 
 <style lang="scss">
 .record-list-table {
-  tr:first-child td {
-    border: none;
-  }
-
   .actions {
     padding-top: 8px;
     position: sticky;
