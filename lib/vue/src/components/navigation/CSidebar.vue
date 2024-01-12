@@ -20,8 +20,8 @@
       >
         <template #header>
           <div
-            class="d-flex align-items-center justify-content-between px-2"
-            style="height: 50px;"
+            class="d-flex align-items-center justify-content-between pl-2"
+            style="height: 47px;"
           >
             <img
               data-test-id="img-main-logo"

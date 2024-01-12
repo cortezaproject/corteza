@@ -109,7 +109,7 @@ func processNewTheme() (themes []types.Theme) {
         "light":"#F3F5F7",
         "extra-light":"#E4E9EF",
         "body-bg":"#F3F5F7",
-        "sidebar-bg": "#F3F5F7",
+        "sidebar-bg": "#FFFFFF",
         "topbar-bg": "#F3F5F7"
     }`
 
@@ -122,11 +122,11 @@ func processNewTheme() (themes []types.Theme) {
         "success":"#43AA8B",
         "warning":"#E2A046",
         "danger":"#E54122",
-        "light":"#768D9A",
-        "extra-light":"#23495F",
+        "light":"#23495F",
+        "extra-light":"#768D9A",
         "body-bg":"#092B40",
-        "sidebar-bg": "#768D9A",
-        "topbar-bg": "#768D9A"
+        "sidebar-bg": "#0B344E",
+        "topbar-bg": "#092B40"
     }`
 
 	themes = []types.Theme{

@@ -27,22 +27,22 @@
       <b-tab
         v-for="theme in themes"
         :key="theme.id"
-        :title="$t(`tabs.${theme.id}`)"
+        :title="theme.title"
       >
-        <b-row>
+        <b-row v-if="theme.id !== 'general'">
           <b-col
-            v-for="(key, index) in themeInputs"
+            v-for="key in themeVariables"
             :key="key"
             md="6"
             cols="12"
           >
             <b-form-group
-              :label="$t(`theme.values.${key}`)"
+              :label="$t(`theme.variables.${key}`)"
               label-class="text-primary"
             >
               <c-input-color-picker
                 ref="picker"
-                v-model="theme.values[key]"
+                v-model="theme.variables[key]"
                 :data-test-id="`input-${key}-color`"
                 :translations="{
                   modalTitle: $t('colorPicker'),
@@ -50,11 +50,14 @@
                   saveBtnLabel: $t('general:label.saveAndClose')
                 }"
               >
-                <template #footer>
+                <template
+                  v-if="['light', 'dark'].includes(theme.id)"
+                  #footer
+                >
                   <b-button
                     variant="outline-primary"
                     class="mr-auto"
-                    @click="resetColor(key, index, theme.id)"
+                    @click="resetColor(key, theme)"
                   >
                     {{ $t('label.default') }}
                   </b-button>
@@ -63,42 +66,43 @@
             </b-form-group>
           </b-col>
         </b-row>
-
-        <!-- <b-row>
+        <b-row>
           <b-col>
             <b-form-group
               :label="$t('custom-css')"
               label-class="text-primary"
+              class="mb-0"
             >
               <c-ace-editor
-                v-model="theme.values"
+                v-model="theme.customCSS"
                 lang="css"
-                height="300px"
+                height="400px"
                 font-size="14px"
                 show-line-numbers
                 :border="false"
                 :show-popout="true"
+                @open="openCustomCSSModal(theme.id)"
               />
             </b-form-group>
           </b-col>
-        </b-row> -->
+        </b-row>
       </b-tab>
     </b-tabs>
 
-    <!-- <b-modal
+    <b-modal
       id="custom-css-editor"
-      v-model="theme.showEditorModal"
+      v-model="customCSSModal.show"
       :title="$t('modal.editor')"
       cancel-variant="link"
       size="lg"
       :ok-title="$t('general:label.saveAndClose')"
       :cancel-title="$t('general:label.cancel')"
       body-class="p-0"
-      @ok="saveCustomCSSInput(theme.id)"
-      @hidden="resetCustomCSSInput(theme.id)"
+      @ok="saveCustomCSSModal()"
+      @hidden="resetCustomCSSModal()"
     >
       <c-ace-editor
-        v-model="theme.modalValue"
+        v-model="customCSSModal.value"
         lang="scss"
         height="500px"
         font-size="14px"
@@ -106,7 +110,7 @@
         :border="false"
         :show-popout="false"
       />
-    </b-modal> -->
+    </b-modal>
 
     <template #footer>
       <c-button-submit
@@ -162,7 +166,12 @@ export default {
 
   data () {
     return {
-      themeInputs: [
+      themeTabs: [
+        'general',
+        'light',
+        'dark',
+      ],
+      themeVariables: [
         'black',
         'white',
         'primary',
@@ -187,6 +196,8 @@ export default {
         'light': '#F3F5F7',
         'extra-light': '#E4E9EF',
         'body-bg': '#F3F5F7',
+        'sidebar-bg': '#FFFFFF',
+        'topbar-bg': '#F3F5F7',
       },
       darkModeVariables: {
         'black': '#FBF7F4',
@@ -196,11 +207,20 @@ export default {
         'success': '#43AA8B',
         'warning': '#E2A046',
         'danger': '#E54122',
-        'light': '#768D9A',
-        'extra-light': '#23495F',
-        'body-bg': '#162425',
+        'light': '#23495F',
+        'extra-light': '#768D9A',
+        'body-bg': '#092B40',
+        'sidebar-bg': '#0B344E',
+        'topbar-bg': '#092B40',
       },
+
       themes: [],
+
+      customCSSModal: {
+        show: false,
+        id: '',
+        value: '',
+      },
     }
   },
 
@@ -219,39 +239,70 @@ export default {
     settings: {
       immediate: true,
       handler (settings) {
-        if (settings['ui.studio.themes']) {
-          this.themes = settings['ui.studio.themes'].map(theme => {
-            theme.values = JSON.parse(theme.values)
-            return theme
-          })
-        } else {
-          this.themes = [
-            {
-              id: 'light',
-              values: this.lightModeVariables,
-            },
-            {
-              id: 'dark',
-              values: this.darkModeVariables,
-            },
-          ]
-        }
+        const themes = settings['ui.studio.themes'] || []
+        const customCSS = settings['ui.studio.custom-css'] || []
+
+        this.themes = this.themeTabs.map((id) => {
+          const { title, values = '' } = themes.find(t => t.id === id) || {}
+          const defaultCustomCSS = customCSS.find(t => t.id === id) || {}
+
+          let variables = JSON.parse(values || '{}')
+
+          if (!values && ['light', 'dark'].includes(id)) {
+            variables = id === 'light' ? this.lightModeVariables : this.darkModeVariables
+          }
+
+          return {
+            id: id,
+            title: title || this.$t(`tabs.${id}`),
+            variables,
+            customCSS: defaultCustomCSS.values || '',
+          }
+        })
       },
     },
   },
 
   methods: {
     onSubmit () {
-      this.$emit('submit', { 'ui.studio.themes': this.themes.map(theme => {
-        theme.values = JSON.stringify(theme.values)
-        return theme
-      }),
+      this.$emit('submit', {
+        'ui.studio.themes': this.themes.map(theme => {
+          return {
+            id: theme.id,
+            title: theme.title,
+            values: JSON.stringify(theme.variables),
+          }
+        }),
+        'ui.studio.custom-css': this.themes.map(theme => {
+          return {
+            id: theme.id,
+            title: theme.title,
+            values: theme.customCSS,
+          }
+        }),
       })
     },
 
-    resetColor (key, index, id) {
-      this.themes.find(theme => theme.id === id).values[key] = id === 'light' ? this.lightModeVariables[key] : this.darkModeVariables[key]
-      this.$refs.picker[index].closeMenu()
+    openCustomCSSModal (id) {
+      const { customCSS } = this.themes.find(t => t.id === id) || {}
+
+      this.customCSSModal.id = id
+      this.customCSSModal.value = customCSS
+      this.customCSSModal.show = true
+    },
+
+    saveCustomCSSModal () {
+      this.themes.find(t => t.id === this.customCSSModal.id).customCSS = this.customCSSModal.value
+    },
+
+    resetCustomCSSModal () {
+      this.customCSSModal.id = ''
+      this.customCSSModal.value = ''
+      this.customCSSModal.show = false
+    },
+
+    resetColor (key, theme) {
+      this.$set(theme.variables, key, theme.id === 'light' ? this.lightModeVariables[key] : this.darkModeVariables[key])
     },
 
   },

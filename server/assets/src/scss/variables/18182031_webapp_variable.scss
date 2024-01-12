@@ -38,7 +38,7 @@ $gray-700: if(lightness($black) < lightness($white), mix($black, $white, 70%), m
 $gray-800: if(lightness($black) < lightness($white), mix($black, $white, 80%), mix($white, $black, 80%));
 $gray-900: if(lightness($black) < lightness($white), mix($black, $white, 90%), mix($white, $black, 90%));
 
-$yiq-contrasted-threshold: 43; // Our magic number, we can pretend its 42..
+$yiq-contrasted-threshold: 42; // Our magic number, we can pretend its 42..
 $yiq-text-dark:             $black !default;
 $yiq-text-light:            $white !default;
 
@@ -53,6 +53,7 @@ $theme-colors: map-merge(
 );
 
 // Grid
+$grid-gutter-width: 32px !default;
 $grid-breakpoints: (
   xs: 0,
   sm: 576px,
@@ -66,6 +67,7 @@ $grid-breakpoints: (
 $body-bg:  $light !default;
 $body-color: $black !default;
 $border-color: $extra-light !default;
+$hr-border-color: $border-color !default;
 
 // Options
 $enable-rounded:   true !default;
@@ -155,16 +157,18 @@ $input-placeholder-color: $extra-light !default;
 // Corteza specific variables
 // Topbar
 $topbar-height:         64px !default;
-$topbar-bg:             #F3F5F7 !default;
+$topbar-bg:             $body-bg !default;
 
 // Sidebar
 $sidebar-width:         320px !default;
-$sidebar-bg:            #F3F5F7 !default;
+$sidebar-bg:            $white !default;
 
 $corteza-specific: () !default;
 $corteza-specific: map-merge(
   (
     "body-bg": $body-bg,
+    "topbar-height": $topbar-height,
+    "topbar-bg": $topbar-bg,
     "sidebar-width": $sidebar-width,
     "sidebar-bg": $sidebar-bg,
     "font-regular": $font-regular,
@@ -174,8 +178,6 @@ $corteza-specific: map-merge(
     "btn-font-family": $btn-font-family,
     "btn-padding-x": $btn-padding-x,
     "btn-padding-y": $btn-padding-y,
-    "topbar-height": $topbar-height,
-    "topbar-bg": $topbar-bg
   ),
   $corteza-specific
 );

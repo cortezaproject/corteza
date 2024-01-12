@@ -31,10 +31,11 @@ editor:
     label:
       default: Default
     tabs:
+      general: General
       light: Light
       dark: Dark
     theme:
-      values:
+      variables:
         white: White
         black: Black
         primary: Primary
