@@ -45,6 +45,8 @@ editor:
         light: Light
         extra-light: Extra light
         body-bg: Body background
+        sidebar-bg: Sidebar background
+        topbar-bg: Topbar background
 
   topbar:
     title: Topbar
