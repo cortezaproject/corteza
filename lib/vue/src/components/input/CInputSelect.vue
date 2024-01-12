@@ -140,6 +140,19 @@ export default {
 </script>
 
 <style lang="scss">
+:root {
+  --vs-dropdown-bg: var(--white);
+  --vs-dropdown-option--active-bg: var(--light);
+  --vs-state-disabled-color: var(--secondary);
+  --vs-state-disabled-bg: var(--light);
+  --vs-colors--light: var(--light);
+  --vs-colors--dark: var(--black);
+  --vs-dropdown-option-color: var(--black);
+  --vs-dropdown-option--active-color: var(--black);
+  --vs-selected-bg: var(--primary);
+  --vs-search-input-color: var(--secondary);
+}
+
 .v-select {
   min-width: auto;
   position: relative;
@@ -148,7 +161,7 @@ export default {
   margin-bottom: 0;
   font-size: .9rem !important;
   border-radius: 0.25rem;
-  color: #495057 !important;
+  font-family: var(--font-regular);
 
   .vs__selected-options {
     // do not allow growing
@@ -163,6 +176,7 @@ export default {
     max-width: 100%;
     overflow: hidden;
     border: 0;
+    color: var(--black);
   }
 
   .vs__search {
@@ -203,7 +217,7 @@ export default {
 
   .vs__clear,
   .vs__open-indicator {
-    fill: var(--gray-900);
+    fill: var(--black);
     display: inline-flex;
   }
 
@@ -220,6 +234,19 @@ export default {
       margin-left: 0;
       margin-right: 0;
     }
+  }
+}
+
+[data-color-mode="light"] .vs--multiple {
+  .vs__selected {
+    color: var(--white);
+  }
+}
+
+.vs--open {
+  .vs__dropdown-toggle {
+    border-color: var(--secondary);
+    border-radius: 0.25rem !important;
   }
 }
 
