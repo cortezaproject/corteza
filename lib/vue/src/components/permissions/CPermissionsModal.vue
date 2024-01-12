@@ -515,12 +515,12 @@ export default {
       const inherit = 'inherit'
 
       // merges roleRules (subset) with list of all permissions
-      const findCurrent = ({ resource, operation }) => {
+      const findCurrent = ({ operation }) => {
         if (!rr) {
           return inherit
         }
 
-        let { resolution, access = inherit } = (rr.find(r => r.resource === resource && r.operation === operation) || {})
+        let { resolution, access = inherit } = (rr.find(r => r.operation === operation) || {})
 
         if (resolution === 'unknown-context') {
           access = 'unknown-context'
