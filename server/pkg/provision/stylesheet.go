@@ -99,7 +99,7 @@ func provisionTheme(ctx context.Context, s store.Storer, name string, themes []t
 func processNewTheme() (themes []types.Theme) {
 	lightModeValues := `
     {
-				"black":"#162425",
+        "black":"#162425",
         "white":"#FFFFFF",
         "primary":"#0B344E",
         "secondary":"#758D9B",
@@ -108,12 +108,14 @@ func processNewTheme() (themes []types.Theme) {
         "danger":"#E54122",
         "light":"#F3F5F7",
         "extra-light":"#E4E9EF",
-        "body-bg":"#F3F5F7"
+        "body-bg":"#F3F5F7",
+        "sidebar-bg": "#F3F5F7",
+        "topbar-bg": "#F3F5F7"
     }`
 
 	darkModeValues := `
     {
-				"black":"#FBF7F4",
+        "black":"#FBF7F4",
         "white":"#0B344E",
         "primary":"#FF9661",
         "secondary":"#758D9B",
@@ -122,7 +124,9 @@ func processNewTheme() (themes []types.Theme) {
         "danger":"#E54122",
         "light":"#768D9A",
         "extra-light":"#23495F",
-        "body-bg":"#092B40"
+        "body-bg":"#092B40",
+        "sidebar-bg": "#768D9A",
+        "topbar-bg": "#768D9A"
     }`
 
 	themes = []types.Theme{

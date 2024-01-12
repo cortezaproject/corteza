@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center pr-3">
+  <div class="header-navigation d-flex flex-wrap align-items-center pr-3 pb-1 mb-2">
     <div
       class="spacer"
       :class="{
@@ -348,6 +348,7 @@ $nav-user-icon-size: 50px;
 .header-navigation {
   width: 100vw;
   min-height: $header-height;
+  background-color: var(--topbar-bg);
 }
 
 .avatar {

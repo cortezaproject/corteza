@@ -173,6 +173,8 @@ export default {
         'light',
         'extra-light',
         'body-bg',
+        'sidebar-bg',
+        'topbar-bg',
       ],
       lightModeVariables: {
         'black': '#162425',

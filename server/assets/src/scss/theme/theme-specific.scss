@@ -1,6 +1,12 @@
 @if $theme-mode != "light" {
   [data-color-mode="#{$theme-mode}"] {
     // Buttons
+    .btn {
+      color: $body-color;
+      @include hover() {
+        color: $body-color;
+      }
+    }
     @each $color, $value in $theme-colors {
       .btn-#{$color} {
         @include button-variant($value, $value);
@@ -1718,6 +1724,11 @@
           theme-color-level($color, $b-toast-color-level)
         );
       }
+    }
+
+    // Custom corteza scss
+    .b-sidebar {
+      background-color: $sidebar-bg !important;
     }
   }
 }

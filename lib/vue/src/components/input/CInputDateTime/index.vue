@@ -130,6 +130,6 @@ export default {
 }
 
 .b-calendar-inner {
-  background-color: white;
+  background-color: var(--white);
 }
 </style>

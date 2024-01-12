@@ -7,9 +7,9 @@
         v-model="isExpanded"
         data-test-id="sidebar"
         :sidebar-class="`sidebar ${isExpanded ? 'expanded' : ''}`"
-        :header-class="`bg-white d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
-        :body-class="`bg-white ${isExpanded ? 'px-3' : ''}`"
-        :footer-class="`bg-white rounded-right ${isExpanded ? 'px-2' : ''}`"
+        :header-class="`d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
+        :body-class="`${isExpanded ? 'px-3' : ''}`"
+        :footer-class="`rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"
         :backdrop="isMobile"
         :shadow="isExpanded && 'sm'"
@@ -336,6 +336,10 @@ $header-height: 64px;
 
 <style lang="scss">
 $nav-width: 320px;
+
+.b-sidebar {
+  background-color: var(--sidebar-bg) !important;
+}
 
 .sidebar {
   display: flex !important;
