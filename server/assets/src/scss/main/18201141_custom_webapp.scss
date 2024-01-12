@@ -1,3 +1,15 @@
+.gap-1 {
+  gap: 0.5rem;
+}
+
+.gap-2 {
+  gap: 1rem;
+}
+
+.gap-3 {
+  gap: 1.5rem;
+}
+
 :disabled, .disabled {
   cursor: not-allowed;
 }
@@ -83,4 +95,20 @@ a.btn:not(.btn-link) {
 
 ::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+.sidebar-spacer {
+  min-width: 0px;
+  -webkit-transition: min-width 0.15s ease-in-out;
+  -moz-transition: min-width 0.15s ease-in-out;
+  -o-transition: min-width 0.15s ease-in-out;
+  transition: min-width 0.15s ease-in-out;
+
+  &.expanded {
+    min-width: calc(var(--sidebar-width));
+    -webkit-transition: min-width 0.2s ease-in-out;
+    -moz-transition: min-width 0.2s ease-in-out;
+    -o-transition: min-width 0.2s ease-in-out;
+    transition: min-width 0.2s ease-in-out;
+  }
 }

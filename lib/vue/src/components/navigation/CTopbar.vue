@@ -1,17 +1,17 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center pr-3 pb-1 mb-2">
+  <div class="header-navigation d-flex flex-wrap align-items-center py-2 px-3 gap-1">
     <div
-      class="spacer"
+      class="sidebar-spacer"
       :class="{
         'expanded': sidebarPinned,
       }"
     />
 
-    <h2 class="title py-1 mb-0">
+    <h2 class="title mb-0">
       <slot name="title" />
     </h2>
 
-    <div class="tools-wrapper py-1 ml-auto">
+    <div class="tools-wrapper ml-auto">
       <slot name="tools" />
     </div>
 
@@ -324,16 +324,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-$header-height: 64px;
-$nav-width: 320px;
-$nav-icon-size: 40px;
-$nav-user-icon-size: 50px;
-
-.icon-logo {
-  height: calc(#{$header-height} / 2);
-  background-repeat: no-repeat;
-  background-position: center;
-}
+$nav-icon-size: calc(var(--topbar-height) - 24px);
+$nav-user-icon-size: calc(var(--topbar-height) - 16px);
 
 .nav-icon {
   width: $nav-icon-size;
@@ -347,8 +339,12 @@ $nav-user-icon-size: 50px;
 
 .header-navigation {
   width: 100vw;
-  min-height: $header-height;
+  min-height: var(--topbar-height);
   background-color: var(--topbar-bg);
+
+  .sidebar-spacer.expanded {
+    min-width: calc(var(--sidebar-width) - 50px);
+  }
 }
 
 .avatar {
@@ -365,27 +361,11 @@ $nav-user-icon-size: 50px;
   }
 }
 
-.spacer {
-  min-width: 0px;
-  -webkit-transition: min-width 0.15s ease-in-out;
-  -moz-transition: min-width 0.15s ease-in-out;
-  -o-transition: min-width 0.15s ease-in-out;
-  transition: min-width 0.15s ease-in-out;
-
-  &.expanded {
-    min-width: calc(#{$nav-width} - 42px);
-    -webkit-transition: min-width 0.2s ease-in-out;
-    -moz-transition: min-width 0.2s ease-in-out;
-    -o-transition: min-width 0.2s ease-in-out;
-    transition: min-width 0.2s ease-in-out;
-  }
-}
-
 .title {
   display: flex;
   align-items: center;
-  min-height: $header-height;
-  padding-left: calc(3.5rem + 6px);
+  min-height: $nav-user-icon-size;
+  padding-left: 42px;
 
   .vue-portal-target {
     display: -webkit-box; /* For Safari and old versions of Chrome */

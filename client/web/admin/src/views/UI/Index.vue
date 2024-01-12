@@ -96,7 +96,9 @@ export default {
   methods: {
     fetchSettings () {
       this.incLoader()
-      this.$SystemAPI.settingsList({ prefix: prefix })
+
+      this.$Settings.fetch()
+      return this.$SystemAPI.settingsList({ prefix: prefix })
         .then(settings => {
           this.settings = {}
 
@@ -119,18 +121,26 @@ export default {
 
       this.$SystemAPI.settingsUpdate({ values })
         .then(() => {
+          return this.fetchSettings().then(() => {
+            if ((type === 'branding' && this.settings['ui.studio.sass-installed']) || type === 'customCSS') {
+              // window.location.reload()
+              return new Promise((resolve) => {
+                setTimeout(() => {
+                  const stylesheet = document.querySelector('link[href="custom.css"]')
+                  stylesheet.href = 'custom.css'
+                  resolve()
+                }, 1000)
+              })
+            }
+          })
+        })
+        .then(() => {
           this.animateSuccess(type)
           this.toastSuccess(this.$t('notification:settings.ui.update.success'))
-          this.$Settings.fetch()
         })
         .catch(this.toastErrorHandler(this.$t('notification:settings.ui.update.error')))
         .finally(() => {
           this[type].processing = false
-
-          // Refresh the page if branding variables is updated and sass installed or custom CSS was updated
-          if ((type === 'branding' && this.settings['ui.studio.sass-installed']) || type === 'customCSS') {
-            window.location.reload()
-          }
         })
     },
   },

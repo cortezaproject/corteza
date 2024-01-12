@@ -145,6 +145,12 @@ export default {
     },
   },
 
+  watch: {
+    value (value) {
+      this.currentColor = value
+    },
+  },
+
   methods: {
     updateColor: debounce(function ({ hex8 = '' }) {
       this.currentColor = hex8
@@ -159,7 +165,7 @@ export default {
     },
 
     saveColor () {
-      this.$emit('input', this.currentColor || this.value)
+      this.$emit('input', this.currentColor)
       this.closeMenu()
     },
 

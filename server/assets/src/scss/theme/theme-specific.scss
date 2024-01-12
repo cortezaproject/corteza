@@ -531,6 +531,10 @@
       color: $headings-color;
     }
 
+    hr {
+      border-color: $hr-border-color;
+    }
+
     //Utilities
     @each $color, $value in $theme-colors {
       @include bg-variant(".bg-#{$color}", $value, true);
