@@ -22,54 +22,50 @@ func updateWebappTheme(ctx context.Context, log *zap.Logger, s store.Storer) (er
 	oldCustomCSS := vv.FindByName("ui.custom-css")
 	oldBranding := vv.FindByName("ui.studio.branding-sass")
 	studioThemes := vv.FindByName("ui.studio.themes")
+	customCSSThemes := vv.FindByName("ui.studio.custom-css")
 
-	//provision new studio themes setting
-	newThemes := processNewTheme()
-	if oldBranding.IsNull() && studioThemes.IsNull() {
-		err = provisionTheme(ctx, s, "ui.studio.themes", newThemes, log)
+	//get branding themes setting value
+	brandingTheme, err := processBrandingTheme(oldBranding)
+	if err != nil {
+		return err
+	}
+
+	//get custom css themes setting value
+	customCSSTheme, err := processCustomCSSTheme(oldCustomCSS)
+	if err != nil {
+		return err
+	}
+
+	// provision new themes
+	if studioThemes.IsNull() {
+		// provision branding themes setting
+		err = provisionTheme(ctx, s, "ui.studio.themes", brandingTheme, log)
 		if err != nil {
 			return err
+		}
+
+		if !oldBranding.IsNull() {
+			// delete old branding sass settings from the database
+			err = store.DeleteSettingValue(ctx, s, oldBranding)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
-	// provision old branding sass setting to studio themes setting
-	if !oldBranding.IsNull() {
-		themes, err := processOldTheme(oldBranding, sass.LightTheme, sass.DarkTheme)
+	if customCSSThemes.IsNull() {
+		// provision custom CSS themes setting
+		err = provisionTheme(ctx, s, "ui.studio.custom-css", customCSSTheme, log)
 		if err != nil {
 			return err
 		}
 
-		//append dark mode from new themes
-		themes = append(themes, newThemes[1])
-
-		err = provisionTheme(ctx, s, "ui.studio.themes", themes, log)
-		if err != nil {
-			return err
-		}
-
-		// delete old custom css and branding sass settings from the database
-		err = store.DeleteSettingValue(ctx, s, oldBranding)
-		if err != nil {
-			return err
-		}
-	}
-
-	// provision custom CSS
-	if !oldCustomCSS.IsNull() {
-		themes, err := processOldTheme(oldCustomCSS, sass.GeneralTheme, sass.LightTheme, sass.DarkTheme)
-		if err != nil {
-			return err
-		}
-
-		err = provisionTheme(ctx, s, "ui.studio.custom-css", themes, log)
-		if err != nil {
-			return err
-		}
-
-		// delete old custom css and branding sass settings from the database
-		err = store.DeleteSettingValue(ctx, s, oldCustomCSS)
-		if err != nil {
-			return err
+		if !oldCustomCSS.IsNull() {
+			// delete old custom css settings from the database
+			err = store.DeleteSettingValue(ctx, s, oldCustomCSS)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
@@ -96,22 +92,41 @@ func provisionTheme(ctx context.Context, s store.Storer, name string, themes []t
 	return nil
 }
 
-func processNewTheme() (themes []types.Theme) {
-	lightModeValues := `
-    {
-        "black":"#162425",
-        "white":"#FFFFFF",
-        "primary":"#0B344E",
-        "secondary":"#758D9B",
-        "success":"#43AA8B",
-        "warning":"#E2A046",
-        "danger":"#E54122",
-        "light":"#F3F5F7",
-        "extra-light":"#E4E9EF",
-        "body-bg":"#F3F5F7",
-        "sidebar-bg": "#FFFFFF",
-        "topbar-bg": "#F3F5F7"
-    }`
+func processBrandingTheme(oldBranding *types.SettingValue) (themes []types.Theme, err error) {
+	var brandingMap map[string]string
+
+	lightModeMap := map[string]string{
+		"black":       "#162425",
+		"white":       "#FFFFFF",
+		"primary":     "#0B344E",
+		"secondary":   "#758D9B",
+		"success":     "#43AA8B",
+		"warning":     "#E2A046",
+		"danger":      "#E54122",
+		"light":       "#F3F5F7",
+		"extra-light": "#E4E9EF",
+		"body-bg":     "#F3F5F7",
+		"sidebar-bg":  "#FFFFFF",
+		"topbar-bg":   "#F3F5F7",
+	}
+
+	// process old branding sass settings and match them with the new branding themes setting
+	if !oldBranding.IsNull() {
+		oldBrandingString, err := strconv.Unquote(oldBranding.Value.String())
+		if err != nil {
+			return nil, err
+		}
+
+		if err := json.Unmarshal([]byte(oldBrandingString), &brandingMap); err != nil {
+			return nil, err
+		}
+
+		for key, bmValue := range brandingMap {
+			if _, ok := lightModeMap[key]; ok {
+				lightModeMap[key] = bmValue
+			}
+		}
+	}
 
 	darkModeValues := `
     {
@@ -129,49 +144,48 @@ func processNewTheme() (themes []types.Theme) {
         "topbar-bg": "#092B40"
     }`
 
+	lightModeValues, _ := json.Marshal(lightModeMap)
+
 	themes = []types.Theme{
 		{
-			ID:     "light",
-			Values: lightModeValues,
+			ID:     sass.LightTheme,
+			Values: string(lightModeValues),
 		},
 		{
-			ID:     "dark",
+			ID:     sass.DarkTheme,
 			Values: darkModeValues,
 		},
 	}
 
-	return themes
+	return themes, nil
 }
 
-func processOldTheme(oldValue *types.SettingValue, themeIDs ...string) (themes []types.Theme, err error) {
-	oldValueStr, err := strconv.Unquote(oldValue.Value.String())
-	if err != nil {
-		return
+func processCustomCSSTheme(oldValue *types.SettingValue) (themes []types.Theme, err error) {
+	var generalCSS string
+
+	if oldValue.IsNull() {
+		generalCSS = ""
+	} else {
+		generalCSS, err = strconv.Unquote(oldValue.Value.String())
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	for _, themeID := range themeIDs {
-		//append only light mode on studio themes
-		if len(themeIDs) == 2 {
-			themes = append(themes, types.Theme{
-				ID:     themeID,
-				Values: oldValueStr,
-			})
-			break
-		}
-
-		if themeID == sass.GeneralTheme {
-			themes = append(themes, types.Theme{
-				ID:     themeID,
-				Values: oldValueStr,
-			})
-			continue
-		}
-
-		themes = append(themes, types.Theme{
-			ID:     themeID,
+	themes = []types.Theme{
+		{
+			ID:     sass.GeneralTheme,
+			Values: generalCSS,
+		},
+		{
+			ID:     sass.LightTheme,
 			Values: "",
-		})
+		},
+		{
+			ID:     sass.DarkTheme,
+			Values: "",
+		},
 	}
 
-	return
+	return themes, nil
 }
