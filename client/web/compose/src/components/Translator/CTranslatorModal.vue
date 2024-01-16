@@ -7,6 +7,7 @@
       scrollable
       :title="title"
       no-fade
+      body-class="p-0"
       @hide="onHide"
     >
       <c-translator-form

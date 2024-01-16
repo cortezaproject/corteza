@@ -98,7 +98,7 @@
                 responsive="lg"
                 small
               >
-                <thead>
+                <thead class="text-primary">
                   <tr>
                     <th style="width: auto;" />
 
@@ -127,10 +127,10 @@
 
                 <tbody>
                   <tr>
-                    <td class="align-middle">
+                    <td class="grab align-middle text-center">
                       <font-awesome-icon
                         :icon="['fas', 'bars']"
-                        class="grab text-secondary"
+                        class="text-secondary"
                       />
                     </td>
 

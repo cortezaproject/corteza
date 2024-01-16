@@ -1157,7 +1157,7 @@ export default {
 <style lang="scss">
 div.toolbox {
   position: absolute;
-  background-color: var(--dark);
+  background-color: var(--secondary);
   bottom: 0;
   left: 0;
   z-index: 1001;

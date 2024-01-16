@@ -12,7 +12,7 @@
         <b-input-group-prepend>
           <b-button
             v-b-tooltip.hover="{ title: $t('validators.expression.tooltip'), container: '#body' }"
-            variant="dark"
+            variant="secondary"
           >
             ƒ
           </b-button>

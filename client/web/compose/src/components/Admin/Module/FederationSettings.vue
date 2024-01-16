@@ -4,7 +4,7 @@
     :title="federationModalTitle"
     :ok-title="$t('general.label.saveAndClose')"
     ok-only
-    ok-variant="dark"
+    ok-variant="primary"
     size="lg"
     body-class="p-0 border-top-0"
     header-class="p-3 pb-0 border-bottom-0"

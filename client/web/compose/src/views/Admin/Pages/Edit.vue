@@ -489,7 +489,7 @@
         </template>
         <b-input-group>
           <b-input-group-prepend>
-            <b-button variant="dark">
+            <b-button variant="secondary">
               ƒ
             </b-button>
           </b-input-group-prepend>

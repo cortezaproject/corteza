@@ -36,7 +36,7 @@
     <div slot="footer">
       <b-button
         data-test-id="button-export"
-        variant="dark"
+        variant="primary"
         class="float-right"
         @click="nextStep"
       >

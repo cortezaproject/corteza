@@ -24,9 +24,11 @@
           @search="search"
           @input="updateValue($event)"
         />
-        <table
+        <b-table-simple
           v-if="memberUsers && users"
-          class="w-100 p-0 table-hover mb-2"
+          responsive
+          small
+          class="w-100 p-0 mb-0"
         >
           <tbody>
             <tr
@@ -43,7 +45,7 @@
               </td>
             </tr>
           </tbody>
-        </table>
+        </b-table-simple>
       </b-form-group>
     </b-form>
 

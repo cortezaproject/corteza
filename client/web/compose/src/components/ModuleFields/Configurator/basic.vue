@@ -40,7 +40,7 @@
     >
       <b-input-group>
         <b-input-group-append>
-          <b-button variant="dark">
+          <b-button variant="secondary">
             ƒ
           </b-button>
         </b-input-group-append>

@@ -38,7 +38,7 @@ $gray-700: if(lightness($black) < lightness($white), mix($black, $white, 70%), m
 $gray-800: if(lightness($black) < lightness($white), mix($black, $white, 80%), mix($white, $black, 80%));
 $gray-900: if(lightness($black) < lightness($white), mix($black, $white, 90%), mix($white, $black, 90%));
 
-$yiq-contrasted-threshold: 42; // Our magic number, we can pretend its 42..
+$yiq-contrasted-threshold: 45; // Our magic number, we can pretend its 42..
 $yiq-text-dark:             $black !default;
 $yiq-text-light:            $white !default;
 
@@ -96,7 +96,7 @@ $btn-padding-y: 0.25em !default;
 $btn-padding-x: 1em !default;
 $input-btn-border-width: 1px !default;
 
-$btn-focus-width:       2px !default;
+$input-btn-focus-width:     2px !default;
 $btn-focus-box-shadow:  none !default;
 $btn-active-box-shadow: none !default;
 
@@ -148,9 +148,8 @@ $input-disabled-bg: $light !default;
 $input-border-color:  $extra-light !default;
 $input-border-width:  2px !default;
 
-$input-btn-focus-width:     2px !default;
 $input-focus-box-shadow:    none !default;
-$input-focus-border-color:  $secondary !default;
+$input-focus-border-color:  $primary !default;
 
 $input-placeholder-color: $extra-light !default;
 

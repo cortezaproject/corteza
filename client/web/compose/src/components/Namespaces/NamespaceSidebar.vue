@@ -55,7 +55,10 @@
         v-if="namespace"
         class="d-flex flex-column flex-grow-1"
       >
-        <div class="sticky-top w-100 py-2">
+        <div
+          class="sticky-top w-100 py-2"
+          style="background-color: var(--sidebar-bg);"
+        >
           <b-button
             v-if="isAdminPage"
             data-test-id="button-public"

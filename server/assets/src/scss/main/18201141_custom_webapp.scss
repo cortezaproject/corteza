@@ -11,13 +11,13 @@
 }
 
 :disabled, .disabled {
-  cursor: not-allowed;
+  cursor: not-allowed !important;
+  pointer-events: auto !important;
 }
 
 a.btn:not(.btn-link) {
   text-decoration: none;
 }
-
 
 .tabs > .card-header {
   border-bottom: 1px solid var(--extra-light) !important;
@@ -38,7 +38,7 @@ a.btn:not(.btn-link) {
     .nav-link {
       padding: 0.5rem !important;
 
-      &:not(.active) {
+      &:not(.active):not(.disabled) {
         color: var(--dark) !important;
       }
     }
@@ -83,7 +83,7 @@ a.btn:not(.btn-link) {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--extra-light);
+  background: var(--secondary);
   background-clip: content-box;
   border: 3px solid transparent;
   border-radius: 7px;

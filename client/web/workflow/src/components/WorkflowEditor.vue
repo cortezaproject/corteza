@@ -199,7 +199,7 @@
         <c-button-submit
           v-if="changeDetected && canUpdateWorkflow"
           data-test-id="button-save-workflow"
-          variant="dark"
+          variant="primary"
           block
           :processing="processingSave"
           :text="$t('editor:detected-changes') + `${canUpdateWorkflow ? this.$t('editor:click-to-save') : ''}`"
