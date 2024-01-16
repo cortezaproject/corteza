@@ -98,7 +98,9 @@ export default {
     init () {
       this.editor = new Editor({
         extensions: this.formats,
-        content: this.value,
+        // Bypass Editor default empty white space script with an empty space string if there is no value because it's not really valid html
+        // also ensuring that the unsaved changes alert detection is not triggered when the Editor does not have any changes
+        content: this.value || ' ',
         parseOptions: {
           preserveWhitespace: 'full',
         },
