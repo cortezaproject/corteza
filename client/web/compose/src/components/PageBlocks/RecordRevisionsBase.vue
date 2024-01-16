@@ -56,11 +56,9 @@
             <div
               class="pl-5"
             >
-              <b-table-simple
-                class="bg-light"
-              >
+              <b-table-simple small>
                 <b-thead>
-                  <b-tr>
+                  <b-tr class="text-primary">
                     <b-th>{{ $t('changes.columns.field.label') }}</b-th>
                     <b-th>{{ $t('changes.columns.old-value.label') }}</b-th>
                     <b-th>{{ $t('changes.columns.new-value.label') }}</b-th>
@@ -152,7 +150,7 @@ export default {
       columns: [
         {
           key: 'revision',
-          label: '',
+          label: '#',
           thClass: 'border-top-0',
           class: 'text-center',
         },

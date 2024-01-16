@@ -14,17 +14,10 @@
       :label="$t('fields.label')"
       label-class="text-primary"
     >
-      <b-form-checkbox
-        v-model="displayAllFields"
-        :value="true"
-        :unchecked-value="false"
-        class="mb-2"
-      >
-        {{ $t('fields.show-all.label') }}
-      </b-form-checkbox>
       <b-table
         :items="module.fields"
         :fields="columns"
+        head-variant="light"
       >
         <template #cell(kind)="{ item: field }">
           {{ $t(`field:kind.${field.kind.charAt(0).toLowerCase() + field.kind.slice(1)}.label`) }}

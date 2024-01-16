@@ -34,8 +34,6 @@
             type="range"
             min="0"
             max="6"
-            size="lg"
-            class="mt-1 mb-2"
           />
         </b-form-group>
       </b-col>
@@ -100,14 +98,14 @@
             :label="$t('kind.number.examplesLabel')"
             label-class="text-primary"
           >
-            <table
-              style="width: 100%;"
-            >
-              <tr>
-                <th>{{ $t('kind.number.exampleInput') }}</th>
-                <th>{{ $t('kind.number.exampleFormat') }}</th>
-                <th>{{ $t('kind.number.exampleResult') }}</th>
-              </tr>
+            <b-table-simple class="w-100 table-sm">
+              <thead>
+                <tr>
+                  <th>{{ $t('kind.number.exampleInput') }}</th>
+                  <th>{{ $t('kind.number.exampleFormat') }}</th>
+                  <th>{{ $t('kind.number.exampleResult') }}</th>
+                </tr>
+              </thead>
 
               <tr>
                 <td>10000.234</td>
@@ -132,7 +130,7 @@
                 <td>00:00:00</td>
                 <td>0:03:58</td>
               </tr>
-            </table>
+            </b-table-simple>
           </b-form-group>
         </b-col>
       </template>

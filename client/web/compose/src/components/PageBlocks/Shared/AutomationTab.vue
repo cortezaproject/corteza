@@ -5,7 +5,7 @@
       <b-badge
         v-if="buttons.length > 0"
         pill
-        variant="dark"
+        variant="light"
       >
         {{ buttons.length }}
       </b-badge>

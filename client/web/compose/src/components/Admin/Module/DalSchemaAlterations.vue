@@ -18,21 +18,16 @@
     >
       <b-thead>
         <b-tr>
-          <b-th
-            class="text-primary"
-          >
+          <b-th>
             {{ $t('columns.alteration') }}
           </b-th>
 
-          <b-th
-            class="text-primary"
-            style="max-width: 300px;"
-          >
+          <b-th style="max-width: 300px;">
             {{ $t('columns.change') }}
           </b-th>
 
           <b-th
-            class="text-primary text-center"
+            class="text-center"
           >
             {{ $t('columns.status') }}
           </b-th>

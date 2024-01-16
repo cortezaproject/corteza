@@ -80,7 +80,7 @@
               <b-table
                 :fields="links.fields"
                 :items="topbarSettings.helpLinks"
-                table-variant="light"
+                head-variant="light"
                 responsive="sm"
                 small
                 class="mb-0"
@@ -154,7 +154,7 @@
               <b-table
                 :fields="links.fields"
                 :items="topbarSettings.profileLinks"
-                table-variant="light"
+                head-variant="light"
                 responsive="sm"
                 small
                 class="mb-0"

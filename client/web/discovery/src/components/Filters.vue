@@ -45,7 +45,7 @@
           {{ agg.name }}
           <b-badge
             v-if="groups[agg.name].length"
-            variant="dark"
+            variant="light"
             pill
             class="ml-1 align-self-center"
           >

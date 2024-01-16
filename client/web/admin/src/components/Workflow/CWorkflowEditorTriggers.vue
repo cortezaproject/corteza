@@ -7,12 +7,12 @@
   >
     <b-table
       id="trigger-list"
+      :items="triggers"
+      :fields="triggerFields"
       hover
       responsive
       head-variant="light"
       class="mb-0"
-      :items="triggers"
-      :fields="triggerFields"
     >
       <template #cell(constraints)="trigger">
         <samp

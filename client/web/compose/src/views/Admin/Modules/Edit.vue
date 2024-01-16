@@ -216,9 +216,11 @@
 
                 <b-row no-gutters>
                   <b-form-group class="w-100">
-                    <table
+                    <b-table-simple
                       data-test-id="table-module-fields"
-                      class="table table-sm table-borderless table-responsive"
+                      borderless
+                      responsive
+                      small
                     >
                       <thead>
                         <tr>
@@ -316,7 +318,7 @@
                         :field="field"
                         class="mt-4"
                       />
-                    </table>
+                    </b-table-simple>
                   </b-form-group>
                 </b-row>
               </b-tab>

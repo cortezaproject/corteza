@@ -14,6 +14,9 @@
     <b-table
       :items="value"
       :fields="fields"
+      head-variant="light"
+      responsive
+      hover
     >
       <template #cell(editor)="{ item }">
         <c-input-confirm
