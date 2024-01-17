@@ -1,12 +1,15 @@
 <template>
   <div class="d-flex">
     <b-button
-      size="lg"
-      variant="light"
+      :size="size"
+      :variant="variant"
       class="flex-fill"
+      :disabled="disabled"
       @click="showModal = true"
     >
-      {{ $t('allRecords.columns.title') }}
+      <slot>
+        {{ $t('allRecords.columns.title') }}
+      </slot>
     </b-button>
 
     <b-modal
@@ -60,6 +63,21 @@ export default {
       required: true,
       default: () => [],
     },
+
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+
+    size: {
+      type: String,
+      default: 'lg',
+    },
+
+    variant: {
+      type: String,
+      default: 'light',
+    },
   },
 
   data () {
@@ -70,10 +88,10 @@ export default {
     }
   },
 
-  created () {
-    this.filteredFields = this.fields.map(f => {
-      return { ...f.moduleField }
-    })
+  watch: {
+    fields (fields) {
+      this.filteredFields = this.module.filterFields(fields)
+    },
   },
 
   beforeDestroy () {
