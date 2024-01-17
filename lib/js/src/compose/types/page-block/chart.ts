@@ -1,11 +1,14 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
-import { Apply, CortezaID, NoID } from '../../../cast'
+import { Apply,NoID } from '../../../cast'
+import { Options as PageBlockRecordListOptions } from './record-list'
+import { cloneDeep, merge } from 'lodash'
 
 const kind = 'Chart'
 
 interface DrillDown {
   enabled: boolean;
-  blockID?: string;
+  blockID: string;
+  recordListOptions: Partial<PageBlockRecordListOptions>;
 }
 
 interface Options {
@@ -23,7 +26,10 @@ const defaults: Readonly<Options> = Object.freeze({
   magnifyOption: '',
   drillDown: {
     enabled: false,
-    blockID: ''
+    blockID: '',
+    recordListOptions: {
+      fields: [],
+    },
   }
 })
 
@@ -47,8 +53,12 @@ export class PageBlockChart extends PageBlock {
     Apply(this.options, o, Boolean, 'showRefresh')
 
     if (o.drillDown) {
-      this.options.drillDown = o.drillDown
+      this.options.drillDown = merge({}, defaults.drillDown, o.drillDown)
     }
+  }
+
+  resetDrillDown(): void {
+    this.options.drillDown = cloneDeep(defaults.drillDown)
   }
 }
 

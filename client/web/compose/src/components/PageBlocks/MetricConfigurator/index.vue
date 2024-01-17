@@ -262,23 +262,39 @@
               >
                 <template #label>
                   {{ $t('metric.drillDown.label') }}
+
                   <b-form-checkbox
                     v-model="edit.drillDown.enabled"
                     switch
-                    class="ml-1"
+                    class="ml-1 mb-1"
                   />
                 </template>
 
-                <c-input-select
-                  v-model="edit.drillDown.blockID"
-                  :options="drillDownOptions"
-                  :disabled="!edit.drillDown.enabled"
-                  :get-option-label="o => o.title || o.kind"
-                  :reduce="option => option.blockID"
-                  :clearable="true"
-                  :placeholder="$t('metric.drillDown.openInModal')"
-                  append-to-body
-                />
+                <b-input-group class="d-flex w-100">
+                  <c-input-select
+                    v-model="edit.drillDown.blockID"
+                    :options="drillDownOptions"
+                    :disabled="!edit.drillDown.enabled"
+                    :get-option-label="o => o.title || o.kind"
+                    :reduce="option => option.blockID"
+                    :clearable="true"
+                    :placeholder="$t('metric.drillDown.openInModal')"
+                    append-to-body
+                  />
+
+                  <b-input-group-append>
+                    <column-picker
+                      v-if="edit.drillDown.enabled"
+                      :module="recordListModule"
+                      :disabled="!!edit.drillDown.blockID"
+                      :fields="selectedFields"
+                      size="md"
+                      @updateFields="onUpdateFields"
+                    >
+                      <font-awesome-icon :icon="['fas', 'wrench']" />
+                    </column-picker>
+                  </b-input-group-append>
+                </b-input-group>
               </b-form-group>
             </fieldset>
           </b-card>
@@ -332,6 +348,7 @@ import base from '../base'
 import MStyle from './MStyle'
 import { mapGetters } from 'vuex'
 import MetricBase from '../MetricBase'
+import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 
 export default {
@@ -343,6 +360,7 @@ export default {
   components: {
     MStyle,
     MetricBase,
+    ColumnPicker,
   },
   extends: base,
 
@@ -374,7 +392,7 @@ export default {
   computed: {
     ...mapGetters({
       modules: 'module/set',
-      moduleByID: 'module/getByID',
+      getModuleByID: 'module/getByID',
     }),
 
     fields () {
@@ -382,7 +400,15 @@ export default {
         return []
       }
 
-      return this.moduleByID(this.edit.moduleID).fields
+      return this.getModuleByID(this.edit.moduleID).fields
+    },
+
+    selectedFields () {
+      if (!this.edit || !this.edit.drillDown.recordListOptions.fields) {
+        return []
+      }
+
+      return this.edit.drillDown.recordListOptions.fields
     },
 
     metricFields () {
@@ -404,6 +430,14 @@ export default {
 
     drillDownOptions () {
       return this.page.blocks.filter(({ blockID, kind, options = {} }) => kind === 'RecordList' && blockID !== NoID && options.moduleID === this.edit.moduleID)
+    },
+
+    recordListModule () {
+      if (this.edit.moduleID) {
+        return this.getModuleByID(this.edit.moduleID)
+      } else {
+        return undefined
+      }
     },
   },
 
@@ -464,6 +498,10 @@ export default {
       } else if (!this.edit.operation) {
         this.edit.operation = this.aggregationOperations[0].operation
       }
+    },
+
+    onUpdateFields (fields) {
+      this.edit.drillDown.recordListOptions.fields = fields
     },
 
     setDefaultValues () {

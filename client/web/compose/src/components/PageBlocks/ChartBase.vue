@@ -162,6 +162,7 @@ export default {
         this.$root.$emit(`drill-down-recordList:${recordListUniqueID}`, prefilter)
       } else {
         const { title } = this.block
+        const { fields = [] } = this.options.drillDown.recordListOptions || {}
 
         // Open in modal
         const block = new compose.PageBlockRecordList({
@@ -169,6 +170,7 @@ export default {
           blockID: `drillDown-${chartID}`,
           options: {
             moduleID,
+            fields,
             prefilter,
             presort: 'createdAt DESC',
             hideRecordReminderButton: true,
