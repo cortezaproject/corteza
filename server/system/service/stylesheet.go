@@ -65,9 +65,18 @@ func GenerateCSS(settings *types.AppSettings, sassDirPath string, log *zap.Logge
 func processCustomCSS(themeID string, customCSSMap map[string]string) (customCSS string) {
 	var stringsBuilder strings.Builder
 
+	// add theme mode on customCSS
+	if themeID == sass.DarkTheme {
+		stringsBuilder.WriteString(fmt.Sprintf("\n[data-color-mode=\"%s\"] {\n", themeID))
+	}
+
 	stringsBuilder.WriteString(customCSSMap[sass.GeneralTheme])
 	stringsBuilder.WriteString("\n")
 	stringsBuilder.WriteString(customCSSMap[themeID])
+
+	if themeID == sass.DarkTheme {
+		stringsBuilder.WriteString("}\n")
+	}
 
 	return stringsBuilder.String()
 }
