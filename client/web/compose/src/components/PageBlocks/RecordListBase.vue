@@ -22,7 +22,7 @@
       <b-container
         ref="toolbar"
         fluid
-        class="d-flex flex-column gap-1 p-3 d-print-none"
+        class="d-flex flex-column gap-2 p-3 d-print-none"
       >
         <b-row
           no-gutters
@@ -142,7 +142,7 @@
                 v-for="(title, i) in activeFilters"
                 :key="i"
                 :title="title"
-                variant="secondary"
+                variant="light"
                 pill
                 class="ml-2"
                 @remove="removeFilter(i)"

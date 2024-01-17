@@ -4,7 +4,7 @@
   >
     <b-button
       data-test-id="button-clone"
-      variant="secondary"
+      variant="light"
       class="mr-2"
       @click="showModal = true"
     >

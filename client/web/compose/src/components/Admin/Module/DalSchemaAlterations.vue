@@ -70,7 +70,7 @@
 
             <b-badge
               v-else-if="a.dependsOn"
-              variant="secondary"
+              variant="extra-light"
             >
               {{ $t('waitingFor', { id:a.dependsOn }) }}
             </b-badge>

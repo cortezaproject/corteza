@@ -17,6 +17,7 @@
           <b-card
             :header="$t('automation.configuredButtons')"
             footer-class="text-right"
+            class="border"
           >
             <draggable
               :list.sync="buttons"
@@ -68,6 +69,7 @@
           <b-card
             v-if="available.length > 0"
             :header="$t('automation.availableScriptsAndWorkflow', { count: available.length })"
+            class="border"
           >
             <c-input-search
               v-model="queryAvailable"

@@ -5,7 +5,7 @@
       lg="6"
     >
       <b-card
-        header-class="d-flex align-items-center justify-content-between pr-2"
+        header-class="d-flex align-items-center justify-content-between pr-2 border-bottom"
         class="shadow-sm mb-3"
       >
         <template #header>
@@ -35,7 +35,7 @@
       lg="6"
     >
       <b-card
-        header-class="d-flex align-items-center justify-content-between"
+        header-class="d-flex align-items-center justify-content-between pr-2 border-bottom"
         class="shadow-sm mb-3"
       >
         <template #header>

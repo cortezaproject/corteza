@@ -7,7 +7,7 @@
     >
       <b-card-header
         v-if="showHeader"
-        class="border-bottom text-nowrap pr-2"
+        :class="`border-bottom text-nowrap pr-2 ${headerClass}`"
         header-bg-variant="white"
         :header-text-variant="block.style.variants.headerText"
       >

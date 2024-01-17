@@ -138,7 +138,7 @@
                           <b-input-group-append v-if="showEditColorSchemeButton">
                             <b-button
                               v-b-tooltip.hover="{ title: $t('colorScheme.custom.edit'), container: '#body' }"
-                              variant="light"
+                              variant="extra-light"
                               class="d-flex align-items-center"
                               @click="editColorScheme()"
                             >

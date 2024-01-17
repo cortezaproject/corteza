@@ -10,7 +10,6 @@
       <b-button-group
         v-if="modulePage || allRecords"
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"

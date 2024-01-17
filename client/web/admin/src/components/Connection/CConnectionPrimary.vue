@@ -3,11 +3,12 @@
   <b-card
     data-test-id="card-primary-database"
     class="shadow-sm"
+    header-class="border-bottom"
     header-bg-variant="white"
     footer-bg-variant="white"
   >
     <template #header>
-      <h4 class="d-flex justify-content-between mb-0">
+      <h4 class="d-flex align-items-center gap-1 mb-0">
         {{ $t('title') }}
 
         <b-button
@@ -15,7 +16,7 @@
           data-test-id="button-edit"
           size="sm"
           variant="outline-light"
-          class="d-flex align-items-center text-primary border-0"
+          class="d-flex align-items-center text-primary border-0 p-1"
           :to="{ name: 'system.connection.edit', params: { connectionID: (connection || {}).connectionID } }"
         >
           <font-awesome-icon

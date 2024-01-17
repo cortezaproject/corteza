@@ -2,10 +2,11 @@
   <b-card
     data-test-id="card-requests"
     no-body
-    class="shadow-sm"
     footer-class="d-flex align-items-center justify-content-center"
     footer-bg-variant="white"
     header-bg-variant="white"
+    header-class="border-bottom"
+    class="shadow-sm"
   >
     <template #header>
       <h4 class="mb-0">

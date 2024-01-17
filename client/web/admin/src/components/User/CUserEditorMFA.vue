@@ -1,8 +1,16 @@
 <template>
   <b-card
     header-bg-variant="white"
+    footer-bg-variant="white"
+    header-class="border-bottom"
     class="shadow-sm"
   >
+    <template #header>
+      <h4 class="m-0">
+        {{ $t('title') }}
+      </h4>
+    </template>
+
     <div class="d-flex align-items-center flex-wrap">
       <div>
         <span
@@ -50,11 +58,6 @@
         </b-button>
       </div>
     </div>
-    <template #header>
-      <h4 class="m-0">
-        {{ $t('title') }}
-      </h4>
-    </template>
   </b-card>
 </template>
 

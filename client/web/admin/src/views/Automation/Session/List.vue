@@ -36,6 +36,7 @@
           :label="$t('columns.sessionID')"
           label-class="text-primary"
           class="mb-0"
+          style="min-width: 200px;"
         >
           <c-input-search
             :value="filter.sessionID"
@@ -48,6 +49,7 @@
           :label="$t('columns.workflowID')"
           label-class="text-primary"
           class="mb-0"
+          style="min-width: 200px;"
         >
           <c-input-search
             :value="filter.workflowID"

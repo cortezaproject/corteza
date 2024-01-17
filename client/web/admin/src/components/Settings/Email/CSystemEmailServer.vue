@@ -2,9 +2,16 @@
   <b-card
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
+    <template #header>
+      <h4 class="m-0">
+        {{ $t('title') }}
+      </h4>
+    </template>
+
     <b-form
       @submit.prevent="submit()"
     >
@@ -118,12 +125,6 @@
         </b-col>
       </b-row>
     </b-form>
-
-    <template #header>
-      <h4 class="m-0">
-        {{ $t('title') }}
-      </h4>
-    </template>
 
     <template #footer>
       <c-button-submit

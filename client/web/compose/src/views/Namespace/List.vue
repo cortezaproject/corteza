@@ -12,7 +12,6 @@
         data-test-id="button-manage-namespaces"
         variant="primary"
         size="sm"
-        class="mr-1 float-left"
         :to="{ name: 'namespace.manage' }"
       >
         {{ $t('manage-view.label') }}

@@ -71,12 +71,12 @@
           fixed
           borderless
           hover
-          head-row-variant="secondary"
+          head-variant="light"
           details-td-class="bg-white"
-          class="mb-4"
           :items="args"
           :fields="argumentFields"
           :tbody-tr-class="rowClass"
+          class="mb-4"
           @row-clicked="item=>$set(item, '_showDetails', !item._showDetails)"
         >
           <template #cell(target)="{ item: a }">
@@ -242,7 +242,7 @@
           fixed
           borderless
           hover
-          head-row-variant="secondary"
+          head-variant="light"
           details-td-class="bg-white"
           class="mb-4"
           :items="results"

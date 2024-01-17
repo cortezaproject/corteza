@@ -7,7 +7,7 @@
     :backdrop="isMobile"
     no-footer
     right
-    shadow
+    shadow="sm"
     no-close-on-route-change
     no-close-on-esc
   >

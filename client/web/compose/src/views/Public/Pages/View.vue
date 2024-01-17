@@ -11,7 +11,6 @@
       <b-button-group
         v-if="page && page.canUpdatePage"
         size="sm"
-        class="mr-1"
       >
         <b-button
           data-test-id="button-page-builder"
@@ -30,6 +29,7 @@
           data-test-id="button-page-translations"
           :page.sync="trPage"
           :page-layout.sync="layout"
+          button-variant="primary"
           style="margin-left:2px;"
         />
         <b-button

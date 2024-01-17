@@ -9,6 +9,7 @@
               :text="$t('add-language')"
               variant="light"
               size="sm"
+              boundary="window"
             >
               <b-dropdown-item-button
                 v-for="lang in intLanguages"

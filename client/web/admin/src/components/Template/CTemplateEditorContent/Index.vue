@@ -20,8 +20,8 @@
       <b-card
         body-class="p-0"
         header-bg-variant="white"
-        header-class="d-flex align-items-center"
         footer-bg-variant="white"
+        header-class="d-flex align-items-center border-bottom"
         footer-class="d-flex flex-wrap flex-fill-child gap-1"
         class="shadow-sm"
       >
@@ -62,7 +62,8 @@
         body-class="p-0"
         header-bg-variant="white"
         footer-bg-variant="white"
-        footer-class="d-flex flex-wrap flex-fill-child gap-1"
+        header-class="border-bottom"
+        footer-class="d-flex justify-content-end flex-wrap flex-fill-child gap-1"
         class="shadow-sm mt-3"
       >
         <!-- Partial templates can't be previewed -->

@@ -20,7 +20,7 @@
           <b-button
             v-b-tooltip.hover="{ title: $t('chart.openInBuilder'), container: '#body' }"
             :disabled="!selectedChart || (!selectedChart.canUpdateChart && !selectedChart.canDeleteChart)"
-            variant="light"
+            variant="extra-light"
             class="d-flex align-items-center"
             :to="{ name: 'admin.charts.edit', params: { chartID: (selectedChart || {}).chartID }, query: null }"
           >

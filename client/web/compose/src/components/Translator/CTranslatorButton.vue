@@ -23,12 +23,12 @@ export default {
   props: {
     buttonVariant: {
       type: String,
-      default: () => { return 'light' },
+      default: 'extra-light',
     },
 
     buttonClass: {
       type: String,
-      default: () => { return '' },
+      default: '',
     },
 
     size: {

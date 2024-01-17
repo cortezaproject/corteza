@@ -2,9 +2,10 @@
   <div>
     <b-card
       data-test-id="card-general-info"
-      class="shadow-sm"
       header-bg-variant="white"
       footer-bg-variant="white"
+      header-class="border-bottom"
+      class="shadow-sm"
     >
       <template #header>
         <h4 class="m-0">
@@ -184,6 +185,7 @@
     <b-card
       header-bg-variant="white"
       footer-bg-variant="white"
+      header-class="border-bottom"
       class="shadow-sm mt-3"
     >
       <template #header>
@@ -214,9 +216,10 @@
     </b-card>
 
     <b-card
-      body-class="p-0"
       header-bg-variant="white"
       footer-bg-variant="white"
+      header-class="border-bottom"
+      body-class="p-0"
       class="shadow-sm mt-3"
     >
       <template #header>

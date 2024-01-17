@@ -188,7 +188,7 @@
             >
               <b-input-group>
                 <b-input-group-prepend>
-                  <b-button variant="secondary">
+                  <b-button variant="extra-light">
                     ƒ
                   </b-button>
                 </b-input-group-prepend>

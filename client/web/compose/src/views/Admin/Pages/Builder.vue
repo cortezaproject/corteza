@@ -41,6 +41,7 @@
         <page-translator
           :page.sync="trPage"
           :page-layout.sync="layout"
+          button-variant="primary"
           style="margin-left:2px;"
         />
 

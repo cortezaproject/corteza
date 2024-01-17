@@ -1,9 +1,5 @@
 <template>
-  <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    body-class="pb-0"
-  >
+  <div>
     <b-form-group>
       <b-form-checkbox
         v-model="inclRoleMembership"
@@ -43,7 +39,7 @@
         {{ $t('export.export') }}
       </b-button>
     </div>
-  </b-card>
+  </div>
 </template>
 
 <script>

@@ -6,7 +6,7 @@
     >
       <div
         v-if="showHeader"
-        :class="`card-header border-bottom bg-transparent text-nowrap pl-3 pr-2 text-${block.style.variants.headerText}`"
+        :class="`card-header border-bottom bg-transparent text-nowrap pl-3 pr-2 text-${block.style.variants.headerText} ${headerClass}`"
       >
         <div
           v-if="!headerSet"

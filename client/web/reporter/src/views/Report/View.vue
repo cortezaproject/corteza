@@ -13,7 +13,6 @@
         :options="scenarioOptions"
         :get-option-key="getOptionKey"
         :placeholder="$t('pick-scenario')"
-        class="mr-2"
         style="max-width: 300px;"
         @input="refreshReport()"
       />
