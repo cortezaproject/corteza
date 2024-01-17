@@ -12,7 +12,7 @@ interface FilterPreset {
   roles: string[];
 }
 
-interface Options {
+export interface Options {
   moduleID: string;
   prefilter: string;
   presort: string;

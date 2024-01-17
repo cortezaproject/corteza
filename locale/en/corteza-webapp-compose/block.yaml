@@ -98,8 +98,9 @@ chart:
   display: Chart to display inside this block
   drillDown:
     label: Drill down
-    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected the drill down data will be shown in a modal.
+    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected, the drill down data will be shown in a modal.
     openInModal: Open in modal
+    configureColumns: Choose the default fields
   edit:
     label: Edit chart
     dimension:
@@ -119,6 +120,7 @@ chart:
     chartId: Chart preview (ID {{0}})
   searchPlaceholder: Type here to search all charts in this namespace
   openInBuilder: Open in chart builder
+  openChartList: Open chart list
 content:
   ok: Ok
   label: Content
@@ -201,7 +203,7 @@ metric:
   defaultMetricLabel: Unnamed metric
   drillDown:
     label: Drill down
-    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected the drill down data will be shown in a modal.
+    description: If a record list is selected, it will be used to display the drill down data. If no record list is selected, the drill down data will be shown in a modal.
     openInModal: Open in modal
   edit:
     bucketLabel: Bucket size
