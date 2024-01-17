@@ -64,6 +64,8 @@
         show-empty
         no-sort-reset
         no-local-sorting
+        head-variant="light"
+        foot-variant="light"
         :primary-key="primaryKey"
         class="mh-100 h-100 mb-0"
         @sort-changed="pagination.page = 1"

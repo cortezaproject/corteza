@@ -4,14 +4,14 @@
       :id="popoverTarget"
       v-b-tooltip.hover="{ title: $t('recordList.filter.title'), container: '#body' }"
       :variant="variant"
-      class="d-flex align-items-center text-secondary d-print-none border-0 px-1 h-100"
+      class="d-flex align-items-center d-print-none border-0 px-1 h-100"
       :class="buttonClass"
       :style="buttonStyle"
       @click.stop
     >
       <font-awesome-icon
         :icon="['fas', 'filter']"
-        :class="[inFilter ? 'text-primary' : 'text-secondary']"
+        :class="[inFilter ? 'text-primary' : inactiveIconClass]"
       />
     </b-button>
 
@@ -287,6 +287,11 @@ export default {
     variant: {
       type: String,
       default: 'outline-light',
+    },
+
+    inactiveIconClass: {
+      type: String,
+      default: 'text-secondary',
     },
 
     buttonClass: {

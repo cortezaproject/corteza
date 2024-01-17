@@ -12,7 +12,7 @@
       :label-today-button="labels.today"
       label-help=""
       today-variant="info"
-      selected-variant="secondary"
+      selected-variant="extra-light"
       boundary="window"
       hide-header
       reset-button

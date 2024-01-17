@@ -57,6 +57,11 @@ a.btn:not(.btn-link) {
   }
 }
 
+// Fixes dropdowns in scrollable modals
+.modal-dialog-scrollable .modal-content {
+  overflow: initial;
+}
+
 .dropdown-menu * {
   font-family: var(--font-regular) !important;
 

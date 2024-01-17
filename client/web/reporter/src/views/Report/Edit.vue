@@ -12,7 +12,6 @@
       <b-button-group
         v-if="report && !isNew"
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"

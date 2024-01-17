@@ -2,6 +2,7 @@
   <b-card
     :header="workflow ? $t('editTitle.workflow') : $t('editTitle.script')"
     footer-class="text-right"
+    class="border"
   >
     <b-form-group
       :label="$t('buttonLabel')"
@@ -86,7 +87,6 @@
     <template #footer>
       <c-input-confirm
         show-icon
-        variant="link-light"
         @confirmed="$emit('delete', button)"
       />
     </template>

@@ -25,6 +25,7 @@
         <module-translator
           v-if="module"
           :module.sync="trModule"
+          button-variant="primary"
           style="margin-left:2px;"
         />
       </b-button-group>

@@ -4,6 +4,7 @@
     data-test-id="card-auth-client-info"
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm auth-clients"
   >

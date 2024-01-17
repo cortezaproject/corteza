@@ -3,19 +3,13 @@
     header-bg-variant="white"
     footer-bg-variant="white"
   >
-    <b-form-group>
-      <slot name="uploadLabel">
-        <label>{{ $t('import.uploadFileLabel') }}</label>
-      </slot>
-
-      <uploader
-        class="uploader"
-        :label="$t('import.uploadFilePlaceholder')"
-        :endpoint="endpoint"
-        :accepted-files="['application/zip']"
-        @uploaded="onUploaded"
-      />
-    </b-form-group>
+    <uploader
+      class="uploader"
+      :label="$t('import.uploadFilePlaceholder')"
+      :endpoint="endpoint"
+      :accepted-files="['application/zip']"
+      @uploaded="onUploaded"
+    />
   </b-card>
 </template>
 
@@ -63,9 +57,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.uploader {
-  height: 130px;
-}
-</style>

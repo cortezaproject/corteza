@@ -87,6 +87,12 @@ export default {
     }
   },
 
+  watch: {
+    value (value) {
+      this.localValue = value
+    },
+  },
+
   computed: {
     inputType () {
       return this.clearable ? 'search' : 'text'

@@ -98,18 +98,6 @@
         class="my-3"
       >
 
-      <b-button
-        variant="link"
-        size="sm"
-        :to="{}"
-        class="p-1"
-        @click="copyUrl()"
-      >
-        <font-awesome-icon
-          :icon="['far', 'copy']"
-          class="text-secondary pointer"
-        />
-      </b-button>
       <span
         class="text-break"
       >
@@ -353,10 +341,6 @@ export default {
         .finally(() => {
           this.generate.processing = false
         })
-    },
-
-    copyUrl () {
-      navigator.clipboard.writeText(this.generate.url)
     },
 
     checkUnsavedChanges (next, to) {

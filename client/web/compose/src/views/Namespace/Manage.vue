@@ -12,7 +12,6 @@
         data-test-id="button-namespace-list"
         variant="primary"
         size="sm"
-        class="mr-1 float-left"
         :to="{ name: 'namespace.list' }"
       >
         {{ $t('list-view') }}

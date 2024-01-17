@@ -1,47 +1,45 @@
 <template>
-  <div>
-    <b-modal
-      :visible="showModal"
-      :title="$t('recordList.filterPresets.saveFilterAsPreset')"
-      body-class="p-0"
-      footer-class="d-flex w-100 align-items-center justify-content-between"
-      centered
-      no-fade
-      @hide="onModalHide"
+  <b-modal
+    :visible="showModal"
+    :title="$t('recordList.filterPresets.saveFilterAsPreset')"
+    body-class="p-0"
+    footer-class="d-flex w-100 align-items-center justify-content-between"
+    centered
+    no-fade
+    @hide="onModalHide"
+  >
+    <b-card
+      class="pt-0"
     >
-      <b-card
-        class="pt-0"
+      <b-form-group
+        :label="$t('recordList.filterPresets.filterName')"
+        label-class="text-primary"
       >
-        <b-form-group
-          :label="$t('recordList.filterPresets.filterName')"
-          label-class="text-primary"
-        >
-          <b-form-input
-            v-model="filterName"
-          />
-        </b-form-group>
-      </b-card>
+        <b-form-input
+          v-model="filterName"
+        />
+      </b-form-group>
+    </b-card>
 
-      <template #modal-footer>
+    <template #modal-footer>
+      <b-button
+        variant="light"
+        @click="onModalHide"
+      >
+        {{ $t('general.label.cancel') }}
+      </b-button>
+
+      <div>
         <b-button
-          variant="light"
-          @click="onModalHide"
+          variant="primary"
+          :disabled="!filterName"
+          @click="onSave"
         >
-          {{ $t('general.label.cancel') }}
+          {{ $t('general.label.save') }}
         </b-button>
-
-        <div>
-          <b-button
-            variant="primary"
-            :disabled="!filterName"
-            @click="onSave"
-          >
-            {{ $t('general.label.save') }}
-          </b-button>
-        </div>
-      </template>
-    </b-modal>
-  </div>
+      </div>
+    </template>
+  </b-modal>
 </template>
 
 <script>

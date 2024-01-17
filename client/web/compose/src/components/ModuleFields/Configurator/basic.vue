@@ -39,18 +39,18 @@
       class="mt-2"
     >
       <b-input-group>
-        <b-input-group-append>
-          <b-button variant="secondary">
+        <b-input-group-prepend>
+          <b-button variant="extra-light">
             ƒ
           </b-button>
-        </b-input-group-append>
+        </b-input-group-prepend>
         <b-form-input
           v-model="field.expressions.value"
           :placeholder="$t('valueExpr.placeholder')"
         />
         <b-input-group-append>
           <b-button
-            variant="outline-secondary"
+            variant="outline-extra-light"
             :href="documentationURL"
             class="d-flex justify-content-center align-items-center"
             target="_blank"

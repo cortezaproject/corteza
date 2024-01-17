@@ -339,7 +339,7 @@
                               :placeholder="$t('recordList.filter.name.placeholder')"
                             />
 
-                            <b-input-group-append class="border-0">
+                            <b-input-group-append>
                               <record-list-filter
                                 class="d-print-none"
                                 :target="`record-filter-${index}`"
@@ -347,7 +347,8 @@
                                 :module="recordListModule"
                                 :selected-field="recordListModule.fields[0]"
                                 :record-list-filter="filter.filter"
-                                variant="light"
+                                variant="extra-light"
+                                inactive-icon-class="text-light"
                                 button-class="px-2 pt-2"
                                 button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
                                 @filter="(filter) => onFilter(filter, index)"

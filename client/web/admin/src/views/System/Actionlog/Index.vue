@@ -178,8 +178,9 @@
           </router-link>
         </template>
         <template #row-details="{ item: a }">
-          <b-card-group class="m-3 mb-5">
-            <b-card :header="$t('details.header')">
+          <b-card-group>
+            <b-card>
+              <h6>{{ $t('details.header') }}</h6>
               <b-row>
                 <b-col cols="4">
                   {{ $t('details.id') }}
@@ -282,7 +283,9 @@
                 </b-col>
               </b-row>
             </b-card>
-            <b-card :header="$t('details.headerAdditional')">
+
+            <b-card>
+              <h6>{{ $t('details.headerAdditional') }}</h6>
               <b-row>
                 <b-col cols="4">
                   {{ $t('details.description') }}

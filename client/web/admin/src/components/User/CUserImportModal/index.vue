@@ -14,8 +14,8 @@
       :visible="showModal"
       size="lg"
       :title="$t('import.title')"
+      centered
       hide-footer
-      body-class="p-0"
       @hide="onModalHide"
     >
       <keep-alive>

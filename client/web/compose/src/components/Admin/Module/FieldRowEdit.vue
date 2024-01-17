@@ -36,6 +36,7 @@
             :field.sync="value"
             :module="module"
             :disabled="isNew"
+            button-variant="extra-light"
             highlight-key="label"
           />
         </b-input-group-append>
@@ -59,7 +60,7 @@
           <b-button
             v-b-tooltip.hover="{ title: $t('tooltip.field'), container: '#body' }"
             data-test-id="button-configure-field"
-            variant="light"
+            variant="extra-light"
             :disabled="!value.cap.configurable"
             @click.prevent="$emit('edit')"
           >

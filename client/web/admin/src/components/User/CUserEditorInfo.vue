@@ -3,6 +3,7 @@
     data-test-id="card-user-info"
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
     footer-class="d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
@@ -109,7 +110,7 @@
         v-if="!fresh"
         data-test-id="button-sessions-revoke"
         :disabled="user.userID === userID"
-        cta-class="secondary"
+        cta-class="light"
         @confirmed="$emit('sessionsRevoke')"
       >
         {{ $t('revokeAllSession') }}
@@ -127,7 +128,7 @@
         ui-page="user/editor"
         ui-slot="infoFooter"
         resource-type="system:user"
-        default-variant="secondary"
+        default-variant="light"
         @click="dispatchCortezaSystemUserEvent($event, { user })"
       />
 

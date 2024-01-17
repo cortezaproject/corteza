@@ -1,9 +1,10 @@
 <template>
   <b-card
-    class="shadow-sm"
-    body-class="p-0"
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
+    body-class="p-0"
+    class="shadow-sm"
   >
     <template
       #header
@@ -35,7 +36,6 @@
       }"
       clickable
       hide-search
-      card-header-class="rounded-0"
       class="h-100 bg-transparent"
       @row-clicked="handleRowClicked"
     >
@@ -57,7 +57,6 @@
           :excluded-label="$t('filterForm.excluded.label')"
           :inclusive-label="$t('filterForm.inclusive.label')"
           :exclusive-label="$t('filterForm.exclusive.label')"
-          class="mt-2"
           @change="filterList"
         />
       </template>

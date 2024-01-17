@@ -15,7 +15,7 @@
       size="lg"
       :title="$t('export.title')"
       hide-footer
-      body-class="p-0"
+      centered
       @hide="onModalHide"
     >
       <keep-alive>

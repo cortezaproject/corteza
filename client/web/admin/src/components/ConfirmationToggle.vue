@@ -21,7 +21,7 @@
       </b-button>
 
       <b-button
-        variant="secondary"
+        variant="light"
         class="confirmation-cancel flex-fill"
         @click.prevent="inConfirmation=false"
       >

@@ -201,7 +201,6 @@ export default {
         },
         {
           key: 'createdAt',
-          label: 'Created',
           sortable: true,
           formatter: (v) => moment(v).fromNow(),
         },

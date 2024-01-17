@@ -3,8 +3,15 @@
     class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
     footer-class="d-flex flex-wrap gap-1"
   >
+    <template #header>
+      <h4 class="m-0">
+        {{ $t('title') }}
+      </h4>
+    </template>
+
     <b-form
       v-if="session && session.sessionID"
     >
@@ -112,12 +119,6 @@
         </template>
       </c-system-fields>
     </b-form>
-
-    <template #header>
-      <h4 class="m-0">
-        {{ $t('title') }}
-      </h4>
-    </template>
 
     <template
       v-if="session.workflowID"

@@ -3,6 +3,7 @@
     v-bind="$props"
     :scrollable-body="false"
     card-class="tabs-base-block-container"
+    header-class="border-0"
     v-on="$listeners"
   >
     <div
@@ -112,6 +113,7 @@
           :record="record"
           :module="module"
           :magnified="magnified"
+          header-class="border-0"
         />
 
         <div

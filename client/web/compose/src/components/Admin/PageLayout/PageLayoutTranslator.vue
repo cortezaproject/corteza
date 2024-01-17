@@ -1,7 +1,7 @@
 <template>
   <c-translator-button
     v-if="canManageResourceTranslations && resourceTranslationsEnabled"
-    v-bind="$props"
+    v-bind="{ ...$attrs, ...$props }"
     :tooltip="$t('tooltip')"
     :resource="resource"
     :titles="titles"
@@ -29,11 +29,6 @@ export default {
     pageLayout: {
       type: compose.PageLayout,
       required: true,
-    },
-
-    buttonVariant: {
-      type: String,
-      default: () => 'primary',
     },
 
     highlightKey: {

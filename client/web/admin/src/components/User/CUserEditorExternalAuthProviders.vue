@@ -1,9 +1,12 @@
 <template>
   <b-card
+    v-if="value && value.length > 0"
     data-test-id="card-external-auth-providers"
-    class="shadow-sm"
     header-bg-variant="white"
     footer-bg-variant="white"
+    header-class="border-bottom"
+    body-class="p-0"
+    class="shadow-sm"
   >
     <template #header>
       <h4 class="m-0">
@@ -17,6 +20,8 @@
       head-variant="light"
       responsive
       hover
+      class="mb-0"
+      style="min-height: 200px;"
     >
       <template #cell(editor)="{ item }">
         <c-input-confirm

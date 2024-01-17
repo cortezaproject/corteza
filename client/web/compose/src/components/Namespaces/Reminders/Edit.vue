@@ -95,7 +95,7 @@
               v-b-tooltip.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
               :disabled="!recordViewer"
               :to="recordViewer"
-              variant="light"
+              variant="extra-light"
               class="d-flex align-items-center text-primary"
             >
               <font-awesome-icon :icon="['far', 'file-alt']" />
