@@ -222,12 +222,14 @@ export default {
       } else {
         // Open in modal
         const metricID = `${this.block.blockID}-${name.replace(/\s+/g, '-').toLowerCase()}-${moduleID}-${metricIndex}`
+        const { fields = [] } = this.options.metrics[metricIndex].drillDown.recordListOptions || {}
 
         const block = new compose.PageBlockRecordList({
           title: name || this.$t('metric.metricDrillDown'),
           blockID: `drillDown-${metricID}`,
           options: {
             moduleID,
+            fields,
             prefilter: filter,
             presort: 'createdAt DESC',
             hideRecordReminderButton: true,
