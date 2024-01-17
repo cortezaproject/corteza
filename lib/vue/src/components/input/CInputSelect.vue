@@ -145,12 +145,13 @@ export default {
   --vs-dropdown-option--active-bg: var(--light);
   --vs-state-disabled-color: var(--secondary);
   --vs-state-disabled-bg: var(--light);
-  --vs-colors--light: var(--light);
+  --vs-colors--light: var(--black);
   --vs-colors--dark: var(--black);
   --vs-dropdown-option-color: var(--black);
   --vs-dropdown-option--active-color: var(--black);
-  --vs-selected-bg: var(--primary);
+  --vs-selected-bg: var(--extra-light);
   --vs-search-input-color: var(--secondary);
+  --vs-search-input-bg: var(--white);
 }
 
 .v-select {
@@ -237,15 +238,9 @@ export default {
   }
 }
 
-[data-color-mode="light"] .vs--multiple {
-  .vs__selected {
-    color: var(--white);
-  }
-}
-
 .vs--open {
   .vs__dropdown-toggle {
-    border-color: var(--secondary);
+    border-color: var(--primary);
     border-radius: 0.25rem !important;
   }
 }
