@@ -95,6 +95,22 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: ${{ github.ref_name }}
 
+      - name: Clone CY repo
+        uses: actions/checkout@v3
+        with:
+          repository: cortezaproject/corteza-e2e-cypress
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.ref_name }}
+          path: corteza-e2e-cypress
+
+      - name: Cache lib dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            corteza/lib/vue/node_modules
+            corteza/lib/js/node_modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('corteza/lib/vue/yarn.lock', 'corteza/lib/js/yarn.lock') }}
+
       - name: Copy server language files
         working-directory: corteza/server/pkg/locale
         run: make src/en
@@ -107,6 +123,14 @@ jobs:
           mv ./.github/workflows/assets/docker-compose.yaml ./
           cp .github/workflows/assets/client/vue.config-builder.js client/web/${CLIENT_NAME}/public/vue.config-builder.js
           cp .github/workflows/assets/client/config.js client/web/${CLIENT_NAME}/public/config.js
+
+          docker-compose config > /tmp/docker-compose.corteza.yaml
+          cd ../corteza-e2e-cypress && docker-compose config > /tmp/docker-compose.corteza-e2e.yaml
+
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.7
+        with:
+          key: docker-${{ runner.os }}-${{ hashFiles('/tmp/docker-compose.corteza.yaml', '/tmp/docker-compose.corteza-e2e.yaml') }}
 
       - name: Run server and db
         working-directory: corteza
@@ -145,14 +169,6 @@ jobs:
                   yarn link @cortezaproject/corteza-js && \
                   yarn install && \
                   yarn serve --port ${CLIENT_PORT}"
-
-      - name: Clone CY repo
-        uses: actions/checkout@v3
-        with:
-          repository: cortezaproject/corteza-e2e-cypress
-          token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name }}
-          path: corteza-e2e-cypress
 
       # github actions do not support docker-compose --wait
       - name: Wait for postgres healthcheck
@@ -223,22 +239,3 @@ jobs:
             🔗 https://${{ secrets.E2E_REPORTS_USER }}:${{ secrets.E2E_REPORTS_PASS }}@releases.cortezaproject.org/e2e-reports/
 
             📷 https://${{ secrets.E2E_REPORTS_USER }}:${{ secrets.E2E_REPORTS_PASS }}@releases.cortezaproject.org/e2e-reports/screenshots/${{ env.SCREENSHOTS_GEN_FOLDER }}/
-
-  notify-success:
-    needs: [ server-client-setup ]
-    runs-on: ubuntu-20.04
-    if: success()
-    steps:
-      - name: Send message on successful testing results
-        uses: fadenb/matrix-chat-message@v0.0.6
-        env:
-          E2E_REPORTS_USER: ${{ secrets.E2E_REPORTS_USER }}
-          E2E_REPORTS_PASS: ${{ secrets.E2E_REPORTS_PASS }}
-        with:
-          homeserver: ${{ secrets.MATRIX_HOME_SERVER }}
-          token: ${{ secrets.MATRIX_ACCESS_TOKEN }}
-          channel: ${{ secrets.MATRIX_ROOM_ID }}
-          message: |
-            ✅ E2e tests passed 🙌 🎉
-
-            🔗 https://${{ secrets.E2E_REPORTS_USER }}:${{ secrets.E2E_REPORTS_PASS }}@releases.cortezaproject.org/e2e-reports/
