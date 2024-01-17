@@ -900,7 +900,7 @@ export default {
 
         if (cell.edge) {
           if (cell.value) {
-            label = `<div id="openSidebar" class="text-nowrap py-1 px-3 mb-0 rounded bg-white pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: #2D2D2D;">${encodeHTML(cell.value)}</div>`
+            label = `<div id="openSidebar" class="text-nowrap py-1 px-3 mb-0 rounded bg-white pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: var(--dark);">${encodeHTML(cell.value)}</div>`
           }
         } else if (this.vertices[cell.id]) {
           const vertex = this.vertices[cell.id]
@@ -911,7 +911,7 @@ export default {
             const type = this.$t(`steps:${style}.short`)
             const isSelected = this.selection.includes(cell.mxObjectId)
             const border = isSelected ? 'selected-border' : 'border-light'
-            const shadow = isSelected ? 'shadow-lg' : 'shadow'
+            const shadow = isSelected ? 'shadow' : 'shadow-sm'
             const cog = 'icons/cog.svg'
             const issue = 'icons/issue.svg'
             const playIcon = 'icons/play.svg'
@@ -1767,7 +1767,7 @@ export default {
       style[mxConstants.STYLE_ARCSIZE] = 5
       style[mxConstants.STYLE_RESIZABLE] = false
       style[mxConstants.STYLE_FILLCOLOR] = 'none'
-      style[mxConstants.STYLE_FONTCOLOR] = '#2D2D2D'
+      style[mxConstants.STYLE_FONTCOLOR] = 'var(--dark)'
       style[mxConstants.STYLE_FONTSIZE] = 13
       this.graph.getStylesheet().putDefaultVertexStyle(style)
 
@@ -1778,7 +1778,7 @@ export default {
       style[mxConstants.STYLE_ROUNDED] = true
       style[mxConstants.STYLE_ORTHOGONAL] = true
       style[mxConstants.STYLE_MOVABLE] = false
-      style[mxConstants.STYLE_FONTCOLOR] = '#2D2D2D'
+      style[mxConstants.STYLE_FONTCOLOR] = 'var(--dark)'
       style[mxConstants.STYLE_STROKEWIDTH] = 2
       style[mxConstants.STYLE_ENDSIZE] = 15
       style[mxConstants.STYLE_STARTSIZE] = 15
@@ -1797,7 +1797,7 @@ export default {
       style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_MIDDLE
       style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_MIDDLE
       style[mxConstants.STYLE_FILLCOLOR] = 'white'
-      style[mxConstants.STYLE_STROKECOLOR] = '#2D2D2D'
+      style[mxConstants.STYLE_STROKECOLOR] = 'var(--dark)'
       style[mxConstants.STYLE_STROKEWIDTH] = 0
       style[mxConstants.STYLE_STROKEWIDTH] = 2
       this.graph.getStylesheet().putCellStyle('swimlane', style)
@@ -2542,6 +2542,10 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+#workflow-editor {
+  color: var(--dark);
+}
+
 #graph {
   outline: none;
 }
