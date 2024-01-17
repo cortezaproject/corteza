@@ -8,7 +8,8 @@ name: "E2e test on main branch push"
 on:
   push:
     branches:
-      - '202[2-9].[39].x'
+      - 2023.9.x-feature-cache-e2e-workflow
+      # - '202[2-9].[39].x'
 
 env:
   BUILD_OS: linux
@@ -93,7 +94,7 @@ jobs:
         with:
           path: corteza
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name }}
+          ref: 2023.9.x
 
       - name: Copy server language files
         working-directory: corteza/server/pkg/locale
@@ -113,6 +114,21 @@ jobs:
         run: |
           docker-compose run -d --name backend backend
           docker-compose run -d --name postgres postgres
+
+      - name: Cache lib dependencies
+        uses: actions/cache@v3
+        id: cache-yarn
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: |
+            corteza/lib/js/node_modules
+            corteza/lib/vue/node_modules
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
 
       - name: Build js
         working-directory: corteza/lib/js
@@ -151,7 +167,7 @@ jobs:
         with:
           repository: cortezaproject/corteza-e2e-cypress
           token: ${{ secrets.GITHUB_TOKEN }}
-          ref: ${{ github.ref_name }}
+          ref: 2023.9.x
           path: corteza-e2e-cypress
 
       # github actions do not support docker-compose --wait
