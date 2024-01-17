@@ -71,7 +71,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="d-flex align-items-center bg-white p-4"
+        class="d-flex align-items-center bg-white"
       >
         <h5
           class="mb-0"
@@ -246,7 +246,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="bg-white p-4"
+        class="bg-white"
       >
         <h5
           class="mb-0"

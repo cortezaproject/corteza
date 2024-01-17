@@ -19,7 +19,7 @@
         img-height="100px"
         img-top
         :title="title"
-        class="text-left"
+        class="text-left text-dark"
       >
         <b-card-text>
           {{ text }}
@@ -68,7 +68,7 @@ export default {
 }
 
 .tooltip.b-tooltip-light.bs-tooltip-right .arrow::before {
-  border-right-color: #2D2D2D !important;
+  border-right-color: var(--dark) !important;
 }
 
 .tooltip.b-tooltip {

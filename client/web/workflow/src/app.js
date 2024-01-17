@@ -35,6 +35,7 @@ export default (options = {}) => {
         }
 
         // switch the webapp theme based on user preference
+        // disabled for now as it's not working properly
         if (user.meta.theme) {
           document.getElementsByTagName('html')[0].setAttribute('data-color-mode', user.meta.theme)
         }

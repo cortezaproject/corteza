@@ -12,6 +12,7 @@
         :footer-class="`rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"
         :backdrop="isMobile"
+        backdrop-variant="white"
         :shadow="isExpanded && 'sm'"
         no-slide
         :right="right"
@@ -338,7 +339,11 @@ $header-height: 64px;
 $nav-width: 320px;
 
 .b-sidebar {
-  background-color: var(--sidebar-bg) !important;
+  background-color: var(--white) !important;
+}
+
+.b-sidebar-backdrop {
+  opacity: 0.75 !important;
 }
 
 .sidebar {

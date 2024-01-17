@@ -22,7 +22,7 @@
         header-bg-variant="white"
         footer-bg-variant="white"
         header-class="d-flex align-items-center border-bottom"
-        footer-class="d-flex flex-wrap flex-fill-child gap-1"
+        footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
         class="shadow-sm"
       >
         <component
@@ -63,7 +63,7 @@
         header-bg-variant="white"
         footer-bg-variant="white"
         header-class="border-bottom"
-        footer-class="d-flex justify-content-end flex-wrap flex-fill-child gap-1"
+        footer-class="border-top d-flex justify-content-end flex-wrap flex-fill-child gap-1"
         class="shadow-sm mt-3"
       >
         <!-- Partial templates can't be previewed -->
@@ -83,6 +83,7 @@
           :editor-props="{
             $blockScrolling: false,
           }"
+          class="border-0 rounded-0"
         />
 
         <template #header>
