@@ -58,7 +58,7 @@ func DefaultCSS(log *zap.Logger, customCSS string) string {
 
 func Transpile(transpiler *godartsass.Transpiler, log *zap.Logger, themeID, themeSASS, customCSS, sassDirPath string) (err error) {
 	// process root section
-	err = processSass(transpiler, log, SectionRoot, themeID, themeSASS, customCSS, sassDirPath)
+	err = processSass(transpiler, log, SectionRoot, themeID, themeSASS, "", sassDirPath)
 	if err != nil {
 		return err
 	}
