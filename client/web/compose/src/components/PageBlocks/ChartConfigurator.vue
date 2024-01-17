@@ -18,11 +18,11 @@
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.noninteractive.hover="{ title: $t('chart.openInBuilder'), container: '#body' }"
-            :disabled="!selectedChart || (!selectedChart.canUpdateChart && !selectedChart.canDeleteChart)"
+            v-b-tooltip.hover="{ title: $t(chartSelectorTooltip), container: '#body' }"
+            :disabled="selectedChart && (!selectedChart.canUpdateChart && !selectedChart.canDeleteChart)"
             variant="extra-light"
             class="d-flex align-items-center"
-            :to="{ name: 'admin.charts.edit', params: { chartID: (selectedChart || {}).chartID }, query: null }"
+            :to="{ name: chartExternalLink, params: { chartID: (selectedChart || {}).chartID }, query: null }"
           >
             <font-awesome-icon :icon="['fas', 'external-link-alt']" />
           </b-button>
@@ -32,6 +32,7 @@
 
     <template v-if="isDrillDownAvailable">
       <b-form-group
+        :label="$t('chart.drillDown.label')"
         :description="$t('chart.drillDown.description')"
         label-class="d-flex align-items-center text-primary"
         class="mb-1"
@@ -46,16 +47,32 @@
           />
         </template>
 
-        <c-input-select
-          v-model="options.drillDown.blockID"
-          :options="drillDownOptions"
-          :get-option-key="getOptionKey"
-          :disabled="!options.drillDown.enabled"
-          :get-option-label="o => o.title || o.kind"
-          :reduce="option => option.blockID"
-          :clearable="true"
-          :placeholder="$t('chart.drillDown.openInModal')"
-        />
+        <b-input-group>
+          <c-input-select
+            v-model="options.drillDown.blockID"
+            :options="drillDownOptions"
+            :get-option-key="getOptionKey"
+            :disabled="!options.drillDown.enabled"
+            :get-option-label="o => o.title || o.kind"
+            :reduce="option => option.blockID"
+            :clearable="true"
+            :placeholder="$t('chart.drillDown.openInModal')"
+          />
+
+          <b-input-group-append>
+            <column-picker
+              ref="columnPicker"
+              :module="selectedChartModule"
+              :fields="selectedDrilldownFields"
+              :disabled="!!options.drillDown.blockID || !options.drillDown.enabled"
+              variant="extra-light"
+              size="md"
+              @updateFields="onUpdateFields"
+            >
+              <font-awesome-icon :icon="['fas', 'wrench']" />
+            </column-picker>
+          </b-input-group-append>
+        </b-input-group>
       </b-form-group>
     </template>
   </b-tab>
@@ -64,6 +81,7 @@
 import base from './base'
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
+import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 
 export default {
   i18nOptions: {
@@ -72,11 +90,16 @@ export default {
 
   name: 'Chart',
 
+  components: {
+    ColumnPicker,
+  },
+
   extends: base,
 
   computed: {
     ...mapGetters({
       charts: 'chart/set',
+      getModuleByID: 'module/getByID',
     }),
 
     selectedChart () {
@@ -87,12 +110,32 @@ export default {
       return this.charts.find(({ chartID }) => chartID === this.options.chartID)
     },
 
+    chartExternalLink () {
+      return !this.selectedChart ? 'admin.charts' : 'admin.charts.edit'
+    },
+
+    chartSelectorTooltip () {
+      return !this.selectedChart ? 'chart.openChartList' : 'chart.openInBuilder'
+    },
+
     selectedChartModuleID () {
       if (!this.selectedChart) return
 
       const { moduleID } = (this.selectedChart.config.reports[0] || {})
 
       return moduleID
+    },
+
+    selectedChartModule () {
+      if (!this.selectedChartModuleID) return
+
+      return this.getModuleByID(this.selectedChartModuleID)
+    },
+
+    selectedDrilldownFields () {
+      if (!this.selectedChart) return []
+
+      return this.options.drillDown.recordListOptions.fields
     },
 
     isDrillDownAvailable () {
@@ -110,14 +153,15 @@ export default {
 
   methods: {
     chartSelected () {
-      this.options.drillDown = {
-        enabled: false,
-        blockID: '',
-      }
+      this.block.resetDrillDown()
     },
 
     getOptionKey ({ chartID }) {
       return chartID
+    },
+
+    onUpdateFields (fields) {
+      this.options.drillDown.recordListOptions.fields = fields.map(({ fieldID }) => fieldID)
     },
   },
 }

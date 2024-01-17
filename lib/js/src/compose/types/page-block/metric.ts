@@ -1,14 +1,15 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
 import { merge } from 'lodash'
 import { Apply } from '../../../cast'
-
+import { Options as PageBlockRecordListOptions } from './record-list'
 const kind = 'Metric'
 
 type Reporter = (p: ReporterParams) => Promise<any>
 
 interface DrillDown {
   enabled: boolean;
-  blockID?: string;
+  blockID: string;
+  recordListOptions: Partial<PageBlockRecordListOptions>;
 }
 
 interface ReporterParams {
@@ -62,9 +63,13 @@ const defaultMetric: Readonly<Metric> = Object.freeze({
     color: '#000000',
     fontSize: undefined,
   },
+
   drillDown: {
     enabled: false,
     blockID: '',
+    recordListOptions: {
+      fields: [],
+    },
   },
 })
 
