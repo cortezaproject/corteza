@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-items-center">
       <b-button
-        :style="`color: ${pickedColor}; fill: ${pickedColor};`"
+        :style="`color: ${currentColor}; fill: ${currentColor};`"
         class="p-0 rounded-circle bg-white border-white shadow-none"
         @click="toggleMenu"
       >
@@ -62,17 +62,24 @@
       @hide="closeMenu"
     >
       <chrome
-        :value="value"
+        :value="currentColor"
         class="w-100 shadow-none"
         @input="updateColor"
       />
 
       <template #modal-footer>
+        <b-button
+          v-if="defaultValue"
+          variant="light"
+          @click="resetColor()"
+        >
+          {{ translations.defaultBtnLabel }}
+        </b-button>
         <slot name="footer" />
 
         <b-button
-          variant="link"
-          class="ml-auto"
+          variant="outline-light"
+          class="ml-auto text-primary border-0"
           @click="closeMenu"
         >
           {{ translations.cancelBtnLabel }}
@@ -106,6 +113,11 @@ export default {
       default: 'rgba(0,0,0,0)',
     },
 
+    defaultValue: {
+      type: String,
+      default: '',
+    },
+
     translations: {
       type: Object,
     },
@@ -133,21 +145,12 @@ export default {
     }
   },
 
-  computed: {
-    pickedColor: {
-      get () {
-        return this.value
-      },
-
-      set (pickedColor) {
-        this.pickedColor = pickedColor
-      },
-    },
-  },
-
   watch: {
-    value (value) {
-      this.currentColor = value
+    value: {
+      immediate: true,
+      handler (value) {
+        this.currentColor = value
+      },
     },
   },
 
@@ -156,17 +159,21 @@ export default {
       this.currentColor = hex8
     }, 300),
 
+    resetColor () {
+      this.currentColor = this.defaultValue
+    },
+
+    saveColor () {
+      this.$emit('input', this.currentColor)
+      this.closeMenu()
+    },
+
     toggleMenu () {
       if (this.showModal) {
         this.closeMenu()
       } else {
         this.openMenu()
       }
-    },
-
-    saveColor () {
-      this.$emit('input', this.currentColor)
-      this.closeMenu()
     },
 
     openMenu () {
@@ -180,12 +187,31 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
 .vc-chrome {
   font-family: var(--font-medium) !important;
-}
 
-.vc-chrome {
-  background-color: var(--white) !important;
+  .vc-chrome-body {
+    background: var(--white) !important;
+
+    .vc-input__input {
+      color: var(--black) !important;
+      background-color: var(--white) !important;
+    }
+
+    .vc-input__label {
+      color: var(--black) !important;
+    }
+
+    .vc-chrome-toggle-btn {
+      path {
+        fill: var(--black) !important;
+      }
+
+      .vc-chrome-toggle-icon-highlight {
+        background: var(--light) !important;
+      }
+    }
+  }
 }
 </style>

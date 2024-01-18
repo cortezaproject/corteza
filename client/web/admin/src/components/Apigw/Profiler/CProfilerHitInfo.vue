@@ -220,6 +220,7 @@
       footer-bg-variant="white"
       header-class="border-bottom"
       body-class="p-0"
+      footer-class="border-top"
       class="shadow-sm mt-3"
     >
       <template #header>
@@ -244,6 +245,7 @@
         :set-options="{
           useWorker: false,
         }"
+        class="border-0 rounded-0"
       />
     </b-card>
   </div>

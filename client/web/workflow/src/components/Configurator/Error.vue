@@ -25,7 +25,7 @@
           lang="javascript"
           font-size="18px"
           show-line-numbers
-          :border="false"
+          :show-popout="false"
           @open="openInEditor"
           @input="valueChanged"
         />

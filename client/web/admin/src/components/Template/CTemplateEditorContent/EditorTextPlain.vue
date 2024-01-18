@@ -14,6 +14,7 @@
     :editor-props="{
       $blockScrolling: false,
     }"
+    class="border-0 rounded-0"
   />
 </template>
 

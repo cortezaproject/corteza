@@ -69,6 +69,10 @@ $body-color: $black !default;
 $border-color: $extra-light !default;
 $hr-border-color: $border-color !default;
 
+// Modal
+$modal-backdrop-bg: $white !default;
+$modal-backdrop-opacity: .75 !default;
+
 // Options
 $enable-rounded:   true !default;
 $enable-gradients: false !default;

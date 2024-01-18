@@ -43,26 +43,15 @@
               <c-input-color-picker
                 ref="picker"
                 v-model="theme.variables[key]"
+                :default-value="theme.defaultVariables[key]"
                 :data-test-id="`input-${key}-color`"
                 :translations="{
                   modalTitle: $t('colorPicker'),
+                  defaultBtnLabel: $t('label.default'),
                   cancelBtnLabel: $t('general:label.cancel'),
                   saveBtnLabel: $t('general:label.saveAndClose')
                 }"
-              >
-                <template
-                  v-if="['light', 'dark'].includes(theme.id)"
-                  #footer
-                >
-                  <b-button
-                    variant="outline-primary"
-                    class="mr-auto"
-                    @click="resetColor(key, theme)"
-                  >
-                    {{ $t('label.default') }}
-                  </b-button>
-                </template>
-              </c-input-color-picker>
+              />
             </b-form-group>
           </b-col>
         </b-row>
@@ -79,7 +68,6 @@
                 height="400px"
                 font-size="14px"
                 show-line-numbers
-                :border="false"
                 :show-popout="true"
                 @open="openCustomCSSModal(theme.id)"
               />
@@ -92,7 +80,7 @@
     <b-modal
       id="custom-css-editor"
       v-model="customCSSModal.show"
-      :title="$t('modal.editor')"
+      :title="$t('custom-css')"
       cancel-variant="link"
       size="lg"
       :ok-title="$t('general:label.saveAndClose')"
@@ -247,15 +235,21 @@ export default {
           const defaultCustomCSS = customCSS.find(t => t.id === id) || {}
 
           let variables = JSON.parse(values || '{}')
+          let defaultVariables
 
-          if (!values && ['light', 'dark'].includes(id)) {
-            variables = id === 'light' ? this.lightModeVariables : this.darkModeVariables
+          if (['light', 'dark'].includes(id)) {
+            if (!values) {
+              variables = id === 'light' ? this.lightModeVariables : this.darkModeVariables
+            }
+
+            defaultVariables = id === 'light' ? this.lightModeVariables : this.darkModeVariables
           }
 
           return {
             id: id,
             title: title || this.$t(`tabs.${id}`),
             variables,
+            defaultVariables,
             customCSS: defaultCustomCSS.values || '',
           }
         })
