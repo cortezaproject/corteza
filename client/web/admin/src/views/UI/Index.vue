@@ -126,8 +126,8 @@ export default {
               // window.location.reload()
               return new Promise((resolve) => {
                 setTimeout(() => {
-                  const stylesheet = document.querySelector('link[href="custom.css"]')
-                  stylesheet.href = 'custom.css'
+                  const stylesheet = document.querySelector('link#corteza-custom-css')
+                  stylesheet.href = 'custom.css?v=' + new Date().getTime()
                   resolve()
                 }, 1000)
               })
