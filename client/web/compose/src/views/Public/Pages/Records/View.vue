@@ -1,9 +1,10 @@
 <template>
-  <div class="d-flex flex-grow-1 w-100 h-100">
+  <div class="d-flex flex-column flex-grow-1 w-100 h-100">
     <b-alert
       v-if="isDeleted"
       show
       variant="warning"
+      class="mb-2 mx-2"
     >
       {{ $t('record.recordDeleted') }}
     </b-alert>

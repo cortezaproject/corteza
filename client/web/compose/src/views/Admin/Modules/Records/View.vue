@@ -1,6 +1,6 @@
 <template>
   <div
-    class="overflow-auto px-2"
+    class="overflow-auto p-2"
   >
     <portal to="topbar-title">
       {{ title }}
@@ -44,8 +44,8 @@
     <b-alert
       v-if="isDeleted"
       show
-      variant="info"
-      class="mb-0"
+      variant="warning"
+      class="mb-2 mx-2"
     >
       {{ $t('block.record.recordDeleted') }}
     </b-alert>
