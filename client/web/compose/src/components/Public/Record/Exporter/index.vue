@@ -275,7 +275,7 @@ export default {
     },
     disabledTypes: {
       type: Array,
-      default: () => ['User', 'Record', 'File'],
+      default: () => ['User', 'File'],
     },
     processing: {
       type: Boolean,

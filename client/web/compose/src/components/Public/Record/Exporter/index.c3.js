@@ -17,7 +17,7 @@ const props = {
   startDate: null,
   endDate: null,
   systemFields: ['ownedBy', 'createdAt', 'createdBy', 'updatedAt', 'updatedBy'],
-  disabledTypes: ['User', 'Record', 'File'],
+  disabledTypes: ['User', 'File'],
 }
 
 export default {
