@@ -84,9 +84,14 @@
             v-model="feed.options.color"
             :translations="{
               modalTitle: $t('geometry.recordFeed.colorPicker'),
+              light: $t('general:swatchers.labels.light'),
+              dark: $t('general:swatchers.labels.dark'),
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
+            :color-tooltips="colorSchemeTooltips"
+            :swatchers="themeColors"
+            :swatcher-labels="swatcherLabels"
           />
         </b-form-group>
 
@@ -139,6 +144,25 @@ export default {
   },
 
   extends: base,
+
+  data () {
+    return {
+      swatcherLabels: [
+        'black',
+        'white',
+        'primary',
+        'secondary',
+        'success',
+        'warning',
+        'danger',
+        'light',
+        'extra-light',
+        'body-bg',
+        'sidebar-bg',
+        'topbar-bg',
+      ],
+    }
+  },
 
   computed: {
     /**
@@ -204,6 +228,25 @@ export default {
           return sf
         }),
       ].filter(f => f.kind === 'Geometry')
+    },
+
+    colorSchemeTooltips () {
+      return this.swatcherLabels.reduce((acc, label) => {
+        acc[label] = this.$t(`general:swatchers.tooltips.${label}`)
+        return acc
+      }, {})
+    },
+
+    themeColors () {
+      const theme = this.$Settings.get('ui.studio.themes', [])
+      if (!theme.length) {
+        return theme
+      }
+
+      return theme.map(theme => {
+        theme.values = JSON.parse(theme.values)
+        return theme
+      })
     },
   },
 }

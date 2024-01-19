@@ -58,9 +58,14 @@
             v-model="options.color"
             :translations="{
               modalTitle: $t('color.picker'),
+              light: $t('swatchers.labels.light'),
+              dark: $t('swatchers.labels.dark'),
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
+            :color-tooltips="colorSchemeTooltips"
+            :swatchers="themeColors"
+            :swatcher-labels="swatcherLabels"
           />
         </b-form-group>
       </b-col>
@@ -73,9 +78,14 @@
             v-model="options.backgroundColor"
             :translations="{
               modalTitle: $t('color.picker'),
+              light: $t('swatchers.labels.light'),
+              dark: $t('swatchers.labels.dark'),
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
+            :color-tooltips="colorSchemeTooltips"
+            :swatchers="themeColors"
+            :swatcher-labels="swatcherLabels"
           />
         </b-form-group>
       </b-col>
@@ -102,12 +112,50 @@ export default {
 
   extends: base,
 
+  data () {
+    return {
+      swatcherLabels: [
+        'black',
+        'white',
+        'primary',
+        'secondary',
+        'success',
+        'warning',
+        'danger',
+        'light',
+        'extra-light',
+        'body-bg',
+        'sidebar-bg',
+        'topbar-bg',
+      ],
+    }
+  },
+
   computed: {
     valueColumns () {
       const columns = this.columns.length ? this.columns[0] : []
       return [
         ...columns.filter(({ kind }) => ['Number'].includes(kind)),
       ].sort((a, b) => a.label.localeCompare(b.label))
+    },
+
+    colorSchemeTooltips () {
+      return this.swatcherLabels.reduce((acc, label) => {
+        acc[label] = this.$t(`swatchers.tooltips.${label}`)
+        return acc
+      }, {})
+    },
+
+    themeColors () {
+      const theme = this.$Settings.get('ui.studio.themes', [])
+      if (!theme.length) {
+        return theme
+      }
+
+      return theme.map(theme => {
+        theme.values = JSON.parse(theme.values)
+        return theme
+      })
     },
   },
 }
