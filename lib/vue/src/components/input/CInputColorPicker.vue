@@ -67,11 +67,33 @@
         @input="updateColor"
       />
 
+      <hr/>
+      <div 
+        v-for="swatcher in swatchers"
+        :key="swatcher.id"
+        class="d-flex flex-nowrap p-2"
+      >
+          <div 
+            v-for="key in swatcherLabels"
+            :key="key"
+            class="mb-2"
+          >
+          <b-button 
+            squared 
+            class="swatcher" 
+            v-b-tooltip.hover="{ title: colorToolTip(swatcher.id,key), container: '#body' }"
+            :style="{ backgroundColor: swatcher.values[key], borderColor: swatcher.values[key] }"
+            @click="setColor(swatcher.values[key])"
+          >
+          </b-button>
+        </div>
+      </div>
+
       <template #modal-footer>
         <b-button
           v-if="defaultValue"
           variant="light"
-          @click="resetColor()"
+          @click="setColor()"
         >
           {{ translations.defaultBtnLabel }}
         </b-button>
@@ -135,7 +157,21 @@ export default {
     showText: {
       type: Boolean,
       default: true,
-    }
+    },
+
+    swatchers: {
+      type: Array,
+      default: [],
+    },
+
+    swatcherLabels: {
+      type: Array,
+      default: [],
+    },
+
+    colorTooltips: {
+      type: Object,
+    },
   },
 
   data () {
@@ -159,8 +195,8 @@ export default {
       this.currentColor = hex8
     }, 300),
 
-    resetColor () {
-      this.currentColor = this.defaultValue
+    setColor (defaultColor = this.defaultValue) {
+      this.currentColor = defaultColor
     },
 
     saveColor () {
@@ -176,6 +212,11 @@ export default {
       }
     },
 
+    saveColor () {
+      this.$emit('input', this.currentColor || this.value)
+      this.closeMenu()
+    },
+
     openMenu () {
       this.showModal = true
     },
@@ -183,11 +224,19 @@ export default {
     closeMenu () {
       this.showModal = false
     },
+
+    colorToolTip (themeID, label) {
+      return `${this.translations[themeID]} - ${this.colorTooltips[label]}`
+    },
   },
 }
 </script>
 
 <style lang="scss">
+.swatcher {
+  width: 32px;
+  height: 32px;
+}
 .vc-chrome {
   font-family: var(--font-medium) !important;
 

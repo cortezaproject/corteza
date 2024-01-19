@@ -59,9 +59,14 @@
               data-test-id="input-text-color"
               :translations="{
                 modalTitle: $t('colorPicker'),
+                light: $t('ui.settings:editor.corteza-studio.tabs.light'),
+                dark: $t('ui.settings:editor.corteza-studio.tabs.dark'),
                 cancelBtnLabel: $t('general:label.cancel'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
+              :color-tooltips="colorSchemeTooltips"
+              :swatchers="themeColors"
+              :swatcher-labels="swatcherLabels"
             />
           </b-form-group>
         </b-col>
@@ -79,9 +84,14 @@
               data-test-id="input-background-color"
               :translations="{
                 modalTitle: $t('colorPicker'),
+                light: $t('ui.settings:editor.corteza-studio.tabs.light'),
+                dark: $t('ui.settings:editor.corteza-studio.tabs.dark'),
                 cancelBtnLabel: $t('general:label.cancel'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
+              :color-tooltips="colorSchemeTooltips"
+              :swatchers="themeColors"
+              :swatcher-labels="swatcherLabels"
             />
           </b-form-group>
         </b-col>
@@ -137,9 +147,48 @@ export default {
     },
   },
 
+  data () {
+    return {
+      swatcherLabels: [
+        'black',
+        'white',
+        'primary',
+        'secondary',
+        'success',
+        'warning',
+        'danger',
+        'light',
+        'extra-light',
+        'body-bg',
+        'sidebar-bg',
+        'topbar-bg',
+      ],
+    }
+  },
+
   computed: {
     isKindAvatar () {
       return this.user.meta.avatarKind === 'avatar'
+    },
+
+    colorSchemeTooltips () {
+      return this.swatcherLabels.reduce((acc, label) => {
+        acc[label] = this.$t(`ui.settings:editor.corteza-studio.theme.variables.${label}`)
+        return acc
+      }, {})
+    },
+
+    themeColors () {
+      const theme = this.$Settings.get('ui.studio.themes', [])
+      if (!theme.length) {
+        return theme
+      }
+
+      return theme.map(theme => {
+        console.log(theme.values)
+        theme.values = JSON.parse(theme.values)
+        return theme
+      })
     },
   },
 

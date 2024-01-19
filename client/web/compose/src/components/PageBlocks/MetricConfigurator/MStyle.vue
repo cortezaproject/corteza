@@ -11,9 +11,14 @@
           v-model="options.color"
           :translations="{
             modalTitle: $t('metric.editStyle.colorPicker'),
+            light: $t('general:swatchers.labels.light'),
+            dark: $t('general:swatchers.labels.dark'),
             cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
+          :color-tooltips="colorSchemeTooltips"
+          :swatchers="themeColors"
+          :swatcher-labels="swatcherLabels"
           class="mb-1"
         />
       </b-form-group>
@@ -26,9 +31,14 @@
           v-model="options.backgroundColor"
           :translations="{
             modalTitle: $t('geometry.recordFeed.colorPicker'),
+            light: $t('general:swatchers.labels.light'),
+            dark: $t('general:swatchers.labels.dark'),
             cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
+          :color-tooltips="colorSchemeTooltips"
+          :swatchers="themeColors"
+          :swatcher-labels="swatcherLabels"
           class="mb-1"
         />
       </b-form-group>
@@ -68,6 +78,46 @@ export default {
       type: Object,
       required: true,
       default: () => ({}),
+    },
+  },
+
+  data () {
+    return {
+      swatcherLabels: [
+        'black',
+        'white',
+        'primary',
+        'secondary',
+        'success',
+        'warning',
+        'danger',
+        'light',
+        'extra-light',
+        'body-bg',
+        'sidebar-bg',
+        'topbar-bg',
+      ],
+    }
+  },
+
+  computed: {
+    colorSchemeTooltips () {
+      return this.swatcherLabels.reduce((acc, label) => {
+        acc[label] = this.$t(`general:swatchers.tooltips.${label}`)
+        return acc
+      }, {})
+    },
+
+    themeColors () {
+      const theme = this.$Settings.get('ui.studio.themes', [])
+      if (!theme.length) {
+        return theme
+      }
+
+      return theme.map(theme => {
+        theme.values = JSON.parse(theme.values)
+        return theme
+      })
     },
   },
 }

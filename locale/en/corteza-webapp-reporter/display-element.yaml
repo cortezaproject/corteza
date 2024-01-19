@@ -90,6 +90,23 @@ metric:
       background: Background color
       text: Text color
       picker: Choose a color
+    swatchers:
+      labels:
+        light: Light theme
+        dark: Dark theme
+      tooltips:
+        white: White
+        black: Black
+        primary: Primary
+        secondary: Secondary
+        success: Success
+        warning: Warning
+        danger: Danger
+        light: Light
+        extra-light: Extra light
+        body-bg: Body background
+        sidebar-bg: Sidebar background
+        topbar-bg: Topbar background
     format: Format
     label-column: Label column
     none: None

@@ -179,3 +179,21 @@ variants:
   warning: Warning
 editor:
   unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+
+swatchers:
+  labels:
+    light: Light
+    dark: Dark
+  tooltips:
+      white: White
+      black: Black
+      primary: Primary
+      secondary: Secondary
+      success: Success
+      warning: Warning
+      danger: Danger
+      light: Light
+      extra-light: Extra light
+      body-bg: Body background
+      sidebar-bg: Sidebar background
+      topbar-bg: Topbar background
