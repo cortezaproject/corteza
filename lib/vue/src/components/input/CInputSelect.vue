@@ -259,6 +259,18 @@ export default {
 
 .vs__dropdown-menu {
   z-index: 1090;
+
+  .vs__dropdown-option {
+    &.vs__dropdown-option--selected {
+      background: var(--vs-dropdown-option--active-bg);
+      color: var(--vs-dropdown-option--active-color);
+    }
+
+    &:active {
+      color: var(--white);
+      background-color: var(--primary);
+    }
+  }
 }
 
 .c-input-sm {
