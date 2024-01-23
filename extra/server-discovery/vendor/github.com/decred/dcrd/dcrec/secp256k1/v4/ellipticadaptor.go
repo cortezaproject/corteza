@@ -1,4 +1,4 @@
-// Copyright 2020-2021 The Decred developers
+// Copyright 2020-2022 The Decred developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -102,7 +102,7 @@ func (curve *KoblitzCurve) IsOnCurve(x, y *big.Int) bool {
 //
 // This is part of the elliptic.Curve interface implementation.
 func (curve *KoblitzCurve) Add(x1, y1, x2, y2 *big.Int) (*big.Int, *big.Int) {
-	// A point at infinity is the identity according to the group law for
+	// The point at infinity is the identity according to the group law for
 	// elliptic curve cryptography.  Thus, ∞ + P = P and P + ∞ = P.
 	if x1.Sign() == 0 && y1.Sign() == 0 {
 		return x2, y2
@@ -249,7 +249,7 @@ var secp256k1 = &KoblitzCurve{
 	},
 }
 
-// S256 returns a Curve which implements secp256k1.
+// S256 returns an elliptic.Curve which implements secp256k1.
 func S256() *KoblitzCurve {
 	return secp256k1
 }

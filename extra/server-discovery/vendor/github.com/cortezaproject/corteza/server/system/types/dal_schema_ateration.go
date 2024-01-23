@@ -49,9 +49,10 @@ type (
 
 	DalSchemaAlterationFilter struct {
 		AlterationID []string `json:"alterationID"`
-		BatchID      uint64   `json:"batchID,string"`
+		BatchID      []uint64 `json:"batchID,string"`
 		Kind         string   `json:"kind"`
 		Resource     []string `json:"resource"`
+		ResourceType string   `json:"resourceType"`
 
 		Deleted   filter.State `json:"deleted"`
 		Completed filter.State `json:"completed"`
