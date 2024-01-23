@@ -264,7 +264,6 @@
 
         <div>
           <b-button
-            v-b-tooltip.hover="{ title: $t('label.cancel'), container: '#body' }"
             variant="link"
             class="text-decoration-none"
             @click="cancel()"
