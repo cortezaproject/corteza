@@ -67,10 +67,17 @@ export default {
     },
 
     classes () {
+      const classes = []
+
       if (this.field.isMulti) {
-        return ['multiline']
+        classes.push('multiline')
       }
-      return []
+
+      if (this.extraOptions.configureTextWrap) {
+        classes.push(this.extraOptions.configureTextWrap)
+      }
+
+      return classes
     },
 
     options () {

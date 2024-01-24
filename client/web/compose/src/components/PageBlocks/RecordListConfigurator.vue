@@ -606,6 +606,20 @@
                 />
               </b-form-group>
             </b-col>
+            <b-col
+              cols="12"
+              md="6"
+            >
+              <b-form-group
+                :label="$t('recordList.record.configureTextWrap')"
+                label-class="text-primary"
+              >
+                <b-form-select
+                  v-model="options.configureTextWrap"
+                  :options="textWrapDisplayOptions"
+                />
+              </b-form-group>
+            </b-col>
           </b-row>
 
           <b-row>
@@ -861,6 +875,13 @@ export default {
         { value: 'sameTab', text: this.$t('recordList.record.openInSameTab') },
         { value: 'newTab', text: this.$t('recordList.record.openInNewTab') },
         { value: 'modal', text: this.$t('recordList.record.openInModal') },
+      ]
+    },
+
+    textWrapDisplayOptions () {
+      return [
+        { value: 'text-wrap', text: this.$t('recordList.record.wrapText') },
+        { value: 'text-nowrap', text: this.$t('recordList.record.showFullText') },
       ]
     },
 

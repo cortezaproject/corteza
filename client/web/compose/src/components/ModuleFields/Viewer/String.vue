@@ -6,7 +6,7 @@
     >
       <p
         :style="{ 'white-space': 'pre-wrap' }"
-        :class="{'multiline': field.isMulti || field.options.multiLine }"
+        :class="classes"
         v-html="formatted"
       />
     </div>
@@ -19,5 +19,21 @@ import base from './base'
 
 export default {
   extends: base,
+
+  computed: {
+    classes () {
+      const classes = []
+
+      if (this.field.isMulti || this.field.options.multiLine) {
+        classes.push('multiline')
+      }
+
+      if (this.extraOptions.configureTextWrap) {
+        classes.push(this.extraOptions.configureTextWrap)
+      }
+
+      return classes
+    },
+  },
 }
 </script>

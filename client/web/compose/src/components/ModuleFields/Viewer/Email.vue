@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="classes">
     <span
       v-for="(v, index) of formattedValue"
       :key="index"
@@ -32,6 +32,16 @@ export default {
   computed: {
     formattedValue () {
       return this.field.isMulti ? this.value : [this.value].filter(v => v)
+    },
+
+    classes () {
+      const classes = []
+
+      if (this.extraOptions.configureTextWrap) {
+        classes.push(this.extraOptions.configureTextWrap)
+      }
+
+      return classes
     },
   },
 }

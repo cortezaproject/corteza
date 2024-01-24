@@ -69,6 +69,8 @@ export interface Options {
   inlineRecordEditEnabled: boolean;
   filterPresets: FilterPreset[];
   showRecordPerPageOption: boolean;
+  
+  configureTextWrap: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -122,6 +124,8 @@ const defaults: Readonly<Options> = Object.freeze({
   inlineRecordEditEnabled: false,
   filterPresets: [],
   showRecordPerPageOption: false,
+
+  configureTextWrap: 'text-wrap',
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -138,7 +142,7 @@ export class PageBlockRecordList extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField', 'recordDisplayOption', 'magnifyOption', 'recordSelectorDisplayOption')
+    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField', 'recordDisplayOption', 'magnifyOption', 'recordSelectorDisplayOption', 'configureTextWrap')
     Apply(this.options, o, Number, 'perPage', 'refreshRate')
 
     if (o.fields) {
