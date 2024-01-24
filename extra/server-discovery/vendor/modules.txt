@@ -42,8 +42,8 @@ github.com/cortezaproject/corteza/server/system/types
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d
-## explicit; go 1.13
+# github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
+## explicit; go 1.17
 github.com/decred/dcrd/dcrec/secp256k1/v4
 # github.com/elastic/go-elasticsearch/v7 v7.12.0
 ## explicit; go 1.11
@@ -68,7 +68,7 @@ github.com/go-oauth2/oauth2/v4
 github.com/go-oauth2/oauth2/v4/errors
 github.com/go-oauth2/oauth2/v4/generates
 github.com/go-oauth2/oauth2/v4/models
-# github.com/goccy/go-json v0.9.6
+# github.com/goccy/go-json v0.10.2
 ## explicit; go 1.12
 github.com/goccy/go-json
 github.com/goccy/go-json/internal/decoder
@@ -103,17 +103,17 @@ github.com/joho/godotenv
 # github.com/lestrrat-go/backoff/v2 v2.0.8
 ## explicit; go 1.16
 github.com/lestrrat-go/backoff/v2
-# github.com/lestrrat-go/blackmagic v1.0.0
+# github.com/lestrrat-go/blackmagic v1.0.2
 ## explicit; go 1.16
 github.com/lestrrat-go/blackmagic
 # github.com/lestrrat-go/httpcc v1.0.1
 ## explicit; go 1.16
 github.com/lestrrat-go/httpcc
-# github.com/lestrrat-go/iter v1.0.1
+# github.com/lestrrat-go/iter v1.0.2
 ## explicit; go 1.13
 github.com/lestrrat-go/iter/arrayiter
 github.com/lestrrat-go/iter/mapiter
-# github.com/lestrrat-go/jwx v1.2.23
+# github.com/lestrrat-go/jwx v1.2.28
 ## explicit; go 1.15
 github.com/lestrrat-go/jwx
 github.com/lestrrat-go/jwx/internal/base64
@@ -135,7 +135,7 @@ github.com/lestrrat-go/jwx/jws
 github.com/lestrrat-go/jwx/jwt
 github.com/lestrrat-go/jwx/jwt/internal/types
 github.com/lestrrat-go/jwx/x25519
-# github.com/lestrrat-go/option v1.0.0
+# github.com/lestrrat-go/option v1.0.1
 ## explicit; go 1.16
 github.com/lestrrat-go/option
 # github.com/lestrrat-go/strftime v1.0.6
@@ -173,8 +173,8 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.5
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.8.1
-## explicit; go 1.13
+# github.com/stretchr/testify v1.8.4
+## explicit; go 1.20
 github.com/stretchr/testify/assert
 # github.com/tidwall/btree v1.3.1
 ## explicit; go 1.18
@@ -193,13 +193,13 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
-## explicit; go 1.17
+# golang.org/x/crypto v0.17.0
+## explicit; go 1.18
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/curve25519/internal/field
 golang.org/x/crypto/ed25519
 golang.org/x/crypto/pbkdf2
-# golang.org/x/net v0.7.0
+# golang.org/x/net v0.10.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -209,8 +209,8 @@ golang.org/x/net/html/atom
 ## explicit; go 1.11
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/text v0.8.0
-## explicit; go 1.17
+# golang.org/x/text v0.14.0
+## explicit; go 1.18
 golang.org/x/text/internal/format
 golang.org/x/text/internal/language
 golang.org/x/text/internal/language/compact
