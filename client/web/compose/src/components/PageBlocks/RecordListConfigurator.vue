@@ -86,7 +86,12 @@
                 class="mb-3"
                 style="height: 40vh;"
               />
+            </b-col>
 
+            <b-col
+              cols="12"
+              md="6"
+            >
               <b-form-group
                 :label="$t('recordList.hideConfigureFieldsButton')"
                 label-class="text-primary"
@@ -97,6 +102,27 @@
                   invert
                   :labels="checkboxLabel"
                 />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              md="6"
+            >
+              <b-form-group
+                :label="$t('recordList.record.textStyles')"
+                label-class="text-primary"
+              >
+                <column-picker
+                  size="sm"
+                  variant="light"
+                  :module="recordListModule"
+                  :fields="options.textStyles.noWrapFields || []"
+                  :field-subset="options.fields.length ? options.fields : recordListModule.fields"
+                  @updateFields="onUpdateTextWrapOption"
+                >
+                  {{ $t('recordList.record.configureNonWrappingFelids') }}
+                </column-picker>
               </b-form-group>
             </b-col>
           </b-row>
@@ -854,6 +880,7 @@ import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
+import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 const { CInputPresort } = components
 
 export default {
@@ -869,6 +896,7 @@ export default {
     CInputPresort,
     RecordListFilter,
     Draggable,
+    ColumnPicker,
   },
 
   extends: base,
@@ -903,6 +931,13 @@ export default {
         { value: 'sameTab', text: this.$t('recordList.record.createInSameTab') },
         { value: 'newTab', text: this.$t('recordList.record.createInNewTab') },
         { value: 'modal', text: this.$t('recordList.record.createInModal') },
+      ]
+    },
+
+    textWrapDisplayOptions () {
+      return [
+        { value: 'text-wrap', text: this.$t('recordList.record.wrapText') },
+        { value: 'text-nowrap', text: this.$t('recordList.record.showFullText') },
       ]
     },
 
@@ -1066,6 +1101,12 @@ export default {
     setDefaultValues () {
       this.checkboxLabel = {}
       this.roleOptions = []
+    },
+
+    onUpdateTextWrapOption (fields = []) {
+      if (this.options.textStyles.noWrapFields) {
+        this.options.textStyles.noWrapFields = fields.map(f => f.fieldID)
+      }
     },
   },
 }
