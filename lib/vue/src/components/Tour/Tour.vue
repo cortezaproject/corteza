@@ -38,11 +38,12 @@
 
             <div
               slot="actions"
+              class="d-flex justify-content-between align-items-center"
             >
               <b-button
                 data-test-id="button-stop-tour"
-                variant="primary"
-                class="text-light"
+                variant="outline-light"
+                class="border-0"
                 @click="onStop"
               >
                 <template v-if="tour.isLast && !(callbacks || {}).onNextRedirect">
@@ -52,41 +53,44 @@
                   {{ $t('buttons.skip') }}
                 </template>
               </b-button>
-              <b-button
-                data-test-id="button-previous"
-                v-if="tour.isFirst && (callbacks || {}).onPrevRedirect"
-                variant="primary"
-                class="text-light"
-                :href="callbacks.onPrevRedirect"
-              >
-                {{ $t('buttons.previous') }}
-              </b-button>
-              <b-button
-                data-test-id="button-previous"
-                v-else-if="!tour.isFirst"
-                variant="primary"
-                class="text-light"
-                @click="tour.previousStep"
-              >
-                {{ $t('buttons.previous') }}
-              </b-button>
-              <b-button
-                data-test-id="button-next"
-                v-if="tour.isLast && (callbacks || {}).onNextRedirect"
-                variant="primary"
-                class="text-light"
-                :href="callbacks.onNextRedirect"
-              >
-                {{ $t('buttons.next') }}
-              </b-button>
-              <b-button
-                data-test-id="button-next"
-                v-else-if="!tour.isLast"
-                variant="light"
-                @click="tour.nextStep"
-              >
-                {{ $t('buttons.next') }}
-              </b-button>
+
+              <div>
+                <b-button
+                  data-test-id="button-previous"
+                  v-if="tour.isFirst && (callbacks || {}).onPrevRedirect"
+                  variant="outline-light"
+                  class="border-0"
+                  :href="callbacks.onPrevRedirect"
+                >
+                  {{ $t('buttons.previous') }}
+                </b-button>
+                <b-button
+                  data-test-id="button-previous"
+                  v-else-if="!tour.isFirst"
+                  variant="outline-light"
+                  class="border-0"
+                  @click="tour.previousStep"
+                >
+                  {{ $t('buttons.previous') }}
+                </b-button>
+                <b-button
+                  data-test-id="button-next"
+                  v-if="tour.isLast && (callbacks || {}).onNextRedirect"
+                  variant="outline-light"
+                  class="border-0"
+                  :href="callbacks.onNextRedirect"
+                >
+                  {{ $t('buttons.next') }}
+                </b-button>
+                <b-button
+                  data-test-id="button-next"
+                  v-else-if="!tour.isLast"
+                  variant="light"
+                  @click="tour.nextStep"
+                >
+                  {{ $t('buttons.next') }}
+                </b-button>
+              </div>
             </div>
           </v-step>
         </template>
