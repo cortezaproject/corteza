@@ -114,6 +114,7 @@
         menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         no-caret
         class="nav-user-icon"
+        @hide="preventDropdownClose"
       >
         <template #button-content>
           <div
@@ -184,10 +185,17 @@
           no-caret
           toggle-class="text-decoration-none text-left dropdown-item rounded-0"
           class="d-flex"
+          @show="isThemeDropdownVisible = true"
+          @hide="isThemeDropdownVisible = false"
           @click.prevent.stop
         >
-          <b-dropdown-item @click="saveThemeMode('light')">Light</b-dropdown-item>
-          <b-dropdown-item @click="saveThemeMode('dark')">Dark</b-dropdown-item>
+          <b-dropdown-item
+            v-for="theme in themes"
+            :disabled="currentTheme === theme.value"
+            @click="saveThemeMode(theme.value)"
+          >
+            {{ theme.label }}
+          </b-dropdown-item>
         </b-dropdown>
 
         <b-dropdown-divider />
@@ -214,6 +222,7 @@ library.add(faMoon, faSun)
 export default {
   data() {
     return {
+      currentTheme: 'light',
       isThemeDropdownVisible: false,
     }
   },
@@ -293,31 +302,44 @@ export default {
     avatarExists () {
       return this.$auth.user.meta.avatarID !== "0" && this.$auth.user.meta.avatarID
     },
+
+    themes () {
+      return [
+        {
+          label: 'Light',
+          value: 'light',
+        },
+        {
+          label: 'Dark',
+          value: 'dark',
+        },
+      ]
+    },
   },
 
-  mounted()  {
-    this.$root.$on('bv::dropdown::show', bvEvent => {
-      if(bvEvent.componentId === 'theme-dropleft') {
-        this.isThemeDropdownVisible = true;
-      }
-    })
-    this.$root.$on('bv::dropdown::hide', bvEvent => {
-      if(bvEvent.componentId === 'theme-dropleft') {
-        this.isThemeDropdownVisible = false;
-      }
-      if(this.isThemeDropdownVisible) {
-        bvEvent.preventDefault()
-      }
-    })
+  watch: {
+    '$auth.user.meta.theme': {
+      immediate: true,
+      handler (theme) {
+        this.currentTheme = theme
+      },
+    },
   },
 
   methods: {
-    async saveThemeMode (mode) {
-      this.$auth.user.meta.theme = mode
+    async saveThemeMode (theme) {
+      this.currentTheme = theme
+      this.$set(this.$auth.user.meta, 'theme', theme)
 
       this.$SystemAPI.userUpdate(this.$auth.user).then(() => {
-        document.getElementsByTagName('html')[0].setAttribute('data-color-mode', mode)
+        document.getElementsByTagName('html')[0].setAttribute('data-color-mode', theme)
       }).catch(console.error)
+    },
+
+    preventDropdownClose (e) {
+      if (this.isThemeDropdownVisible) {
+        e.preventDefault()
+      }
     },
   },
 }
