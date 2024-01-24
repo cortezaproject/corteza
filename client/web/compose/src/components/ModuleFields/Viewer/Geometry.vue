@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="classes">
     <span
       v-for="(c, index) of localValue"
       :key="index"
