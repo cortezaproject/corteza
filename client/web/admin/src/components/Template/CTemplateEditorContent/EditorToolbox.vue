@@ -1,8 +1,6 @@
 <template>
   <b-card
     data-test-id="card-template-toolbox"
-    header-bg-variant="white"
-    footer-bg-variant="white"
     no-body
     header-class="border-bottom"
     class="shadow-sm h-100"

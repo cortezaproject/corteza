@@ -1,7 +1,6 @@
 <template>
   <b-card
     no-body
-    header-bg-variant="white"
     footer-bg-variant="light"
     footer-class="p-0"
     :header-class="`border-0 ${cardHeaderClass}`"

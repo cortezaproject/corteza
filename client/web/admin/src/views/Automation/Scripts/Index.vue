@@ -8,7 +8,6 @@
     <b-card
       no-body
       class="flex-fill shadow-sm"
-      header-bg-variant="white"
     >
       <template #header>
         <b-form

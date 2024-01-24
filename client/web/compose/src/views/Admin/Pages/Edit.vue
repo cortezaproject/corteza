@@ -58,7 +58,6 @@
     >
       <b-card
         no-body
-        header-bg-variant="white"
         header-class="d-flex py-3 align-items-center border-bottom"
         class="shadow-sm"
       >

@@ -72,7 +72,6 @@
                   :get-option-key="getOptionKey"
                   :placeholder="$t('prefill.selectField')"
                   :reduce="field => field.fieldID"
-                  class="bg-white rounded"
                 />
               </b-form-group>
             </b-col>

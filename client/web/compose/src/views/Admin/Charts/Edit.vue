@@ -23,10 +23,7 @@
             no-body
             class="shadow-sm"
           >
-            <b-card-header
-              header-bg-variant="white"
-              class="d-flex py-3 align-items-center border-bottom"
-            >
+            <b-card-header class="d-flex py-3 align-items-center border-bottom">
               <export
                 slot="header"
                 :list="[chart]"

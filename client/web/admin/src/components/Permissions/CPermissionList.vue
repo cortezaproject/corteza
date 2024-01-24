@@ -3,9 +3,7 @@
     <b-card
       header-class="p-0"
       body-class="overflow-auto p-0"
-      header-bg-variant="white"
-      footer-bg-variant="white"
-      footer-class="d-flex flex-wrap flex-fill-child gap-1"
+      footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
       class="shadow h-100"
     >
       <template

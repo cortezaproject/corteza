@@ -4,8 +4,6 @@
     data-test-id="card-primary-database"
     class="shadow-sm"
     header-class="border-bottom"
-    header-bg-variant="white"
-    footer-bg-variant="white"
   >
     <template #header>
       <h4 class="d-flex align-items-center gap-1 mb-0">

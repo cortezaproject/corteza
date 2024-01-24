@@ -2,9 +2,7 @@
   <b-card
     data-test-id="card-requests"
     no-body
-    footer-class="d-flex align-items-center justify-content-center"
-    footer-bg-variant="white"
-    header-bg-variant="white"
+    footer-class="border-top border-top border-top d-flex align-items-center justify-content-center"
     header-class="border-bottom"
     class="shadow-sm"
   >

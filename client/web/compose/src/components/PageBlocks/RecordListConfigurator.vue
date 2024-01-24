@@ -369,7 +369,6 @@
                             :placeholder="$t('recordList.filter.role.placeholder')"
                             :reduce="role => role.roleID"
                             multiple
-                            class="bg-white rounded"
                           />
                         </b-td>
 

@@ -1,8 +1,5 @@
 <template>
-  <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-  >
+  <b-card>
     <uploader
       class="uploader"
       :label="$t('import.uploadFilePlaceholder')"

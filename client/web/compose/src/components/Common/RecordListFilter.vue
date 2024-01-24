@@ -208,7 +208,7 @@
         </b-card-body>
 
         <b-card-footer
-          class="d-flex justify-content-between bg-white shadow-sm rounded"
+          class="d-flex justify-content-between shadow-sm rounded"
         >
           <b-button
             variant="light"

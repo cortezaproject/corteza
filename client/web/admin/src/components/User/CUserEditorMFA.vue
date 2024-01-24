@@ -1,7 +1,5 @@
 <template>
   <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
     header-class="border-bottom"
     class="shadow-sm"
   >

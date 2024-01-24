@@ -1,10 +1,8 @@
 <template>
   <b-card
     data-test-id="card-filter-list"
-    header-bg-variant="white"
-    footer-bg-variant="white"
     body-class="p-0"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm mt-3"
   >
     <template #header>

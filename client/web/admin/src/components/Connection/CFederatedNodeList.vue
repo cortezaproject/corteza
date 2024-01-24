@@ -2,8 +2,6 @@
   <b-card
     class="shadow-sm"
     body-class="p-0"
-    header-bg-variant="white"
-    footer-bg-variant="white"
   >
     <template
       #header

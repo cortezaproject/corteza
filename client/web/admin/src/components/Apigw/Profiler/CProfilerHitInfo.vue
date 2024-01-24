@@ -2,8 +2,6 @@
   <div>
     <b-card
       data-test-id="card-general-info"
-      header-bg-variant="white"
-      footer-bg-variant="white"
       header-class="border-bottom"
       class="shadow-sm"
     >
@@ -183,8 +181,6 @@
     </b-card>
 
     <b-card
-      header-bg-variant="white"
-      footer-bg-variant="white"
       header-class="border-bottom"
       class="shadow-sm mt-3"
     >
@@ -216,11 +212,8 @@
     </b-card>
 
     <b-card
-      header-bg-variant="white"
-      footer-bg-variant="white"
       header-class="border-bottom"
       body-class="p-0"
-      footer-class="border-top"
       class="shadow-sm mt-3"
     >
       <template #header>

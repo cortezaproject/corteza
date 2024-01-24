@@ -52,7 +52,6 @@
           >
             <b-card-header
               v-if="isEdit"
-              header-bg-variant="white"
               class="py-3"
             >
               <b-row

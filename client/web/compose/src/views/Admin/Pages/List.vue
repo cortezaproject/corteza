@@ -11,10 +11,7 @@
       no-body
       class="shadow-sm h-100"
     >
-      <b-card-header
-        header-bg-variant="white"
-        class="d-flex flex-column border-bottom gap-1"
-      >
+      <b-card-header class="d-flex flex-column border-bottom gap-1">
         <div class="d-flex align-items-stretch align-items-sm-center justify-content-between flex-column flex-sm-row gap-1">
           <div class="flex-grow-1">
             <b-input-group

@@ -11,11 +11,9 @@
     <b-card
       no-body
       data-test-id="card-profiler"
-      footer-bg-variant="white"
-      header-bg-variant="white"
       header-class="border-bottom"
       body-class="p-0"
-      footer-class="d-flex align-items-center justify-content-center"
+      footer-class="border-top d-flex align-items-center justify-content-center"
       class="flex-fill shadow-sm"
     >
       <template #header>

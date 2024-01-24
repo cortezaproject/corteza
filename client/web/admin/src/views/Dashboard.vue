@@ -21,8 +21,8 @@
       >
         <b-card
           body-class="position-relative p-0"
-          header-class="bg-white"
-          footer-class="bg-white"
+          header-class="border-bottom"
+          footer-class="border-top"
           class="shadow-sm h-100"
         >
           <template #header>
@@ -110,8 +110,7 @@
       >
         <b-card
           no-body
-          header-class="bg-white"
-          footer-class="bg-white"
+          footer-class="border-top"
           class="shadow-sm"
         >
           <template #header>
@@ -192,8 +191,7 @@
       >
         <b-card
           no-body
-          header-class="bg-white"
-          footer-class="bg-white"
+          footer-class="border-top"
           class="shadow-sm"
         >
           <template #header>

@@ -10,9 +10,7 @@
     <b-card
       class="shadow-sm"
       body-class="p-0"
-      header-bg-variant="white"
-      footer-bg-variant="white"
-      footer-class="d-flex flex-wrap flex-fill-child gap-1"
+      footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     >
       <template #header>
         <b-form

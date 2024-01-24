@@ -2,8 +2,6 @@
   <b-card
     v-if="value && value.length > 0"
     data-test-id="card-external-auth-providers"
-    header-bg-variant="white"
-    footer-bg-variant="white"
     header-class="border-bottom"
     body-class="p-0"
     class="shadow-sm"

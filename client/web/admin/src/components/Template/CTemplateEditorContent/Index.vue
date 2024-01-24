@@ -19,8 +19,6 @@
     >
       <b-card
         body-class="p-0"
-        header-bg-variant="white"
-        footer-bg-variant="white"
         header-class="d-flex align-items-center border-bottom"
         footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
         class="shadow-sm"
@@ -60,8 +58,6 @@
       <b-card
         v-if="!template.partial"
         body-class="p-0"
-        header-bg-variant="white"
-        footer-bg-variant="white"
         header-class="border-bottom"
         footer-class="border-top d-flex justify-content-end flex-wrap flex-fill-child gap-1"
         class="shadow-sm mt-3"

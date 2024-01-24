@@ -1,8 +1,6 @@
 <template>
   <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     body-class="p-0"
     class="shadow-sm"
   >
