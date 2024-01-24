@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div :class="classes">
     <span
       v-for="(v, index) of formattedValue"
       :key="index"
