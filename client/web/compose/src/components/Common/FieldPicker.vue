@@ -133,7 +133,9 @@ export default {
 
       let sysFields = []
 
-      if (!this.disableSystemFields) {
+      if (this.disableSystemFields && mFields) {
+        mFields = mFields.filter(({ isSystem }) => !isSystem)
+      } else if (!this.fieldSubset) {
         sysFields = this.module.systemFields().map(sf => {
           sf.label = this.$t(`field:system.${sf.name}`)
           return sf
@@ -141,10 +143,6 @@ export default {
 
         if (this.systemFields) {
           sysFields = sysFields.filter(({ name }) => this.systemFields.find(sf => sf === name))
-        }
-      } else {
-        if (mFields) {
-          mFields = mFields.filter(({ isSystem }) => !isSystem)
         }
       }
 
