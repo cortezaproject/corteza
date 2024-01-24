@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     class="position-relative"
   >
     <div
@@ -47,14 +47,14 @@
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         :attribution="mapOptions.attribution"
       />
-    
+
       <l-polygon
         v-for="(geometry, i) in polygons"
         :key="`polygon-${i}`"
         :lat-lngs="geometry.map(value => value.geometry)"
         :color="geometry[0].color"
       />
-    
+
       <l-marker
         v-for="(marker, i) in markerValues"
         :key="`marker-${i}`"
@@ -76,7 +76,7 @@
           />
         </l-tooltip>
       </l-marker>
-    
+
       <l-control class="leaflet-bar">
         <a
           v-if="!hideCurrentLocationButton"
@@ -119,17 +119,17 @@ export default {
       type: Boolean,
       default: false
     },
-    
+
     labels: {
       type: Object,
       default: () => ({})
     },
-    
+
     map: {
       type: Object,
       default: () => ({})
     },
-    
+
     markers: {
       type: Array,
       default: () => ([])
@@ -150,7 +150,7 @@ export default {
       default: false
     }
   },
-  
+
   data () {
     return {
       geoSearch: {
@@ -300,17 +300,26 @@ export default {
 }
 
 .leaflet-bar a {
-  background-color: var(--primary);
-  color: var(--white);
+  background-color: var(--white) !important;
+  color: var(--primary) !important;
+  text-decoration: none !important;
 
   &:hover {
-    background-color: var(--primary-dark);
+    background-color: var(--white) !important;
     transition: background-color 0.15s ease;
   }
 }
 
-[data-color-mode="dark"] .leaflet-bar a {
-  color: var(--black);
+.geosearch-result {
+  &:hover {
+    background-color: var(--light) !important;
+    color: var(--black);
+  }
+
+  &:active {
+    color: var(--white) !important;
+    background-color: var(--primary) !important;
+  }
 }
 </style>
 

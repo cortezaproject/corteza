@@ -38,8 +38,6 @@ $gray-700: if(lightness($black) < lightness($white), mix($black, $white, 70%), m
 $gray-800: if(lightness($black) < lightness($white), mix($black, $white, 80%), mix($white, $black, 80%));
 $gray-900: if(lightness($black) < lightness($white), mix($black, $white, 90%), mix($white, $black, 90%));
 
-$primary-dark:   darken($primary, 7.5%) !default;
-
 $yiq-contrasted-threshold: 45; // Our magic number, we can pretend its 42..
 $yiq-text-dark:             $black !default;
 $yiq-text-light:            $white !default;
