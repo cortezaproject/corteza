@@ -1,5 +1,5 @@
 // Copyright 2015 The btcsuite developers
-// Copyright (c) 2015-2021 The Decred developers
+// Copyright (c) 2015-2022 The Decred developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
 
@@ -8,17 +8,21 @@ package secp256k1
 import (
 	"compress/zlib"
 	"encoding/base64"
-	"encoding/binary"
-	"io/ioutil"
+	"io"
 	"strings"
 	"sync"
 )
 
-//go:generate go run -tags gensecp256k1 genprecomps.go
+//go:generate go run genprecomps.go
 
 // bytePointTable describes a table used to house pre-computed values for
 // accelerating scalar base multiplication.
-type bytePointTable [32][256][2]FieldVal
+type bytePointTable [32][256]JacobianPoint
+
+// compressedBytePointsFn is set to a real function by the code generation to
+// return the compressed pre-computed values for accelerating scalar base
+// multiplication.
+var compressedBytePointsFn func() string
 
 // s256BytePoints houses pre-computed values used to accelerate scalar base
 // multiplication such that they are only loaded on first use.
@@ -38,10 +42,10 @@ var s256BytePoints = func() func() *bytePointTable {
 	var data *bytePointTable
 	mustLoadBytePoints := func() {
 		// There will be no byte points to load when generating them.
-		bp := compressedBytePoints
-		if len(bp) == 0 {
+		if compressedBytePointsFn == nil {
 			return
 		}
+		bp := compressedBytePointsFn()
 
 		// Decompress the pre-computed table used to accelerate scalar base
 		// multiplication.
@@ -50,7 +54,7 @@ var s256BytePoints = func() func() *bytePointTable {
 		if err != nil {
 			panic(err)
 		}
-		serialized, err := ioutil.ReadAll(r)
+		serialized, err := io.ReadAll(r)
 		if err != nil {
 			panic(err)
 		}
@@ -62,16 +66,12 @@ var s256BytePoints = func() func() *bytePointTable {
 		for byteNum := 0; byteNum < len(bytePoints); byteNum++ {
 			// All points in this window.
 			for i := 0; i < len(bytePoints[byteNum]); i++ {
-				px := &bytePoints[byteNum][i][0]
-				py := &bytePoints[byteNum][i][1]
-				for i := 0; i < len(px.n); i++ {
-					px.n[i] = binary.LittleEndian.Uint32(serialized[offset:])
-					offset += 4
-				}
-				for i := 0; i < len(py.n); i++ {
-					py.n[i] = binary.LittleEndian.Uint32(serialized[offset:])
-					offset += 4
-				}
+				p := &bytePoints[byteNum][i]
+				p.X.SetByteSlice(serialized[offset:])
+				offset += 32
+				p.Y.SetByteSlice(serialized[offset:])
+				offset += 32
+				p.Z.SetInt(1)
 			}
 		}
 		data = &bytePoints
