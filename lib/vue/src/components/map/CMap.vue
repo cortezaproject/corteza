@@ -87,7 +87,6 @@
         >
           <font-awesome-icon
             :icon="['fas', 'location-arrow']"
-            class="text-primary"
           />
         </a>
       </l-control>
@@ -293,6 +292,27 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.leaflet-touch .leaflet-bar {
+  border: 1px solid transparent;
+  border-radius: 0.3rem;
+}
+
+.leaflet-bar a {
+  background-color: var(--primary);
+  color: var(--white);
+
+  &:hover {
+    background-color: var(--primary-dark);
+    transition: background-color 0.15s ease;
+  }
+}
+
+[data-color-mode="dark"] .leaflet-bar a {
+  color: var(--black);
+}
+</style>
 
 <style scoped>
 .geosearch-container {
