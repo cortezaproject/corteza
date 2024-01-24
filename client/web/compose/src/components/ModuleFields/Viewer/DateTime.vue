@@ -10,10 +10,6 @@ export default {
       }
       return this.value ? this.field.formatValue(this.value) : null
     },
-
-    classes () {
-      return this.field.isMulti ? ['multiline'] : []
-    },
   },
 }
 </script>
