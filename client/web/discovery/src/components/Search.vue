@@ -10,7 +10,7 @@
         md="12"
         :lg="map.show ? '7' : '12'"
         :xl="map.show ? '8' : '12'"
-        class="results-container"
+        class="results-container pt-3"
         :class="{ 'with-map': map.show }"
       >
         <b-form-group class="px-3">
