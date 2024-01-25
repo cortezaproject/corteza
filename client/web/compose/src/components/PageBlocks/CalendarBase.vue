@@ -163,6 +163,7 @@ export default {
         // Handle event fetching when view/date-range changes
         datesSet: ({ view: { activeStart, activeEnd, title } = {} } = {}) => {
           this.loadEvents(moment(activeStart), moment(activeEnd))
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
           this.title = title
         },
       }
@@ -405,12 +406,29 @@ export default {
 </script>
 <style lang="scss">
 .calendar-container {
+  .fc-daygrid-body,
+  .fc-timegrid-body,
+  .fc-timegrid-slots table,
+  table .fc-scrollgrid-sync-table {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .fc-event-main-frame {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .fc-scroller {
+    overflow: hidden scroll !important;
+  }
+
   .fc-col-header {
-    width: 100%;
+    width: 100% !important;
   }
 
   .fc-media-screen {
-    height: 100%;
+    height: 100% !important;
   }
 
   .fc-event-main-frame {
