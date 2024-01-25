@@ -19,7 +19,8 @@ export class BasicChartOptions extends ChartOptions {
     }
   }
 
-  getChartConfiguration (dataframes: Array<FrameDefinition>) {
+  getChartConfiguration (dataframes: Array<FrameDefinition>, meta: any) {
+    const { themeVariables = {} } = meta
     const { labels, datasets = [] } = this.getData(dataframes[0], dataframes)
 
     const options: any = {
@@ -60,7 +61,7 @@ export class BasicChartOptions extends ChartOptions {
           },
           itemStyle: {
             borderRadius: 5,
-            borderColor: '#FFFFFF',
+            borderColor: themeVariables.white,
             borderWidth: 1,
           },
           emphasis: {
@@ -181,12 +182,16 @@ export class BasicChartOptions extends ChartOptions {
         text: this.title,
         left: 'center',
         textStyle: {
+          fontFamily: themeVariables['font-regular'],
+          color: themeVariables.black,
           fontSize: 16,
         },
       },
       color: getColorschemeColors(this.colorScheme),
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
+        overflow: 'break',
+        color: themeVariables.black,
       },
       legend: {
         show: !this.legend.hide,
@@ -195,7 +200,10 @@ export class BasicChartOptions extends ChartOptions {
         right: (this.legend.position.default ? undefined : this.legend.position.right) || undefined,
         bottom: (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
         left: (this.legend.position.default ? this.legend.align || 'center' : this.legend.position.left) || 'auto',
-        orient: this.legend.orientation || 'horizontal'
+        orient: this.legend.orientation || 'horizontal',
+        textStyle: {
+          color: themeVariables.black,
+        },
       },
       ...options,
     }

@@ -88,7 +88,7 @@ export default class FunnelChart extends BaseChart {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
 
-    const { labels, datasets = [], tooltip } = data
+    const { labels, datasets = [], tooltip, themeVariables = {} } = data
     const { legend: l } = reports[0] || {}
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
@@ -98,7 +98,9 @@ export default class FunnelChart extends BaseChart {
     return {
       animation: !noAnimation,
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
+        overflow: 'break',
+        color: themeVariables.black,
       },
       toolbox: {
         feature: {
@@ -122,7 +124,10 @@ export default class FunnelChart extends BaseChart {
         right: (l?.position?.isDefault ? undefined : l?.position?.right) || undefined,
         bottom: (l?.position?.isDefault ? undefined : l?.position?.bottom) || undefined,
         left: (l?.position?.isDefault ? l?.align || 'center' : l?.position?.left) || 'auto',
-        orient: l?.orientation || 'horizontal'
+        orient: l?.orientation || 'horizontal',
+        textStyle: {
+          color: themeVariables.black,
+        },
       },
       series: datasets.map(({ data }: any) => {
         return {

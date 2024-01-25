@@ -53,7 +53,7 @@ export default class Chart extends BaseChart {
       },
     }
 
-    const { labels, datasets = [] } = data
+    const { labels, datasets = [], themeVariables = {} } = data
     const {
       dimensions: [dimension] = [],
       yAxis, metrics: [metric] = [],
@@ -185,7 +185,7 @@ export default class Chart extends BaseChart {
           },
           itemStyle: {
             borderRadius: 5,
-            borderColor: '#FFFFFF',
+            borderColor: themeVariables.white,
             borderWidth: 1,
           },
           emphasis: {
@@ -277,8 +277,9 @@ export default class Chart extends BaseChart {
     return {
       color: getColorschemeColors(colorScheme, data.customColorSchemes),
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
         overflow: 'break',
+        color: themeVariables.black,
       },
       toolbox: {
         feature: {
@@ -297,7 +298,10 @@ export default class Chart extends BaseChart {
         right: (l?.position?.isDefault ? undefined : l?.position?.right) || undefined,
         bottom: (l?.position?.isDefault ? undefined : l?.position?.bottom) || undefined,
         left: (l?.position?.isDefault ? l?.align || 'center' : l?.position?.left) || 'auto',
-        orient: l?.orientation || 'horizontal'
+        orient: l?.orientation || 'horizontal',
+        textStyle: {
+          color: themeVariables.black,
+        },
       },
       ...options,
     }

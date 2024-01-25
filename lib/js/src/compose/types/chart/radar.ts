@@ -27,7 +27,7 @@ export default class RadarChart extends BaseChart {
   makeOptions (data: any) {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
-    const { labels, datasets = [], dimension = {} } = data
+    const { labels, datasets = [], dimension = {}, themeVariables = {} } = data
     const { legend: l } = reports[0] || {}
 
     const labelFormatter = '{c}'
@@ -49,7 +49,9 @@ export default class RadarChart extends BaseChart {
       color: getColorschemeColors(colorScheme, data.customColorSchemes),
       animation: !noAnimation,
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
+        overflow: 'break',
+        color: themeVariables.black,
       },
       toolbox: {
         feature: {
@@ -65,7 +67,10 @@ export default class RadarChart extends BaseChart {
         right: (l?.position?.isDefault ? undefined : l?.position?.right) || undefined,
         bottom: (l?.position?.isDefault ? undefined : l?.position?.bottom) || undefined,
         left: (l?.position?.isDefault ? l?.align || 'center' : l?.position?.left) || 'auto',
-        orient: l?.orientation || 'horizontal'
+        orient: l?.orientation || 'horizontal',
+        textStyle: {
+          color: themeVariables.black,
+        },
       },
       tooltip: {
         show: true,

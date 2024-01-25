@@ -19,7 +19,8 @@ export class FunnelChartOptions extends ChartOptions {
     }
   }
 
-  getChartConfiguration (dataframes: Array<FrameDefinition>) {
+  getChartConfiguration (dataframes: Array<FrameDefinition>, meta: any) {
+    const { themeVariables = {} } = meta
     const labels = this.getLabels(dataframes[0])
     const { data = [] } = this.getDatasets(dataframes[0], dataframes) || {}
     const colors = getColorschemeColors(this.colorScheme)
@@ -30,11 +31,13 @@ export class FunnelChartOptions extends ChartOptions {
         text: this.title,
         left: 'center',
         textStyle: {
+          fontFamily: themeVariables['font-regular'],
+          color: themeVariables.black,
           fontSize: 16,
         },
       },
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
       },
       tooltip: {
         show: true,
@@ -49,7 +52,10 @@ export class FunnelChartOptions extends ChartOptions {
         right: (this.legend.position.default ? undefined : this.legend.position.right) || undefined,
         bottom: (this.legend.position.default ? undefined : this.legend.position.bottom) || undefined,
         left: (this.legend.position.default ? this.legend.align || 'center' : this.legend.position.left) || 'auto',
-        orient: this.legend.orientation || 'horizontal'
+        orient: this.legend.orientation || 'horizontal',
+        textStyle: {
+          color: themeVariables.black,
+        },
       },
       series: [
         {
