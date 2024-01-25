@@ -270,7 +270,7 @@
                   />
                 </template>
 
-                <b-input-group class="d-flex w-100">
+                <b-input-group>
                   <c-input-select
                     v-model="edit.drillDown.blockID"
                     :options="drillDownOptions"
@@ -284,9 +284,8 @@
 
                   <b-input-group-append>
                     <column-picker
-                      v-if="edit.drillDown.enabled"
                       :module="recordListModule"
-                      :disabled="!!edit.drillDown.blockID"
+                      :disabled="!!edit.drillDown.blockID || !edit.drillDown.enabled"
                       :fields="selectedFields"
                       size="md"
                       @updateFields="onUpdateFields"

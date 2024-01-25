@@ -2,7 +2,7 @@
   <div class="d-flex">
     <b-button
       :size="size"
-      variant="light"
+      variant="extra-light"
       class="flex-fill"
       :disabled="disabled"
       @click="showModal = true"

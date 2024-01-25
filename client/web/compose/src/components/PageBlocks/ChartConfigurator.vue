@@ -44,7 +44,7 @@
           class="mb-2"
         />
 
-        <b-input-group class="d-flex w-100">
+        <b-input-group>
           <c-input-select
             v-model="options.drillDown.blockID"
             :options="drillDownOptions"
@@ -58,11 +58,10 @@
 
           <b-input-group-append>
             <column-picker
-              v-if="options.drillDown.enabled"
               ref="columnPicker"
               :module="selectedChartModule"
               :fields="selectedFields"
-              :disabled="!!options.drillDown.blockID"
+              :disabled="!!options.drillDown.blockID || !options.drillDown.enabled"
               size="md"
               @updateFields="onUpdateFields"
             >
