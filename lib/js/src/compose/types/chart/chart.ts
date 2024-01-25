@@ -88,6 +88,12 @@ export default class Chart extends BaseChart {
             hideOverlap: true,
             rotate: dimension.rotateLabel,
           },
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: false,
+          },
         }
 
         const tempYAxis = {
@@ -104,8 +110,13 @@ export default class Chart extends BaseChart {
             rotate: yAxis.rotateLabel,
           },
           axisLine: {
-            show: true,
+            show: false,
             onZero: false,
+          },
+          splitLine: {
+            lineStyle: {
+              color: [themeVariables['secondary']],
+            },
           },
           nameTextStyle: {
             align: labelPosition === 'center' ? 'center' : position,
@@ -302,6 +313,11 @@ export default class Chart extends BaseChart {
         textStyle: {
           color: themeVariables.black,
         },
+        pageTextStyle: {
+          color: themeVariables.black,
+        },
+        pageIconColor: themeVariables.black,
+        pageIconInactiveColor: themeVariables.light,
       },
       ...options,
     }

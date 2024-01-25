@@ -146,11 +146,13 @@ export default class GaugeChart extends BaseChart {
             fontSize: 14,
             show: tooltip.fixed,
             offsetCenter: [0, '30%'],
+            color: themeVariables.black,
           },
           detail: {
             fontSize: 13,
             offsetCenter: [0, '55%'],
             valueAnimation: true,
+            color: themeVariables.black,
           },
           data: [
             {

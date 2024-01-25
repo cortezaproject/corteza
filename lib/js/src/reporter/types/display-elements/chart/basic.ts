@@ -102,6 +102,12 @@ export class BasicChartOptions extends ChartOptions {
             hideOverlap: true,
             rotate: xLabelRotation,
           },
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: false,
+          },
         },
       ]
 
@@ -139,8 +145,13 @@ export class BasicChartOptions extends ChartOptions {
           rotate: yLabelRotation,
         },
         axisLine: {
-          show: true,
+          show: false,
           onZero: false,
+        },
+        splitLine: {
+          lineStyle: {
+            color: [themeVariables['secondary']],
+          },
         },
         nameTextStyle: {
           align: labelPosition === 'center' ? 'center' : position,
@@ -204,6 +215,11 @@ export class BasicChartOptions extends ChartOptions {
         textStyle: {
           color: themeVariables.black,
         },
+        pageTextStyle: {
+          color: themeVariables.black,
+        },
+        pageIconColor: themeVariables.black,
+        pageIconInactiveColor: themeVariables.light,
       },
       ...options,
     }

@@ -71,6 +71,11 @@ export default class RadarChart extends BaseChart {
         textStyle: {
           color: themeVariables.black,
         },
+        pageTextStyle: {
+          color: themeVariables.black,
+        },
+        pageIconColor: themeVariables.black,
+        pageIconInactiveColor: themeVariables.light,
       },
       tooltip: {
         show: true,

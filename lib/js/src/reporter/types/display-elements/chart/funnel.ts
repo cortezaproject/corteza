@@ -56,6 +56,11 @@ export class FunnelChartOptions extends ChartOptions {
         textStyle: {
           color: themeVariables.black,
         },
+        pageTextStyle: {
+          color: themeVariables.black,
+        },
+        pageIconColor: themeVariables.black,
+        pageIconInactiveColor: themeVariables.light,
       },
       series: [
         {

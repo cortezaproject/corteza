@@ -128,6 +128,11 @@ export default class FunnelChart extends BaseChart {
         textStyle: {
           color: themeVariables.black,
         },
+        pageTextStyle: {
+          color: themeVariables.black,
+        },
+        pageIconColor: themeVariables.black,
+        pageIconInactiveColor: themeVariables.light,
       },
       series: datasets.map(({ data }: any) => {
         return {
