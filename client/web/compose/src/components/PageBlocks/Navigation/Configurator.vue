@@ -146,14 +146,12 @@
                         v-model="item.options.textColor"
                         :translations="{
                           modalTitle: $t('navigation.colorPicker'),
-                          light: $t('general:swatchers.labels.light'),
-                          dark: $t('general:swatchers.labels.dark'),
+                          light: $t('general:themes.labels.light'),
+                          dark: $t('general:themes.labels.dark'),
                           cancelBtnLabel: $t('general:label.cancel'),
                           saveBtnLabel: $t('general:label.saveAndClose')
                         }"
-                        :color-tooltips="colorSchemeTooltips"
-                        :swatchers="themeColors"
-                        :swatcher-labels="swatcherLabels"
+                        :theme-settings="themeSettings"
                         class="w-100"
                       />
                     </td>
@@ -163,14 +161,12 @@
                         v-model="item.options.backgroundColor"
                         :translations="{
                           modalTitle: $t('navigation.colorPicker'),
-                          light: $t('general:swatchers.labels.light'),
-                          dark: $t('general:swatchers.labels.dark'),
+                          light: $t('general:themes.labels.light'),
+                          dark: $t('general:themes.labels.dark'),
                           cancelBtnLabel: $t('general:label.cancel'),
                           saveBtnLabel: $t('general:label.saveAndClose')
                         }"
-                        :color-tooltips="colorSchemeTooltips"
-                        :swatchers="themeColors"
-                        :swatcher-labels="swatcherLabels"
+                        :theme-settings="themeSettings"
                         class="w-100"
                       />
                     </td>
@@ -292,42 +288,12 @@ export default {
         { value: 'dropdown', text: this.$t('navigation.dropdown') },
         { value: 'text-section', text: this.$t('navigation.text') },
       ],
-
-      swatcherLabels: [
-        'black',
-        'white',
-        'primary',
-        'secondary',
-        'success',
-        'warning',
-        'danger',
-        'light',
-        'extra-light',
-        'body-bg',
-        'sidebar-bg',
-        'topbar-bg',
-      ],
     }
   },
 
   computed: {
-    colorSchemeTooltips () {
-      return this.swatcherLabels.reduce((acc, label) => {
-        acc[label] = this.$t(`general:swatchers.tooltips.${label}`)
-        return acc
-      }, {})
-    },
-
-    themeColors () {
-      const theme = this.$Settings.get('ui.studio.themes', [])
-      if (!theme.length) {
-        return theme
-      }
-
-      return theme.map(theme => {
-        theme.values = JSON.parse(theme.values)
-        return theme
-      })
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 

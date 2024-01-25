@@ -363,14 +363,12 @@
           data-test-id="input-scheme-color"
           :translations="{
             modalTitle: $t('colorScheme.pickAColor'),
-            light: $t('general:swatchers.labels.light'),
-            dark: $t('general:swatchers.labels.dark'),
+            light: $t('general:themes.labels.light'),
+            dark: $t('general:themes.labels.dark'),
             cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
-          :color-tooltips="colorSchemeTooltips"
-          :swatchers="themeColors"
-          :swatcher-labels="swatcherLabels"
+          :theme-settings="themeSettings"
           class="d-inline-flex mr-1"
         >
           <template #footer>
@@ -512,21 +510,6 @@ export default {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
-
-      swatcherLabels: [
-        'black',
-        'white',
-        'primary',
-        'secondary',
-        'success',
-        'warning',
-        'danger',
-        'light',
-        'extra-light',
-        'body-bg',
-        'sidebar-bg',
-        'topbar-bg',
-      ],
     }
   },
 
@@ -574,13 +557,6 @@ export default {
 
     colorSchemeModalTitle () {
       return this.$t(`colorScheme.custom.${this.colorSchemeModal.edit ? 'edit' : 'add'}`)
-    },
-
-    colorSchemeTooltips () {
-      return this.swatcherLabels.reduce((acc, label) => {
-        acc[label] = this.$t(`general:swatchers.tooltips.${label}`)
-        return acc
-      }, {})
     },
 
     defaultReport () {
@@ -685,16 +661,8 @@ export default {
       return config.colorScheme && config.colorScheme.includes('custom') && this.canManageColorSchemes
     },
 
-    themeColors () {
-      const theme = this.$Settings.get('ui.studio.themes', [])
-      if (!theme.length) {
-        return theme
-      }
-
-      return theme.map(theme => {
-        theme.values = JSON.parse(theme.values)
-        return theme
-      })
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 

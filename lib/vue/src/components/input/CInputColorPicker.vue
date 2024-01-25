@@ -67,23 +67,23 @@
         @input="updateColor"
       />
 
-      <hr/>
+      <hr v-if="themes.length > 0" />
       <div 
-        v-for="swatcher in swatchers"
-        :key="swatcher.id"
-        class="d-flex flex-nowrap p-2"
+        v-for="theme in themes"
+        :key="theme.id"
+        class="d-flex p-2"
       >
           <div 
-            v-for="key in swatcherLabels"
-            :key="key"
+            v-for="variable in themeVariables"
+            :key="variable.label"
             class="mb-2"
           >
           <b-button 
             squared 
-            class="swatcher" 
-            v-b-tooltip.hover="{ title: colorToolTip(swatcher.id,key), container: '#body' }"
-            :style="{ backgroundColor: swatcher.values[key], borderColor: swatcher.values[key] }"
-            @click="setColor(swatcher.values[key])"
+            class="swatch" 
+            v-b-tooltip.hover="{ title: colorToolTip(theme.id,variable.value), container: '#body' }"
+            :style="{ backgroundColor: theme.values[variable.label], borderColor: theme.values[variable.label] }"
+            @click="setColor(theme.values[variable.label])"
           >
           </b-button>
         </div>
@@ -159,19 +159,48 @@ export default {
       default: true,
     },
 
-    swatchers: {
+    themeSettings: {
       type: Array,
       default: [],
     },
 
-    swatcherLabels: {
+    themeVariables: {
       type: Array,
-      default: [],
-    },
-
-    colorTooltips: {
-      type: Object,
-    },
+      default: () => [
+        {
+          label: 'white',
+          value: 'White',
+        },
+        {
+          label: 'primary',
+          value: 'Primary',
+        },
+        {
+          label: 'secondary',
+          value: 'Secondary',
+        },
+        {
+          label: 'success',
+          value: 'Success',
+        },
+        {
+          label: 'warning',
+          value: 'Warning',
+        },
+        {
+          label: 'danger',
+          value: 'Danger',
+        },
+        {
+          label: 'light',
+          value: 'Light',
+        },
+        {
+          label: 'extra-light',
+          value: 'Extra light',
+        },
+      ],
+    }
   },
 
   data () {
@@ -179,6 +208,19 @@ export default {
       showModal: false,
       currentColor: '',
     }
+  },
+
+  computed: {
+    themes () {
+      return this.themeSettings
+      .filter((theme) => theme.id !== 'general') // remove general theme
+      .map((theme) => {
+        return {
+          id: theme.id,
+          values: JSON.parse(theme.values),
+        }
+      })
+    },
   },
 
   watch: {
@@ -226,14 +268,14 @@ export default {
     },
 
     colorToolTip (themeID, label) {
-      return `${this.translations[themeID]} - ${this.colorTooltips[label]}`
+      return `${this.translations[themeID]} - ${label}`
     },
   },
 }
 </script>
 
 <style lang="scss">
-.swatcher {
+.swatch {
   width: 32px;
   height: 32px;
 }

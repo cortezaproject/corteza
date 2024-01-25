@@ -51,9 +51,7 @@
                   cancelBtnLabel: $t('general:label.cancel'),
                   saveBtnLabel: $t('general:label.saveAndClose')
                 }"
-                :color-tooltips="colorSchemeTooltips"
-                :swatchers="themeColors"
-                :swatcher-labels="themeVariables"
+                :theme-settings="settings['ui.studio.themes']"
               />
             </b-form-group>
           </b-col>
@@ -225,12 +223,6 @@ export default {
       const [year, month] = VERSION.split('.')
       return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/corteza-studio/index.html`
     },
-    colorSchemeTooltips () {
-      return this.themeVariables.reduce((acc, label) => {
-        acc[label] = this.$t(`theme.variables.${label}`)
-        return acc
-      }, {})
-    },
   },
 
   watch: {
@@ -240,16 +232,11 @@ export default {
         const themes = settings['ui.studio.themes'] || []
         const customCSS = settings['ui.studio.custom-css'] || []
 
-        this.themeColors = themes.map(theme => {
-          theme.values = JSON.parse(theme.values)
-          return theme
-        })
-
         this.themes = this.themeTabs.map((id) => {
           const { title, values = '' } = themes.find(t => t.id === id) || {}
           const defaultCustomCSS = customCSS.find(t => t.id === id) || {}
 
-          let variables = values
+          let variables = JSON.parse(values || '{}')
           let defaultVariables
 
           if (['light', 'dark'].includes(id)) {
