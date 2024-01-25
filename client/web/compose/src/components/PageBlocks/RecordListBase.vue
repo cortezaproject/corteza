@@ -144,7 +144,7 @@
                 :title="title"
                 variant="light"
                 pill
-                class="ml-2"
+                class="align-items-center ml-2"
                 @remove="removeFilter(i)"
               />
             </b-form-tags>
@@ -2085,11 +2085,5 @@ td:hover .inline-actions {
 
 .record-list-footer {
   font-family: var(--font-medium);
-}
-
-@media (max-width: 576px) {
-  .flex-fill-child > * {
-    flex-grow: 1;
-  }
 }
 </style>

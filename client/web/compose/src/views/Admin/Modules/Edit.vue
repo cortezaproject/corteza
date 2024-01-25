@@ -967,11 +967,3 @@ export default {
   },
 }
 </script>
-
-<style scoped lang="scss">
-@media (max-width: 576px) {
-  .flex-fill-child > * {
-    flex-grow: 1;
-  }
-}
-</style>

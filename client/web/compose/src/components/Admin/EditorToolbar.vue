@@ -170,23 +170,3 @@ export default {
   },
 }
 </script>
-<style lang="scss" scoped>
-.back {
-  &:hover {
-    text-decoration: none;
-
-    .back-icon {
-      transition: transform 0.3s ease-out;
-      transform: translateX(-4px);
-    }
-  }
-}
-
-[dir="rtl"] {
-  .back {
-    .back-icon {
-      display: none;
-    }
-  }
-}
-</style>

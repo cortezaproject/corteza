@@ -488,10 +488,4 @@ export default {
 .resource-list-footer {
   font-family: var(--font-medium);
 }
-
-@media (max-width: 576px) {
-  .flex-fill-child > * {
-    flex: 1 1 auto !important;
-  }
-}
 </style>
