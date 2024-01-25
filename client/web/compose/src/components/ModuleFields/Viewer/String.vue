@@ -5,8 +5,8 @@
       class="rt-content"
     >
       <p
-        :style="{ 'white-space': 'pre-wrap' }"
-        :class="{'multiline': field.isMulti || field.options.multiLine }"
+        :style="{ 'white-space': field.options.useRichTextEditor && 'pre-line' }"
+        :class="{ 'multiline': field.isMulti || field.options.multiLine }"
         v-html="formatted"
       />
     </div>

@@ -82,6 +82,6 @@ export default {
 
 <style>
 .multiline {
-  white-space: pre-line;
+  white-space: pre;
 }
 </style>
