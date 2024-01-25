@@ -24,9 +24,6 @@
           :class="m.drillDown.enabled ? 'pointer' : ''"
           @click="drillDown(m, mi)"
         >
-          <!-- <h3 :style="genStyle(m.labelStyle)">
-            {{ v.label }}
-          </h3> -->
           <metric-item
             :metric="m"
             :value="v"

@@ -1,6 +1,6 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
-import { dimensionFunctions } from '../chart/util'
-import { CortezaID, Apply } from '../../../cast'
+import { merge } from 'lodash'
+import { Apply } from '../../../cast'
 
 const kind = 'Metric'
 
@@ -21,7 +21,7 @@ interface ReporterParams {
 interface Style {
   color: string;
   backgroundColor: string;
-  fontSize: string;
+  fontSize?: string;
 }
 
 interface Metric {
@@ -39,10 +39,34 @@ interface Metric {
   transformFx?: string;
 
   // @todo allow conditional styles; eg. if value is < 10 render with bold red text
-  labelStyle?: Style;
   valueStyle?: Style;
   drillDown: DrillDown;
 }
+
+const defaultMetric: Readonly<Metric> = Object.freeze({
+  label: '',
+  moduleID: '',
+  dimensionField: '',
+  dateFormat: '',
+  filter: '',
+  bucketSize: '',
+  metricField: '',
+  operation: '',
+  numberFormat: '',
+  prefix: '',
+  suffix: '',
+  transformFx: '',
+
+  valueStyle: {
+    backgroundColor: '#FFFFFF00',
+    color: '#000000',
+    fontSize: undefined,
+  },
+  drillDown: {
+    enabled: false,
+    blockID: '',
+  },
+})
 
 interface Options {
   metrics: Array<Metric>;
@@ -74,10 +98,7 @@ export class PageBlockMetric extends PageBlock {
     Apply(this.options, o, Boolean, 'showRefresh')
     Apply(this.options, o, String, 'magnifyOption')
     if (o.metrics) {
-      this.options.metrics = o.metrics.map((m) => ({
-        ...m,
-        drillDown: m.drillDown || { enabled: false },
-      }))
+      this.options.metrics = o.metrics.map((m) => merge({}, defaultMetric, m))
     }
   }
 
@@ -123,6 +144,10 @@ export class PageBlockMetric extends PageBlock {
       // Since metric produces one value we want one dataset, deletedAt is the same for all existing records
       dimensions: 'deletedAt',
     }
+  }
+
+  makeMetric () {
+    return merge({}, defaultMetric)
   }
 }
 

@@ -213,7 +213,7 @@
                 <i18next
                   path="metric.edit.transformFootnote"
                   tag="small"
-                  class="text-muted"
+                  class="d-block text-muted"
                 >
                   <code>${record.values.fieldName}</code>
                   <code>${recordID}</code>
@@ -283,11 +283,6 @@
             </fieldset>
           </b-card>
 
-          <!-- <m-style :options="edit.labelStyle">
-            <h5 slot="title">
-              {{ $t('metric.editStyle.labelLabel') }}
-            </h5>
-          </m-style> -->
           <m-style
             class="mt-2"
             :options="edit.valueStyle"
@@ -437,17 +432,7 @@ export default {
 
   methods: {
     addMetric () {
-      const m = {
-        labelStyle: {},
-        valueStyle: {
-          backgroundColor: '#FFFFFF00',
-          color: '#000000',
-        },
-        drillDown: {
-          enabled: false,
-          blockID: '',
-        },
-      }
+      const m = this.block.makeMetric()
       this.metrics.push(m)
       this.editMetric(m)
     },
