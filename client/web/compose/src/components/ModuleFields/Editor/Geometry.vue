@@ -36,7 +36,7 @@
     <div class="d-flex w-100">
       <b-button
         v-if="field.isMulti"
-        v-b-tooltip.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
+        v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
         variant="light"
         class="w-100"
         @click="openMap()"
@@ -72,7 +72,7 @@
         />
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
             variant="extra-light"
             class="d-flex align-items-center"
             @click="openMap(ctx.index)"
@@ -85,7 +85,7 @@
 
           <b-button
             v-if="!field.options.hideCurrentLocationButton"
-            v-b-tooltip.hover="{ title: $t('tooltip.useCurrentLocation'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.useCurrentLocation'), container: '#body' }"
             variant="extra-light"
             class="d-flex align-items-center"
             @click="useCurrentLocation(ctx.index)"
@@ -117,7 +117,7 @@
         />
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
             variant="extra-light"
             class="d-flex align-items-center"
             @click="openMap()"
@@ -130,7 +130,7 @@
 
           <b-button
             v-if="!field.options.hideCurrentLocationButton"
-            v-b-tooltip.hover="{ title: $t('tooltip.useCurrentLocation'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.useCurrentLocation'), container: '#body' }"
             variant="extra-light"
             class="d-flex align-items-center"
             @click="useCurrentLocation()"

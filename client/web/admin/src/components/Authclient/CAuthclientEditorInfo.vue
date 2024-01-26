@@ -129,7 +129,7 @@
 
               <b-button
                 v-else
-                v-b-tooltip.hover="{ title: $t('tooltip.regenerate-secret'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.regenerate-secret'), container: '#body' }"
                 data-test-id="button-regenerate-client-secret"
                 class="ml-1 text-primary"
                 variant="link"

@@ -35,7 +35,7 @@
 
         <b-input-group-append v-if="canManageNamespaces">
           <b-button
-            v-b-tooltip.hover="{ title: $t('editNamespace'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('editNamespace'), container: '#body' }"
             data-test-id="button-namespace-edit"
             :disabled="!canUpdateNamespace"
             variant="primary"

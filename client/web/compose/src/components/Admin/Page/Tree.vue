@@ -27,7 +27,7 @@
               class="text-danger"
             >
               <font-awesome-icon
-                v-b-tooltip.hover="{ title: $t('notVisible'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('notVisible'), container: '#body' }"
                 :icon="['fas', 'eye-slash']"
               />
             </span>
@@ -58,7 +58,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.view'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.view'), container: '#body' }"
                 data-test-id="button-page-view"
                 variant="primary"
                 :to="pageViewer(item)"
@@ -71,7 +71,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
                 data-test-id="button-page-edit"
                 variant="primary"
                 :to="{name: 'admin.pages.edit', params: { pageID: item.pageID }}"
@@ -86,7 +86,7 @@
 
             <b-dropdown
               v-if="item.canGrant || namespace.canGrant"
-              v-b-tooltip.hover="{ title: $t('permissions:resources.compose.page.tooltip'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('permissions:resources.compose.page.tooltip'), container: '#body' }"
               data-test-id="dropdown-permissions"
               variant="light"
               size="sm"

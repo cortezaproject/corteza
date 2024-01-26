@@ -2,7 +2,7 @@
   <div>
     <b-button
       :id="popoverTarget"
-      v-b-tooltip.hover="{ title: $t('recordList.filter.title'), container: '#body' }"
+      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filter.title'), container: '#body' }"
       :variant="variant"
       class="d-flex align-items-center d-print-none border-0 px-1 h-100"
       :class="buttonClass"

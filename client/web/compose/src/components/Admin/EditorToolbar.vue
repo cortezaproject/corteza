@@ -28,7 +28,7 @@
 
       <c-input-confirm
         v-if="!hideDelete"
-        v-b-tooltip.hover
+        v-b-tooltip.noninteractive.hover
         :disabled="disableDelete || processing"
         :processing="processingDelete"
         :text="$t('label.delete')"

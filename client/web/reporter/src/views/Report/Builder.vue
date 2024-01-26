@@ -18,7 +18,7 @@
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
             variant="light"
             :disabled="!canUpdate"
             @click="openScenarioConfigurator"
@@ -58,7 +58,7 @@
           />
         </b-button>
         <b-button
-          v-b-tooltip.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
           variant="primary"
           class="d-flex align-items-center justify-content-center"
           style="margin-left:2px;"
@@ -89,7 +89,7 @@
           >
             <div
               v-if="unsavedBlocks.has(index)"
-              v-b-tooltip.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -100,7 +100,7 @@
 
             <b-button-group>
               <b-button
-                v-b-tooltip.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="openDisplayElementSelector(index)"
@@ -111,7 +111,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="editBlock(index)"

@@ -9,7 +9,7 @@
         </h5>
 
         <b-avatar
-          v-b-tooltip.hover="{ title: $t('types.user'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('types.user'), container: '#body' }"
           size="sm"
           class="align-center bg-light text-dark"
         />

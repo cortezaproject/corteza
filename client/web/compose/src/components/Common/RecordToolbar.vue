@@ -25,7 +25,7 @@
         class="d-flex align-items-center fill-width gap-1"
       >
         <b-button
-          v-b-tooltip.hover="{ title: $t('recordNavigation.prev'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('recordNavigation.prev'), container: '#body' }"
           pill
           size="lg"
           variant="outline-primary"
@@ -36,7 +36,7 @@
         </b-button>
 
         <b-button
-          v-b-tooltip.hover="{ title: $t('recordNavigation.next'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('recordNavigation.next'), container: '#body' }"
           size="lg"
           pill
           variant="outline-primary"

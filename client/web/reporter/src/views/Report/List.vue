@@ -78,7 +78,7 @@
           </b-button>
 
           <b-button
-            v-b-tooltip.hover="{ title: $t('report.edit'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('report.edit'), container: '#body' }"
             data-test-id="button-report-edit"
             variant="primary"
             :to="{ name: 'report.edit', params: { reportID: r.reportID } }"

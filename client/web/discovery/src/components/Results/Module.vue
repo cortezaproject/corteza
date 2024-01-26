@@ -33,7 +33,7 @@
             {{ $t('general:federated') }}
           </b-badge>
           <b-avatar
-            v-b-tooltip.hover="{ title: $t('types.module'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('types.module'), container: '#body' }"
             size="sm"
             icon="list-ul"
             class="align-center bg-light text-dark"

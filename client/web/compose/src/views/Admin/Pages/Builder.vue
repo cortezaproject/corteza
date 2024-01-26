@@ -46,7 +46,7 @@
         />
 
         <b-button
-          v-b-tooltip.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
           variant="primary"
           :to="pageEditor"
           class="d-flex align-items-center"
@@ -85,7 +85,7 @@
           >
             <div
               v-if="unsavedBlocks.has(block.blockID !== '0' ? block.blockID : block.meta.tempID)"
-              v-b-tooltip.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -96,7 +96,7 @@
 
             <b-button-group>
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.edit.block'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.block'), container: '#body' }"
                 data-test-id="button-edit"
                 variant="outline-light"
                 class="border-0"
@@ -108,7 +108,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.clone.block'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="cloneBlock(index)"
@@ -119,7 +119,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.copy.block'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="copyBlock(index)"
@@ -201,7 +201,7 @@
           </h5>
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
-            v-b-tooltip.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />
@@ -234,7 +234,7 @@
           </h5>
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
-            v-b-tooltip.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />

@@ -33,7 +33,7 @@
           style="margin-left:2px;"
         />
         <b-button
-          v-b-tooltip.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), container: '#body' }"
           data-test-id="button-page-edit"
           :to="pageEditor"
           variant="primary"

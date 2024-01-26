@@ -27,7 +27,7 @@
           />
         </b-button>
         <b-button
-          v-b-tooltip.hover="{ title: $t('tooltip.view-report'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.view-report'), container: '#body' }"
           variant="primary"
           style="margin-left:2px;"
           :disabled="!canRead"

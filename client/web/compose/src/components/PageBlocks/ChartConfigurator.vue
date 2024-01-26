@@ -18,7 +18,7 @@
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('chart.openInBuilder'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('chart.openInBuilder'), container: '#body' }"
             :disabled="!selectedChart || (!selectedChart.canUpdateChart && !selectedChart.canDeleteChart)"
             variant="extra-light"
             class="d-flex align-items-center"

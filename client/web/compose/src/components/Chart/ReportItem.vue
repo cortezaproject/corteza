@@ -1,7 +1,7 @@
 <template>
   <tr class="w-100 d-inline-block">
     <td
-      v-b-tooltip.hover
+      v-b-tooltip.noninteractive.hover
       class="handle align-middle w-100 d-inline-block"
       :class="{ 'cursor-grab': !fixed }"
     >

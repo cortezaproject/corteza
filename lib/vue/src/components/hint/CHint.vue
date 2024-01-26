@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="tooltip"
-    v-b-tooltip.hover.right="{ variant: tooltipVariant, title: tooltip, container: '#body' }"
+    v-b-tooltip.noninteractive.hover.right="{ variant: tooltipVariant, title: tooltip, container: '#body' }"
     class="d-flex align-items-center ml-1"
   >
     <font-awesome-icon

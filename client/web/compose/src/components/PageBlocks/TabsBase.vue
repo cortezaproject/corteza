@@ -54,7 +54,7 @@
           >
             <div
               v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
-              v-b-tooltip.hover="{ title: $t('unsavedChanges'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('unsavedChanges'), container: '#body' }"
               class="btn btn-sm border-0"
             >
               <font-awesome-icon
@@ -65,7 +65,7 @@
 
             <b-button-group size="sm">
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.edit'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="editTabbedBlock(tab)"
@@ -76,7 +76,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.clone'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="cloneTabbedBlock(tab)"
@@ -87,7 +87,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('tooltip.copy'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="copyTabbedBlock(tab)"

@@ -1,7 +1,7 @@
 <template>
   <tr>
     <td
-      v-b-tooltip.hover
+      v-b-tooltip.noninteractive.hover
       class="handle align-middle pr-2"
     >
       <font-awesome-icon
@@ -58,7 +58,7 @@
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('tooltip.field'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.field'), container: '#body' }"
             data-test-id="button-configure-field"
             variant="extra-light"
             :disabled="!value.cap.configurable"

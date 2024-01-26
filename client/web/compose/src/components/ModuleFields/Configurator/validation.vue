@@ -77,7 +77,7 @@
         />
         <b-input-group-prepend>
           <b-button
-            v-b-tooltip.hover="{ title: $t('validators.error.tooltip'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('validators.error.tooltip'), container: '#body' }"
             variant="warning"
           >
             !
