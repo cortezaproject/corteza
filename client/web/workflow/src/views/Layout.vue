@@ -13,6 +13,8 @@
           userSettingsProfile: $t('navigation:userSettings.profile'),
           userSettingsChangePassword: $t('navigation:userSettings.changePassword'),
           userSettingsLogout: $t('navigation:userSettings.logout'),
+          lightTheme: $t('general:themes.labels.light'),
+          darkTheme: $t('general:themes.labels.dark'),
         }"
       >
         <template #title>

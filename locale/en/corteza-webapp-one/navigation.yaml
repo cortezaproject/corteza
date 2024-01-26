@@ -18,3 +18,7 @@ userSettings:
   loggedInAs: Logged in as {{user}}
   logout: Logout
   profile: Profile
+themes:
+  labels:
+    light: Light
+    dark: Dark

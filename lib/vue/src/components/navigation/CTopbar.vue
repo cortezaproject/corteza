@@ -191,10 +191,11 @@
         >
           <b-dropdown-item
             v-for="theme in themes"
-            :disabled="currentTheme === theme.value"
-            @click="saveThemeMode(theme.value)"
+            :key="theme.id"
+            :disabled="currentTheme === theme.id"
+            @click="saveThemeMode(theme.id)"
           >
-            {{ theme.label }}
+          {{ theme.id === 'light' ? labels.lightTheme : labels.darkTheme }}
           </b-dropdown-item>
         </b-dropdown>
 
@@ -306,12 +307,10 @@ export default {
     themes () {
       return [
         {
-          label: 'Light',
-          value: 'light',
+          id: 'light',
         },
         {
-          label: 'Dark',
-          value: 'dark',
+          id: 'dark',
         },
       ]
     },

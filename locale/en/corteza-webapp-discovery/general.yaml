@@ -5,3 +5,7 @@ label:
 resourceList:
   pagination:
     recordsPerPage: Records per page
+themes:
+  labels:
+    light: Light
+    dark: Dark
