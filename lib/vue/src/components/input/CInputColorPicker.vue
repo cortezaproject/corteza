@@ -52,6 +52,7 @@
         {{ value }}
       </span>
     </div>
+
     <b-modal
       :visible="showModal"
       :title="translations.modalTitle"
@@ -67,25 +68,23 @@
         @input="updateColor"
       />
 
-      <hr v-if="themes.length > 0" />
-      <div 
-        v-for="theme in themes"
-        :key="theme.id"
-        class="d-flex p-2"
+      <div
+        v-if="themes.length > 0"
+        class="d-flex flex-column border-top p-3 gap-1"
       >
-          <div 
+        <div
+          v-for="theme in themes"
+          :key="theme.id"
+          class="d-flex border"
+        >
+          <b-button
             v-for="variable in themeVariables"
             :key="variable.label"
-            class="mb-2"
-          >
-          <b-button 
-            squared 
-            class="swatch" 
-            v-b-tooltip.hover="{ title: colorToolTip(theme.id,variable.value), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: colorToolTip(theme.id, variable.value), container: '#body' }"
+            class="swatch flex-grow-1 rounded-0"
             :style="{ backgroundColor: theme.values[variable.label], borderColor: theme.values[variable.label] }"
             @click="setColor(theme.values[variable.label])"
-          >
-          </b-button>
+          />
         </div>
       </div>
 
@@ -274,11 +273,13 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .swatch {
-  width: 32px;
-  height: 32px;
+  height: 58px;
 }
+</style>
+
+<style lang="scss">
 .vc-chrome {
   font-family: var(--font-medium) !important;
 

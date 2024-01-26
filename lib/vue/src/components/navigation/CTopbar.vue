@@ -195,7 +195,7 @@
             :disabled="currentTheme === theme.id"
             @click="saveThemeMode(theme.id)"
           >
-          {{ theme.id === 'light' ? labels.lightTheme : labels.darkTheme }}
+            {{ theme.label }}
           </b-dropdown-item>
         </b-dropdown>
 
@@ -308,9 +308,11 @@ export default {
       return [
         {
           id: 'light',
+          label: this.labels.lightTheme,
         },
         {
           id: 'dark',
+          label: this.labels.darkTheme,
         },
       ]
     },
