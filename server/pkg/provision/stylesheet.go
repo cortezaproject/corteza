@@ -122,6 +122,10 @@ func processBrandingTheme(oldBranding *types.SettingValue) (themes []types.Theme
 		}
 
 		for key, bmValue := range brandingMap {
+			if key == "light" || key == "extra-light" {
+				continue
+			}
+
 			if _, ok := lightModeMap[key]; ok {
 				lightModeMap[key] = bmValue
 			}
