@@ -103,7 +103,7 @@ export default {
       .then(() => {
         setTimeout(() => {
           this.loaded = true
-        }, 500)
+        }, 2000)
       })
   },
 
