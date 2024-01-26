@@ -546,6 +546,8 @@ export default {
     },
 
     async determineLayout (pageLayoutID, variables = {}) {
+      pageLayoutID = pageLayoutID || (this.layout || {}).pageLayoutID
+
       // Clear stored records so they can be refetched with latest values
       this.clearRecordSet()
       let expressions = {}
