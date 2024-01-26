@@ -79,7 +79,7 @@ export default {
       const queue = []
 
       // Collect records from all record lines
-      this.page.blocks.forEach((b, index) => {
+      this.blocks.forEach((b, index) => {
         if (b.kind === 'RecordList' && b.options.editable) {
           const p = new Promise((resolve) => {
             const recordListUniqueID = [this.page.pageID, (this.record || {}).recordID, b.blockID, false].map(v => v || NoID).join('-')
