@@ -109,136 +109,126 @@
       </h5>
     </div>
 
-    <b-table-simple
-      v-if="block.options.tabs.length"
-      responsive="lg"
-      borderless
-      small
+    <c-form-table-wrapper
+      :labels="{
+        addButton: $t('general:label.add')
+      }"
+      @add-item="addTab"
     >
-      <b-thead>
-        <tr>
-          <th />
-
-          <th class="d-flex align-items-center text-primary">
-            {{ $t('tabs.table.columns.title.label') }}
-            <c-hint
-              :tooltip="$t('interpolationFootnote', ['${record.values.fieldName}', '${recordID}', '${ownerID}', '${userID}'])"
-              class="d-block"
-            />
-          </th>
-
-          <th
-            class="text-primary"
-          >
-            {{ $t('tabs.table.columns.block.label') }}
-          </th>
-
-          <th />
-        </tr>
-      </b-thead>
-
-      <draggable
-        v-model="block.options.tabs"
-        handle=".handle"
-        tag="b-tbody"
+      <b-table-simple
+        responsive="lg"
+        borderless
+        small
       >
-        <tr
-          v-for="(tab, index) in block.options.tabs"
-          :key="index"
-        >
-          <b-td class="handle align-middle pr-2">
-            <font-awesome-icon
-              :icon="['fas', 'bars']"
-              class="grab m-0 text-secondary p-0"
-            />
-          </b-td>
+        <b-thead>
+          <tr>
+            <th />
 
-          <b-td
-            class="align-middle"
-            style="width: 50%; min-width: 200px;"
-          >
-            <b-form-input
-              v-model="tab.title"
-            />
-          </b-td>
-
-          <b-td
-            class="align-middle"
-            style="width: 50%; min-width: 200px;"
-          >
-            <b-input-group class="d-flex flex-nowrap w-100">
-              <c-input-select
-                v-model="tab.blockID"
-                :options="blockOptions"
-                :placeholder="$t('tabs.placeholder.block')"
-                :get-option-label="getBlockLabel"
-                :get-option-key="getOptionKey"
-                :selectable="option => isSelectable(option)"
-                :reduce="option => option.value"
+            <th class="d-flex align-items-center text-primary">
+              {{ $t('tabs.table.columns.title.label') }}
+              <c-hint
+                :tooltip="$t('interpolationFootnote', ['${record.values.fieldName}', '${recordID}', '${ownerID}', '${userID}'])"
+                class="d-block"
               />
+            </th>
 
-              <b-input-group-append>
-                <b-button
-                  v-if="tab.blockID"
-                  id="popover-edit"
-                  v-b-tooltip.noninteractive.hover="{ title: $t('tabs.tooltip.edit'), container: '#body' }"
-                  size="sm"
-                  variant="extra-light"
-                  class="d-flex align-items-center justify-content-center"
-                  style="width: 40px;"
-                  @click="editBlock(tab.blockID)"
-                >
-                  <font-awesome-icon
-                    :icon="['far', 'edit']"
-                  />
-                </b-button>
-                <b-button
-                  v-else
-                  v-b-tooltip.noninteractive.hover="{ title: $t('tabs.tooltip.addBlock'), container: '#body' }"
-                  size="sm"
-                  variant="extra-light"
-                  class="d-flex align-items-center justify-content-center"
-                  style="width: 40px;"
-                  @click="showBlockSelector(index)"
-                >
-                  <font-awesome-icon
-                    :icon="['fas', 'plus']"
-                  />
-                </b-button>
-              </b-input-group-append>
-            </b-input-group>
-          </b-td>
+            <th
+              class="text-primary"
+            >
+              {{ $t('tabs.table.columns.block.label') }}
+            </th>
 
-          <td
-            class="text-center align-middle"
-            style="min-width: 80px;"
+            <th />
+          </tr>
+        </b-thead>
+
+        <draggable
+          v-model="block.options.tabs"
+          handle=".handle"
+          tag="b-tbody"
+        >
+          <tr
+            v-for="(tab, index) in block.options.tabs"
+            :key="index"
           >
-            <c-input-confirm
-              :tooltip="$t('tabs.tooltip.delete')"
-              show-icon
-              @confirmed="deleteTab(index)"
-            />
-          </td>
-        </tr>
-      </draggable>
-    </b-table-simple>
+            <b-td class="handle align-middle pr-2">
+              <font-awesome-icon
+                :icon="['fas', 'bars']"
+                class="grab m-0 text-secondary p-0"
+              />
+            </b-td>
 
-    <div
-      v-else
-      class="text-center my-4"
-    >
-      <p>
-        {{ $t('tabs.noTabs') }}
-      </p>
-    </div>
+            <b-td
+              class="align-middle"
+              style="width: 50%; min-width: 200px;"
+            >
+              <b-form-input
+                v-model="tab.title"
+              />
+            </b-td>
 
-    <b-button
-      variant="primary"
-      class="text-decoration-none"
-      @click="addTab"
-    >
-      {{ $t('tabs.addTab') }}
-    </b-button>
+            <b-td
+              class="align-middle"
+              style="width: 50%; min-width: 200px;"
+            >
+              <b-input-group class="d-flex flex-nowrap w-100">
+                <c-input-select
+                  v-model="tab.blockID"
+                  :options="blockOptions"
+                  :placeholder="$t('tabs.placeholder.block')"
+                  :get-option-label="getBlockLabel"
+                  :get-option-key="getOptionKey"
+                  :selectable="option => isSelectable(option)"
+                  :reduce="option => option.value"
+                />
+
+                <b-input-group-append>
+                  <b-button
+                    v-if="tab.blockID"
+                    id="popover-edit"
+                    v-b-tooltip.noninteractive.hover="{ title: $t('tabs.tooltip.edit'), container: '#body' }"
+                    size="sm"
+                    variant="extra-light"
+                    class="d-flex align-items-center justify-content-center"
+                    style="width: 40px;"
+                    @click="editBlock(tab.blockID)"
+                  >
+                    <font-awesome-icon
+                      :icon="['far', 'edit']"
+                    />
+                  </b-button>
+
+                  <b-button
+                    v-else
+                    v-b-tooltip.noninteractive.hover="{ title: $t('tabs.tooltip.addBlock'), container: '#body' }"
+                    size="sm"
+                    variant="extra-light"
+                    class="d-flex align-items-center justify-content-center"
+                    style="width: 40px;"
+                    @click="showBlockSelector(index)"
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'plus']"
+                    />
+                  </b-button>
+                </b-input-group-append>
+              </b-input-group>
+            </b-td>
+
+            <td
+              class="text-center align-middle"
+              style="min-width: 80px;"
+            >
+              <c-input-confirm
+                :tooltip="$t('tabs.tooltip.delete')"
+                show-icon
+                @confirmed="deleteTab(index)"
+              />
+            </td>
+          </tr>
+        </draggable>
+      </b-table-simple>
+    </c-form-table-wrapper>
 
     <b-modal
       id="createBlockSelectorTab"
