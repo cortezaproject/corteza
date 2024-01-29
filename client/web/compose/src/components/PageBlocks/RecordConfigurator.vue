@@ -135,90 +135,81 @@
         </b-button>
       </h5>
 
-      <b-table-simple
-        borderless
-        small
-        responsive="lg"
+      <c-form-table-wrapper
+        :labels="{
+          addButton: $t('general:label.add')
+        }"
+        :disable-add-button="addRuleDisabled"
+        @add-item="addRule"
       >
-        <b-thead>
-          <b-tr>
-            <b-th
-              class="text-primary"
-            >
-              {{ $t('record.fieldConditions.field') }}
-            </b-th>
-
-            <b-th
-              class="text-primary"
-            >
-              {{ $t('record.fieldConditions.condition') }}
-            </b-th>
-
-            <b-th />
-          </b-tr>
-        </b-thead>
-
-        <b-tbody>
-          <b-tr
-            v-for="(condition, i) in block.options.fieldConditions"
-            :key="i"
-          >
-            <b-td
-              class="align-middle"
-              style="width: 33%; min-width: 250px;"
-            >
-              <c-input-select
-                v-model="condition.field"
-                :options="block.options.fields"
-                :placeholder="$t('record.fieldConditions.selectPlaceholder')"
-                :selectable="option => isSelectable(option)"
-                :get-option-label="getOptionLabel"
-                :get-option-key="getOptionKey"
-                :reduce="option => option.isSystem ? option.name : option.fieldID"
-              />
-            </b-td>
-
-            <b-td
-              class="align-middle"
-              style="min-width: 300px;"
-            >
-              <b-input-group>
-                <b-input-group-prepend>
-                  <b-button variant="extra-light">
-                    ƒ
-                  </b-button>
-                </b-input-group-prepend>
-                <b-form-input
-                  v-model="condition.condition"
-                  :placeholder="$t('record.fieldConditions.placeholder')"
-                />
-              </b-input-group>
-            </b-td>
-
-            <b-td
-              class="text-center align-middle pr-2"
-              style="width: 100px;"
-            >
-              <c-input-confirm
-                show-icon
-                @confirmed="deleteRule(i)"
-              />
-            </b-td>
-          </b-tr>
-
-          <b-tr>
-            <b-td>
-              <b-button
-                variant="primary"
-                :disabled="addRuleDisabled"
-                @click="addRule"
+        <b-table-simple
+          borderless
+          small
+          responsive="lg"
+        >
+          <b-thead>
+            <b-tr>
+              <b-th
+                class="text-primary"
               >
-                {{ $t('record.fieldConditions.action') }}
-              </b-button>
-            </b-td>
-          </b-tr>
-        </b-tbody>
-      </b-table-simple>
+                {{ $t('record.fieldConditions.field') }}
+              </b-th>
+              <b-th
+                class="text-primary"
+              >
+                {{ $t('record.fieldConditions.condition') }}
+              </b-th>
+              <b-th />
+            </b-tr>
+          </b-thead>
+          <b-tbody>
+            <b-tr
+              v-for="(condition, i) in block.options.fieldConditions"
+              :key="i"
+            >
+              <b-td
+                class="align-middle"
+                style="width: 33%; min-width: 250px;"
+              >
+                <c-input-select
+                  v-model="condition.field"
+                  :options="block.options.fields"
+                  :placeholder="$t('record.fieldConditions.selectPlaceholder')"
+                  :selectable="option => isSelectable(option)"
+                  :get-option-label="getOptionLabel"
+                  :get-option-key="getOptionKey"
+                  :reduce="option => option.isSystem ? option.name : option.fieldID"
+                />
+              </b-td>
+              <b-td
+                class="align-middle"
+                style="min-width: 300px;"
+              >
+                <b-input-group>
+                  <b-input-group-prepend>
+                    <b-button variant="extra-light">
+                      ƒ
+                    </b-button>
+                  </b-input-group-prepend>
+                  <b-form-input
+                    v-model="condition.condition"
+                    :placeholder="$t('record.fieldConditions.placeholder')"
+                  />
+                </b-input-group>
+              </b-td>
+              <b-td
+                class="text-center align-middle pr-2"
+                style="width: 100px;"
+              >
+                <c-input-confirm
+                  show-icon
+                  @confirmed="deleteRule(i)"
+                />
+              </b-td>
+            </b-tr>
+          </b-tbody>
+        </b-table-simple>
+      </c-form-table-wrapper>
     </div>
   </b-tab>
 </template>
