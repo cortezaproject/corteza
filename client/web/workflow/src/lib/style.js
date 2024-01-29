@@ -13,126 +13,126 @@ const kindToStyle = {
   visualSwimlane: {
     width: 320,
     height: 160,
-    icon: 'icons/swimlane.svg',
+    icon: 'swimlane',
     style: 'swimlane',
   },
 
   expressions: {
     width: 200,
     height: 80,
-    icon: 'icons/expressions.svg',
+    icon: 'expressions',
     style: 'expressions',
   },
 
   function: {
     width: 200,
     height: 80,
-    icon: 'icons/function.svg',
+    icon: 'function',
     style: 'function',
   },
 
   iterator: {
     width: 200,
     height: 80,
-    icon: 'icons/iterator.svg',
+    icon: 'iterator',
     style: 'iterator',
   },
 
   'exec-workflow': {
     width: 200,
     height: 80,
-    icon: 'icons/exec-workflow.svg',
+    icon: 'exec-workflow',
     style: 'exec-workflow',
   },
 
   break: {
     width: 200,
     height: 80,
-    icon: 'icons/break.svg',
+    icon: 'break',
     style: 'break',
   },
 
   continue: {
     width: 200,
     height: 80,
-    icon: 'icons/continue.svg',
+    icon: 'continue',
     style: 'continue',
   },
 
   trigger: {
     width: 200,
     height: 80,
-    icon: 'icons/trigger.svg',
+    icon: 'trigger',
     style: 'trigger',
   },
 
   'error-handler': {
     width: 200,
     height: 80,
-    icon: 'icons/error-handler.svg',
+    icon: 'error-handler',
     style: 'error-handler',
   },
 
   error: {
     width: 200,
     height: 80,
-    icon: 'icons/error.svg',
+    icon: 'error',
     style: 'error',
   },
 
   termination: {
     width: 200,
     height: 80,
-    icon: 'icons/termination.svg',
+    icon: 'termination',
     style: 'termination',
   },
 
   gatewayExcl: {
     width: 200,
     height: 80,
-    icon: 'icons/gateway-exclusive.svg',
+    icon: 'gateway-exclusive',
     style: 'gatewayExclusive',
   },
 
   gatewayIncl: {
     width: 200,
     height: 80,
-    icon: 'icons/gateway-inclusive.svg',
+    icon: 'gateway-inclusive',
     style: 'gatewayInclusive',
   },
 
   gatewayFork: {
     width: 200,
     height: 80,
-    icon: 'icons/gateway-parallel.svg',
+    icon: 'gateway-parallel',
     style: 'gatewayParallel',
   },
 
   gatewayJoin: {
     width: 200,
     height: 80,
-    icon: 'icons/gateway-parallel.svg',
+    icon: 'gateway-parallel',
     style: 'gatewayParallel',
   },
 
   prompt: {
     width: 200,
     height: 80,
-    icon: 'icons/prompt.svg',
+    icon: 'prompt',
     style: 'prompt',
   },
 
   delay: {
     width: 200,
     height: 80,
-    icon: 'icons/delay.svg',
+    icon: 'delay',
     style: 'delay',
   },
 
   debug: {
     width: 200,
     height: 80,
-    icon: 'icons/debug.svg',
+    icon: 'debug',
     style: 'debug',
   },
 }

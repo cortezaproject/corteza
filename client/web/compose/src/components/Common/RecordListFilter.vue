@@ -688,7 +688,7 @@ export default {
     max-width: 99vw;
     max-height: 60vh;
     padding: 0;
-    color: #2d2d2d;
+    color: var(--black);
     text-align: center;
     background: var(--white);
     border-radius: 0.25rem;
