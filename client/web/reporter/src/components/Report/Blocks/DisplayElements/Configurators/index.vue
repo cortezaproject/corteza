@@ -82,6 +82,7 @@
                 ascending: $t('general:label.ascending'),
                 descending: $t('general:label.descending'),
                 none: $t('general:label.none'),
+                addButton: $t('general:label.add'),
               }"
             />
           </b-form-group>

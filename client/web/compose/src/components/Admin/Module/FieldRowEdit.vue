@@ -97,8 +97,8 @@
     </td>
 
     <td
-      class="text-right align-middle pr-2"
-      style="min-width: 100px;"
+      class="text-right align-middle"
+      style="min-width: 110px;"
     >
       <c-permissions-button
         v-if="canGrant && !isNew"
