@@ -130,7 +130,7 @@
       #footer
     >
       <div class="resource-list-footer d-flex align-items-center flex-wrap justify-content-between px-3 py-2 gap-1">
-        <div class="d-flex align-items-center flex-wrap gap-1 gap-col-3">
+        <div class="d-flex align-items-center flex-wrap gap-3 gap-col-3">
           <div
             v-if="!hideTotal"
             class="text-nowrap text-truncate"

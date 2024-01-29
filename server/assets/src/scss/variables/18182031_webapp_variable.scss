@@ -69,9 +69,6 @@ $body-color: $black !default;
 $border-color: $extra-light !default;
 $hr-border-color: $border-color !default;
 
-// Modal
-$modal-backdrop-bg: $white !default;
-$modal-backdrop-opacity: .75 !default;
 
 // Options
 $enable-rounded:   true !default;
@@ -106,6 +103,11 @@ $btn-active-box-shadow: none !default;
 
 $btn-font-size-lg:  16px !default;
 $btn-font-family:   $font-medium !default;
+
+$list-group-hover-bg:               $light !default;
+$list-group-action-color: $black !default;
+$list-group-action-active-bg:       $primary !default;
+$list-group-action-active-color:    $black !default;
 
 // Tabs
 $nav-link-color:                    $black !default;
@@ -155,7 +157,7 @@ $input-border-width:  2px !default;
 $input-focus-box-shadow:    none !default;
 $input-focus-border-color:  $primary !default;
 
-$input-placeholder-color: $extra-light !default;
+$input-placeholder-color: $secondary !default;
 
 // Corteza specific variables
 // Topbar

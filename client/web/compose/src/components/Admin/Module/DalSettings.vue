@@ -16,6 +16,7 @@
         :reduce="s => s.connectionID"
         :placeholder="$t('connection.placeholder')"
         :get-option-label="getConnectionLabel"
+        size="sm"
       />
     </b-form-group>
 

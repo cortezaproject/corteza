@@ -90,9 +90,7 @@
             />
           </b-button>
         </b-button-group>
-      </template>
 
-      <template #moreActions="{ item: r }">
         <b-dropdown
           v-if="r.canUpdateReport || r.canGrant || r.canDeleteReport"
           variant="outline-extra-light"
@@ -100,6 +98,7 @@
           no-caret
           lazy
           menu-class="m-0"
+          class="ml-2"
         >
           <template #button-content>
             <font-awesome-icon
@@ -216,12 +215,7 @@ export default {
         {
           key: 'actions',
           label: '',
-          tdClass: 'text-right text-nowrap',
-        },
-        {
-          key: 'moreActions',
-          label: '',
-          tdClass: 'text-right text-nowrap actions',
+          tdClass: 'text-right text-nowrap actions gap-1',
         },
       ]
     },

@@ -40,6 +40,8 @@
         :disabled="!use"
         label="text"
         :reduce="strategy => strategy.value"
+        :clearable="false"
+        size="sm"
       />
     </b-col>
 

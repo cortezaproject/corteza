@@ -19,7 +19,7 @@
       <b-button
         v-if="!hideAppSelector && !settings.hideAppSelector"
         data-test-id="app-selector"
-        variant="outline-light"
+        variant="outline-extra-light"
         :href="appSelectorURL"
         title="Apps"
         size="lg"
@@ -35,7 +35,7 @@
         v-if="!settings.hideHelp"
         data-test-id="dropdown-helper"
         size="lg"
-        variant="outline-light"
+        variant="outline-extra-light"
         toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
         menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         right
@@ -107,7 +107,7 @@
         v-if="!settings.hideProfile"
         data-test-id="dropdown-profile"
         data-v-onboarding="profile"
-        :variant="avatarExists ? 'link' : 'outline-light'"
+        :variant="avatarExists ? 'link' : 'outline-extra-light'"
         :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
         size="lg"
         right

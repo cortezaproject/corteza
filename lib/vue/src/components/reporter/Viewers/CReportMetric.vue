@@ -45,7 +45,7 @@ export default {
     style () {
       return {
         fill: this.options.color || '#162425',
-        backgroundColor: this.options.backgroundColor || '#FFFFFF',
+        backgroundColor: this.options.backgroundColor || '#FFFFFF00',
       }
     },
 

@@ -8,7 +8,7 @@
         data-test-id="button-back-without-save"
         variant="link"
         :disabled="processing"
-        class="text-dark back text-left text-nowrap p-1"
+        class="d-flex align-items-center text-dark back gap-1 text-decoration-none"
         @click="$emit('back')"
       >
         <font-awesome-icon

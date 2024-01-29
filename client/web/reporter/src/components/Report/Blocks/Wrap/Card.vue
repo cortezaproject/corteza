@@ -4,7 +4,7 @@
       no-body
       class="h-100 border-0 shadow-sm overflow-hidden"
     >
-      <b-card-header class="sticky-top border-0 border-bottom p-0">
+      <b-card-header class="sticky-top border-0 p-0">
         <slot
           name="header"
         />

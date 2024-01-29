@@ -32,7 +32,7 @@
       <b-button
         data-test-id="button-back"
         variant="link"
-        class="text-dark back text-left text-nowrap p-1 text-decoration-none"
+        class="d-flex align-items-center text-dark back gap-1 text-decoration-none"
         @click="$emit('back')"
       >
         <font-awesome-icon

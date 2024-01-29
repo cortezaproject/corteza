@@ -6,7 +6,7 @@
         data-test-id="button-back"
         variant="link"
         :disabled="processing"
-        class="text-dark back text-left text-nowrap p-1"
+        class="d-flex align-items-center text-dark back gap-1 text-decoration-none"
         @click.prevent="$emit('back')"
       >
         <font-awesome-icon

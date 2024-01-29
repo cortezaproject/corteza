@@ -26,6 +26,7 @@
         <template #tools>
           <portal-target
             name="topbar-tools"
+            class="gap-1"
           />
         </template>
       </c-topbar>

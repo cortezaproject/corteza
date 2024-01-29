@@ -14,11 +14,11 @@
           variant="link"
           size="lg"
           :to="backLink"
-          class="d-flex align-items-center text-dark back"
+          class="d-flex align-items-center text-dark back text-decoration-none gap-1"
         >
           <font-awesome-icon
             :icon="['fas', 'chevron-left']"
-            class="back-icon mr-1"
+            class="back-icon"
           />
           {{ $t('general:label.back') }}
         </b-button>

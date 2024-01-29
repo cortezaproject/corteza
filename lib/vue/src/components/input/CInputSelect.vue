@@ -161,7 +161,6 @@ export default {
   flex: 1 1 auto;
   margin-bottom: 0;
   font-size: .9rem !important;
-  border-radius: 0.25rem;
   font-family: var(--font-regular);
 
   .vs__selected-options {
@@ -284,6 +283,7 @@ export default {
   .vs__dropdown-toggle {
     min-height: calc(1.5em + 0.5rem + 4px);
     padding: 0.25rem calc(0.5rem - 2px);
+    border-radius: 0.2rem;
 
     .vs__selected {
       margin-top: 0.25rem;
@@ -305,6 +305,7 @@ export default {
   .vs__dropdown-toggle {
     min-height: calc(1.5em + 1rem + 4px);
     padding: .5rem calc(1rem - 2px);
+    border-radius: 0.3rem;
 
     .vs__selected {
       margin-top: .5rem;

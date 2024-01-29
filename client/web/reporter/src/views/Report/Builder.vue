@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex overflow-auto px-2 w-100"
+    class="d-flex overflow-auto p-2 w-100"
   >
     <portal to="topbar-title">
       {{ pageTitle }}
@@ -13,14 +13,16 @@
           :options="scenarioOptions"
           :get-option-key="getOptionKey"
           :placeholder="$t('builder:pick-scenario')"
+          size="sm"
           @input="refreshReport()"
         />
 
         <b-input-group-append>
           <b-button
             v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
-            variant="light"
+            variant="extra-light"
             :disabled="!canUpdate"
+            size="sm"
             @click="openScenarioConfigurator"
           >
             <font-awesome-icon
@@ -33,9 +35,8 @@
 
       <b-button
         :disabled="!canUpdate"
-        variant="info"
+        variant="extra-light"
         size="sm"
-        class="mr-1 ml-2"
         @click="openDatasourceConfigurator"
       >
         {{ $t('builder:datasources.label') }}
@@ -43,7 +44,6 @@
 
       <b-button-group
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"
@@ -89,7 +89,7 @@
           >
             <div
               v-if="unsavedBlocks.has(index)"
-              v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -152,7 +152,7 @@
       scrollable
       size="xl"
       body-class="p-0 border-top-0"
-      header-class="pb-0 px-3 pt-3 border-bottom-0"
+      header-class="border-bottom-0"
       no-fade
       @ok="updateBlock()"
     >

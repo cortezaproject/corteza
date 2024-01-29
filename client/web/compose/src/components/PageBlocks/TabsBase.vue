@@ -3,7 +3,7 @@
     v-bind="$props"
     :scrollable-body="false"
     card-class="tabs-base-block-container"
-    header-class="border-0"
+    header-class="border-0 border-white"
     v-on="$listeners"
   >
     <div

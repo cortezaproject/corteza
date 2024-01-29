@@ -128,7 +128,7 @@
         <b-button
           :disabled="!hasPrevPage"
           variant="link"
-          class="d-flex align-items-center text-dark"
+          class="d-flex align-items-center text-dark text-decoration-none"
           @click="goToPage('prevPage')"
         >
           <font-awesome-icon
@@ -140,7 +140,7 @@
         <b-button
           :disabled="!hasNextPage"
           variant="link"
-          class="d-flex align-items-center text-dark"
+          class="d-flex align-items-center text-dark text-decoration-none"
           @click="goToPage('nextPage')"
         >
           {{ labels.next }}

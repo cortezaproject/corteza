@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex overflow-auto px-2 w-100"
+    class="d-flex overflow-auto p-2 w-100"
   >
     <portal to="topbar-title">
       {{ pageTitle }}
@@ -13,14 +13,14 @@
         :options="scenarioOptions"
         :get-option-key="getOptionKey"
         :placeholder="$t('pick-scenario')"
-        style="max-width: 300px;"
+        size="sm"
+        style="max-width: 300px; min-width: 150px;"
         @input="refreshReport()"
       />
 
       <b-button-group
         v-if="canUpdate"
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"
