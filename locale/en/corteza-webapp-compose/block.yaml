@@ -824,7 +824,6 @@ tabs:
   label: Tabs
   alertTitle: Set a title for your block
   title: Tabs
-  addTab: + Add
   tab: Tab
   selectBlock: Choose a block
   noTabs: No tabs configured
