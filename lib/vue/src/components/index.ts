@@ -21,6 +21,7 @@ export {
   CAceEditor,
   CButtonSubmit,
   CInputSelect,
+  CInputList,
 } from './input'
 
 export {

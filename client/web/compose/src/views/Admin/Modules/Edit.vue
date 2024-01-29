@@ -210,116 +210,107 @@
 
                 <hr>
 
-                <h5 class="mb-3">
-                  {{ $t('edit.manageRecordFields') }}
-                </h5>
-
                 <b-row no-gutters>
-                  <b-form-group class="w-100">
-                    <b-table-simple
-                      data-test-id="table-module-fields"
-                      borderless
-                      responsive
-                      small
-                    >
-                      <thead>
-                        <tr>
-                          <th />
-
-                          <th
-                            class="text-primary"
-                          >
-                            <div
-                              class="d-flex align-items-center"
-                            >
-                              {{ $t('general.label.name') }}
-                              <c-hint
-                                :tooltip="$t('edit.tooltip.name')"
-                              />
-                            </div>
-                          </th>
-
-                          <th
-                            class="text-primary"
-                          >
-                            <div
-                              class="d-flex align-items-center"
-                            >
-                              {{ $t('general.label.title') }}
-                              <c-hint
-                                :tooltip="$t('edit.tooltip.title')"
-                              />
-                            </div>
-                          </th>
-
-                          <th class="text-primary">
-                            {{ $t('general:label.type') }}
-                          </th>
-
-                          <th />
-                          <th />
-
-                          <th class="text-primary text-center pr-3">
-                            {{ $t('general:label.required') }}
-                          </th>
-
-                          <th class="text-primary text-center pl-2">
-                            {{ $t('general:label.multi') }}
-                          </th>
-
-                          <th />
-                        </tr>
-                      </thead>
-
-                      <draggable
-                        v-model="module.fields"
-                        handle=".handle"
-                        tag="tbody"
+                  <c-input-list
+                    :list-title="$t('edit.manageRecordFields')"
+                    :action-title="$t('edit.newField')"
+                  >
+                    <b-form-group class="w-100">
+                      <b-table-simple
+                        data-test-id="table-module-fields"
+                        borderless
+                        responsive
+                        small
                       >
-                        <field-row-edit
-                          v-for="(field, index) in module.fields"
-                          :key="index"
-                          v-model="module.fields[index]"
-                          :can-grant="namespace.canGrant"
-                          :has-records="hasRecords"
-                          :module="module"
-                          :is-duplicate="!!duplicateFields[index]"
-                          @edit="handleFieldEdit(module.fields[index])"
-                          @delete="module.fields.splice(index, 1)"
-                          @updateKind="handleFieldKindUpdate(index)"
-                        />
-                      </draggable>
-
-                      <tr>
-                        <td colspan="1" />
-                        <td colspan="7">
-                          <b-button
-                            data-test-id="button-field-add"
-                            class="mb-5"
-                            variant="primary"
-                            @click="handleNewField"
-                          >
-                            + {{ $t('edit.newField') }}
-                          </b-button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          colspan="7"
-                          class="text-primary font-weight-bold"
+                        <thead>
+                          <tr>
+                            <th />
+                            <th
+                              class="text-primary"
+                            >
+                              <div
+                                class="d-flex align-items-center"
+                              >
+                                {{ $t('general.label.name') }}
+                                <c-hint
+                                  :tooltip="$t('edit.tooltip.name')"
+                                />
+                              </div>
+                            </th>
+                            <th
+                              class="text-primary"
+                            >
+                              <div
+                                class="d-flex align-items-center"
+                              >
+                                {{ $t('general.label.title') }}
+                                <c-hint
+                                  :tooltip="$t('edit.tooltip.title')"
+                                />
+                              </div>
+                            </th>
+                            <th class="text-primary">
+                              {{ $t('general:label.type') }}
+                            </th>
+                            <th />
+                            <th />
+                            <th class="text-primary text-center pr-3">
+                              {{ $t('general:label.required') }}
+                            </th>
+                            <th class="text-primary text-center pl-2">
+                              {{ $t('general:label.multi') }}
+                            </th>
+                            <th />
+                          </tr>
+                        </thead>
+                        <draggable
+                          v-model="module.fields"
+                          handle=".handle"
+                          tag="tbody"
                         >
-                          {{ $t('edit.systemFields') }}
-                        </td>
-                      </tr>
-
-                      <field-row-view
-                        v-for="(field, index) in systemFields"
-                        :key="index"
-                        :field="field"
-                        class="mt-4"
-                      />
-                    </b-table-simple>
-                  </b-form-group>
+                          <field-row-edit
+                            v-for="(field, index) in module.fields"
+                            :key="index"
+                            v-model="module.fields[index]"
+                            :can-grant="namespace.canGrant"
+                            :has-records="hasRecords"
+                            :module="module"
+                            :is-duplicate="!!duplicateFields[index]"
+                            @edit="handleFieldEdit(module.fields[index])"
+                            @delete="module.fields.splice(index, 1)"
+                            @updateKind="handleFieldKindUpdate(index)"
+                          />
+                        </draggable>
+                        <tr>
+                          <td colspan="1" />
+                          <td colspan="7">
+                            <b-button
+                              data-test-id="button-field-add"
+                              class="mb-5"
+                              variant="primary"
+                              @click="handleNewField"
+                            >
+                              + {{ $t('edit.newField') }}
+                            </b-button>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            colspan="7"
+                            class="font-weight-bold"
+                          >
+                            {{ $t('edit.systemFields') }}
+                          </td>
+                        </tr>
+                        <field-row-view
+                          v-for="(field, index) in systemFields"
+                          :key="index"
+                          :field="field"
+                          class="mt-4"
+                        />
+                      </b-table-simple>
+                    </b-form-group>
+                  </c-input-list>
                 </b-row>
               </b-tab>
 

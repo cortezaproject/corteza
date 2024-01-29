@@ -224,21 +224,13 @@
     </b-table-simple>
 
     <div
-      v-else
+      v-if="!block.options.tabs.length"
       class="text-center my-4"
     >
       <p>
         {{ $t('tabs.noTabs') }}
       </p>
     </div>
-
-    <b-button
-      variant="primary"
-      class="text-decoration-none"
-      @click="addTab"
-    >
-      {{ $t('tabs.addTab') }}
-    </b-button>
 
     <b-modal
       id="createBlockSelectorTab"
