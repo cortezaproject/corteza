@@ -232,11 +232,15 @@
             cols="12"
           >
             <hr>
-            <div class="list-background rounded border border-light p-3">
-              <b-form-group
-                :label="$t('page-layout.layouts')"
-                label-class="text-primary"
-                class="mb-0"
+
+            <b-form-group
+              :label="$t('page-layout.layouts')"
+              label-class="text-primary"
+              class="mb-0"
+            >
+              <c-form-table-wrapper
+                :labels="{ addButton: $t('general:label.add') }"
+                @add-item="addLayout"
               >
                 <b-table-simple
                   v-if="layouts.length > 0"
@@ -247,21 +251,18 @@
                   <b-thead>
                     <tr>
                       <th style="width: 40px;" />
-
                       <th
                         class="text-primary"
                         style="min-width: 300px;"
                       >
                         {{ $t('page-layout.title') }}
                       </th>
-
                       <th
                         class="text-primary"
                         style="min-width: 300px;"
                       >
                         {{ $t('page-layout.handle') }}
                       </th>
-
                       <th style="min-width: 100px;" />
                     </tr>
                   </b-thead>
@@ -284,7 +285,6 @@
                           class="text-secondary"
                         />
                       </b-td>
-
                       <b-td
                         class="align-middle"
                       >
@@ -294,7 +294,6 @@
                             :state="layoutTitleState(layout.meta.title)"
                             @input="layout.meta.updated = true"
                           />
-
                           <b-input-group-append>
                             <page-layout-translator
                               :page-layout="layout"
@@ -304,7 +303,6 @@
                           </b-input-group-append>
                         </b-input-group>
                       </b-td>
-
                       <b-td
                         class="align-middle"
                       >
@@ -314,7 +312,6 @@
                             :state="layoutHandleState(layout.handle)"
                             @input="layout.meta.updated = true"
                           />
-
                           <b-input-group-append>
                             <b-button
                               v-b-tooltip.noninteractive.hover="{ title: $t('page-layout.tooltip.configure'), container: '#body' }"
@@ -326,7 +323,6 @@
                                 :icon="['fas', 'wrench']"
                               />
                             </b-button>
-
                             <b-button
                               v-b-tooltip.noninteractive.hover="{ title: $t('page-layout.tooltip.builder'), container: '#body' }"
                               variant="primary"
@@ -341,7 +337,6 @@
                           </b-input-group-append>
                         </b-input-group>
                       </b-td>
-
                       <td
                         class="text-right align-middle"
                         style="min-width: 100px;"
@@ -356,7 +351,6 @@
                           :resource="`corteza::compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`"
                           class="text-dark border-0 mr-2"
                         />
-
                         <c-input-confirm
                           show-icon
                           @confirmed="removeLayout(index)"
@@ -365,21 +359,8 @@
                     </tr>
                   </draggable>
                 </b-table-simple>
-
-                <b-button
-                  variant="primary"
-                  size="sm"
-                  class="mt-1"
-                  @click="addLayout"
-                >
-                  <font-awesome-icon
-                    :icon="['fas', 'plus']"
-                    class="mr-1"
-                  />
-                  {{ $t('general:label.add') }}
-                </b-button>
-              </b-form-group>
-            </div>
+              </c-form-table-wrapper>
+            </b-form-group>
           </b-col>
         </b-row>
       </b-card>
@@ -598,11 +579,14 @@
           </b-form-checkbox>
         </b-form-group>
 
-        <div class="list-background rounded border border-light p-3">
-          <b-form-group
-            :label="$t('page-layout.recordToolbar.actions.label')"
-            label-class="text-primary"
-            class="mb-0"
+        <b-form-group
+          :label="$t('page-layout.recordToolbar.actions.label')"
+          label-class="text-primary"
+          class="mb-0"
+        >
+          <c-form-table-wrapper
+            :labels="{ addButton: $t('general:label.add') }"
+            @add-item="addLayoutAction"
           >
             <b-table-simple
               v-if="layoutEditor.layout.config.actions.length > 0"
@@ -633,7 +617,6 @@
                       />
                     </div>
                   </b-td>
-
                   <b-td style="min-width: 250px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.buttonLabel')"
@@ -645,7 +628,6 @@
                         class="mb-1"
                       />
                     </b-form-group>
-
                     <b-form-group
                       v-if="action.kind === 'toLayout'"
                       :label="$t('page-layout.recordToolbar.actions.toLayout.label')"
@@ -659,7 +641,6 @@
                         text-field="label"
                       />
                     </b-form-group>
-
                     <b-form-group
                       v-if="action.kind === 'toURL'"
                       :label="$t('page-layout.recordToolbar.actions.toURL.label')"
@@ -673,7 +654,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 250px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.kind.label')"
@@ -687,7 +667,6 @@
                         @change="onActionKindChange(action)"
                       />
                     </b-form-group>
-
                     <b-form-group
                       v-if="action.kind === 'toURL'"
                       :label="$t('page-layout.recordToolbar.actions.openIn.label')"
@@ -700,7 +679,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 150px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.variant')"
@@ -712,7 +690,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 100px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.placement.label')"
@@ -724,7 +701,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 80px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.visible')"
@@ -741,7 +717,6 @@
                       </div>
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 80px;">
                     <div
                       class="d-flex align-items-center justify-content-end"
@@ -757,21 +732,8 @@
                 </tr>
               </draggable>
             </b-table-simple>
-
-            <b-button
-              variant="primary"
-              size="sm"
-              class="mt-1"
-              @click="addLayoutAction"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'plus']"
-                class="mr-1"
-              />
-              {{ $t('general:label.add') }}
-            </b-button>
-          </b-form-group>
-        </div>
+          </c-form-table-wrapper>
+        </b-form-group>
       </template>
     </b-modal>
 
@@ -1507,7 +1469,6 @@ export default {
       this.resolvedRoles = {}
       this.removedLayouts.clear()
       this.checkboxLabel = {}
-      this.abortableRequests = []
     },
   },
 }

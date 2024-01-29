@@ -71,7 +71,7 @@ edit:
   steps:
     recordList: Page with record list
     recordPage: Record page
-  systemFields: 'System fields:'
+  systemFields: 'System fields'
   tooltip:
     attributes: Select if the field can hold multiple values, if it's required field or if contains sensitive data
     name: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dashes. Must end with letter or number.

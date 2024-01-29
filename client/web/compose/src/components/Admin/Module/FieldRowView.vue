@@ -1,7 +1,8 @@
 <template>
   <tr>
-    <td />
-    <td class="pl-3">
+    <td class="pr-2" />
+
+    <td style="width: 250px;">
       {{ field.name }}
       <b-badge
         v-if="field.omit"
@@ -11,10 +12,12 @@
         {{ $t('unavailable') }}
       </b-badge>
     </td>
-    <td class="pl-3">
+
+    <td style="width: 250px;">
       {{ field.label }}
     </td>
-    <td class="pl-3">
+
+    <td>
       {{ field.kind }}
     </td>
   </tr>

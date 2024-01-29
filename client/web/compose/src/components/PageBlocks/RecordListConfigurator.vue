@@ -308,17 +308,20 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-3">
-                <b-form-group
-                  :label="$t('recordList.filter.presets')"
-                  label-class="text-primary"
-                  class="mb-0"
+              <b-form-group
+                :label="$t('recordList.filter.presets')"
+                label-class="text-primary mb-1"
+              >
+                <c-form-table-wrapper
+                  :labels="{
+                    addButton: $t('general:label.add')
+                  }"
+                  @add-item="addFilterPreset"
                 >
                   <b-spinner v-if="fetchingRoles" />
 
                   <template v-else>
                     <b-table-simple
-                      v-if="recordListModule"
                       borderless
                       small
                       responsive="lg"
@@ -411,8 +414,8 @@
                       {{ $t('general:label.add') }}
                     </b-button>
                   </template>
-                </b-form-group>
-              </div>
+                </c-form-table-wrapper>
+              </b-form-group>
             </b-col>
           </b-row>
         </div>
@@ -444,28 +447,21 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-3">
-                <b-form-group
-                  :label="$t('recordList.record.presortInputLabel')"
-                  label-class="text-primary"
-                  class="mb-0"
-                >
-                  <c-input-presort
-                    v-model="options.presort"
-                    :fields="recordListModuleFields"
-                    :labels="{
-                      add: $t('general:label.add'),
-                      ascending: $t('general:label.ascending'),
-                      descending: $t('general:label.descending'),
-                      none: $t('general:label.none'),
-                      placeholder: $t('recordList.record.presortPlaceholder'),
-                      footnote: $t('recordList.record.presortFootnote'),
-                      toggleInput: $t('recordList.record.presortToggleInput'),
-                    }"
-                    allow-text-input
-                  />
-                </b-form-group>
-              </div>
+              <c-input-presort
+                v-model="options.presort"
+                :fields="recordListModuleFields"
+                :labels="{
+                  ascending: $t('general:label.ascending'),
+                  descending: $t('general:label.descending'),
+                  none: $t('general:label.none'),
+                  placeholder: $t('recordList.record.presortPlaceholder'),
+                  footnote: $t('recordList.record.presortFootnote'),
+                  toggleInput: $t('recordList.record.presortToggleInput'),
+                  addButton: $t('general:label.add'),
+                  title: $t('recordList.record.presortInputLabel')
+                }"
+                allow-text-input
+              />
             </b-col>
           </b-row>
         </div>
