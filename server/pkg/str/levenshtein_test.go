@@ -37,3 +37,32 @@ func TestLevenshteinDistance(t *testing.T) {
 		})
 	}
 }
+
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/str
+// BenchmarkLeven_100_100-12                  39949             25767 ns/op           93184 B/op        102 allocs/op
+// BenchmarkLeven_1000_1000-12                  390           3081967 ns/op         8298552 B/op       1011 allocs/op
+// BenchmarkLeven_10000_10000-12                  4         299103531 ns/op        829957216 B/op     10131 allocs/op
+// PASS
+
+func benchmarkLeven(b *testing.B, w1l, w2l int) {
+	w1 := randStringRunes(w1l)
+	w2 := randStringRunes(w2l)
+
+	for i := 0; i < b.N; i++ {
+		ToLevenshteinDistance(w1, w2)
+	}
+}
+
+func BenchmarkLeven_100_100(b *testing.B) {
+	benchmarkLeven(b, 100, 100)
+}
+
+func BenchmarkLeven_1000_1000(b *testing.B) {
+	benchmarkLeven(b, 1000, 1000)
+}
+
+func BenchmarkLeven_10000_10000(b *testing.B) {
+	benchmarkLeven(b, 10000, 10000)
+}
