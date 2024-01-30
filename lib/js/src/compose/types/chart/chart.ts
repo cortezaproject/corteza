@@ -115,7 +115,7 @@ export default class Chart extends BaseChart {
           },
           splitLine: {
             lineStyle: {
-              color: [themeVariables['secondary']],
+              color: [themeVariables['extra-light']],
             },
           },
           nameTextStyle: {

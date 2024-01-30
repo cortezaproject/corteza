@@ -346,7 +346,7 @@ export default {
           },
           splitLine: {
             lineStyle: {
-              color: [themeVariables['secondary']],
+              color: [themeVariables['extra-light']],
             },
           },
         },

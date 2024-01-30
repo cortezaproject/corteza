@@ -150,7 +150,7 @@ export class BasicChartOptions extends ChartOptions {
         },
         splitLine: {
           lineStyle: {
-            color: [themeVariables['secondary']],
+            color: [themeVariables['extra-light']],
           },
         },
         nameTextStyle: {
