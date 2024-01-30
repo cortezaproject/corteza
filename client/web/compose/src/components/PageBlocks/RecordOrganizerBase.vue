@@ -7,7 +7,7 @@
     <template #default>
       <div
         v-if="!isConfigured"
-        class="d-flex align-items-center justify-content-center h-100 p-2"
+        class="d-flex align-items-center justify-content-center h-100 p-3"
       >
         {{ $t('recordOrganizer.notConfigured') }}
       </div>
@@ -22,7 +22,7 @@
           handle=".record-item"
           :group="{ name: moduleID, pull: canPull, put: canPut }"
           :move="checkMove"
-          class="h-100 pt-2 px-2 overflow-auto"
+          class="h-100 pt-3 px-3 overflow-auto"
           @change="onChange"
         >
           <template
@@ -30,7 +30,7 @@
             #header
           >
             <div
-              class="small p-2 text-secondary"
+              class="small p-3 text-secondary"
             >
               {{ $t('recordOrganizer.noRecords') }}
             </div>
@@ -39,13 +39,13 @@
           <b-card
             v-for="record in records"
             :key="`${record.recordID}`"
-            body-class="px-2 py-1"
-            class="record-item border border-light rounded mb-2 grab"
+            body-class="rounded p-3"
+            class="record-item border border-light mb-3 grab"
             @click="handleRecordClick(record)"
           >
-            <div
+            <h6
               v-if="labelField"
-              class="d-flex mb-1 overflow-hidden"
+              class="d-flex overflow-hidden"
             >
               <field-viewer
                 v-if="labelField.canReadRecordValue"
@@ -58,11 +58,11 @@
                 v-else
                 class="text-secondary"
               >{{ $t('field.noPermission') }}</i>
-            </div>
+            </h6>
 
             <b-card-text
               v-if="descriptionField"
-              class="d-flex small overflow-hidden"
+              class="d-flex overflow-hidden"
             >
               <field-viewer
                 v-if="descriptionField.canReadRecordValue"
