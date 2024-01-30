@@ -15,7 +15,13 @@
       class="bg-warning rounded p-2 mb-3"
     >
       {{ $t('sassNotInstalled') }}
-      <a :href="installSassDocs">{{ $t('installSassDocs') }}</a>
+      <a
+        :href="installSassDocs"
+        target="_blank"
+        class="text-dark"
+      >
+        {{ $t('installSassDocs') }}
+      </a>
     </div>
 
     <b-tabs
