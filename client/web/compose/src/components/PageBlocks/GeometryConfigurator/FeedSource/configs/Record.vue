@@ -89,7 +89,7 @@
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
-            theme-settings="themeSettings"
+            :theme-settings="themeSettings"
           />
         </b-form-group>
 

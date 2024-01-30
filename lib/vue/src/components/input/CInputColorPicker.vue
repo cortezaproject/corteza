@@ -70,22 +70,28 @@
 
       <div
         v-if="themes.length > 0"
-        class="d-flex flex-column border-top p-3 gap-1"
+        class="d-flex flex-column border-top p-3 gap-2"
       >
-        <div
+        <b-form-group
           v-for="theme in themes"
           :key="theme.id"
-          class="d-flex border"
+          :label="translations[theme.id]"
+          label-class="text-primary"
+          class="mb-0"
         >
-          <b-button
-            v-for="variable in themeVariables"
-            :key="variable.label"
-            v-b-tooltip.noninteractive.hover="{ title: colorToolTip(theme.id, variable.value), container: '#body' }"
-            class="swatch flex-grow-1 rounded-0"
-            :style="{ backgroundColor: theme.values[variable.label], borderColor: theme.values[variable.label] }"
-            @click="setColor(theme.values[variable.label])"
-          />
-        </div>
+          <div
+            class="d-flex flex-wrap border"
+          >
+            <b-button
+              v-for="variable in themeVariables"
+              :key="variable.label"
+              v-b-tooltip.noninteractive.hover="{ title: colorToolTip(theme.id, variable.value), container: '#body' }"
+              class="swatch flex-grow-1 rounded-0"
+              :style="{ backgroundColor: theme.values[variable.label], borderColor: theme.values[variable.label] }"
+              @click="setColor(theme.values[variable.label])"
+            />
+          </div>
+        </b-form-group>
       </div>
 
       <template #modal-footer>
@@ -276,6 +282,7 @@ export default {
 <style lang="scss" scoped>
 .swatch {
   height: 58px;
+  min-width: 50px;
 }
 </style>
 
