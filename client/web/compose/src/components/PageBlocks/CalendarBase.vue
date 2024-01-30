@@ -76,7 +76,7 @@
 
       <div
         :ref="`cc-${blockIndex}`"
-        class="h-100"
+        class="d-flex flex-column flex-fill"
       >
         <div
           v-if="processing"
@@ -86,12 +86,13 @@
         </div>
 
         <full-calendar
-          v-show="show && !processing"
+          v-show="!processing"
           :ref="`fc-${blockIndex}`"
           :key="key"
           :height="getHeight()"
           :events="events"
           v-bind="config"
+          class="flex-fill"
           @eventClick="handleEventClick"
         />
       </div>
@@ -222,9 +223,7 @@ export default {
     'block.xywh': {
       deep: true,
       handler () {
-        setTimeout(() => {
-          this.updateSize()
-        })
+        this.updateSize()
       },
     },
   },
@@ -249,11 +248,9 @@ export default {
       findModuleByID: 'module/findByID',
     }),
 
-    async updateSize () {
-      this.show = false
-
-      await this.$nextTick(() => {
-        this.show = true
+    updateSize () {
+      this.$nextTick(() => {
+        this.api().updateSize()
       })
     },
 
@@ -350,9 +347,7 @@ export default {
           this.processing = false
           this.refreshing = false
 
-          setTimeout(() => {
-            this.updateSize()
-          })
+          this.updateSize()
         })
     },
 

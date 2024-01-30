@@ -282,7 +282,9 @@ export default {
 
     onBoundsUpdate (value) {
       this.$nextTick(() => {
-        this.$refs.map.mapObject.invalidateSize()
+        setTimeout(() => {
+          this.$refs.map.mapObject.invalidateSize()
+        }, 100)
       })
 
       value = value || this.$refs.map.mapObject.getBounds()
