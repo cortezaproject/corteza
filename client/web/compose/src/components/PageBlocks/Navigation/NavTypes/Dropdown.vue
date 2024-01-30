@@ -29,25 +29,20 @@
               v-model="options.item.align"
               buttons
               button-variant="outline-primary"
-              size="sm"
               :options="aligns"
             />
           </b-form-group>
         </th>
       </div>
 
-      <div class="mb-4 mb-3 px-3">
-        <h6 class="text-primary mb-0">
-          {{ $t("navigation.dropdownItems") }}
-        </h6>
-      </div>
-
-      <div class="px-3">
-        <table
-          v-if="options.item.dropdown.items.length > 0"
-          class="dd-items table table-sm table-borderless table-responsive-lg"
-        >
-          <tr>
+      <b-table-simple
+        v-if="options.item.dropdown.items.length > 0"
+        borderless
+        responsive
+        class="border-top pt-2"
+      >
+        <thead>
+          <tr class="text-primary">
             <th style="min-width: 200px;">
               {{ $t("navigation.text") }}
             </th>
@@ -64,61 +59,62 @@
               {{ $t("navigation.delimiter") }}
             </th>
           </tr>
+        </thead>
 
-          <tr
-            v-for="(item, dropIndex) in options.item.dropdown.items"
-            :key="`drop-${dropIndex}`"
-          >
-            <td>
-              <b-form-group class="mb-0">
-                <b-form-input
-                  v-model="item.label"
-                  type="text"
-                />
-              </b-form-group>
-            </td>
-
-            <td>
-              <b-form-group class="mb-0">
-                <b-form-input
-                  v-model="item.url"
-                  type="text"
-                />
-              </b-form-group>
-            </td>
-
-            <td class="align-middle text-center">
-              <b-form-group class="mb-0">
-                <b-form-select
-                  v-model="item.target"
-                  :options="targetOptions"
-                />
-              </b-form-group>
-            </td>
-
-            <td class="align-middle text-center">
-              <b-form-group class="d-flex align-items-center justify-content-center mb-0">
-                <c-input-checkbox
-                  v-model="item.delimiter"
-                  switch
-                  size="sm"
-                />
-              </b-form-group>
-            </td>
-
-            <td class="align-middle text-center">
-              <c-input-confirm
-                show-icon
-                @confirmed="options.item.dropdown.items.splice(dropIndex, 1)"
+        <tr
+          v-for="(item, dropIndex) in options.item.dropdown.items"
+          :key="`drop-${dropIndex}`"
+        >
+          <td>
+            <b-form-group class="mb-0">
+              <b-form-input
+                v-model="item.label"
+                type="text"
               />
-            </td>
-          </tr>
-        </table>
-      </div>
+            </b-form-group>
+          </td>
+
+          <td>
+            <b-form-group class="mb-0">
+              <b-form-input
+                v-model="item.url"
+                type="text"
+              />
+            </b-form-group>
+          </td>
+
+          <td class="align-middle text-center">
+            <b-form-group class="mb-0">
+              <b-form-select
+                v-model="item.target"
+                :options="targetOptions"
+              />
+            </b-form-group>
+          </td>
+
+          <td class="align-middle text-center">
+            <b-form-group class="d-flex align-items-center justify-content-center mb-0">
+              <c-input-checkbox
+                v-model="item.delimiter"
+                switch
+                size="sm"
+              />
+            </b-form-group>
+          </td>
+
+          <td class="align-middle text-center">
+            <c-input-confirm
+              show-icon
+              @confirmed="options.item.dropdown.items.splice(dropIndex, 1)"
+            />
+          </td>
+        </tr>
+      </b-table-simple>
 
       <div class="mb-4 mb-3 px-3">
         <b-button
           variant="primary"
+          size="sm"
           class="text-decoration-none"
           @click="options.item.dropdown.items.push({ text: '', url: '', target: 'sameTab', delimiter: false })"
         >

@@ -10,7 +10,6 @@
       <b-button-group
         v-if="page && page.canUpdatePage"
         size="sm"
-        class="mr-1"
       >
         <b-button
           data-test-id="button-page-builder"
@@ -28,11 +27,12 @@
         <page-translator
           :page.sync="page"
           :page-layouts.sync="layouts"
+          button-variant="primary"
           style="margin-left:2px;"
         />
 
         <b-button
-          v-b-tooltip.hover="{ title: $t('tooltip.view'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.view'), container: '#body' }"
           variant="primary"
           :to="pageViewer"
           class="d-flex align-items-center"
@@ -56,54 +56,55 @@
       v-else
       fluid="xl"
     >
-      <div
-        class="d-flex align-items-center mt-1 mb-2"
-      >
-        <b-dropdown
-          v-if="page.canGrant || namespace.canGrant"
-          data-test-id="dropdown-permissions"
-          size="lg"
-          variant="light"
-          class="permissions-dropdown mr-1"
-        >
-          <template #button-content>
-            <font-awesome-icon :icon="['fas', 'lock']" />
-            <span>
-              {{ $t('general:label.permissions') }}
-            </span>
-          </template>
-
-          <b-dropdown-item>
-            <c-permissions-button
-              v-if="namespace.canGrant"
-              :title="page.title || page.handle || page.pageID"
-              :target="page.title || page.handle || page.pageID"
-              :resource="`corteza::compose:page/${namespace.namespaceID}/${page.pageID}`"
-              :button-label="$t('general:label.page')"
-              :show-button-icon="false"
-              button-variant="white text-left w-100"
-            />
-          </b-dropdown-item>
-
-          <b-dropdown-item>
-            <c-permissions-button
-              v-if="page.canGrant"
-              :title="page.title || page.handle || page.pageID"
-              :target="page.title || page.handle || page.pageID"
-              :resource="`corteza::compose:page-layout/${namespace.namespaceID}/${page.pageID}/*`"
-              :button-label="$t('general:label.pageLayout')"
-              :show-button-icon="false"
-              all-specific
-              button-variant="white text-left w-100"
-            />
-          </b-dropdown-item>
-        </b-dropdown>
-      </div>
-
       <b-card
         no-body
+        header-class="d-flex py-3 align-items-center border-bottom"
         class="shadow-sm"
       >
+        <template #header>
+          <b-dropdown
+            v-if="page.canGrant || namespace.canGrant"
+            data-test-id="dropdown-permissions"
+            size="lg"
+            variant="light"
+            class="permissions-dropdown mr-1"
+          >
+            <template #button-content>
+              <font-awesome-icon :icon="['fas', 'lock']" />
+              <span>
+                {{ $t('general:label.permissions') }}
+              </span>
+            </template>
+
+            <b-dropdown-item>
+              <c-permissions-button
+                v-if="namespace.canGrant"
+                :title="page.title || page.handle || page.pageID"
+                :target="page.title || page.handle || page.pageID"
+                :resource="`corteza::compose:page/${namespace.namespaceID}/${page.pageID}`"
+                :button-label="$t('general:label.page')"
+                :show-button-icon="false"
+                button-variant="outline-light"
+                class="border-0 text-dark text-left w-100"
+              />
+            </b-dropdown-item>
+
+            <b-dropdown-item>
+              <c-permissions-button
+                v-if="page.canGrant"
+                :title="page.title || page.handle || page.pageID"
+                :target="page.title || page.handle || page.pageID"
+                :resource="`corteza::compose:page-layout/${namespace.namespaceID}/${page.pageID}/*`"
+                :button-label="$t('general:label.pageLayout')"
+                :show-button-icon="false"
+                all-specific
+                button-variant="outline-light"
+                class="border-0 text-dark text-left w-100"
+              />
+            </b-dropdown-item>
+          </b-dropdown>
+        </template>
+
         <b-row
           v-if="page"
           class="px-4 py-3"
@@ -178,7 +179,7 @@
               <template #label>
                 {{ $t('icon.page') }}
                 <b-button
-                  v-b-tooltip.hover="{ title: $t('icon.configure'), container: '#body' }"
+                  v-b-tooltip.noninteractive.hover="{ title: $t('icon.configure'), container: '#body' }"
                   variant="outline-light"
                   class="d-flex align-items-center px-1 text-primary border-0 ml-1"
                   @click="openIconModal"
@@ -231,7 +232,7 @@
             cols="12"
           >
             <hr>
-            <div class="list-background rounded border border-light p-1">
+            <div class="list-background rounded border border-light p-3">
               <b-form-group
                 :label="$t('page-layout.layouts')"
                 label-class="text-primary"
@@ -280,6 +281,7 @@
                       >
                         <font-awesome-icon
                           :icon="['fas', 'bars']"
+                          class="text-secondary"
                         />
                       </b-td>
 
@@ -315,8 +317,8 @@
 
                           <b-input-group-append>
                             <b-button
-                              v-b-tooltip.hover="{ title: $t('page-layout.tooltip.configure'), container: '#body' }"
-                              variant="light"
+                              v-b-tooltip.noninteractive.hover="{ title: $t('page-layout.tooltip.configure'), container: '#body' }"
+                              variant="extra-light"
                               class="d-flex align-items-center px-3"
                               @click="configureLayout(index)"
                             >
@@ -326,7 +328,7 @@
                             </b-button>
 
                             <b-button
-                              v-b-tooltip.hover="{ title: $t('page-layout.tooltip.builder'), container: '#body' }"
+                              v-b-tooltip.noninteractive.hover="{ title: $t('page-layout.tooltip.builder'), container: '#body' }"
                               variant="primary"
                               :disabled="layout.pageLayoutID === '0'"
                               class="d-flex align-items-center"
@@ -486,7 +488,7 @@
         </template>
         <b-input-group>
           <b-input-group-prepend>
-            <b-button variant="dark">
+            <b-button variant="extra-light">
               ƒ
             </b-button>
           </b-input-group-prepend>
@@ -597,7 +599,7 @@
           </b-form-checkbox>
         </b-form-group>
 
-        <div class="list-background rounded border border-light p-1">
+        <div class="list-background rounded border border-light p-3">
           <b-form-group
             :label="$t('page-layout.recordToolbar.actions.label')"
             label-class="text-primary"
@@ -628,6 +630,7 @@
                     >
                       <font-awesome-icon
                         :icon="['fas', 'bars']"
+                        class="text-secondary"
                       />
                     </div>
                   </b-td>
@@ -834,7 +837,7 @@
             <b-input-group-append>
               <b-button
                 v-b-modal.logo
-                v-b-tooltip.hover="{ title: $t('tooltip.preview-link'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.preview-link'), container: '#body' }"
                 :disabled="!linkUrl"
                 variant="light"
                 rounded

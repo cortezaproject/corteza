@@ -21,12 +21,12 @@
       >
         <b-card
           body-class="position-relative p-0"
-          header-class="bg-white"
-          footer-class="bg-white"
+          header-class="border-bottom"
+          footer-class="border-top"
           class="shadow-sm h-100"
         >
           <template #header>
-            <b-card-title title-tag="h3">
+            <b-card-title title-tag="h4">
               <router-link
                 :to="{ name: 'system.user.list' }"
                 :area-label="`${users.valid} ${$t('users.title')}`"
@@ -35,9 +35,9 @@
                 {{ users.valid }}
               </router-link>
             </b-card-title>
-            <b-card-sub-title sub-title-tag="h4">
+            <h4>
               {{ $t('users.title') }}
-            </b-card-sub-title>
+            </h4>
           </template>
 
           <c-chart
@@ -59,7 +59,7 @@
                 >
                   {{ users.total }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('users.total') }}
                 </span>
               </b-col>
@@ -75,7 +75,7 @@
                 >
                   {{ users.suspended }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('users.suspended') }}
                 </span>
               </b-col>
@@ -91,7 +91,7 @@
                 >
                   {{ users.deleted }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('users.deleted') }}
                 </span>
               </b-col>
@@ -110,12 +110,11 @@
       >
         <b-card
           no-body
-          header-class="bg-white"
-          footer-class="bg-white"
+          footer-class="border-top"
           class="shadow-sm"
         >
           <template #header>
-            <b-card-title title-tag="h3">
+            <b-card-title title-tag="h4">
               <router-link
                 :to="{ name: 'system.role.list' }"
                 :aria-label="roles.valid + ' ' + $t('roles.title')"
@@ -124,9 +123,9 @@
                 {{ roles.valid }}
               </router-link>
             </b-card-title>
-            <b-card-sub-title sub-title-tag="h4">
+            <h4>
               {{ $t('roles.title') }}
-            </b-card-sub-title>
+            </h4>
           </template>
 
           <template #footer>
@@ -143,7 +142,7 @@
                 >
                   {{ roles.total }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('roles.total') }}
                 </span>
               </b-col>
@@ -159,7 +158,7 @@
                 >
                   {{ roles.archived }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('roles.archived') }}
                 </span>
               </b-col>
@@ -175,7 +174,7 @@
                 >
                   {{ roles.deleted }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('roles.deleted') }}
                 </span>
               </b-col>
@@ -192,12 +191,11 @@
       >
         <b-card
           no-body
-          header-class="bg-white"
-          footer-class="bg-white"
+          footer-class="border-top"
           class="shadow-sm"
         >
           <template #header>
-            <b-card-title title-tag="h3">
+            <b-card-title title-tag="h4">
               <router-link
                 :to="{ name: 'system.application.list' }"
                 :aria-label="applications.valid + ' ' + $t('applications.title')"
@@ -206,9 +204,9 @@
                 {{ applications.valid }}
               </router-link>
             </b-card-title>
-            <b-card-sub-title sub-title-tag="h4">
+            <h4>
               {{ $t('applications.title') }}
-            </b-card-sub-title>
+            </h4>
           </template>
 
           <template #footer>
@@ -225,7 +223,7 @@
                 >
                   {{ applications.total }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('applications.total') }}
                 </span>
               </b-col>
@@ -241,7 +239,7 @@
                 >
                   {{ applications.deleted }}
                 </router-link>
-                <span class="text-secondary d-sm-block">
+                <span class="d-sm-block">
                   {{ $t('applications.deleted') }}
                 </span>
               </b-col>
@@ -318,6 +316,7 @@ export default {
         return
       }
 
+      const themeVariables = this.getThemeVariables()
       const { dates, values } = this.getUserTimeline()
 
       this.userChart = {
@@ -325,15 +324,31 @@ export default {
           trigger: 'axis',
         },
         textStyle: {
-          fontFamily: 'Poppins-Regular',
+          fontFamily: themeVariables['font-regular'],
+          color: themeVariables.black,
         },
         xAxis: {
           type: 'category',
           data: dates,
           boundaryGap: false,
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: false,
+          },
         },
         yAxis: {
           type: 'value',
+          axisLine: {
+            show: false,
+            onZero: false,
+          },
+          splitLine: {
+            lineStyle: {
+              color: [themeVariables['extra-light']],
+            },
+          },
         },
         grid: {
           top: 20,
@@ -354,6 +369,18 @@ export default {
           },
         ],
       }
+    },
+
+    getThemeVariables () {
+      const getCssVariable = (variableName) => {
+        return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim()
+      }
+
+      // Turn below into an object with key value pairs
+      return ['white', 'black', 'primary', 'secondary', 'success', 'warning', 'danger', 'light', 'extra-light', 'dark', 'font-regular'].reduce((acc, variable) => {
+        acc[variable] = getCssVariable(`--${variable}`)
+        return acc
+      }, {})
     },
 
     getUserTimeline () {

@@ -63,7 +63,7 @@
 
         <div class="px-3">
           <div class="mb-3">
-            <h5 class="d-flex align-items-center text-primary mb-1">
+            <h5 class="d-flex align-items-center mb-1">
               {{ $t('module:general.fields') }}
               <c-hint
                 :tooltip="$t('recordList.tooltip.performance.moduleFields')"
@@ -296,7 +296,7 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-1">
+              <div class="list-background rounded border border-light p-3">
                 <b-form-group
                   :label="$t('recordList.filter.presets')"
                   label-class="text-primary"
@@ -325,6 +325,7 @@
                         >
                           <font-awesome-icon
                             :icon="['fas', 'bars']"
+                            class="text-secondary"
                           />
                         </b-td>
 
@@ -338,7 +339,7 @@
                               :placeholder="$t('recordList.filter.name.placeholder')"
                             />
 
-                            <b-input-group-append class="border-0">
+                            <b-input-group-append>
                               <record-list-filter
                                 class="d-print-none"
                                 :target="`record-filter-${index}`"
@@ -346,9 +347,10 @@
                                 :module="recordListModule"
                                 :selected-field="recordListModule.fields[0]"
                                 :record-list-filter="filter.filter"
-                                variant="light"
+                                variant="extra-light"
+                                inactive-icon-class="text-light"
                                 button-class="px-2 pt-2"
-                                button-style="padding-bottom: calc(0.5rem - 2px);"
+                                button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
                                 @filter="(filter) => onFilter(filter, index)"
                               />
                             </b-input-group-append>
@@ -367,7 +369,6 @@
                             :placeholder="$t('recordList.filter.role.placeholder')"
                             :reduce="role => role.roleID"
                             multiple
-                            class="bg-white rounded"
                           />
                         </b-td>
 
@@ -429,7 +430,7 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-1">
+              <div class="list-background rounded border border-light p-3">
                 <b-form-group
                   :label="$t('recordList.record.presortInputLabel')"
                   label-class="text-primary"

@@ -1,8 +1,5 @@
 <template>
-  <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-  >
+  <b-card>
     <b-form-group
       :label="$t('recordList.import.report.title')"
       label-class="text-primary"

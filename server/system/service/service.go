@@ -40,6 +40,7 @@ type (
 		RBAC       options.RbacOpt
 		Limit      options.LimitOpt
 		Attachment options.AttachmentOpt
+		Webapps    options.WebappOpt
 	}
 
 	eventDispatcher interface {
@@ -153,7 +154,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultAccessControl = AccessControl(s)
 
-	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, DefaultActionlog, CurrentSettings)
+	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, DefaultActionlog, CurrentSettings, c.Webapps)
 
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 

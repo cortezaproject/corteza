@@ -176,7 +176,6 @@
             :processing="processing"
             :disabled="exportDisabled"
             variant="light"
-            size="lg"
             @click="doExport('json')"
           >
             {{ $t('recordList.export.json') }}
@@ -186,7 +185,6 @@
             :processing="processing"
             :disabled="exportDisabled"
             variant="light"
-            size="lg"
             class="ml-2"
             @click="doExport('csv')"
           >

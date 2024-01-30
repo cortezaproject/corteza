@@ -16,7 +16,6 @@
       scrollable
       :ok-title="$t('general.label.saveAndClose')"
       cancel-variant="link"
-      body-class="p-0"
       title-class="d-flex align-items-center p-0"
       @ok="onSave"
     >
@@ -28,15 +27,11 @@
         />
       </template>
 
-      <b-card-body
-        class="d-flex flex-column mh-100"
-      >
-        <field-picker
-          :module="module"
-          :fields.sync="filteredFields"
-          style="height: 71vh;"
-        />
-      </b-card-body>
+      <field-picker
+        :module="module"
+        :fields.sync="filteredFields"
+        style="height: 71vh;"
+      />
     </b-modal>
   </div>
 </template>

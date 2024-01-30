@@ -7,12 +7,12 @@
       :key="g"
       tag="li"
     >
-      <h2
+      <h6
         v-if="grp.header"
-        class="small ml-1 mt-2 font-weight-light text-uppercase"
+        class="mt-3 text-uppercase"
       >
         {{ $t(grp.header.label) }}
-      </h2>
+      </h6>
 
       <c-sidebar-nav-items
         :items="grp.items"

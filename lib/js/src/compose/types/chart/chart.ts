@@ -53,7 +53,7 @@ export default class Chart extends BaseChart {
       },
     }
 
-    const { labels, datasets = [] } = data
+    const { labels, datasets = [], themeVariables = {} } = data
     const {
       dimensions: [dimension] = [],
       yAxis, metrics: [metric] = [],
@@ -88,6 +88,12 @@ export default class Chart extends BaseChart {
             hideOverlap: true,
             rotate: dimension.rotateLabel,
           },
+          axisTick: {
+            show: false,
+          },
+          axisLine: {
+            show: false,
+          },
         }
 
         const tempYAxis = {
@@ -104,8 +110,13 @@ export default class Chart extends BaseChart {
             rotate: yAxis.rotateLabel,
           },
           axisLine: {
-            show: true,
+            show: false,
             onZero: false,
+          },
+          splitLine: {
+            lineStyle: {
+              color: [themeVariables['extra-light']],
+            },
           },
           nameTextStyle: {
             align: labelPosition === 'center' ? 'center' : position,
@@ -185,7 +196,7 @@ export default class Chart extends BaseChart {
           },
           itemStyle: {
             borderRadius: 5,
-            borderColor: '#FFFFFF',
+            borderColor: themeVariables.white,
             borderWidth: 1,
           },
           emphasis: {
@@ -277,8 +288,9 @@ export default class Chart extends BaseChart {
     return {
       color: getColorschemeColors(colorScheme, data.customColorSchemes),
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
         overflow: 'break',
+        color: themeVariables.black,
       },
       toolbox: {
         feature: {
@@ -297,7 +309,15 @@ export default class Chart extends BaseChart {
         right: (l?.position?.isDefault ? undefined : l?.position?.right) || undefined,
         bottom: (l?.position?.isDefault ? undefined : l?.position?.bottom) || undefined,
         left: (l?.position?.isDefault ? l?.align || 'center' : l?.position?.left) || 'auto',
-        orient: l?.orientation || 'horizontal'
+        orient: l?.orientation || 'horizontal',
+        textStyle: {
+          color: themeVariables.black,
+        },
+        pageTextStyle: {
+          color: themeVariables.black,
+        },
+        pageIconColor: themeVariables.black,
+        pageIconInactiveColor: themeVariables.light,
       },
       ...options,
     }

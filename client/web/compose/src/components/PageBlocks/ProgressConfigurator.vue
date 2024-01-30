@@ -306,7 +306,6 @@
                 :options="maxValueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
                 :reduce="f => f.name"
-                class="bg-white"
                 @input="fieldChanged($event, options.maxValue)"
               />
             </b-form-group>
@@ -328,7 +327,6 @@
                 :options="aggregationOperations"
                 :get-option-key="getOptionAggregationOperationKey"
                 :reduce="a => a.operation"
-                class="bg-white"
               />
             </b-form-group>
           </b-col>

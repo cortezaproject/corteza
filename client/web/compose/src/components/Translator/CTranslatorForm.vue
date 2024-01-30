@@ -1,28 +1,28 @@
 <template>
   <b-form @submit.prevent="onSubmit">
-    <div
-      class="text-right mb-2"
-    >
-      <b-dropdown
-        data-test-id="dropdown-add-language"
-        :text="$t('add-language')"
-        variant="light"
-      >
-        <b-dropdown-item-button
-          v-for="lang in intLanguages"
-          :key="lang.tag"
-          :data-test-id="`dropdown-language-item-${lang.localizedName}`"
-          :disabled="lang.default || lang.visible"
-          @click="lang.visible = true"
-        >
-          {{ lang.localizedName }}
-        </b-dropdown-item-button>
-      </b-dropdown>
-    </div>
-    <b-table-simple>
-      <b-thead>
+    <b-table-simple head-variant="light">
+      <b-thead class="bg-light">
         <b-tr>
-          <b-th class="key p-1" />
+          <b-th class="key py-2 px-1">
+            <b-dropdown
+              data-test-id="dropdown-add-language"
+              :text="$t('add-language')"
+              variant="light"
+              size="sm"
+              boundary="window"
+            >
+              <b-dropdown-item-button
+                v-for="lang in intLanguages"
+                :key="lang.tag"
+                :data-test-id="`dropdown-language-item-${lang.localizedName}`"
+                :disabled="lang.default || lang.visible"
+                @click="lang.visible = true"
+              >
+                {{ lang.localizedName }}
+              </b-dropdown-item-button>
+            </b-dropdown>
+          </b-th>
+
           <b-th
             v-for="lang in visibleLanguages"
             :key="lang.tag"
@@ -48,13 +48,14 @@
       <b-tbody
         v-for="(r, i) in resources()"
         :key="i"
+        class="border-top"
       >
         <b-tr
           v-if="!r.isPrimary"
+          class="bg-light"
         >
           <b-th
             :data-test-id="`translation-title-${r.title}`"
-            class="font-weight-bold border-top-0"
             :colspan="visibleLanguages.length + 1"
           >
             {{ r.title }}

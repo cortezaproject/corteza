@@ -17,7 +17,7 @@
             class="d-flex flex-row flex-nowrap align-items-center"
           >
             <b-form-checkbox
-              v-b-tooltip.hover.left.350="{ title: $t(`reminder.${!!r.dismissedAt ? 'undismiss' : 'dismiss'}`), container: '#body' }"
+              v-b-tooltip.noninteractive.hover.left.350="{ title: $t(`reminder.${!!r.dismissedAt ? 'undismiss' : 'dismiss'}`), container: '#body' }"
               data-test-id="checkbox-dismiss-reminder"
               :checked="!!r.dismissedAt"
               class="my-2 ml-2"
@@ -40,7 +40,7 @@
               >
                 <b-button
                   v-if="r.payload.link"
-                  v-b-tooltip.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
+                  v-b-tooltip.noninteractive.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
                   :to="recordViewer(r.payload.link)"
                   variant="outline-light"
                   class="d-flex align-items-center py-2 text-primary border-0"
@@ -49,7 +49,7 @@
                 </b-button>
 
                 <b-button
-                  v-b-tooltip.hover="{ title: $t('reminder.edit.label'), container: '#body' }"
+                  v-b-tooltip.noninteractive.hover="{ title: $t('reminder.edit.label'), container: '#body' }"
                   data-test-id="button-edit-reminder"
                   variant="outline-light"
                   class="d-flex align-items-center py-2 text-primary border-0"
@@ -73,7 +73,7 @@
             class="text-secondary small px-2 pb-1"
           >
             <font-awesome-icon
-              v-b-tooltip.hover="{ title: $t('reminder.snooze.count', { count: r.snoozeCount }), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('reminder.snooze.count', { count: r.snoozeCount }), container: '#body' }"
               data-test-id="icon-remind-at"
               :icon="['far', 'bell']"
               class="text-primary"

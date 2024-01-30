@@ -8,7 +8,6 @@
     <b-card
       no-body
       class="flex-fill shadow-sm"
-      header-bg-variant="white"
     >
       <template #header>
         <b-form
@@ -218,7 +217,7 @@
 
           <template #cell(updatedAt)="{ value }">
             <time
-              v-b-tooltip.hover="{ title: value, container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: value, container: '#body' }"
               :datetime="value.toISOString()"
             >
               {{ filter.absoluteTime ? value : value.fromNow() }}

@@ -1,14 +1,13 @@
 <template>
   <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <b-form
@@ -80,7 +79,7 @@
               <b-table
                 :fields="links.fields"
                 :items="topbarSettings.helpLinks"
-                table-variant="light"
+                head-variant="light"
                 responsive="sm"
                 small
                 class="mb-0"
@@ -154,7 +153,7 @@
               <b-table
                 :fields="links.fields"
                 :items="topbarSettings.profileLinks"
-                table-variant="light"
+                head-variant="light"
                 responsive="sm"
                 small
                 class="mb-0"

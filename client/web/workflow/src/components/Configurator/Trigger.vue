@@ -5,7 +5,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="bg-white p-0 mb-3"
+        class="p-0 mb-3"
       >
         <h5
           class="mb-0"
@@ -71,7 +71,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="d-flex align-items-center bg-white p-4"
+        class="d-flex align-items-center"
       >
         <h5
           class="mb-0"
@@ -96,7 +96,7 @@
           fixed
           borderless
           hover
-          head-row-variant="secondary"
+          head-variant="light"
           details-td-class="bg-white"
           :items="item.triggers.constraints"
           :fields="constraintFields"
@@ -246,7 +246,6 @@
     >
       <b-card-header
         header-tag="header"
-        class="bg-white p-4"
       >
         <h5
           class="mb-0"
@@ -261,7 +260,7 @@
           id="variable"
           fixed
           borderless
-          head-row-variant="secondary"
+          head-variant="light"
           class="mb-4"
           :items="eventType.properties || []"
           :fields="scopeFields"

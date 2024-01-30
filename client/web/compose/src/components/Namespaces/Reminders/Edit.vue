@@ -4,7 +4,7 @@
   >
     <b-form
       v-if="reminder"
-      class="flex-fill overflow-auto p-2 text-primary"
+      class="flex-fill overflow-auto text-primary"
       @submit.prevent
     >
       <b-form-group
@@ -12,7 +12,6 @@
       >
         <b-form-checkbox
           :checked="!!reminder.dismissedAt"
-          class="mt-2"
           @change="$emit('dismiss', reminder, $event)"
         >
           {{ $t('reminder.dismissed') }}
@@ -92,10 +91,10 @@
 
           <b-input-group-append>
             <b-button
-              v-b-tooltip.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('reminder.recordPageLink'), container: '#body' }"
               :disabled="!recordViewer"
               :to="recordViewer"
-              variant="light"
+              variant="extra-light"
               class="d-flex align-items-center text-primary"
             >
               <font-awesome-icon :icon="['far', 'file-alt']" />
@@ -125,7 +124,7 @@
       <b-button
         data-test-id="button-back"
         variant="outline-light"
-        class="text-primary border-0"
+        class="d-flex align-items-center back text-primary border-0 gap-1"
         @click="$emit('back')"
       >
         <font-awesome-icon

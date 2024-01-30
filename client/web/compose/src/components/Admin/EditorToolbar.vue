@@ -8,7 +8,7 @@
         data-test-id="button-back-without-save"
         variant="link"
         :disabled="processing"
-        class="text-dark back text-left text-nowrap p-1"
+        class="d-flex align-items-center text-dark back gap-1 text-decoration-none"
         @click="$emit('back')"
       >
         <font-awesome-icon
@@ -28,7 +28,7 @@
 
       <c-input-confirm
         v-if="!hideDelete"
-        v-b-tooltip.hover
+        v-b-tooltip.noninteractive.hover
         :disabled="disableDelete || processing"
         :processing="processingDelete"
         :text="$t('label.delete')"
@@ -170,23 +170,3 @@ export default {
   },
 }
 </script>
-<style lang="scss" scoped>
-.back {
-  &:hover {
-    text-decoration: none;
-
-    .back-icon {
-      transition: transform 0.3s ease-out;
-      transform: translateX(-4px);
-    }
-  }
-}
-
-[dir="rtl"] {
-  .back {
-    .back-icon {
-      display: none;
-    }
-  }
-}
-</style>

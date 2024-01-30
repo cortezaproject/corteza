@@ -1,15 +1,14 @@
 <template>
   <b-card
     data-test-id="card-template-toolbox"
-    class="shadow-sm h-100"
-    header-bg-variant="white"
-    footer-bg-variant="white"
     no-body
+    header-class="border-bottom"
+    class="shadow-sm h-100"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <b-card-body>

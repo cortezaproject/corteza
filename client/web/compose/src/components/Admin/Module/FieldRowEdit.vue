@@ -1,12 +1,12 @@
 <template>
   <tr>
     <td
-      v-b-tooltip.hover
-      class="handle align-middle"
+      v-b-tooltip.noninteractive.hover
+      class="handle align-middle pr-2"
     >
       <font-awesome-icon
         :icon="['fas', 'bars']"
-        class="text-light grab"
+        class="text-secondary grab"
       />
     </td>
 
@@ -36,6 +36,7 @@
             :field.sync="value"
             :module="module"
             :disabled="isNew"
+            button-variant="extra-light"
             highlight-key="label"
           />
         </b-input-group-append>
@@ -57,9 +58,9 @@
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('tooltip.field'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.field'), container: '#body' }"
             data-test-id="button-configure-field"
-            variant="light"
+            variant="extra-light"
             :disabled="!value.cap.configurable"
             @click.prevent="$emit('edit')"
           >

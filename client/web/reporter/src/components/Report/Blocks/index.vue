@@ -9,8 +9,7 @@
     >
       <div
         v-if="block.title || block.description"
-        class="px-3"
-        style="padding-top: 0.75rem; padding-bottom: 0.75rem;"
+        class="p-3 border-bottom"
       >
         <h5
           v-if="block.title"

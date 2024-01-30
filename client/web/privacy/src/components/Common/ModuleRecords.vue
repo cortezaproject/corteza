@@ -5,7 +5,7 @@
     <b-card
       v-for="m in modules"
       :key="m.moduleID"
-      header-class="d-flex justify-content-between bg-white border-bottom"
+      header-class="d-flex justify-content-between border-bottom"
       class="border shadow-sm mb-3"
     >
       <template #header>

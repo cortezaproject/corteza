@@ -1,9 +1,7 @@
 <template>
   <b-card
     data-test-id="card-role-info"
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <b-form
@@ -138,9 +136,9 @@
     </b-form>
 
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <template #footer>

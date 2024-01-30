@@ -2,25 +2,25 @@
   <div class="h-100">
     <b-card
       no-body
-      class="d-flex flex-column h-100 shadow overflow-hidden position-static"
+      class="d-flex flex-column h-100 shadow-sm overflow-hidden position-static"
       :class="[blockClass, cardClass]"
     >
       <b-card-header
         v-if="showHeader"
-        class="border-0 text-nowrap pl-3 pr-2"
-        header-bg-variant="white"
+        :class="`border-bottom text-nowrap pr-2 ${headerClass}`"
         :header-text-variant="block.style.variants.headerText"
       >
         <div v-if="!headerSet">
           <div class="d-flex">
-            <h5
+            <h4
               v-if="blockTitle"
+              :title="blockTitle"
               class="text-truncate mb-0"
             >
               {{ blockTitle }}
 
               <slot name="title-badge" />
-            </h5>
+            </h4>
 
             <b-button-group
               v-if="showOptions"
@@ -29,7 +29,7 @@
             >
               <b-button
                 v-if="block.options.showRefresh"
-                v-b-tooltip.hover="{ title: $t('general.label.refresh'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('general.label.refresh'), container: '#body' }"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
                 @click="$emit('refreshBlock')"
@@ -39,7 +39,7 @@
 
               <b-button
                 v-if="block.options.magnifyOption || isBlockMagnified"
-                v-b-tooltip.hover="{ title: isBlockMagnified ? '' : $t('general.label.magnify'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: isBlockMagnified ? '' : $t('general.label.magnify'), container: '#body' }"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
                 @click="$root.$emit('magnify-page-block', isBlockMagnified ? undefined : magnifyParams)"
@@ -51,6 +51,7 @@
 
           <b-card-text
             v-if="blockDescription"
+            :title="blockDescription"
             class="text-dark text-wrap mt-1"
           >
             {{ blockDescription }}
@@ -82,7 +83,7 @@
 
       <b-card-footer
         v-if="footerSet"
-        class="p-0 bg-white border-top"
+        class="p-0 bg-light"
       >
         <slot
           name="footer"

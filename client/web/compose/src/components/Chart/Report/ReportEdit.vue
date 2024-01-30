@@ -233,8 +233,8 @@
                 class="ml-auto px-0"
               >
                 <font-awesome-icon
-                  class="grab text-secondary"
                   :icon="['fas', 'bars']"
+                  class="grab text-secondary"
                 />
               </b-button>
             </div>

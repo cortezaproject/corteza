@@ -1398,6 +1398,7 @@ export default class System {
       handle,
       kind,
       labels,
+      meta,
     } = (a as KV) || {}
     if (!email) {
       throw Error('field email is empty')
@@ -1413,6 +1414,7 @@ export default class System {
       handle,
       kind,
       labels,
+      meta,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -1442,6 +1444,7 @@ export default class System {
       handle,
       kind,
       labels,
+      meta,
       updatedAt,
     } = (a as KV) || {}
     if (!userID) {
@@ -1463,6 +1466,7 @@ export default class System {
       handle,
       kind,
       labels,
+      meta,
       updatedAt,
     }
     return this.api().request(cfg).then(result => stdResolve(result))

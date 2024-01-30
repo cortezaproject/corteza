@@ -1,14 +1,14 @@
 <template>
   <tr class="w-100 d-inline-block">
     <td
-      v-b-tooltip.hover
+      v-b-tooltip.noninteractive.hover
       class="handle align-middle w-100 d-inline-block"
       :class="{ 'cursor-grab': !fixed }"
     >
       <font-awesome-icon
         v-if="!fixed"
         :icon="['fas', 'bars']"
-        class="text-light mr-1"
+        class="text-secondary mr-1"
       />
       <slot
         name="report-label"

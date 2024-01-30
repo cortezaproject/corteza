@@ -143,6 +143,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// Meta POST parameter
+		//
+		// Additional user info
+		Meta *types.UserMeta
 	}
 
 	UserUpdate struct {
@@ -175,6 +180,11 @@ type (
 		//
 		// Labels
 		Labels map[string]string
+
+		// Meta POST parameter
+		//
+		// Additional user info
+		Meta *types.UserMeta
 
 		// UpdatedAt POST parameter
 		//
@@ -624,6 +634,7 @@ func (r UserCreate) Auditable() map[string]interface{} {
 		"handle": r.Handle,
 		"kind":   r.Kind,
 		"labels": r.Labels,
+		"meta":   r.Meta,
 	}
 }
 
@@ -650,6 +661,11 @@ func (r UserCreate) GetKind() types.UserKind {
 // Auditable returns all auditable/loggable parameters
 func (r UserCreate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserCreate) GetMeta() *types.UserMeta {
+	return r.Meta
 }
 
 // Fill processes request and fills internal variables
@@ -712,6 +728,18 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 					return err
 				}
 			}
+
+			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
+				r.Meta, err = types.ParseUserMeta(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["meta"]; ok {
+				r.Meta, err = types.ParseUserMeta(val)
+				if err != nil {
+					return err
+				}
+			}
 		}
 	}
 
@@ -761,6 +789,18 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 				return err
 			}
 		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseUserMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseUserMeta(val)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return err
@@ -780,6 +820,7 @@ func (r UserUpdate) Auditable() map[string]interface{} {
 		"handle":    r.Handle,
 		"kind":      r.Kind,
 		"labels":    r.Labels,
+		"meta":      r.Meta,
 		"updatedAt": r.UpdatedAt,
 	}
 }
@@ -812,6 +853,11 @@ func (r UserUpdate) GetKind() types.UserKind {
 // Auditable returns all auditable/loggable parameters
 func (r UserUpdate) GetLabels() map[string]string {
 	return r.Labels
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserUpdate) GetMeta() *types.UserMeta {
+	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -880,6 +926,18 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 				}
 			}
 
+			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
+				r.Meta, err = types.ParseUserMeta(val)
+				if err != nil {
+					return err
+				}
+			} else if val, ok := req.MultipartForm.Value["meta"]; ok {
+				r.Meta, err = types.ParseUserMeta(val)
+				if err != nil {
+					return err
+				}
+			}
+
 			if val, ok := req.MultipartForm.Value["updatedAt"]; ok && len(val) > 0 {
 				r.UpdatedAt, err = payload.ParseISODatePtrWithErr(val[0])
 				if err != nil {
@@ -931,6 +989,18 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 			}
 		} else if val, ok := req.Form["labels"]; ok {
 			r.Labels, err = label.ParseStrings(val)
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["meta[]"]; ok {
+			r.Meta, err = types.ParseUserMeta(val)
+			if err != nil {
+				return err
+			}
+		} else if val, ok := req.Form["meta"]; ok {
+			r.Meta, err = types.ParseUserMeta(val)
 			if err != nil {
 				return err
 			}

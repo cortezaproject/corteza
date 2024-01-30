@@ -2,14 +2,13 @@
   <div>
     <b-card
       data-test-id="card-general-info"
+      header-class="border-bottom"
       class="shadow-sm"
-      header-bg-variant="white"
-      footer-bg-variant="white"
     >
       <template #header>
-        <h3 class="m-0">
+        <h4 class="m-0">
           {{ $t('general.label') }}
-        </h3>
+        </h4>
       </template>
 
       <b-row>
@@ -182,14 +181,13 @@
     </b-card>
 
     <b-card
-      header-bg-variant="white"
-      footer-bg-variant="white"
+      header-class="border-bottom"
       class="shadow-sm mt-3"
     >
       <template #header>
-        <h3 class="m-0">
+        <h4 class="m-0">
           {{ $t('headers.label') }}
-        </h3>
+        </h4>
       </template>
 
       <b-row>
@@ -214,15 +212,14 @@
     </b-card>
 
     <b-card
+      header-class="border-bottom"
       body-class="p-0"
-      header-bg-variant="white"
-      footer-bg-variant="white"
       class="shadow-sm mt-3"
     >
       <template #header>
-        <h3 class="m-0">
+        <h4 class="m-0">
           {{ $t('body.label') }}
-        </h3>
+        </h4>
       </template>
 
       <ace-editor
@@ -241,6 +238,7 @@
         :set-options="{
           useWorker: false,
         }"
+        class="border-0 rounded-0"
       />
     </b-card>
   </div>

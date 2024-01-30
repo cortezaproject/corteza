@@ -78,7 +78,7 @@
           </b-button>
 
           <b-button
-            v-b-tooltip.hover="{ title: $t('report.edit'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('report.edit'), container: '#body' }"
             data-test-id="button-report-edit"
             variant="primary"
             :to="{ name: 'report.edit', params: { reportID: r.reportID } }"
@@ -90,16 +90,15 @@
             />
           </b-button>
         </b-button-group>
-      </template>
 
-      <template #moreActions="{ item: r }">
         <b-dropdown
           v-if="r.canUpdateReport || r.canGrant || r.canDeleteReport"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           lazy
           menu-class="m-0"
+          class="ml-2"
         >
           <template #button-content>
             <font-awesome-icon
@@ -216,12 +215,7 @@ export default {
         {
           key: 'actions',
           label: '',
-          tdClass: 'text-right text-nowrap',
-        },
-        {
-          key: 'moreActions',
-          label: '',
-          tdClass: 'text-right text-nowrap actions',
+          tdClass: 'text-right text-nowrap actions gap-1',
         },
       ]
     },

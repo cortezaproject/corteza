@@ -11,9 +11,12 @@
           v-model="options.color"
           :translations="{
             modalTitle: $t('metric.editStyle.colorPicker'),
+            light: $t('general:themes.labels.light'),
+            dark: $t('general:themes.labels.dark'),
             cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
+          :theme-settings="themeSettings"
           class="mb-1"
         />
       </b-form-group>
@@ -26,9 +29,12 @@
           v-model="options.backgroundColor"
           :translations="{
             modalTitle: $t('geometry.recordFeed.colorPicker'),
+            light: $t('general:themes.labels.light'),
+            dark: $t('general:themes.labels.dark'),
             cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
+          :theme-settings="themeSettings"
           class="mb-1"
         />
       </b-form-group>
@@ -68,6 +74,12 @@ export default {
       type: Object,
       required: true,
       default: () => ({}),
+    },
+  },
+
+  computed: {
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 }

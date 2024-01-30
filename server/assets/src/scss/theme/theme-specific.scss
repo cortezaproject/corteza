@@ -1,0 +1,1738 @@
+@if $theme-mode != "light" {
+  [data-color-mode="#{$theme-mode}"] {
+    // Buttons
+    .btn {
+      color: $body-color;
+      @include hover() {
+        color: $body-color;
+      }
+    }
+    @each $color, $value in $theme-colors {
+      .btn-#{$color} {
+        @include button-variant($value, $value);
+      }
+    }
+
+    @each $color, $value in $theme-colors {
+      .btn-outline-#{$color} {
+        @include button-outline-variant($value);
+      }
+    }
+
+    // Link buttons
+    // Make a button look and behave like a link
+    .btn-link {
+      color: $link-color;
+      text-decoration: $link-decoration;
+
+      @include hover() {
+        color: $link-hover-color;
+        text-decoration: $link-hover-decoration;
+      }
+
+      &:focus,
+      &.focus {
+        text-decoration: $link-hover-decoration;
+      }
+
+      &:disabled,
+      &.disabled {
+        color: $btn-link-disabled-color;
+        pointer-events: none;
+      }
+
+      // No need for an active state here
+    }
+
+    //Close
+    .close {
+      @include font-size($close-font-size);
+      font-weight: $close-font-weight;
+      color: $close-color;
+      text-shadow: $close-text-shadow;
+
+      // Override <a>'s hover style
+      @include hover() {
+        color: $close-color;
+        text-decoration: none;
+      }
+
+      &:not(:disabled):not(.disabled) {
+        @include hover-focus() {
+          opacity: 0.75;
+        }
+      }
+    }
+
+    //badge
+    @each $color, $value in $theme-colors {
+      .badge-#{$color} {
+        @include badge-variant($value);
+      }
+    }
+
+    //alert
+    @each $color, $value in $theme-colors {
+      .alert-#{$color} {
+        @include alert-variant(
+          theme-color-level($color, $alert-bg-level),
+          theme-color-level($color, $alert-border-level),
+          theme-color-level($color, $alert-color-level)
+        );
+      }
+    }
+
+    //list group
+    .list-group {
+      @include border-radius($list-group-border-radius);
+    }
+    .list-group-item-action {
+      color: $list-group-action-color;
+      // Hover state
+      @include hover-focus() {
+        color: $list-group-action-hover-color;
+        background-color: $list-group-hover-bg;
+      }
+
+      &:active {
+        color: $list-group-action-active-color;
+        background-color: $list-group-action-active-bg;
+      }
+    }
+    .list-group-item {
+      color: $list-group-color;
+      text-decoration: if($link-decoration == none, null, none);
+      background-color: $list-group-bg;
+      border: $list-group-border-width solid $list-group-border-color;
+
+      &:first-child {
+        @include border-top-radius(inherit);
+      }
+
+      &:last-child {
+        @include border-bottom-radius(inherit);
+      }
+
+      &.disabled,
+      &:disabled {
+        color: $list-group-disabled-color;
+        background-color: $list-group-disabled-bg;
+      }
+
+      // Include both here for `<a>`s and `<button>`s
+      &.active {
+        color: $list-group-active-color;
+        background-color: $list-group-active-bg;
+        border-color: $list-group-active-border-color;
+      }
+
+      & + & {
+        border-top-width: 0;
+
+        &.active {
+          margin-top: -$list-group-border-width;
+          border-top-width: $list-group-border-width;
+        }
+      }
+    }
+    @each $color, $value in $theme-colors {
+      @include list-group-item-variant(
+        $color,
+        theme-color-level($color, -9),
+        theme-color-level($color, 6)
+      );
+    }
+
+    // Modal
+    .modal-content {
+      color: $modal-content-color;
+      background-color: $modal-content-bg;
+      background-clip: padding-box;
+      border: $modal-content-border-width solid $modal-content-border-color;
+      @include border-radius($modal-content-border-radius);
+      @include box-shadow($modal-content-box-shadow-xs);
+    }
+    .modal-backdrop {
+      background-color: $modal-backdrop-bg;
+
+      // Fade for backdrop
+      &.fade {
+        opacity: 0;
+      }
+      &.show {
+        opacity: $modal-backdrop-opacity;
+      }
+    }
+    .modal-header {
+      border-bottom: $modal-header-border-width
+        solid
+        $modal-header-border-color;
+      @include border-top-radius($modal-content-inner-border-radius);
+    }
+    .modal-footer {
+      border-top: $modal-footer-border-width solid $modal-footer-border-color;
+      @include border-bottom-radius($modal-content-inner-border-radius);
+    }
+    @include media-breakpoint-up(sm) {
+      .modal-content {
+        @include box-shadow($modal-content-box-shadow-sm-up);
+      }
+    }
+
+    //Nav
+    .nav-link {
+      text-decoration: if($link-decoration == none, null, none);
+      @include hover-focus() {
+        text-decoration: none;
+      }
+      // Disabled state lightens text
+      &.disabled {
+        color: $nav-link-disabled-color;
+        pointer-events: none;
+        cursor: default;
+      }
+    }
+    .nav-tabs {
+      border-bottom: $nav-tabs-border-width solid $nav-tabs-border-color;
+
+      .nav-link {
+        border: $nav-tabs-border-width solid transparent;
+        @include border-top-radius($nav-tabs-border-radius);
+
+        @include hover-focus() {
+          border-color: $nav-tabs-link-hover-border-color;
+        }
+
+        &.disabled {
+          color: $nav-link-disabled-color;
+          background-color: transparent;
+          border-color: transparent;
+        }
+      }
+
+      .nav-link.active,
+      .nav-item.show .nav-link {
+        color: $nav-tabs-link-active-color;
+        background-color: $nav-tabs-link-active-bg;
+        border-color: $nav-tabs-link-active-border-color;
+      }
+    }
+    .nav-pills {
+      .nav-link {
+        @include border-radius($nav-pills-border-radius);
+      }
+
+      .nav-link.active,
+      .show > .nav-link {
+        color: $nav-pills-link-active-color;
+        background-color: $nav-pills-link-active-bg;
+      }
+    }
+
+    //Navbar
+    .navbar-toggler {
+      @include font-size($navbar-toggler-font-size);
+      background-color: transparent; // remove default button style
+      border: $border-width solid transparent; // remove default button style
+      @include border-radius($navbar-toggler-border-radius);
+    }
+    .navbar-light {
+      .navbar-brand {
+        color: $navbar-light-brand-color;
+
+        @include hover-focus() {
+          color: $navbar-light-brand-hover-color;
+        }
+      }
+
+      .navbar-nav {
+        .nav-link {
+          color: $navbar-light-color;
+
+          @include hover-focus() {
+            color: $navbar-light-hover-color;
+          }
+
+          &.disabled {
+            color: $navbar-light-disabled-color;
+          }
+        }
+
+        .show > .nav-link,
+        .active > .nav-link,
+        .nav-link.show,
+        .nav-link.active {
+          color: $navbar-light-active-color;
+        }
+      }
+
+      .navbar-toggler {
+        color: $navbar-light-color;
+        border-color: $navbar-light-toggler-border-color;
+      }
+
+      .navbar-toggler-icon {
+        background-image: escape-svg($navbar-light-toggler-icon-bg);
+      }
+
+      .navbar-text {
+        color: $navbar-light-color;
+        a {
+          color: $navbar-light-active-color;
+
+          @include hover-focus() {
+            color: $navbar-light-active-color;
+          }
+        }
+      }
+    }
+    .navbar-dark {
+      .navbar-brand {
+        color: $navbar-dark-brand-color;
+
+        @include hover-focus() {
+          color: $navbar-dark-brand-hover-color;
+        }
+      }
+
+      .navbar-nav {
+        .nav-link {
+          color: $navbar-dark-color;
+
+          @include hover-focus() {
+            color: $navbar-dark-hover-color;
+          }
+
+          &.disabled {
+            color: $navbar-dark-disabled-color;
+          }
+        }
+
+        .show > .nav-link,
+        .active > .nav-link,
+        .nav-link.show,
+        .nav-link.active {
+          color: $navbar-dark-active-color;
+        }
+      }
+
+      .navbar-toggler {
+        color: $navbar-dark-color;
+        border-color: $navbar-dark-toggler-border-color;
+      }
+
+      .navbar-toggler-icon {
+        background-image: escape-svg($navbar-dark-toggler-icon-bg);
+      }
+
+      .navbar-text {
+        color: $navbar-dark-color;
+        a {
+          color: $navbar-dark-active-color;
+
+          @include hover-focus() {
+            color: $navbar-dark-active-color;
+          }
+        }
+      }
+    }
+
+    //Card
+    .card {
+      background-color: $card-bg;
+      background-clip: border-box;
+      border: $card-border-width solid $card-border-color;
+      @include border-radius($card-border-radius);
+
+      > .list-group {
+        border-top: inherit;
+        border-bottom: inherit;
+
+        &:first-child {
+          border-top-width: 0;
+          @include border-top-radius($card-inner-border-radius);
+        }
+
+        &:last-child {
+          border-bottom-width: 0;
+          @include border-bottom-radius($card-inner-border-radius);
+        }
+      }
+    }
+    .card-body {
+      color: $card-color;
+    }
+    .card-header {
+      color: $card-cap-color;
+      background-color: $card-cap-bg;
+      border-bottom: $card-border-width solid $card-border-color;
+
+      &:first-child {
+        @include border-radius(
+          $card-inner-border-radius $card-inner-border-radius 0 0
+        );
+      }
+    }
+    .card-footer {
+      color: $card-cap-color;
+      background-color: $card-cap-bg;
+      border-top: $card-border-width solid $card-border-color;
+
+      &:last-child {
+        @include border-radius(
+          0 0 $card-inner-border-radius $card-inner-border-radius
+        );
+      }
+    }
+    .card-img-overlay {
+      @include border-radius($card-inner-border-radius);
+    }
+    .card-img,
+    .card-img-top {
+      @include border-top-radius($card-inner-border-radius);
+    }
+    .card-img,
+    .card-img-bottom {
+      @include border-bottom-radius($card-inner-border-radius);
+    }
+
+    //Pagination
+    .page-link {
+      line-height: $pagination-line-height;
+      color: $pagination-color;
+      text-decoration: if($link-decoration == none, null, none);
+      background-color: $pagination-bg;
+      border: $pagination-border-width solid $pagination-border-color;
+
+      &:hover {
+        color: $pagination-hover-color;
+        background-color: $pagination-hover-bg;
+        border-color: $pagination-hover-border-color;
+      }
+
+      &:focus {
+        outline: $pagination-focus-outline;
+        box-shadow: $pagination-focus-box-shadow;
+      }
+    }
+    .page-item {
+      &:first-child {
+        .page-link {
+          @include border-left-radius($border-radius);
+        }
+      }
+      &:last-child {
+        .page-link {
+          @include border-right-radius($border-radius);
+        }
+      }
+
+      &.active .page-link {
+        color: $pagination-active-color;
+        background-color: $pagination-active-bg;
+        border-color: $pagination-active-border-color;
+      }
+
+      &.disabled .page-link {
+        color: $pagination-disabled-color;
+        background-color: $pagination-disabled-bg;
+        border-color: $pagination-disabled-border-color;
+      }
+    }
+
+    //Progress
+    .progress {
+      @include font-size($progress-font-size);
+      background-color: $progress-bg;
+      @include border-radius($progress-border-radius);
+      @include box-shadow($progress-box-shadow);
+    }
+    .progress-bar {
+      color: $progress-bar-color;
+      background-color: $progress-bar-bg;
+      @include transition($progress-bar-transition);
+    }
+    .progress-bar-striped {
+      @include gradient-striped();
+      background-size: $progress-height $progress-height;
+    }
+
+    // Reboot
+    body {
+      font-family: $font-family-base;
+      @include font-size($font-size-base);
+      font-weight: $font-weight-base;
+      line-height: $line-height-base;
+      color: $body-color;
+      background-color: $body-bg; // 2
+    }
+    a {
+      color: $link-color;
+      text-decoration: $link-decoration;
+      background-color: transparent; // Remove the gray background on active links in IE 10.
+
+      @include hover() {
+        color: $link-hover-color;
+        text-decoration: $link-hover-decoration;
+      }
+    }
+    caption {
+      color: $table-caption-color;
+    }
+
+    //Tooltip
+    .bs-tooltip-top {
+      .arrow {
+        &::before {
+          border-top-color: $tooltip-arrow-color;
+        }
+      }
+    }
+    .bs-tooltip-right {
+      .arrow {
+        &::before {
+          border-right-color: $tooltip-arrow-color;
+        }
+      }
+    }
+    .bs-tooltip-bottom {
+      .arrow {
+        &::before {
+          border-bottom-color: $tooltip-arrow-color;
+        }
+      }
+    }
+    .bs-tooltip-left {
+      .arrow {
+        &::before {
+          border-left-color: $tooltip-arrow-color;
+        }
+      }
+    }
+    .tooltip-inner {
+      color: $tooltip-color;
+      background-color: $tooltip-bg;
+      @include border-radius($tooltip-border-radius);
+    }
+
+    //Type
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6,
+    .h1,
+    .h2,
+    .h3,
+    .h4,
+    .h5,
+    .h6 {
+      color: $headings-color;
+    }
+
+    hr {
+      border-color: $hr-border-color;
+    }
+
+    //Utilities
+    @each $color, $value in $theme-colors {
+      @include bg-variant(".bg-#{$color}", $value, true);
+    }
+    @if $enable-gradients {
+      @each $color, $value in $theme-colors {
+        @include bg-gradient-variant(".bg-gradient-#{$color}", $value, true);
+      }
+    }
+    .bg-white {
+      background-color: $white !important;
+    }
+    .border {
+      border: $border-width solid $border-color !important;
+    }
+    .border-top {
+      border-top: $border-width solid $border-color !important;
+    }
+    .border-right {
+      border-right: $border-width solid $border-color !important;
+    }
+    .border-bottom {
+      border-bottom: $border-width solid $border-color !important;
+    }
+    .border-left {
+      border-left: $border-width solid $border-color !important;
+    }
+    @each $color, $value in $theme-colors {
+      .border-#{$color} {
+        border-color: $value !important;
+      }
+    }
+    .border-white {
+      border-color: $white !important;
+    }
+    .rounded-sm {
+      border-radius: $border-radius-sm !important;
+    }
+    .rounded {
+      border-radius: $border-radius !important;
+    }
+    .rounded-top {
+      border-top-left-radius: $border-radius !important;
+      border-top-right-radius: $border-radius !important;
+    }
+    .rounded-right {
+      border-top-right-radius: $border-radius !important;
+      border-bottom-right-radius: $border-radius !important;
+    }
+    .rounded-bottom {
+      border-bottom-right-radius: $border-radius !important;
+      border-bottom-left-radius: $border-radius !important;
+    }
+    .rounded-left {
+      border-top-left-radius: $border-radius !important;
+      border-bottom-left-radius: $border-radius !important;
+    }
+    .rounded-lg {
+      border-radius: $border-radius-lg !important;
+    }
+    .rounded-pill {
+      border-radius: $rounded-pill !important;
+    }
+    .shadow-sm {
+      box-shadow: $box-shadow-sm !important;
+    }
+    .shadow {
+      box-shadow: $box-shadow !important;
+    }
+    .shadow-lg {
+      box-shadow: $box-shadow-lg !important;
+    }
+    .text-white {
+      color: $white !important;
+    }
+    @each $color, $value in $theme-colors {
+      @include text-emphasis-variant(".text-#{$color}", $value, true);
+    }
+    .text-body {
+      color: $body-color !important;
+    }
+    .text-muted {
+      color: $text-muted !important;
+    }
+    .text-black-50 {
+      color: rgba($black, 0.5) !important;
+    }
+    .text-white-50 {
+      color: rgba($white, 0.5) !important;
+    }
+
+    //Print
+    @if $enable-print-styles {
+      @media print {
+        pre,
+        blockquote {
+          border: $border-width solid $gray-500; // Bootstrap custom code; using `$border-width` instead of 1px
+          page-break-inside: avoid;
+        }
+        .badge {
+          border: $border-width solid $black;
+        }
+        .table {
+          td,
+          th {
+            background-color: $white !important;
+          }
+        }
+        .table-bordered {
+          th,
+          td {
+            border: 1px solid $gray-300 !important;
+          }
+        }
+        .table-dark {
+          th,
+          td,
+          thead th,
+          tbody + tbody {
+            border-color: $table-border-color;
+          }
+        }
+        .table .thead-dark th {
+          color: inherit;
+          border-color: $table-border-color;
+        }
+      }
+    }
+
+    //table
+    .table-hover {
+      tbody tr {
+        @include hover() {
+          color: $table-hover-color;
+          background-color: $table-hover-bg;
+        }
+      }
+    }
+    @each $color, $value in $theme-colors {
+      @include table-row-variant(
+        $color,
+        theme-color-level($color, $table-bg-level),
+        theme-color-level($color, $table-border-level)
+      );
+    }
+
+    @include table-row-variant(active, $table-active-bg);
+    .table {
+      color: $table-color;
+
+      td {
+        border-color: $extra-light;
+      }
+
+      .thead-dark {
+        th {
+          color: $table-dark-color;
+          background-color: $table-dark-bg;
+          border-color: $table-dark-border-color;
+        }
+      }
+      .thead-light {
+        th {
+          color: $table-head-color;
+          background-color: $table-head-bg;
+          border-color: $table-border-color;
+        }
+      }
+    }
+    .table-dark {
+      color: $table-dark-color;
+      background-color: $table-dark-bg;
+
+      th,
+      td,
+      thead th {
+        border-color: $table-dark-border-color;
+      }
+
+      &.table-bordered {
+        border: 0;
+      }
+
+      &.table-striped {
+        tbody tr:nth-of-type(#{$table-striped-order}) {
+          background-color: $table-dark-accent-bg;
+        }
+      }
+
+      &.table-hover {
+        tbody tr {
+          @include hover() {
+            color: $table-dark-hover-color;
+            background-color: $table-dark-hover-bg;
+          }
+        }
+      }
+    }
+
+    //toasts
+    .toast {
+      @include font-size($toast-font-size);
+      color: $toast-color;
+      background-color: $toast-background-color;
+      border: $toast-border-width solid $toast-border-color;
+      box-shadow: $toast-box-shadow;
+      @include border-radius($toast-border-radius);
+    }
+    .toast-header {
+      color: $toast-header-color;
+      background-color: $toast-header-background-color;
+      border-bottom: $toast-border-width solid $toast-header-border-color;
+      @include border-top-radius(
+        subtract($toast-border-radius, $toast-border-width)
+      );
+    }
+
+    //Custom form
+    .custom-control-input {
+      &:checked ~ .custom-control-label::before {
+        color: $custom-control-indicator-checked-color;
+        border-color: $custom-control-indicator-checked-border-color;
+        @include gradient-bg($custom-control-indicator-checked-bg);
+        @include box-shadow($custom-control-indicator-checked-box-shadow);
+      }
+
+      &:focus ~ .custom-control-label::before {
+        // the mixin is not used here to make sure there is feedback
+        @if $enable-shadows {
+          box-shadow: $input-box-shadow,
+            $custom-control-indicator-focus-box-shadow;
+        } @else {
+          box-shadow: $custom-control-indicator-focus-box-shadow;
+        }
+      }
+
+      &:focus:not(:checked) ~ .custom-control-label::before {
+        border-color: $custom-control-indicator-focus-border-color;
+      }
+
+      &:not(:disabled):active ~ .custom-control-label::before {
+        color: $custom-control-indicator-active-color;
+        background-color: $custom-control-indicator-active-bg;
+        border-color: $custom-control-indicator-active-border-color;
+        @include box-shadow($custom-control-indicator-active-box-shadow);
+      }
+
+      // Use [disabled] and :disabled to work around https://github.com/twbs/bootstrap/issues/28247
+      &[disabled],
+      &:disabled {
+        ~ .custom-control-label {
+          color: $custom-control-label-disabled-color;
+
+          &::before {
+            background-color: $custom-control-indicator-disabled-bg;
+          }
+        }
+      }
+    }
+    .custom-control-label {
+      color: $custom-control-label-color;
+
+      // Background-color and (when enabled) gradient
+      &::before {
+        background-color: $custom-control-indicator-bg;
+        border: $custom-control-indicator-border-color
+          solid
+          $custom-control-indicator-border-width;
+        @include box-shadow($custom-control-indicator-box-shadow);
+      }
+
+      // Foreground (icon)
+      &::after {
+        background: no-repeat 50% / #{$custom-control-indicator-bg-size};
+      }
+    }
+    .custom-checkbox {
+      .custom-control-label::before {
+        @include border-radius($custom-checkbox-indicator-border-radius);
+      }
+
+      .custom-control-input:checked ~ .custom-control-label {
+        &::after {
+          background-image: escape-svg($custom-checkbox-indicator-icon-checked);
+        }
+      }
+
+      .custom-control-input:indeterminate ~ .custom-control-label {
+        &::before {
+          border-color: $custom-checkbox-indicator-indeterminate-border-color;
+          @include gradient-bg($custom-checkbox-indicator-indeterminate-bg);
+          @include box-shadow(
+            $custom-checkbox-indicator-indeterminate-box-shadow
+          );
+        }
+        &::after {
+          background-image: escape-svg(
+            $custom-checkbox-indicator-icon-indeterminate
+          );
+        }
+      }
+
+      .custom-control-input:disabled {
+        &:checked ~ .custom-control-label::before {
+          @include gradient-bg($custom-control-indicator-checked-disabled-bg);
+        }
+        &:indeterminate ~ .custom-control-label::before {
+          @include gradient-bg($custom-control-indicator-checked-disabled-bg);
+        }
+      }
+    }
+    .custom-radio {
+      .custom-control-label::before {
+        // stylelint-disable-next-line property-disallowed-list
+        border-radius: $custom-radio-indicator-border-radius;
+      }
+
+      .custom-control-input:checked ~ .custom-control-label {
+        &::after {
+          background-image: escape-svg($custom-radio-indicator-icon-checked);
+        }
+      }
+
+      .custom-control-input:disabled {
+        &:checked ~ .custom-control-label::before {
+          @include gradient-bg($custom-control-indicator-checked-disabled-bg);
+        }
+      }
+    }
+    .custom-switch {
+      .custom-control-label {
+        &::before {
+          // stylelint-disable-next-line property-disallowed-list
+          border-radius: $custom-switch-indicator-border-radius;
+        }
+
+        &::after {
+          background-color: $custom-control-indicator-border-color;
+          // stylelint-disable-next-line property-disallowed-list
+          border-radius: $custom-switch-indicator-border-radius;
+          @include transition(
+            transform 0.15s ease-in-out,
+            $custom-forms-transition
+          );
+        }
+      }
+
+      .custom-control-input:checked ~ .custom-control-label {
+        &::after {
+          background-color: $custom-control-indicator-bg;
+          transform: translateX(
+            $custom-switch-width - $custom-control-indicator-size
+          );
+        }
+      }
+
+      .custom-control-input:disabled {
+        &:checked ~ .custom-control-label::before {
+          @include gradient-bg($custom-control-indicator-checked-disabled-bg);
+        }
+      }
+    }
+    .custom-select {
+      font-family: $custom-select-font-family;
+      @include font-size($custom-select-font-size);
+      font-weight: $custom-select-font-weight;
+      line-height: $custom-select-line-height;
+      color: $custom-select-color;
+      background: $custom-select-bg $custom-select-background;
+      border: $custom-select-border-width solid $custom-select-border-color;
+      @include border-radius($custom-select-border-radius, 0);
+      @include box-shadow($custom-select-box-shadow);
+
+      &:focus {
+        border-color: $custom-select-focus-border-color;
+        outline: 0;
+        @if $enable-shadows {
+          @include box-shadow(
+            $custom-select-box-shadow,
+            $custom-select-focus-box-shadow
+          );
+        } @else {
+          // Avoid using mixin so we can pass custom focus shadow properly
+          box-shadow: $custom-select-focus-box-shadow;
+        }
+
+        &::-ms-value {
+          // For visual consistency with other platforms/browsers,
+          // suppress the default white text on blue background highlight given to
+          // the selected option text when the (still closed) <select> receives focus
+          // in IE and (under certain conditions) Edge.
+          // See https://github.com/twbs/bootstrap/issues/19398.
+          color: $input-color;
+          background-color: $input-bg;
+        }
+      }
+
+      &[multiple],
+      &[size]:not([size="1"]) {
+        height: auto;
+        padding-right: $custom-select-padding-x;
+        background-image: none;
+      }
+
+      &:disabled {
+        color: $custom-select-disabled-color;
+        background-color: $custom-select-disabled-bg;
+      }
+
+      // Hides the default caret in IE11
+      &::-ms-expand {
+        display: none;
+      }
+
+      // Remove outline from select box in FF
+      &:-moz-focusring {
+        color: transparent;
+        text-shadow: 0 0 0 $custom-select-color;
+      }
+    }
+    .custom-file-label {
+      font-family: $custom-file-font-family;
+      font-weight: $custom-file-font-weight;
+      line-height: $custom-file-line-height;
+      color: $custom-file-color;
+      background-color: $custom-file-bg;
+      border: $custom-file-border-width solid $custom-file-border-color;
+      @include border-radius($custom-file-border-radius);
+      @include box-shadow($custom-file-box-shadow);
+
+      &::after {
+        line-height: $custom-file-line-height;
+        color: $custom-file-button-color;
+        @include gradient-bg($custom-file-button-bg);
+        @include border-radius(
+          0 $custom-file-border-radius $custom-file-border-radius 0
+        );
+      }
+    }
+    .custom-range {
+      &:focus {
+        outline: none;
+
+        // Pseudo-elements must be split across multiple rulesets to have an effect.
+        // No box-shadow() mixin for focus accessibility.
+        &::-webkit-slider-thumb {
+          box-shadow: $custom-range-thumb-focus-box-shadow;
+        }
+        &::-moz-range-thumb {
+          box-shadow: $custom-range-thumb-focus-box-shadow;
+        }
+        &::-ms-thumb {
+          box-shadow: $custom-range-thumb-focus-box-shadow;
+        }
+      }
+
+      &::-moz-focus-outer {
+        border: 0;
+      }
+
+      &::-webkit-slider-thumb {
+        @include gradient-bg($custom-range-thumb-bg);
+        border: $custom-range-thumb-border;
+        @include border-radius($custom-range-thumb-border-radius);
+        @include box-shadow($custom-range-thumb-box-shadow);
+        @include transition($custom-forms-transition);
+        appearance: none;
+
+        &:active {
+          @include gradient-bg($custom-range-thumb-active-bg);
+        }
+      }
+
+      &::-webkit-slider-runnable-track {
+        background-color: $custom-range-track-bg;
+        border-color: transparent;
+        @include border-radius($custom-range-track-border-radius);
+        @include box-shadow($custom-range-track-box-shadow);
+      }
+
+      &::-moz-range-thumb {
+        @include gradient-bg($custom-range-thumb-bg);
+        border: $custom-range-thumb-border;
+        @include border-radius($custom-range-thumb-border-radius);
+        @include box-shadow($custom-range-thumb-box-shadow);
+        @include transition($custom-forms-transition);
+
+        &:active {
+          @include gradient-bg($custom-range-thumb-active-bg);
+        }
+      }
+
+      &::-moz-range-track {
+        background-color: $custom-range-track-bg;
+        border-color: transparent; // Firefox specific?
+        @include border-radius($custom-range-track-border-radius);
+        @include box-shadow($custom-range-track-box-shadow);
+      }
+
+      &::-ms-thumb {
+        @include gradient-bg($custom-range-thumb-bg);
+        border: $custom-range-thumb-border;
+        @include border-radius($custom-range-thumb-border-radius);
+        @include box-shadow($custom-range-thumb-box-shadow);
+        @include transition($custom-forms-transition);
+
+        &:active {
+          @include gradient-bg($custom-range-thumb-active-bg);
+        }
+      }
+
+      &::-ms-track {
+        width: $custom-range-track-width;
+        height: $custom-range-track-height;
+        color: transparent;
+        cursor: $custom-range-track-cursor;
+        background-color: transparent;
+        border-color: transparent;
+        border-width: $custom-range-thumb-height / 2;
+        @include box-shadow($custom-range-track-box-shadow);
+      }
+
+      &::-ms-fill-lower {
+        background-color: $custom-range-track-bg;
+        @include border-radius($custom-range-track-border-radius);
+      }
+
+      &::-ms-fill-upper {
+        margin-right: 15px; // arbitrary?
+        background-color: $custom-range-track-bg;
+        @include border-radius($custom-range-track-border-radius);
+      }
+
+      &:disabled {
+        &::-webkit-slider-thumb {
+          background-color: $custom-range-thumb-disabled-bg;
+        }
+
+        &::-webkit-slider-runnable-track {
+          cursor: default;
+        }
+
+        &::-moz-range-thumb {
+          background-color: $custom-range-thumb-disabled-bg;
+        }
+
+        &::-moz-range-track {
+          cursor: default;
+        }
+
+        &::-ms-thumb {
+          background-color: $custom-range-thumb-disabled-bg;
+        }
+      }
+    }
+
+    //Dropdown
+    .dropdown-menu {
+      @include font-size($dropdown-font-size);
+      color: $dropdown-color;
+      background-color: $dropdown-bg;
+      background-clip: padding-box;
+      border: $dropdown-border-width solid $dropdown-border-color;
+      @include border-radius($dropdown-border-radius);
+      @include box-shadow($dropdown-box-shadow);
+    }
+    .dropdown-item {
+      font-weight: $font-weight-normal;
+      color: $dropdown-link-color;
+      text-decoration: if($link-decoration == none, null, none);
+      background-color: transparent; // For `<button>`s
+
+      // Prevent dropdown overflow if there's no padding
+      // See https://github.com/twbs/bootstrap/pull/27703
+      @if $dropdown-padding-y == 0 {
+        &:first-child {
+          @include border-top-radius($dropdown-inner-border-radius);
+        }
+
+        &:last-child {
+          @include border-bottom-radius($dropdown-inner-border-radius);
+        }
+      }
+
+      @include hover-focus() {
+        color: $dropdown-link-hover-color;
+        text-decoration: none;
+        @include gradient-bg($dropdown-link-hover-bg);
+      }
+
+      &.active,
+      &:active {
+        color: $dropdown-link-active-color;
+        text-decoration: none;
+        @include gradient-bg($dropdown-link-active-bg);
+      }
+
+      &.disabled,
+      &:disabled {
+        color: $dropdown-link-disabled-color;
+        pointer-events: none;
+        background-color: transparent;
+        // Remove CSS gradients if they're enabled
+        @if $enable-gradients {
+          background-image: none;
+        }
+      }
+    }
+    .dropdown-header {
+      @include font-size($font-size-sm);
+      color: $dropdown-header-color;
+    }
+    .dropdown-item-text {
+      color: $dropdown-link-color;
+    }
+
+    //Forms
+    .form-control {
+      font-family: $input-font-family;
+      @include font-size($input-font-size);
+      font-weight: $input-font-weight;
+      line-height: $input-line-height;
+      color: $input-color;
+      background-color: $input-bg;
+      background-clip: padding-box;
+      border: $input-border-width solid $input-border-color;
+
+      // Note: This has no effect on <select>s in some browsers, due to the limited stylability of `<select>`s in CSS.
+      @include border-radius($input-border-radius, 0);
+
+      @include box-shadow($input-box-shadow);
+      @include transition($input-transition);
+
+      // Unstyle the caret on `<select>`s in IE10+.
+      &::-ms-expand {
+        background-color: transparent;
+        border: 0;
+      }
+
+      // Remove select outline from select box in FF
+      &:-moz-focusring {
+        color: transparent;
+        text-shadow: 0 0 0 $input-color;
+      }
+
+      // Customize the `:focus` state to imitate native WebKit styles.
+      @include form-control-focus($ignore-warning: true);
+
+      // Placeholder
+      &::placeholder {
+        color: $input-placeholder-color;
+        // Override Firefox's unusual default opacity; see https://github.com/twbs/bootstrap/pull/11526.
+        opacity: 1;
+      }
+
+      // Disabled and read-only inputs
+      //
+      // HTML5 says that controls under a fieldset > legend:first-child won't be
+      // disabled if the fieldset is disabled. Due to implementation difficulty, we
+      // don't honor that edge case; we style them as disabled anyway.
+      &:disabled,
+      &[readonly] {
+        background-color: $input-disabled-bg;
+        // iOS fix for unreadable disabled content; see https://github.com/twbs/bootstrap/issues/11655.
+        opacity: 1;
+      }
+    }
+    select.form-control {
+      &:focus::-ms-value {
+        // Suppress the nested default white text on blue background highlight given to
+        // the selected option text when the (still closed) <select> receives focus
+        // in IE and (under certain conditions) Edge, as it looks bad and cannot be made to
+        // match the appearance of the native widget.
+        // See https://github.com/twbs/bootstrap/issues/19398.
+        color: $input-color;
+        background-color: $input-bg;
+      }
+    }
+    .col-form-label {
+      line-height: $input-line-height;
+    }
+    .col-form-label-lg {
+      @include font-size($input-font-size-lg);
+    }
+    .col-form-label-sm {
+      @include font-size($input-font-size-sm);
+    }
+    .form-control-plaintext {
+      @include font-size($input-font-size);
+      line-height: $input-line-height;
+      color: $input-plaintext-color;
+      background-color: transparent;
+      border: solid transparent;
+      border-width: $input-border-width 0;
+    }
+    .form-control-sm {
+      @include font-size($input-font-size-sm);
+      line-height: $input-line-height-sm;
+      @include border-radius($input-border-radius-sm);
+    }
+    .form-control-lg {
+      @include font-size($input-font-size-lg);
+      line-height: $input-line-height-lg;
+      @include border-radius($input-border-radius-lg);
+    }
+    @each $state, $data in $form-validation-states {
+      @include form-validation-state(
+        $state,
+        map-get($data, color),
+        map-get($data, icon)
+      );
+    }
+
+    //Input group
+    .input-group-text {
+      @include font-size($input-font-size); // Match inputs
+      font-weight: $font-weight-normal;
+      line-height: $input-line-height;
+      color: $input-group-addon-color;
+      background-color: $input-group-addon-bg;
+      border: $input-border-width solid $input-group-addon-border-color;
+      @include border-radius($input-border-radius);
+    }
+    .input-group-lg > .form-control,
+    .input-group-lg > .custom-select,
+    .input-group-lg > .input-group-prepend > .input-group-text,
+    .input-group-lg > .input-group-append > .input-group-text,
+    .input-group-lg > .input-group-prepend > .btn,
+    .input-group-lg > .input-group-append > .btn {
+      @include font-size($input-font-size-lg);
+      line-height: $input-line-height-lg;
+      @include border-radius($input-border-radius-lg);
+    }
+    .input-group-sm > .form-control,
+    .input-group-sm > .custom-select,
+    .input-group-sm > .input-group-prepend > .input-group-text,
+    .input-group-sm > .input-group-append > .input-group-text,
+    .input-group-sm > .input-group-prepend > .btn,
+    .input-group-sm > .input-group-append > .btn {
+      padding: $input-padding-y-sm $input-padding-x-sm;
+      @include font-size($input-font-size-sm);
+      line-height: $input-line-height-sm;
+      @include border-radius($input-border-radius-sm);
+    }
+
+    //boostrap-vue
+    // Custom radio sizes (uses defaults of 50%, since radios are round)
+    $b-custom-radio-indicator-border-radius-lg: $custom-radio-indicator-border-radius !default;
+    $b-custom-radio-indicator-border-radius-sm: $custom-radio-indicator-border-radius !default;
+
+    // Custom checkbox sizes
+    $b-custom-checkbox-indicator-border-radius-lg: $border-radius-lg !default;
+    $b-custom-checkbox-indicator-border-radius-sm: $border-radius-sm !default;
+
+    // --- Tables ---
+    // Flag to enable sticky table header and column CSS generation
+    $bv-enable-table-sticky: true !default;
+    // Default max-height for tables with sticky headers
+    $b-table-sticky-header-max-height: 300px !default;
+
+    // Flag to enable table stacked CSS generation
+    $bv-enable-table-stacked: true !default;
+    // Table stacked defaults
+    $b-table-stacked-heading-width: 40% !default;
+    $b-table-stacked-gap: 1rem !default;
+
+    // Bootstrap v4.3 is missing the "active" variant for dark tables
+    // Which translates to `bg-active`, but only for tables
+    $table-dark-active-bg: $table-dark-hover-bg !default;
+
+    // --- Toasts ---
+
+    // Toaster defaults
+    $b-toaster-zindex: 1100 !default;
+    $b-toaster-offset-top: 0.5rem !default;
+    $b-toaster-offset-bottom: $b-toaster-offset-top !default;
+    $b-toaster-offset-left: $b-toaster-offset-top !default;
+    $b-toaster-offset-right: $b-toaster-offset-top !default;
+
+    $b-toast-background-opacity: alpha($toast-background-color) !default;
+
+    // Toast variant levels wrt theme color value
+    $b-toast-bg-level: $alert-bg-level !default;
+    $b-toast-border-level: $alert-border-level !default;
+    $b-toast-color-level: $alert-color-level !default;
+
+    // --- Tooltips ---
+
+    // Flag to enable tooltip variant CSS generation
+    $bv-enable-tooltip-variants: true !default;
+
+    // --- Popovers ---
+
+    // Flag to enable popover variant CSS generation
+    $bv-enable-popover-variants: true !default;
+
+    // Popover variant levels wrt theme color value
+    $b-popover-bg-level: $alert-bg-level !default;
+    $b-popover-border-level: $alert-border-level !default;
+    $b-popover-color-level: $alert-color-level !default;
+
+    .form-control {
+      &.focus {
+        color: $input-focus-color;
+        background-color: $input-focus-bg;
+        border-color: $input-focus-border-color;
+        @if $enable-shadows {
+          box-shadow: $input-box-shadow, $input-focus-box-shadow;
+        } @else {
+          box-shadow: $input-focus-box-shadow;
+        }
+
+        &.is-valid {
+          border-color: $form-feedback-valid-color;
+          box-shadow: 0
+            0
+            0
+            $input-focus-width
+            rgba($form-feedback-valid-color, 0.25);
+        }
+
+        &.is-invalid {
+          border-color: $form-feedback-invalid-color;
+          box-shadow: 0
+            0
+            0
+            $input-focus-width
+            rgba($form-feedback-invalid-color, 0.25);
+        }
+      }
+    }
+    .card-img-left {
+      @include border-left-radius($card-inner-border-radius);
+    }
+    .card-img-right {
+      @include border-right-radius($card-inner-border-radius);
+    }
+    input[type="color"].form-control:disabled {
+      background-color: $gray-500;
+    }
+    .input-group {
+      > .custom-range {
+        background-color: $input-bg;
+        border: $input-border-width solid $input-border-color;
+
+        @if $enable-rounded {
+          border-radius: $input-border-radius;
+        } @else {
+          border-radius: 0;
+        }
+
+        @include box-shadow($input-box-shadow);
+        @include transition($input-transition);
+        // Bootstrap v4.3.2 has deprecated this mixin
+        // @include form-control-focus();
+        // So we manually add its content here
+        &:focus {
+          color: $input-focus-color; // only needed for fallback to text input
+          background-color: $input-focus-bg;
+          border-color: $input-focus-border-color;
+          outline: 0;
+          @if $enable-shadows {
+            box-shadow: $input-box-shadow, $input-focus-box-shadow;
+          } @else {
+            box-shadow: $input-focus-box-shadow;
+          }
+        }
+
+        &:disabled,
+        &[readonly] {
+          background-color: $input-disabled-bg;
+        }
+      }
+    }
+
+    @include bv-custom-range-validation-state(
+      "valid",
+      $form-feedback-valid-color
+    );
+
+    @include bv-custom-range-validation-state(
+      "invalid",
+      $form-feedback-invalid-color
+    );
+
+    .b-form-tags {
+      &.focus {
+        color: $input-focus-color;
+        background-color: $input-focus-bg;
+        border-color: $input-focus-border-color;
+        outline: 0;
+        @if $enable-shadows {
+          box-shadow: $input-box-shadow, $input-focus-box-shadow;
+        } @else {
+          box-shadow: $input-focus-box-shadow;
+        }
+
+        &.is-valid {
+          border-color: $form-feedback-valid-color;
+          box-shadow: 0
+            0
+            0
+            $input-focus-width
+            rgba($form-feedback-valid-color, 0.25);
+        }
+
+        &.is-invalid {
+          border-color: $form-feedback-invalid-color;
+          box-shadow: 0
+            0
+            0
+            $input-focus-width
+            rgba($form-feedback-invalid-color, 0.25);
+        }
+      }
+
+      &.disabled {
+        background-color: $input-disabled-bg;
+      }
+    }
+    @if $bv-enable-popover-variants {
+      @each $variant, $value in $theme-colors {
+        .b-popover-#{$variant} {
+          $po-bg-color: theme-color-level($variant, $b-popover-bg-level);
+          $po-border-color: theme-color-level(
+            $variant,
+            $b-popover-border-level
+          );
+          $po-color: theme-color-level($variant, $b-popover-color-level);
+          $po-header-bg: darken($po-bg-color, 3%);
+          $po-header-color: color-yiq($po-header-bg);
+          $po-arrow-color: $po-bg-color;
+          $po-arrow-color-bottom: $po-header-bg;
+          $po-arrow-outer-color: fade-in($po-border-color, 0.05);
+
+          &.popover {
+            background-color: $po-bg-color;
+            border-color: $po-border-color;
+          }
+
+          &.bs-popover-top {
+            > .arrow {
+              &::before {
+                border-top-color: $po-arrow-outer-color;
+              }
+
+              &::after {
+                border-top-color: $po-arrow-color;
+              }
+            }
+          }
+
+          &.bs-popover-right {
+            > .arrow {
+              &::before {
+                border-right-color: $po-arrow-outer-color;
+              }
+
+              &::after {
+                border-right-color: $po-arrow-color;
+              }
+            }
+          }
+
+          &.bs-popover-bottom {
+            > .arrow {
+              &::before {
+                border-bottom-color: $po-arrow-outer-color;
+              }
+
+              &::after {
+                // Use the header bg color
+                border-bottom-color: $po-arrow-color-bottom;
+              }
+            }
+
+            .popover-header::before {
+              border-bottom-color: $po-header-bg;
+            }
+          }
+
+          &.bs-popover-left {
+            > .arrow {
+              &::before {
+                border-left-color: $po-arrow-outer-color;
+              }
+
+              &::after {
+                border-left-color: $po-arrow-color;
+              }
+            }
+          }
+
+          &.bs-popover-auto {
+            &[x-placement^="top"] {
+              @extend .bs-popover-top;
+            }
+            &[x-placement^="right"] {
+              @extend .bs-popover-right;
+            }
+            &[x-placement^="bottom"] {
+              @extend .bs-popover-bottom;
+            }
+            &[x-placement^="left"] {
+              @extend .bs-popover-left;
+            }
+          }
+
+          .popover-header {
+            color: $po-header-color;
+            background-color: $po-header-bg;
+            border-bottom-color: darken($po-header-bg, 5%);
+          }
+
+          .popover-body {
+            color: $po-color;
+          }
+        }
+      }
+    }
+    .table.b-table {
+      > tbody > .table-active {
+        &,
+        > th,
+        > td {
+          background-color: $table-active-bg;
+        }
+      }
+
+      // Add special hover styling for `table-active` row variant
+      &.table-hover > tbody > tr.table-active:hover {
+        td,
+        th {
+          color: $table-hover-color;
+          background-image: linear-gradient($table-hover-bg, $table-hover-bg);
+          background-repeat: no-repeat;
+        }
+      }
+      > tbody > .bg-active {
+        &,
+        > th,
+        > td {
+          background-color: $table-dark-active-bg !important;
+        }
+      }
+      &.table-hover.table-dark > tbody > tr.bg-active:hover {
+        td,
+        th {
+          color: $table-dark-hover-color;
+          background-image: linear-gradient(
+            $table-dark-hover-bg,
+            $table-dark-hover-bg
+          );
+          background-repeat: no-repeat;
+        }
+      }
+    }
+    @if $bv-enable-table-sticky {
+      @supports (position: sticky) {
+        .table.b-table {
+          > thead,
+          > tbody,
+          > tfoot {
+            > tr > .table-b-table-default {
+              // Default cell color
+              color: $table-color;
+              // `$table-bg` is null by default in Bootstrap v4 variables
+              // but could have a value set by the consumer
+              background-color: $table-head-bg;
+            }
+          }
+
+          &.table-dark {
+            > thead,
+            > tbody,
+            > tfoot {
+              > tr > .bg-b-table-default {
+                // Default cell color in table dark mode
+                color: $table-dark-color;
+                // Default cell background color in table dark mode
+                background-color: $table-dark-bg;
+              }
+            }
+          }
+
+          // Handle case of zebra striping
+          &.table-striped {
+            // "fake" zebra striping via use of a transparent background image
+            > tbody
+              > tr:nth-of-type(#{$table-striped-order})
+              > .table-b-table-default {
+              // `$table-accent-bg` (used for striping) default is a very transparent black
+              // We overlay it over the background color to achieve the same color
+              // effect while keeping the background solid.
+              background-image: linear-gradient(
+                $table-accent-bg,
+                $table-accent-bg
+              );
+              background-repeat: no-repeat;
+            }
+
+            &.table-dark {
+              > tbody
+                > tr:nth-of-type(#{$table-striped-order})
+                > .bg-b-table-default {
+                // `$table-dark-accent-bg` (used for striping) default is a very transparent white
+                // We overlay it over the background color to achieve the same color
+                // effect while keeping the background solid.
+                background-image: linear-gradient(
+                  $table-dark-accent-bg,
+                  $table-dark-accent-bg
+                );
+                background-repeat: no-repeat;
+              }
+            }
+          }
+
+          // Handle case of hover
+          &.table-hover {
+            // "fake" hover via use of a transparent background image
+            > tbody > tr:hover > .table-b-table-default {
+              color: $table-hover-color;
+              // `$table-hover-bg` default is a very transparent black
+              // We overlay it over the background color to achieve the same color
+              // effect while keeping the background solid.
+              background-image: linear-gradient(
+                $table-hover-bg,
+                $table-hover-bg
+              );
+              background-repeat: no-repeat;
+            }
+
+            &.table-dark {
+              > tbody > tr:hover > .bg-b-table-default {
+                color: $table-dark-hover-color;
+                // `$table-dark-hover-bg` default is a very transparent white
+                // We overlay it over the background color to achieve the same color
+                // effect while keeping the background solid.
+                background-image: linear-gradient(
+                  $table-dark-hover-bg,
+                  $table-dark-hover-bg
+                );
+                background-repeat: no-repeat;
+              }
+            }
+          }
+        }
+      }
+    }
+    .b-toast {
+      .toast {
+        // Allow us to override Bootstrap's default toast opacity
+        // As they do not provide it as a variable
+        background-color: rgba(
+          $toast-background-color,
+          $b-toast-background-opacity
+        );
+      }
+
+      &:not(:last-child) {
+        margin-bottom: $toast-padding-x;
+      }
+
+      &.b-toast-solid {
+        .toast {
+          background-color: rgba($toast-background-color, 1);
+        }
+      }
+
+      .toast {
+        // Override default Bootstrap v4.x opacity of 0
+        // Needed for re-usable fade transition
+        opacity: 1;
+
+        &.fade:not(.show) {
+          opacity: 0;
+        }
+
+        .toast-body {
+          display: block; // Needed when we use a link as the body element
+        }
+      }
+    }
+
+    // Toast variants
+    @each $color, $value in $theme-colors {
+      .b-toast-#{$color} {
+        @include b-toast-variant(
+          theme-color-level($color, $b-toast-bg-level),
+          theme-color-level($color, $b-toast-border-level),
+          theme-color-level($color, $b-toast-color-level)
+        );
+      }
+    }
+
+    // Custom corteza scss
+    .b-sidebar {
+      background-color: $sidebar-bg !important;
+    }
+  }
+}

@@ -23,9 +23,9 @@
         class="d-flex w-100 align-items-center mb-1"
       >
         <font-awesome-icon
-          v-b-tooltip.hover="{ title: $t('tooltip.dragAndDrop'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.dragAndDrop'), container: '#body' }"
           :icon="['fas', 'bars']"
-          class="handle text-light ml-1 mr-2"
+          class="handle text-secondary ml-1 mr-2"
         />
 
         <div

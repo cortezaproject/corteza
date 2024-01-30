@@ -21,16 +21,6 @@
       @submit="onSubmit($event, 'branding')"
     />
 
-    <c-ui-custom-css
-      v-if="settings"
-      :settings="settings"
-      :processing="customCSS.processing"
-      :success="customCSS.success"
-      :can-manage="canManage"
-      class="mt-3"
-      @submit="onSubmit($event, 'customCSS')"
-    />
-
     <c-ui-topbar-settings
       v-if="settings"
       :settings="settings"
@@ -47,7 +37,6 @@
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUILogoEditor from 'corteza-webapp-admin/src/components/Settings/UI/CUILogoEditor'
 import CUIBrandingEditor from '../../components/Settings/UI/CUIBrandingEditor.vue'
-import CUICustomCSS from 'corteza-webapp-admin/src/components/Settings/UI/CUICustomCSS.vue'
 import CUITopbarSettings from 'corteza-webapp-admin/src/components/Settings/UI/CUITopbarSettings'
 import { mapGetters } from 'vuex'
 
@@ -61,7 +50,6 @@ export default {
 
   components: {
     'c-ui-logo-editor': CUILogoEditor,
-    'c-ui-custom-css': CUICustomCSS,
     'c-ui-branding-editor': CUIBrandingEditor,
     'c-ui-topbar-settings': CUITopbarSettings,
   },
@@ -108,7 +96,9 @@ export default {
   methods: {
     fetchSettings () {
       this.incLoader()
-      this.$SystemAPI.settingsList({ prefix: prefix })
+
+      this.$Settings.fetch()
+      return this.$SystemAPI.settingsList({ prefix: prefix })
         .then(settings => {
           this.settings = {}
 
@@ -131,18 +121,26 @@ export default {
 
       this.$SystemAPI.settingsUpdate({ values })
         .then(() => {
+          return this.fetchSettings().then(() => {
+            if ((type === 'branding' && this.settings['ui.studio.sass-installed']) || type === 'customCSS') {
+              // window.location.reload()
+              return new Promise((resolve) => {
+                setTimeout(() => {
+                  const stylesheet = document.querySelector('link#corteza-custom-css')
+                  stylesheet.href = 'custom.css?v=' + new Date().getTime()
+                  resolve()
+                }, 1000)
+              })
+            }
+          })
+        })
+        .then(() => {
           this.animateSuccess(type)
           this.toastSuccess(this.$t('notification:settings.ui.update.success'))
-          this.$Settings.fetch()
         })
         .catch(this.toastErrorHandler(this.$t('notification:settings.ui.update.error')))
         .finally(() => {
           this[type].processing = false
-
-          // Refresh the page if branding or custom CSS was updated
-          if (type === 'branding' || type === 'customCSS') {
-            window.location.reload()
-          }
         })
     },
   },

@@ -1,41 +1,47 @@
 <template>
   <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    body-class="p-0"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
-    <b-form-group
-      :label="$t('enabled')"
-      label-class="text-primary"
-    >
-      <c-input-checkbox
-        v-model="external.enabled"
-        :value="true"
-        :unchecked-value="false"
-        :labels="checkboxLabel"
-        switch
-      />
-    </b-form-group>
+    <div class="d-flex align-items-center flex-grow-1 flex-wrap flex-fill-child gap-1 p-3">
+      <b-button
+        variant="primary"
+        size="lg"
+        @click="newOIDC()"
+      >
+        {{ $t('oidc.add') }}
+      </b-button>
 
-    <b-button
-      class="my-3"
-      variant="primary"
-      @click="newOIDC()"
-    >
-      {{ $t('oidc.add') }}
-    </b-button>
+      <b-form-group
+        :label="$t('enabled')"
+        label-class="text-primary"
+        class="mb-0 ml-auto"
+      >
+        <c-input-checkbox
+          v-model="external.enabled"
+          :value="true"
+          :unchecked-value="false"
+          :labels="checkboxLabel"
+          switch
+        />
+      </b-form-group>
+    </div>
 
     <b-table
       :items="providers.items"
       :fields="providers.fields"
       :tbody-tr-class="(i) => i.rowBackground"
+      head-variant="light"
+      hover
+      class="mb-0"
     >
       <template #cell(enabled)="{ item }">
         <b-checkbox
@@ -45,13 +51,7 @@
       </template>
 
       <template #cell(provider)="{ item }">
-        {{ item.provider }}
-        <b-badge
-          v-if="item.tag"
-          class="ml-1"
-        >
-          {{ item.tag }}
-        </b-badge>
+        {{ item.provider || item.tag }}
       </template>
 
       <template #cell(editor)="{ item }">

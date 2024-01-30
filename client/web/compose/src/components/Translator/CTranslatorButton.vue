@@ -1,6 +1,6 @@
 <template>
   <b-button
-    v-b-tooltip.hover="{ title: tooltip, container: '#body' }"
+    v-b-tooltip.noninteractive.hover="{ title: tooltip, container: '#body' }"
     data-test-id="button-translation"
     :variant="buttonVariant"
     :class="buttonClass"
@@ -23,12 +23,12 @@ export default {
   props: {
     buttonVariant: {
       type: String,
-      default: () => { return 'light' },
+      default: 'extra-light',
     },
 
     buttonClass: {
       type: String,
-      default: () => { return '' },
+      default: '',
     },
 
     size: {

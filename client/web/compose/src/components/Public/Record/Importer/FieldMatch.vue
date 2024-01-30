@@ -1,8 +1,5 @@
 <template>
-  <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-  >
+  <b-card>
     <b-form-group>
       <div class="mb-4">
         <label>
@@ -17,9 +14,9 @@
       </div>
 
       <b-table
-        small
         :fields="tableFields"
         :items="rows"
+        head-variant="light"
         class="field-table"
       >
         <template v-slot:head(selected)>
@@ -65,7 +62,7 @@
       </b-button>
 
       <b-button
-        variant="dark"
+        variant="primary"
         :disabled="!canContinue"
         class="float-right"
         @click="nextStep"
@@ -133,18 +130,15 @@ export default {
           label: '',
           tdClass: 'picker align-middle',
           thStyle: 'width: 30px',
-          thClass: 'pb-1',
         },
         {
           key: 'fileColumn',
           label: this.$t('recordList.import.fileColumns'),
           tdClass: 'align-middle',
-          thClass: 'pb-1',
         },
         {
           key: 'moduleField',
           label: this.$t('recordList.import.moduleFields'),
-          thClass: 'pb-1',
         },
       ]
     },

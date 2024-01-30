@@ -39,30 +39,18 @@
           size="lg"
           :text="$t('chart.add')"
         >
-          <b-dropdown-item-button
-            variant="dark"
-            @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })"
-          >
+          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'generic' } })">
             {{ $t('chart.addGeneric') }}
-          </b-dropdown-item-button>
-          <b-dropdown-item-button
-            variant="dark"
-            @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })"
-          >
+          </b-dropdown-item>
+          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'funnel' } })">
             {{ $t('chart.addFunnel') }}
-          </b-dropdown-item-button>
-          <b-dropdown-item-button
-            variant="dark"
-            @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })"
-          >
+          </b-dropdown-item>
+          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'gauge' } })">
             {{ $t('chart.addGauge') }}
-          </b-dropdown-item-button>
-          <b-dropdown-item-button
-            variant="dark"
-            @click="$router.push({ name: 'admin.charts.create', params: { category: 'radar' } })"
-          >
+          </b-dropdown-item>
+          <b-dropdown-item @click="$router.push({ name: 'admin.charts.create', params: { category: 'radar' } })">
             {{ $t('chart.addRadar') }}
-          </b-dropdown-item-button>
+          </b-dropdown-item>
         </b-dropdown>
 
         <import
@@ -88,7 +76,7 @@
       <template #actions="{ item: c }">
         <b-dropdown
           v-if="c.canGrant || c.canDeleteChart"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           dropleft

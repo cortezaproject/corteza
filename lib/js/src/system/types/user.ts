@@ -15,6 +15,7 @@ interface UserMeta {
   avatarKind?: string;
   avatarColor?: string;
   avatarBgColor?: string;
+  theme?: string;
 }
 
 interface SecurityPolicy {
@@ -46,6 +47,7 @@ export class User {
     avatarKind: '',
     avatarColor: '',
     avatarBgColor: '',
+    theme: '',
   }
 
   public canGrant = false

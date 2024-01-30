@@ -51,7 +51,23 @@ export default {
 
   methods: {
     renderChart () {
-      this.chart = this.options.getChartConfiguration(this.dataframes)
+      const meta = {
+        themeVariables: this.getThemeVariables(),
+      }
+
+      this.chart = this.options.getChartConfiguration(this.dataframes, meta)
+    },
+
+    getThemeVariables () {
+      const getCssVariable = (variableName) => {
+        return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim()
+      }
+
+      // Turn below into an object with key value pairs
+      return ['white', 'black', 'primary', 'secondary', 'success', 'warning', 'danger', 'light', 'extra-light', 'dark', 'font-regular'].reduce((acc, variable) => {
+        acc[variable] = getCssVariable(`--${variable}`)
+        return acc
+      }, {})
     },
   },
 }

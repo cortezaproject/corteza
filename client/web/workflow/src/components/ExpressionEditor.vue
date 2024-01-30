@@ -9,7 +9,7 @@
       theme="chrome"
       width="100%"
       :height="height"
-      :class="{ 'border': border }"
+      :class="{ 'border-0 rounded-0': !border }"
       v-on="$listeners"
       @init="editorInit"
     />
@@ -106,12 +106,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.border {
-  background-color: var(--white);
-  border: 2px solid var(--light);
-  border-radius: 0.25rem;
-}
-
 .popout {
   z-index: 7;
   bottom: 0;

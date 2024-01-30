@@ -178,4 +178,22 @@ export default {
   padding: 60px;
   top: 40vh;
 }
+
+.loader {
+  height: calc(100vh - 2 * #{var(--topbar-height)});
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+
+  .pending {
+    width: 30px;
+  }
+
+  .logo {
+    height: 30px;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 130px;
+  }
+}
 </style>

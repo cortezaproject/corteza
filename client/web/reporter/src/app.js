@@ -44,6 +44,11 @@ export default (options = {}) => {
             .setHeader('Content-Language', user.meta.preferredLanguage)
         }
 
+        // switch the webapp theme based on user preference
+        if (user.meta.theme) {
+          document.getElementsByTagName('html')[0].setAttribute('data-color-mode', user.meta.theme)
+        }
+
         // Load effective permissions
         this.$store.dispatch('rbac/load')
 

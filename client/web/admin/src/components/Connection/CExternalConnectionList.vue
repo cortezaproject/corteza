@@ -1,16 +1,15 @@
 <template>
   <b-card
-    class="shadow-sm"
+    header-class="border-bottom"
     body-class="p-0"
-    header-bg-variant="white"
-    footer-bg-variant="white"
+    class="shadow-sm"
   >
     <template
       #header
     >
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <c-resource-list
@@ -35,7 +34,6 @@
       }"
       clickable
       hide-search
-      card-header-class="rounded-0"
       class="h-100 bg-transparent"
       @row-clicked="handleRowClicked"
     >
@@ -57,7 +55,6 @@
           :excluded-label="$t('filterForm.excluded.label')"
           :inclusive-label="$t('filterForm.inclusive.label')"
           :exclusive-label="$t('filterForm.exclusive.label')"
-          class="mt-2"
           @change="filterList"
         />
       </template>
@@ -65,7 +62,7 @@
       <template #actions="{ item: c }">
         <b-dropdown
           v-if="c.canDeleteConnection"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           dropleft

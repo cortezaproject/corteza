@@ -3,7 +3,7 @@
     <template v-if="!inConfirmation">
       <b-button
         data-test-id="button-delete"
-        v-b-tooltip.hover="{ title: tooltip, container: '#body' }"
+        v-b-tooltip.noninteractive.hover="{ title: tooltip, container: '#body' }"
         :variant="variant"
         :size="size"
         :disabled="disabled || processing"

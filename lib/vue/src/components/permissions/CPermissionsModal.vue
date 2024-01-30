@@ -14,7 +14,7 @@
     >
       <b-row
         no-gutters
-        class="bg-extra-light border-bottom"
+        class="bg-light border-bottom"
       >
         <b-col
           lg="4"
@@ -32,7 +32,7 @@
       <b-row
         no-gutters
         align-v="stretch"
-        class="bg-extra-light"
+        class="bg-light"
       >
         <b-col
           lg="4"
@@ -129,7 +129,7 @@
           v-for="(e, i) in evaluate"
           :key="i"
           lg="2"
-          class="d-none d-lg-flex border-left p-3 bg-extra-light not-allowed"
+          class="d-none d-lg-flex border-left p-3 bg-light not-allowed"
         >
           <div
             class="d-flex flex-column align-items-center justify-content-between mt-4 w-100"
@@ -137,7 +137,7 @@
             <h5
               v-for="r in e.rules"
               :key="r.operation"
-              v-b-tooltip.hover="{ title: getRuleTooltip(r.access === 'unknown-context', !!e.userID), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: getRuleTooltip(r.access === 'unknown-context', !!e.userID), container: '#body' }"
               class="text-center mb-1 mt-2 w-100"
             >
               <font-awesome-icon
@@ -621,9 +621,7 @@ export default {
 .not-allowed {
   cursor: not-allowed;
 }
-.bg-extra-light {
-  background-color: #F3F5F7;
-}
+
 .pointer {
   cursor: pointer;
 }
@@ -633,7 +631,7 @@ export default {
 
 .hide-eval:hover {
   .rotate {
-    color: #162425 !important;
+    color: var(--primary) !important;
   }
 }
 </style>

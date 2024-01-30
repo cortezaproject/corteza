@@ -22,7 +22,7 @@ cloneSuffix: copy
 cloneWarning:
   wfInclusion: Workflows and other automation are not cloned. Use the workflow editor interface to clone the ones you need.
 create: Create namespace
-export: Export namespace
+export: Export
 enabled:
   label: Enable namespace
 icon:

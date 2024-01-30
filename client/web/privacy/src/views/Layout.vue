@@ -13,6 +13,8 @@
           userSettingsProfile: $t('navigation:userSettings.profile'),
           userSettingsChangePassword: $t('navigation:userSettings.changePassword'),
           userSettingsLogout: $t('navigation:userSettings.logout'),
+          lightTheme: $t('general:themes.labels.light'),
+          darkTheme: $t('general:themes.labels.dark'),
         }"
       >
         <template #title>
@@ -58,7 +60,7 @@
       -->
       <template>
         <div
-          class="spacer"
+          class="sidebar-spacer d-print-none"
           :class="{
             'expanded': expanded && pinned,
           }"
@@ -127,21 +129,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss" scoped>
-.spacer {
-  min-width: 0;
-  -webkit-transition: min-width 0.2s ease-in-out;
-  -moz-transition: min-width 0.2s ease-in-out;
-  -o-transition: min-width 0.2s ease-in-out;
-  transition: min-width 0.2s ease-in-out;
-
-  &.expanded {
-    min-width: var(--sidebar-width);
-    -webkit-transition: min-width 0.2s ease-in-out;
-    -moz-transition: min-width 0.2s ease-in-out;
-    -o-transition: min-width 0.2s ease-in-out;
-    transition: min-width 0.2s ease-in-out;
-  }
-}
-</style>

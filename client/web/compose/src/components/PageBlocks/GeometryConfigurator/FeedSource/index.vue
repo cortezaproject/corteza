@@ -1,25 +1,18 @@
 <template>
-  <fieldset class="form-group">
+  <div>
     <div
       v-for="(feed, i) in options.feeds"
       :key="i"
     >
       <div
-        class="d-flex justify-content-between mb-3"
+        v-if="feed.resource"
+        class="d-flex justify-content-end mb-3"
       >
-        <h5>
-          {{ $t('geometry.feedLabel') }}
-        </h5>
-
-        <template
-          v-if="feed.resource"
-        >
-          <c-input-confirm
-            show-icon
-            size="md"
-            @confirmed="onRemoveFeed(i)"
-          />
-        </template>
+        <c-input-confirm
+          show-icon
+          size="md"
+          @confirmed="onRemoveFeed(i)"
+        />
       </div>
 
       <b-form-group horizontal>
@@ -35,12 +28,13 @@
     </div>
 
     <b-button
-      class="btn btn-url test-feed-add"
+      variant="primary"
+      class="test-feed-add"
       @click.prevent="handleAddButton"
     >
       {{ $t('geometry.addSource') }}
     </b-button>
-  </fieldset>
+  </div>
 </template>
 <script>
 import { mapGetters } from 'vuex'

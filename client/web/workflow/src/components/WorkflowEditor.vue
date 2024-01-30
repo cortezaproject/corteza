@@ -24,11 +24,7 @@
       </b-button>
     </portal>
 
-    <b-card
-      no-footer
-      body-class="toolbar d-flex flex-column p-2"
-      class="h-100 border-right shadow-lg rounded-0"
-    >
+    <div class="toolbar d-flex flex-column h-100 border-right shadow-lg">
       <div
         id="toolbar"
         ref="toolbar"
@@ -36,21 +32,21 @@
       />
 
       <div
-        class="d-flex flex-grow-1 align-items-end justify-content-center p-3"
+        class="d-flex flex-grow-1 align-items-end justify-content-center py-3"
       >
         <b-button
           ref="help"
           v-b-modal.help
-          variant="link"
-          class="p-0"
+          variant="outline-light"
+          class="d-flex align-items-center border-0 p-2"
         >
           <font-awesome-icon
             :icon="['far', 'question-circle']"
-            class="h4 mb-0"
+            class="h4 mb-0 text-primary"
           />
         </b-button>
       </div>
-    </b-card>
+    </div>
 
     <div
       ref="tooltips"
@@ -199,7 +195,7 @@
         <c-button-submit
           v-if="changeDetected && canUpdateWorkflow"
           data-test-id="button-save-workflow"
-          variant="dark"
+          variant="primary"
           block
           :processing="processingSave"
           :text="$t('editor:detected-changes') + `${canUpdateWorkflow ? this.$t('editor:click-to-save') : ''}`"
@@ -643,7 +639,7 @@ export default {
       const { item } = this.sidebar
 
       if (item && item.config) {
-        return getStyleFromKind(item.config).icon
+        return this.getIcon(getStyleFromKind(item.config).icon, this.currentTheme)
       }
       return undefined
     },
@@ -686,6 +682,10 @@ export default {
         return name || username || email || `<@${userID}>`
       }
       return undefined
+    },
+
+    currentTheme () {
+      return this.$auth.user ? this.$auth.user.meta.theme : 'light'
     },
   },
 
@@ -840,7 +840,7 @@ export default {
       this.graph.zoomFactor = 1.2
 
       // Sets a background image and restricts child movement to its bounds
-      this.graph.setBackgroundImage(new mxImage(`${mxClient.imageBasePath}/grid.svg`, 8192, 8192))
+      this.graph.setBackgroundImage(new mxImage(this.getIcon('grid', this.currentTheme), 8192, 8192))
       this.graph.maximumGraphBounds = new mxRectangle(0, 0, 8192, 8192)
       this.graph.gridSize = 8
 
@@ -900,22 +900,22 @@ export default {
 
         if (cell.edge) {
           if (cell.value) {
-            label = `<div id="openSidebar" class="text-nowrap py-1 px-3 mb-0 rounded bg-white pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: #2D2D2D;">${encodeHTML(cell.value)}</div>`
+            label = `<div id="openSidebar" class="text-nowrap py-1 px-3 mb-0 rounded bg-white pointer" style="border: 2px solid #A7D0E3; border-radius: 5px; color: var(--dark);">${encodeHTML(cell.value)}</div>`
           }
         } else if (this.vertices[cell.id]) {
           const vertex = this.vertices[cell.id]
           const { kind } = vertex.config
           const { style } = vertex.node
           if (vertex && kind !== 'visual') {
-            const icon = getStyleFromKind(vertex.config).icon
+            const icon = this.getIcon(getStyleFromKind(vertex.config).icon, this.currentTheme)
             const type = this.$t(`steps:${style}.short`)
             const isSelected = this.selection.includes(cell.mxObjectId)
             const border = isSelected ? 'selected-border' : 'border-light'
-            const shadow = isSelected ? 'shadow-lg' : 'shadow'
-            const cog = 'icons/cog.svg'
-            const issue = 'icons/issue.svg'
-            const playIcon = 'icons/play.svg'
-            const stopIcon = 'icons/stop.svg'
+            const shadow = isSelected ? 'shadow' : 'shadow-sm'
+            const cog = this.getIcon('cog')
+            const issue = this.getIcon('issue')
+            const playIcon = this.getIcon('play')
+            const stopIcon = this.getIcon('stop')
             const opacity = kind === 'trigger' && !vertex.triggers.enabled ? 'opacity: 0.7;' : ''
 
             let test = ''
@@ -991,7 +991,7 @@ export default {
                 properties = [
                   '<tr class="title"><td><b>Initial scope</b></td><td/><td/></tr>',
                   ...properties.map(({ name = '', type = '' }) => {
-                    return `<tr><td><var>${name}</var></td><td/><td><samp>${type || 'Any'}</samp></td><td/></tr>`
+                    return `<tr><td><var>${name}</var></td><td/><td><samp>${type || 'Any'}</samp></td></tr>`
                   }),
                 ]
               }
@@ -1754,7 +1754,7 @@ export default {
       mxConstants.CONNECT_HANDLE_FILLCOLOR = '#4D7281'
       mxConstants.VALID_COLOR = '#A7D0E3'
 
-      mxConstants.GUIDE_COLOR = '#2D2D2D'
+      mxConstants.GUIDE_COLOR = '162425'
       mxConstants.GUIDE_STROKEWIDTH = 1
 
       // Creates the default style for vertices
@@ -1767,7 +1767,7 @@ export default {
       style[mxConstants.STYLE_ARCSIZE] = 5
       style[mxConstants.STYLE_RESIZABLE] = false
       style[mxConstants.STYLE_FILLCOLOR] = 'none'
-      style[mxConstants.STYLE_FONTCOLOR] = '#2D2D2D'
+      style[mxConstants.STYLE_FONTCOLOR] = 'var(--dark)'
       style[mxConstants.STYLE_FONTSIZE] = 13
       this.graph.getStylesheet().putDefaultVertexStyle(style)
 
@@ -1778,7 +1778,7 @@ export default {
       style[mxConstants.STYLE_ROUNDED] = true
       style[mxConstants.STYLE_ORTHOGONAL] = true
       style[mxConstants.STYLE_MOVABLE] = false
-      style[mxConstants.STYLE_FONTCOLOR] = '#2D2D2D'
+      style[mxConstants.STYLE_FONTCOLOR] = 'var(--dark)'
       style[mxConstants.STYLE_STROKEWIDTH] = 2
       style[mxConstants.STYLE_ENDSIZE] = 15
       style[mxConstants.STYLE_STARTSIZE] = 15
@@ -1796,8 +1796,8 @@ export default {
       style[mxConstants.STYLE_HORIZONTAL] = false
       style[mxConstants.STYLE_VERTICAL_LABEL_POSITION] = mxConstants.ALIGN_MIDDLE
       style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_MIDDLE
-      style[mxConstants.STYLE_FILLCOLOR] = 'white'
-      style[mxConstants.STYLE_STROKECOLOR] = '#2D2D2D'
+      style[mxConstants.STYLE_FILLCOLOR] = 'var(--white)'
+      style[mxConstants.STYLE_STROKECOLOR] = 'var(--dark)'
       style[mxConstants.STYLE_STROKEWIDTH] = 0
       style[mxConstants.STYLE_STROKEWIDTH] = 2
       this.graph.getStylesheet().putCellStyle('swimlane', style)
@@ -1932,7 +1932,7 @@ export default {
       }
 
       // Image for fixed point
-      mxConstraintHandler.prototype.pointImage = new mxImage(`${mxClient.imageBasePath}/connection-point.svg`, 8, 8)
+      mxConstraintHandler.prototype.pointImage = new mxImage(this.getIcon('connection-point'), 8, 8)
 
       // On hover outline for fixed point
       mxConstraintHandler.prototype.createHighlightShape = function () {
@@ -1958,6 +1958,8 @@ export default {
       dragElt.style.border = 'dashed #A7D0E3 2px'
       dragElt.style.width = `${prototype.geometry.width}px`
       dragElt.style.height = `${prototype.geometry.height}px`
+
+      icon = this.getIcon(icon, this.currentTheme)
 
       const img = toolbar.addMode(title, icon, funct)
 
@@ -2415,10 +2417,10 @@ export default {
       this.highlights = []
 
       // Handle first cell & edge
-      this.highlights[this.highlights.push(new mxCellHighlight(this.graph, '#719430', 2)) - 1].highlight(this.graph.view.getState(this.graph.model.getCell(this.dryRun.cellID)))
+      this.highlights[this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1].highlight(this.graph.view.getState(this.graph.model.getCell(this.dryRun.cellID)))
       const firstEdge = this.graph.model.getEdgesBetween(this.graph.model.getCell(this.dryRun.cellID), this.graph.model.getCell(firstStepID), true)[0]
       if (firstEdge) {
-        this.highlights[this.highlights.push(new mxCellHighlight(this.graph, '#719430', 2)) - 1].highlight(this.graph.view.getState(firstEdge))
+        this.highlights[this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1].highlight(this.graph.view.getState(firstEdge))
       }
 
       // Handle others
@@ -2432,7 +2434,7 @@ export default {
             if (cell && cell.index !== 0) {
               this.graph.model.getEdgesBetween(this.graph.model.getCell(cell.parentID), this.graph.model.getCell(stepID), true)
                 .forEach(edge => {
-                  this.highlights[this.highlights.push(new mxCellHighlight(this.graph, '#719430', 2)) - 1].highlight(this.graph.view.getState(edge))
+                  this.highlights[this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1].highlight(this.graph.view.getState(edge))
                 })
             }
           } else {
@@ -2462,7 +2464,7 @@ export default {
               time.sum += stepTime
               this.graph.model.getEdgesBetween(this.graph.model.getCell(parentID), this.graph.model.getCell(stepID), true)
                 .forEach(edge => {
-                  this.highlights[this.highlights.push(new mxCellHighlight(this.graph, '#719430', 2)) - 1].highlight(this.graph.view.getState(edge))
+                  this.highlights[this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1].highlight(this.graph.view.getState(edge))
                 })
             })
 
@@ -2471,14 +2473,14 @@ export default {
           }
 
           // Set info overlay
-          const time = new mxCellOverlay(new mxImage(`${mxClient.imageBasePath}/clock-${error ? 'danger' : 'success'}.svg`, 16, 16), `<span>${log}</span>`)
+          const time = new mxCellOverlay(new mxImage(this.getIcon(`clock-${error ? 'danger' : 'success'}`), 16, 16), `<span>${log}</span>`)
           this.graph.addCellOverlay(this.graph.model.getCell(stepID), time)
 
           // Highlight cell based on error
           if (error) {
-            this.highlights[this.highlights.push(new mxCellHighlight(this.graph, '#E54122', 2)) - 1].highlight(this.graph.view.getState(this.graph.model.getCell(stepID)))
+            this.highlights[this.highlights.push(new mxCellHighlight(this.graph, 'var(--danger)', 2)) - 1].highlight(this.graph.view.getState(this.graph.model.getCell(stepID)))
           } else {
-            this.highlights[this.highlights.push(new mxCellHighlight(this.graph, '#719430', 2)) - 1].highlight(this.graph.view.getState(this.graph.model.getCell(stepID)))
+            this.highlights[this.highlights.push(new mxCellHighlight(this.graph, 'var(--success)', 2)) - 1].highlight(this.graph.view.getState(this.graph.model.getCell(stepID)))
           }
         }
       })
@@ -2537,17 +2539,25 @@ export default {
         })
         .catch(this.toastErrorHandler(this.$t('notification:event-type-fetch-failed')))
     },
+
+    getIcon (icon, mode = 'light') {
+      return `${mxClient.imageBasePath}/${mode === 'dark' ? 'dark/' : ''}${icon}.svg`
+    },
   },
 }
 </script>
 
 <style lang="scss" scoped>
+#workflow-editor {
+  color: var(--dark);
+}
+
 #graph {
   outline: none;
 }
 
 .toolbar {
-  background-color: var(--gray-200) !important;
+  background-color: var(--sidebar-bg) !important;
   width: 66px;
 }
 
@@ -2647,7 +2657,7 @@ export default {
 }
 
 .step-values tr.title {
-  background-color: white !important;
+  background-color: var(--light) !important;
 }
 
 .step-values tr.title th {

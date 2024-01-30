@@ -23,10 +23,7 @@
             no-body
             class="shadow-sm"
           >
-            <b-card-header
-              header-bg-variant="white"
-              class="d-flex py-3 align-items-center border-bottom"
-            >
+            <b-card-header class="d-flex py-3 align-items-center border-bottom">
               <export
                 slot="header"
                 :list="[chart]"
@@ -137,8 +134,8 @@
 
                           <b-input-group-append v-if="showEditColorSchemeButton">
                             <b-button
-                              v-b-tooltip.hover="{ title: $t('colorScheme.custom.edit'), container: '#body' }"
-                              variant="light"
+                              v-b-tooltip.noninteractive.hover="{ title: $t('colorScheme.custom.edit'), container: '#body' }"
+                              variant="extra-light"
                               class="d-flex align-items-center"
                               @click="editColorScheme()"
                             >
@@ -299,7 +296,7 @@
                   style="top: 0;"
                 >
                   <b-button
-                    v-b-tooltip.hover="{ title: $t('edit.loadData'), container: '#body' }"
+                    v-b-tooltip.noninteractive.hover="{ title: $t('edit.loadData'), container: '#body' }"
                     :disabled="processing || !reportsValid"
                     variant="outline-light"
                     size="lg"
@@ -366,9 +363,12 @@
           data-test-id="input-scheme-color"
           :translations="{
             modalTitle: $t('colorScheme.pickAColor'),
+            light: $t('general:themes.labels.light'),
+            dark: $t('general:themes.labels.dark'),
             cancelBtnLabel: $t('general:label.cancel'),
             saveBtnLabel: $t('general:label.saveAndClose')
           }"
+          :theme-settings="themeSettings"
           class="d-inline-flex mr-1"
         >
           <template #footer>
@@ -659,6 +659,10 @@ export default {
     showEditColorSchemeButton () {
       const { config = {} } = this.chart || {}
       return config.colorScheme && config.colorScheme.includes('custom') && this.canManageColorSchemes
+    },
+
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 

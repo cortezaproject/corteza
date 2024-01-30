@@ -137,7 +137,7 @@
       <template #actions="{ item: w }">
         <b-dropdown
           v-if="w.canGrant || w.canDeleteWorkflow"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2 ml-1"
           no-caret
           lazy

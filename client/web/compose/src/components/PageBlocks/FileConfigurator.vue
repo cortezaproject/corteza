@@ -173,9 +173,12 @@
               v-model="options.backgroundColor"
               :translations="{
                 modalTitle: $t('kind.file.view.colorPicker'),
+                light: $t('general:themes.labels.light'),
+                dark: $t('general:themes.labels.dark'),
                 cancelBtnLabel: $t('general:label.cancel'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
+              :theme-settings="themeSettings"
             />
           </b-form-group>
         </b-col>
@@ -225,6 +228,10 @@ export default {
     enablePreviewStyling () {
       const { mode } = this.options
       return mode === 'gallery'
+    },
+
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 

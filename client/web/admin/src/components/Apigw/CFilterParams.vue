@@ -60,7 +60,7 @@
 
           <b-input-group>
             <b-input-group-prepend>
-              <b-button variant="dark">
+              <b-button variant="extra-light">
                 ƒ
               </b-button>
             </b-input-group-prepend>
@@ -86,12 +86,10 @@
               :placeholder="$t('filters.labels.value')"
             />
 
-            <b-input-group-append>
-              <c-input-confirm
-                show-icon
-                @confirmed="param.value.splice(hIndex, 1)"
-              />
-            </b-input-group-append>
+            <c-input-confirm
+              show-icon
+              @confirmed="param.value.splice(hIndex, 1)"
+            />
           </b-input-group>
 
           <b-button
@@ -115,7 +113,7 @@
           <b-input-group-prepend
             v-if="param.label === 'expr'"
           >
-            <b-button variant="dark">
+            <b-button variant="extra-light">
               ƒ
             </b-button>
           </b-input-group-prepend>

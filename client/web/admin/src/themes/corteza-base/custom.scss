@@ -1,67 +1,3 @@
-/* stylelint-disable no-descending-specificity */
-html {
-  height: 100vh;
-  width: 100vw;
-  overflow: hidden;
-}
-
-body {
-  height: 100%;
-}
-
-:focus {
-  outline-color: var(--primary);
-}
-
-button:disabled {
-  cursor: not-allowed;
-  pointer-events: all !important;
-}
-
-.btn-link {
-  &:focus {
-    text-decoration: none;
-  }
-}
-
-.pointer {
-  cursor: pointer;
-}
-
-
-.gap-1 {
-  gap: 0.5rem;
-}
-
-.gap-2 {
-  gap: 1rem;
-}
-
-.gap-3 {
-    gap: 1.5rem;
-}
-
-.grab {
-  cursor: grab;
-}
-
-thead th,
-legend,
-label,
-.btn {
-  font-family: var(--font-medium);
-}
-
-strong,
-b,
-.font-weight-bold {
-  font-family: var(--font-semibold);
-}
-
-th {
-  white-space: nowrap;
-}
-
 // custom height for resource lists with buttons
 .custom-resource-list-height {
   height: calc(100vh - 120px);
@@ -70,72 +6,6 @@ th {
 // custom height for resource lists without buttons
 .custom-resource-list-height-no-buttons {
   height: calc(100vh - 105px);
-}
-
-// to remove the gap on top of the sticky header table
-.b-table-sticky-header > .table.b-table > thead > tr > th {
-  border: 0;
-}
-
-.loader {
-  height: calc(100vh - 2 * #{var(--topbar-height)});
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-
-  .pending {
-    width: 30px;
-  }
-
-  .logo {
-    height: 30px;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: 130px;
-  }
-}
-
-.ProseMirror.ProseMirror-focused {
-  outline: none;
-}
-
-// Pagination
-.page-item {
-  &.disabled {
-    cursor: not-allowed;
-  }
-}
-
-fieldset.required {
-  &.error {
-    legend::before {
-      color: var(--danger);
-    }
-  }
-
-  label::after {
-    content: "*";
-    display: inline-block;
-    color: var(--danger);
-    width: 10px;
-    height: 18px;
-    overflow: hidden;
-  }
-}
-
-.alert-holder {
-  position: absolute;
-  top: 0;
-  width: 100%;
-
-  .alert {
-    z-index: 1040;
-    box-shadow: 0 0 2px 0 rgba(var(--secondary), 0.75);
-  }
-}
-
-.b-toaster.b-toaster-bottom-right {
-  bottom: 75px;
 }
 
 .loading {
@@ -148,56 +18,10 @@ fieldset.required {
   content: '';
 }
 
-.bg-extra-light {
-  background-color: var(--extra-light);
-}
-
-.gap-1 {
-  gap: 0.5rem;
-}
-
-.gap-2 {
-  gap: 1rem;
-}
-
-.gap-col-3 {
-  column-gap: 1.5rem;
-}
-
-@media (max-width: 576px) {
-  .flex-fill-child > * {
-    flex: 1 1 auto !important;
-  }
-}
-
 @keyframes ellipsis {
-    0%   { content: ''; }
-    25%  { content: '.'; }
-    50%  { content: '..'; }
-    75%  { content: '...'; }
-    100% { content: ''; }
-}
-
-// Supporting CSS to improve print-to-PDF option
-@media print {
-  @page {
-    size: auto;
-  }
-
-  body {
-    margin: 0;
-  }
-
-  main {
-    padding-top: 64px;
-  }
-
-  header, footer, aside, nav {
-    display: none;
-  }
-
-  .block {
-    break-inside: avoid;
-    width: 100%;
-  }
+  0%   { content: ''; }
+  25%  { content: '.'; }
+  50%  { content: '..'; }
+  75%  { content: '...'; }
+  100% { content: ''; }
 }

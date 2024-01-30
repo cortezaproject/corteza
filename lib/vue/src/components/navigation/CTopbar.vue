@@ -1,17 +1,17 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center pr-3">
+  <div class="header-navigation d-flex flex-wrap align-items-center py-2 px-3 gap-1">
     <div
-      class="spacer"
+      class="sidebar-spacer"
       :class="{
         'expanded': sidebarPinned,
       }"
     />
 
-    <h2 class="title py-1 mb-0">
+    <h2 class="title mb-0">
       <slot name="title" />
     </h2>
 
-    <div class="tools-wrapper py-1 ml-auto">
+    <div class="tools-wrapper ml-auto">
       <slot name="tools" />
     </div>
 
@@ -19,7 +19,7 @@
       <b-button
         v-if="!hideAppSelector && !settings.hideAppSelector"
         data-test-id="app-selector"
-        variant="outline-light"
+        variant="outline-extra-light"
         :href="appSelectorURL"
         title="Apps"
         size="lg"
@@ -35,9 +35,9 @@
         v-if="!settings.hideHelp"
         data-test-id="dropdown-helper"
         size="lg"
-        variant="outline-light"
+        variant="outline-extra-light"
         toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         right
         no-caret
         class="nav-icon mx-1 text-sm-nowrap"
@@ -107,13 +107,14 @@
         v-if="!settings.hideProfile"
         data-test-id="dropdown-profile"
         data-v-onboarding="profile"
-        :variant="avatarExists ? 'link' : 'outline-light'"
+        :variant="avatarExists ? 'link' : 'outline-extra-light'"
         :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
         size="lg"
         right
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark font-weight-bold mt-2"
+        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         no-caret
         class="nav-user-icon"
+        @hide="preventDropdownClose"
       >
         <template #button-content>
           <div
@@ -137,15 +138,18 @@
             </span>
           </div>
         </template>
+
         <b-dropdown-text
           data-test-id="dropdown-item-username"
           class="text-muted mb-2"
         >
           {{ labels.userSettingsLoggedInAs }}
         </b-dropdown-text>
+
         <div>
           <slot name="avatar-dropdown" />
         </div>
+
         <b-dropdown-item
           v-for="(profileLink, index) in profileLinks"
           :key="index"
@@ -154,6 +158,7 @@
         >
           {{ profileLink.handle }}
         </b-dropdown-item>
+
         <b-dropdown-item
           v-if="!settings.hideProfileLink"
           data-test-id="dropdown-profile-user"
@@ -162,6 +167,7 @@
         >
           {{ labels.userSettingsProfile }}
         </b-dropdown-item>
+
         <b-dropdown-item
           v-if="!settings.hideChangePasswordLink"
           data-test-id="dropdown-profile-change-password"
@@ -170,7 +176,31 @@
         >
           {{ labels.userSettingsChangePassword }}
         </b-dropdown-item>
+
+        <b-dropdown
+          id="theme-dropleft"
+          variant="link"
+          text="Theme"
+          dropleft
+          no-caret
+          toggle-class="text-decoration-none text-left dropdown-item rounded-0"
+          class="d-flex"
+          @show="isThemeDropdownVisible = true"
+          @hide="isThemeDropdownVisible = false"
+          @click.prevent.stop
+        >
+          <b-dropdown-item
+            v-for="theme in themes"
+            :key="theme.id"
+            :disabled="currentTheme === theme.id"
+            @click="saveThemeMode(theme.id)"
+          >
+            {{ theme.label }}
+          </b-dropdown-item>
+        </b-dropdown>
+
         <b-dropdown-divider />
+
         <b-dropdown-item
           data-test-id="dropdown-profile-logout"
           href=""
@@ -185,7 +215,19 @@
 </template>
 
 <script>
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faMoon, faSun} from '@fortawesome/free-solid-svg-icons'
+
+library.add(faMoon, faSun)
+
 export default {
+  data() {
+    return {
+      currentTheme: 'light',
+      isThemeDropdownVisible: false,
+    }
+  },
+
   props: {
     sidebarPinned: {
       type: Boolean,
@@ -261,21 +303,52 @@ export default {
     avatarExists () {
       return this.$auth.user.meta.avatarID !== "0" && this.$auth.user.meta.avatarID
     },
-  }
+
+    themes () {
+      return [
+        {
+          id: 'light',
+          label: this.labels.lightTheme,
+        },
+        {
+          id: 'dark',
+          label: this.labels.darkTheme,
+        },
+      ]
+    },
+  },
+
+  watch: {
+    '$auth.user.meta.theme': {
+      immediate: true,
+      handler (theme) {
+        this.currentTheme = theme
+      },
+    },
+  },
+
+  methods: {
+    async saveThemeMode (theme) {
+      this.currentTheme = theme
+      this.$set(this.$auth.user.meta, 'theme', theme)
+
+      this.$SystemAPI.userUpdate(this.$auth.user).then(() => {
+        document.getElementsByTagName('html')[0].setAttribute('data-color-mode', theme)
+      }).catch(console.error)
+    },
+
+    preventDropdownClose (e) {
+      if (this.isThemeDropdownVisible) {
+        e.preventDefault()
+      }
+    },
+  },
 }
 </script>
 
 <style lang="scss" scoped>
-$header-height: 64px;
-$nav-width: 320px;
-$nav-icon-size: 40px;
-$nav-user-icon-size: 50px;
-
-.icon-logo {
-  height: calc(#{$header-height} / 2);
-  background-repeat: no-repeat;
-  background-position: center;
-}
+$nav-icon-size: calc(var(--topbar-height) - 24px);
+$nav-user-icon-size: calc(var(--topbar-height) - 16px);
 
 .nav-icon {
   width: $nav-icon-size;
@@ -289,8 +362,12 @@ $nav-user-icon-size: 50px;
 
 .header-navigation {
   width: 100vw;
-  min-height: $header-height;
-  background-color: var(--body-bg);
+  min-height: var(--topbar-height);
+  background-color: var(--topbar-bg);
+
+  .sidebar-spacer.expanded {
+    min-width: calc(var(--sidebar-width) - 50px);
+  }
 }
 
 .avatar {
@@ -307,27 +384,11 @@ $nav-user-icon-size: 50px;
   }
 }
 
-.spacer {
-  min-width: 0px;
-  -webkit-transition: min-width 0.15s ease-in-out;
-  -moz-transition: min-width 0.15s ease-in-out;
-  -o-transition: min-width 0.15s ease-in-out;
-  transition: min-width 0.15s ease-in-out;
-
-  &.expanded {
-    min-width: calc(#{$nav-width} - 42px);
-    -webkit-transition: min-width 0.2s ease-in-out;
-    -moz-transition: min-width 0.2s ease-in-out;
-    -o-transition: min-width 0.2s ease-in-out;
-    transition: min-width 0.2s ease-in-out;
-  }
-}
-
 .title {
   display: flex;
   align-items: center;
-  min-height: $header-height;
-  padding-left: calc(3.5rem + 6px);
+  min-height: $nav-user-icon-size;
+  padding-left: 42px;
 
   .vue-portal-target {
     display: -webkit-box; /* For Safari and old versions of Chrome */
@@ -354,5 +415,11 @@ $nav-user-icon-size: 50px;
 <style lang="scss">
 .topbar-dropdown-menu {
   z-index: 1100;
+}
+
+#theme-dropleft {
+  .btn {
+    font-family: var(--font-regular);
+  }
 }
 </style>

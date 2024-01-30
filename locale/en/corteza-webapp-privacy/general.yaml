@@ -20,4 +20,9 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page
+
+themes:
+  labels:
+    light: Light
+    dark: Dark

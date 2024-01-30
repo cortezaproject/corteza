@@ -58,9 +58,12 @@
             v-model="options.color"
             :translations="{
               modalTitle: $t('color.picker'),
+              light: $t('general:themes.labels.light'),
+              dark: $t('general:themes.labels.dark'),
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
+            :theme-settings="themeSettings"
           />
         </b-form-group>
       </b-col>
@@ -73,9 +76,12 @@
             v-model="options.backgroundColor"
             :translations="{
               modalTitle: $t('color.picker'),
+              light: $t('general:themes.labels.light'),
+              dark: $t('general:themes.labels.dark'),
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
+            :theme-settings="themeSettings"
           />
         </b-form-group>
       </b-col>
@@ -108,6 +114,10 @@ export default {
       return [
         ...columns.filter(({ kind }) => ['Number'].includes(kind)),
       ].sort((a, b) => a.label.localeCompare(b.label))
+    },
+
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 }

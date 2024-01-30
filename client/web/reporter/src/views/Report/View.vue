@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex overflow-auto px-2 w-100"
+    class="d-flex overflow-auto p-2 w-100"
   >
     <portal to="topbar-title">
       {{ pageTitle }}
@@ -13,15 +13,14 @@
         :options="scenarioOptions"
         :get-option-key="getOptionKey"
         :placeholder="$t('pick-scenario')"
-        class="mr-2"
-        style="max-width: 300px;"
+        size="sm"
+        style="max-width: 300px; min-width: 150px;"
         @input="refreshReport()"
       />
 
       <b-button-group
         v-if="canUpdate"
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"
@@ -35,7 +34,7 @@
           />
         </b-button>
         <b-button
-          v-b-tooltip.hover="{ title: $t('tooltip.edit.report'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.report'), container: '#body' }"
           variant="primary"
           class="d-flex align-items-center justify-content-center"
           style="margin-left:2px;"

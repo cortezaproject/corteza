@@ -1,9 +1,5 @@
 <template>
-  <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex justify-content-between align-items-center"
-  >
+  <b-card footer-class="border-top d-flex justify-content-between align-items-center">
     <b-form-group
       :label="$t('name.label')"
       label-class="text-primary"
@@ -36,7 +32,7 @@
       <b-button
         data-test-id="button-back"
         variant="link"
-        class="text-dark back text-left text-nowrap p-1"
+        class="d-flex align-items-center text-dark back gap-1 text-decoration-none"
         @click="$emit('back')"
       >
         <font-awesome-icon

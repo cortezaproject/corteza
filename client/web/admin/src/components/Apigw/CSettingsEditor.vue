@@ -1,14 +1,13 @@
 <template>
   <b-card
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <b-form-row
@@ -57,7 +56,7 @@
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="$emit('submit', settings)"
       />
     </template>

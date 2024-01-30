@@ -19,10 +19,8 @@
     >
       <b-card
         body-class="p-0"
-        header-bg-variant="white"
-        header-class="d-flex align-items-center"
-        footer-bg-variant="white"
-        footer-class="d-flex flex-wrap flex-fill-child gap-1"
+        header-class="d-flex align-items-center border-bottom"
+        footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
         class="shadow-sm"
       >
         <component
@@ -31,9 +29,9 @@
         />
 
         <template #header>
-          <h3 class="m-0">
+          <h4 class="m-0">
             {{ $t('title') }}
-          </h3>
+          </h4>
           <b-badge
             v-if="template.partial"
             data-test-id="badge-partial-template"
@@ -60,9 +58,8 @@
       <b-card
         v-if="!template.partial"
         body-class="p-0"
-        header-bg-variant="white"
-        footer-bg-variant="white"
-        footer-class="d-flex flex-wrap flex-fill-child gap-1"
+        header-class="border-bottom"
+        footer-class="border-top d-flex justify-content-end flex-wrap flex-fill-child gap-1"
         class="shadow-sm mt-3"
       >
         <!-- Partial templates can't be previewed -->
@@ -82,12 +79,13 @@
           :editor-props="{
             $blockScrolling: false,
           }"
+          class="border-0 rounded-0"
         />
 
         <template #header>
-          <h3 class="m-0">
+          <h4 class="m-0">
             {{ $t('preview.title') }}
-          </h3>
+          </h4>
         </template>
 
         <template #footer>

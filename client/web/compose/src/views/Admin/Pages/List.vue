@@ -11,10 +11,7 @@
       no-body
       class="shadow-sm h-100"
     >
-      <b-card-header
-        header-bg-variant="white"
-        class="d-flex flex-column border-bottom gap-1"
-      >
+      <b-card-header class="d-flex flex-column border-bottom gap-1">
         <div class="d-flex align-items-stretch align-items-sm-center justify-content-between flex-column flex-sm-row gap-1">
           <div class="flex-grow-1">
             <b-input-group
@@ -64,7 +61,8 @@
                   :resource="`corteza::compose:page/${namespace.namespaceID}/*`"
                   :button-label="$t('general:label.page')"
                   :show-button-icon="false"
-                  button-variant="white text-left w-100"
+                  button-variant="outline-light"
+                  class="border-0 text-dark text-left w-100"
                 />
               </b-dropdown-item>
 
@@ -73,7 +71,8 @@
                   :resource="`corteza::compose:page-layout/${namespace.namespaceID}/*/*`"
                   :button-label="$t('general:label.pageLayout')"
                   :show-button-icon="false"
-                  button-variant="white text-left w-100"
+                  button-variant="outline-light"
+                  class="border-0 text-dark text-left w-100"
                 />
               </b-dropdown-item>
             </b-dropdown>

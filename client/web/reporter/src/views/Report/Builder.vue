@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex overflow-auto px-2 w-100"
+    class="d-flex overflow-auto p-2 w-100"
   >
     <portal to="topbar-title">
       {{ pageTitle }}
@@ -13,14 +13,16 @@
           :options="scenarioOptions"
           :get-option-key="getOptionKey"
           :placeholder="$t('builder:pick-scenario')"
+          size="sm"
           @input="refreshReport()"
         />
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
-            variant="light"
+            v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
+            variant="extra-light"
             :disabled="!canUpdate"
+            size="sm"
             @click="openScenarioConfigurator"
           >
             <font-awesome-icon
@@ -33,9 +35,8 @@
 
       <b-button
         :disabled="!canUpdate"
-        variant="info"
+        variant="extra-light"
         size="sm"
-        class="mr-1 ml-2"
         @click="openDatasourceConfigurator"
       >
         {{ $t('builder:datasources.label') }}
@@ -43,7 +44,6 @@
 
       <b-button-group
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"
@@ -58,7 +58,7 @@
           />
         </b-button>
         <b-button
-          v-b-tooltip.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
           variant="primary"
           class="d-flex align-items-center justify-content-center"
           style="margin-left:2px;"
@@ -89,7 +89,7 @@
           >
             <div
               v-if="unsavedBlocks.has(index)"
-              v-b-tooltip.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -100,7 +100,7 @@
 
             <b-button-group>
               <b-button
-                v-b-tooltip.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="openDisplayElementSelector(index)"
@@ -111,7 +111,7 @@
               </b-button>
 
               <b-button
-                v-b-tooltip.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
                 variant="outline-light"
                 class="border-0"
                 @click="editBlock(index)"
@@ -152,13 +152,12 @@
       scrollable
       size="xl"
       body-class="p-0 border-top-0"
-      header-class="pb-0 px-3 pt-3 border-bottom-0"
+      header-class="border-bottom-0"
       no-fade
       @ok="updateBlock()"
     >
       <b-tabs
         v-if="currentBlock"
-        nav-wrapper-class="bg-white border-bottom"
         active-tab-class="tab-content h-auto overflow-auto"
         card
       >
@@ -216,7 +215,7 @@
               {{ name || kind }}
               <font-awesome-icon
                 :icon="['fas', 'bars']"
-                class="grab"
+                class="text-secondary grab"
               />
             </template>
 
@@ -979,7 +978,7 @@ export default {
 <style lang="scss">
 div.toolbox {
   position: absolute;
-  background-color: var(--dark);
+  background-color: var(--secondary);
   bottom: 0;
   left: 0;
   z-index: 1001;

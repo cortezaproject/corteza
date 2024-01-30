@@ -52,8 +52,8 @@
 
           <b-input-group-append>
             <b-button
-              v-b-tooltip.hover="{ title: $t('selector.tooltip.clone.noRef'), container: '#body' }"
-              variant="light"
+              v-b-tooltip.noninteractive.hover="{ title: $t('selector.tooltip.clone.noRef'), container: '#body' }"
+              variant="extra-light"
               :disabled="!selectedExistingBlock"
               class="d-flex align-items-center"
               @click="$emit('select', selectedExistingBlock.clone())"
@@ -64,8 +64,8 @@
             </b-button>
 
             <b-button
-              v-b-tooltip.hover="{ title: $t('selector.tooltip.clone.ref'), container: '#body' }"
-              variant="light"
+              v-b-tooltip.noninteractive.hover="{ title: $t('selector.tooltip.clone.ref'), container: '#body' }"
+              variant="extra-light"
               :disabled="!selectedExistingBlock"
               class="d-flex align-items-center"
               @click="$emit('select', selectedExistingBlock)"

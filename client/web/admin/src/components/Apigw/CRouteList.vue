@@ -1,16 +1,15 @@
 <template>
   <b-card
     class="shadow-sm"
+    header-class="border-bottom"
     body-class="p-0"
-    header-bg-variant="white"
-    footer-bg-variant="white"
   >
     <template
       #header
     >
-      <h3 class="mb-0">
+      <h4 class="mb-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <c-resource-list
@@ -86,7 +85,7 @@
         <b-dropdown
           v-if="(areActionsVisible({ resource: r, conditions: ['canDeleteApigwRoute', 'canGrant'] }))"
           boundary="viewport"
-          variant="outline-light"
+          variant="outline-extra-light"
           toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
           no-caret
           dropleft

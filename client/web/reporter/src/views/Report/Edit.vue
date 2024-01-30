@@ -12,7 +12,6 @@
       <b-button-group
         v-if="report && !isNew"
         size="sm"
-        class="mr-1"
       >
         <b-button
           variant="primary"
@@ -28,7 +27,7 @@
           />
         </b-button>
         <b-button
-          v-b-tooltip.hover="{ title: $t('tooltip.view-report'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.view-report'), container: '#body' }"
           variant="primary"
           style="margin-left:2px;"
           :disabled="!canRead"
@@ -52,7 +51,6 @@
             <b-card-header
               v-if="!isNew"
               header-bg-variant="white border-bottom"
-              class="py-3"
             >
               <b-row
                 no-gutters
@@ -84,7 +82,7 @@
 
             <b-container
               fluid
-              class="px-4 pt-3"
+              class="py-3"
             >
               <b-row>
                 <b-col
@@ -136,6 +134,7 @@
               <b-form-group
                 :label="$t('description')"
                 label-class="text-primary"
+                class="mb-0"
               >
                 <b-form-textarea
                   v-model="report.meta.description"

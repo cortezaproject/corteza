@@ -3,6 +3,7 @@
     v-bind="$props"
     :scrollable-body="false"
     card-class="tabs-base-block-container"
+    header-class="border-0 border-white"
     v-on="$listeners"
   >
     <div
@@ -53,8 +54,8 @@
           >
             <div
               v-if="unsavedBlocks.has(tab.block.blockID !== '0' ? tab.block.blockID : tab.block.meta.tempID)"
-              v-b-tooltip.hover="{ title: $t('unsavedChanges'), container: '#body' }"
-              class="btn border-0"
+              v-b-tooltip.noninteractive.hover="{ title: $t('unsavedChanges'), container: '#body' }"
+              class="btn btn-sm border-0"
             >
               <font-awesome-icon
                 :icon="['fas', 'exclamation-triangle']"
@@ -64,7 +65,7 @@
 
             <b-button-group size="sm">
               <b-button
-                :title="$t('tooltip.edit')"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="editTabbedBlock(tab)"
@@ -75,7 +76,7 @@
               </b-button>
 
               <b-button
-                :title="$t('tooltip.clone')"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.clone'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="cloneTabbedBlock(tab)"
@@ -86,7 +87,7 @@
               </b-button>
 
               <b-button
-                :title="$t('tooltip.copy')"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.copy'), container: '#body' }"
                 variant="outline-light"
                 class="text-primary border-0 toolbox-button"
                 @click="copyTabbedBlock(tab)"
@@ -112,6 +113,7 @@
           :record="record"
           :module="module"
           :magnified="magnified"
+          header-class="border-0 border-white"
         />
 
         <div
@@ -188,8 +190,8 @@ export default {
 
     navWrapperClass () {
       const { orientation, position } = this.block.options.style
-      let border = 'border-bottom'
-      let style = 'bg-transparent rounded mh-100'
+      let border = ''
+      let style = 'bg-transparent mh-100'
 
       if (orientation === 'vertical') {
         border = position === 'end' ? 'border-left' : 'border-right'

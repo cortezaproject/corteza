@@ -11,7 +11,6 @@
       <b-button-group
         v-if="isEdit"
         size="sm"
-        class="mr-1"
       >
         <b-button
           data-test-id="button-visit-namespace"
@@ -28,7 +27,7 @@
         </b-button>
         <b-button
           v-if="namespace.canManageNamespace"
-          v-b-tooltip.hover="{ title: $t('configure'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('configure'), container: '#body' }"
           data-test-id="button-visit-admin-panel"
           variant="primary"
           class="d-flex align-items-center"
@@ -43,45 +42,47 @@
           v-if="namespace"
           :namespace="namespace"
           :disabled="isNew"
+          button-variant="primary"
           style="margin-left:2px;"
         />
       </b-button-group>
     </portal>
 
-    <div class="flex-grow-1 overflow-auto mb-2">
+    <div class="flex-grow-1 overflow-auto py-3">
       <b-container
         fluid="xl"
         class="flex-grow-1"
       >
-        <div
-          v-if="isEdit"
-          class="d-flex align-items-center mt-1 mb-2"
-        >
-          <b-btn
-            data-test-id="button-export-namespace"
-            variant="light"
-            size="lg"
-            class="ml-1"
-            @click="exportNamespace"
-          >
-            {{ $t('export') }}
-          </b-btn>
-
-          <c-permissions-button
-            v-if="namespace.canGrant"
-            data-test-id="button-permissions"
-            :title="namespace.name || namespace.slug || namespace.namespaceID"
-            :target="namespace.name || namespace.slug || namespace.namespaceID"
-            :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
-            :button-label="$t('label.permissions')"
-            class="ml-1 btn-lg"
-          />
-        </div>
-
         <b-card
+          header-class="d-flex align-items-center gap-1 border-bottom"
           body-class="p-3"
           footer-bg-variant="warning"
         >
+          <template
+            v-if="isEdit"
+            #header
+          >
+            <b-btn
+              data-test-id="button-export-namespace"
+              variant="light"
+              size="lg"
+              @click="exportNamespace"
+            >
+              {{ $t('export') }}
+            </b-btn>
+
+            <c-permissions-button
+              v-if="namespace.canGrant"
+              data-test-id="button-permissions"
+              :title="namespace.name || namespace.slug || namespace.namespaceID"
+              :target="namespace.name || namespace.slug || namespace.namespaceID"
+              :resource="`corteza::compose:namespace/${namespace.namespaceID}`"
+              :button-label="$t('label.permissions')"
+              button-variant="light"
+              class="btn-lg"
+            />
+          </template>
+
           <b-form>
             <b-form-group
               :label="$t('name.label')"

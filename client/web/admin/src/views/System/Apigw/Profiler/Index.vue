@@ -11,81 +11,77 @@
     <b-card
       no-body
       data-test-id="card-profiler"
+      header-class="border-bottom"
+      body-class="p-0"
+      footer-class="border-top d-flex align-items-center justify-content-center"
       class="flex-fill shadow-sm"
-      footer-class="d-flex align-items-center justify-content-center"
-      footer-bg-variant="white"
-      header-bg-variant="white"
     >
       <template #header>
-        <h3>
+        <h4>
           {{ $t('general:label.routes') }}
-        </h3>
+        </h4>
         <em>{{ description }}</em>
-
-        <div class="d-flex align-items-center flex-wrap flex-fill mt-2 gap-1">
-          <div class="flex-fill">
-            <b-button
-              data-test-id="button-refresh"
-              variant="primary"
-              :disabled="loading"
-              size="lg"
-              @click="loadItems()"
-            >
-              {{ $t('general:label.refresh') }}
-            </b-button>
-            <span
-              class="ml-1"
-              :class="{ 'loading': loading }"
-            >
-              {{ autoRefreshLabel }}
-            </span>
-          </div>
-
-          <c-input-confirm
-            :disabled="!items.length"
-            :processing="processingPurgeRequests"
-            :text="$t('purge.all')"
-            variant="danger"
-            size="lg"
-            button-class="flex-fill"
-            class="d-flex justify-content-end ml-auto"
-            @confirmed="purgeRequests"
-          />
-        </div>
       </template>
 
-      <b-card-body
-        class="p-0"
+      <div class="d-flex align-items-center flex-wrap p-3 gap-1">
+        <div class="flex-fill">
+          <b-button
+            data-test-id="button-refresh"
+            variant="primary"
+            :disabled="loading"
+            size="lg"
+            @click="loadItems()"
+          >
+            {{ $t('general:label.refresh') }}
+          </b-button>
+          <span
+            class="ml-1"
+            :class="{ 'loading': loading }"
+          >
+            {{ autoRefreshLabel }}
+          </span>
+        </div>
+
+        <c-input-confirm
+          :disabled="!items.length"
+          :processing="processingPurgeRequests"
+          :text="$t('purge.all')"
+          variant="danger"
+          size="lg"
+          button-class="flex-fill"
+          class="d-flex justify-content-end ml-auto"
+          @confirmed="purgeRequests"
+        />
+      </div>
+
+      <b-table
+        id="route-list"
+        hover
+        responsive
+        head-variant="light"
+        class="mb-0"
+        primary-key="routeID"
+        :sort-by.sync="sorting.sortBy"
+        :sort-desc.sync="sorting.sortDesc"
+        :items="items"
+        :fields="fields"
+        :busy="loading"
+        no-local-sorting
+        @sort-changed="resetItems"
       >
-        <b-table
-          id="route-list"
-          hover
-          responsive
-          head-variant="light"
-          class="mb-0"
-          primary-key="routeID"
-          :sort-by.sync="sorting.sortBy"
-          :sort-desc.sync="sorting.sortDesc"
-          :items="items"
-          :fields="fields"
-          :busy="loading"
-          no-local-sorting
-          @sort-changed="resetItems"
-        >
-          <template #cell(actions)="row">
-            <b-button
-              variant="link"
-              class="p-0"
-              :to="{ name: 'system.apigw.profiler.route.list', params: { routeID: row.item.routeID } }"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'info-circle']"
-                class="text-primary"
-              />
-            </b-button>
-          </template>
-        </b-table>
-      </b-card-body>
+        <template #cell(actions)="row">
+          <b-button
+            variant="link"
+            class="p-0"
+            :to="{ name: 'system.apigw.profiler.route.list', params: { routeID: row.item.routeID } }"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'info-circle']"
+              class="text-primary"
+            />
+          </b-button>
+        </template>
+      </b-table>
 
       <template #footer>
         <b-button

@@ -8,11 +8,12 @@
         data-test-id="sidebar"
         :sidebar-class="`sidebar ${isExpanded ? 'expanded' : ''}`"
         :header-class="`d-block sidebar-header ${isExpanded ? 'expanded border-bottom p-2' : ''}`"
-        :body-class="`bg-white ${isExpanded ? 'px-3' : ''}`"
-        :footer-class="`bg-white rounded-right ${isExpanded ? 'px-2' : ''}`"
+        :body-class="`${isExpanded ? 'px-3' : ''}`"
+        :footer-class="`rounded-right ${isExpanded ? 'px-2' : ''}`"
         :no-header="!isExpanded"
         :backdrop="isMobile"
-        :shadow="isExpanded"
+        backdrop-variant="white"
+        :shadow="isExpanded && 'sm'"
         no-slide
         :right="right"
         no-close-on-route-change
@@ -20,8 +21,8 @@
       >
         <template #header>
           <div
-            class="d-flex align-items-center justify-content-between px-2"
-            style="height: 50px;"
+            class="d-flex align-items-center justify-content-between pl-2"
+            style="height: 47px;"
           >
             <img
               data-test-id="img-main-logo"
@@ -336,7 +337,14 @@ $header-height: 64px;
 
 <style lang="scss">
 $nav-width: 320px;
-$sidebar-bg: var(--gray-200);
+
+.b-sidebar {
+  background-color: var(--white) !important;
+}
+
+.b-sidebar-backdrop {
+  opacity: 0.75 !important;
+}
 
 .sidebar {
   display: flex !important;
@@ -345,14 +353,6 @@ $sidebar-bg: var(--gray-200);
   -moz-transition: left 0.15s ease-in-out;
   -o-transition: left 0.15s ease-in-out;
   transition: left 0.15s ease-in-out;
-
-  header {
-    background-color: var(--white);
-
-    &.expanded {
-      background-color: $sidebar-bg;
-    }
-  }
 
   &.expanded {
     left: 0 !important;
@@ -370,14 +370,6 @@ $sidebar-bg: var(--gray-200);
     -moz-transition: right 0.15s ease-in-out;
     -o-transition: right 0.15s ease-in-out;
     transition: right 0.15s ease-in-out;
-
-    header {
-      background-color: var(--white);
-
-      &.expanded {
-        background-color: $sidebar-bg;
-      }
-    }
 
     &.expanded {
       right: 0 !important;

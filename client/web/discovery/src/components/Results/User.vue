@@ -1,9 +1,6 @@
 <template>
   <b-overlay>
-    <b-card-header
-      header-bg-variant="white"
-      class="border-bottom"
-    >
+    <b-card-header class="border-bottom">
       <div class="d-flex align-items-center mb-3 justify-content-between">
         <h5
           class="text-primary text-capitalize text-truncate mr-2 mb-0"
@@ -12,7 +9,7 @@
         </h5>
 
         <b-avatar
-          v-b-tooltip.hover="{ title: $t('types.user'), container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: $t('types.user'), container: '#body' }"
           size="sm"
           class="align-center bg-light text-dark"
         />

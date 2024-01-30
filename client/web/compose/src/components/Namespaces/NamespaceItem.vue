@@ -8,7 +8,6 @@
     <b-card
       no-body
       class="h-100 shadow-sm pt-3 mx-2"
-      footer-bg-variant="white"
       footer-class="text-center pt-0"
       :class="{ 'shadow': hovered && isEnabled, 'namespace-item' : isEnabled, 'disabled' : !isEnabled}"
       @mouseover="hovered = true"

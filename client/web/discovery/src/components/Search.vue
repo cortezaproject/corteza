@@ -10,7 +10,7 @@
         md="12"
         :lg="map.show ? '7' : '12'"
         :xl="map.show ? '8' : '12'"
-        class="results-container"
+        class="results-container pt-3"
         :class="{ 'with-map': map.show }"
       >
         <b-form-group class="px-3">
@@ -84,7 +84,7 @@
           class="position-fixed map-button"
         >
           <b-button
-            v-b-tooltip.hover="{ title: $t('tooltip.map'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.map'), container: '#body' }"
             variant="warning"
             class="rounded-circle p-3"
             @click="toggleMap"

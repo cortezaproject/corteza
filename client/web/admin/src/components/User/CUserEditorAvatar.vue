@@ -1,15 +1,14 @@
 <template>
   <b-card
     data-test-id="card-user-profile-avatar"
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <b-form
@@ -58,9 +57,12 @@
               data-test-id="input-text-color"
               :translations="{
                 modalTitle: $t('colorPicker'),
+                light: $t('ui.settings:editor.corteza-studio.tabs.light'),
+                dark: $t('ui.settings:editor.corteza-studio.tabs.dark'),
                 cancelBtnLabel: $t('general:label.cancel'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
+              :theme-settings="themeSettings"
             />
           </b-form-group>
         </b-col>
@@ -78,9 +80,12 @@
               data-test-id="input-background-color"
               :translations="{
                 modalTitle: $t('colorPicker'),
+                light: $t('ui.settings:editor.corteza-studio.tabs.light'),
+                dark: $t('ui.settings:editor.corteza-studio.tabs.dark'),
                 cancelBtnLabel: $t('general:label.cancel'),
                 saveBtnLabel: $t('general:label.saveAndClose')
               }"
+              :theme-settings="themeSettings"
             />
           </b-form-group>
         </b-col>
@@ -139,6 +144,10 @@ export default {
   computed: {
     isKindAvatar () {
       return this.user.meta.avatarKind === 'avatar'
+    },
+
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 

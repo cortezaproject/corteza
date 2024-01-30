@@ -5,13 +5,13 @@
       lg="6"
     >
       <b-card
-        header-class="d-flex align-items-center justify-content-between pr-2"
+        header-class="d-flex align-items-center justify-content-between pr-2 border-bottom"
         class="shadow-sm mb-3"
       >
         <template #header>
-          <h3 class="mb-0">
+          <h4 class="mb-0">
             {{ $t('mainLogo.title') }}
-          </h3>
+          </h4>
 
           <c-input-confirm
             v-if="uploadedFile('ui.main-logo')"
@@ -35,13 +35,13 @@
       lg="6"
     >
       <b-card
-        header-class="d-flex align-items-center justify-content-between"
+        header-class="d-flex align-items-center justify-content-between pr-2 border-bottom"
         class="shadow-sm mb-3"
       >
         <template #header>
-          <h3 class="mb-0">
+          <h4 class="mb-0">
             {{ $t('iconLogo.title') }}
-          </h3>
+          </h4>
 
           <c-input-confirm
             v-if="uploadedFile('ui.icon-logo')"

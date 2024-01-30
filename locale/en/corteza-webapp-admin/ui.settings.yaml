@@ -27,25 +27,27 @@ editor:
     colorPicker: Choose a color
     sassNotInstalled: No dart-sass binaries were detected. For guidance on how to set it up, refer to
     installSassDocs: docs here
-    brandVariables:
-      white: White
-      black: Black
-      primary: Primary
-      secondary: Secondary
-      success: Success
-      warning: Warning
-      danger: Danger
+    custom-css: Custom CSS
+    label:
+      default: Default
+    tabs:
+      general: General
       light: Light
-      extra-light: Extra light
       dark: Dark
-      tertiary: Tertiary
-      gray-200: Gray
-      body-bg: Body background
-
-  custom-css:
-    title: Custom CSS
-    modal:
-    editor: Custom CSS editor
+    theme:
+      variables:
+        white: White
+        black: Black
+        primary: Primary
+        secondary: Secondary
+        success: Success
+        warning: Warning
+        danger: Danger
+        light: Light
+        extra-light: Extra light
+        body-bg: Body background
+        sidebar-bg: Sidebar background
+        topbar-bg: Topbar background
 
   topbar:
     title: Topbar

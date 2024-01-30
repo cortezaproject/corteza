@@ -2,6 +2,30 @@
   <b-row no-gutters>
     <b-col>
       <b-form-group
+        :label="$t('kind.select.optionType.label')"
+        label-class="text-primary"
+      >
+        <b-form-radio-group
+          v-model="f.options.selectType"
+          :options="selectOptions"
+          stacked
+          @change="updateIsUniqueMultiValue"
+        />
+      </b-form-group>
+
+      <b-form-group
+        v-if="shouldAllowDuplicates"
+      >
+        <b-form-checkbox
+          v-model="f.options.isUniqueMultiValue"
+          :value="false"
+          :unchecked-value="true"
+        >
+          {{ $t('kind.select.allow-duplicates') }}
+        </b-form-checkbox>
+      </b-form-group>
+
+      <b-form-group
         :label="$t('kind.select.optionsLabel')"
         label-class="text-primary"
       >
@@ -9,6 +33,7 @@
           borderless
           small
           responsive="lg"
+          class="p-2"
         >
           <b-thead>
             <b-tr>
@@ -40,10 +65,10 @@
               v-for="(option, index) in f.options.options"
               :key="index"
             >
-              <b-td class="align-middle">
+              <b-td class="align-middle text-center">
                 <font-awesome-icon
                   :icon="['fas', 'bars']"
-                  class="grab text-light"
+                  class="grab text-secondary"
                 />
               </b-td>
               <b-td
@@ -102,30 +127,6 @@
             </b-tr>
           </draggable>
         </b-table-simple>
-      </b-form-group>
-
-      <b-form-group
-        :label="$t('kind.select.optionType.label')"
-        label-class="text-primary"
-      >
-        <b-form-radio-group
-          v-model="f.options.selectType"
-          :options="selectOptions"
-          stacked
-          @change="updateIsUniqueMultiValue"
-        />
-      </b-form-group>
-
-      <b-form-group
-        v-if="shouldAllowDuplicates"
-      >
-        <b-form-checkbox
-          v-model="f.options.isUniqueMultiValue"
-          :value="false"
-          :unchecked-value="true"
-        >
-          {{ $t('kind.select.allow-duplicates') }}
-        </b-form-checkbox>
       </b-form-group>
     </b-col>
   </b-row>

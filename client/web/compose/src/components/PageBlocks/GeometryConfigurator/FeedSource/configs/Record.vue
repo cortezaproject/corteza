@@ -84,9 +84,12 @@
             v-model="feed.options.color"
             :translations="{
               modalTitle: $t('geometry.recordFeed.colorPicker'),
+              light: $t('general:themes.labels.light'),
+              dark: $t('general:themes.labels.dark'),
               cancelBtnLabel: $t('general:label.cancel'),
               saveBtnLabel: $t('general:label.saveAndClose')
             }"
+            :theme-settings="themeSettings"
           />
         </b-form-group>
 
@@ -204,6 +207,10 @@ export default {
           return sf
         }),
       ].filter(f => f.kind === 'Geometry')
+    },
+
+    themeSettings () {
+      return this.$Settings.get('ui.studio.themes', [])
     },
   },
 }

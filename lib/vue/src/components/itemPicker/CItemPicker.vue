@@ -7,7 +7,7 @@
       class="h-100"
     >
       <b-card-header
-        class="bg-white p-0"
+        class="p-0"
       >
 
       <c-input-search
@@ -26,7 +26,7 @@
           class="col-sm-6 col-12 h-100 p-0"
         >
           <b-card-header
-            class="bg-white py-2 pl-0 pr-2"
+            class="py-2 pl-0 pr-2"
           >
             <div
               class="d-flex align-items-center"
@@ -114,7 +114,7 @@
           class="h-100 pl-sm-0 col-sm-6 col-12 p-0"
         >
           <b-card-header
-            class="bg-white py-2 pl-2 pr-0"
+            class="py-2 pl-2 pr-0"
           >
             <div
               class="d-flex align-items-center"
@@ -372,7 +372,7 @@ export default {
       handler (value = [], oldValue = []) {
         /**
         * Make sure we do not fall into an infinite loop
-        * 
+        *
         * If we update the value then sync will trigger recomputation of selected
         * Which then emits the update event and the loop will begin
         */

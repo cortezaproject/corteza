@@ -2,15 +2,13 @@
   <b-card
     class="shadow-sm"
     body-class="p-0"
-    header-bg-variant="white"
-    footer-bg-variant="white"
   >
     <template
       #header
     >
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <c-resource-list

@@ -149,7 +149,7 @@
           <b-td class="handle align-middle pr-2">
             <font-awesome-icon
               :icon="['fas', 'bars']"
-              class="grab m-0 text-light p-0"
+              class="grab m-0 text-secondary p-0"
             />
           </b-td>
 
@@ -181,9 +181,9 @@
                 <b-button
                   v-if="tab.blockID"
                   id="popover-edit"
-                  v-b-tooltip.hover="{ title: $t('tabs.tooltip.edit'), container: '#body' }"
+                  v-b-tooltip.noninteractive.hover="{ title: $t('tabs.tooltip.edit'), container: '#body' }"
                   size="sm"
-                  variant="light"
+                  variant="extra-light"
                   class="d-flex align-items-center justify-content-center"
                   style="width: 40px;"
                   @click="editBlock(tab.blockID)"
@@ -194,9 +194,9 @@
                 </b-button>
                 <b-button
                   v-else
-                  v-b-tooltip.hover="{ title: $t('tabs.tooltip.addBlock'), container: '#body' }"
+                  v-b-tooltip.noninteractive.hover="{ title: $t('tabs.tooltip.addBlock'), container: '#body' }"
                   size="sm"
-                  variant="light"
+                  variant="extra-light"
                   class="d-flex align-items-center justify-content-center"
                   style="width: 40px;"
                   @click="showBlockSelector(index)"

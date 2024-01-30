@@ -5,7 +5,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="bg-white p-0 mb-3"
+        class="p-0 mb-3"
       >
         <h5
           class="mb-0"
@@ -26,7 +26,7 @@
             lang="javascript"
             font-size="18px"
             show-line-numbers
-            :border="false"
+            :show-popout="false"
             @input="valueChanged"
           />
         </b-form-group>

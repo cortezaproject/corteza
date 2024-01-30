@@ -178,9 +178,13 @@ export default {
         }
 
         this.reports = rtr
-        this.processing = false
+        this.$nextTick(() => {
+          this.processing = false
+        })
       } catch {
-        this.processing = false
+        this.$nextTick(() => {
+          this.processing = false
+        })
       }
     },
     /**

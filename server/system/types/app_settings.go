@@ -248,10 +248,11 @@ type (
 				Disabled bool `json:"disabled"`
 			} `kv:"sidebar,final" json:"sidebar"`
 
-			CustomCSS string `kv:"custom-css" json:"customCSS"`
 			Studio struct {
-				BrandingSASS  string `kv:"branding-sass" json:"branding-sass"`
-				SassInstalled bool   `kv:"sass-installed" json:"sass-installed"`
+				SassInstalled bool `kv:"sass-installed" json:"sass-installed"`
+
+				Themes    []struct{ Theme } `kv:"themes" json:"themes"`
+				CustomCSS []struct{ Theme } `kv:"custom-css" json:"customCSS"`
 			} `kv:"studio" json:"studio"`
 
 			Topbar struct {
@@ -299,7 +300,7 @@ type (
 			//
 			// 1st language in the set is also a default one
 			//
-			// Empty slice defaults to LOCALE_LANGUAGES
+			// IsEmpty slice defaults to LOCALE_LANGUAGES
 			Languages []string `kv:"languages" json:"languages"`
 		} `kv:"resource-translations" json:"resourceTranslations"`
 
@@ -406,6 +407,11 @@ type (
 		//
 		// @todo implement mapped roles
 		// MappedRoles map[string]string `json:"mappedRoles,omitempty"`
+	}
+
+	Theme struct {
+		ID     string `json:"id"`
+		Values string `json:"values"`
 	}
 
 	SmtpServers struct {

@@ -77,7 +77,7 @@ export default class GaugeChart extends BaseChart {
     const { colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
 
-    const { datasets = [] } = data
+    const { datasets = [], themeVariables = {} } = data
     const { steps = [], name, value, max, tooltip, startAngle, endAngle } = datasets.find(({ value }: any) => value) || datasets[0]
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
@@ -88,7 +88,9 @@ export default class GaugeChart extends BaseChart {
     return {
       animation: !noAnimation,
       textStyle: {
-        fontFamily: 'Poppins-Regular',
+        fontFamily: themeVariables['font-regular'],
+        overflow: 'break',
+        color: themeVariables.black,
       },
       toolbox: {
         feature: {
@@ -116,14 +118,14 @@ export default class GaugeChart extends BaseChart {
             width: 5,
             length: '75%',
             itemStyle: {
-              color: '#464646',
+              color: themeVariables.black,
             },
           },
           splitLine: {
             distance: 0,
             length: 0,
             lineStyle: {
-              color: '#FFFFFF',
+              color: themeVariables.white,
             },
           },
           axisLine: {
@@ -144,11 +146,13 @@ export default class GaugeChart extends BaseChart {
             fontSize: 14,
             show: tooltip.fixed,
             offsetCenter: [0, '30%'],
+            color: themeVariables.black,
           },
           detail: {
             fontSize: 13,
             offsetCenter: [0, '55%'],
             valueAnimation: true,
+            color: themeVariables.black,
           },
           data: [
             {

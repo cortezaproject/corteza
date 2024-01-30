@@ -140,6 +140,20 @@ export default {
 </script>
 
 <style lang="scss">
+:root {
+  --vs-dropdown-bg: var(--white);
+  --vs-dropdown-option--active-bg: var(--light);
+  --vs-state-disabled-color: var(--secondary);
+  --vs-state-disabled-bg: var(--light);
+  --vs-colors--light: var(--black);
+  --vs-colors--dark: var(--black);
+  --vs-dropdown-option-color: var(--black);
+  --vs-dropdown-option--active-color: var(--black);
+  --vs-selected-bg: var(--extra-light);
+  --vs-search-input-color: var(--secondary);
+  --vs-search-input-bg: var(--white);
+}
+
 .v-select {
   min-width: auto;
   position: relative;
@@ -147,8 +161,7 @@ export default {
   flex: 1 1 auto;
   margin-bottom: 0;
   font-size: .9rem !important;
-  border-radius: 0.25rem;
-  color: #495057 !important;
+  font-family: var(--font-regular);
 
   .vs__selected-options {
     // do not allow growing
@@ -163,6 +176,7 @@ export default {
     max-width: 100%;
     overflow: hidden;
     border: 0;
+    color: var(--black);
   }
 
   .vs__search {
@@ -188,7 +202,7 @@ export default {
     padding: 0.375rem calc(0.75rem - 2px);
     padding-top: 0 !important;
     border-width: 2px;
-    border-color: var(--light);
+    border-color: var(--extra-light);
 
     .vs__selected {
       margin-top: 0.375rem;
@@ -203,7 +217,7 @@ export default {
 
   .vs__clear,
   .vs__open-indicator {
-    fill: var(--gray-900);
+    fill: var(--black);
     display: inline-flex;
   }
 
@@ -223,6 +237,20 @@ export default {
   }
 }
 
+.vs--open {
+  .vs__dropdown-toggle {
+    border-color: var(--primary);
+    border-radius: 0.25rem !important;
+  }
+}
+
+.input-group > .v-select:not(:last-child) {
+  .vs__dropdown-toggle {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
 .vs__spinner, .vs__spinner::after {
   width: 4em;
   height: 4em;
@@ -230,6 +258,18 @@ export default {
 
 .vs__dropdown-menu {
   z-index: 1090;
+
+  .vs__dropdown-option {
+    &.vs__dropdown-option--selected {
+      background: var(--vs-dropdown-option--active-bg);
+      color: var(--vs-dropdown-option--active-color);
+    }
+
+    &:active {
+      color: var(--white);
+      background-color: var(--primary);
+    }
+  }
 }
 
 .c-input-sm {
@@ -243,6 +283,7 @@ export default {
   .vs__dropdown-toggle {
     min-height: calc(1.5em + 0.5rem + 4px);
     padding: 0.25rem calc(0.5rem - 2px);
+    border-radius: 0.2rem;
 
     .vs__selected {
       margin-top: 0.25rem;
@@ -264,6 +305,7 @@ export default {
   .vs__dropdown-toggle {
     min-height: calc(1.5em + 1rem + 4px);
     padding: .5rem calc(1rem - 2px);
+    border-radius: 0.3rem;
 
     .vs__selected {
       margin-top: .5rem;

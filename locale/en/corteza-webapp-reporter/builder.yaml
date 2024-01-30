@@ -64,6 +64,7 @@ tooltip:
   delete:
     block: Delete block
   configure-scenarios: Configure scenarios
+  unsavedChanges: Unsaved changes
 available-columns: Available columns
 selected-columns: Selected columns
 no-columns-found: No columns found

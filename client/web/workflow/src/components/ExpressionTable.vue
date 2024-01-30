@@ -27,7 +27,7 @@
           <div class="p-2 grab">
             <font-awesome-icon
               :icon="['fas', 'bars']"
-              class="text-light"
+              class="text-secondary"
             />
           </div>
 

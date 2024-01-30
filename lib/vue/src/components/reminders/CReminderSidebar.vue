@@ -2,12 +2,12 @@
   <b-sidebar
     v-model="isVisible"
     :title="title"
-    header-class="d-flex align-items-center justify-content-between reminder-sidebar-header px-2 py-3 border-bottom"
-    body-class="d-flex flex-column overflow-hidden bg-white"
+    header-class="d-flex align-items-center justify-content-between reminder-sidebar-header p-3 border-bottom"
+    body-class="d-flex flex-column overflow-hidden bg-white p-3"
     :backdrop="isMobile"
     no-footer
     right
-    shadow
+    shadow="sm"
     no-close-on-route-change
     no-close-on-esc
   >

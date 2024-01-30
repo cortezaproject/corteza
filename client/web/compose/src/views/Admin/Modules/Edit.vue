@@ -25,6 +25,7 @@
         <module-translator
           v-if="module"
           :module.sync="trModule"
+          button-variant="primary"
           style="margin-left:2px;"
         />
       </b-button-group>
@@ -51,7 +52,6 @@
           >
             <b-card-header
               v-if="isEdit"
-              header-bg-variant="white"
               class="py-3"
             >
               <b-row
@@ -114,7 +114,8 @@
                       :resource="`corteza::compose:module/${namespace.namespaceID}/${module.moduleID}`"
                       :button-label="$t('general:label.module.single')"
                       :show-button-icon="false"
-                      button-variant="white text-left w-100"
+                      button-variant="outline-light"
+                      class="border-0 text-dark text-left w-100"
                     />
                   </b-dropdown-item>
 
@@ -126,7 +127,8 @@
                       :button-label="$t('general:label.field')"
                       :show-button-icon="false"
                       all-specific
-                      button-variant="white text-left w-100"
+                      button-variant="outline-light"
+                      class="border-0 text-dark text-left w-100"
                     />
                   </b-dropdown-item>
 
@@ -138,7 +140,8 @@
                       :button-label="$t('general:label.record')"
                       :show-button-icon="false"
                       all-specific
-                      button-variant="white text-left w-100"
+                      button-variant="outline-light"
+                      class="border-0 text-dark text-left w-100"
                     />
                   </b-dropdown-item>
                 </b-dropdown>
@@ -154,7 +157,6 @@
 
             <b-tabs
               v-model="activeTab"
-              :nav-wrapper-class="`bg-white white border-bottom ${isEdit ? 'rounded-0' : ''}`"
               card
             >
               <b-tab
@@ -214,9 +216,11 @@
 
                 <b-row no-gutters>
                   <b-form-group class="w-100">
-                    <table
+                    <b-table-simple
                       data-test-id="table-module-fields"
-                      class="table table-sm table-borderless table-responsive"
+                      borderless
+                      responsive
+                      small
                     >
                       <thead>
                         <tr>
@@ -314,7 +318,7 @@
                         :field="field"
                         class="mt-4"
                       />
-                    </table>
+                    </b-table-simple>
                   </b-form-group>
                 </b-row>
               </b-tab>
@@ -963,11 +967,3 @@ export default {
   },
 }
 </script>
-
-<style scoped lang="scss">
-@media (max-width: 576px) {
-  .flex-fill-child > * {
-    flex-grow: 1;
-  }
-}
-</style>

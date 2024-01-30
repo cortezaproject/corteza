@@ -1,48 +1,46 @@
 <template>
-  <fieldset class="form-group">
+  <div>
     <!-- Feed list -->
     <div
       v-for="(feed, i) in options.feeds"
       :key="i"
     >
+      <div
+        v-if="feed.resource"
+        class="d-flex justify-content-end mb-3"
+      >
+        <c-input-confirm
+          v-if="feed.resource"
+          show-icon
+          size="md"
+          @confirmed="onRemoveFeed(i)"
+        />
+      </div>
+
       <!-- define feed resource; eg. module, reminders, google calendar, ... -->
       <b-form-group
-        :label="$t('calendar.feedLabel')"
+        :label="$t('calendar.eventSource')"
+        :label-cols="3"
         horizontal
+        breakpoint="md"
         label-class="text-primary"
       >
-        <b-input-group>
-          <b-form-select
-            v-model="feed.resource"
-            :options="feedSources"
-          >
-            <template slot="first">
-              <option
-                value=""
-                :disabled="true"
-              >
-                {{ $t('calendar.feedPlaceholder') }}
-              </option>
-            </template>
-          </b-form-select>
-
-          <!-- allow feed removal -->
-          <template
-            v-if="feed.resource"
-            v-slot:append
-          >
-            <c-input-confirm
-              show-icon
-              size="md"
-              @confirmed="onRemoveFeed(i)"
-            />
+        <b-form-select
+          v-model="feed.resource"
+          :options="feedSources"
+        >
+          <template slot="first">
+            <option
+              value=""
+              :disabled="true"
+            >
+              {{ $t('calendar.feedPlaceholder') }}
+            </option>
           </template>
-        </b-input-group>
+        </b-form-select>
       </b-form-group>
 
-      <b-form-group
-        horizontal
-      >
+      <b-form-group horizontal>
         <!-- source configurator -->
         <component
           :is="configurator(feed)"
@@ -56,12 +54,13 @@
     </div>
 
     <b-button
-      class="btn btn-url test-feed-add"
+      variant="primary"
+      class="test-feed-add"
       @click.prevent="handleAddButton"
     >
       {{ $t('calendar.addEventsSource') }}
     </b-button>
-  </fieldset>
+  </div>
 </template>
 <script>
 import { mapGetters } from 'vuex'

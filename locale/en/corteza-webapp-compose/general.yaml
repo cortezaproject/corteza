@@ -164,7 +164,7 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page
 recordNavigation:
   next: Next record
   prev: Previous record
@@ -179,3 +179,8 @@ variants:
   warning: Warning
 editor:
   unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+
+themes:
+  labels:
+    light: Light
+    dark: Dark

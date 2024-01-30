@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-items-center">
       <b-button
-        :style="`color: ${pickedColor}; fill: ${pickedColor};`"
+        :style="`color: ${currentColor}; fill: ${currentColor};`"
         class="p-0 rounded-circle bg-white border-white shadow-none"
         @click="toggleMenu"
       >
@@ -52,6 +52,7 @@
         {{ value }}
       </span>
     </div>
+
     <b-modal
       :visible="showModal"
       :title="translations.modalTitle"
@@ -62,17 +63,50 @@
       @hide="closeMenu"
     >
       <chrome
-        :value="value"
+        :value="currentColor"
         class="w-100 shadow-none"
         @input="updateColor"
       />
 
+      <div
+        v-if="themes.length > 0"
+        class="d-flex flex-column border-top p-3 gap-2"
+      >
+        <b-form-group
+          v-for="theme in themes"
+          :key="theme.id"
+          :label="translations[theme.id]"
+          label-class="text-primary"
+          class="mb-0"
+        >
+          <div
+            class="d-flex flex-wrap border"
+          >
+            <b-button
+              v-for="variable in themeVariables"
+              :key="variable.label"
+              v-b-tooltip.noninteractive.hover="{ title: colorToolTip(theme.id, variable.value), container: '#body' }"
+              class="swatch flex-grow-1 rounded-0"
+              :style="{ backgroundColor: theme.values[variable.label], borderColor: theme.values[variable.label] }"
+              @click="setColor(theme.values[variable.label])"
+            />
+          </div>
+        </b-form-group>
+      </div>
+
       <template #modal-footer>
+        <b-button
+          v-if="defaultValue"
+          variant="light"
+          @click="setColor()"
+        >
+          {{ translations.defaultBtnLabel }}
+        </b-button>
         <slot name="footer" />
 
         <b-button
-          variant="link"
-          class="ml-auto"
+          variant="outline-light"
+          class="ml-auto text-primary border-0"
           @click="closeMenu"
         >
           {{ translations.cancelBtnLabel }}
@@ -106,6 +140,11 @@ export default {
       default: 'rgba(0,0,0,0)',
     },
 
+    defaultValue: {
+      type: String,
+      default: '',
+    },
+
     translations: {
       type: Object,
     },
@@ -123,6 +162,49 @@ export default {
     showText: {
       type: Boolean,
       default: true,
+    },
+
+    themeSettings: {
+      type: Array,
+      default: [],
+    },
+
+    themeVariables: {
+      type: Array,
+      default: () => [
+        {
+          label: 'white',
+          value: 'White',
+        },
+        {
+          label: 'primary',
+          value: 'Primary',
+        },
+        {
+          label: 'secondary',
+          value: 'Secondary',
+        },
+        {
+          label: 'success',
+          value: 'Success',
+        },
+        {
+          label: 'warning',
+          value: 'Warning',
+        },
+        {
+          label: 'danger',
+          value: 'Danger',
+        },
+        {
+          label: 'light',
+          value: 'Light',
+        },
+        {
+          label: 'extra-light',
+          value: 'Extra light',
+        },
+      ],
     }
   },
 
@@ -134,13 +216,23 @@ export default {
   },
 
   computed: {
-    pickedColor: {
-      get () {
-        return this.value
-      },
+    themes () {
+      return this.themeSettings
+      .filter((theme) => theme.id !== 'general') // remove general theme
+      .map((theme) => {
+        return {
+          id: theme.id,
+          values: JSON.parse(theme.values),
+        }
+      })
+    },
+  },
 
-      set (pickedColor) {
-        this.pickedColor = pickedColor
+  watch: {
+    value: {
+      immediate: true,
+      handler (value) {
+        this.currentColor = value
       },
     },
   },
@@ -149,6 +241,15 @@ export default {
     updateColor: debounce(function ({ hex8 = '' }) {
       this.currentColor = hex8
     }, 300),
+
+    setColor (defaultColor = this.defaultValue) {
+      this.currentColor = defaultColor
+    },
+
+    saveColor () {
+      this.$emit('input', this.currentColor)
+      this.closeMenu()
+    },
 
     toggleMenu () {
       if (this.showModal) {
@@ -170,12 +271,46 @@ export default {
     closeMenu () {
       this.showModal = false
     },
+
+    colorToolTip (themeID, label) {
+      return `${this.translations[themeID]} - ${label}`
+    },
   },
 }
 </script>
 
-<style>
+<style lang="scss" scoped>
+.swatch {
+  height: 58px;
+  min-width: 50px;
+}
+</style>
+
+<style lang="scss">
 .vc-chrome {
-  font-family: 'Poppins-Medium' !important;
+  font-family: var(--font-medium) !important;
+
+  .vc-chrome-body {
+    background: var(--white) !important;
+
+    .vc-input__input {
+      color: var(--black) !important;
+      background-color: var(--white) !important;
+    }
+
+    .vc-input__label {
+      color: var(--black) !important;
+    }
+
+    .vc-chrome-toggle-btn {
+      path {
+        fill: var(--black) !important;
+      }
+
+      .vc-chrome-toggle-icon-highlight {
+        background: var(--light) !important;
+      }
+    }
+  }
 }
 </style>

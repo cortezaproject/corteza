@@ -15,6 +15,7 @@
       size="lg"
       :title="$t('import.title')"
       hide-footer
+      centered
       body-class="p-0"
       @hide="onModalHide"
     >

@@ -14,7 +14,6 @@
     <b-tabs
       v-if="modal"
       v-model="currentTabIndex"
-      nav-wrapper-class="bg-white border-bottom"
       card
     >
       <b-tab

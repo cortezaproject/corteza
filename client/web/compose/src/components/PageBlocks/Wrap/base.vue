@@ -25,6 +25,12 @@ export default {
       default: '',
     },
 
+    headerClass: {
+      type: String,
+      required: false,
+      default: '',
+    },
+
     magnified: {
       type: Boolean,
       required: false,

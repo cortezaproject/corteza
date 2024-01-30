@@ -74,7 +74,6 @@
         <b-button
           :disabled="!importObj || !importObj.list.filter(i => i.import).length > 0"
           variant="primary"
-          size="lg"
           @click="jsonImport(importObj)"
         >
           {{ $t('label.import') }}

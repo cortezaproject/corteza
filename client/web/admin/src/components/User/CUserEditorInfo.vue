@@ -1,9 +1,8 @@
 <template>
   <b-card
     data-test-id="card-user-info"
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <b-form
@@ -82,9 +81,9 @@
     </b-form>
 
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <template #footer>
@@ -109,7 +108,7 @@
         v-if="!fresh"
         data-test-id="button-sessions-revoke"
         :disabled="user.userID === userID"
-        cta-class="secondary"
+        cta-class="light"
         @confirmed="$emit('sessionsRevoke')"
       >
         {{ $t('revokeAllSession') }}
@@ -127,7 +126,7 @@
         ui-page="user/editor"
         ui-slot="infoFooter"
         resource-type="system:user"
-        default-variant="secondary"
+        default-variant="light"
         @click="dispatchCortezaSystemUserEvent($event, { user })"
       />
 

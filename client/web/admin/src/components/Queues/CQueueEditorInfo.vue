@@ -1,11 +1,16 @@
 <template>
   <b-card
     data-test-id="card-queue-edit"
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
+    <template #header>
+      <h4 class="m-0">
+        {{ $t("title") }}
+      </h4>
+    </template>
+
     <b-form @submit="$emit('submit', queue)">
       <b-row>
         <b-col
@@ -87,12 +92,6 @@
         :resource="queue"
       />
     </b-form>
-
-    <template #header>
-      <h3 class="m-0">
-        {{ $t("title") }}
-      </h3>
-    </template>
 
     <template #footer>
       <confirmation-toggle

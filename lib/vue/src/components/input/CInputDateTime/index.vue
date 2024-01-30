@@ -12,7 +12,7 @@
       :label-today-button="labels.today"
       label-help=""
       today-variant="info"
-      selected-variant="secondary"
+      selected-variant="extra-light"
       boundary="window"
       hide-header
       reset-button
@@ -120,7 +120,7 @@ export default {
   }
 
   label {
-    font-family: "Poppins-Regular";
+    font-family: var(--font-regular);
     color: #495057 !important;
   }
 
@@ -130,6 +130,6 @@ export default {
 }
 
 .b-calendar-inner {
-  background-color: white;
+  background-color: var(--white);
 }
 </style>

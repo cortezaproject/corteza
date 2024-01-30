@@ -2,9 +2,8 @@
   <b-card
     v-if="resource"
     data-test-id="card-auth-client-info"
-    header-bg-variant="white"
-    footer-bg-variant="white"
-    footer-class="d-flex flex-wrap flex-fill-child gap-1"
+    header-class="border-bottom"
+    footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm auth-clients"
   >
     <b-form
@@ -130,7 +129,7 @@
 
               <b-button
                 v-else
-                v-b-tooltip.hover="{ title: $t('tooltip.regenerate-secret'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.regenerate-secret'), container: '#body' }"
                 data-test-id="button-regenerate-client-secret"
                 class="ml-1 text-primary"
                 variant="link"
@@ -463,9 +462,9 @@
     </b-form>
 
     <template #header>
-      <h3 class="m-0">
+      <h4 class="m-0">
         {{ $t('title') }}
-      </h3>
+      </h4>
     </template>
 
     <template #footer>

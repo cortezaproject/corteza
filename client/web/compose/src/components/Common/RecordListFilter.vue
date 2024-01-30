@@ -2,16 +2,16 @@
   <div>
     <b-button
       :id="popoverTarget"
-      v-b-tooltip.hover="{ title: $t('recordList.filter.title'), container: '#body' }"
+      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filter.title'), container: '#body' }"
       :variant="variant"
-      class="d-flex align-items-center text-secondary d-print-none border-0 px-1 h-100"
+      class="d-flex align-items-center d-print-none border-0 px-1 h-100"
       :class="buttonClass"
       :style="buttonStyle"
       @click.stop
     >
       <font-awesome-icon
         :icon="['fas', 'filter']"
-        :class="[inFilter ? 'text-primary' : 'text-secondary']"
+        :class="[inFilter ? 'text-primary' : inactiveIconClass]"
       />
     </b-button>
 
@@ -208,7 +208,7 @@
         </b-card-body>
 
         <b-card-footer
-          class="d-flex justify-content-between bg-white shadow-sm rounded"
+          class="d-flex justify-content-between shadow-sm rounded"
         >
           <b-button
             variant="light"
@@ -287,6 +287,11 @@ export default {
     variant: {
       type: String,
       default: 'outline-light',
+    },
+
+    inactiveIconClass: {
+      type: String,
+      default: 'text-secondary',
     },
 
     buttonClass: {
@@ -683,7 +688,7 @@ export default {
     max-width: 99vw;
     max-height: 60vh;
     padding: 0;
-    color: #2d2d2d;
+    color: var(--black);
     text-align: center;
     background: var(--white);
     border-radius: 0.25rem;

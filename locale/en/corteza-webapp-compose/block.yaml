@@ -39,7 +39,8 @@ calendar:
   addEventsSource: Add events source
   calendarHeader: Calendar header
   feedLabel: Configure events source
-  feedPlaceholder: Select a feed source
+  feedPlaceholder: Select an event source
+  eventSource: Event source
   hideHeader: Hide calendar header
   hideNavigation: Hide prev/next button
   hideTitle: Hide title text
@@ -422,7 +423,7 @@ recordList:
     showing: '{{from}} - {{to}} of {{count}} records'
     single: One record
     single_plural: '{{count}} records'
-    recordsPerPage: 'Records per page:'
+    recordsPerPage: Records per page
     selectLabel: Select an option
   positionField:
     footnote: Records will be sorted based on this field

@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     class="position-relative"
   >
     <div
@@ -47,14 +47,14 @@
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         :attribution="mapOptions.attribution"
       />
-    
+
       <l-polygon
         v-for="(geometry, i) in polygons"
         :key="`polygon-${i}`"
         :lat-lngs="geometry.map(value => value.geometry)"
         :color="geometry[0].color"
       />
-    
+
       <l-marker
         v-for="(marker, i) in markerValues"
         :key="`marker-${i}`"
@@ -76,18 +76,17 @@
           />
         </l-tooltip>
       </l-marker>
-    
+
       <l-control class="leaflet-bar">
         <a
           v-if="!hideCurrentLocationButton"
-          v-b-tooltip.hover="{ title: labels.tooltip && labels.tooltip.goToCurrentLocation, container: '#body' }"
+          v-b-tooltip.noninteractive.hover="{ title: labels.tooltip && labels.tooltip.goToCurrentLocation, container: '#body' }"
           role="button"
           class="d-flex justify-content-center align-items-center"
           @click="goToCurrentLocation"
         >
           <font-awesome-icon
             :icon="['fas', 'location-arrow']"
-            class="text-primary"
           />
         </a>
       </l-control>
@@ -120,17 +119,17 @@ export default {
       type: Boolean,
       default: false
     },
-    
+
     labels: {
       type: Object,
       default: () => ({})
     },
-    
+
     map: {
       type: Object,
       default: () => ({})
     },
-    
+
     markers: {
       type: Array,
       default: () => ([])
@@ -151,7 +150,7 @@ export default {
       default: false
     }
   },
-  
+
   data () {
     return {
       geoSearch: {
@@ -283,7 +282,9 @@ export default {
 
     onBoundsUpdate (value) {
       this.$nextTick(() => {
-        this.$refs.map.mapObject.invalidateSize()
+        setTimeout(() => {
+          this.$refs.map.mapObject.invalidateSize()
+        }, 100)
       })
 
       value = value || this.$refs.map.mapObject.getBounds()
@@ -293,6 +294,36 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.leaflet-touch .leaflet-bar {
+  border: 1px solid transparent;
+  border-radius: 0.3rem;
+}
+
+.leaflet-bar a {
+  background-color: var(--white) !important;
+  color: var(--primary) !important;
+  text-decoration: none !important;
+
+  &:hover {
+    background-color: var(--white) !important;
+    transition: background-color 0.15s ease;
+  }
+}
+
+.geosearch-result {
+  &:hover {
+    background-color: var(--light) !important;
+    color: var(--black);
+  }
+
+  &:active {
+    color: var(--white) !important;
+    background-color: var(--primary) !important;
+  }
+}
+</style>
 
 <style scoped>
 .geosearch-container {

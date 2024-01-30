@@ -6,7 +6,7 @@
     >
       <div
         v-if="showHeader"
-        :class="`card-header bg-transparent border-0 text-nowrap pl-3 pr-2 text-${block.style.variants.headerText}`"
+        :class="`card-header border-bottom bg-transparent text-nowrap pl-3 pr-2 text-${block.style.variants.headerText} ${headerClass}`"
       >
         <div
           v-if="!headerSet"
@@ -14,13 +14,13 @@
           <div
             class="d-flex"
           >
-            <h5
+            <h4
               class="text-truncate mb-0"
             >
               {{ blockTitle }}
 
               <slot name="title-badge" />
-            </h5>
+            </h4>
 
             <b-button-group
               v-if="showOptions"
@@ -29,7 +29,7 @@
             >
               <b-button
                 v-if="block.options.showRefresh"
-                v-b-tooltip.hover="{ title: $t('general.label.refresh'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: $t('general.label.refresh'), container: '#body' }"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
                 @click="$emit('refreshBlock')"
@@ -39,7 +39,7 @@
 
               <b-button
                 v-if="block.options.magnifyOption || isBlockMagnified"
-                v-b-tooltip.hover="{ title: isBlockMagnified ? '' : $t('general.label.magnify'), container: '#body' }"
+                v-b-tooltip.noninteractive.hover="{ title: isBlockMagnified ? '' : $t('general.label.magnify'), container: '#body' }"
                 variant="outline-light"
                 class="d-flex align-items-center text-secondary d-print-none border-0"
                 @click="$root.$emit('magnify-page-block', isBlockMagnified ? undefined : magnifyParams)"

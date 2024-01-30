@@ -4,7 +4,7 @@
       v-for="({page = {}, params = {}, children = []}) of items"
       :key="pageIndex(page)"
       variant="link"
-      class="w-100 text-dark text-decoration-none p-0 pt-2 nav-item"
+      class="w-100 text-decoration-none p-0 pt-2 nav-item"
       active-class="nav-active"
       exact-active-class="nav-active"
       :title="page.title"
@@ -163,13 +163,23 @@ export default {
 }
 
 .nav-item > span {
+  .icon {
+    color: var(--black)
+  }
+
   .title {
-    color: var(--tertiary);
+    font-family: var(--font-regular) !important;
+    color: var(--black);
   }
 }
 
 .nav-item:hover > span {
+  .icon {
+    color: var(--primary)
+  }
+
   .title {
+    font-family: var(--font-semibold) !important;
     color: var(--primary);
     transition: color 0.25s;
   }
@@ -181,7 +191,7 @@ export default {
   }
 
   .title {
-    font-family: 'Poppins-SemiBold';
+    font-family: var(--font-semibold) !important;
     color: var(--primary);
     transition: color 0.5s
   }

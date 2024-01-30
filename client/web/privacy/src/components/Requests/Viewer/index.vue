@@ -1,7 +1,7 @@
 <template>
   <b-card
     v-if="!processing"
-    header-class="bg-white border-bottom"
+    header-class="border-bottom"
     body-class="p-2"
     class="shadow-sm"
   >

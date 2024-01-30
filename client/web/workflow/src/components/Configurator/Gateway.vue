@@ -6,7 +6,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="bg-white p-0 mb-3"
+        class="p-0 mb-3"
       >
         <h5
           class="mb-0"
@@ -36,7 +36,7 @@
             <expression-editor
               :value.sync="edge.expr"
               lang="javascript"
-              height="60"
+              height="100"
               show-line-numbers
               :show-popout="false"
               @input="updateEdge(edge.id, $event)"

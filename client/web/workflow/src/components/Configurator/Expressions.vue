@@ -6,7 +6,7 @@
     >
       <b-card-header
         header-tag="header"
-        class="d-flex align-items-center bg-white py-4"
+        class="d-flex align-items-center py-4"
       >
         <h5
           class="d-flex align-items-center mb-0"
