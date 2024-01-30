@@ -2,7 +2,7 @@
   <div class="d-flex">
     <b-button
       :size="size"
-      variant="extra-light"
+      :variant="variant"
       class="flex-fill"
       :disabled="disabled"
       @click="showModal = true"
@@ -77,6 +77,11 @@ export default {
     size: {
       type: String,
       default: 'lg',
+    },
+
+    variant: {
+      type: String,
+      default: 'light',
     },
   },
 

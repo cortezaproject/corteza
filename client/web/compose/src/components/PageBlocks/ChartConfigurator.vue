@@ -62,6 +62,7 @@
               :module="selectedChartModule"
               :fields="selectedFields"
               :disabled="!!options.drillDown.blockID || !options.drillDown.enabled"
+              variant="extra-light"
               size="md"
               @updateFields="onUpdateFields"
             >

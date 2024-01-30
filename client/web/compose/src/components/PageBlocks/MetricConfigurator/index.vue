@@ -287,6 +287,7 @@
                       :module="recordListModule"
                       :disabled="!!edit.drillDown.blockID || !edit.drillDown.enabled"
                       :fields="selectedFields"
+                      variant="extra-light"
                       size="md"
                       @updateFields="onUpdateFields"
                     >
