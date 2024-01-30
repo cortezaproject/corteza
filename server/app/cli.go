@@ -3,8 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
-	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
 	"sync"
+
+	composeCommands "github.com/cortezaproject/corteza/server/compose/commands"
 
 	authCommands "github.com/cortezaproject/corteza/server/auth/commands"
 	federationCommands "github.com/cortezaproject/corteza/server/federation/commands"
@@ -13,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
 	systemCommands "github.com/cortezaproject/corteza/server/system/commands"
@@ -29,6 +31,8 @@ func (app *CortezaApp) InitCLI() {
 		// filled from flag values
 		envs []string
 	)
+
+	id.Init(ctx)
 
 	app.Command = cli.RootCommand(func() error {
 		return nil
