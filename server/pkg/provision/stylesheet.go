@@ -142,7 +142,7 @@ func processBrandingTheme(oldBranding *types.SettingValue) (themes []types.Theme
         "warning":"#E2A046",
         "danger":"#E54122",
         "light":"#23495F",
-        "extra-light":"#768D9A",
+        "extra-light":"#3E5A6F",
         "body-bg":"#092B40",
         "sidebar-bg": "#0B344E",
         "topbar-bg": "#092B40"

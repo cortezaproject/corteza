@@ -113,7 +113,7 @@
           :record="record"
           :module="module"
           :magnified="magnified"
-          header-class="border-0"
+          header-class="border-0 border-white"
         />
 
         <div
