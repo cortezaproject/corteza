@@ -39,7 +39,7 @@ type (
 	}
 
 	DeepFieldAssigner interface {
-		AssignFieldValue([]string, TypedValue) error
+		AssignFieldValue(Pather, TypedValue) error
 	}
 
 	Iterator interface {

@@ -81,6 +81,16 @@ func TestPath(t *testing.T) {
 		expBits:  []string{"a", "b"},
 		expRests: []string{"b", ""},
 	}, {
+		path: "a.Content-Type",
+
+		expBits:  []string{"a", "Content-Type"},
+		expRests: []string{"Content-Type", ""},
+	}, {
+		path: "a[0]",
+
+		expBits:  []string{"a", "0"},
+		expRests: []string{"[0]", ""},
+	}, {
 		path: "a[b][c]",
 
 		expBits:  []string{"a", "b", "c"},
@@ -102,7 +112,7 @@ func TestPath(t *testing.T) {
 			for {
 				i++
 
-				pp, err = pp.Next()
+				err = pp.Next()
 				require.NoError(t, err)
 
 				if !pp.More() {
@@ -134,7 +144,7 @@ func BenchmarkPath(b *testing.B) {
 		pp := Path(path)
 
 		for {
-			pp, _ = pp.Next()
+			pp.Next()
 			if !pp.More() {
 				break
 			}

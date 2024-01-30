@@ -290,7 +290,6 @@ func (t *Array) Decode(dst reflect.Value) error {
 //
 // It allows gval lib to access Record's underlying value (*types.Array)
 // and it's fields
-//
 func (t Array) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	if s, err := t.Select(k); err != nil {
 		return nil, err
@@ -616,54 +615,64 @@ func (t *KV) Delete(keys ...string) (out TypedValue, err error) {
 	return kv, nil
 }
 
-func (t *KVV) AssignFieldValue(key []string, val TypedValue) error {
-	return assignToKVV(t, key, val)
+func (t *KVV) AssignFieldValue(p Pather, val TypedValue) error {
+	return assignToKVV(t, p, val)
 }
 
-func assignToKVV(t *KVV, kk []string, val TypedValue) error {
+func assignToKVV(t *KVV, p Pather, val TypedValue) (err error) {
 	if t.value == nil {
 		t.value = make(map[string][]string)
 	}
 
-	switch len(kk) {
-	case 2:
-		str, err := cast.ToStringE(val.Get())
-		if err != nil {
-			return err
-		}
+	k := p.Get()
 
-		key, ind := kk[0], kk[1]
-
-		if len(ind) > 0 {
-			// handles kvv.field[42] = "value"
-			index, err := cast.ToIntE(ind)
-			if err != nil {
-				return err
-			}
-
-			if index >= 0 && index < len(t.value[key]) {
-				// handles positive & in-range indexes
-				t.value[key][index] = str
-				return nil
-			}
-
-			//negative & out-of-range indexes are always appended
-		}
-
-		// handles kvv.field[] = "value"
-		t.value[key] = append(t.value[key], str)
-
-	case 1:
-		str, err := cast.ToStringSliceE(val.Get())
-		if err != nil {
-			return err
-		}
-
-		t.value[kk[0]] = str
-
-	default:
-		return fmt.Errorf("cannot set value on %s with path '%s'", t.Type(), strings.Join(kk, "."))
+	err = p.Next()
+	if err != nil {
+		return
 	}
+
+	// Only specified the key, no index
+	if !p.More() {
+		var str []string
+		str, err = cast.ToStringSliceE(val.Get())
+		if err != nil {
+			return err
+		}
+
+		t.value[k] = str
+		return
+	}
+
+	if !p.IsLast() {
+		return fmt.Errorf("cannot set value on %s with path '%s'", t.Type(), p.String())
+	}
+
+	// Specified the key and index
+	str, err := cast.ToStringE(val.Get())
+	if err != nil {
+		return err
+	}
+
+	ind := p.Get()
+
+	if len(ind) > 0 {
+		// handles kvv.field[42] = "value"
+		index, err := cast.ToIntE(ind)
+		if err != nil {
+			return err
+		}
+
+		if index >= 0 && index < len(t.value[k]) {
+			// handles positive & in-range indexes
+			t.value[k][index] = str
+			return nil
+		}
+
+		//negative & out-of-range indexes are always appended
+	}
+
+	// handles kvv.field[] = "value"
+	t.value[k] = append(t.value[k], str)
 
 	return nil
 }

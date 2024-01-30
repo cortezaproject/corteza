@@ -6,39 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPathSplit(t *testing.T) {
-	tcc := []struct {
-		p   string
-		r   []string
-		err string
-	}{
-		{p: "a", r: []string{"a"}},
-		{p: "foo.bar", r: []string{"foo", "bar"}},
-		{p: "a.b[1]", r: []string{"a", "b", "1"}},
-		{p: "a.b[1].baz[0]", r: []string{"a", "b", "1", "baz", "0"}},
-		{p: "a.[]", err: invalidPathErr.Error()},
-		{p: "a[]", r: []string{"a", ""}},
-		{p: "a[1]bzz", err: invalidPathErr.Error()},
-		{p: "a[b][c].d[1]", r: []string{"a", "b", "c", "d", "1"}},
-		{p: "a.Content-Type", r: []string{"a", "Content-Type"}},
-	}
-
-	for _, tc := range tcc {
-		t.Run(tc.p, func(t *testing.T) {
-			req := require.New(t)
-			pp, err := PathSplit(tc.p)
-			if len(tc.err) == 0 {
-				req.NoError(err)
-			} else {
-				req.EqualError(err, tc.err)
-			}
-
-			req.Equal(tc.r, pp)
-		})
-	}
-
-}
-
 func TestVars(t *testing.T) {
 	var (
 		req = require.New(t)
@@ -81,4 +48,46 @@ func TestVars(t *testing.T) {
 
 	req.NoError(Assign(vars, "three.two.one.go", tv("!!!")))
 	req.Equal("!!!", Must(Select(vars, "three.two.one.go")).Get().(string))
+}
+
+func TestAssign(t *testing.T) {
+	base := &Vars{
+		value: map[string]TypedValue{
+			"a": &Vars{value: map[string]TypedValue{
+				"b": &Vars{value: map[string]TypedValue{
+					"c": &Vars{value: map[string]TypedValue{
+						"d": &Vars{value: map[string]TypedValue{
+							"e": &Vars{value: map[string]TypedValue{}},
+						}},
+					}},
+				}},
+			}},
+		},
+	}
+	val := Must(NewInteger(10))
+
+	err := Assign(base, "a.b.c.d.e.f", val)
+	require.NoError(t, err)
+}
+
+func BenchmarkAssign(b *testing.B) {
+	base := &Vars{
+		value: map[string]TypedValue{
+			"a": &Vars{value: map[string]TypedValue{
+				"b": &Vars{value: map[string]TypedValue{
+					"c": &Vars{value: map[string]TypedValue{
+						"d": &Vars{value: map[string]TypedValue{
+							"e": &Vars{value: map[string]TypedValue{}},
+						}},
+					}},
+				}},
+			}},
+		},
+	}
+	val := Must(NewInteger(10))
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		Assign(base, "a.b.c.d.e.f", val)
+	}
 }

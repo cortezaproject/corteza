@@ -8,22 +8,39 @@ type (
 
 		start, end int
 	}
+
+	Pather interface {
+		String() string
+		More() bool
+		IsLast() bool
+		Get() string
+		Rest() string
+		Next() (err error)
+	}
 )
 
 // Path initializes a new exprPath helper to efficiently traverse the path
-func Path(p string) (out exprPath) {
-	return exprPath{path: p}
+func Path(p string) (out *exprPath) {
+	return &exprPath{path: p}
 }
 
-func (p exprPath) More() bool {
+func (p *exprPath) String() string {
+	return p.path
+}
+
+func (p *exprPath) More() bool {
 	return p.start < len(p.path)
 }
 
-func (p exprPath) Get() string {
+func (p *exprPath) IsLast() bool {
+	return p.isLast
+}
+
+func (p *exprPath) Get() string {
 	return p.path[p.start:p.end]
 }
 
-func (p exprPath) Rest() string {
+func (p *exprPath) Rest() string {
 	var rest string
 	if p.end+1 < len(p.path) {
 		rest = p.path[p.end:]
@@ -41,9 +58,9 @@ func (p exprPath) Rest() string {
 	return rest
 }
 
-func (p exprPath) Next() (out exprPath, err error) {
+func (p *exprPath) Next() (err error) {
 	if !p.More() {
-		return p, nil
+		return nil
 	}
 
 	if p.end > 0 {
@@ -54,12 +71,12 @@ func (p exprPath) Next() (out exprPath, err error) {
 
 	p.start, p.end, p.isLast, err = nxtRange(p.path, p.start)
 	if err != nil {
-		return p, err
+		return err
 	}
 
 	p.i++
 
-	return p, nil
+	return nil
 }
 
 func nxtRange(path string, start int) (startOut, end int, isLast bool, err error) {
