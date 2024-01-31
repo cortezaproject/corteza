@@ -60,13 +60,13 @@ func (v *Vars) Clone() (out TypedValue, err error) {
 	}
 
 	if len(v.value) > cloneParallelItemThreshold {
-		return v.cloneParallel()
+		return v.cloneParallel(cloneParallelItemThreshold)
 	}
 
-	return v.clone()
+	return v.cloneSeq()
 }
 
-func (v *Vars) clone() (out TypedValue, err error) {
+func (v *Vars) cloneSeq() (out TypedValue, err error) {
 	aux := &Vars{
 		value: make(map[string]TypedValue, len(v.value)),
 	}
@@ -84,7 +84,7 @@ func (v *Vars) clone() (out TypedValue, err error) {
 	return aux, nil
 }
 
-func (v *Vars) cloneParallel() (out TypedValue, err error) {
+func (v *Vars) cloneParallel(threshold int) (out TypedValue, err error) {
 	keys := make([]string, 0, len(v.value))
 	for k := range v.value {
 		keys = append(keys, k)
@@ -94,12 +94,12 @@ func (v *Vars) cloneParallel() (out TypedValue, err error) {
 	errors := make([]error, len(v.value))
 
 	wg := sync.WaitGroup{}
-	for i := 0; i < len(keys); i += cloneParallelItemThreshold {
+	for i := 0; i < len(keys); i += threshold {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
 
-			for j, k := range keys[i:int(math.Min(float64(i+cloneParallelItemThreshold), float64(len(keys))-1))] {
+			for j, k := range keys[i:int(math.Min(float64(i+threshold), float64(len(keys))))] {
 				aux, err := v.value[k].Clone()
 				if err != nil {
 					errors[i+j] = err
@@ -961,13 +961,13 @@ func (v *Any) Clone() (out TypedValue, err error) {
 
 func (v *Array) Clone() (out TypedValue, err error) {
 	if len(v.value) > cloneParallelItemThreshold {
-		return v.cloneParallel()
+		return v.cloneParallel(cloneParallelItemThreshold)
 	}
 
-	return v.clone()
+	return v.cloneSeq()
 }
 
-func (v *Array) clone() (_ TypedValue, err error) {
+func (v *Array) cloneParallel(threshold int) (_ TypedValue, err error) {
 	errors := make([]error, len(v.value))
 	wg := sync.WaitGroup{}
 
@@ -975,12 +975,12 @@ func (v *Array) clone() (_ TypedValue, err error) {
 		value: make([]TypedValue, len(v.value)),
 	}
 
-	for i := 0; i < len(v.value); i += cloneParallelItemThreshold {
+	for i := 0; i < len(v.value); i += threshold {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
 
-			for j, v := range v.value[i:int(math.Min(float64(i+cloneParallelItemThreshold), float64(len(v.value))-1))] {
+			for j, v := range v.value[i:int(math.Min(float64(i+threshold), float64(len(v.value))))] {
 				aux, err := v.Clone()
 				if err != nil {
 					errors[i+j] = err
@@ -1002,7 +1002,7 @@ func (v *Array) clone() (_ TypedValue, err error) {
 	return out, nil
 }
 
-func (v *Array) cloneParallel() (out TypedValue, err error) {
+func (v *Array) cloneSeq() (out TypedValue, err error) {
 	aux := &Array{
 		value: make([]TypedValue, len(v.value)),
 	}
