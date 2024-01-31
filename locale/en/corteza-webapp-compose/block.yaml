@@ -495,8 +495,8 @@ recordList:
       permissions: Permissions
     recordDisplayOptions: On record click
     recordSelectorDisplayOptions: On record selector click
-    configureTextWrap: Configure text wrap
-    wrapText: Wrap text
+    textStyles: Text Styles
+    configureNonWrappingFelids: Configure non-wrapping fields
     showFullText: Show full text
   recordPage: record page
   refField:

@@ -68,13 +68,13 @@ export default {
 
     classes () {
       const classes = []
+      const { fieldID } = this.field
+      const { textStyles } = this.extraOptions
 
       if (this.field.isMulti) {
         classes.push('multiline')
-      }
-
-      if (this.extraOptions.configureTextWrap) {
-        classes.push(this.extraOptions.configureTextWrap)
+      } else if (textStyles.noWrapFields && textStyles.noWrapFields.includes(fieldID)) {
+        classes.push('text-nowrap')
       }
 
       return classes

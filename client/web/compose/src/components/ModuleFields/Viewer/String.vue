@@ -5,7 +5,6 @@
       class="rt-content"
     >
       <p
-        :style="{ 'white-space': 'pre-wrap' }"
         :class="classes"
         v-html="formatted"
       />
@@ -23,13 +22,13 @@ export default {
   computed: {
     classes () {
       const classes = []
+      const { fieldID } = this.field
+      const { textStyles } = this.extraOptions
 
       if (this.field.isMulti || this.field.options.multiLine) {
         classes.push('multiline')
-      }
-
-      if (this.extraOptions.configureTextWrap) {
-        classes.push(this.extraOptions.configureTextWrap)
+      } else if (textStyles.noWrapFields && textStyles.noWrapFields.includes(fieldID)) {
+        classes.push('text-nowrap')
       }
 
       return classes

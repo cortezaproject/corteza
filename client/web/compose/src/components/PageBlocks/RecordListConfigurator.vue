@@ -80,13 +80,19 @@
             <b-col
               cols="12"
             >
+
               <field-picker
                 :module="recordListModule"
                 :fields.sync="options.fields"
                 class="mb-3"
                 style="height: 40vh;"
               />
+            </b-col>
 
+            <b-col
+              cols="12"
+              md="6"
+            >
               <b-form-group
                 :label="$t('recordList.hideConfigureFieldsButton')"
                 label-class="text-primary"
@@ -97,6 +103,27 @@
                   invert
                   :labels="checkboxLabel"
                 />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              md="6"
+            >
+              <b-form-group
+                :label="$t('recordList.record.textStyles')"
+                label-class="text-primary"
+              >
+                <column-picker
+                  size="sm"
+                  variant="light"
+                  :module="recordListModule"
+                  :fields="options.textStyles.noWrapFields || []"
+                  :field-subset="options.fields"
+                  @updateFields="onUpdateTextWrapOption"
+                >
+                  <span>{{ $t('recordList.record.configureNonWrappingFelids') }}</span>
+                </column-picker>
               </b-form-group>
             </b-col>
           </b-row>
@@ -606,20 +633,6 @@
                 />
               </b-form-group>
             </b-col>
-            <b-col
-              cols="12"
-              md="6"
-            >
-              <b-form-group
-                :label="$t('recordList.record.configureTextWrap')"
-                label-class="text-primary"
-              >
-                <b-form-select
-                  v-model="options.configureTextWrap"
-                  :options="textWrapDisplayOptions"
-                />
-              </b-form-group>
-            </b-col>
           </b-row>
 
           <b-row>
@@ -834,6 +847,7 @@ import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
+import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 const { CInputPresort } = components
 
 export default {
@@ -849,6 +863,7 @@ export default {
     CInputPresort,
     RecordListFilter,
     Draggable,
+    ColumnPicker
   },
 
   extends: base,
@@ -1045,6 +1060,12 @@ export default {
     setDefaultValues () {
       this.checkboxLabel = {}
       this.roleOptions = []
+    },
+
+    onUpdateTextWrapOption (fields = []) {
+      if (this.options.textStyles.noWrapFields) {
+        this.options.textStyles.noWrapFields = fields.map(f => f.fieldID)
+      }
     },
   },
 }
