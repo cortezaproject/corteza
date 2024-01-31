@@ -48,6 +48,28 @@ func KvFunctions() []gval.Language {
 	}
 }
 
+func (v *Vars) Clone() (out TypedValue, err error) {
+	if v == nil || len(v.value) == 0 {
+		return EmptyVars(), nil
+	}
+
+	aux := &Vars{
+		value: make(map[string]TypedValue, len(v.value)),
+	}
+
+	// Can run concurrently
+	for k, v := range v.value {
+		x, err := v.Clone()
+		if err != nil {
+			return nil, err
+		}
+
+		aux.value[k] = x
+	}
+
+	return aux, nil
+}
+
 func EmptyKV() *KV {
 	return &KV{value: make(map[string]string)}
 }
@@ -871,4 +893,136 @@ func (t *KVV) Delete(keys ...string) (out TypedValue, err error) {
 	}
 
 	return kvv, nil
+}
+
+func (v *Any) Clone() (out TypedValue, err error) {
+	aux, err := NewAny(v.GetValue())
+	return aux, err
+}
+
+func (v *Array) Clone() (out TypedValue, err error) {
+	aux := &Array{
+		value: make([]TypedValue, len(v.value)),
+	}
+
+	// Can run concurrently
+	for i, v := range v.value {
+		x, err := v.Clone()
+		if err != nil {
+			return nil, err
+		}
+
+		aux.value[i] = x
+	}
+	return aux, nil
+}
+
+func (v *Boolean) Clone() (out TypedValue, err error) {
+	aux, err := NewBoolean(v.GetValue())
+	return aux, err
+}
+
+func (v *Bytes) Clone() (out TypedValue, err error) {
+	cpy := make([]byte, len(v.value))
+	copy(cpy, v.value)
+
+	aux, err := NewBytes(cpy)
+	return aux, err
+}
+
+func (v *DateTime) Clone() (out TypedValue, err error) {
+	t := *v.GetValue()
+
+	aux, err := NewDateTime(&t)
+	return aux, err
+}
+
+func (v *Duration) Clone() (out TypedValue, err error) {
+	aux, err := NewDuration(v.GetValue())
+	return aux, err
+}
+
+func (v *Float) Clone() (out TypedValue, err error) {
+	aux, err := NewFloat(v.GetValue())
+	return aux, err
+}
+
+func (v *ID) Clone() (out TypedValue, err error) {
+	aux, err := NewID(v.GetValue())
+	return aux, err
+}
+
+func (v *Integer) Clone() (out TypedValue, err error) {
+	aux, err := NewInteger(v.GetValue())
+	return aux, err
+}
+
+func (v *KV) Clone() (out TypedValue, err error) {
+	aux := &KV{
+		value: make(map[string]string, len(v.value)),
+	}
+
+	// Can run concurrently
+	for k, v := range v.value {
+		aux.value[k] = v
+	}
+	return aux, nil
+}
+
+func (v *KVV) Clone() (out TypedValue, err error) {
+	aux := &KVV{
+		value: make(map[string][]string, len(v.value)),
+	}
+
+	// Can run concurrently
+	for k, vv := range v.value {
+		aux.value[k] = make([]string, len(vv))
+		copy(aux.value[k], vv)
+	}
+	return aux, nil
+}
+
+func (v *Handle) Clone() (out TypedValue, err error) {
+	aux, err := NewHandle(v.GetValue())
+	return aux, err
+}
+
+func (v *HttpRequest) Clone() (out TypedValue, err error) {
+	aux, err := NewHttpRequest(v.GetValue())
+	return aux, err
+}
+
+func (v *Reader) Clone() (out TypedValue, err error) {
+	aux, err := NewReader(v.GetValue())
+	return aux, err
+}
+
+func (v *String) Clone() (out TypedValue, err error) {
+	aux, err := NewString(v.GetValue())
+	return aux, err
+}
+
+func (v *Url) Clone() (out TypedValue, err error) {
+	u := *v.GetValue()
+	aux, err := NewUrl(&u)
+	return aux, err
+}
+
+func (v *Meta) Clone() (out TypedValue, err error) {
+	m := make(map[string]any, len(v.value))
+	for k, v := range v.value {
+		m[k] = v
+	}
+
+	aux, err := NewMeta(v.GetValue())
+	return aux, err
+}
+
+func (v *UnsignedInteger) Clone() (out TypedValue, err error) {
+	aux, err := NewUnsignedInteger(v.GetValue())
+	return aux, err
+}
+
+func (v Unresolved) Clone() (out TypedValue, err error) {
+	return nil, fmt.Errorf("cannot unref unresolved type")
 }

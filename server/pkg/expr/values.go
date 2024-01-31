@@ -13,6 +13,7 @@ type (
 	TypedValue interface {
 		Type
 		Assigner
+		Clone() (TypedValue, error)
 		Get() interface{}
 	}
 

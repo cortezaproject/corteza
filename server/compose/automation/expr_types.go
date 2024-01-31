@@ -662,3 +662,42 @@ func (t *ComposeRecordValues) Delete(keys ...string) (out expr.TypedValue, err e
 
 	return rv, nil
 }
+
+func (v *Attachment) Clone() (expr.TypedValue, error) {
+	att := *v.value
+	aux, err := NewAttachment(&att)
+	return aux, err
+}
+
+func (v *ComposeModule) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeModule(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeNamespace) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeNamespace(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeRecord) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeRecord(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeRecordValues) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeRecordValues(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeRecordValueErrorSet) Clone() (expr.TypedValue, error) {
+	errs := types.RecordValueErrorSet{
+		Set: make([]types.RecordValueError, len(v.value.Set)),
+	}
+
+	for i, v := range v.value.Set {
+		errs.Set[i] = v
+	}
+
+	aux, err := NewComposeRecordValueErrorSet(&errs)
+	return aux, err
+}

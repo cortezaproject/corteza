@@ -54,3 +54,8 @@ func ReadRequestBody(in interface{}) (s string) {
 
 	return string(b)
 }
+
+func (t *EmailMessage) Clone() (expr.TypedValue, error) {
+	msg := *t.value.msg
+	return NewEmailMessage(&msg)
+}
