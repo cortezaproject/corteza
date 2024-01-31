@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PaesslerAG/gval"
@@ -39,6 +41,10 @@ type (
 	}
 )
 
+const (
+	cloneParallelItemThreshold = 200
+)
+
 func KvFunctions() []gval.Language {
 	return []gval.Language{
 		gval.Function("set", set),
@@ -53,6 +59,14 @@ func (v *Vars) Clone() (out TypedValue, err error) {
 		return EmptyVars(), nil
 	}
 
+	if len(v.value) > cloneParallelItemThreshold {
+		return v.cloneParallel()
+	}
+
+	return v.clone()
+}
+
+func (v *Vars) clone() (out TypedValue, err error) {
 	aux := &Vars{
 		value: make(map[string]TypedValue, len(v.value)),
 	}
@@ -65,6 +79,51 @@ func (v *Vars) Clone() (out TypedValue, err error) {
 		}
 
 		aux.value[k] = x
+	}
+
+	return aux, nil
+}
+
+func (v *Vars) cloneParallel() (out TypedValue, err error) {
+	keys := make([]string, 0, len(v.value))
+	for k := range v.value {
+		keys = append(keys, k)
+	}
+
+	auxValues := make([]TypedValue, len(v.value))
+	errors := make([]error, len(v.value))
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < len(keys); i += cloneParallelItemThreshold {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+
+			for j, k := range keys[i:int(math.Min(float64(i+cloneParallelItemThreshold), float64(len(keys))-1))] {
+				aux, err := v.value[k].Clone()
+				if err != nil {
+					errors[i+j] = err
+				}
+
+				auxValues[i+j] = aux
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	aux := &Vars{
+		value: make(map[string]TypedValue, len(v.value)),
+	}
+
+	for i, k := range keys {
+		aux.value[k] = auxValues[i]
 	}
 
 	return aux, nil
@@ -901,6 +960,49 @@ func (v *Any) Clone() (out TypedValue, err error) {
 }
 
 func (v *Array) Clone() (out TypedValue, err error) {
+	if len(v.value) > cloneParallelItemThreshold {
+		return v.cloneParallel()
+	}
+
+	return v.clone()
+}
+
+func (v *Array) clone() (_ TypedValue, err error) {
+	errors := make([]error, len(v.value))
+	wg := sync.WaitGroup{}
+
+	out := &Array{
+		value: make([]TypedValue, len(v.value)),
+	}
+
+	for i := 0; i < len(v.value); i += cloneParallelItemThreshold {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+
+			for j, v := range v.value[i:int(math.Min(float64(i+cloneParallelItemThreshold), float64(len(v.value))-1))] {
+				aux, err := v.Clone()
+				if err != nil {
+					errors[i+j] = err
+				}
+
+				out.value[i+j] = aux
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return out, nil
+}
+
+func (v *Array) cloneParallel() (out TypedValue, err error) {
 	aux := &Array{
 		value: make([]TypedValue, len(v.value)),
 	}

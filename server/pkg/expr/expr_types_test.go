@@ -550,3 +550,86 @@ func TestArrayDecode(t *testing.T) {
 	req.Len(foo.Strings, 2)
 	req.Len(foo.Values, 2)
 }
+
+// Original
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// BenchmarkVarsUnref_10_10-12                 2623            459222 ns/op          370399 B/op       4886 allocs/op
+// BenchmarkVarsUnref_100_100-12                 25          46813440 ns/op        42108291 B/op     453755 allocs/op
+// BenchmarkVarsUnref_1000_1000-12                1        4572438792 ns/op        4004143648 B/op 45064443 allocs/op
+
+// Reworked, all seq.
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// BenchmarkVarsUnref_10_10-12                37764             31204 ns/op           90607 B/op        859 allocs/op
+// BenchmarkVarsUnref_100_100-12                303           3630116 ns/op         9128270 B/op      80430 allocs/op
+// BenchmarkVarsUnref_1000_1000-12                3         372980819 ns/op        898107160 B/op   8004031 allocs/op
+
+// Reworked, seq threshold to parallel
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// BenchmarkVarsUnref_10_10-12                35852             33396 ns/op           90606 B/op        859 allocs/op
+// BenchmarkVarsUnref_100_100-12                320           3692905 ns/op         9128270 B/op      80430 allocs/op
+// BenchmarkVarsUnref_1000_1000-12                7         175036667 ns/op        946114581 B/op   8003063 allocs/op
+
+func benchmarkVarsUnref(b *testing.B, rootCount, nestedCount int) {
+	nest := &Vars{
+		value: map[string]TypedValue{},
+	}
+
+	for i := 0; i < nestedCount; i++ {
+		nest.value[fmt.Sprintf("nest_value_%d", i)] = &Vars{
+			value: map[string]TypedValue{
+				"nested": &Vars{
+					value: map[string]TypedValue{
+						"nested": &Vars{
+							value: map[string]TypedValue{},
+						},
+					},
+				},
+			},
+		}
+	}
+
+	v := &Vars{
+		value: map[string]TypedValue{
+			"a11":   Must(NewVars(map[string]any{})),
+			"a22":   Must(NewVars(map[string]any{})),
+			"a33":   Must(NewVars(map[string]any{})),
+			"a44":   Must(NewVars(map[string]any{})),
+			"a55":   Must(NewVars(map[string]any{})),
+			"a66":   Must(NewVars(map[string]any{})),
+			"a77":   Must(NewVars(map[string]any{})),
+			"a88":   Must(NewVars(map[string]any{})),
+			"a99":   Must(NewVars(map[string]any{})),
+			"a1010": Must(NewVars(map[string]any{})),
+			"a1111": Must(NewVars(map[string]any{})),
+			"a1212": Must(NewVars(map[string]any{})),
+			"a1313": Must(NewVars(map[string]any{})),
+		},
+	}
+
+	for i := 0; i < rootCount; i++ {
+		v.value[fmt.Sprintf("nest_value_%d", i)] = nest
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		v.Clone()
+	}
+}
+
+func BenchmarkVarsUnref_10_10(b *testing.B) {
+	benchmarkVarsUnref(b, 10, 10)
+}
+
+func BenchmarkVarsUnref_100_100(b *testing.B) {
+	benchmarkVarsUnref(b, 100, 100)
+}
+
+func BenchmarkVarsUnref_1000_1000(b *testing.B) {
+	benchmarkVarsUnref(b, 1000, 1000)
+}
