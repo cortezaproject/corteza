@@ -494,3 +494,21 @@ jobs:
           channel: ${{ secrets.MATRIX_ROOM_ID }}
           message: |
             # Corteza **${{ env.DOCKER_IMAGE_TAG }}** release has failed
+
+  publish-release-sentry:
+    name: "Publish release to sentry"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create Sentry release
+        uses: getsentry/action-release@v1
+        continue-on-error: true
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+        with:
+          ignore_empty: true
+          ignore_missing: true
+          version: ${{ github.ref_name }}
