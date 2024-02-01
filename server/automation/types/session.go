@@ -184,13 +184,55 @@ func (s *Session) Apply(ssp SessionStartParams) {
 	}
 }
 
+// AppendRuntimeStacktrace adds a new frame to the runtime stacktrace
+//
+// This does have some smartness
+// If the workflow uses longer iterators, the memory pressure got too high.
+// To counter this, only the frames of the last iteration are preserved to
+// better match what programming languages do.
 func (s *Session) AppendRuntimeStacktrace(frame *wfexec.Frame) {
-	if !s.runtimeOpts.disableStacktrace {
-		s.l.RLock()
-		defer s.l.RUnlock()
-
-		s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+	if s.runtimeOpts.disableStacktrace {
+		return
 	}
+
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	// The only way to get to the same stepID is when we're in a loop
+	// Find where the first frame of the iterator is and slice the stack.
+	if frame.Action != "iterator initialized" && s.hasDuplicate(frame.StepID) {
+		var (
+			i = 0
+			f *wfexec.Frame
+		)
+		for i, f = range s.RuntimeStacktrace {
+			if f.StepID == frame.StepID {
+				break
+			}
+		}
+
+		// @todo this might cause a memory leak; investigate further
+		s.RuntimeStacktrace = s.RuntimeStacktrace[0:i]
+	}
+
+	// Push to the newly done trace
+	s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+}
+
+// @todo potentially optimize this; it'll probably be fine for now but
+// might degrade performance for larger workflows.
+// To investigate and potentially optimize it.
+func (s *Session) hasDuplicate(stepID uint64) bool {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	for _, f := range s.RuntimeStacktrace {
+		if f.StepID == stepID {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *Session) CopyRuntimeStacktrace() {
