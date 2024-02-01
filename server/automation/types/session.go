@@ -58,6 +58,12 @@ type (
 		// the whole stacktrace
 		RuntimeStacktrace Stacktrace `json:"-"`
 
+		// FlushCounter helps us keep track of when we should forcefully flush
+		// the session to the database.
+		//
+		// This is required due to the change in exec stack traces.
+		FlushCounter int `json:"-"`
+
 		l sync.RWMutex
 	}
 

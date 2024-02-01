@@ -444,7 +444,7 @@ func (svc *session) logPending() {
 
 // stateChangeHandler keeps track of session status changes and frequently stores session into db
 func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHandler {
-	return func(i wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) {
+	return func(status wfexec.SessionStatus, state *wfexec.State, s *wfexec.Session) {
 		svc.mux.Lock()
 		defer svc.mux.Unlock()
 
@@ -458,6 +458,8 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			log.Warn("could not find session to update")
 			return
 		}
+
+		ses.FlushCounter++
 
 		log = log.With(logger.Uint64("workflowID", ses.WorkflowID))
 
@@ -482,7 +484,7 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 
 		ses.AppendRuntimeStacktrace(frame)
 
-		switch i {
+		switch status {
 		case wfexec.SessionPrompted:
 			ses.SuspendedAt = now()
 			ses.Status = types.SessionPrompted
@@ -529,16 +531,16 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 			ses.Status = types.SessionCanceled
 
 		default:
-			// force update on every F new frames (F=sessionStateFlushFrequency) but only when stacktrace is not nil
-			update = ses.RuntimeStacktrace != nil && len(ses.RuntimeStacktrace)%sessionStateFlushFrequency == 0
+			// force update every X iterations
+			update = ses.FlushCounter >= sessionStateFlushFrequency
+			if !update {
+				return
+			}
 		}
 
-		if !update {
-			return
-		}
-
+		// Reset the counter whenever we flush due to whatever scenario
+		ses.FlushCounter = 0
 		ses.CopyRuntimeStacktrace()
-
 		if err := store.UpsertAutomationSession(ctx, svc.store, ses); err != nil {
 			log.Error("failed to update session", zap.Error(err))
 		}
