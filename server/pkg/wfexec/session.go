@@ -42,12 +42,11 @@ type (
 		prompted map[uint64]*prompted
 
 		// how often we check for delayed states and how often idle stat is checked in Wait()
-		workerInterval time.Duration
+		workerIntervalSuspended time.Duration
+		workerIntervalWaiter    time.Duration
 
 		// only one worker routine per session
 		workerLock chan struct{}
-
-		statusChange chan int
 
 		// holds final result
 		result *expr.Vars
@@ -62,7 +61,10 @@ type (
 
 		eventHandler StateChangeHandler
 
+		// This keeps track of workflow calls
 		callStack []uint64
+
+		Statko chan SessionStatus
 	}
 
 	StateChangeHandler func(SessionStatus, *State, *Session)
@@ -171,9 +173,12 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 		delayed:  make(map[uint64]*delayed),
 		prompted: make(map[uint64]*prompted),
 
-		// workerInterval: time.Millisecond,
-		workerInterval: time.Millisecond * 250, // debug mode rate
-		workerLock:     make(chan struct{}, 1),
+		// Setting this one to something higher since it'll need external interaction
+		workerIntervalSuspended: time.Millisecond * 100,
+		// Setting this to a smaller number since the wait fnc. is a tight loop
+		workerIntervalWaiter: time.Millisecond,
+
+		workerLock: make(chan struct{}, 1),
 
 		log: zap.NewNop(),
 
@@ -417,17 +422,18 @@ func (s *Session) WaitUntil(ctx context.Context, expected ...SessionStatus) erro
 	s.log.Debug(
 		"waiting for status change",
 		zap.Any("expecting", expected),
-		zap.Duration("interval", s.workerInterval),
+		zap.Duration("interval", s.workerIntervalWaiter),
 	)
 
-	waitCheck := time.NewTicker(s.workerInterval)
+	waitCheck := time.NewTicker(s.workerIntervalWaiter)
 	defer waitCheck.Stop()
 
 	for {
 		select {
 		case <-waitCheck.C:
-			if indexed[s.Status()] {
-				s.log.Debug("waiting complete", zap.Stringer("status", s.Status()))
+			status := s.Status()
+			if indexed[status] {
+				s.log.Debug("waiting complete", zap.Stringer("status", status))
 				// nothing in the pipeline
 				return s.err
 			}
@@ -447,8 +453,7 @@ func (s *Session) worker(ctx context.Context) {
 	defer close(s.workerLock)
 	s.workerLock <- struct{}{}
 
-	workerTicker := time.NewTicker(s.workerInterval)
-
+	workerTicker := time.NewTicker(s.workerIntervalSuspended)
 	defer workerTicker.Stop()
 
 	for {
@@ -461,35 +466,27 @@ func (s *Session) worker(ctx context.Context) {
 			s.queueScheduledSuspended()
 
 		case st := <-s.qState:
-			if st == nil {
-				// stop worker
-				s.log.Debug("completed")
-				return
-			}
-
 			s.log.Debug("pulled state from queue", logger.Uint64("stateID", st.stateId))
 			if st.step == nil {
-				// We should not terminate if the session contains any delayed or prompted steps.
-				status := s.Status()
-				if status == SessionPrompted || status == SessionDelayed {
+				// When there are any suspended steps we shouldn't kill the worker
+				// as those need to be processed.
+				if s.Suspended() {
 					break
 				}
 
 				s.log.Debug("done, setting results and stopping the worker")
 
-				func() {
-					// mini lambda fn to ensure we can properly unlock with defer
-					s.mux.Lock()
-					defer s.mux.Unlock()
-
-					// with merge we are making sure
-					// that result != nil even if state scope is
-					s.result = (&expr.Vars{}).MustMerge(st.scope)
-				}()
+				// Make sure we're serving a non-nil value
+				s.mux.Lock()
+				if st.scope.IsEmpty() {
+					s.result = &expr.Vars{}
+				} else {
+					s.result = st.scope
+				}
+				s.mux.Unlock()
 
 				// Call event handler with completed status
 				s.eventHandler(SessionCompleted, st, s)
-
 				return
 			}
 
@@ -511,7 +508,7 @@ func (s *Session) worker(ctx context.Context) {
 
 				nxt, err := s.exec(ctx, log, st)
 				if err != nil && st.err == nil {
-					// override the error from the execution
+					// If exec returns an error, use that one over the wf runtime error
 					st.err = err
 				}
 
@@ -591,10 +588,21 @@ func (s *Session) Stop() {
 	s.qErr <- nil
 }
 
-func (s *Session) Suspended() bool {
+func (s *Session) Delayed() bool {
 	defer s.mux.RUnlock()
 	s.mux.RLock()
 	return len(s.delayed) > 0
+}
+
+func (s *Session) Prompted() bool {
+	defer s.mux.RUnlock()
+	s.mux.RLock()
+	return len(s.prompted) > 0
+}
+
+// Suspended returns true if the workflow has either delayed or prompted steps
+func (s *Session) Suspended() bool {
+	return s.Delayed() || s.Prompted()
 }
 
 func (s *Session) queueScheduledSuspended() {
@@ -863,9 +871,15 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 	return nxt, nil
 }
 
-func SetWorkerInterval(i time.Duration) SessionOpt {
+func SetWorkerIntervalSuspended(i time.Duration) SessionOpt {
 	return func(s *Session) {
-		s.workerInterval = i
+		s.workerIntervalSuspended = i
+	}
+}
+
+func SetWorkerIntervalWaiter(i time.Duration) SessionOpt {
+	return func(s *Session) {
+		s.workerIntervalWaiter = i
 	}
 }
 
