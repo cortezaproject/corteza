@@ -448,22 +448,18 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		svc.mux.Lock()
 		defer svc.mux.Unlock()
 
-		log := svc.log.With(
-			logger.Uint64("sessionID", s.ID()),
-			zap.Stringer("status", i),
-		)
-
 		ses := svc.pool[s.ID()]
 		if ses == nil {
+			log := svc.log.With(
+				logger.Uint64("sessionID", s.ID()),
+				zap.Stringer("status", status),
+			)
+
 			log.Warn("could not find session to update")
 			return
 		}
 
 		ses.FlushCounter++
-
-		log = log.With(logger.Uint64("workflowID", ses.WorkflowID))
-
-		log.Debug("state change handler")
 
 		var (
 			// By default, we want to update session when new status is prompted, delayed, completed, canceled or failed
@@ -542,6 +538,11 @@ func (svc *session) stateChangeHandler(ctx context.Context) wfexec.StateChangeHa
 		ses.FlushCounter = 0
 		ses.CopyRuntimeStacktrace()
 		if err := store.UpsertAutomationSession(ctx, svc.store, ses); err != nil {
+			log := svc.log.With(
+				logger.Uint64("sessionID", s.ID()),
+				zap.Stringer("status", status),
+			)
+
 			log.Error("failed to update session", zap.Error(err))
 		}
 	}
