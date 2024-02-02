@@ -296,7 +296,7 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 	{{- range .loaders }}
 		case {{ .const }}:
 			if hasWildcard {
-				return rbac.NewResource({{ .resFunc }}({{ range $i := .refIndex }}0,{{ end }})), nil
+				return rbac.NewResource({{ .resFunc }}({{ range $i := .refIndex }}ids[{{ $i }}],{{ end }})), nil
 			}
 
 			return {{ .funcName }}(ctx, svc.store {{ range $i := .refIndex }}, ids[{{ $i }}]{{ end }})

@@ -436,7 +436,7 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 	switch rbac.ResourceType(resourceType) {
 	case types.WorkflowResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.WorkflowRbacResource(0)), nil
+			return rbac.NewResource(types.WorkflowRbacResource(ids[0])), nil
 		}
 
 		return loadWorkflow(ctx, svc.store, ids[0])
