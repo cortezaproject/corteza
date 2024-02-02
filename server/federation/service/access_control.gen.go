@@ -406,19 +406,19 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 	switch rbac.ResourceType(resourceType) {
 	case types.NodeResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.NodeRbacResource(0)), nil
+			return rbac.NewResource(types.NodeRbacResource(ids[0])), nil
 		}
 
 		return loadNode(ctx, svc.store, ids[0])
 	case types.ExposedModuleResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.ExposedModuleRbacResource(0, 0)), nil
+			return rbac.NewResource(types.ExposedModuleRbacResource(ids[0], ids[1])), nil
 		}
 
 		return loadExposedModule(ctx, svc.store, ids[0], ids[1])
 	case types.SharedModuleResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.SharedModuleRbacResource(0, 0)), nil
+			return rbac.NewResource(types.SharedModuleRbacResource(ids[0], ids[1])), nil
 		}
 
 		return loadSharedModule(ctx, svc.store, ids[0], ids[1])

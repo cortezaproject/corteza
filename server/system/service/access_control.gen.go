@@ -1195,61 +1195,61 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 	switch rbac.ResourceType(resourceType) {
 	case types.ApplicationResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.ApplicationRbacResource(0)), nil
+			return rbac.NewResource(types.ApplicationRbacResource(ids[0])), nil
 		}
 
 		return loadApplication(ctx, svc.store, ids[0])
 	case types.ApigwRouteResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.ApigwRouteRbacResource(0)), nil
+			return rbac.NewResource(types.ApigwRouteRbacResource(ids[0])), nil
 		}
 
 		return loadApigwRoute(ctx, svc.store, ids[0])
 	case types.AuthClientResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.AuthClientRbacResource(0)), nil
+			return rbac.NewResource(types.AuthClientRbacResource(ids[0])), nil
 		}
 
 		return loadAuthClient(ctx, svc.store, ids[0])
 	case types.DataPrivacyRequestResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.DataPrivacyRequestRbacResource(0)), nil
+			return rbac.NewResource(types.DataPrivacyRequestRbacResource(ids[0])), nil
 		}
 
 		return loadDataPrivacyRequest(ctx, svc.store, ids[0])
 	case types.QueueResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.QueueRbacResource(0)), nil
+			return rbac.NewResource(types.QueueRbacResource(ids[0])), nil
 		}
 
 		return loadQueue(ctx, svc.store, ids[0])
 	case types.ReportResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.ReportRbacResource(0)), nil
+			return rbac.NewResource(types.ReportRbacResource(ids[0])), nil
 		}
 
 		return loadReport(ctx, svc.store, ids[0])
 	case types.RoleResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.RoleRbacResource(0)), nil
+			return rbac.NewResource(types.RoleRbacResource(ids[0])), nil
 		}
 
 		return loadRole(ctx, svc.store, ids[0])
 	case types.TemplateResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.TemplateRbacResource(0)), nil
+			return rbac.NewResource(types.TemplateRbacResource(ids[0])), nil
 		}
 
 		return loadTemplate(ctx, svc.store, ids[0])
 	case types.UserResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.UserRbacResource(0)), nil
+			return rbac.NewResource(types.UserRbacResource(ids[0])), nil
 		}
 
 		return loadUser(ctx, svc.store, ids[0])
 	case types.DalConnectionResourceType:
 		if hasWildcard {
-			return rbac.NewResource(types.DalConnectionRbacResource(0)), nil
+			return rbac.NewResource(types.DalConnectionRbacResource(ids[0])), nil
 		}
 
 		return loadDalConnection(ctx, svc.store, ids[0])
