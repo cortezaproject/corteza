@@ -20,6 +20,8 @@ import {
   faPlus,
   faQuestion,
   faAngleDoubleLeft,
+  faAngleUp,
+  faAngleDown,
   faAngleRight,
   faAngleLeft,
   faEllipsisV,
@@ -68,4 +70,6 @@ library.add(
   faFileExport,
   faToggleOn,
   faToggleOff,
+  faAngleUp,
+  faAngleDown,
 )

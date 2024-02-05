@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { FontAwesomeIcon, FontAwesomeLayers } from '@fortawesome/vue-fontawesome'
 import PortalVue from 'portal-vue'
 import './faIcons'
 import CContentHeader from './CContentHeader'
@@ -28,6 +28,7 @@ Vue.use(PortalVue)
 Vue.component('c-corredor-manual-buttons', CCorredorManualButtons)
 Vue.component('c-permissions-button', CPermissionsButton)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
+Vue.component('font-awesome-layers', FontAwesomeLayers)
 Vue.component('c-content-header', CContentHeader)
 Vue.component('c-resource-list-status-filter', CResourceListStatusFilter)
 Vue.component('c-input-confirm', CInputConfirm)

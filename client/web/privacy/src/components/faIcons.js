@@ -8,6 +8,8 @@ import {
   faThLarge,
   faCheck,
   faTimes,
+  faAngleUp,
+  faAngleDown,
   faAngleLeft,
   faAngleRight,
   faAngleDoubleLeft,
@@ -36,4 +38,6 @@ library.add(
   faAngleDoubleLeft,
   faAngleDoubleRight,
   faSearch,
+  faAngleUp,
+  faAngleDown,
 )

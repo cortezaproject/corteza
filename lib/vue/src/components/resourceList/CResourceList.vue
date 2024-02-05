@@ -70,6 +70,37 @@
         @sort-changed="pagination.page = 1"
         @row-clicked="$emit('row-clicked', $event)"
       >
+      <template #head()="field">
+        <div class="d-flex align-items-center">
+          <div
+            class="d-flex align-self-center text-nowrap"
+          >
+            {{ field.label }}
+          </div>
+
+          <b-button
+            v-if="field.field.sortable"
+            variant="outline-extra-light"
+            class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
+            @click="handleSort(field)"
+            >
+            <font-awesome-layers
+              class="d-print-none"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'angle-up']"
+                class="mb-1"
+                :class="{ 'text-primary': field.column === sorting.sortBy && !sorting.sortDesc }"
+              />
+              <font-awesome-icon
+                :icon="['fas', 'angle-down']"
+                class="mt-1"
+                :class="{ 'text-primary': field.column === sorting.sortBy && sorting.sortDesc }"
+              />
+            </font-awesome-layers>
+          </b-button>
+        </div>
+      </template>
         <template #empty>
           <p
             data-test-id="no-matches"
@@ -391,7 +422,7 @@ export default {
 
     showFooter () {
       return !(this.hideTotal && this.hidePagination && this.hidePerPageOption)
-    }
+    },
   },
 
   methods: {
@@ -462,6 +493,11 @@ export default {
       this.selected = [],
       this.selectableItemIDs = []
     },
+
+    handleSort ({ field }) {
+      this.sorting.sortBy = field.key
+      this.sorting.sortDesc = !this.sorting.sortDesc
+    },
   },
 }
 </script>
@@ -482,6 +518,12 @@ export default {
     opacity: 1;
     z-index: 1;
     background-color: var(--light);
+  }
+
+  & > thead > tr > [aria-sort=ascending],
+  & > thead > tr > [aria-sort=descending],
+  & > thead > tr > [aria-sort=none] {
+    background-image: none !important;
   }
 }
 

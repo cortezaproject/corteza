@@ -279,7 +279,7 @@
                     >
                       <font-awesome-icon
                         :icon="['fas', 'angle-up']"
-                        class="mb-1 text-grey"
+                        class="mb-1"
                         :class="{ 'text-primary': isSortedBy(field, 'ASC') }"
                       />
                       <font-awesome-icon

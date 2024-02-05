@@ -27,6 +27,7 @@
       clickable
       sticky-header
       hide-search
+      hide-per-page-option
       class="custom-resource-list-height flex-fill"
       @row-clicked="handleRowClicked"
     >
@@ -130,11 +131,9 @@ export default {
         },
         {
           key: 'level',
-          sortable: true,
         },
         {
           key: 'createdAt',
-          sortable: true,
           formatter: (v) => moment(v).fromNow(),
         },
         {

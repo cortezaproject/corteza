@@ -23,6 +23,8 @@ import {
   faSync,
   faEye,
   faKey,
+  faAngleUp,
+  faAngleDown,
   faAngleDoubleLeft,
   faAngleRight,
   faAngleLeft,
@@ -118,5 +120,7 @@ library.add(
   faEllipsisV,
   faTrashRestore,
   faEdit,
-  faLocationArrow
+  faLocationArrow,
+  faAngleUp,
+  faAngleDown
 )
