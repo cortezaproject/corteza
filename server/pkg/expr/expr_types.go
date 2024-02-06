@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/PaesslerAG/gval"
@@ -39,6 +41,10 @@ type (
 	}
 )
 
+const (
+	cloneParallelItemThreshold = 200
+)
+
 func KvFunctions() []gval.Language {
 	return []gval.Language{
 		gval.Function("set", set),
@@ -46,6 +52,81 @@ func KvFunctions() []gval.Language {
 		gval.Function("filter", filter),
 		gval.Function("omit", omit),
 	}
+}
+
+func (v *Vars) Clone() (out TypedValue, err error) {
+	if v == nil || len(v.value) == 0 {
+		return EmptyVars(), nil
+	}
+
+	if len(v.value) > cloneParallelItemThreshold {
+		return v.cloneParallel(cloneParallelItemThreshold)
+	}
+
+	return v.cloneSeq()
+}
+
+func (v *Vars) cloneSeq() (out TypedValue, err error) {
+	aux := &Vars{
+		value: make(map[string]TypedValue, len(v.value)),
+	}
+
+	// Can run concurrently
+	for k, v := range v.value {
+		x, err := v.Clone()
+		if err != nil {
+			return nil, err
+		}
+
+		aux.value[k] = x
+	}
+
+	return aux, nil
+}
+
+func (v *Vars) cloneParallel(threshold int) (out TypedValue, err error) {
+	keys := make([]string, 0, len(v.value))
+	for k := range v.value {
+		keys = append(keys, k)
+	}
+
+	auxValues := make([]TypedValue, len(v.value))
+	errors := make([]error, len(v.value))
+
+	wg := sync.WaitGroup{}
+	for i := 0; i < len(keys); i += threshold {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+
+			for j, k := range keys[i:int(math.Min(float64(i+threshold), float64(len(keys))))] {
+				aux, err := v.value[k].Clone()
+				if err != nil {
+					errors[i+j] = err
+				}
+
+				auxValues[i+j] = aux
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	aux := &Vars{
+		value: make(map[string]TypedValue, len(v.value)),
+	}
+
+	for i, k := range keys {
+		aux.value[k] = auxValues[i]
+	}
+
+	return aux, nil
 }
 
 func EmptyKV() *KV {
@@ -290,7 +371,6 @@ func (t *Array) Decode(dst reflect.Value) error {
 //
 // It allows gval lib to access Record's underlying value (*types.Array)
 // and it's fields
-//
 func (t Array) SelectGVal(ctx context.Context, k string) (interface{}, error) {
 	if s, err := t.Select(k); err != nil {
 		return nil, err
@@ -616,54 +696,64 @@ func (t *KV) Delete(keys ...string) (out TypedValue, err error) {
 	return kv, nil
 }
 
-func (t *KVV) AssignFieldValue(key []string, val TypedValue) error {
-	return assignToKVV(t, key, val)
+func (t *KVV) AssignFieldValue(p Pather, val TypedValue) error {
+	return assignToKVV(t, p, val)
 }
 
-func assignToKVV(t *KVV, kk []string, val TypedValue) error {
+func assignToKVV(t *KVV, p Pather, val TypedValue) (err error) {
 	if t.value == nil {
 		t.value = make(map[string][]string)
 	}
 
-	switch len(kk) {
-	case 2:
-		str, err := cast.ToStringE(val.Get())
-		if err != nil {
-			return err
-		}
+	k := p.Get()
 
-		key, ind := kk[0], kk[1]
-
-		if len(ind) > 0 {
-			// handles kvv.field[42] = "value"
-			index, err := cast.ToIntE(ind)
-			if err != nil {
-				return err
-			}
-
-			if index >= 0 && index < len(t.value[key]) {
-				// handles positive & in-range indexes
-				t.value[key][index] = str
-				return nil
-			}
-
-			//negative & out-of-range indexes are always appended
-		}
-
-		// handles kvv.field[] = "value"
-		t.value[key] = append(t.value[key], str)
-
-	case 1:
-		str, err := cast.ToStringSliceE(val.Get())
-		if err != nil {
-			return err
-		}
-
-		t.value[kk[0]] = str
-
-	default:
-		return fmt.Errorf("cannot set value on %s with path '%s'", t.Type(), strings.Join(kk, "."))
+	err = p.Next()
+	if err != nil {
+		return
 	}
+
+	// Only specified the key, no index
+	if !p.More() {
+		var str []string
+		str, err = cast.ToStringSliceE(val.Get())
+		if err != nil {
+			return err
+		}
+
+		t.value[k] = str
+		return
+	}
+
+	if !p.IsLast() {
+		return fmt.Errorf("cannot set value on %s with path '%s'", t.Type(), p.String())
+	}
+
+	// Specified the key and index
+	str, err := cast.ToStringE(val.Get())
+	if err != nil {
+		return err
+	}
+
+	ind := p.Get()
+
+	if len(ind) > 0 {
+		// handles kvv.field[42] = "value"
+		index, err := cast.ToIntE(ind)
+		if err != nil {
+			return err
+		}
+
+		if index >= 0 && index < len(t.value[k]) {
+			// handles positive & in-range indexes
+			t.value[k][index] = str
+			return nil
+		}
+
+		//negative & out-of-range indexes are always appended
+	}
+
+	// handles kvv.field[] = "value"
+	t.value[k] = append(t.value[k], str)
 
 	return nil
 }
@@ -862,4 +952,179 @@ func (t *KVV) Delete(keys ...string) (out TypedValue, err error) {
 	}
 
 	return kvv, nil
+}
+
+func (v *Any) Clone() (out TypedValue, err error) {
+	aux, err := NewAny(v.GetValue())
+	return aux, err
+}
+
+func (v *Array) Clone() (out TypedValue, err error) {
+	if len(v.value) > cloneParallelItemThreshold {
+		return v.cloneParallel(cloneParallelItemThreshold)
+	}
+
+	return v.cloneSeq()
+}
+
+func (v *Array) cloneParallel(threshold int) (_ TypedValue, err error) {
+	errors := make([]error, len(v.value))
+	wg := sync.WaitGroup{}
+
+	out := &Array{
+		value: make([]TypedValue, len(v.value)),
+	}
+
+	for i := 0; i < len(v.value); i += threshold {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+
+			for j, v := range v.value[i:int(math.Min(float64(i+threshold), float64(len(v.value))))] {
+				aux, err := v.Clone()
+				if err != nil {
+					errors[i+j] = err
+				}
+
+				out.value[i+j] = aux
+			}
+		}(i)
+	}
+
+	wg.Wait()
+
+	for _, err := range errors {
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return out, nil
+}
+
+func (v *Array) cloneSeq() (out TypedValue, err error) {
+	aux := &Array{
+		value: make([]TypedValue, len(v.value)),
+	}
+
+	// Can run concurrently
+	for i, v := range v.value {
+		x, err := v.Clone()
+		if err != nil {
+			return nil, err
+		}
+
+		aux.value[i] = x
+	}
+	return aux, nil
+}
+
+func (v *Boolean) Clone() (out TypedValue, err error) {
+	aux, err := NewBoolean(v.GetValue())
+	return aux, err
+}
+
+func (v *Bytes) Clone() (out TypedValue, err error) {
+	cpy := make([]byte, len(v.value))
+	copy(cpy, v.value)
+
+	aux, err := NewBytes(cpy)
+	return aux, err
+}
+
+func (v *DateTime) Clone() (out TypedValue, err error) {
+	t := *v.GetValue()
+
+	aux, err := NewDateTime(&t)
+	return aux, err
+}
+
+func (v *Duration) Clone() (out TypedValue, err error) {
+	aux, err := NewDuration(v.GetValue())
+	return aux, err
+}
+
+func (v *Float) Clone() (out TypedValue, err error) {
+	aux, err := NewFloat(v.GetValue())
+	return aux, err
+}
+
+func (v *ID) Clone() (out TypedValue, err error) {
+	aux, err := NewID(v.GetValue())
+	return aux, err
+}
+
+func (v *Integer) Clone() (out TypedValue, err error) {
+	aux, err := NewInteger(v.GetValue())
+	return aux, err
+}
+
+func (v *KV) Clone() (out TypedValue, err error) {
+	aux := &KV{
+		value: make(map[string]string, len(v.value)),
+	}
+
+	// Can run concurrently
+	for k, v := range v.value {
+		aux.value[k] = v
+	}
+	return aux, nil
+}
+
+func (v *KVV) Clone() (out TypedValue, err error) {
+	aux := &KVV{
+		value: make(map[string][]string, len(v.value)),
+	}
+
+	// Can run concurrently
+	for k, vv := range v.value {
+		aux.value[k] = make([]string, len(vv))
+		copy(aux.value[k], vv)
+	}
+	return aux, nil
+}
+
+func (v *Handle) Clone() (out TypedValue, err error) {
+	aux, err := NewHandle(v.GetValue())
+	return aux, err
+}
+
+func (v *HttpRequest) Clone() (out TypedValue, err error) {
+	aux, err := NewHttpRequest(v.GetValue())
+	return aux, err
+}
+
+func (v *Reader) Clone() (out TypedValue, err error) {
+	aux, err := NewReader(v.GetValue())
+	return aux, err
+}
+
+func (v *String) Clone() (out TypedValue, err error) {
+	aux, err := NewString(v.GetValue())
+	return aux, err
+}
+
+func (v *Url) Clone() (out TypedValue, err error) {
+	u := *v.GetValue()
+	aux, err := NewUrl(&u)
+	return aux, err
+}
+
+func (v *Meta) Clone() (out TypedValue, err error) {
+	m := make(map[string]any, len(v.value))
+	for k, v := range v.value {
+		m[k] = v
+	}
+
+	aux, err := NewMeta(v.GetValue())
+	return aux, err
+}
+
+func (v *UnsignedInteger) Clone() (out TypedValue, err error) {
+	aux, err := NewUnsignedInteger(v.GetValue())
+	return aux, err
+}
+
+func (v Unresolved) Clone() (out TypedValue, err error) {
+	return nil, fmt.Errorf("cannot unref unresolved type")
 }

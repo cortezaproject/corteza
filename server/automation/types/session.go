@@ -19,6 +19,7 @@ import (
 type (
 	runtimeOptions struct {
 		disableStacktrace bool
+		fullStacktrace    bool
 	}
 
 	// Instance of single workflow execution
@@ -57,6 +58,12 @@ type (
 		// This will aid us when session fails and we can access
 		// the whole stacktrace
 		RuntimeStacktrace Stacktrace `json:"-"`
+
+		// FlushCounter helps us keep track of when we should forcefully flush
+		// the session to the database.
+		//
+		// This is required due to the change in exec stack traces.
+		FlushCounter int `json:"-"`
 
 		l sync.RWMutex
 	}
@@ -125,6 +132,10 @@ func (s *Session) DisableStacktrace() {
 	s.runtimeOpts.disableStacktrace = true
 }
 
+func (s *Session) FullStacktrace() {
+	s.runtimeOpts.fullStacktrace = true
+}
+
 func (s *Session) Exec(ctx context.Context, step wfexec.Step, input *expr.Vars) error {
 	return s.session.Exec(ctx, step, input)
 }
@@ -185,12 +196,68 @@ func (s *Session) Apply(ssp SessionStartParams) {
 }
 
 func (s *Session) AppendRuntimeStacktrace(frame *wfexec.Frame) {
-	if !s.runtimeOpts.disableStacktrace {
-		s.l.RLock()
-		defer s.l.RUnlock()
-
-		s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+	if s.runtimeOpts.disableStacktrace {
+		return
 	}
+
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	if !s.runtimeOpts.fullStacktrace {
+		s.appendTruncatedRuntimeStacktrace(frame)
+	} else {
+		s.appendFullRuntimeStacktrace(frame)
+	}
+}
+
+// appendTruncatedRuntimeStacktrace adds a new frame to the runtime stacktrace
+//
+// This does have some smartness
+// If the workflow uses longer iterators, the memory pressure got too high.
+// To counter this, only the frames of the last iteration are preserved to
+// better match what programming languages do.
+func (s *Session) appendTruncatedRuntimeStacktrace(frame *wfexec.Frame) {
+	// The only way to get to the same stepID is when we're in a loop
+	// Find where the first frame of the iterator is and slice the stack.
+	if frame.Action != "iterator initialized" && s.hasDuplicate(frame.StepID) {
+		var (
+			i = 0
+			f *wfexec.Frame
+		)
+		for i, f = range s.RuntimeStacktrace {
+			if f.StepID == frame.StepID {
+				break
+			}
+		}
+
+		// @todo this might cause a memory leak; investigate further
+		s.RuntimeStacktrace = s.RuntimeStacktrace[0:i]
+	}
+
+	// Push to the newly done trace
+	s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+}
+
+// appendFullRuntimeStacktrace is primarily meant for testing so we can inspect
+// the entire execution and and state values
+func (s *Session) appendFullRuntimeStacktrace(frame *wfexec.Frame) {
+	s.RuntimeStacktrace = append(s.RuntimeStacktrace, frame)
+}
+
+// @todo potentially optimize this; it'll probably be fine for now but
+// might degrade performance for larger workflows.
+// To investigate and potentially optimize it.
+func (s *Session) hasDuplicate(stepID uint64) bool {
+	s.l.RLock()
+	defer s.l.RUnlock()
+
+	for _, f := range s.RuntimeStacktrace {
+		if f.StepID == stepID {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (s *Session) CopyRuntimeStacktrace() {

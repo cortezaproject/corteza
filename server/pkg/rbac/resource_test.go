@@ -72,29 +72,6 @@ func TestResourceMatch(t *testing.T) {
 	}
 }
 
-//cpu: Intel(R) Core(TM) i9-9980HK CPU @ 2.40GHz
-//Benchmark_MatchResource100-16        	 6527383	       183.2 ns/op
-//Benchmark_MatchResource1000-16       	 6335626	       183.5 ns/op
-//Benchmark_MatchResource10000-16      	 6565214	       183.5 ns/op
-//Benchmark_MatchResource100000-16     	 6541002	       183.7 ns/op
-//Benchmark_MatchResource1000000-16    	 6542052	       183.5 ns/op
-func benchmarkMatchResource(b *testing.B, c int) {
-	b.StartTimer()
-
-	for n := 0; n < b.N; n++ {
-		matchResource("corteza::test/a/1/1/1", "corteza::test/a/1/1/1")
-		matchResource("corteza::test/a/*/*/1", "corteza::test/a/1/1/1")
-	}
-
-	b.StopTimer()
-}
-
-func Benchmark_MatchResource100(b *testing.B)     { benchmarkMatchResource(b, 100) }
-func Benchmark_MatchResource1000(b *testing.B)    { benchmarkMatchResource(b, 1000) }
-func Benchmark_MatchResource10000(b *testing.B)   { benchmarkMatchResource(b, 10000) }
-func Benchmark_MatchResource100000(b *testing.B)  { benchmarkMatchResource(b, 100000) }
-func Benchmark_MatchResource1000000(b *testing.B) { benchmarkMatchResource(b, 1000000) }
-
 func TestLevel(t *testing.T) {
 	var (
 		tcc = []struct {

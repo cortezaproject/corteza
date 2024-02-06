@@ -2,13 +2,10 @@ package rbac
 
 import (
 	"context"
-	"fmt"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
-	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"go.uber.org/zap"
 )
@@ -22,7 +19,7 @@ type (
 		f chan bool
 
 		rules   RuleSet
-		indexed OptRuleSet
+		indexed *ruleIndex
 
 		roles []*Role
 
@@ -107,15 +104,6 @@ func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
 
 	a = check(svc.indexed, fRoles, op, res.RbacResource(), nil)
 
-	svc.logger.Debug(a.String()+" "+op+" for "+res.RbacResource(),
-		append(
-			fRoles.LogFields(),
-			logger.Uint64("identity", ses.Identity()),
-			zap.Any("indexed", len(svc.indexed)),
-			zap.Any("rules", len(svc.rules)),
-		)...,
-	)
-
 	return
 }
 
@@ -187,7 +175,7 @@ func (svc *service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 
 func (svc *service) grant(rules ...*Rule) {
 	svc.rules = merge(svc.rules, rules...)
-	svc.indexed = indexRules(svc.rules)
+	svc.indexed = buildRuleIndex(svc.rules)
 }
 
 // Watch reloads RBAC rules in intervals and on request
@@ -239,7 +227,7 @@ func (svc *service) Clear() {
 	svc.l.Lock()
 	defer svc.l.Unlock()
 	svc.rules = RuleSet{}
-	svc.indexed = OptRuleSet{}
+	svc.indexed = &ruleIndex{}
 }
 
 func (svc *service) reloadRules(ctx context.Context) {
@@ -252,9 +240,13 @@ func (svc *service) reloadRules(ctx context.Context) {
 	)
 
 	if err == nil {
-		svc.rules = rr
-		svc.indexed = indexRules(rr)
+		svc.setRules(rr)
 	}
+}
+
+func (svc *service) setRules(rr RuleSet) {
+	svc.rules = rr
+	svc.indexed = buildRuleIndex(rr)
 }
 
 // UpdateRoles updates RBAC roles
@@ -317,36 +309,6 @@ func (svc *service) SignificantRoles(res Resource, op string) (aRR, dRR []uint64
 	defer svc.l.Unlock()
 
 	return svc.rules.sigRoles(res.RbacResource(), op)
-}
-
-func (svc *service) String() (out string) {
-	tpl := "%-5v %-20s to %-20s %-30s\n"
-	out += strings.Repeat("-", 120) + "\n"
-
-	role := func(id uint64) string {
-		for _, r := range svc.roles {
-			if r.id == id {
-				if r.handle != "" {
-					return fmt.Sprintf("%s [%d]", r.handle, r.kind)
-				}
-				return fmt.Sprintf("%d [%d]", id, r.kind)
-			}
-		}
-
-		return fmt.Sprintf("%d [?]", id)
-	}
-
-	for _, byRole := range svc.indexed {
-		for _, rr := range byRole {
-			for _, r := range rr {
-				out += fmt.Sprintf(tpl, r.Access, r.Operation, role(r.RoleID), r.Resource)
-			}
-		}
-	}
-
-	out += strings.Repeat("-", 120) + "\n"
-
-	return
 }
 
 // CloneRulesByRoleID clone all rules of a Role S to a specific Role T by removing its existing rules

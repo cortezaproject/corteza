@@ -1,7 +1,7 @@
 package wfexec
 
 import (
-	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -136,10 +136,13 @@ func (s State) MakeFrame() *Frame {
 		// might not be the most optimal way but we need to
 		// un-reference scope, input, result variables
 		unref = func(vars *expr.Vars) *expr.Vars {
-			out := &expr.Vars{}
-			tmp, _ := json.Marshal(vars)
-			_ = json.Unmarshal(tmp, out)
-			return out
+			aux, err := vars.Clone()
+			if err != nil {
+				return expr.EmptyVars()
+			}
+
+			// Since we're cloning vars, this will always hold
+			return aux.(*expr.Vars)
 		}
 	)
 
@@ -147,12 +150,29 @@ func (s State) MakeFrame() *Frame {
 		CreatedAt: s.created,
 		SessionID: s.sessionId,
 		StateID:   s.stateId,
-		Input:     unref(s.input),
-		Scope:     unref(s.scope),
-		Results:   unref(s.results),
 		NextSteps: s.next.IDs(),
 		Action:    s.action,
 	}
+
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	go func() {
+		f.Input = unref(s.input)
+		wg.Done()
+	}()
+
+	go func() {
+		f.Scope = unref(s.scope)
+		wg.Done()
+	}()
+
+	go func() {
+		f.Results = unref(s.results)
+		wg.Done()
+	}()
+
+	wg.Wait()
 
 	if s.err != nil {
 		f.Error = s.err.Error()

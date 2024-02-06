@@ -20,30 +20,10 @@ type (
 	}
 
 	RuleSet []*Rule
-
-	// OptRuleSet RBAC rule index (operation / role ID / rules)
-	OptRuleSet map[string]map[uint64]RuleSet
 )
 
 func (r Rule) String() string {
 	return fmt.Sprintf("%s %d to %s on %s", r.Access, r.RoleID, r.Operation, r.Resource)
-}
-
-func indexRules(rules []*Rule) OptRuleSet {
-	i := make(OptRuleSet)
-	for _, r := range rules {
-		if i[r.Operation] == nil {
-			i[r.Operation] = make(map[uint64]RuleSet)
-		}
-
-		if i[r.Operation][r.RoleID] == nil {
-			i[r.Operation][r.RoleID] = RuleSet{}
-		}
-
-		i[r.Operation][r.RoleID] = append(i[r.Operation][r.RoleID], r)
-	}
-
-	return i
 }
 
 func (set RuleSet) Len() int      { return len(set) }

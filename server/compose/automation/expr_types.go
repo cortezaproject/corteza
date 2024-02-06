@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/PaesslerAG/gval"
@@ -94,17 +93,21 @@ var _ expr.DeepFieldAssigner = &ComposeRecord{}
 //
 // We need to reroute value assigning for record-value-sets because
 // we loose the reference to record-value slice
-func (t *ComposeRecord) AssignFieldValue(kk []string, val expr.TypedValue) error {
+func (t *ComposeRecord) AssignFieldValue(p expr.Pather, val expr.TypedValue) (err error) {
 	t.mux.Lock()
 	defer t.mux.Unlock()
 
-	switch kk[0] {
+	switch p.Get() {
 	case "values":
-		return assignToComposeRecordValues(t.value, kk[1:], val)
+		err = p.Next()
+		if err != nil {
+			return
+		}
+		return assignToComposeRecordValues(t.value, p, val)
 	// case "labels":
 	// @todo deep setting labels
 	default:
-		return assignToComposeRecord(t.value, kk[0], val)
+		return assignToComposeRecord(t.value, p.Get(), val)
 	}
 }
 
@@ -114,7 +117,6 @@ var _ gval.Selector = &ComposeRecord{}
 //
 // It allows gval lib to access Record's underlying value (*types.Record)
 // and it's fields
-//
 func (t *ComposeRecord) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -234,15 +236,14 @@ func CastToComposeRecordValues(val interface{}) (out types.RecordValueSet, err e
 	}
 }
 
-func (t *ComposeRecordValues) AssignFieldValue(pp []string, val expr.TypedValue) error {
-	return assignToComposeRecordValues(t.value, pp, val)
+func (t *ComposeRecordValues) AssignFieldValue(p expr.Pather, val expr.TypedValue) error {
+	return assignToComposeRecordValues(t.value, p, val)
 }
 
 // SelectGVal implements gval.Selector requirements
 //
 // It allows gval lib to access Record's underlying value (*types.RecordValues)
 // and it's fields
-//
 func (t *ComposeRecordValues) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	return composeRecordValuesGValSelector(t.value, k)
 }
@@ -347,8 +348,8 @@ func composeRecordValuesTypedValueSelector(res *types.Record, k string) (expr.Ty
 // assignToRecordValuesSet is field value setter for *types.RecordValueSet
 //
 // We'll be using types.Record for the base (and not types.RecordValueSet)
-func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}) (err error) {
-	if len(pp) < 1 {
+func assignToComposeRecordValues(res *types.Record, p expr.Pather, val interface{}) (err error) {
+	if p == nil || !p.More() {
 		switch val := expr.UntypedValue(val).(type) {
 		case types.RecordValueSet:
 			res.Values = val
@@ -362,7 +363,7 @@ func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}
 	}
 
 	var (
-		k  = pp[0]
+		k  = p.Get()
 		rv = &types.RecordValue{Name: k}
 
 		setSliceOfValues = func(vv []interface{}) error {
@@ -370,7 +371,7 @@ func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}
 			// @todo this should use field context (when available) to determinate if we're actually
 			//       setting array to a multi-value field
 
-			if len(pp) == 2 {
+			if !p.IsLast() {
 				// Tying to assign an array of values to a single value; that will not work
 				return fmt.Errorf("can not assign array of values to a single value in a record value set")
 			}
@@ -416,9 +417,14 @@ func assignToComposeRecordValues(res *types.Record, pp []string, val interface{}
 		return
 	}
 
-	if len(pp) == 2 {
-		if rv.Place, err = cast.ToUintE(expr.UntypedValue(pp[1])); err != nil {
-			return fmt.Errorf("failed to decode record value place from '%s': %w", strings.Join(pp, "."), err)
+	if !p.IsLast() {
+		err = p.Next()
+		if err != nil {
+			return
+		}
+
+		if rv.Place, err = cast.ToUintE(expr.UntypedValue(p.Get())); err != nil {
+			return fmt.Errorf("failed to decode record value place from '%s': %w", p.String(), err)
 		}
 	}
 
@@ -655,4 +661,43 @@ func (t *ComposeRecordValues) Delete(keys ...string) (out expr.TypedValue, err e
 	}
 
 	return rv, nil
+}
+
+func (v *Attachment) Clone() (expr.TypedValue, error) {
+	att := *v.value
+	aux, err := NewAttachment(&att)
+	return aux, err
+}
+
+func (v *ComposeModule) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeModule(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeNamespace) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeNamespace(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeRecord) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeRecord(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeRecordValues) Clone() (expr.TypedValue, error) {
+	aux, err := NewComposeRecordValues(v.value.Clone())
+	return aux, err
+}
+
+func (v *ComposeRecordValueErrorSet) Clone() (expr.TypedValue, error) {
+	errs := types.RecordValueErrorSet{
+		Set: make([]types.RecordValueError, len(v.value.Set)),
+	}
+
+	for i, v := range v.value.Set {
+		errs.Set[i] = v
+	}
+
+	aux, err := NewComposeRecordValueErrorSet(&errs)
+	return aux, err
 }

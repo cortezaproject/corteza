@@ -187,12 +187,26 @@ export default {
     },
 
     modifierOptions () {
+      const ruleModifiers = this.rules.reduce((acc, { constraints }) => {
+        if (!constraints) {
+          return acc
+        }
+
+        constraints.forEach(({ modifier }) => {
+          if (!acc.includes(modifier)) {
+            acc.push(modifier)
+          }
+        })
+
+        return acc
+      }, [])
+
       return [
         { value: 'ignore-case', text: this.$t('ignoreCase') },
-        { value: 'fuzzy-match', text: this.$t('fuzzyMatch') },
-        { value: 'sounds-like', text: this.$t('soundsLike') },
+        { value: 'fuzzy-match', text: this.$t('fuzzyMatch'), legacy: true },
+        { value: 'sounds-like', text: this.$t('soundsLike'), legacy: true },
         { value: 'case-sensitive', text: this.$t('caseSensitive') },
-      ]
+      ].filter(({ value, legacy }) => !legacy || ruleModifiers.includes(value))
     },
 
     multiValueOptions () {

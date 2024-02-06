@@ -135,7 +135,7 @@ func TestSession_Delays(t *testing.T) {
 		wf  = NewGraph()
 		ses = NewSession(ctx, wf,
 			// for testing we need much shorter worker intervals
-			SetWorkerInterval(unit),
+			SetWorkerIntervalSuspended(unit),
 		)
 
 		start = &sesTestStep{name: "start"}
@@ -172,7 +172,7 @@ func TestSession_Delays(t *testing.T) {
 
 	// should not be completed yet...
 	req.True(ses.Idle())
-	req.True(ses.Suspended())
+	req.True(ses.Delayed())
 
 	// push in the input
 	input := &expr.Vars{}
@@ -180,7 +180,7 @@ func TestSession_Delays(t *testing.T) {
 	_, err := ses.Resume(ctx, waitForInputStateId.Load(), input)
 	req.NoError(err)
 
-	req.False(ses.Suspended())
+	req.False(ses.Delayed())
 	req.NoError(ses.Wait(ctx))
 	time.Sleep(2 * unit)
 

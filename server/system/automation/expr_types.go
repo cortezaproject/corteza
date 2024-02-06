@@ -208,3 +208,54 @@ func CastToAction(val interface{}) (out *actionlog.Action, err error) {
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
+
+func (v *Action) Clone() (expr.TypedValue, error) {
+	aux := *v.value
+	return NewAction(&aux)
+}
+
+func (v *DocumentType) Clone() (expr.TypedValue, error) {
+	return NewDocumentType(v.value)
+}
+
+func (v *QueueMessage) Clone() (expr.TypedValue, error) {
+	aux := *v.value
+	return NewQueueMessage(&aux)
+}
+
+func (v *RbacResource) Clone() (expr.TypedValue, error) {
+	return NewRbacResource(v.value)
+}
+
+func (v *RenderOptions) Clone() (expr.TypedValue, error) {
+	aux := make(map[string]string)
+	for k, v := range v.value {
+		aux[k] = v
+	}
+
+	return NewRenderOptions(aux)
+}
+
+func (v *RenderedDocument) Clone() (expr.TypedValue, error) {
+	aux := *v.value
+	return NewRenderedDocument(&aux)
+}
+
+func (v *Role) Clone() (expr.TypedValue, error) {
+	aux := v.value.Clone()
+	return NewRole(aux)
+}
+
+func (v *Template) Clone() (expr.TypedValue, error) {
+	aux := v.value.Clone()
+	return NewTemplate(aux)
+}
+
+func (v *TemplateMeta) Clone() (expr.TypedValue, error) {
+	return NewTemplateMeta(v.value)
+}
+
+func (v *User) Clone() (expr.TypedValue, error) {
+	aux := v.value.Clone()
+	return NewUser(aux)
+}

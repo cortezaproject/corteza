@@ -273,10 +273,10 @@ func TestAssignToComposeRecordValues(t *testing.T) {
 			target = &types.Record{Values: types.RecordValueSet{}}
 		)
 
-		req.NoError(assignToComposeRecordValues(target, []string{"a"}, "b"))
+		req.NoError(assignToComposeRecordValues(target, initPather(req, expr.Path("a")), "b"))
 		req.Len(target.Values, 1)
 		req.True(target.Values.Has("a", 0))
-		req.NoError(assignToComposeRecordValues(target, []string{"a", "1"}, "b"))
+		req.NoError(assignToComposeRecordValues(target, initPather(req, expr.Path("a[1]")), "b"))
 		req.Len(target.Values, 2)
 		req.True(target.Values.Has("a", 0))
 		req.True(target.Values.Has("a", 1))
@@ -320,13 +320,13 @@ func TestAssignToComposeRecordValues(t *testing.T) {
 			target = &types.Record{Values: types.RecordValueSet{}}
 		)
 
-		req.Error(assignToComposeRecordValues(target, []string{"a", "2"}, expr.Must(expr.NewAny([]interface{}{"1", "2"}))))
+		req.Error(assignToComposeRecordValues(target, initPather(req, expr.Path("a[2]")), expr.Must(expr.NewAny([]interface{}{"1", "2"}))))
 		req.Len(target.Values, 0)
 
-		req.NoError(assignToComposeRecordValues(target, []string{"a"}, expr.Must(expr.NewAny([]interface{}{"1", "2"}))))
+		req.NoError(assignToComposeRecordValues(target, initPather(req, expr.Path("a")), expr.Must(expr.NewAny([]interface{}{"1", "2"}))))
 		req.Len(target.Values, 2)
 
-		req.NoError(assignToComposeRecordValues(target, []string{"a"}, expr.Must(expr.NewAny([]string{"1", "2"}))))
+		req.NoError(assignToComposeRecordValues(target, initPather(req, expr.Path("a")), expr.Must(expr.NewAny([]string{"1", "2"}))))
 		req.Len(target.Values, 2)
 	})
 
@@ -668,4 +668,60 @@ func TestRecordValues_Omit(t *testing.T) {
 	out, err := rv.Delete("k1", "k3")
 	req.NoError(err)
 	req.Equal(expected, out.Get())
+}
+
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/compose/automation
+// BenchmarkAssignToComposeRecordValues-12    	22131764	        53.22 ns/op	      96 B/op	       1 allocs/op
+// PASS
+func BenchmarkAssignToComposeRecordValues(b *testing.B) {
+	var (
+		req    = require.New(b)
+		target = &types.Record{Values: types.RecordValueSet{}}
+		p      = initPather(req, expr.Path("a"))
+	)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		assignToComposeRecordValues(target, p, "b")
+	}
+}
+
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/compose/automation
+// BenchmarkRecordFieldValuesAccess-12    	 1947148	       593.6 ns/op	     544 B/op	      19 allocs/op
+// PASS
+func BenchmarkRecordFieldValuesAccess(b *testing.B) {
+	var (
+		mod = &types.Module{Fields: types.ModuleFieldSet{
+			&types.ModuleField{Name: "s1", Multi: true, Kind: "String"},
+		}}
+
+		rawValues = types.RecordValueSet{
+			&types.RecordValue{Name: "s1", Value: "sVal1.0", Place: 0},
+			&types.RecordValue{Name: "s1", Value: "sVal1.1", Place: 1},
+			&types.RecordValue{Name: "s1", Value: "sVal1.2", Place: 2},
+		}
+		raw = &types.Record{Values: rawValues}
+
+		scope, _ = expr.NewVars(map[string]interface{}{
+			"rec": &ComposeRecord{value: raw},
+		})
+	)
+
+	// @todo see note above regarding back-ref to record
+	raw.SetModule(mod)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		expr.Select(scope, "rec.values.s1[1]")
+	}
+}
+
+func initPather(req *require.Assertions, p expr.Pather) (out expr.Pather) {
+	err := p.Next()
+	req.NoError(err)
+
+	return p
 }

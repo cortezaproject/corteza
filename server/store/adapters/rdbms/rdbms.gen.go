@@ -580,13 +580,13 @@ func (s *Store) SearchApigwFilters(ctx context.Context, f systemType.ApigwFilter
 // fetchFullPageOfApigwFilters collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfApigwFilters(
@@ -1178,13 +1178,13 @@ func (s *Store) SearchApigwRoutes(ctx context.Context, f systemType.ApigwRouteFi
 // fetchFullPageOfApigwRoutes collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfApigwRoutes(
@@ -1780,13 +1780,13 @@ func (s *Store) SearchApplications(ctx context.Context, f systemType.Application
 // fetchFullPageOfApplications collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfApplications(
@@ -2337,13 +2337,13 @@ func (s *Store) SearchAttachments(ctx context.Context, f systemType.AttachmentFi
 // fetchFullPageOfAttachments collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfAttachments(
@@ -2889,13 +2889,13 @@ func (s *Store) SearchAuthClients(ctx context.Context, f systemType.AuthClientFi
 // fetchFullPageOfAuthClients collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfAuthClients(
@@ -4628,13 +4628,13 @@ func (s *Store) SearchAutomationSessions(ctx context.Context, f automationType.S
 // fetchFullPageOfAutomationSessions collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfAutomationSessions(
@@ -5195,13 +5195,13 @@ func (s *Store) SearchAutomationTriggers(ctx context.Context, f automationType.T
 // fetchFullPageOfAutomationTriggers collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfAutomationTriggers(
@@ -5758,13 +5758,13 @@ func (s *Store) SearchAutomationWorkflows(ctx context.Context, f automationType.
 // fetchFullPageOfAutomationWorkflows collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfAutomationWorkflows(
@@ -6383,13 +6383,13 @@ func (s *Store) SearchComposeAttachments(ctx context.Context, f composeType.Atta
 // fetchFullPageOfComposeAttachments collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfComposeAttachments(
@@ -6939,13 +6939,13 @@ func (s *Store) SearchComposeCharts(ctx context.Context, f composeType.ChartFilt
 // fetchFullPageOfComposeCharts collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfComposeCharts(
@@ -7536,13 +7536,13 @@ func (s *Store) SearchComposeModules(ctx context.Context, f composeType.ModuleFi
 // fetchFullPageOfComposeModules collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfComposeModules(
@@ -8622,13 +8622,13 @@ func (s *Store) SearchComposeNamespaces(ctx context.Context, f composeType.Names
 // fetchFullPageOfComposeNamespaces collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfComposeNamespaces(
@@ -9244,13 +9244,13 @@ func (s *Store) SearchComposePages(ctx context.Context, f composeType.PageFilter
 // fetchFullPageOfComposePages collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfComposePages(
@@ -9890,13 +9890,13 @@ func (s *Store) SearchComposePageLayouts(ctx context.Context, f composeType.Page
 // fetchFullPageOfComposePageLayouts collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfComposePageLayouts(
@@ -10877,13 +10877,13 @@ func (s *Store) SearchDalConnections(ctx context.Context, f systemType.DalConnec
 // fetchFullPageOfDalConnections collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfDalConnections(
@@ -11502,13 +11502,13 @@ func (s *Store) SearchDalSchemaAlterations(ctx context.Context, f systemType.Dal
 // fetchFullPageOfDalSchemaAlterations collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfDalSchemaAlterations(
@@ -12045,13 +12045,13 @@ func (s *Store) SearchDalSensitivityLevels(ctx context.Context, f systemType.Dal
 // fetchFullPageOfDalSensitivityLevels collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfDalSensitivityLevels(
@@ -12600,13 +12600,13 @@ func (s *Store) SearchDataPrivacyRequests(ctx context.Context, f systemType.Data
 // fetchFullPageOfDataPrivacyRequests collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfDataPrivacyRequests(
@@ -13162,13 +13162,13 @@ func (s *Store) SearchDataPrivacyRequestComments(ctx context.Context, f systemTy
 // fetchFullPageOfDataPrivacyRequestComments collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfDataPrivacyRequestComments(
@@ -13668,13 +13668,13 @@ func (s *Store) SearchFederationExposedModules(ctx context.Context, f federation
 // fetchFullPageOfFederationExposedModules collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfFederationExposedModules(
@@ -14218,13 +14218,13 @@ func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federation
 // fetchFullPageOfFederationModuleMappings collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfFederationModuleMappings(
@@ -14806,13 +14806,13 @@ func (s *Store) SearchFederationNodes(ctx context.Context, f federationType.Node
 // fetchFullPageOfFederationNodes collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfFederationNodes(
@@ -15452,13 +15452,13 @@ func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.
 // fetchFullPageOfFederationNodeSyncs collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfFederationNodeSyncs(
@@ -16050,13 +16050,13 @@ func (s *Store) SearchFederationSharedModules(ctx context.Context, f federationT
 // fetchFullPageOfFederationSharedModules collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfFederationSharedModules(
@@ -17300,13 +17300,13 @@ func (s *Store) SearchQueues(ctx context.Context, f systemType.QueueFilter) (set
 // fetchFullPageOfQueues collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfQueues(
@@ -17892,13 +17892,13 @@ func (s *Store) SearchQueueMessages(ctx context.Context, f systemType.QueueMessa
 // fetchFullPageOfQueueMessages collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfQueueMessages(
@@ -18679,13 +18679,13 @@ func (s *Store) SearchReminders(ctx context.Context, f systemType.ReminderFilter
 // fetchFullPageOfReminders collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfReminders(
@@ -19240,13 +19240,13 @@ func (s *Store) SearchReports(ctx context.Context, f systemType.ReportFilter) (s
 // fetchFullPageOfReports collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfReports(
@@ -20142,13 +20142,13 @@ func (s *Store) SearchResourceTranslations(ctx context.Context, f systemType.Res
 // fetchFullPageOfResourceTranslations collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfResourceTranslations(
@@ -20677,13 +20677,13 @@ func (s *Store) SearchRoles(ctx context.Context, f systemType.RoleFilter) (set s
 // fetchFullPageOfRoles collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfRoles(
@@ -21996,13 +21996,13 @@ func (s *Store) SearchTemplates(ctx context.Context, f systemType.TemplateFilter
 // fetchFullPageOfTemplates collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfTemplates(
@@ -22631,13 +22631,13 @@ func (s *Store) SearchUsers(ctx context.Context, f systemType.UserFilter) (set s
 // fetchFullPageOfUsers collects all requested results.
 //
 // Function applies:
-//  - cursor conditions (where ...)
-//  - limit
+//   - cursor conditions (where ...)
+//   - limit
 //
 // Main responsibility of this function is to perform additional sequential queries in case when not enough results
 // are collected due to failed check on a specific row (by check fn).
 //
-// Function then moves cursor to the last item fetched
+// # Function then moves cursor to the last item fetched
 //
 // This function is auto-generated
 func (s *Store) fetchFullPageOfUsers(

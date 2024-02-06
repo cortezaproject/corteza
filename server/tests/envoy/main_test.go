@@ -30,6 +30,7 @@ var (
 
 func init() {
 	helpers.RecursiveDotEnvLoad()
+	id.Init(cli.Context())
 }
 
 func TestMain(m *testing.M) {

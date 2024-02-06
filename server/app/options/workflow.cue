@@ -26,6 +26,11 @@ workflow: schema.#optionsGroup & {
 			defaultGoExpr: "true"
 			description:   "Enables execution stack trace construction"
 		}
+		stack_trace_full: {
+			type:          "bool"
+			defaultGoExpr: "true"
+			description:   "Forces the stack trace to record all steps"
+		}
 	}
 	title: "Workflow"
 }

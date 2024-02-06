@@ -1,24 +1,19 @@
 package rbac
 
-import (
-	"sort"
-)
-
 // function checks all given rules
 //
-//  - indexRules are rules optimized for quick lookup rules ar grouped in 2 levels:
-//    by operation, and role, containing slice of rules (for specific operation and role)
-//    at the deepest level
+//   - indexRules are rules optimized for quick lookup.
+//     The trie data structure approach is used to optimize lookups and reduce
+//     memory consumption.
 //
-//  - rolesByKind are roles optimized for quick lookup
-//    roles are grouped by kind and each kind contains fast-lookup (map[role-id]bool)
+//   - rolesByKind are roles optimized for quick lookup
+//     roles are grouped by kind and each kind contains fast-lookup (map[role-id]bool)
 //
-//  - op and res represent operation and resource that are checked
+//   - op and res represent operation and resource that are checked
 //
-//  - trace is optional; when not nil, function will update trace struct
-//    with information as it traverses and checks the rules
-//
-func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string, trace *Trace) Access {
+//   - trace is optional; when not nil, function will update trace struct
+//     with information as it traverses and checks the rules
+func check(indexedRules *ruleIndex, rolesByKind partRoles, op, res string, trace *Trace) Access {
 	baseTraceInfo(trace, res, op, rolesByKind)
 
 	if member(rolesByKind, AnonymousRole) && len(rolesByKind) > 1 {
@@ -32,7 +27,7 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string, trace
 		return resolve(trace, Allow, bypassRoleMembership)
 	}
 
-	if len(indexedRules) == 0 {
+	if indexedRules.empty() {
 		// no rules to check
 		return resolve(trace, Inherit, noRules)
 	}
@@ -71,18 +66,11 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string, trace
 		// for each role kind
 		allowed = false
 
-		for roleID, rr := range indexedRules[op] {
-			if !rolesByKind[kind][roleID] {
-				continue
-			}
-
-			if len(rr) == 0 {
-				// no rules found
-				continue
-			}
+		for r := range rolesByKind[kind] {
+			match = indexedRules.matchingRule(r, op, res)
 
 			// check all rules for each role the security-context
-			if match = findRuleByResOp(rr, op, res); match == nil {
+			if match == nil {
 				// no rules match
 				continue
 			}
@@ -114,29 +102,6 @@ func check(indexedRules OptRuleSet, rolesByKind partRoles, op, res string, trace
 
 	// No rule matched
 	return resolve(trace, Inherit, noMatch)
-}
-
-// Check given resource match and operation on all given rules
-func findRuleByResOp(set RuleSet, op, res string) *Rule {
-	// Make sure rules are always sorted (by level)
-	// to avoid any kind of unstable behaviour
-	sort.Sort(set)
-
-	for _, r := range set {
-		if !matchResource(r.Resource, res) {
-			continue
-		}
-
-		if op != r.Operation {
-			continue
-		}
-
-		if r.Access != Inherit {
-			return r
-		}
-	}
-
-	return nil
 }
 
 // at least one of the roles must be set to true
