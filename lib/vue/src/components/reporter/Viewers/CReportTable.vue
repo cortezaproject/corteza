@@ -53,8 +53,6 @@
           >
             <div
               class="d-flex align-items-center"
-              :class="{ 'pointer': !c.meta.tmp_noSort }"
-              @click="c.meta.tmp_noSort ? undefined : handleSort(c.meta.sortKey)"
             >
               <div
                 v-if="c.column ? c.column.label : ''"
@@ -63,25 +61,27 @@
                 {{ c.column.label }}
               </div>
 
-              <font-awesome-layers
+              <b-button
                 v-if="!c.meta.tmp_noSort"
-                class="ml-2"
+                variant="outline-extra-light"
+                class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
+                @click="handleSort(c.meta.sortKey)"
               >
-                <font-awesome-icon
-                  :icon="['fas', 'angle-up']"
-                  class="mb-1"
-                  :style="{
-                    color: sort.field === c.meta.sortKey && !sort.descending ? 'black' : 'grey',
-                  }"
-                />
-                <font-awesome-icon
-                  :icon="['fas', 'angle-down']"
-                  class="mt-1"
-                  :style="{
-                    color: sort.field === c.meta.sortKey && sort.descending ? 'black' : 'grey',
-                  }"
-                />
-              </font-awesome-layers>
+                <font-awesome-layers
+                  class="d-print-none"
+                >
+                  <font-awesome-icon
+                    :icon="['fas', 'angle-up']"
+                    class="mb-1"
+                    :class="{ 'text-primary': sort.field === c.meta.sortKey && !sort.descending }"
+                  />
+                  <font-awesome-icon
+                    :icon="['fas', 'angle-down']"
+                    class="mt-1"
+                    :class="{ 'text-primary': sort.field === c.meta.sortKey && sort.descending }"
+                  />
+                </font-awesome-layers>
+              </b-button>
             </div>
           </b-th>
         </b-tr>
@@ -110,25 +110,26 @@
     </b-table-simple>
 
     <b-card-footer
-      class="d-flex p-1 rounded-0"
+      class="d-flex rounded-0 bg-light px-3 py-2"
     >
       <b-button-group
-        class="ml-auto"
+        class="ml-auto gap-1"
       >
         <b-button
           :disabled="!hasPrevPage"
-          variant="link"
-          class="d-flex align-items-center text-dark px-1"
+          variant="outline-extra-light"
+          class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
           @click="goToPage()"
         >
           <font-awesome-icon
             :icon="['fas', 'angle-double-left']"
           />
         </b-button>
+
         <b-button
           :disabled="!hasPrevPage"
-          variant="link"
-          class="d-flex align-items-center text-dark text-decoration-none"
+          variant="outline-extra-light"
+          class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
           @click="goToPage('prevPage')"
         >
           <font-awesome-icon
@@ -137,10 +138,11 @@
           />
           {{ labels.previous }}
         </b-button>
+
         <b-button
           :disabled="!hasNextPage"
-          variant="link"
-          class="d-flex align-items-center text-dark text-decoration-none"
+          variant="outline-extra-light"
+          class="d-flex align-items-center justify-content-center text-dark border-0 p-1"
           @click="goToPage('nextPage')"
         >
           {{ labels.next }}
