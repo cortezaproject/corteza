@@ -10,8 +10,14 @@
         :class="`border-bottom text-nowrap pr-2 ${headerClass}`"
         :header-text-variant="block.style.variants.headerText"
       >
-        <div v-if="!headerSet">
-          <div class="d-flex">
+        <div
+          v-if="!headerSet"
+          class="d-flex flex-column gap-1"
+        >
+          <div
+            v-if="blockTitle || showOptions"
+            class="d-flex"
+          >
             <h4
               v-if="blockTitle"
               :title="blockTitle"
@@ -52,7 +58,7 @@
           <b-card-text
             v-if="blockDescription"
             :title="blockDescription"
-            class="text-dark text-wrap mt-1"
+            class="text-dark text-wrap"
           >
             {{ blockDescription }}
           </b-card-text>

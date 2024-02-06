@@ -9,19 +9,18 @@
     >
       <div
         v-if="block.title || block.description"
-        class="p-3 border-bottom"
+        class="d-flex flex-column p-3 border-bottom gap-1"
       >
-        <h5
+        <h4
           v-if="block.title"
           class="text-primary text-truncate mb-0"
         >
           {{ block.title }}
-        </h5>
+        </h4>
 
         <b-card-text
           v-if="block.description"
-          class="text-dark text-truncate"
-          :class="{ 'mt-1': block.title }"
+          class="text-dark text-wrap"
         >
           {{ block.description }}
         </b-card-text>

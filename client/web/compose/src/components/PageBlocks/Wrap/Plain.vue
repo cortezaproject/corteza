@@ -10,11 +10,15 @@
       >
         <div
           v-if="!headerSet"
+          class="d-flex flex-column gap-1"
         >
           <div
+            v-if="blockTitle || showOptions"
             class="d-flex"
           >
             <h4
+              v-if="blockTitle"
+              :title="blockTitle"
               class="text-truncate mb-0"
             >
               {{ blockTitle }}
@@ -51,7 +55,7 @@
 
           <b-card-text
             v-if="blockDescription"
-            class="text-dark text-wrap mt-1"
+            class="text-dark text-wrap"
           >
             {{ blockDescription }}
           </b-card-text>
