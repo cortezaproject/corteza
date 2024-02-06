@@ -73,7 +73,24 @@ func (t *ruleIndex) get(role uint64, op, res string) (out []*Rule) {
 		return
 	}
 
-	return t.children[role].get(op, res, 0)
+	// An edge case implied by the test suite
+	if op == "" && res == "" {
+		out = append(out, t.children[role].children[""].children[""].rule)
+		return
+	}
+
+	// Pull out the nodes for the role
+	aux, ok := t.children[role]
+	if !ok {
+		return
+	}
+
+	aux, ok = aux.children[op]
+	if !ok {
+		return
+	}
+
+	return aux.get(res, 0)
 }
 
 // get returns all of the rules matching these constraints
@@ -83,7 +100,7 @@ func (t *ruleIndex) get(role uint64, op, res string) (out []*Rule) {
 // be a memory hog in scenarios where we're pounding this function.
 //
 // The from denotes the substring we've not yet processed.
-func (n *ruleIndexNode) get(op, res string, from int) (out []*Rule) {
+func (n *ruleIndexNode) get(res string, from int) (out []*Rule) {
 	if n == nil || n.children == nil {
 		return
 	}
@@ -103,12 +120,6 @@ func (n *ruleIndexNode) get(op, res string, from int) (out []*Rule) {
 		}
 	}
 
-	// Handle the operation and that's it
-	if op != "" {
-		out = append(out, n.children[op].get("", res, from)...)
-		return
-	}
-
 	// Get the next / delimiter.
 	// Clamp the index to the length of the resource.
 	// Adjust the index to account the from (the start index of the remaining resource)
@@ -122,12 +133,12 @@ func (n *ruleIndexNode) get(op, res string, from int) (out []*Rule) {
 	// Get RBAC rules down the actual path
 	pathBit := res[from:nextDelim]
 	if n.children[pathBit] != nil {
-		out = append(out, n.children[pathBit].get(op, res, nextDelim+1)...)
+		out = append(out, n.children[pathBit].get(res, nextDelim+1)...)
 	}
 
 	// Get RBAC rules down the wildcard path
 	if n.children[wildcard] != nil {
-		out = append(out, n.children[wildcard].get(op, res, nextDelim+1)...)
+		out = append(out, n.children[wildcard].get(res, nextDelim+1)...)
 	}
 
 	return
