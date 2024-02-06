@@ -18,6 +18,7 @@ env:
 
   GO_VERSION: 1.19
   GOFLAGS: -mod=readonly
+  WORKFLOW_STACK_TRACE_FULL: true
 
   NODE_VERSION: 16
 
