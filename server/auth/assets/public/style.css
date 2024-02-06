@@ -1,20 +1,16 @@
-:root {
-  --primary: #0B344E;
-  --primary-hover: #061E2C;
-  --light: #F3F5F7;
-  --danger: #E54122;
-}
-
 html {
   height: 100%;
 }
 
-
 body {
-  font-family: 'Poppins', sans-serif;
   min-height: 100%;
   display: grid;
   grid-template-rows: auto;
+  overflow: auto;
+}
+
+label {
+  color: var(--primary);
 }
 
 .logo {
@@ -27,75 +23,8 @@ body {
   right: 0;
 }
 
-.h1, .h2, .h3, .h4, .h5, .h6, h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins';
-  font-weight: 600;
-}
-
-thead th,
-legend,
-label,
-a,
-.btn {
-  font-family: 'Poppins';
-}
-
-strong,
-b,
-.font-weight-bold {
-  font-family: 'Poppins';
-  font-weight: 600;
-}
-
-/* over-ride default variables colors */
-a, label, .text-primary {
-  color: var(--primary) !important;
-}
-
-a:hover {
-  color: var(--primary-hover);
-}
-
-.text-danger {
-  color: var(--danger) !important;
-}
-
-.card,
-.card-header {
-  border-radius: 1rem;
-}
-
 .header {
-  background-color: #F4F7FA;
-  border-radius: 10px 10px 0 0 !important;
-}
-
-.btn-primary,
-.bg-primary {
-  background-color: var(--primary)!important;
-  border-color: var(--primary);
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-hover)!important;
-  border-color: var(--primary-hover);
-}
-
-.btn-light,
-.bg-light,
-.badge-light {
-  background-color: var(--light)!important;
-  border-color: var(--light);
-}
-
-.btn-danger,
-.bg-danger {
-  background-color: var(--danger)!important;
-  border-color: var(--danger);
-}
-
-.btn-lg {
-  font-size: 1rem;
+  background-color: var(--light) !important;
 }
 
 /* Navigation */
@@ -107,25 +36,6 @@ a:hover {
   font-size: 25px;
 }
 
-/* form styling*/
-.form-control {
-  border: 2px solid var(--light);
-  padding: 1.25rem 0.75rem;
-}
-
-.input-color {
-  padding: 0.125rem 0.25rem;
-}
-
-select.form-control {
-  padding: 0 0.5rem;
-}
-
-.form-control:focus {
-  box-shadow: none;
-  border-color: var(--primary);
-}
-
 .auth {
   width: 100%;
   max-width: 650px;
@@ -135,16 +45,4 @@ select.form-control {
 
 .footer {
   margin-top: auto;
-}
-
-input:-webkit-autofill::first-line {
-  font-family: 'Poppins';
-  font-size: 1rem;
-  color: #495057;
-}
-
-/* position bootstrap icons on buttons centrally */
-[class^="bi-"]::before, [class*=" bi-"]::before {
-  vertical-align: middle;
-  line-height: 1.6;
 }

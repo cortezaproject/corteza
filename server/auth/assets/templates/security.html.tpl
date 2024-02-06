@@ -1,6 +1,5 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "security" }}
 <div class="card-body p-0">
-	<h4 class="card-title p-3 border-bottom">{{ tr "security.template.title" }}</h4>
 	<form
 		method="POST"
 		action="{{ links.Security }}"

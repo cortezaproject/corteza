@@ -13,7 +13,7 @@
 
 {{ if not .hideNav }}
 	{{ if .user }}
-	<ul class="nav ml-1 d-flex justify-content-around">
+	<ul class="nav d-flex justify-content-around">
 		<li class="nav-item {{ if eq $activeNav "profile" }}active{{ end  }}">
 			<a
 				data-test-id="link-tab-profile"
