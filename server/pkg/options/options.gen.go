@@ -252,6 +252,7 @@ type (
 		ExecDebug         bool `env:"WORKFLOW_EXEC_DEBUG"`
 		CallStackSize     int  `env:"WORKFLOW_CALL_STACK_SIZE"`
 		StackTraceEnabled bool `env:"WORKFLOW_STACK_TRACE_ENABLED"`
+		StackTraceFull    bool `env:"WORKFLOW_STACK_TRACE_FULL"`
 	}
 
 	DiscoveryOpt struct {
@@ -1024,6 +1025,7 @@ func Workflow() (o *WorkflowOpt) {
 		Register:          true,
 		CallStackSize:     16,
 		StackTraceEnabled: true,
+		StackTraceFull:    true,
 	}
 
 	// Custom defaults

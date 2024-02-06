@@ -50,7 +50,7 @@ func Test0008_iterator_role_members(t *testing.T) {
 		req.NoError(err)
 		req.Equal(ctr, i.Get().(int64))
 
-		usr, err := automation.NewRole(frame.Results.GetValue()["u"])
+		usr, err := automation.NewUser(frame.Results.GetValue()["u"])
 		req.NoError(err)
 		req.Equal(fmt.Sprintf("u%d", ctr+1), usr.GetValue().Handle)
 	}

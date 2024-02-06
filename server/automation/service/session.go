@@ -325,6 +325,10 @@ func (svc *session) spawn(g *wfexec.Graph, workflowID uint64, trace bool, callSt
 		ses.DisableStacktrace()
 	}
 
+	if svc.opt.StackTraceFull {
+		ses.FullStacktrace()
+	}
+
 	svc.mux.Lock()
 	svc.pool[ses.ID] = ses
 	svc.mux.Unlock()

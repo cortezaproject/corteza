@@ -63,8 +63,6 @@ type (
 
 		// This keeps track of workflow calls
 		callStack []uint64
-
-		Statko chan SessionStatus
 	}
 
 	StateChangeHandler func(SessionStatus, *State, *Session)

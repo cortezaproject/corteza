@@ -3594,13 +3594,14 @@ func unmarshalRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err e
 // Example:
 //
 // modules:
-//   module1:
-//     name: "module 1"
-//     fields: ...
-//     allow:
-//       role1:
-//         - read
-//         - delete
+//
+//	module1:
+//	  name: "module 1"
+//	  fields: ...
+//	  allow:
+//	    role1:
+//	      - read
+//	      - delete
 func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	return out, y7s.EachMap(n, func(role, op *yaml.Node) error {
 		out = append(out, &envoyx.Node{
@@ -3626,10 +3627,11 @@ func unmarshalNestedRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet,
 // Example:
 //
 // allow:
-//   role1:
-//     corteza::system/:
-//       - users.search
-//       - users.create
+//
+//	role1:
+//	  corteza::system/:
+//	    - users.search
+//	    - users.create
 func unmarshalFlatRBACNode(n *yaml.Node, acc rbac.Access) (out envoyx.NodeSet, err error) {
 	// Handles role
 	return out, y7s.EachMap(n, func(role, perm *yaml.Node) error {

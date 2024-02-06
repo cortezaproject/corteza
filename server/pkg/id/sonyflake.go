@@ -38,8 +38,11 @@ const (
 
 var (
 	initialized bool
-	idQueue     = make(chan uint64, 512)
-	makerCount  = 20
+	idQueue     = make(chan uint64, 8000)
+	// Keep this to 1 for now as we need to enforce that any later ID is larger
+	// than any previous one.
+	// If we use different deviceIDs for routines, this isn't guaranteed to hold.
+	makerCount = 1
 )
 
 func Init(ctx context.Context) {
@@ -56,6 +59,10 @@ func Init(ctx context.Context) {
 	}
 
 	wg.Wait()
+
+	// Give it some time to warm up with some ids
+	// Arbitrarily picked a good timeout based on benchmark runs
+	time.Sleep(time.Second * 1)
 }
 
 func makeIDer(ctx context.Context, wg *sync.WaitGroup, qq chan uint64, thr uint64) {

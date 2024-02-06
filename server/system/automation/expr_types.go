@@ -243,12 +243,12 @@ func (v *RenderedDocument) Clone() (expr.TypedValue, error) {
 
 func (v *Role) Clone() (expr.TypedValue, error) {
 	aux := v.value.Clone()
-	return NewRole(&aux)
+	return NewRole(aux)
 }
 
 func (v *Template) Clone() (expr.TypedValue, error) {
 	aux := v.value.Clone()
-	return NewTemplate(&aux)
+	return NewTemplate(aux)
 }
 
 func (v *TemplateMeta) Clone() (expr.TypedValue, error) {
@@ -257,5 +257,5 @@ func (v *TemplateMeta) Clone() (expr.TypedValue, error) {
 
 func (v *User) Clone() (expr.TypedValue, error) {
 	aux := v.value.Clone()
-	return NewUser(&aux)
+	return NewUser(aux)
 }
