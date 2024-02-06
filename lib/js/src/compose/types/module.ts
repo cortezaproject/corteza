@@ -58,7 +58,6 @@ interface Config {
   };
 
   recordDeDup: {
-    enabled: boolean;
     rules: RecordDeDupRule[];
   };
 }
