@@ -333,8 +333,16 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 // Add alerts, settings, providers, csrf token, Bg
 func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	d := req.Data
+	d["theme"] = "light"
 	if req.AuthUser != nil {
-		req.Data["user"] = req.AuthUser.User
+		// fetch current user with updated fields
+		user, err := h.UserService.FindByAny(req.Context(), req.AuthUser.User.ID)
+		if err != nil {
+			return nil
+		}
+
+		d["user"] = user
+		d["theme"] = user.Meta.Theme
 	}
 
 	if req.Client != nil {
@@ -348,7 +356,7 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 			c.Description = req.Client.Meta.Description
 		}
 
-		req.Data["client"] = c
+		d["client"] = c
 	}
 
 	d[csrf.TemplateTag] = csrf.TemplateField(req.Request)

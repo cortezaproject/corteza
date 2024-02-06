@@ -5,9 +5,9 @@
 		action="{{ links.Sessions }}"
 	>
 		{{ .csrfField }}
-		<div class="card-title p-3 border-bottom">
+		{{- if and .sessions (gt (len .sessions) 1) }}
+		<div class="mb-0 p-3 border-bottom">
 			<h4 class="card-title d-inline">{{ tr "sessions.template.title" }}</h4>
-			{{- if and .sessions (gt (len .sessions) 1) }}
 			<button
 				data-test-id="button-logout-from-everywhere"
 				type="submit"
@@ -17,8 +17,8 @@
 			>
 				{{ tr "sessions.template.delete-all" }}
 			</button>
-		{{ end }}
 		</div>
+		{{ end }}
 	</form>
 	<form
 		method="POST"

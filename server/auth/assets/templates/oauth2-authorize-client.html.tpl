@@ -7,7 +7,7 @@
 	</div>
 	{{ end }}
 
-	<h4 class="card-title p-3 border-bottom">{{ tr "oauth2-authorize-client.template.title" }} "{{ coalesce .client.Name }}"</h1>
+	<h4 class="mb-0 p-3 border-bottom">{{ tr "oauth2-authorize-client.template.title" }} "{{ coalesce .client.Name }}"</h1>
 
 	<form
 		action="{{ links.OAuth2AuthorizeClient }}"

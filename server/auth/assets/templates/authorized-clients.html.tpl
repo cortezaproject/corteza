@@ -1,6 +1,5 @@
 {{ template "inc_header.html.tpl" set . "activeNav" "clients" }}
 <div class="card-body p-0">
-    <h4 class="card-title p-3 border-bottom">{{ tr "authorized-clients.template.title" }}</h4>
 	<form
 		method="POST"
 		class="clearfix"
