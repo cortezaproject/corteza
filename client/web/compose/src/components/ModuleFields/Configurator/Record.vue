@@ -8,6 +8,8 @@
         v-model="f.options.moduleID"
         :options="moduleOptions"
         label="name"
+        :placeholder="$t('kind.record.modulePlaceholder')"
+        default-value="0"
         :reduce="module => module.moduleID"
       />
     </b-form-group>
@@ -28,6 +30,7 @@
           v-model="f.options.labelField"
           :options="fieldOptions"
           label="text"
+          :placeholder="$t('kind.record.pickField')"
           :reduce="field => field.value"
         />
       </b-form-group>
@@ -39,10 +42,13 @@
           :label="$t('kind.record.fieldFromModuleField')"
           label-class="text-primary"
         >
-          <b-form-select
+          <c-input-select
             v-model="f.options.recordLabelField"
             :options="labelFieldOptions"
             :disabled="!labelFieldModule"
+            label="text"
+            :placeholder="$t('kind.record.pickField')"
+            :reduce="field => field.value"
           />
         </b-form-group>
       </div>
@@ -145,10 +151,7 @@ export default {
         ]
       }
 
-      return [
-        { moduleID: NoID, name: this.$t('kind.record.modulePlaceholder'), disabled: true },
-        ...modules,
-      ]
+      return modules
     },
 
     selectedModule () {
@@ -156,8 +159,6 @@ export default {
         return this.module
       } else if (this.field.options.moduleID !== NoID) {
         return this.$store.getters['module/getByID'](this.field.options.moduleID)
-      } else {
-        return undefined
       }
     },
 
@@ -167,11 +168,6 @@ export default {
           .map(({ label, name }) => { return { value: name, text: label || name } })
         : []
       return [
-        {
-          value: undefined,
-          text: this.$t('kind.record.pickField'),
-          disabled: true,
-        },
         ...fields.sort((a, b) => a.text.localeCompare(b.text)),
       ]
     },
@@ -203,11 +199,6 @@ export default {
         fields = this.labelFieldModule.fields.map(({ label, name }) => { return { value: name, text: label || name } })
 
         return [
-          {
-            value: undefined,
-            text: this.$t('kind.record.pickField'),
-            disabled: true,
-          },
           ...fields.sort((a, b) => a.text.localeCompare(b.text)),
         ]
       }
@@ -229,7 +220,7 @@ export default {
 
   watch: {
     'field.options.moduleID' () {
-      this.f.options.labelField = undefined
+      this.f.options.labelField = ''
       this.f.options.queryFields = []
       this.f.options.selectType = 'default'
     },
