@@ -95,7 +95,7 @@
           :options="options"
           :get-option-label="getOptionLabel"
           :get-option-key="getOptionKey"
-          :value="getUserByIndex(ctx.index)"
+          :value="getUserIDByIndex(ctx.index)"
           :clearable="false"
           :filterable="false"
           :selectable="option => option.selectable"
@@ -112,7 +112,7 @@
             @next="goToPage(true)"
           />
         </c-input-select>
-        <span v-else>{{ getOptionLabel(getUserByIndex(ctx.index)) }}</span>
+        <span v-else>{{ getOptionLabel(getUserIDByIndex(ctx.index)) }}</span>
       </template>
     </multi>
 
@@ -124,7 +124,7 @@
         :options="options"
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
-        :value="getUserByIndex()"
+        :value="getUserIDByIndex()"
         :filterable="false"
         :selectable="option => option.selectable"
         :loading="processing"
@@ -268,11 +268,19 @@ export default {
       addUserToResolved: 'user/push',
     }),
 
-    getOptionKey ({ userID }) {
-      return userID
+    getOptionKey (user) {
+      if (typeof user === 'string') {
+        return user
+      }
+      return user.userID
     },
 
-    getOptionLabel ({ userID, email, name, username }) {
+    getOptionLabel (user) {
+      if (typeof user === 'string') {
+        user = this.findByID(user)
+      }
+
+      const { name, username, email, userID } = user || {}
       return name || username || email || `<@${userID}>`
     },
 
@@ -295,7 +303,7 @@ export default {
         const { userID } = user
         if (this.field.isMulti) {
           if (index >= 0) {
-            this.value[index] = userID
+            this.value.splice(index, 1, userID)
           } else {
             // <0, assume we're appending
             this.value.push(userID)
@@ -316,11 +324,8 @@ export default {
      * Retrives user (via value) from record field
      * Handles single & multi value fields
      */
-    getUserByIndex (index = 0) {
-      const userID = this.field.isMulti ? this.value[index] : this.value
-      if (userID) {
-        return this.findByID(userID) || {}
-      }
+    getUserIDByIndex (index = 0) {
+      return this.field.isMulti ? this.value[index] : this.value
     },
 
     search: debounce(function (query = '') {

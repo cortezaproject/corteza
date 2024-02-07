@@ -45,6 +45,7 @@
           v-model="multipleSelected"
           :options="options"
           :get-option-key="getOptionKey"
+          :get-option-label="getOptionLabel"
           :disabled="!module"
           :loading="processing"
           :clearable="false"
@@ -70,10 +71,9 @@
           ref="singleSelect"
           :options="options"
           :get-option-key="getOptionKey"
+          :get-option-label="getOptionLabel"
           :disabled="!module"
           :loading="processing"
-          option-value="recordID"
-          option-text="label"
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
@@ -98,10 +98,9 @@
           v-if="field.options.selectType === 'each'"
           :options="options"
           :get-option-key="getOptionKey"
+          :get-option-label="getOptionLabel"
           :disabled="!module"
           :loading="processing"
-          option-value="recordID"
-          option-text="label"
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
@@ -139,10 +138,9 @@
         v-model="selected"
         :options="options"
         :get-option-key="getOptionKey"
+        :get-option-label="getOptionLabel"
         :disabled="!module"
         :loading="processing"
-        option-value="recordID"
-        option-text="label"
         :placeholder="placeholder"
         :filterable="false"
         :searchable="searchable"
@@ -295,10 +293,8 @@ export default {
     }),
 
     getRecord (index = undefined) {
-      const value = index !== undefined ? this.value[index] : this.value
-      if (value) {
-        return this.convert({ recordID: value })
-      }
+      const recordID = index !== undefined ? this.value[index] : this.value
+      return (this.convert({ recordID }) || {}).value
     },
 
     setRecord (event, index = undefined) {
@@ -506,8 +502,24 @@ export default {
       this.filter.pageCursor = next ? this.filter.nextPage : this.filter.prevPage
     },
 
-    getOptionKey ({ value }) {
+    findRecord (recordID) {
+      return this.options.find(r => r.value === recordID) || {}
+    },
+
+    getOptionKey (v) {
+      if (typeof v === 'string') {
+        return v
+      }
+      const { value } = v || {}
       return value
+    },
+
+    getOptionLabel (v) {
+      if (typeof v === 'string') {
+        return this.findRecord(v).label || v
+      }
+      const { label } = v || {}
+      return label
     },
 
     setDefaultValues () {
