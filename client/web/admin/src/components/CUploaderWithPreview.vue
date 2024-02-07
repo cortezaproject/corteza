@@ -4,11 +4,11 @@
   >
     <div
       v-if="value"
-      class="preview d-flex w-100 mb-2"
+      class="d-flex justify-content-center w-100 mb-2"
     >
       <b-img
         :src="value"
-        class="w-100 h-auto"
+        class="mw-100 h-auto"
       />
     </div>
 
@@ -70,9 +70,3 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-.preview {
-  height: 300px;
-  background: transparent;
-}
-</style>

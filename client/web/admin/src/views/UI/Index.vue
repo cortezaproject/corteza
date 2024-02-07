@@ -6,12 +6,6 @@
       :title="$t('title')"
     />
 
-    <c-ui-logo-editor
-      v-if="settings"
-      :settings="settings"
-      :can-manage="canManage"
-    />
-
     <c-ui-branding-editor
       v-if="settings"
       :settings="settings"
@@ -35,7 +29,6 @@
 
 <script>
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
-import CUILogoEditor from 'corteza-webapp-admin/src/components/Settings/UI/CUILogoEditor'
 import CUIBrandingEditor from '../../components/Settings/UI/CUIBrandingEditor.vue'
 import CUITopbarSettings from 'corteza-webapp-admin/src/components/Settings/UI/CUITopbarSettings'
 import { mapGetters } from 'vuex'
@@ -49,7 +42,6 @@ export default {
   },
 
   components: {
-    'c-ui-logo-editor': CUILogoEditor,
     'c-ui-branding-editor': CUIBrandingEditor,
     'c-ui-topbar-settings': CUITopbarSettings,
   },

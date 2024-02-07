@@ -62,6 +62,65 @@
             </b-form-group>
           </b-col>
         </b-row>
+
+        <b-row v-else>
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              label-class="d-flex align-items-center text-primary"
+            >
+              <template #label>
+                {{ $t('mainLogo.title') }}
+
+                <c-input-confirm
+                  v-if="uploadedFile('ui.main-logo')"
+                  show-icon
+                  class="ml-auto"
+                  @confirmed="resetAttachment('ui.main-logo')"
+                />
+              </template>
+
+              <c-uploader-with-preview
+                :value="uploadedFile('ui.main-logo')"
+                :endpoint="'/settings/ui.main-logo'"
+                :disabled="!canManage"
+                :labels="$t('mainLogo.uploader', { returnObjects: true })"
+                @upload="onUpload($event)"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              label-class="d-flex align-items-center text-primary h-lg-100"
+            >
+              <template #label>
+                {{ $t('iconLogo.title') }}
+
+                <c-input-confirm
+                  v-if="uploadedFile('ui.icon-logo')"
+                  show-icon
+                  class="ml-auto"
+                  @confirmed="resetAttachment('ui.icon-logo')"
+                />
+              </template>
+
+              <c-uploader-with-preview
+                :value="uploadedFile('ui.icon-logo')"
+                :endpoint="'/settings/ui.icon-logo'"
+                :disabled="!canManage"
+                :labels="$t('iconLogo.uploader', { returnObjects: true })"
+                @upload="onUpload($event)"
+              />
+            </b-form-group>
+          </b-col>
+        </b-row>
+
         <b-row>
           <b-col>
             <b-form-group
@@ -121,6 +180,7 @@
 </template>
 
 <script>
+import CUploaderWithPreview from 'corteza-webapp-admin/src/components//CUploaderWithPreview'
 import { components } from '@cortezaproject/corteza-vue'
 const { CInputColorPicker, CAceEditor } = components
 
@@ -133,6 +193,7 @@ export default {
   },
 
   components: {
+    CUploaderWithPreview,
     CInputColorPicker,
     CAceEditor,
   },
@@ -307,6 +368,34 @@ export default {
       this.$set(theme.variables, key, theme.id === 'light' ? this.lightModeVariables[key] : this.darkModeVariables[key])
     },
 
+    onUpload ({ name, value }) {
+      this.$set(this.settings, name, value)
+    },
+
+    resetAttachment (name) {
+      this.$SystemAPI.settingsUpdate({ values: [{ name, value: undefined }], upload: {} })
+        .then(() => {
+          this.$set(this.settings, name, undefined)
+        })
+    },
+
+    uploadedFile (name) {
+      const localAttachment = /^attachment:(\d+)/
+
+      switch (true) {
+        case this.settings[name] && localAttachment.test(this.settings[name]):
+          const [, attachmentID] = localAttachment.exec(this.settings[name])
+
+          return this.$SystemAPI.baseURL +
+            this.$SystemAPI.attachmentOriginalEndpoint({
+              attachmentID,
+              kind: 'settings',
+              name,
+            })
+      }
+
+      return undefined
+    },
   },
 }
 </script>
