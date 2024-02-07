@@ -285,6 +285,7 @@
           <slot
             name="metric-options"
             :metric="m"
+            :report="editReport"
           />
         </div>
       </draggable>

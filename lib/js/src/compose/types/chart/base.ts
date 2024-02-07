@@ -348,8 +348,12 @@ export class BaseChart {
         axisPosition: 'left',
         labelPosition: 'end',
         rotateLabel: 0,
+        formatter: {},
       },
       tooltip: {},
+      metricTooltip: {},
+      formatter: {},
+      metricFormatter: {},
       legend: {
         isScrollable: true,
         orientation: 'horizontal',
