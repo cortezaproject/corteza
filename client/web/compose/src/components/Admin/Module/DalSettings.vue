@@ -16,7 +16,6 @@
         :reduce="s => s.connectionID"
         :placeholder="$t('connection.placeholder')"
         :get-option-label="getConnectionLabel"
-        size="sm"
       />
     </b-form-group>
 
@@ -50,12 +49,11 @@
     </b-form-group>
 
     <b-form-group
+      :label="$t('system-fields.label')"
       :description="$t('system-fields.description')"
+      label-class="text-primary"
     >
-      <div class="my-4 d-flex justify-content-between align-items-center flex-wrap">
-        <label>
-          {{ $t('system-fields.label') }}
-        </label>
+      <div class="d-flex justify-content-end align-items-center flex-wrap">
         <b-form-radio-group
           v-model="selectedGroup"
           buttons

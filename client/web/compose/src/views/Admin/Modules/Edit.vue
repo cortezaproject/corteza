@@ -306,7 +306,7 @@
                       <tr>
                         <td
                           colspan="7"
-                          class="font-weight-bold"
+                          class="text-primary font-weight-bold"
                         >
                           {{ $t('edit.systemFields') }}
                         </td>

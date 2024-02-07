@@ -1,7 +1,7 @@
 <template>
   <b-row
     cols="12"
-    class="mx-1 mb-2"
+    class="mb-2"
   >
     <b-col
       cols="3"
@@ -13,14 +13,6 @@
         :disabled="disabled"
       >
         {{ label }}
-
-        <b-badge
-          v-if="!use"
-          variant="info"
-          class="ml-2 align-middle"
-        >
-          {{ $t('unavailable') }}
-        </b-badge>
       </b-form-checkbox>
       <div
         v-else
