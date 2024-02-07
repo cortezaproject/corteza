@@ -4,6 +4,8 @@ import {
   Metric,
   Report,
   ChartType,
+  formatChartValue,
+  TooltipParams,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
@@ -89,13 +91,8 @@ export default class FunnelChart extends BaseChart {
     const { saveAsImage } = toolbox || {}
 
     const { labels, datasets = [], tooltip, themeVariables = {} } = data
-    const { legend: l } = reports[0] || {}
+    const { legend: l, tooltipFormatter, metricFormatter } = reports[0] || {}
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
-
-    const tooltipFormatter = (params: any) => {
-      return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${params.value}${tooltip.relative ? ' (' + params.percent + '%)' : ''}</span>`
-    }
-    const labelFormatter = `{c}${tooltip.relative ? ' ({d}%)' : ''}`
 
     return {
       animation: !noAnimation,
@@ -115,7 +112,12 @@ export default class FunnelChart extends BaseChart {
       },
       tooltip: {
         trigger: 'item',
-        formatter: tooltipFormatter,
+        formatter: (params: TooltipParams): string => {
+          const { name = '', value = '' || 0, percent = '' || 0 } = params
+          const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = tooltipFormatter || {}
+
+          return `${name}<br />${formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })} ${tooltip.relative ? ` (${percent}%)` : ''}`
+        },
         appendToBody: true,
       },
       legend: {
@@ -149,7 +151,13 @@ export default class FunnelChart extends BaseChart {
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-            formatter: labelFormatter,
+            formatter: (params: TooltipParams): string => {
+              const { value = '' || 0, percent = '' || 0 } = params
+              const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = metricFormatter || {}
+              const formattedValue = formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
+
+              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${formattedValue}${tooltip.relative ? ' (' + percent + '%)' : ''}</span>`
+            },
           },
           emphasis: {
             label: {

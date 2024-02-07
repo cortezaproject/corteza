@@ -80,7 +80,9 @@
               />
             </b-form-group>
           </b-col>
+        </b-row>
 
+        <b-row>
           <b-col
             cols="12"
             lg="6"
@@ -112,7 +114,11 @@
               />
             </b-form-group>
           </b-col>
+        </b-row>
 
+        <b-row
+          class="mb-2"
+        >
           <b-col
             cols="12"
             lg="6"
@@ -136,6 +142,7 @@
             <b-form-group
               :label="$t('edit.yAxis.options.label')"
               label-class="text-primary"
+              class="mb-0"
             >
               <b-form-checkbox
                 v-model="report.yAxis.axisType"
@@ -169,7 +176,7 @@
       </div>
     </template>
 
-    <template #metric-options="{ metric }">
+    <template #metric-options="{ metric, presetFormattedOptions }">
       <b-row>
         <b-col
           cols="12"
@@ -311,14 +318,80 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('numberFormat')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.metricFormatter.numberFormat"
+              placeholder="0.00"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('prefix')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.metricFormatter.prefix"
+              placeholder="USD/mo"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('suffix')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="report.metricFormatter.suffix"
+              placeholder="$"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('edit.additionalConfig.tooltip.formatting.presetFormats.label')"
+            label-class="text-primary"
+            style="white-space: pre-line;"
+            :description="presetFormattedOptions.formattedOptionsDescription"
+          >
+            <b-form-select
+              v-model="report.metricFormatter.presetFormat"
+              :options="presetFormattedOptions.formatOptions"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </template>
 
-    <template #additional-config="{ hasAxis, report }">
+    <template #additional-config="{ hasAxis, report, presetFormattedOptions }">
       <hr>
       <div class="px-3">
-        <h5 class="mb-3">
+        <h5 class="d-flex mb-3">
           {{ $t('edit.additionalConfig.tooltip.label') }}
+          <c-hint
+            :tooltip="$t('edit.additionalConfig.tooltip.formatting.disclaimer')"
+            icon-class="text-warning"
+          />
         </h5>
 
         <b-row>
@@ -327,16 +400,88 @@
             lg="6"
           >
             <b-form-group
-              :label="$t('edit.additionalConfig.tooltip.formatting.label')"
+              :label="$t('edit.additionalConfig.tooltip.formatting.customFormatting')"
               :description="$t('edit.additionalConfig.tooltip.formatting.description')"
               label-class="text-primary"
             >
               <b-input
                 v-model="report.tooltip.formatting"
                 :placeholder="$t('edit.additionalConfig.tooltip.formatting.placeholder')"
+                :disabled="!!(
+                  report.tooltipFormatter.numberFormat
+                  || report.tooltipFormatter.prefix
+                  || report.tooltipFormatter.suffix
+                  || (report.tooltipFormatter.presetFormat != 'noFormat'))"
               />
             </b-form-group>
           </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('numberFormat')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.tooltipFormatter.numberFormat"
+                placeholder="0.00"
+                :disabled="!!report.tooltip.formatting"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('prefix')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.tooltipFormatter.prefix"
+                placeholder="USD/mo"
+                :disabled="!!report.tooltip.formatting"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            md="6"
+          >
+            <b-form-group
+              :label="$t('suffix')"
+              label-class="text-primary"
+            >
+              <b-input
+                v-model="report.tooltipFormatter.suffix"
+                placeholder="$"
+                :disabled="!!report.tooltip.formatting"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('edit.additionalConfig.tooltip.formatting.presetFormats.label')"
+              label-class="text-primary"
+              style="white-space: pre-line;"
+              :description="presetFormattedOptions.formattedOptionsDescription"
+            >
+              <b-form-select
+                v-model="report.tooltipFormatter.presetFormat"
+                :options="presetFormattedOptions.formatOptions"
+                :disabled="!!report.tooltip.formatting"
+              />
+            </b-form-group>
+          </b-col>
+
           <b-col
             v-if="!hasAxis"
             cols="12"

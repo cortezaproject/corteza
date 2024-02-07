@@ -203,8 +203,17 @@ edit:
       labelNextToChart: Show labels next to chart
       formatting:
         label: Formatting
+        customFormatting: Custom formatting
         description: '{a} - metrics label, {b} - dimension value, {c} - metric value, {d} - metric value percentage'
         placeholder: '{a}<br />{b} : {c} ({d}%)'
+        disclaimer: Adding a value to the formatting field will disable the fields number format, prefix, and suffix and vice versa
+        presetFormats:
+          label: 'Format values using:'
+          options:
+            accountingNumber: Accounting number
+            noFormat: No format selected
+          description:
+            accountingNumber: 'Accounting number displays the data in the same way as the currency format with the two differences: 1) negative numbers are transformed into positive and added in brackets and 2) the value 0 is substituted by a dash'
     offset:
       label: Offset
       default: Default offset
@@ -240,3 +249,6 @@ notification:
 searchPlaceholder: Type here to search all charts in this namespace
 title: List of Charts
 undefined: undefined
+numberFormat: Number format
+prefix: Prefix
+suffix: Suffix
