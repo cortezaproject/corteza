@@ -27,7 +27,7 @@
 <script>
 import { VueSelect } from 'vue-select'
 import { createPopper } from '@popperjs/core'
-import 'vue-select/dist/vue-select.css';
+import 'vue-select/dist/vue-select.css'
 
 export default {
   name: 'CInputSelect',
@@ -263,6 +263,12 @@ export default {
     &.vs__dropdown-option--selected {
       background: var(--vs-dropdown-option--active-bg);
       color: var(--vs-dropdown-option--active-color);
+    }
+
+    &.vs__dropdown-option--disabled {
+      background: var(--vs-state-disabled-bg) !important;
+      color: var(--vs-state-disabled-color) !important;
+      cursor: var(--vs-state-disabled-cursor) !important;
     }
 
     &:active {
