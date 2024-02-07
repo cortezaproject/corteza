@@ -5,6 +5,7 @@ import {
   Dimension,
   ChartType,
   TemporalDataPoint,
+  formatChartValue,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
@@ -74,11 +75,23 @@ export default class GaugeChart extends BaseChart {
   }
 
   makeOptions (data: any) {
-    const { colorScheme, noAnimation = false, toolbox } = this.config
+    const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
-
     const { datasets = [], themeVariables = {} } = data
-    const { steps = [], name, value, max, tooltip, startAngle, endAngle } = datasets.find(({ value }: any) => value) || datasets[0]
+    const {
+      steps = [],
+      name,
+      value,
+      max,
+      tooltip,
+      startAngle,
+      endAngle,
+    } = datasets.find(({ value }: any) => value) || datasets[0]
+    const {
+      tooltipFormatter,
+      metricFormatter,
+    } = reports[0] || {}
+    const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = metricFormatter || {}
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
     const color = steps.map((s: any, i: number) => {
@@ -153,10 +166,15 @@ export default class GaugeChart extends BaseChart {
             offsetCenter: [0, '55%'],
             valueAnimation: true,
             color: themeVariables.black,
+            formatter: (value: string | number): string => {
+              const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = tooltipFormatter || {}
+
+              return formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
+            },
           },
           data: [
             {
-              name,
+              name: formatChartValue(name, { numberFormat, prefix, suffix, presetFormat }),
               value,
             },
           ],

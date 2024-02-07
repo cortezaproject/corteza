@@ -350,6 +350,12 @@ export class BaseChart {
         rotateLabel: 0,
       },
       tooltip: {},
+      tooltipFormatter: {
+        presetFormat: 'noFormat',
+      },
+      metricFormatter: {
+        presetFormat: 'noFormat',
+      },
       legend: {
         isScrollable: true,
         orientation: 'horizontal',

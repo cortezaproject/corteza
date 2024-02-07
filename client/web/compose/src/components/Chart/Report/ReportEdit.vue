@@ -285,6 +285,11 @@
           <slot
             name="metric-options"
             :metric="m"
+            :report="editReport"
+            :preset-formatted-options="{
+              formatOptions,
+              formattedOptionsDescription: $t('edit.additionalConfig.tooltip.formatting.presetFormats.description.accountingNumber')
+            }"
           />
         </div>
       </draggable>
@@ -457,6 +462,10 @@
       :report="editReport"
       :metrics="metrics"
       :has-axis="hasAxis"
+      :preset-formatted-options="{
+        formatOptions,
+        formattedOptionsDescription: $t('edit.additionalConfig.tooltip.formatting.presetFormats.description.accountingNumber')
+      }"
     />
   </div>
 </template>
@@ -517,6 +526,11 @@ export default {
       orientations: [
         { value: 'horizontal', text: this.$t('edit.additionalConfig.legend.orientation.horizontal') },
         { value: 'vertical', text: this.$t('edit.additionalConfig.legend.orientation.vertical') },
+      ],
+
+      formatOptions: [
+        { value: 'noFormat', text: this.$t('edit.additionalConfig.tooltip.formatting.presetFormats.options.noFormat') },
+        { value: 'accountingNumber', text: this.$t('edit.additionalConfig.tooltip.formatting.presetFormats.options.accountingNumber') },
       ],
     }
   },
@@ -667,6 +681,7 @@ export default {
       this.predefinedFilters = []
       this.alignments = []
       this.orientations = []
+      this.formatOptions = []
     },
   },
 }

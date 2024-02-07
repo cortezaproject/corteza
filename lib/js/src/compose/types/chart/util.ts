@@ -1,3 +1,6 @@
+import numeral from 'numeral'
+import * as fmt from '../../../formatting'
+
 export const rgbaRegex = /^rgba\((\d+),.*?(\d+),.*?(\d+),.*?(\d*\.?\d*)\)$/
 
 const ln = (n: number) => Math.round(n < 0 ? 255 + n : (n > 255) ? n - 255 : n)
@@ -8,7 +11,7 @@ export enum ChartType {
   pie = 'pie',
   bar = 'bar',
   line = 'line',
-  doughnut='doughnut',
+  doughnut = 'doughnut',
   funnel = 'funnel',
   gauge = 'gauge',
   radar = 'radar',
@@ -22,6 +25,26 @@ export interface TemporalDataPoint {
 
 export interface KV {
   [_: string]: any;
+}
+
+export interface FormatData {
+  numberFormat?: string,
+  prefix?: string,
+  suffix?: string,
+  presetFormat?: string,
+}
+
+export interface Tooltip {
+  formatting?: string;
+  labelsNextToPartition?: boolean;
+}
+
+export interface TooltipParams {
+  seriesName?: string;
+  name?: string;
+  value?: string | number;
+  percent?: string | number;
+  marker?: string;
 }
 
 export interface Dimension {
@@ -89,11 +112,6 @@ export interface Legend {
   position?: Position;
 }
 
-export interface Tooltip {
-  formatting?: string;
-  labelsNextToPartition?: boolean;
-}
-
 export interface Report {
   moduleID?: string|null;
   filter?: string|null;
@@ -103,9 +121,11 @@ export interface Report {
   tooltip?: Tooltip;
   legend?: Legend;
   offset?: ChartOffset;
+  tooltipFormatter?: FormatData;
+  metricFormatter?: FormatData;
 }
 
-interface ChartToolbox {
+export interface ChartToolbox {
   saveAsImage: boolean;
   timeline: string;
 }
@@ -114,7 +134,7 @@ export interface ChartConfig {
   reports?: Array<Report>;
   colorScheme?: string;
   noAnimation?: boolean;
-  toolbox?: ChartToolbox
+  toolbox?: ChartToolbox;
 }
 
 export const aggregateFunctions = [
@@ -240,6 +260,61 @@ export const hasRelativeDisplay = ({ type }: KV) => isRadialChart({ type })
 
 // Makes a standarised alias from modifier or dimension report option
 export const makeAlias = ({ alias, aggregate, modifier, field }: Metric) => alias || `${aggregate || modifier || 'none'}_${field}`.toLocaleLowerCase()
+
+export function formatChartValue (value: string | number, formatConfig?: FormatData): string {
+  let n: number | string = 0 || ''
+  // if value contains alphabetic chars parseFloat() will return NaN
+  // and n will equal 0
+  const containsAlphabeticChars = isNaN(Number(value))
+  let result = ''
+
+  if (!containsAlphabeticChars) {
+    switch (typeof value) {
+      case 'string':
+        n = parseFloat(value)
+        break
+      case 'number':
+        n = value
+        break
+      default:
+        n = 0
+    }
+
+    if (formatConfig?.numberFormat) {
+      result = numeral(n).format(formatConfig.numberFormat)
+    } else {
+      result = fmt.number(n)
+    }
+  }
+
+  if (formatConfig?.presetFormat === 'accountingNumber') {
+    result = formatChartValueAsAccountingNumber(Number(n))
+  }
+
+  return ` ${formatConfig?.prefix ?? ''} ${result || value} ${formatConfig?.suffix ?? ''}`
+}
+
+export function formatChartTooltip (tooltip: string, params: TooltipParams): string {
+  const { seriesName = '', name = '', value = '', percent = '' } = params
+
+  return tooltip
+    .replace('{a}', seriesName)
+    .replace('{b}', name)
+    .replace('{c}', value.toString())
+    .replace('{d}', percent.toString())
+}
+
+export function formatChartValueAsAccountingNumber (value: number): string {
+  let result = ''
+
+  if (value < 0) {
+    result = `(${Math.abs(value)})`
+  } else if (value === 0) {
+    result = '-'
+  }
+
+  return result
+}
 
 const chartUtil = {
   dimensionFunctions,
