@@ -84,11 +84,11 @@
           >
             <b-button
               v-for="variable in themeVariables"
-              :key="variable.label"
-              v-b-tooltip.noninteractive.hover="{ title: colorToolTip(theme.id, variable.value), container: '#body' }"
+              :key="variable.key"
+              v-b-tooltip.noninteractive.hover="{ title: variable.label, container: '#body' }"
               class="swatch flex-grow-1 rounded-0"
-              :style="{ backgroundColor: theme.values[variable.label], borderColor: theme.values[variable.label] }"
-              @click="setColor(theme.values[variable.label])"
+              :style="{ backgroundColor: theme.values[variable.key], borderColor: theme.values[variable.key] }"
+              @click="setColor(theme.values[variable.key])"
             />
           </div>
         </b-form-group>
@@ -173,36 +173,36 @@ export default {
       type: Array,
       default: () => [
         {
-          label: 'white',
-          value: 'White',
+          key: 'white',
+          label: 'White',
         },
         {
-          label: 'primary',
-          value: 'Primary',
+          key: 'primary',
+          label: 'Primary',
         },
         {
-          label: 'secondary',
-          value: 'Secondary',
+          key: 'secondary',
+          label: 'Secondary',
         },
         {
-          label: 'success',
-          value: 'Success',
+          key: 'success',
+          label: 'Success',
         },
         {
-          label: 'warning',
-          value: 'Warning',
+          key: 'warning',
+          label: 'Warning',
         },
         {
-          label: 'danger',
-          value: 'Danger',
+          key: 'danger',
+          label: 'Danger',
         },
         {
-          label: 'light',
-          value: 'Light',
+          key: 'light',
+          label: 'Light',
         },
         {
-          label: 'extra-light',
-          value: 'Extra light',
+          key: 'extra-light',
+          label: 'Extra light',
         },
       ],
     }
@@ -270,10 +270,6 @@ export default {
 
     closeMenu () {
       this.showModal = false
-    },
-
-    colorToolTip (themeID, label) {
-      return `${this.translations[themeID]} - ${label}`
     },
   },
 }

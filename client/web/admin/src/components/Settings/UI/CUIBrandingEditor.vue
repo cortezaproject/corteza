@@ -41,8 +41,9 @@
             cols="12"
           >
             <b-form-group
-              :label="$t(`theme.variables.${key}`)"
+              :label="$t(`theme.variables.${key}.label`)"
               label-class="text-primary"
+              :description="$t(`theme.variables.${key}.description`)"
             >
               <c-input-color-picker
                 ref="picker"

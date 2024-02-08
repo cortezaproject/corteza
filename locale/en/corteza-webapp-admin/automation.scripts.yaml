@@ -1,5 +1,6 @@
 list:
   columns:
+    name: Name
     updatedAt: Last update
   filter:
     absoluteTime: Show absolute time

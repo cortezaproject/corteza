@@ -261,7 +261,7 @@ export default {
       fields: [
         {
           key: 'name',
-          label: '',
+          label: 'Name',
           sortable: true,
         },
         {
@@ -275,6 +275,7 @@ export default {
         label: this.$t(`columns.${c.key}`),
         ...c,
       })),
+
       checkboxLabel: {
         on: this.$t('general:label.general.yes'),
         off: this.$t('general:label.general.no'),
