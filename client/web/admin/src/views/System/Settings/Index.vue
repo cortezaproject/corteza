@@ -6,34 +6,35 @@
       :title="$t('title')"
     />
 
-    <c-system-editor-auth
-      v-if="Object.keys(getAuth).length"
-      :settings="getAuth"
-      :processing="auth.processing"
-      :success="auth.success"
-      :can-manage="canManage"
-      @submit="onAuthSubmit"
-    />
+    <template v-if="Object.keys(getAuth).length">
+      <c-system-editor-auth
+        :settings="getAuth"
+        :processing="auth.processing"
+        :success="auth.success"
+        :can-manage="canManage"
+        @submit="onAuthSubmit"
+      />
 
-    <c-system-editor-external
-      v-model="settings"
-      class="mt-3"
-      :processing="external.processing"
-      :success="external.success"
-      :can-manage="canManage"
-      @submit="onExternalSubmit"
-    />
+      <c-system-editor-external
+        v-model="settings"
+        class="mt-3"
+        :processing="external.processing"
+        :success="external.success"
+        :can-manage="canManage"
+        @submit="onExternalSubmit"
+      />
 
-    <c-system-editor-auth-bg-screen
-      :settings="getAuthBackground"
-      :can-manage="canManage"
-      :processing="authBackground.processing"
-      :success="authBackground.success"
-      class="mt-3"
-      @onUpload="onBackgroundImageUpload"
-      @resetAttachment="onResetBackgroundImage"
-      @submit="onAuthBackgroundSubmit"
-    />
+      <c-system-editor-auth-bg-screen
+        :settings="getAuthBackground"
+        :can-manage="canManage"
+        :processing="authBackground.processing"
+        :success="authBackground.success"
+        class="mt-3"
+        @onUpload="onBackgroundImageUpload"
+        @resetAttachment="onResetBackgroundImage"
+        @submit="onAuthBackgroundSubmit"
+      />
+    </template>
   </b-container>
 </template>
 <script>
