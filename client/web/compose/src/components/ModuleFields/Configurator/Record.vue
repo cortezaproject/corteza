@@ -160,6 +160,8 @@ export default {
       } else if (this.field.options.moduleID !== NoID) {
         return this.$store.getters['module/getByID'](this.field.options.moduleID)
       }
+
+      return undefined
     },
 
     fieldOptions () {
