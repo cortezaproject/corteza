@@ -134,6 +134,12 @@
               >
                 {{ $t('profile.hide-change-password-link') }}
               </b-form-checkbox>
+
+              <b-form-checkbox
+                v-model="topbarSettings.hideThemeSelector"
+              >
+                {{ $t('profile.hide-theme-selector') }}
+              </b-form-checkbox>
             </b-form-group>
           </b-col>
           <b-col>

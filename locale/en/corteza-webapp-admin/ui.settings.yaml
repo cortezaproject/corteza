@@ -79,6 +79,7 @@ editor:
       hide: Hide profile
       hide-profile-link: Hide profile link
       hide-change-password-link: Hide change password link
+      hide-theme-selector: Hide theme selector
 
     links:
       title: Custom links

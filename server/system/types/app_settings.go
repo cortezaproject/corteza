@@ -264,6 +264,7 @@ type (
 				HideProfile            bool `json:"hideProfile"`
 				HideChangePasswordLink bool `json:"hideChangePasswordLink"`
 				HideProfileLink        bool `json:"hideProfileLink"`
+				HideThemeSelector      bool `json:"hideThemeSelector"`
 
 				HelpLinks []struct {
 					Handle string `json:"handle"`

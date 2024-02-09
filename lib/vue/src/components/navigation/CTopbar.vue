@@ -178,6 +178,7 @@
         </b-dropdown-item>
 
         <b-dropdown
+        v-if="!settings.hideThemeSelector"
           id="theme-dropleft"
           variant="link"
           text="Theme"
