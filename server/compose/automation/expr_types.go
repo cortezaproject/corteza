@@ -690,6 +690,10 @@ func (v *ComposeRecordValues) Clone() (expr.TypedValue, error) {
 }
 
 func (v *ComposeRecordValueErrorSet) Clone() (expr.TypedValue, error) {
+	if v.value == nil {
+		return nil, nil
+	}
+
 	errs := types.RecordValueErrorSet{
 		Set: make([]types.RecordValueError, len(v.value.Set)),
 	}
