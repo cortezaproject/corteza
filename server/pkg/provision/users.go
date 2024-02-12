@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
@@ -100,4 +101,32 @@ func loadSystemUsers(ctx context.Context, s store.Users) (m map[string]*types.Us
 	}
 
 	return
+}
+
+func setUsersTheme(ctx context.Context, log *zap.Logger, s store.Users) (err error) {
+	var (
+		f = types.UserFilter{
+			Deleted: filter.StateInclusive,
+		}
+
+		users []*types.User
+	)
+
+	if set, _, err := store.SearchUsers(ctx, s, f); err == nil {
+		for _, r := range set {
+			if r.Meta.Theme == "" {
+				r.Meta.Theme = sass.LightTheme
+
+				users = append(users, r)
+			}
+		}
+	}
+
+	err = store.UpdateUser(ctx, s, users...)
+	if err != nil {
+		log.Error("error provisioning users theme", zap.Error(err))
+		return err
+	}
+
+	return nil
 }

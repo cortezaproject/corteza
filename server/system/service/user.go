@@ -19,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -386,6 +387,9 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 		if err = uniqueUserCheck(ctx, svc.store, new); err != nil {
 			return
 		}
+
+		//add default user's theme
+		new.Meta.Theme = sass.LightTheme
 
 		// Process avatar initials Image
 		if err = svc.generateUserAvatarInitial(ctx, new); err != nil {
