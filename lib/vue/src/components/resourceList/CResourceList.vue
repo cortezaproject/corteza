@@ -54,8 +54,6 @@
         ref="resourceList"
         :fields="_fields"
         :items="_items"
-        :sort-by.sync="sorting.sortBy"
-        :sort-desc.sync="sorting.sortDesc"
         :sticky-header="stickyHeader"
         :tbody-tr-class="tableRowClasses"
         hover
@@ -67,38 +65,36 @@
         foot-variant="light"
         :primary-key="primaryKey"
         class="mh-100 h-100 mb-0"
-        @sort-changed="pagination.page = 1"
         @row-clicked="$emit('row-clicked', $event)"
       >
       <template #head()="field">
-        <div class="d-flex align-items-center">
-          <div
-            class="d-flex align-self-center text-nowrap"
-          >
+        <div class="d-flex align-items-center" @click.prevent.stop>
+          <div class="flex-fill text-nowrap">
             {{ field.label }}
-          </div>
 
-          <b-button
-            v-if="field.field.sortable"
-            variant="outline-extra-light"
-            class="d-flex align-items-center text-secondary d-print-none border-0 px-1 ml-1"
-            @click="handleSort(field)"
+            <b-button
+              v-if="field.field.sort"
+              variant="outline-extra-light"
+              class="text-secondary d-print-none border-0 px-1 ml-1"
+              style="margin-right: -0.25rem;"
+              @click="handleSort(field)"
             >
-            <font-awesome-layers
-              class="d-print-none"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'angle-up']"
-                class="mb-1"
-                :class="{ 'text-primary': field.column === sorting.sortBy && !sorting.sortDesc }"
-              />
-              <font-awesome-icon
-                :icon="['fas', 'angle-down']"
-                class="mt-1"
-                :class="{ 'text-primary': field.column === sorting.sortBy && sorting.sortDesc }"
-              />
-            </font-awesome-layers>
-          </b-button>
+              <font-awesome-layers
+                class="d-print-none"
+              >
+                <font-awesome-icon
+                  :icon="['fas', 'angle-up']"
+                  class="mb-1"
+                  :class="{ 'text-primary': field.column === sorting.sortBy && !sorting.sortDesc }"
+                />
+                <font-awesome-icon
+                  :icon="['fas', 'angle-down']"
+                  class="mt-1"
+                  :class="{ 'text-primary': field.column === sorting.sortBy && sorting.sortDesc }"
+                />
+              </font-awesome-layers>
+            </b-button>
+          </div>
         </div>
       </template>
         <template #empty>
@@ -364,7 +360,7 @@ export default {
         ...select,
         ...this.fields,
       ].map(f => {
-        return { ...f, thClass: `${f.thClass || 'border-0'}` }
+        return { ...f, thClass: `${f.thClass || 'border-0'}`, sortable: false, sort: f.sortable }
       })
     },
 
@@ -497,6 +493,8 @@ export default {
     handleSort ({ field }) {
       this.sorting.sortBy = field.key
       this.sorting.sortDesc = !this.sorting.sortDesc
+      this.pagination.page = 1
+      this.$refs.resourceList.refresh()
     },
   },
 }
