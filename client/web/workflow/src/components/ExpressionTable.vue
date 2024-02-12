@@ -167,11 +167,7 @@ export default {
 
 <style lang="scss" scoped>
 .header {
-  background-color: #d8dfe3;
-
-  &:hover {
-    background-color: #c9d3d8;
-  }
+  background-color: var(--light);
 
   label {
     margin: 0;
@@ -183,7 +179,7 @@ export default {
 }
 
 .expr-item:hover {
-  background-color: #F3F3F5;
+  background-color: var(--light);
 
   .grab > * {
     color: var(--secondary) !important;

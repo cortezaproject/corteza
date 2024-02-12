@@ -127,6 +127,7 @@
       <template #enabled="{ item: w }">
         <font-awesome-icon
           :icon="['fas', w.enabled ? 'check' : 'times']"
+          :class="w.enabled ? 'text-primary' : 'text-extra-light'"
         />
       </template>
 

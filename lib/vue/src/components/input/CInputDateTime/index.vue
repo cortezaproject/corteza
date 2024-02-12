@@ -121,7 +121,7 @@ export default {
 
   label {
     font-family: var(--font-regular);
-    color: #495057 !important;
+    color: var(--black) !important;
   }
 
   .b-form-datepicker, .b-form-timepicker {

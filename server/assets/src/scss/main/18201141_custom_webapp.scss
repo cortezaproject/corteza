@@ -187,8 +187,8 @@ fieldset.required {
 
   // Code
   pre {
-    background-color: #23241f;
-    color: #f8f8f2;
+    background-color: var(--black);
+    color: var(--white);
     overflow: visible;
     white-space: pre-wrap;
     margin-bottom: 5px;
