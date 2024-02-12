@@ -62,6 +62,7 @@ editor:
 
     table:
       header:
+        enabled: Enabled
         provider: Provider
         info: Issuer, client ID
 

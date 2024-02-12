@@ -36,8 +36,8 @@
     </div>
 
     <b-table
-      :items="providers.items"
-      :fields="providers.fields"
+      :items="providerItems"
+      :fields="providerFields"
       :tbody-tr-class="(i) => i.rowBackground"
       head-variant="light"
       hover
@@ -55,13 +55,12 @@
       </template>
 
       <template #cell(editor)="{ item }">
-        <confirmation-toggle
+        <c-input-confirm
           v-if="item.delete"
-          cta-class="link"
+          :icon="item.deleted ? ['fas', 'trash-restore'] : undefined"
           @confirmed="item.delete()"
-        >
-          <font-awesome-icon :icon="['far', 'trash-alt']" />
-        </confirmation-toggle>
+        />
+
         <b-button
           variant="link"
           @click="openEditor(item.editor)"
@@ -292,76 +291,80 @@ export default {
      *
      * @returns object
      */
-    providers () {
-      return {
-        fields: [
-          { key: 'enabled', label: '', thStyle: { width: '50px' } },
-          { key: 'provider', label: this.$t('table.header.provider'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
-          { key: 'info', label: this.$t('table.header.info') },
-          { key: 'editor', label: '', thStyle: { width: '200px' }, tdClass: 'text-right' },
-        ],
-        items: [
-          {
-            rowBackground: _.isEqual(this.original.saml, this.external.saml) ? '' : 'bg-warning',
-            provider: this.external.saml.name,
-            info: this.external.saml.idp.url,
-            tag: 'SAML',
+    providerFields () {
+      return [
+        { key: 'enabled', label: this.$t('table.header.enabled'), thStyle: { width: '50px' } },
+        { key: 'provider', label: this.$t('table.header.provider'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
+        { key: 'info', label: this.$t('table.header.info') },
+        { key: 'editor', label: '', thStyle: { width: '200px' }, tdClass: 'text-right' },
+      ]
+    },
 
-            enabled: this.external.saml.enabled,
-            enable: (val) => this.$set(this.external.saml, 'enabled', val),
+    providerItems () {
+      return [
+        {
+          rowBackground: _.isEqual(this.original.saml, this.external.saml) ? '' : 'bg-extra-light',
+          provider: this.external.saml.name,
+          info: this.external.saml.idp.url,
+          tag: 'SAML',
 
-            editor: {
-              component: 'saml-external',
-              data: this.external.saml,
-              title: this.$t('saml.title'),
-              updater: (changed) => this.updater('saml', changed),
-            },
+          enabled: this.external.saml.enabled,
+          enable: (val) => this.$set(this.external.saml, 'enabled', val),
+
+          editor: {
+            component: 'saml-external',
+            data: this.external.saml,
+            title: this.$t('saml.title'),
+            updater: (changed) => this.updater('saml', changed),
           },
-          ...this.external.oidc
-            .map((p, i) => ({
-              rowBackground: (() => {
-                if (_.isEqual(this.original.oidc[i], p)) {
-                  return ''
-                }
+        },
+        ...this.external.oidc
+          .map((p, i) => ({
+            rowBackground: (() => {
+              if (_.isEqual(this.original.oidc[i], p)) {
+                return ''
+              }
 
-                if (p.deleted) {
-                  return 'text-light deleted'
-                }
+              if (p.deleted) {
+                return 'text-extra-light deleted'
+              }
 
-                return 'bg-warning'
-              })(),
-              provider: p.handle,
-              tag: 'OIDC',
-              info: p.issuer,
-
-              enabled: p.enabled,
-              enable: (val) => this.$set(this.external.oidc[i], 'enabled', val),
-              delete: () => this.$set(this.external.oidc[i], 'deleted', !p.deleted),
-
-              editor: {
-                component: 'oidc-external',
-                data: p,
-                title: p.handle,
-                updater: (changed) => this.updater('oidc', changed, i),
-              },
-            })),
-          ...this.external.standard.map((p, i) => ({
-            rowBackground: _.isEqual(this.original.standard[i], p) ? '' : 'bg-warning',
+              return 'bg-extra-light'
+            })(),
             provider: p.handle,
-            info: p.key,
+            tag: 'OIDC',
+            info: p.issuer,
 
             enabled: p.enabled,
-            enable: (val) => this.$set(this.external.standard[i], 'enabled', val),
+            deleted: p.deleted,
+            enable: (val) => this.$set(this.external.oidc[i], 'enabled', val),
+            delete: () => {
+              this.$set(this.external.oidc[i], 'deleted', !p.deleted)
+            },
 
             editor: {
-              component: 'standard-external',
+              component: 'oidc-external',
               data: p,
               title: p.handle,
-              updater: (changed) => this.updater('standard', changed, i),
+              updater: (changed) => this.updater('oidc', changed, i),
             },
           })),
-        ],
-      }
+        ...this.external.standard.map((p, i) => ({
+          rowBackground: _.isEqual(this.original.standard[i], p) ? '' : 'bg-extra-light',
+          provider: p.handle,
+          info: p.key,
+
+          enabled: p.enabled,
+          enable: (val) => this.$set(this.external.standard[i], 'enabled', val),
+
+          editor: {
+            component: 'standard-external',
+            data: p,
+            title: p.handle,
+            updater: (changed) => this.updater('standard', changed, i),
+          },
+        })),
+      ]
     },
 
     /**
@@ -508,6 +511,6 @@ export default {
 </script>
 <style lang="scss">
 .deleted {
-  text-decoration: line-through
+  text-decoration: line-through;
 }
 </style>
