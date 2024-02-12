@@ -306,8 +306,8 @@ export default {
 
       const values = []
       this.fields.forEach(f => {
-        const { name, isMulti } = this.getField(f)
-        const value = this.record.values[name] || this.record[name]
+        const { name, isMulti, isSystem } = this.getField(f)
+        const value = isSystem ? this.record[name] : this.record.values[name]
 
         if (!isMulti) {
           values.push({ name, value: value ? value.toString() : value })
