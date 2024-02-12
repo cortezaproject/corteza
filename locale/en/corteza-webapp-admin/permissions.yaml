@@ -164,6 +164,8 @@ resources:
           title: List and search users
         resource-translations.manage:
           title: Manage resource translations
+        dal-schema-alterations.manage:
+          title: Manage schema alterations
         report.create:
           title: Create new report
         reports.search:
