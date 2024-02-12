@@ -20,6 +20,7 @@
       cols="12"
     >
       <b-form-group
+        v-if="getFieldValue(f) !== '0'"
         :label="$t(f) || $t(label)"
         label-class="text-primary"
         :data-test-id="`input-${generateTestID(f)}`"
