@@ -373,11 +373,13 @@ export class Auth {
           name: data.name,
           email: data.email,
           handle: data.username,
+          roles: data.roles || [],
+          meta: {
+            preferredLanguage: data.preferred_language || 'en',
+            avatarID: data.avatarID,
+            theme: data.theme,
+          }
         })
-
-        if (data.preferred_language) {
-          authUser.meta.preferredLanguage = data.preferred_language || 'en'
-        }
 
         this[user] = authUser
 
@@ -576,16 +578,12 @@ export class Auth {
       handle: oa2tkn.handle,
       email: oa2tkn.email,
       roles: oa2tkn.roles || [],
+      meta: {
+        preferredLanguage: oa2tkn.preferred_language || 'en',
+        avatarID: oa2tkn.avatarID,
+        theme: oa2tkn.theme,
+      },
     })
-
-    if (oa2tkn.preferred_language) {
-      u.meta.preferredLanguage = oa2tkn.preferred_language
-    }
-
-    u.meta.avatarID = oa2tkn.avatarID
-
-    // theme
-    u.meta.theme = oa2tkn.theme
 
     this[accessToken] = oa2tkn.access_token
     this[user] = u
