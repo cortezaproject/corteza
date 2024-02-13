@@ -279,7 +279,7 @@ recordList:
   inlineEdit:
     enabled: Inline value editing enabled
     button:
-      title: Edit value
+      title: Edit {{label}}
     modal:
       title: Update record values
   bulkRecord:

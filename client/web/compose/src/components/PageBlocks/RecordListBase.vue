@@ -396,7 +396,7 @@
                     class="inline-actions"
                   >
                     <b-button
-                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
+                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title', { label: field.label }), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
                       class="text-secondary border-0 ml-1"
