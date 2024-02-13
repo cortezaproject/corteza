@@ -372,7 +372,7 @@
                   :namespace="namespace"
                   :errors="recordErrors(item, field)"
                   class="mb-0"
-                  style="min-width: 150px;"
+                  style="min-width: 250px;"
                   @click.stop
                 />
 
