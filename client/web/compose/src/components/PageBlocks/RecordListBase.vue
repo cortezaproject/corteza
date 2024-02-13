@@ -567,7 +567,7 @@
           <div
             v-else
             class="position-absolute text-center mt-5 d-print-none"
-            style="left: 0; right: 0;"
+            style="left: 0; right: 0; bottom: calc(50% - 33px);"
           >
             <b-spinner
               v-if="processing"

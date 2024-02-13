@@ -91,11 +91,9 @@
         <div
           v-if="!revisions.length"
           class="position-absolute text-center mt-5 d-print-none"
-          style="left: 0; right: 0;"
+          style="left: 0; right: 0; bottom: calc(50% - 33px);"
         >
-          <p
-            class="mt-3"
-          >
+          <p class="mb-0 mx-2">
             {{ $t('errors.no-revisions') }}
           </p>
         </div>
