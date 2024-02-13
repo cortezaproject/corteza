@@ -388,13 +388,17 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			return
 		}
 
-		//add default user's theme
-		new.Meta.Theme = sass.LightTheme
+		if new.Meta == nil {
+			new.Meta = &types.UserMeta{}
+		}
 
 		// Process avatar initials Image
 		if err = svc.generateUserAvatarInitial(ctx, new); err != nil {
 			return
 		}
+
+		//add default user's theme
+		new.Meta.Theme = sass.LightTheme
 
 		new.ID = nextID()
 		new.CreatedAt = *now()

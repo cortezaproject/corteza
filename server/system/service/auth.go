@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -381,6 +382,13 @@ func (svc *auth) InternalSignUp(ctx context.Context, input *types.User, password
 		if nUser.Handle == "" {
 			createUserHandle(ctx, svc.store, nUser)
 		}
+
+		if nUser.Meta == nil {
+			nUser.Meta = &types.UserMeta{}
+		}
+
+		//set default user's theme
+		nUser.Meta.Theme = sass.LightTheme
 
 		if err = uniqueUserCheck(ctx, svc.store, nUser); err != nil {
 			return err
