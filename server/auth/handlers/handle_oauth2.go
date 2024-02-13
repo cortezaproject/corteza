@@ -11,13 +11,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lestrrat-go/jwx/jwa"
-	"github.com/lestrrat-go/jwx/jwk"
-	"github.com/spf13/cast"
-
 	"github.com/go-chi/jwtauth"
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
+	"github.com/lestrrat-go/jwx/jwa"
+	"github.com/lestrrat-go/jwx/jwk"
 	"github.com/lestrrat-go/jwx/jwt"
+	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza/server/auth/request"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
@@ -393,10 +392,18 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 			userID = userID[:i]
 		}
 
-		if req.AuthUser != nil && req.AuthUser.User != nil && req.AuthUser.User.ID == cast.ToUint64(userID) {
+		sessionUserExists := req.AuthUser != nil && req.AuthUser.User != nil
+
+		user, err = h.UserService.FindByAny(suCtx, userID)
+		if err != nil && !errors.Is(err, systemService.UserErrNotFound()) && sessionUserExists {
 			user = req.AuthUser.User
-		} else if user, err = h.UserService.FindByAny(suCtx, userID); err != nil {
+		} else {
 			return h.tokenError(w, fmt.Errorf("could not generate token: %v", err))
+		}
+
+		if sessionUserExists && req.AuthUser.User.ID == cast.ToUint64(userID) {
+			req.AuthUser.User = user
+			req.AuthUser.Save(req.Session)
 		}
 
 	default:
