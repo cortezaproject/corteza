@@ -208,7 +208,7 @@
             <template v-if="canRestoreSelectedRecords && areAllRowsDeleted">
               <c-input-confirm
                 show-icon
-                :icon="['fa', 'trash-restore']"
+                :icon="['fas', 'trash-restore']"
                 :tooltip="$t('recordList.tooltip.restoreSelected')"
                 variant="outline-warning"
                 @confirmed="handleRestoreSelectedRecords()"
@@ -452,7 +452,7 @@
                       @click.prevent="handleRestoreInline(item, index)"
                     >
                       <font-awesome-icon
-                        :icon="['fa', 'trash-restore']"
+                        :icon="['fas', 'trash-restore']"
                         class="text-warning"
                       />
                       {{ $t('recordList.record.tooltip.restore') }}
@@ -461,7 +461,6 @@
                     <!-- The user should be able to delete the record if it's not yet saved -->
                     <b-dropdown-item
                       v-else-if="isInlineDeleteActionVisible(item.r)"
-
                       @click.prevent="handleDeleteInline(item, index)"
                     >
                       <font-awesome-icon
@@ -550,11 +549,12 @@
                       v-else-if="isRestoreActionVisible(item.r)"
                       :text="$t('recordList.record.tooltip.restore')"
                       :icon="['fas', 'trash-restore']"
+                      show-icon
                       borderless
                       variant="link"
                       size="md"
                       button-class="dropdown-item text-decoration-none text-dark rounded-0"
-                      icon-class="text-danger"
+                      icon-class="text-warning"
                       class="w-100"
                       @confirmed="handleRestoreSelectedRecords(item.r.recordID)"
                     />

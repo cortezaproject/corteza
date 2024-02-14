@@ -239,7 +239,7 @@ export default {
     },
 
     getActionIcon (r) {
-      return r.deletedAt ? ['fa', 'trash-restore'] : ['far', 'trash-alt']
+      return r.deletedAt ? ['fas', 'trash-restore'] : ['far', 'trash-alt']
     },
   },
 }
