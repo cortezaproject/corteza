@@ -395,10 +395,15 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		sessionUserExists := req.AuthUser != nil && req.AuthUser.User != nil
 
 		user, err = h.UserService.FindByAny(suCtx, userID)
-		if err != nil && !errors.Is(err, systemService.UserErrNotFound()) && sessionUserExists {
-			user = req.AuthUser.User
-		} else {
-			return h.tokenError(w, fmt.Errorf("could not generate token: %v", err))
+
+		if err != nil {
+			if !errors.Is(err, systemService.UserErrNotFound()) {
+				return h.tokenError(w, fmt.Errorf("could not generate token: %v", err))
+			}
+
+			if errors.Is(err, systemService.UserErrNotFound()) && sessionUserExists {
+				user = req.AuthUser.User
+			}
 		}
 
 		if sessionUserExists && req.AuthUser.User.ID == cast.ToUint64(userID) {
