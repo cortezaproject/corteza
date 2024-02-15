@@ -149,15 +149,6 @@ func (svc dalSchemaAlteration) SetAlterations(ctx context.Context, s store.Store
 		u = intAuth.GetIdentityFromContext(ctx).Identity()
 	)
 
-	// @todo this won't work entirely; if someone defines a dal connection to the same DSN as the primary one,
-	//       they can easily bypass this.
-	//       We'll need to do some checking on the DSN; potentially when defining the connection itself.
-	c := svc.dal.GetConnectionByID(0)
-	if m.ConnectionID == c.ID && m.Ident == "compose_record" {
-		err = fmt.Errorf("cannot set alterations for default schema")
-		return
-	}
-
 	// Delete current ones
 	// @todo we might be able to do some diffing to preserve the metadata/ids
 	//       but for now this should be just fine.

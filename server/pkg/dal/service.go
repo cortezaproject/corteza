@@ -831,6 +831,8 @@ func (svc *service) applyAlteration(ctx context.Context, alts ...*Alteration) (e
 	}
 
 	var (
+		c = svc.GetConnectionByID(0)
+
 		connectionID = alts[0].ConnectionID
 		resource     = alts[0].Resource
 		resourceType = alts[0].ResourceType
@@ -862,6 +864,11 @@ func (svc *service) applyAlteration(ctx context.Context, alts ...*Alteration) (e
 	model := svc.getModelByRef(ModelRef{Resource: resource, ResourceType: resourceType, ConnectionID: connectionID})
 	if model == nil {
 		return nil, fmt.Errorf("model not found")
+	}
+
+	if model.ConnectionID == c.ID && model.Ident == "compose_record" {
+		err = fmt.Errorf("cannot apply alterations for default schema")
+		return
 	}
 
 	issues = issues.addModel(model.ResourceID)
