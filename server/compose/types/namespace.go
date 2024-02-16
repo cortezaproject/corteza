@@ -15,6 +15,7 @@ type (
 		Slug    string        `json:"slug"`
 		Enabled bool          `json:"enabled"`
 		Meta    NamespaceMeta `json:"meta"`
+		Blocks  PageBlocks    `json:"blocks"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 

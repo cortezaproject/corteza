@@ -109,6 +109,10 @@ endpoints:
         name: meta
         required: true
         title: Meta data
+      - type: sqlxTypes.JSONText
+        name: blocks
+        required: false
+        title: Blocks
       - type: map[string]string
         name: labels
         title: Labels

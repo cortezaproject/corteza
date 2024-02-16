@@ -103,6 +103,40 @@ func (d *auxYamlDoc) unmarshalPageBlocksNode(r *types.Page, n *yaml.Node) (refs 
 	return
 }
 
+func (d *auxYamlDoc) unmarshalNamespaceBlocksNode(r *types.Namespace, n *yaml.Node) (refs map[string]envoyx.Ref, idents envoyx.Identifiers, err error) {
+	refs = map[string]envoyx.Ref{}
+
+	for index, b := range r.Blocks {
+		switch b.Kind {
+		case "RecordList":
+			refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(b, index))
+
+		case "Automation":
+			refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(b, index))
+
+		case "RecordOrganizer":
+			refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(b, index))
+
+		case "Chart":
+			refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(b, index))
+
+		case "Calendar":
+			refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(b, index))
+
+		case "Metric":
+			refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(b, index))
+
+		case "Comment":
+			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
+
+		case "Progress":
+			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b, index))
+		}
+	}
+
+	return
+}
+
 func getPageBlockRecordListRefs(b types.PageBlock, index int) (refs map[string]envoyx.Ref) {
 	refs = make(map[string]envoyx.Ref)
 

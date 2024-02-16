@@ -93,7 +93,7 @@ func (e YamlEncoder) encodePageBlocksC(ctx context.Context, p envoyx.EncodeParam
 
 	var aux any
 	for i, b := range pg.Blocks {
-		aux, err = e.encodePageBlockC(ctx, p, tt, n, pg, i, b)
+		aux, err = e.encodePageBlockC(ctx, p, tt, n, i, b)
 		if err != nil {
 			return
 		}
@@ -107,7 +107,26 @@ func (e YamlEncoder) encodePageBlocksC(ctx context.Context, p envoyx.EncodeParam
 	return out, nil
 }
 
-func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, pg *types.Page, index int, b types.PageBlock) (_ any, err error) {
+func (e YamlEncoder) encodeNamespaceBlocksC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, pg *types.Namespace, bb types.PageBlocks) (_ any, err error) {
+	out, _ := y7s.MakeSeq()
+
+	var aux any
+	for i, b := range pg.Blocks {
+		aux, err = e.encodePageBlockC(ctx, p, tt, n, i, b)
+		if err != nil {
+			return
+		}
+
+		out, err = y7s.AddSeq(out, aux)
+		if err != nil {
+			return
+		}
+	}
+
+	return out, nil
+}
+
+func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, index int, b types.PageBlock) (_ any, err error) {
 
 	switch b.Kind {
 	case "RecordList":

@@ -398,6 +398,10 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 	res := node.Resource.(*types.Namespace)
 
 	// Pre-compute some map values so we can omit error checking when encoding yaml nodes
+	auxBlocks, err := e.encodeNamespaceBlocksC(ctx, p, tt, node, res, res.Blocks)
+	if err != nil {
+		return
+	}
 	auxCreatedAt, err := e.encodeTimestamp(p, res.CreatedAt)
 	if err != nil {
 		return
@@ -413,6 +417,7 @@ func (e YamlEncoder) encodeNamespace(ctx context.Context, p envoyx.EncodeParams,
 	}
 
 	out, err = y7s.AddMap(out,
+		"blocks", auxBlocks,
 		"createdAt", auxCreatedAt,
 		"deletedAt", auxDeletedAt,
 		"enabled", res.Enabled,
