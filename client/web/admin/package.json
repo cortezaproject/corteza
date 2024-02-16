@@ -79,7 +79,8 @@
     "**/**/node-forge": "^0.10.0",
     "**/**/yargs-parser": "^13.1.2",
     "**/**/moment": "2.29.2",
-    "**/**/pdfjs-dist": "2.2.228"
+    "**/**/pdfjs-dist": "2.2.228",
+    "browserslist": "4.23.0"
   },
   "stylelint": {
     "plugins": [
