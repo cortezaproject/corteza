@@ -29,7 +29,7 @@
     "@panter/vue-i18next": "^0.15.0",
     "@popperjs/core": "^2.11.2",
     "acorn": "^7.3.1",
-    "bootstrap-vue": "^2.21.2",
+    "bootstrap-vue": "2.23.1",
     "echarts": "^5.3.3",
     "fuzzysort": "^1.2.1",
     "highlight.js": "^10.4.1",
@@ -121,7 +121,8 @@
     "**/**/moment": "2.29.2",
     "**/**/serialize-javascript": "^3.1.0",
     "**/**/node-forge": "^0.10.0",
-    "**/**/y18n": "^4.0.1"
+    "**/**/y18n": "^4.0.1",
+    "bootstrap-vue/**/node-fetch": "^2.6.7"
   },
   "stylelint": {
     "plugins": [
