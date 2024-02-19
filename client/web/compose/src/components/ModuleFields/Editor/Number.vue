@@ -52,19 +52,20 @@
       </b-input-group>
     </multi>
 
-    <b-input-group
-      v-else
-      :prepend="field.options.prefix"
-      :append="field.options.suffix"
-    >
-      <b-form-input
-        v-model="value"
-        autocomplete="off"
-        type="number"
-        number
-      />
-    </b-input-group>
-    <errors :errors="errors" />
+    <template v-else>
+      <b-input-group
+        :prepend="field.options.prefix"
+        :append="field.options.suffix"
+      >
+        <b-form-input
+          v-model="value"
+          autocomplete="off"
+          type="number"
+          number
+        />
+      </b-input-group>
+      <errors :errors="errors" />
+    </template>
   </b-form-group>
 </template>
 <script>

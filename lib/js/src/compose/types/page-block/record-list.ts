@@ -50,19 +50,21 @@ interface Options {
   positionField?: string;
   refField?: string; // When adding a new record, prefill refField value with parent record ID
   editFields?: unknown[];
-  linkToParent: boolean; // Legacy
-
+  
+  // When adding a new record, link it to parent when available
+  linkToParent: boolean;
+  
   // Should records be opened in a new tab
   // legacy field that has been removed but we keep it for backwards compatibility
   openInNewTab: boolean;
-
+  
   // Are table rows selectable
   selectable: boolean;
   selectMode: 'multi' | 'single' | 'range';
-
+  
   // Ordered list of buttons to display in the block
   selectionButtons: Array<Button>;
-
+  
   bulkRecordEditEnabled: boolean;
   inlineRecordEditEnabled: boolean;
   filterPresets: FilterPreset[];
