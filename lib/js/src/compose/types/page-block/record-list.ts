@@ -35,6 +35,7 @@ export interface Options {
   perPage: number;
   recordDisplayOption: string;
   recordSelectorDisplayOption: string;
+  addRecordDisplayOption: string;
   magnifyOption: string;
 
   fullPageNavigation: boolean;
@@ -95,6 +96,7 @@ const defaults: Readonly<Options> = Object.freeze({
   perPage: 20,
   recordDisplayOption: 'sameTab',
   recordSelectorDisplayOption: 'sameTab',
+  addRecordDisplayOption: 'sameTab',
   magnifyOption: '',
 
   fullPageNavigation: false,
@@ -140,7 +142,19 @@ export class PageBlockRecordList extends PageBlock {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'prefilter', 'presort', 'selectMode', 'positionField', 'refField', 'recordDisplayOption', 'magnifyOption', 'recordSelectorDisplayOption')
+
+    Apply(this.options, o, String,
+      'prefilter',
+      'presort',
+      'selectMode',
+      'positionField',
+      'refField',
+      'recordDisplayOption',
+      'magnifyOption',
+      'recordSelectorDisplayOption',
+      'addRecordDisplayOption'
+    )
+
     Apply(this.options, o, Number, 'perPage', 'refreshRate')
 
     if (o.fields) {
