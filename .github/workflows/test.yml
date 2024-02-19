@@ -32,6 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+        with: { node-version: "${{ env.NODE_VERSION }}" }
       - uses: actions/cache@v3
         if: ${{ !env.ACT }}
         with:
