@@ -2,9 +2,7 @@ package etreeutils
 
 import (
 	"errors"
-
 	"fmt"
-
 	"sort"
 
 	"github.com/beevik/etree"
@@ -19,20 +17,25 @@ const (
 	XMLNSNamespace = "http://www.w3.org/2000/xmlns/"
 )
 
-var (
-	DefaultNSContext = NSContext{
+func NewDefaultNSContext() NSContext {
+	defaultLimit := 1000
+	return NSContext{
 		prefixes: map[string]string{
 			defaultPrefix: XMLNamespace,
 			xmlPrefix:     XMLNamespace,
 			xmlnsPrefix:   XMLNSNamespace,
 		},
+		limit: &defaultLimit,
 	}
+}
 
+var (
 	EmptyNSContext = NSContext{}
 
 	ErrReservedNamespace       = errors.New("disallowed declaration of reserved namespace")
 	ErrInvalidDefaultNamespace = errors.New("invalid default namespace declaration")
 	ErrTraversalHalted         = errors.New("traversal halted")
+	ErrTraversalLimit          = errors.New("traversal limit reached")
 )
 
 type ErrUndeclaredNSPrefix struct {
@@ -45,6 +48,17 @@ func (e ErrUndeclaredNSPrefix) Error() string {
 
 type NSContext struct {
 	prefixes map[string]string
+	limit    *int
+}
+
+// CheckLimit checks the traversal limit before calling the handler function
+func (ctx NSContext) CheckLimit() error {
+	if *ctx.limit <= 0 {
+		return ErrTraversalLimit
+	}
+	*ctx.limit--
+
+	return nil
 }
 
 func (ctx NSContext) Copy() NSContext {
@@ -53,7 +67,7 @@ func (ctx NSContext) Copy() NSContext {
 		prefixes[k] = v
 	}
 
-	return NSContext{prefixes: prefixes}
+	return NSContext{prefixes: prefixes, limit: ctx.limit}
 }
 
 func (ctx NSContext) declare(prefix, namespace string) etree.Attr {
@@ -140,7 +154,12 @@ type NSIterHandler func(NSContext, *etree.Element) error
 // NSTraverse traverses an element tree, invoking the passed handler for each element
 // in the tree.
 func NSTraverse(ctx NSContext, el *etree.Element, handle NSIterHandler) error {
-	ctx, err := ctx.SubContext(el)
+	err := ctx.CheckLimit()
+	if err != nil {
+		return err
+	}
+
+	ctx, err = ctx.SubContext(el)
 	if err != nil {
 		return err
 	}
@@ -223,7 +242,7 @@ func NSDetatch(ctx NSContext, el *etree.Element) (*etree.Element, error) {
 // NSSelectOne behaves identically to NSSelectOneCtx, but uses DefaultNSContext as the
 // surrounding context.
 func NSSelectOne(el *etree.Element, namespace, tag string) (*etree.Element, error) {
-	return NSSelectOneCtx(DefaultNSContext, el, namespace, tag)
+	return NSSelectOneCtx(NewDefaultNSContext(), el, namespace, tag)
 }
 
 // NSSelectOneCtx conducts a depth-first search for an element with the specified namespace
@@ -243,7 +262,6 @@ func NSSelectOneCtx(ctx NSContext, el *etree.Element, namespace, tag string) (*e
 
 		return ErrTraversalHalted
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -254,7 +272,7 @@ func NSSelectOneCtx(ctx NSContext, el *etree.Element, namespace, tag string) (*e
 // NSFindIterate behaves identically to NSFindIterateCtx, but uses DefaultNSContext
 // as the surrounding context.
 func NSFindIterate(el *etree.Element, namespace, tag string, handle NSIterHandler) error {
-	return NSFindIterateCtx(DefaultNSContext, el, namespace, tag, handle)
+	return NSFindIterateCtx(NewDefaultNSContext(), el, namespace, tag, handle)
 }
 
 // NSFindIterateCtx conducts a depth-first traversal searching for elements with the
@@ -294,7 +312,7 @@ func NSFindIterateCtx(ctx NSContext, el *etree.Element, namespace, tag string, h
 // NSFindOne behaves identically to NSFindOneCtx, but uses DefaultNSContext for
 // context.
 func NSFindOne(el *etree.Element, namespace, tag string) (*etree.Element, error) {
-	return NSFindOneCtx(DefaultNSContext, el, namespace, tag)
+	return NSFindOneCtx(NewDefaultNSContext(), el, namespace, tag)
 }
 
 // NSFindOneCtx conducts a depth-first search for the specified element. If such an element
@@ -306,7 +324,6 @@ func NSFindOneCtx(ctx NSContext, el *etree.Element, namespace, tag string) (*etr
 		found = el
 		return ErrTraversalHalted
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -325,6 +342,11 @@ func NSIterateChildren(ctx NSContext, el *etree.Element, handle NSIterHandler) e
 
 	// Iterate the child elements.
 	for _, child := range el.ChildElements() {
+		err := ctx.CheckLimit()
+		if err != nil {
+			return err
+		}
+
 		err = handle(ctx, child)
 		if err != nil {
 			return err
@@ -368,7 +390,7 @@ func NSFindChildrenIterateCtx(ctx NSContext, el *etree.Element, namespace, tag s
 // NSFindOneChild behaves identically to NSFindOneChildCtx, but uses
 // DefaultNSContext for context.
 func NSFindOneChild(el *etree.Element, namespace, tag string) (*etree.Element, error) {
-	return NSFindOneChildCtx(DefaultNSContext, el, namespace, tag)
+	return NSFindOneChildCtx(NewDefaultNSContext(), el, namespace, tag)
 }
 
 // NSFindOneCtx conducts a depth-first search for the specified element. If such an
@@ -394,11 +416,10 @@ func NSFindOneChildCtx(ctx NSContext, el *etree.Element, namespace, tag string) 
 func NSBuildParentContext(el *etree.Element) (NSContext, error) {
 	parent := el.Parent()
 	if parent == nil {
-		return DefaultNSContext, nil
+		return NewDefaultNSContext(), nil
 	}
 
 	ctx, err := NSBuildParentContext(parent)
-
 	if err != nil {
 		return ctx, err
 	}

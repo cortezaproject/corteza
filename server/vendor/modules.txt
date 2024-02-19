@@ -33,8 +33,8 @@ github.com/asaskevich/govalidator
 ## explicit
 github.com/aymerick/douceur/css
 github.com/aymerick/douceur/parser
-# github.com/beevik/etree v1.1.0
-## explicit
+# github.com/beevik/etree v1.3.0
+## explicit; go 1.13
 github.com/beevik/etree
 # github.com/beorn7/perks v1.0.1
 ## explicit; go 1.11
@@ -56,8 +56,8 @@ github.com/cli/safeexec
 # github.com/crewjam/httperr v0.2.0
 ## explicit; go 1.13
 github.com/crewjam/httperr
-# github.com/crewjam/saml v0.4.13
-## explicit; go 1.16
+# github.com/crewjam/saml v0.4.14
+## explicit; go 1.19
 github.com/crewjam/saml
 github.com/crewjam/saml/logger
 github.com/crewjam/saml/samlsp
@@ -68,8 +68,8 @@ github.com/crusttech/go-oidc
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d
-## explicit; go 1.13
+# github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0
+## explicit; go 1.17
 github.com/decred/dcrd/dcrec/secp256k1/v4
 # github.com/denisenkom/go-mssqldb v0.12.3
 ## explicit; go 1.13
@@ -192,7 +192,7 @@ github.com/go-sourcemap/sourcemap/internal/base64vlq
 # github.com/go-sql-driver/mysql v1.6.0
 ## explicit; go 1.10
 github.com/go-sql-driver/mysql
-# github.com/goccy/go-json v0.9.6
+# github.com/goccy/go-json v0.10.2
 ## explicit; go 1.12
 github.com/goccy/go-json
 github.com/goccy/go-json/internal/decoder
@@ -275,8 +275,8 @@ github.com/jmoiron/sqlx/types
 ## explicit; go 1.12
 github.com/joho/godotenv
 github.com/joho/godotenv/autoload
-# github.com/jonboulle/clockwork v0.2.2
-## explicit; go 1.13
+# github.com/jonboulle/clockwork v0.4.0
+## explicit; go 1.15
 github.com/jonboulle/clockwork
 # github.com/json-iterator/go v1.1.12
 ## explicit; go 1.12
@@ -287,17 +287,17 @@ github.com/klauspost/cpuid
 # github.com/lestrrat-go/backoff/v2 v2.0.8
 ## explicit; go 1.16
 github.com/lestrrat-go/backoff/v2
-# github.com/lestrrat-go/blackmagic v1.0.0
+# github.com/lestrrat-go/blackmagic v1.0.2
 ## explicit; go 1.16
 github.com/lestrrat-go/blackmagic
 # github.com/lestrrat-go/httpcc v1.0.1
 ## explicit; go 1.16
 github.com/lestrrat-go/httpcc
-# github.com/lestrrat-go/iter v1.0.1
+# github.com/lestrrat-go/iter v1.0.2
 ## explicit; go 1.13
 github.com/lestrrat-go/iter/arrayiter
 github.com/lestrrat-go/iter/mapiter
-# github.com/lestrrat-go/jwx v1.2.23
+# github.com/lestrrat-go/jwx v1.2.28
 ## explicit; go 1.15
 github.com/lestrrat-go/jwx
 github.com/lestrrat-go/jwx/internal/base64
@@ -319,7 +319,7 @@ github.com/lestrrat-go/jwx/jws
 github.com/lestrrat-go/jwx/jwt
 github.com/lestrrat-go/jwx/jwt/internal/types
 github.com/lestrrat-go/jwx/x25519
-# github.com/lestrrat-go/option v1.0.0
+# github.com/lestrrat-go/option v1.0.1
 ## explicit; go 1.16
 github.com/lestrrat-go/option
 # github.com/lestrrat-go/strftime v1.0.6
@@ -417,7 +417,7 @@ github.com/prometheus/common/model
 github.com/prometheus/procfs
 github.com/prometheus/procfs/internal/fs
 github.com/prometheus/procfs/internal/util
-# github.com/russellhaering/goxmldsig v1.2.0
+# github.com/russellhaering/goxmldsig v1.4.0
 ## explicit; go 1.15
 github.com/russellhaering/goxmldsig
 github.com/russellhaering/goxmldsig/etreeutils
@@ -454,8 +454,8 @@ github.com/steinfletcher/apitest/difflib
 github.com/steinfletcher/apitest-jsonpath
 github.com/steinfletcher/apitest-jsonpath/http
 github.com/steinfletcher/apitest-jsonpath/jsonpath
-# github.com/stretchr/testify v1.8.1
-## explicit; go 1.13
+# github.com/stretchr/testify v1.8.4
+## explicit; go 1.20
 github.com/stretchr/testify/assert
 github.com/stretchr/testify/require
 # github.com/tidwall/btree v1.3.1
@@ -482,8 +482,8 @@ go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
 go.uber.org/zap/zaptest/observer
-# golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
-## explicit; go 1.17
+# golang.org/x/crypto v0.19.0
+## explicit; go 1.18
 golang.org/x/crypto/argon2
 golang.org/x/crypto/bcrypt
 golang.org/x/crypto/blake2b
@@ -507,7 +507,7 @@ golang.org/x/image/math/f64
 golang.org/x/image/math/fixed
 golang.org/x/image/tiff
 golang.org/x/image/tiff/lzw
-# golang.org/x/net v0.7.0
+# golang.org/x/net v0.10.0
 ## explicit; go 1.17
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
@@ -530,19 +530,18 @@ golang.org/x/oauth2/google/internal/externalaccount
 golang.org/x/oauth2/internal
 golang.org/x/oauth2/jws
 golang.org/x/oauth2/jwt
-# golang.org/x/sys v0.5.0
-## explicit; go 1.17
+# golang.org/x/sys v0.17.0
+## explicit; go 1.18
 golang.org/x/sys/cpu
 golang.org/x/sys/execabs
-golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/plan9
 golang.org/x/sys/unix
 golang.org/x/sys/windows
-# golang.org/x/term v0.5.0
-## explicit; go 1.17
+# golang.org/x/term v0.17.0
+## explicit; go 1.18
 golang.org/x/term
-# golang.org/x/text v0.8.0
-## explicit; go 1.17
+# golang.org/x/text v0.14.0
+## explicit; go 1.18
 golang.org/x/text/cases
 golang.org/x/text/collate
 golang.org/x/text/internal

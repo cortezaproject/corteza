@@ -32,26 +32,56 @@ func pad(buf []byte, n int) []byte {
 	return newbuf
 }
 
-func unpad(buf []byte, n int) ([]byte, error) {
-	lbuf := len(buf)
-	rem := lbuf % n
-	if rem != 0 {
-		return nil, errors.Errorf("input buffer must be multiple of block size %d", n)
+// ref. https://github.com/golang/go/blob/c3db64c0f45e8f2d75c5b59401e0fc925701b6f4/src/crypto/tls/conn.go#L279-L324
+//
+// extractPadding returns, in constant time, the length of the padding to remove
+// from the end of payload. It also returns a byte which is equal to 255 if the
+// padding was valid and 0 otherwise. See RFC 2246, Section 6.2.3.2.
+func extractPadding(payload []byte) (toRemove int, good byte) {
+	if len(payload) < 1 {
+		return 0, 0
 	}
 
-	count := 0
-	last := buf[lbuf-1]
-	for i := lbuf - 1; i >= 0; i-- {
-		if buf[i] != last {
-			break
-		}
-		count++
-	}
-	if count != int(last) {
-		return nil, errors.New("invalid padding")
+	paddingLen := payload[len(payload)-1]
+	t := uint(len(payload)) - uint(paddingLen)
+	// if len(payload) > paddingLen then the MSB of t is zero
+	good = byte(int32(^t) >> 31)
+
+	// The maximum possible padding length plus the actual length field
+	toCheck := 256
+	// The length of the padded data is public, so we can use an if here
+	if toCheck > len(payload) {
+		toCheck = len(payload)
 	}
 
-	return buf[:lbuf-int(last)], nil
+	for i := 1; i <= toCheck; i++ {
+		t := uint(paddingLen) - uint(i)
+		// if i <= paddingLen then the MSB of t is zero
+		mask := byte(int32(^t) >> 31)
+		b := payload[len(payload)-i]
+		good &^= mask&paddingLen ^ mask&b
+	}
+
+	// We AND together the bits of good and replicate the result across
+	// all the bits.
+	good &= good << 4
+	good &= good << 2
+	good &= good << 1
+	good = uint8(int8(good) >> 7)
+
+	// Zero the padding length on error. This ensures any unchecked bytes
+	// are included in the MAC. Otherwise, an attacker that could
+	// distinguish MAC failures from padding failures could mount an attack
+	// similar to POODLE in SSL 3.0: given a good ciphertext that uses a
+	// full block's worth of padding, replace the final block with another
+	// block. If the MAC check passed but the padding check failed, the
+	// last byte of that block decrypted to the block size.
+	//
+	// See also macAndPaddingGood logic below.
+	paddingLen &= good
+
+	toRemove = int(paddingLen)
+	return
 }
 
 type Hmac struct {
@@ -196,10 +226,13 @@ func (c Hmac) Open(dst, nonce, ciphertext, data []byte) ([]byte, error) {
 	buf := make([]byte, tagOffset)
 	cbc.CryptBlocks(buf, ciphertext)
 
-	plaintext, err := unpad(buf, c.blockCipher.BlockSize())
-	if err != nil {
-		return nil, errors.Wrap(err, `failed to generate plaintext from decrypted blocks`)
+	toRemove, good := extractPadding(buf)
+	cmp := subtle.ConstantTimeCompare(expectedTag, tag) & int(good)
+	if cmp != 1 {
+		return nil, errors.New("invalid ciphertext")
 	}
+
+	plaintext := buf[:len(buf)-toRemove]
 	ret := ensureSize(dst, len(plaintext))
 	out := ret[len(dst):]
 	copy(out, plaintext)
