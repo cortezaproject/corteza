@@ -493,6 +493,14 @@ export default {
     UniqueValues,
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedModule(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedModule(next)
+  },
+
   props: {
     namespace: {
       type: compose.Namespace,
@@ -673,14 +681,6 @@ export default {
   beforeDestroy () {
     this.abortRequests()
     this.setDefaultValues()
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedModule(next)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedModule(next)
   },
 
   methods: {

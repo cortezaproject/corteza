@@ -19,7 +19,7 @@
         head-variant="light"
         class="field-table"
       >
-        <template v-slot:head(selected)>
+        <template #head(selected)>
           <b-form-checkbox
             class="pr-0"
             :checked="selectAll"
@@ -27,13 +27,13 @@
           />
         </template>
 
-        <template v-slot:cell(selected)="data">
+        <template #cell(selected)="data">
           <b-form-checkbox
             v-model="data.item.selected"
             class="pr-0"
           />
         </template>
-        <template v-slot:cell(moduleField)="data">
+        <template #cell(moduleField)="data">
           <b-form-select
             v-model="data.item.moduleField"
             :options="moduleFields"

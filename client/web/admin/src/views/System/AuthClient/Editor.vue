@@ -62,6 +62,14 @@ export default {
     editorHelpers,
   ],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   props: {
     authClientID: {
       type: String,
@@ -99,14 +107,6 @@ export default {
     title () {
       return this.authClientID ? this.$t('title.edit') : this.$t('title.create')
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
   },
 
   watch: {

@@ -10,7 +10,7 @@ interface Options {
 
 const defaults: Readonly<Options> = Object.freeze({
   body: '',
-  magnifyOption: ''
+  magnifyOption: '',
 })
 
 export class PageBlockContent extends PageBlock {

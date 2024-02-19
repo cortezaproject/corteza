@@ -207,7 +207,7 @@
             </b-alert>
           </template>
 
-          <template v-slot:row-details="{ item: r }">
+          <template #row-details="{ item: r }">
             <b-card>
               <pre>{{ r.triggers }}</pre>
               <pre>{{ r.iterator }}</pre>

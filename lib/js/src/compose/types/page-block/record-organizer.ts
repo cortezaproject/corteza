@@ -27,7 +27,7 @@ const defaults: Readonly<Options> = Object.freeze({
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
-  displayOption: 'sameTab'
+  displayOption: 'sameTab',
 })
 
 export class PageBlockRecordOrganizer extends PageBlock {

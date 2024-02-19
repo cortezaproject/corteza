@@ -49,7 +49,7 @@ const defaults: Readonly<Options> = Object.freeze({
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
-  eventDisplayOption: 'sameTab'
+  eventDisplayOption: 'sameTab',
 })
 
 /**

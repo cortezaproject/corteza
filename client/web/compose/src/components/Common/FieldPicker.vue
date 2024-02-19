@@ -15,7 +15,7 @@
       }"
     >
       <template
-        v-slot:default="{ field }"
+        #default="{ field }"
       >
         <b class="cursor-default text-dark">
           <template

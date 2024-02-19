@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
 import { apiClients } from '@cortezaproject/corteza-js'
 import { PluginFunction } from 'vue'
 

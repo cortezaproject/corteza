@@ -1,9 +1,9 @@
-import { Apply, CortezaID, ISO8601Date, NoID } from "../../cast";
-import { IsOf } from "../../guards";
+import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+import { IsOf } from '../../guards'
 
 interface PartialAuthClient
   extends Partial<
-    Omit<AuthClient, "createdAt" | "updatedAt" | "deletedAt" | "lastUsedAt">
+    Omit<AuthClient, 'createdAt' | 'updatedAt' | 'deletedAt' | 'lastUsedAt'>
   > {
   createdAt?: string | number | Date;
   updatedAt?: string | number | Date;
@@ -25,18 +25,18 @@ interface DefSecurity {
 
 export class AuthClient {
   public authClientID = NoID;
-  public handle = "";
-  public scope = "profile api";
-  public redirectURI = "";
+  public handle = '';
+  public scope = 'profile api';
+  public redirectURI = '';
   public validGrant = 'authorization_code';
-  
+
   public meta: AuthClientMeta = {
-    name: "",
-    description: "",
+    name: '',
+    description: '',
   };
 
   public security: DefSecurity = {
-    impersonateUser: "0",
+    impersonateUser: '0',
     permittedRoles: [],
     prohibitedRoles: [],
     forcedRoles: [],
@@ -65,26 +65,25 @@ export class AuthClient {
 
   apply (o?: PartialAuthClient): void {
     Apply(this, o, CortezaID, 'authClientID')
-    Apply(this, o, ISO8601Date, 'validFrom', 'expiresAt', 'createdAt', 'updatedAt', 'deletedAt');
-    Apply(this, o, String, 'handle', 'scope', 'redirectURI', 'validGrant');
-    Apply(this, o, Boolean, 'enabled', 'trusted', 'canDeleteAuthClient', 'canGrant', 'canUpdateAuthClient');
-    
+    Apply(this, o, ISO8601Date, 'validFrom', 'expiresAt', 'createdAt', 'updatedAt', 'deletedAt')
+    Apply(this, o, String, 'handle', 'scope', 'redirectURI', 'validGrant')
+    Apply(this, o, Boolean, 'enabled', 'trusted', 'canDeleteAuthClient', 'canGrant', 'canUpdateAuthClient')
 
     if (IsOf(o, 'meta')) {
-        this.meta = { ...o.meta }
+      this.meta = { ...o.meta }
     }
 
     if (IsOf(o, 'security')) {
-        this.security = { 
-            ...this.security,
-            ...o.security 
-        }
+      this.security = {
+        ...this.security,
+        ...o.security,
+      }
     }
 
-    Apply(this, o, CortezaID, 'createdBy', 'updatedBy', 'deletedBy');
+    Apply(this, o, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
   }
 
-  clone(): AuthClient {
-    return new AuthClient(JSON.parse(JSON.stringify(this)));
+  clone (): AuthClient {
+    return new AuthClient(JSON.parse(JSON.stringify(this)))
   }
 }

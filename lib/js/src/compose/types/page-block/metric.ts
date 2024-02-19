@@ -121,6 +121,7 @@ export class PageBlockMetric extends PageBlock {
     }
 
     if (m.transformFx) {
+      // eslint-disable-next-line no-new-func
       rtr = (new Function('v', `return ${m.transformFx}`))(rtr)
     }
 

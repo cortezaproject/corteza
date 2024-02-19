@@ -49,6 +49,14 @@ export default {
     editorHelpers,
   ],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   props: {
     queueID: {
       type: String,
@@ -83,14 +91,6 @@ export default {
     title () {
       return this.queue.queueID ? this.$t('title.edit') : this.$t('title.new')
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
   },
 
   watch: {

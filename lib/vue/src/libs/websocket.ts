@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
 /**
  * Default websocket configuration
  */
@@ -24,7 +23,6 @@ export const config = {
  * Extract websocket endpoint from window props (set via config.js)
  */
 export function endpoint (): string {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
   let { CortezaAPI, CortezaWebsocket, location } = window
 

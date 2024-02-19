@@ -17,7 +17,7 @@ interface PageLayoutConfig {
   };
   actions: Action[];
   // Only used for record pages
-  useTitle: Boolean;
+  useTitle: boolean;
 }
 
 interface Action {
@@ -74,7 +74,7 @@ export class PageLayout {
 
   public meta: Meta = {
     title: '',
-    description: ''
+    description: '',
   };
 
   public createdAt?: Date = undefined;
@@ -121,8 +121,8 @@ export class PageLayout {
       meta: {
         label: '',
         style: {
-          variant: 'primary'
-        }
+          variant: 'primary',
+        },
       },
     } as Action)
   }

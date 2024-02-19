@@ -378,7 +378,7 @@ export class Auth {
             preferredLanguage: data.preferred_language || 'en',
             avatarID: data.avatarID,
             theme: data.theme,
-          }
+          },
         })
 
         this[user] = authUser
@@ -446,7 +446,6 @@ export class Auth {
     this.location.assign(Make({
       url: `${this.cortezaAuthURL}` + oauth2FlowURL,
       query: {
-        // eslint-disable-next-line @typescript-eslint/camelcase
         redirect_uri: this.callbackURL,
         scope: oauth2Scope,
         state,
@@ -503,7 +502,6 @@ export class Auth {
     return this.oauth2token({
       code: code,
       scope: oauth2Scope,
-      // eslint-disable-next-line @typescript-eslint/camelcase
       redirect_uri: this.callbackURL,
     }).then((oa2tr) => this.procTokenResponse(oa2tr))
   }
@@ -523,7 +521,6 @@ export class Auth {
     this.completeFinalState()
 
     return this.oauth2token({
-      // eslint-disable-next-line @typescript-eslint/camelcase
       refresh_token: refreshToken || '',
     }).then((oa2tr) => this.procTokenResponse(oa2tr))
       .catch((err) => {
@@ -555,7 +552,6 @@ export class Auth {
     const timeout = oa2tkn.expires_in * this.refreshFactor
 
     this.log.debug('setting up refresh timeout callback', {
-      // eslint-disable-next-line @typescript-eslint/camelcase
       expires_in: oa2tkn.expires_in,
       timeout,
     })
@@ -659,7 +655,6 @@ export default function (): PluginFunction<PluginOpts> {
        * (most likely through config.js)
        */
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       const { CortezaAPI = undefined, CortezaAuth = undefined } = window
 
@@ -696,7 +691,6 @@ export default function (): PluginFunction<PluginOpts> {
         throw new Error('can not construct callbackURL; specify \'callbackURL\' or \'app\' property')
       }
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
       // @ts-ignore
       const { CortezaWebapp = undefined } = window
       const callbackPath = 'auth/callback'

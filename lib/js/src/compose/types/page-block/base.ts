@@ -40,7 +40,6 @@ export class PageBlock {
 
   public xywh: number[] = defaultXYWH
 
-
   public options = {}
 
   public meta: PageBlockMeta = {

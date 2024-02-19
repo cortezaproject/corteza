@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
-
 import { User, Role, Application, SinkResponse, SinkRequest } from '../system'
 import { Module, Page, Namespace, Record } from '../compose'
 import { Caster, GenericCaster, GenericCasterFreezer } from './shared'

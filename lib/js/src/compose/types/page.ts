@@ -53,6 +53,7 @@ export class Page {
       expanded: false,
     },
   }
+
   public meta: object = {};
 
   public createdAt?: Date = undefined;

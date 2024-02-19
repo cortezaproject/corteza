@@ -63,6 +63,7 @@ export class BaseChart {
     if (!fxRaw.startsWith('return')) {
       fxRaw = 'return ' + fxRaw
     }
+    // eslint-disable-next-line no-new-func
     const fx = new Function('n', 'm', 'r', fxRaw)
 
     // Define a new array, so we don't alter the original one.
@@ -118,7 +119,7 @@ export class BaseChart {
     this.config.reports?.forEach(report => {
       const { dimensions = [], metrics = [] } = report || {}
       report.dimensions = dimensions.map(d => {
-        //Legacy support
+        // Legacy support
         if (d.modifier === 'auto') {
           d.timeLabels = true
           d.modifier = '(no grouping / buckets)'
@@ -389,7 +390,7 @@ export class BaseChart {
   get resourceType (): string {
     return 'compose:chart'
   }
-  
+
   clone (): BaseChart {
     return new BaseChart(JSON.parse(JSON.stringify(this)))
   }

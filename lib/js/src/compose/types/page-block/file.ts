@@ -40,7 +40,7 @@ const defaults: Readonly<Options> = Object.freeze({
   backgroundColor: '#FFFFFF00',
   magnifyOption: '',
   clickToView: true,
-  enableDownload: true
+  enableDownload: true,
 })
 
 export class PageBlockFile extends PageBlock {

@@ -198,7 +198,7 @@
           variant="primary"
           block
           :processing="processingSave"
-          :text="$t('editor:detected-changes') + `${canUpdateWorkflow ? this.$t('editor:click-to-save') : ''}`"
+          :text="$t('editor:detected-changes') + `${canUpdateWorkflow ? $t('editor:click-to-save') : ''}`"
           :loading-text="$t('editor:saving')"
           class="rounded-0 py-2 px-3"
           @submit="saveWorkflow()"
@@ -418,7 +418,7 @@
       scrollable
       :body-class="dryRun.lookup ? '' : 'p-1'"
       :ok-only="dryRun.lookup"
-      :ok-title="`${dryRun.lookup ? this.$t('editor:load-and-configure') : this.$t('editor:run-workflow')}`"
+      :ok-title="`${dryRun.lookup ? $t('editor:load-and-configure') : $t('editor:run-workflow')}`"
       :cancel-title="$t('editor:back')"
       ok-variant="success"
       no-fade

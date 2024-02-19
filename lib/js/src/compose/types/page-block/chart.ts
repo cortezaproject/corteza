@@ -23,8 +23,8 @@ const defaults: Readonly<Options> = Object.freeze({
   magnifyOption: '',
   drillDown: {
     enabled: false,
-    blockID: ''
-  }
+    blockID: '',
+  },
 })
 
 export class PageBlockChart extends PageBlock {

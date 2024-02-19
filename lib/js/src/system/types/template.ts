@@ -23,6 +23,7 @@ export class Template {
     short: '',
     description: '',
   }
+
   public template = ''
   public labels: object = {}
   public ownerID = NoID

@@ -377,6 +377,14 @@ export default {
     pages,
   ],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedBlocks(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedBlocks(next)
+  },
+
   props: {
     namespace: {
       type: compose.Namespace,
@@ -559,14 +567,6 @@ export default {
     this.$root.$on('tab-editRequest', this.fulfilEditRequest)
     this.$root.$on('tab-createRequest', this.fulfilCreateRequest)
     this.$root.$on('tabChange', this.untabBlock)
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedBlocks(next, to)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedBlocks(next)
   },
 
   beforeDestroy () {

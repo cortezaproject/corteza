@@ -9,6 +9,6 @@ export { default as CInputCheckbox } from './CInputCheckbox.vue'
 export { default as CInputColorPicker } from './CInputColorPicker.vue'
 export { default as CAceEditor } from './CAceEditor.vue'
 export {
-  CButtonSubmit
+  CButtonSubmit,
 } from './button'
 export { default as CInputSelect } from './CInputSelect.vue'

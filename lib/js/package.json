@@ -13,7 +13,7 @@
   "scripts": {
     "build": "rollup -c --environment BUILD:production",
     "build:dev": "rollup -c",
-    "lint": "eslint src/** --ext .js,.ts --no-fix",
+    "lint": "eslint src --ext .js,.ts --ignore-pattern 'src/**/*.test.ts' --no-fix",
     "test:unit": "mocha",
     "test:unit:cc": "nyc mocha",
     "codegen:corteza-api-client": "node -r esm tools/codegen/corteza-api-client.js"

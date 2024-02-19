@@ -86,7 +86,7 @@ export class BasicChartOptions extends ChartOptions {
       const {
         label: xLabel,
         type: xType = 'category',
-        labelRotation: xLabelRotation = 0
+        labelRotation: xLabelRotation = 0,
       } = this.xAxis
 
       options.xAxis = [
@@ -156,7 +156,7 @@ export class BasicChartOptions extends ChartOptions {
         nameTextStyle: {
           align: labelPosition === 'center' ? 'center' : position,
           padding: labelPosition !== 'center' ? (position === 'left' ? [0, 0, 2, -20] : [0, -20, 2, 0]) : undefined,
-        }
+        },
       }
 
       // If we provide undefined, log scale breaks

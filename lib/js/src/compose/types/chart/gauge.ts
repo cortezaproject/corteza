@@ -95,7 +95,7 @@ export default class GaugeChart extends BaseChart {
       toolbox: {
         feature: {
           saveAsImage: saveAsImage ? {
-            name: this.name
+            name: this.name,
           } : undefined,
         },
         top: 15,
@@ -173,7 +173,7 @@ export default class GaugeChart extends BaseChart {
     return Object.assign({}, {
       type: ChartType.gauge,
       startAngle: 200,
-      endAngle: -20
+      endAngle: -20,
     })
   }
 

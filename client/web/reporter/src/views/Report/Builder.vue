@@ -211,7 +211,7 @@
             @add="openDisplayElementSelector(blocks.currentIndex)"
             @delete="deleteCurrentDisplayElement"
           >
-            <template v-slot:label="{ item: { kind, name } }">
+            <template #label="{ item: { kind, name } }">
               {{ name || kind }}
               <font-awesome-icon
                 :icon="['fas', 'bars']"
@@ -253,7 +253,7 @@
         @add="openDatasourceSelector()"
         @delete="deleteCurrentDataSource"
       >
-        <template v-slot:label="{ item: { step } }">
+        <template #label="{ item: { step } }">
           <span
             class="d-inline-block text-truncate"
           >
@@ -334,7 +334,7 @@
         @add="addScenario()"
         @delete="deleteCurrentScenario()"
       >
-        <template v-slot:label="{ item: { label } }">
+        <template #label="{ item: { label } }">
           <span
             class="d-inline-block text-truncate"
           >
@@ -412,6 +412,14 @@ export default {
   mixins: [
     report,
   ],
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedBlocks(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedBlocks(next)
+  },
 
   data () {
     return {
@@ -642,14 +650,6 @@ export default {
 
       return this.datasources.processing || hasDuplicates
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedBlocks(next)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedBlocks(next)
   },
 
   watch: {

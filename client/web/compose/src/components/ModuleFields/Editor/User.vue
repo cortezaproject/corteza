@@ -39,7 +39,7 @@
       :single-input="field.options.selectType !== 'each'"
       :removable="field.options.selectType !== 'multiple'"
     >
-      <template v-slot:single>
+      <template #single>
         <c-input-select
           v-if="field.options.selectType === 'default'"
           ref="singleSelect"
@@ -88,7 +88,7 @@
         </c-input-select>
       </template>
 
-      <template v-slot:default="ctx">
+      <template #default="ctx">
         <c-input-select
           v-if="field.options.selectType === 'each'"
           :placeholder="$t('kind.user.suggestionPlaceholder')"

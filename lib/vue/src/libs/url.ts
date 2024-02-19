@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
 import qs from 'qs'
 
 const baseQsConfig = {

@@ -155,7 +155,7 @@ export class Module {
           {
             lang: '',
             fields: [],
-          }
+          },
         ],
       },
       protected: {
@@ -308,13 +308,13 @@ export class Module {
     const out: ModuleField[] = []
 
     for (const r of requested) {
-      const sf = this.systemFields().find(f => r === f.name ||  r === f.fieldID)
+      const sf = this.systemFields().find(f => r === f.name || r === f.fieldID)
       if (sf) {
         out.push(sf)
         continue
       }
 
-      const mf = this.fields.find(f => r === f.name ||  r === f.fieldID)
+      const mf = this.fields.find(f => r === f.name || r === f.fieldID)
       if (mf) {
         out.push(mf)
       }

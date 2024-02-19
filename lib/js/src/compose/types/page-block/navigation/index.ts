@@ -44,7 +44,6 @@ export class PageBlockNavigation extends PageBlock {
     this.options.navigationItems = (o.navigationItems || []).map(f => new NavigationItem(f))
 
     this.options.display = { ...this.options.display, ...o.display }
-
   }
 
   static makeNavigationItem (item?: NavigationItemInput): NavigationItem {

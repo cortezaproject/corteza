@@ -76,6 +76,14 @@ export default {
 
   mixins: [editorHelpers],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   props: {
     routeID: {
       type: String,
@@ -124,14 +132,6 @@ export default {
     showProfiler () {
       return this.$Settings.get('apigw.profiler.enabled', false) && (this.$Settings.get('apigw.profiler.global', false) || this.filters.some(({ ref, enabled = false }) => ref === 'profiler' && enabled))
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
   },
 
   watch: {

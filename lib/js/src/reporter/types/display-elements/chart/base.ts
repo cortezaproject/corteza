@@ -80,7 +80,7 @@ export class ChartOptions {
       right: undefined,
       bottom: undefined,
       left: undefined,
-    }
+    },
   }
 
   public tooltips: Tooltips = {

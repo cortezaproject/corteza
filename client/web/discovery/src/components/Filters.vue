@@ -2,7 +2,7 @@
   <div>
     <div class="my-2">
       <h6 class="text-primary mb-2">
-        {{ this.$t('types.title') }}
+        {{ $t('types.title') }}
       </h6>
       <b-form-checkbox-group
         v-model="types"

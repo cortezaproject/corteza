@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
 import { VueConstructor } from 'vue'
 import i18next, { InitOptions } from 'i18next'
 import http from 'i18next-http-backend'

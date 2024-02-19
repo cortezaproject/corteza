@@ -46,6 +46,14 @@ export default {
     editorHelpers,
   ],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   props: {
     sensitivityLevelID: {
       type: String,
@@ -82,14 +90,6 @@ export default {
     title () {
       return this.sensitivityLevelID ? this.$t('title.edit') : this.$t('title.create')
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
   },
 
   watch: {

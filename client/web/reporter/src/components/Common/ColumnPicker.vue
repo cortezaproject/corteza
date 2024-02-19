@@ -16,7 +16,7 @@
       style="max-height: 40vh;"
     >
       <template
-        v-slot:default="{ field }"
+        #default="{ field }"
       >
         <b class="cursor-default text-dark">
           <template

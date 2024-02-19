@@ -158,8 +158,8 @@ export default class Chart extends BaseChart {
 
         options.tooltip.trigger = 'item'
 
-        let lbl :any =  {
-          rotate: dimension.rotateLabel ? +dimension.rotateLabel: 0
+        let lbl :any = {
+          rotate: dimension.rotateLabel ? +dimension.rotateLabel : 0,
         }
 
         if (t?.labelsNextToPartition) {
@@ -284,7 +284,6 @@ export default class Chart extends BaseChart {
       },
     ] : undefined
 
-
     return {
       color: getColorschemeColors(colorScheme, data.customColorSchemes),
       textStyle: {
@@ -295,7 +294,7 @@ export default class Chart extends BaseChart {
       toolbox: {
         feature: {
           saveAsImage: saveAsImage ? {
-            name: this.name
+            name: this.name,
           } : undefined,
         },
         top: 15,

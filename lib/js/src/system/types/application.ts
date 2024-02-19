@@ -50,7 +50,6 @@ export class Application {
     Apply(this, r, Number, 'weight', 'ownerID')
     Apply(this, r, Boolean, 'enabled', 'canGrant', 'canUpdateApplication', 'canDeleteApplication')
 
-
     if (r && IsOf(r, 'unify')) {
       this.unify = r.unify
     }

@@ -252,4 +252,3 @@ const chartUtil = {
 export {
   chartUtil,
 }
-

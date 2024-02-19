@@ -973,6 +973,14 @@ export default {
     pages,
   ],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedComposePage(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedComposePage(next)
+  },
+
   props: {
     namespace: {
       type: compose.Namespace,
@@ -1190,14 +1198,6 @@ export default {
         }
       },
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedComposePage(next)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedComposePage(next)
   },
 
   created () {

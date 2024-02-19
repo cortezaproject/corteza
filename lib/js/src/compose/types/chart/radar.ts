@@ -56,7 +56,7 @@ export default class RadarChart extends BaseChart {
       toolbox: {
         feature: {
           saveAsImage: saveAsImage ? {
-            name: this.name
+            name: this.name,
           } : undefined,
         },
       },
@@ -87,7 +87,7 @@ export default class RadarChart extends BaseChart {
         indicator: labels.map((name: string) => {
           return { name, min, max }
         }),
-        center: ['50%', '55%']
+        center: ['50%', '55%'],
       },
       series: {
         type: 'radar',

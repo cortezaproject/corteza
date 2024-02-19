@@ -47,7 +47,7 @@
         :errors="errors"
         :single-input="field.options.selectType !== 'each'"
       >
-        <template v-slot:single>
+        <template #single>
           <c-input-select
             v-if="field.options.selectType === 'default'"
             ref="singleSelect"
@@ -68,7 +68,7 @@
           />
         </template>
 
-        <template v-slot:default="ctx">
+        <template #default="ctx">
           <c-input-select
             v-if="field.options.selectType === 'each'"
             v-model="value[ctx.index]"

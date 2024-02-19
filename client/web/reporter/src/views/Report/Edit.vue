@@ -198,6 +198,14 @@ export default {
     report,
   ],
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
   data () {
     return {
       processing: false,
@@ -281,14 +289,6 @@ export default {
         }
       },
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChart(next)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChart(next)
   },
 
   methods: {

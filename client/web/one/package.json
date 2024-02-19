@@ -53,7 +53,7 @@
     "chai": "^4.2.0",
     "eslint": "^5.8.0",
     "eslint-config-corteza-client": "file:../../../lib/eslint-client",
-    "eslint-plugin-vue": "5.2.3",
+    "eslint-plugin-vue": "^9.21.1",
     "flush-promises": "^1.0.2",
     "null-loader": "^4.0.1",
     "nyc": "^14.1.1",

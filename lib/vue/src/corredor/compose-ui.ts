@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 import { compose } from '@cortezaproject/corteza-js'
 
 const success = { variant: 'success', countdown: 5 }
@@ -8,8 +9,8 @@ interface ComposeUIContext {
   $module?: compose.Module;
   $record?: compose.Record;
   pages: Array<compose.Page>;
-  emitter: Function;
-  routePusher: Function;
+  emitter: (...a: any) => any;
+  routePusher: (...a: any) => any;
 }
 
 /**
@@ -21,8 +22,8 @@ export default class ComposeUIHelper {
   readonly $module?: compose.Module;
   readonly $record?: compose.Record;
   readonly pages?: Array<compose.Page>;
-  readonly emitter: Function;
-  readonly routePusher: Function;
+  readonly emitter: (...a: any) => any;
+  readonly routePusher: (...a: any) => any;
 
   /**
    *

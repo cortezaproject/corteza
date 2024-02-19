@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
-
 import alert from './CPromptAlert.vue'
 import choice from './CPromptChoice.vue'
 import composeRecordPicker from './CPromptComposeRecordPicker.vue'

@@ -39,6 +39,7 @@ export class Report {
     name: '',
     description: '',
   }
+
   public sources: Array<ReportDataSource> = []
   public blocks: Array<Block> = []
   public scenarios: Array<ReportScenario> = []

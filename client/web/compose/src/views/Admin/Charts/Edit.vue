@@ -468,6 +468,14 @@ export default {
     CInputColorPicker,
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChart(next)
+  },
+
   props: {
     namespace: {
       type: compose.Namespace,
@@ -717,14 +725,6 @@ export default {
         }
       },
     },
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChart(next)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChart(next)
   },
 
   methods: {

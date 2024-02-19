@@ -105,7 +105,7 @@ export default class FunnelChart extends BaseChart {
       toolbox: {
         feature: {
           saveAsImage: saveAsImage ? {
-            name: this.name
+            name: this.name,
           } : undefined,
         },
         top: 15,
@@ -198,7 +198,7 @@ export default class FunnelChart extends BaseChart {
       let { fields = [] } = d.meta || {}
       fields = fields.length ? fields : r.labels
 
-      for (let label of fields) {
+      for (const label of fields) {
         const value = typeof label === 'object' ? label.value : label
         values.push({
           // Use value for label and resolve it on FE (i18n)
@@ -268,7 +268,7 @@ export default class FunnelChart extends BaseChart {
   defDimension (): Dimension {
     return Object.assign({}, {
       conditions: {},
-      meta: { fields: [] }
+      meta: { fields: [] },
     })
   }
 }

@@ -346,6 +346,14 @@ export default {
     NamespaceTranslator,
   },
 
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedNamespace(next)
+  },
+
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedNamespace(next)
+  },
+
   data () {
     return {
       processing: false,
@@ -460,14 +468,6 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedNamespace(next)
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedNamespace(next)
   },
 
   methods: {

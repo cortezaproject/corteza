@@ -108,7 +108,7 @@
     "css-loader": "*",
     "eslint": "^5.8.0",
     "eslint-config-corteza-client": "file:../../../lib/eslint-client",
-    "eslint-plugin-vue": "5.2.3",
+    "eslint-plugin-vue": "^9.21.1",
     "null-loader": "^4.0.1",
     "nyc": "^14.1.1",
     "sass": "^1.49.9",

@@ -27,8 +27,8 @@ const defaults: Readonly<Options> = Object.freeze({
     to: '',
     subject: '',
     body: '',
-    queryString: ''
-  }
+    queryString: '',
+  },
 })
 
 export class PageBlockNylas extends PageBlock {

@@ -28,6 +28,15 @@ export default {
     WorkflowEditor,
   },
 
+  beforeRouteLeave (to, from, next) {
+    if (this.changeDetected && !this.workflow.deletedAt) {
+      next(window.confirm(this.$t('notification:confirm-unsaved-changes')))
+    } else {
+      window.onbeforeunload = null
+      next()
+    }
+  },
+
   data () {
     return {
       processing: true,
@@ -91,15 +100,6 @@ export default {
     }
 
     this.processing = false
-  },
-
-  beforeRouteLeave (to, from, next) {
-    if (this.changeDetected && !this.workflow.deletedAt) {
-      next(window.confirm(this.$t('notification:confirm-unsaved-changes')))
-    } else {
-      window.onbeforeunload = null
-      next()
-    }
   },
 
   beforeDestroy () {

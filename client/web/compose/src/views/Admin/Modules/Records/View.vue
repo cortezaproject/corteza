@@ -127,6 +127,14 @@ export default {
     record,
   ],
 
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   props: {
     // If component was called (via router) with some pre-seed values
     values: {
@@ -265,14 +273,6 @@ export default {
   beforeDestroy () {
     this.abortRequests()
     this.setDefaultValues()
-  },
-
-  beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
   },
 
   methods: {

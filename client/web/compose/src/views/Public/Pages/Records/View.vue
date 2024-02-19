@@ -135,6 +135,16 @@ export default {
     record,
   ],
 
+  // Destroy event before route leave to ensure it doesn't destroy the newly created one
+  beforeRouteLeave (to, from, next) {
+    this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
+    this.checkUnsavedChanges(next, to)
+  },
+
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
+
   props: {
     namespace: {
       type: compose.Namespace,
@@ -353,16 +363,6 @@ export default {
     this.abortRequests()
     this.destroyEvents()
     this.setDefaultValues()
-  },
-
-  // Destroy event before route leave to ensure it doesn't destroy the newly created one
-  beforeRouteLeave (to, from, next) {
-    this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
-    this.checkUnsavedChanges(next, to)
-  },
-
-  beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
   },
 
   methods: {
