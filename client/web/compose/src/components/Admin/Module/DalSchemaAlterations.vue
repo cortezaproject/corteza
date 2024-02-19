@@ -12,6 +12,7 @@
       borderless
       sticky-header
       responsive
+      hover
       head-variant="light"
       class="mb-0"
       style="min-height: 300px; max-height: 75vh;"
@@ -41,7 +42,7 @@
           v-for="a in sortedAlterations"
           :key="a.alterationID"
           class="border-top"
-          :class="{ 'bg-gray': a.alterationID === dependOnHover }"
+          :class="{ 'bg-extra-light': a.alterationID === dependOnHover }"
           @mouseover="dependOnHover = a.dependsOn"
           @mouseleave="dependOnHover = undefined"
         >
@@ -72,7 +73,7 @@
               v-else-if="a.dependsOn"
               variant="extra-light"
             >
-              {{ $t('waitingFor', { id:a.dependsOn }) }}
+              {{ $t('waitingFor', { id: a.dependsOn }) }}
             </b-badge>
           </b-td>
 

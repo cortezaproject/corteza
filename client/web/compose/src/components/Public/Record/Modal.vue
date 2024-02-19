@@ -5,7 +5,7 @@
     scrollable
     dialog-class="h-100 mw-90"
     content-class="card position-initial"
-    body-class="p-0 bg-gray"
+    body-class="p-0"
     footer-class="p-0"
     size="xl"
     @hidden="onHidden"
@@ -229,9 +229,15 @@ export default {
   position: initial;
 }
 
-#record-modal .modal-header {
-  h5 {
-    min-height: 27px;
+#record-modal {
+  .modal-header {
+    h5 {
+      min-height: 27px;
+    }
+  }
+
+  .modal-body {
+    background-color: var(--body-bg);
   }
 }
 </style>
