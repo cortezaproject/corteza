@@ -621,6 +621,22 @@
               lg="6"
             >
               <b-form-group
+                :label="$t('recordList.record.editMode')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.openRecordInEditMode"
+                  switch
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              md="6"
+            >
+              <b-form-group
                 :label="$t('recordList.selectable')"
                 label-class="text-primary"
               >
