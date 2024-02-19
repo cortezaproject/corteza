@@ -50,25 +50,26 @@ export interface Options {
   positionField?: string;
   refField?: string;
   editFields?: unknown[];
-
+  
   // When adding a new record, link it to parent when available
   linkToParent: boolean;
-
+  
   // Should records be opened in a new tab
   // legacy field that has been removed but we keep it for backwards compatibility
   openInNewTab: boolean;
-
+  
   // Are table rows selectable
   selectable: boolean;
   selectMode: 'multi' | 'single' | 'range';
-
+  
   // Ordered list of buttons to display in the block
   selectionButtons: Array<Button>;
-
+  
   bulkRecordEditEnabled: boolean;
   inlineRecordEditEnabled: boolean;
   filterPresets: FilterPreset[];
   showRecordPerPageOption: boolean;
+  openRecordInEditMode: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -122,6 +123,7 @@ const defaults: Readonly<Options> = Object.freeze({
   inlineRecordEditEnabled: false,
   filterPresets: [],
   showRecordPerPageOption: false,
+  openRecordInEditMode: false,
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -185,6 +187,7 @@ export class PageBlockRecordList extends PageBlock {
       'bulkRecordEditEnabled',
       'inlineRecordEditEnabled',
       'showRecordPerPageOption',
+      'openRecordInEditMode',
     )
 
     if (o.selectionButtons) {
