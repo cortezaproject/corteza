@@ -67,6 +67,7 @@ export interface Options {
   inlineRecordEditEnabled: boolean;
   filterPresets: FilterPreset[];
   showRecordPerPageOption: boolean;
+  openRecordInEditMode: boolean;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -120,6 +121,7 @@ const defaults: Readonly<Options> = Object.freeze({
   inlineRecordEditEnabled: false,
   filterPresets: [],
   showRecordPerPageOption: false,
+  openRecordInEditMode: false,
 })
 
 export class PageBlockRecordList extends PageBlock {
@@ -183,6 +185,7 @@ export class PageBlockRecordList extends PageBlock {
       'bulkRecordEditEnabled',
       'inlineRecordEditEnabled',
       'showRecordPerPageOption',
+      'openRecordInEditMode',
     )
 
     if (o.selectionButtons) {

@@ -321,7 +321,7 @@
               :key="`${index}${item.r.recordID}`"
               :class="{ 'pointer': !(options.editable && editing), }"
               :variant="inlineEditing && item.r.deletedAt ? 'warning' : ''"
-              @click="handleRowClicked(item)"
+              @click="handleRowClick(item)"
             >
               <b-td
                 v-if="options.draggable && inlineEditing"
@@ -435,6 +435,7 @@
                       :icon="['fas', 'ellipsis-v']"
                     />
                   </template>
+
                   <template v-if="inlineEditing">
                     <b-dropdown-item
                       v-if="isCloneRecordActionVisible"
@@ -1462,7 +1463,7 @@ export default {
       this.processing = false
     },
 
-    handleRowClicked ({ r: { recordID } }) {
+    handleRowClick ({ r: { recordID } }) {
       if ((this.options.editable && this.editing) || (!this.recordPageID && !this.options.rowViewUrl)) {
         return
       }
@@ -1476,9 +1477,19 @@ export default {
         })
       }
 
+      if (this.options.recordDisplayOption === 'modal' || this.inModal) {
+        this.$root.$emit('show-record-modal', {
+          recordID,
+          recordPageID: this.recordPageID,
+          edit: this.options.openRecordInEditMode,
+        })
+        return
+      }
+
       const pageID = this.recordPageID
+      const name = this.options.openRecordInEditMode ? this.options.rowEditUrl || 'page.record.edit' : this.options.rowViewUrl || 'page.record'
       const route = {
-        name: this.options.rowViewUrl || 'page.record',
+        name,
         params: {
           pageID,
           recordID,
@@ -1486,12 +1497,7 @@ export default {
         query: null,
       }
 
-      if (this.options.recordDisplayOption === 'modal' || this.inModal) {
-        this.$root.$emit('show-record-modal', {
-          recordID,
-          recordPageID: this.recordPageID,
-        })
-      } else if (this.options.recordDisplayOption === 'newTab') {
+      if (this.options.recordDisplayOption === 'newTab') {
         window.open(this.$router.resolve(route).href)
       } else {
         this.$router.push(route)
