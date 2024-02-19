@@ -2001,20 +2001,24 @@ export default {
 
       if (!(pageID || this.options.rowCreateUrl)) return
 
-      if (this.inModal) {
+      const route = {
+        name: this.options.rowCreateUrl || 'page.record.create',
+        params: { pageID, refRecord },
+        query: null,
+        edit: true,
+      }
+
+      if (this.inModal || this.options.addRecordDisplayOption === 'modal') {
         this.$root.$emit('show-record-modal', {
           recordID: NoID,
           recordPageID: this.recordPageID,
           refRecord,
           edit: true,
         })
+      } else if (this.options.addRecordDisplayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
       } else {
-        this.$router.push({
-          name: this.options.rowCreateUrl || 'page.record.create',
-          params: { pageID, refRecord },
-          query: null,
-          edit: true,
-        })
+        this.$router.push(route)
       }
     },
 

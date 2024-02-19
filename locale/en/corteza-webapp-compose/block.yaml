@@ -498,6 +498,9 @@ recordList:
     openInSameTab: Open record in the same tab
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal
+    createInSameTab: Create record in the same tab
+    createInNewTab: Create record in a new tab
+    createInModal: Create record in a modal
     enableBulkRecordEdit: Enable bulk record edit
     buttons: Record buttons
     tooltip:
@@ -510,6 +513,7 @@ recordList:
       permissions: Permissions
     recordDisplayOptions: On record click
     recordSelectorDisplayOptions: On record selector click
+    addRecordOptions: On add record click 
   recordPage: record page
   refField:
     footnote: Field that links records with the parent record
