@@ -1,35 +1,29 @@
 <template>
   <div class="list-background w-100 p-3">
-    <h5>{{ listTitle }}</h5>
     <slot></slot>
 
     <b-button
-      v-if="useInternalButton"
+      v-if="showAddButton"
       variant="primary"
       size="sm"
       @click="handleClick"
     >
-      {{ actionTitle }}
+      {{ actionLabel }}
     </b-button>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'CInputList',
+  name: 'CFormTableWrapper',
 
   props: {
-    listTitle: {
+    actionLabel: {
       type: String,
       default: '',
     },
 
-    actionTitle: {
-      type: String,
-      default: '',
-    },
-
-    useInternalButton: {
+    showAddButton: {
       type: Boolean,
       default: false,
     },

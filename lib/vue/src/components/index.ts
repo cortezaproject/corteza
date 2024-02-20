@@ -21,7 +21,6 @@ export {
   CAceEditor,
   CButtonSubmit,
   CInputSelect,
-  CInputList,
 } from './input'
 
 export {
@@ -98,5 +97,9 @@ export {
 export {
   CMap,
 } from './map'
+
+export {
+  CFormTableWrapper,
+} from './wrapper'
 
 export { default as C3 } from './c3'

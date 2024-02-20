@@ -12,4 +12,3 @@ export {
   CButtonSubmit,
 } from './button'
 export { default as CInputSelect } from './CInputSelect.vue'
-export { default as CInputList } from './CInputList.vue'

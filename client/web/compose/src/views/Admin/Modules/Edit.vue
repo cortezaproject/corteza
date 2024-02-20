@@ -210,10 +210,14 @@
 
                 <hr>
 
+                <h5 class="mb-3">
+                  {{ $t('edit.manageRecordFields') }}
+                </h5>
+
                 <b-row no-gutters>
-                  <c-input-list
+                  <c-form-table-wrapper
                     :list-title="$t('edit.manageRecordFields')"
-                    :action-title="$t('edit.newField')"
+                    :action-label="$t('edit.newField')"
                   >
                     <b-form-group class="w-100">
                       <b-table-simple
@@ -310,7 +314,7 @@
                         />
                       </b-table-simple>
                     </b-form-group>
-                  </c-input-list>
+                  </c-form-table-wrapper>
                 </b-row>
               </b-tab>
 
