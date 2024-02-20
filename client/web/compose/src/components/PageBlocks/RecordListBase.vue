@@ -2001,7 +2001,7 @@ export default {
         })
       } else {
         this.$router.push({
-          name: this.options.rowCreateUrl || 'page.record.edit',
+          name: this.options.rowEditUrl || 'page.record.edit',
           params: { pageID: this.recordPageID, recordID },
           query: null,
         })
