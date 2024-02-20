@@ -36,7 +36,7 @@
     "lodash": "^4.17.21",
     "minimalist": "^1.0.0",
     "minimist": "^1.2.6",
-    "moment": "2.29.2",
+    "moment": "2.30.1",
     "portal-vue": "^2.1.7",
     "serialize-javascript": "^3.1.0",
     "set-value": "^4.0.1",
@@ -78,7 +78,7 @@
   "resolutions": {
     "**/**/node-forge": "^0.10.0",
     "**/**/yargs-parser": "^13.1.2",
-    "**/**/moment": "2.29.2",
+    "**/**/moment": "2.30.1",
     "**/**/pdfjs-dist": "2.2.228",
     "browserslist": "4.23.0"
   },
