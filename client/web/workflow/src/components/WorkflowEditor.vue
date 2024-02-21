@@ -847,7 +847,7 @@ export default {
       this.graph.setPanning(true)
       this.graph.setConnectable(true)
       this.graph.setAllowDanglingEdges(false)
-      this.graph.setTooltips(false)
+      this.graph.setTooltips(true)
       /* eslint-disable no-new */
       new mxRubberband(this.graph) // Enables multiple selection
       this.graph.edgeLabelsMovable = false
