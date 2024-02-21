@@ -25,7 +25,7 @@
     "@fortawesome/free-solid-svg-icons": "5.12.1",
     "@fortawesome/vue-fontawesome": "0.1.9",
     "acorn": "^6.4.1",
-    "axios": "0.21.2",
+    "axios": "0.28.0",
     "bootstrap-vue": "^2.21.2",
     "brace": "^0.11.1",
     "copy-to-clipboard": "^3.3.1",
