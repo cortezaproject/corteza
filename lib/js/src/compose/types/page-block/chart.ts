@@ -1,5 +1,5 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
-import { Apply,NoID } from '../../../cast'
+import { Apply, NoID } from '../../../cast'
 import { Options as PageBlockRecordListOptions } from './record-list'
 import { cloneDeep, merge } from 'lodash'
 
@@ -30,7 +30,7 @@ const defaults: Readonly<Options> = Object.freeze({
     recordListOptions: {
       fields: [],
     },
-  }
+  },
 })
 
 export class PageBlockChart extends PageBlock {
@@ -57,7 +57,7 @@ export class PageBlockChart extends PageBlock {
     }
   }
 
-  resetDrillDown(): void {
+  resetDrillDown (): void {
     this.options.drillDown = cloneDeep(defaults.drillDown)
   }
 }

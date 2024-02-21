@@ -173,7 +173,8 @@
     >
       <new-block-selector
         :record-page="!!module"
-        :existing-blocks="selectableExistingBlocks"
+        :existing-layout-blocks="selectableExistingLayoutBlocks"
+        :selectable-global-blocks="selectableNamespaceGlobalBlocks"
         style="max-height: 75vh;"
         @select="addBlock"
       />
@@ -204,6 +205,13 @@
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
             v-b-tooltip.noninteractive.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
+            :icon="['fas', 'exclamation-circle']"
+            class="text-warning"
+          />
+
+          <font-awesome-icon
+            v-if="editor && editor.block.meta.namespaceID"
+            v-b-tooltip.noninteractive.hover.right="{ title: $t('block.general.referencedGlobalBlock'), container: '#body' }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />
@@ -238,6 +246,13 @@
           <font-awesome-icon
             v-if="isEditorBlockReferenced"
             v-b-tooltip.noninteractive.hover.right="{ title: $t('referencedBlock'), container: '#body' }"
+            :icon="['fas', 'exclamation-circle']"
+            class="text-warning"
+          />
+
+          <font-awesome-icon
+            v-if="editor && editor.block.meta.namespaceID"
+            v-b-tooltip.noninteractive.hover.right="{ title: $t('block.general.referencedGlobalBlock'), container: '#body' }"
             :icon="['fas', 'exclamation-circle']"
             class="text-warning"
           />
@@ -346,6 +361,7 @@
 </template>
 
 <script>
+import { cloneDeep } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import pages from 'corteza-webapp-compose/src/mixins/pages'
 import NewBlockSelector from 'corteza-webapp-compose/src/components/Admin/Page/Builder/Selector'
@@ -428,6 +444,8 @@ export default {
       pages: 'page/set',
       getModuleByID: 'module/getByID',
       previousPage: 'ui/previousPage',
+      namespaces: 'namespace/set',
+      getNamespaceBlocks: 'namespace/getNamespaceBlocksByID',
     }),
 
     trPage: {
@@ -487,8 +505,16 @@ export default {
       return this.hasChildren || !this.page.canDeletePage || !!this.page.deletedAt
     },
 
-    selectableExistingBlocks () {
+    selectableExistingLayoutBlocks () {
       return this.page.blocks.filter(({ blockID }) => !this.usedBlocks.some(b => b.blockID === blockID))
+    },
+
+    selectableNamespaceGlobalBlocks () {
+      const { namespaceID } = this.namespace
+
+      return this.getNamespaceBlocks(namespaceID).filter(({ blockID }) => {
+        return !this.usedBlocks.some(b => b.blockID === blockID)
+      })
     },
 
     // Blocks used on page or tabbed
@@ -589,6 +615,7 @@ export default {
       createPageLayout: 'pageLayout/create',
       updatePageLayout: 'pageLayout/update',
       deletePageLayout: 'pageLayout/delete',
+      updateNamespace: 'namespace/update',
     }),
 
     fulfilEditRequest (blockID) {
@@ -871,7 +898,7 @@ export default {
       return Promise.all([
         this.findPageByID({ ...this.page, force: true }),
         this.findLayoutByID({ ...this.layout }),
-      ]).then(([page, layout]) => {
+      ]).then(async ([page, layout]) => {
         const blocks = [
           ...page.blocks.filter(({ blockID }) => {
             // Check if block exists in any other layout, if not delete it permanently
@@ -880,16 +907,29 @@ export default {
           ...this.blocks,
         ]
 
-        return this.updatePage({ namespaceID, ...page, blocks })
+        const namespaceBlocks = []
+        const pageBlocks = []
+
+        blocks.forEach(b => {
+          b.meta.namespaceID ? namespaceBlocks.push(b) : pageBlocks.push(b)
+        })
+
+        const updatedGlobalBlocks = await this.processGlobalBlocks(namespaceBlocks)
+
+        return this.updatePage({ namespaceID, ...page, blocks: pageBlocks })
           .then(this.updateTabbedBlockIDs)
           .then(async page => {
             const blocks = this.blocks.map(({ blockID, meta, xywh }) => {
-              if (blockID === NoID) {
+              // If the global blocks is a newly created global block
+              if (meta.namespaceID && blockID === NoID) {
+                blockID = (updatedGlobalBlocks.find(block => block.meta.tempID === meta.tempID) || {}).blockID
+              } else if (blockID === NoID) {
                 blockID = (page.blocks.find(block => block.meta.tempID === meta.tempID) || {}).blockID
               }
 
               return { blockID, xywh, meta }
             })
+
             layout = await this.updatePageLayout({ ...layout, blocks })
             return { page, layout }
           })
@@ -918,6 +958,45 @@ export default {
           this.processingSave = false
         }
       }).catch(this.toastErrorHandler(this.$t('notification:page.page-layout.save.failed')))
+    },
+
+    async processGlobalBlocks (globalBlocks = []) {
+      if (!globalBlocks.length) return []
+
+      let { namespaceID, name, slug, enabled, meta } = this.namespace
+
+      const newGlobalBlocks = globalBlocks
+        .filter(({ blockID }) => blockID === NoID)
+        .map((block) => {
+          block.meta.namespaceID = namespaceID
+
+          return block
+        })
+
+      const namespace = this.namespaces.find((n) => n.namespaceID === this.namespace.namespaceID)
+
+      const existingGlobalBlocks = namespace.blocks
+
+      globalBlocks
+        .filter(({ blockID }) => blockID !== NoID)
+        .forEach((block) => {
+          const blockID = String(block.blockID).replace(`${namespaceID}-`, '')
+          const matchingBlockIndex = existingGlobalBlocks.findIndex(b => b.blockID === blockID)
+
+          if (matchingBlockIndex > -1) {
+            const normalBlockID = existingGlobalBlocks[matchingBlockIndex].blockID
+            existingGlobalBlocks[matchingBlockIndex] = block
+            existingGlobalBlocks[matchingBlockIndex].blockID = normalBlockID
+          }
+        })
+
+      const namespaceBlocks = existingGlobalBlocks.concat(newGlobalBlocks)
+
+      return this.updateNamespace({ blocks: namespaceBlocks, namespaceID, name, meta, slug, enabled }).then((ns) => {
+        this.$store.dispatch('namespace/load', { force: true })
+
+        return ns.blocks
+      })
     },
 
     async handleCloneLayout ({ ref = false }) {
@@ -1093,26 +1172,35 @@ export default {
 
       const tempBlocks = []
       const { blocks = [] } = this.layout || {}
+      const { namespaceID } = this.namespace
 
       blocks.forEach(({ blockID, xywh, meta = {} }) => {
-        let block = this.page.blocks.find(b => b.blockID === blockID)
+        if (blockID) {
+          let block = cloneDeep(this.fetchBlockData({
+            blockID,
+            meta,
+          }))
 
-        if (block) {
-          block.xywh = xywh
-          block.meta.hidden = !!meta.hidden
-          tempBlocks.push(block)
+          if (block) {
+            block.blockID = meta.namespaceID ? `${namespaceID}-${block.blockID}` : block.blockID
 
-          if (block.kind === 'Tabs') {
-            const { tabs = [] } = block.options
-            tabs.forEach(tab => {
-              if (blocks.some(b => b.blockID === tab.blockID)) return
+            block.xywh = xywh
+            block.meta.hidden = !!meta.hidden
+            tempBlocks.push(block)
 
-              block = this.page.blocks.find(b => b.blockID === tab.blockID)
+            if (block.kind === 'Tabs') {
+              const { tabs = [] } = block.options
+              tabs.forEach(tab => {
+                if (blocks.some(b => b.blockID === tab.blockID)) return
 
-              if (block) {
-                tempBlocks.push(block)
-              }
-            })
+                // global blocks are not added to tabs, it's unnecessary
+                block = this.page.blocks.find(b => b.blockID === tab.blockID)
+
+                if (block) {
+                  tempBlocks.push(block)
+                }
+              })
+            }
           }
         }
       })
@@ -1155,6 +1243,18 @@ export default {
       this.$root.$off('tab-editRequest', this.fulfilEditRequest)
       this.$root.$off('tab-createRequest', this.fulfilCreateRequest)
       this.$root.$off('tabChange', this.untabBlock)
+    },
+
+    fetchBlockData ({ blockID, meta = {} }) {
+      blockID = fetchID({ blockID, meta })
+
+      if (meta.namespaceID) {
+        const { blocks = [] } = this.namespaces.find((n) => n.namespaceID === this.namespace.namespaceID) || {}
+
+        return blocks.find((b) => fetchID(b) === blockID)
+      }
+
+      return this.page.blocks.find((b) => fetchID(b) === blockID)
     },
   },
 }

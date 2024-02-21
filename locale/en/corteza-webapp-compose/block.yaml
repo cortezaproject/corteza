@@ -5,6 +5,8 @@ selector:
     clone:
       ref: Clone with references
       noRef: Clone without references
+  selectableGlobalBlocks: 
+    placeholder: Select global block from other pages
 automation:
   addPlaceholderLabel: Add placeholder (dummy button)
   availableScriptsAndWorkflow: Available scripts and workflows ({{count}})
@@ -194,6 +196,8 @@ general:
   tooltip:
     dragAndDrop: Drag and drop to change order
     translations: Field translations
+  globalBlock:
+    label: Global block
 iframe:
   label: IFrame
   pickURLField: Pick an URL field

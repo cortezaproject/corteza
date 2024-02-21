@@ -70,6 +70,7 @@ block:
       sample: Sample
     title: Add new block
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+    referencedGlobalBlock: This block may be used in other pages
 changeBlock: Change existing block
 referencedBlock: This block is used in other layouts
 copyOf: "Copy of {{title}}"
