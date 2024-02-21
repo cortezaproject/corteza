@@ -19,7 +19,7 @@
     "codegen:corteza-api-client": "node -r esm tools/codegen/corteza-api-client.js"
   },
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.28.0",
     "hex-rgb": "^4.1.0",
     "lodash": "^4.17.15",
     "minimalist": "^1.0.0",
