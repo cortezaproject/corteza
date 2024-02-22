@@ -425,7 +425,7 @@ func (c *connection) assertAlterationNestedAttributeAdd(table *ddl.Table, colInd
 			Attr: &dal.Attribute{
 				Ident: alt.AttributeAdd.Attr.StoreIdent(),
 				Store: &dal.CodecPlain{},
-				Type:  dal.TypeJSON{Nullable: false},
+				Type:  &dal.TypeJSON{Nullable: false},
 			},
 		},
 	}
