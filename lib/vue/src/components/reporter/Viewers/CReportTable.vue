@@ -503,13 +503,13 @@ export default {
 
 <style scoped lang="scss">
 .foreign {
-  border: 1px solid rgba(#162425, 0.8);
+  border: 1px solid rgba(var(--black), 0.8);
   border-top: 0;
   border-bottom: 0;
 }
 
 .separator {
-  border-top: 2px solid rgba(#162425, 0.5);
+  border-top: 2px solid rgba(var(--black), 0.5);
 }
 
 .card-rounded {
