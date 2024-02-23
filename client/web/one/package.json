@@ -31,8 +31,6 @@
     "kind-of": "^6.0.3",
     "lodash": "^4.17.21",
     "minimist": "^1.2.6",
-    "postcss-rtl": "^1.7.3",
-    "resolve-url-loader": "^3.1.2",
     "set-value": "^4.0.1",
     "vue": "2.6.14",
     "vue-native-websocket": "^2.0.15",
@@ -41,8 +39,7 @@
     "vue-select": "^3.18.3",
     "vue-tour": "^2.0.0",
     "vuedraggable": "^2.23.2",
-    "vuex": "3.1.3",
-    "webpack": "4.42.1"
+    "vuex": "3.1.3"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.10.0",
@@ -59,15 +56,18 @@
     "flush-promises": "^1.0.2",
     "null-loader": "^4.0.1",
     "nyc": "^14.1.1",
+    "postcss-rtl": "^1.7.3",
+    "resolve-url-loader": "^3.1.2",
     "sass": "^1.49.9",
     "sass-loader": "^10",
     "sinon": "^7.3.2",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.6.14",
+    "webpack": "^4.42.1"
   },
   "resolutions": {
     "**/**/node-forge": "^0.10.0",
     "**/**/serialize-javascript": "^3.1.0",
-    "**/**/moment": "2.29.2"
+    "**/**/moment": "2.30.1"
   },
   "nyc": {
     "all": true,

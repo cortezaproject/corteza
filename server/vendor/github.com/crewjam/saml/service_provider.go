@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -23,6 +23,7 @@ import (
 	dsig "github.com/russellhaering/goxmldsig"
 	"github.com/russellhaering/goxmldsig/etreeutils"
 
+	"github.com/crewjam/saml/logger"
 	"github.com/crewjam/saml/xmlenc"
 )
 
@@ -189,13 +190,13 @@ func (sp *ServiceProvider) Metadata() *EntityDescriptor {
 		}
 	}
 
-	var sloEndpoints []Endpoint
-	for _, binding := range sp.LogoutBindings {
-		sloEndpoints = append(sloEndpoints, Endpoint{
+	sloEndpoints := make([]Endpoint, len(sp.LogoutBindings))
+	for i, binding := range sp.LogoutBindings {
+		sloEndpoints[i] = Endpoint{
 			Binding:          binding,
 			Location:         sp.SloURL.String(),
 			ResponseLocation: sp.SloURL.String(),
-		})
+		}
 	}
 
 	return &EntityDescriptor{
@@ -245,25 +246,29 @@ func (sp *ServiceProvider) MakeRedirectAuthenticationRequest(relayState string) 
 }
 
 // Redirect returns a URL suitable for using the redirect binding with the request
-func (req *AuthnRequest) Redirect(relayState string, sp *ServiceProvider) (*url.URL, error) {
+func (r *AuthnRequest) Redirect(relayState string, sp *ServiceProvider) (*url.URL, error) {
 	w := &bytes.Buffer{}
 	w1 := base64.NewEncoder(base64.StdEncoding, w)
 	w2, _ := flate.NewWriter(w1, 9)
 	doc := etree.NewDocument()
-	doc.SetRoot(req.Element())
+	doc.SetRoot(r.Element())
 	if _, err := doc.WriteTo(w2); err != nil {
 		panic(err)
 	}
-	w2.Close()
-	w1.Close()
+	if err := w2.Close(); err != nil {
+		panic(err)
+	}
+	if err := w1.Close(); err != nil {
+		panic(err)
+	}
 
-	rv, _ := url.Parse(req.Destination)
+	rv, _ := url.Parse(r.Destination)
 	// We can't depend on Query().set() as order matters for signing
 	query := rv.RawQuery
 	if len(query) > 0 {
-		query += "&SAMLRequest=" + url.QueryEscape(string(w.Bytes()))
+		query += "&SAMLRequest=" + url.QueryEscape(w.String())
 	} else {
-		query += "SAMLRequest=" + url.QueryEscape(string(w.Bytes()))
+		query += "SAMLRequest=" + url.QueryEscape(w.String())
 	}
 
 	if relayState != "" {
@@ -352,11 +357,11 @@ func (sp *ServiceProvider) getIDPSigningCerts() ([]*x509.Certificate, error) {
 		return nil, errors.New("cannot find any signing certificate in the IDP SSO descriptor")
 	}
 
-	var certs []*x509.Certificate
+	certs := make([]*x509.Certificate, len(certStrs))
 
 	// cleanup whitespace
 	regex := regexp.MustCompile(`\s+`)
-	for _, certStr := range certStrs {
+	for i, certStr := range certStrs {
 		certStr = regex.ReplaceAllString(certStr, "")
 		certBytes, err := base64.StdEncoding.DecodeString(certStr)
 		if err != nil {
@@ -367,7 +372,7 @@ func (sp *ServiceProvider) getIDPSigningCerts() ([]*x509.Certificate, error) {
 		if err != nil {
 			return nil, err
 		}
-		certs = append(certs, parsedCert)
+		certs[i] = parsedCert
 	}
 
 	return certs, nil
@@ -439,9 +444,9 @@ func GetSigningContext(sp *ServiceProvider) (*dsig.SigningContext, error) {
 		Leaf:        sp.Certificate,
 	}
 	// TODO: add intermediates for SP
-	//for _, cert := range sp.Intermediates {
-	//	keyPair.Certificate = append(keyPair.Certificate, cert.Raw)
-	//}
+	// for _, cert := range sp.Intermediates {
+	// 	keyPair.Certificate = append(keyPair.Certificate, cert.Raw)
+	// }
 	keyStore := dsig.TLSCertKeyStore(keyPair)
 
 	if sp.SignatureMethod != dsig.RSASHA1SignatureMethod &&
@@ -508,9 +513,9 @@ func (sp *ServiceProvider) MakePostAuthenticationRequest(relayState string) ([]b
 }
 
 // Post returns an HTML form suitable for using the HTTP-POST binding with the request
-func (req *AuthnRequest) Post(relayState string) []byte {
+func (r *AuthnRequest) Post(relayState string) []byte {
 	doc := etree.NewDocument()
-	doc.SetRoot(req.Element())
+	doc.SetRoot(r.Element())
 	reqBuf, err := doc.WriteToBytes()
 	if err != nil {
 		panic(err)
@@ -530,7 +535,7 @@ func (req *AuthnRequest) Post(relayState string) []byte {
 		SAMLRequest string
 		RelayState  string
 	}{
-		URL:         req.Destination,
+		URL:         r.Destination,
 		SAMLRequest: encodedReqBuf,
 		RelayState:  relayState,
 	}
@@ -579,7 +584,7 @@ type InvalidResponseError struct {
 }
 
 func (ivr *InvalidResponseError) Error() string {
-	return fmt.Sprintf("Authentication failed")
+	return "Authentication failed"
 }
 
 // ErrBadStatus is returned when the assertion provided is valid but the
@@ -606,7 +611,7 @@ func (sp *ServiceProvider) handleArtifactRequest(ctx context.Context, artifactID
 
 	artifactResolveRequest, err := sp.MakeArtifactResolveRequest(artifactID)
 	if err != nil {
-		retErr.PrivateErr = fmt.Errorf("Cannot generate artifact resolution request: %s", err)
+		retErr.PrivateErr = fmt.Errorf("cannot generate artifact resolution request: %s", err)
 		return nil, retErr
 	}
 
@@ -633,12 +638,16 @@ func (sp *ServiceProvider) handleArtifactRequest(ctx context.Context, artifactID
 		retErr.PrivateErr = fmt.Errorf("cannot resolve artifact: %s", err)
 		return nil, retErr
 	}
-	defer response.Body.Close()
+	defer func() {
+		if err := response.Body.Close(); err != nil {
+			logger.DefaultLogger.Printf("Error while closing response body during artifact resolution: %v", err)
+		}
+	}()
 	if response.StatusCode != 200 {
 		retErr.PrivateErr = fmt.Errorf("Error during artifact resolution: HTTP status %d (%s)", response.StatusCode, response.Status)
 		return nil, retErr
 	}
-	responseBody, err := ioutil.ReadAll(response.Body)
+	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		retErr.PrivateErr = fmt.Errorf("Error during artifact resolution: %s", err)
 		return nil, retErr
@@ -753,11 +762,12 @@ func (sp *ServiceProvider) parseArtifactResponse(artifactResponseEl *etree.Eleme
 
 	var signatureRequirement signatureRequirement
 	sigErr := sp.validateSignature(artifactResponseEl)
-	if sigErr == nil {
+	switch sigErr {
+	case nil:
 		signatureRequirement = signatureNotRequired
-	} else if sigErr == errSignatureElementNotPresent {
+	case errSignatureElementNotPresent:
 		signatureRequirement = signatureRequired
-	} else {
+	default:
 		retErr.PrivateErr = sigErr
 		return nil, retErr
 	}
@@ -888,13 +898,14 @@ func (sp *ServiceProvider) parseResponse(responseEl *etree.Element, possibleRequ
 	}
 
 	if signatureRequirement == signatureRequired {
-		if responseSignatureErr == nil {
+		switch responseSignatureErr {
+		case nil:
 			// since the request has a signature, none of the Assertions need one
 			signatureRequirement = signatureNotRequired
-		} else if responseSignatureErr == errSignatureElementNotPresent {
+		case errSignatureElementNotPresent:
 			// the request has no signature, so assertions must be signed
 			signatureRequirement = signatureRequired // nop
-		} else {
+		default:
 			return nil, responseSignatureErr
 		}
 	}
@@ -1078,7 +1089,7 @@ func (sp *ServiceProvider) validateAssertion(assertion *Assertion, possibleReque
 	return nil
 }
 
-var errSignatureElementNotPresent = errors.New("Signature element not present")
+var errSignatureElementNotPresent = errors.New("signature element not present")
 
 // validateSignature returns nil iff the Signature embedded in the element is valid
 func (sp *ServiceProvider) validateSignature(el *etree.Element) error {
@@ -1154,9 +1165,9 @@ func (sp *ServiceProvider) SignLogoutRequest(req *LogoutRequest) error {
 		Leaf:        sp.Certificate,
 	}
 	// TODO: add intermediates for SP
-	//for _, cert := range sp.Intermediates {
-	//	keyPair.Certificate = append(keyPair.Certificate, cert.Raw)
-	//}
+	// for _, cert := range sp.Intermediates {
+	// 	keyPair.Certificate = append(keyPair.Certificate, cert.Raw)
+	// }
 	keyStore := dsig.TLSCertKeyStore(keyPair)
 
 	if sp.SignatureMethod != dsig.RSASHA1SignatureMethod &&
@@ -1222,22 +1233,26 @@ func (sp *ServiceProvider) MakeRedirectLogoutRequest(nameID, relayState string) 
 }
 
 // Redirect returns a URL suitable for using the redirect binding with the request
-func (req *LogoutRequest) Redirect(relayState string) *url.URL {
+func (r *LogoutRequest) Redirect(relayState string) *url.URL {
 	w := &bytes.Buffer{}
 	w1 := base64.NewEncoder(base64.StdEncoding, w)
 	w2, _ := flate.NewWriter(w1, 9)
 	doc := etree.NewDocument()
-	doc.SetRoot(req.Element())
+	doc.SetRoot(r.Element())
 	if _, err := doc.WriteTo(w2); err != nil {
 		panic(err)
 	}
-	w2.Close()
-	w1.Close()
+	if err := w2.Close(); err != nil {
+		panic(err)
+	}
+	if err := w1.Close(); err != nil {
+		panic(err)
+	}
 
-	rv, _ := url.Parse(req.Destination)
+	rv, _ := url.Parse(r.Destination)
 
 	query := rv.Query()
-	query.Set("SAMLRequest", string(w.Bytes()))
+	query.Set("SAMLRequest", w.String())
 	if relayState != "" {
 		query.Set("RelayState", relayState)
 	}
@@ -1258,9 +1273,9 @@ func (sp *ServiceProvider) MakePostLogoutRequest(nameID, relayState string) ([]b
 }
 
 // Post returns an HTML form suitable for using the HTTP-POST binding with the request
-func (req *LogoutRequest) Post(relayState string) []byte {
+func (r *LogoutRequest) Post(relayState string) []byte {
 	doc := etree.NewDocument()
-	doc.SetRoot(req.Element())
+	doc.SetRoot(r.Element())
 	reqBuf, err := doc.WriteToBytes()
 	if err != nil {
 		panic(err)
@@ -1280,7 +1295,7 @@ func (req *LogoutRequest) Post(relayState string) []byte {
 		SAMLRequest string
 		RelayState  string
 	}{
-		URL:         req.Destination,
+		URL:         r.Destination,
 		SAMLRequest: encodedReqBuf,
 		RelayState:  relayState,
 	}
@@ -1332,22 +1347,26 @@ func (sp *ServiceProvider) MakeRedirectLogoutResponse(logoutRequestID, relayStat
 }
 
 // Redirect returns a URL suitable for using the redirect binding with the LogoutResponse.
-func (resp *LogoutResponse) Redirect(relayState string) *url.URL {
+func (r *LogoutResponse) Redirect(relayState string) *url.URL {
 	w := &bytes.Buffer{}
 	w1 := base64.NewEncoder(base64.StdEncoding, w)
 	w2, _ := flate.NewWriter(w1, 9)
 	doc := etree.NewDocument()
-	doc.SetRoot(resp.Element())
+	doc.SetRoot(r.Element())
 	if _, err := doc.WriteTo(w2); err != nil {
 		panic(err)
 	}
-	w2.Close()
-	w1.Close()
+	if err := w2.Close(); err != nil {
+		panic(err)
+	}
+	if err := w1.Close(); err != nil {
+		panic(err)
+	}
 
-	rv, _ := url.Parse(resp.Destination)
+	rv, _ := url.Parse(r.Destination)
 
 	query := rv.Query()
-	query.Set("SAMLResponse", string(w.Bytes()))
+	query.Set("SAMLResponse", w.String())
 	if relayState != "" {
 		query.Set("RelayState", relayState)
 	}
@@ -1368,9 +1387,9 @@ func (sp *ServiceProvider) MakePostLogoutResponse(logoutRequestID, relayState st
 }
 
 // Post returns an HTML form suitable for using the HTTP-POST binding with the LogoutResponse.
-func (resp *LogoutResponse) Post(relayState string) []byte {
+func (r *LogoutResponse) Post(relayState string) []byte {
 	doc := etree.NewDocument()
-	doc.SetRoot(resp.Element())
+	doc.SetRoot(r.Element())
 	reqBuf, err := doc.WriteToBytes()
 	if err != nil {
 		panic(err)
@@ -1390,7 +1409,7 @@ func (resp *LogoutResponse) Post(relayState string) []byte {
 		SAMLResponse string
 		RelayState   string
 	}{
-		URL:          resp.Destination,
+		URL:          r.Destination,
 		SAMLResponse: encodedReqBuf,
 		RelayState:   relayState,
 	}
@@ -1411,9 +1430,9 @@ func (sp *ServiceProvider) SignLogoutResponse(resp *LogoutResponse) error {
 		Leaf:        sp.Certificate,
 	}
 	// TODO: add intermediates for SP
-	//for _, cert := range sp.Intermediates {
-	//	keyPair.Certificate = append(keyPair.Certificate, cert.Raw)
-	//}
+	// for _, cert := range sp.Intermediates {
+	// 	keyPair.Certificate = append(keyPair.Certificate, cert.Raw)
+	// }
 	keyStore := dsig.TLSCertKeyStore(keyPair)
 
 	if sp.SignatureMethod != dsig.RSASHA1SignatureMethod &&
@@ -1502,10 +1521,7 @@ func (sp *ServiceProvider) ValidateLogoutResponseForm(postFormData string) error
 		retErr.PrivateErr = err
 		return retErr
 	}
-	if err := sp.validateLogoutResponse(&resp); err != nil {
-		return err
-	}
-	return nil
+	return sp.validateLogoutResponse(&resp)
 }
 
 // ValidateLogoutResponseRedirect returns a nil error if the logout response is valid.
@@ -1524,7 +1540,7 @@ func (sp *ServiceProvider) ValidateLogoutResponseRedirect(queryParameterData str
 	}
 	retErr.Response = string(rawResponseBuf)
 
-	gr, err := ioutil.ReadAll(newSaferFlateReader(bytes.NewBuffer(rawResponseBuf)))
+	gr, err := io.ReadAll(newSaferFlateReader(bytes.NewBuffer(rawResponseBuf)))
 	if err != nil {
 		retErr.PrivateErr = err
 		return retErr
@@ -1550,10 +1566,7 @@ func (sp *ServiceProvider) ValidateLogoutResponseRedirect(queryParameterData str
 		retErr.PrivateErr = err
 		return retErr
 	}
-	if err := sp.validateLogoutResponse(&resp); err != nil {
-		return err
-	}
-	return nil
+	return sp.validateLogoutResponse(&resp)
 }
 
 // validateLogoutResponse validates the LogoutResponse fields. Returns a nil error if the LogoutResponse is valid.
@@ -1585,6 +1598,7 @@ func firstSet(a, b string) string {
 
 // findChildren returns all the elements matching childNS/childTag that are direct children of parentEl.
 func findChildren(parentEl *etree.Element, childNS string, childTag string) ([]*etree.Element, error) {
+	//nolint:prealloc // We don't know how many child elements we'll actually put into this array.
 	var rv []*etree.Element
 	for _, childEl := range parentEl.ChildElements() {
 		if childEl.Tag != childTag {

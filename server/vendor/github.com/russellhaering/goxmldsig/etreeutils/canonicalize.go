@@ -16,7 +16,8 @@ func TransformExcC14n(el *etree.Element, inclusiveNamespacesPrefixList string, c
 		prefixSet[prefix] = struct{}{}
 	}
 
-	err := transformExcC14n(DefaultNSContext, DefaultNSContext, el, prefixSet, comments)
+	ctx := NewDefaultNSContext()
+	err := transformExcC14n(ctx, ctx, el, prefixSet, comments)
 	if err != nil {
 		return err
 	}
@@ -31,7 +32,7 @@ func transformExcC14n(ctx, declared NSContext, el *etree.Element, inclusiveNames
 	}
 
 	visiblyUtilizedPrefixes := map[string]struct{}{
-		el.Space: struct{}{},
+		el.Space: {},
 	}
 
 	filteredAttrs := []etree.Attr{}

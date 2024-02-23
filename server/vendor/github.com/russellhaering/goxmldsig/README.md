@@ -15,6 +15,19 @@ $ go get github.com/russellhaering/goxmldsig
 
 ## Usage
 
+Include the [`types.Signature`](https://pkg.go.dev/github.com/russellhaering/goxmldsig/types#Signature) struct from this package in your application messages.
+
+```go
+import (
+    sigtypes "github.com/russellhaering/goxmldsig/types"
+)
+
+type AppHdr struct {
+    ...
+    Signature *sigtypes.Signature
+}
+```
+
 ### Signing
 
 ```go

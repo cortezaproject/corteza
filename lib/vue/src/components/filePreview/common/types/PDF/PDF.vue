@@ -254,13 +254,13 @@ export default {
         // Render page
         const canvas = document.createElement('canvas')
         const scale = doc.scale
-        const viewport = np.page.getViewport(scale)
+        const viewport = np.page.getViewport({ scale })
         const canvasContext = canvas.getContext('2d')
         const renderContext = { canvasContext, viewport }
         canvas.height = viewport.height
         canvas.width = viewport.width
 
-        return np.page.render(renderContext).then(() => {
+        return np.page.render(renderContext).promise.then(() => {
           np.node = canvas
           np.rendered = true
           if (this.inline) {
@@ -289,6 +289,7 @@ export default {
      * @param {Error} err The error
      */
     stdErr (err) {
+      console.error(err)
       this.loadError = err
       this.$emit('error', err)
     },
