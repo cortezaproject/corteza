@@ -8,11 +8,17 @@ interface PartialPage extends Partial<Omit<Page, 'children' | 'meta' | 'blocks' 
 
   blocks?: PageBlock[];
 
-  meta?: object;
+  meta?: PageMeta;
 
   createdAt?: string|number|Date;
   updatedAt?: string|number|Date;
   deletedAt?: string|number|Date;
+}
+
+interface PageMeta {
+  notifications: {
+    enabled: boolean;
+  };
 }
 
 interface PageConfig {
@@ -54,7 +60,11 @@ export class Page {
     },
   }
 
-  public meta: object = {};
+  public meta: PageMeta = {
+    notifications: {
+      enabled: true,
+    },
+  };
 
   public createdAt?: Date = undefined;
   public updatedAt?: Date = undefined;
