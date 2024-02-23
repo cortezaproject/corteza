@@ -192,7 +192,9 @@ export default {
             }
           }
 
-          this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
+          if (this.page.meta.notifications.enabled) {
+            this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
+          }
         })
         .catch(e => {
           // Since processing is set to false by the view record component, we need to set it to false here if we error out
