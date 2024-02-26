@@ -13,6 +13,7 @@ type (
 	TypedValue interface {
 		Type
 		Assigner
+		Clone() (TypedValue, error)
 		Get() interface{}
 	}
 
@@ -39,7 +40,7 @@ type (
 	}
 
 	DeepFieldAssigner interface {
-		AssignFieldValue([]string, TypedValue) error
+		AssignFieldValue(Pather, TypedValue) error
 	}
 
 	Iterator interface {

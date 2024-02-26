@@ -46,7 +46,7 @@ type (
 		ID       uint64 `json:"recordID,string"`
 		ModuleID uint64 `json:"moduleID,string"`
 
-		Revision uint `json:"revision,omitempty"`
+		Revision int `json:"revision,omitempty"`
 
 		module *Module
 

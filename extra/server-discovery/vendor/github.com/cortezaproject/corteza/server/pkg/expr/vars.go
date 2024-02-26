@@ -5,9 +5,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"reflect"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -93,6 +94,10 @@ func (t *Vars) Merge(nn ...Iterator) (out TypedValue, err error) {
 	return t.MustMerge(nn...), nil
 }
 
+func (t *Vars) IsEmpty() bool {
+	return t == nil || len(t.value) == 0
+}
+
 // MustMerge returns Vars after merging the given Vars(es) into it
 func (t *Vars) MustMerge(nn ...Iterator) *Vars {
 	if t != nil {
@@ -103,7 +108,7 @@ func (t *Vars) MustMerge(nn ...Iterator) *Vars {
 	}
 
 	var (
-		out = &Vars{value: make(map[string]TypedValue)}
+		out = &Vars{value: make(map[string]TypedValue, 4)}
 	)
 
 	for _, i := range nn {

@@ -45,6 +45,19 @@ func (svc *service) SearchModelIssues(resourceID uint64) (out []Issue) {
 	return svc.modelIssues[resourceID]
 }
 
+func (svc *service) SearchResourceIssues(resourceType, resource string) (out []Issue) {
+	var m *Model
+	for _, ax := range svc.models {
+		m = ax.FindByResourceIdent(resourceType, resource)
+	}
+
+	if m == nil {
+		return
+	}
+
+	return svc.modelIssues[m.ResourceID]
+}
+
 func (svc *service) hasConnectionIssues(connectionID uint64) bool {
 	return len(svc.SearchConnectionIssues(connectionID)) > 0
 }

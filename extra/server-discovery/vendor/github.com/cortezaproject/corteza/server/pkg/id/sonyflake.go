@@ -1,11 +1,14 @@
 package id
 
 import (
+	"context"
 	"fmt"
-	"github.com/sony/sonyflake"
 	"os"
 	"strconv"
+	"sync"
 	"time"
+
+	"github.com/sony/sonyflake"
 )
 
 const (
@@ -33,54 +36,98 @@ const (
 	// envKeySimpleIncrement = "SONYFLAKE_SIMPLE_INCREMENT"
 )
 
-var sf *sonyflake.Sonyflake
+var (
+	initialized bool
+	idQueue     = make(chan uint64, 8000)
+	// Keep this to 1 for now as we need to enforce that any later ID is larger
+	// than any previous one.
+	// If we use different deviceIDs for routines, this isn't guaranteed to hold.
+	makerCount = 1
+)
 
-func init() {
-	if err := initSonyflake(); err != nil {
-		panic(fmt.Errorf("sonyflake init failed: %w", err))
+func Init(ctx context.Context) {
+	if initialized {
+		return
 	}
+	initialized = true
+
+	wg := &sync.WaitGroup{}
+	wg.Add(makerCount)
+
+	for i := 0; i < makerCount; i++ {
+		makeIDer(ctx, wg, idQueue, uint64(i+1))
+	}
+
+	wg.Wait()
+
+	// Give it some time to warm up with some ids
+	// Arbitrarily picked a good timeout based on benchmark runs
+	time.Sleep(time.Second * 1)
 }
 
-func initSonyflake() error {
+func makeIDer(ctx context.Context, wg *sync.WaitGroup, qq chan uint64, thr uint64) {
+	go func() {
+		ss, err := initSonyflake(thr)
+		if err != nil {
+			panic(fmt.Errorf("sonyflake init failed: %w", err))
+		}
+
+		wg.Done()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+
+			default:
+				id, err := ss.NextID()
+				if err != nil {
+					panic(err)
+				}
+				qq <- id
+			}
+		}
+	}()
+}
+
+func initSonyflake(thr uint64) (out *sonyflake.Sonyflake, err error) {
 	settings := sonyflake.Settings{
 		StartTime: time.Unix(jan1st2017, 0),
 	}
 
 	// check if SONYFLAKE_MACHINE_ID is set and create
 	// MachineID function that returns it
+	var id uint64
 	if machineID := os.Getenv(envKeyMachineID); machineID != "" {
 		// check if machineID is a valid uint16
-		if id, err := strconv.ParseUint(machineID, 10, 16); err != nil {
+		if id, err = strconv.ParseUint(machineID, 10, 16); err != nil {
 			// should crash right away
-			return fmt.Errorf(
+			err = fmt.Errorf(
 				"could not use %s (%s), expecting uint16 (0..65535): %w",
 				envKeyMachineID,
 				machineID,
 				err,
 			)
+			return
 		} else {
 			settings.MachineID = func() (uint16, error) {
-				return uint16(id), nil
+				return uint16(id + thr), nil
 			}
+		}
+	} else if thr > 0 {
+		settings.MachineID = func() (uint16, error) {
+			return uint16(thr), nil
 		}
 	}
 
-	sf = sonyflake.NewSonyflake(settings)
-	_, err := sf.NextID()
-	return err
-}
+	out = sonyflake.NewSonyflake(settings)
+	_, err = out.NextID()
 
-// NextID returns uint64 ID, or panics
-//
-// See https://github.com/sony/sonyflake for details
-func nextSonyflake() uint64 {
-	if id, err := sf.NextID(); err != nil {
-		panic(err)
-	} else {
-		return id
-	}
+	return
 }
 
 func Next() uint64 {
-	return nextSonyflake()
+	if !initialized {
+		panic("ID generator not initialized: call pkg/id.Init")
+	}
+	return <-idQueue
 }

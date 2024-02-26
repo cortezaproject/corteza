@@ -64,6 +64,7 @@ type (
 
 		SearchConnectionIssues(connectionID uint64) (out []Issue)
 		SearchModelIssues(resourceID uint64) (out []Issue)
+		SearchResourceIssues(resourceType, resource string) (out []Issue)
 	}
 )
 
@@ -794,7 +795,44 @@ func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (e
 		return
 	}
 
+	altsIndexed := make(map[uint64]map[string]map[string][]*Alteration)
+	for _, a := range alts {
+		if _, ok := altsIndexed[a.ConnectionID]; !ok {
+			altsIndexed[a.ConnectionID] = make(map[string]map[string][]*Alteration)
+		}
+
+		if _, ok := altsIndexed[a.ConnectionID][a.ResourceType]; !ok {
+			altsIndexed[a.ConnectionID][a.ResourceType] = make(map[string][]*Alteration)
+		}
+
+		altsIndexed[a.ConnectionID][a.ResourceType][a.Resource] = append(altsIndexed[a.ConnectionID][a.ResourceType][a.Resource], a)
+	}
+
+	var auxErrs []error
+	for _, byCon := range altsIndexed {
+		for _, byRt := range byCon {
+			for _, byR := range byRt {
+				auxErrs, err = svc.applyAlteration(ctx, byR...)
+				if err != nil {
+					return
+				}
+
+				errs = append(errs, auxErrs...)
+			}
+		}
+	}
+
+	return
+}
+
+func (svc *service) applyAlteration(ctx context.Context, alts ...*Alteration) (errs []error, err error) {
+	if len(alts) == 0 {
+		return
+	}
+
 	var (
+		c = svc.GetConnectionByID(0)
+
 		connectionID = alts[0].ConnectionID
 		resource     = alts[0].Resource
 		resourceType = alts[0].ResourceType
@@ -826,6 +864,11 @@ func (svc *service) ApplyAlteration(ctx context.Context, alts ...*Alteration) (e
 	model := svc.getModelByRef(ModelRef{Resource: resource, ResourceType: resourceType, ConnectionID: connectionID})
 	if model == nil {
 		return nil, fmt.Errorf("model not found")
+	}
+
+	if model.ConnectionID == c.ID && model.Ident == "compose_record" {
+		err = fmt.Errorf("cannot apply alterations for default schema")
+		return
 	}
 
 	issues = issues.addModel(model.ResourceID)
