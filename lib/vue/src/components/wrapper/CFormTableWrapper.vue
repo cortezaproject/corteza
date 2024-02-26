@@ -6,6 +6,7 @@
       v-if="showAddButton"
       variant="primary"
       size="sm"
+      :disabled="disableAction"
       @click="handleClick"
     >
       {{ actionLabel }}
@@ -24,6 +25,11 @@ export default {
     },
 
     showAddButton: {
+      type: Boolean,
+      default: false,
+    },
+
+    disableAction: {
       type: Boolean,
       default: false,
     },

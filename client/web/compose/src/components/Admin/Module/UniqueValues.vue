@@ -59,9 +59,9 @@
         </b-form-group>
       </div>
 
-      <div
+      <c-form-table-wrapper
         v-if="rule.constraints && rule.constraints.length > 0"
-        class="list-background rounded border border-light p-1"
+        class="rounded border border-light"
       >
         <b-table-simple
           borderless
@@ -84,6 +84,7 @@
               <th style="width: 150px;" />
             </tr>
           </thead>
+
           <tbody v-if="rule.constraints">
             <tr
               v-for="(constraint, consIndex) in rule.constraints"
@@ -119,7 +120,7 @@
             </tr>
           </tbody>
         </b-table-simple>
-      </div>
+      </c-form-table-wrapper>
 
       <hr>
     </div>

@@ -31,8 +31,8 @@
         no-body
         class="position-static w-100"
       >
-        <b-card-body
-          class="px-1 pb-0 overflow-auto"
+        <c-form-table-wrapper
+          class="pb-0 overflow-auto"
         >
           <b-table-simple
             v-if="componentFilter.length"
@@ -93,6 +93,7 @@
                       @change="updateFilterProperties(filter)"
                     />
                   </b-td>
+
                   <b-td
                     v-if="getField(filter.name)"
                   >
@@ -133,6 +134,7 @@
                       />
                     </template>
                   </b-td>
+
                   <b-td
                     v-if="getField(filter.name)"
                     class="align-middle"
@@ -156,7 +158,7 @@
                 <b-tr :key="`addFilter-${groupIndex}`">
                   <b-td class="pb-0">
                     <b-button
-                      variant="link text-decoration-none"
+                      variant="primary"
                       style="min-height: 38px; min-width: 84px;"
                       @click="addFilter(groupIndex)"
                     >
@@ -205,7 +207,7 @@
               </template>
             </template>
           </b-table-simple>
-        </b-card-body>
+        </c-form-table-wrapper>
 
         <b-card-footer
           class="d-flex justify-content-between shadow-sm rounded"

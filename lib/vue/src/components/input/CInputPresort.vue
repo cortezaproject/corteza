@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <c-form-table-wrapper>
     <b-table-simple
       v-if="!textInput"
       borderless
@@ -104,17 +104,19 @@
         {{ labels.toggleInput }}
       </b-button>
     </div>
-  </div>
+  </c-form-table-wrapper>
 </template>
 
 <script>
 import Draggable from 'vuedraggable'
 import CInputSelect from './CInputSelect.vue'
+import CFormTableWrapper from '../wrapper/CFormTableWrapper.vue'
 
 export default {
   components: {
     Draggable,
     CInputSelect,
+    CFormTableWrapper,
   },
 
   props: {

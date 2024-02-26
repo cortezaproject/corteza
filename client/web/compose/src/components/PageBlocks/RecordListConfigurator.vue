@@ -296,7 +296,12 @@
 
           <b-row>
             <b-col>
-              <div class="list-background rounded border border-light p-3">
+              <c-form-table-wrapper
+                show-add-button
+                :action-label="$t('general:label.add-with-plus')"
+                class="rounded border border-light"
+                @add-item="addFilterPreset"
+              >
                 <b-form-group
                   :label="$t('recordList.filter.presets')"
                   label-class="text-primary"
@@ -384,21 +389,8 @@
                       </b-tr>
                     </draggable>
                   </b-table-simple>
-
-                  <b-button
-                    variant="primary"
-                    size="sm"
-                    class="mt-1"
-                    @click="addFilterPreset"
-                  >
-                    <font-awesome-icon
-                      :icon="['fas', 'plus']"
-                      class="mr-1"
-                    />
-                    {{ $t('general:label.add') }}
-                  </b-button>
                 </b-form-group>
-              </div>
+              </c-form-table-wrapper>
             </b-col>
           </b-row>
         </div>
@@ -440,7 +432,7 @@
                     v-model="options.presort"
                     :fields="recordListModuleFields"
                     :labels="{
-                      add: $t('general:label.add'),
+                      add: $t('general:label.add-with-plus'),
                       ascending: $t('general:label.ascending'),
                       descending: $t('general:label.descending'),
                       none: $t('general:label.none'),

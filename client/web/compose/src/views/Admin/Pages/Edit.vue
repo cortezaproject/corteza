@@ -376,7 +376,7 @@
                     :icon="['fas', 'plus']"
                     class="mr-1"
                   />
-                  {{ $t('general:label.add') }}
+                  {{ $t('general:label.add-with-plus') }}
                 </b-button>
               </b-form-group>
             </div>
@@ -769,7 +769,7 @@
                 :icon="['fas', 'plus']"
                 class="mr-1"
               />
-              {{ $t('general:label.add') }}
+              {{ $t('general:label.add-with-plus') }}
             </b-button>
           </b-form-group>
         </div>
