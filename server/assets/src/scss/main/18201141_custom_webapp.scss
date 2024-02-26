@@ -122,10 +122,10 @@ a.btn:not(.btn-link) {
 }
 
 fieldset.required {
-  legend > div:first-child::after {
+  legend > div:first-child > span:first-child::after {
     content: "*";
     color: var(--danger);
-    max-width: 0.125rem;
+    margin-left: 0.125rem;
   }
 }
 
