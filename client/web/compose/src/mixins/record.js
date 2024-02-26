@@ -175,11 +175,11 @@ export default {
                 moduleID: this.module.moduleID,
                 notPageID: this.page.pageID,
               })
-            } else {
-              this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
             }
 
-            if (!isNew) {
+            if (isNew) {
+              this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
+            } else {
               this.record = record
               // reset the record initial state in cases where the record edit page is opened on a modal
               this.initialRecordState = this.record.clone()

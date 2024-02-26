@@ -303,13 +303,10 @@ export default {
   watch: {
     recordID: {
       immediate: true,
-      handler () {
+      handler (o, n) {
         this.record = undefined
         this.initialRecordState = undefined
         this.refresh()
-        this.loadRecord().then(() => {
-          this.determineLayout()
-        })
       },
     },
 
@@ -524,7 +521,7 @@ export default {
         layout: undefined,
         isView: !this.inEditing && !this.inCreating,
         isCreate: this.inCreating,
-        isEdit: this.inEditing,
+        isEdit: this.inEditing && !this.inCreating,
         ...variables,
       }
 
@@ -546,8 +543,6 @@ export default {
     },
 
     async determineLayout (pageLayoutID, variables = {}) {
-      pageLayoutID = pageLayoutID || (this.layout || {}).pageLayoutID
-
       // Clear stored records so they can be refetched with latest values
       this.clearRecordSet()
       let expressions = {}
