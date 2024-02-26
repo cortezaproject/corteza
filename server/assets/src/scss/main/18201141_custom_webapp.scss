@@ -122,13 +122,10 @@ a.btn:not(.btn-link) {
 }
 
 fieldset.required {
-  label::after {
+  legend > div:first-child::after {
     content: "*";
-    display: inline-block;
-    color: var(--primary);
-    width: 10px;
-    height: 18px;
-    overflow: hidden;
+    color: var(--danger);
+    max-width: 0.125rem;
   }
 }
 
