@@ -4,9 +4,9 @@
     v-model="showModal"
     scrollable
     dialog-class="h-100 mw-90"
-    content-class="card position-initial"
+    content-class="position-initial"
     body-class="p-0"
-    footer-class="p-0"
+    footer-class="p-0 overflow-hidden"
     size="xl"
     @hidden="onHidden"
   >
