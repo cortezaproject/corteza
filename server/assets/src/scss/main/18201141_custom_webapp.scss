@@ -125,7 +125,6 @@ fieldset.required {
   legend > div:first-child > span:first-child::after {
     content: "*";
     color: var(--danger);
-    margin-left: 0.125rem;
   }
 }
 
