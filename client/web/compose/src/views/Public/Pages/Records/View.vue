@@ -135,13 +135,20 @@ export default {
     record,
   ],
 
-  // Destroy event before route leave to ensure it doesn't destroy the newly created one
   beforeRouteLeave (to, from, next) {
-    this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
     this.checkUnsavedChanges(next, to)
   },
 
   beforeRouteUpdate (to, from, next) {
+    const areParamsChanged = JSON.stringify(to.params) !== JSON.stringify(from.params)
+
+    // If the route params have changed, we need to check for unsaved changes
+    // We do this to avoid maginfy block to raise the unsaved changes prompt
+    if (!areParamsChanged) {
+      next()
+      return
+    }
+
     this.checkUnsavedChanges(next, to)
   },
 
@@ -595,7 +602,8 @@ export default {
 
     refetchRecordBlocks () {
       // Don't refresh when creating and prompt user before refreshing when editing
-      if (this.inCreating || (this.inEditing && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
+      console.log(this.inCreating, this.inEditing, this.compareRecordValues())
+      if (this.inCreating || (this.inEditing && this.compareRecordValues() && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
         return
       }
 
@@ -650,21 +658,22 @@ export default {
       return !isEqual(recordValues, initialRecordState)
     },
 
-    checkUnsavedChanges (next, to) {
-      if (this.inCreating) {
+    checkUnsavedChanges (next) {
+      if (!this.inEditing) {
         next(true)
-      } else {
-        next(this.compareRecordValues() ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+        return
       }
+
+      next(this.compareRecordValues() ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
     },
 
     checkUnsavedChangesOnModal (bvEvent, modalId) {
-      if (modalId === 'record-modal' && !this.inCreating) {
-        const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:editor.unsavedChanges')) : true
+      if (modalId !== 'record-modal' || !this.inEditing) return
 
-        if (!recordStateChange) {
-          bvEvent.preventDefault()
-        }
+      const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:editor.unsavedChanges')) : true
+
+      if (!recordStateChange) {
+        bvEvent.preventDefault()
       }
     },
   },
