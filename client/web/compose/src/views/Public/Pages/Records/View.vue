@@ -303,7 +303,7 @@ export default {
   watch: {
     recordID: {
       immediate: true,
-      handler (o, n) {
+      handler () {
         this.record = undefined
         this.initialRecordState = undefined
         this.refresh()
