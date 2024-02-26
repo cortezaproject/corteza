@@ -242,7 +242,12 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 					case "DateTime":
 						// @note temporary solution to make timestamps consistent; we should handle
 						// timezones (or the lack of) more properly
-						auxv = cast.ToTime(auxv).Format(time.RFC3339)
+						auxt, err := cast.ToTimeE(auxv)
+						if err != nil || auxt.IsZero() {
+							auxv = ""
+						} else {
+							auxv = cast.ToTime(auxv).Format(time.RFC3339)
+						}
 					}
 				}
 			}
