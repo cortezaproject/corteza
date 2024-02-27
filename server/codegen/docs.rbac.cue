@@ -49,7 +49,7 @@ import (
 	}
 ] +
 [
-	for cmp in app.corteza.components for res in cmp.resources {
+	for cmp in app.corteza.components for res in cmp.resources if res.rbac != _|_ {
 		template: "docs/rbac.$resource.adoc.tpl"
 		output:   "src/modules/generated/partials/access-control/\(cmp.handle)/resource.\(res.handle).gen.adoc"
 		payload: #_operationsPayload & {
