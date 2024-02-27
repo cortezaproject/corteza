@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <c-form-table-wrapper>
     <b-table-simple
       v-if="groups.length"
       responsive
@@ -14,11 +14,13 @@
           >
             {{ $t('datasources:name') }}
           </b-th>
+
           <b-th
             class="w-25"
           >
             {{ $t('datasources:label') }}
           </b-th>
+
           <b-th
             class="w-50"
           >
@@ -38,18 +40,21 @@
               :placeholder="$t('datasources:new.name')"
             />
           </b-td>
+
           <b-td>
             <b-form-input
               v-model="group.label"
               :placeholder="$t('datasources:new.label')"
             />
           </b-td>
+
           <b-td>
             <b-form-input
               v-model="group.def.raw"
               :placeholder="$t('datasources:expression')"
             />
           </b-td>
+
           <b-td class="align-middle">
             <c-input-confirm
               show-icon
@@ -61,8 +66,8 @@
     </b-table-simple>
 
     <b-button
-      variant="link text-decoration-none"
-      class="px-0"
+      variant="primary"
+      class="mt-1"
       @click="addParam()"
     >
       <font-awesome-icon
@@ -72,7 +77,7 @@
       />
       {{ $t('datasources:add') }}
     </b-button>
-  </div>
+  </c-form-table-wrapper>
 </template>
 
 <script>

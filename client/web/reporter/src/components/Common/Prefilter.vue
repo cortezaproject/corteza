@@ -1,5 +1,5 @@
 <template>
-  <div class="prefilter">
+  <c-form-table-wrapper class="prefilter">
     <b-table-simple
       v-if="render && filter.ref"
       responsive
@@ -23,6 +23,7 @@
               class="w-auto"
               @change="reRender()"
             />
+
             <span
               v-else
               class="px-3"
@@ -31,6 +32,7 @@
               {{ argIndex === 0 ? 'Where' : `${group.args[0].ref[0].toUpperCase() + group.args[0].ref.slice(1).toLowerCase()}` }}
             </span>
           </td>
+
           <template v-if="Object.keys(arg).includes('raw')">
             <td>
               <b-input-group>
@@ -119,6 +121,7 @@
             />
           </td>
         </tr>
+
         <tr
           :key="`${groupIndex}-add`"
         >
@@ -127,8 +130,7 @@
             :class="{ 'text-center': group.args[0].args && group.args[0].args.length }"
           >
             <b-button
-              variant="link text-decoration-none"
-              class="px-0"
+              variant="primary"
               @click="addFilter(groupIndex)"
             >
               <font-awesome-icon
@@ -178,8 +180,7 @@
       v-else
     >
       <b-button
-        variant="link text-decoration-none"
-        class="px-0"
+        variant="primary"
         @click="initFilter()"
       >
         <font-awesome-icon
@@ -190,7 +191,7 @@
         {{ $t('general:label.add') }}
       </b-button>
     </tr>
-  </div>
+  </c-form-table-wrapper>
 </template>
 
 <script>
