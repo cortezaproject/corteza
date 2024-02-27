@@ -257,8 +257,8 @@ export default {
       },
 
       sorting: {
-        sortBy: 'handle',
-        sortDesc: false,
+        sortBy: 'changedAt',
+        sortDesc: true,
       },
 
       newWorkflow: {},
