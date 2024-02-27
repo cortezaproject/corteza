@@ -602,7 +602,6 @@ export default {
 
     refetchRecordBlocks () {
       // Don't refresh when creating and prompt user before refreshing when editing
-      console.log(this.inCreating, this.inEditing, this.compareRecordValues())
       if (this.inCreating || (this.inEditing && this.compareRecordValues() && !window.confirm(this.$t('notification:record.staleDataRefresh')))) {
         return
       }
