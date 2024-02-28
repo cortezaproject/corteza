@@ -656,6 +656,13 @@ func (svc namespace) handleUpdate(ctx context.Context, upd *types.Namespace) nam
 		// Get max blockID for later use
 		blockID := uint64(0)
 		for _, b := range res.Blocks {
+			if b.BlockID == blockID {
+				// assign ids on new page blocks
+				for i := range upd.Blocks {
+					upd.Blocks[i].BlockID = uint64(i) + 1
+				}
+			}
+
 			if b.BlockID > blockID {
 				blockID = b.BlockID
 			}
