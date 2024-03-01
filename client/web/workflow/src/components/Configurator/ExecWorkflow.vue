@@ -66,6 +66,10 @@ export default {
     getWorkflowLabel ({ workflowID, handle, meta = {} }) {
       return meta.name || handle || workflowID
     },
+
+    getWorkflowKey ({ workflowID, handle }) {
+      return handle || workflowID
+    },
   },
 }
 </script>

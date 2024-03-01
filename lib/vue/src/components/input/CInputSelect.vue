@@ -10,7 +10,7 @@
     :append-to-body="appendToBody"
     class="bg-white rounded"
     :class="sizeClass"
-    @search="($event) => $emit('search', $event)"
+    @search="onSearch"
   >
     <template
       v-for="(_, name) in $scopedSlots"
@@ -134,6 +134,10 @@ export default {
        * If you return function, it will be called just before dropdown is removed from DOM.
        */
       return () => popper.destroy()
+    },
+
+    onSearch (search, loading) {
+      this.$emit('search', search, loading)
     },
   },
 }
