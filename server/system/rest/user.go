@@ -110,6 +110,11 @@ func (ctrl User) List(ctx context.Context, r *request.UserList) (interface{}, er
 		}
 	)
 
+	// @todo improve this either on the request parsing stage or query building stage
+	if len(f.UserID) == 1 && f.UserID[0] == "" {
+		f.UserID = nil
+	}
+
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {
 		return nil, err
 	}
