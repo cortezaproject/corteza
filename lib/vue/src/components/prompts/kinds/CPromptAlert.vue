@@ -1,9 +1,8 @@
 <template>
   <div>
-    <p v-html="message"></p>
-    <div
-      class="text-center m-2"
-    >
+    <p v-if="!!message" v-html="message" />
+
+    <div class="d-flex justify-content-end gap-1">
       <b-button
         @click="$emit('submit', { confirmed: pRaw('buttonValue', true, 'Boolean') })"
         :variant="pVal('buttonVariant', 'primary')"

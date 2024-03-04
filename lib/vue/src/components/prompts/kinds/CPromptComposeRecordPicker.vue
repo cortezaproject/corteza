@@ -1,22 +1,19 @@
 <template>
   <div>
-    <p>
-      {{ message }}
-    </p>
-    <div
-      class="text-center m-2"
-    >
+    <p v-if="!!message" v-html="message" />
+
+    <div class="d-flex flex-column gap-1">
       <c-input-select
         v-model="value"
         :options="options"
         :get-option-key="getOptionKey"
         :loading="processing"
         append-to-body
-        :calculate-position="calculateDropdownPosition"
         option-value="recordID"
         option-text="label"
         placeholder="Select record"
         :filterable="false"
+        :reduce="r => r.recordID"
         class="w-100 mb-3"
         @search="search"
       >
@@ -31,8 +28,10 @@
       </c-input-select>
 
       <b-button
-        @click="$emit('submit', { value: encodeValue() })"
         :disabled="loading"
+        variant="primary"
+        class="ml-auto"
+        @click="$emit('submit', { value: encodeValue() })"
       >
         {{ pVal('buttonLabel', 'Submit') }}
       </b-button>
@@ -45,7 +44,6 @@ import CPagination from '../common/CPagination.vue'
 import { pVal } from '../utils.ts'
 import CInputSelect from '../../input/CInputSelect.vue'
 import { compose, NoID } from '@cortezaproject/corteza-js'
-import { createPopper } from '@popperjs/core'
 import { debounce } from 'lodash'
 
 export default {
@@ -79,12 +77,8 @@ export default {
   },
 
   computed: {
-    // moduleFields returns the available field names
-    moduleFields () {
-      if (!this.module) {
-        return []
-      }
-      return this.module.fields.map(({ name }) => name)
+    labelField () {
+      return this.module.fields.find(f => f.name === this.pVal('labelField'))
     },
 
     showPagination () {
@@ -165,7 +159,9 @@ export default {
         return { '@type': 'Any', '@value': null }
       }
 
-      return { '@type': 'ComposeRecord', '@value': this.value.record }
+      const record = this.options.find(({ recordID }) => recordID === this.value)
+
+      return { '@type': 'ComposeRecord', '@value': record }
     },
 
     loadLatest () {
@@ -206,51 +202,6 @@ export default {
       }
     }, 300),
 
-    calculateDropdownPosition (dropdownList, component, { width }) {
-      /**
-       * We need to explicitly define the dropdown width since
-       * it is usually inherited from the parent with CSS.
-       */
-      dropdownList.style.width = width
-      dropdownList.style['z-index'] = 10000
-
-      /**
-       * Here we position the dropdownList relative to the $refs.toggle Element.
-       *
-       * The 'offset' modifier aligns the dropdown so that the $refs.toggle and
-       * the dropdownList overlap by 1 pixel.
-       *
-       * The 'toggleClass' modifier adds a 'drop-up' class to the Vue Select
-       * wrapper so that we can set some styles for when the dropdown is placed
-       * above.
-       */
-      const popper = createPopper(component.$refs.toggle, dropdownList, {
-        placement: 'bottom',
-        modifiers: [
-          {
-            name: 'offset',
-            options: {
-              offset: [0, -1],
-            },
-          },
-          {
-            name: 'toggleClass',
-            enabled: true,
-            phase: 'write',
-            fn ({ state }) {
-              component.$el.classList.toggle('drop-up', state.placement === 'top')
-            },
-          }],
-      })
-
-      /**
-       * To prevent memory leaks Popper needs to be destroyed.
-       * If you return function, it will be called just before dropdown is removed from DOM.
-       */
-      return () => popper.destroy()
-    },
-
-
     fetchPrefiltered (q) {
       this.processing = true
 
@@ -273,11 +224,15 @@ export default {
 
           this.options = set.map(r => {
             const record = new compose.Record(this.module, r)
-            const label = record.values[this.pVal('labelField')] || record.recordID
+
+            let label
+            if (this.labelField) {
+              label = this.labelField.isMulti ? record.values[this.pVal('labelField')].join(', ') : record.values[this.pVal('labelField')]
+            }
 
             return {
               recordID: record.recordID,
-              label,
+              label: label || record.recordID,
               record,
             }
           })

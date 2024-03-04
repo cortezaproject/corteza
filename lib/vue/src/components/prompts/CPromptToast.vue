@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="!hideToasts">
     <b-toast
       v-for="({ prompt, component, passive }) in toasts"
       :id="'wfPromptToast-'+prompt.stateID"
@@ -9,21 +9,12 @@
       solid
       :no-auto-hide="!passive"
       :auto-hide-delay="pVal(prompt, 'timeout', defaultTimeout) * 1000"
-      :no-close-button="!passive"
+      @hide="onToastHide({ prompt, passive })"
     >
       <template #toast-title>
-        <div class="d-flex flex-grow-1 align-items-baseline">
-          <strong class="mr-auto">{{ pVal(prompt, 'title', 'Workflow prompt') }}</strong>
-          <b-button
-            variant="link"
-            size="sm"
-            v-if="!passive && active.length > 1"
-            @click="activate(true)"
-          >
-            {{ active.length }} waiting
-          </b-button>
-        </div>
+        <strong>{{ pVal(prompt, 'title', 'Workflow prompt') }}</strong>
       </template>
+
       <component
         v-if="component"
         :is="component"
@@ -52,12 +43,6 @@ export default {
     return {
       passive: new Set(),
 
-      /**
-       * Set initial value to NULL
-       *
-       * First interval will detect that null is not true|false
-       * and set it accordingly to the current state
-       */
       hasFocus: null,
       hasFocusObserver: 0,
     }
@@ -163,6 +148,7 @@ export default {
   methods: {
     ...mapActions({
       resume: 'wfPrompts/resume',
+      cancel: 'wfPrompts/cancel',
       activate: 'wfPrompts/activate',
     }),
 
@@ -173,6 +159,12 @@ export default {
       }
 
       this.resume(values)
+    },
+
+    onToastHide ({ prompt, passive}) {
+      if (passive) return
+
+      this.cancel(prompt)
     },
 
     pVal (prompt, k, def = undefined) {
@@ -200,7 +192,7 @@ export default {
     },
 
     setDefaultValues () {
-      this.passive.clear()
+      this.toasts = []
       this.hasFocus = null
       this.hasFocusObserver = 0
     },
@@ -208,16 +200,58 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
-.slide-enter-active {
-  transition: all .3s ease;
+<style lang="scss">
+.toast-header {
+  align-items: start;
+  padding: 0.375rem 0.75rem;
+
+  strong {
+    word-break: break-word;
+  }
+
+  .close {
+    margin-bottom: 0 !important;
+  }
 }
-.slide-leave-active {
-  transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
-}
-.slide-enter, .slide-leave-to
-/* .slide-leave-active below version 2.1.8 */ {
-  transform: translateX(10px);
-  opacity: 0;
+
+// .b-toaster-leave-active {
+//   width: 100%;
+// }
+
+.b-toaster {
+  &.b-toaster-top-right,
+  &.b-toaster-top-left,
+  &.b-toaster-bottom-right,
+  &.b-toaster-bottom-left {
+    .b-toast {
+      &.b-toaster-enter-active,
+      &.b-toaster-leave-active,
+      &.b-toaster-move {
+        transition: transform 0.3s ease-in-out; /* Adjust the timing function for smoother transitions */
+        opacity: 1; /* Ensure opacity is set to avoid flickering during transition */
+      }
+
+      &.b-toaster-enter {
+        transform: translate(0, -100%); /* Start off-screen when entering */
+        opacity: 0; /* Start with 0 opacity */
+      }
+
+      &.b-toaster-enter-to,
+      &.b-toaster-enter-active {
+        transform: translate(0, 0); /* Move to the visible position */
+        opacity: 1; /* Fade in during the transition */
+      }
+
+      &.b-toaster-leave-active {
+        position: absolute;
+        transform: translate(0, -100%); /* Move off-screen when leaving */
+        opacity: 0; /* Fade out during the transition */
+      }
+
+      &.b-toaster-leave-to {
+        opacity: 0; /* Ensure 0 opacity at the end of the transition */
+      }
+    }
+  }
 }
 </style>

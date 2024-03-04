@@ -1,9 +1,8 @@
 <template>
   <div>
-    <p v-html="message"></p>
-    <div
-      class="text-center m-2"
-    >
+    <p v-if="!!message" v-html="message" />
+
+    <div class="d-flex align-items-between justify-content-center gap-2">
       <b-button
         @click="$emit('submit', { value: pRaw('confirmButtonValue', true, 'Boolean') })"
         :variant="pVal('confirmButtonVariant', 'primary')"
@@ -11,10 +10,11 @@
       >
         {{ pVal('confirmButtonLabel', 'Yes') }}
       </b-button>
+
       <b-button
         @click="$emit('submit', { value: pRaw('rejectButtonValue', false, 'Boolean') })"
         :disabled="loading"
-        :variant="pVal('rejectButtonVariant', 'primary')"
+        :variant="pVal('rejectButtonVariant', 'light')"
       >
         {{ pVal('rejectButtonLabel', 'No') }}
       </b-button>

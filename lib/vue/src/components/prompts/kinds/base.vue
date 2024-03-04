@@ -15,7 +15,7 @@ export default {
 
   computed: {
     message () {
-      return this.pVal('message', '<i>Default prompt message.</i>')
+      return this.pVal('message', '')
     },
   },
 

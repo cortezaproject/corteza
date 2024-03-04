@@ -6,6 +6,7 @@
     :hide-footer="!current"
     :title="current ? current.title : 'Workflow prompts'"
     :busy="isLoading"
+    footer-class="d-flex"
     no-fade
     @hide="deactivate()"
   >
@@ -20,29 +21,22 @@
       v-else
     >
         <div
-          class="d-flex flex-grow-1 align-items-baseline"
+          class="d-flex flex-grow-1 align-items-baseline mb-2"
           v-for="({ key, title, age, prompt }) in list"
           :key="key"
         >
-          <span
-            class="mr-auto"
+          <a
+            class="p-0 mr-auto"
             @click="activate(prompt)"
           >
-            {{ title }}
+            {{ title }} -
             <time
               class="muted small"
               :datetime="prompt.createdAt"
             >
               {{ age }}
             </time>
-          </span>
-          <b-button
-            variant="link"
-            size="sm"
-            @click="remove(prompt)"
-            :disabled="isLoading"
-            v-if="false"
-          >Remove</b-button>
+          </a>
         </div>
     </div>
     <template
@@ -51,6 +45,7 @@
     >
       <b-button
         variant="link"
+        class="mr-auto"
         @click="activate(true)"
       >
         &laquo; Back to list

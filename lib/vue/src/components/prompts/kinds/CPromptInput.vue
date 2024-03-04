@@ -1,6 +1,7 @@
 <template>
   <div>
-    <p v-html="message"></p>
+    <p v-if="!!message" v-html="message" />
+
     <b-form-group
       :label="label"
       label-class="text-primary"
@@ -13,6 +14,7 @@
     </b-form-group>
     <b-button
       :disabled="loading"
+      variant="primary"
       @click="$emit('submit', { value: { '@value': value, '@type': 'String' }})"
     >
       {{ pVal('buttonLabel', 'Submit') }}
