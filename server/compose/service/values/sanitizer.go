@@ -27,10 +27,10 @@ func Sanitizer() *sanitizer {
 }
 
 // Run cleans up input data
-//  - fix multi-value order/place index
-//  - trim all the strings!
-//  - parse & format input values to match field specific -- nullify/falsify invalid
-//  - field kind specific, no errors raised, data is modified
+//   - fix multi-value order/place index
+//   - trim all the strings!
+//   - parse & format input values to match field specific -- nullify/falsify invalid
+//   - field kind specific, no errors raised, data is modified
 //
 // Existing data (when updating record) is not yet loaded at this point
 func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.RecordValueSet) {
@@ -51,9 +51,8 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 				continue
 			}
 
-			c := v.Clone()
-			c.Place = uint(i)
-			out = append(out, c)
+			v.Place = uint(i)
+			out = append(out, v)
 			i++
 		}
 	}
