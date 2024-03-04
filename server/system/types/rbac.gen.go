@@ -8,6 +8,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/ds"
 	"strconv"
 )
 
@@ -16,11 +17,24 @@ type (
 	//
 	// This struct is auto-generated
 	Component struct{}
+
+	indexWrapper struct {
+		resource string
+		counter  uint
+	}
 )
 
 var (
 	_ = fmt.Printf
 	_ = strconv.FormatUint
+)
+
+var (
+	resourceIndex = ds.Trie[uint64, *indexWrapper]()
+)
+
+var (
+	resourceIndexMaxSize = 1000
 )
 
 // RbacResource returns string representation of RBAC resource for Application by calling ApplicationRbacResource fn
@@ -38,6 +52,12 @@ func (r Application) RbacResource() string {
 //
 // This function is auto-generated
 func ApplicationRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{ApplicationResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -45,7 +65,16 @@ func ApplicationRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ApplicationRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(ApplicationRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -68,6 +97,12 @@ func (r ApigwRoute) RbacResource() string {
 //
 // This function is auto-generated
 func ApigwRouteRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{ApigwRouteResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -75,7 +110,16 @@ func ApigwRouteRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ApigwRouteRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(ApigwRouteRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -98,6 +142,12 @@ func (r AuthClient) RbacResource() string {
 //
 // This function is auto-generated
 func AuthClientRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{AuthClientResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -105,7 +155,16 @@ func AuthClientRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(AuthClientRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(AuthClientRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -128,6 +187,12 @@ func (r DataPrivacyRequest) RbacResource() string {
 //
 // This function is auto-generated
 func DataPrivacyRequestRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{DataPrivacyRequestResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -135,7 +200,16 @@ func DataPrivacyRequestRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(DataPrivacyRequestRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(DataPrivacyRequestRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -158,6 +232,12 @@ func (r Queue) RbacResource() string {
 //
 // This function is auto-generated
 func QueueRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{QueueResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -165,7 +245,16 @@ func QueueRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(QueueRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(QueueRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -188,6 +277,12 @@ func (r Report) RbacResource() string {
 //
 // This function is auto-generated
 func ReportRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{ReportResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -195,7 +290,16 @@ func ReportRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ReportRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(ReportRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -218,6 +322,12 @@ func (r Role) RbacResource() string {
 //
 // This function is auto-generated
 func RoleRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{RoleResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -225,7 +335,16 @@ func RoleRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(RoleRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(RoleRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -248,6 +367,12 @@ func (r Template) RbacResource() string {
 //
 // This function is auto-generated
 func TemplateRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{TemplateResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -255,7 +380,16 @@ func TemplateRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(TemplateRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(TemplateRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -278,6 +412,12 @@ func (r User) RbacResource() string {
 //
 // This function is auto-generated
 func UserRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{UserResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -285,7 +425,16 @@ func UserRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(UserRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(UserRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -308,6 +457,12 @@ func (r DalConnection) RbacResource() string {
 //
 // This function is auto-generated
 func DalConnectionRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{DalConnectionResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -315,7 +470,16 @@ func DalConnectionRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(DalConnectionRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(DalConnectionRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -344,4 +508,9 @@ func ComponentRbacResource() string {
 
 func ComponentRbacResourceTpl() string {
 	return "%s"
+}
+
+func merge(a, b *indexWrapper) *indexWrapper {
+	a.counter += b.counter
+	return a
 }

@@ -8,6 +8,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/ds"
 	"strconv"
 )
 
@@ -16,11 +17,24 @@ type (
 	//
 	// This struct is auto-generated
 	Component struct{}
+
+	indexWrapper struct {
+		resource string
+		counter  uint
+	}
 )
 
 var (
 	_ = fmt.Printf
 	_ = strconv.FormatUint
+)
+
+var (
+	resourceIndex = ds.Trie[uint64, *indexWrapper]()
+)
+
+var (
+	resourceIndexMaxSize = 1000
 )
 
 // RbacResource returns string representation of RBAC resource for Chart by calling ChartRbacResource fn
@@ -38,6 +52,12 @@ func (r Chart) RbacResource() string {
 //
 // This function is auto-generated
 func ChartRbacResource(namespaceID uint64, id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, namespaceID, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{ChartResourceType}
 	if namespaceID != 0 {
 		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
@@ -51,7 +71,16 @@ func ChartRbacResource(namespaceID uint64, id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ChartRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(ChartRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, namespaceID, id)
+
+	return out
 
 }
 
@@ -74,6 +103,12 @@ func (r Module) RbacResource() string {
 //
 // This function is auto-generated
 func ModuleRbacResource(namespaceID uint64, id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, namespaceID, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{ModuleResourceType}
 	if namespaceID != 0 {
 		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
@@ -87,7 +122,16 @@ func ModuleRbacResource(namespaceID uint64, id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ModuleRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(ModuleRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, namespaceID, id)
+
+	return out
 
 }
 
@@ -110,6 +154,12 @@ func (r ModuleField) RbacResource() string {
 //
 // This function is auto-generated
 func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, namespaceID, moduleID, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{ModuleFieldResourceType}
 	if namespaceID != 0 {
 		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
@@ -129,7 +179,16 @@ func ModuleFieldRbacResource(namespaceID uint64, moduleID uint64, id uint64) str
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(ModuleFieldRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(ModuleFieldRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, namespaceID, moduleID, id)
+
+	return out
 
 }
 
@@ -152,6 +211,12 @@ func (r Namespace) RbacResource() string {
 //
 // This function is auto-generated
 func NamespaceRbacResource(id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{NamespaceResourceType}
 	if id != 0 {
 		cpts = append(cpts, strconv.FormatUint(id, 10))
@@ -159,7 +224,16 @@ func NamespaceRbacResource(id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(NamespaceRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(NamespaceRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, id)
+
+	return out
 
 }
 
@@ -182,6 +256,12 @@ func (r Page) RbacResource() string {
 //
 // This function is auto-generated
 func PageRbacResource(namespaceID uint64, id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, namespaceID, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{PageResourceType}
 	if namespaceID != 0 {
 		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
@@ -195,7 +275,16 @@ func PageRbacResource(namespaceID uint64, id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(PageRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(PageRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, namespaceID, id)
+
+	return out
 
 }
 
@@ -218,6 +307,12 @@ func (r PageLayout) RbacResource() string {
 //
 // This function is auto-generated
 func PageLayoutRbacResource(namespaceID uint64, pageID uint64, id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, namespaceID, pageID, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{PageLayoutResourceType}
 	if namespaceID != 0 {
 		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
@@ -237,7 +332,16 @@ func PageLayoutRbacResource(namespaceID uint64, pageID uint64, id uint64) string
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(PageLayoutRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(PageLayoutRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, namespaceID, pageID, id)
+
+	return out
 
 }
 
@@ -260,6 +364,12 @@ func (r Record) RbacResource() string {
 //
 // This function is auto-generated
 func RecordRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, namespaceID, moduleID, id)
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{}{RecordResourceType}
 	if namespaceID != 0 {
 		cpts = append(cpts, strconv.FormatUint(namespaceID, 10))
@@ -279,7 +389,16 @@ func RecordRbacResource(namespaceID uint64, moduleID uint64, id uint64) string {
 		cpts = append(cpts, "*")
 	}
 
-	return fmt.Sprintf(RecordRbacResourceTpl(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf(RecordRbacResourceTpl(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, namespaceID, moduleID, id)
+
+	return out
 
 }
 
@@ -308,4 +427,9 @@ func ComponentRbacResource() string {
 
 func ComponentRbacResourceTpl() string {
 	return "%s"
+}
+
+func merge(a, b *indexWrapper) *indexWrapper {
+	a.counter += b.counter
+	return a
 }

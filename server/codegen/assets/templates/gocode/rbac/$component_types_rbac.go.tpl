@@ -5,6 +5,7 @@ package {{ .package }}
 import (
 	"fmt"
 	"strconv"
+	"github.com/cortezaproject/corteza/server/pkg/ds"
 )
 
 type (
@@ -12,6 +13,11 @@ type (
 	//
 	// This struct is auto-generated
 	Component struct {}
+
+	indexWrapper struct {
+		resource string
+		counter  uint
+	}
 )
 
 var (
@@ -21,6 +27,14 @@ var (
   */}}
 	_ = fmt.Printf
 	_ = strconv.FormatUint
+)
+
+var (
+	resourceIndex = ds.Trie[uint64, *indexWrapper]()
+)
+
+var (
+	resourceIndexMaxSize = 1000
 )
 
 {{- range .types }}
@@ -41,6 +55,12 @@ func (r {{ .goType }}) RbacResource() string {
 // This function is auto-generated
 func {{ .resFunc }}({{ if not .component }}{{ range .references }}{{ .param }} uint64,{{ end }}{{ end }}) string {
 	{{- if .references }}
+	cc, ok := ds.TrieSearch[uint64, *indexWrapper](resourceIndex, {{ if not .component }}{{ range .references }}{{ .param }},{{ end }}{{ end }})
+	if ok {
+		cc.counter++
+		return cc.resource
+	}
+
 	cpts := []interface{{"{}"}}{{"{"}}{{ .goType }}ResourceType{{"}"}}
 	{{- range .references }}
 		if {{ .param }} != 0 {
@@ -50,7 +70,16 @@ func {{ .resFunc }}({{ if not .component }}{{ range .references }}{{ .param }} u
 		}
 
 	{{ end }}
-	return fmt.Sprintf({{ .tplFunc }}(), cpts...)
+	// Remove the least used ones
+	// @todo for now just rebuild the index, later do this properly
+	if resourceIndex.Size+1 > resourceIndexMaxSize {
+		resourceIndex = ds.Trie[uint64, *indexWrapper]()
+	}
+
+	out := fmt.Sprintf({{ .tplFunc }}(), cpts...)
+	ds.TrieUpsert[uint64, *indexWrapper](resourceIndex, merge, &indexWrapper{resource: out, counter: 1}, {{ if not .component }}{{ range .references }}{{ .param }},{{ end }}{{ end }})
+
+	return out
 	{{- else }}
 	return {{ .goType }}ResourceType + "/"
 	{{- end }}
@@ -69,3 +98,7 @@ func {{ .tplFunc }}() string {
 
 {{- end }}
 
+func merge(a, b *indexWrapper) *indexWrapper {
+	a.counter += b.counter
+	return a
+}
