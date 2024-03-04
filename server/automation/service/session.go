@@ -60,7 +60,7 @@ const (
 	//
 	// We use the size of the stacktrace and for every F (see the value of the constant)
 	// we flush the session info to the store.
-	sessionStateFlushFrequency = 1000
+	sessionStateFlushFrequency = 5000
 )
 
 func Session(log *zap.Logger, opt options.WorkflowOpt, ps promptSender) *session {
