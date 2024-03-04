@@ -136,6 +136,19 @@ func TestPath(t *testing.T) {
 	}
 }
 
+// Before:
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// BenchmarkSplit-12    	 2002231	       610.9 ns/op	    4370 B/op	       7 allocs/op
+// PASS
+//
+// After
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/expr
+// BenchmarkPath-12    	25060780	        44.30 ns/op	       0 B/op	       0 allocs/op
+// PASS
 func BenchmarkPath(b *testing.B) {
 	path := "aa.b[c][d].e.f[g][0]"
 

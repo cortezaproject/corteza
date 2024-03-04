@@ -20,16 +20,45 @@ type (
 	}
 )
 
-// goos: linux
-// goarch: amd64
+// Pre:
+// goos: darwin
+// goarch: arm64
 // pkg: github.com/cortezaproject/corteza/server/pkg/rbac
-// cpu: Intel(R) Core(TM) i7-8750H CPU @ 2.20GHz
-// Benchmark_AccessCheck_role5_rule500-12            378988              3026 ns/op             615 B/op         16 allocs/op
-// Benchmark_AccessCheck_role5_rule1000-12           253071              4087 ns/op             615 B/op         16 allocs/op
-// Benchmark_AccessCheck_role10_rule10000-12         237085              5429 ns/op            1026 B/op         29 allocs/op
-// Benchmark_AccessCheck_role20_rule50000-12         128914              9344 ns/op            2335 B/op         71 allocs/op
-// Benchmark_AccessCheck_role30_rule100000-12         79963             20670 ns/op            3371 B/op         85 allocs/op
-// Benchmark_AccessCheck_role100_rule500000-12        16927             79106 ns/op           12796 B/op        391 allocs/op
+// Benchmark_AccessCheck_role100_rule1000-12                  45502             26437 ns/op           10183 B/op        206 allocs/op
+// Benchmark_AccessCheck_role100_rule10000-12                  9054            143348 ns/op           10195 B/op        206 allocs/op
+// Benchmark_AccessCheck_role100_rule100000-12                  910           1399730 ns/op           10132 B/op        205 allocs/op
+// Benchmark_AccessCheck_role100_rule1000000-12                  40          32568396 ns/op           11196 B/op        226 allocs/op
+// Benchmark_AccessCheck_role100_rule10000000-12                  8         580995401 ns/op           14075 B/op        286 allocs/op
+// Benchmark_AccessCheck_role1000_rule1000-12                 10000            115692 ns/op           78850 B/op       1216 allocs/op
+// Benchmark_AccessCheck_role1000_rule10000-12                 4567            260073 ns/op           87800 B/op       1578 allocs/op
+// Benchmark_AccessCheck_role1000_rule100000-12                 758           1521378 ns/op           87707 B/op       1593 allocs/op
+// Benchmark_AccessCheck_role1000_rule1000000-12                 97          26178927 ns/op           79729 B/op       1447 allocs/op
+// Benchmark_AccessCheck_role1000_rule10000000-12                 6         338761798 ns/op           87824 B/op       1502 allocs/op
+// Benchmark_AccessCheck_role10000_rule1000-12                 1165           1113431 ns/op          875524 B/op      10173 allocs/op
+// Benchmark_AccessCheck_role10000_rule10000-12                 972           1259840 ns/op          877246 B/op      11239 allocs/op
+// Benchmark_AccessCheck_role10000_rule100000-12                404           2661588 ns/op          921948 B/op      14190 allocs/op
+// Benchmark_AccessCheck_role10000_rule1000000-12               100          25640188 ns/op         1038714 B/op      15395 allocs/op
+// Benchmark_AccessCheck_role10000_rule10000000-12                4         265117083 ns/op          882284 B/op      12844 allocs/op
+
+// Post:
+// goos: darwin
+// goarch: arm64
+// pkg: github.com/cortezaproject/corteza/server/pkg/rbac
+// Benchmark_AccessCheck_role100_rule1000-12                 101308             11020 ns/op            5120 B/op         23 allocs/op
+// Benchmark_AccessCheck_role100_rule10000-12                106794             10392 ns/op            5119 B/op         23 allocs/op
+// Benchmark_AccessCheck_role100_rule100000-12               106137             10957 ns/op            5135 B/op         23 allocs/op
+// Benchmark_AccessCheck_role100_rule1000000-12               94984             13411 ns/op            5110 B/op         23 allocs/op
+// Benchmark_AccessCheck_role100_rule10000000-12              78258             13923 ns/op            5118 B/op         23 allocs/op
+// Benchmark_AccessCheck_role1000_rule1000-12                 14739             79997 ns/op           52803 B/op         45 allocs/op
+// Benchmark_AccessCheck_role1000_rule10000-12                10000            111318 ns/op           53129 B/op         45 allocs/op
+// Benchmark_AccessCheck_role1000_rule100000-12               10000            119062 ns/op           53103 B/op         45 allocs/op
+// Benchmark_AccessCheck_role1000_rule1000000-12              10000            127920 ns/op           53166 B/op         45 allocs/op
+// Benchmark_AccessCheck_role1000_rule10000000-12              7801            406544 ns/op           53141 B/op         50 allocs/op
+// Benchmark_AccessCheck_role10000_rule1000-12                 1609            744085 ns/op          508033 B/op        106 allocs/op
+// Benchmark_AccessCheck_role10000_rule10000-12                1227            959672 ns/op          509599 B/op        106 allocs/op
+// Benchmark_AccessCheck_role10000_rule100000-12                447           2711555 ns/op          502836 B/op        105 allocs/op
+// Benchmark_AccessCheck_role10000_rule1000000-12               723           2202073 ns/op          528585 B/op        110 allocs/op
+// Benchmark_AccessCheck_role10000_rule10000000-12              418           2587235 ns/op          496879 B/op        108 allocs/op
 func benchmark_AccessCheck(b *testing.B, cfg matchBenchCfg) {
 	svc := NewService(zap.NewNop(), nil)
 	svc.UpdateRoles(cfg.roles...)
