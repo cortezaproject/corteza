@@ -74,8 +74,256 @@ func TestDeDupRule_checkCaseSensitiveDuplication(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotOut := tt.rule.checkCaseSensitiveDuplication(ctx, ls, tt.rec, tt.vv)
-			req.Equal(tt.wantOut, gotOut, "checkCaseSensitiveDuplication() = %v, want %v", gotOut, tt.wantOut)
+			gotOut := tt.rule.checkDuplication(ctx, ls, tt.rec, tt.vv)
+			req.Equal(tt.wantOut, gotOut, "checkDuplication() = %v, want %v", gotOut, tt.wantOut)
+		})
+	}
+}
+
+func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
+	var (
+		req = require.New(t)
+		ctx = context.Background()
+		ls  = locale.Global()
+
+		rule1 = DeDupRule{
+			Name:   "",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute:  "name",
+					Modifier:   caseSensitive,
+					MultiValue: equal,
+				},
+			},
+		}
+
+		rule2 = DeDupRule{
+			Name:   "ignore case rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute:  "name",
+					Modifier:   ignoreCase,
+					MultiValue: equal,
+				},
+			},
+		}
+
+		numberRule = DeDupRule{
+			Name:   "number rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute:  "name",
+					Modifier:   ignoreCase,
+					MultiValue: equal,
+				},
+			},
+		}
+
+		locationRule = DeDupRule{
+			Name:   "location rule",
+			Strict: true,
+			ConstraintSet: []*DeDupRuleConstraint{
+				{
+					Attribute:  "name",
+					Modifier:   ignoreCase,
+					MultiValue: equal,
+				},
+			},
+		}
+
+		tests = []struct {
+			name    string
+			rule    DeDupRule
+			rec     Record
+			vv      RecordValueSet
+			wantOut *RecordValueErrorSet
+		}{
+			{
+				name: "no duplication",
+				rule: rule1,
+				rec: Record{
+					ID: 1,
+					Values: RecordValueSet{
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "test",
+						},
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "test test",
+						},
+					},
+				},
+				vv: RecordValueSet{
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "test",
+					},
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "test test",
+					},
+				},
+				wantOut: &RecordValueErrorSet{
+					Set: []RecordValueError{
+						{
+							Kind:    deDupError.String(),
+							Message: rule1.IssueMultivalueMessage(),
+							Meta: map[string]interface{}{
+								"field":         "name",
+								"dupValueField": "name",
+								"rule":          rule1.String(),
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "no duplication",
+				rule: rule2,
+				rec: Record{
+					ID: 1,
+					Values: RecordValueSet{
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "test",
+						},
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "test tEst",
+						},
+					},
+				},
+				vv: RecordValueSet{
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "test",
+					},
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "Test Test",
+					},
+				},
+				wantOut: &RecordValueErrorSet{
+					Set: []RecordValueError{
+						{
+							Kind:    deDupError.String(),
+							Message: rule2.IssueMultivalueMessage(),
+							Meta: map[string]interface{}{
+								"field":         "name",
+								"dupValueField": "name",
+								"rule":          rule2.String(),
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "no duplication",
+				rule: numberRule,
+				rec: Record{
+					ID: 1,
+					Values: RecordValueSet{
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "234",
+						},
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "897",
+						},
+					},
+				},
+				vv: RecordValueSet{
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "897",
+					},
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "234",
+					},
+				},
+				wantOut: &RecordValueErrorSet{
+					Set: []RecordValueError{
+						{
+							Kind:    deDupError.String(),
+							Message: numberRule.IssueMultivalueMessage(),
+							Meta: map[string]interface{}{
+								"field":         "name",
+								"dupValueField": "name",
+								"rule":          numberRule.String(),
+							},
+						},
+					},
+				},
+			},
+			{
+				name: "no duplication",
+				rule: locationRule,
+				rec: Record{
+					ID: 1,
+					Values: RecordValueSet{
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "{\"coordinates\":[-6.7833479,20.3768206]}",
+						},
+						&RecordValue{
+							RecordID: 1,
+							Name:     "name",
+							Value:    "{\"coordinates\":[0.7833479,10.3768206]}",
+						},
+					},
+				},
+				vv: RecordValueSet{
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "{\"coordinates\":[0.7833479,10.3768206]}",
+					},
+					&RecordValue{
+						RecordID: 0,
+						Name:     "name",
+						Value:    "{\"coordinates\":[-6.7833479,20.3768206]}",
+					},
+				},
+				wantOut: &RecordValueErrorSet{
+					Set: []RecordValueError{
+						{
+							Kind:    deDupError.String(),
+							Message: locationRule.IssueMultivalueMessage(),
+							Meta: map[string]interface{}{
+								"field":         "name",
+								"dupValueField": "name",
+								"rule":          locationRule.String(),
+							},
+						},
+					},
+				},
+			},
+		}
+	)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			gotOut := tt.rule.checkDuplication(ctx, ls, tt.rec, tt.vv)
+			req.Equal(tt.wantOut, gotOut, "checkDuplication() = %v, want %v", gotOut, tt.wantOut)
 		})
 	}
 }
