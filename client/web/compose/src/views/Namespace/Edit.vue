@@ -498,7 +498,7 @@ export default {
 
             if (this.isClone) {
               this.namespace.name = `${ns.name} (${this.$t('cloneSuffix')})`
-              this.namespace.slug = ns.slug ? `${ns.slug}_${this.$t('cloneSuffix')}` : ''
+              this.namespace.slug = ''
             }
 
             this.fetchApplication()
@@ -559,6 +559,16 @@ export default {
         this.processingSave = true
       }
 
+      const stopProcessing = () => {
+        this.processing = false
+
+        if (closeOnSuccess) {
+          this.processingSaveAndClose = false
+        } else {
+          this.processingSave = false
+        }
+      }
+
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
@@ -576,7 +586,7 @@ export default {
         } catch (e) {
           const error = JSON.stringify(e) === '{}' ? '' : e
           this.toastErrorHandler(this.$t('notification:namespace.assetUploadFailed'))(error)
-          this.processing = false
+          stopProcessing()
           return
         }
       }
@@ -599,13 +609,7 @@ export default {
           })
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.saveFailed'))(e)
-          this.processing = false
-
-          if (closeOnSuccess) {
-            this.processingSaveAndClose = false
-          } else {
-            this.processingSave = false
-          }
+          stopProcessing()
           return
         }
       } else if (this.isClone) {
@@ -615,7 +619,7 @@ export default {
           })
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.cloneFailed'))(e)
-          this.processing = false
+          stopProcessing()
           return
         }
       } else {
@@ -628,13 +632,7 @@ export default {
           })
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.createFailed'))(e)
-          this.processing = false
-
-          if (closeOnSuccess) {
-            this.processingSaveAndClose = false
-          } else {
-            this.processingSave = false
-          }
+          stopProcessing()
           return
         }
       }
@@ -645,13 +643,7 @@ export default {
       this.initialNamespaceState = this.namespace.clone()
       this.isApplicationInitialState = this.isApplication
 
-      this.processing = false
-
-      if (closeOnSuccess) {
-        this.processingSaveAndClose = false
-      } else {
-        this.processingSave = false
-      }
+      stopProcessing()
 
       if (closeOnSuccess) {
         this.$router.push(this.previousPage || { name: 'namespace.manage' })
