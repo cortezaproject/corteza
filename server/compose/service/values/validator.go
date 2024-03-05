@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/locale"
@@ -124,7 +125,6 @@ func (vldtr *validator) FileRefChecker(fn ReferenceChecker) {
 
 // Run validates record and it's values against module & module fields options
 //
-//
 // Validation is done in phases for optimal resource usage:
 //   - check if required values are present
 //   - check for unique-multi-value in multi value fields
@@ -171,121 +171,136 @@ fields:
 		}
 	}
 
-	for _, v := range r.Values {
-		if !v.IsUpdated() || v.IsDeleted() {
-			// We'll validate only updated (and non-deleted) values
-			continue
-		}
+	wg := sync.WaitGroup{}
+	for i := range r.Values {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
 
-		if f = m.Fields.FindByName(v.Name); f == nil {
-			continue
-		}
-
-		if f.Expressions.ValueExpr != "" {
-			// do not do any validation if field has value expression!
-			continue
-		}
-
-		if !(f.Expressions.DisableDefaultValidators && len(f.Expressions.Validators) > 0) {
-			if v.Value == "" {
-				// Nothing to do with empty value
-				return nil
+			if !r.Values[i].IsUpdated() || r.Values[i].IsDeleted() {
+				// We'll validate only updated (and non-deleted) values
+				return
 			}
 
-			// Per field type validators
-			switch strings.ToLower(f.Kind) {
-			case "bool":
-				out.Push(vldtr.vBool(ctx, v, f, r, m)...)
-			case "datetime":
-				out.Push(vldtr.vDatetime(ctx, v, f, r, m)...)
-			case "email":
-				out.Push(vldtr.vEmail(ctx, v, f, r, m)...)
-			case "file":
-				out.Push(vldtr.vFile(ctx, s, v, f, r, m)...)
-			case "number":
-				out.Push(vldtr.vNumber(ctx, v, f, r, m)...)
-			case "record":
-				out.Push(vldtr.vRecord(ctx, s, v, f, r, m)...)
-			case "select":
-				out.Push(vldtr.vSelect(ctx, v, f, r, m)...)
-			//case "string":
-			//	out.Push(vldtr.vString(v, f, r, m)...)
-			case "url":
-				out.Push(vldtr.vUrl(ctx, v, f, r, m)...)
-			case "user":
-				out.Push(vldtr.vUser(ctx, s, v, f, r, m)...)
+			if f = m.Fields.FindByName(r.Values[i].Name); f == nil {
+				return
 			}
-		}
 
-		if len(f.Expressions.Validators) > 0 {
-			for i, cv := range f.Expressions.Validators {
-				eval, err := valParser.NewEvaluable(cv.Test)
-				if err != nil {
-					out.Push(makeInternalErr(f, err))
-					break
+			if f.Expressions.ValueExpr != "" {
+				// do not do any validation if field has value expression!
+				return
+			}
+
+			if !(f.Expressions.DisableDefaultValidators && len(f.Expressions.Validators) > 0) {
+				if r.Values[i].Value == "" {
+					// Nothing to do with empty value
+					return
 				}
 
-				invalid, err := eval.EvalBool(ctx, map[string]interface{}{
-					"value":    v.Value,
-					"oldValue": v.OldValue,
-					"values":   valDict,
-				})
-
-				if err != nil {
-					out.Push(makeInternalErr(f, err))
-					break
+				// Per field type validators
+				switch strings.ToLower(f.Kind) {
+				case "bool":
+					out.Push(vldtr.vBool(ctx, r.Values[i], f, r, m)...)
+				case "datetime":
+					out.Push(vldtr.vDatetime(ctx, r.Values[i], f, r, m)...)
+				case "email":
+					out.Push(vldtr.vEmail(ctx, r.Values[i], f, r, m)...)
+				case "file":
+					out.Push(vldtr.vFile(ctx, s, r.Values[i], f, r, m)...)
+				case "number":
+					out.Push(vldtr.vNumber(ctx, r.Values[i], f, r, m)...)
+				case "record":
+					out.Push(vldtr.vRecord(ctx, s, r.Values[i], f, r, m)...)
+				case "select":
+					out.Push(vldtr.vSelect(ctx, r.Values[i], f, r, m)...)
+				//case "string":
+				//	out.Push(vldtr.vString(r.Values[i], f, r, m)...)
+				case "url":
+					out.Push(vldtr.vUrl(ctx, r.Values[i], f, r, m)...)
+				case "user":
+					out.Push(vldtr.vUser(ctx, s, r.Values[i], f, r, m)...)
 				}
+			}
 
-				if invalid {
-					message := cv.Error
-
-					// In case tests mit this for easier testing; falling back to whatever
-					// the field validator has stored.
-					if vldtr.localeSvc != nil {
-						validatorID := locale.ContentID(cv.ValidatorID, i)
-						rpl := strings.NewReplacer(
-							"{{validatorID}}", strconv.FormatUint(validatorID, 10),
-						)
-
-						k := rpl.Replace(types.LocaleKeyModuleFieldExpressionValidatorValidatorIDError.Path)
-						message = vldtr.localeSvc.TResource(ctx, f.ResourceTranslation(), k)
+			if len(f.Expressions.Validators) > 0 {
+				for i, cv := range f.Expressions.Validators {
+					eval, err := valParser.NewEvaluable(cv.Test)
+					if err != nil {
+						out.Push(makeInternalErr(f, err))
+						break
 					}
 
-					out.Push(types.RecordValueError{
-						Kind:    "error",
-						Message: message,
-						Meta:    map[string]interface{}{"field": f.Name}},
-					)
+					invalid, err := eval.EvalBool(ctx, map[string]interface{}{
+						"value":    r.Values[i].Value,
+						"oldValue": r.Values[i].OldValue,
+						"values":   valDict,
+					})
 
-					// break at first failed test
-					break
+					if err != nil {
+						out.Push(makeInternalErr(f, err))
+						break
+					}
+
+					if invalid {
+						message := cv.Error
+
+						// In case tests mit this for easier testing; falling back to whatever
+						// the field validator has stored.
+						if vldtr.localeSvc != nil {
+							validatorID := locale.ContentID(cv.ValidatorID, i)
+							rpl := strings.NewReplacer(
+								"{{validatorID}}", strconv.FormatUint(validatorID, 10),
+							)
+
+							k := rpl.Replace(types.LocaleKeyModuleFieldExpressionValidatorValidatorIDError.Path)
+							message = vldtr.localeSvc.TResource(ctx, f.ResourceTranslation(), k)
+						}
+
+						out.Push(types.RecordValueError{
+							Kind:    "error",
+							Message: message,
+							Meta:    map[string]interface{}{"field": f.Name}},
+						)
+
+						// break at first failed test
+						break
+					}
 				}
 			}
-		}
+		}(i)
 	}
+
+	wg.Wait()
 
 	// This is the most resource-heavy operation
 	// we'll do in at the end
-	for _, v := range r.Values {
-		if f = m.Fields.FindByName(v.Name); f == nil {
-			continue
-		}
+	wg = sync.WaitGroup{}
+	for i := range r.Values {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
 
-		if !f.Options.IsUnique() {
-			// Only interested in unique fields
-			continue
-		}
+			if f = m.Fields.FindByName(r.Values[i].Name); f == nil {
+				return
+			}
 
-		if vldtr.uniqueCheckerFn == nil {
-			return nil
-		}
-		duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, v, f, m)
-		if err != nil {
-			out.Push(makeInternalErr(f, err))
-		} else if duplicateRecordID > 0 && duplicateRecordID != r.ID {
-			out.Push(makeDuplicateValueErr(ctx, f, duplicateRecordID, vldtr.localeSvc))
-		}
+			if !f.Options.IsUnique() {
+				// Only interested in unique fields
+				return
+			}
+
+			if vldtr.uniqueCheckerFn == nil {
+				return
+			}
+			duplicateRecordID, err := vldtr.uniqueCheckerFn(ctx, s, r.Values[i], f, m)
+			if err != nil {
+				out.Push(makeInternalErr(f, err))
+			} else if duplicateRecordID > 0 && duplicateRecordID != r.ID {
+				out.Push(makeDuplicateValueErr(ctx, f, duplicateRecordID, vldtr.localeSvc))
+			}
+		}(i)
 	}
+	wg.Wait()
 
 	if out.IsValid() {
 		return nil

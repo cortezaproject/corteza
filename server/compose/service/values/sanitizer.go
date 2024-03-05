@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -58,67 +59,71 @@ func (s sanitizer) Run(m *types.Module, vv types.RecordValueSet) (out types.Reco
 	}
 
 	var (
-		f    *types.ModuleField
-		kind string
-
 		log = logger.Default().
 			With(logger.Uint64("module", m.ID))
 	)
 
-	for _, v := range out {
-		f = m.Fields.FindByName(v.Name)
-		if f == nil {
-			// Unknown field,
-			// if it is not handled before,
-			// sanitizer does not care about it
-			continue
-		}
+	wg := sync.WaitGroup{}
+	for i := range out {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
 
-		if f.Expressions.ValueExpr != "" {
-			// do not do any sanitization if field has value expression!
-			continue
-		}
+			f := m.Fields.FindByName(out[i].Name)
+			if f == nil {
+				// Unknown field,
+				// if it is not handled before,
+				// sanitizer does not care about it
+				return
+			}
 
-		if v.IsDeleted() || !v.Updated {
-			// Ignore unchanged and deleted
-			continue
-		}
+			if f.Expressions.ValueExpr != "" {
+				// do not do any sanitization if field has value expression!
+				return
+			}
 
-		kind = strings.ToLower(f.Kind)
+			if out[i].IsDeleted() || !out[i].Updated {
+				// Ignore unchanged and deleted
+				return
+			}
 
-		if len(f.Expressions.Sanitizers) > 0 {
-			for _, expr := range f.Expressions.Sanitizers {
-				rval, err := exprParser.Evaluate(expr, map[string]interface{}{"value": v.Value})
-				if err != nil {
-					log.Error(
-						"failed to evaluate sanitizer expression",
-						zap.String("field", f.Name),
-						zap.String("expr", expr),
-						zap.Error(err),
-					)
-					continue
+			kind := strings.ToLower(f.Kind)
+
+			if len(f.Expressions.Sanitizers) > 0 {
+				for _, expr := range f.Expressions.Sanitizers {
+					rval, err := exprParser.Evaluate(expr, map[string]interface{}{"value": out[i].Value})
+					if err != nil {
+						log.Error(
+							"failed to evaluate sanitizer expression",
+							zap.String("field", f.Name),
+							zap.String("expr", expr),
+							zap.Error(err),
+						)
+						return
+					}
+					out[i].Value = sanitize(f, rval)
 				}
-				v.Value = sanitize(f, rval)
-			}
-		}
-
-		if kind != "string" {
-			// Trim all but string
-			v.Value = strings.TrimSpace(v.Value)
-		}
-
-		if f.IsRef() {
-			if refy.MatchString(v.Value) {
-				v.Ref, _ = strconv.ParseUint(v.Value, 10, 64)
 			}
 
-			if v.Ref == 0 {
-				v.Value = ""
+			if kind != "string" {
+				// Trim all but string
+				out[i].Value = strings.TrimSpace(out[i].Value)
 			}
-		}
 
-		v.Value = sanitize(f, v.Value)
+			if f.IsRef() {
+				if refy.MatchString(out[i].Value) {
+					out[i].Ref, _ = strconv.ParseUint(out[i].Value, 10, 64)
+				}
+
+				if out[i].Ref == 0 {
+					out[i].Value = ""
+				}
+			}
+
+			out[i].Value = sanitize(f, out[i].Value)
+		}(i)
 	}
+	wg.Wait()
 
 	return
 }
@@ -128,8 +133,9 @@ func (s sanitizer) RunXSS(m *types.Module, vv types.RecordValueSet) types.Record
 		f *types.ModuleField
 	)
 
-	for _, v := range vv {
-		f = m.Fields.FindByName(v.Name)
+	wg := sync.WaitGroup{}
+	for i := range vv {
+		f = m.Fields.FindByName(vv[i].Name)
 		if f == nil {
 			// Unknown field,
 			// if it is not handled before,
@@ -139,9 +145,15 @@ func (s sanitizer) RunXSS(m *types.Module, vv types.RecordValueSet) types.Record
 
 		switch strings.ToLower(f.Kind) {
 		case "string":
-			v.Value = sString(v.Value)
+			wg.Add(1)
+			go func(i int) {
+				vv[i].Value = sString(vv[i].Value)
+				wg.Done()
+			}(i)
 		}
 	}
+
+	wg.Wait()
 
 	return vv
 }
