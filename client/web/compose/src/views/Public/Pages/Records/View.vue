@@ -593,11 +593,19 @@ export default {
         return acc
       }, new Set())
 
-      this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
+      const tempBlocks = []
+      const { blocks = [] } = this.layout || {}
+
+      blocks.forEach(({ blockID, xywh }) => {
         const block = this.page.blocks.find(b => b.blockID === blockID)
-        block.xywh = xywh
-        return block
+
+        if (block) {
+          block.xywh = xywh
+          tempBlocks.push(block)
+        }
       })
+
+      this.blocks = tempBlocks
     },
 
     refetchRecordBlocks () {

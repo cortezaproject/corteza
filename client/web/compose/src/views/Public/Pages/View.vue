@@ -297,11 +297,19 @@ export default {
       this.pageTitle = title || handle || this.$t('navigation:noPageTitle')
       document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
 
-      this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
+      const tempBlocks = []
+      const { blocks = [] } = this.layout || {}
+
+      blocks.forEach(({ blockID, xywh }) => {
         const block = this.page.blocks.find(b => b.blockID === blockID)
-        block.xywh = xywh
-        return block
+
+        if (block) {
+          block.xywh = xywh
+          tempBlocks.push(block)
+        }
       })
+
+      this.blocks = tempBlocks
     },
 
     refetchRecords () {
