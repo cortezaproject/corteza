@@ -96,7 +96,7 @@ export default (options = {}) => {
               break
 
             case 'error':
-              console.error('websocket message with error', msg['@value'])
+              this.toastDanger('Websocket message with error', msg['@value'])
           }
         })
       },

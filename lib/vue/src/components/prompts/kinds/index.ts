@@ -6,7 +6,7 @@ import notification from './CPromptNotification.vue'
 import options from './CPromptOptions.vue'
 import { Component } from 'vue'
 import { pType, pVal } from '../utils'
-import { automation } from '@cortezaproject/corteza-js'
+import { automation, NoID } from '@cortezaproject/corteza-js'
 import { KV } from '@cortezaproject/corteza-js/dist/compose/types/chart/util'
 
 interface Handler {
@@ -61,11 +61,18 @@ const definitions: Record<string, PromptDefinition> = {
     handler: function (v): void {
       const url = pVal(v, 'url')
       const delay = (pVal(v, 'delay') || 0) as number
+      const openMode = pVal(v, 'openMode')
+
       if (url !== undefined) {
         console.debug('redirect to %s via prompt in %d sec', url, delay)
         setTimeout(() => {
-          // @ts-ignore
-          window.location = url
+          if (openMode === 'newTab') {
+            // @ts-ignore
+            window.open(url, '_blank')
+          } else {
+            // @ts-ignore
+            window.location = url
+          }
         }, delay * 1000)
       }
     },
@@ -77,11 +84,20 @@ const definitions: Record<string, PromptDefinition> = {
       const params = pVal(v, 'params')
       const query = pVal(v, 'query')
       const delay = (pVal(v, 'delay') || 0) as number
+      const openMode = pVal(v, 'openMode')
       if (name !== undefined) {
         console.debug('reroute to %s via prompt in %d sec', name, delay, { params, query })
         setTimeout(() => {
-          // @ts-ignore
-          this.$router.push({ name, params, query })
+          const routeParams = { name, params, query }
+          if (openMode === 'newTab') {
+            // @ts-ignore
+            const url = this.$router.resolve(routeParams).href
+            // @ts-ignore
+            window.open(url, '_blank')
+          } else {
+            // @ts-ignore
+            this.$router.push(routeParams)
+          }
         }, delay * 1000)
       }
     },
@@ -94,6 +110,7 @@ const definitions: Record<string, PromptDefinition> = {
       const record = pVal(v, 'record')
       const edit = !!pVal(v, 'edit')
       const delay = (pVal(v, 'delay') || 0) as number
+      const openMode = pVal(v, 'openMode')
 
       let namespaceID = ''
       let slug = ''
@@ -122,7 +139,9 @@ const definitions: Record<string, PromptDefinition> = {
           // @ts-ignore
           const { set: nn } = await this.$ComposeAPI.namespaceList({ slug: namespace as string })
           if (!nn || nn.length !== 1) {
-            throw new Error('namespace not resolved')
+            // @ts-ignore
+            this.toastDanger('Namespace not resolved', 'Prompt error')
+            return
           }
 
           namespaceID = nn[0].namespaceID
@@ -138,7 +157,9 @@ const definitions: Record<string, PromptDefinition> = {
           // @ts-ignore
           const { set: mm } = await this.$ComposeAPI.moduleList({ handle: module as string, namespaceID })
           if (!mm || mm.length !== 1) {
-            throw new Error('module not resolved')
+            // @ts-ignore
+            this.toastDanger('Module not resolved', 'Prompt error')
+            return
           }
 
           moduleID = mm[0].moduleID
@@ -155,19 +176,17 @@ const definitions: Record<string, PromptDefinition> = {
       // @ts-ignore
       const { set: pp } = await this.$ComposeAPI.pageList({ moduleID, namespaceID })
       if (!pp || pp.length !== 1) {
-        throw new Error('record page not resolved')
+        // @ts-ignore
+        this.toastDanger('Record page not resolved', 'Prompt error')
+        return
       }
       pageID = pp[0].pageID
 
       // @ts-ignore
       if (this.$root.$options.name === 'compose') {
-        if (!edit && !recordID) {
-          throw new Error('invalid record page prompt configuration')
-        }
-
         let name = 'page.record'
-        if (edit) {
-          name += recordID ? '.edit' : '.create'
+        if (edit || !recordID || recordID === NoID) {
+          name += recordID && recordID !== NoID ? '.edit' : '.create'
         }
 
         // If name and params match, make sure to refresh page instead of push
@@ -176,11 +195,24 @@ const definitions: Record<string, PromptDefinition> = {
 
         setTimeout(() => {
           console.debug('reroute to %s via prompt in %d sec', name, delay, { namespaceID, slug, moduleID, recordID })
+
+          const routeParams = { name, params: { recordID, pageID, slug } }
           if (reloadPage) {
             window.location.reload()
+          } else if (openMode === 'modal') {
+            // @ts-ignore
+            this.$root.$emit('show-record-modal', {
+              recordID: !recordID ? NoID : recordID,
+              recordPageID: pageID,
+            })
+          } else if (openMode === 'newTab') {
+            // @ts-ignore
+            const url = this.$router.resolve(routeParams).href
+            // @ts-ignore
+            window.open(url, '_blank')
           } else {
             // @ts-ignore
-            this.$router.push({ name, params: { recordID, pageID, slug } })
+            this.$router.push(routeParams)
           }
         }, delay * 1000)
       } else {

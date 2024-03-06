@@ -132,7 +132,7 @@
                     @input="$root.$emit('change-detected')"
                     @search="searchWorkflows"
                   />
-
+                  <!-- Clearable -->
                   <c-input-select
                     v-else-if="a.input.type === 'select'"
                     v-model="a.value"
@@ -142,6 +142,7 @@
                     :filter="varFilter"
                     :reduce="a => a.value"
                     :placeholder="$t('steps:function.configurator.option-select')"
+                    :clearable="false"
                     @input="$root.$emit('change-detected')"
                   />
 
@@ -520,7 +521,7 @@ export default {
             target: param.name,
             type: arg.type || this.paramTypes[func.ref][param.name][0],
             valueType: this.getValueType(arg, arg.type || this.paramTypes[func.ref][param.name][0], input),
-            value: arg.value || null,
+            value: arg.value || input.default || null,
             expr: arg.expr || arg.source || null,
             required: param.required || false,
             input,
