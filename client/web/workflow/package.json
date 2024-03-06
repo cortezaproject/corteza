@@ -20,7 +20,7 @@
     "@fortawesome/free-regular-svg-icons": "^5.10.1",
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.9",
-    "bootstrap-vue": "^2.21.2",
+    "bootstrap-vue": "2.23.1",
     "file-saver": "^2.0.5",
     "mxgraph": "^4.2.0",
     "portal-vue": "^2.1.7",

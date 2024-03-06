@@ -52,7 +52,7 @@
     "@nylas/components-mailbox": "^1.1.6-canary.27",
     "@popperjs/core": "^2.4.0",
     "axios": "^1.6.7",
-    "bootstrap-vue": "^2.21.2",
+    "bootstrap-vue": "2.23.1",
     "compact-timezone-list": "^1.0.6",
     "echarts": "^5.3.3",
     "ejs": "^3.1.7",
