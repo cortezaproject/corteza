@@ -20,7 +20,6 @@
           <b-form-file
             :placeholder="$t('label.importPlaceholder')"
             :browse-text="$t('label.browse')"
-            class="font-wight-normal pointer"
             @change="loadFile"
           />
 
@@ -199,26 +198,3 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-$input-height: 42px;
-$line-height: 30px;
-
-.custom-file-input {
-  height: $input-height;
-}
-
-.custom-file-label {
-  height: $input-height;
-  font-family: var(--font-regular);
-
-  &::after {
-    height: 100%;
-    font-family: var(--btn-font-family);
-    line-height: $line-height;
-    background-color: var(--light);
-    color: var(--dark);
-    font-weight: 400;
-    padding: var(btn-padding-y) var(--btn-padding-x);
-  }
-}
-</style>

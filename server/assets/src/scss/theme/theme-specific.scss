@@ -955,6 +955,20 @@
         text-shadow: 0 0 0 $custom-select-color;
       }
     }
+
+    .custom-file-input {
+      &:focus ~ .custom-file-label {
+        border-color: $custom-file-focus-border-color;
+        box-shadow: $custom-file-focus-box-shadow;
+      }
+
+      // Use [disabled] and :disabled to work around https://github.com/twbs/bootstrap/issues/28247
+      &[disabled] ~ .custom-file-label,
+      &:disabled ~ .custom-file-label {
+        background-color: $custom-file-disabled-bg;
+      }
+    }
+
     .custom-file-label {
       font-family: $custom-file-font-family;
       font-weight: $custom-file-font-weight;
@@ -966,12 +980,10 @@
       @include box-shadow($custom-file-box-shadow);
 
       &::after {
+        font-family: $btn-font-family;
         line-height: $custom-file-line-height;
         color: $custom-file-button-color;
         @include gradient-bg($custom-file-button-bg);
-        @include border-radius(
-          0 $custom-file-border-radius $custom-file-border-radius 0
-        );
       }
     }
     .custom-range {
@@ -989,10 +1001,6 @@
         &::-ms-thumb {
           box-shadow: $custom-range-thumb-focus-box-shadow;
         }
-      }
-
-      &::-moz-focus-outer {
-        border: 0;
       }
 
       &::-webkit-slider-thumb {

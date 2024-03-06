@@ -326,6 +326,7 @@
   &[disabled] ~ .custom-file-label,
   &:disabled ~ .custom-file-label {
     background-color: $custom-file-disabled-bg;
+    cursor: not-allowed
   }
 
   @each $lang, $value in $custom-file-text {
@@ -340,6 +341,7 @@
 }
 
 .custom-file-label {
+  cursor: pointer;
   position: absolute;
   top: 0;
   right: 0;
@@ -365,12 +367,13 @@
     display: block;
     height: $custom-file-height-inner;
     padding: $custom-file-padding-y $custom-file-padding-x;
+    font-family: $btn-font-family;
     line-height: $custom-file-line-height;
     color: $custom-file-button-color;
     content: "Browse";
     @include gradient-bg($custom-file-button-bg);
     border-left: inherit;
-    @include border-radius(0 $custom-file-border-radius $custom-file-border-radius 0);
+    border-radius: 0;
   }
 }
 
