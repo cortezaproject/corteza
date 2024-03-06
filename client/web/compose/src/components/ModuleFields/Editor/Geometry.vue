@@ -16,7 +16,7 @@
       >
         <span
           :title="label"
-          class="d-inline-block mw-100 py-1"
+          class="d-inline-block mw-100"
         >
           {{ label }}
         </span>

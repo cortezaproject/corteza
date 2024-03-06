@@ -19,7 +19,7 @@
         <div
           v-if="canDisplay(field)"
           :key="field.id"
-          class="mb-3"
+          class="field-container mb-3"
         >
           <field-editor
             v-if="isFieldEditable(field)"
@@ -40,7 +40,7 @@
               <div
                 class="d-flex align-items-center text-primary mb-0"
               >
-                <span class="d-inline-block mw-100 py-1">
+                <span class="d-inline-block mw-100">
                   {{ field.label || field.name }}
                 </span>
 
@@ -57,7 +57,7 @@
 
             <div
               v-if="field.canReadRecordValue"
-              class="value mt-1 align-self-center"
+              class="value align-self-center"
             >
               <field-viewer
                 :field="field"
@@ -220,9 +220,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss">
-.value {
-  min-height: 1.2rem;
-}
-</style>

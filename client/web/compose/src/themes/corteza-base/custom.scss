@@ -8,16 +8,32 @@
   }
 }
 
-.col-form-label {
-  padding: 0;
-  padding-right: 5px !important;
-}
+// Styles for field viewers and editors, they're here since they're used in multiple places
+.field-container {
+  .form-row {
+    margin: 0;
 
-.form-row {
-  margin: 0;
+    [class*="col-"] {
+      padding: 0;
+    }
+  }
 
-  [class*="col-"] {
-    padding-right: 0;
-    padding-left: 0;
+  .value {
+    min-height: 1.2rem;
+  }
+
+  .inline-actions {
+    opacity: 0;
+    transition: opacity 0.25s;
+
+    button:hover {
+      color: var(--primary) !important;
+    }
+  }
+
+  &:hover {
+    .inline-actions {
+      opacity: 1;
+    }
   }
 }

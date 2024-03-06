@@ -26,9 +26,9 @@
         >
           <template #label>
             <div
-              class="d-flex align-items-center text-primary mb-0"
+              class="d-flex text-primary mb-0"
             >
-              <span class="d-inline-block mw-100 py-1">
+              <span class="d-inline-block mw-100">
                 {{ field.label || field.name }}
               </span>
 
@@ -63,7 +63,7 @@
 
           <div
             v-if="field.canReadRecordValue"
-            class="value mt-1 align-self-center"
+            class="value align-self-center"
           >
             <field-viewer
               v-bind="{ ...$props, field }"
@@ -333,30 +333,3 @@ export default {
   },
 }
 </script>
-<style lang="scss">
-.field-container {
-  legend {
-    padding-top: 0;
-    padding-bottom: 0;
-  }
-}
-
-.value {
-  min-height: 1.2rem;
-}
-</style>
-
-<style lang="scss" scoped>
-.inline-actions {
-  opacity: 0;
-  transition: opacity 0.25s;
-}
-
-.field-container:hover .inline-actions {
-  opacity: 1;
-
-  button:hover {
-    color: var(--primary) !important;
-  }
-}
-</style>
