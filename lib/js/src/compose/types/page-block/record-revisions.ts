@@ -137,7 +137,6 @@ export class PageBlockRecordRevisions extends PageBlock {
           rr.filter(r => map.has(r.userID))
             .forEach(r => {
               r.user = map.get(r.userID) as User
-              console.log('resolving revision author', r.user)
             })
         }),
 

@@ -35,6 +35,7 @@
           :items="revisions"
           :fields="columns"
           sticky-header
+          hover
           class="flex-fill mh-100 mb-0 w-100 rounded"
         >
           <template #cell(timestamp)="row">
@@ -52,6 +53,7 @@
               {{ row.detailsShowing ? '&times;' : $t(`show-changes`, { count: row.item.changes.length }) }}
             </b-button>
           </template>
+
           <template #row-details="row">
             <div
               class="pl-5"
@@ -172,7 +174,7 @@ export default {
           key: 'adt',
           label: '',
           thClass: 'border-top-0',
-          class: 'nowrap text-right',
+          class: 'text-nowrap text-right',
         },
       ],
     }
