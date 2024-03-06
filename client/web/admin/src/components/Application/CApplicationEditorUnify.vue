@@ -113,6 +113,7 @@
             </b-col>
 
             <b-col
+              v-if="canPin"
               cols="12"
               sm="6"
             >
@@ -125,7 +126,6 @@
                   data-test-id="checkbox-pinned"
                   switch
                   :labels="checkboxLabel"
-                  :disabled="!canPin"
                 />
               </b-form-group>
             </b-col>

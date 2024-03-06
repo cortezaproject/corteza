@@ -584,8 +584,7 @@ export default {
           meta = { ...meta, ...assets }
           this.namespaceAssetsInitialState = this.namespaceAssets
         } catch (e) {
-          const error = JSON.stringify(e) === '{}' ? '' : e
-          this.toastErrorHandler(this.$t('notification:namespace.assetUploadFailed'))(error)
+          this.toastErrorHandler(this.$t('notification:namespace.assetUploadFailed'))(e)
           stopProcessing()
           return
         }
@@ -730,16 +729,19 @@ export default {
       const rr = {}
 
       const rq = async (file) => {
-        var formData = new FormData()
+        const formData = new FormData()
         formData.append('upload', file)
 
         const rsp = await this.$ComposeAPI.api().request({
           method: 'post',
           url: this.$ComposeAPI.namespaceUploadEndpoint(),
           data: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         })
         if (rsp.data.error) {
-          throw new Error(rsp.data.error)
+          throw new Error(rsp.data.error.message)
         }
         return rsp.data.response
       }

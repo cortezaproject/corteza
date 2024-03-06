@@ -270,16 +270,19 @@ export default {
       const rr = {}
 
       const rq = async (file) => {
-        var formData = new FormData()
+        const formData = new FormData()
         formData.append('upload', file)
 
         const rsp = await this.$SystemAPI.api().request({
           method: 'post',
           url: this.$SystemAPI.applicationUploadEndpoint(),
           data: formData,
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
         })
         if (rsp.data.error) {
-          throw new Error(rsp.data.error)
+          throw new Error(rsp.data.error.message)
         }
         return rsp.data.response
       }
