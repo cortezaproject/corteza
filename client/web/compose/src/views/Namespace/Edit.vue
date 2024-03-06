@@ -283,6 +283,7 @@
       :processing="processing"
       :processing-save="processingSave"
       :processing-save-and-close="processingSaveAndClose"
+      :processing-clone="processingClone"
       :processing-delete="processingDelete"
       :hide-delete="hideDelete"
       :hide-clone="!isEdit"
@@ -291,7 +292,7 @@
       @back="$router.go(-1)"
       @delete="handleDelete"
       @save="handleSave()"
-      @clone="$router.push({ name: 'namespace.clone', params: { namespaceID: namespace.namespaceID }})"
+      @clone="handleClone()"
       @saveAndClose="handleSave({ closeOnSuccess: true })"
     />
 
@@ -354,11 +355,19 @@ export default {
     this.checkUnsavedNamespace(next)
   },
 
+  props: {
+    isClone: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
   data () {
     return {
       processing: false,
       processingSave: false,
       processingSaveAndClose: false,
+      processingClone: false,
       processingDelete: false,
 
       namespace: undefined,
@@ -417,11 +426,7 @@ export default {
     },
 
     isEdit () {
-      return this.$route.name === 'namespace.edit'
-    },
-
-    isClone () {
-      return this.$route.name === 'namespace.clone'
+      return this.$route.name === 'namespace.edit' || this.isClone
     },
 
     logoPreview () {
@@ -460,8 +465,8 @@ export default {
   watch: {
     watchKey: {
       immediate: true,
-      handler (namespaceID) {
-        this.fetchNamespace(namespaceID)
+      handler () {
+        this.fetchNamespace()
       },
     },
   },
@@ -495,11 +500,6 @@ export default {
           .then(ns => {
             this.namespaceEnabled = ns.enabled
             this.namespace = new compose.Namespace(ns)
-
-            if (this.isClone) {
-              this.namespace.name = `${ns.name} (${this.$t('cloneSuffix')})`
-              this.namespace.slug = ''
-            }
 
             this.fetchApplication()
           })
@@ -611,16 +611,6 @@ export default {
           stopProcessing()
           return
         }
-      } else if (this.isClone) {
-        try {
-          await this.cloneNamespace({ namespaceID, name, slug, enabled, meta }).then((ns) => {
-            this.namespace = new compose.Namespace(ns)
-          })
-        } catch (e) {
-          this.toastErrorHandler(this.$t('notification:namespace.cloneFailed'))(e)
-          stopProcessing()
-          return
-        }
       } else {
         try {
           await this.createNamespace(payload).then((ns) => {
@@ -649,6 +639,26 @@ export default {
       } else if (!this.isEdit || this.isClone) {
         this.$router.push({ name: 'namespace.edit', params: { namespaceID: this.namespace.namespaceID } })
       }
+    },
+
+    handleClone () {
+      this.processingClone = true
+
+      let { name, slug } = this.namespace
+
+      name = `${name} (${this.$t('cloneSuffix')})`
+      slug = ''
+
+      return this.cloneNamespace({ ...this.namespace, name, slug }).then(({ namespaceID }) => {
+        this.$route.params.namespaceID = namespaceID
+        this.toastSuccess(this.$t('notification:namespace.cloned'))
+        this.$router.push({ name: 'namespace.edit', params: { namespaceID, isClone: true } })
+      }).catch(e => {
+        this.toastErrorHandler(this.$t('notification:namespace.cloneFailed'))(e)
+        this.processingClone = false
+      }).finally(() => {
+        this.processingClone = false
+      })
     },
 
     handleDelete () {
@@ -790,6 +800,7 @@ export default {
       this.processing = false
       this.processingSaveAndClose = false
       this.processingSave = false
+      this.processingClone = false
       this.namespace = undefined
       this.initialNamespaceState = undefined
       this.namespaceAssets = {}

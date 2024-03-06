@@ -25,7 +25,6 @@ export default [
           r('namespace.manage', '/namespaces/manage', 'Namespace/Manage'),
           r('namespace.create', '/admin/namespace/create', 'Namespace/Edit'),
           r('namespace.edit', '/admin/namespace/edit/:namespaceID', 'Namespace/Edit'),
-          r('namespace.clone', '/admin/namespace/clone/:namespaceID', 'Namespace/Edit'),
           {
             ...r('namespace', '/ns/:slug', 'Namespace/View'),
             redirect: { name: 'pages' },

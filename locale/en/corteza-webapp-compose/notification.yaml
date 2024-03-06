@@ -96,6 +96,7 @@ namespace:
   disabled: Namespace disabled - redirecting
   saveFailed: Could not save this namespace
   saved: Namespace saved
+  cloned: Namespace cloned
   cloneFailed: Could not clone this namespace
   imported: Namespace imported
   importFailed: Namespace failed to import

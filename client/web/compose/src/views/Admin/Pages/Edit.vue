@@ -1483,6 +1483,7 @@ export default {
       this.processingSaveAndClose = false
       this.processingSave = false
       this.processingClone = false
+      this.processingDelete = false
       this.page = {}
       this.initialPageState = {}
       this.showIconModal = false
