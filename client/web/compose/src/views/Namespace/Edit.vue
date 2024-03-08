@@ -647,7 +647,7 @@ export default {
       let { name, slug } = this.namespace
 
       name = `${name} (${this.$t('cloneSuffix')})`
-      slug = ''
+      slug = slug ? `${slug}_${this.$t('cloneSuffix')}` : ''
 
       return this.cloneNamespace({ ...this.namespace, name, slug }).then(({ namespaceID }) => {
         this.$route.params.namespaceID = namespaceID
