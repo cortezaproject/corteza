@@ -207,6 +207,11 @@ func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (int
 		Slug: r.Slug,
 	}
 
+	// @todo temporary workaround cause Envoy requires some identifiable thing
+	if dup.Slug == "" {
+		dup.Slug = fmt.Sprintf("cl_%d", r.NamespaceID)
+	}
+
 	nodes, err := ctrl.gatherNodes(ctx, r.NamespaceID)
 	if err != nil {
 		return nil, err
@@ -217,6 +222,18 @@ func (ctrl Namespace) Clone(ctx context.Context, r *request.NamespaceClone) (int
 	}
 
 	ns, err := ctrl.namespace.Clone(ctx, r.NamespaceID, dup, decoder)
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo temporary workaround cause Envoy requires some identifiable thing
+	if r.Slug == "" {
+		ns.Slug = ""
+		ns, err = ctrl.namespace.Update(ctx, ns)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return ctrl.makePayload(ctx, ns, err)
 }
 
@@ -279,7 +296,24 @@ func (ctrl Namespace) ImportRun(ctx context.Context, r *request.NamespaceImportR
 		}
 	)
 
+	// @todo temporary workaround cause Envoy requires some identifiable thing
+	if dup.Slug == "" {
+		dup.Slug = fmt.Sprintf("cl_%d", r.SessionID)
+	}
+
 	ns, err := ctrl.namespace.ImportRun(ctx, r.SessionID, dup)
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo temporary workaround cause Envoy requires some identifiable thing
+	if r.Slug == "" {
+		ns.Slug = ""
+		ns, err = ctrl.namespace.Update(ctx, ns)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return ctrl.makePayload(ctx, ns, err)
 }
 

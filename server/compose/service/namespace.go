@@ -485,6 +485,11 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 				return err
 			}
 
+			newNS, err = store.LookupComposeNamespaceBySlug(ctx, s, newNS.Slug)
+			if err != nil {
+				return err
+			}
+
 			aProps.setNamespace(newNS)
 			return nil
 		})
@@ -493,6 +498,7 @@ func (svc namespace) ImportRun(ctx context.Context, sessionID uint64, dup *types
 		}
 
 		err = svc.reloadServices(ctx, newNS)
+		dup = newNS
 		return err
 	}()
 
