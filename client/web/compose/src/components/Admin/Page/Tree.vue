@@ -37,7 +37,7 @@
             </b-badge>
           </div>
 
-          <div class="px-2">
+          <div class="actions px-2">
             <b-button-group
               v-if="item.canUpdatePage"
               size="sm"
@@ -86,7 +86,7 @@
               v-if="item.canGrant || namespace.canGrant"
               v-b-tooltip.noninteractive.hover="{ title: $t('permissions:resources.compose.page.tooltip'), container: '#body' }"
               data-test-id="dropdown-permissions"
-              variant="light"
+              variant="extra-light"
               size="sm"
               class="permissions-dropdown ml-1"
             >
@@ -325,6 +325,20 @@ $dropping-color: var(--secondary);
     &.parent-li:nth-last-child(2)::before {
       height: $content-height !important;
       top: calc($content-height / -2) !important;
+    }
+
+    .content {
+      .actions {
+        display: none;
+      }
+
+      &:hover {
+        background: var(--light) !important;
+
+        .actions {
+          display: block;
+        }
+      }
     }
   }
 
