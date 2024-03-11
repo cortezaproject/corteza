@@ -110,8 +110,9 @@
     </div>
 
     <c-form-table-wrapper
-      show-add-button
-      :action-label="$t('tabs.addTab')"
+      :labels="{
+        addButton: $t('general:label.add')
+      }"
       @add-item="addTab"
     >
       <b-table-simple

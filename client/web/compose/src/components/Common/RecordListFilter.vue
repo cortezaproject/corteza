@@ -32,7 +32,7 @@
         class="position-static w-100"
       >
         <c-form-table-wrapper
-          class="pb-0 overflow-auto"
+          hide-add-button
         >
           <b-table-simple
             v-if="componentFilter.length"
@@ -159,7 +159,8 @@
                   <b-td class="pb-0">
                     <b-button
                       variant="primary"
-                      style="min-height: 38px; min-width: 84px;"
+                      class="d-flex align-items-center"
+                      size="sm"
                       @click="addFilter(groupIndex)"
                     >
                       <font-awesome-icon

@@ -1,15 +1,22 @@
 <template>
-  <div class="list-background w-100 p-3">
+  <div class="list-background w-100 p-3 rounded border border-light">
     <slot></slot>
 
     <b-button
-      v-if="showAddButton"
+      v-if="!hideAddButton"
       variant="primary"
       size="sm"
-      :disabled="disableAction"
-      @click="handleClick"
+      :data-test-id="testID"
+      :class="addButtonClass"
+      :disabled="disableAddButton"
+      @click="$emit('add-item')"
     >
-      {{ actionLabel }}
+       <font-awesome-icon
+         :icon="['fas', 'plus']"
+         class="mr-1"
+       />
+
+      {{ labels.addButton || '' }}
     </b-button>
   </div>
 </template>
@@ -19,28 +26,32 @@ export default {
   name: 'CFormTableWrapper',
 
   props: {
-    actionLabel: {
+    labels: {
+      type: Object,
+      default: () => {},
+    },
+
+    hideAddButton: {
+      type: Boolean,
+      default: false,
+    },
+
+    disableAddButton: {
+      type: Boolean,
+      default: false,
+    },
+
+    addButtonClass: {
       type: String,
       default: '',
     },
 
-    showAddButton: {
-      type: Boolean,
-      default: false,
-    },
-
-    disableAction: {
-      type: Boolean,
-      default: false,
-    },
+    testID : {
+      type: String,
+      default: '',
+    }
   },
-
-  methods: {
-    handleClick() {
-      this.$emit('add-item');
-    },
-  },
-};
+}
 </script>
 
 <style scoped>

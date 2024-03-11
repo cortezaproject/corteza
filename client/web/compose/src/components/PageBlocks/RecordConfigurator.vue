@@ -136,9 +136,10 @@
       </h5>
 
       <c-form-table-wrapper
-        show-add-button
-        :action-label="$t('general:label.add-with-plus')"
-        :disable-action="addRuleDisabled"
+        :labels="{
+          addButton: $t('general:label.add')
+        }"
+        :disable-add-button="addRuleDisabled"
         @add-item="addRule"
       >
         <b-table-simple

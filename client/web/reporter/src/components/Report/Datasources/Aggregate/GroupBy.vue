@@ -1,5 +1,11 @@
 <template>
-  <c-form-table-wrapper>
+  <c-form-table-wrapper
+    :labels="{
+      addButton: $t('general:label.add')
+    }"
+    add-button-class="mt-1"
+    @add-item="addParam"
+  >
     <b-table-simple
       v-if="groups.length"
       responsive
@@ -64,19 +70,6 @@
         </b-tr>
       </b-tbody>
     </b-table-simple>
-
-    <b-button
-      variant="primary"
-      class="mt-1"
-      @click="addParam()"
-    >
-      <font-awesome-icon
-        :icon="['fas', 'plus']"
-        size="sm"
-        class="mr-1"
-      />
-      {{ $t('datasources:add') }}
-    </b-button>
   </c-form-table-wrapper>
 </template>
 

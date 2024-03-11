@@ -61,7 +61,7 @@
 
       <c-form-table-wrapper
         v-if="rule.constraints && rule.constraints.length > 0"
-        class="rounded border border-light"
+        hide-add-button
       >
         <b-table-simple
           borderless

@@ -216,8 +216,7 @@
 
                 <b-row no-gutters>
                   <c-form-table-wrapper
-                    :list-title="$t('edit.manageRecordFields')"
-                    :action-label="$t('edit.newField')"
+                    hide-add-button
                   >
                     <b-form-group class="w-100">
                       <b-table-simple

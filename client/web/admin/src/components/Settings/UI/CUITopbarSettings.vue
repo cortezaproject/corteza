@@ -62,53 +62,51 @@
               </b-form-checkbox>
             </b-form-group>
           </b-col>
+
           <b-col>
             <b-form-group
-              label-class="pb-1 text-primary"
+              :label="$t('links.title')"
+              label-class="text-primary"
             >
-              <template #label>
-                {{ $t('links.title') }}
-                <b-button
-                  variant="link"
-                  class="text-decoration-none"
-                  @click="topbarSettings.helpLinks.push({ handle: '', url: '', newTab: true })"
-                >
-                  {{ $t('general:label.plus-add') }}
-                </b-button>
-              </template>
-              <b-table
-                :fields="links.fields"
-                :items="topbarSettings.helpLinks"
-                head-variant="light"
-                responsive="sm"
-                small
-                class="mb-0"
+              <c-form-table-wrapper
+                :labels="{ addButton: $t('general:label.add') }"
+                add-button-class="mt-2"
+                @add-item="topbarSettings.helpLinks.push({ handle: '', url: '', newTab: true })"
               >
-                <template #cell(handle)="data">
-                  <b-form-input
-                    v-model="data.item.handle"
-                    size="sm"
-                  />
-                </template>
-                <template #cell(url)="data">
-                  <b-form-input
-                    v-model="data.item.url"
-                    type="url"
-                    size="sm"
-                  />
-                </template>
-                <template #cell(newTab)="data">
-                  <b-form-checkbox
-                    v-model="data.item.newTab"
-                  />
-                </template>
-                <template #cell(actions)="data">
-                  <c-input-confirm
-                    show-icon
-                    @confirmed="topbarSettings.helpLinks.splice(data.index, 1)"
-                  />
-                </template>
-              </b-table>
+                <b-table
+                  :fields="links.fields"
+                  :items="topbarSettings.helpLinks"
+                  head-variant="light"
+                  responsive="sm"
+                  small
+                  class="mb-0"
+                >
+                  <template #cell(handle)="data">
+                    <b-form-input
+                      v-model="data.item.handle"
+                      size="sm"
+                    />
+                  </template>
+                  <template #cell(url)="data">
+                    <b-form-input
+                      v-model="data.item.url"
+                      type="url"
+                      size="sm"
+                    />
+                  </template>
+                  <template #cell(newTab)="data">
+                    <b-form-checkbox
+                      v-model="data.item.newTab"
+                    />
+                  </template>
+                  <template #cell(actions)="data">
+                    <c-input-confirm
+                      show-icon
+                      @confirmed="topbarSettings.helpLinks.splice(data.index, 1)"
+                    />
+                  </template>
+                </b-table>
+              </c-form-table-wrapper>
             </b-form-group>
           </b-col>
         </b-row>
@@ -122,6 +120,7 @@
             lg="3"
           >
             <h5>{{ $t('profile.title') }}</h5>
+
             <b-form-group>
               <b-form-checkbox
                 v-model="topbarSettings.hideProfileLink"
@@ -142,53 +141,54 @@
               </b-form-checkbox>
             </b-form-group>
           </b-col>
+
           <b-col>
             <b-form-group
-              label-class="pb-1 text-primary"
+              :label="$t('links.title')"
+              label-class="text-primary"
             >
-              <template #label>
-                {{ $t('links.title') }}
-                <b-button
-                  variant="link"
-                  class="text-decoration-none"
-                  @click="topbarSettings.profileLinks.push({ handle: '', url: '', newTab: true })"
-                >
-                  {{ $t('general:label.plus-add') }}
-                </b-button>
-              </template>
-              <b-table
-                :fields="links.fields"
-                :items="topbarSettings.profileLinks"
-                head-variant="light"
-                responsive="sm"
-                small
-                class="mb-0"
+              <c-form-table-wrapper
+                :labels="{ addButton: $t('general:label.add') }"
+                add-button-class="mt-2"
+                @add-item="topbarSettings.helpLinks.push({ handle: '', url: '', newTab: true })"
               >
-                <template #cell(handle)="data">
-                  <b-form-input
-                    v-model="data.item.handle"
-                    size="sm"
-                  />
-                </template>
-                <template #cell(url)="data">
-                  <b-form-input
-                    v-model="data.item.url"
-                    type="url"
-                    size="sm"
-                  />
-                </template>
-                <template #cell(newTab)="data">
-                  <b-form-checkbox
-                    v-model="data.item.newTab"
-                  />
-                </template>
-                <template #cell(actions)="data">
-                  <c-input-confirm
-                    show-icon
-                    @confirmed="topbarSettings.profileLinks.splice(data.index, 1)"
-                  />
-                </template>
-              </b-table>
+                <b-table
+                  :fields="links.fields"
+                  :items="topbarSettings.profileLinks"
+                  head-variant="light"
+                  responsive="sm"
+                  small
+                  class="mb-0"
+                >
+                  <template #cell(handle)="data">
+                    <b-form-input
+                      v-model="data.item.handle"
+                      size="sm"
+                    />
+                  </template>
+
+                  <template #cell(url)="data">
+                    <b-form-input
+                      v-model="data.item.url"
+                      type="url"
+                      size="sm"
+                    />
+                  </template>
+
+                  <template #cell(newTab)="data">
+                    <b-form-checkbox
+                      v-model="data.item.newTab"
+                    />
+                  </template>
+
+                  <template #cell(actions)="data">
+                    <c-input-confirm
+                      show-icon
+                      @confirmed="topbarSettings.profileLinks.splice(data.index, 1)"
+                    />
+                  </template>
+                </b-table>
+              </c-form-table-wrapper>
             </b-form-group>
           </b-col>
         </b-row>

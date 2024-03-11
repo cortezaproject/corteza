@@ -1,5 +1,7 @@
 <template>
-  <c-form-table-wrapper class="prefilter">
+  <c-form-table-wrapper
+    hide-add-button
+  >
     <b-table-simple
       v-if="render && filter.ref"
       responsive
@@ -56,6 +58,7 @@
               </b-input-group>
             </td>
           </template>
+
           <template v-else-if="group">
             <td>
               <b-input-group>
@@ -112,6 +115,7 @@
               </b-input-group>
             </td>
           </template>
+
           <td
             class="fit text-center align-middle pl-2 pr-0"
           >
@@ -131,6 +135,8 @@
           >
             <b-button
               variant="primary"
+              size="sm"
+              class="mt-1"
               @click="addFilter(groupIndex)"
             >
               <font-awesome-icon
@@ -181,6 +187,7 @@
     >
       <b-button
         variant="primary"
+        size="sm"
         @click="initFilter()"
       >
         <font-awesome-icon

@@ -232,7 +232,10 @@
             cols="12"
           >
             <hr>
-            <div class="list-background rounded border border-light p-3">
+            <c-form-table-wrapper
+              :labels="tableWrapperLabel"
+              @add-item="addLayout"
+            >
               <b-form-group
                 :label="$t('page-layout.layouts')"
                 label-class="text-primary"
@@ -365,21 +368,8 @@
                     </tr>
                   </draggable>
                 </b-table-simple>
-
-                <b-button
-                  variant="primary"
-                  size="sm"
-                  class="mt-1"
-                  @click="addLayout"
-                >
-                  <font-awesome-icon
-                    :icon="['fas', 'plus']"
-                    class="mr-1"
-                  />
-                  {{ $t('general:label.add-with-plus') }}
-                </b-button>
               </b-form-group>
-            </div>
+            </c-form-table-wrapper>
           </b-col>
         </b-row>
       </b-card>
@@ -1027,6 +1017,10 @@ export default {
       checkboxLabel: {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
+      },
+
+      tableWrapperLabel: {
+        addButton: this.$t('general:label.add'),
       },
 
       abortableRequests: [],
