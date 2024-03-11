@@ -270,7 +270,7 @@ $content-height: 48px;
 $blank-li-height: 10px;
 $left-padding: 5px;
 $border-color: var(--light);
-$hover-color: var(--gray-200);
+$hover-color: var(--light);
 $dropping-color: var(--secondary);
 
 .page-name-input {
@@ -288,8 +288,16 @@ $dropping-color: var(--secondary);
       min-height: $content-height !important;
       line-height: $content-height !important;
 
+      .actions {
+        display: none;
+      }
+
       &:hover {
-        background: $hover-color;
+        background-color: $hover-color !important;
+
+        .actions {
+          display: block;
+        }
       }
     }
   }
@@ -325,20 +333,6 @@ $dropping-color: var(--secondary);
     &.parent-li:nth-last-child(2)::before {
       height: $content-height !important;
       top: calc($content-height / -2) !important;
-    }
-
-    .content {
-      .actions {
-        display: none;
-      }
-
-      &:hover {
-        background: var(--light) !important;
-
-        .actions {
-          display: block;
-        }
-      }
     }
   }
 
