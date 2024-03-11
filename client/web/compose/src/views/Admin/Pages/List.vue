@@ -33,7 +33,7 @@
                   data-test-id="button-create-page"
                   type="submit"
                   variant="primary"
-                  @click="handleAddPageFormSubmit"
+                  @click="createNewPage"
                 >
                   {{ $t('createLabel') }}
                 </b-button>
@@ -178,7 +178,7 @@ export default {
         })
     },
 
-    handleAddPageFormSubmit () {
+    createNewPage () {
       const { namespaceID } = this.namespace
       this.page.weight = this.tree.length
       this.createPage({ ...this.page, namespaceID }).then(({ pageID, title }) => {

@@ -18,22 +18,20 @@
           class="d-flex flex-wrap align-content-center justify-content-between pr-2"
         >
           <div
-            class="px-2 flex-fill overflow-hidden text-truncate"
+            class="px-2 flex-fill overflow-hidden text-truncate gap-1"
             :class="{'grab': namespace.canCreatePage }"
           >
             {{ item.title }}
-            <span
+            <font-awesome-icon
               v-if="!item.visible && item.moduleID == '0'"
+              v-b-tooltip.noninteractive.hover="{ title: $t('notVisible'), container: '#body' }"
               class="text-danger"
-            >
-              <font-awesome-icon
-                v-b-tooltip.noninteractive.hover="{ title: $t('notVisible'), container: '#body' }"
-                :icon="['fas', 'eye-slash']"
-              />
-            </span>
+              :icon="['fas', 'eye-slash']"
+            />
             <b-badge
               v-if="!isValid(item)"
               variant="danger"
+              class="ml-1"
             >
               {{ $t('invalid') }}
             </b-badge>
