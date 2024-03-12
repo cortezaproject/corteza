@@ -551,23 +551,17 @@ export default {
     },
 
     async handleSave ({ closeOnSuccess = false } = {}) {
-      this.processing = true
-
-      if (closeOnSuccess) {
-        this.processingSaveAndClose = true
-      } else {
-        this.processingSave = true
-      }
-
-      const stopProcessing = () => {
-        this.processing = false
+      const toggleProcessing = () => {
+        this.processing = !this.processing
 
         if (closeOnSuccess) {
-          this.processingSaveAndClose = false
+          this.processingSaveAndClose = !this.processingSaveAndClose
         } else {
-          this.processingSave = false
+          this.processingSave = !this.processingSave
         }
       }
+
+      toggleProcessing()
 
       /**
        * Pass a special tag alongside payload that
@@ -585,7 +579,7 @@ export default {
           this.namespaceAssetsInitialState = this.namespaceAssets
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.assetUploadFailed'))(e)
-          stopProcessing()
+          toggleProcessing()
           return
         }
       }
@@ -608,7 +602,7 @@ export default {
           })
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.saveFailed'))(e)
-          stopProcessing()
+          toggleProcessing()
           return
         }
       } else {
@@ -621,7 +615,7 @@ export default {
           })
         } catch (e) {
           this.toastErrorHandler(this.$t('notification:namespace.createFailed'))(e)
-          stopProcessing()
+          toggleProcessing()
           return
         }
       }
@@ -632,7 +626,7 @@ export default {
       this.initialNamespaceState = this.namespace.clone()
       this.isApplicationInitialState = this.isApplication
 
-      stopProcessing()
+      toggleProcessing()
 
       if (closeOnSuccess) {
         this.$router.push(this.previousPage || { name: 'namespace.manage' })
@@ -655,7 +649,6 @@ export default {
         this.$router.push({ name: 'namespace.edit', params: { namespaceID, isClone: true } })
       }).catch(e => {
         this.toastErrorHandler(this.$t('notification:namespace.cloneFailed'))(e)
-        this.processingClone = false
       }).finally(() => {
         this.processingClone = false
       })
@@ -783,17 +776,15 @@ export default {
     },
 
     checkUnsavedNamespace (next) {
-      if (this.isNew) {
-        next(true)
-      } else if (!this.namespace.deletedAt) {
-        const namespaceState = !isEqual(this.namespace.clone(), this.initialNamespaceState.clone())
-        const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
-        const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
-
-        return next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
-      } else {
-        next(true)
+      if (this.isNew || this.processingClone || this.namespace.deletedAt) {
+        return next(true)
       }
+
+      const namespaceState = !isEqual(this.namespace.clone(), this.initialNamespaceState.clone())
+      const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
+      const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
+
+      return next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
     },
 
     setDefaultValues () {
