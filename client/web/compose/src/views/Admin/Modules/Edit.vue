@@ -431,6 +431,7 @@
       <editor-toolbar
         :processing="processing"
         :processing-save="processingSave"
+        :processing-clone="processingClone"
         :processing-save-and-close="processingSaveAndClose"
         :processing-delete="processingDelete"
         :hide-delete="hideDelete"
@@ -439,8 +440,8 @@
         :disable-save="disableSave"
         @delete="handleDelete"
         @save="handleSave()"
-        @saveAndClose="handleSave({ closeOnSuccess: true })"
         @clone="handleClone"
+        @saveAndClose="handleSave({ closeOnSuccess: true })"
         @back="$router.push(previousPage || { name: 'admin.modules' })"
       />
     </portal>
@@ -527,6 +528,7 @@ export default {
       hasRecords: true,
       processing: false,
       processingSave: false,
+      processingClone: false,
       processingSaveAndClose: false,
       processingDelete: false,
 
@@ -734,19 +736,26 @@ export default {
       this.module.config = { ...this.module.config, ...changes }
     },
 
-    handleSave ({ closeOnSuccess = false, module = this.module } = {}) {
+    handleSave ({ module = this.module, closeOnSuccess = false, isClone = false } = {}) {
       /**
        * Pass a special tag alongside payload that
        * instructs store layer to add content-language header to the API request
        */
       const resourceTranslationLanguage = this.currentLanguage
-      this.processing = true
 
-      if (closeOnSuccess) {
-        this.processingSaveAndClose = true
-      } else {
-        this.processingSave = true
+      const toggleProcessing = () => {
+        this.processing = !this.processing
+
+        if (closeOnSuccess) {
+          this.processingSaveAndClose = !this.processingSaveAndClose
+        } else if (isClone) {
+          this.processingClone = !this.processingClone
+        } else {
+          this.processingSave = !this.processingSave
+        }
       }
+
+      toggleProcessing()
 
       if (module.moduleID === NoID) {
         // Filter out record fields that reference this not yet created module
@@ -786,13 +795,7 @@ export default {
           }
         }).catch(this.toastErrorHandler(this.$t('notification:module.saveFailed')))
           .finally(() => {
-            this.processing = false
-
-            if (closeOnSuccess) {
-              this.processingSaveAndClose = false
-            } else {
-              this.processingSave = false
-            }
+            toggleProcessing()
           })
       } else {
         this.updateModule({ ...module, resourceTranslationLanguage }).then(module => {
@@ -801,17 +804,11 @@ export default {
 
           this.toastSuccess(this.$t('notification:module.saved'))
           if (closeOnSuccess) {
-            this.$router.push({ name: 'admin.modules' })
+            this.$router.push(this.previousPage || { name: 'admin.modules' })
           }
         }).catch(this.toastErrorHandler(this.$t('notification:module.saveFailed')))
           .finally(() => {
-            this.processing = false
-
-            if (closeOnSuccess) {
-              this.processingSaveAndClose = false
-            } else {
-              this.processingSave = false
-            }
+            toggleProcessing()
           })
       }
     },
@@ -913,7 +910,7 @@ export default {
       module.name = `${this.module.name} (copy)`
       module.handle = this.module.handle ? `${this.module.handle}_copy` : ''
 
-      this.handleSave({ module })
+      this.handleSave({ module, isClone: true })
     },
 
     async fetchConnection (connectionID) {

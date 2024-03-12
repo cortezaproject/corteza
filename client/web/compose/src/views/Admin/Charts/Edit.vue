@@ -415,6 +415,7 @@
       <editor-toolbar
         :processing="processing"
         :processing-save="processingSave"
+        :processing-clone="processingClone"
         :processing-save-and-close="processingSaveAndClose"
         :processing-delete="processingDelete"
         :hide-delete="hideDelete"
@@ -501,6 +502,7 @@ export default {
       initialChartState: undefined,
       processing: false,
       processingSave: false,
+      processingClone: false,
       processingSaveAndClose: false,
       processingDelete: false,
 
@@ -767,14 +769,20 @@ export default {
       this.processing = false
     },
 
-    handleSave ({ closeOnSuccess = false, chart = this.chart } = {}) {
-      this.processing = true
+    handleSave ({ chart = this.chart, closeOnSuccess = false, isClone = false } = {}) {
+      const toggleProcessing = () => {
+        this.processing = !this.processing
 
-      if (closeOnSuccess) {
-        this.processingSaveAndClose = true
-      } else {
-        this.processingSave = true
+        if (closeOnSuccess) {
+          this.processingSaveAndClose = !this.processingSaveAndClose
+        } else if (isClone) {
+          this.processingClone = !this.processingClone
+        } else {
+          this.processingSave = !this.processingSave
+        }
       }
+
+      toggleProcessing()
 
       /**
        * Pass a special tag alongside payload that
@@ -786,9 +794,10 @@ export default {
 
       if (chart.chartID === NoID) {
         this.createChart(c).then(({ chartID }) => {
-          this.toastSuccess(this.$t('notification:chart.saved'))
           this.chart = chartConstructor(chart)
           this.initialChartState = cloneDeep(chartConstructor(this.chart))
+
+          this.toastSuccess(this.$t('notification:chart.saved'))
           if (closeOnSuccess) {
             this.redirect()
           } else {
@@ -797,18 +806,13 @@ export default {
         })
           .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
           .finally(() => {
-            this.processing = false
-
-            if (closeOnSuccess) {
-              this.processingSaveAndClose = false
-            } else {
-              this.processingSave = false
-            }
+            toggleProcessing()
           })
       } else {
         this.updateChart(c).then((chart) => {
           this.chart = chartConstructor(chart)
           this.initialChartState = cloneDeep(chartConstructor(chart))
+
           this.toastSuccess(this.$t('notification:chart.saved'))
           if (closeOnSuccess) {
             this.redirect()
@@ -816,13 +820,7 @@ export default {
         })
           .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
           .finally(() => {
-            this.processing = false
-
-            if (closeOnSuccess) {
-              this.processingSaveAndClose = false
-            } else {
-              this.processingSave = false
-            }
+            toggleProcessing()
           })
       }
     },
@@ -848,7 +846,7 @@ export default {
       chart.name = `${this.chart.name} (copy)`
       chart.handle = this.chart.handle ? `${this.chart.handle}_copy` : ''
 
-      this.handleSave({ chart })
+      this.handleSave({ chart, isClone: true })
     },
 
     redirect () {

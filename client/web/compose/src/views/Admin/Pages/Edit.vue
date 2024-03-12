@@ -1293,12 +1293,14 @@ export default {
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
-      this.processing = true
+      const toggleProcessing = () => {
+        this.processing = !this.processing
 
-      if (closeOnSuccess) {
-        this.processingSaveAndClose = true
-      } else {
-        this.processingSave = true
+        if (closeOnSuccess) {
+          this.processingSaveAndClose = !this.processingSaveAndClose
+        } else {
+          this.processingSave = !this.processingSave
+        }
       }
 
       /**
@@ -1306,6 +1308,8 @@ export default {
        * instructs store layer to add content-language header to the API request
        */
       const resourceTranslationLanguage = this.currentLanguage
+
+      toggleProcessing()
       const { namespaceID } = this.namespace
 
       return this.saveIcon().then(icon => {
@@ -1325,13 +1329,7 @@ export default {
             this.$router.push(this.previousPage || { name: 'admin.pages' })
           }
         }).finally(() => {
-          this.processing = false
-
-          if (closeOnSuccess) {
-            this.processingSaveAndClose = false
-          } else {
-            this.processingSave = false
-          }
+          toggleProcessing()
         }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 

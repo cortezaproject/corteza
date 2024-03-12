@@ -82,6 +82,7 @@ export default {
             })
           })
         }).then(({ pageID }) => {
+          this.toastSuccess(this.$t('notification:page.saved'))
           this.$router.push({ name: this.$route.name, params: { pageID } })
         })
         .catch(this.toastErrorHandler(this.$t('notification:page.cloneFailed')))
