@@ -1,7 +1,5 @@
 <template>
-  <c-form-table-wrapper
-    hide-add-button
-  >
+  <c-form-table-wrapper hide-add-button>
     <b-table-simple
       v-if="render && filter.ref"
       responsive

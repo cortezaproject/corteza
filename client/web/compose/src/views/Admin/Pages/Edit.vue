@@ -232,10 +232,9 @@
             cols="12"
           >
             <hr>
+
             <c-form-table-wrapper
-              :labels="{
-                addButton: this.$t('general:label.add')
-              }"
+              :labels="{ addButton: $t('general:label.add') }"
               @add-item="addLayout"
             >
               <b-form-group

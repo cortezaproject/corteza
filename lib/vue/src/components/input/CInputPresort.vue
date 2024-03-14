@@ -1,8 +1,6 @@
 <template>
   <c-form-table-wrapper
-      :labels="{
-        addButton: labels.addButton
-      }"
+      :labels="{ addButton: labels.addButton }"
       :hide-add-button="textInput"
       @add-item="items.push({ field: undefined, descending: false })"
   >

@@ -46,7 +46,7 @@ export default {
       default: '',
     },
 
-    testID : {
+    testId : {
       type: String,
       default: '',
     }

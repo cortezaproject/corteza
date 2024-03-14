@@ -216,10 +216,10 @@
 
                 <b-row no-gutters>
                   <c-form-table-wrapper
-                    hide-add-button
+                    :labels="{ addButton: $t('edit.newField') }"
+                    @add-item="handleNewField"
                   >
-                    <b-form-group class="w-100">
-                      <b-table-simple
+                  <b-table-simple
                         data-test-id="table-module-fields"
                         borderless
                         responsive
@@ -240,6 +240,7 @@
                                 />
                               </div>
                             </th>
+
                             <th
                               class="text-primary"
                             >
@@ -252,20 +253,26 @@
                                 />
                               </div>
                             </th>
+
                             <th class="text-primary">
                               {{ $t('general:label.type') }}
                             </th>
+
                             <th />
                             <th />
+
                             <th class="text-primary text-center pr-3">
                               {{ $t('general:label.required') }}
                             </th>
+
                             <th class="text-primary text-center pl-2">
                               {{ $t('general:label.multi') }}
                             </th>
+
                             <th />
                           </tr>
                         </thead>
+
                         <draggable
                           v-model="module.fields"
                           handle=".handle"
@@ -284,36 +291,37 @@
                             @updateKind="handleFieldKindUpdate(index)"
                           />
                         </draggable>
-                        <tr>
-                          <td colspan="1" />
-                          <td colspan="7">
-                            <b-button
-                              data-test-id="button-field-add"
-                              class="mb-5"
-                              variant="primary"
-                              @click="handleNewField"
-                            >
-                              + {{ $t('edit.newField') }}
-                            </b-button>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td
-                            colspan="7"
-                            class="font-weight-bold"
-                          >
-                            {{ $t('edit.systemFields') }}
-                          </td>
-                        </tr>
-                        <field-row-view
-                          v-for="(field, index) in systemFields"
-                          :key="index"
-                          :field="field"
-                          class="mt-4"
-                        />
                       </b-table-simple>
-                    </b-form-group>
                   </c-form-table-wrapper>
+                </b-row>
+
+                <b-row
+                  no-gutters
+                  class="mt-3"
+                >
+                  <b-table-simple
+                    borderless
+                    responsive
+                    small
+                  >
+                    <t-body>
+                      <tr>
+                        <td
+                          colspan="7"
+                          class="font-weight-bold"
+                        >
+                          {{ $t('edit.systemFields') }}
+                        </td>
+                      </tr>
+
+                      <field-row-view
+                        v-for="(field, index) in systemFields"
+                        :key="index"
+                        :field="field"
+                        class="mt-4"
+                      />
+                    </t-body>
+                  </b-table-simple>
                 </b-row>
               </b-tab>
 
