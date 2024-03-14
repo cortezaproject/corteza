@@ -233,7 +233,9 @@
           >
             <hr>
             <c-form-table-wrapper
-              :labels="tableWrapperLabel"
+              :labels="{
+                addButton: this.$t('general:label.add')
+              }"
               @add-item="addLayout"
             >
               <b-form-group
@@ -1018,11 +1020,6 @@ export default {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
-
-      tableWrapperLabel: {
-        addButton: this.$t('general:label.add'),
-      },
-
       abortableRequests: [],
     }
   },
