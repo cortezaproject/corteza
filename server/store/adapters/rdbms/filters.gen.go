@@ -390,12 +390,12 @@ func AutomationSessionFilter(d drivers.Dialect, f automationType.SessionFilter) 
 	// @todo codegen warning: filtering by Status ([]uint) not supported,
 	//       see rdbms.go.tpl and add an exception
 
-	if len(f.SessionID) > 0 {
-		ee = append(ee, goqu.C("id").In(f.SessionID))
+	if ss := trimStringSlice(f.SessionID); len(ss) > 0 {
+		ee = append(ee, goqu.C("id").In(ss))
 	}
 
-	if len(f.WorkflowID) > 0 {
-		ee = append(ee, goqu.C("rel_workflow").In(f.WorkflowID))
+	if ss := trimStringSlice(f.WorkflowID); len(ss) > 0 {
+		ee = append(ee, goqu.C("rel_workflow").In(ss))
 	}
 
 	if val := strings.TrimSpace(f.EventType); len(val) > 0 {
@@ -406,8 +406,8 @@ func AutomationSessionFilter(d drivers.Dialect, f automationType.SessionFilter) 
 		ee = append(ee, goqu.C("resource_type").Eq(f.ResourceType))
 	}
 
-	if len(f.CreatedBy) > 0 {
-		ee = append(ee, goqu.C("created_by").In(f.CreatedBy))
+	if ss := trimStringSlice(f.CreatedBy); len(ss) > 0 {
+		ee = append(ee, goqu.C("created_by").In(ss))
 	}
 
 	return ee, f, err

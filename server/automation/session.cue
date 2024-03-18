@@ -86,11 +86,11 @@ session: {
 
 	filter: {
 		struct: {
-			session_id: { goType: "[]uint64", storeIdent: "id", ident: "sessionID" }
+			session_id: { goType: "[]string", storeIdent: "id", ident: "sessionID" }
 			completed: { schema.SortableTimestampNilField, storeIdent: "completed_at" }
-			created_by: { goType: "[]uint64" }
+			created_by: { goType: "[]string" }
 			status: { goType: "[]uint" }
-			workflow_id: { goType: "[]uint64", storeIdent: "rel_workflow", ident: "workflowID" }
+			workflow_id: { goType: "[]string", storeIdent: "rel_workflow", ident: "workflowID" }
 			event_type: { goType: "string" }
 			resource_type: { goType: "string" }
 		}
