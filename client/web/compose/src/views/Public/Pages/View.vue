@@ -89,6 +89,7 @@ import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Mod
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { fetchID } from 'corteza-webapp-compose/src/lib/block'
 
 export default {
   i18nOptions: {
@@ -155,6 +156,7 @@ export default {
     ...mapGetters({
       recordPaginationUsable: 'ui/recordPaginationUsable',
       getPageLayouts: 'pageLayout/getByPageID',
+      namespaces: 'namespace/set',
     }),
 
     isRecordPage () {
@@ -297,16 +299,34 @@ export default {
       this.pageTitle = title || handle || this.$t('navigation:noPageTitle')
       document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
 
-      this.blocks = (this.layout || {}).blocks.map(({ blockID, xywh }) => {
-        const block = this.page.blocks.find(b => b.blockID === blockID)
-        block.xywh = xywh
-        return block
-      })
+      this.blocks = (this.layout || {}).blocks.map(({ blockID, meta, xywh }) => {
+        const block = this.fetchBlockData({
+          blockID,
+          meta,
+        })
+
+        if (block) {
+          block.xywh = xywh
+          return block
+        }
+      }).filter(b => b)
     },
 
     refetchRecords () {
       // If on a record page, let it take care of events else just refetch non record-blocks (that use records)
       this.$root.$emit(this.page.moduleID !== NoID ? 'refetch-record-blocks' : `refetch-non-record-blocks:${this.page.pageID}`)
+    },
+
+    fetchBlockData ({ blockID, meta = {} }) {
+      blockID = fetchID({ blockID, meta })
+
+      if (meta.namespaceID) {
+        const { blocks = [] } = this.namespaces.find((n) => n.namespaceID === this.namespace.namespaceID) || {}
+
+        return blocks.find((b) => fetchID(b) === blockID)
+      }
+
+      return this.page.blocks.find((b) => fetchID(b) === blockID)
     },
 
     setDefaultValues () {

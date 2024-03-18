@@ -49,6 +49,7 @@ var (
 		fix_2022_09_07_changePostgresIdColumnsDatatype,
 		fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings,
 		fix_2023_03_00_migrateComposePageMeta,
+		fix_2024_03_00_migrateNamespacePageBlocks,
 	}
 )
 
@@ -239,6 +240,13 @@ func fix_2023_03_00_migrateComposePageMeta(ctx context.Context, s *Store) (err e
 	return addColumn(ctx, s,
 		"compose_page",
 		model.Page.Attributes.FindByIdent("meta"),
+	)
+}
+
+func fix_2024_03_00_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"compose_namespace",
+		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{DefaultValue: "[{}]"}},
 	)
 }
 

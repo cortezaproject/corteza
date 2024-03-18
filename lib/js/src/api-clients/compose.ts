@@ -228,6 +228,7 @@ export default class Compose {
       slug,
       enabled,
       meta,
+      blocks,
       labels,
       updatedAt,
     } = (a as KV) || {}
@@ -252,6 +253,7 @@ export default class Compose {
       slug,
       enabled,
       meta,
+      blocks,
       labels,
       updatedAt,
     }

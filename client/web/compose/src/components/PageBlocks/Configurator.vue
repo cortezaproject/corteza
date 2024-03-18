@@ -128,6 +128,16 @@
           >
             {{ $t('general.hidden.label') }}
           </b-form-checkbox>
+          <b-form-checkbox
+            v-if="block.kind !== 'Tabs'"
+            :checked="block.meta.namespaceID"
+            :value="namespace.namespaceID"
+            switch
+            class="mb-2"
+            @change="updateGlobalState"
+          >
+            {{ $t('general.globalBlock.label') }}
+          </b-form-checkbox>
         </b-col>
 
         <b-col
@@ -221,6 +231,18 @@ export default {
       type: compose.Page,
       required: true,
     },
+
+    namespace: {
+      type: compose.Namespace,
+      required: true,
+    },
+  },
+
+  data () {
+    return {
+      initialBlockState: undefined,
+      initialBlockID: undefined,
+    }
   },
 
   computed: {
@@ -254,10 +276,24 @@ export default {
     },
   },
 
+  created () {
+    this.initialBlockState = this.block.meta.namespaceID
+    this.initialBlockID = this.block.blockID
+  },
+
   methods: {
     updateRefresh (e) {
       // If value is less than 5 but greater than 0 make it 5. Otherwise value stays the same.
       this.block.options.refreshRate = e.target.value < 5 && e.target.value > 0 ? 5 : e.target.value
+    },
+    updateGlobalState (value) {
+      this.block.blockID = this.initialBlockState === value ? this.initialBlockID : NoID
+
+      if (value) {
+        this.block.meta.namespaceID = value
+      } else {
+        this.block.meta.namespaceID = undefined
+      }
     },
   },
 }
