@@ -40,9 +40,7 @@
       :logo="logo"
     />
 
-    <c-prompts
-      :hide-toasts="!loaded"
-    />
+    <c-prompts />
   </div>
 </template>
 
