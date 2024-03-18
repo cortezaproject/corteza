@@ -2,10 +2,14 @@ package rest
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/automation/rest/request"
 	"github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/automation/types"
+	"github.com/cortezaproject/corteza/server/compose/automation"
+	cmpService "github.com/cortezaproject/corteza/server/compose/service"
+	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -16,6 +20,11 @@ import (
 type (
 	Session struct {
 		svc sessionService
+
+		// cross-link with compose service to load module on resolved records
+		svcModule interface {
+			FindByID(ctx context.Context, namespaceID, moduleID uint64) (*cmpTypes.Module, error)
+		}
 	}
 
 	sessionService interface {
@@ -46,6 +55,7 @@ type (
 func (Session) New() *Session {
 	ctrl := &Session{}
 	ctrl.svc = service.DefaultSession
+	ctrl.svcModule = cmpService.DefaultModule
 	return ctrl
 }
 
@@ -101,7 +111,37 @@ func (ctrl Session) ListPrompts(ctx context.Context, r *request.SessionListPromp
 	}, nil
 }
 
-func (ctrl Session) ResumeState(ctx context.Context, r *request.SessionResumeState) (interface{}, error) {
+func (ctrl Session) ResumeState(ctx context.Context, r *request.SessionResumeState) (_ interface{}, err error) {
+	if r.Input != nil {
+		if err = r.Input.ResolveTypes(service.Registry().Type); err != nil {
+			return nil, err
+		}
+	}
+
+	// Now when all types are resolved we have to load modules and link them to records
+	//
+	// Very naive approach for now.
+	//
+	// @note copied from https://github.com/cortezaproject/corteza/blob/2023.9.x/server/automation/rest/workflow.go#L189
+	//       copied to reduce the need for some dependency; should be good enough for now
+	r.Input.Each(func(k string, v expr.TypedValue) error {
+		switch c := v.(type) {
+		case *automation.ComposeRecord:
+			rec := c.GetValue()
+			if rec == nil {
+				return nil
+			}
+
+			mod, err := ctrl.svcModule.FindByID(ctx, rec.NamespaceID, rec.ModuleID)
+			if err != nil {
+				return fmt.Errorf("failed to resolve ComposeRecord type: %w", err)
+			}
+			c.GetValue().SetModule(mod)
+		}
+
+		return nil
+	})
+
 	return api.OK(), ctrl.svc.Resume(r.SessionID, r.StateID, auth.GetIdentityFromContext(ctx), r.Input)
 }
 
