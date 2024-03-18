@@ -240,7 +240,8 @@ export default {
 
   data () {
     return {
-      currentBlockState: undefined,
+      initialBlockState: undefined,
+      initialBlockID: undefined,
     }
   },
 
@@ -276,7 +277,8 @@ export default {
   },
 
   created () {
-    this.currentBlockState = this.block.meta.namespaceID
+    this.initialBlockState = this.block.meta.namespaceID
+    this.initialBlockID = this.block.blockID
   },
 
   methods: {
@@ -285,7 +287,7 @@ export default {
       this.block.options.refreshRate = e.target.value < 5 && e.target.value > 0 ? 5 : e.target.value
     },
     updateGlobalState (value) {
-      this.block.blockID = this.currentBlockState === value ? this.block.blockID : NoID
+      this.block.blockID = this.initialBlockState === value ? this.initialBlockID : NoID
 
       if (value) {
         this.block.meta.namespaceID = value
