@@ -892,6 +892,8 @@ export default {
             return { page, layout }
           })
       }).then(async ({ page, layout }) => {
+        this.unsavedBlocks.clear()
+
         if (closeOnSuccess) {
           this.$router.push(this.previousPage || { name: 'admin.pages' })
           return
