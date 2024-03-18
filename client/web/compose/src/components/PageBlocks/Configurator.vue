@@ -238,6 +238,12 @@ export default {
     },
   },
 
+  data () {
+    return {
+      currentBlockState: undefined,
+    }
+  },
+
   computed: {
     textVariants () {
       return [
@@ -269,13 +275,17 @@ export default {
     },
   },
 
+  created () {
+    this.currentBlockState = this.block.meta.namespaceID
+  },
+
   methods: {
     updateRefresh (e) {
       // If value is less than 5 but greater than 0 make it 5. Otherwise value stays the same.
       this.block.options.refreshRate = e.target.value < 5 && e.target.value > 0 ? 5 : e.target.value
     },
     updateGlobalState (value) {
-      this.block.blockID = NoID
+      this.block.blockID = this.currentBlockState === value ? this.block.blockID : NoID
 
       if (value) {
         this.block.meta.namespaceID = value

@@ -25,7 +25,7 @@ interface PageBlockMeta {
   hidden?: boolean;
   tempID?: string;
   // `namespaceID` is used to identify what namespace the block belongs too and also if the block is a global block on the namespace
-  namespaceID?: boolean;
+  namespaceID?: string;
 }
 
 export type PageBlockInput = PageBlock | Partial<PageBlock>;
