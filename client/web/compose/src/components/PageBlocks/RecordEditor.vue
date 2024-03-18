@@ -26,7 +26,7 @@
             v-bind="{ ...$props, errors: fieldErrors(field.name) }"
             :horizontal="horizontal"
             :field="field"
-            @change="onFieldChange()"
+            @change="onFieldChange(field)"
           />
 
           <b-form-group
@@ -214,8 +214,11 @@ export default {
       return !expressions.value
     },
 
-    onFieldChange: debounce(function () {
+    onFieldChange: debounce(function (field) {
       this.evaluateExpressions()
+      this.$root.$emit('record-field-change', {
+        fieldName: field.name,
+      })
     }, 500),
   },
 }

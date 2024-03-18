@@ -115,7 +115,7 @@ import draggable from 'vuedraggable'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
-import { evaluatePrefilter, getFieldFilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, getFieldFilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 
 export default {
@@ -250,8 +250,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -261,6 +260,20 @@ export default {
   },
 
   methods: {
+    createEvents () {
+      this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { filter } = this.options
+
+      if (isFieldInFilter(fieldName, filter)) {
+        this.refresh()
+      }
+    },
+
     // Allow move if repositioned or if record isn't in target record organizer
     checkMove ({ draggedContext = {}, relatedContext = {} }) {
       const { moduleID, recordID } = draggedContext.element || {}
@@ -527,6 +540,7 @@ export default {
     destroyEvents () {
       this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

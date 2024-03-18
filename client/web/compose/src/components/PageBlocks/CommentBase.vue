@@ -102,7 +102,7 @@ import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import { compose, NoID, fmt } from '@cortezaproject/corteza-js'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -239,7 +239,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -249,6 +249,19 @@ export default {
   },
 
   methods: {
+    createEvents () {
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { filter } = this.options
+
+      if (isFieldInFilter(fieldName, filter)) {
+        this.refresh()
+      }
+    },
+
     getFormattedDate (date) {
       return fmt.fullDateTime(date)
     },
@@ -401,6 +414,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

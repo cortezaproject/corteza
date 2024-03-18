@@ -15,7 +15,7 @@
 <script>
 import base from './base'
 import { NoID } from '@cortezaproject/corteza-js'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   extends: base,
@@ -46,11 +46,32 @@ export default {
 
   mounted () {
     this.refreshBlock(this.refresh)
+    this.createEvents()
+  },
+
+  beforeDestroy () {
+    this.destroyEvents()
   },
 
   methods: {
     refresh () {
       this.$refs.iframe.src = this.src
+    },
+
+    createEvents () {
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { src } = this.options
+
+      if (isFieldInFilter(fieldName, src)) {
+        this.refresh()
+      }
+    },
+
+    destroyEvents () {
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

@@ -19,7 +19,7 @@ import { mapActions } from 'vuex'
 import base from './base'
 import ChartComponent from '../Chart'
 import { NoID, compose } from '@cortezaproject/corteza-js'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -54,10 +54,7 @@ export default {
   mounted () {
     this.fetchChart()
     this.refreshBlock(this.refresh)
-
-    this.$root.$on('drill-down-chart', this.drillDown)
-
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -69,6 +66,20 @@ export default {
     ...mapActions({
       findChartByID: 'chart/findByID',
     }),
+
+    createEvents () {
+      this.$root.$on('drill-down-chart', this.drillDown)
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { filter } = this.filter
+
+      if (isFieldInFilter(fieldName, filter)) {
+        this.refresh()
+      }
+    },
 
     refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
       if (this.filter.moduleID === moduleID && this.page.pageID !== notPageID) {
@@ -198,6 +209,7 @@ export default {
     destroyEvents () {
       this.$root.$off('drill-down-chart', this.drillDown)
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

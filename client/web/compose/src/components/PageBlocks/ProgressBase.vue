@@ -37,7 +37,7 @@
 import base from './base'
 import { NoID } from '@cortezaproject/corteza-js'
 import { components } from '@cortezaproject/corteza-vue'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 const { CProgress } = components
 
 export default {
@@ -77,8 +77,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -87,6 +86,20 @@ export default {
   },
 
   methods: {
+    createEvents () {
+      this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { value } = this.options
+
+      if (isFieldInFilter(fieldName, value.filter)) {
+        this.refresh()
+      }
+    },
+
     /**
      * Pulls fresh data from the API
      */
@@ -152,6 +165,7 @@ export default {
     destroyEvents () {
       this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

@@ -166,7 +166,7 @@ import base from './base'
 import { debounce } from 'lodash'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapActions, mapGetters } from 'vuex'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import Pagination from '../Common/Pagination.vue'
 
 export default {
@@ -282,6 +282,11 @@ export default {
 
   beforeDestroy () {
     this.setDefaultValues()
+    this.destroyEvents()
+  },
+
+  mounted () {
+    this.createEvents()
   },
 
   methods: {
@@ -291,6 +296,20 @@ export default {
       resolveRecords: 'record/resolveRecords',
       updateRecords: 'record/updateRecords',
     }),
+
+    createEvents () {
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { prefilter } = this.field.options
+
+      if (isFieldInFilter(fieldName, prefilter)) {
+        const namespaceID = this.namespace.namespaceID
+        const moduleID = this.field.options.moduleID
+        this.fetchPrefiltered({ namespaceID, moduleID })
+      }
+    },
 
     getRecord (index = undefined) {
       const recordID = index !== undefined ? this.value[index] : this.value
@@ -369,7 +388,7 @@ export default {
       }
     },
 
-    fetchPrefiltered (q) {
+    fetchPrefiltered (q = this.filter) {
       this.processing = true
 
       // Support prefilters
@@ -521,6 +540,10 @@ export default {
       }
       const { label } = v || {}
       return label
+    },
+
+    destroyEvents () {
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
 
     setDefaultValues () {

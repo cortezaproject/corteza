@@ -41,7 +41,7 @@ import moment from 'moment'
 import { debounce } from 'lodash'
 import MetricItem from './Metric/Item'
 import { NoID, compose } from '@cortezaproject/corteza-js'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
   i18nOptions: {
@@ -89,11 +89,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('metric.update', this.refresh)
-    this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
-    this.$root.$on('drill-down-chart', this.drillDown)
-
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -107,6 +103,22 @@ export default {
   },
 
   methods: {
+    createEvents () {
+      this.$root.$on('metric.update', this.refresh)
+      this.$root.$on(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
+      this.$root.$on('drill-down-chart', this.drillDown)
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { metrics } = this.options
+
+      if (metrics.some(({ filter }) => isFieldInFilter(fieldName, filter))) {
+        this.refresh()
+      }
+    },
+
     /**
      * Performs some post processing on the provided data
      */
@@ -268,6 +280,7 @@ export default {
       this.$root.$off(`refetch-non-record-blocks:${this.page.pageID}`, this.refresh)
       this.$root.$off('drill-down-chart', this.drillDown)
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

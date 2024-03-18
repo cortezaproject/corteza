@@ -745,7 +745,7 @@ import AutomationButtons from './Shared/AutomationButtons'
 import { compose, validator, NoID } from '@cortezaproject/corteza-js'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
-import { evaluatePrefilter, queryToFilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, queryToFilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import { getItem, setItem, removeItem } from 'corteza-webapp-compose/src/lib/local-storage'
 import { components, url } from '@cortezaproject/corteza-vue'
 import draggable from 'vuedraggable'
@@ -1105,6 +1105,16 @@ export default {
       this.$root.$on(`refetch-non-record-blocks:${pageID}`, this.refreshAndResetPagination)
 
       this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { prefilter } = this.options
+
+      if (isFieldInFilter(fieldName, prefilter)) {
+        this.prepRecordList()
+        this.refresh()
+      }
     },
 
     refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
@@ -1970,6 +1980,7 @@ export default {
       this.$root.$off(`drill-down-recordList:${this.uniqueID}`, this.setDrillDownFilter)
       this.$root.$off(`refetch-non-record-blocks:${pageID}`, this.refreshAndResetPagination)
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
 
     handleAddRecord () {

@@ -41,7 +41,7 @@ import axios from 'axios'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { components } from '@cortezaproject/corteza-vue'
 import { mapGetters, mapActions } from 'vuex'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import { isNumber } from 'lodash'
 
 import base from './base'
@@ -126,7 +126,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -139,6 +139,19 @@ export default {
     ...mapActions({
       findModuleByID: 'module/findByID',
     }),
+
+    createEvents () {
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { feeds } = this.options
+
+      if (feeds.some(({ options }) => isFieldInFilter(fieldName, options.prefilter))) {
+        this.refresh()
+      }
+    },
 
     refreshOnRelatedRecordsUpdate ({ moduleID, notPageID }) {
       this.options.feeds.forEach((feed) => {
@@ -275,6 +288,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }

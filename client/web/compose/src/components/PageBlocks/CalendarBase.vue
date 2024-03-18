@@ -112,7 +112,7 @@ import listPlugin from '@fullcalendar/list'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { BootstrapTheme } from '@fullcalendar/bootstrap'
 import { createPlugin } from '@fullcalendar/core'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 /**
  * FullCalendar Corteza theme definition.
@@ -235,7 +235,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -248,6 +248,19 @@ export default {
     ...mapActions({
       findModuleByID: 'module/findByID',
     }),
+
+    createEvents () {
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+    },
+
+    refetchOnPrefilterValueChange ({ fieldName }) {
+      const { feeds } = this.options
+
+      if (feeds.some(({ options }) => isFieldInFilter(fieldName, options.prefilter))) {
+        this.refresh()
+      }
+    },
 
     updateSize () {
       this.$nextTick(() => {
@@ -423,6 +436,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
+      this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
     },
   },
 }
