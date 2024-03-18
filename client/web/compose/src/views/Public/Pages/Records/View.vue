@@ -277,6 +277,7 @@ export default {
         try {
           return evaluatePrefilter(meta.title, {
             record: this.record,
+            user: this.$auth.user || {},
             recordID: (this.record || {}).recordID || NoID,
             ownerID: (this.record || {}).ownedBy || NoID,
             userID: (this.$auth.user || {}).userID || NoID,

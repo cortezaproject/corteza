@@ -374,6 +374,7 @@ export default {
         // hence the /hanging/ record, recordID, ownerID and userID variables
         filter.push(`(${evaluatePrefilter(this.options.filter, {
           record: this.record,
+          user: this.$auth.user || {},
           recordID: (this.record || {}).recordID || NoID,
           ownerID: (this.record || {}).ownedBy || NoID,
           userID: (this.$auth.user || {}).userID || NoID,

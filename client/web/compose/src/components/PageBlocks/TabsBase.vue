@@ -239,6 +239,7 @@ export default {
       const { title: blockTitle, kind } = block
       const interpolatedTitle = evaluatePrefilter(blockTitle, {
         record: this.record,
+        user: this.$auth.user || {},
         recordID: (this.record || {}).recordID || NoID,
         ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,
@@ -246,6 +247,7 @@ export default {
 
       title = evaluatePrefilter(title, {
         record: this.record,
+        user: this.$auth.user || {},
         recordID: (this.record || {}).recordID || NoID,
         ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,

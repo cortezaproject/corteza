@@ -157,6 +157,7 @@ export default {
             if (auxM.filter) {
               auxM.filter = evaluatePrefilter(auxM.filter, {
                 record: this.record,
+                user: this.$auth.user || {},
                 recordID: (this.record || {}).recordID || NoID,
                 ownerID: (this.record || {}).ownedBy || NoID,
                 userID: (this.$auth.user || {}).userID || NoID,
@@ -166,6 +167,7 @@ export default {
             if (auxM.transformFx) {
               auxM.transformFx = evaluatePrefilter(auxM.transformFx, {
                 record: this.record,
+                user: this.$auth.user || {},
                 recordID: (this.record || {}).recordID || NoID,
                 ownerID: (this.record || {}).ownedBy || NoID,
                 userID: (this.$auth.user || {}).userID || NoID,

@@ -324,6 +324,7 @@ export default {
                 if (ff.options.prefilter) {
                   ff.options.prefilter = evaluatePrefilter(ff.options.prefilter, {
                     record: this.record,
+                    user: this.$auth.user || {},
                     recordID: (this.record || {}).recordID || NoID,
                     ownerID: (this.record || {}).ownedBy || NoID,
                     userID: (this.$auth.user || {}).userID || NoID,

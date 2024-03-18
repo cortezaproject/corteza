@@ -178,6 +178,7 @@ export default {
             if (feed.options.prefilter) {
               feed.options.prefilter = evaluatePrefilter(feed.options.prefilter, {
                 record: this.record,
+                user: this.$auth.user || {},
                 recordID: (this.record || {}).recordID || NoID,
                 ownerID: (this.record || {}).ownedBy || NoID,
                 userID: (this.$auth.user || {}).userID || NoID,

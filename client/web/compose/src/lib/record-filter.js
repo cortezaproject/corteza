@@ -194,7 +194,7 @@ export function queryToFilter (searchQuery = '', prefilter = '', fields = [], re
 
 // Evaluates the given prefilter. Allows JS template literal expressions
 // such as id = ${recordID}
-export function evaluatePrefilter (prefilter, { record, recordID, ownerID, userID }) {
+export function evaluatePrefilter (prefilter, { record, user, recordID, ownerID, userID }) {
   return (function (prefilter) {
     /* eslint-disable no-eval */
     return eval('`' + prefilter + '`')

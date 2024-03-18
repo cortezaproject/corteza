@@ -90,6 +90,7 @@ export default {
     blockTitle () {
       return evaluatePrefilter(this.block.title, {
         record: this.$attrs.record,
+        user: this.$auth.user || {},
         recordID: (this.$attrs.record || {}).recordID || NoID,
         ownerID: (this.$attrs.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,
@@ -99,6 +100,7 @@ export default {
     blockDescription () {
       return evaluatePrefilter(this.block.description, {
         record: this.$attrs.record,
+        user: this.$auth.user || {},
         recordID: (this.$attrs.record || {}).recordID || NoID,
         ownerID: (this.$attrs.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,

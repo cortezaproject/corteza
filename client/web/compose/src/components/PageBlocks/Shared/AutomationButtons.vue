@@ -186,6 +186,7 @@ export default {
     buttonLabel (label = '') {
       return evaluatePrefilter(label, {
         record: this.record,
+        user: this.$auth.user || {},
         recordID: (this.record || {}).recordID || NoID,
         ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,

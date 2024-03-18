@@ -99,6 +99,7 @@ export default {
         value: {
           filter: evaluatePrefilter(this.options.value.filter, {
             record: this.record,
+            user: this.$auth.user || {},
             recordID: (this.record || {}).recordID || NoID,
             ownerID: (this.record || {}).ownedBy || NoID,
             userID: (this.$auth.user || {}).userID || NoID,
@@ -107,6 +108,7 @@ export default {
         minValue: {
           filter: evaluatePrefilter(this.options.minValue.filter, {
             record: this.record,
+            user: this.$auth.user || {},
             recordID: (this.record || {}).recordID || NoID,
             ownerID: (this.record || {}).ownedBy || NoID,
             userID: (this.$auth.user || {}).userID || NoID,
@@ -115,6 +117,7 @@ export default {
         maxValue: {
           filter: evaluatePrefilter(this.options.maxValue.filter, {
             record: this.record,
+            user: this.$auth.user || {},
             recordID: (this.record || {}).recordID || NoID,
             ownerID: (this.record || {}).ownedBy || NoID,
             userID: (this.$auth.user || {}).userID || NoID,
