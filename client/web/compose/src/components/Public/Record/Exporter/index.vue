@@ -273,7 +273,7 @@ export default {
     },
     disabledTypes: {
       type: Array,
-      default: () => ['User', 'File'],
+      default: () => ['File'],
     },
     processing: {
       type: Boolean,
