@@ -7,7 +7,7 @@ import (
 )
 
 func TestTrie(t *testing.T) {
-	tr := Trie[string, int]()
+	tr := NewTrie[string, int]()
 	req := require.New(t)
 
 	TrieInsert[string, int](tr, 1, "l1 n1", "l2 n1", "l3 n1")
@@ -41,7 +41,7 @@ func TestTrie(t *testing.T) {
 // pkg: github.com/cortezaproject/corteza/server/pkg/ds
 // BenchmarkTrie-12    	 4713706	       248.0 ns/op	       0 B/op	       0 allocs/op
 func BenchmarkTrie(b *testing.B) {
-	tr := Trie[string, int]()
+	tr := NewTrie[string, int]()
 
 	bit1 := []string{"l1 n1", "l2 n1", "l3 n1"}
 	bit2 := []string{"l1 n1", "l2 n1", "l3 n2"}

@@ -12,7 +12,7 @@ type (
 		value V
 	}
 
-	trie[K comparable, V any] struct {
+	Trie[K comparable, V any] struct {
 		Size int
 		root *trieNode[K, V]
 
@@ -20,15 +20,15 @@ type (
 	}
 )
 
-func Trie[K comparable, V any]() *trie[K, V] {
-	return &trie[K, V]{
+func NewTrie[K comparable, V any]() *Trie[K, V] {
+	return &Trie[K, V]{
 		root: &trieNode[K, V]{
 			children: make(map[K]*trieNode[K, V]),
 		},
 	}
 }
 
-func TrieUpsert[K comparable, V any](t *trie[K, V], merge func(a, b V) V, value V, key ...K) {
+func TrieUpsert[K comparable, V any](t *Trie[K, V], merge func(a, b V) V, value V, key ...K) {
 	aux, ok := TrieSearch[K, V](t, key...)
 	if ok {
 		aux = merge(aux, value)
@@ -39,7 +39,7 @@ func TrieUpsert[K comparable, V any](t *trie[K, V], merge func(a, b V) V, value 
 	TrieInsert[K, V](t, aux, key...)
 }
 
-func TrieInsert[K comparable, V any](t *trie[K, V], value V, key ...K) {
+func TrieInsert[K comparable, V any](t *Trie[K, V], value V, key ...K) {
 	if len(key) == 0 {
 		return
 	}
@@ -76,7 +76,7 @@ func TrieInsert[K comparable, V any](t *trie[K, V], value V, key ...K) {
 	t.Size++
 }
 
-func TrieSearch[K comparable, V any](t *trie[K, V], key ...K) (v V, ok bool) {
+func TrieSearch[K comparable, V any](t *Trie[K, V], key ...K) (v V, ok bool) {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
 
@@ -103,7 +103,7 @@ func TrieSearch[K comparable, V any](t *trie[K, V], key ...K) (v V, ok bool) {
 	return node.value, true
 }
 
-func TrieRemove[K comparable, V any](t *trie[K, V], key ...K) {
+func TrieRemove[K comparable, V any](t *Trie[K, V], key ...K) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
