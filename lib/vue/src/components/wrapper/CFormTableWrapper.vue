@@ -46,7 +46,7 @@ export default {
       default: '',
     },
 
-    testId : {
+    buttonTestId : {
       type: String,
       default: '',
     }

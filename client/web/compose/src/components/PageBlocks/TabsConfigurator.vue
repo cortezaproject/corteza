@@ -116,7 +116,6 @@
       @add-item="addTab"
     >
       <b-table-simple
-        v-if="block.options.tabs.length"
         responsive="lg"
         borderless
         small
@@ -230,15 +229,6 @@
         </draggable>
       </b-table-simple>
     </c-form-table-wrapper>
-
-    <div
-      v-if="!block.options.tabs.length"
-      class="text-center my-4"
-    >
-      <p>
-        {{ $t('tabs.noTabs') }}
-      </p>
-    </div>
 
     <b-modal
       id="createBlockSelectorTab"

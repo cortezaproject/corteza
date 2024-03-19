@@ -233,14 +233,14 @@
           >
             <hr>
 
-            <c-form-table-wrapper
-              :labels="{ addButton: $t('general:label.add') }"
-              @add-item="addLayout"
+            <b-form-group
+              :label="$t('page-layout.layouts')"
+              label-class="text-primary"
+              class="mb-0"
             >
-              <b-form-group
-                :label="$t('page-layout.layouts')"
-                label-class="text-primary"
-                class="mb-0"
+              <c-form-table-wrapper
+                :labels="{ addButton: $t('general:label.add') }"
+                @add-item="addLayout"
               >
                 <b-table-simple
                   v-if="layouts.length > 0"
@@ -251,21 +251,18 @@
                   <b-thead>
                     <tr>
                       <th style="width: 40px;" />
-
                       <th
                         class="text-primary"
                         style="min-width: 300px;"
                       >
                         {{ $t('page-layout.title') }}
                       </th>
-
                       <th
                         class="text-primary"
                         style="min-width: 300px;"
                       >
                         {{ $t('page-layout.handle') }}
                       </th>
-
                       <th style="min-width: 100px;" />
                     </tr>
                   </b-thead>
@@ -288,7 +285,6 @@
                           class="text-secondary"
                         />
                       </b-td>
-
                       <b-td
                         class="align-middle"
                       >
@@ -298,7 +294,6 @@
                             :state="layoutTitleState(layout.meta.title)"
                             @input="layout.meta.updated = true"
                           />
-
                           <b-input-group-append>
                             <page-layout-translator
                               :page-layout="layout"
@@ -308,7 +303,6 @@
                           </b-input-group-append>
                         </b-input-group>
                       </b-td>
-
                       <b-td
                         class="align-middle"
                       >
@@ -318,7 +312,6 @@
                             :state="layoutHandleState(layout.handle)"
                             @input="layout.meta.updated = true"
                           />
-
                           <b-input-group-append>
                             <b-button
                               v-b-tooltip.noninteractive.hover="{ title: $t('page-layout.tooltip.configure'), container: '#body' }"
@@ -330,7 +323,6 @@
                                 :icon="['fas', 'wrench']"
                               />
                             </b-button>
-
                             <b-button
                               v-b-tooltip.noninteractive.hover="{ title: $t('page-layout.tooltip.builder'), container: '#body' }"
                               variant="primary"
@@ -345,7 +337,6 @@
                           </b-input-group-append>
                         </b-input-group>
                       </b-td>
-
                       <td
                         class="text-right align-middle"
                         style="min-width: 100px;"
@@ -360,7 +351,6 @@
                           :resource="`corteza::compose:page-layout/${layout.namespaceID}/${layout.pageID}/${layout.pageLayoutID}`"
                           class="text-dark border-0 mr-2"
                         />
-
                         <c-input-confirm
                           show-icon
                           @confirmed="removeLayout(index)"
@@ -369,8 +359,8 @@
                     </tr>
                   </draggable>
                 </b-table-simple>
-              </b-form-group>
-            </c-form-table-wrapper>
+              </c-form-table-wrapper>
+            </b-form-group>
           </b-col>
         </b-row>
       </b-card>

@@ -36,6 +36,7 @@
 
       <div>
         <hr>
+
         <b-row>
           <b-col
             cols="12"
@@ -70,16 +71,12 @@
             >
               <c-form-table-wrapper
                 :labels="{ addButton: $t('general:label.add') }"
-                add-button-class="mt-2"
                 @add-item="topbarSettings.helpLinks.push({ handle: '', url: '', newTab: true })"
               >
                 <b-table
                   :fields="links.fields"
                   :items="topbarSettings.helpLinks"
-                  head-variant="light"
                   responsive="sm"
-                  small
-                  class="mb-0"
                 >
                   <template #cell(handle)="data">
                     <b-form-input
@@ -87,6 +84,7 @@
                       size="sm"
                     />
                   </template>
+
                   <template #cell(url)="data">
                     <b-form-input
                       v-model="data.item.url"
@@ -94,11 +92,13 @@
                       size="sm"
                     />
                   </template>
+
                   <template #cell(newTab)="data">
                     <b-form-checkbox
                       v-model="data.item.newTab"
                     />
                   </template>
+
                   <template #cell(actions)="data">
                     <c-input-confirm
                       show-icon
@@ -114,6 +114,7 @@
 
       <div>
         <hr>
+
         <b-row>
           <b-col
             cols="12"
@@ -149,16 +150,12 @@
             >
               <c-form-table-wrapper
                 :labels="{ addButton: $t('general:label.add') }"
-                add-button-class="mt-2"
-                @add-item="topbarSettings.helpLinks.push({ handle: '', url: '', newTab: true })"
+                @add-item="topbarSettings.profileLinks.push({ handle: '', url: '', newTab: true })"
               >
                 <b-table
                   :fields="links.fields"
                   :items="topbarSettings.profileLinks"
-                  head-variant="light"
                   responsive="sm"
-                  small
-                  class="mb-0"
                 >
                   <template #cell(handle)="data">
                     <b-form-input

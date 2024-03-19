@@ -3,7 +3,6 @@
     :labels="{
       addButton: $t('general:label.add')
     }"
-    add-button-class="mt-1"
     @add-item="addParam"
   >
     <b-table-simple
@@ -11,7 +10,6 @@
       responsive
       borderless
       small
-      class="mb-0"
     >
       <b-thead>
         <b-tr>

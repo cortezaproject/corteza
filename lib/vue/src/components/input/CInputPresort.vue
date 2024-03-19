@@ -1,8 +1,8 @@
 <template>
   <c-form-table-wrapper
-      :labels="{ addButton: labels.addButton }"
-      :hide-add-button="textInput"
-      @add-item="items.push({ field: undefined, descending: false })"
+    :labels="{ addButton: labels.addButton }"
+    :hide-add-button="textInput"
+    @add-item="items.push({ field: undefined, descending: false })"
   >
     <b-form-group
       v-if="!textInput"

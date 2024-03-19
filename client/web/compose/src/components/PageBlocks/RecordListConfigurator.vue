@@ -296,18 +296,17 @@
 
           <b-row>
             <b-col>
-              <c-form-table-wrapper
-                :labels="{
-                  addButton: $t('general:label.add')
-                }"
-                @add-item="addFilterPreset"
+              <b-form-group
+                :label="$t('recordList.filter.presets')"
+                label-class="text-primary mb-1"
               >
-                <b-form-group
-                  :label="$t('recordList.filter.presets')"
-                  label-class="text-primary mb-1"
+                <c-form-table-wrapper
+                  :labels="{
+                    addButton: $t('general:label.add')
+                  }"
+                  @add-item="addFilterPreset"
                 >
                   <b-table-simple
-                    v-if="recordListModule"
                     borderless
                     small
                     responsive="lg"
@@ -387,8 +386,8 @@
                       </b-tr>
                     </draggable>
                   </b-table-simple>
-                </b-form-group>
-              </c-form-table-wrapper>
+                </c-form-table-wrapper>
+              </b-form-group>
             </b-col>
           </b-row>
         </div>
