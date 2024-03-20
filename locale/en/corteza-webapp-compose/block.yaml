@@ -145,6 +145,20 @@ general:
     placeholder: custom-class-1   custom-class-2
     description: Used to reference the block in Custom CSS (.custom-class)
     invalid-state: Can contain only letters, numbers, underscores and dashes. Must end with letter or number. Use spaces to separate multiple classes
+  visibility:
+    label: Visibility
+    roles:
+      label: Roles
+      placeholder: Pick roles that the block will be shown to
+    condition:
+      label: Condition
+      placeholder: When will the block be shown
+      description:
+        record-page: "You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}"
+        non-record-page: "You can use {{0}}, {{1}} inside  the expression, for example: {{2}} or {{3}}"
+    tooltip:
+      performance:
+        condition: Using visibility conditions will impact performance
   magnifyOptions:
     disabled: Disabled
     modal: Modal
@@ -513,7 +527,7 @@ recordList:
       permissions: Permissions
     recordDisplayOptions: On record click
     recordSelectorDisplayOptions: On record selector click
-    addRecordOptions: On add record click 
+    addRecordOptions: On add record click
     textStyles: Text Styles
     configureNonWrappingFelids: Configure non-wrapping fields
     showFullText: Show full text

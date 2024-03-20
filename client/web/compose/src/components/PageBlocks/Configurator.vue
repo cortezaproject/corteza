@@ -228,6 +228,114 @@
             </b-form-checkbox>
           </b-form-group>
         </b-col>
+
+        <b-col
+          v-if="block.options.magnifyOption !== undefined"
+          cols="12"
+          lg="6"
+          :offset-lg="block.options.showRefresh !== undefined ? 6 : 0"
+        >
+          <b-form-group
+            :label="$t('general.magnifyLabel')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="block.options.magnifyOption"
+              :options="magnifyOptions"
+            />
+          </b-form-group>
+        </b-col>
+        <b-col
+          cols="12"
+          sm="12"
+        >
+          <hr>
+
+          <h5 class="mb-3">
+            {{ $t('general.visibility.label') }}
+          </h5>
+
+          <b-form-group
+            label-class="d-flex align-items-center text-primary mb-0"
+          >
+            <template #label>
+              {{ $t('general.visibility.condition.label') }}
+              <c-hint
+                :tooltip="$t('general.visibility.tooltip.performance.condition')"
+                icon-class="text-warning"
+              />
+            </template>
+            <b-input-group>
+              <b-input-group-prepend>
+                <b-button variant="extra-light">
+                  ƒ
+                </b-button>
+              </b-input-group-prepend>
+              <b-form-input
+                v-model="block.meta.visibility.expression"
+                :placeholder="$t('general.visibility.condition.placeholder')"
+              />
+              <b-input-group-append>
+                <b-button
+                  variant="outline-secondary"
+                  :href="visibilityDocumentationURL"
+                  class="d-flex justify-content-center align-items-center"
+                  target="_blank"
+                >
+                  ?
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+
+            <i18next
+              v-if="isRecordPage"
+              path="general.visibility.condition.description.record-page"
+              tag="small"
+              class="text-muted"
+            >
+              <code>record.values.fieldName</code>
+              <code>user.(userID/email...)</code>
+              <code>screen.(width/height)</code>
+              <code>isView/isCreate/isEdit</code>
+              <code>user.userID == record.values.createdBy</code>
+              <code>screen.width &lt; 1024</code>
+            </i18next>
+
+            <i18next
+              v-else
+              path="general.visibility.condition.description.non-record-page"
+              tag="small"
+              class="text-muted"
+            >
+              <code>user.(userID/email...)</code>
+              <code>screen.(width/height)</code>
+              <code>user.email == "test@mail.com"</code>
+              <code>screen.width &lt; 1024</code>
+            </i18next>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          sm="12"
+          class="pt-2"
+        >
+          <b-form-group
+            :label="$t('general.visibility.roles.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="currentRoles"
+              :options="roles.options"
+              :loading="roles.processing"
+              :placeholder="$t('general.visibility.roles.placeholder')"
+              :get-option-label="role => role.name"
+              :reduce="role => role.roleID"
+              :selectable="role => !currentRoles.includes(role.roleID)"
+              multiple
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </b-tab>
 
@@ -277,6 +385,16 @@ export default {
     },
   },
 
+  data () {
+    return {
+      roles: {
+        processing: false,
+        options: [],
+      },
+      abortableRequests: [],
+    }
+  },
+
   computed: {
     textVariants () {
       return [
@@ -318,12 +436,75 @@ export default {
     activeTab () {
       return this.isNew ? 0 : 1
     },
+
+    isRecordPage () {
+      return this.page && this.page.moduleID !== NoID
+    },
+
+    visibilityDocumentationURL () {
+      // eslint-disable-next-line no-undef
+      const [year, month] = VERSION.split('.')
+      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/compose-configuration/page-layouts.html#visibility-condition`
+    },
+
+    currentRoles: {
+      get () {
+        if (!this.block.meta.visibility.roles) {
+          return []
+        }
+
+        return this.block.meta.visibility.roles
+      },
+
+      set (roles) {
+        this.$set(this.block.meta.visibility, 'roles', roles)
+      },
+    },
+  },
+
+  created () {
+    this.fetchRoles()
+  },
+
+  beforeDestroy () {
+    this.abortRequests()
+    this.setDefaultValues()
   },
 
   methods: {
     updateRefresh (e) {
       // If value is less than 5 but greater than 0 make it 5. Otherwise value stays the same.
       this.block.options.refreshRate = e.target.value < 5 && e.target.value > 0 ? 5 : e.target.value
+    },
+
+    fetchRoles () {
+      this.roles.processing = true
+
+      const { response, cancel } = this.$SystemAPI
+        .roleListCancellable({})
+
+      this.abortableRequests.push(cancel)
+
+      response()
+        .then(({ set: roles = [] }) => {
+          this.roles.options = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
+        }).finally(() => {
+          this.roles.processing = false
+        })
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
+    },
+
+    setDefaultValues () {
+      this.roles = {
+        processing: false,
+        options: [],
+      }
+      this.abortableRequests = []
     },
   },
 }
