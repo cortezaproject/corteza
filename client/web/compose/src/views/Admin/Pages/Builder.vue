@@ -184,6 +184,7 @@
     </b-modal>
 
     <b-modal
+      scrollable
       :ok-title="$t('build.addBlock')"
       ok-variant="primary"
       :ok-disabled="blockEditorOkDisabled"
@@ -222,6 +223,7 @@
     </b-modal>
 
     <b-modal
+      scrollable
       size="xl"
       :visible="showEditor"
       body-class="p-0 border-top-0"

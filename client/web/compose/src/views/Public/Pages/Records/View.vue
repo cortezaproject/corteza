@@ -117,6 +117,7 @@ import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
+import page from 'corteza-webapp-compose/src/mixins/page'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
@@ -135,6 +136,7 @@ export default {
   mixins: [
     // The record mixin contains all of the logic for creating/editing/deleting/undeleting the record
     record,
+    page,
   ],
 
   beforeRouteLeave (to, from, next) {
@@ -155,26 +157,10 @@ export default {
   },
 
   props: {
-    namespace: {
-      type: compose.Namespace,
-      required: true,
-    },
-
     module: {
       type: compose.Module,
       required: false,
       default: () => ({}),
-    },
-
-    page: {
-      type: compose.Page,
-      required: true,
-    },
-
-    recordID: {
-      type: String,
-      required: false,
-      default: '',
     },
 
     // When creating from related record blocks
@@ -207,10 +193,7 @@ export default {
     return {
       inEditing: this.edit,
 
-      layouts: [],
-      layout: undefined,
       layoutButtons: new Set(),
-      blocks: undefined,
 
       recordNavigation: {
         prev: undefined,
@@ -224,7 +207,6 @@ export default {
   computed: {
     ...mapGetters({
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
-      getPageLayouts: 'pageLayout/getByPageID',
       previousPages: 'ui/previousPages',
       modalPreviousPages: 'ui/modalPreviousPages',
     }),
@@ -354,14 +336,6 @@ export default {
     },
   },
 
-  mounted () {
-    this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
-
-    if (this.showRecordModal) {
-      this.$root.$on('bv::modal::hide', this.checkUnsavedChanges)
-    }
-  },
-
   beforeDestroy () {
     this.abortRequests()
     this.destroyEvents()
@@ -374,6 +348,23 @@ export default {
       clearRecordSet: 'record/clearSet',
       popModalPreviousPage: 'ui/popModalPreviousPage',
     }),
+
+    createEvents () {
+      this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
+      this.$root.$on('record-field-change', this.validateBlocksVisibilityCondition)
+
+      if (this.showRecordModal) {
+        this.$root.$on('bv::modal::hide', this.checkUnsavedChanges)
+      }
+    },
+
+    validateBlocksVisibilityCondition ({ fieldName }) {
+      const { blocks = [] } = this.page
+
+      if (blocks.some(({ meta = {} }) => ((meta.visibility || {}).expression).includes(fieldName))) {
+        this.updateBlocks()
+      }
+    },
 
     async loadRecord (recordID = this.recordID) {
       if (!this.page) {
@@ -507,19 +498,7 @@ export default {
     evaluateLayoutExpressions (variables = {}) {
       const expressions = {}
       variables = {
-        user: this.$auth.user,
-        record: this.record ? this.record.serialize() : {},
-        screen: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          userAgent: navigator.userAgent,
-          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
-        },
-        oldLayout: this.layout,
-        layout: undefined,
-        isView: !this.edit && !this.isNew,
-        isCreate: this.isNew,
-        isEdit: this.edit && !this.isNew,
+        ...this.expressionVariables,
         ...variables,
       }
 
@@ -540,51 +519,8 @@ export default {
       })
     },
 
-    async determineLayout (pageLayoutID, variables = {}, redirectOnFail = true) {
-      // Clear stored records so they can be refetched with latest values
-      this.clearRecordSet()
-      this.resetErrors()
-      let expressions = {}
-
-      // Only evaluate if one of the layouts has an expressions variable
-      if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
-        expressions = await this.evaluateLayoutExpressions(variables)
-      }
-
-      // Check layouts for expressions/roles and find the first one that fits
-      const matchedLayout = this.layouts.find(l => {
-        if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return
-
-        const { expression, roles = [] } = l.config.visibility
-
-        if (expression && !expressions[l.pageLayoutID]) return false
-
-        if (!roles.length) return true
-
-        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
-      })
-
-      this.processing = false
-
-      if (!matchedLayout) {
-        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
-
-        if (redirectOnFail) {
-          this.$router.go(-1)
-        }
-
-        return
-      }
-
-      this.inEditing = this.edit
-
-      if (this.layout && matchedLayout.pageLayoutID === this.layout.pageLayoutID) {
-        return
-      }
-
-      this.layout = matchedLayout
-
-      const { blocks = [], config = {} } = this.layout || {}
+    handleRecordButtons () {
+      const { config = {} } = this.layout
       const { buttons = [] } = config
 
       this.layoutButtons = Object.entries(buttons).reduce((acc, [key, value]) => {
@@ -593,19 +529,6 @@ export default {
         }
         return acc
       }, new Set())
-
-      const tempBlocks = []
-
-      blocks.forEach(({ blockID, xywh }) => {
-        const block = this.page.blocks.find(b => b.blockID === blockID)
-
-        if (block) {
-          block.xywh = xywh
-          tempBlocks.push(block)
-        }
-      })
-
-      this.blocks = tempBlocks
     },
 
     refetchRecordBlocks () {
@@ -668,6 +591,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
+      this.$root.$off('record-field-change', this.validateBlocksVisibilityCondition)
 
       if (this.showRecordModal) {
         this.$root.$off('bv::modal::hide', this.checkUnsavedChanges)
