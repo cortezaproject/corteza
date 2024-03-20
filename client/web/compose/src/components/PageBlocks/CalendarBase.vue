@@ -264,7 +264,7 @@ export default {
 
     updateSize () {
       this.$nextTick(() => {
-        this.api().updateSize()
+        this.api() && this.api().updateSize()
       })
     },
 

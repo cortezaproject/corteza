@@ -21,11 +21,17 @@ interface PageBlockStyle {
   border?: PageBlockStyleBorder;
 }
 
+interface Visibility {
+  expression: string;
+  roles: string[];
+}
+
 interface PageBlockMeta {
   hidden?: boolean;
   tempID?: string;
   customID?: string;
   customCSSClass?: string;
+  visibility: Visibility;
 }
 
 export type PageBlockInput = PageBlock | Partial<PageBlock>
@@ -49,6 +55,10 @@ export class PageBlock {
     tempID: undefined,
     customID: undefined,
     customCSSClass: undefined,
+    visibility: {
+      expression: '',
+      roles: [],
+    },
   }
 
   public style: PageBlockStyle = {
