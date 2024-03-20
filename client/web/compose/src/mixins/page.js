@@ -90,11 +90,14 @@ export default {
     async determineLayout (pageLayoutID, variables = {}, redirectOnFail = true) {
       // Clear stored records so they can be refetched with latest values
       this.clearRecordSet()
+<<<<<<< HEAD
 
       if (this.isRecordPage) {
         this.resetErrors()
       }
 
+=======
+>>>>>>> c861d78e0 (Add visibility condition to page blocks)
       let expressions = {}
 
       // Only evaluate if one of the layouts has an expressions variable
