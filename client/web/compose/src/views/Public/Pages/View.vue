@@ -312,13 +312,15 @@ export default {
 
       blocks.forEach(({ blockID, xywh, meta }) => {
         const block = this.page.blocks.find(b => b.blockID === blockID)
-        const { visibility } = meta
+        const { roles = [], expression = '' } = meta.visibility || {}
 
         if (block) {
           block.xywh = xywh
 
-          if ((visibility.expression && blocksExpressions[blockID]) || !visibility.expression) {
-            tempBlocks.push(block)
+          if ((expression && blocksExpressions[blockID]) || !expression) {
+            if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
+              tempBlocks.push(block)
+            }
           }
         }
       })

@@ -136,6 +136,9 @@ general:
   magnifyLabel: Block Magnification
   visibility: 
     label: Visibility
+    roles:
+      label: Roles
+      placeholder: Pick roles that the block will be shown to
     condition:
       label: Condition
       placeholder: When will the block be shown

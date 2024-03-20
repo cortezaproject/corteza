@@ -23,6 +23,7 @@ interface PageBlockStyle {
 
 interface Visibility {
   expression: string;
+  roles: string[];
 }
 
 interface PageBlockMeta {
@@ -52,6 +53,7 @@ export class PageBlock {
     tempID: undefined,
     visibility: {
       expression: '',
+      roles: [],
     },
   }
 

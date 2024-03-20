@@ -597,16 +597,62 @@ export default {
       const tempBlocks = []
       const { blocks = [] } = this.layout || {}
 
-      blocks.forEach(({ blockID, xywh }) => {
+      let blocksExpressions = {}
+
+      if (blocks.some(({ meta = {} }) => (meta.visibility || {}).expression)) {
+        blocksExpressions = await this.evaluateBlocksExpressions(variables)
+      }
+
+      blocks.forEach(({ blockID, xywh, meta }) => {
         const block = this.page.blocks.find(b => b.blockID === blockID)
+        const { roles = [], expression = '' } = meta.visibility || {}
 
         if (block) {
           block.xywh = xywh
-          tempBlocks.push(block)
+
+          if ((expression && blocksExpressions[blockID]) || !expression) {
+            if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
+              tempBlocks.push(block)
+            }
+          }
         }
       })
 
       this.blocks = tempBlocks
+    },
+
+    evaluateBlocksExpressions (variables = {}) {
+      const expressions = {}
+      variables = {
+        user: this.$auth.user,
+        record: this.record ? this.record.serialize() : {},
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          userAgent: navigator.userAgent,
+          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
+        },
+        oldLayout: this.layout,
+        layout: undefined,
+        isView: !this.inEditing && !this.inCreating,
+        isCreate: this.inCreating,
+        isEdit: this.inEditing && !this.inCreating,
+        ...variables,
+      }
+
+      this.layout.blocks.forEach(block => {
+        const { visibility } = block.meta
+        if (!(visibility || {}).expression) return
+
+        expressions[block.blockID] = visibility.expression
+      })
+
+      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
+        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
+        Object.keys(expressions).forEach(key => (expressions[key] = false))
+
+        return expressions
+      })
     },
 
     refetchRecordBlocks () {

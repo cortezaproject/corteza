@@ -234,6 +234,28 @@
             </i18next>
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          sm="12"
+          class="pt-2"
+        >
+          <b-form-group
+            :label="$t('general.visibility.roles.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="currentRoles"
+              :options="roles.options"
+              :loading="roles.processing"
+              :placeholder="$t('general.visibility.roles.placeholder')"
+              :get-option-label="role => role.name"
+              :reduce="role => role.roleID"
+              :selectable="role => !currentRoles.includes(role.roleID)"
+              multiple
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </b-tab>
 
@@ -282,6 +304,16 @@ export default {
     },
   },
 
+  data () {
+    return {
+      roles: {
+        processing: false,
+        options: [],
+      },
+      abortableRequests: [],
+    }
+  },
+
   computed: {
     textVariants () {
       return [
@@ -319,12 +351,65 @@ export default {
     visibilityDocumentationURL () {
       return ''
     },
+
+    currentRoles: {
+      get () {
+        if (!this.block.meta.visibility.roles) {
+          return []
+        }
+
+        return this.block.meta.visibility.roles
+      },
+
+      set (roles) {
+        this.$set(this.block.meta.visibility, 'roles', roles)
+      },
+    },
+  },
+
+  created () {
+    this.fetchRoles()
+  },
+
+  beforeDestroy () {
+    this.abortRequests()
+    this.setDefaultValues()
   },
 
   methods: {
     updateRefresh (e) {
       // If value is less than 5 but greater than 0 make it 5. Otherwise value stays the same.
       this.block.options.refreshRate = e.target.value < 5 && e.target.value > 0 ? 5 : e.target.value
+    },
+
+    fetchRoles () {
+      this.roles.processing = true
+
+      const { response, cancel } = this.$SystemAPI
+        .roleListCancellable({})
+
+      this.abortableRequests.push(cancel)
+
+      response()
+        .then(({ set: roles = [] }) => {
+          this.roles.options = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
+        }).finally(() => {
+          this.roles.processing = false
+        })
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
+    },
+
+    setDefaultValues () {
+      this.roles = {
+        processing: false,
+        options: [],
+      }
+      this.abortableRequests = []
     },
   },
 }
