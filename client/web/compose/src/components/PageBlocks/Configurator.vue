@@ -166,6 +166,74 @@
             />
           </b-form-group>
         </b-col>
+        <b-col
+          cols="12"
+          sm="12"
+          class="pt-2"
+        >
+          <h5 class="mb-3">
+            {{ $t('general.visibility.label') }}
+          </h5>
+
+          <b-form-group
+            label-class="d-flex align-items-center text-primary mb-0"
+          >
+            <template #label>
+              {{ $t('general.visibility.condition.label') }}
+              <c-hint
+                :tooltip="$t('general.visibility.tooltip.performance.condition')"
+                icon-class="text-warning"
+              />
+            </template>
+            <b-input-group>
+              <b-input-group-prepend>
+                <b-button variant="extra-light">
+                  ƒ
+                </b-button>
+              </b-input-group-prepend>
+              <b-form-input
+                v-model="block.meta.visibility.expression"
+                :placeholder="$t('general.visibility.condition.placeholder')"
+              />
+              <b-input-group-append>
+                <b-button
+                  variant="outline-secondary"
+                  :href="visibilityDocumentationURL"
+                  class="d-flex justify-content-center align-items-center"
+                  target="_blank"
+                >
+                  ?
+                </b-button>
+              </b-input-group-append>
+            </b-input-group>
+
+            <i18next
+              v-if="isRecordPage"
+              path="general.visibility.condition.description.record-page"
+              tag="small"
+              class="text-muted"
+            >
+              <code>record.values.fieldName</code>
+              <code>user.(userID/email...)</code>
+              <code>screen.(width/height)</code>
+              <code>isView/isCreate/isEdit</code>
+              <code>user.userID == record.values.createdBy</code>
+              <code>screen.width &lt; 1024</code>
+            </i18next>
+
+            <i18next
+              v-else
+              path="general.visibility.condition.description.non-record-page"
+              tag="small"
+              class="text-muted"
+            >
+              <code>user.(userID/email...)</code>
+              <code>screen.(width/height)</code>
+              <code>user.email == "test@mail.com"</code>
+              <code>screen.width &lt; 1024</code>
+            </i18next>
+          </b-form-group>
+        </b-col>
       </b-row>
     </b-tab>
 
@@ -242,6 +310,14 @@ export default {
         { value: 'modal', text: this.$t('general.magnifyOptions.modal') },
         { value: 'fullscreen', text: this.$t('general.magnifyOptions.fullscreen') },
       ]
+    },
+
+    isRecordPage () {
+      return this.page && this.page.moduleID !== NoID
+    },
+
+    visibilityDocumentationURL () {
+      return ''
     },
   },
 
