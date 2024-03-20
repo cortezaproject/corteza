@@ -88,7 +88,8 @@ import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
-import { compose, NoID } from '@cortezaproject/corteza-js'
+import { NoID } from '@cortezaproject/corteza-js'
+import page from 'corteza-webapp-compose/src/mixins/page'
 
 export default {
   i18nOptions: {
@@ -101,6 +102,10 @@ export default {
     PageTranslator,
     MagnificationModal,
   },
+
+  mixins: [
+    page,
+  ],
 
   beforeRouteLeave (to, from, next) {
     this.setPreviousPages([])
@@ -123,30 +128,8 @@ export default {
     next()
   },
 
-  props: {
-    namespace: { // via router-view
-      type: compose.Namespace,
-      required: true,
-    },
-
-    page: { // via route-view
-      type: compose.Page,
-      required: true,
-    },
-
-    // We're using recordID to check if we need to display router-view or grid component
-    recordID: {
-      type: String,
-      default: '',
-    },
-  },
-
   data () {
     return {
-      layouts: [],
-      layout: undefined,
-      blocks: undefined,
-
       pageTitle: '',
     }
   },
@@ -154,12 +137,7 @@ export default {
   computed: {
     ...mapGetters({
       recordPaginationUsable: 'ui/recordPaginationUsable',
-      getPageLayouts: 'pageLayout/getByPageID',
     }),
-
-    isRecordPage () {
-      return this.recordID || this.$route.name === 'page.record.create'
-    },
 
     module () {
       if (this.page.moduleID && this.page.moduleID !== NoID) {
@@ -194,8 +172,9 @@ export default {
       handler (pageID) {
         if (pageID === NoID) return
 
-        this.layouts = []
+        this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
+        this.pageTitle = this.page.title
 
         if (!this.isRecordPage) {
           this.determineLayout()
@@ -213,10 +192,6 @@ export default {
     },
   },
 
-  mounted () {
-    this.$root.$on('refetch-records', this.refetchRecords)
-  },
-
   beforeDestroy () {
     this.destroyEvents()
     this.setDefaultValues()
@@ -232,84 +207,8 @@ export default {
       clearRecordSet: 'record/clearSet',
     }),
 
-    evaluateLayoutExpressions () {
-      const expressions = {}
-      const variables = {
-        screen: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          userAgent: navigator.userAgent,
-          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
-        },
-        user: this.$auth.user,
-        oldLayout: this.layout,
-        layout: undefined,
-      }
-
-      this.layouts.forEach(layout => {
-        const { config = {} } = layout
-        if (!config.visibility.expression) return
-
-        variables.layout = layout
-
-        expressions[layout.pageLayoutID] = config.visibility.expression
-      })
-
-      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
-        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
-        Object.keys(expressions).forEach(key => (expressions[key] = false))
-
-        return expressions
-      })
-    },
-
-    async determineLayout () {
-      // Clear stored records so they can be refetched with latest values
-      this.clearRecordSet()
-      this.layouts = this.getPageLayouts(this.page.pageID)
-
-      let expressions = {}
-
-      // Only evaluate if one of the layouts has an expressions variable
-      if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
-        this.pageTitle = this.page.title
-        expressions = await this.evaluateLayoutExpressions()
-      }
-
-      // Check layouts for expressions/roles and find the first one that fits
-      this.layout = this.layouts.find(({ pageLayoutID, config = {} }) => {
-        const { expression, roles = [] } = config.visibility
-
-        if (expression && !expressions[pageLayoutID]) return false
-
-        if (!roles.length) return true
-
-        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
-      })
-
-      if (!this.layout) {
-        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
-        return this.$router.go(-1)
-      }
-
-      const { handle, meta = {} } = this.layout || {}
-      const title = meta.title || this.page.title
-      this.pageTitle = title || handle || this.$t('navigation:noPageTitle')
-      document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
-
-      const tempBlocks = []
-      const { blocks = [] } = this.layout || {}
-
-      blocks.forEach(({ blockID, xywh }) => {
-        const block = this.page.blocks.find(b => b.blockID === blockID)
-
-        if (block) {
-          block.xywh = xywh
-          tempBlocks.push(block)
-        }
-      })
-
-      this.blocks = tempBlocks
+    createEvents () {
+      this.$root.$on('refetch-records', this.refetchRecords)
     },
 
     refetchRecords () {
