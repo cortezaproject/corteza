@@ -65,6 +65,8 @@
       >
         <b-table-simple
           borderless
+          small
+          responsive
           class="mb-0"
         >
           <thead>

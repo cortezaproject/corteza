@@ -77,6 +77,7 @@
                   :fields="links.fields"
                   :items="topbarSettings.helpLinks"
                   responsive="sm"
+                  small
                 >
                   <template #cell(handle)="data">
                     <b-form-input
@@ -156,6 +157,7 @@
                   :fields="links.fields"
                   :items="topbarSettings.profileLinks"
                   responsive="sm"
+                  small
                 >
                   <template #cell(handle)="data">
                     <b-form-input

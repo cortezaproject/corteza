@@ -252,20 +252,26 @@
                               />
                             </div>
                           </th>
+
                           <th class="text-primary">
                             {{ $t('general:label.type') }}
                           </th>
+
                           <th />
                           <th />
+
                           <th class="text-primary text-center pr-3">
                             {{ $t('general:label.required') }}
                           </th>
+
                           <th class="text-primary text-center pl-2">
                             {{ $t('general:label.multi') }}
                           </th>
+
                           <th />
                         </tr>
                       </thead>
+
                       <draggable
                         v-model="module.fields"
                         handle=".handle"
@@ -292,29 +298,62 @@
                   no-gutters
                   class="mt-3"
                 >
-                  <b-table-simple
-                    borderless
-                    responsive
-                    small
+                  <b-form-group
+                    :label="$t('edit.systemFields')"
+                    label-class="text-primary"
+                    class="mb-0"
                   >
-                    <t-body>
-                      <tr>
-                        <td
-                          colspan="7"
-                          class="font-weight-bold"
-                        >
-                          {{ $t('edit.systemFields') }}
-                        </td>
-                      </tr>
+                    <c-form-table-wrapper hide-add-button>
+                      <b-table-simple
+                        borderless
+                        responsive
+                        small
+                      >
+                        <thead>
+                          <tr>
+                            <th />
 
-                      <field-row-view
-                        v-for="(field, index) in systemFields"
-                        :key="index"
-                        :field="field"
-                        class="mt-4"
-                      />
-                    </t-body>
-                  </b-table-simple>
+                            <th
+                              class="text-primary"
+                            >
+                              <div
+                                class="d-flex align-items-center"
+                              >
+                                {{ $t('general.label.name') }}
+                              </div>
+                            </th>
+
+                            <th
+                              class="text-primary"
+                            >
+                              <div
+                                class="d-flex align-items-center"
+                              >
+                                {{ $t('general.label.title') }}
+                              </div>
+                            </th>
+
+                            <th class="text-primary">
+                              {{ $t('general:label.type') }}
+                            </th>
+
+                            <th />
+                            <th />
+                            <th />
+                            <th />
+                          </tr>
+                        </thead>
+
+                        <b-tbody>
+                          <field-row-view
+                            v-for="(field, index) in systemFields"
+                            :key="index"
+                            :field="field"
+                          />
+                        </b-tbody>
+                      </b-table-simple>
+                    </c-form-table-wrapper>
+                  </b-form-group>
                 </b-row>
               </b-tab>
 
