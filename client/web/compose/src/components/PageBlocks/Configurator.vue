@@ -120,14 +120,6 @@
           >
             {{ $t('general.border.show') }}
           </b-form-checkbox>
-
-          <b-form-checkbox
-            v-if="block.kind !== 'Tabs'"
-            v-model="block.meta.hidden"
-            switch
-          >
-            {{ $t('general.hidden.label') }}
-          </b-form-checkbox>
         </b-col>
 
         <b-col
