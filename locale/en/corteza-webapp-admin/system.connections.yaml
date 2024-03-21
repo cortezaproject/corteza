@@ -43,7 +43,7 @@ editor:
         label: Handle
         placeholder: simplified_connection_name
         description:
-        invalid-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
+        invalid-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
       location-name:
         label: Location name
         placeholder: Name of the location where the data is stored

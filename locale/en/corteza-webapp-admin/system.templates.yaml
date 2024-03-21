@@ -29,7 +29,7 @@ editor:
     deletedAt: Deleted at
     handle: Handle
     placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
-    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
     meta:
       description: Description
       short: Short name *

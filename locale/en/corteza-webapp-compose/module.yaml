@@ -74,7 +74,7 @@ edit:
   systemFields: 'System fields:'
   tooltip:
     attributes: Select if the field can hold multiple values, if it's required field or if contains sensitive data
-    name: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
+    name: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
     private: Sensitive data
     required: Required field
     title: The name displayed in form input / data lists
@@ -231,7 +231,7 @@ general:
   placeholder:
     handle: Handle
     sample: Sample
-    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
 import: Module import
 navigation:
   module: Modules

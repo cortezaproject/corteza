@@ -69,7 +69,7 @@ block:
       handle: handle (a - z, 0 - 9, underscore, dash)
       sample: Sample
     title: Add new block
-    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, dashes, underscores and dots. Must end with letter or number
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
 changeBlock: Change existing block
 referencedBlock: This block is used in other layouts
 copyOf: "Copy of {{title}}"
