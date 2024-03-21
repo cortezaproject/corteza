@@ -94,42 +94,35 @@
           cols="12"
           lg="6"
         >
-          <b-row>
-            <b-col
-              cols="12"
-              sm="6"
-            >
-              <b-form-group
-                :label="$t('listed')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  v-model="unify.listed"
-                  data-test-id="checkbox-listed"
-                  switch
-                  :labels="checkboxLabel"
-                />
-              </b-form-group>
-            </b-col>
+          <b-form-group
+            :label="$t('listed')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="unify.listed"
+              data-test-id="checkbox-listed"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
 
-            <b-col
-              v-if="canPin"
-              cols="12"
-              sm="6"
-            >
-              <b-form-group
-                :label="$t('pinned')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  v-model="unify.pinned"
-                  data-test-id="checkbox-pinned"
-                  switch
-                  :labels="checkboxLabel"
-                />
-              </b-form-group>
-            </b-col>
-          </b-row>
+        <b-col
+          v-if="canPin"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('pinned')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="unify.pinned"
+              data-test-id="checkbox-pinned"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
         </b-col>
 
         <b-col

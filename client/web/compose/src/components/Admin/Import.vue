@@ -57,7 +57,7 @@
                 v-for="(o, index) in importObj.list"
                 :key="index"
                 cols="12"
-                sm="6"
+                md="6"
                 lg="4"
               >
                 <b-form-checkbox v-model="o.import">

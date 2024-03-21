@@ -9,9 +9,7 @@
       </h5>
 
       <b-row>
-        <b-col
-          cols="12"
-        >
+        <b-col cols="12">
           <b-form-group
             :label="$t('general.module')"
             label-class="text-primary"
@@ -27,7 +25,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('record.recordSelectorDisplayOptions')"
@@ -42,7 +40,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('record.referenceRecordField')"
@@ -63,7 +61,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('record.inlineEdit.enabled')"
@@ -79,7 +77,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('record.horizontalFormLayout')"
@@ -106,9 +104,7 @@
       </h5>
 
       <b-row>
-        <b-col
-          cols="12"
-        >
+        <b-col cols="12">
           <field-picker
             :module="fieldModule"
             :fields.sync="options.fields"

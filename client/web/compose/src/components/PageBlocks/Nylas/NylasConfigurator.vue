@@ -59,7 +59,7 @@
           <template v-if="options.kind === 'Composer'">
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('prefill.to')"
@@ -77,7 +77,7 @@
             </b-col>
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('prefill.subject')"
@@ -96,7 +96,7 @@
             </b-col>
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('prefill.body')"
@@ -118,7 +118,7 @@
           <template v-if="options.kind === 'Mailbox'">
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('prefill.queryString')"

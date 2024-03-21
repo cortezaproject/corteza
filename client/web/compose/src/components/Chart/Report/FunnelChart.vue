@@ -32,8 +32,8 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
-          offset-md="6"
+          lg="6"
+          offset-lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.options.label')"

@@ -24,6 +24,7 @@
           header-class="border-bottom"
           footer-class="border-top"
           class="shadow-sm h-100"
+          style="min-height: 500px;"
         >
           <template #header>
             <b-card-title title-tag="h4">

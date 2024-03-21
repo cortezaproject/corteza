@@ -11,7 +11,7 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.module.label')"
@@ -31,7 +31,7 @@
         <b-col
           v-if="!!module"
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.filter.preset')"
@@ -95,7 +95,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('edit.dimension.fieldLabel')"
@@ -114,7 +114,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('edit.dimension.function.label')"
@@ -137,7 +137,7 @@
             <b-row>
               <b-col
                 cols="12"
-                md="6"
+                lg="6"
               >
                 <b-form-group
                   :label="$t('edit.dimension.defaultValueLabel')"
@@ -153,7 +153,7 @@
 
               <b-col
                 cols="12"
-                md="6"
+                lg="6"
               >
                 <b-form-group
                   :label="$t('edit.dimension.options.label')"
@@ -243,7 +243,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('edit.metric.fieldLabel')"
@@ -262,7 +262,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('edit.metric.function.label')"
@@ -312,7 +312,7 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.orientation.label')"
@@ -327,7 +327,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.show')"
@@ -347,7 +347,7 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.align.label')"
@@ -363,7 +363,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.options.label')"
@@ -390,7 +390,7 @@
       >
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.position.top')"
@@ -404,7 +404,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.position.right')"
@@ -418,7 +418,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.position.bottom')"
@@ -432,7 +432,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.additionalConfig.legend.position.left')"
@@ -444,7 +444,7 @@
           </b-form-group>
         </b-col>
 
-        <b-col cols="12">
+        <b-col>
           <small class="text-muted">
             {{ $t('edit.additionalConfig.legend.valueRange') }}
           </small>

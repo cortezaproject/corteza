@@ -147,9 +147,7 @@
           cols="12"
           lg="6"
         >
-          <b-form-group
-            label-class="text-primary"
-          >
+          <b-form-group>
             <b-form-radio-group
               v-model="resource.validGrant"
               value="authorization_code"
@@ -209,6 +207,7 @@
             data-test-id="valid-from"
             :label="$t('validFrom.label')"
             :description="$t('validFrom.description')"
+            label-class="text-primary"
           >
             <c-input-date-time
               v-model="resource.validFrom"
@@ -231,6 +230,7 @@
             data-test-id="expires-at"
             :label="$t('expiresAt.label')"
             :description="$t('expiresAt.description')"
+            label-class="text-primary"
           >
             <c-input-date-time
               v-model="resource.expiresAt"

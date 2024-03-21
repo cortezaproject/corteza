@@ -10,7 +10,7 @@
     >
       <b-col
         cols="12"
-        md="4"
+        lg="4"
       >
         <b-form-group
           :label="$t('tabs.style.appearance.label')"
@@ -20,7 +20,7 @@
             v-model="block.options.style.appearance"
             :options="style.appearance"
             buttons
-            button-variant="outline-primary"
+            button-variant="outline-secondary"
             size="sm"
           />
         </b-form-group>
@@ -28,7 +28,7 @@
 
       <b-col
         cols="12"
-        md="4"
+        lg="4"
       >
         <b-form-group
           :label="$t('tabs.style.orientation.label')"
@@ -38,7 +38,7 @@
             v-model="block.options.style.orientation"
             :options="style.orientation"
             buttons
-            button-variant="outline-primary"
+            button-variant="outline-secondary"
             size="sm"
           />
         </b-form-group>
@@ -46,7 +46,7 @@
 
       <b-col
         cols="12"
-        md="4"
+        lg="4"
       >
         <b-form-group
           :label="$t('tabs.style.position.label')"
@@ -56,7 +56,7 @@
             v-model="block.options.style.position"
             :options="style.position"
             buttons
-            button-variant="outline-primary"
+            button-variant="outline-secondary"
             size="sm"
           />
         </b-form-group>
@@ -64,7 +64,7 @@
 
       <b-col
         cols="12"
-        md="4"
+        lg="4"
       >
         <b-form-group
           :label="$t('tabs.style.alignment.label')"
@@ -74,7 +74,7 @@
             v-model="block.options.style.alignment"
             :options="style.alignment"
             buttons
-            button-variant="outline-primary"
+            button-variant="outline-secondary"
             size="sm"
           />
         </b-form-group>
@@ -82,7 +82,7 @@
 
       <b-col
         cols="12"
-        md="4"
+        lg="4"
       >
         <b-form-group
           :label="$t('tabs.style.justify.label')"
@@ -92,7 +92,7 @@
             v-model="block.options.style.justify"
             :options="style.justifyOptions"
             buttons
-            button-variant="outline-primary"
+            button-variant="outline-secondary"
             size="sm"
           />
         </b-form-group>

@@ -12,7 +12,7 @@
       >
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('display-element:chart.configurator.type')"
@@ -28,7 +28,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('display-element:chart.configurator.chart-title')"
@@ -42,7 +42,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('display-element:chart.configurator.color-scheme')"
@@ -87,7 +87,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
           class="d-flex flex-column justify-content-center"
         >
           <b-form-checkbox
@@ -342,7 +342,7 @@
         <b-row v-if="!options.legend.hide">
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('display-element:chart.configurator.legend.align.label')"
@@ -359,7 +359,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('display-element:chart.configurator.legend.orientation.label')"
@@ -375,7 +375,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-checkbox
               v-model="options.legend.position.default"
@@ -387,7 +387,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-checkbox
               v-model="options.legend.scrollable"
@@ -402,7 +402,7 @@
           >
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
               xl="3"
             >
               <b-form-group
@@ -417,7 +417,7 @@
 
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
               xl="3"
             >
               <b-form-group
@@ -432,7 +432,7 @@
 
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
               xl="3"
             >
               <b-form-group
@@ -447,7 +447,7 @@
 
             <b-col
               cols="12"
-              sm="6"
+              lg="6"
               xl="3"
             >
               <b-form-group
@@ -502,7 +502,7 @@
         <b-row v-if="!options.offset.default">
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
             xl="3"
           >
             <b-form-group
@@ -517,7 +517,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
             xl="3"
           >
             <b-form-group
@@ -532,7 +532,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
             xl="3"
           >
             <b-form-group
@@ -547,7 +547,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
             xl="3"
           >
             <b-form-group

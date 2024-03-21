@@ -16,7 +16,7 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.dimension.rotate.label')"
@@ -44,7 +44,7 @@
         <b-row>
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.labelLabel')"
@@ -68,7 +68,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.labelPosition.label')"
@@ -83,7 +83,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.minLabel')"
@@ -99,7 +99,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.maxLabel')"
@@ -115,7 +115,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.rotate.label')"
@@ -131,7 +131,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.yAxis.options.label')"
@@ -173,7 +173,7 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.labelLabel')"
@@ -197,7 +197,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.output.label')"
@@ -217,7 +217,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.fx.label')"
@@ -233,7 +233,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.options.label')"
@@ -283,7 +283,7 @@
         <b-col
           v-if="!hasRelativeDisplay(metric)"
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.stack.label')"
@@ -299,7 +299,7 @@
         <b-col
           v-if="metric.type === 'scatter'"
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.symbol.label')"
@@ -324,7 +324,7 @@
         <b-row>
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.tooltip.formatting.label')"
@@ -340,7 +340,7 @@
           <b-col
             v-if="!hasAxis"
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.tooltip.labelNextToChart')"
@@ -366,7 +366,7 @@
         <b-row>
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.default')"
@@ -387,7 +387,7 @@
         >
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.top')"
@@ -401,7 +401,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.right')"
@@ -415,7 +415,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.bottom')"
@@ -429,7 +429,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.additionalConfig.offset.position.left')"
@@ -441,7 +441,7 @@
             </b-form-group>
           </b-col>
 
-          <b-col cols="12">
+          <b-col>
             <small class="text-muted">
               {{ $t('edit.additionalConfig.offset.valueRange') }}
             </small>

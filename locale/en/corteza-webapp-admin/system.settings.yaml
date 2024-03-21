@@ -123,6 +123,7 @@ editor:
 
 
     security:
+      title: Security
       prohibited-roles:
         description: Roles from this list will be removed from security context when authenticates with this provider
         label: Prohibited roles

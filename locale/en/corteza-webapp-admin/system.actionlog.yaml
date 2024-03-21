@@ -9,29 +9,30 @@ list:
     timestamp: Timestamp
   loading: Loading actions
   details:
-    id: 'ID'
-    header: 'Details'
-    timestamp: 'Timestamp'
-    requestOrigin: 'Request Origin'
-    requestID: 'Request ID'
-    actorIPAddr: 'Actor/User'
-    actor: 'User'
-    actorID: 'User ID'
-    severity: 'Severity'
-    resource: 'Resource'
-    action: 'Action'
-    headerAdditional: 'Additional information'
-    description: 'Description'
-    error: 'Error'
+    id: ID
+    header: Details
+    timestamp: Timestamp
+    requestOrigin: Request Origin
+    requestID: Request ID
+    actorIPAddr: Actor/User
+    actor: User
+    actorID: User ID
+    severity: Severity
+    resource: Resource
+    action: Action
+    headerAdditional: Additional information
+    description: Description
+    error: Error
+    meta: Meta
   severity:
-    emergency: 'Emergency'
-    alert: 'Alert'
-    critical: 'Critical'
-    error: 'Error'
-    warning: 'Warning'
-    notice: 'Notice'
-    info: 'Info'
-    debug: 'Debug'
+    emergency: Emergency
+    alert: Alert
+    critical: Critical
+    error: Error
+    warning: Warning
+    notice: Notice
+    info: Info
+    debug: Debug
   filter:
     action: Action
     actor: User ID

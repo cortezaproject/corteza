@@ -7,7 +7,7 @@
       no-gutters
     >
       <b-col
-        md="12"
+        cols="12"
         :lg="map.show ? '7' : '12'"
         :xl="map.show ? '8' : '12'"
         class="results-container pt-3"
@@ -64,7 +64,6 @@
           <b-col
             v-for="(hit, i) in filteredHits"
             :key="i"
-            sm="12"
             md="6"
             :lg="map.show ? '6': '4'"
             class="py-3"
@@ -99,7 +98,6 @@
 
       <b-col
         v-if="map.show"
-        md="12"
         lg="5"
         xl="4"
       >

@@ -21,7 +21,10 @@
     <hr>
 
     <b-row>
-      <b-col cols="6">
+      <b-col
+        cols="12"
+        lg="6"
+      >
         <b-form-group
           :label="$t('datasources:primary.source')"
           label-class="text-primary"
@@ -41,7 +44,10 @@
           </b-form-select>
         </b-form-group>
       </b-col>
-      <b-col cols="6">
+      <b-col
+        cols="12"
+        lg="6"
+      >
         <b-form-group
           :label="$t('datasources:secondary.source')"
           label-class="text-primary"
@@ -64,7 +70,10 @@
     </b-row>
 
     <b-row>
-      <b-col cols="6">
+      <b-col
+        cols="12"
+        lg="6"
+      >
         <b-form-group
           v-if="step.link.localSource"
           :label="$t('datasources:primary.column')"
@@ -77,7 +86,10 @@
           />
         </b-form-group>
       </b-col>
-      <b-col cols="6">
+      <b-col
+        cols="12"
+        lg="6"
+      >
         <b-form-group
           v-if="step.link.foreignSource"
           :label="$t('datasources:secondary.column')"

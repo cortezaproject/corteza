@@ -87,7 +87,7 @@
               <b-row>
                 <b-col
                   cols="12"
-                  md="6"
+                  lg="6"
                   xl="4"
                 >
                   <b-form-group
@@ -106,7 +106,7 @@
                 </b-col>
                 <b-col
                   cols="12"
-                  md="6"
+                  lg="6"
                   xl="4"
                 >
                   <b-form-group

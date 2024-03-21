@@ -45,9 +45,7 @@
         </b-col>
 
         <template v-if="options.value.moduleID">
-          <b-col
-            cols="12"
-          >
+          <b-col cols="12">
             <b-form-group
               :label="$t('metric.edit.filterLabel')"
               label-class="text-primary"
@@ -72,7 +70,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('progress.field.label')"
@@ -91,7 +89,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('progress.aggregate.label')"
@@ -156,9 +154,7 @@
         </b-col>
 
         <template v-if="options.minValue.moduleID">
-          <b-col
-            cols="12"
-          >
+          <b-col cols="12">
             <b-form-group
               :label="$t('metric.edit.filterLabel')"
               label-class="text-primary"
@@ -183,7 +179,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('progress.field.label')"
@@ -202,7 +198,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('progress.aggregate.label')"
@@ -267,9 +263,7 @@
         </b-col>
 
         <template v-if="options.maxValue.moduleID">
-          <b-col
-            cols="12"
-          >
+          <b-col cols="12">
             <b-form-group
               :label="$t('metric.edit.filterLabel')"
               label-class="text-primary"
@@ -294,7 +288,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('progress.field.label')"
@@ -313,7 +307,7 @@
 
           <b-col
             cols="12"
-            sm="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('progress.aggregate.label')"
@@ -346,7 +340,7 @@
       >
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('progress.default-variant')"
@@ -477,9 +471,7 @@
         </h6>
 
         <b-row>
-          <b-col
-            cols="12"
-          >
+          <b-col cols="12">
             <field-viewer
               value-only
               v-bind="mock"

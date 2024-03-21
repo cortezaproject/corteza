@@ -142,7 +142,7 @@
       >
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('constraints.valueModifiers')"
@@ -157,7 +157,7 @@
         <b-col
           v-if="field.isMulti"
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('constraints.multiValues')"

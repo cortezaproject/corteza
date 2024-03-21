@@ -13,7 +13,7 @@
 
     <b-container class="pt-3">
       <b-row>
-        <b-col cols="6">
+        <b-col lg="6">
           <b-card
             :header="$t('automation.configuredButtons')"
             footer-class="text-right"
@@ -51,7 +51,7 @@
             </template>
           </b-card>
         </b-col>
-        <b-col cols="6">
+        <b-col lg="6">
           <button-editor
             v-if="currentButton"
             :page="page"
@@ -65,7 +65,7 @@
       </b-row>
 
       <b-row class="mt-4">
-        <b-col cols="12">
+        <b-col>
           <b-card
             v-if="available.length > 0"
             :header="$t('automation.availableScriptsAndWorkflow', { count: available.length })"

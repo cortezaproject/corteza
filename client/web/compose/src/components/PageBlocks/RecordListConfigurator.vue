@@ -15,7 +15,7 @@
         <b-row>
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('general.module')"
@@ -35,7 +35,7 @@
           <b-col
             v-if="recordListModule && (onRecordPage || options.editable)"
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               label-class="d-flex align-items-center text-primary"
@@ -132,7 +132,7 @@
           >
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.refField.label')"
@@ -163,7 +163,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.positionField.label')"
@@ -219,7 +219,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.filterHide')"
@@ -236,7 +236,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.prefilterHideSearch')"
@@ -465,7 +465,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.hidePaging')"
@@ -482,7 +482,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 horizontal
@@ -510,7 +510,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.showTotalCount')"
@@ -527,7 +527,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.showRecordPerPageOption')"
@@ -545,7 +545,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 label-class="d-flex align-items-center text-primary p-0"
@@ -581,7 +581,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.recordDisplayOptions')"
@@ -595,7 +595,7 @@
             </b-col>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.recordSelectorDisplayOptions')"
@@ -612,7 +612,7 @@
           <b-row>
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.hideAddButton')"
@@ -629,7 +629,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.selectable')"
@@ -646,7 +646,7 @@
             <b-col
               v-if="onRecordPage"
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.linkToParent')"
@@ -663,7 +663,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.hideImportButton')"
@@ -680,7 +680,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.export.allow')"
@@ -696,7 +696,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.inlineEdit.enabled')"
@@ -712,7 +712,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.enableBulkRecordEdit')"
@@ -728,7 +728,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 label-class="d-flex align-items-center text-primary mb-0"
@@ -750,7 +750,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.showDeletedRecordsOption')"
@@ -766,7 +766,7 @@
 
             <b-col
               cols="12"
-              md="6"
+              lg="6"
             >
               <b-form-group
                 :label="$t('recordList.record.buttons')"

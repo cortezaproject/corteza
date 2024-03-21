@@ -47,9 +47,7 @@
           <b-row
             v-if="rangeType === 'range'"
           >
-            <b-col
-              md="6"
-            >
+            <b-col lg="6">
               <b-form-group
                 :label="$t('recordList.export.rangeBy')"
                 label-class="text-primary"
@@ -61,9 +59,8 @@
                 />
               </b-form-group>
             </b-col>
-            <b-col
-              md="6"
-            >
+
+            <b-col lg="6">
               <b-form-group
                 :label="$t('recordList.export.dateRange')"
                 label-class="text-primary"
@@ -81,9 +78,7 @@
         <b-row
           v-if="rangeType === 'range'"
         >
-          <b-col
-            md="6"
-          >
+          <b-col lg="6">
             <b-form-group
               :label="$t('recordList.export.filter.from')"
               label-class="text-primary"
@@ -102,9 +97,7 @@
             </b-form-group>
           </b-col>
 
-          <b-col
-            md="6"
-          >
+          <b-col lg="6">
             <b-form-group
               :label="$t('recordList.export.filter.to')"
               label-class="text-primary"

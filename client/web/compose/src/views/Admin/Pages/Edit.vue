@@ -111,7 +111,7 @@
         >
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="`${$t('newPlaceholder')} *`"
@@ -134,7 +134,7 @@
           </b-col>
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('label.handle')"
@@ -171,7 +171,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               label-class="d-flex align-items-center text-primary"
@@ -205,7 +205,7 @@
 
           <b-col
             cols="12"
-            md="6"
+            lg="6"
           >
             <b-form-group
               :label="$t('edit.otherOptions')"

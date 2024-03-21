@@ -46,7 +46,7 @@
       <b-row class="mt-3">
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('initial.color')"
@@ -69,7 +69,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('initial.backgroundColor')"

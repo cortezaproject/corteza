@@ -60,7 +60,7 @@
       <b-row>
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.fx.label')"
@@ -76,7 +76,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.options.label')"
@@ -92,7 +92,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.angle.start')"
@@ -108,7 +108,7 @@
 
         <b-col
           cols="12"
-          md="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('edit.metric.angle.end')"

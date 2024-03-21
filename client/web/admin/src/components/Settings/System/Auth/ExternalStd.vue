@@ -1,8 +1,6 @@
 <template>
   <div>
-    <b-form-group
-      label-cols="3"
-    >
+    <b-form-group>
       <b-form-checkbox
         v-model="value.enabled"
       >
@@ -12,7 +10,6 @@
 
     <b-form-group
       v-if="value.handle === 'nylas'"
-      label-cols="3"
     >
       <b-form-checkbox
         v-model="providerUsage"
@@ -23,7 +20,6 @@
 
     <b-form-group
       :label="$t('clientKey')"
-      label-cols="3"
       label-class="text-primary"
     >
       <b-input-group>
@@ -36,7 +32,6 @@
 
     <b-form-group
       :label="$t('clientSecret')"
-      label-cols="3"
       label-class="text-primary"
     >
       <b-input-group>

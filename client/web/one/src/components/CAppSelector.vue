@@ -45,9 +45,8 @@
               :key="app.applicationID"
               cols="12"
               sm="6"
-              md="6"
-              lg="4"
-              xl="3"
+              md="4"
+              lg="3"
               class="p-0 mb-3 mt-1"
               :data-v-onboarding="getStepName(app.unify.url)"
             >

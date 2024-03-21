@@ -15,13 +15,11 @@
     >
       <b-col
         cols="12"
-        md="6"
-        class="mb-3 mb-md-0"
+        lg="6"
       >
         <b-form-group
           :label="$t('profiler.label')"
           label-class="text-primary"
-          class="mb-0"
         >
           <b-form-radio-group
             v-model="profilerSetting"
@@ -35,12 +33,11 @@
 
       <b-col
         cols="12"
-        md="6"
+        lg="6"
       >
         <b-form-group
           :label="$t('proxy.label')"
           label-class="text-primary"
-          class="mb-0"
         >
           <b-form-checkbox
             v-model="settings['apigw.proxy.follow-redirects']"

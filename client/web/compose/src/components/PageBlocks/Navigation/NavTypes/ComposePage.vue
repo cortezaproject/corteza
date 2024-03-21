@@ -48,8 +48,6 @@
 
     <td
       v-if="selectedPageChildren(options.item.pageID).length > 0"
-      cols="12"
-      sm="6"
       class="align-middle text-center"
     >
       <b-form-group

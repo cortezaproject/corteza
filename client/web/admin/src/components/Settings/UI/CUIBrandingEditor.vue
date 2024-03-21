@@ -37,8 +37,8 @@
           <b-col
             v-for="key in themeVariables"
             :key="key"
-            md="6"
             cols="12"
+            lg="6"
           >
             <b-form-group
               :label="$t(`theme.variables.${key}.label`)"

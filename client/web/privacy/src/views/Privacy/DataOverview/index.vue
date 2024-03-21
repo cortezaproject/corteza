@@ -14,7 +14,6 @@
       <b-col
         cols="12"
         lg="6"
-        xl="5"
       >
         <b-row>
           <b-col

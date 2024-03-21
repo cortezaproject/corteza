@@ -11,8 +11,7 @@
         >
           <b-col
             cols="12"
-            sm="4"
-            class="mb-2 mb-sm-0"
+            lg="4"
           >
             <b-form-group
               :label="$t('navigation.appearance')"
@@ -22,9 +21,9 @@
             >
               <b-form-radio-group
                 v-model="options.display.appearance"
-                buttons
-                button-variant="outline-primary"
                 :options="appearanceOptions"
+                buttons
+                button-variant="outline-secondary"
                 size="sm"
               />
             </b-form-group>
@@ -32,8 +31,7 @@
 
           <b-col
             cols="12"
-            md="4"
-            class="mb-2 mb-sm-0"
+            lg="4"
           >
             <b-form-group
               :label="$t('navigation.justify')"
@@ -42,9 +40,9 @@
             >
               <b-form-radio-group
                 v-model="options.display.justify"
-                buttons
-                button-variant="outline-primary"
                 :options="justifyOptions"
+                buttons
+                button-variant="outline-secondary"
                 size="sm"
               />
             </b-form-group>
@@ -52,8 +50,7 @@
 
           <b-col
             cols="12"
-            md="4"
-            class="mb-2 mb-sm-0"
+            lg="4"
           >
             <b-form-group
               :label="$t('navigation.alignment')"
@@ -62,9 +59,9 @@
             >
               <b-form-radio-group
                 v-model="options.display.alignment"
-                buttons
-                button-variant="outline-primary"
                 :options="alignmentOptions"
+                buttons
+                button-variant="outline-secondary"
                 size="sm"
               />
             </b-form-group>

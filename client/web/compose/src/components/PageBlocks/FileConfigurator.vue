@@ -66,8 +66,8 @@
         class="mb-2 mt-2"
       >
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.height')"
@@ -82,8 +82,8 @@
         </b-col>
 
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.width')"
@@ -98,8 +98,8 @@
         </b-col>
 
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.maxHeight')"
@@ -114,8 +114,8 @@
         </b-col>
 
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.maxWidth')"
@@ -130,8 +130,8 @@
         </b-col>
 
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.borderRadius')"
@@ -146,8 +146,8 @@
         </b-col>
 
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.margin')"
@@ -162,8 +162,8 @@
         </b-col>
 
         <b-col
-          sm="12"
-          md="6"
+          cols="12"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.file.view.background')"

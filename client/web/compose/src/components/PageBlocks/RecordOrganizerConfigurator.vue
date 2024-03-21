@@ -39,10 +39,7 @@
       </b-form-group>
 
       <b-form-group
-        :label-cols="3"
         :label="$t('recordList.record.prefilterLabel')"
-        horizontal
-        breakpoint="md"
         label-class="text-primary"
       >
         <b-form-textarea
@@ -63,10 +60,7 @@
       </b-form-group>
 
       <b-form-group
-        :label-cols="3"
         :label="$t('recordOrganizer.labelField.label')"
-        horizontal
-        breakpoint="md"
         label-class="text-primary"
       >
         <c-input-select
@@ -80,10 +74,7 @@
       </b-form-group>
 
       <b-form-group
-        :label-cols="3"
         :label="$t('recordOrganizer.descriptionField.label')"
-        horizontal
-        breakpoint="md"
         label-class="text-primary"
       >
         <c-input-select
@@ -100,10 +91,7 @@
       </b-form-group>
 
       <b-form-group
-        :label-cols="3"
         :label="$t('recordOrganizer.positionField.label')"
-        horizontal
-        breakpoint="md"
         label-class="text-primary"
       >
         <b-form-select v-model="options.positionField">
@@ -124,10 +112,7 @@
       </b-form-group>
 
       <b-form-group
-        :label-cols="3"
         :label="$t('recordOrganizer.groupField.label')"
-        horizontal
-        breakpoint="md"
         label-class="text-primary"
       >
         <c-input-select
@@ -146,9 +131,6 @@
       <b-form-group
         v-if="options.groupField"
         :label="$t('recordOrganizer.group.label')"
-        :label-cols="3"
-        breakpoint="md"
-        horizontal
         label-class="text-primary"
       >
         <field-editor
@@ -164,9 +146,6 @@
       <b-form-group
         v-if="options.groupField"
         :label="$t('recordOrganizer.onRecordClick')"
-        :label-cols="3"
-        breakpoint="md"
-        horizontal
         label-class="text-primary"
         class="mb-0"
       >

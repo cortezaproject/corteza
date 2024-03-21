@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="my-2">
+    <div>
       <c-map
         :map="mapOptions"
         :labels="{
@@ -18,14 +18,13 @@
         {{ $t('geometry.mapHelpText') }}
       </b-form-text>
     </div>
+
     <hr>
 
-    <b-row
-      class="mb-2 mt-4"
-    >
+    <b-row>
       <b-col
-        sm="12"
-        md="4"
+        cols="12"
+        lg="4"
       >
         <b-form-group
           :label="$t('geometry.zoom.zoomStartingLabel')"
@@ -42,8 +41,8 @@
       </b-col>
 
       <b-col
-        sm="12"
-        md="4"
+        cols="12"
+        lg="4"
       >
         <b-form-group
           :label="$t('geometry.zoom.zoomMinLabel')"
@@ -62,8 +61,8 @@
       </b-col>
 
       <b-col
-        sm="12"
-        md="4"
+        cols="12"
+        lg="4"
       >
         <b-form-group
           :label="$t('geometry.zoom.zoomMaxLabel')"
@@ -81,8 +80,8 @@
       </b-col>
 
       <b-col
-        sm="12"
-        md="4"
+        cols="12"
+        lg="4"
       >
         <b-form-group
           :label="$t('geometry.bounds.lockBounds')"
@@ -100,8 +99,8 @@
       </b-col>
 
       <b-col
-        sm="12"
-        md="4"
+        cols="12"
+        lg="4"
       >
         <b-form-group
           :label="$t('geometry.onMarkerClick')"

@@ -75,6 +75,7 @@
     <b-modal
       v-model="modal.open"
       :title="modal.title"
+      scrollable
       size="lg"
       title-class="text-capitalize"
       @ok="modal.updater(modal.data)"

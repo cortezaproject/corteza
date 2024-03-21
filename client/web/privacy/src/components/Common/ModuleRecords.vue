@@ -49,7 +49,6 @@
             v-for="value in r.values"
             :key="value.name"
             cols="12"
-            md="6"
             lg="6"
           >
             <b-form-group

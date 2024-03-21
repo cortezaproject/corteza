@@ -183,7 +183,7 @@
                 <b-col cols="4">
                   {{ $t('details.id') }}
                 </b-col>
-                <b-col cols="8">
+                <b-col>
                   {{ a.actionID }}
                 </b-col>
               </b-row>
@@ -193,7 +193,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-timestamp"
-                  cols="8"
                 >
                   {{ a.timestamp | locFullDateTime }}
                 </b-col>
@@ -204,7 +203,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-request-origin"
-                  cols="8"
                 >
                   {{ a.requestOrigin }}
                 </b-col>
@@ -213,7 +211,7 @@
                 <b-col cols="4">
                   {{ $t('details.requestID') }}
                 </b-col>
-                <b-col cols="8">
+                <b-col>
                   {{ a.requestID }}
                 </b-col>
               </b-row>
@@ -221,7 +219,7 @@
                 <b-col cols="4">
                   {{ $t('details.actorIPAddr') }}
                 </b-col>
-                <b-col cols="8">
+                <b-col>
                   {{ a.actorIPAddr }}
                 </b-col>
               </b-row>
@@ -231,7 +229,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-user"
-                  cols="8"
                 >
                   {{ a.actor }}
                 </b-col>
@@ -242,7 +239,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-user-id"
-                  cols="8"
                 >
                   {{ a.actorID }}
                 </b-col>
@@ -253,7 +249,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-severity"
-                  cols="8"
                 >
                   {{ getSeverityLabel(a.severity) }}
                 </b-col>
@@ -264,7 +259,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-resource"
-                  cols="8"
                 >
                   {{ a.resource }}
                 </b-col>
@@ -275,7 +269,6 @@
                 </b-col>
                 <b-col
                   data-test-id="details-action"
-                  cols="8"
                 >
                   {{ a.action }}
                 </b-col>
@@ -288,7 +281,7 @@
                 <b-col cols="4">
                   {{ $t('details.description') }}
                 </b-col>
-                <b-col cols="8">
+                <b-col>
                   {{ a.description }}
                 </b-col>
               </b-row>
@@ -296,22 +289,26 @@
                 <b-col cols="4">
                   {{ $t('details.error') }}
                 </b-col>
-                <b-col cols="8">
+                <b-col>
                   {{ a.error }}
                 </b-col>
               </b-row>
-              <hr>
-              <b-row
-                v-for="(val, key) in a.meta"
-                :key="key"
-              >
-                <b-col cols="4">
-                  <code>{{ key }}</code>
-                </b-col>
-                <b-col cols="8">
-                  <code>{{ val }}</code>
-                </b-col>
-              </b-row>
+
+              <template v-if="a.meta">
+                <hr>
+                <h6>{{ $t('details.meta') }}</h6>
+                <b-row
+                  v-for="(val, key) in a.meta"
+                  :key="key"
+                >
+                  <b-col>
+                    <code>{{ key }}</code>
+                  </b-col>
+                  <b-col>
+                    <code>{{ val }}</code>
+                  </b-col>
+                </b-row>
+              </template>
             </b-card>
           </b-card-group>
         </template>

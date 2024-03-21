@@ -11,9 +11,7 @@
       title-item-class="order-first"
     >
       <b-row>
-        <b-col
-          cols="12"
-        >
+        <b-col cols="12">
           <b-form-group
             :label="$t('general.titleLabel')"
             label-class="text-primary"
@@ -49,9 +47,7 @@
           </b-form-group>
         </b-col>
 
-        <b-col
-          cols="12"
-        >
+        <b-col cols="12">
           <b-form-group
             :label="$t('general.descriptionLabel')"
             label-class="text-primary"
@@ -88,8 +84,7 @@
 
         <b-col
           cols="12"
-          sm="6"
-          class="mb-2"
+          lg="6"
         >
           <b-form-group
             :label="$t('general.headerStyle')"
@@ -102,38 +97,41 @@
               :reduce="o => o.value"
               :placeholder="$t('general.label.none')"
               label="text"
+              class="mb-1"
             />
+
+            <b-form-checkbox
+              v-model="block.style.wrap.kind"
+              value="card"
+              unchecked-value="plain"
+              switch
+            >
+              {{ $t('general.wrap') }}
+            </b-form-checkbox>
+
+            <b-form-checkbox
+              v-model="block.style.border.enabled"
+              switch
+            >
+              {{ $t('general.border.show') }}
+            </b-form-checkbox>
           </b-form-group>
-
-          <b-form-checkbox
-            v-model="block.style.wrap.kind"
-            value="card"
-            unchecked-value="plain"
-            switch
-          >
-            {{ $t('general.wrap') }}
-          </b-form-checkbox>
-
-          <b-form-checkbox
-            v-model="block.style.border.enabled"
-            switch
-          >
-            {{ $t('general.border.show') }}
-          </b-form-checkbox>
         </b-col>
 
         <b-col
           v-if="block.options.showRefresh !== undefined"
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('general.refresh.auto')"
             :description="$t('general.refresh.description')"
             label-class="text-primary"
-            class="mb-1"
           >
-            <b-input-group append="s">
+            <b-input-group
+              append="s"
+              class="mb-1"
+            >
               <b-form-input
                 v-model="block.options.refreshRate"
                 type="number"
@@ -142,20 +140,21 @@
                 @blur="updateRefresh"
               />
             </b-input-group>
+
+            <b-form-checkbox
+              v-model="block.options.showRefresh"
+              switch
+            >
+              {{ $t('general.refresh.show') }}
+            </b-form-checkbox>
           </b-form-group>
-          <b-form-checkbox
-            v-model="block.options.showRefresh"
-            switch
-            class="mb-2"
-          >
-            {{ $t('general.refresh.show') }}
-          </b-form-checkbox>
         </b-col>
 
         <b-col
           v-if="block.options.magnifyOption !== undefined"
           cols="12"
-          sm="6"
+          lg="6"
+          :offset-lg="block.options.showRefresh !== undefined ? 6 : 0"
         >
           <b-form-group
             :label="$t('general.magnifyLabel')"

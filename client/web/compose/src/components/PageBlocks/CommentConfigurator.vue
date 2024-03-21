@@ -39,10 +39,7 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
-        :label-cols="3"
         :label="$t('recordList.record.prefilterLabel')"
-        breakpoint="md"
         label-class="text-primary"
       >
         <b-form-textarea
@@ -64,10 +61,7 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
-        :label-cols="3"
         :label="$t('comment.titleField.label')"
-        breakpoint="md"
         label-class="text-primary"
       >
         <b-form-select v-model="options.titleField">
@@ -87,10 +81,7 @@
       </b-form-group>
 
       <b-form-group
-        horizontal
-        :label-cols="3"
         :label="$t('comment.contentField.label')"
-        breakpoint="md"
         label-class="text-primary"
       >
         <b-form-select v-model="options.contentField">
@@ -109,11 +100,9 @@
           {{ $t('comment.contentField.footnote') }}
         </b-form-text>
       </b-form-group>
+
       <b-form-group
-        horizontal
-        :label-cols="3"
         :label="$t('comment.referenceField.label')"
-        breakpoint="md"
         label-class="text-primary"
       >
         <b-form-select v-model="options.referenceField">
@@ -132,27 +121,25 @@
           {{ $t('comment.referenceField.footnote') }}
         </b-form-text>
       </b-form-group>
+
+      <b-form-group
+        :label="$t('comment.sortDirection.label')"
+        label-class="text-primary"
+      >
+        <b-form-select v-model="options.sortDirection">
+          <option
+            v-for="(item, index) in sortDirections"
+            :key="index"
+            :value="item.value"
+          >
+            {{ item.label }}
+          </option>
+        </b-form-select>
+        <b-form-text class="text-secondary small">
+          {{ $t('comment.sortDirection.footnote') }}
+        </b-form-text>
+      </b-form-group>
     </div>
-    <b-form-group
-      horizontal
-      :label-cols="3"
-      :label="$t('comment.sortDirection.label')"
-      breakpoint="md"
-      label-class="text-primary"
-    >
-      <b-form-select v-model="options.sortDirection">
-        <option
-          v-for="(item, index) in sortDirections"
-          :key="index"
-          :value="item.value"
-        >
-          {{ item.label }}
-        </option>
-      </b-form-select>
-      <b-form-text class="text-secondary small">
-        {{ $t('comment.sortDirection.footnote') }}
-      </b-form-text>
-    </b-form-group>
   </b-tab>
 </template>
 <script>

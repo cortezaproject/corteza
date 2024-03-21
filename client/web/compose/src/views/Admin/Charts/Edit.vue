@@ -34,8 +34,8 @@
 
             <b-row no-gutters>
               <b-col
-                md="7"
-                sm="12"
+                cols="12"
+                lg="7"
                 class="border-right"
               >
                 <div
@@ -49,7 +49,7 @@
                   >
                     <b-col
                       cols="12"
-                      md="6"
+                      lg="6"
                     >
                       <b-form-group
                         :label="$t('name')"
@@ -65,7 +65,7 @@
 
                     <b-col
                       cols="12"
-                      md="6"
+                      lg="6"
                     >
                       <b-form-group
                         :label="$t('handle')"
@@ -86,7 +86,7 @@
 
                     <b-col
                       cols="12"
-                      md="6"
+                      lg="6"
                     >
                       <b-form-group
                         :label="$t('colorScheme.label')"
@@ -159,7 +159,7 @@
 
                     <b-col
                       cols="12"
-                      md="6"
+                      lg="6"
                       class="mt-2 mt-md-0"
                     >
                       <b-form-group
@@ -250,7 +250,7 @@
                   <b-row>
                     <b-col
                       cols="12"
-                      md="6"
+                      lg="6"
                     >
                       <b-form-group
                         :label="$t('edit.toolbox.saveAsImage.label')"
@@ -268,7 +268,7 @@
                     <b-col
                       v-if="hasAxis"
                       cols="12"
-                      md="6"
+                      lg="6"
                     >
                       <b-form-group
                         :label="$t('edit.toolbox.timeline.label')"
@@ -288,8 +288,8 @@
               </b-col>
 
               <b-col
-                md="5"
-                sm="12"
+                cols="12"
+                lg="5"
               >
                 <div
                   class="d-flex flex-column position-sticky"

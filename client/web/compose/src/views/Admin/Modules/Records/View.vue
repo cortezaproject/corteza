@@ -56,8 +56,8 @@
       <b-col
         v-for="(block, index) in blocks"
         :key="index"
-        md="3"
         cols="12"
+        lg="3"
         style="max-height: 650px; height: 650px;"
       >
         <component

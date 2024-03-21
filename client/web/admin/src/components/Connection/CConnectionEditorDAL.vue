@@ -13,9 +13,7 @@
     <b-row
       v-if="issues.length"
     >
-      <b-col
-        cols="12"
-      >
+      <b-col cols="12">
         <b-form-group
           :label="$t('connectivity-issues')"
           label-class="text-primary"
@@ -32,10 +30,7 @@
       </b-col>
     </b-row>
     <b-row>
-      <b-col
-        cols="12"
-        lg="12"
-      >
+      <b-col cols="12">
         <b-form-group
           :label="$t('form.model-ident.label')"
           :description="$t('form.model-ident.description', { interpolation: { prefix: '{{{', suffix: '}}}' } })"
@@ -50,10 +45,7 @@
       </b-col>
     </b-row>
     <b-row>
-      <b-col
-        cols="12"
-        lg="12"
-      >
+      <b-col cols="12">
         <b-form-group
           :label="$t('form.type.label')"
           :description="$t('form.type.description')"
@@ -68,10 +60,7 @@
       </b-col>
     </b-row>
     <b-row>
-      <b-col
-        cols="12"
-        lg="12"
-      >
+      <b-col cols="12">
         <b-form-group
           :label="$t('form.params.label')"
           :description="$t('form.params.description')"

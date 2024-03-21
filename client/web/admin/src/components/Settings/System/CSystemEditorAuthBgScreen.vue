@@ -10,7 +10,7 @@
       </h4>
     </template>
 
-    <b-row cols="12">
+    <b-row>
       <b-col
         cols="12"
         lg="6"

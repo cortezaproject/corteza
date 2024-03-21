@@ -3,7 +3,7 @@
     <b-row>
       <b-col
         cols="12"
-        sm="6"
+        lg="6"
       >
         <b-form-group
           :label="$t('kind.number.displayType.label')"
@@ -20,7 +20,7 @@
 
       <b-col
         cols="12"
-        sm="6"
+        lg="6"
       >
         <b-form-group
           label-class="mb-2 text-primary"
@@ -45,7 +45,7 @@
       <template v-if="f.options.display === 'number'">
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.number.prefixLabel')"
@@ -60,7 +60,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.number.suffixLabel')"
@@ -77,7 +77,7 @@
       <template v-if="f.options.display === 'number'">
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.number.formatLabel')"
@@ -138,7 +138,7 @@
       <template v-if="f.options.display === 'progress'">
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.number.progress.minimumValue')"
@@ -154,7 +154,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.number.progress.maximumValue')"
@@ -170,7 +170,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-group
             :label="$t('kind.number.progress.variants.default')"
@@ -304,7 +304,7 @@
       >
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <b-form-input
             v-model="liveExample"
@@ -315,7 +315,7 @@
 
         <b-col
           cols="12"
-          sm="6"
+          lg="6"
         >
           <field-viewer
             value-only
