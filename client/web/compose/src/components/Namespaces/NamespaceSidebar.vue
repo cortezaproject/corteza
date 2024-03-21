@@ -101,7 +101,7 @@
             v-if="!navItems.length"
             class="d-flex justify-content-center mt-5"
           >
-            {{ $t('noPages') }}
+            {{ $t('noResults') }}
           </div>
         </div>
 

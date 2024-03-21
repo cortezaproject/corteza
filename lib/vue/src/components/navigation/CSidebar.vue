@@ -253,7 +253,7 @@ export default {
       if (this.disabledRoutes.includes(this.$route.name)) {
         this.isPinned = false
         this.isExpanded = false
-      } else if (this.expandOnHover){
+      } else if (this.expandOnHover && !this.isExpanded) {
         this.defaultSidebarAppearance()
       }
     },

@@ -2,7 +2,7 @@ adminPanel: Admin panel
 chart: Charts
 manageNamespaces: Manage namespaces
 module: Modules
-noPages: No pages
+noResults: No results
 page: Pages
 pickNamespace: Select a namespace
 publicPages: Public pages
