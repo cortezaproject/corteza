@@ -271,7 +271,7 @@
                   <code>${record.values.fieldName}</code>
                   <code>${recordID}</code>
                   <code>${ownerID}</code>
-                  <code>${userID}, ${user.name}</code>
+                  <span><code>${userID}</code>, <code>${user.name}</code></span>
                 </i18next>
               </b-form-group>
             </b-col>
