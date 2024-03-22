@@ -175,9 +175,9 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 
 					return valErr
 				}
-
-				return nil
 			}
+
+			return nil
 		}
 
 		_ = vv.Walk(func(v *RecordValue) error {
