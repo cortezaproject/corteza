@@ -72,10 +72,16 @@ func (d deDup) CheckDuplication(ctx context.Context, rules DeDupRuleSet, rec Rec
 		if rule.HasAttributes() {
 			values := rr.GetValuesByName(distinct(rule.Attributes())...)
 
-			set := rule.validateValue(ctx, d.ls, rec, values)
+			for valID, value := range values {
+				if valID == rec.ID {
+					return nil
+				}
 
-			if !set.IsValid() {
-				out.Push(set.Set...)
+				set := rule.validateValue(ctx, d.ls, rec, value)
+
+				if !set.IsValid() {
+					out.Push(set.Set...)
+				}
 			}
 		}
 		return nil
@@ -122,16 +128,20 @@ func (rule DeDupRule) IssueMessage() (out string) {
 	return "record-field.errors.duplicateValue"
 }
 
+func (rule DeDupRule) IssueMultivalueMessage() (out string) {
+	return "record-field.errors.duplicateMultiValue"
+}
+
 func (rule DeDupRule) String() string {
 	return fmt.Sprintf("%s duplicate detection on `%s` field", rule.Name, strings.Join(rule.Attributes(), ", "))
 }
 
 // validateValue will check duplicate detection based on rules name
 func (rule DeDupRule) validateValue(ctx context.Context, ls localeService, rec Record, vv RecordValueSet) (out *RecordValueErrorSet) {
-	return rule.checkCaseSensitiveDuplication(ctx, ls, rec, vv)
+	return rule.checkDuplication(ctx, ls, rec, vv)
 }
 
-func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls localeService, rec Record, vv RecordValueSet) (out *RecordValueErrorSet) {
+func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, rec Record, vv RecordValueSet) (out *RecordValueErrorSet) {
 	var (
 		recVal = rec.Values
 	)
@@ -145,6 +155,11 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 		var (
 			valErr = &RecordValueErrorSet{}
 		)
+
+		existingVv := vv.FilterByName(c.Attribute)
+		if c.IsAllEqual() {
+			return rule.multiValueAllEqual(ctx, ls, c, rvv, existingVv)
+		}
 
 		_ = vv.Walk(func(v *RecordValue) error {
 			if v.RecordID != rec.ID {
@@ -180,6 +195,36 @@ func (rule DeDupRule) checkCaseSensitiveDuplication(ctx context.Context, ls loca
 	}
 
 	return
+}
+
+func (rule DeDupRule) multiValueAllEqual(ctx context.Context, ls localeService, c *DeDupRuleConstraint, rvv RecordValueSet, existingVv RecordValueSet) (out *RecordValueErrorSet) {
+	var (
+		valErr = &RecordValueErrorSet{}
+	)
+
+	if rvv.Len() == existingVv.Len() {
+		rvvmap := make(map[string]int)
+		existingVvmap := make(map[string]int)
+
+		recordValueFrequencyMap(rvvmap, c.Modifier, rvv)
+		recordValueFrequencyMap(existingVvmap, c.Modifier, existingVv)
+
+		if matchRecordValueFrequencyMap(rvvmap, existingVvmap) {
+			valErr.Push(RecordValueError{
+				Kind:    rule.IssueKind(),
+				Message: ls.T(ctx, "compose", rule.IssueMultivalueMessage()),
+				Meta: map[string]interface{}{
+					"field":         c.Attribute,
+					"dupValueField": c.Attribute,
+					"rule":          rule.String(),
+				},
+			})
+
+			return valErr
+		}
+	}
+
+	return nil
 }
 
 func (dr DeDupRuleSet) Validate() (err error) {
@@ -262,4 +307,24 @@ func matchValue(modifier DeDupValueModifier, input string, target string) bool {
 		// ignoreCase as default, if not specified
 		return str.Match(input, target, str.CaseInSensitiveMatch)
 	}
+}
+
+func recordValueFrequencyMap(rvFreqMap map[string]int, c DeDupValueModifier, vv RecordValueSet) {
+	for _, v := range vv {
+		if c == ignoreCase {
+			v.Value = strings.ToLower(v.Value)
+		}
+
+		rvFreqMap[v.Value]++
+	}
+}
+
+func matchRecordValueFrequencyMap(a, b map[string]int) bool {
+	for k, keyCount := range a {
+		_, ok := b[k]
+		if !ok || keyCount != b[k] {
+			return false
+		}
+	}
+	return true
 }
