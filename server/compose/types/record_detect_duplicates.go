@@ -158,26 +158,7 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 
 		existingVv := vv.FilterByName(c.Attribute)
 		if c.IsAllEqual() {
-			if rvv.Len() == existingVv.Len() {
-				rvvmap := recordValueFrequencyMap(c.Modifier, rvv)
-				existingVvmap := recordValueFrequencyMap(c.Modifier, existingVv)
-
-				if matchRecordValueFrequencyMap(rvvmap, existingVvmap) {
-					valErr.Push(RecordValueError{
-						Kind:    rule.IssueKind(),
-						Message: ls.T(ctx, "compose", rule.IssueMultivalueMessage()),
-						Meta: map[string]interface{}{
-							"field":         c.Attribute,
-							"dupValueField": c.Attribute,
-							"rule":          rule.String(),
-						},
-					})
-
-					return valErr
-				}
-			}
-
-			return nil
+			return rule.multiValueAllEqual(ctx, ls, c, rvv, existingVv)
 		}
 
 		_ = vv.Walk(func(v *RecordValue) error {
@@ -214,6 +195,36 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
 	}
 
 	return
+}
+
+func (rule DeDupRule) multiValueAllEqual(ctx context.Context, ls localeService, c *DeDupRuleConstraint, rvv RecordValueSet, existingVv RecordValueSet) (out *RecordValueErrorSet) {
+	var (
+		valErr = &RecordValueErrorSet{}
+	)
+
+	if rvv.Len() == existingVv.Len() {
+		rvvmap := make(map[string]int)
+		existingVvmap := make(map[string]int)
+
+		recordValueFrequencyMap(rvvmap, c.Modifier, rvv)
+		recordValueFrequencyMap(existingVvmap, c.Modifier, existingVv)
+
+		if matchRecordValueFrequencyMap(rvvmap, existingVvmap) {
+			valErr.Push(RecordValueError{
+				Kind:    rule.IssueKind(),
+				Message: ls.T(ctx, "compose", rule.IssueMultivalueMessage()),
+				Meta: map[string]interface{}{
+					"field":         c.Attribute,
+					"dupValueField": c.Attribute,
+					"rule":          rule.String(),
+				},
+			})
+
+			return valErr
+		}
+	}
+
+	return nil
 }
 
 func (dr DeDupRuleSet) Validate() (err error) {
@@ -298,9 +309,7 @@ func matchValue(modifier DeDupValueModifier, input string, target string) bool {
 	}
 }
 
-func recordValueFrequencyMap(c DeDupValueModifier, vv RecordValueSet) (rvFreqMap map[string]int) {
-	rvFreqMap = make(map[string]int)
-
+func recordValueFrequencyMap(rvFreqMap map[string]int, c DeDupValueModifier, vv RecordValueSet) {
 	for _, v := range vv {
 		if c == ignoreCase {
 			v.Value = strings.ToLower(v.Value)
@@ -308,8 +317,6 @@ func recordValueFrequencyMap(c DeDupValueModifier, vv RecordValueSet) (rvFreqMap
 
 		rvFreqMap[v.Value]++
 	}
-
-	return rvFreqMap
 }
 
 func matchRecordValueFrequencyMap(a, b map[string]int) bool {
