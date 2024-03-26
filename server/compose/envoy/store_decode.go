@@ -163,28 +163,28 @@ func decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
 	for index, b := range p.Blocks {
 		switch b.Kind {
 		case "RecordList":
-			refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockRecordListRefs(b.Options, index))
 
 		case "Automation":
-			refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockAutomationRefs(b.Options, index))
 
 		case "RecordOrganizer":
-			refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockRecordOrganizerRefs(b.Options, index))
 
 		case "Chart":
-			refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockChartRefs(b.Options, index))
 
 		case "Calendar":
-			refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockCalendarRefs(b.Options, index))
 
 		case "Metric":
-			refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockMetricRefs(b.Options, index))
 
 		case "Comment":
-			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockCommentRefs(b.Options, index))
 
 		case "Progress":
-			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b, index))
+			refs = envoyx.MergeRefs(refs, getPageBlockProgressRefs(b.Options, index))
 		}
 	}
 

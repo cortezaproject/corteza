@@ -15,7 +15,7 @@ type (
 		Slug    string        `json:"slug"`
 		Enabled bool          `json:"enabled"`
 		Meta    NamespaceMeta `json:"meta"`
-		Blocks  PageBlocks    `json:"blocks"`
+		Blocks  GlobalBlocks  `json:"blocks"`
 
 		Labels map[string]string `json:"labels,omitempty"`
 
@@ -27,6 +27,28 @@ type (
 		//          struct field is kept for the convenience for now since it allows us
 		//          easy encoding/decoding of the outgoing/incoming values
 		Name string `json:"name"`
+	}
+
+	GlobalBlocks []GlobalBlock
+
+	GlobalBlock struct {
+		BlockID uint64 `json:"blockID,string,omitempty"`
+
+		Options map[string]interface{} `json:"options,omitempty"`
+		Style   PageBlockStyle         `json:"style,omitempty"`
+		Kind    string                 `json:"kind"`
+		XYWH    [4]int                 `json:"xywh"` // x,y,w,h
+		Meta    map[string]any         `json:"meta,omitempty"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Title string `json:"title,omitempty"`
+
+		// Warning: value of this field is now handled via resource-translation facility
+		//          struct field is kept for the convenience for now since it allows us
+		//          easy encoding/decoding of the outgoing/incoming values
+		Description string `json:"description,omitempty"`
 	}
 
 	NamespaceFilter struct {
@@ -92,3 +114,6 @@ func (set NamespaceSet) FindByHandle(handle string) *Namespace {
 
 func (nm *NamespaceMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
 func (nm NamespaceMeta) Value() (driver.Value, error) { return json.Marshal(nm) }
+
+func (nm *GlobalBlocks) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm GlobalBlocks) Value() (driver.Value, error) { return json.Marshal(nm) }

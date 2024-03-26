@@ -28,7 +28,7 @@ namespace: {
 				omitGetter: true
 			}
 			blocks: {
-				goType: "types.PageBlocks"
+				goType: "types.GlobalBlocks"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
