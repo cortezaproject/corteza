@@ -580,11 +580,14 @@
           </b-form-checkbox>
         </b-form-group>
 
-        <div class="list-background rounded border border-light p-3">
-          <b-form-group
-            :label="$t('page-layout.recordToolbar.actions.label')"
-            label-class="text-primary"
-            class="mb-0"
+        <b-form-group
+          :label="$t('page-layout.recordToolbar.actions.label')"
+          label-class="text-primary"
+          class="mb-0"
+        >
+          <c-form-table-wrapper
+            :labels="{ addButton: $t('general:label.add') }"
+            @add-item="addLayoutAction"
           >
             <b-table-simple
               v-if="layoutEditor.layout.config.actions.length > 0"
@@ -615,7 +618,6 @@
                       />
                     </div>
                   </b-td>
-
                   <b-td style="min-width: 250px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.buttonLabel')"
@@ -627,7 +629,6 @@
                         class="mb-1"
                       />
                     </b-form-group>
-
                     <b-form-group
                       v-if="action.kind === 'toLayout'"
                       :label="$t('page-layout.recordToolbar.actions.toLayout.label')"
@@ -641,7 +642,6 @@
                         text-field="label"
                       />
                     </b-form-group>
-
                     <b-form-group
                       v-if="action.kind === 'toURL'"
                       :label="$t('page-layout.recordToolbar.actions.toURL.label')"
@@ -655,7 +655,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 250px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.kind.label')"
@@ -669,7 +668,6 @@
                         @change="onActionKindChange(action)"
                       />
                     </b-form-group>
-
                     <b-form-group
                       v-if="action.kind === 'toURL'"
                       :label="$t('page-layout.recordToolbar.actions.openIn.label')"
@@ -682,7 +680,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 150px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.variant')"
@@ -694,7 +691,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 100px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.placement.label')"
@@ -706,7 +702,6 @@
                       />
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 80px;">
                     <b-form-group
                       :label="$t('page-layout.recordToolbar.actions.visible')"
@@ -723,7 +718,6 @@
                       </div>
                     </b-form-group>
                   </b-td>
-
                   <b-td style="min-width: 80px;">
                     <div
                       class="d-flex align-items-center justify-content-end"
@@ -739,21 +733,8 @@
                 </tr>
               </draggable>
             </b-table-simple>
-
-            <b-button
-              variant="primary"
-              size="sm"
-              class="mt-1"
-              @click="addLayoutAction"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'plus']"
-                class="mr-1"
-              />
-              {{ $t('general:label.add-with-plus') }}
-            </b-button>
-          </b-form-group>
-        </div>
+          </c-form-table-wrapper>
+        </b-form-group>
       </template>
     </b-modal>
 

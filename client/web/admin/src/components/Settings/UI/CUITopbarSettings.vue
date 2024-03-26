@@ -76,6 +76,7 @@
                 <b-table
                   :fields="links.fields"
                   :items="topbarSettings.helpLinks"
+                  thead-tr-class="text-primary"
                   responsive="sm"
                   small
                 >
@@ -156,6 +157,7 @@
                 <b-table
                   :fields="links.fields"
                   :items="topbarSettings.profileLinks"
+                  thead-tr-class="text-primary"
                   responsive="sm"
                   small
                 >

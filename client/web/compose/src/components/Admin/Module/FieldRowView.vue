@@ -1,8 +1,8 @@
 <template>
   <tr>
-    <td />
+    <td class="pr-2" />
 
-    <td>
+    <td style="width: 250px;">
       {{ field.name }}
       <b-badge
         v-if="field.omit"
@@ -13,7 +13,7 @@
       </b-badge>
     </td>
 
-    <td>
+    <td style="width: 250px;">
       {{ field.label }}
     </td>
 

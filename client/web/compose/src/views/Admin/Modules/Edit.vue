@@ -294,6 +294,8 @@
                   </c-form-table-wrapper>
                 </b-row>
 
+                <hr>
+
                 <b-row
                   no-gutters
                   class="mt-3"
@@ -301,7 +303,7 @@
                   <b-form-group
                     :label="$t('edit.systemFields')"
                     label-class="text-primary"
-                    class="mb-0"
+                    class="mb-0 w-100"
                   >
                     <c-form-table-wrapper hide-add-button>
                       <b-table-simple
@@ -315,32 +317,25 @@
 
                             <th
                               class="text-primary"
+                              style="min-width: 250px;"
                             >
-                              <div
-                                class="d-flex align-items-center"
-                              >
-                                {{ $t('general.label.name') }}
-                              </div>
+                              {{ $t('general:label.name') }}
                             </th>
 
                             <th
                               class="text-primary"
+                              style="min-width: 250px;"
                             >
-                              <div
-                                class="d-flex align-items-center"
-                              >
-                                {{ $t('general.label.title') }}
-                              </div>
+                              {{ $t('general.label.title') }}
                             </th>
 
-                            <th class="text-primary">
+                            <th
+                              colspan="5"
+                              class="text-primary"
+                              style="min-width: 250px;"
+                            >
                               {{ $t('general:label.type') }}
                             </th>
-
-                            <th />
-                            <th />
-                            <th />
-                            <th />
                           </tr>
                         </thead>
 
