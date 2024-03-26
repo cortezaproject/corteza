@@ -3,7 +3,6 @@ package envoy
 import (
 	"context"
 	"fmt"
-
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
@@ -89,11 +88,11 @@ func (e YamlEncoder) encodeModuleFieldOptionsC(ctx context.Context, p envoyx.Enc
 }
 
 func (e YamlEncoder) encodePageBlocksC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, pg *types.Page, bb types.PageBlocks) (_ any, err error) {
+	var aux any
 	out, _ := y7s.MakeSeq()
 
-	var aux any
 	for i, b := range pg.Blocks {
-		aux, err = e.encodePageBlockC(ctx, p, tt, n, i, b)
+		aux, err = e.encodePageBlockC(ctx, p, tt, n, i, b.Kind, b.Options)
 		if err != nil {
 			return
 		}
@@ -107,12 +106,12 @@ func (e YamlEncoder) encodePageBlocksC(ctx context.Context, p envoyx.EncodeParam
 	return out, nil
 }
 
-func (e YamlEncoder) encodeNamespaceBlocksC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, pg *types.Namespace, bb types.PageBlocks) (_ any, err error) {
+func (e YamlEncoder) encodeNamespaceBlocksC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, ns *types.Namespace, bb types.GlobalBlocks) (_ any, err error) {
+	var aux any
 	out, _ := y7s.MakeSeq()
 
-	var aux any
-	for i, b := range pg.Blocks {
-		aux, err = e.encodePageBlockC(ctx, p, tt, n, i, b)
+	for i, gB := range ns.Blocks {
+		aux, err = e.encodePageBlockC(ctx, p, tt, n, i, gB.Kind, gB.Options)
 		if err != nil {
 			return
 		}
@@ -126,31 +125,30 @@ func (e YamlEncoder) encodeNamespaceBlocksC(ctx context.Context, p envoyx.Encode
 	return out, nil
 }
 
-func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, index int, b types.PageBlock) (_ any, err error) {
-
-	switch b.Kind {
+func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams, tt envoyx.Traverser, n *envoyx.Node, index int, kind string, options map[string]interface{}) (_ any, err error) {
+	switch kind {
 	case "RecordList":
-		b = e.cleanupPageblockRecordList(b)
+		options = e.cleanupPageblockRecordList(options)
 
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
-		b.Options["module"] = safeParentIdentifier(tt, n, modRef)
-		delete(b.Options, "moduleID")
+		options["module"] = safeParentIdentifier(tt, n, modRef)
+		delete(options, "moduleID")
 		break
 
 	case "RecordOrganizer":
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
-		b.Options["module"] = safeParentIdentifier(tt, n, modRef)
-		delete(b.Options, "moduleID")
+		options["module"] = safeParentIdentifier(tt, n, modRef)
+		delete(options, "moduleID")
 		break
 
 	case "Chart":
 		chrRef := n.References[fmt.Sprintf("Blocks.%d.Options.ChartID", index)]
-		b.Options["chart"] = safeParentIdentifier(tt, n, chrRef)
-		delete(b.Options, "chartID")
+		options["chart"] = safeParentIdentifier(tt, n, chrRef)
+		delete(options, "chartID")
 		break
 
 	case "Calendar":
-		ff, _ := b.Options["feeds"].([]interface{})
+		ff, _ := options["feeds"].([]interface{})
 		for i, f := range ff {
 			feed, _ := f.(map[string]interface{})
 			fOpts, _ := (feed["options"]).(map[string]interface{})
@@ -162,7 +160,7 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		break
 
 	case "Automation":
-		bb, _ := b.Options["buttons"].([]interface{})
+		bb, _ := options["buttons"].([]interface{})
 		for i, b := range bb {
 			button, _ := b.(map[string]interface{})
 			if _, has := button["workflowID"]; !has {
@@ -177,7 +175,7 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 		break
 
 	case "Metric":
-		mm, _ := b.Options["metrics"].([]interface{})
+		mm, _ := options["metrics"].([]interface{})
 		for i, m := range mm {
 			modRef := n.References[fmt.Sprintf("Blocks.%d.Options.metrics.%d.ModuleID", index, i)]
 
@@ -189,47 +187,47 @@ func (e YamlEncoder) encodePageBlockC(ctx context.Context, p envoyx.EncodeParams
 
 	case "Comment":
 		modRef := n.References[fmt.Sprintf("Blocks.%d.Options.ModuleID", index)]
-		b.Options["module"] = safeParentIdentifier(tt, n, modRef)
-		delete(b.Options, "moduleID")
+		options["module"] = safeParentIdentifier(tt, n, modRef)
+		delete(options, "moduleID")
 		break
 
 	case "Progress":
-		err = e.encodeProgressPageblockVal("minValue", index, n, tt, &b)
+		err = e.encodeProgressPageblockVal("minValue", index, n, tt, options)
 		if err != nil {
 			return
 		}
 
-		err = e.encodeProgressPageblockVal("maxValue", index, n, tt, &b)
+		err = e.encodeProgressPageblockVal("maxValue", index, n, tt, options)
 		if err != nil {
 			return
 		}
 
-		err = e.encodeProgressPageblockVal("value", index, n, tt, &b)
+		err = e.encodeProgressPageblockVal("value", index, n, tt, options)
 		if err != nil {
 			return
 		}
 		break
 	}
 
-	return b, nil
+	return
 }
 
-func (e YamlEncoder) encodeProgressPageblockVal(k string, index int, n *envoyx.Node, tt envoyx.Traverser, b *types.PageBlock) (err error) {
-	if reflect2.IsNil(b.Options[k]) {
+func (e YamlEncoder) encodeProgressPageblockVal(k string, index int, n *envoyx.Node, tt envoyx.Traverser, options map[string]interface{}) (err error) {
+	if reflect2.IsNil(options[k]) {
 		return
 	}
 
 	modRef := n.References[fmt.Sprintf("Blocks.%d.Options.%s.ModuleID", index, k)]
-	opt := b.Options[k].(map[string]any)
+	opt := options[k].(map[string]any)
 	opt["moduleID"] = safeParentIdentifier(tt, n, modRef)
 	delete(opt, "moduleID")
 
 	return
 }
 
-func (e YamlEncoder) cleanupPageblockRecordList(b types.PageBlock) (out types.PageBlock) {
-	out = b
-	rawFF, has := out.Options["fields"]
+func (e YamlEncoder) cleanupPageblockRecordList(options map[string]interface{}) (out map[string]interface{}) {
+	out = options
+	rawFF, has := out["fields"]
 	if !has {
 		return
 	}
@@ -251,7 +249,7 @@ func (e YamlEncoder) cleanupPageblockRecordList(b types.PageBlock) (out types.Pa
 		}
 	}
 
-	out.Options["fields"] = retFF
+	out["fields"] = retFF
 
-	return b
+	return
 }

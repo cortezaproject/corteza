@@ -246,7 +246,7 @@ func fix_2023_03_00_migrateComposePageMeta(ctx context.Context, s *Store) (err e
 func fix_2024_03_00_migrateNamespacePageBlocks(ctx context.Context, s *Store) (err error) {
 	return addColumn(ctx, s,
 		"compose_namespace",
-		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{DefaultValue: "[{}]"}},
+		&dal.Attribute{Ident: "blocks", Type: &dal.TypeJSON{DefaultValue: "[]"}},
 	)
 }
 
