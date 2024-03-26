@@ -190,7 +190,9 @@ export default {
             }
           }
 
-          this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
+          if (this.page.meta.notifications.enabled) {
+            this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
+          }
         })
         .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
         .finally(() => {

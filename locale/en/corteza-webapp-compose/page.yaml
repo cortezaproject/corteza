@@ -84,9 +84,11 @@ createLabel: Create page
 edit:
   create: Create page
   edit: Edit page
+  otherOptions: Other options
   pageDescription: Page description
   visible: Is page visible
-  otherOptions: Other options
+  notifications:
+    enabled: Show record save notifications
 icon:
   configure: Configure page icon
   noIcon: No icon

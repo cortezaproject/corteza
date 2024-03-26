@@ -77,6 +77,7 @@ type (
 
 	PageMeta struct {
 		AllowPersonalLayouts bool `json:"allowPersonalLayouts"`
+		Notifications map[string]any `json:"notifications,omitempty"`
 	}
 
 	PageBlockStyle struct {

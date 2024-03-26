@@ -624,6 +624,11 @@ func (svc page) handleUpdate(ctx context.Context, upd *types.Page) pageUpdateHan
 			changes |= pageChanged
 		}
 
+		if !reflect.DeepEqual(res.Meta.Notifications, upd.Meta.Notifications) {
+			res.Meta.Notifications = upd.Meta.Notifications
+			changes |= pageChanged
+		}
+
 		if res.Title != upd.Title {
 			res.Title = upd.Title
 			changes |= pageChanged

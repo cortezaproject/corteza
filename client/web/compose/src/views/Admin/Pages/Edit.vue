@@ -225,6 +225,14 @@
               >
                 {{ $t('showSubPages') }}
               </b-form-checkbox>
+
+              <b-form-checkbox
+                v-if="isRecordPage"
+                v-model="page.meta.notifications.enabled"
+                data-test-id="checkbox-page-notifications-enabled"
+              >
+                {{ $t('edit.notifications.enabled') }}
+              </b-form-checkbox>
             </b-form-group>
           </b-col>
 
