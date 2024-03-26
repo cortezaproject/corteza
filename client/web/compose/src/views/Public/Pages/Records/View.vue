@@ -306,6 +306,24 @@ export default {
 
       return this.previousPages.length > 0
     },
+
+    expressionVariables () {
+      return {
+        user: this.$auth.user,
+        record: this.record ? this.record.serialize() : {},
+        screen: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          userAgent: navigator.userAgent,
+          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
+        },
+        oldLayout: this.layout,
+        layout: undefined,
+        isView: !this.inEditing && !this.inCreating,
+        isCreate: this.inCreating,
+        isEdit: this.inEditing && !this.inCreating,
+      }
+    },
   },
 
   watch: {
@@ -357,11 +375,7 @@ export default {
   },
 
   mounted () {
-    this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
-
-    if (this.showRecordModal) {
-      this.$root.$on('bv::modal::hide', this.checkUnsavedChangesOnModal)
-    }
+    this.createEvents()
   },
 
   beforeDestroy () {
@@ -376,6 +390,23 @@ export default {
       clearRecordSet: 'record/clearSet',
       popModalPreviousPage: 'ui/popModalPreviousPage',
     }),
+
+    createEvents () {
+      this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
+      this.$root.$on('record-field-change', this.validateBlocksVisibilityCondition)
+
+      if (this.showRecordModal) {
+        this.$root.$on('bv::modal::hide', this.checkUnsavedChangesOnModal)
+      }
+    },
+
+    validateBlocksVisibilityCondition ({ fieldName }) {
+      const { blocks = [] } = this.page
+
+      if (blocks.some(({ meta = {} }) => ((meta.visibility || {}).expression).includes(fieldName))) {
+        this.updateBlocks()
+      }
+    },
 
     async loadRecord (recordID = this.recordID) {
       if (!this.page) {
@@ -517,19 +548,7 @@ export default {
     evaluateLayoutExpressions (variables = {}) {
       const expressions = {}
       variables = {
-        user: this.$auth.user,
-        record: this.record ? this.record.serialize() : {},
-        screen: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          userAgent: navigator.userAgent,
-          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
-        },
-        oldLayout: this.layout,
-        layout: undefined,
-        isView: !this.inEditing && !this.inCreating,
-        isCreate: this.inCreating,
-        isEdit: this.inEditing && !this.inCreating,
+        ...this.expressionVariables,
         ...variables,
       }
 
@@ -594,6 +613,10 @@ export default {
         return acc
       }, new Set())
 
+      await this.updateBlocks(variables)
+    },
+
+    async updateBlocks (variables = {}) {
       const tempBlocks = []
       const { blocks = [] } = this.layout || {}
 
@@ -607,13 +630,11 @@ export default {
         const block = this.page.blocks.find(b => b.blockID === blockID)
         const { roles = [], expression = '' } = meta.visibility || {}
 
-        if (block) {
+        if (block && (!expression || blocksExpressions[blockID])) {
           block.xywh = xywh
 
-          if ((expression && blocksExpressions[blockID]) || !expression) {
-            if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
-              tempBlocks.push(block)
-            }
+          if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
+            tempBlocks.push(block)
           }
         }
       })
@@ -624,19 +645,7 @@ export default {
     evaluateBlocksExpressions (variables = {}) {
       const expressions = {}
       variables = {
-        user: this.$auth.user,
-        record: this.record ? this.record.serialize() : {},
-        screen: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          userAgent: navigator.userAgent,
-          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
-        },
-        oldLayout: this.layout,
-        layout: undefined,
-        isView: !this.inEditing && !this.inCreating,
-        isCreate: this.inCreating,
-        isEdit: this.inEditing && !this.inCreating,
+        ...this.expressionVariables,
         ...variables,
       }
 
@@ -699,6 +708,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
+      this.$root.$off('record-field-change', this.validateBlocksVisibilityCondition)
 
       if (this.showRecordModal) {
         this.$root.$off('bv::modal::hide', this.checkUnsavedChangesOnModal)

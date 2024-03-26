@@ -314,13 +314,11 @@ export default {
         const block = this.page.blocks.find(b => b.blockID === blockID)
         const { roles = [], expression = '' } = meta.visibility || {}
 
-        if (block) {
+        if (block && (!expression || blocksExpressions[blockID])) {
           block.xywh = xywh
 
-          if ((expression && blocksExpressions[blockID]) || !expression) {
-            if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
-              tempBlocks.push(block)
-            }
+          if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
+            tempBlocks.push(block)
           }
         }
       })

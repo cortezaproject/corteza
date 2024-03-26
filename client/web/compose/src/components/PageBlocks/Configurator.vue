@@ -169,8 +169,9 @@
         <b-col
           cols="12"
           sm="12"
-          class="pt-2"
         >
+          <hr>
+
           <h5 class="mb-3">
             {{ $t('general.visibility.label') }}
           </h5>
@@ -349,7 +350,9 @@ export default {
     },
 
     visibilityDocumentationURL () {
-      return ''
+      // eslint-disable-next-line no-undef
+      const [year, month] = VERSION.split('.')
+      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/compose-configuration/page-layouts.html#visibility-condition`
     },
 
     currentRoles: {
