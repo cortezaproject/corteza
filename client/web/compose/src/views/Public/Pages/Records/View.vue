@@ -114,6 +114,7 @@ import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
+import page from 'corteza-webapp-compose/src/mixins/page'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import axios from 'axios'
@@ -133,6 +134,7 @@ export default {
   mixins: [
     // The record mixin contains all of the logic for creating/editing/deleting/undeleting the record
     record,
+    page,
   ],
 
   beforeRouteLeave (to, from, next) {
@@ -153,26 +155,10 @@ export default {
   },
 
   props: {
-    namespace: {
-      type: compose.Namespace,
-      required: true,
-    },
-
     module: {
       type: compose.Module,
       required: false,
       default: () => ({}),
-    },
-
-    page: {
-      type: compose.Page,
-      required: true,
-    },
-
-    recordID: {
-      type: String,
-      required: false,
-      default: '',
     },
 
     // When creating from related record blocks
@@ -223,7 +209,6 @@ export default {
   computed: {
     ...mapGetters({
       getNextAndPrevRecord: 'ui/getNextAndPrevRecord',
-      getPageLayouts: 'pageLayout/getByPageID',
       previousPages: 'ui/previousPages',
       modalPreviousPages: 'ui/modalPreviousPages',
     }),
@@ -305,24 +290,6 @@ export default {
       }
 
       return this.previousPages.length > 0
-    },
-
-    expressionVariables () {
-      return {
-        user: this.$auth.user,
-        record: this.record ? this.record.serialize() : {},
-        screen: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          userAgent: navigator.userAgent,
-          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
-        },
-        oldLayout: this.layout,
-        layout: undefined,
-        isView: !this.inEditing && !this.inCreating,
-        isCreate: this.inCreating,
-        isEdit: this.inEditing && !this.inCreating,
-      }
     },
   },
 
@@ -640,28 +607,6 @@ export default {
       })
 
       this.blocks = tempBlocks
-    },
-
-    evaluateBlocksExpressions (variables = {}) {
-      const expressions = {}
-      variables = {
-        ...this.expressionVariables,
-        ...variables,
-      }
-
-      this.layout.blocks.forEach(block => {
-        const { visibility } = block.meta
-        if (!(visibility || {}).expression) return
-
-        expressions[block.blockID] = visibility.expression
-      })
-
-      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
-        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
-        Object.keys(expressions).forEach(key => (expressions[key] = false))
-
-        return expressions
-      })
     },
 
     refetchRecordBlocks () {

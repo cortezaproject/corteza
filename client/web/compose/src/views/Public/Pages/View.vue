@@ -88,7 +88,8 @@ import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
-import { compose, NoID } from '@cortezaproject/corteza-js'
+import { NoID } from '@cortezaproject/corteza-js'
+import page from 'corteza-webapp-compose/src/mixins/page'
 
 export default {
   i18nOptions: {
@@ -101,6 +102,10 @@ export default {
     PageTranslator,
     MagnificationModal,
   },
+
+  mixins: [
+    page,
+  ],
 
   beforeRouteLeave (to, from, next) {
     this.setPreviousPages([])
@@ -123,24 +128,6 @@ export default {
     next()
   },
 
-  props: {
-    namespace: { // via router-view
-      type: compose.Namespace,
-      required: true,
-    },
-
-    page: { // via route-view
-      type: compose.Page,
-      required: true,
-    },
-
-    // We're using recordID to check if we need to display router-view or grid component
-    recordID: {
-      type: String,
-      default: '',
-    },
-  },
-
   data () {
     return {
       layouts: [],
@@ -154,12 +141,7 @@ export default {
   computed: {
     ...mapGetters({
       recordPaginationUsable: 'ui/recordPaginationUsable',
-      getPageLayouts: 'pageLayout/getByPageID',
     }),
-
-    isRecordPage () {
-      return this.recordID || this.$route.name === 'page.record.create'
-    },
 
     module () {
       if (this.page.moduleID && this.page.moduleID !== NoID) {
@@ -185,20 +167,6 @@ export default {
     pageBuilder () {
       const { pageLayoutID } = this.layout || {}
       return { name: 'admin.pages.builder', params: { pageID: this.page.pageID }, query: { layoutID: pageLayoutID } }
-    },
-
-    expressionVariables () {
-      return {
-        screen: {
-          width: window.innerWidth,
-          height: window.innerHeight,
-          userAgent: navigator.userAgent,
-          breakpoint: this.getBreakpoint(), // This is from a global mixin uiHelpers
-        },
-        user: this.$auth.user,
-        oldLayout: this.layout,
-        layout: undefined,
-      }
     },
   },
 
@@ -324,25 +292,6 @@ export default {
       })
 
       this.blocks = tempBlocks
-    },
-
-    evaluateBlocksExpressions () {
-      const expressions = {}
-      const variables = this.expressionVariables
-
-      this.layout.blocks.forEach(block => {
-        const { visibility } = block.meta
-        if (!(visibility || {}).expression) return
-
-        expressions[block.blockID] = visibility.expression
-      })
-
-      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
-        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
-        Object.keys(expressions).forEach(key => (expressions[key] = false))
-
-        return expressions
-      })
     },
 
     refetchRecords () {
