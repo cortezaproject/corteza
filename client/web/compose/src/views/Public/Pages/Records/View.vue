@@ -536,40 +536,7 @@ export default {
       })
     },
 
-    async determineLayout (pageLayoutID, variables = {}) {
-      // Clear stored records so they can be refetched with latest values
-      this.clearRecordSet()
-      let expressions = {}
-
-      // Only evaluate if one of the layouts has an expressions variable
-      if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
-        expressions = await this.evaluateLayoutExpressions(variables)
-      }
-
-      // Check layouts for expressions/roles and find the first one that fits
-      const matchedLayout = this.layouts.find(l => {
-        if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return
-
-        const { expression, roles = [] } = l.config.visibility
-
-        if (expression && !expressions[l.pageLayoutID]) return false
-
-        if (!roles.length) return true
-
-        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
-      })
-
-      if (!matchedLayout) {
-        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
-        return this.$router.go(-1)
-      }
-
-      if (this.layout && matchedLayout.pageLayoutID === this.layout.pageLayoutID) {
-        return
-      }
-
-      this.layout = matchedLayout
-
+    handleRecordButtons () {
       const { config = {} } = this.layout
       const { buttons = [] } = config
 
@@ -579,34 +546,6 @@ export default {
         }
         return acc
       }, new Set())
-
-      await this.updateBlocks(variables)
-    },
-
-    async updateBlocks (variables = {}) {
-      const tempBlocks = []
-      const { blocks = [] } = this.layout || {}
-
-      let blocksExpressions = {}
-
-      if (blocks.some(({ meta = {} }) => (meta.visibility || {}).expression)) {
-        blocksExpressions = await this.evaluateBlocksExpressions(variables)
-      }
-
-      blocks.forEach(({ blockID, xywh, meta }) => {
-        const block = this.page.blocks.find(b => b.blockID === blockID)
-        const { roles = [], expression = '' } = meta.visibility || {}
-
-        if (block && (!expression || blocksExpressions[blockID])) {
-          block.xywh = xywh
-
-          if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
-            tempBlocks.push(block)
-          }
-        }
-      })
-
-      this.blocks = tempBlocks
     },
 
     refetchRecordBlocks () {

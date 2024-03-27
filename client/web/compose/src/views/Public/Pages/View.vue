@@ -176,8 +176,9 @@ export default {
       handler (pageID) {
         if (pageID === NoID) return
 
-        this.layouts = []
+        this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
+        this.pageTitle = this.page.title
 
         if (!this.isRecordPage) {
           this.determineLayout()
@@ -213,86 +214,6 @@ export default {
       pushPreviousPages: 'ui/pushPreviousPages',
       clearRecordSet: 'record/clearSet',
     }),
-
-    evaluateLayoutExpressions () {
-      const expressions = {}
-      const variables = this.expressionVariables
-
-      this.layouts.forEach(layout => {
-        const { config = {} } = layout
-        if (!config.visibility.expression) return
-
-        variables.layout = layout
-
-        expressions[layout.pageLayoutID] = config.visibility.expression
-      })
-
-      return this.$SystemAPI.expressionEvaluate({ variables, expressions }).catch(e => {
-        this.toastErrorHandler(this.$t('notification:evaluate.failed'))(e)
-        Object.keys(expressions).forEach(key => (expressions[key] = false))
-
-        return expressions
-      })
-    },
-
-    async determineLayout () {
-      // Clear stored records so they can be refetched with latest values
-      this.clearRecordSet()
-      this.layouts = this.getPageLayouts(this.page.pageID)
-
-      let expressions = {}
-
-      // Only evaluate if one of the layouts has an expressions variable
-      if (this.layouts.some(({ config = {} }) => config.visibility.expression)) {
-        this.pageTitle = this.page.title
-        expressions = await this.evaluateLayoutExpressions()
-      }
-
-      // Check layouts for expressions/roles and find the first one that fits
-      this.layout = this.layouts.find(({ pageLayoutID, config = {} }) => {
-        const { expression, roles = [] } = config.visibility
-
-        if (expression && !expressions[pageLayoutID]) return false
-
-        if (!roles.length) return true
-
-        return this.$auth.user.roles.some(roleID => roles.includes(roleID))
-      })
-
-      if (!this.layout) {
-        this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
-        return this.$router.go(-1)
-      }
-
-      const { handle, meta = {} } = this.layout || {}
-      const title = meta.title || this.page.title
-      this.pageTitle = title || handle || this.$t('navigation:noPageTitle')
-      document.title = [title, this.namespace.name, this.$t('general:label.app-name.public')].filter(v => v).join(' | ')
-
-      const tempBlocks = []
-      const { blocks = [] } = this.layout || {}
-
-      let blocksExpressions = {}
-
-      if (blocks.some(({ meta = {} }) => (meta.visibility || {}).expression)) {
-        blocksExpressions = await this.evaluateBlocksExpressions()
-      }
-
-      blocks.forEach(({ blockID, xywh, meta }) => {
-        const block = this.page.blocks.find(b => b.blockID === blockID)
-        const { roles = [], expression = '' } = meta.visibility || {}
-
-        if (block && (!expression || blocksExpressions[blockID])) {
-          block.xywh = xywh
-
-          if (!roles.length || this.$auth.user.roles.some(roleID => roles.includes(roleID))) {
-            tempBlocks.push(block)
-          }
-        }
-      })
-
-      this.blocks = tempBlocks
-    },
 
     refetchRecords () {
       // If on a record page, let it take care of events else just refetch non record-blocks (that use records)
