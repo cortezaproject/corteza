@@ -98,4 +98,8 @@ export {
   CMap,
 } from './map'
 
+export {
+  CFormTableWrapper,
+} from './wrapper'
+
 export { default as C3 } from './c3'

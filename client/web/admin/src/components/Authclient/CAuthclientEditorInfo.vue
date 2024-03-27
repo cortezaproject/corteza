@@ -63,41 +63,38 @@
             :label="$t('redirectURI')"
             label-class="text-primary"
           >
-            <b-button
-              data-test-id="button-add-redirect-uris"
-              variant="light"
-              class="align-top"
-              @click="redirectURI.push('')"
+            <c-form-table-wrapper
+              :labels="{ addButton: $t('general:label.add') }"
+              test-id="button-add-redirect-uris"
+              add-button-class="mt-2"
+              @add-item="redirectURI.push('')"
             >
-              + {{ $t('add') }}
-            </b-button>
-
-            <div
-              v-if="redirectURI.length"
-            >
-              <b-input-group
-                v-for="(value, index) in redirectURI"
-                :key="index"
-                class="mt-2"
+              <div
+                v-if="redirectURI.length"
               >
-                <b-form-input
-                  v-model="redirectURI[index]"
-                  data-test-id="input-uri"
-                  :placeholder="$t('uri')"
-                />
-
-                <b-button
-                  data-test-id="button-remove-uri"
-                  class="ml-1 text-danger"
-                  variant="link"
-                  @click="redirectURI.splice(index, 1)"
+                <b-input-group
+                  v-for="(value, index) in redirectURI"
+                  :key="index"
+                  class="mt-2"
                 >
-                  <font-awesome-icon
-                    :icon="['fas', 'times']"
+                  <b-form-input
+                    v-model="redirectURI[index]"
+                    data-test-id="input-uri"
+                    :placeholder="$t('uri')"
                   />
-                </b-button>
-              </b-input-group>
-            </div>
+                  <b-button
+                    data-test-id="button-remove-uri"
+                    class="ml-1 text-danger"
+                    variant="link"
+                    @click="redirectURI.splice(index, 1)"
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'times']"
+                    />
+                  </b-button>
+                </b-input-group>
+              </div>
+            </c-form-table-wrapper>
           </b-form-group>
         </b-col>
 

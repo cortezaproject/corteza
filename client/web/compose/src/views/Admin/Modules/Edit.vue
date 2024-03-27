@@ -215,7 +215,11 @@
                 </h5>
 
                 <b-row no-gutters>
-                  <b-form-group class="w-100">
+                  <c-form-table-wrapper
+                    :labels="{ addButton: $t('edit.newField') }"
+                    class="mb-2"
+                    @add-item="handleNewField"
+                  >
                     <b-table-simple
                       data-test-id="table-module-fields"
                       borderless
@@ -225,7 +229,6 @@
                       <thead>
                         <tr>
                           <th />
-
                           <th
                             class="text-primary"
                           >
@@ -238,7 +241,6 @@
                               />
                             </div>
                           </th>
-
                           <th
                             class="text-primary"
                           >
@@ -289,37 +291,62 @@
                           @updateKind="handleFieldKindUpdate(index)"
                         />
                       </draggable>
-
-                      <tr>
-                        <td colspan="1" />
-                        <td colspan="7">
-                          <b-button
-                            data-test-id="button-field-add"
-                            class="mb-5"
-                            variant="primary"
-                            @click="handleNewField"
-                          >
-                            + {{ $t('edit.newField') }}
-                          </b-button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          colspan="7"
-                          class="text-primary font-weight-bold"
-                        >
-                          {{ $t('edit.systemFields') }}
-                        </td>
-                      </tr>
-
-                      <field-row-view
-                        v-for="(field, index) in systemFields"
-                        :key="index"
-                        :field="field"
-                        class="mt-4"
-                      />
                     </b-table-simple>
-                  </b-form-group>
+                  </c-form-table-wrapper>
+                </b-row>
+
+                <hr>
+
+                <h5 class="mb-3">
+                  {{ $t('edit.systemFields') }}
+                </h5>
+
+                <b-row
+                  no-gutters
+                >
+                  <c-form-table-wrapper hide-add-button>
+                    <b-table-simple
+                      borderless
+                      responsive
+                      small
+                    >
+                      <thead>
+                        <tr>
+                          <th />
+
+                          <th
+                            class="text-primary"
+                            style="min-width: 250px;"
+                          >
+                            {{ $t('general:label.name') }}
+                          </th>
+
+                          <th
+                            class="text-primary"
+                            style="min-width: 250px;"
+                          >
+                            {{ $t('general.label.title') }}
+                          </th>
+
+                          <th
+                            colspan="5"
+                            class="text-primary"
+                            style="min-width: 250px;"
+                          >
+                            {{ $t('general:label.type') }}
+                          </th>
+                        </tr>
+                      </thead>
+
+                      <b-tbody>
+                        <field-row-view
+                          v-for="(field, index) in systemFields"
+                          :key="index"
+                          :field="field"
+                        />
+                      </b-tbody>
+                    </b-table-simple>
+                  </c-form-table-wrapper>
                 </b-row>
               </b-tab>
 

@@ -1,11 +1,15 @@
 <template>
-  <div>
+  <c-form-table-wrapper
+    :labels="{
+      addButton: $t('general:label.add')
+    }"
+    @add-item="addParam"
+  >
     <b-table-simple
       v-if="groups.length"
       responsive
       borderless
       small
-      class="mb-0"
     >
       <b-thead>
         <b-tr>
@@ -14,11 +18,13 @@
           >
             {{ $t('datasources:name') }}
           </b-th>
+
           <b-th
             class="w-25"
           >
             {{ $t('datasources:label') }}
           </b-th>
+
           <b-th
             class="w-50"
           >
@@ -38,18 +44,21 @@
               :placeholder="$t('datasources:new.name')"
             />
           </b-td>
+
           <b-td>
             <b-form-input
               v-model="group.label"
               :placeholder="$t('datasources:new.label')"
             />
           </b-td>
+
           <b-td>
             <b-form-input
               v-model="group.def.raw"
               :placeholder="$t('datasources:expression')"
             />
           </b-td>
+
           <b-td class="align-middle">
             <c-input-confirm
               show-icon
@@ -59,20 +68,7 @@
         </b-tr>
       </b-tbody>
     </b-table-simple>
-
-    <b-button
-      variant="link text-decoration-none"
-      class="px-0"
-      @click="addParam()"
-    >
-      <font-awesome-icon
-        :icon="['fas', 'plus']"
-        size="sm"
-        class="mr-1"
-      />
-      {{ $t('datasources:add') }}
-    </b-button>
-  </div>
+  </c-form-table-wrapper>
 </template>
 
 <script>

@@ -22,7 +22,7 @@ import {
   TooltipComponent,
 } from 'echarts/components'
 
-const { CCorredorManualButtons, CPermissionsButton, CInputConfirm, CButtonSubmit, CInputCheckbox, CInputSelect } = components
+const { CCorredorManualButtons, CPermissionsButton, CInputConfirm, CButtonSubmit, CInputCheckbox, CInputSelect, CFormTableWrapper } = components
 
 Vue.use(PortalVue)
 Vue.component('c-corredor-manual-buttons', CCorredorManualButtons)
@@ -36,6 +36,7 @@ Vue.component('c-button-submit', CButtonSubmit)
 Vue.component('c-input-checkbox', CInputCheckbox)
 Vue.component('c-system-fields', CSystemFields)
 Vue.component('c-input-select', CInputSelect)
+Vue.component('c-form-table-wrapper', CFormTableWrapper)
 
 use([
   LineChart,
