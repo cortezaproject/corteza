@@ -217,6 +217,7 @@
                 <b-row no-gutters>
                   <c-form-table-wrapper
                     :labels="{ addButton: $t('edit.newField') }"
+                    class="mb-2"
                     @add-item="handleNewField"
                   >
                     <b-table-simple
@@ -296,59 +297,56 @@
 
                 <hr>
 
+                <h5 class="mb-3">
+                  {{ $t('edit.systemFields') }}
+                </h5>
+
                 <b-row
                   no-gutters
-                  class="mt-3"
                 >
-                  <b-form-group
-                    :label="$t('edit.systemFields')"
-                    label-class="text-primary"
-                    class="mb-0 w-100"
-                  >
-                    <c-form-table-wrapper hide-add-button>
-                      <b-table-simple
-                        borderless
-                        responsive
-                        small
-                      >
-                        <thead>
-                          <tr>
-                            <th />
+                  <c-form-table-wrapper hide-add-button>
+                    <b-table-simple
+                      borderless
+                      responsive
+                      small
+                    >
+                      <thead>
+                        <tr>
+                          <th />
 
-                            <th
-                              class="text-primary"
-                              style="min-width: 250px;"
-                            >
-                              {{ $t('general:label.name') }}
-                            </th>
+                          <th
+                            class="text-primary"
+                            style="min-width: 250px;"
+                          >
+                            {{ $t('general:label.name') }}
+                          </th>
 
-                            <th
-                              class="text-primary"
-                              style="min-width: 250px;"
-                            >
-                              {{ $t('general.label.title') }}
-                            </th>
+                          <th
+                            class="text-primary"
+                            style="min-width: 250px;"
+                          >
+                            {{ $t('general.label.title') }}
+                          </th>
 
-                            <th
-                              colspan="5"
-                              class="text-primary"
-                              style="min-width: 250px;"
-                            >
-                              {{ $t('general:label.type') }}
-                            </th>
-                          </tr>
-                        </thead>
+                          <th
+                            colspan="5"
+                            class="text-primary"
+                            style="min-width: 250px;"
+                          >
+                            {{ $t('general:label.type') }}
+                          </th>
+                        </tr>
+                      </thead>
 
-                        <b-tbody>
-                          <field-row-view
-                            v-for="(field, index) in systemFields"
-                            :key="index"
-                            :field="field"
-                          />
-                        </b-tbody>
-                      </b-table-simple>
-                    </c-form-table-wrapper>
-                  </b-form-group>
+                      <b-tbody>
+                        <field-row-view
+                          v-for="(field, index) in systemFields"
+                          :key="index"
+                          :field="field"
+                        />
+                      </b-tbody>
+                    </b-table-simple>
+                  </c-form-table-wrapper>
                 </b-row>
               </b-tab>
 
