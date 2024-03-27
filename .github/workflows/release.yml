@@ -236,7 +236,14 @@ jobs:
           restore-keys: ${{ runner.OS }}-node-
       - name: "Dependencies"
         working-directory: client/web/${{ matrix.app }}
-        run: make dep
+        run: |
+          js_line=$(cat package.json | grep -n '"@cortezaproject/corteza-js"' | cut -d : -f 1)
+          awk -v ln="$js_line" 'NR==ln {$0 = "    \"@cortezaproject/corteza-js\": \"file:../../../lib/js\","} 1' package.json > package.temp.json && mv package.temp.json package.json
+          
+          vue_line=$(cat package.json | grep -n '"@cortezaproject/corteza-vue"' | cut -d : -f 1)
+          awk -v ln="$vue_line" 'NR==ln {$0 = "    \"@cortezaproject/corteza-vue\": \"file:../../../lib/vue\","} 1' package.json > package.temp.json && mv package.temp.json package.json
+
+          make dep
       - name: "Build"
         working-directory: client/web/${{ matrix.app }}
         run: make build
