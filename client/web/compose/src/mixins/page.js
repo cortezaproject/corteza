@@ -19,6 +19,15 @@ export default {
       default: '',
     },
   },
+
+  data () {
+    return {
+      layouts: [],
+      layout: undefined,
+      blocks: undefined,
+    }
+  },
+
   computed: {
     ...mapGetters({
       getPageLayouts: 'pageLayout/getByPageID',
@@ -48,6 +57,11 @@ export default {
       }
     },
   },
+
+  mounted () {
+    this.createEvents()
+  },
+
   methods: {
     evaluateLayoutExpressions (variables = {}) {
       const expressions = {}

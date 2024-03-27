@@ -192,10 +192,7 @@ export default {
       inEditing: false,
       inCreating: false,
 
-      layouts: [],
-      layout: undefined,
       layoutButtons: new Set(),
-      blocks: undefined,
 
       recordNavigation: {
         prev: undefined,
@@ -339,10 +336,6 @@ export default {
         }
       },
     },
-  },
-
-  mounted () {
-    this.createEvents()
   },
 
   beforeDestroy () {

@@ -130,10 +130,6 @@ export default {
 
   data () {
     return {
-      layouts: [],
-      layout: undefined,
-      blocks: undefined,
-
       pageTitle: '',
     }
   },
@@ -196,10 +192,6 @@ export default {
     },
   },
 
-  mounted () {
-    this.$root.$on('refetch-records', this.refetchRecords)
-  },
-
   beforeDestroy () {
     this.destroyEvents()
     this.setDefaultValues()
@@ -214,6 +206,10 @@ export default {
       pushPreviousPages: 'ui/pushPreviousPages',
       clearRecordSet: 'record/clearSet',
     }),
+
+    createEvents () {
+      this.$root.$on('refetch-records', this.refetchRecords)
+    },
 
     refetchRecords () {
       // If on a record page, let it take care of events else just refetch non record-blocks (that use records)
