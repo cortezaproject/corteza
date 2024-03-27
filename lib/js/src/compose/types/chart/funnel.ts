@@ -4,6 +4,7 @@ import {
   Metric,
   Report,
   ChartType,
+  formatChartValue,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
@@ -89,11 +90,8 @@ export default class FunnelChart extends BaseChart {
     const { saveAsImage } = toolbox || {}
 
     const { labels, datasets = [], tooltip, themeVariables = {} } = data
-    const { legend: l } = reports[0] || {}
+    const { legend: l, formatter, metricFormatter } = reports[0] || {}
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
-
-    const tooltipFormatter = `{b}<br />{c} ${tooltip.relative ? ' ({d}%)' : ''}`
-    const labelFormatter = `{c}${tooltip.relative ? ' ({d}%)' : ''}`
 
     return {
       animation: !noAnimation,
@@ -114,7 +112,12 @@ export default class FunnelChart extends BaseChart {
       tooltip: {
         show: true,
         trigger: 'item',
-        formatter: tooltipFormatter,
+        formatter: (params: { seriesName: string, name: string, value: string | number, percent: string | number }): string => {
+          const { name = '', value = '' || 0, percent = '' || 0 } = params
+          const { numberFormat = '', prefix = '', suffix = '' } = formatter || {}
+
+          return `${name}<br />${formatChartValue(value, { numberFormat, prefix, suffix })} ${tooltip.relative ? ` (${percent}%)` : ''}`
+        },
         appendToBody: true,
       },
       legend: {
@@ -147,7 +150,12 @@ export default class FunnelChart extends BaseChart {
             position: 'inside',
             align: 'center',
             verticalAlign: 'middle',
-            formatter: labelFormatter,
+            formatter: (params: { seriesName: string, name: string, value: string | number, percent: string | number }): string => {
+              const { value = '' || 0, percent = '' || 0 } = params
+              const { numberFormat = '', prefix = '', suffix = '' } = metricFormatter || {}
+
+              return `${formatChartValue(value, { numberFormat, prefix, suffix })}${tooltip.relative ? ` (${percent}%)` : ''}`
+            },
           },
           emphasis: {
             label: {

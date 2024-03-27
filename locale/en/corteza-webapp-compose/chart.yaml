@@ -204,6 +204,7 @@ edit:
         label: Formatting
         description: '{a} - metrics label, {b} - dimension value, {c} - metric value, {d} - metric value percentage'
         placeholder: '{a}<br />{b} : {c} ({d}%)'
+        disclaimer: Adding a value to the formatting field will disable the fields number format, prefix, and suffix and vice versa
     offset:
       label: Offset
       default: Default offset
@@ -239,3 +240,6 @@ notification:
 searchPlaceholder: Type here to search all charts in this namespace
 title: List of Charts
 undefined: undefined
+numberFormat: Number format
+prefix: Prefix
+suffix: Suffix

@@ -3,6 +3,7 @@ import {
   Dimension,
   Metric,
   ChartType,
+  formatChartValue,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
@@ -28,9 +29,12 @@ export default class RadarChart extends BaseChart {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
     const { labels, datasets = [], dimension = {}, themeVariables = {} } = data
-    const { legend: l } = reports[0] || {}
-
-    const labelFormatter = '{c}'
+    const {
+      legend: l,
+      metrics,
+      formatter,
+      metricFormatter,
+    } = reports[0] || {}
 
     let min: number = 0
     let max: number = Math.max()
@@ -81,6 +85,11 @@ export default class RadarChart extends BaseChart {
         show: true,
         position: 'top',
         appendToBody: true,
+        valueFormatter: (value: string | number): string => {
+          const { numberFormat = '', prefix = '', suffix = '' } = formatter || {}
+
+          return formatChartValue(value, { numberFormat, prefix, suffix })
+        },
       },
       radar: {
         shape: dimension.shape,
@@ -93,7 +102,11 @@ export default class RadarChart extends BaseChart {
         type: 'radar',
         label: {
           show: dimension.fixTooltips,
-          formatter: labelFormatter,
+          formatter: (params: { seriesName: string, name: string, value: string | number }): string => {
+            const { value = '' || 0 } = params
+            const { numberFormat = '', prefix = '', suffix = '' } = metricFormatter || {}
+            return formatChartValue(value, { numberFormat, prefix, suffix })
+          },
         },
         data: seriesData,
       },
