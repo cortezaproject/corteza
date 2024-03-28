@@ -39,6 +39,13 @@ func Locker(svc *service, ff ...lockerConstraint) *locker {
 	}
 }
 
+func WithDefaultAwait() lockerConstraint {
+	return func(c Constraint) Constraint {
+		c.Await = defaultLockAwait
+		return c
+	}
+}
+
 // Read attempts to lock the resource for reading
 //
 // By default, the lock will pend for 5 seconds
@@ -67,10 +74,6 @@ func (lg *locker) add(ctx context.Context, idt identifyable, op Operation, rr ..
 
 		for _, f := range lg.lockConstraints {
 			cc[i] = f(cc[i])
-		}
-
-		if cc[i].Await == 0 {
-			cc[i].Await = defaultLockAwait
 		}
 	}
 

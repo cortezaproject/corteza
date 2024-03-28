@@ -429,7 +429,7 @@ func (svc user) CreateWithAvatar(ctx context.Context, input *types.User, avatar 
 }
 
 func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err error) {
-	lcr := gatekeep.Locker(gatekeep.Service())
+	lcr := gatekeep.Locker(gatekeep.Service(), gatekeep.WithDefaultAwait())
 	defer lcr.Free(ctx)
 
 	var (

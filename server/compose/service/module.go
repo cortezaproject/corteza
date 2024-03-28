@@ -515,7 +515,7 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		hasRecords bool
 	)
 
-	lcr := gatekeep.Locker(gatekeep.Service())
+	lcr := gatekeep.Locker(gatekeep.Service(), gatekeep.WithDefaultAwait())
 	defer lcr.Free(ctx)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
