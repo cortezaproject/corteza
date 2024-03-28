@@ -3,6 +3,8 @@ package gatekeep
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -264,34 +266,60 @@ func (svc *service) ProbeResource(ctx context.Context, r string) (tt []lock, err
 //
 // The function returns both already acquired and queued locks
 func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err error) {
-	// Get the currently stored locks
-	bb, err := svc.store.GetValue(ctx, r)
-	if err != nil && err.Error() == "not found" {
-		return tt, nil
-	}
-	if err != nil {
-		return
-	}
+	bits := strings.Split(r, "/")
+	schema := bits[0]
+	path := bits[1:]
 
-	err = json.Unmarshal(bb, &tt)
-	if err != nil {
-		return
-	}
+	seen := make(map[string]struct{}, len(path))
 
-	// Get queued locks
-	aux := svc.queueManager.queues[r]
-	if aux == nil {
-		return
-	}
+	var bb []byte
+	var auxOut []lock
 
-	for _, c := range aux.queue {
-		tt = append(tt, lock{
-			ID:        c.id,
-			UserID:    c.UserID,
-			Resource:  c.Resource,
-			Operation: c.Operation,
-			State:     lockStateQueued,
-		})
+	// Check for all keys that are either as specific or less for the same resource.
+	// So if we're probing for a specific module, check all the wildcards corresponding to it.
+
+	for i := len(path); i >= 0; i-- {
+		if i <= len(path)-1 {
+			path[i] = "*"
+		}
+
+		r := fmt.Sprintf("%s/%s", schema, strings.Join(path, "/"))
+		if _, ok := seen[r]; ok {
+			continue
+		}
+		seen[r] = struct{}{}
+
+		// Get the currently stored locks
+		bb, err = svc.store.GetValue(ctx, r)
+		if err != nil && err.Error() == "not found" {
+			continue
+		}
+		if err != nil {
+			return
+		}
+
+		err = json.Unmarshal(bb, &auxOut)
+		if err != nil {
+			return
+		}
+
+		// Get queued locks
+		aux := svc.queueManager.queues[r]
+		if aux == nil {
+			continue
+		}
+
+		for _, c := range aux.queue {
+			auxOut = append(auxOut, lock{
+				ID:        c.id,
+				UserID:    c.UserID,
+				Resource:  c.Resource,
+				Operation: c.Operation,
+				State:     lockStateQueued,
+			})
+		}
+
+		tt = append(tt, auxOut...)
 	}
 
 	// @todo
