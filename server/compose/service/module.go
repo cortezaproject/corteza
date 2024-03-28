@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	"github.com/cortezaproject/corteza/server/pkg/gatekeep"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/modern-go/reflect2"
@@ -514,7 +515,18 @@ func (svc module) updater(ctx context.Context, namespaceID, moduleID uint64, act
 		hasRecords bool
 	)
 
+	lcr := gatekeep.Locker(gatekeep.Service())
+	defer lcr.Free(ctx)
+
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
+		err = errors.GetFirst(
+			lcr.Read(ctx, types.NamespaceRbacResource(namespaceID)),
+			lcr.Write(ctx, types.ModuleRbacResource(namespaceID, moduleID), types.ModuleFieldRbacResource(namespaceID, moduleID, 0)),
+		)
+		if err != nil {
+			return
+		}
+
 		ns, m, err = loadModuleCombo(ctx, s, namespaceID, moduleID)
 		if err != nil {
 			return

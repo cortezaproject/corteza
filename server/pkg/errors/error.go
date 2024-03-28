@@ -31,6 +31,16 @@ const (
 	stackFrameSkip = 4
 )
 
+func GetFirst(errs ...error) (err error) {
+	for _, err = range errs {
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 func err(k kind, m string) *Error {
 	return &Error{
 		kind:    k,

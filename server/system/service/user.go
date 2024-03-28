@@ -17,6 +17,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/gatekeep"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/sass"
@@ -428,6 +429,9 @@ func (svc user) CreateWithAvatar(ctx context.Context, input *types.User, avatar 
 }
 
 func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err error) {
+	lcr := gatekeep.Locker(gatekeep.Service())
+	defer lcr.Free(ctx)
+
 	var (
 		uaProps = &userActionProps{update: upd}
 	)
@@ -441,6 +445,10 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			return UserErrInvalidEmail()
 		}
 
+		err = lcr.Write(ctx, types.UserRbacResource(upd.ID))
+		if err != nil {
+			return
+		}
 		if u, err = loadUser(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
