@@ -292,6 +292,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 		// Get the currently stored locks
 		bb, err = svc.store.GetValue(ctx, r)
 		if err != nil && err.Error() == "not found" {
+			err = nil
 			continue
 		}
 		if err != nil {
@@ -299,6 +300,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 		}
 
 		err = json.Unmarshal(bb, &auxOut)
+		tt = append(tt, auxOut...)
 		if err != nil {
 			return
 		}
@@ -310,7 +312,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 		}
 
 		for _, c := range aux.queue {
-			auxOut = append(auxOut, lock{
+			tt = append(tt, lock{
 				ID:        c.id,
 				UserID:    c.UserID,
 				Resource:  c.Resource,
@@ -318,8 +320,6 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 				State:     lockStateQueued,
 			})
 		}
-
-		tt = append(tt, auxOut...)
 	}
 
 	// @todo
