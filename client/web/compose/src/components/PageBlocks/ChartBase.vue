@@ -10,7 +10,7 @@
       :chart="chart"
       :record="record"
       :reporter="reporter"
-      @click="drillDown"
+      @drill-down="drillDown"
     />
   </wrap>
 </template>
@@ -136,11 +136,10 @@ export default {
 
     /**
      *
-     * @param {*} name
      * Based on drill down configuration, either changes the linked block on the page
      * or opens it in a modal wit the filter and dimensions from the chart and the clicked value
      */
-    drillDown ({ name, value }) {
+    drillDown ({ trueName, value }) {
       const { chartID, drillDown } = this.options
 
       if (!drillDown.enabled) {
@@ -150,9 +149,9 @@ export default {
       const report = this.chart.config.reports[0] || {}
       const { yAxis = {} } = report
 
-      // If name exists we use it as value, otherwise we need to look at the actual value based on if it is horizontal or vertical
-      let drillDownValue = name
-      if (!name) {
+      // If trueName exists we use it as value, otherwise we need to look at the actual value based on if it is horizontal or vertical
+      let drillDownValue = trueName
+      if (!trueName) {
         drillDownValue = yAxis.horizontal ? value[1] : value[0]
       }
 
@@ -163,7 +162,6 @@ export default {
       const dimensionFilter = dimensions ? `(${dimensions} = '${drillDownValue}')` : ''
       filter = filter ? `(${filter})` : ''
       const prefilter = [dimensionFilter, filter].filter(f => f).join(' AND ')
-
       if (drillDown.blockID) {
         // Use linked record list to display drill down data
         const { pageID = NoID } = this.page

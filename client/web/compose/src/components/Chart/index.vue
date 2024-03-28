@@ -11,7 +11,7 @@
       v-if="renderer"
       :chart="renderer"
       class="flex-fill p-1"
-      v-on="$listeners"
+      @click="drillDown"
     />
   </div>
 </template>
@@ -51,6 +51,8 @@ export default {
   data () {
     return {
       processing: false,
+
+      valueMap: new Map(),
 
       renderer: undefined,
     }
@@ -117,7 +119,10 @@ export default {
             if (meta.fields && field.kind === 'Select') {
               data.labels = data.labels.map(value => {
                 const { text } = field.options.options.find(o => o.value === value) || {}
-                return text || value
+                const label = text || value
+                this.valueMap[label] = value
+
+                return label
               })
             }
           }
@@ -126,8 +131,10 @@ export default {
             if (field.kind === 'User') {
               // Fetch and map users to labels
               await this.resolveUsers(data.labels)
-              data.labels = data.labels.map(label => {
-                return field.formatter(this.getUserByID(label)) || label
+              data.labels = data.labels.map(userID => {
+                const label = field.formatter(this.getUserByID(userID)) || userID
+                this.valueMap[label] = userID
+                return label
               })
             } else {
               // Fetch and map records and their values to labels
@@ -160,7 +167,10 @@ export default {
                 })).then(records => {
                   data.labels = records.map(record => {
                     const value = field.options.labelField ? record.values[field.options.labelField] : record.recordID
-                    return Array.isArray(value) ? value.join(', ') : value
+                    const label = Array.isArray(value) ? value.join(', ') : value
+                    this.valueMap[label] = record.recordID
+
+                    return value
                   })
                 })
               }
@@ -181,6 +191,12 @@ export default {
       }
       this.processing = false
       this.$emit('updated')
+    },
+
+    drillDown (e) {
+      e.trueName = this.valueMap[e.name] || e.name
+
+      return this.$emit('drill-down', e)
     },
 
     getThemeVariables () {
@@ -217,6 +233,7 @@ export default {
     setDefaultValues () {
       this.processing = false
       this.renderer = undefined
+      this.valueMap = {}
     },
 
     destroyEvents () {
