@@ -33,6 +33,7 @@
       <field-picker
         :module="module"
         :fields.sync="filteredFields"
+        :field-subset="fieldSubset"
         style="height: 71vh;"
       />
     </b-modal>
@@ -78,6 +79,12 @@ export default {
       type: String,
       default: 'light',
     },
+
+    fieldSubset: {
+      type: Array,
+      required: false,
+      default: () => null,
+    },
   },
 
   data () {
@@ -89,8 +96,13 @@ export default {
   },
 
   watch: {
-    fields (fields) {
-      this.filteredFields = this.module.filterFields(fields)
+    fields: {
+      immediate: true,
+      handler (fields) {
+        if (fields) {
+          this.filteredFields = this.module.filterFields(fields)
+        }
+      },
     },
   },
 
