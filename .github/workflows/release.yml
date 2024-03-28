@@ -218,7 +218,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
-    needs: [ client-web-test ]
+    # needs: [ client-web-test ]
     env:
       RELEASE_SFTP_KEY: ${{ secrets.RELEASE_SFTP_KEY }}
       RELEASE_SFTP_URI: ${{ secrets.RELEASE_SFTP_URI }}
