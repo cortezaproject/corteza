@@ -123,7 +123,7 @@ func New(log *zap.Logger, s store) (*service, error) {
 			queues: make(map[string]*queue),
 		},
 
-		events: &inMemBuss{},
+		events: &inMemBus{},
 	}
 	return svc, nil
 }

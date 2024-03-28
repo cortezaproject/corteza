@@ -8,7 +8,7 @@ type (
 		fn eventListener
 	}
 
-	inMemBuss struct {
+	inMemBus struct {
 		mux       sync.RWMutex
 		listeners []listenerWrap
 	}
@@ -19,20 +19,20 @@ var (
 )
 
 const (
-	inMemBussListenerCap = 5000
+	inMemBusListenerCap = 5000
 )
 
 // Subscribe adds a new listener to the in-memory event bus
 // The returned reference should be used to manage the subscribed listener.
-func (q *inMemBuss) Subscribe(listener eventListener) int {
+func (q *inMemBus) Subscribe(listener eventListener) int {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 
 	// @todo should we have some more graceful fail for this?
 	// The listener is meant to be more light weight so this will probably be fine.
 	// We could consider (rather, the architecture permits) more hard core EBs
-	if len(q.listeners)+1 == inMemBussListenerCap {
-		panic("inMemBuss: too many listeners")
+	if len(q.listeners)+1 == inMemBusListenerCap {
+		panic("inMemBus: too many listeners")
 	}
 
 	q.listeners = append(q.listeners, listenerWrap{
@@ -45,7 +45,7 @@ func (q *inMemBuss) Subscribe(listener eventListener) int {
 }
 
 // Unsubscribe removes a listener from the in-memory event bus
-func (q *inMemBuss) Unsubscribe(id int) {
+func (q *inMemBus) Unsubscribe(id int) {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 
@@ -64,7 +64,7 @@ func (q *inMemBuss) Unsubscribe(id int) {
 // Publish sends an event to all listeners
 // The publish doesn't filter anything; it's up to the listeners to decide
 // if they are interested in the event or not.
-func (q *inMemBuss) Publish(event Event) {
+func (q *inMemBus) Publish(event Event) {
 	q.mux.RLock()
 	defer q.mux.RUnlock()
 
