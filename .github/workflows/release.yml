@@ -249,7 +249,7 @@ jobs:
       - name: "Build"
         working-directory: client/web/${{ matrix.app }}
         run: |
-          cat package.json
+          yarn install
           make build
       # - name: "Copy essentials"
       #   run: cp *.md DCO LICENSE client/web/${{ matrix.app }}
