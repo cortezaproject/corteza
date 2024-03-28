@@ -248,7 +248,9 @@ jobs:
           make dep
       - name: "Build"
         working-directory: client/web/${{ matrix.app }}
-        run: make build
+        run: |
+          cat package.json
+          make build
       # - name: "Copy essentials"
       #   run: cp *.md DCO LICENSE client/web/${{ matrix.app }}
       # - name: "Release"
