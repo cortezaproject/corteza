@@ -18,14 +18,28 @@ type (
 		store        store
 		queueManager *queueManager
 
+		events eventManager
+
 		log *zap.Logger
+	}
+
+	eventListener func(evt Event)
+	Event         struct {
+		Kind ebEvent
+		Lock lock
+	}
+
+	eventManager interface {
+		Subscribe(listener eventListener) int
+		Unsubscribe(int)
+		Publish(event Event)
 	}
 
 	Constraint struct {
 		id uint64
 
 		Resource  string
-		Operation operation
+		Operation Operation
 		UserID    uint64
 		Overwrite bool
 		Await     time.Duration
@@ -51,7 +65,7 @@ type (
 		UserID    uint64    `json:"userID"`
 		CreatedAt time.Time `json:"createdAt"`
 		Resource  string    `json:"resource"`
-		Operation operation `json:"operation"`
+		Operation Operation `json:"operation"`
 
 		State lockState `json:"state"`
 
@@ -59,13 +73,15 @@ type (
 		LockExpires  *time.Time    `json:"lockExpires"`
 	}
 
+	ebEvent int
+
 	lockState int
-	operation string
+	Operation string
 )
 
 const (
-	opRead  operation = "read"
-	opWrite operation = "write"
+	opRead  Operation = "read"
+	opWrite Operation = "write"
 )
 
 const (
@@ -73,6 +89,11 @@ const (
 	lockStateLocked
 	lockStateFailed
 	lockStateQueued
+)
+
+const (
+	ebEventLockResolved ebEvent = iota
+	ebEventLockReleased
 )
 
 var (
@@ -97,6 +118,8 @@ func New(log *zap.Logger, s store) (*service, error) {
 			mux:    sync.Mutex{},
 			queues: make(map[string]*queue),
 		},
+
+		events: &inMemBuss{},
 	}
 	return svc, nil
 }
@@ -457,6 +480,7 @@ func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64
 		return
 	}
 
+	ref = id
 	return
 }
 

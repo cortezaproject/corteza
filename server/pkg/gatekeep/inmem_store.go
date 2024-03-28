@@ -19,7 +19,7 @@ type (
 	}
 )
 
-func makeInmemStore() *inmemStore {
+func InmemStore() *inmemStore {
 	return &inmemStore{
 		index: ds.NewTrie[string, []byte](),
 	}
