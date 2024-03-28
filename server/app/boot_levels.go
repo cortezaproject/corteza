@@ -4,12 +4,14 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/gatekeep"
+	"github.com/cortezaproject/corteza/server/pkg/sass"
 
 	authService "github.com/cortezaproject/corteza/server/auth"
 	"github.com/cortezaproject/corteza/server/auth/saml"
@@ -296,6 +298,10 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	// @todo place this somewhere better
 	id.Init(ctx)
+
+	// Gatekeeper
+	gatekeep.SetGlobal(gatekeep.New(app.Log, gatekeep.InmemStore()))
+	gatekeep.Service().Watch(ctx)
 
 	err = app.initEnvoy(ctx, app.Log)
 	if err != nil {
