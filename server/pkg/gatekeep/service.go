@@ -43,6 +43,8 @@ type (
 		UserID    uint64
 		Overwrite bool
 		Await     time.Duration
+
+		queuedAt time.Time
 	}
 
 	queue struct {
@@ -212,7 +214,7 @@ func (svc *service) Unlock(ctx context.Context, c Constraint) (err error) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 	// releasing a lock may result in other locks being acquirable
-	defer svc.doQueued(ctx, c, c)
+	defer svc.doQueued(ctx, c)
 
 	ref, exists, err := svc.check(ctx, c)
 	if err != nil {
@@ -316,8 +318,57 @@ func (svc *service) check(ctx context.Context, c Constraint) (ref uint64, state 
 
 // Cleanup will release stale things
 func (svc *service) Cleanup(ctx context.Context) (err error) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	// @todo cleanup stale/overdue locks
-	// @todo cleanup stale/overdue queue locks
+
+	// Cleanup stale queued locks
+	qm := svc.queueManager
+	if qm == nil {
+		return
+	}
+
+	qm.mux.Lock()
+	defer qm.mux.Unlock()
+
+	now := time.Now()
+	// Go backwards and spice out the ones that need to be removed.
+	// Broadcast down the buss so we can kill off the watchers.
+	for _, qq := range qm.queues {
+		for i := len(qq.queue) - 1; i >= 0; i-- {
+			c := qq.queue[i]
+			l := lock{
+				ID:        c.id,
+				UserID:    c.UserID,
+				CreatedAt: c.queuedAt,
+				Resource:  c.Resource,
+				Operation: c.Operation,
+
+				State: lockStateFailed,
+			}
+
+			if c.queuedAt.IsZero() {
+				qq.queue = append(qq.queue[:i], qq.queue[i+1:]...)
+
+				svc.events.Publish(Event{
+					Kind: ebEventLockResolved,
+					Lock: l,
+				})
+				continue
+			}
+
+			if now.After(c.queuedAt.Add(c.Await)) {
+				qq.queue = append(qq.queue[:i], qq.queue[i+1:]...)
+
+				svc.events.Publish(Event{
+					Kind: ebEventLockResolved,
+					Lock: l,
+				})
+				continue
+			}
+		}
+	}
 
 	return
 }
@@ -366,13 +417,14 @@ func (qm *queueManager) queueLock(ctx context.Context, c Constraint) (ref uint64
 
 	q := qm.queues[key]
 	c.id = nextID()
+	c.queuedAt = time.Now()
 	q.queue = append(q.queue, c)
 	qm.queues[key] = q
 
 	return c.id, nil
 }
 
-func (svc *service) doQueued(ctx context.Context, released Constraint, c Constraint) (err error) {
+func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 	svc.queueManager.mux.Lock()
 	defer svc.queueManager.mux.Unlock()
 
