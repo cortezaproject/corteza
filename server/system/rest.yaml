@@ -21,6 +21,61 @@ endpoints:
         type: uint64
         required: true
         title: ID of the impersonated user
+- title: Gatekeep
+  path: "/gatekeep"
+  entrypoint: gatekeep
+  authentication: []
+  apis:
+  - name: lock
+    method: POST
+    title: Lock resource
+    path: "/lock"
+    parameters:
+      post:
+      - name: resource
+        type: string
+        required: true
+        title: Resource to lock
+      - name: expiresIn
+        type: string
+        title: Standard go duration string (e.g. 1h30m)
+      - name: userID
+        type: uint64
+        title: User ID that locked the resource
+
+  - name: unlock
+    method: POST
+    title: Unlock resource
+    path: "/unlock"
+    parameters:
+      post:
+      - name: resource
+        type: string
+        required: true
+        title: Resource to unlock
+      - name: userID
+        type: uint64
+        title: User ID that locked the resource
+
+  - name: check
+    method: POST
+    title: Check if resource is locked
+    path: "/{lockID}/check"
+    parameters:
+      path:
+      - name: lockID
+        type: uint64
+        required: true
+        title: Lock to check
+      post:
+      - name: resource
+        type: string
+        required: true
+        title: Resource to lock
+      - name: userID
+        type: uint64
+        title: User ID that locked the resource
+
 - title: Authentication clients
   path: "/auth/clients"
   entrypoint: authClient

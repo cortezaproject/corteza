@@ -58,14 +58,14 @@ func WithDefaultAwait() LockerConstraint {
 //
 // By default, the lock will pend for 5 seconds
 func (lg *locker) Read(ctx context.Context, res ...string) (err error) {
-	return lg.add(ctx, opRead, res...)
+	return lg.add(ctx, OpRead, res...)
 }
 
 // Read attempts to lock the resource for writing
 //
 // By default, the lock will pend for 5 seconds
 func (lg *locker) Write(ctx context.Context, res ...string) (err error) {
-	return lg.add(ctx, opWrite, res...)
+	return lg.add(ctx, OpWrite, res...)
 }
 
 func (lg *locker) add(ctx context.Context, op Operation, rr ...string) (err error) {

@@ -22,7 +22,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 1 gets read lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opRead,
+				Operation: OpRead,
 				UserID:    1,
 			})
 
@@ -38,7 +38,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 2 gets same read lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opRead,
+				Operation: OpRead,
 				UserID:    2,
 			})
 
@@ -54,7 +54,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 3 fails write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    3,
 			})
 
@@ -70,7 +70,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 2 release read lock", func(t *testing.T) {
 			err = svc.Unlock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opRead,
+				Operation: OpRead,
 				UserID:    2,
 			})
 
@@ -85,7 +85,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 3 fails write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    3,
 			})
 
@@ -101,7 +101,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 1 release read lock", func(t *testing.T) {
 			err = svc.Unlock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opRead,
+				Operation: OpRead,
 				UserID:    1,
 			})
 
@@ -116,7 +116,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 3 gets write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    3,
 			})
 
@@ -131,7 +131,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 4 fails read lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opRead,
+				Operation: OpRead,
 				UserID:    4,
 			})
 
@@ -146,7 +146,7 @@ func TestBasicLocking(t *testing.T) {
 		t.Run("User 5 fails write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    5,
 			})
 
@@ -174,7 +174,7 @@ func TestQueueing(t *testing.T) {
 
 	_, _, err = svc.Lock(ctx, Constraint{
 		Resource:  "resource_1/a/b",
-		Operation: opWrite,
+		Operation: OpWrite,
 		UserID:    1,
 	})
 	req.NoError(err)
@@ -183,7 +183,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("queue read lock 1", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opRead,
+			Operation: OpRead,
 			UserID:    2,
 			Await:     time.Hour * 2,
 		}
@@ -205,7 +205,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("queue read lock 2", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opRead,
+			Operation: OpRead,
 			UserID:    3,
 			Await:     time.Hour * 2,
 		}
@@ -227,7 +227,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("queue write lock 2", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opWrite,
+			Operation: OpWrite,
 			UserID:    4,
 			Await:     time.Hour * 2,
 		}
@@ -248,7 +248,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("release write lock 1", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opWrite,
+			Operation: OpWrite,
 			UserID:    1,
 		}
 		err = svc.Unlock(ctx, c)
@@ -270,7 +270,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("release write lock 1", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opWrite,
+			Operation: OpWrite,
 			UserID:    1,
 		}
 		err = svc.Unlock(ctx, c)
@@ -292,7 +292,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("release read lock 1", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opRead,
+			Operation: OpRead,
 			UserID:    2,
 		}
 		err = svc.Unlock(ctx, c)
@@ -314,7 +314,7 @@ func TestQueueing(t *testing.T) {
 	t.Run("release read lock 2", func(t *testing.T) {
 		c := Constraint{
 			Resource:  "resource_1/a/b",
-			Operation: opRead,
+			Operation: OpRead,
 			UserID:    3,
 		}
 		err = svc.Unlock(ctx, c)
@@ -345,7 +345,7 @@ func TestResourceHierarchy(t *testing.T) {
 		t.Run("user 1 acquire generic write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/*",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    1,
 			})
 
@@ -356,7 +356,7 @@ func TestResourceHierarchy(t *testing.T) {
 		t.Run("user 2 fails specific write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    2,
 			})
 
@@ -367,7 +367,7 @@ func TestResourceHierarchy(t *testing.T) {
 		// Cleanup
 		svc.Unlock(ctx, Constraint{
 			Resource:  "resource_1/a/*",
-			Operation: opWrite,
+			Operation: OpWrite,
 			UserID:    1,
 		})
 	})
@@ -376,7 +376,7 @@ func TestResourceHierarchy(t *testing.T) {
 		t.Run("user 1 acquire generic read lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/*",
-				Operation: opRead,
+				Operation: OpRead,
 				UserID:    1,
 			})
 
@@ -387,7 +387,7 @@ func TestResourceHierarchy(t *testing.T) {
 		t.Run("user 2 fails specific write lock", func(t *testing.T) {
 			ref, state, err = svc.Lock(ctx, Constraint{
 				Resource:  "resource_1/a/b",
-				Operation: opWrite,
+				Operation: OpWrite,
 				UserID:    2,
 			})
 
@@ -398,7 +398,7 @@ func TestResourceHierarchy(t *testing.T) {
 		// Cleanup
 		svc.Lock(ctx, Constraint{
 			Resource:  "resource_1/a/*",
-			Operation: opRead,
+			Operation: OpRead,
 			UserID:    1,
 		})
 	})

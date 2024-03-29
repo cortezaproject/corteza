@@ -28,6 +28,7 @@ func MountRoutes() func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.HttpTokenValidator("api"))
 
+			handlers.NewGatekeep(Gatekeep{}.New()).MountRoutes(r)
 			handlers.NewAuthClient(AuthClient{}.New()).MountRoutes(r)
 			handlers.NewAutomation(Automation{}.New()).MountRoutes(r)
 			handlers.NewUser(User{}.New()).MountRoutes(r)

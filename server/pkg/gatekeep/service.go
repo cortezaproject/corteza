@@ -44,6 +44,7 @@ type (
 		UserID    uint64
 		Overwrite bool
 		Await     time.Duration
+		ExpiresIn time.Duration
 
 		queuedAt time.Time
 	}
@@ -78,20 +79,20 @@ type (
 
 	ebEvent int
 
-	LockState int
+	LockState string
 	Operation string
 )
 
 const (
-	opRead  Operation = "read"
-	opWrite Operation = "write"
+	OpRead  Operation = "read"
+	OpWrite Operation = "write"
 )
 
 const (
-	lockStateNil LockState = iota
-	lockStateLocked
-	lockStateFailed
-	lockStateQueued
+	lockStateNil    LockState = ""
+	lockStateLocked LockState = "locked"
+	lockStateFailed LockState = "failed"
+	lockStateQueued LockState = "queued"
 )
 
 const (
@@ -178,9 +179,9 @@ func (svc *service) Lock(ctx context.Context, c Constraint) (ref uint64, state L
 
 	// If we're wanting to acquire a read lock, we can only of there are none
 	// or all existing locks are also read locks
-	allRead := c.Operation == opRead
+	allRead := c.Operation == OpRead
 	for _, t := range ll {
-		allRead = allRead && t.Operation == opRead
+		allRead = allRead && t.Operation == OpRead
 	}
 
 	// If there are locks and we're not willing to wait, we're done
@@ -507,7 +508,7 @@ func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 		return
 	}
 
-	doReads := q.queue[0].Operation == opRead
+	doReads := q.queue[0].Operation == OpRead
 
 	if !doReads {
 		// Check if we can acquire a new one
@@ -544,7 +545,7 @@ func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 	var i int
 	var qc Constraint
 	for i, qc = range q.queue {
-		if qc.Operation != opRead {
+		if qc.Operation != OpRead {
 			break
 		}
 
@@ -676,7 +677,7 @@ func (t lock) matchesConstraints(c Constraint) (ok bool) {
 
 	// If we're grabbing the same operation or a weaker one.
 	// If we have a write lock, the read lock is a given.
-	if t.Operation == opWrite || t.Operation == c.Operation {
+	if t.Operation == OpWrite || t.Operation == c.Operation {
 		return true
 	}
 
