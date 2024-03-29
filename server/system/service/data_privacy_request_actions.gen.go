@@ -55,7 +55,6 @@ var (
 // setDataPrivacyRequest updates dataPrivacyActionProps's dataPrivacyRequest
 //
 // This function is auto-generated.
-//
 func (p *dataPrivacyActionProps) setDataPrivacyRequest(dataPrivacyRequest *types.DataPrivacyRequest) *dataPrivacyActionProps {
 	p.dataPrivacyRequest = dataPrivacyRequest
 	return p
@@ -64,7 +63,6 @@ func (p *dataPrivacyActionProps) setDataPrivacyRequest(dataPrivacyRequest *types
 // setNew updates dataPrivacyActionProps's new
 //
 // This function is auto-generated.
-//
 func (p *dataPrivacyActionProps) setNew(new *types.DataPrivacyRequest) *dataPrivacyActionProps {
 	p.new = new
 	return p
@@ -73,7 +71,6 @@ func (p *dataPrivacyActionProps) setNew(new *types.DataPrivacyRequest) *dataPriv
 // setUpdate updates dataPrivacyActionProps's update
 //
 // This function is auto-generated.
-//
 func (p *dataPrivacyActionProps) setUpdate(update *types.DataPrivacyRequest) *dataPrivacyActionProps {
 	p.update = update
 	return p
@@ -82,7 +79,6 @@ func (p *dataPrivacyActionProps) setUpdate(update *types.DataPrivacyRequest) *da
 // setFilter updates dataPrivacyActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *dataPrivacyActionProps) setFilter(filter *types.DataPrivacyRequestFilter) *dataPrivacyActionProps {
 	p.filter = filter
 	return p
@@ -91,7 +87,6 @@ func (p *dataPrivacyActionProps) setFilter(filter *types.DataPrivacyRequestFilte
 // Serialize converts dataPrivacyActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p dataPrivacyActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -120,7 +115,6 @@ func (p dataPrivacyActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p dataPrivacyActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -207,7 +201,6 @@ func (p dataPrivacyActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *dataPrivacyAction) String() string {
 	var props = &dataPrivacyActionProps{}
 
@@ -235,7 +228,6 @@ func (e *dataPrivacyAction) ToAction() *actionlog.Action {
 // DataPrivacyActionSearch returns "system:data-privacy-request.search" action
 //
 // This function is auto-generated.
-//
 func DataPrivacyActionSearch(props ...*dataPrivacyActionProps) *dataPrivacyAction {
 	a := &dataPrivacyAction{
 		timestamp: time.Now(),
@@ -255,7 +247,6 @@ func DataPrivacyActionSearch(props ...*dataPrivacyActionProps) *dataPrivacyActio
 // DataPrivacyActionLookup returns "system:data-privacy-request.lookup" action
 //
 // This function is auto-generated.
-//
 func DataPrivacyActionLookup(props ...*dataPrivacyActionProps) *dataPrivacyAction {
 	a := &dataPrivacyAction{
 		timestamp: time.Now(),
@@ -275,7 +266,6 @@ func DataPrivacyActionLookup(props ...*dataPrivacyActionProps) *dataPrivacyActio
 // DataPrivacyActionCreate returns "system:data-privacy-request.create" action
 //
 // This function is auto-generated.
-//
 func DataPrivacyActionCreate(props ...*dataPrivacyActionProps) *dataPrivacyAction {
 	a := &dataPrivacyAction{
 		timestamp: time.Now(),
@@ -295,7 +285,6 @@ func DataPrivacyActionCreate(props ...*dataPrivacyActionProps) *dataPrivacyActio
 // DataPrivacyActionUpdate returns "system:data-privacy-request.update" action
 //
 // This function is auto-generated.
-//
 func DataPrivacyActionUpdate(props ...*dataPrivacyActionProps) *dataPrivacyAction {
 	a := &dataPrivacyAction{
 		timestamp: time.Now(),
@@ -315,7 +304,6 @@ func DataPrivacyActionUpdate(props ...*dataPrivacyActionProps) *dataPrivacyActio
 // DataPrivacyActionApprove returns "system:data-privacy-request.approve" action
 //
 // This function is auto-generated.
-//
 func DataPrivacyActionApprove(props ...*dataPrivacyActionProps) *dataPrivacyAction {
 	a := &dataPrivacyAction{
 		timestamp: time.Now(),
@@ -338,9 +326,7 @@ func DataPrivacyActionApprove(props ...*dataPrivacyActionProps) *dataPrivacyActi
 
 // DataPrivacyErrGeneric returns "system:data-privacy-request.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrGeneric(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -374,9 +360,7 @@ func DataPrivacyErrGeneric(mm ...*dataPrivacyActionProps) *errors.Error {
 
 // DataPrivacyErrNotFound returns "system:data-privacy-request.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrNotFound(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -408,9 +392,7 @@ func DataPrivacyErrNotFound(mm ...*dataPrivacyActionProps) *errors.Error {
 
 // DataPrivacyErrInvalidID returns "system:data-privacy-request.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrInvalidID(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -442,9 +424,7 @@ func DataPrivacyErrInvalidID(mm ...*dataPrivacyActionProps) *errors.Error {
 
 // DataPrivacyErrInvalidKind returns "system:data-privacy-request.invalidKind" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrInvalidKind(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -476,9 +456,7 @@ func DataPrivacyErrInvalidKind(mm ...*dataPrivacyActionProps) *errors.Error {
 
 // DataPrivacyErrInvalidStatus returns "system:data-privacy-request.invalidStatus" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrInvalidStatus(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -510,9 +488,7 @@ func DataPrivacyErrInvalidStatus(mm ...*dataPrivacyActionProps) *errors.Error {
 
 // DataPrivacyErrStaleData returns "system:data-privacy-request.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrStaleData(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -544,9 +520,7 @@ func DataPrivacyErrStaleData(mm ...*dataPrivacyActionProps) *errors.Error {
 
 // DataPrivacyErrNotAllowedToRead returns "system:data-privacy-request.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrNotAllowedToRead(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -580,9 +554,7 @@ func DataPrivacyErrNotAllowedToRead(mm ...*dataPrivacyActionProps) *errors.Error
 
 // DataPrivacyErrNotAllowedToSearch returns "system:data-privacy-request.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrNotAllowedToSearch(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -616,9 +588,7 @@ func DataPrivacyErrNotAllowedToSearch(mm ...*dataPrivacyActionProps) *errors.Err
 
 // DataPrivacyErrNotAllowedToCreate returns "system:data-privacy-request.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrNotAllowedToCreate(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -652,9 +622,7 @@ func DataPrivacyErrNotAllowedToCreate(mm ...*dataPrivacyActionProps) *errors.Err
 
 // DataPrivacyErrNotAllowedToApprove returns "system:data-privacy-request.notAllowedToApprove" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DataPrivacyErrNotAllowedToApprove(mm ...*dataPrivacyActionProps) *errors.Error {
 	var p = &dataPrivacyActionProps{}
 	if len(mm) > 0 {
@@ -694,7 +662,6 @@ func DataPrivacyErrNotAllowedToApprove(mm ...*dataPrivacyActionProps) *errors.Er
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc dataPrivacy) recordAction(ctx context.Context, props *dataPrivacyActionProps, actionFn func(...*dataPrivacyActionProps) *dataPrivacyAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
