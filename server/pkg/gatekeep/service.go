@@ -627,5 +627,16 @@ func (svc *service) releaseQueued(ctx context.Context, c Constraint, ref uint64)
 }
 
 func (t lock) matchesConstraints(c Constraint) (ok bool) {
-	return t.UserID == c.UserID && t.Resource == c.Resource && t.Operation == c.Operation
+	// Can't do anything
+	if t.UserID != c.UserID || t.Resource != c.Resource {
+		return false
+	}
+
+	// If we're grabbing the same operation or a weaker one.
+	// If we have a write lock, the read lock is a given.
+	if t.Operation == opWrite || t.Operation == c.Operation {
+		return true
+	}
+
+	return false
 }

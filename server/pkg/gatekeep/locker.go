@@ -18,10 +18,10 @@ type (
 
 		svc             *service
 		locks           []lockerBit
-		lockConstraints []lockerConstraint
+		lockConstraints []LockerConstraint
 	}
 
-	lockerConstraint func(c Constraint) Constraint
+	LockerConstraint func(ctx context.Context, c Constraint) Constraint
 
 	identifyable interface {
 		Identity() uint64
@@ -32,15 +32,15 @@ const (
 	defaultLockAwait = time.Second * 5
 )
 
-func Locker(svc *service, ff ...lockerConstraint) *locker {
+func Locker(svc *service, ff ...LockerConstraint) *locker {
 	return &locker{
 		svc:             svc,
 		lockConstraints: ff,
 	}
 }
 
-func WithDefaultAwait() lockerConstraint {
-	return func(c Constraint) Constraint {
+func WithDefaultAwait() LockerConstraint {
+	return func(_ context.Context, c Constraint) Constraint {
 		c.Await = defaultLockAwait
 		return c
 	}
@@ -50,17 +50,17 @@ func WithDefaultAwait() lockerConstraint {
 //
 // By default, the lock will pend for 5 seconds
 func (lg *locker) Read(ctx context.Context, res ...string) (err error) {
-	return lg.add(ctx, auth.GetIdentityFromContext(ctx), opRead, res...)
+	return lg.add(ctx, opRead, res...)
 }
 
 // Read attempts to lock the resource for writing
 //
 // By default, the lock will pend for 5 seconds
 func (lg *locker) Write(ctx context.Context, res ...string) (err error) {
-	return lg.add(ctx, auth.GetIdentityFromContext(ctx), opWrite, res...)
+	return lg.add(ctx, opWrite, res...)
 }
 
-func (lg *locker) add(ctx context.Context, idt identifyable, op Operation, rr ...string) (err error) {
+func (lg *locker) add(ctx context.Context, op Operation, rr ...string) (err error) {
 	lg.mux.Lock()
 	defer lg.mux.Unlock()
 
@@ -69,11 +69,14 @@ func (lg *locker) add(ctx context.Context, idt identifyable, op Operation, rr ..
 		cc[i] = Constraint{
 			Resource:  res,
 			Operation: op,
-			UserID:    idt.Identity(),
 		}
 
 		for _, f := range lg.lockConstraints {
-			cc[i] = f(cc[i])
+			cc[i] = f(ctx, cc[i])
+		}
+
+		if cc[i].UserID == 0 {
+			cc[i].UserID = auth.GetIdentityFromContext(ctx).Identity()
 		}
 	}
 

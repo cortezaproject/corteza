@@ -166,6 +166,9 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 		aProps = &moduleActionProps{filter: &filter}
 	)
 
+	lcr := gatekeep.Locker(gatekeep.Service(), gatekeep.WithDefaultAwait())
+	defer lcr.Free(ctx)
+
 	// For each fetched item, store backend will check if it is valid or not
 	filter.Check = func(res *types.Module) (bool, error) {
 		if !svc.ac.CanReadModule(ctx, res) {
@@ -175,7 +178,17 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 		return true, nil
 	}
 
-	err = func() error {
+	err = func() (err error) {
+		err = errors.GetFirst(
+			lcr.Read(ctx,
+				types.NamespaceRbacResource(filter.NamespaceID),
+				types.ModuleRbacResource(f.NamespaceID, 0),
+			),
+		)
+		if err != nil {
+			return err
+		}
+
 		ns, err = loadNamespace(ctx, svc.store, filter.NamespaceID)
 		if err != nil {
 			return err

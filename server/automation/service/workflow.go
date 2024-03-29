@@ -86,8 +86,6 @@ type (
 
 	workflowUpdateHandler func(ctx context.Context, ns *types.Workflow) (workflowChanges, error)
 	workflowChanges       uint8
-
-	workflowInvokerCtxKey struct{}
 )
 
 const (

@@ -378,7 +378,7 @@ func (svc *session) Watch(ctx context.Context) {
 
 				// Encode invoker into execution context
 				// invoker is used
-				execCtx = context.WithValue(execCtx, workflowInvokerCtxKey{}, s.invoker)
+				execCtx = context.WithValue(execCtx, types.WorkflowInvokerCtxKey{}, s.invoker)
 
 				s.session <- wfexec.NewSession(execCtx, s.graph, opts...)
 				// case time for a pool cleanup

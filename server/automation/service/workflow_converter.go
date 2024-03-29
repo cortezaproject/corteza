@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -10,7 +12,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/automation"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type (
@@ -487,7 +488,7 @@ func (svc workflowConverter) convPromptStep(s *types.WorkflowStep) (wfexec.Step,
 					return nil, fmt.Errorf("cannot select owner: unsupported type provided %T", casted)
 				}
 			} else {
-				if i := auth.GetIdentityFromContextWithKey(ctx, workflowInvokerCtxKey{}); i != nil {
+				if i := auth.GetIdentityFromContextWithKey(ctx, types.WorkflowInvokerCtxKey{}); i != nil {
 					ownerId = i.Identity()
 				}
 			}

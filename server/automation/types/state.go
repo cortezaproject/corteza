@@ -22,4 +22,6 @@ type (
 		StepID   uint64     `json:"stepID,string"`
 		Scope    *expr.Vars `json:"scope"`
 	}
+
+	WorkflowInvokerCtxKey struct{}
 )
