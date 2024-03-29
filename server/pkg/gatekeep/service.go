@@ -73,7 +73,7 @@ type (
 		State LockState `json:"state"`
 
 		LockDuration time.Duration `json:"lockDuration"`
-		LockExpires  *time.Time    `json:"lockExpires"`
+		AcquiredAt   time.Time     `json:"acquiredAt"`
 	}
 
 	ebEvent int
@@ -367,28 +367,10 @@ func (svc *service) check(ctx context.Context, c Constraint) (ref uint64, state 
 	return 0, lockStateNil, nil
 }
 
-// Cleanup will release stale things
-func (svc *service) Cleanup(ctx context.Context) (err error) {
+func (svc *service) cleanupStore(ctx context.Context) (err error) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
-	svc.logger.Debug("cleanup started")
-	defer svc.logger.Debug("cleanup finished")
-
-	err = svc.cleanupStale(ctx)
-	if err != nil {
-		return fmt.Errorf("cleanup stale failed: %v", err)
-	}
-
-	err = svc.cleanupQueues(ctx)
-	if err != nil {
-		return fmt.Errorf("cleanup queues failed: %v", err)
-	}
-
-	return
-}
-
-func (svc *service) cleanupStale(ctx context.Context) (err error) {
 	svc.logger.Debug("cleaning up stale locks")
 	defer svc.logger.Debug("cleaned up stale locks")
 
@@ -398,6 +380,9 @@ func (svc *service) cleanupStale(ctx context.Context) (err error) {
 }
 
 func (svc *service) cleanupQueues(ctx context.Context) (err error) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	svc.logger.Debug("cleaning up stale queues")
 	defer svc.logger.Debug("cleaned up stale queues")
 
@@ -442,17 +427,32 @@ func (svc *service) cleanupQueues(ctx context.Context) (err error) {
 }
 
 func (svc *service) Watch(ctx context.Context) {
-	tcr := time.NewTicker(5 * time.Second)
+	tcrGcQueued := time.NewTicker(time.Second * 5)
+
+	// The store ticker is for a greater interval since it's a more hardcore operation
+	// @todo potentially keep some in memory index of what's to expire?
+	tcrGcStore := time.NewTicker(time.Minute * 5)
+
 	svc.logger.Debug("watcher starting")
 
 	var err error
 	go func() {
 		for {
 			select {
-			case <-tcr.C:
-				svc.logger.Debug("tick cleanup")
+			case <-tcrGcStore.C:
+				svc.logger.Debug("tick gc store")
 
-				err = svc.Cleanup(ctx)
+				err = svc.cleanupStore(ctx)
+				if err != nil {
+					// @todo logging
+					svc.logger.Error("cleanup store error", zap.Error(err))
+					err = nil
+				}
+
+			case <-tcrGcQueued.C:
+				svc.logger.Debug("tick cleanup queue")
+
+				err = svc.cleanupQueues(ctx)
 				if err != nil {
 					// @todo logging
 					svc.logger.Error("cleanup error", zap.Error(err))
@@ -461,7 +461,8 @@ func (svc *service) Watch(ctx context.Context) {
 
 			case <-ctx.Done():
 				svc.logger.Debug("watcher stopping")
-				tcr.Stop()
+				tcrGcQueued.Stop()
+				tcrGcStore.Stop()
 				return
 			}
 		}
@@ -587,6 +588,8 @@ func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64
 		Resource:  c.Resource,
 		Operation: c.Operation,
 		State:     lockStateLocked,
+
+		AcquiredAt: time.Now(),
 	})
 
 	bb, err := json.Marshal(tt)
