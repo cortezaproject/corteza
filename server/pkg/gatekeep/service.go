@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/davecgh/go-spew/spew"
 	"go.uber.org/zap"
 )
 
@@ -22,7 +21,7 @@ type (
 
 		events eventManager
 
-		log *zap.Logger
+		logger *zap.Logger
 	}
 
 	EventListener func(evt Event)
@@ -114,9 +113,9 @@ var (
 // It needs an established and working connection to the primary store
 func New(log *zap.Logger, s store) (*service, error) {
 	svc := &service{
-		mux:   sync.RWMutex{},
-		log:   log,
-		store: s,
+		mux:    sync.RWMutex{},
+		logger: log,
+		store:  s,
 
 		queueManager: &queueManager{
 			mux:    sync.Mutex{},
@@ -278,6 +277,14 @@ func (svc *service) Unsubscribe(id int) {
 	svc.events.Unsubscribe(id)
 }
 
+func (svc *service) Publish(event Event) {
+	if svc.events == nil {
+		panic("events not initialized")
+	}
+
+	svc.events.Publish(event)
+}
+
 // probeResource returns all of the locks on the given resource
 //
 // The function returns both already acquired and queued locks
@@ -365,9 +372,35 @@ func (svc *service) Cleanup(ctx context.Context) (err error) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
-	// @todo cleanup stale/overdue locks
+	svc.logger.Debug("cleanup started")
+	defer svc.logger.Debug("cleanup finished")
 
-	// Cleanup stale queued locks
+	err = svc.cleanupStale(ctx)
+	if err != nil {
+		return fmt.Errorf("cleanup stale failed: %v", err)
+	}
+
+	err = svc.cleanupQueues(ctx)
+	if err != nil {
+		return fmt.Errorf("cleanup queues failed: %v", err)
+	}
+
+	return
+}
+
+func (svc *service) cleanupStale(ctx context.Context) (err error) {
+	svc.logger.Debug("cleaning up stale locks")
+	defer svc.logger.Debug("cleaned up stale locks")
+
+	// @todo...
+
+	return
+}
+
+func (svc *service) cleanupQueues(ctx context.Context) (err error) {
+	svc.logger.Debug("cleaning up stale queues")
+	defer svc.logger.Debug("cleaned up stale queues")
+
 	qm := svc.queueManager
 	if qm == nil {
 		return
@@ -376,9 +409,9 @@ func (svc *service) Cleanup(ctx context.Context) (err error) {
 	qm.mux.Lock()
 	defer qm.mux.Unlock()
 
-	now := time.Now()
 	// Go backwards and spice out the ones that need to be removed.
 	// Broadcast down the buss so we can kill off the watchers.
+	now := time.Now()
 	for _, qq := range qm.queues {
 		for i := len(qq.queue) - 1; i >= 0; i-- {
 			c := qq.queue[i]
@@ -392,25 +425,16 @@ func (svc *service) Cleanup(ctx context.Context) (err error) {
 				State: lockStateFailed,
 			}
 
-			if c.queuedAt.IsZero() {
-				qq.queue = append(qq.queue[:i], qq.queue[i+1:]...)
-
-				svc.events.Publish(Event{
-					Kind: ebEventLockResolved,
-					Lock: l,
-				})
+			if !c.queuedAt.IsZero() && now.Before(c.queuedAt.Add(c.Await)) {
 				continue
 			}
 
-			if now.After(c.queuedAt.Add(c.Await)) {
-				qq.queue = append(qq.queue[:i], qq.queue[i+1:]...)
-
-				svc.events.Publish(Event{
-					Kind: ebEventLockResolved,
-					Lock: l,
-				})
-				continue
-			}
+			// Splice it out and publish the event
+			qq.queue = append(qq.queue[:i], qq.queue[i+1:]...)
+			svc.Publish(Event{
+				Kind: ebEventLockResolved,
+				Lock: l,
+			})
 		}
 	}
 
@@ -418,26 +442,26 @@ func (svc *service) Cleanup(ctx context.Context) (err error) {
 }
 
 func (svc *service) Watch(ctx context.Context) {
-	tCleanup := time.NewTicker(5 * time.Second)
-	tQueued := time.NewTicker(1 * time.Second)
+	tcr := time.NewTicker(5 * time.Second)
+	svc.logger.Debug("watcher starting")
 
 	var err error
 	go func() {
 		for {
 			select {
-			case <-tQueued.C:
-				// @todo
+			case <-tcr.C:
+				svc.logger.Debug("tick cleanup")
 
-			case <-tCleanup.C:
 				err = svc.Cleanup(ctx)
 				if err != nil {
 					// @todo logging
-					spew.Dump("cleanup error", err)
+					svc.logger.Error("cleanup error", zap.Error(err))
 					err = nil
 				}
 
 			case <-ctx.Done():
-				tCleanup.Stop()
+				svc.logger.Debug("watcher stopping")
+				tcr.Stop()
 				return
 			}
 		}
@@ -510,8 +534,7 @@ func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 		// @todo
 		_, err = svc.acquireLock(ctx, qc, qc.id)
 		if err != nil {
-			// @todo logging
-			spew.Dump("doQueued error", err)
+			svc.logger.Error("queued failed to acquire lock", zap.Error(err))
 		}
 
 		return
@@ -526,8 +549,8 @@ func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 
 		_, err = svc.acquireLock(ctx, qc, qc.id)
 		if err != nil {
-			// @todo logging
-			spew.Dump("doQueued error", err)
+			svc.logger.Error("queued failed to acquire lock", zap.Error(err))
+			err = nil
 			continue
 		}
 	}
