@@ -6,9 +6,9 @@ import (
 	"sync"
 )
 
-func AwaitLocks(ctx context.Context, svc *service, cc ...Constraint) (refs []uint64, errs []error) {
+func AwaitLocks(ctx context.Context, svc gksvc, cc ...Constraint) (refs []uint64, errs []error) {
 	var (
-		state lockState
+		state LockState
 		wg    = &sync.WaitGroup{}
 	)
 
@@ -32,7 +32,7 @@ func AwaitLocks(ctx context.Context, svc *service, cc ...Constraint) (refs []uin
 		}
 
 		wg.Add(1)
-		lID := svc.events.Subscribe(func(evt Event) {
+		lID := svc.Subscribe(func(evt Event) {
 			if !evt.Lock.matchesConstraints(c) {
 				return
 			}
@@ -47,7 +47,7 @@ func AwaitLocks(ctx context.Context, svc *service, cc ...Constraint) (refs []uin
 
 			wg.Done()
 		})
-		defer svc.events.Unsubscribe(lID)
+		defer svc.Unsubscribe(lID)
 	}
 
 	wg.Wait()

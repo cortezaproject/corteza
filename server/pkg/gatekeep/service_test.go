@@ -15,7 +15,7 @@ func TestBasicLocking(t *testing.T) {
 		err   error
 		ref   uint64
 		tt    []lock
-		state lockState
+		state LockState
 	)
 
 	t.Run("acquire read lock", func(t *testing.T) {
@@ -169,7 +169,7 @@ func TestQueueing(t *testing.T) {
 		err   error
 		ref   uint64
 		tt    []lock
-		state lockState
+		state LockState
 	)
 
 	_, _, err = svc.Lock(ctx, Constraint{
@@ -338,7 +338,7 @@ func TestResourceHierarchy(t *testing.T) {
 	var (
 		err   error
 		ref   uint64
-		state lockState
+		state LockState
 	)
 
 	t.Run("acquire same kind lock", func(t *testing.T) {

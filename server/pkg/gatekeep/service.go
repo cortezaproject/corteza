@@ -25,14 +25,14 @@ type (
 		log *zap.Logger
 	}
 
-	eventListener func(evt Event)
+	EventListener func(evt Event)
 	Event         struct {
 		Kind ebEvent
 		Lock lock
 	}
 
 	eventManager interface {
-		Subscribe(listener eventListener) int
+		Subscribe(listener EventListener) int
 		Unsubscribe(int)
 		Publish(event Event)
 	}
@@ -71,7 +71,7 @@ type (
 		Resource  string    `json:"resource"`
 		Operation Operation `json:"operation"`
 
-		State lockState `json:"state"`
+		State LockState `json:"state"`
 
 		LockDuration time.Duration `json:"lockDuration"`
 		LockExpires  *time.Time    `json:"lockExpires"`
@@ -79,7 +79,7 @@ type (
 
 	ebEvent int
 
-	lockState int
+	LockState int
 	Operation string
 )
 
@@ -89,7 +89,7 @@ const (
 )
 
 const (
-	lockStateNil lockState = iota
+	lockStateNil LockState = iota
 	lockStateLocked
 	lockStateFailed
 	lockStateQueued
@@ -158,7 +158,7 @@ func SetGlobal(svc *service, err error) {
 //
 // The function doesn't block/wait for the lock to be acquired; that needs
 // to be done by the caller
-func (svc *service) Lock(ctx context.Context, c Constraint) (ref uint64, state lockState, err error) {
+func (svc *service) Lock(ctx context.Context, c Constraint) (ref uint64, state LockState, err error) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
@@ -237,7 +237,7 @@ func (svc *service) Unlock(ctx context.Context, c Constraint) (err error) {
 }
 
 // ProbeLock returns the current state of the lock
-func (svc *service) ProbeLock(ctx context.Context, c Constraint, ref uint64) (state lockState, err error) {
+func (svc *service) ProbeLock(ctx context.Context, c Constraint, ref uint64) (state LockState, err error) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
@@ -260,6 +260,22 @@ func (svc *service) ProbeResource(ctx context.Context, r string) (tt []lock, err
 	defer svc.mux.RUnlock()
 
 	return svc.probeResource(ctx, r)
+}
+
+func (svc *service) Subscribe(listener EventListener) int {
+	if svc.events == nil {
+		panic("events not initialized")
+	}
+
+	return svc.events.Subscribe(listener)
+}
+
+func (svc *service) Unsubscribe(id int) {
+	if svc.events == nil {
+		panic("events not initialized")
+	}
+
+	svc.events.Unsubscribe(id)
 }
 
 // probeResource returns all of the locks on the given resource
@@ -327,7 +343,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 }
 
 // check returns the lock reference along with it's state
-func (svc *service) check(ctx context.Context, c Constraint) (ref uint64, state lockState, err error) {
+func (svc *service) check(ctx context.Context, c Constraint) (ref uint64, state LockState, err error) {
 	aux, err := svc.probeResource(ctx, c.Resource)
 	if err != nil {
 		return

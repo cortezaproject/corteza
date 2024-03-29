@@ -9,19 +9,27 @@ import (
 )
 
 type (
-	lockerBit struct {
-		Ref        uint64
-		Constraint Constraint
-	}
 	locker struct {
 		mux sync.RWMutex
 
-		svc             *service
+		svc             gksvc
 		locks           []lockerBit
 		lockConstraints []LockerConstraint
 	}
 
+	lockerBit struct {
+		Ref        uint64
+		Constraint Constraint
+	}
+
 	LockerConstraint func(ctx context.Context, c Constraint) Constraint
+
+	gksvc interface {
+		Lock(context.Context, Constraint) (uint64, LockState, error)
+		Unlock(context.Context, Constraint) error
+		Subscribe(listener EventListener) int
+		Unsubscribe(id int)
+	}
 
 	identifyable interface {
 		Identity() uint64
@@ -32,7 +40,7 @@ const (
 	defaultLockAwait = time.Second * 5
 )
 
-func Locker(svc *service, ff ...LockerConstraint) *locker {
+func Locker(svc gksvc, ff ...LockerConstraint) *locker {
 	return &locker{
 		svc:             svc,
 		lockConstraints: ff,

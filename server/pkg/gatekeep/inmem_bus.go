@@ -5,7 +5,7 @@ import "sync"
 type (
 	listenerWrap struct {
 		id int
-		fn eventListener
+		fn EventListener
 	}
 
 	inMemBus struct {
@@ -24,7 +24,7 @@ const (
 
 // Subscribe adds a new listener to the in-memory event bus
 // The returned reference should be used to manage the subscribed listener.
-func (q *inMemBus) Subscribe(listener eventListener) int {
+func (q *inMemBus) Subscribe(listener EventListener) int {
 	q.mux.Lock()
 	defer q.mux.Unlock()
 

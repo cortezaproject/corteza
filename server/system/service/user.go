@@ -12,20 +12,17 @@ import (
 	"time"
 	"unicode"
 
-	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
-	"github.com/cortezaproject/corteza/server/pkg/gatekeep"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/modern-go/reflect2"
 )
 
 const (
@@ -85,10 +82,6 @@ type (
 		CanUnmaskNameOnUser(context.Context, *types.User) bool
 	}
 
-	identifyable interface {
-		Identity() uint64
-	}
-
 	UserService interface {
 		FindByEmail(ctx context.Context, email string) (*types.User, error)
 		FindByHandle(ctx context.Context, handle string) (*types.User, error)
@@ -137,37 +130,11 @@ func User(opt UserOptions) *user {
 	}
 }
 
-func stdLockerFuncs() (out []gatekeep.LockerConstraint) {
-	return []gatekeep.LockerConstraint{
-		gatekeep.WithDefaultAwait(),
-
-		// Pull out user ID from context
-		//
-		// For the sakes of ease, we can use the WorkflowInvoker to avoid issues
-		// where we use different users to execute workflows.
-		func(ctx context.Context, c gatekeep.Constraint) gatekeep.Constraint {
-			var id uint64
-
-			aux := ctx.Value(atypes.WorkflowInvokerCtxKey{})
-			if !reflect2.IsNil(aux) {
-				id = aux.(identifyable).Identity()
-			} else {
-				id = internalAuth.GetIdentityFromContext(ctx).Identity()
-			}
-
-			c.UserID = id
-
-			return c
-		},
-	}
-}
-
 func (svc user) FindByID(ctx context.Context, userID uint64) (u *types.User, err error) {
 	var (
 		uaProps = &userActionProps{user: &types.User{ID: userID}}
+		lcr     = stdLocker()
 	)
-
-	lcr := gatekeep.Locker(gatekeep.Service(), stdLockerFuncs()...)
 	defer lcr.Free(ctx)
 
 	err = func() error {
@@ -468,7 +435,7 @@ func (svc user) CreateWithAvatar(ctx context.Context, input *types.User, avatar 
 }
 
 func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err error) {
-	lcr := gatekeep.Locker(gatekeep.Service(), gatekeep.WithDefaultAwait())
+	lcr := stdLocker()
 	defer lcr.Free(ctx)
 
 	var (
@@ -488,6 +455,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		if err != nil {
 			return
 		}
+
 		if u, err = loadUser(ctx, svc.store, upd.ID); err != nil {
 			return
 		}
