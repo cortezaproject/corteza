@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
@@ -13,6 +14,12 @@ import (
 type (
 	Gatekeep struct {
 		gatekeep gatekeepSvc
+
+		ac gatekeepAccessController
+	}
+
+	gatekeepAccessController interface {
+		CanManageGatekeep(context.Context) bool
 	}
 
 	gatekeepSvc interface {
@@ -35,6 +42,12 @@ func (Gatekeep) New() *Gatekeep {
 }
 
 func (ctrl Gatekeep) Lock(ctx context.Context, r *request.GatekeepLock) (out interface{}, err error) {
+	if !ctrl.ac.CanManageGatekeep(ctx) {
+		// @todo proper errors
+		err = fmt.Errorf("not allowed to manage gatekeep locks")
+		return
+	}
+
 	c := gatekeep.Constraint{
 		Resource:  r.Resource,
 		Operation: gatekeep.OpWrite,
@@ -65,6 +78,12 @@ func (ctrl Gatekeep) Lock(ctx context.Context, r *request.GatekeepLock) (out int
 }
 
 func (ctrl Gatekeep) Unlock(ctx context.Context, r *request.GatekeepUnlock) (out interface{}, err error) {
+	if !ctrl.ac.CanManageGatekeep(ctx) {
+		// @todo proper errors
+		err = fmt.Errorf("not allowed to manage gatekeep locks")
+		return
+	}
+
 	c := gatekeep.Constraint{
 		Resource:  r.Resource,
 		Operation: gatekeep.OpWrite,
@@ -79,6 +98,12 @@ func (ctrl Gatekeep) Unlock(ctx context.Context, r *request.GatekeepUnlock) (out
 }
 
 func (ctrl Gatekeep) Check(ctx context.Context, r *request.GatekeepCheck) (out interface{}, err error) {
+	if !ctrl.ac.CanManageGatekeep(ctx) {
+		// @todo proper errors
+		err = fmt.Errorf("not allowed to manage gatekeep locks")
+		return
+	}
+
 	c := gatekeep.Constraint{
 		Resource:  r.Resource,
 		Operation: gatekeep.OpWrite,

@@ -78,5 +78,7 @@ component: schema.#component & {
 
 		"data-privacy-request.create": description:  "Create data privacy requests"
 		"data-privacy-requests.search": description: "List, search or filter data privacy requests"
+
+		"gatekeep.manage": description: "Manage gatekeep locks"
 	}
 }
