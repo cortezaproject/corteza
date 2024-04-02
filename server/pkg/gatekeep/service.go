@@ -27,7 +27,7 @@ type (
 	EventListener func(evt Event)
 	Event         struct {
 		Kind ebEvent
-		Lock lock
+		Lock Lock
 	}
 
 	eventManager interface {
@@ -64,9 +64,9 @@ type (
 		DeleteValue(ctx context.Context, key string) error
 	}
 
-	lock struct {
-		ID        uint64    `json:"id"`
-		UserID    uint64    `json:"userID"`
+	Lock struct {
+		ID        uint64    `json:"id,string"`
+		UserID    uint64    `json:"userID,string"`
 		CreatedAt time.Time `json:"createdAt"`
 		Resource  string    `json:"resource"`
 		Operation Operation `json:"operation"`
@@ -96,8 +96,8 @@ const (
 )
 
 const (
-	ebEventLockResolved ebEvent = iota
-	ebEventLockReleased
+	EbEventLockResolved ebEvent = iota
+	EbEventLockReleased
 )
 
 var (
@@ -158,7 +158,7 @@ func SetGlobal(svc *service, err error) {
 //
 // The function doesn't block/wait for the lock to be acquired; that needs
 // to be done by the caller
-func (svc *service) Lock(ctx context.Context, c Constraint) (ref uint64, state LockState, err error) {
+func (svc *service) Lock(ctx context.Context, c Constraint) (l Lock, err error) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
@@ -173,7 +173,7 @@ func (svc *service) Lock(ctx context.Context, c Constraint) (ref uint64, state L
 		if l.matchesConstraints(c) {
 			// @todo extending?
 			// @todo queued
-			return l.ID, l.State, nil
+			return l, nil
 		}
 	}
 
@@ -186,25 +186,40 @@ func (svc *service) Lock(ctx context.Context, c Constraint) (ref uint64, state L
 
 	// If there are locks and we're not willing to wait, we're done
 	if (len(ll) > 0 && !allRead) && c.Await == 0 {
-		state = lockStateFailed
+		l = Lock{
+			State: lockStateFailed,
+		}
 		return
 	}
 
 	// If there are no locks or all are read locks, we can acquire the lock
 	if len(ll) == 0 || allRead {
-		ref, err = svc.acquireLock(ctx, c)
+		l, err = svc.acquireLock(ctx, c)
 		if err != nil {
-			state = lockStateFailed
+			l.State = lockStateFailed
 			return
 		}
 
-		state = lockStateLocked
+		l.State = lockStateLocked
 		return
 	}
 
 	// Queue the lock
-	ref, err = svc.queueManager.queueLock(ctx, c)
-	state = lockStateQueued
+	ref, err := svc.queueManager.queueLock(ctx, c)
+	l = Lock{
+		ID:        ref,
+		UserID:    c.UserID,
+		Resource:  c.Resource,
+		Operation: c.Operation,
+		State:     lockStateQueued,
+	}
+
+	if err != nil {
+		l.State = lockStateFailed
+		return
+	}
+
+	l.State = lockStateQueued
 	return
 }
 
@@ -218,20 +233,28 @@ func (svc *service) Unlock(ctx context.Context, c Constraint) (err error) {
 	// releasing a lock may result in other locks being acquirable
 	defer svc.doQueued(ctx, c)
 
-	ref, exists, err := svc.check(ctx, c)
+	lock, exists, err := svc.check(ctx, c)
 	if err != nil {
 		return
 	}
 
-	if ref == 0 {
+	if lock.ID == 0 {
 		return
 	}
 
 	if exists == lockStateLocked {
-		return svc.releaseLock(ctx, c, ref)
+		err = svc.releaseLock(ctx, c, lock.ID)
 	} else if exists == lockStateQueued {
-		return svc.releaseQueued(ctx, c, ref)
+		err = svc.releaseQueued(ctx, c, lock.ID)
 	}
+	if err != nil {
+		return
+	}
+
+	svc.Publish(Event{
+		Kind: EbEventLockReleased,
+		Lock: lock,
+	})
 
 	return
 }
@@ -255,7 +278,7 @@ func (svc *service) ProbeLock(ctx context.Context, c Constraint, ref uint64) (st
 	return
 }
 
-func (svc *service) ProbeResource(ctx context.Context, r string) (tt []lock, err error) {
+func (svc *service) ProbeResource(ctx context.Context, r string) (tt []Lock, err error) {
 	svc.mux.RLock()
 	defer svc.mux.RUnlock()
 
@@ -289,7 +312,7 @@ func (svc *service) Publish(event Event) {
 // probeResource returns all of the locks on the given resource
 //
 // The function returns both already acquired and queued locks
-func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err error) {
+func (svc *service) probeResource(ctx context.Context, r string) (tt []Lock, err error) {
 	bits := strings.Split(r, "/")
 	schema := bits[0]
 	path := bits[1:]
@@ -297,7 +320,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 	seen := make(map[string]struct{}, len(path))
 
 	var bb []byte
-	var auxOut []lock
+	var auxOut []Lock
 
 	// Check for all keys that are either as specific or less for the same resource.
 	// So if we're probing for a specific module, check all the wildcards corresponding to it.
@@ -336,7 +359,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 		}
 
 		for _, c := range aux.queue {
-			tt = append(tt, lock{
+			tt = append(tt, Lock{
 				ID:        c.id,
 				UserID:    c.UserID,
 				Resource:  c.Resource,
@@ -351,7 +374,7 @@ func (svc *service) probeResource(ctx context.Context, r string) (tt []lock, err
 }
 
 // check returns the lock reference along with it's state
-func (svc *service) check(ctx context.Context, c Constraint) (ref uint64, state LockState, err error) {
+func (svc *service) check(ctx context.Context, c Constraint) (lock Lock, state LockState, err error) {
 	aux, err := svc.probeResource(ctx, c.Resource)
 	if err != nil {
 		return
@@ -362,10 +385,10 @@ func (svc *service) check(ctx context.Context, c Constraint) (ref uint64, state 
 			continue
 		}
 
-		return t.ID, t.State, nil
+		return t, t.State, nil
 	}
 
-	return 0, lockStateNil, nil
+	return lock, lockStateNil, nil
 }
 
 func (svc *service) cleanupStore(ctx context.Context) (err error) {
@@ -401,7 +424,7 @@ func (svc *service) cleanupQueues(ctx context.Context) (err error) {
 	for _, qq := range qm.queues {
 		for i := len(qq.queue) - 1; i >= 0; i-- {
 			c := qq.queue[i]
-			l := lock{
+			l := Lock{
 				ID:        c.id,
 				UserID:    c.UserID,
 				CreatedAt: c.queuedAt,
@@ -418,7 +441,7 @@ func (svc *service) cleanupQueues(ctx context.Context) (err error) {
 			// Splice it out and publish the event
 			qq.queue = append(qq.queue[:i], qq.queue[i+1:]...)
 			svc.Publish(Event{
-				Kind: ebEventLockResolved,
+				Kind: EbEventLockResolved,
 				Lock: l,
 			})
 		}
@@ -515,7 +538,7 @@ func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 		qc := q.queue[0]
 
 		// Probe existing resource locks so we can figure out what we can do
-		var tt []lock
+		var tt []Lock
 		tt, err = svc.probeResource(ctx, qc.Resource)
 		if err != nil {
 			return
@@ -561,8 +584,8 @@ func (svc *service) doQueued(ctx context.Context, c Constraint) (err error) {
 	return
 }
 
-func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64) (ref uint64, err error) {
-	tt := make([]lock, 0)
+func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64) (l Lock, err error) {
+	tt := make([]Lock, 0)
 
 	// Get current locks from the store
 	// @todo we can probably pass the OG slice around
@@ -582,7 +605,8 @@ func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64
 	if len(ids) > 0 {
 		id = ids[0]
 	}
-	tt = append(tt, lock{
+
+	l = Lock{
 		ID:        id,
 		UserID:    c.UserID,
 		CreatedAt: time.Now(),
@@ -591,7 +615,8 @@ func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64
 		State:     lockStateLocked,
 
 		AcquiredAt: time.Now(),
-	})
+	}
+	tt = append(tt, l)
 
 	bb, err := json.Marshal(tt)
 	if err != nil {
@@ -603,7 +628,11 @@ func (svc *service) acquireLock(ctx context.Context, c Constraint, ids ...uint64
 		return
 	}
 
-	ref = id
+	svc.Publish(Event{
+		Kind: EbEventLockResolved,
+		Lock: l,
+	})
+
 	return
 }
 
@@ -614,7 +643,7 @@ func (svc *service) releaseLock(ctx context.Context, c Constraint, ref uint64) (
 		return
 	}
 
-	tt := make([]lock, 0)
+	tt := make([]Lock, 0)
 	if len(baseB) > 0 {
 		err = json.Unmarshal(baseB, &tt)
 		if err != nil {
@@ -622,7 +651,7 @@ func (svc *service) releaseLock(ctx context.Context, c Constraint, ref uint64) (
 		}
 	}
 
-	aux := make([]lock, 0, len(tt))
+	aux := make([]Lock, 0, len(tt))
 	for _, t := range tt {
 		if t.ID == ref {
 			continue
@@ -669,7 +698,7 @@ func (svc *service) releaseQueued(ctx context.Context, c Constraint, ref uint64)
 	return
 }
 
-func (t lock) matchesConstraints(c Constraint) (ok bool) {
+func (t Lock) matchesConstraints(c Constraint) (ok bool) {
 	// Can't do anything
 	if t.UserID != c.UserID || t.Resource != c.Resource {
 		return false

@@ -1,6 +1,8 @@
 package gatekeep
 
-import "sync"
+import (
+	"sync"
+)
 
 type (
 	listenerWrap struct {

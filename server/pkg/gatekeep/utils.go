@@ -6,26 +6,26 @@ import (
 	"sync"
 )
 
-func AwaitLocks(ctx context.Context, svc gksvc, cc ...Constraint) (refs []uint64, errs []error) {
+func AwaitLocks(ctx context.Context, svc gksvc, cc ...Constraint) (locks []Lock, errs []error) {
 	var (
-		state LockState
-		wg    = &sync.WaitGroup{}
+		// state LockState
+		wg = &sync.WaitGroup{}
 	)
 
-	refs = make([]uint64, len(cc))
+	locks = make([]Lock, len(cc))
 	errs = make([]error, len(cc))
 
 	for i, c := range cc {
-		refs[i], state, errs[i] = svc.Lock(ctx, c)
+		locks[i], errs[i] = svc.Lock(ctx, c)
 		if errs[i] != nil {
 			continue
 		}
 
-		if state == lockStateLocked {
+		if locks[i].State == lockStateLocked {
 			continue
 		}
 
-		if state == lockStateFailed {
+		if locks[i].State == lockStateFailed {
 			// @note should never happen
 			errs[i] = fmt.Errorf("lock failed")
 			continue
@@ -54,7 +54,7 @@ func AwaitLocks(ctx context.Context, svc gksvc, cc ...Constraint) (refs []uint64
 
 	for i, err := range errs {
 		if err != nil {
-			refs[i] = 0
+			locks[i] = Lock{}
 		}
 	}
 

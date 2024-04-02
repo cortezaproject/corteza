@@ -2,30 +2,24 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/gatekeep"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
+	"github.com/cortezaproject/corteza/server/system/service"
 )
 
 type (
 	Gatekeep struct {
 		gatekeep gatekeepSvc
-
-		ac gatekeepAccessController
-	}
-
-	gatekeepAccessController interface {
-		CanManageGatekeep(context.Context) bool
 	}
 
 	gatekeepSvc interface {
-		Lock(ctx context.Context, c gatekeep.Constraint) (ref uint64, state gatekeep.LockState, err error)
+		Lock(ctx context.Context, c gatekeep.Constraint) (l gatekeep.Lock, err error)
 		Unlock(ctx context.Context, c gatekeep.Constraint) (err error)
-		ProbeLock(ctx context.Context, c gatekeep.Constraint, ref uint64) (state gatekeep.LockState, err error)
+		Check(ctx context.Context, c gatekeep.Constraint, ref uint64) (state gatekeep.LockState, err error)
 	}
 
 	gatekeepPayload struct {
@@ -37,17 +31,11 @@ type (
 
 func (Gatekeep) New() *Gatekeep {
 	return &Gatekeep{
-		gatekeep: gatekeep.Service(),
+		gatekeep: service.DefaultGatekeep,
 	}
 }
 
 func (ctrl Gatekeep) Lock(ctx context.Context, r *request.GatekeepLock) (out interface{}, err error) {
-	if !ctrl.ac.CanManageGatekeep(ctx) {
-		// @todo proper errors
-		err = fmt.Errorf("not allowed to manage gatekeep locks")
-		return
-	}
-
 	c := gatekeep.Constraint{
 		Resource:  r.Resource,
 		Operation: gatekeep.OpWrite,
@@ -65,25 +53,19 @@ func (ctrl Gatekeep) Lock(ctx context.Context, r *request.GatekeepLock) (out int
 		c.UserID = auth.GetIdentityFromContext(ctx).Identity()
 	}
 
-	ref, state, err := ctrl.gatekeep.Lock(ctx, c)
+	l, err := ctrl.gatekeep.Lock(ctx, c)
 	if err != nil {
 		return
 	}
 
 	return gatekeepPayload{
-		LockID:   ref,
+		LockID:   l.ID,
 		Resource: r.Resource,
-		State:    state,
+		State:    l.State,
 	}, nil
 }
 
 func (ctrl Gatekeep) Unlock(ctx context.Context, r *request.GatekeepUnlock) (out interface{}, err error) {
-	if !ctrl.ac.CanManageGatekeep(ctx) {
-		// @todo proper errors
-		err = fmt.Errorf("not allowed to manage gatekeep locks")
-		return
-	}
-
 	c := gatekeep.Constraint{
 		Resource:  r.Resource,
 		Operation: gatekeep.OpWrite,
@@ -97,31 +79,25 @@ func (ctrl Gatekeep) Unlock(ctx context.Context, r *request.GatekeepUnlock) (out
 	return api.OK(), ctrl.gatekeep.Unlock(ctx, c)
 }
 
-func (ctrl Gatekeep) Check(ctx context.Context, r *request.GatekeepCheck) (out interface{}, err error) {
-	if !ctrl.ac.CanManageGatekeep(ctx) {
-		// @todo proper errors
-		err = fmt.Errorf("not allowed to manage gatekeep locks")
-		return
-	}
-
+func (ctrl Gatekeep) Check(ctx context.Context, l *request.GatekeepCheck) (out interface{}, err error) {
 	c := gatekeep.Constraint{
-		Resource:  r.Resource,
+		Resource:  l.Resource,
 		Operation: gatekeep.OpWrite,
-		UserID:    r.UserID,
+		UserID:    l.UserID,
 	}
 
 	if c.UserID == 0 {
 		c.UserID = auth.GetIdentityFromContext(ctx).Identity()
 	}
 
-	state, err := ctrl.gatekeep.ProbeLock(ctx, c, r.LockID)
+	state, err := ctrl.gatekeep.Check(ctx, c, l.LockID)
 	if err != nil {
 		return
 	}
 
 	return gatekeepPayload{
-		LockID:   r.LockID,
-		Resource: r.Resource,
+		LockID:   l.LockID,
+		Resource: l.Resource,
 		State:    state,
 	}, nil
 }

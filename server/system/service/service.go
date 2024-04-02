@@ -95,6 +95,7 @@ var (
 	DefaultDataPrivacy         *dataPrivacy
 	DefaultSMTPChecker         *smtpConfigurationChecker
 	DefaultExpression          *expression
+	DefaultGatekeep            *gatekeep
 
 	DefaultStatistics *statistics
 
@@ -221,6 +222,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultDataPrivacy = DataPrivacy(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
 	DefaultExpression = Expression()
+	DefaultGatekeep = Gatekeep(DefaultStore, DefaultLogger.Named("gatekeep"), ws)
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
@@ -297,6 +299,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 func Watchers(ctx context.Context) {
 	DefaultReminder.Watch(ctx)
+	DefaultGatekeep.Watch(ctx)
 	return
 }
 

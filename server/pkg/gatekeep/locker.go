@@ -25,7 +25,7 @@ type (
 	LockerConstraint func(ctx context.Context, c Constraint) Constraint
 
 	gksvc interface {
-		Lock(context.Context, Constraint) (uint64, LockState, error)
+		Lock(context.Context, Constraint) (Lock, error)
 		Unlock(context.Context, Constraint) error
 		Subscribe(listener EventListener) int
 		Unsubscribe(id int)
@@ -88,15 +88,15 @@ func (lg *locker) add(ctx context.Context, op Operation, rr ...string) (err erro
 		}
 	}
 
-	refs, errs := AwaitLocks(ctx, lg.svc, cc...)
-	for i, ref := range refs {
+	locks, errs := AwaitLocks(ctx, lg.svc, cc...)
+	for i, lock := range locks {
 		// If one failed, assume all failed
 		if errs[i] != nil {
 			return errs[i]
 		}
 
 		lg.locks = append(lg.locks, lockerBit{
-			Ref:        ref,
+			Ref:        lock.ID,
 			Constraint: cc[i],
 		})
 	}
