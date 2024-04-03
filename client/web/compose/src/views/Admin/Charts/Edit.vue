@@ -327,7 +327,7 @@
       :ok-title="$t('general:label.saveAndClose')"
       centered
       size="md"
-      cancel-variant="link"
+      cancel-variant="light"
       no-fade
     >
       <b-form-group
@@ -393,7 +393,7 @@
         />
 
         <b-button
-          variant="link"
+          variant="light"
           class="ml-auto"
           :disabled="colorSchemeModal.processing"
           @click="closeColorSchemeModal"
@@ -990,6 +990,7 @@ export default {
   },
 }
 </script>
+
 <style lang="scss">
 
 .chart-preview {
