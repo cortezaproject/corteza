@@ -20,6 +20,7 @@
         :highlight-key="highlightKey"
         @change="changes=$event"
       />
+
       <template #modal-footer>
         <b-button
           data-test-id="button-submit"

@@ -148,7 +148,7 @@
       :title="$t('builder:block.configuration')"
       :ok-title="$t('builder:save-button')"
       ok-variant="primary"
-      cancel-variant="link"
+      cancel-variant="light"
       scrollable
       size="xl"
       body-class="p-0 border-top-0"
@@ -236,7 +236,7 @@
     <b-modal
       v-model="datasources.showConfigurator"
       :title="$t('builder:datasources.label')"
-      cancel-variant="link"
+      cancel-variant="light"
       :cancel-disabled="datasources.processing"
       scrollable
       size="xl"
@@ -321,6 +321,7 @@
       scrollable
       :ok-title="$t('builder:scenarios.save')"
       ok-variant="primary"
+      cancel-variant="light"
       :title="$t('builder:scenarios.label')"
       body-class="py-3"
       no-fade
