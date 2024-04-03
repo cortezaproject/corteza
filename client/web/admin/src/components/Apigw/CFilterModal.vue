@@ -6,7 +6,7 @@
       :title="(filter || {}).label"
       :ok-title="$t('filters.modal.ok')"
       body-class="p-0"
-      cancel-variant="link"
+      cancel-variant="light"
       @ok="onSave"
       @hidden="onHidden"
     >
