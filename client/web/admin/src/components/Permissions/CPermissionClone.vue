@@ -15,7 +15,7 @@
       v-model="showModal"
       data-test-id="modal-clone-permission"
       ok-variant="primary"
-      cancel-variant="link"
+      cancel-variant="light"
       centered
       :title="$t('ui.clone.title')"
       :ok-title="$t('ui.clone.clone')"
