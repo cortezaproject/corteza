@@ -75,15 +75,15 @@
             {{ $t('recordList.bulkRecord.reset') }}
           </b-button>
 
-          <div>
+          <div class="d-flex gap-1">
             <b-button
-              variant="link"
+              variant="light"
               rounded
-              class="text-primary"
               @click="onModalHide"
             >
               {{ $t('general.label.cancel') }}
             </b-button>
+
             <b-button
               variant="primary"
               :disabled="!fields.length || processing"

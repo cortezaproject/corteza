@@ -373,7 +373,7 @@
       :ok-title="$t('general:label.saveAndClose')"
       ok-variant="primary"
       :ok-disabled="!layoutEditor.layout.meta.title"
-      cancel-variant="link"
+      cancel-variant="light"
       size="xl"
       scrollable
       no-fade
@@ -759,12 +759,12 @@
 
         <div class="ml-auto">
           <b-button
-            variant="link"
-            class="text-primary"
+            variant="light"
             @click="closeIconModal"
           >
             {{ $t('general:label.cancel') }}
           </b-button>
+
           <b-button
             variant="primary"
             class="ml-2"
@@ -774,6 +774,7 @@
           </b-button>
         </div>
       </template>
+
       <b-form-group
         :label="$t('icon.upload')"
         label-class="text-primary"

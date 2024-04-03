@@ -133,9 +133,9 @@
 
     <template #modal-footer>
       <b-button
-        variant="outline-light"
         :disabled="processing"
         class="text-primary border-0"
+        variant="light"
         @click="showModal = false"
       >
         {{ canResolveAlterations ? $t('general:label.cancel') : $t('general:label.close') }}
