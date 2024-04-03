@@ -150,7 +150,7 @@
       id="custom-css-editor"
       v-model="customCSSModal.show"
       :title="$t('custom-css')"
-      cancel-variant="link"
+      cancel-variant="light"
       size="lg"
       :ok-title="$t('general:label.saveAndClose')"
       :cancel-title="$t('general:label.cancel')"

@@ -303,6 +303,7 @@
       size="lg"
       :ok-title="$t('general:save')"
       :cancel-title="$t('general:cancel')"
+      cancel-variant="light"
       body-class="p-0"
       no-fade
       @ok="saveExpression"
