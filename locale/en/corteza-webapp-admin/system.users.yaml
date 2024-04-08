@@ -5,6 +5,7 @@ editor:
     type: Type
   info:
     confirmEmail: Confirm email address
+    id: ID
     createdAt: Created at
     createdBy: Created by
     delete: Delete
