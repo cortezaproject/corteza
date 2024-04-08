@@ -66,6 +66,7 @@
       </b-row>
 
       <c-system-fields
+        :id="user.userID"
         :resource="user"
       />
 
