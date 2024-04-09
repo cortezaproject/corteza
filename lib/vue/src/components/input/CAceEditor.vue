@@ -74,6 +74,21 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    readOnly: {
+      type: Boolean,
+      default: false,
+    },
+
+    highlightActiveLine: {
+      type: Boolean,
+      default: false,
+    },
+
+    showPrintMargin: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -94,6 +109,7 @@ export default {
       require('brace/mode/html')
       require('brace/mode/css')
       require('brace/mode/scss')
+      require('brace/mode/json')
       require('brace/mode/javascript')
       require('brace/theme/chrome')
 
@@ -102,11 +118,13 @@ export default {
         fontSize: this.fontSize,
         wrap: true,
         indentedSoftWrap: false,
-        showPrintMargin: false,
+        showPrintMargin: this.showPrintMargin,
         showLineNumbers: this.showLineNumbers,
         showGutter: this.showLineNumbers,
         displayIndentGuides: this.lang !== 'text',
         useWorker: false,
+        readOnly: this.readOnly,
+        highlightActiveLine: this.highlightActiveLine
       })
     },
   },

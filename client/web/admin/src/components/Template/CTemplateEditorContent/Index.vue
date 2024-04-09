@@ -63,23 +63,16 @@
         class="shadow-sm mt-3"
       >
         <!-- Partial templates can't be previewed -->
-        <ace-editor
+        <c-ace-editor
+          v-model="previewData"
           data-test-id="template-preview-output"
-          :font-size="14"
-          :show-print-margin="true"
-          :show-gutter="true"
-          :highlight-active-line="true"
-          width="100%"
-          height="500px"
-          mode="json"
-          theme="chrome"
           name="preview-data"
-          :on-change="(v) => previewData = v"
-          :value="previewData"
-          :editor-props="{
-            $blockScrolling: false,
-          }"
-          class="border-0 rounded-0"
+          lang="json"
+          height="500px"
+          show-line-numbers
+          highlight-active-line
+          show-print-margin
+          :border="false"
         />
 
         <template #header>
@@ -113,20 +106,19 @@
 </template>
 
 <script>
-import 'brace/mode/json'
-import 'brace/theme/chrome'
-
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import EditorToolbox from './EditorToolbox'
 import EditorTextHtml from './EditorTextHtml'
 import EditorTextPlain from './EditorTextPlain'
 import EditorUnsupported from './EditorUnsupported'
-import { Ace as AceEditor } from 'vue2-brace-editor'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CAceEditor } = components
 
 export default {
 
   components: {
-    AceEditor,
+    CAceEditor,
     EditorToolbox,
   },
   mixins: [
