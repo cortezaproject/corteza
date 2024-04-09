@@ -20,7 +20,7 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <expression-editor
+        <c-ace-editor
           v-model="item.config.arguments[0].expr"
           lang="javascript"
           font-size="18px"
@@ -44,7 +44,7 @@
       @ok="saveExpression"
       @hidden="resetExpression"
     >
-      <expression-editor
+      <c-ace-editor
         v-model="expressionEditor.currentExpression"
         lang="javascript"
         height="500"
@@ -59,11 +59,13 @@
 
 <script>
 import base from './base'
-import ExpressionEditor from '../ExpressionEditor'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CAceEditor } = components
 
 export default {
   components: {
-    ExpressionEditor,
+    CAceEditor,
   },
 
   extends: base,

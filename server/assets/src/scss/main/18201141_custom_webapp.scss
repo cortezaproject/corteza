@@ -294,63 +294,6 @@ fieldset.required {
   }
 }
 
-// Remove from here when all ace-editors use c-ace-editor
-.ace_editor {
-  color: var(--black) !important;
-  background-color: var(--white) !important;
-  border-radius: 0.25rem;
-  border: 2px solid var(--extra-light);
-
-  .ace_cursor {
-    border-left: 2px solid var(--black);
-  }
-
-  .ace_gutter {
-    background-color: var(--light) !important;
-    color: var(--black) !important;
-
-    .ace_gutter-active-line {
-      background-color: var(--extra-light) !important;
-    }
-  }
-
-  .ace_text {
-    color: var(--black) !important;
-  }
-
-  .ace_keyword {
-    color: var(--primary) !important;
-  }
-
-  .ace_string {
-    color: var(--secondary) !important;
-  }
-
-  .ace_variable {
-    color: var(--warning) !important;
-  }
-
-  .ace_type {
-    color: var(--secondary) !important;
-  }
-
-  .ace_constant {
-    color: var(--primary) !important;
-  }
-
-  .ace_tag {
-    color: var(--primary) !important;
-  }
-
-  .ace_attribute {
-    color: var(--warning) !important;
-  }
-
-  .ace_comment {
-    color: var(--extra-light) !important;
-  }
-}
-
 // Supporting CSS to improve print-to-PDF option
 @media print {
   @page {
