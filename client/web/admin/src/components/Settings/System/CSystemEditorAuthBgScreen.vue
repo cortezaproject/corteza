@@ -48,23 +48,15 @@
           :label="$t('image.editor.label')"
           label-class="d-flex align-items-center text-primary"
         >
-          <ace-editor
+          <c-ace-editor
+            v-model="settings['auth.ui.styles']"
             data-test-id="auth-bg-image-styling-editor"
-            :font-size="14"
-            :show-print-margin="true"
-            :show-gutter="true"
-            :highlight-active-line="true"
-            mode="css"
-            theme="chrome"
-            height="h-100"
             name="editor/css"
-            :on-change="v => (settings['auth.ui.styles'] = v)"
-            :value="settings['auth.ui.styles']"
-            :editor-props="{
-              $blockScrolling: false
-            }"
+            lang="css"
+            height="300px"
+            font-size="14px"
+            show-line-numbers
             class="flex-fill w-100"
-            style="min-height: 300px;"
           />
         </b-form-group>
       </b-col>
@@ -84,11 +76,10 @@
 </template>
 
 <script>
-import 'brace/mode/css'
-import 'brace/theme/chrome'
-
-import { Ace as AceEditor } from 'vue2-brace-editor'
+import { components } from '@cortezaproject/corteza-vue'
 import CUploaderWithPreview from 'corteza-webapp-admin/src/components/CUploaderWithPreview'
+
+const { CAceEditor } = components
 
 export default {
   name: 'CSystemEditorAuthBgImage',
@@ -100,7 +91,7 @@ export default {
 
   components: {
     CUploaderWithPreview,
-    AceEditor,
+    CAceEditor,
   },
 
   props: {

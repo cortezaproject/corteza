@@ -97,8 +97,8 @@
               <b-form-group
                 class="mb-0"
               >
-                <expression-editor
-                  :value.sync="item[valueField]"
+                <c-ace-editor
+                  v-model="item[valueField]"
                   lang="javascript"
                   show-line-numbers
                   @open="$emit('open-editor', index)"
@@ -114,13 +114,15 @@
 </template>
 
 <script>
-import ExpressionEditor from './ExpressionEditor.vue'
+import { components } from '@cortezaproject/corteza-vue'
 import { objectSearchMaker } from '../lib/filter'
 import draggable from 'vuedraggable'
 
+const { CAceEditor } = components
+
 export default {
   components: {
-    ExpressionEditor,
+    CAceEditor,
     draggable,
   },
 

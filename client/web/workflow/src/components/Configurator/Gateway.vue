@@ -33,8 +33,8 @@
             :label="edge.value"
             label-class="text-primary"
           >
-            <expression-editor
-              :value.sync="edge.expr"
+            <c-ace-editor
+              v-model="edge.expr"
               lang="javascript"
               height="100"
               show-line-numbers
@@ -50,11 +50,13 @@
 
 <script>
 import base from './base'
-import ExpressionEditor from '../ExpressionEditor.vue'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CAceEditor } = components
 
 export default {
   components: {
-    ExpressionEditor,
+    CAceEditor,
   },
 
   extends: base,
