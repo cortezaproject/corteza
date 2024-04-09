@@ -214,7 +214,7 @@
     <b-card
       header-class="border-bottom"
       body-class="p-0"
-      class="shadow-sm mt-3"
+      class="shadow-sm mt-3 overflow-hidden"
     >
       <template #header>
         <h4 class="m-0">
@@ -222,34 +222,23 @@
         </h4>
       </template>
 
-      <ace-editor
-        :font-size="14"
-        width="100%"
-        mode="json"
-        theme="chrome"
-        show-print-margin
-        read-only
-        show-gutter
-        highlight-active-line
+      <c-ace-editor
         :value="request.body"
-        :editor-props="{
-          $blockScrolling: false,
-        }"
-        :set-options="{
-          useWorker: false,
-        }"
-        class="border-0 rounded-0"
+        :border="false"
+        lang="json"
+        height="400px"
+        show-line-numbers
+        read-only
       />
     </b-card>
   </div>
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import { fmt, NoID } from '@cortezaproject/corteza-js'
-import { Ace as AceEditor } from 'vue2-brace-editor'
 
-import 'brace/mode/json'
-import 'brace/theme/chrome'
+const { CAceEditor } = components
 
 export default {
   name: 'CProfilerHitInfo',
@@ -260,7 +249,7 @@ export default {
   },
 
   components: {
-    AceEditor,
+    CAceEditor,
   },
 
   props: {

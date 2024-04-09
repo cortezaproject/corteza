@@ -1,32 +1,23 @@
 <template>
-  <ace-editor
+  <c-ace-editor
+    v-model="template.template"
     data-test-id="template-plain-text-editor"
-    :font-size="14"
-    :show-print-margin="true"
-    :show-gutter="true"
-    :highlight-active-line="true"
-    width="100%"
-    mode="plain_text"
-    theme="chrome"
     name="editor/plain_text"
-    :on-change="(v) => template.template = v"
-    :value="template.template"
-    :editor-props="{
-      $blockScrolling: false,
-    }"
-    class="border-0 rounded-0"
+    lang="plain_text"
+    height="400px"
+    font-size="14px"
+    show-line-numbers
   />
 </template>
 
 <script>
-import { Ace as AceEditor } from 'vue2-brace-editor'
+import { components } from '@cortezaproject/corteza-vue'
 
-import 'brace/mode/plain_text'
-import 'brace/theme/chrome'
+const { CAceEditor } = components
 
 export default {
   components: {
-    AceEditor,
+    CAceEditor,
   },
 
   props: {
