@@ -157,17 +157,17 @@
                     {{ a.target }}
                   </b-form-checkbox>
 
-                  <expression-editor
+                  <c-ace-editor
                     v-else
-                    :value.sync="a.value"
+                    v-model="a.value"
                     @open="openInEditor(index)"
                     @input="$root.$emit('change-detected')"
                   />
                 </div>
 
-                <expression-editor
+                <c-ace-editor
                   v-else-if="a.valueType === 'expr'"
-                  :value.sync="a.expr"
+                  v-model="a.expr"
                   lang="javascript"
                   show-line-numbers
                   @open="openInEditor(index)"
@@ -304,8 +304,8 @@
       @ok="saveExpression"
       @hidden="resetExpression"
     >
-      <expression-editor
-        :value.sync="currentExpressionValue"
+      <c-ace-editor
+        v-model="currentExpressionValue"
         :lang="expressionEditor.lang"
         height="500"
         font-size="18px"
@@ -319,13 +319,15 @@
 
 <script>
 import base from './base'
-import ExpressionEditor from '../ExpressionEditor.vue'
 import ExpressionTable from '../ExpressionTable.vue'
 import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CAceEditor } = components
 
 export default {
   components: {
-    ExpressionEditor,
+    CAceEditor,
     ExpressionTable,
   },
 

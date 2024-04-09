@@ -21,8 +21,8 @@
           label-class="text-primary"
           class="mb-0"
         >
-          <expression-editor
-            :value.sync="item.config.arguments[0].expr"
+          <c-ace-editor
+            v-model="item.config.arguments[0].expr"
             lang="javascript"
             font-size="18px"
             show-line-numbers
@@ -37,11 +37,13 @@
 
 <script>
 import base from './base'
-import ExpressionEditor from '../ExpressionEditor'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CAceEditor } = components
 
 export default {
   components: {
-    ExpressionEditor,
+    CAceEditor,
   },
 
   extends: base,
