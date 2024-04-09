@@ -61,8 +61,8 @@
       @ok="saveExpression"
       @hidden="resetExpression"
     >
-      <expression-editor
-        :value.sync="currentExpressionValue"
+      <c-ace-editor
+        v-model="currentExpressionValue"
         height="500"
         lang="javascript"
         font-size="18px"
@@ -76,12 +76,14 @@
 
 <script>
 import base from './base'
-import ExpressionEditor from '../ExpressionEditor.vue'
 import ExpressionTable from '../ExpressionTable.vue'
+import { components } from '@cortezaproject/corteza-vue'
+
+const { CAceEditor } = components
 
 export default {
   components: {
-    ExpressionEditor,
+    CAceEditor,
     ExpressionTable,
   },
 
