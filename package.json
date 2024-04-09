@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@achrinza/node-ipc": "^10.1.10"
+  }
+}
