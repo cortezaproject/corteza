@@ -79,7 +79,10 @@
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
+<<<<<<< HEAD
 import { CUSTOM_CSS_AUTO_COMPLETE_VALUES } from 'corteza-webapp-admin/src/lib/cssAutoComplete'
+=======
+>>>>>>> d5faab843 (Refactor ace editor component)
 import CUploaderWithPreview from 'corteza-webapp-admin/src/components/CUploaderWithPreview'
 
 const { CAceEditor } = components

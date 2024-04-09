@@ -329,7 +329,10 @@ import base from './base'
 import ExpressionTable from '../ExpressionTable.vue'
 import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
 import { components } from '@cortezaproject/corteza-vue'
+<<<<<<< HEAD
 import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../../lib/editor-auto-complete.js'
+=======
+>>>>>>> d5faab843 (Refactor ace editor component)
 
 const { CAceEditor } = components
 
