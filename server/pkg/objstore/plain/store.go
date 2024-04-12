@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path"
+	"time"
 
 	"github.com/spf13/afero"
 )
@@ -89,13 +90,24 @@ func (s *store) Remove(filename string) error {
 	return s.fs.Remove(filename)
 }
 
-func (s *store) Open(filename string) (io.ReadSeekCloser, error) {
+func (s *store) Open(filename string) (out io.ReadSeekCloser, err error) {
 	// check filename for validity
 	if err := s.check(filename); err != nil {
 		return nil, err
 	}
 
-	return s.fs.Open(filename)
+	for i := 1; i <= 3; i++ {
+		out, err = s.fs.Open(filename)
+		if err != nil {
+			time.Sleep(time.Millisecond * 500 * time.Duration(i))
+
+			continue
+		}
+
+		return
+	}
+
+	return
 }
 
 func (s *store) Healthcheck(ctx context.Context) error {
