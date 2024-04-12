@@ -131,11 +131,13 @@
             >
               <c-ace-editor
                 v-model="theme.customCSS"
-                lang="css"
+                auto-complete
+                lang="scss"
                 height="400px"
                 font-size="14px"
                 show-line-numbers
                 :show-popout="true"
+                :auto-complete-suggestions="customCssAutocompleteVal"
                 @open="openCustomCSSModal(theme.id)"
               />
             </b-form-group>
@@ -158,12 +160,14 @@
     >
       <c-ace-editor
         v-model="customCSSModal.value"
+        auto-complete
         lang="scss"
         height="500px"
         font-size="14px"
         show-line-numbers
         :border="false"
         :show-popout="false"
+        :auto-complete-suggestions="customCssAutocompleteVal"
       />
     </b-modal>
 
@@ -183,6 +187,7 @@
 <script>
 import CUploaderWithPreview from 'corteza-webapp-admin/src/components//CUploaderWithPreview'
 import { components } from '@cortezaproject/corteza-vue'
+import { CUSTOM_CSS_AUTO_COMPLETE_VALUES } from 'corteza-webapp-admin/src/lib/cssAutoComplete'
 const { CInputColorPicker, CAceEditor } = components
 
 export default {
@@ -279,6 +284,8 @@ export default {
         id: '',
         value: '',
       },
+
+      customCssAutocompleteVal: CUSTOM_CSS_AUTO_COMPLETE_VALUES,
     }
   },
 
