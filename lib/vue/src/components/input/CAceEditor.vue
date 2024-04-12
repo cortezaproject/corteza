@@ -79,6 +79,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    
+    autoComplete: {
+      type: Boolean,
+      default: false,
+    },
 
     highlightActiveLine: {
       type: Boolean,
@@ -89,6 +94,11 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    autoCompleteSuggestions: {
+      type: Array,
+      default: () => ([])
+    }
   },
 
   computed: {
@@ -111,7 +121,19 @@ export default {
       require('brace/mode/scss')
       require('brace/mode/json')
       require('brace/mode/javascript')
+      require('brace/mode/json')
+      
+      require('brace/snippets/text')
+      require('brace/snippets/html')
+      require('brace/snippets/css')
+      require('brace/snippets/scss')
+      require('brace/snippets/json')
+      require('brace/snippets/javascript')
+      require('brace/snippets/json')
+
       require('brace/theme/chrome')
+      require('brace/ext/language_tools')
+      require('brace/ext/emmet')
 
       editor.setOptions({
         tabSize: 2,
@@ -124,8 +146,34 @@ export default {
         displayIndentGuides: this.lang !== 'text',
         useWorker: false,
         readOnly: this.readOnly,
-        highlightActiveLine: this.highlightActiveLine
+        highlightActiveLine: this.highlightActiveLine,
+
+        ...(this.autoComplete && {
+          enableBasicAutocompletion: true,
+          enableLiveAutocompletion: true,
+          enableSnippets: true,
+          enableEmmet: true
+        }),
       })
+      
+      const self = this;
+      const staticWordCompleter = {
+        getCompletions: function (editor, session, pos, prefix, callback) {
+          var autoCompleteSuggestions = self.autoCompleteSuggestions;
+          callback(
+            null,
+            autoCompleteSuggestions.map(function ({ caption, value, meta }) {
+              return {
+                caption,
+                value,
+                meta,
+              };
+            })
+          );
+        },
+      };
+
+      editor.completers.push(staticWordCompleter);
     },
   },
 }
