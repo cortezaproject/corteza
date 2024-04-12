@@ -9,6 +9,9 @@
       :show-line-numbers="showLineNumbers"
       :font-size="fontSize"
       :show-popout="showPopout"
+      auto-complete
+      :border="border"
+      :auto-complete-suggestions="expressionAutoCompleteValues"
       v-on="$listeners"
     />
   </div>
@@ -16,6 +19,7 @@
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
+import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../lib/editor-auto-complete.js'
 
 const { CAceEditor } = components
 
@@ -59,6 +63,12 @@ export default {
       type: Boolean,
       default: true,
     },
+  },
+
+  data () {
+    return {
+      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
+    }
   },
 
   computed: {

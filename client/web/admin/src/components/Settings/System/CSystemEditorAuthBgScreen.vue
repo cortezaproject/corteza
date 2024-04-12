@@ -57,6 +57,8 @@
             font-size="14px"
             show-line-numbers
             class="flex-fill w-100"
+            auto-complete
+            :auto-complete-suggestions="customCssAutocompleteVal"
           />
         </b-form-group>
       </b-col>
@@ -77,6 +79,7 @@
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
+import { CUSTOM_CSS_AUTO_COMPLETE_VALUES } from 'corteza-webapp-admin/src/lib/cssAutoComplete'
 import CUploaderWithPreview from 'corteza-webapp-admin/src/components/CUploaderWithPreview'
 
 const { CAceEditor } = components
@@ -114,6 +117,12 @@ export default {
       type: Boolean,
       value: false,
     },
+  },
+
+  data () {
+    return {
+      customCssAutocompleteVal: CUSTOM_CSS_AUTO_COMPLETE_VALUES,
+    }
   },
 
   methods: {
