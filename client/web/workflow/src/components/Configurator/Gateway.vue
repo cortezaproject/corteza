@@ -38,7 +38,9 @@
               lang="javascript"
               height="100"
               show-line-numbers
+              auto-complete
               :show-popout="false"
+              :auto-complete-suggestions="expressionAutoCompleteValues"
               @input="updateEdge(edge.id, $event)"
             />
           </b-form-group>
@@ -51,6 +53,7 @@
 <script>
 import base from './base'
 import { components } from '@cortezaproject/corteza-vue'
+import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../../lib/editor-auto-complete.js'
 
 const { CAceEditor } = components
 
@@ -60,6 +63,12 @@ export default {
   },
 
   extends: base,
+
+  data () {
+    return {
+      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
+    }
+  },
 
   computed: {
     gatewayKind () {
