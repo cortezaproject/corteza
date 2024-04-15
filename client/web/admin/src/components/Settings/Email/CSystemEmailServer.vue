@@ -21,6 +21,7 @@
           <b-form-group
             :label="$t('host.label')"
             :description="$t('host.description')"
+            label-class="text-primary"
           >
             <b-input-group>
               <b-input
@@ -49,7 +50,9 @@
             </b-input-group>
           </b-form-group>
         </b-col>
+      </b-row>
 
+      <b-row>
         <b-col
           cols="12"
           lg="6"
@@ -57,6 +60,7 @@
           <b-form-group
             :label="$t('user.label')"
             :description="$t('user.description')"
+            label-class="text-primary"
           >
             <b-input
               v-model="server.user"
@@ -66,7 +70,28 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('password.label')"
+            :description="$t('password.description')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="server.pass"
+              data-test-id="input-password"
+              type="password"
+              :disabled="disabled"
+              autocomplete="off"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
+
+      <hr>
 
       <b-row>
         <b-col
@@ -76,6 +101,7 @@
           <b-form-group
             :label="$t('from.label')"
             :description="$t('from.description')"
+            label-class="text-primary"
           >
             <b-input
               v-model="server.from"
@@ -86,24 +112,9 @@
             />
           </b-form-group>
         </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :description="$t('tlsInsecure.description')"
-          >
-            <b-form-checkbox
-              v-model="server.tlsInsecure"
-              data-test-id="checkbox-allow-invalid-certificates"
-              :disabled="disabled"
-            >
-              {{ $t('tlsInsecure.label') }}
-            </b-form-checkbox>
-          </b-form-group>
-        </b-col>
       </b-row>
+
+      <hr>
 
       <b-row>
         <b-col
@@ -113,12 +124,32 @@
           <b-form-group
             :label="$t('tlsServerName.label')"
             :description="$t('tlsServerName.description')"
+            label-class="text-primary"
           >
             <b-input
               v-model="server.tlsServerName"
               data-test-id="input-tls-server-name"
               :disabled="disabled"
             />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :description="$t('tlsInsecure.description')"
+            class="mt-lg-3"
+          >
+            <b-form-checkbox
+              v-model="server.tlsInsecure"
+              data-test-id="checkbox-allow-invalid-certificates"
+              :disabled="disabled"
+              class="mt-lg-4 mb-2"
+            >
+              {{ $t('tlsInsecure.label') }}
+            </b-form-checkbox>
           </b-form-group>
         </b-col>
       </b-row>
