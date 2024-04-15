@@ -306,25 +306,33 @@ export default {
 
       return this.previousPages.length > 0
     },
+
+    uniqueID () {
+      return `${this.page.pageID}-${this.recordID}`
+    },
   },
 
   watch: {
-    recordID: {
-      immediate: true,
-      handler () {
-        this.record = undefined
-        this.initialRecordState = undefined
-        this.refresh()
-      },
-    },
-
     'page.pageID': {
       immediate: true,
-      handler (pageID) {
-        if (pageID === NoID) return
+      handler () {
+        console.log('1')
+        if (this.page.pageID === NoID) return
 
         this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
+        console.log('1')
+      },
+    },
+
+    uniqueID: {
+      immediate: true,
+      handler () {
+        console.log('2')
+        this.record = undefined
+        this.initialRecordState = undefined
+        this.refresh()
+        console.log('2')
       },
     },
 

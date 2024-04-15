@@ -1980,7 +1980,7 @@ export default {
     },
 
     handleAddRecord () {
-      const refRecord = this.options.linkToParent ? this.record : undefined
+      const refRecord = this.options.linkToParent && this.recordID !== NoID ? this.record : undefined
       const pageID = this.recordPageID
 
       if (!(pageID || this.options.rowCreateUrl)) return
