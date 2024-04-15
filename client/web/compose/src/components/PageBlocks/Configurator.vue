@@ -115,18 +115,18 @@
             >
               {{ $t('general.border.show') }}
             </b-form-checkbox>
-          </b-form-group>
 
-          <b-form-checkbox
-            v-if="block.kind !== 'Tabs'"
-            :checked="block.meta.namespaceID"
-            :value="namespace.namespaceID"
-            switch
-            class="mb-2"
-            @change="updateGlobalState"
-          >
-            {{ $t('general.globalBlock.label') }}
-          </b-form-checkbox>
+            <b-form-checkbox
+              v-if="block.kind !== 'Tabs'"
+              :checked="block.meta.namespaceID"
+              :value="namespace.namespaceID"
+              switch
+              class="mb-2"
+              @change="updateGlobalState"
+            >
+              {{ $t('general.globalBlock.label') }}
+            </b-form-checkbox>
+          </b-form-group>
         </b-col>
 
         <b-col
