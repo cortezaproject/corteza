@@ -6,7 +6,7 @@
     >
       <p
         :style="{ 'white-space': field.options.useRichTextEditor && 'pre-line' }"
-        :class="[ 'multiline' && field.isMulti || field.options.multiLine, ...classes ]"
+        :class="classes"
         v-html="formatted"
       />
     </div>
