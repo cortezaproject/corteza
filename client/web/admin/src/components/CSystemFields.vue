@@ -3,7 +3,7 @@
     class="py-4"
   >
     <b-col
-      v-if="id"
+      v-if="id && id !== '0'"
       cols="12"
     >
       <b-form-group
