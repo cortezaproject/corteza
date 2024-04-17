@@ -14,44 +14,41 @@
     <b-form
       @submit.prevent="$emit('submit')"
     >
-      <b-form-group
-        :label="$t('count', { count: members.filter(({ dirty }) => dirty).length })"
-        label-class="text-primary"
-        class="mb-0"
+      <c-input-select
+        ref="picker"
+        data-test-id="input-role-members"
+        :options="options"
+        :get-option-key="u => u.value"
+        :get-option-label="u => getUserLabel(u)"
+        :placeholder="$t('admin:picker.member.placeholder')"
+        @search="search"
+        @input="updateValue($event)"
+      />
+      <b-table-simple
+        v-if="memberUsers && users"
+        responsive
+        small
+        hover
+        class="w-100 p-0 mb-0 mt-1"
       >
-        <c-input-select
-          ref="picker"
-          data-test-id="input-role-members"
-          :options="options"
-          :get-option-key="u => u.value"
-          :get-option-label="u => getUserLabel(u)"
-          :placeholder="$t('admin:picker.member.placeholder')"
-          @search="search"
-          @input="updateValue($event)"
-        />
-        <b-table-simple
-          v-if="memberUsers && users"
-          responsive
-          small
-          class="w-100 p-0 mb-0"
-        >
-          <tbody>
-            <tr
-              v-for="user in memberUsers"
-              :key="user.userID"
-            >
-              <td>{{ getUserLabel(user) }}</td>
-              <td class="text-right">
-                <c-input-confirm
-                  data-test-id="button-remove-member"
-                  show-icon
-                  @confirmed="removeMember(user.userID)"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </b-table-simple>
-      </b-form-group>
+        <tbody>
+          <tr
+            v-for="user in memberUsers"
+            :key="user.userID"
+          >
+            <td class="align-middle">
+              {{ getUserLabel(user) }}
+            </td>
+            <td class="text-right">
+              <c-input-confirm
+                data-test-id="button-remove-member"
+                show-icon
+                @confirmed="removeMember(user.userID)"
+              />
+            </td>
+          </tr>
+        </tbody>
+      </b-table-simple>
     </b-form>
 
     <template #footer>
@@ -59,7 +56,7 @@
         :processing="processing"
         :success="success"
         :text="$t('admin:general.label.submit')"
-        class="float-right"
+        class="ml-auto"
         @submit="$emit('submit')"
       />
     </template>
@@ -122,6 +119,7 @@ export default {
   },
 
   mounted () {
+    this.fetchMembers()
     this.fetchUsers()
   },
 
@@ -161,15 +159,22 @@ export default {
       this.options.push(...removedMember)
     },
 
-    fetchUsers () {
-      this.$SystemAPI.userList({ query: this.filter, limit: 25 })
+    fetchMembers () {
+      const userID = this.members.map(({ userID }) => userID)
+
+      if (userID.length === 0) {
+        return
+      }
+
+      this.$SystemAPI.userList({ userID, deleted: 1, suspended: 1 }).then(({ set: users = [] }) => {
+        this.memberUsers = users
+      })
+    },
+
+    fetchUsers (query = this.filter) {
+      this.$SystemAPI.userList({ query, limit: 25 })
         .then(({ set: items = [] }) => {
           this.users = items
-
-          if (!this.filter) {
-            const userIDs = this.members.map(({ userID }) => userID)
-            this.memberUsers = items.filter(({ userID }) => userIDs.includes(userID))
-          }
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.fetch.error')))
     },

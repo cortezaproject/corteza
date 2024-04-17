@@ -18,25 +18,32 @@
       <slot name="description" />
     </b-form-text>
 
-    <b-container
+    <b-table-simple
       v-if="selected"
-      class="p-1"
+      responsive
+      small
+      hover
+      class="w-100 p-0 mb-0 mt-1"
     >
-      <b-row
-        v-for="role in selected"
-        :key="role.roleID"
-        data-test-id="selected-row-list"
-      >
-        <b-col>{{ getRoleLabel(role) }}</b-col>
-        <b-col class="text-right">
-          <c-input-confirm
-            data-test-id="button-remove-role"
-            show-icon
-            @confirmed="removeRole(role)"
-          />
-        </b-col>
-      </b-row>
-    </b-container>
+      <tbody>
+        <tr
+          v-for="role in selected"
+          :key="role.roleID"
+          data-test-id="selected-row-list"
+        >
+          <td class="align-middle">
+            {{ getRoleLabel(role) }}
+          </td>
+          <td class="text-right">
+            <c-input-confirm
+              data-test-id="button-remove-role"
+              show-icon
+              @confirmed="removeRole(role)"
+            />
+          </td>
+        </tr>
+      </tbody>
+    </b-table-simple>
   </div>
 </template>
 
