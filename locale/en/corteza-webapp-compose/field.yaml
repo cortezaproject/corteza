@@ -95,6 +95,14 @@ kind:
       thresholds:
         label: Thresholds
         description: Set which variant to show if value is equal or larger than the threshold
+    presetFormats:
+      label: 'Format values using:'
+      options:
+        currency: Currency (Default)
+        accountingNumber: Accounting number
+      description:
+        currency: Currency format displays the data using the default or set by user configuration
+        accountingNumber: 'Accounting number displays the data in the same way as the currency format with the two differences: 1) negative numbers are transformed into positive and added in brackets and 2) the value 0 is substituted by a dash'
   record:
     currentUnnamedModule: (Current unnamed module)
     label: Record

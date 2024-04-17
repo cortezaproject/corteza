@@ -53,7 +53,7 @@
           >
             <b-form-input
               v-model="f.options.prefix"
-              :placeholder="$t('kind.number.prefixPlaceholder')"
+              placeholder="USD/mo"
             />
           </b-form-group>
         </b-col>
@@ -68,7 +68,7 @@
           >
             <b-form-input
               v-model="f.options.suffix"
-              :placeholder="$t('kind.number.suffixPlaceholder')"
+              placeholder="$"
             />
           </b-form-group>
         </b-col>
@@ -85,7 +85,24 @@
           >
             <b-form-input
               v-model="f.options.format"
-              :placeholder="$t('kind.number.formatPlaceholder')"
+              placeholder="0.00"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('kind.number.presetFormats.label')"
+            label-class="text-primary"
+            style="white-space: pre-line;"
+            :description="formattedOptionsDescription"
+          >
+            <b-form-select
+              v-model="f.options.presetFormat"
+              :options="formatOptions"
             />
           </b-form-group>
         </b-col>
@@ -101,9 +118,15 @@
             <b-table-simple class="w-100 table-sm">
               <thead>
                 <tr>
-                  <th>{{ $t('kind.number.exampleInput') }}</th>
-                  <th>{{ $t('kind.number.exampleFormat') }}</th>
-                  <th>{{ $t('kind.number.exampleResult') }}</th>
+                  <th id="example-input">
+                    {{ $t('kind.number.exampleInput') }}
+                  </th>
+                  <th id="example-format">
+                    {{ $t('kind.number.exampleFormat') }}
+                  </th>
+                  <th id="example-result">
+                    {{ $t('kind.number.exampleResult') }}
+                  </th>
                 </tr>
               </thead>
 
@@ -370,7 +393,23 @@ export default {
         record: undefined,
         errors: new validator.Validated(),
       },
+
+      formatOptions: [
+        { value: 'currencyFormat', text: this.$t('kind.number.presetFormats.options.currency') },
+        { value: 'accountingNumber', text: this.$t('kind.number.presetFormats.options.accountingNumber') },
+      ],
     }
+  },
+
+  computed: {
+    formattedOptionsDescription () {
+      const currency = this.$t('kind.number.presetFormats.description.currency')
+      const accountingNumber = this.$t('kind.number.presetFormats.description.accountingNumber')
+
+      let translation = [currency, accountingNumber].join('\r\n')
+
+      return translation
+    },
   },
 
   watch: {
@@ -430,6 +469,7 @@ export default {
       this.displayOptions = []
       this.variants = []
       this.mock = {}
+      this.formatOptions = []
     },
   },
 }
