@@ -68,11 +68,12 @@
       v-else-if="showDefaultField"
       :label="$t('defaultFieldValue')"
       label-class="text-primary"
-      class="mt-3 mb-0"
+      class="mb-0"
     >
       <field-editor
         value-only
         v-bind="mock"
+        class="mb-1"
       />
     </b-form-group>
 

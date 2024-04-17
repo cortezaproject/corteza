@@ -10,6 +10,7 @@
     </fieldset>
   </div>
 </template>
+
 <script>
 import multi from './multi'
 import errors from '../errors'
@@ -67,6 +68,7 @@ export default {
         // because of font-size: inherit prop on .col-form-label on
         // wrapping element
         small: false,
+        'value-only': this.valueOnly,
       }
     },
 
