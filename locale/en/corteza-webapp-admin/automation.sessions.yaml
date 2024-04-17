@@ -48,6 +48,8 @@ list:
       label: Started
     suspended:
       label: Suspended
+    canceled:
+      label: Canceled
   loading: Loading sessions
   numFound: '{{count}} session found'
   numFound_plural: '{{count}} sessions found'

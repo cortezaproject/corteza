@@ -139,7 +139,7 @@ export default {
         // Use null not undefined!
         sessionID: null,
         workflowID: null,
-        status: null,
+        status: 0,
         completed: 1,
       },
 
@@ -183,11 +183,11 @@ export default {
   computed: {
     statusOptions () {
       return [
-        { value: null, text: this.$t('filterForm.all.label') },
         { value: 0, text: this.$t('filterForm.started.label') },
         { value: 1, text: this.$t('filterForm.prompted.label') },
         { value: 2, text: this.$t('filterForm.suspended.label') },
         { value: 3, text: this.$t('filterForm.failed.label') },
+        { value: 5, text: this.$t('filterForm.canceled.label') },
         { value: 4, text: this.$t('filterForm.completed.label') },
       ]
     },
