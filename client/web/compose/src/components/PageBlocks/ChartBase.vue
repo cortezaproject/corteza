@@ -120,6 +120,8 @@ export default {
           ownerID: (this.record || {}).ownedBy || NoID,
           userID: (this.$auth.user || {}).userID || NoID,
         })
+
+        this.filter.filter = filter
       }
 
       const { namespaceID } = this.namespace
@@ -162,6 +164,7 @@ export default {
       const dimensionFilter = dimensions ? `(${dimensions} = '${drillDownValue}')` : ''
       filter = filter ? `(${filter})` : ''
       const prefilter = [dimensionFilter, filter].filter(f => f).join(' AND ')
+
       if (drillDown.blockID) {
         // Use linked record list to display drill down data
         const { pageID = NoID } = this.page
