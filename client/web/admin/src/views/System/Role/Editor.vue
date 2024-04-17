@@ -325,8 +325,9 @@ export default {
 
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+      const { deletedAt } = this.role || {}
 
-      if (isNewPage || this.role.deletedAt) {
+      if (isNewPage || deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         const isDirty = (this.roleMembers || []).some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)

@@ -194,8 +194,9 @@ export default {
 
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+      const { deletedAt } = this.sensitivityLevel || {}
 
-      if (isNewPage || this.sensitivityLevel.deletedAt) {
+      if (isNewPage || deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.sensitivityLevel, this.initialSensitivityLevelState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)

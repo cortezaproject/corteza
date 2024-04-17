@@ -520,8 +520,9 @@ export default {
 
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+      const { deletedAt } = this.user || {}
 
-      if (isNewPage || this.user.deletedAt) {
+      if (isNewPage || deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         let userChangesStatus = !isEqual(this.user, this.initialUserState)

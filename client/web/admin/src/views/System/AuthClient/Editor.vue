@@ -219,8 +219,9 @@ export default {
 
     checkUnsavedChanges (next, to) {
       const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+      const { deletedAt } = this.authclient || {}
 
-      if (isNewPage || this.authclient.deletedAt) {
+      if (isNewPage || deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
         next(!isEqual(this.authclient, this.initialAuthclientState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
