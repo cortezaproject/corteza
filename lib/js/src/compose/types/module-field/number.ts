@@ -11,6 +11,7 @@ interface Threshold {
 }
 
 interface NumberOptions extends Options {
+  presetFormat: string;
   format: string;
   prefix: string;
   suffix: string;
@@ -29,6 +30,7 @@ interface NumberOptions extends Options {
 
 const defaults = (): Readonly<NumberOptions> => Object.freeze({
   ...defaultOptions(),
+  presetFormat: 'currencyFormat',
   precision: 3,
   multiDelimiter: '\n',
   display: 'number', // Either number or progress (progress bar)
@@ -61,7 +63,7 @@ export class ModuleFieldNumber extends ModuleField {
     if (!o) return
     super.applyOptions(o)
 
-    Apply(this.options, o, String, 'format', 'prefix', 'suffix', 'multiDelimiter', 'display', 'variant')
+    Apply(this.options, o, String, 'format', 'prefix', 'suffix', 'multiDelimiter', 'display', 'variant', 'presetFormat')
     Apply(this.options, o, Number, 'precision', 'min', 'max')
     Apply(this.options, o, Boolean, 'showValue', 'showRelative', 'showProgress', 'animated')
 
@@ -84,15 +86,33 @@ export class ModuleFieldNumber extends ModuleField {
       default:
         n = 0
     }
+
     let out = `${n}`
+
     if (o.format && o.format.length > 0) {
       out = numeral(n).format(o.format)
     } else {
       out = fmt.number(n)
     }
 
-    return '' + o.prefix + out + o.suffix
+    if (o.presetFormat === 'accountingNumber') {
+      out = formatChartValueAsAccountingNumber(Number(n))
+    }
+
+    return '' + o.prefix + (out || n) + o.suffix
   }
+}
+
+export function formatChartValueAsAccountingNumber (value: number): string {
+  let result = ''
+
+  if (value < 0) {
+    result = `(${Math.abs(value)})`
+  } else if (value === 0) {
+    result = '-'
+  }
+
+  return result
 }
 
 Registry.set(kind, ModuleFieldNumber)
