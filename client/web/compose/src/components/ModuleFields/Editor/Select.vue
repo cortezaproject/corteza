@@ -39,6 +39,8 @@
           :options="selectOptions"
           stacked
         />
+
+        <errors :errors="errors" />
       </template>
 
       <multi

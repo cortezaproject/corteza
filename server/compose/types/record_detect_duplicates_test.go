@@ -38,6 +38,16 @@ func TestDeDupRule_checkCaseSensitiveDuplication(t *testing.T) {
 				rule: rule1,
 				rec: Record{
 					ID: 1,
+					module: &Module{
+						ID: 1,
+						Fields: ModuleFieldSet{
+							&ModuleField{
+								Name:  "name",
+								Kind:  "String",
+								Multi: false,
+							},
+						},
+					},
 					Values: RecordValueSet{
 						&RecordValue{
 							RecordID: 1,
@@ -57,7 +67,7 @@ func TestDeDupRule_checkCaseSensitiveDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-							Message: rule1.IssueMessage(),
+							Message: rule1.IssueMessage("test"),
 							Meta: map[string]interface{}{
 								"field":         "name",
 								"value":         "test",
@@ -115,7 +125,7 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 			Strict: true,
 			ConstraintSet: []*DeDupRuleConstraint{
 				{
-					Attribute:  "name",
+					Attribute:  "count",
 					Modifier:   ignoreCase,
 					MultiValue: equal,
 				},
@@ -127,7 +137,7 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 			Strict: true,
 			ConstraintSet: []*DeDupRuleConstraint{
 				{
-					Attribute:  "name",
+					Attribute:  "location",
 					Modifier:   ignoreCase,
 					MultiValue: equal,
 				},
@@ -146,6 +156,16 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 				rule: rule1,
 				rec: Record{
 					ID: 1,
+					module: &Module{
+						ID: 1,
+						Fields: ModuleFieldSet{
+							&ModuleField{
+								Name:  "name",
+								Kind:  "String",
+								Multi: true,
+							},
+						},
+					},
 					Values: RecordValueSet{
 						&RecordValue{
 							RecordID: 1,
@@ -175,7 +195,7 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-							Message: rule1.IssueMultivalueMessage(),
+							Message: rule1.IssueMultivalueMessage([]string{"test", "test test"}),
 							Meta: map[string]interface{}{
 								"field":         "name",
 								"dupValueField": "name",
@@ -190,6 +210,16 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 				rule: rule2,
 				rec: Record{
 					ID: 1,
+					module: &Module{
+						ID: 1,
+						Fields: ModuleFieldSet{
+							&ModuleField{
+								Name:  "name",
+								Kind:  "String",
+								Multi: true,
+							},
+						},
+					},
 					Values: RecordValueSet{
 						&RecordValue{
 							RecordID: 1,
@@ -219,7 +249,7 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-							Message: rule2.IssueMultivalueMessage(),
+							Message: rule2.IssueMultivalueMessage([]string{"test", "test tEst"}),
 							Meta: map[string]interface{}{
 								"field":         "name",
 								"dupValueField": "name",
@@ -234,15 +264,24 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 				rule: numberRule,
 				rec: Record{
 					ID: 1,
+					module: &Module{
+						ID: 1,
+						Fields: ModuleFieldSet{
+							&ModuleField{
+								Name:  "count",
+								Multi: true,
+							},
+						},
+					},
 					Values: RecordValueSet{
 						&RecordValue{
 							RecordID: 1,
-							Name:     "name",
+							Name:     "count",
 							Value:    "234",
 						},
 						&RecordValue{
 							RecordID: 1,
-							Name:     "name",
+							Name:     "count",
 							Value:    "897",
 						},
 					},
@@ -250,12 +289,12 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 				vv: RecordValueSet{
 					&RecordValue{
 						RecordID: 0,
-						Name:     "name",
+						Name:     "count",
 						Value:    "897",
 					},
 					&RecordValue{
 						RecordID: 0,
-						Name:     "name",
+						Name:     "count",
 						Value:    "234",
 					},
 				},
@@ -263,10 +302,10 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-							Message: numberRule.IssueMultivalueMessage(),
+							Message: numberRule.IssueMultivalueMessage([]string{"234", "897"}),
 							Meta: map[string]interface{}{
-								"field":         "name",
-								"dupValueField": "name",
+								"field":         "count",
+								"dupValueField": "count",
 								"rule":          numberRule.String(),
 							},
 						},
@@ -278,15 +317,24 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 				rule: locationRule,
 				rec: Record{
 					ID: 1,
+					module: &Module{
+						ID: 1,
+						Fields: ModuleFieldSet{
+							&ModuleField{
+								Name:  "location",
+								Multi: true,
+							},
+						},
+					},
 					Values: RecordValueSet{
 						&RecordValue{
 							RecordID: 1,
-							Name:     "name",
+							Name:     "location",
 							Value:    "{\"coordinates\":[-6.7833479,20.3768206]}",
 						},
 						&RecordValue{
 							RecordID: 1,
-							Name:     "name",
+							Name:     "location",
 							Value:    "{\"coordinates\":[0.7833479,10.3768206]}",
 						},
 					},
@@ -294,12 +342,12 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 				vv: RecordValueSet{
 					&RecordValue{
 						RecordID: 0,
-						Name:     "name",
+						Name:     "location",
 						Value:    "{\"coordinates\":[0.7833479,10.3768206]}",
 					},
 					&RecordValue{
 						RecordID: 0,
-						Name:     "name",
+						Name:     "location",
 						Value:    "{\"coordinates\":[-6.7833479,20.3768206]}",
 					},
 				},
@@ -307,10 +355,10 @@ func TestDedupRule_checkMultiValueEqualDuplication(t *testing.T) {
 					Set: []RecordValueError{
 						{
 							Kind:    deDupError.String(),
-							Message: locationRule.IssueMultivalueMessage(),
+							Message: locationRule.IssueMultivalueMessage([]string{"{\"coordinates\":[-6.7833479,20.3768206]}", "{\"coordinates\":[0.7833479,10.3768206]}"}),
 							Meta: map[string]interface{}{
-								"field":         "name",
-								"dupValueField": "name",
+								"field":         "location",
+								"dupValueField": "location",
 								"rule":          locationRule.String(),
 							},
 						},
