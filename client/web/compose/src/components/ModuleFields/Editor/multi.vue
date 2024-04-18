@@ -7,12 +7,6 @@
       <slot name="single" />
     </div>
 
-    <errors
-      v-if="errors"
-      :errors="errors"
-      class="mb-1"
-    />
-
     <draggable
       :list.sync="val"
       handle=".handle"
@@ -44,6 +38,8 @@
         />
       </div>
     </draggable>
+
+    <errors :errors="errors" />
 
     <b-button
       v-if="!singleInput"
