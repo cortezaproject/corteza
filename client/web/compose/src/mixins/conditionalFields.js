@@ -28,7 +28,11 @@ export default {
     prepareFieldConditionsData () {
       const expressions = {}
       const record = this.record ? this.record.serialize() : {}
-      const variables = { record }
+      const variables = {
+        user: this.$auth.user,
+        record,
+      }
+
       this.block.options.fieldConditions.forEach(({ field, condition }) => {
         if (field && condition) {
           expressions[field] = condition
