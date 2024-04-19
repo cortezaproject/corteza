@@ -211,6 +211,7 @@
                 :icon="['fas', 'trash-restore']"
                 :tooltip="$t('recordList.tooltip.restoreSelected')"
                 variant="outline-warning"
+                variant-ok="warning"
                 @confirmed="handleRestoreSelectedRecords()"
               />
             </template>
@@ -448,16 +449,20 @@
                       {{ $t('recordList.record.tooltip.clone') }}
                     </b-dropdown-item>
 
-                    <b-dropdown-item
+                    <c-input-confirm
                       v-if="isInlineRestoreActionVisible(item.r)"
-                      @click.prevent="handleRestoreInline(item, index)"
-                    >
-                      <font-awesome-icon
-                        :icon="['fas', 'trash-restore']"
-                        class="text-warning"
-                      />
-                      {{ $t('recordList.record.tooltip.restore') }}
-                    </b-dropdown-item>
+                      :text="$t('recordList.record.tooltip.restore')"
+                      :icon="['fas', 'trash-restore']"
+                      show-icon
+                      borderless
+                      variant="link"
+                      variant-ok="warning"
+                      size="md"
+                      button-class="dropdown-item text-decoration-none text-dark rounded-0"
+                      icon-class="text-warning"
+                      class="w-100"
+                      @confirmed="handleRestoreInline(item, index)"
+                    />
 
                     <!-- The user should be able to delete the record if it's not yet saved -->
                     <b-dropdown-item
@@ -553,6 +558,7 @@
                       show-icon
                       borderless
                       variant="link"
+                      variant-ok="warning"
                       size="md"
                       button-class="dropdown-item text-decoration-none text-dark rounded-0"
                       icon-class="text-warning"

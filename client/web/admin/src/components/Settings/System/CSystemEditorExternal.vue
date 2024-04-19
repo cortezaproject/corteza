@@ -58,6 +58,8 @@
         <c-input-confirm
           v-if="item.delete"
           :icon="item.deleted ? ['fas', 'trash-restore'] : undefined"
+          :variant="item.deleted ? 'outline-warning' : 'outline-danger'"
+          :variant-ok="item.deleted ? 'warning' : 'danger'"
           @confirmed="item.delete()"
         />
 
