@@ -169,6 +169,10 @@
                     name="dimension-options-options"
                     :dimension="d"
                     :is-temporal="isTemporalField(d.field)"
+                    :preset-formatted-options="{
+                      formatOptions,
+                      formattedOptionsDescription: $t('edit.additionalConfig.tooltip.formatting.presetFormats.description.accountingNumber')
+                    }"
                   />
                 </b-form-group>
               </b-col>
@@ -462,10 +466,6 @@
       :report="editReport"
       :metrics="metrics"
       :has-axis="hasAxis"
-      :preset-formatted-options="{
-        formatOptions,
-        formattedOptionsDescription: $t('edit.additionalConfig.tooltip.formatting.presetFormats.description.accountingNumber')
-      }"
     />
   </div>
 </template>

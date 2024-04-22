@@ -356,6 +356,9 @@ export class BaseChart {
       metricFormatter: {
         presetFormat: 'noFormat',
       },
+      yAxisFormatter: {
+        presetFormat: 'noFormat',
+      },
       legend: {
         isScrollable: true,
         orientation: 'horizontal',

@@ -91,8 +91,15 @@ export default class FunnelChart extends BaseChart {
     const { saveAsImage } = toolbox || {}
 
     const { labels, datasets = [], tooltip, themeVariables = {} } = data
-    const { legend: l, tooltipFormatter, metricFormatter } = reports[0] || {}
+    const { legend: l, metricFormatter } = reports[0] || {}
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
+
+    const {
+      numberFormat: metricNumForm = '',
+      prefix: metricPref = '',
+      suffix: metricSuff = '',
+      presetFormat: metricPresForm = '',
+    } = metricFormatter || {}
 
     return {
       animation: !noAnimation,
@@ -113,10 +120,15 @@ export default class FunnelChart extends BaseChart {
       tooltip: {
         trigger: 'item',
         formatter: (params: TooltipParams): string => {
-          const { name = '', value = '' || 0, percent = '' || 0 } = params
-          const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = tooltipFormatter || {}
+          const { seriesName = '', value = '' || 0, percent = '' || 0, marker = '', name = '' } = params
+          const formattedValue = formatChartValue(value, {
+            numberFormat: metricNumForm,
+            prefix: metricPref,
+            suffix: metricSuff,
+            presetFormat: metricPresForm,
+          })
 
-          return `${name}<br />${formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })} ${tooltip.relative ? ` (${percent}%)` : ''}`
+          return `${seriesName}<br>${marker}${name}<span style="float: right; margin-left: 20px">${formattedValue}${tooltip.relative ? ' (' + percent + '%)' : ''}</span>`
         },
         appendToBody: true,
       },
@@ -156,7 +168,7 @@ export default class FunnelChart extends BaseChart {
               const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = metricFormatter || {}
               const formattedValue = formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
 
-              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${formattedValue}${tooltip.relative ? ' (' + percent + '%)' : ''}</span>`
+              return `${params.seriesName}${formattedValue}${tooltip.relative ? ' (' + percent + '%)' : ''}`
             },
           },
           emphasis: {

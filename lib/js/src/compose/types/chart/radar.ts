@@ -31,10 +31,23 @@ export default class RadarChart extends BaseChart {
     const { labels, datasets = [], dimension = {}, themeVariables = {} } = data
     const {
       legend: l,
-      metrics,
-      tooltipFormatter,
       metricFormatter,
+      tooltipFormatter,
     } = reports[0] || {}
+
+    const {
+      numberFormat: metricNumForm,
+      prefix: metricPref,
+      suffix: metricSuff,
+      presetFormat: metricPresForm,
+    } = metricFormatter || {}
+
+    const {
+      numberFormat: tooltipNumForm = '',
+      prefix: tooltipPref = '',
+      suffix: tooltipSuff = '',
+      presetFormat: tooltipPresForm = '',
+    } = tooltipFormatter || {}
 
     let min: number = 0
     let max: number = Math.max()
@@ -86,9 +99,19 @@ export default class RadarChart extends BaseChart {
         position: 'top',
         appendToBody: true,
         valueFormatter: (value: string | number): string => {
-          const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = tooltipFormatter || {}
+          const v = formatChartValue(value, {
+            numberFormat: metricNumForm,
+            prefix: metricPref,
+            suffix: metricSuff,
+            presetFormat: metricPresForm,
+          })
 
-          return formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
+          return formatChartValue(v, {
+            numberFormat: tooltipNumForm,
+            prefix: tooltipPref,
+            suffix: tooltipSuff,
+            presetFormat: tooltipPresForm,
+          })
         },
       },
       radar: {
@@ -104,9 +127,13 @@ export default class RadarChart extends BaseChart {
           show: dimension.fixTooltips,
           formatter: (params: { seriesName: string, name: string, value: string | number }): string => {
             const { value = '' || 0 } = params
-            const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = metricFormatter || {}
 
-            return formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
+            return formatChartValue(value, {
+              numberFormat: metricNumForm,
+              prefix: metricPref,
+              suffix: metricSuff,
+              presetFormat: metricPresForm,
+            })
           },
         },
         data: seriesData,
