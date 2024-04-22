@@ -58,10 +58,13 @@
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.field'), container: '#body' }"
+            v-b-tooltip.noninteractive.hover="{
+              title: $t('tooltip.field'),
+              container: '#body'
+            }"
             data-test-id="button-configure-field"
             variant="extra-light"
-            :disabled="!value.cap.configurable"
+            :disabled="isEditDisabled"
             @click.prevent="$emit('edit')"
           >
             <font-awesome-icon
@@ -196,6 +199,10 @@ export default {
 
     exists () {
       return this.module.ID !== NoID && this.value.fieldID !== NoID
+    },
+
+    isEditDisabled () {
+      return !this.value.cap.configurable || this.nameState !== null
     },
   },
 }
