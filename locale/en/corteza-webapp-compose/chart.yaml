@@ -208,7 +208,7 @@ edit:
         placeholder: '{a}<br />{b} : {c} ({d}%)'
         disclaimer: Adding a value to the formatting field will disable the fields number format, prefix, and suffix and vice versa
         presetFormats:
-          label: 'Format values using:'
+          label: Format values using
           options:
             accountingNumber: Accounting number
             noFormat: No format selected

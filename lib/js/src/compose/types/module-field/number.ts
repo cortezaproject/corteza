@@ -2,6 +2,7 @@ import numeral from 'numeral'
 import { ModuleField, Registry, Options, defaultOptions } from './base'
 import { Apply } from '../../../cast'
 import * as fmt from '../../../formatting'
+import { formatValueAsAccountingNumber } from '../../utils'
 
 const kind = 'Number'
 
@@ -96,23 +97,11 @@ export class ModuleFieldNumber extends ModuleField {
     }
 
     if (o.presetFormat === 'accountingNumber') {
-      out = formatChartValueAsAccountingNumber(Number(n))
+      out = formatValueAsAccountingNumber(Number(n))
     }
 
     return '' + o.prefix + (out || n) + o.suffix
   }
-}
-
-export function formatChartValueAsAccountingNumber (value: number): string {
-  let result = ''
-
-  if (value < 0) {
-    result = `(${Math.abs(value)})`
-  } else if (value === 0) {
-    result = '-'
-  }
-
-  return result
 }
 
 Registry.set(kind, ModuleFieldNumber)

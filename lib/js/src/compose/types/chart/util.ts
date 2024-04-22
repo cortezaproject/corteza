@@ -1,5 +1,6 @@
 import numeral from 'numeral'
 import * as fmt from '../../../formatting'
+import { formatValueAsAccountingNumber } from '../../utils'
 
 export const rgbaRegex = /^rgba\((\d+),.*?(\d+),.*?(\d+),.*?(\d*\.?\d*)\)$/
 
@@ -123,6 +124,7 @@ export interface Report {
   offset?: ChartOffset;
   tooltipFormatter?: FormatData;
   metricFormatter?: FormatData;
+  yAxisFormatter?: FormatData;
 }
 
 export interface ChartToolbox {
@@ -258,7 +260,7 @@ dimensionFunctions.convert = d => dimensionFunctions.lookup(d).convert(d.field)
 export const isRadialChart = ({ type }: KV) => type === 'doughnut' || type === 'pie'
 export const hasRelativeDisplay = ({ type }: KV) => isRadialChart({ type })
 
-// Makes a standarised alias from modifier or dimension report option
+// Makes a standardize alias from modifier or dimension report option
 export const makeAlias = ({ alias, aggregate, modifier, field }: Metric) => alias || `${aggregate || modifier || 'none'}_${field}`.toLocaleLowerCase()
 
 export function formatChartValue (value: string | number, formatConfig?: FormatData): string {
@@ -288,7 +290,7 @@ export function formatChartValue (value: string | number, formatConfig?: FormatD
   }
 
   if (formatConfig?.presetFormat === 'accountingNumber') {
-    result = formatChartValueAsAccountingNumber(Number(n))
+    result = formatValueAsAccountingNumber(Number(n))
   }
 
   return ` ${formatConfig?.prefix ?? ''} ${result || value} ${formatConfig?.suffix ?? ''}`
@@ -302,18 +304,6 @@ export function formatChartTooltip (tooltip: string, params: TooltipParams): str
     .replace('{b}', name)
     .replace('{c}', value.toString())
     .replace('{d}', percent.toString())
-}
-
-export function formatChartValueAsAccountingNumber (value: number): string {
-  let result = ''
-
-  if (value < 0) {
-    result = `(${Math.abs(value)})`
-  } else if (value === 0) {
-    result = '-'
-  }
-
-  return result
 }
 
 const chartUtil = {
