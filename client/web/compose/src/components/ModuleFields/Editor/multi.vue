@@ -8,6 +8,7 @@
     </div>
 
     <draggable
+      v-if="showList"
       :list.sync="val"
       handle=".handle"
     >
@@ -82,6 +83,11 @@ export default {
     singleInput: {
       type: Boolean,
       default: false,
+    },
+
+    showList: {
+      type: Boolean,
+      default: true,
     },
 
     errors: {

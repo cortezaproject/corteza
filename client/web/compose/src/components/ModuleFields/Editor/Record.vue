@@ -37,7 +37,7 @@
       :value.sync="value"
       :errors="errors"
       :single-input="field.options.selectType !== 'each'"
-      :removable="field.options.selectType !== 'multiple'"
+      :show-list="field.options.selectType !== 'multiple'"
     >
       <template #single>
         <c-input-select
@@ -51,7 +51,7 @@
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
-          :selectable="option => option.selectable"
+          :selectable="isSelectable"
           :placeholder="placeholder"
           multiple
           @search="search"
@@ -77,7 +77,7 @@
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
-          :selectable="option => option.selectable"
+          :selectable="isSelectable"
           :placeholder="placeholder"
           @input="selectChange($event)"
           @search="search"
@@ -104,7 +104,7 @@
           :clearable="false"
           :filterable="false"
           :searchable="searchable"
-          :selectable="option => option.selectable"
+          :selectable="isSelectable"
           :placeholder="placeholder"
           :value="getRecord(ctx.index)"
           @input="setRecord($event, ctx.index)"
@@ -121,12 +121,13 @@
         </c-input-select>
 
         <b-spinner
-          v-else-if="processing"
+          v-else-if="resolving"
           variant="primary"
           small
         />
+
         <span v-else>
-          {{ (multipleSelected[ctx.index] || {}).label }}
+          {{ getOptionLabel(multipleSelected[ctx.index]) }}
         </span>
       </template>
     </multi>
@@ -144,7 +145,7 @@
         :placeholder="placeholder"
         :filterable="false"
         :searchable="searchable"
-        :selectable="option => option.selectable"
+        :selectable="isSelectable"
         @search="search"
       >
         <pagination
@@ -183,6 +184,7 @@ export default {
   data () {
     return {
       processing: false,
+      resolving: false,
 
       query: '',
 
@@ -209,7 +211,7 @@ export default {
     }),
 
     options () {
-      return this.records.map(this.convert).filter(({ value, label }) => value && label)
+      return this.records
     },
 
     module () {
@@ -230,13 +232,13 @@ export default {
 
     multipleSelected: {
       get () {
-        return this.value.map(v => this.convert({ recordID: v })).filter(({ value, label }) => value && label)
+        return this.value
       },
 
       set (value) {
-        if (value.length !== this.value.length) {
-          this.value = value.map(({ value }) => value)
-        }
+        this.value = value.map(v => {
+          return typeof v === 'string' ? v : v.recordID
+        })
       },
     },
 
@@ -276,7 +278,10 @@ export default {
   created () {
     this.loadLatest()
     if (this.value) {
-      this.formatRecordValues(this.value)
+      this.resolving = true
+      this.formatRecordValues(this.value).finally(() => {
+        this.resolving = false
+      })
     }
   },
 
@@ -312,19 +317,18 @@ export default {
     },
 
     getRecord (index = undefined) {
-      const recordID = index !== undefined ? this.value[index] : this.value
-      return (this.convert({ recordID }) || {}).value
+      return index !== undefined ? this.value[index] : this.value
     },
 
-    setRecord (event, index = undefined) {
+    setRecord ({ recordID } = {}, index = undefined) {
       const crtValue = index !== undefined ? this.value[index] : this.value
-      const { value } = event || {}
-      if (value !== crtValue) {
-        if (value) {
+
+      if (recordID !== crtValue) {
+        if (recordID) {
           if (index !== undefined) {
-            this.value.splice(index, 1, value)
+            this.value.splice(index, 1, recordID)
           } else {
-            this.value = value
+            this.value = recordID
           }
         } else {
           if (index !== undefined) {
@@ -336,17 +340,15 @@ export default {
       }
     },
 
-    convert (r) {
-      if (!r || !this.field.options.labelField) {
-        return {}
+    isSelectable (recordID) {
+      if (!recordID) {
+        return false
       }
 
-      return {
-        value: r.recordID,
-        label: this.processing ? '' : this.recordValues[r.recordID] || r.recordID,
-        selectable: this.field.isMulti && !this.field.options.isUniqueMultiValue
-          ? this.value !== r.recordID
-          : !(this.value || []).includes(r.recordID),
+      if (this.field.isMulti && !this.field.options.isUniqueMultiValue) {
+        return this.value !== recordID
+      } else {
+        return !(this.value || []).includes(recordID)
       }
     },
 
@@ -423,8 +425,7 @@ export default {
           return this.formatRecordValues(set.map(({ recordID }) => recordID)).then(() => {
             this.records = set.map(r => new compose.Record(this.module, r))
           })
-        })
-        .finally(() => {
+        }).finally(() => {
           this.processing = false
         })
     },
@@ -448,8 +449,6 @@ export default {
         const mappedIDs = {}
 
         if (relatedField.kind === 'Record' && recordLabelField) {
-          this.processing = true
-
           const relatedModule = await this.findModuleByID({ namespaceID, moduleID: relatedField.options.moduleID })
           const relatedRecordIDs = new Set()
 
@@ -499,22 +498,17 @@ export default {
 
           this.$set(this.recordValues, record.recordID, recordValue.join(relatedField.options.multiDelimiter))
         })
-      }).finally(() => {
-        setTimeout(() => {
-          this.processing = false
-        }, 300)
       })
     },
 
-    selectChange (event) {
-      const { value } = event || {}
-      if (value) {
-        this.value.push(value)
+    selectChange ({ recordID } = {}) {
+      if (!recordID) return
 
-        // reset singleSelect value for better value presentation
-        if (this.$refs.singleSelect) {
-          this.$refs.singleSelect._data._value = undefined
-        }
+      this.value.push(recordID)
+
+      // reset singleSelect value for better value presentation
+      if (this.$refs.singleSelect) {
+        this.$refs.singleSelect._data._value = undefined
       }
     },
 
@@ -522,24 +516,20 @@ export default {
       this.filter.pageCursor = next ? this.filter.nextPage : this.filter.prevPage
     },
 
-    findRecord (recordID) {
-      return this.options.find(r => r.value === recordID) || {}
+    getOptionKey (value) {
+      if (!value) return
+
+      return typeof value === 'string' ? value : value.recordID
     },
 
-    getOptionKey (v) {
-      if (typeof v === 'string') {
-        return v
+    getOptionLabel (value) {
+      if (!value) {
+        return ''
       }
-      const { value } = v || {}
-      return value
-    },
 
-    getOptionLabel (v) {
-      if (typeof v === 'string') {
-        return this.findRecord(v).label || v
-      }
-      const { label } = v || {}
-      return label
+      const recordID = typeof value === 'string' ? value : value.recordID
+
+      return this.recordValues[recordID] || recordID
     },
 
     destroyEvents () {
@@ -548,6 +538,7 @@ export default {
 
     setDefaultValues () {
       this.processing = false
+      this.resolving = false
       this.query = ''
       this.records = []
       this.recordValues = {}

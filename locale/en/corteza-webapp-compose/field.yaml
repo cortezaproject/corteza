@@ -98,10 +98,10 @@ kind:
   record:
     currentUnnamedModule: (Current unnamed module)
     label: Record
-    moduleLabel: Module name
+    moduleLabel: Module
     modulePlaceholder: Pick module
     queryFieldsLabel: Query fields on search
-    moduleField: Module field
+    moduleField: Label field
     variantField: Variant field
     fieldFromModuleField: Label field from related module field
     pickField: Pick field

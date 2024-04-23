@@ -37,7 +37,7 @@
       :value.sync="value"
       :errors="errors"
       :single-input="field.options.selectType !== 'each'"
-      :removable="field.options.selectType !== 'multiple'"
+      :show-list="field.options.selectType !== 'multiple'"
     >
       <template #single>
         <c-input-select
@@ -148,8 +148,9 @@
 </template>
 <script>
 import { debounce } from 'lodash'
-import base from './base'
 import { mapActions, mapGetters } from 'vuex'
+import { NoID } from '@cortezaproject/corteza-js'
+import base from './base'
 import Pagination from '../Common/Pagination.vue'
 
 export default {
@@ -201,7 +202,7 @@ export default {
     multipleSelected: {
       get () {
         const map = userID => {
-          return this.findByID(userID) || { userID }
+          return userID && userID !== NoID ? this.findByID(userID) || { userID } : undefined
         }
 
         return this.field.isMulti ? this.value.map(map) : map(this.value)
@@ -326,7 +327,8 @@ export default {
      * Handles single & multi value fields
      */
     getUserIDByIndex (index = 0) {
-      return this.field.isMulti ? this.value[index] : this.value
+      const value = this.field.isMulti ? this.value[index] : this.value
+      return value && value !== NoID ? value : undefined
     },
 
     search: debounce(function (query = '') {
