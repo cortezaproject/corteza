@@ -125,6 +125,7 @@
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
         :value="getUserIDByIndex()"
+        :clearable="field.name !== 'ownedBy'"
         :filterable="false"
         :selectable="option => option.selectable"
         :loading="processing"
