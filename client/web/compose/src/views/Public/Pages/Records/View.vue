@@ -316,23 +316,19 @@ export default {
     'page.pageID': {
       immediate: true,
       handler () {
-        console.log('1')
         if (this.page.pageID === NoID) return
 
         this.layouts = this.getPageLayouts(this.page.pageID)
         this.layout = undefined
-        console.log('1')
       },
     },
 
     uniqueID: {
       immediate: true,
       handler () {
-        console.log('2')
         this.record = undefined
         this.initialRecordState = undefined
         this.refresh()
-        console.log('2')
       },
     },
 

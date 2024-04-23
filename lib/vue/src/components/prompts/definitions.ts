@@ -12,8 +12,8 @@ const variants = [
 ]
 
 const openModeVariants = [
-  { value: 'newTab', text: 'Open link in a new tab' },
   { value: 'sameTab', text: 'Open link in the same tab' },
+  { value: 'newTab', text: 'Open link in a new tab' },
 ]
 
 export const prompts = Object.freeze([

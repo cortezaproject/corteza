@@ -156,16 +156,22 @@ export default {
         .then(r => {
           record = new compose.Record(this.module, r)
         })
-        .then(() => this.dispatchUiEvent('afterFormSubmit', this.record, { $records: records }))
+        .then(() => this.dispatchUiEvent('afterFormSubmit', record, { $records: records }))
         .then(() => this.updatePrompts())
         .then(() => {
-          if (this.record.valueErrors.set) {
+          if (record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
+            // We do this prop mutation (BAD!!) so that prompts can use the edit prop properly since just redirecting to the /edit route doesn't work (for now)
+            if (this.edit) {
+              this.edit = false
+            }
+
             this.inCreating = false
             this.inEditing = false
+
             // reset the record initial state in cases where the record edit page is redirected to the record view page
-            this.initialRecordState = this.record.clone()
+            this.initialRecordState = record.clone()
 
             if (this.showRecordModal) {
               this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })

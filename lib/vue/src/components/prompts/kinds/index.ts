@@ -108,7 +108,7 @@ const definitions: Record<string, PromptDefinition> = {
       const module = pVal(v, 'module')
       const namespace = pVal(v, 'namespace')
       const record = pVal(v, 'record')
-      const edit = !!pVal(v, 'edit')
+      let edit = !!pVal(v, 'edit')
       const delay = (pVal(v, 'delay') || 0) as number
       const openMode = pVal(v, 'openMode')
 
@@ -185,9 +185,8 @@ const definitions: Record<string, PromptDefinition> = {
       // @ts-ignore
       if (this.$root.$options.name === 'compose') {
         let name = 'page.record'
-        if (edit || !recordID || recordID === NoID) {
-          name += recordID && recordID !== NoID ? '.edit' : '.create'
-        }
+        edit = edit || !recordID || recordID === NoID
+        name += edit ? '.edit' : '.create'
 
         // If name and params match, make sure to refresh page instead of push
         // @ts-ignore
@@ -196,7 +195,7 @@ const definitions: Record<string, PromptDefinition> = {
         setTimeout(() => {
           console.debug('reroute to %s via prompt in %d sec', name, delay, { namespaceID, slug, moduleID, recordID })
 
-          const routeParams = { name, params: { recordID, pageID, slug } }
+          const routeParams = { name, params: { recordID, pageID, slug, edit } }
           if (reloadPage) {
             window.location.reload()
           } else if (openMode === 'modal') {
@@ -204,6 +203,7 @@ const definitions: Record<string, PromptDefinition> = {
             this.$root.$emit('show-record-modal', {
               recordID: !recordID ? NoID : recordID,
               recordPageID: pageID,
+              edit,
             })
           } else if (openMode === 'newTab') {
             // @ts-ignore
