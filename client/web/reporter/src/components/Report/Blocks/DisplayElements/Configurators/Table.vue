@@ -143,8 +143,9 @@
       >
         <column-picker
           :all-items="currentColumns"
-          :selected-items.sync="currentSelectedColumns"
+          :selected-items="currentSelectedColumns"
           class="d-flex flex-column"
+          @update:selected-items="updateSelectedColumns"
         />
       </b-form-group>
     </div>
@@ -217,6 +218,14 @@ export default {
 
         this.currentConfigurableDatasourceName = (datasources[0] || {}).name
       },
+    },
+  },
+
+  methods: {
+    updateSelectedColumns (columns) {
+      this.currentSelectedColumns = columns.map((c) => {
+        return this.currentColumns.find(({ name }) => name === c)
+      })
     },
   },
 }

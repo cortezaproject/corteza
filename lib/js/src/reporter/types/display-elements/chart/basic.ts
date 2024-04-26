@@ -5,7 +5,7 @@ import { getColorschemeColors } from '../../../../shared'
 import moment from 'moment'
 export class BasicChartOptions extends ChartOptions {
   public labelColumn = ''
-  public dataColumns: Array<{ name: string; label?: string }> = []
+  public dataColumns: Array<{ name: string; label?: string; stack?: string }> = []
 
   constructor (o?: BasicChartOptions | Partial<BasicChartOptions>) {
     super(o)
@@ -170,13 +170,14 @@ export class BasicChartOptions extends ChartOptions {
 
       options.yAxis = [tempYAxis]
 
-      options.series = datasets.map(({ label, data }) => {
+      options.series = datasets.map(({ label, data, stack }) => {
         return {
           name: label,
           type: this.type,
           smooth: true,
           areaStyle: {},
           left: 'left',
+          stack,
           label: {
             show: this.tooltips.showAlways,
             position: 'inside',
@@ -241,7 +242,7 @@ export class BasicChartOptions extends ChartOptions {
     if (localDataframe && dataframes) {
       // Get datasets
       if (this.dataColumns.length && localDataframe.rows) {
-        for (const { name } of this.dataColumns) {
+        for (const { name, stack, label } of this.dataColumns) {
           // Assume localDataframe has the dataColumn
           let columnIndex = this.getColIndex(localDataframe, name)
 
@@ -280,8 +281,9 @@ export class BasicChartOptions extends ChartOptions {
           }
 
           datasets.push({
-            label: name,
+            label: label || name,
             data,
+            stack,
           })
         }
       }
