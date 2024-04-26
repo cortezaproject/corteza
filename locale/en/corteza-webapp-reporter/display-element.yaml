@@ -17,6 +17,14 @@ chart:
     step-size: Step size
     animation:
       enabled: Animation enabled
+    metrics:
+      label: Metrics
+      field: Field
+      stack:
+        label: Stack
+        description: Metrics with same value will be stacked
+      label-field:
+        label: Label
     time:
       label: Time
       unit:
