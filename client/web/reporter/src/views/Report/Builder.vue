@@ -361,6 +361,7 @@
         :processing="processing"
         :processing-save="processingSave"
         :processing-delete="processingDelete"
+        @clone="handleReportCloning"
         @delete="handleDelete"
         @save="handleReportSave"
       >
@@ -843,6 +844,13 @@ export default {
         })
         .finally(() => {
           this.processingSave = false
+        })
+    },
+
+    handleReportCloning () {
+      this.handleClone(this.report)
+        .then((report) => {
+          this.$router.push({ name: 'report.view', params: { reportID: report.reportID, canReadReport: report.canReadReport } })
         })
     },
 

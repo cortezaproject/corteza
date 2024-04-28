@@ -35,6 +35,17 @@
         @confirmed="$emit('delete')"
       />
 
+      <b-button
+        data-test-id="button-clone"
+        variant="light"
+        size="lg"
+        :disabled="processing"
+        class="text-nowrap"
+        @click.prevent="$emit('clone')"
+      >
+        {{ $t('general:label.clone') }}
+      </b-button>
+
       <c-button-submit
         data-test-id="button-save"
         :disabled="saveDisabled || processing"

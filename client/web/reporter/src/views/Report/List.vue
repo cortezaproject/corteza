@@ -122,6 +122,13 @@
             />
           </b-dropdown-item>
 
+          <b-dropdown-item-button @click="handleReportCloning(r)">
+            <font-awesome-icon
+              :icon="['fa','clone']"
+            />
+            {{ $t('general:resourceList.clone') }}
+          </b-dropdown-item-button>
+
           <c-input-confirm
             v-if="r.canDeleteReport"
             :processing="processingDelete"
@@ -145,6 +152,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import listHelpers from 'corteza-webapp-reporter/src/mixins/listHelpers'
+import report from 'corteza-webapp-reporter/src/mixins/report'
 import { components } from '@cortezaproject/corteza-vue'
 const { CResourceList } = components
 
@@ -161,6 +169,7 @@ export default {
 
   mixins: [
     listHelpers,
+    report,
   ],
 
   data () {
@@ -251,6 +260,12 @@ export default {
         .finally(() => {
           this.processingDelete = false
         })
+    },
+
+    handleReportCloning (report) {
+      this.handleClone(report).then((report) => {
+        this.viewReport({ reportID: report.reportID, canReadReport: report.canReadReport })
+      })
     },
   },
 }

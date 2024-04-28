@@ -90,5 +90,23 @@ export default {
           this.processingDelete = false
         })
     },
+
+    handleClone (report) {
+      this.processing = true
+      const { handle, meta, sources, blocks, scenarios, labels } = report
+      meta.name = `${meta.name} (${this.$t('general:cloneSuffix')})`
+      this.processingSave = true
+      return this.$SystemAPI.reportCreate({ handle, meta, sources, blocks, scenarios, labels })
+        .then(report => {
+          report = new system.Report(report)
+          this.toastSuccess(this.$t('notification:report.created'))
+          return report
+        })
+        .catch(this.toastErrorHandler(this.$t('notification:report.createFailed')))
+        .finally(() => {
+          this.processing = false
+          this.processingSave = false
+        })
+    },
   },
 }
