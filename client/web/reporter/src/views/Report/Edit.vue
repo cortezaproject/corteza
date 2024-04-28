@@ -26,6 +26,7 @@
             :icon="['fas', 'tools']"
           />
         </b-button>
+
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.view-report'), container: '#body' }"
           variant="primary"
@@ -159,15 +160,25 @@
       </b-row>
     </b-container>
 
+    <div
+      v-else
+      class="d-flex align-items-center justify-content-center w-100 h-100"
+    >
+      <b-spinner />
+    </div>
+
     <portal to="report-toolbar">
       <editor-toolbar
         :back-link="{ name: 'report.list' }"
         :hide-delete="isNew"
         :delete-disabled="!canDelete"
         :save-disabled="!canSave"
+        :clone-disabled="!canSave"
         :processing="processing"
         :processing-save="processingSave"
         :processing-delete="processingDelete"
+        :processing-clone="processingClone"
+        @clone="handleReportCloning"
         @delete="handleDelete"
         @save="handleSave"
       />
@@ -318,6 +329,12 @@ export default {
       }
 
       next(!isEqual(reportState, initialReportState) ? window.confirm(this.$t('unsavedChanges')) : true)
+    },
+
+    handleReportCloning () {
+      this.handleClone(this.report).then(({ reportID }) => {
+        this.$router.push({ name: 'report.builder', params: { reportID } })
+      })
     },
   },
 }

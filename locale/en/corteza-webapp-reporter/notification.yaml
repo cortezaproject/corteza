@@ -13,6 +13,7 @@ namespace:
   fetch-failed: Failed to fetch namespaces
 report:
   createFailed: Failed to create report
+  loadFailed: Loading the report failed
   created: Report created
   delete: Report deleted
   deleteFailed: Failed to delete report
