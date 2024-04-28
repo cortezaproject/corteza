@@ -28,7 +28,7 @@
         size="lg"
         size-confirm="lg"
         variant="danger"
-        :disabled="deleteDisabled || processingDelete"
+        :disabled="deleteDisabled || processingDelete || processing"
         :processing="processingDelete"
         :text="$t('general:label.delete')"
         :borderless="false"
@@ -36,8 +36,19 @@
       />
 
       <c-button-submit
+        data-test-id="button-clone"
+        :disabled="cloneDisabled || processingClone || processing"
+        :processing="processingClone"
+        variant="light"
+        :text="$t('general:label.clone')"
+        class="text-nowrap"
+        size="lg"
+        @submit="$emit('clone')"
+      />
+
+      <c-button-submit
         data-test-id="button-save"
-        :disabled="saveDisabled || processing"
+        :disabled="saveDisabled || processingSave || processing"
         :processing="processingSave"
         :text="$t('general:label.save')"
         size="lg"
@@ -79,6 +90,10 @@ export default {
       type: Boolean,
     },
 
+    cloneDisabled: {
+      type: Boolean,
+    },
+
     processing: {
       type: Boolean,
     },
@@ -90,6 +105,10 @@ export default {
     processingSave: {
       type: Boolean,
       required: false,
+    },
+
+    processingClone: {
+      type: Boolean,
     },
   },
 }

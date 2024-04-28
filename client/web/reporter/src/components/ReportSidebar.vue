@@ -72,7 +72,7 @@ export default {
 
       return reports.map(({ reportID, handle, meta: { name = '' } }) => {
         return {
-          page: { pageID: reportID, name: 'report.view', title: name || handle },
+          page: { pageID: reportID, name: this.$route.name, title: name || handle },
           params: { reportID },
         }
       })
@@ -88,6 +88,14 @@ export default {
         }
       },
     },
+  },
+
+  created () {
+    this.$root.$on('refetch:reports', this.fetchReports)
+  },
+
+  beforeDestroy () {
+    this.$root.$off('refetch:reports', this.fetchReports)
   },
 
   methods: {

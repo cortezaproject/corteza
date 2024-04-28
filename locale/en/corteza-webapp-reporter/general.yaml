@@ -17,6 +17,7 @@ label:
   openLinkInNewTab: Open link in a new tab
   save: Save
   saveAndClose: Save and close
+  clone: Save as copy
   today: Today
   urlPlaceholder: https://example.tld
   default: Default
@@ -34,8 +35,11 @@ resourceList:
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
     recordsPerPage: Records per page
+  clone: Clone
 
 themes:
   labels:
     light: Light
     dark: Dark
+
+cloneSuffix: copy
