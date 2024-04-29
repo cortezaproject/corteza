@@ -142,7 +142,9 @@ export default class Chart extends BaseChart {
     options.series = datasets.map(({ type, label, data, stack, tooltip, fill, smooth, step, roseType, symbol }: any, index: number) => {
       const { fixed, relative } = tooltip
 
-      const tooltipFormatter = t?.formatting ? t.formatting : `{a}<br />{b} : {c}${relative ? ' ({d}%)' : ''}`
+      const tooltipFormatter = t?.formatting ? t.formatting : (params: any) => {
+        return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${params.value}${relative ? ' (' + params.percent + '%)' : ''}</span>`
+      }
       const labelFormatter = `{@[1]}${relative ? ' ({d}%)' : ''}`
 
       // We should render the first metric in the dataset as the last
@@ -189,6 +191,7 @@ export default class Chart extends BaseChart {
           tooltip: {
             trigger: 'item',
             formatter: tooltipFormatter,
+            appendToBody: true,
           },
           label: {
             ...lbl,
@@ -257,6 +260,7 @@ export default class Chart extends BaseChart {
           tooltip: {
             trigger: 'axis',
             formatter: tooltipFormatter,
+            appendToBody: true,
           },
           label: {
             show: fixed,

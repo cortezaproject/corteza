@@ -92,7 +92,9 @@ export default class FunnelChart extends BaseChart {
     const { legend: l } = reports[0] || {}
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
-    const tooltipFormatter = `{b}<br />{c} ${tooltip.relative ? ' ({d}%)' : ''}`
+    const tooltipFormatter = (params: any) => {
+      return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${params.value}${tooltip.relative ? ' (' + params.percent + '%)' : ''}</span>`
+    }
     const labelFormatter = `{c}${tooltip.relative ? ' ({d}%)' : ''}`
 
     return {
@@ -112,7 +114,6 @@ export default class FunnelChart extends BaseChart {
         right: 5,
       },
       tooltip: {
-        show: true,
         trigger: 'item',
         formatter: tooltipFormatter,
         appendToBody: true,
@@ -134,8 +135,9 @@ export default class FunnelChart extends BaseChart {
         pageIconColor: themeVariables.black,
         pageIconInactiveColor: themeVariables.light,
       },
-      series: datasets.map(({ data }: any) => {
+      series: datasets.map(({ data, label }: any) => {
         return {
+          name: label,
           type: 'funnel',
           sort: 'descending',
           top: 45,
@@ -177,6 +179,7 @@ export default class FunnelChart extends BaseChart {
     const values = []
 
     let tooltip = {}
+    let label = ''
 
     // Above provided data sets might not have their labels/values ordered
     // correctly
@@ -190,6 +193,7 @@ export default class FunnelChart extends BaseChart {
       })
 
       tooltip = { ...tooltip, ...r.datasets[0].tooltip }
+      label = r.datasets[0].label
 
       // Construct labels & data based on provided reports
       const report = this.config.reports?.[ri]
@@ -236,6 +240,7 @@ export default class FunnelChart extends BaseChart {
     return {
       labels,
       datasets: [{
+        label,
         data,
       }],
       tooltip,

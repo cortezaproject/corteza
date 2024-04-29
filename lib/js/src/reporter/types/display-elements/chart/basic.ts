@@ -50,7 +50,10 @@ export class BasicChartOptions extends ChartOptions {
           radius: [`${sr}%`, `${er}%`],
           center: ['50%', '55%'],
           tooltip: {
-            formatter: '{a}<br />{b} : {c} ({d}%)',
+            formatter: (params: any) => {
+              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${params.value} (${params.percent}%)</span>`
+            },
+            appendToBody: true,
           },
           label: {
             show: this.tooltips.showAlways,

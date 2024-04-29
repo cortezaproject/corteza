@@ -42,7 +42,9 @@ export class FunnelChartOptions extends ChartOptions {
       tooltip: {
         show: true,
         trigger: 'item',
-        formatter: '{b} : {c} ({d}%)',
+        formatter: (params: any) => {
+          return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${params.value} (${params.percent}%)</span>`
+        },
         appendToBody: true,
       },
       legend: {
