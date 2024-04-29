@@ -544,7 +544,7 @@ export default {
 
     metricFields () {
       return [
-        { value: 'count', text: 'Count' },
+        { value: 'count', text: this.$t('general.label.count') },
         ...this.module.fields.filter(f => f.kind === 'Number')
           .sort((a, b) => (a.label || a.name).localeCompare((b.label || b.name)))
           .map(({ label, name }) => ({ value: name, text: label || name })),

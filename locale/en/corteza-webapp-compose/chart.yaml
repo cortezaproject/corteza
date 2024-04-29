@@ -17,6 +17,7 @@ general:
   label:
     title: Label
     add: Add
+    count: Count
   value: Value
   placeholder:
     handle: handle (a - z, 0 - 9, underscore, dash)

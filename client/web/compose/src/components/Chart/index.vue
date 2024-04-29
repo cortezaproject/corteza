@@ -104,87 +104,104 @@ export default {
 
         const data = await chart.fetchReports({ reporter: this.reporter })
 
+        const module = this.getModuleByID(report.moduleID)
+        const fields = [
+          ...module.fields,
+          ...module.systemFields(),
+        ]
+
         if (!!data.labels && Array.isArray(data.labels)) {
           // Get dimension field kind
           const [dimension = {}] = report.dimensions
-          let { field, meta = {} } = dimension
-          const module = this.getModuleByID(report.moduleID)
+          let { field } = dimension
 
-          if (module) {
-            field = [
-              ...module.fields,
-              ...module.systemFields(),
-            ].find(({ name }) => name === field)
+          if (!module) return
 
-            if (meta.fields && field.kind === 'Select') {
-              data.labels = data.labels.map(value => {
-                const { text } = field.options.options.find(o => o.value === value) || {}
-                const label = text || value
-                this.valueMap[label] = value
+          field = fields.find(({ name }) => name === field)
 
-                return label
-              })
-            }
-          }
+          if (!field) return
 
-          if (field && ['User', 'Record'].includes(field.kind)) {
-            if (field.kind === 'User') {
-              // Fetch and map users to labels
-              await this.resolveUsers(data.labels)
-              data.labels = data.labels.map(userID => {
-                const label = field.formatter(this.getUserByID(userID)) || userID
-                this.valueMap[label] = userID
-                return label
-              })
-            } else {
-              // Fetch and map records and their values to labels
-              const { namespaceID } = this.chart || {}
-              const recordModule = this.getModuleByID(field.options.moduleID)
-              if (recordModule && data.labels) {
-                const isValidRecordID = (recordID) => recordID !== dimension.default && recordID !== 'undefined'
-                await Promise.all(data.labels.map(recordID => {
-                  if (isValidRecordID(recordID)) {
-                    return this.$ComposeAPI.recordRead({ namespaceID, moduleID: recordModule.moduleID, recordID }).then(record => {
-                      record = new compose.Record(recordModule, record)
+          if (field.kind === 'Bool') {
+            const { trueLabel, falseLabel } = field.options
 
-                      if (field.options.recordLabelField) {
-                        // Get actual field
-                        const relatedField = recordModule.fields.find(({ name }) => name === field.options.labelField)
+            data.labels = data.labels.map(value => {
+              return value === '1' ? trueLabel || this.$t('general:label.yes') : falseLabel || this.$t('general:label.no')
+            })
+          } else if (field.kind === 'Select') {
+            data.labels = data.labels.map(value => {
+              const { text } = field.options.options.find(o => o.value === value) || {}
+              const label = text || value
+              this.valueMap[label] = value
 
-                        return this.$ComposeAPI.recordRead({ namespaceID, moduleID: relatedField.options.moduleID, recordID: record.values[field.options.labelField] }).then(labelRecord => {
-                          record.values[field.options.labelField] = (labelRecord.values.find(({ name }) => name === this.field.options.recordLabelField) || {}).value
-                          return record
-                        })
-                      } else {
+              return label
+            })
+          } else if (field.kind === 'User') {
+            // Fetch and map users to labels
+            await this.resolveUsers(data.labels)
+            data.labels = data.labels.map(userID => {
+              const label = field.formatter(this.getUserByID(userID)) || userID
+              this.valueMap[label] = userID
+              return label
+            })
+          } else if (field.kind === 'Record') {
+            // Fetch and map records and their values to labels
+            const { namespaceID } = this.chart || {}
+            const recordModule = this.getModuleByID(field.options.moduleID)
+            if (recordModule && data.labels) {
+              const isValidRecordID = (recordID) => recordID !== dimension.default && recordID !== 'undefined'
+              await Promise.all(data.labels.map(recordID => {
+                if (isValidRecordID(recordID)) {
+                  return this.$ComposeAPI.recordRead({ namespaceID, moduleID: recordModule.moduleID, recordID }).then(record => {
+                    record = new compose.Record(recordModule, record)
+
+                    if (field.options.recordLabelField) {
+                      // Get actual field
+                      const relatedField = recordModule.fields.find(({ name }) => name === field.options.labelField)
+
+                      return this.$ComposeAPI.recordRead({ namespaceID, moduleID: relatedField.options.moduleID, recordID: record.values[field.options.labelField] }).then(labelRecord => {
+                        record.values[field.options.labelField] = (labelRecord.values.find(({ name }) => name === this.field.options.recordLabelField) || {}).value
                         return record
-                      }
-                    })
-                  } else {
-                    const record = { values: {} }
-                    record.values[field.options.labelField] = recordID
-                    return record
-                  }
-                })).then(records => {
-                  data.labels = records.map(record => {
-                    const value = field.options.labelField ? record.values[field.options.labelField] : record.recordID
-                    const label = Array.isArray(value) ? value.join(', ') : value
-                    this.valueMap[label] = record.recordID
-
-                    return value
+                      })
+                    } else {
+                      return record
+                    }
                   })
+                } else {
+                  const record = { values: {} }
+                  record.values[field.options.labelField] = recordID
+                  return record
+                }
+              })).then(records => {
+                data.labels = records.map(record => {
+                  const value = field.options.labelField ? record.values[field.options.labelField] : record.recordID
+                  const label = Array.isArray(value) ? value.join(', ') : value
+                  this.valueMap[label] = record.recordID
+
+                  return value
                 })
-              }
+              })
             }
           }
-
-          data.labels = data.labels.map(l => l === 'undefined' ? this.$t('chart:undefined') : l)
-          data.customColorSchemes = this.$Settings.get('ui.charts.colorSchemes', [])
-          data.themeVariables = this.getThemeVariables()
-
-          this.renderer = chart.makeOptions(data)
-        } else {
-          data.labels = []
         }
+
+        data.datasets = data.datasets.map((dataset = {}, i) => {
+          const { label } = dataset
+
+          if (label === 'count') {
+            dataset.label = this.$t('chart:general.label.count')
+          } else {
+            const field = fields.find(({ name }) => name === label) || {}
+            dataset.label = field.label || label
+          }
+
+          return dataset
+        })
+
+        data.labels = data.labels.map(l => l === 'undefined' ? this.$t('chart:undefined') : l)
+        data.customColorSchemes = this.$Settings.get('ui.charts.colorSchemes', [])
+        data.themeVariables = this.getThemeVariables()
+
+        this.renderer = chart.makeOptions(data)
       } catch (e) {
         this.processing = false
         this.toastErrorHandler(this.$t('chart.optionsBuildFailed'))(e)
