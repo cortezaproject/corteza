@@ -172,6 +172,7 @@ export default class GaugeChart extends BaseChart {
   defMetrics (): Metric {
     return Object.assign({}, {
       type: ChartType.gauge,
+      fixTooltips: true,
       startAngle: 200,
       endAngle: -20,
     })
