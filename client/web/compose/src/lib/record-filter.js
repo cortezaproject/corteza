@@ -199,7 +199,7 @@ export function evaluatePrefilter (prefilter, { record, user, recordID, ownerID,
 }
 
 // Removes char from end of string
-function trimChar (text = '', char = '') {
+export function trimChar (text = '', char = '') {
   if (text.substring(text.length - char.length, text.length) === char) {
     text = text.substring(0, text.length - char.length)
   }

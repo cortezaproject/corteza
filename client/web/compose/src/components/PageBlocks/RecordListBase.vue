@@ -820,15 +820,16 @@
     </template>
   </wrap>
 </template>
+
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import base from './base'
+import base from 'corteza-webapp-compose/src/components/PageBlocks/base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
 import ExporterModal from 'corteza-webapp-compose/src/components/Public/Record/Exporter'
 import ImporterModal from 'corteza-webapp-compose/src/components/Public/Record/Importer'
-import AutomationButtons from './Shared/AutomationButtons'
+import AutomationButtons from 'corteza-webapp-compose/src/components/PageBlocks/Shared/AutomationButtons.vue'
 import { compose, validator, NoID } from '@cortezaproject/corteza-js'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'

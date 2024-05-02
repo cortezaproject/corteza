@@ -39,148 +39,13 @@
             borderless
             class="mb-0"
           >
-            <template
-              v-for="(filterGroup, groupIndex) in componentFilter"
-            >
-              <template v-if="filterGroup.filter.length">
-                <b-tr
-                  v-for="(filter, index) in filterGroup.filter"
-                  :key="`${groupIndex}-${index}`"
-                  class="pb-2"
-                >
-                  <b-td
-                    class="px-2"
-                  >
-                    <c-input-select
-                      v-model="filter.name"
-                      :options="fieldOptions"
-                      :get-option-key="getOptionKey"
-                      :clearable="false"
-                      :placeholder="$t('recordList.filter.fieldPlaceholder')"
-                      :reduce="f => f.name"
-                      :class="{ 'filter-field-picker': !!filter.name }"
-                      @input="onChange($event, groupIndex, index)"
-                    />
-                  </b-td>
-
-                  <b-td
-                    v-if="getField(filter.name)"
-                    :class="{ 'pr-2': getField(filter.name) }"
-                  >
-                    <b-form-select
-                      v-if="getField(filter.name)"
-                      v-model="filter.operator"
-                      :options="getOperators(filter.kind, getField(filter.name))"
-                      class="d-flex field-operator w-100"
-                      @change="updateFilterProperties(filter)"
-                    />
-                  </b-td>
-                  <b-td
-                    v-if="getField(filter.name)"
-                  >
-                    <template v-if="isBetweenOperator(filter.operator)">
-                      <template
-                        v-if="getField(`${filter.name}-start`)"
-                      >
-                        <field-editor
-                          v-bind="mock"
-                          class="field-editor mb-0"
-                          value-only
-                          :field="getField(`${filter.name}-start`)"
-                          :record="filter.record"
-                          @change="onValueChange"
-                        />
-                        <span class="text-center my-1 w-100">
-                          {{ $t('general.label.and') }}
-                        </span>
-                        <field-editor
-                          v-bind="mock"
-                          class="field-editor mb-0"
-                          value-only
-                          :field="getField(`${filter.name}-end`)"
-                          :record="filter.record"
-                          @change="onValueChange"
-                        />
-                      </template>
-                    </template>
-
-                    <template v-else>
-                      <field-editor
-                        v-bind="mock"
-                        class="field-editor mb-0"
-                        value-only
-                        :field="getField(filter.name)"
-                        :record="filter.record"
-                        @change="onValueChange"
-                      />
-                    </template>
-                  </b-td>
-                  <b-td
-                    v-if="getField(filter.name)"
-                    class="align-middle"
-                    style="width: 1%;"
-                  >
-                    <b-button
-                      :id="`${groupIndex}-${index}`"
-                      ref="delete"
-                      variant="link"
-                      class="d-flex align-items-center"
-                      @click="deleteFilter(groupIndex, index)"
-                    >
-                      <font-awesome-icon
-                        :icon="['far', 'trash-alt']"
-                        size="sm"
-                      />
-                    </b-button>
-                  </b-td>
-                </b-tr>
-
-                <b-tr :key="`addFilter-${groupIndex}`">
-                  <b-td class="pb-0">
-                    <b-button
-                      variant="link text-decoration-none d-block mr-auto"
-                      style="min-height: 38px; min-width: 84px;"
-                      @click="addFilter(groupIndex)"
-                    >
-                      <font-awesome-icon
-                        :icon="['fas', 'plus']"
-                        size="sm"
-                        class="mr-1"
-                      />
-                      {{ $t('general.label.add') }}
-                    </b-button>
-                  </b-td>
-                </b-tr>
-
-                <b-tr
-                  :key="`groupCondtion-${groupIndex}`"
-                >
-                  <b-td
-                    colspan="100%"
-                    class="p-0 justify-content-center"
-                    :class="{ 'pb-3': filterGroup.groupCondition }"
-                  >
-                    <div
-                      class="group-separator"
-                    >
-                      <div style="height: 20px; width: 100%;" />
-
-                      <b-button
-                        v-if="groupIndex === (componentFilter.length - 1)"
-                        variant="outline-primary"
-                        class="btn-add-group bg-white py-2 px-3"
-                        @click="addGroup()"
-                      >
-                        <font-awesome-icon
-                          :icon="['fas', 'plus']"
-                          class="h6 mb-0 "
-                        />
-                      </b-button>
-                    </div>
-                  </b-td>
-                </b-tr>
-              </template>
-            </template>
+            <filter-toolbox
+              v-model="componentFilter"
+              :module="module"
+              :namespace="namespace"
+              :mock.sync="mock"
+              @prevent-close="onValueChange"
+            />
           </b-table-simple>
         </b-card-body>
 
@@ -223,8 +88,8 @@
   </div>
 </template>
 <script>
-import FieldEditor from '../ModuleFields/Editor'
 import { compose, validator } from '@cortezaproject/corteza-js'
+import FilterToolbox from 'corteza-webapp-compose/src/components/Common/FilterToolbox.vue'
 
 export default {
   i18nOptions: {
@@ -232,7 +97,7 @@ export default {
   },
 
   components: {
-    FieldEditor,
+    FilterToolbox,
   },
 
   props: {
@@ -291,11 +156,6 @@ export default {
     return {
       componentFilter: [],
 
-      conditions: [
-        { value: 'AND', text: this.$t('recordList.filter.conditions.and') },
-        { value: 'OR', text: this.$t('recordList.filter.conditions.or') },
-      ],
-
       mock: {},
 
       // Used to prevent unwanted closure of popover
@@ -304,22 +164,6 @@ export default {
   },
 
   computed: {
-    fields () {
-      return [
-        ...[...this.module.fields].sort((a, b) =>
-          (a.label || a.name).localeCompare(b.label || b.name),
-        ),
-        ...this.module.systemFields().map(sf => {
-          sf.label = this.$t(`field:system.${sf.name}`)
-          return sf
-        }),
-      ].filter(({ isFilterable }) => isFilterable)
-    },
-
-    fieldOptions () {
-      return this.fields.map(({ name, label }) => ({ name, label: label || name }))
-    },
-
     inFilter () {
       return this.recordListFilter.some(({ filter }) => {
         return filter.some(({ name }) => name === this.selectedField.name)
@@ -383,96 +227,6 @@ export default {
       }, 100)
     },
 
-    onChange (fieldName, groupIndex, index) {
-      const field = this.getField(fieldName)
-      const filterExists = !!(this.componentFilter[groupIndex] || { filter: [] }).filter[index]
-      if (field && filterExists) {
-        const tempFilter = [...this.componentFilter]
-        tempFilter[groupIndex].filter[index].kind = field.kind
-        tempFilter[groupIndex].filter[index].name = field.name
-        tempFilter[groupIndex].filter[index].value = undefined
-        tempFilter[groupIndex].filter[index].operator = field.multi ? 'IN' : '='
-        this.componentFilter = tempFilter
-      }
-      this.onValueChange()
-    },
-
-    getOperators (kind, field) {
-      const operators = [
-        {
-          value: '=',
-          text: this.$t('recordList.filter.operators.equal'),
-        },
-        {
-          value: '!=',
-          text: this.$t('recordList.filter.operators.notEqual'),
-        },
-      ]
-
-      const inOperators = [
-        {
-          value: 'IN',
-          text: this.$t('recordList.filter.operators.contains'),
-        },
-        {
-          value: 'NOT IN',
-          text: this.$t('recordList.filter.operators.notContains'),
-        },
-      ]
-
-      const lgOperators = [
-        {
-          value: '>',
-          text: this.$t('recordList.filter.operators.greaterThan'),
-        },
-        {
-          value: '<',
-          text: this.$t('recordList.filter.operators.lessThan'),
-        },
-      ]
-      const matchOperators = [
-        {
-          value: 'LIKE',
-          text: this.$t('recordList.filter.operators.like'),
-        },
-        {
-          value: 'NOT LIKE',
-          text: this.$t('recordList.filter.operators.notLike'),
-        },
-      ]
-
-      const betweenOperators = [
-        {
-          value: 'BETWEEN',
-          text: this.$t('recordList.filter.operators.between'),
-        },
-        {
-          value: 'NOT BETWEEN',
-          text: this.$t('recordList.filter.operators.notBetween'),
-        },
-      ]
-
-      if (field.multi) {
-        return inOperators
-      }
-
-      switch (kind) {
-        case 'Number':
-          return [...operators, ...lgOperators, ...betweenOperators]
-
-        case 'DateTime':
-          return [...operators, ...lgOperators, ...betweenOperators]
-
-        case 'String':
-        case 'Url':
-        case 'Email':
-          return [...operators, ...matchOperators]
-
-        default:
-          return operators
-      }
-    },
-
     getField (name = '') {
       const field = name ? this.mock.module.fields.find(f => f.name === name) : undefined
 
@@ -517,34 +271,6 @@ export default {
         this.createDefaultFilterGroup(),
       ]
       this.$emit('reset')
-    },
-
-    deleteFilter (groupIndex, index) {
-      const filterExists = !!(this.componentFilter[groupIndex] || { filter: [] }).filter[index]
-
-      if (filterExists) {
-        // Set focus to previous element
-        this.onSetFocus(groupIndex, index)
-        // Delete filter from filterGroup
-        this.componentFilter[groupIndex].filter.splice(index, 1)
-
-        // If filter was last in filterGroup, delete filterGroup
-        if (!this.componentFilter[groupIndex].filter.length) {
-          this.componentFilter.splice(groupIndex, 1)
-
-          // If no more filterGroups, add default back
-          if (!this.componentFilter.length) {
-            this.resetFilter()
-          } else if (groupIndex === this.componentFilter.length) {
-            // Reset first filterGroup groupCondition if last filterGroup was deleted
-            this.componentFilter[groupIndex - 1].groupCondition = undefined
-          }
-        }
-      }
-    },
-
-    onSetFocus () {
-      this.$refs.focusMe.focus()
     },
 
     onOpen () {
@@ -623,29 +349,12 @@ export default {
       this.$emit(type, this.processFilter())
     },
 
-    updateFilterProperties (filter) {
-      if (this.isBetweenOperator(filter.operator)) {
-        filter.record.values[`${filter.name}-start`] = filter.record.values[`${filter.name}-start`]
-        filter.record.values[`${filter.name}-end`] = filter.record.values[`${filter.name}-end`]
-
-        const field = this.mock.module.fields.find(f => f.name === filter.name)
-
-        this.mock.module.fields.push({ ...field, name: `${filter.name}-end` })
-        this.mock.module.fields.push({ ...field, name: `${filter.name}-start` })
-      }
-    },
-
     isBetweenOperator (op) {
       return ['BETWEEN', 'NOT BETWEEN'].includes(op)
     },
 
-    getOptionKey ({ name }) {
-      return name
-    },
-
     setDefaultValues () {
       this.componentFilter = []
-      this.conditions = []
       this.mock = {}
       this.preventPopoverClose = false
     },
