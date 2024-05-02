@@ -302,6 +302,8 @@ recordList:
   addRecord: Add
   cancelSelection: Cancel
   customFilter: Custom filter
+  prefilter:
+    toggleInputType: Toggle input type
   filterPresets:
     filterName: Filter name
     saveFilterAsPreset: Save filter as preset
