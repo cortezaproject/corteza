@@ -45,7 +45,7 @@
 
 import { mapGetters, mapActions } from 'vuex'
 import { compose } from '@cortezaproject/corteza-js'
-import RecordListBase from 'corteza-webapp-compose/src/components/PageBlocks/RecordListBase'
+import RecordListBase from 'corteza-webapp-compose/src/components/PageBlocks/RecordList/Base'
 
 export default {
   i18nOptions: {

@@ -6,7 +6,7 @@
     :content-cols-xl="horizontal && '8'"
   >
     <template
-      v-if="field.options.switch"
+      v-if="field.options.switch && label"
       #label
     >
       <div
