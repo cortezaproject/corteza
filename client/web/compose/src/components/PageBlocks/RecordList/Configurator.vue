@@ -262,30 +262,11 @@
             </b-col>
           </b-row>
 
-          <b-row>
-            <b-col>
-              <b-form-group
-                :label="$t('recordList.record.prefilterCommand')"
-                label-class="text-primary"
-              >
-                <b-form-textarea
-                  v-model="options.prefilter"
-                  :placeholder="$t('recordList.record.prefilterPlaceholder')"
-                />
-
-                <i18next
-                  path="recordList.record.prefilterFootnote"
-                  tag="small"
-                  class="text-muted"
-                >
-                  <code>${record.values.fieldName}</code>
-                  <code>${recordID}</code>
-                  <code>${ownerID}</code>
-                  <span><code>${userID}</code>, <code>${user.name}</code></span>
-                </i18next>
-              </b-form-group>
-            </b-col>
-          </b-row>
+          <prefilter
+            :module="recordListModule"
+            :namespace="namespace"
+            :options="options"
+          />
 
           <hr>
 
@@ -823,11 +804,12 @@
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
 import Draggable from 'vuedraggable'
-import base from './base'
-import AutomationTab from './Shared/AutomationTab'
+import base from '../base'
+import AutomationTab from '../Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
+import Prefilter from './Components/Prefilter.vue'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 const { CInputPresort } = components
 
@@ -845,6 +827,7 @@ export default {
     RecordListFilter,
     Draggable,
     ColumnPicker,
+    Prefilter,
   },
 
   extends: base,
