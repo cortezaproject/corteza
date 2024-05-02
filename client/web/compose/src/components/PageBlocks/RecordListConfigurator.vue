@@ -811,6 +811,7 @@ import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
+import Prefilter from './RecordList/Prefilter.vue'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 const { CInputPresort } = components
 
@@ -828,6 +829,7 @@ export default {
     RecordListFilter,
     Draggable,
     ColumnPicker,
+    Prefilter,
   },
 
   extends: base,
