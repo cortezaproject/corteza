@@ -34,6 +34,7 @@ export interface Dimension {
   timeLabels?: boolean;
   autoSkip?: boolean;
   rotateLabel?: number;
+  dateFormatter?: string;
 }
 
 export interface Metric {
@@ -240,6 +241,65 @@ export const hasRelativeDisplay = ({ type }: KV) => isRadialChart({ type })
 
 // Makes a standarised alias from modifier or dimension report option
 export const makeAlias = ({ alias, aggregate, modifier, field }: Metric) => alias || `${aggregate || modifier || 'none'}_${field}`.toLocaleLowerCase()
+
+export function formatChartValue (value: string | number, formatConfig?: FormatData): string {
+  let n: number | string = 0 || ''
+  // if value contains alphabetic chars parseFloat() will return NaN
+  // and n will equal 0
+  const containsAlphabeticChars = isNaN(Number(value))
+  let result = ''
+
+  if (!containsAlphabeticChars) {
+    switch (typeof value) {
+      case 'string':
+        n = parseFloat(value)
+        break
+      case 'number':
+        n = value
+        break
+      default:
+        n = 0
+    }
+
+    if (formatConfig?.numberFormat) {
+      result = numeral(n).format(formatConfig.numberFormat)
+    } else {
+      result = fmt.number(n)
+    }
+  }
+
+  if (formatConfig?.presetFormat === 'accountingNumber') {
+    result = formatChartValueAsAccountingNumber(Number(n))
+  }
+
+  return ` ${formatConfig?.prefix ?? ''} ${result || value} ${formatConfig?.suffix ?? ''}`
+}
+
+export function formatChartTooltip (tooltip: string, params: TooltipParams): string {
+  const { seriesName = '', name = '', value = '', percent = '' } = params
+
+  return tooltip
+    .replace('{a}', seriesName)
+    .replace('{b}', name)
+    .replace('{c}', value.toString())
+    .replace('{d}', percent.toString())
+}
+
+export function formatChartValueAsAccountingNumber (value: number): string {
+  let result = ''
+
+  if (value < 0) {
+    result = `(${Math.abs(value)})`
+  } else if (value === 0) {
+    result = '-'
+  }
+
+  return result
+}
+
+export function dateFormatter (): Date {
+  return new Date()
+}
 
 const chartUtil = {
   dimensionFunctions,

@@ -330,6 +330,7 @@ export class BaseChart {
       conditions: {},
       meta: {},
       rotateLabel: 0,
+      dateFormatter: '',
     })
   }
 

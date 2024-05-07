@@ -236,3 +236,7 @@ export class ModuleField {
 }
 
 export const Registry = new Map<string, typeof ModuleField>()
+
+export function getFieldType (fields:any, field: any): string {
+  return fields[field].kind
+}

@@ -26,6 +26,21 @@
           @update:value="setOptions(index, field, $event)"
         />
       </b-form-group>
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            label="Format data type values"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="dimension.dateFormatter"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </template>
 
     <template #metric-options="{ metric }">
