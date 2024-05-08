@@ -89,7 +89,6 @@
               >
                 <button
                   class="dropdown-item"
-                  :disabled="activeFilters.includes(f.name)"
                   @click="updateFilter(f.filter, f.name)"
                 >
                   {{ f.name }}
@@ -111,7 +110,6 @@
               @updateFields="onUpdateFields"
             />
           </div>
-
           <div
             v-if="!options.hideSearch"
             class="flex-fill"
@@ -125,29 +123,112 @@
         </b-row>
 
         <div
-          v-if="activeFilters.length || drillDownFilter || options.showDeletedRecordsOption"
-          class="d-flex"
+          v-if="drillDownFilter || options.showDeletedRecordsOption || groupRecordListFilter.length"
+          class="d-block gap-1"
         >
           <div
-            v-if="activeFilters.length"
-            class="d-flex align-items-center flex-wrap"
+            v-if="groupRecordListFilter.length"
+            class="d-flex flex-wrap gap-2"
           >
-            {{ $t('recordList.filter.filters.active') }}
-            <b-form-tags
-              size="lg"
-              class="d-flex align-items-center border-0 p-0 bg-transparent"
-              style="width: fit-content;"
+            <div
+              v-for="(filterGroup, groupIdx) in groupRecordListFilter"
+              :key="groupIdx"
+              class="d-flex align-items-center gap-2"
             >
-              <b-form-tag
-                v-for="(title, i) in activeFilters"
-                :key="i"
-                :title="title"
-                variant="light"
-                pill
-                class="align-items-center ml-2"
-                @remove="removeFilter(i)"
-              />
-            </b-form-tags>
+              <div class="d-flex flex-wrap align-items-center border rounded p-1 gap-1 flex-wrap">
+                <div
+                  v-for="(f, filterIndex) in filterGroup.filter"
+                  :key="filterIndex"
+                  class="active-filter d-flex align-items-center rounded gap-1 pl-2 pr-1 py-1 bg-light"
+                >
+                  <span class="field-label">
+                    {{ f.label || f.name }}
+                  </span>
+
+                  <span>
+                    {{ $t(`recordList.filter.operatorLabels.${formatActiveFilterOperator(f.operator)}`) }}
+                  </span>
+
+                  <template v-if="f.value">
+                    <template v-if="isBetweenOperator(f.operator)">
+                      <field-viewer
+                        v-if="f.value.start"
+                        value-only
+                        :field="f.field"
+                        :record="f.record[0]"
+                        :module="recordListModule"
+                        :namespace="namespace"
+                        class="font-weight-bold text-primary"
+                      />
+
+                      <span
+                        v-else
+                        class="text-primary font-weight-bold"
+                      >
+                        {{ !f.value.start ? $t('recordList.filter.nil') : '' }}
+                      </span>
+
+                      <span
+                        class="text-primary text-lowercase"
+                      >
+                        {{ $t('recordList.filter.conditions.and') }}
+                      </span>
+
+                      <field-viewer
+                        v-if="f.value.end"
+                        value-only
+                        :field="f.field"
+                        :record="f.record[1]"
+                        :module="recordListModule"
+                        :namespace="namespace"
+                        class="font-weight-bold text-primary"
+                      />
+
+                      <span
+                        v-else
+                        class="text-primary font-weight-bold"
+                      >
+                        {{ !f.value.end ? $t('recordList.filter.nil') : '' }}
+                      </span>
+                    </template>
+
+                    <field-viewer
+                      v-else
+                      value-only
+                      :field="f.field"
+                      :record="f.record"
+                      :module="recordListModule"
+                      :namespace="namespace"
+                      class="font-weight-bold text-primary"
+                    />
+                  </template>
+
+                  <span
+                    v-else
+                    class="text-primary font-weight-bold"
+                  >
+                    {{ $t('recordList.filter.nil') }}
+                  </span>
+
+                  <b-button
+                    variant="light"
+                    class="d-flex align-items-center p-1 active-filter-close-btn bg-transparent border-0"
+                    @click="removeFilter(groupIdx, filterIndex) "
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'times']"
+                    />
+                  </b-button>
+                </div>
+              </div>
+
+              <span
+                v-if="groupIdx < groupRecordListFilter.length - 1"
+                class="text-secondary"
+              >
+                {{ $t('recordList.filter.conditions.or') }}
+              </span>
+            </div>
           </div>
 
           <b-button
@@ -751,7 +832,7 @@ import AutomationButtons from './Shared/AutomationButtons'
 import { compose, validator, NoID } from '@cortezaproject/corteza-js'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
-import { evaluatePrefilter, queryToFilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, queryToFilter, isFieldInFilter, formatActiveFilterOperator, isBetweenOperator } from 'corteza-webapp-compose/src/lib/record-filter'
 import { getItem, setItem, removeItem } from 'corteza-webapp-compose/src/lib/local-storage'
 import { components, url } from '@cortezaproject/corteza-vue'
 import draggable from 'vuedraggable'
@@ -841,7 +922,6 @@ export default {
       ctr: 0,
       items: [],
       showingDeletedRecords: false,
-      activeFilters: [],
       customPresetFilters: [],
       currentCustomPresetFilter: undefined,
       showCustomPresetFilterModal: false,
@@ -851,6 +931,8 @@ export default {
       recordsPerPage: undefined,
 
       customConfiguredFields: [],
+      formatActiveFilterOperator,
+      isBetweenOperator,
     }
   },
 
@@ -1051,6 +1133,53 @@ export default {
 
     isOnRecordPage () {
       return this.page && this.page.moduleID !== NoID
+    },
+
+    groupRecordListFilter () {
+      let groupedData = []
+
+      const recordListFilter = this.recordListFilter
+
+      for (let i = 0; i < recordListFilter.length; i++) {
+        const group = this.recordListFilter[i]
+        const groupFilter = {
+          filter: group.filter
+            .map(f => {
+              return this.createDefaultFilter(f.condition, { name: f.name, kind: f.kind, isMulti: f.isMulti }, f.value, f.operator)
+            }),
+          groupCondition: recordListFilter.length && recordListFilter.length - 1 !== i ? 'AND' : undefined,
+        }
+        groupFilter.filter = groupFilter.filter.sort((a, b) => a.name.localeCompare(b.name))
+
+        const grouped = {}
+
+        groupFilter.filter.forEach(filter => {
+          if (!grouped[filter.name]) {
+            grouped[filter.name] = []
+          }
+          grouped[filter.name].push(filter)
+        })
+
+        groupFilter.filter = []
+
+        Object.keys(grouped).forEach((key, index) => {
+          const group = grouped[key]
+          group.forEach((filter, idx) => {
+            if (idx === 0) {
+              filter.condition = index === 0 ? 'Where' : 'AND'
+            } else {
+              filter.condition = 'OR'
+            }
+            groupFilter.filter.push(filter)
+          })
+        })
+
+        groupedData.push(groupFilter)
+      }
+
+      groupedData = groupedData.filter(({ filter }) => filter.length)
+
+      return groupedData
     },
   },
 
@@ -1658,7 +1787,7 @@ export default {
       this.selected = []
 
       // Compute query based on query, prefilter and recordListFilter
-      const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.recordListFilter)
+      const query = queryToFilter(this.query, this.drillDownFilter || this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.groupRecordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
 
@@ -1750,7 +1879,6 @@ export default {
           removeItem(`record-list-filters-${this.uniqueID}`)
         } else {
           this.recordListFilter = currentFilters
-          this.activeFilters = [...new Set(currentFilters.map(f => f.name).filter(f => !!f))]
         }
       } catch (e) {
         // Land here if the filter is corrupted
@@ -1821,12 +1949,67 @@ export default {
       this.refresh(true)
     },
 
-    setDrillDownFilter (drillDownFilter) {
-      if (!this.drillDownFilter) {
-        this.activeFilters.push(this.$t('recordList.drillDown.filter.label'))
+    createDefaultFilter (condition, field = {}, value = undefined, operator = undefined) {
+      const fields = [...this.recordListModule.fields, ...this.recordListModule.systemFields()]
+      const moduleField = (fields.find(({ name }) => name === field.name) || {})
+
+      const record = !this.isBetweenOperator(operator)
+        ? { recordID: '0', values: { [moduleField.name]: value } }
+        : [
+          { recordID: '0', values: { [moduleField.name]: value.start } },
+          { recordID: '0', values: { [moduleField.name]: value.end } },
+        ]
+
+      if (moduleField.isSystem) {
+        if (!this.isBetweenOperator(operator)) {
+          record[moduleField.name] = value
+        } else {
+          record[0][moduleField.name] = value.start
+          record[1][moduleField.name] = value.end
+        }
       }
 
-      this.drillDownFilter = drillDownFilter
+      return {
+        condition,
+        name: moduleField.name,
+        operator: operator || (moduleField.isMulti ? 'IN' : '='),
+        value,
+        kind: moduleField.kind,
+        label: moduleField.label || moduleField.name,
+        field: moduleField,
+        record: !this.isBetweenOperator(operator)
+          ? new compose.Record(this.recordListModule, { ...record })
+          : [
+            new compose.Record(this.recordListModule, { ...record[0] }),
+            new compose.Record(this.recordListModule, { ...record[1] }),
+          ],
+      }
+    },
+
+    setDrillDownFilter ({ prefilter: drillDownFilter, name: fieldName, value: fieldValue }) {
+      if (drillDownFilter) {
+        const field = (this.recordListModule.fields.find(f => f.name === fieldName) || {})
+
+        if (!this.recordListFilter.length) {
+          this.recordListFilter = [
+            {
+              groupCondition: undefined,
+              filter: [
+                this.createDefaultFilter('Where', field, fieldValue, true),
+              ],
+            },
+          ]
+        } else {
+          // move to a separate func.
+          const { filter } = this.recordListFilter[0]
+          if (!filter.length || (filter.length && !filter[0].name)) {
+            this.recordListFilter[0].filter = []
+            this.recordListFilter[0].filter.push(this.createDefaultFilter('Where', field, fieldValue))
+          } else {
+            this.recordListFilter[0].filter.push(this.createDefaultFilter('OR', field, fieldValue))
+          }
+        }
+      }
       this.pullRecords(true)
     },
 
@@ -1929,7 +2112,7 @@ export default {
       }
 
       this.recordListFilter = this.recordListFilter.concat(filter)
-      this.activeFilters.push(name)
+
       this.refresh(true)
 
       if (this.$refs.filterPresets) {
@@ -1937,14 +2120,9 @@ export default {
       }
     },
 
-    removeFilter (filterIndex) {
-      this.activeFilters.splice(filterIndex, 1)
-
-      if (this.drillDownFilter && !this.activeFilters.includes(this.$t('recordList.drillDown.filter.label'))) {
-        this.setDrillDownFilter(undefined)
-      }
-
-      this.recordListFilter = this.recordListFilter.filter(({ name }) => !name || this.activeFilters.includes(name))
+    removeFilter (groupIndex, filterIndex) {
+      this.recordListFilter = this.groupRecordListFilter
+      this.recordListFilter[groupIndex].filter = (this.recordListFilter[groupIndex].filter || []).filter((_, index) => index !== filterIndex)
 
       this.setStorageRecordListFilter()
       this.refresh(true)
@@ -1972,7 +2150,6 @@ export default {
       this.ctr = 0
       this.items = []
       this.showingDeletedRecords = false
-      this.activeFilters = []
       this.customPresetFilters = []
       this.currentCustomPresetFilter = undefined
       this.showCustomPresetFilterModal = false
@@ -2140,5 +2317,40 @@ td:hover .inline-actions {
 
 .record-list-footer {
   font-family: var(--font-medium);
+}
+
+.active-filter {
+  white-space: nowrap;
+  font-family: var(--font-normal);
+
+  .field-label {
+    font-family: var(--font-medium);
+  }
+
+  &-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+    margin: 0;
+  }
+
+  &-item {
+    vertical-align: middle;
+    margin: 0;
+  }
+
+  &-close-btn {
+    vertical-align: middle;
+    opacity: 0.5;
+
+    svg {
+      height: 0.8rem;
+    }
+
+    &:hover {
+      opacity: 1;
+    }
+  }
 }
 </style>
