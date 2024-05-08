@@ -144,9 +144,9 @@
     </grid>
 
     <b-modal
-      v-model="blocks.showConfigurator"
       :title="$t('builder:block.configuration')"
       :ok-title="$t('builder:save-button')"
+      :visible="showEditor"
       ok-variant="primary"
       cancel-variant="light"
       scrollable
@@ -154,7 +154,8 @@
       body-class="p-0 border-top-0"
       header-class="border-bottom-0"
       no-fade
-      @ok="updateBlock()"
+      @hide="hideEditorModal"
+      @ok="updateEditorBlock()"
     >
       <b-tabs
         v-if="currentBlock"
@@ -208,7 +209,7 @@
             :current-index="displayElements.currentIndex"
             draggable
             @select="setCurrentDisplayElement"
-            @add="openDisplayElementSelector(blocks.currentIndex)"
+            @add="openDisplayElementSelector(editor.currentIndex)"
             @delete="deleteCurrentDisplayElement"
           >
             <template #label="{ item: { kind, name } }">
@@ -512,6 +513,8 @@ export default {
 
         selected: undefined,
       },
+
+      editor: undefined,
     }
   },
 
@@ -575,12 +578,12 @@ export default {
 
     currentBlock: {
       get () {
-        return this.blocks.currentIndex !== undefined ? this.reportBlocks[this.blocks.currentIndex] : undefined
+        return this.editor ? this.editor.block : undefined
       },
 
       set (block) {
-        if (this.blocks.currentIndex !== undefined) {
-          this.reportBlocks[this.blocks.currentIndex] = block
+        if (this.editor && this.editor.currentIndex !== undefined) {
+          this.editor.block = block
         }
       },
     },
@@ -650,6 +653,10 @@ export default {
       })
 
       return this.datasources.processing || hasDuplicates
+    },
+
+    showEditor () {
+      return this.editor && this.editor.currentIndex !== undefined
     },
   },
 
@@ -884,15 +891,39 @@ export default {
       }
     },
 
+    updateEditorBlock (block = this.editor.block) {
+      const { currentIndex } = this.editor
+      this.reportBlocks[currentIndex] = block
+      this.editor = undefined
+      this.onBlockUpdated(currentIndex)
+      this.refreshReport()
+    },
+
     editBlock (index = undefined) {
-      this.blocks.currentIndex = index
-      this.setCurrentDisplayElement(this.reportBlocks[this.blocks.currentIndex].elements.length ? 0 : undefined)
-      this.blocks.showConfigurator = true
+      const { x, y, w, h, i } = this.reportBlocks[index]
+      const block = new reporter.Block(this.reportBlocks[index])
+
+      block.x = x
+      block.y = y
+      block.w = w
+      block.h = h
+      block.i = i
+
+      this.editor = {
+        currentIndex: index,
+        block,
+      }
+      this.setCurrentDisplayElement(this.editor.block.elements.length ? 0 : undefined)
     },
 
     deleteBlock (index = undefined) {
       this.reindexBlocks(this.reportBlocks.filter((p, i) => index !== i))
       this.unsavedBlocks.add(index)
+    },
+
+    hideEditorModal () {
+      this.editor = undefined
+      this.displayElements.currentIndex = undefined
     },
 
     // Display elements
