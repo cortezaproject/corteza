@@ -37,3 +37,9 @@
     }
   }
 }
+
+.value-only {
+  .col-form-label {
+    padding-bottom: 0px !important;
+  }
+}

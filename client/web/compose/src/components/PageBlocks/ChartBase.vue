@@ -42,6 +42,14 @@ export default {
     }
   },
 
+  computed: {
+    isDrillDownEnabled () {
+      if (!this.options) return false
+
+      return this.options.drillDown && this.options.drillDown.enabled
+    },
+  },
+
   watch: {
     options: {
       deep: true,
@@ -65,6 +73,7 @@ export default {
   methods: {
     ...mapActions({
       findChartByID: 'chart/findByID',
+      findModuleByID: 'module/findByID',
     }),
 
     createEvents () {
@@ -98,6 +107,20 @@ export default {
 
       return this.findChartByID({ chartID, namespaceID, ...params }).then((chart) => {
         this.chart = chart
+
+        if (this.isDrillDownEnabled) {
+          const { moduleID, dimensions = [] } = this.chart.config.reports[0] || {}
+
+          this.findModuleByID({ namespace: this.namespace, moduleID }).then(chartModule => {
+            if (!chartModule) {
+              return
+            }
+
+            const { field } = dimensions[0] || {}
+            const { name, label } = chartModule.fields.find(({ name }) => name === field) || {}
+            this.filter.field = { name, label }
+          })
+        }
       }).catch(this.toastErrorHandler(this.$t('chart.loadFailed')))
     },
 
@@ -158,12 +181,11 @@ export default {
       }
 
       // Get recordListID that is linked
-      let { moduleID, dimensions, filter } = this.filter
+      let { moduleID, dimensions, filter, field } = this.filter
+      const { name, label } = field || {}
 
       // Construct filter
       const dimensionFilter = dimensions ? `(${dimensions} = '${drillDownValue}')` : ''
-      filter = filter ? `(${filter})` : ''
-      const prefilter = [dimensionFilter, filter].filter(f => f).join(' AND ')
 
       if (drillDown.blockID) {
         // Use linked record list to display drill down data
@@ -172,8 +194,15 @@ export default {
         // Construct its uniqueID to identify it
         const recordListUniqueID = [pageID, recordID, drillDown.blockID, false].map(v => v || NoID).join('-')
 
-        this.$root.$emit(`drill-down-recordList:${recordListUniqueID}`, prefilter)
+        this.$root.$emit(`drill-down-recordList:${recordListUniqueID}`, {
+          prefilter: dimensionFilter,
+          name: name || label || dimensions,
+          value: drillDownValue,
+        })
       } else {
+        filter = filter ? `(${filter})` : ''
+        const prefilter = [dimensionFilter, filter].filter(f => f).join(' AND ')
+
         const { title } = this.block
         const { fields = [] } = this.options.drillDown.recordListOptions || {}
 
