@@ -368,9 +368,22 @@ recordList:
     addField: Add new filter field
     byValue: Filter records based on field value
     addFilterToPreset: Save as preset
+    nil: 'NULL'
     conditions:
       and: AND
       or: OR
+    operatorLabels:
+      is: is
+      equal: is equal
+      notEqual: is not equal
+      in: contains
+      notIn: does not contain
+      greaterThan: is greater than
+      lessThan: is less than
+      like: is like
+      notLike: not like
+      between: is between
+      notBetween: is not between
     deletedRecords: Deleted records
     field: Filter field
     fieldPlaceholder: Pick a field
