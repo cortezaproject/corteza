@@ -74,6 +74,7 @@
 
     <grid
       v-if="report && canRead && showReport"
+      :grid-key="gridKey"
       :blocks.sync="reportBlocks"
       editable
       @item-updated="onBlockUpdated"
@@ -361,6 +362,7 @@
         :processing="processing"
         :processing-save="processingSave"
         :processing-delete="processingDelete"
+        :processing-clone="processingClone"
         @clone="handleReportCloning"
         @delete="handleDelete"
         @save="handleReportSave"
@@ -427,6 +429,7 @@ export default {
       processing: false,
       processingSave: false,
       processingDelete: false,
+      processingClone: false,
 
       showReport: true,
 
@@ -512,6 +515,8 @@ export default {
 
         selected: undefined,
       },
+
+      gridKey: 0,
     }
   },
 
@@ -848,10 +853,10 @@ export default {
     },
 
     handleReportCloning () {
-      this.handleClone(this.report)
-        .then((report) => {
-          this.$router.push({ name: 'report.view', params: { reportID: report.reportID, canReadReport: report.canReadReport } })
-        })
+      this.handleClone(this.report).then((report) => {
+        this.$router.push({ name: 'report.builder', params: { reportID: report.reportID, canReadReport: report.canReadReport } })
+        this.gridKey++
+      })
     },
 
     mapBlocks () {

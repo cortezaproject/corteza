@@ -28,7 +28,7 @@
         size="lg"
         size-confirm="lg"
         variant="danger"
-        :disabled="deleteDisabled || processingDelete"
+        :disabled="deleteDisabled || processingDelete || processing"
         :processing="processingDelete"
         :text="$t('general:label.delete')"
         :borderless="false"
@@ -43,7 +43,12 @@
         class="text-nowrap"
         @click.prevent="$emit('clone')"
       >
-        {{ $t('general:label.clone') }}
+        <b-spinner
+          v-if="processingClone"
+          small
+          class="align-middle"
+        />
+        <span v-else>{{ $t('general:label.clone') }}</span>
       </b-button>
 
       <c-button-submit
@@ -99,6 +104,11 @@ export default {
     },
 
     processingSave: {
+      type: Boolean,
+      required: false,
+    },
+
+    processingClone: {
       type: Boolean,
       required: false,
     },

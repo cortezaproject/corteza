@@ -4,6 +4,7 @@
     class="w-100"
   >
     <grid-layout
+      :key="gridKey"
       :layout.sync="layout"
       :col-num="48"
       :row-height="10"
@@ -71,6 +72,11 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    gridKey: {
+      type: Number,
+      default: 0,
+    }
   },
 
   data () {

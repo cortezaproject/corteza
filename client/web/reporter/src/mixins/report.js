@@ -6,6 +6,7 @@ export default {
       processing: false,
       processingSave: false,
       processingDelete: false,
+      processingClone: false,
       report: undefined,
     }
   },
@@ -95,7 +96,7 @@ export default {
       this.processing = true
       const { handle, meta, sources, blocks, scenarios, labels } = report
       meta.name = `${meta.name} (${this.$t('general:cloneSuffix')})`
-      this.processingSave = true
+      this.processingClone = true
       return this.$SystemAPI.reportCreate({ handle, meta, sources, blocks, scenarios, labels })
         .then(report => {
           report = new system.Report(report)
@@ -105,7 +106,6 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:report.createFailed')))
         .finally(() => {
           this.processing = false
-          this.processingSave = false
         })
     },
   },
