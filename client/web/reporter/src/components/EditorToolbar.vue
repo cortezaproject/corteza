@@ -35,21 +35,16 @@
         @confirmed="$emit('delete')"
       />
 
-      <b-button
+      <c-input-processing
         data-test-id="button-clone"
-        variant="light"
         size="lg"
+        variant="light"
         :disabled="processing"
         class="text-nowrap"
         @click.prevent="$emit('clone')"
       >
-        <b-spinner
-          v-if="processingClone"
-          small
-          class="align-middle"
-        />
-        <span v-else>{{ $t('general:label.clone') }}</span>
-      </b-button>
+        {{ $t('general:label.clone') }}
+      </c-input-processing>
 
       <c-button-submit
         data-test-id="button-save"
@@ -104,11 +99,6 @@ export default {
     },
 
     processingSave: {
-      type: Boolean,
-      required: false,
-    },
-
-    processingClone: {
       type: Boolean,
       required: false,
     },

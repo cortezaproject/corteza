@@ -93,8 +93,8 @@ export default {
     },
 
     handleClone (report) {
-      this.processing = true
-      const { handle, meta, sources, blocks, scenarios, labels } = report
+      let { handle, meta, sources, blocks, scenarios, labels } = report
+      handle = ''
       meta.name = `${meta.name} (${this.$t('general:cloneSuffix')})`
       this.processingClone = true
       return this.$SystemAPI.reportCreate({ handle, meta, sources, blocks, scenarios, labels })
@@ -104,9 +104,6 @@ export default {
           return report
         })
         .catch(this.toastErrorHandler(this.$t('notification:report.createFailed')))
-        .finally(() => {
-          this.processing = false
-        })
     },
   },
 }

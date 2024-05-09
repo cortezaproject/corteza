@@ -264,7 +264,7 @@ export default {
 
     handleReportCloning (report) {
       this.handleClone(report).then((report) => {
-        this.viewReport({ reportID: report.reportID, canReadReport: report.canReadReport })
+        this.viewReport({ reportID: report.reportID })
       })
     },
   },
