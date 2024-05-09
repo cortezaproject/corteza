@@ -80,12 +80,14 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('kind.number.formatLabel')"
+            :label="$t('kind.number.presetFormats.label')"
             label-class="text-primary"
+            style="white-space: pre-line;"
+            :description="formattedOptionsDescription"
           >
-            <b-form-input
-              v-model="f.options.format"
-              placeholder="0.00"
+            <b-form-select
+              v-model="f.options.presetFormat"
+              :options="formatOptions"
             />
           </b-form-group>
         </b-col>
@@ -95,14 +97,13 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('kind.number.presetFormats.label')"
+            :label="$t('kind.number.formatLabel')"
             label-class="text-primary"
-            style="white-space: pre-line;"
-            :description="formattedOptionsDescription"
           >
-            <b-form-select
-              v-model="f.options.presetFormat"
-              :options="formatOptions"
+            <b-form-input
+              v-model="f.options.format"
+              :disabled="f.options.presetFormat !== 'custom'"
+              placeholder="0.00"
             />
           </b-form-group>
         </b-col>
@@ -131,9 +132,15 @@
               </thead>
 
               <tr>
-                <td>10000.234</td>
-                <td>$0.00</td>
-                <td>$10000.23</td>
+                <td>1000.234</td>
+                <td>0,0.00</td>
+                <td>1,000.23</td>
+              </tr>
+
+              <tr>
+                <td>1000.234</td>
+                <td>0,0</td>
+                <td>1,000</td>
               </tr>
 
               <tr>
@@ -143,9 +150,9 @@
               </tr>
 
               <tr>
-                <td>1</td>
-                <td>0%</td>
-                <td>100%</td>
+                <td>100</td>
+                <td>0o</td>
+                <td>100th</td>
               </tr>
 
               <tr>
@@ -395,27 +402,22 @@ export default {
       },
 
       formatOptions: [
-        { value: 'currencyFormat', text: this.$t('kind.number.presetFormats.options.currency') },
-        { value: 'accountingNumber', text: this.$t('kind.number.presetFormats.options.accountingNumber') },
+        { value: 'custom', text: this.$t('kind.number.presetFormats.options.custom') },
+        { value: 'accounting', text: this.$t('kind.number.presetFormats.options.accounting') },
       ],
     }
   },
 
   computed: {
     formattedOptionsDescription () {
-      const currency = this.$t('kind.number.presetFormats.description.currency')
-      const accountingNumber = this.$t('kind.number.presetFormats.description.accountingNumber')
-
-      let translation = [currency, accountingNumber].join('\r\n')
-
-      return translation
+      return this.$t(`kind.number.presetFormats.description.${this.f.options.presetFormat}`)
     },
   },
 
   watch: {
     'field.options.display': {
       handler (display) {
-        this.liveExample = display === 'number' ? 123.45679 : 33
+        this.liveExample = display === 'number' ? 1234.56789 : 33.45679
       },
     },
 
@@ -446,7 +448,7 @@ export default {
     this.mock.field.apply({ name: 'mockField' })
     this.mock.module = new compose.Module({ fields: [this.mock.field] }, this.namespace)
     this.mock.record = new compose.Record(this.mock.module, { })
-    this.liveExample = this.field.options.display === 'number' ? 123.45679 : 33.45679
+    this.liveExample = this.field.options.display === 'number' ? 1234.56789 : 33.45679
   },
 
   beforeDestroy () {

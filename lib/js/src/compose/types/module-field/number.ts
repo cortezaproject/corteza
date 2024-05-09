@@ -31,7 +31,7 @@ interface NumberOptions extends Options {
 
 const defaults = (): Readonly<NumberOptions> => Object.freeze({
   ...defaultOptions(),
-  presetFormat: 'currencyFormat',
+  presetFormat: 'custom',
   precision: 3,
   multiDelimiter: '\n',
   display: 'number', // Either number or progress (progress bar)
@@ -73,9 +73,11 @@ export class ModuleFieldNumber extends ModuleField {
     }
   }
 
-  formatValue (value: string): string {
+  formatValue (value: string, format: string): string {
     const o = this.options
     let n: number
+
+    format = o.presetFormat === 'custom' ? o.format : o.presetFormat
 
     switch (typeof value) {
       case 'string':
@@ -90,18 +92,30 @@ export class ModuleFieldNumber extends ModuleField {
 
     let out = `${n}`
 
-    if (o.format && o.format.length > 0) {
-      out = numeral(n).format(o.format)
+    if (format === 'accounting') {
+      out = formatAccounting(n)
+    } else if (format && format.length > 0) {
+      out = numeral(n).format(format)
     } else {
       out = fmt.number(n)
     }
 
-    if (o.presetFormat === 'accountingNumber') {
-      out = formatValueAsAccountingNumber(Number(n))
-    }
-
     return '' + o.prefix + (out || n) + o.suffix
   }
+}
+
+export function formatAccounting (value: number): string {
+  let result = ''
+
+  if (value === 0) {
+    return '-'
+  }
+
+  if (value < 0) {
+    result = `(${fmt.number(Math.abs(value))}`
+  }
+
+  return fmt.number(value)
 }
 
 Registry.set(kind, ModuleFieldNumber)
