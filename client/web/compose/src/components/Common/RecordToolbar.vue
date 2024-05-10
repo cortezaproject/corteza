@@ -29,7 +29,7 @@
           pill
           size="lg"
           variant="outline-primary"
-          :disabled="!record || processing || !recordNavigation.prev"
+          :disabled="!isCreated || !record || processing || !recordNavigation.prev"
           @click="navigateToRecord(recordNavigation.prev)"
         >
           <font-awesome-icon :icon="['fas', 'angle-left']" />
@@ -40,7 +40,7 @@
           size="lg"
           pill
           variant="outline-primary"
-          :disabled="!record || processing || !recordNavigation.next"
+          :disabled="!isCreated || !record || processing || !recordNavigation.next"
           @click="navigateToRecord(recordNavigation.next)"
         >
           <font-awesome-icon :icon="['fas', 'angle-right']" />
@@ -58,7 +58,7 @@
 
       <c-input-confirm
         v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
-        :disabled="!record || !canDeleteRecord"
+        :disabled="!record || !canDeleteRecord || processing"
         :processing="processingDelete"
         :text="labels.delete || $t('label.delete')"
         size="lg"
@@ -69,7 +69,7 @@
 
       <c-input-confirm
         v-if="isDeleted && !(hideDelete || settings.hideDelete)"
-        :disabled="!record || !canUndeleteRecord"
+        :disabled="!record || !canUndeleteRecord || processing"
         :processing="processingUndelete"
         :text="$t('label.restore')"
         size="lg"
@@ -128,7 +128,7 @@
       <c-button-submit
         v-if="inEditing && !(hideSubmit || settings.hideSubmit)"
         data-test-id="button-save"
-        :disabled="!record || !canSaveRecord || processingSubmit"
+        :disabled="!record || !canSaveRecord || processingSubmit || processing"
         :processing="processingSubmit"
         :text="labels.submit || $t('label.save')"
         size="lg"

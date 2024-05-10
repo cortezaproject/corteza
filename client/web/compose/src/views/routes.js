@@ -1,10 +1,12 @@
 // public route builder/helper
-function r (name, path, component) {
+function r (name, path, component, defaultProps = {}) {
   return {
     path,
     name,
     component: () => import('./' + component + '.vue'),
-    props: true,
+    props: r => {
+      return { ...defaultProps, ...r.params }
+    },
   }
 }
 
@@ -37,9 +39,9 @@ export default [
                     ...r('page', ':pageID?', 'Public/Pages/View'),
 
                     children: [
-                      r('page.record.edit', 'record/:recordID/edit', 'Public/Pages/Records/Edit'),
-                      r('page.record', 'record/:recordID', 'Public/Pages/Records/View'),
-                      r('page.record.create', 'record', 'Public/Pages/Records/Create'),
+                      r('page.record.edit', 'record/:recordID/edit', 'Public/Pages/Records/View', { edit: true }),
+                      r('page.record', 'record/:recordID', 'Public/Pages/Records/View', { edit: false }),
+                      r('page.record.create', 'record', 'Public/Pages/Records/View', { edit: true }),
                     ],
                   },
                 ],

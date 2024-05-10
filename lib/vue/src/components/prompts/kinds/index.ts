@@ -108,7 +108,7 @@ const definitions: Record<string, PromptDefinition> = {
       const module = pVal(v, 'module')
       const namespace = pVal(v, 'namespace')
       const record = pVal(v, 'record')
-      let edit = !!pVal(v, 'edit')
+      const edit = !!pVal(v, 'edit')
       const delay = (pVal(v, 'delay') || 0) as number
       const openMode = pVal(v, 'openMode')
 
@@ -185,8 +185,12 @@ const definitions: Record<string, PromptDefinition> = {
       // @ts-ignore
       if (this.$root.$options.name === 'compose') {
         let name = 'page.record'
-        edit = edit || !recordID || recordID === NoID
-        name += edit ? '.edit' : '.create'
+
+        if (!recordID || recordID === NoID) {
+          name += '.create'
+        } else if (edit) {
+          name += '.edit'
+        }
 
         // If name and params match, make sure to refresh page instead of push
         // @ts-ignore

@@ -18,7 +18,7 @@
         :options="layouts"
         :reduce="layout => layout.pageLayoutID"
         size="sm"
-        style="max-width: 300px;"
+        style="min-width: 250px; max-width: 300px;"
         @input="setLayout"
       />
 

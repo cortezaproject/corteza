@@ -12,6 +12,7 @@ export default {
       processingDelete: false,
       processingUndelete: false,
       processingSubmit: false,
+      processingEdit: false,
       record: undefined,
       initialRecordState: undefined,
       errors: new validator.Validated(),
@@ -162,37 +163,20 @@ export default {
           if (record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            // We do this prop mutation (BAD!!) so that prompts can use the edit prop properly since just redirecting to the /edit route doesn't work (for now)
-            if (this.edit) {
-              this.edit = false
-            }
-
-            this.inCreating = false
-            this.inEditing = false
-
             // reset the record initial state in cases where the record edit page is redirected to the record view page
-            this.initialRecordState = record.clone()
+            this.record = record
+            this.initialRecordState = this.record.clone()
 
             if (this.showRecordModal) {
-              this.$emit('handle-record-redirect', { recordID: record.recordID, recordPageID: this.page.pageID })
+              this.$emit('handle-record-redirect', { recordID: this.record.recordID, recordPageID: this.page.pageID, edit: false })
 
               // If we are in a modal we need to refresh blocks not in modal
               this.$root.$emit('module-records-updated', {
                 moduleID: this.module.moduleID,
                 notPageID: this.page.pageID,
               })
-            }
-
-            if (isNew) {
-              this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
             } else {
-              this.record = record
-              // reset the record initial state in cases where the record edit page is opened on a modal
-              this.initialRecordState = this.record.clone()
-
-              this.determineLayout().then(() => {
-                this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
-              })
+              this.$router.push({ name: route, params: { ...this.$route.params, recordID: this.record.recordID } })
             }
           }
 
@@ -245,8 +229,7 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            this.inCreating = false
-            this.inEditing = false
+            this.edit = false
             this.record = record
             this.initialRecordState = this.record.clone()
 

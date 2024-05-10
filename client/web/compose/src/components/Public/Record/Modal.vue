@@ -86,12 +86,21 @@ export default {
       recordPaginationUsable: 'ui/recordPaginationUsable',
       modalPreviousPages: 'ui/modalPreviousPages',
     }),
+
+    uniqueID () {
+      const { recordPageID, recordID, edit = false } = this.$route.query
+      const isEdit = typeof edit === 'string' ? edit === 'true' : Boolean(edit)
+      return [recordPageID, recordID, isEdit]
+    },
   },
 
   watch: {
-    '$route.query.recordPageID': {
+    uniqueID: {
       immediate: true,
-      handler (recordPageID, oldRecordPageID) {
+      handler (value = [], oldValue = []) {
+        const [recordPageID, recordID, edit] = value
+        const [oldRecordPageID] = oldValue
+
         if (!recordPageID) {
           this.setDefaultValues()
           this.clearModalPreviousPage()
@@ -105,6 +114,14 @@ export default {
             this.clearRecordIDs()
           }
         }
+
+        if (!recordPageID) {
+          return
+        }
+
+        if (recordID !== this.recordID || recordPageID !== (this.page || {}).pageID || edit !== this.edit) {
+          this.loadRecord({ recordID, recordPageID, edit })
+        }
       },
     },
   },
@@ -112,12 +129,6 @@ export default {
   mounted () {
     this.$root.$on('show-record-modal', this.loadRecord)
     this.$root.$on('refetch-records', this.refetchRecords)
-
-    const { recordID, recordPageID } = this.$route.query
-
-    if (recordID && recordPageID) {
-      this.loadRecord({ recordID, recordPageID })
-    }
   },
 
   beforeDestroy () {
@@ -133,7 +144,7 @@ export default {
       clearModalPreviousPage: 'ui/clearModalPreviousPage',
     }),
 
-    loadRecord ({ recordID, recordPageID, values, refRecord, edit, pushModalPreviousPage = true }) {
+    loadRecord ({ recordID, recordPageID, values, refRecord, edit = this.edit, pushModalPreviousPage = true }) {
       if (!recordID && !recordPageID) {
         this.onHidden()
         return
@@ -148,7 +159,7 @@ export default {
 
       // Push the previous modal view page to the modal route history stack on the store so we can go back to it
       if (pushModalPreviousPage) {
-        this.pushModalPreviousPage({ recordID, recordPageID })
+        this.pushModalPreviousPage({ recordID, recordPageID, edit })
       }
 
       setTimeout(() => {
@@ -157,9 +168,10 @@ export default {
             ...this.$route.query,
             recordID,
             recordPageID,
+            edit,
           },
         })
-      }, 300)
+      })
     },
 
     loadModal ({ recordID, recordPageID }) {
@@ -191,10 +203,11 @@ export default {
               recordID: undefined,
               moduleID: undefined,
               recordPageID: undefined,
+              edit: undefined,
             },
           })
         }
-      }, 300)
+      })
     },
 
     refetchRecords () {
@@ -203,6 +216,7 @@ export default {
 
     setDefaultValues () {
       this.showModal = false
+      this.edit = false
       this.recordID = undefined
       this.module = undefined
       this.page = undefined
