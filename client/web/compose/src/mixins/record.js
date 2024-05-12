@@ -176,7 +176,7 @@ export default {
                 notPageID: this.page.pageID,
               })
             } else {
-              this.$router.push({ name: route, params: { ...this.$route.params, recordID: this.record.recordID } })
+              this.$router.push({ name: route, params: { ...this.$route.params, recordID: this.record.recordID, edit: false } })
             }
           }
 
@@ -185,7 +185,6 @@ export default {
         .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
         .finally(() => {
           this.processingSubmit = false
-          this.processing = false
         })
     }, 500),
 
@@ -193,7 +192,7 @@ export default {
      * Handle form submit for record browser
      * @returns {Promise<void>}
      */
-    handleFormSubmitSimple: throttle(function (route = 'page.record') {
+    handleFormSubmitSimple: throttle(function (route = 'admin.modules.record.view') {
       this.processingSubmit = true
       this.processing = true
 
@@ -229,11 +228,10 @@ export default {
           if (this.record.valueErrors.set) {
             this.toastWarning(this.$t('notification:record.validationWarnings'))
           } else {
-            this.edit = false
             this.record = record
             this.initialRecordState = this.record.clone()
 
-            this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID } })
+            this.$router.push({ name: route, params: { ...this.$route.params, recordID: record.recordID, edit: false } })
           }
         })
         .catch(this.toastErrorHandler(this.$t(
@@ -257,19 +255,20 @@ export default {
 
       return this
         .dispatchUiEvent('beforeDelete')
-        .then(this.$ComposeAPI.recordDelete(this.record))
-        .then(() => {
-          this.record.deletedAt = (new Date()).toISOString()
-        })
+        .then(() => this.$ComposeAPI.recordDelete(this.record))
         .then(this.dispatchUiEvent('afterDelete'))
         .then(this.updatePrompts())
-        .then(this.loadRecord)
-        .then(this.toastSuccess(this.$t('notification:record.deleteSuccess')))
-        .catch(this.toastErrorHandler(this.$t('notification:record.deleteFailed')))
-        .finally(() => {
-          this.processing = false
+        .then(() => {
+          this.record = undefined
+          this.initialRecordState = undefined
+
+          return this.refresh()
+        }).then(() => {
+          this.toastSuccess(this.$t('notification:record.deleteSuccess'))
+        }).finally(() => {
           this.processingDelete = false
-        })
+          this.processing = false
+        }).catch(this.toastErrorHandler(this.$t('notification:record.deleteFailed')))
     }, 500),
 
     handleUndelete: throttle(function () {
@@ -278,16 +277,20 @@ export default {
 
       return this
         .dispatchUiEvent('beforeUndelete')
-        .then(this.$ComposeAPI.recordUndelete(this.record))
+        .then(() => this.$ComposeAPI.recordUndelete(this.record))
         .then(this.dispatchUiEvent('afterUndelete'))
         .then(this.updatePrompts())
-        .then(this.loadRecord)
-        .then(this.toastSuccess(this.$t('notification:record.restoreSuccess')))
-        .catch(this.toastErrorHandler(this.$t('notification:record.restoreFailed')))
-        .finally(() => {
+        .then(() => {
+          this.record = undefined
+          this.initialRecordState = undefined
+
+          return this.refresh()
+        }).then(() => {
+          this.toastSuccess(this.$t('notification:record.restoreSuccess'))
+        }).finally(() => {
           this.processingUndelete = false
           this.processing = false
-        })
+        }).catch(this.toastErrorHandler(this.$t('notification:record.restoreFailed')))
     }, 500),
 
     handleBulkUpdateSelectedRecords: throttle(function (query) {

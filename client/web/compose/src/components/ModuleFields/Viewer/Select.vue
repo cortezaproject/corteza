@@ -27,6 +27,10 @@ export default {
       v = this.record ? this.record.values[this.field.name] : undefined
 
       if (this.field.isMulti) {
+        if (!Array.isArray(v)) {
+          v = []
+        }
+
         return v.map(v => findLabel(v, this.field.options.options) || v)
       } else {
         return findLabel(v, this.field.options.options) || v

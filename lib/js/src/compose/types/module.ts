@@ -87,12 +87,12 @@ interface RecordDeDupRule {
  */
 export const systemFields = Object.freeze([
   { isSystem: true, name: 'recordID', label: 'Record ID', kind: 'String' },
-  { isSystem: true, name: 'revision', label: 'Revision', kind: 'Number' },
   { isSystem: true, name: 'ownedBy', label: 'Owned by', kind: 'User' },
   { isSystem: true, name: 'createdBy', label: 'Created by', kind: 'User' },
   { isSystem: true, name: 'createdAt', label: 'Created at', kind: 'DateTime' },
   { isSystem: true, name: 'updatedBy', label: 'Updated by', kind: 'User' },
   { isSystem: true, name: 'updatedAt', label: 'Updated at', kind: 'DateTime' },
+  { isSystem: true, name: 'revision', label: 'Revision', kind: 'Number' },
   { isSystem: true, name: 'deletedBy', label: 'Deleted by', kind: 'User' },
   { isSystem: true, name: 'deletedAt', label: 'Deleted at', kind: 'DateTime' },
 ].map(f => ModuleFieldMaker(f)))

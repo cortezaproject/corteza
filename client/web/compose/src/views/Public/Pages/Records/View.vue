@@ -30,7 +30,6 @@
       :blocks="blocks"
       :mode="inEditing ? 'editor' : 'base'"
       class="h-100"
-      @reload="loadRecord()"
     />
 
     <portal
@@ -139,7 +138,7 @@ export default {
   ],
 
   beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
+    next(this.checkUnsavedChanges())
   },
 
   beforeRouteUpdate (to, from, next) {
@@ -152,7 +151,7 @@ export default {
       return
     }
 
-    this.checkUnsavedChanges(next, to)
+    next(this.checkUnsavedChanges())
   },
 
   props: {
@@ -242,12 +241,6 @@ export default {
       return this.showRecordModal ? 'record-modal-footer' : 'toolbar'
     },
 
-    newRouteParams () {
-      // Remove recordID and values from route params
-      const { recordID, values, ...params } = this.$route.params
-      return params
-    },
-
     getUiEventResourceType () {
       return 'record-page'
     },
@@ -295,7 +288,7 @@ export default {
 
       const { name, handle } = this.module
 
-      const titlePrefix = this.isNew ? 'create' : this.edit ? 'edit' : 'view'
+      const titlePrefix = this.isNew ? 'create' : this.inEditing ? 'edit' : 'view'
 
       return this.$t(`page:public.record.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })
     },
@@ -365,7 +358,7 @@ export default {
     this.$root.$on('refetch-record-blocks', this.refetchRecordBlocks)
 
     if (this.showRecordModal) {
-      this.$root.$on('bv::modal::hide', this.checkUnsavedChangesOnModal)
+      this.$root.$on('bv::modal::hide', this.checkUnsavedChanges)
     }
   },
 
@@ -401,8 +394,7 @@ export default {
           return response()
             .then(record => {
               return new Promise(resolve => setTimeout(resolve, 300)).then(() => {
-                this.record = new compose.Record(module, record)
-                this.initialRecordState = this.record.clone()
+                return new compose.Record(module, record)
               })
             })
             .catch(e => {
@@ -421,8 +413,7 @@ export default {
             }
           }
 
-          this.record = new compose.Record(module, { values: this.values })
-          this.initialRecordState = this.record.clone()
+          return new compose.Record(module, { values: this.values })
         }
       }
     },
@@ -433,7 +424,7 @@ export default {
        * came from (and "where" is back).
       */
       if (this.showRecordModal) {
-        if (this.checkUnsavedChangesOnModal()) {
+        if (this.checkUnsavedChanges()) {
           this.popModalPreviousPage().then(({ recordID, recordPageID, edit }) => {
             this.$emit('on-modal-back', { recordID, recordPageID, pushModalPreviousPage: false, edit })
           })
@@ -454,11 +445,11 @@ export default {
       this.processing = true
 
       if (this.showRecordModal) {
-        if (this.checkUnsavedChangesOnModal()) {
+        if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, edit: true })
         }
       } else {
-        this.$router.push({ name: 'page.record.create', params: this.newRouteParams })
+        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, edit: true } })
       }
     },
 
@@ -466,11 +457,11 @@ export default {
       this.processing = true
 
       if (this.showRecordModal) {
-        if (this.checkUnsavedChangesOnModal()) {
+        if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, values: this.record.values, edit: true })
         }
       } else {
-        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values } })
+        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, values: this.record.values, edit: true } })
       }
     },
 
@@ -480,7 +471,7 @@ export default {
       if (this.showRecordModal) {
         this.$emit('handle-record-redirect', { recordID: this.recordID, recordPageID: this.page.pageID, edit: true })
       } else {
-        this.$router.push({ name: 'page.record.edit', params: { recordID: this.recordID, pageID: this.page.pageID } })
+        this.$router.push({ name: 'page.record.edit', params: { recordID: this.recordID, pageID: this.page.pageID, edit: true } })
       }
     },
 
@@ -488,11 +479,11 @@ export default {
       this.processing = true
 
       if (this.showRecordModal) {
-        if (this.checkUnsavedChangesOnModal()) {
+        if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: this.recordID, recordPageID: this.page.pageID, edit: false })
         }
       } else {
-        this.$router.push({ name: 'page.record', params: { recordID: this.recordID, pageID: this.page.pageID } })
+        this.$router.push({ name: 'page.record', params: { recordID: this.recordID, pageID: this.page.pageID, edit: false } })
       }
     },
 
@@ -502,7 +493,7 @@ export default {
       this.processing = true
 
       if (this.showRecordModal) {
-        if (this.checkUnsavedChangesOnModal()) {
+        if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID, recordPageID: this.page.pageID })
         }
       } else {
@@ -549,7 +540,7 @@ export default {
       })
     },
 
-    async determineLayout (pageLayoutID, variables = {}) {
+    async determineLayout (pageLayoutID, variables = {}, redirectOnFail = true) {
       // Clear stored records so they can be refetched with latest values
       this.clearRecordSet()
       let expressions = {}
@@ -576,7 +567,10 @@ export default {
 
       if (!matchedLayout) {
         this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
-        this.$router.go(-1)
+
+        if (redirectOnFail) {
+          this.$router.go(-1)
+        }
 
         return
       }
@@ -620,15 +614,21 @@ export default {
       }
 
       // Refetch the record and other page blocks that use records
-      this.loadRecord()
+      this.loadRecord().then(record => {
+        this.record = record
+        this.initialRecordState = record.clone()
+      })
       this.$root.$emit(`refetch-non-record-blocks:${this.page.pageID}`)
     },
 
     async refresh (variables = {}) {
       this.processing = true
 
-      return this.loadRecord().then(() => {
-        return this.determineLayout(undefined, variables)
+      return this.loadRecord().then(record => {
+        return this.determineLayout(undefined, variables).then(() => {
+          this.record = record
+          this.initialRecordState = record.clone()
+        })
       }).finally(() => {
         this.processing = false
       })
@@ -638,7 +638,7 @@ export default {
       if (kind === 'toLayout') {
         this.processing = true
 
-        this.determineLayout(params.pageLayoutID).finally(() => {
+        this.determineLayout(params.pageLayoutID, {}, false).finally(() => {
           this.processing = false
         })
       } else if (kind === 'toURL') {
@@ -666,7 +666,7 @@ export default {
       this.$root.$off('refetch-record-blocks', this.refetchRecordBlocks)
 
       if (this.showRecordModal) {
-        this.$root.$off('bv::modal::hide', this.checkUnsavedChangesOnModal)
+        this.$root.$off('bv::modal::hide', this.checkUnsavedChanges)
       }
     },
 
@@ -677,26 +677,19 @@ export default {
       return !isEqual(recordValues, initialRecordState)
     },
 
-    checkUnsavedChanges (next) {
-      if (!this.edit) {
-        next(true)
-        return
-      }
-
-      next(this.compareRecordValues() ? window.confirm(this.$t('general:module.unsavedChanges')) : true)
-    },
-
-    checkUnsavedChangesOnModal (bvEvent, modalId) {
+    checkUnsavedChanges (bvEvent, modalId) {
       if ((bvEvent && modalId !== 'record-modal') || !this.edit) return true
 
-      const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:module.unsavedChanges')) : true
+      const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:record.unsavedChanges')) : true
 
-      if (bvEvent && !recordStateChange) {
-        bvEvent.preventDefault()
-      }
+      if (!recordStateChange) {
+        this.processing = false
 
-      if (recordStateChange) {
-        this.initialRecordState = this.record.clone()
+        if (bvEvent) {
+          bvEvent.preventDefault()
+        }
+      } else {
+        this.record = this.initialRecordState ? this.initialRecordState.clone() : undefined
       }
 
       return recordStateChange

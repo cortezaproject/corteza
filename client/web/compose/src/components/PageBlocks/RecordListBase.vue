@@ -971,7 +971,7 @@ export default {
       } else {
         // Record list block does not have any configured fields
         // Use first five fields from the module.
-        fields = this.recordListModule.fields.slice(0, 5)
+        fields = [...this.recordListModule.fields.slice(0, 5), ...this.recordListModule.systemFields()]
       }
 
       const configured = fields.map(mf => ({
@@ -1366,7 +1366,7 @@ export default {
       }
 
       const filter = []
-      let sort = ''
+      let sort = 'createdAt DESC'
 
       if (presort) {
         sort = presort

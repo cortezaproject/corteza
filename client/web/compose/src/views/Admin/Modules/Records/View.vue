@@ -63,7 +63,7 @@
         <component
           :is="getRecordComponent"
           :errors="errors"
-          v-bind="{ ...bindParams, module, block, record }"
+          v-bind="{ namespace, page, module, block, record }"
           class="p-2"
         />
       </b-col>
@@ -128,14 +128,37 @@ export default {
   ],
 
   beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChanges(next, to)
+    next(this.checkUnsavedChanges())
   },
 
   beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChanges(next, to)
+    next(this.checkUnsavedChanges())
   },
 
   props: {
+    namespace: {
+      type: Object,
+      required: false,
+      default: undefined,
+    },
+
+    moduleID: {
+      type: String,
+      required: false,
+      default: '',
+    },
+
+    recordID: {
+      type: String,
+      required: false,
+      default: '',
+    },
+
+    edit: {
+      type: Boolean,
+      default: false,
+    },
+
     // If component was called (via router) with some pre-seed values
     values: {
       type: Object,
@@ -146,15 +169,9 @@ export default {
 
   data () {
     return {
-      inEditing: false,
-      inCreating: false,
-
       blocks: [],
 
-      bindParams: {
-        page: new compose.Page(),
-        namespace: this.$attrs.namespace,
-      },
+      page: new compose.Page(),
 
       recordNavigation: {
         prev: undefined,
@@ -171,19 +188,19 @@ export default {
     }),
 
     isNew () {
-      return this.record.recordID === NoID
+      return !this.recordID || this.recordID === NoID
     },
 
     title () {
       const { name, handle } = this.module
-      const titlePrefix = this.inCreating ? 'create' : this.inEditing ? 'edit' : 'view'
+      const titlePrefix = this.isNew ? 'create' : this.inEditing ? 'edit' : 'view'
 
       return this.$t(`allRecords.${titlePrefix}.title`, { name: name || handle, interpolation: { escapeValue: false } })
     },
 
     module () {
-      if (this.$attrs.moduleID) {
-        return this.getModuleByID(this.$attrs.moduleID)
+      if (this.moduleID) {
+        return this.getModuleByID(this.moduleID)
       } else {
         return undefined
       }
@@ -239,12 +256,20 @@ export default {
   },
 
   watch: {
-    '$attrs.recordID': {
+    recordID: {
       immediate: true,
       handler () {
         this.record = undefined
         this.initialRecordState = undefined
-        this.loadRecord()
+
+        this.refresh()
+      },
+    },
+
+    edit: {
+      immediate: true,
+      handler (edit) {
+        this.inEditing = edit
       },
     },
 
@@ -279,21 +304,25 @@ export default {
     createBlocks () {
       this.fields.forEach(f => {
         const options = {
-          moduleID: this.$attrs.moduleID,
+          moduleID: this.moduleID,
           fields: f,
         }
         this.blocks.push(new compose.PageBlockRecord({ options }))
       })
     },
 
+    refresh () {
+      return this.loadRecord()
+    },
+
     loadRecord () {
-      const { moduleID = NoID, recordID = NoID } = this.$attrs
+      const { moduleID = NoID, recordID = NoID } = this
 
       if (!moduleID || moduleID === NoID) return
       const module = Object.freeze(this.getModuleByID(moduleID).clone())
 
       if (recordID && recordID !== NoID) {
-        const { namespaceID } = this.$attrs.namespace
+        const { namespaceID } = this.namespace
 
         const { response, cancel } = this.$ComposeAPI
           .recordReadCancellable({ namespaceID, moduleID, recordID })
@@ -312,8 +341,7 @@ export default {
           })
       } else {
         this.record = new compose.Record(module, { values: this.values })
-        this.inEditing = true
-        this.inCreating = true
+        this.initialRecordState = undefined
       }
     },
 
@@ -322,21 +350,19 @@ export default {
     },
 
     handleAdd () {
-      this.$router.push({ name: 'admin.modules.record.create', params: { moduleID: this.module.moduleID } })
+      this.$router.push({ name: 'admin.modules.record.create', params: { moduleID: this.module.moduleID, edit: true } })
     },
 
     handleClone () {
-      this.$router.push({ name: 'admin.modules.record.create', params: { moduleID: this.module.moduleID, values: this.record.values } })
+      this.$router.push({ name: 'admin.modules.record.create', params: { moduleID: this.module.moduleID, values: this.record.values, edit: true } })
     },
 
     handleEdit () {
-      this.inEditing = true
-      this.inCreating = false
+      this.$router.push({ name: 'admin.modules.record.edit', params: { moduleID: this.module.moduleID, edit: true } })
     },
 
     handleView () {
-      this.inEditing = false
-      this.inCreating = false
+      this.$router.push({ name: 'admin.modules.record.view', params: { moduleID: this.module.moduleID, edit: false } })
     },
 
     handleRedirectToPrevOrNext (recordID) {
@@ -348,7 +374,6 @@ export default {
     },
 
     setDefaultValues () {
-      this.inEditing = false
       this.blocks = []
       this.bindParams = {}
       this.abortableRequests = []
@@ -360,15 +385,25 @@ export default {
       })
     },
 
-    checkUnsavedChanges (next, to) {
-      if (this.isNew) {
-        next(true)
-      } else {
-        const recordValues = JSON.parse(JSON.stringify(this.record.values))
-        const initialRecordState = JSON.parse(JSON.stringify(this.initialRecordState.values))
+    compareRecordValues () {
+      const recordValues = JSON.parse(JSON.stringify(this.record ? this.record.values : {}))
+      const initialRecordState = JSON.parse(JSON.stringify(this.initialRecordState ? this.initialRecordState.values : {}))
 
-        next(!isEqual(recordValues, initialRecordState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      return !isEqual(recordValues, initialRecordState)
+    },
+
+    checkUnsavedChanges () {
+      if (!this.edit) return true
+
+      const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:record.unsavedChanges')) : true
+
+      if (!recordStateChange) {
+        this.processing = false
+      } else {
+        this.record = this.initialRecordState ? this.initialRecordState.clone() : undefined
       }
+
+      return recordStateChange
     },
   },
 }

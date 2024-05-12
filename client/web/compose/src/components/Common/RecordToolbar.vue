@@ -57,7 +57,7 @@
       <slot name="end-actions" />
 
       <c-input-confirm
-        v-if="isCreated && !(isDeleted || hideDelete || settings.hideDelete)"
+        v-if="(processingDelete || isCreated) && !(isDeleted || hideDelete || settings.hideDelete)"
         :disabled="!record || !canDeleteRecord || processing"
         :processing="processingDelete"
         :text="labels.delete || $t('label.delete')"
@@ -68,7 +68,7 @@
       />
 
       <c-input-confirm
-        v-if="isDeleted && !(hideDelete || settings.hideDelete)"
+        v-else-if="(processingUndelete || isDeleted) && !(hideDelete || settings.hideDelete)"
         :disabled="!record || !canUndeleteRecord || processing"
         :processing="processingUndelete"
         :text="$t('label.restore')"

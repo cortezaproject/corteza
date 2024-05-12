@@ -193,7 +193,9 @@ export default {
           ...resolutions,
           this.evaluateExpressions(),
         ]).finally(() => {
-          this.evaluating = false
+          setTimeout(() => {
+            this.evaluating = false
+          }, 300)
         })
 
         if (this.options.referenceModuleID) {

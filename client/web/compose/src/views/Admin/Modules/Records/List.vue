@@ -29,7 +29,7 @@
     </portal>
 
     <record-list-base
-      v-if="block && page"
+      v-if="block && page && module"
       :block="block"
       :page="page"
       :module="module"
@@ -56,10 +56,23 @@ export default {
     RecordListBase,
   },
 
+  props: {
+    namespace: {
+      type: Object,
+      required: false,
+      default: undefined,
+    },
+
+    moduleID: {
+      type: String,
+      required: false,
+      default: '',
+    },
+  },
+
   data () {
     return {
       block: undefined,
-      namespace: this.$attrs.namespace,
     }
   },
 
@@ -75,8 +88,8 @@ export default {
     },
 
     module () {
-      if (this.$route.params.moduleID) {
-        return this.getModuleByID(this.$route.params.moduleID)
+      if (this.moduleID) {
+        return this.getModuleByID(this.moduleID)
       } else {
         return undefined
       }
@@ -102,13 +115,13 @@ export default {
   },
 
   watch: {
-    module: {
-      handler (module) {
-        if (module) {
-          const { meta = { ui: {} }, moduleID } = module || {}
+    moduleID: {
+      handler () {
+        if (this.module) {
+          const { meta = { ui: {} }, moduleID } = this.module || {}
 
           let fields = ((meta.ui || {}).admin || {}).fields || []
-          fields = fields.length ? fields : module.fields
+          fields = fields.length ? fields : [...this.module.fields.slice(0, 10), ...this.module.systemFields()]
 
           this.block.options.moduleID = moduleID
           this.block.options.fields = fields
@@ -121,7 +134,7 @@ export default {
     const { meta = { ui: {} }, moduleID } = this.module || {}
 
     let fields = ((meta.ui || {}).admin || {}).fields || []
-    fields = fields.length ? fields : this.module.fields
+    fields = fields.length ? fields : [...this.module.fields.slice(0, 10), ...this.module.systemFields()]
 
     // Init block
     const block = new compose.PageBlockRecordList({
@@ -185,14 +198,11 @@ export default {
         this.module.meta.ui.admin = { ...(this.module.meta.ui.admin || {}), fields }
       }
 
-      this.updateModule(this.module).then(() => {
-        this.toastSuccess(this.$t('notification:module.columns.saved'))
-      }).catch(this.toastErrorHandler(this.$t('notification:module.columns.saveFailed')))
+      this.updateModule(this.module)
     },
 
     setDefaultValues () {
       this.block = undefined
-      this.namespace = {}
     },
   },
 }
