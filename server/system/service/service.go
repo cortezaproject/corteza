@@ -193,12 +193,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 				zap.Error(err))
 		}
 
+		hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/System")
+
 		if err != nil {
 			return err
 		}
-	}
 
-	hcd.Add(objstore.Healthcheck(DefaultObjectStore), "ObjectStore/System")
+	}
 
 	DefaultRenderer = Renderer(c.Template)
 	DefaultResourceTranslation = ResourceTranslation()

@@ -112,7 +112,7 @@ func (s *store) Open(filename string) (out io.ReadSeekCloser, err error) {
 
 func (s *store) Healthcheck(ctx context.Context) error {
 	var (
-		fname = s.namespace + "/.healthcheck"
+		fname = fmt.Sprintf("%s/.healthcheck_%d", s.namespace, time.Now().UnixNano())
 		buf   = &bytes.Buffer{}
 	)
 
