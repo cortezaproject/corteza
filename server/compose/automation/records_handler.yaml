@@ -127,7 +127,7 @@ functions:
 
   first:
     meta:
-      short: Compose record lookup (first created)
+      short: Compose record lookup (oldest)
     labels:
       <<: *labels
     params: *edgeParams
@@ -136,7 +136,7 @@ functions:
 
   last:
     meta:
-      short: Compose record lookup (last created)
+      short: Compose record lookup (newest)
     labels:
       <<: *labels
     params: *edgeParams

@@ -358,9 +358,9 @@ func (h recordsHandler) fetchEdge(ctx context.Context, args interface{}, first b
 	f := types.RecordFilter{}
 
 	if first {
-		f.Sort.Set("createdAt DESC")
-	} else {
 		f.Sort.Set("createdAt ASC")
+	} else {
+		f.Sort.Set("createdAt DESC")
 	}
 
 	f.Limit = 1
