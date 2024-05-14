@@ -93,17 +93,21 @@ export default {
     },
 
     handleClone (report) {
-      let { handle, meta, sources, blocks, scenarios, labels } = report
-      handle = ''
-      meta.name = `${meta.name} (${this.$t('general:cloneSuffix')})`
+      this.processing = true
       this.processingClone = true
-      return this.$SystemAPI.reportCreate({ handle, meta, sources, blocks, scenarios, labels })
+      const { meta, sources, blocks, scenarios, labels } = report
+      meta.name = `${meta.name} (${this.$t('general:cloneSuffix')})`
+      return this.$SystemAPI.reportCreate({ handle: '', meta, sources, blocks, scenarios, labels })
         .then(report => {
           report = new system.Report(report)
           this.toastSuccess(this.$t('notification:report.created'))
           return report
         })
         .catch(this.toastErrorHandler(this.$t('notification:report.createFailed')))
+        .finally(() => {
+          this.processing = false
+          this.processingClone = false
+        })
     },
   },
 }

@@ -233,14 +233,10 @@ export default {
   methods: {
     viewReport ({ reportID, canReadReport = false }) {
       if (reportID) {
-        if (canReadReport) {
-          this.$router.push({
-            name: 'report.view',
-            params: { reportID },
-          })
-        } else {
-          this.toastDanger(this.$t('notification:report.notAllowed.read'))
-        }
+        this.$router.push({
+          name: 'report.view',
+          params: { reportID },
+        })
       }
     },
 
@@ -263,8 +259,8 @@ export default {
     },
 
     handleReportCloning (report) {
-      this.handleClone(report).then((report) => {
-        this.viewReport({ reportID: report.reportID })
+      this.handleClone(report).then(({ reportID }) => {
+        this.viewReport({ reportID })
       })
     },
   },

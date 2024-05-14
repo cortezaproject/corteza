@@ -40,6 +40,7 @@
         size="lg"
         variant="light"
         :disabled="processing"
+        :processing="processingClone"
         class="text-nowrap"
         @click.prevent="$emit('clone')"
       >
@@ -101,6 +102,10 @@ export default {
     processingSave: {
       type: Boolean,
       required: false,
+    },
+
+    processingClone: {
+      type: Boolean,
     },
   },
 }

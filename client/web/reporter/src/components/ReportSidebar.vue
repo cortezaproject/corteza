@@ -72,7 +72,7 @@ export default {
 
       return reports.map(({ reportID, handle, meta: { name = '' } }) => {
         return {
-          page: { pageID: reportID, name: 'report.view', title: name || handle },
+          page: { pageID: reportID, name: this.$route.name, title: name || handle },
           params: { reportID },
         }
       })
