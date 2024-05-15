@@ -625,6 +625,9 @@ export default {
       this.processing = true
 
       return this.loadRecord().then(record => {
+        // Set record so the latest one can be used in the layout expressions
+        variables.record = record ? record.serialize() : {}
+
         return this.determineLayout(undefined, variables).then(() => {
           this.record = record
           this.initialRecordState = record.clone()
