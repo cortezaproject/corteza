@@ -6,8 +6,9 @@
     :clearable="clearable"
     :options="options"
     :searchable="searchable"
+    :disabled="disabled"
     :calculate-position="calculateDropdownPosition"
-    :append-to-body="appendToBody"
+    :append-to-body="appendToBody"  
     class="bg-white rounded"
     :class="sizeClass"
     @search="onSearch"
@@ -72,6 +73,11 @@ export default {
     size: {
       type: String,
       default: 'md',
+    },
+
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
 

@@ -44,7 +44,7 @@
         class="text-nowrap"
         @click.prevent="$emit('clone')"
       >
-        {{ $t('general:label.clone') }}
+        <span v-if="!processingClone">{{ $t('general:label.clone') }}</span>
       </c-input-processing>
 
       <c-button-submit

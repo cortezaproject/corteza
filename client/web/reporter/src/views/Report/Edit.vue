@@ -159,6 +159,13 @@
       </b-row>
     </b-container>
 
+    <div
+      v-else
+      class="d-flex align-items-center justify-content-center w-100 h-100"
+    >
+      <b-spinner />
+    </div>
+
     <portal to="report-toolbar">
       <editor-toolbar
         :back-link="{ name: 'report.list' }"
@@ -168,6 +175,8 @@
         :processing="processing"
         :processing-save="processingSave"
         :processing-delete="processingDelete"
+        :processing-clone="processingClone"
+        @clone="handleReportCloning"
         @delete="handleDelete"
         @save="handleSave"
       />
@@ -318,6 +327,13 @@ export default {
       }
 
       next(!isEqual(reportState, initialReportState) ? window.confirm(this.$t('unsavedChanges')) : true)
+    },
+
+    handleReportCloning () {
+      this.handleClone(this.report).then(({ reportID }) => {
+        window.confirm = () => true
+        this.$router.push({ name: 'report.view', params: { reportID } })
+      })
     },
   },
 }

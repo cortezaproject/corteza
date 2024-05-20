@@ -1,372 +1,376 @@
 <template>
-  <div>
-    <div
-      v-if="!!report"
-      class="d-flex overflow-auto p-2 w-100"
+  <div
+    class="d-flex overflow-auto p-2 w-100"
+  >
+    <portal
+      v-if="!fetchingReport"
+      to="topbar-title"
     >
-      <portal to="topbar-title">
-        {{ pageTitle }}
-      </portal>
-      <portal to="topbar-tools">
-        <b-input-group style="max-width: 300px;">
-          <c-input-select
-            v-model="scenarios.selected"
-            :options="scenarioOptions"
-            :get-option-key="getOptionKey"
-            :placeholder="$t('builder:pick-scenario')"
-            size="sm"
-            @input="refreshReport()"
-          />
-          <b-input-group-append>
-            <b-button
-              v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
-              variant="extra-light"
-              :disabled="!canUpdate"
-              size="sm"
-              @click="openScenarioConfigurator"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'cog']"
-                class="text-primary"
-              />
-            </b-button>
-          </b-input-group-append>
-        </b-input-group>
-        <b-button
-          :disabled="!canUpdate"
-          variant="extra-light"
+      {{ pageTitle }}
+    </portal>
+
+    <portal to="topbar-tools">
+      <b-input-group style="max-width: 300px;">
+        <c-input-select
+          v-model="scenarios.selected"
+          :options="scenarioOptions"
+          :get-option-key="getOptionKey"
+          :placeholder="$t('builder:pick-scenario')"
+          :disabled="processing || fetchingReport"
           size="sm"
-          @click="openDatasourceConfigurator"
-        >
-          {{ $t('builder:datasources.label') }}
-        </b-button>
-        <b-button-group
-          size="sm"
-        >
+          @input="refreshReport()"
+        />
+        <b-input-group-append>
           <b-button
-            variant="primary"
-            class="d-flex align-items-center justify-content-center"
-            :disabled="!canRead"
-            :to="reportViewer"
-          >
-            {{ $t('builder:report.view') }}
-            <font-awesome-icon
-              class="ml-2"
-              :icon="['far', 'eye']"
-            />
-          </b-button>
-          <b-button
-            v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
-            variant="primary"
-            class="d-flex align-items-center justify-content-center"
-            style="margin-left:2px;"
+            v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.configure-scenarios'), container: '#body' }"
+            variant="extra-light"
             :disabled="!canUpdate"
-            :to="reportEditor"
+            size="sm"
+            @click="openScenarioConfigurator"
           >
             <font-awesome-icon
-              :icon="['far', 'edit']"
+              :icon="['fas', 'cog']"
+              class="text-primary"
             />
           </b-button>
-        </b-button-group>
-      </portal>
-      <grid
-        v-if="report && canRead && showReport"
-        :blocks.sync="reportBlocks"
-        editable
-        @item-updated="onBlockUpdated"
+        </b-input-group-append>
+      </b-input-group>
+
+      <b-button
+        :disabled="!canUpdate"
+        variant="extra-light"
+        size="sm"
+        @click="openDatasourceConfigurator"
       >
-        <template
-          slot-scope="{ block, index }"
-        >
-          <div
-            class="h-100"
-          >
-            <div
-              class="toolbox border-0 p-2 m-0 text-light text-center"
-            >
-              <div
-                v-if="unsavedBlocks.has(index)"
-                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.unsavedChanges'), container: '#body' }"
-                class="btn border-0"
-              >
-                <font-awesome-icon
-                  :icon="['fas', 'exclamation-triangle']"
-                  class="text-warning"
-                />
-              </div>
-              <b-button-group>
-                <b-button
-                  v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
-                  variant="outline-light"
-                  class="border-0"
-                  @click="openDisplayElementSelector(index)"
-                >
-                  <font-awesome-icon
-                    :icon="['fas', 'plus']"
-                  />
-                </b-button>
-                <b-button
-                  v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
-                  variant="outline-light"
-                  class="border-0"
-                  @click="editBlock(index)"
-                >
-                  <font-awesome-icon
-                    :icon="['far', 'edit']"
-                  />
-                </b-button>
-              </b-button-group>
-              <c-input-confirm
-                :tooltip="$t('builder:tooltip.delete.block')"
-                show-icon
-                size="md"
-                class="ml-1"
-                @confirmed="deleteBlock(index)"
-              />
-            </div>
-            <block
-              v-if="block"
-              :index="index"
-              :block="block"
-              :scenario="currentSelectedScenario"
-              :report-i-d="reportID"
-              @item-updated="onBlockUpdated"
-            />
-          </div>
-        </template>
-      </grid>
-      <b-modal
-        v-model="blocks.showConfigurator"
-        :title="$t('builder:block.configuration')"
-        :ok-title="$t('builder:save-button')"
-        ok-variant="primary"
-        cancel-variant="link"
-        scrollable
-        size="xl"
-        body-class="p-0 border-top-0"
-        header-class="border-bottom-0"
-        no-fade
-        @ok="updateBlock()"
+        {{ $t('builder:datasources.label') }}
+      </b-button>
+      <b-button-group
+        size="sm"
       >
-        <b-tabs
-          v-if="currentBlock"
-          active-tab-class="tab-content h-auto overflow-auto"
-          card
+        <b-button
+          variant="primary"
+          class="d-flex align-items-center justify-content-center"
+          :disabled="!canRead"
+          :to="reportViewer"
         >
-          <b-tab
-            :title="$t('builder:general')"
-            active
-          >
-            <b-form-group
-              :label="$t('builder:title')"
-              label-class="text-primary"
-            >
-              <b-form-input
-                v-model="currentBlock.title"
-                type="text"
-                :placeholder="$t('builder:block.title')"
-              />
-            </b-form-group>
-            <b-form-group
-              :label="$t('builder:description')"
-              label-class="text-primary"
-            >
-              <b-form-textarea
-                v-model="currentBlock.description"
-                :placeholder="$t('builder:block.description')"
-              />
-            </b-form-group>
-            <b-form-group
-              :label="$t('builder:layout')"
-              label-class="text-primary"
-            >
-              <b-form-radio-group
-                v-model="currentBlock.layout"
-                :options="blockLayoutOptions"
-                buttons
-                button-variant="outline-primary"
-              />
-            </b-form-group>
-          </b-tab>
-          <b-tab
-            :active="!!currentBlock.elements.length"
-            :title="$t('builder:elements')"
-          >
-            <configurator
-              :items="currentDisplayElements"
-              :current-index="displayElements.currentIndex"
-              draggable
-              @select="setCurrentDisplayElement"
-              @add="openDisplayElementSelector(blocks.currentIndex)"
-              @delete="deleteCurrentDisplayElement"
-            >
-              <template #label="{ item: { kind, name } }">
-                {{ name || kind }}
-                <font-awesome-icon
-                  :icon="['fas', 'bars']"
-                  class="text-secondary grab"
-                />
-              </template>
-              <template #configurator>
-                <display-element-configurator
-                  v-if="currentDisplayElement"
-                  :display-element.sync="currentDisplayElement"
-                  :block="currentBlock"
-                  :datasources="reportDatasources"
-                  class="pr-2"
-                />
-              </template>
-            </configurator>
-          </b-tab>
-        </b-tabs>
-      </b-modal>
-      <b-modal
-        v-model="datasources.showConfigurator"
-        :title="$t('builder:datasources.label')"
-        cancel-variant="link"
-        :cancel-disabled="datasources.processing"
-        scrollable
-        size="xl"
-        body-class="py-3"
-        no-fade
-        @hide="hideDatasourceConfigurator"
-      >
-        <configurator
-          v-if="report"
-          :items="datasources.tempItems"
-          :current-index="datasources.currentIndex"
-          draggable
-          @select="setCurrentDatasource"
-          @add="openDatasourceSelector()"
-          @delete="deleteCurrentDataSource"
-        >
-          <template #label="{ item: { step } }">
-            <span
-              class="d-inline-block text-truncate"
-            >
-              {{ datasourceLabel(step, datasources.currentIndex) }}
-            </span>
-          </template>
-          <template #configurator>
-            <component
-              :is="getDatasourceComponent(datasources.tempItems[datasources.currentIndex])"
-              v-if="currentDatasourceStep"
-              :index="datasources.currentIndex"
-              :datasources="datasources.tempItems"
-              :step.sync="currentDatasourceStep"
-              :creating="datasources.tempItems[datasources.currentIndex].meta.creating"
-            />
-          </template>
-        </configurator>
-        <template #modal-footer>
-          <c-button-submit
-            data-test-id="button-save"
-            :disabled="datasourceSaveDisabled"
-            :processing="datasources.processing"
-            :text="$t('general:label.saveAndClose')"
-            @submit="saveDatasources"
+          {{ $t('builder:report.view') }}
+          <font-awesome-icon
+            class="ml-2"
+            :icon="['far', 'eye']"
           />
-        </template>
-      </b-modal>
-      <b-modal
-        v-model="displayElements.showSelector"
-        size="lg"
-        scrollable
-        hide-footer
-        :title="$t('builder:add.display-element')"
-        body-class="px-0 py-3"
-        no-fade
-      >
-        <selector
-          :items="displayElements.types"
-          @select="addDisplayElement"
-        />
-      </b-modal>
-      <b-modal
-        v-model="datasources.showSelector"
-        size="lg"
-        scrollable
-        hide-footer
-        :title="$t('builder:add.datasource')"
-        body-class="px-0 py-3"
-        no-fade
-      >
-        <selector
-          :items="datasources.types"
-          display-mode="text"
-          @select="addDatasource"
-        />
-      </b-modal>
-      <b-modal
-        v-model="scenarios.showConfigurator"
-        size="xl"
-        scrollable
-        :ok-title="$t('builder:scenarios.save')"
-        ok-variant="primary"
-        :title="$t('builder:scenarios.label')"
-        body-class="py-3"
-        no-fade
-      >
-        <configurator
-          v-if="report"
-          :items="reportScenarios"
-          :current-index="scenarios.currentIndex"
-          draggable
-          @select="setCurrentScenario"
-          @add="addScenario()"
-          @delete="deleteCurrentScenario()"
+        </b-button>
+        <b-button
+          v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.report'), container: '#body' }"
+          variant="primary"
+          class="d-flex align-items-center justify-content-center"
+          style="margin-left:2px;"
+          :disabled="!canUpdate"
+          :to="reportEditor"
         >
-          <template #label="{ item: { label } }">
-            <span
-              class="d-inline-block text-truncate"
-            >
-              {{ label }}
-            </span>
-          </template>
-          <template #configurator>
-            <scenario-configurator
-              v-if="currentScenario"
-              :current-index="scenarios.currentIndex"
-              :datasources="reportDatasources"
-              :scenario.sync="currentScenario"
-            />
-          </template>
-        </configurator>
-      </b-modal>
-      <portal to="report-toolbar">
-        <editor-toolbar
-          :back-link="{ name: 'report.list' }"
-          :delete-disabled="!canDelete"
-          :save-disabled="!canUpdate"
-          :processing="processing"
-          :processing-save="processingSave"
-          :processing-delete="processingDelete"
-          :processing-clone="processingClone"
-          @clone="handleReportCloning"
-          @delete="handleDelete"
-          @save="handleReportSave"
-        >
-          <b-button
-            variant="light"
-            size="lg"
-            @click="createBlock"
-          >
-            <font-awesome-icon
-              :icon="['fas', 'plus']"
-              size="sm"
-            />
-            {{ $t('general:label.add') }}
-          </b-button>
-        </editor-toolbar>
-      </portal>
-    </div>
+          <font-awesome-icon
+            :icon="['far', 'edit']"
+          />
+        </b-button>
+      </b-button-group>
+    </portal>
 
     <div
-      v-else
+      v-if="fetchingReport"
       class="d-flex align-items-center justify-content-center w-100 h-100"
     >
       <b-spinner />
     </div>
+
+    <grid
+      v-if="report && canRead && showReport && !fetchingReport"
+      :blocks.sync="reportBlocks"
+      editable
+      @item-updated="onBlockUpdated"
+    >
+      <template
+        slot-scope="{ block, index }"
+      >
+        <div
+          class="h-100"
+        >
+          <div
+            class="toolbox border-0 p-2 m-0 text-light text-center"
+          >
+            <div
+              v-if="unsavedBlocks.has(index)"
+              v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.unsavedChanges'), container: '#body' }"
+              class="btn border-0"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'exclamation-triangle']"
+                class="text-warning"
+              />
+            </div>
+            <b-button-group>
+              <b-button
+                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.add.displayElement'), container: '#body' }"
+                variant="outline-light"
+                class="border-0"
+                @click="openDisplayElementSelector(index)"
+              >
+                <font-awesome-icon
+                  :icon="['fas', 'plus']"
+                />
+              </b-button>
+              <b-button
+                v-b-tooltip.noninteractive.hover="{ title: $t('builder:tooltip.edit.block'), container: '#body' }"
+                variant="outline-light"
+                class="border-0"
+                @click="editBlock(index)"
+              >
+                <font-awesome-icon
+                  :icon="['far', 'edit']"
+                />
+              </b-button>
+            </b-button-group>
+            <c-input-confirm
+              :tooltip="$t('builder:tooltip.delete.block')"
+              show-icon
+              size="md"
+              class="ml-1"
+              @confirmed="deleteBlock(index)"
+            />
+          </div>
+          <block
+            v-if="block"
+            :index="index"
+            :block="block"
+            :scenario="currentSelectedScenario"
+            :report-i-d="reportID"
+            @item-updated="onBlockUpdated"
+          />
+        </div>
+      </template>
+    </grid>
+    <b-modal
+      v-model="blocks.showConfigurator"
+      :title="$t('builder:block.configuration')"
+      :ok-title="$t('builder:save-button')"
+      ok-variant="primary"
+      cancel-variant="link"
+      scrollable
+      size="xl"
+      body-class="p-0 border-top-0"
+      header-class="border-bottom-0"
+      no-fade
+      @ok="updateBlock()"
+    >
+      <b-tabs
+        v-if="currentBlock"
+        active-tab-class="tab-content h-auto overflow-auto"
+        card
+      >
+        <b-tab
+          :title="$t('builder:general')"
+          active
+        >
+          <b-form-group
+            :label="$t('builder:title')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              v-model="currentBlock.title"
+              type="text"
+              :placeholder="$t('builder:block.title')"
+            />
+          </b-form-group>
+          <b-form-group
+            :label="$t('builder:description')"
+            label-class="text-primary"
+          >
+            <b-form-textarea
+              v-model="currentBlock.description"
+              :placeholder="$t('builder:block.description')"
+            />
+          </b-form-group>
+          <b-form-group
+            :label="$t('builder:layout')"
+            label-class="text-primary"
+          >
+            <b-form-radio-group
+              v-model="currentBlock.layout"
+              :options="blockLayoutOptions"
+              buttons
+              button-variant="outline-primary"
+            />
+          </b-form-group>
+        </b-tab>
+        <b-tab
+          :active="!!currentBlock.elements.length"
+          :title="$t('builder:elements')"
+        >
+          <configurator
+            :items="currentDisplayElements"
+            :current-index="displayElements.currentIndex"
+            draggable
+            @select="setCurrentDisplayElement"
+            @add="openDisplayElementSelector(blocks.currentIndex)"
+            @delete="deleteCurrentDisplayElement"
+          >
+            <template #label="{ item: { kind, name } }">
+              {{ name || kind }}
+              <font-awesome-icon
+                :icon="['fas', 'bars']"
+                class="text-secondary grab"
+              />
+            </template>            <template #configurator>
+              <display-element-configurator
+                v-if="currentDisplayElement"
+                :display-element.sync="currentDisplayElement"
+                :block="currentBlock"
+                :datasources="reportDatasources"
+                class="pr-2"
+              />
+            </template>
+          </configurator>
+        </b-tab>
+      </b-tabs>
+    </b-modal>
+    <b-modal
+      v-model="datasources.showConfigurator"
+      :title="$t('builder:datasources.label')"
+      cancel-variant="link"
+      :cancel-disabled="datasources.processing"
+      scrollable
+      size="xl"
+      body-class="py-3"
+      no-fade
+      @hide="hideDatasourceConfigurator"
+    >
+      <configurator
+        v-if="report"
+        :items="datasources.tempItems"
+        :current-index="datasources.currentIndex"
+        draggable
+        @select="setCurrentDatasource"
+        @add="openDatasourceSelector()"
+        @delete="deleteCurrentDataSource"
+      >
+        <template #label="{ item: { step } }">
+          <span
+            class="d-inline-block text-truncate"
+          >
+            {{ datasourceLabel(step, datasources.currentIndex) }}
+          </span>
+        </template>
+        <template #configurator>
+          <component
+            :is="getDatasourceComponent(datasources.tempItems[datasources.currentIndex])"
+            v-if="currentDatasourceStep"
+            :index="datasources.currentIndex"
+            :datasources="datasources.tempItems"
+            :step.sync="currentDatasourceStep"
+            :creating="datasources.tempItems[datasources.currentIndex].meta.creating"
+          />
+        </template>
+      </configurator>
+      <template #modal-footer>
+        <c-button-submit
+          data-test-id="button-save"
+          :disabled="datasourceSaveDisabled"
+          :processing="datasources.processing"
+          :text="$t('general:label.saveAndClose')"
+          @submit="saveDatasources"
+        />
+      </template>
+    </b-modal>
+    <b-modal
+      v-model="displayElements.showSelector"
+      size="lg"
+      scrollable
+      hide-footer
+      :title="$t('builder:add.display-element')"
+      body-class="px-0 py-3"
+      no-fade
+    >
+      <selector
+        :items="displayElements.types"
+        @select="addDisplayElement"
+      />
+    </b-modal>
+    <b-modal
+      v-model="datasources.showSelector"
+      size="lg"
+      scrollable
+      hide-footer
+      :title="$t('builder:add.datasource')"
+      body-class="px-0 py-3"
+      no-fade
+    >
+      <selector
+        :items="datasources.types"
+        display-mode="text"
+        @select="addDatasource"
+      />
+    </b-modal>
+    <b-modal
+      v-model="scenarios.showConfigurator"
+      size="xl"
+      scrollable
+      :ok-title="$t('builder:scenarios.save')"
+      ok-variant="primary"
+      :title="$t('builder:scenarios.label')"
+      body-class="py-3"
+      no-fade
+    >
+      <configurator
+        v-if="report"
+        :items="reportScenarios"
+        :current-index="scenarios.currentIndex"
+        draggable
+        @select="setCurrentScenario"
+        @add="addScenario()"
+        @delete="deleteCurrentScenario()"
+      >
+        <template #label="{ item: { label } }">
+          <span
+            class="d-inline-block text-truncate"
+          >
+            {{ label }}
+          </span>
+        </template>
+        <template #configurator>
+          <scenario-configurator
+            v-if="currentScenario"
+            :current-index="scenarios.currentIndex"
+            :datasources="reportDatasources"
+            :scenario.sync="currentScenario"
+          />
+        </template>
+      </configurator>
+    </b-modal>
+    <portal to="report-toolbar">
+      <editor-toolbar
+        :back-link="{ name: 'report.list' }"
+        :delete-disabled="!canDelete"
+        :save-disabled="!canUpdate"
+        :processing="processing"
+        :processing-save="processingSave"
+        :processing-delete="processingDelete"
+        :processing-clone="processingClone"
+        @clone="handleReportCloning"
+        @delete="handleDelete"
+        @save="handleReportSave"
+      >
+        <b-button
+          variant="light"
+          size="lg"
+          :disabled="processing"
+          @click="createBlock"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'plus']"
+            size="sm"
+          />
+          {{ $t('general:label.add') }}
+        </b-button>
+      </editor-toolbar>
+    </portal>
   </div>
 </template>
 
@@ -417,6 +421,7 @@ export default {
       processingSave: false,
       processingDelete: false,
       processingClone: false,
+      fetchingReport: false,
 
       showReport: true,
 
@@ -651,21 +656,24 @@ export default {
       handler (reportID) {
         this.unsavedBlocks.clear()
         this.scenarios.selected = undefined
+        this.reportBlocks = []
         this.report = undefined
         if (reportID) {
           this.processing = true
+          this.fetchingReport = true
 
           this.fetchReport(this.reportID)
             .then(() => {
               this.mapBlocks()
             }).catch(() => {
-              this.report = undefined
-              this.reportBlocks = []
               this.toastErrorHandler(this.$t('notification:report.loadFailed'))
-              this.$router.go(-1)
+              this.$router.push({ name: 'report.list' })
             })
             .finally(() => {
               this.processing = false
+              setTimeout(() => {
+                this.fetchingReport = false
+              }, 400)
             })
         }
       },
@@ -846,13 +854,8 @@ export default {
     },
 
     handleReportCloning () {
-      this.processing = true
-      this.processingClone = true
       this.handleClone(this.report).then(({ reportID }) => {
         this.$router.push({ name: 'report.builder', params: { reportID } })
-      }).finally(() => {
-        this.processing = false
-        this.processingClone = false
       })
     },
 

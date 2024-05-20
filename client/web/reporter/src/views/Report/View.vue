@@ -2,7 +2,10 @@
   <div
     class="d-flex overflow-auto p-2 w-100"
   >
-    <portal to="topbar-title">
+    <portal
+      v-if="!fetchingReport"
+      to="topbar-title"
+    >
       {{ pageTitle }}
     </portal>
 
@@ -13,6 +16,7 @@
         :options="scenarioOptions"
         :get-option-key="getOptionKey"
         :placeholder="$t('pick-scenario')"
+        :disabled="processing || fetchingReport"
         size="sm"
         style="max-width: 300px; min-width: 150px;"
         @input="refreshReport()"
@@ -47,8 +51,15 @@
       </b-button-group>
     </portal>
 
+    <div
+      v-if="fetchingReport"
+      class="d-flex align-items-center justify-content-center w-100 h-100"
+    >
+      <b-spinner />
+    </div>
+
     <grid
-      v-if="report && canRead && showReport"
+      v-if="report && canRead && showReport && !fetchingReport"
       :blocks="report.blocks"
     >
       <template
@@ -86,6 +97,7 @@ export default {
     return {
       processing: false,
       showReport: true,
+      fetchingReport: false,
 
       report: undefined,
       dataframes: [],
@@ -93,6 +105,7 @@ export default {
       scenarios: {
         selected: undefined,
       },
+
     }
   },
 
@@ -144,9 +157,20 @@ export default {
       immediate: true,
       handler (reportID) {
         this.scenarios.selected = undefined
+        this.report = undefined
 
         if (reportID) {
+          this.fetchingReport = true
           this.fetchReport(reportID)
+            .catch(() => {
+              this.toastErrorHandler(this.$t('notification:report.loadFailed'))
+              this.$router.push({ name: 'report.list' })
+            })
+            .finally(() => {
+              setTimeout(() => {
+                this.fetchingReport = false
+              }, 400)
+            })
         }
       },
     },
