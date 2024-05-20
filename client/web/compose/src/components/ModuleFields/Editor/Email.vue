@@ -8,7 +8,6 @@
     :class="formGroupStyleClasses"
   >
     <template
-      v-if="label"
       #label
     >
       <div
