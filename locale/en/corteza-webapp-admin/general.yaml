@@ -54,8 +54,6 @@ label:
   fileTypeNotAllowed: File type not allowed
 editor:
   unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
-record:
-  unsavedChanges:  Unsaved changes will be lost. Do you wish to close the record?
 resourceList:
   pagination:
     recordsPerPage: Records per page

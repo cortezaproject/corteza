@@ -179,6 +179,8 @@ variants:
   warning: Warning
 editor:
   unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+record:
+  unsavedChanges:  Unsaved changes will be lost. Do you wish to close the record?
 
 themes:
   labels:
