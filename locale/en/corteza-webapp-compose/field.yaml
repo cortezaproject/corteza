@@ -101,6 +101,7 @@ kind:
     moduleLabel: Module
     modulePlaceholder: Pick module
     queryFieldsLabel: Query fields on search
+    queryFieldsPlaceholder: If no fields are picked the Label field will be used
     moduleField: Label field
     variantField: Variant field
     fieldFromModuleField: Label field from related module field
