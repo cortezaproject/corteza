@@ -167,7 +167,7 @@ import base from './base'
 import { debounce } from 'lodash'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { mapActions, mapGetters } from 'vuex'
-import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { queryToFilter, evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import Pagination from '../Common/Pagination.vue'
 
 export default {
@@ -371,10 +371,8 @@ export default {
         }
 
         if (query.length > 0) {
-          // Construct query
-          query = qf.map(qf => {
-            return `${qf} LIKE '%${query}%'`
-          }).join(' OR ')
+          const fields = qf.map(f => this.module.fields.find(({ name }) => name === f))
+          query = queryToFilter(query, '', fields)
         }
 
         this.fetchPrefiltered({ namespaceID, moduleID, query, sort: this.sortString(), limit, pageCursor })

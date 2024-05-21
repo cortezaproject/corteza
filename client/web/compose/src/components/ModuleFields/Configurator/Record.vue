@@ -57,9 +57,12 @@
         :label="$t('kind.record.queryFieldsLabel')"
         label-class="text-primary"
       >
-        <b-form-select
+        <c-input-select
           v-model="f.options.queryFields"
           :options="queryFieldOptions"
+          label="text"
+          :reduce="field => field.value"
+          :placeholder="$t('kind.record.queryFieldsPlaceholder')"
           multiple
         />
       </b-form-group>
@@ -116,6 +119,7 @@
 <script>
 import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
+import { nonQueryableFieldKinds } from 'corteza-webapp-compose/src/lib/record-filter'
 import base from './base'
 
 export default {
@@ -167,7 +171,9 @@ export default {
     fieldOptions () {
       const fields = this.selectedModule
         ? this.selectedModule.fields
-          .map(({ label, name }) => { return { value: name, text: label || name } })
+          .map(({ label, name, kind }) => {
+            return { value: name, text: label || name, kind }
+          })
         : []
       return [
         ...fields.sort((a, b) => a.text.localeCompare(b.text)),
@@ -175,7 +181,7 @@ export default {
     },
 
     queryFieldOptions () {
-      return this.fieldOptions.slice(1)
+      return this.fieldOptions.filter(({ kind }) => !nonQueryableFieldKinds.includes(kind))
     },
 
     labelField () {
