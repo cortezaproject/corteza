@@ -1,7 +1,7 @@
 import moment from 'moment'
 
-const noneQueryableFieldNames = ['recordID']
-const noneQueryableFieldKinds = ['Number', 'Record', 'User', 'Bool', 'DateTime', 'File', 'Geometry']
+export const nonQueryableFieldNames = ['recordID']
+export const nonQueryableFieldKinds = ['Number', 'Record', 'User', 'Bool', 'DateTime', 'File', 'Geometry']
 
 // Generate record list sql query string based on filter object input
 
@@ -168,7 +168,7 @@ export function queryToFilter (searchQuery = '', prefilter = '', fields = [], re
   // Create query for search string
   if (searchQuery || searchQuery === 0) {
     searchQuery = fields
-      .filter(f => !noneQueryableFieldNames.includes(f.name) && !noneQueryableFieldKinds.includes(f.kind))
+      .filter(f => !nonQueryableFieldNames.includes(f.name) && !nonQueryableFieldKinds.includes(f.kind))
       .map(f => getFieldFilter(f.name, f.kind, searchQuery, 'LIKE'))
       .filter(q => !!q)
       .join(' OR ')
