@@ -244,6 +244,9 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		return
 	}
 
+        envoyService := envoyx.New()
+        envoyx.SetGlobal(envoyService)
+
 	if err = app.InitStore(ctx); err != nil {
 		return
 	}
