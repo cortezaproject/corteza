@@ -76,7 +76,6 @@
             <b-dropdown
               v-if="filterPresets.length"
               variant="light"
-              right
               size="lg"
               menu-class="shadow-sm"
               boundary="viewport"
