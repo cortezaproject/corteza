@@ -106,14 +106,6 @@ export default {
         },
         onUpdate: this.onUpdate,
       })
-
-      /**
-       * Since we migrated to TipTap, the new content should be emitted
-       * after tiptap is done parsing it.
-       */
-      this.$nextTick(() => {
-        this.onUpdate()
-      })
     },
 
     /**

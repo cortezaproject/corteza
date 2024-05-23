@@ -135,6 +135,13 @@ const kindToStyle = {
     icon: 'debug',
     style: 'debug',
   },
+
+  visualText: {
+    width: 400,
+    height: 250,
+    icon: 'text',
+    style: 'text',
+  },
 }
 
 // When adding & or copy/pasting a new cell, this is used to determine the kind & ref
@@ -167,6 +174,8 @@ export function getKindFromStyle (vertex) {
     }
   } else if (kind === 'swimlane') {
     return { kind: 'visual', ref: 'swimlane' }
+  } else if (kind === 'text') {
+    return { kind: 'visual', ref: 'text' }
   } else {
     return { kind }
   }
