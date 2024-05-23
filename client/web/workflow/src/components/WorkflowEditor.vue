@@ -848,6 +848,7 @@ export default {
       this.graph.setConnectable(true)
       this.graph.setAllowDanglingEdges(false)
       this.graph.setTooltips(true)
+
       /* eslint-disable no-new */
       new mxRubberband(this.graph) // Enables multiple selection
       this.graph.edgeLabelsMovable = false
@@ -906,6 +907,7 @@ export default {
           const vertex = this.vertices[cell.id]
           const { kind } = vertex.config
           const { style } = vertex.node
+
           if (vertex && kind !== 'visual') {
             const icon = this.getIcon(getStyleFromKind(vertex.config).icon, this.currentTheme)
             const type = this.$t(`steps:${style}.short`)
@@ -1057,7 +1059,7 @@ export default {
                       values +
                     '</div>'
           } else {
-            label = `<div id="openSidebar" class="d-flex"><span class="d-inline-block mb-0 text-truncate">${encodeHTML(cell.value || '')}</span></div>`
+            label = cell.value
           }
         }
 
@@ -1115,6 +1117,8 @@ export default {
           value = style.split('gateway')[1]
         } else if (style === 'expressions') {
           value = 'Define and mutate scope variables'
+        } else if (style === 'text') {
+          value = 'Text here'
         }
 
         const cell = new mxCell(
@@ -1584,15 +1588,22 @@ export default {
       this.graph.addListener(mxEvent.CELLS_ADDED, (sender, evt) => {
         if (!this.rendering) {
           const cells = evt.getProperty('cells')
+          let lastVertexID = null
           cells.forEach(cell => {
             if (cell && cell.vertex) {
               if (!this.rendering) {
                 cell.defaultName = true
                 this.addCellToVertices(cell)
                 this.graph.setSelectionCells([cell])
+                lastVertexID = cell.id
               }
             }
           })
+
+          if (lastVertexID) {
+            const vertex = this.vertices[lastVertexID]
+            this.sidebarReopen(vertex, vertex.config.kind)
+          }
         }
       })
 
@@ -1634,21 +1645,6 @@ export default {
             }
           }
         })
-      })
-
-      this.graph.addListener(mxEvent.DOUBLE_CLICK, (sender, evt) => {
-        const event = evt.getProperty('event')
-        const cell = evt.getProperty('cell')
-        if (event && cell) {
-          const isVisual = ((this.vertices[cell.id] || {}).config || {}).kind === 'visual'
-          if (cell.edge || isVisual) {
-            const item = cell.edge ? this.edges[cell.id] : this.vertices[cell.id]
-            const itemType = cell.edge ? 'edge' : item.config.kind
-            this.sidebarReopen(item, itemType)
-          }
-        }
-
-        evt.consume()
       })
 
       // Zoom event
@@ -1706,9 +1702,10 @@ export default {
               // Prevent sidebar opening/closing when CTRL(CMD) is pressed while clicking
             } else if (cell) {
               // If clicked on Cog icon
-              if (event.target.id === 'openSidebar') {
-                const item = cell.edge ? this.edges[cell.id] : this.vertices[cell.id]
-                const itemType = cell.edge ? 'edge' : item.config.kind
+              const item = cell.edge ? this.edges[cell.id] : this.vertices[cell.id]
+              const itemType = cell.edge ? 'edge' : item.config.kind
+
+              if (event.target.id === 'openSidebar' || item.config.kind === 'visual') {
                 this.sidebarReopen(item, itemType)
               } else if (event.target.id === 'openIssues') {
                 this.issuesModal.issues = this.issues[cell.id]
@@ -1758,6 +1755,8 @@ export default {
       mxConstants.GUIDE_STROKEWIDTH = 1
 
       // Creates the default style for vertices
+      const defaultStyle = this.graph.getStylesheet().getDefaultVertexStyle()
+
       let style = this.graph.getStylesheet().getDefaultVertexStyle()
       style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE
       style[mxConstants.STYLE_PERIMETER] = mxPerimeter.RectanglePerimeter
@@ -1801,6 +1800,21 @@ export default {
       style[mxConstants.STYLE_STROKEWIDTH] = 0
       style[mxConstants.STYLE_STROKEWIDTH] = 2
       this.graph.getStylesheet().putCellStyle('swimlane', style)
+
+      // Text
+      style = {}
+      style[mxConstants.STYLE_RESIZABLE] = true
+      style[mxConstants.STYLE_CONNECTABLE] = false
+      style[mxConstants.STYLE_FILLCOLOR] = 'var(--white)'
+      style[mxConstants.STYLE_STROKECOLOR] = 'var(--extra-light)'
+      style[mxConstants.STYLE_STROKEWIDTH] = 1
+      style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_TOP
+      style[mxConstants.STYLE_ALIGN] = mxConstants.ALIGN_LEFT
+      style[mxConstants.STYLE_SPACING_TOP] = 10
+      style[mxConstants.STYLE_SPACING_LEFT] = 10
+      style[mxConstants.STYLE_WHITE_SPACE] = 'wrap'
+      style[mxConstants.STYLE_OVERFLOW] = 'hidden'
+      this.graph.getStylesheet().putCellStyle('text', style)
     },
 
     translateCell (style) {
@@ -1835,7 +1849,7 @@ export default {
         }
 
         const { cell } = terminal
-        let isConnectable = this.model.isVertex(cell) && !cell.style.includes('swimlane')
+        let isConnectable = this.model.isVertex(cell) && !['swimlane', 'text'].includes(cell.style)
 
         // Only one outbound connection per trigger
         if (cell.style.includes('trigger') && cell.edges) {
