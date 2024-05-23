@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"html/template"
 	"io"
 	"mime/multipart"
@@ -335,10 +336,21 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	d := req.Data
 	d["theme"] = "light"
 	if req.AuthUser != nil {
+		maskEmail := service.CurrentSettings.Privacy.Mask.Email
+		maskName := service.CurrentSettings.Privacy.Mask.Name
+
+		service.CurrentSettings.Privacy.Mask.Email = false
+		service.CurrentSettings.Privacy.Mask.Name = false
+
 		// fetch current user with updated fields
 		user, err := h.UserService.FindByAny(req.Context(), req.AuthUser.User.ID)
-		if err != nil {
-			return nil
+
+		service.CurrentSettings.Privacy.Mask.Email = maskEmail
+		service.CurrentSettings.Privacy.Mask.Name = maskName
+
+		// check if err is not nil and cater for MFA by checking if the error is not allowed to read
+		if err != nil && !errors.Is(err, service.UserErrNotAllowedToRead()) {
+			return err
 		}
 
 		d["user"] = user
