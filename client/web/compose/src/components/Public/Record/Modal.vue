@@ -40,7 +40,7 @@
 </template>
 
 <script>
-import { compose } from '@cortezaproject/corteza-js'
+import { NoID, compose } from '@cortezaproject/corteza-js'
 import { mapGetters, mapActions } from 'vuex'
 import record from 'corteza-webapp-compose/src/mixins/record'
 import ViewRecord from 'corteza-webapp-compose/src/views/Public/Pages/Records/View'
@@ -153,7 +153,7 @@ export default {
       this.recordID = recordID
       this.values = values
       this.refRecord = refRecord
-      this.edit = edit
+      this.edit = edit || !recordID || recordID === NoID
 
       this.loadModal({ recordID, recordPageID })
 

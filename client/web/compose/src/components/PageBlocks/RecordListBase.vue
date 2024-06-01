@@ -475,7 +475,7 @@
                   >
                     <b-dropdown-item
                       v-if="isViewRecordActionVisible(item.r)"
-                      :to="{ name: options.rowViewUrl || 'page.record', params: { pageID: recordPageID, recordID: item.r.recordID }, query: null }"
+                      @click="handleViewRecordAction(item.r.recordID)"
                     >
                       <font-awesome-icon
                         :icon="['far', 'file-alt']"
@@ -1989,12 +1989,31 @@ export default {
           recordID: NoID,
           recordPageID: this.recordPageID,
           refRecord,
+          edit: true,
         })
       } else {
         this.$router.push({
           name: this.options.rowCreateUrl || 'page.record.create',
           params: { pageID, refRecord },
           query: null,
+          edit: true,
+        })
+      }
+    },
+
+    handleViewRecordAction (recordID) {
+      if (this.inModal) {
+        this.$root.$emit('show-record-modal', {
+          recordID: recordID,
+          recordPageID: this.recordPageID,
+          edit: false,
+        })
+      } else {
+        this.$router.push({
+          name: this.options.rowViewUrl || 'page.record',
+          params: { pageID: this.recordPageID, recordID },
+          query: null,
+          edit: false,
         })
       }
     },
@@ -2011,6 +2030,7 @@ export default {
           name: this.options.rowEditUrl || 'page.record.edit',
           params: { pageID: this.recordPageID, recordID },
           query: null,
+          edit: true,
         })
       }
     },
@@ -2028,9 +2048,11 @@ export default {
           name: this.options.rowCreateUrl || 'page.record.create',
           params: { pageID: this.recordPageID, values },
           query: null,
+          edit: true,
         })
       }
     },
+
   },
 }
 </script>
