@@ -198,7 +198,7 @@ export default {
     onRecordSelectorClick (e, route) {
       e.preventDefault()
 
-      if (this.extraOptions.recordSelectorDisplayOption === 'modal') {
+      if (this.extraOptions.recordSelectorDisplayOption === 'modal' || this.inModal) {
         this.$root.$emit('show-record-modal', {
           recordID: route.params.recordID,
           recordPageID: route.params.pageID,

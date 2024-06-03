@@ -382,18 +382,13 @@ export default {
 
       const route = { name: 'page.record', params: { recordID, pageID: page.pageID } }
 
-      if (this.inModal) {
+      if (this.options.eventDisplayOption === 'modal' || this.inModal) {
         this.$root.$emit('show-record-modal', {
           recordID,
           recordPageID: page.pageID,
         })
       } else if (this.options.eventDisplayOption === 'newTab') {
         window.open(this.$router.resolve(route).href)
-      } else if (this.options.eventDisplayOption === 'modal') {
-        this.$root.$emit('show-record-modal', {
-          recordID,
-          recordPageID: page.pageID,
-        })
       } else {
         this.$router.push(route)
       }

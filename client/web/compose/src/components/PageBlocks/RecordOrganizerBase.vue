@@ -349,7 +349,7 @@ export default {
         values[groupField] = group
       }
 
-      if (this.inModal) {
+      if (this.options.displayOption === 'modal' || this.inModal) {
         this.$root.$emit('show-record-modal', {
           recordID: NoID,
           recordPageID: (this.roRecordPage || {}).pageID,
