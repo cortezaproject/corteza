@@ -77,12 +77,6 @@ export default {
       type: Set,
       default: () => new Set(),
     },
-
-    headerClass: {
-      type: String,
-      required: false,
-      default: '',
-    },
   },
 
   data () {

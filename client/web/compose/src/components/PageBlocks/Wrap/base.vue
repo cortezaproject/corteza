@@ -13,6 +13,12 @@ export default {
       required: true,
     },
 
+    record: {
+      type: compose.Record,
+      required: false,
+      default: undefined,
+    },
+
     scrollableBody: {
       type: Boolean,
       required: false,
@@ -89,20 +95,20 @@ export default {
 
     blockTitle () {
       return evaluatePrefilter(this.block.title, {
-        record: this.$attrs.record,
+        record: this.record,
         user: this.$auth.user || {},
-        recordID: (this.$attrs.record || {}).recordID || NoID,
-        ownerID: (this.$attrs.record || {}).ownedBy || NoID,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,
       })
     },
 
     blockDescription () {
       return evaluatePrefilter(this.block.description, {
-        record: this.$attrs.record,
+        record: this.record,
         user: this.$auth.user || {},
-        recordID: (this.$attrs.record || {}).recordID || NoID,
-        ownerID: (this.$attrs.record || {}).ownedBy || NoID,
+        recordID: (this.record || {}).recordID || NoID,
+        ownerID: (this.record || {}).ownedBy || NoID,
         userID: (this.$auth.user || {}).userID || NoID,
       })
     },
