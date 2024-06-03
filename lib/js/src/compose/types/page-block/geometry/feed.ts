@@ -22,8 +22,8 @@ export default class Feed {
   public resource = 'compose:record'
   public titleField = ''
   public geometryField = ''
-  public displayMarker = false
-  public displayPolygon = true
+  public displayMarker = true
+  public displayPolygon = false
   public options: FeedOptions = { ...defOptions }
 
   constructor (i?: FeedInput) {

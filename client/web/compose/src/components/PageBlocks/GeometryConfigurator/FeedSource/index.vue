@@ -1,41 +1,46 @@
 <template>
-  <div>
-    <div
+  <b-row>
+    <b-col
       v-for="(feed, i) in options.feeds"
       :key="i"
+      cols="12"
+      class="p-0"
     >
-      <div
-        v-if="feed.resource"
-        class="d-flex justify-content-end mb-3"
+      <b-card
+        class="list-background mx-3 mb-3"
       >
-        <c-input-confirm
-          show-icon
-          size="md"
-          @confirmed="onRemoveFeed(i)"
-        />
-      </div>
-
-      <b-form-group horizontal>
+        <h5
+          v-if="feed.resource"
+          class="d-flex align-items-center mb-3"
+        >
+          {{ $t('geometry.source.label') }} {{ i + 1 }}
+          <c-input-confirm
+            show-icon
+            class="ml-auto mt-1"
+            @confirmed="onRemoveFeed(i)"
+          />
+        </h5>
         <component
           :is="configurator(feed)"
           v-if="feed.resource && configurator(feed)"
           :feed="feed"
           :modules="modules"
         />
-      </b-form-group>
+      </b-card>
+    </b-col>
 
-      <hr>
-    </div>
-
-    <b-button
-      variant="primary"
-      class="test-feed-add"
-      @click.prevent="handleAddButton"
-    >
-      {{ $t('geometry.addSource') }}
-    </b-button>
-  </div>
+    <b-col cols="12">
+      <b-button
+        variant="primary"
+        class="test-feed-add"
+        @click.prevent="handleAddButton"
+      >
+        {{ $t('geometry.addSource') }}
+      </b-button>
+    </b-col>
+  </b-row>
 </template>
+
 <script>
 import { mapGetters } from 'vuex'
 import base from '../../base'
@@ -107,3 +112,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.list-background {
+  background-color: var(--body-bg);
+}
+</style>

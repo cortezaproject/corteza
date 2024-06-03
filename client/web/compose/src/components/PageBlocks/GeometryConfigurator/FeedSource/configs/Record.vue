@@ -1,130 +1,142 @@
 <template>
-  <div>
+  <b-row>
     <template v-if="feed.options">
-      <b-form-group
-        :label-cols="3"
-        :label="$t('geometry.recordFeed.moduleLabel')"
-        horizontal
-        breakpoint="md"
-        label-class="text-primary"
-      >
-        <b-input-group>
-          <c-input-select
-            v-model="feed.options.moduleID"
-            :options="modules"
-            :reduce="o => o.moduleID"
-            :placeholder="$t('calendar.recordFeed.modulePlaceholder')"
-            default-value="0"
-            label="name"
-          />
-        </b-input-group>
-      </b-form-group>
+      <b-col cols="12">
+        <b-form-group
+          :label="$t('geometry.recordFeed.moduleLabel')"
+          label-class="text-primary"
+        >
+          <b-input-group>
+            <c-input-select
+              v-model="feed.options.moduleID"
+              :options="modules"
+              :reduce="o => o.moduleID"
+              :placeholder="$t('calendar.recordFeed.modulePlaceholder')"
+              default-value="0"
+              label="name"
+              @input="onModuleChange"
+            />
+          </b-input-group>
+        </b-form-group>
+      </b-col>
 
       <template v-if="module">
-        <b-form-group
-          :label-cols="3"
-          :label="$t('geometry.recordFeed.geometryFieldLabel')"
-          horizontal
-          breakpoint="md"
-          label-class="text-primary"
+        <b-col
+          cols="12"
+          lg="6"
         >
-          <b-form-select
-            v-model="feed.geometryField"
-            :options="geometryFields | optionizeFields"
+          <b-form-group
+            :label="$t('geometry.recordFeed.geometryFieldLabel')"
+            label-class="text-primary"
           >
-            <template slot="first">
-              <option
-                disabled
-                value=""
-              >
-                {{ $t('geometry.recordFeed.geometryFieldPlaceholder') }}
-              </option>
-            </template>
-          </b-form-select>
-        </b-form-group>
+            <c-input-select
+              v-model="feed.geometryField"
+              :options="geometryFields"
+              :placeholder="$t('geometry.recordFeed.geometryFieldPlaceholder')"
+              :reduce="o => o.name"
+            />
+          </b-form-group>
+        </b-col>
 
-        <b-form-group
-          :label-cols="3"
-          :label="$t('geometry.recordFeed.titleLabel')"
-          horizontal
-          breakpoint="md"
-          label-class="text-primary"
+        <b-col
+          cols="12"
+          lg="6"
         >
-          <c-input-select
-            v-model="feed.titleField"
-            :options="titleFields | optionizeFields"
-            :reduce="o => o.value"
-            label="text"
-            :placeholder="$t('geometry.recordFeed.titlePlaceholder')"
-          />
-        </b-form-group>
+          <b-form-group
+            :label="$t('geometry.recordFeed.titleLabel')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="feed.titleField"
+              :options="titleFields"
+              :reduce="o => o.name"
+              :placeholder="$t('geometry.recordFeed.titlePlaceholder')"
+            />
+          </b-form-group>
+        </b-col>
 
-        <b-form-group
-          :label-cols="3"
-          :label="$t('calendar.recordFeed.prefilterLabel')"
-          horizontal
-          breakpoint="md"
-          label-class="text-primary"
+        <b-col
+          cols="12"
         >
-          <b-form-textarea
-            v-model="feed.options.prefilter"
-            :value="true"
-            :placeholder="$t('calendar.recordFeed.prefilterPlaceholder')"
-          />
-        </b-form-group>
+          <b-form-group
+            :label="$t('calendar.recordFeed.prefilterLabel')"
+            label-class="text-primary"
+          >
+            <b-form-textarea
+              v-model="feed.options.prefilter"
+              :value="true"
+              :placeholder="$t('calendar.recordFeed.prefilterPlaceholder')"
+            />
 
-        <b-form-group
-          :label-cols="3"
-          :label="$t('geometry.recordFeed.colorLabel')"
-          horizontal
-          breakpoint="md"
-          label-class="text-primary"
-        >
-          <c-input-color-picker
-            v-model="feed.options.color"
-            :translations="{
-              modalTitle: $t('geometry.recordFeed.colorPicker'),
-              light: $t('general:themes.labels.light'),
-              dark: $t('general:themes.labels.dark'),
-              cancelBtnLabel: $t('general:label.cancel'),
-              saveBtnLabel: $t('general:label.saveAndClose')
-            }"
-            :theme-settings="themeSettings"
-          />
-        </b-form-group>
+            <i18next
+              path="interpolationFootnote"
+              tag="small"
+              class="text-muted"
+            >
+              <code>${record.values.fieldName}</code>
+              <code>${recordID}</code>
+              <code>${ownerID}</code>
+              <span><code>${userID}</code>, <code>${user.name}</code></span>
+            </i18next>
+          </b-form-group>
+        </b-col>
 
-        <b-form-group
-          :label-cols="3"
-          :label="$t('geometry.recordFeed.displayMarker')"
-          horizontal
-          breakpoint="md"
-          label-class="text-primary"
+        <b-col
+          cols="12"
+          lg="4"
         >
-          <b-form-checkbox
-            v-model="feed.displayMarker"
-            name="display-marker"
-            switch
-            size="lg"
-          />
-        </b-form-group>
+          <b-form-group
+            :label="$t('geometry.recordFeed.displayMarker')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="feed.displayMarker"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
 
-        <b-form-group
-          :label-cols="3"
-          :label="$t('geometry.recordFeed.displayPolygon')"
-          horizontal
-          breakpoint="md"
-          label-class="text-primary"
+        <b-col
+          cols="12"
+          lg="4"
         >
-          <b-form-checkbox
-            v-model="feed.displayPolygon"
-            name="display-marker"
-            switch
-            size="lg"
-          />
-        </b-form-group>
+          <b-form-group
+            :label="$t('geometry.recordFeed.displayPolygon')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="feed.displayPolygon"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="4"
+        >
+          <b-form-group
+            :label="$t('geometry.recordFeed.colorLabel')"
+            label-class="text-primary"
+          >
+            <c-input-color-picker
+              v-model="feed.options.color"
+              :translations="{
+                modalTitle: $t('geometry.recordFeed.colorPicker'),
+                light: $t('general:themes.labels.light'),
+                dark: $t('general:themes.labels.dark'),
+                cancelBtnLabel: $t('general:label.cancel'),
+                saveBtnLabel: $t('general:label.saveAndClose')
+              }"
+              :theme-settings="themeSettings"
+            />
+          </b-form-group>
+        </b-col>
       </template>
     </template>
-  </div>
+  </b-row>
 </template>
 
 <script>
@@ -142,6 +154,15 @@ export default {
   },
 
   extends: base,
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+    }
+  },
 
   computed: {
     /**
@@ -175,7 +196,7 @@ export default {
       if (!this.module) {
         return []
       }
-      return [...this.module.fields]
+      return this.module.fields
         .filter(f => [
           'DateTime',
           'Select',
@@ -184,8 +205,7 @@ export default {
           'String',
           'Record',
           'User',
-        ].includes(f.kind))
-        .sort((a, b) => a.label.localeCompare(b.label))
+        ].includes(f.kind)).toSorted((a, b) => a.label.localeCompare(b.label))
     },
 
     /**
@@ -198,19 +218,24 @@ export default {
         return []
       }
 
-      const moduleFields = this.module.fields.slice().sort((a, b) => a.label.localeCompare(b.label))
-
       return [
-        ...moduleFields,
+        ...this.module.fields,
         ...this.module.systemFields().map(sf => {
           sf.label = this.$t(`field:system.${sf.name}`)
           return sf
         }),
-      ].filter(f => f.kind === 'Geometry')
+      ].filter(f => f.kind === 'Geometry').toSorted((a, b) => a.label.localeCompare(b.label))
     },
 
     themeSettings () {
       return this.$Settings.get('ui.studio.themes', [])
+    },
+  },
+
+  methods: {
+    onModuleChange () {
+      this.feed.geometryField = ''
+      this.feed.titleField = ''
     },
   },
 }

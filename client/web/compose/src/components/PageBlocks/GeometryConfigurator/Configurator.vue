@@ -84,16 +84,12 @@
         lg="4"
       >
         <b-form-group
-          :label="$t('geometry.bounds.lockBounds')"
+          :label="$t('geometry.onMarkerClick')"
           label-class="text-primary"
-          class="rounded-left"
         >
-          <b-form-checkbox
-            v-model="options.lockBounds"
-            name="lock-bounds"
-            switch
-            size="lg"
-            @change="updateBounds"
+          <b-form-select
+            v-model="options.displayOption"
+            :options="displayOptions"
           />
         </b-form-group>
       </b-col>
@@ -103,12 +99,14 @@
         lg="4"
       >
         <b-form-group
-          :label="$t('geometry.onMarkerClick')"
+          :label="$t('geometry.bounds.lockBounds')"
           label-class="text-primary"
+          class="rounded-left"
         >
-          <b-form-select
-            v-model="options.displayOption"
-            :options="displayOptions"
+          <c-input-checkbox
+            v-model="options.lockBounds"
+            switch
+            :labels="checkboxLabel"
           />
         </b-form-group>
       </b-col>
@@ -138,6 +136,11 @@ export default {
       localValue: { coordinates: [] },
       center: [],
       bounds: null,
+
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
     }
   },
 

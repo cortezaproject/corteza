@@ -151,9 +151,25 @@
       :title="field.label || field.name"
       size="lg"
       body-class="p-0"
+      footer-class="flex align-items-center"
     >
       <template #modal-footer>
         {{ $t('clickToPlaceMarker') }}
+
+        <b-button
+          variant="light"
+          class="ml-auto"
+          @click="closeMap()"
+        >
+          {{ $t('general:label.cancel') }}
+        </b-button>
+
+        <b-button
+          variant="primary"
+          @click="saveMapValue()"
+        >
+          {{ $t('general:label.save') }}
+        </b-button>
       </template>
 
       <c-map
@@ -167,6 +183,7 @@
         style="height: 75vh; width: 100%; cursor: pointer;"
         @on-map-click="placeMarker"
         @on-marker-click="removeMarker"
+        @location-found="placeMarker($event, localValueIndex, true)"
         @on-geosearch-error="onGeoSearchError"
       />
     </b-modal>
@@ -197,16 +214,21 @@ export default {
 
       map: {
         show: false,
+        value: undefined,
       },
     }
   },
 
   computed: {
     markers () {
-      let markers = [{ value: this.localValue.coordinates, opacity: 1.0 }]
+      if (!this.map.value) {
+        return []
+      }
+
+      let markers = [{ value: this.map.value.coordinates, opacity: 1.0 }]
 
       if (this.field.isMulti) {
-        markers = this.localValue.map(({ coordinates }, i) => ({
+        markers = this.map.value.map(({ coordinates }, i) => ({
           value: coordinates && coordinates.length ? coordinates : undefined,
           opacity: this.localValueIndex === undefined || i === this.localValueIndex ? 1.0 : 0.6,
         }))
@@ -223,10 +245,9 @@ export default {
         this.value = this.field.isMulti ? value.filter(v => (v || {}).coordinates).map(v => JSON.stringify(v)) : JSON.stringify(value)
       },
     },
-
     'field.isMulti': {
       immediate: true,
-      handler (value) {
+      handler () {
         if (this.field.isMulti) {
           this.localValue = this.value.map(v => {
             return JSON.parse(v || '{"coordinates":[]}')
@@ -253,6 +274,8 @@ export default {
 
   methods: {
     openMap (index) {
+      this.map.value = this.localValue
+
       this.localValueIndex = index
       const firstCoordinates = (index >= 0 ? this.localValue[index] : this.localValue) || {}
       firstCoordinates.coordinates = firstCoordinates.coordinates ? [...firstCoordinates.coordinates] : []
@@ -265,7 +288,11 @@ export default {
       this.map.show = true
     },
 
-    placeMarker (e, index = this.localValueIndex) {
+    closeMap () {
+      this.map.show = false
+    },
+
+    placeMarker (e, index = this.localValueIndex, map = true) {
       const { lat = 0, lng = 0 } = e.latlng || {}
       const coords = {
         coordinates: [
@@ -276,21 +303,26 @@ export default {
 
       if (this.field.isMulti) {
         if (index >= 0) {
-          this.localValue.splice(index, 1, coords)
+          map ? this.map.value.splice(index, 1, coords) : this.localValue.splice(index, 1, coords)
         } else {
-          this.localValue.push(coords)
+          map ? this.map.value.push(coords) : this.localValue.push(coords)
         }
       } else {
-        this.localValue = coords
+        map ? this.map.value = coords : this.localValue = coords
       }
     },
 
     removeMarker ({ index }) {
       if (this.field.isMulti) {
-        this.localValue.splice(index, 1)
+        this.map.value.splice(index, 1)
       } else {
-        this.localValue = { coordinates: [] }
+        this.map.value = { coordinates: [] }
       }
+    },
+
+    saveMapValue () {
+      this.localValue = this.map.value
+      this.closeMap()
     },
 
     useCurrentLocation (index) {
@@ -302,7 +334,7 @@ export default {
         navigator.geolocation.getCurrentPosition(
           ({ coords }) => {
             const latlng = { lat: coords.latitude, lng: coords.longitude }
-            this.placeMarker({ latlng }, index)
+            this.placeMarker({ latlng }, index, false)
           },
           error => {
             switch (error.code) {

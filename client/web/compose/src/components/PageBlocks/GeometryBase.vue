@@ -31,7 +31,13 @@
         class="w-100 h-100"
         @on-marker-click="onMarkerCLick"
         @on-geosearch-error="onGeoSearchError"
-      />
+      >
+        <template #marker-tooltip="{ marker }">
+          <h6 class="mb-0">
+            {{ marker.title }}
+          </h6>
+        </template>
+      </c-map>
     </div>
   </wrap>
 </template>
@@ -84,19 +90,18 @@ export default {
       const values = []
 
       this.geometries.forEach((geo) => {
-        geo.forEach((value) => {
-          if (value.displayMarker) {
-            value.markers.map(subValue => {
-              if (subValue) {
-                values.push({
-                  value: subValue || {},
-                  color: value.color,
-                  recordID: value.recordID,
-                  moduleID: value.moduleID,
-                })
-              }
-            })
-          }
+        geo.filter(({ displayMarker }) => displayMarker).forEach(value => {
+          value.markers.forEach(subValue => {
+            if (subValue) {
+              values.push({
+                title: value.title,
+                value: subValue || {},
+                color: value.color,
+                recordID: value.recordID,
+                moduleID: value.moduleID,
+              })
+            }
+          })
         })
       })
 
@@ -202,34 +207,34 @@ export default {
 
             return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, f, { cancelToken: this.cancelTokenSource.token })
               .then(records => {
-                const mapModuleField = module.fields.find(f => f.name === f.geometryField)
+                const mapModuleField = module.fields.find(field => field.name === f.geometryField)
 
-                if (mapModuleField) {
-                  this.geometries[idx] = records.map(record => {
-                    let geometry = record.values[f.geometryField]
-                    let markers = []
+                if (!mapModuleField) return
 
-                    if (mapModuleField.isMulti) {
-                      geometry = geometry.map(value => this.parseGeometryField(value))
-                      markers = geometry
-                    } else {
-                      geometry = this.parseGeometryField(geometry)
-                      markers = [geometry]
-                    }
+                this.geometries[idx] = records.map(record => {
+                  let geometry = record.values[f.geometryField]
+                  let markers = []
 
-                    if (geometry.length && geometry.length === 2) {
-                      return ({
-                        title: record.values[f.titleField],
-                        geometry: f.displayPolygon ? geometry : [],
-                        markers,
-                        color: f.options.color,
-                        displayMarker: f.displayMarker,
-                        recordID: record.recordID,
-                        moduleID: record.moduleID,
-                      })
-                    }
-                  }).filter(g => g)
-                }
+                  if (mapModuleField.isMulti) {
+                    geometry = geometry.map(value => this.parseGeometryField(value))
+                    markers = geometry
+                  } else {
+                    geometry = this.parseGeometryField(geometry)
+                    markers = [geometry]
+                  }
+
+                  if (geometry.length && geometry.length === 2) {
+                    return ({
+                      title: record.values[f.titleField],
+                      geometry: f.displayPolygon ? geometry : [],
+                      markers,
+                      color: f.options.color,
+                      displayMarker: f.displayMarker,
+                      recordID: record.recordID,
+                      moduleID: record.moduleID,
+                    })
+                  }
+                }).filter(g => g)
               })
           })
       })).finally(() => {

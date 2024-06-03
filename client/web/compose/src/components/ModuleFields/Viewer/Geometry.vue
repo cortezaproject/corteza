@@ -76,9 +76,9 @@ export default {
       if (this.field.isMulti) {
         return this.value.map(v => {
           return { value: JSON.parse(v || '{"coordinates":[]}').coordinates || [] }
-        }).filter(c => c)
+        }).filter(c => c && c.value && c.value.length)
       } else {
-        return [{ value: JSON.parse(this.value || '{"coordinates":[]}').coordinates || [] }].filter(c => c)
+        return [{ value: JSON.parse(this.value || '{"coordinates":[]}').coordinates || [] }].filter(c => c && c.value && c.value.length)
       }
     },
   },

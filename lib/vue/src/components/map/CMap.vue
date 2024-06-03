@@ -233,6 +233,7 @@ export default {
     onLocationFound ({ latitude, longitude }) {
       const zoom = this.$refs.map.mapObject._zoom >= 13 ? this.$refs.map.mapObject._zoom : 13
       this.$refs.map.mapObject.flyTo([latitude, longitude], zoom)
+      this.$emit('location-found', { latlng: { lat: latitude, lng: longitude }})
     },
 
     disableMap () {

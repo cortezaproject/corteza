@@ -761,6 +761,8 @@ geometry:
   label: Geometry
   viewLabel: Geometry
   feedLabel: Configure Sources
+  source:
+    label: Source
   addSource: Add source
   lock: Lock
   mapHelpText: Move and scroll the map to the position that will be used as a default. You can also lock the position or zoom to prevent users from moving too far.
