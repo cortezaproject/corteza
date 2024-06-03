@@ -187,9 +187,11 @@ export default {
       Promise.all(this.options.feeds.filter(f => f.isValid()).map((feed, idx) => {
         return this.findModuleByID({ namespace: this.namespace, moduleID: feed.options.moduleID })
           .then(module => {
+            const f = { ...feed } // Clone feed, so we dont modify the original
+
             // Interpolate prefilter variables
-            if (feed.options.prefilter) {
-              feed.options.prefilter = evaluatePrefilter(feed.options.prefilter, {
+            if (f.options.prefilter) {
+              f.options.prefilter = evaluatePrefilter(f.options.prefilter, {
                 record: this.record,
                 user: this.$auth.user || {},
                 recordID: (this.record || {}).recordID || NoID,
@@ -198,13 +200,13 @@ export default {
               })
             }
 
-            return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, feed, { cancelToken: this.cancelTokenSource.token })
+            return compose.PageBlockGeometry.RecordFeed(this.$ComposeAPI, module, this.namespace, f, { cancelToken: this.cancelTokenSource.token })
               .then(records => {
-                const mapModuleField = module.fields.find(f => f.name === feed.geometryField)
+                const mapModuleField = module.fields.find(f => f.name === f.geometryField)
 
                 if (mapModuleField) {
                   this.geometries[idx] = records.map(record => {
-                    let geometry = record.values[feed.geometryField]
+                    let geometry = record.values[f.geometryField]
                     let markers = []
 
                     if (mapModuleField.isMulti) {
@@ -217,11 +219,11 @@ export default {
 
                     if (geometry.length && geometry.length === 2) {
                       return ({
-                        title: record.values[feed.titleField],
-                        geometry: feed.displayPolygon ? geometry : [],
+                        title: record.values[f.titleField],
+                        geometry: f.displayPolygon ? geometry : [],
                         markers,
-                        color: feed.options.color,
-                        displayMarker: feed.displayMarker,
+                        color: f.options.color,
+                        displayMarker: f.displayMarker,
                         recordID: record.recordID,
                         moduleID: record.moduleID,
                       })
