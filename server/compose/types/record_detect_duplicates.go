@@ -74,7 +74,7 @@ func (d deDup) CheckDuplication(ctx context.Context, rules DeDupRuleSet, rec Rec
 
             for valID, value := range values {
                 if valID == rec.ID {
-                    return nil
+                    continue
                 }
 
                 set := rule.validateValue(ctx, d.ls, rec, value)
