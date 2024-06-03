@@ -36,12 +36,15 @@
         label-class="d-flex align-items-center text-primary"
         class="mb-1"
       >
-        <c-input-checkbox
-          v-model="options.drillDown.enabled"
-          switch
-          :labels="checkboxLabel"
-          class="mb-2"
-        />
+        <template #label>
+          {{ $t('chart.drillDown.label') }}
+
+          <c-input-checkbox
+            v-model="options.drillDown.enabled"
+            switch
+            class="ml-1"
+          />
+        </template>
 
         <c-input-select
           v-model="options.drillDown.blockID"
@@ -70,15 +73,6 @@ export default {
   name: 'Chart',
 
   extends: base,
-
-  data () {
-    return {
-      checkboxLabel: {
-        on: this.$t('general:label.yes'),
-        off: this.$t('general:label.no'),
-      },
-    }
-  },
 
   computed: {
     ...mapGetters({
