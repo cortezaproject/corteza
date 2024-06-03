@@ -758,7 +758,6 @@ export default {
     },
 
     update () {
-      this.processing = true
       this.$refs.chart.updateChart()
     },
 
@@ -770,8 +769,20 @@ export default {
       this.processing = false
     },
 
+    toggleProcessing ({ closeOnSuccess = false, isClone = false }) {
+      this.processing = !this.processing
+
+      if (closeOnSuccess) {
+        this.processingSaveAndClose = !this.processingSaveAndClose
+      } else if (isClone) {
+        this.processingClone = !this.processingClone
+      } else {
+        this.processingSave = !this.processingSave
+      }
+    },
+
     handleSave ({ chart = this.chart, closeOnSuccess = false, isClone = false } = {}) {
-      const toggleProcessing = () => {
+      const toggleSaveProcessing = () => {
         this.processing = !this.processing
 
         if (closeOnSuccess) {
@@ -783,7 +794,7 @@ export default {
         }
       }
 
-      toggleProcessing()
+      toggleSaveProcessing()
 
       /**
        * Pass a special tag alongside payload that
@@ -807,7 +818,7 @@ export default {
         })
           .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
           .finally(() => {
-            toggleProcessing()
+            toggleSaveProcessing()
           })
       } else {
         this.updateChart(c).then((chart) => {
@@ -821,12 +832,13 @@ export default {
         })
           .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
           .finally(() => {
-            toggleProcessing()
+            toggleSaveProcessing()
           })
       }
     },
 
     handleDelete () {
+      this.processing = true
       this.processingDelete = true
 
       this.deleteChart(this.chart).then(() => {
@@ -837,6 +849,7 @@ export default {
       })
         .catch(this.toastErrorHandler(this.$t('notification:chart.deleteFailed')))
         .finally(() => {
+          this.processing = false
           this.processingDelete = false
         })
     },

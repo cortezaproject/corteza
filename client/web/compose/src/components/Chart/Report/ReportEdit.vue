@@ -544,10 +544,6 @@ export default {
       return ({ field }) => (this.module.fields.filter(f => f.name === field)[0] || {}).kind === 'DateTime' ? 'date' : 'text'
     },
 
-    defaultFilterOption () {
-      return this.predefinedFilters.some(({ value }) => value === this.report.filter) ? '' : this.report.filter
-    },
-
     canAddMetric () {
       return (this.supportedMetrics < 0 || this.metrics.length < this.supportedMetrics) && this.moduleID
     },
