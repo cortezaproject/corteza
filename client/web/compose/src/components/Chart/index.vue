@@ -115,11 +115,11 @@ export default {
           const [dimension = {}] = report.dimensions
           let { field } = dimension
 
-          if (!module) return
+          if (!module) throw new Error('Module not found')
 
           field = fields.find(({ name }) => name === field)
 
-          if (!field) return
+          if (!field) throw new Error('Dimension field not found')
 
           if (field.kind === 'Bool') {
             const { trueLabel, falseLabel } = field.options
@@ -206,8 +206,11 @@ export default {
         this.processing = false
         this.toastErrorHandler(this.$t('chart.optionsBuildFailed'))(e)
       }
-      this.processing = false
-      this.$emit('updated')
+
+      setTimeout(() => {
+        this.processing = false
+        this.$emit('updated')
+      }, 300)
     },
 
     drillDown (e) {

@@ -125,6 +125,10 @@ export class BaseChart {
           d.modifier = '(no grouping / buckets)'
         }
 
+        if (d.field === 'created_at') {
+          d.field = 'createdAt'
+        }
+
         return _.merge(this.defDimension(), d)
       })
       report.metrics = metrics.map(m => _.merge(this.defMetrics(), m))
