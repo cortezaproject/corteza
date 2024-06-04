@@ -1,5 +1,6 @@
 <template>
   <e-charts
+    ref="chart"
     :option="chart"
     :theme="theme"
     autoresize
@@ -25,5 +26,11 @@ export default {
       return darkMode ? 'dark' : 'light'
     }
   },
+
+  beforeDestroy () {
+    if (this.$refs.chart) {
+      this.$refs.chart.dispose()
+    }
+  }
 }
 </script>
