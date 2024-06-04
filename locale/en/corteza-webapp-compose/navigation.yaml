@@ -12,6 +12,7 @@ more: More
 namespace: Namespaces
 noPageTitle: No page title
 page: Pages
+appMenu: Menu
 userSettings:
   changePassword: Change password
   loggedInAs: Logged in as {{user}}

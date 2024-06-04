@@ -4,6 +4,7 @@ help:
   feedback: Send feedback
   forum: Help
   version: 'Version:'
+appMenu: Menu
 userSettings:
   changePassword: Change password
   loggedInAs: Logged in as {{user}}

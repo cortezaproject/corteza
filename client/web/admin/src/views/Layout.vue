@@ -5,6 +5,7 @@
         :sidebar-pinned="pinned"
         :settings="$Settings.get('ui.topbar', {})"
         :labels="{
+          appMenu: $t('navigation.appMenu'),
           helpForum: $t('navigation.help.forum'),
           helpDocumentation: $t('navigation.help.documentation'),
           helpFeedback: $t('navigation.help.feedback'),

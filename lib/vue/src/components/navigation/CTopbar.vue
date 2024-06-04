@@ -21,14 +21,9 @@
         data-test-id="app-selector"
         variant="outline-extra-light"
         :href="appSelectorURL"
-        title="Apps"
-        size="lg"
-        class="d-flex align-items-center justify-content-center text-dark border-0 nav-icon rounded-circle text-sm-nowrap"
+        class="text-dark border-0"
       >
-        <font-awesome-icon
-          class="m-0 h5"
-          :icon="['fas', 'grip-horizontal']"
-        />
+        {{ labels.appMenu }}
       </b-button>
 
       <b-dropdown

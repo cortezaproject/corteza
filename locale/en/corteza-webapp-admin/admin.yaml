@@ -89,6 +89,7 @@ general:
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
 navigation:
+  appMenu: Menu
   adminPanel: Admin panel
   automation: Automation
   chart: Charts
