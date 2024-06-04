@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex flex-column"
+    class="d-flex flex-column border border-light rounded p-2 "
   >
     <c-item-picker
       :value.sync="selected"

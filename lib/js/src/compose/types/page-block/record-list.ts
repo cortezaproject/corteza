@@ -48,11 +48,9 @@ interface Options {
   editable: boolean;
   draggable?: boolean;
   positionField?: string;
-  refField?: string;
+  refField?: string; // When adding a new record, prefill refField value with parent record ID
   editFields?: unknown[];
-
-  // When adding a new record, link it to parent when available
-  linkToParent: boolean;
+  linkToParent: boolean; // Legacy
 
   // Should records be opened in a new tab
   // legacy field that has been removed but we keep it for backwards compatibility
@@ -107,7 +105,7 @@ const defaults: Readonly<Options> = Object.freeze({
   refField: undefined,
   editFields: [],
 
-  linkToParent: true,
+  linkToParent: false,
 
   openInNewTab: false,
 

@@ -428,6 +428,7 @@ recordList:
     selectLabel: Select an option
   positionField:
     footnote: Records will be sorted based on this field
+    placeholder: Field that will hold the record position
     label: Record sort field
   preview:
     addRecordButton: Add record button
@@ -483,7 +484,6 @@ recordList:
     openInNewTab: Open record in a new tab
     openInModal: Open record in a modal
     enableBulkRecordEdit: Enable bulk record edit
-    linkToParent: Link to parent record
     buttons: Record buttons
     tooltip:
       clone: Clone
@@ -531,6 +531,7 @@ recordOrganizer:
   notConfigured: Record organizer is not configured correctly
   positionField:
     footnote: Records will be sorted based on this field. That field value will be updated based on the position of the record.
+    placeholder: Field that will hold the record position
     label: Record sort field
   preview:
     label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'

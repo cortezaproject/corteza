@@ -94,18 +94,13 @@
         :label="$t('recordOrganizer.positionField.label')"
         label-class="text-primary"
       >
-        <b-form-select v-model="options.positionField">
-          <option value="">
-            {{ $t('general.label.none') }}
-          </option>
-          <option
-            v-for="(field, index) in positionFields"
-            :key="index"
-            :value="field.name"
-          >
-            {{ field.label || field.name }}
-          </option>
-        </b-form-select>
+        <c-input-select
+          v-model="options.positionField"
+          :placeholder="$t('recordOrganizer.positionField.placeholder')"
+          :reduce="f => f.name"
+          label="label"
+        />
+
         <b-form-text class="text-secondary small">
           {{ $t('recordOrganizer.positionField.footnote') }}
         </b-form-text>

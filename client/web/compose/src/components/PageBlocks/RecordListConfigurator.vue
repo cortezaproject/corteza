@@ -86,7 +86,12 @@
                 class="mb-3"
                 style="height: 40vh;"
               />
+            </b-col>
 
+            <b-col
+              cols="12"
+              lg="6"
+            >
               <b-form-group
                 :label="$t('recordList.hideConfigureFieldsButton')"
                 label-class="text-primary"
@@ -97,6 +102,28 @@
                   invert
                   :labels="checkboxLabel"
                 />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              v-if="onRecordPage"
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
+                :label="$t('recordList.refField.label')"
+                label-class="text-primary"
+              >
+                <c-input-select
+                  v-model="options.refField"
+                  :options="parentFields"
+                  :placeholder="$t('general.label.none')"
+                  :reduce="f => f.name"
+                />
+
+                <b-form-text class="text-secondary small">
+                  {{ $t('recordList.refField.footnote') }}
+                </b-form-text>
               </b-form-group>
             </b-col>
           </b-row>
@@ -135,53 +162,15 @@
               lg="6"
             >
               <b-form-group
-                :label="$t('recordList.refField.label')"
-                label-class="text-primary"
-              >
-                <b-form-select
-                  v-model="options.refField"
-                  required
-                >
-                  <option :value="undefined">
-                    {{ $t('general.label.none') }}
-                  </option>
-
-                  <option
-                    v-for="field in parentFields"
-                    :key="field.fieldID"
-                    :value="field.name"
-                  >
-                    {{ field.name }}
-                  </option>
-                </b-form-select>
-
-                <b-form-text class="text-secondary small">
-                  {{ $t('recordList.refField.footnote') }}
-                </b-form-text>
-              </b-form-group>
-            </b-col>
-
-            <b-col
-              cols="12"
-              lg="6"
-            >
-              <b-form-group
                 :label="$t('recordList.positionField.label')"
                 label-class="text-primary"
               >
-                <b-form-select v-model="options.positionField">
-                  <option :value="undefined">
-                    {{ $t('general.label.none') }}
-                  </option>
-
-                  <option
-                    v-for="field in positionFields"
-                    :key="field.fieldID"
-                    :value="field.name"
-                  >
-                    {{ field.label || field.name }}
-                  </option>
-                </b-form-select>
+                <c-input-select
+                  v-model="options.positionField"
+                  :placeholder="$t('recordList.positionField.placeholder')"
+                  :reduce="f => f.name"
+                  label="label"
+                />
 
                 <b-form-text class="text-secondary small">
                   {{ $t('recordList.positionField.footnote') }}
@@ -638,24 +627,6 @@
                 <c-input-checkbox
                   v-model="options.selectable"
                   switch
-                  :labels="checkboxLabel"
-                />
-              </b-form-group>
-            </b-col>
-
-            <b-col
-              v-if="onRecordPage"
-              cols="12"
-              lg="6"
-            >
-              <b-form-group
-                :label="$t('recordList.record.linkToParent')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  v-model="options.linkToParent"
-                  switch
-                  invert
                   :labels="checkboxLabel"
                 />
               </b-form-group>

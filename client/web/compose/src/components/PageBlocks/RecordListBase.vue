@@ -1041,6 +1041,10 @@ export default {
 
       return this.selected.map(r => `recordID='${r}'`).join(' OR ')
     },
+
+    isOnRecordPage () {
+      return this.page && this.page.moduleID !== NoID
+    },
   },
 
   watch: {
@@ -1273,7 +1277,7 @@ export default {
       const r = new compose.Record(this.recordListModule, {})
 
       // Set record values that should be prefilled
-      if (this.record.recordID && this.options.linkToParent) {
+      if (this.record.recordID && this.options.refField) {
         r.values[this.options.refField] = this.record.recordID
       }
 
@@ -1344,6 +1348,12 @@ export default {
     // prepares prefilter
     prepRecordList () {
       this.recordsPerPage = this.options.perPage
+
+      // Legacy support for linkToParent
+      if (this.isOnRecordPage && this.options.linkToParent && !this.options.refField) {
+        this.options.refField = (this.recordListModule.fields.find(f => f.kind === 'Record' && f.options.moduleID === this.page.moduleID) || {}).name
+      }
+
       const { moduleID, presort, prefilter, editable, refField, positionField } = this.options
 
       // Validate props
@@ -1364,12 +1374,14 @@ export default {
         }
       }
 
-      const filter = []
-      let sort = 'createdAt DESC'
+      // Sorting
+      let sort = presort || 'createdAt DESC'
 
-      if (presort) {
-        sort = presort
+      if (editable && positionField) {
+        sort = `${positionField}`
       }
+
+      const filter = []
 
       // Initial filter
       if (prefilter) {
@@ -1383,20 +1395,14 @@ export default {
         filter.push(`(${pf})`)
       }
 
-      if (editable) {
-        if (positionField) {
-          sort = `${positionField}`
-        }
-
-        if (refField && this.record.recordID) {
-          filter.push(`(${refField} = ${this.record.recordID})`)
-        }
+      if (refField && this.record.recordID) {
+        filter.push(`(${refField} = ${this.record.recordID})`)
       }
 
       this.prefilter = filter.join(' AND ')
-      const limit = this.recordsPerPage
+
       this.filter = {
-        limit,
+        limit: this.recordsPerPage,
         sort,
       }
     },
@@ -1979,7 +1985,7 @@ export default {
     },
 
     handleAddRecord () {
-      const refRecord = this.options.linkToParent && this.recordID !== NoID ? this.record : undefined
+      const refRecord = this.options.refField && this.recordID !== NoID ? this.record : undefined
       const pageID = this.recordPageID
 
       if (!(pageID || this.options.rowCreateUrl)) return
@@ -2052,7 +2058,6 @@ export default {
         })
       }
     },
-
   },
 }
 </script>
