@@ -1,25 +1,27 @@
 <template>
-  <div>
-    <b-form-group
-      :label-cols="3"
-      :label="$t('calendar.reminderFeed.colorLabel')"
-      horizontal
-      breakpoint="md"
-      label-class="text-primary"
+  <b-row>
+    <b-col
+      cols="12"
+      lg="6"
     >
-      <c-input-color-picker
-        v-model="feed.options.color"
-        :translations="{
-          modalTitle: $t('calendar.recordFeed.colorPicker'),
-          light: $t('general:themes.labels.light'),
-          dark: $t('general:themes.labels.dark'),
-          cancelBtnLabel: $t('general:label.cancel'),
-          saveBtnLabel: $t('general:label.saveAndClose')
-        }"
-        :theme-settings="themeSettings"
-      />
-    </b-form-group>
-  </div>
+      <b-form-group
+        :label="$t('calendar.reminderFeed.colorLabel')"
+        label-class="text-primary"
+      >
+        <c-input-color-picker
+          v-model="feed.options.color"
+          :translations="{
+            modalTitle: $t('calendar.recordFeed.colorPicker'),
+            light: $t('general:themes.labels.light'),
+            dark: $t('general:themes.labels.dark'),
+            cancelBtnLabel: $t('general:label.cancel'),
+            saveBtnLabel: $t('general:label.saveAndClose')
+          }"
+          :theme-settings="themeSettings"
+        />
+      </b-form-group>
+    </b-col>
+  </b-row>
 </template>
 
 <script>

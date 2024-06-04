@@ -178,17 +178,6 @@ export default {
     },
 
     /**
-     * Determines if given module has any multi-fields
-     * @returns {Boolean}
-     */
-    hasMultiFields () {
-      if (!this.module) {
-        return false
-      }
-      return this.module.fields.reduce((acc, { isMulti }) => acc || isMulti, false)
-    },
-
-    /**
      * Determines available title fields based on the given module.
      * @returns {Array}
      */

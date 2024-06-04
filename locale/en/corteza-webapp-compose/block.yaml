@@ -36,6 +36,8 @@ automation:
     danger: Danger
     warning: Warning
 calendar:
+  source:
+    label: Source
   addEventsSource: Add events source
   calendarHeader: Calendar header
   feedLabel: Configure events source
@@ -51,17 +53,16 @@ calendar:
     colorLabel: Event color
     eventAllDay: Show as all-day-events
     eventEndFieldLabel: Event end
-    eventEndFieldPlaceholder: (No field, event will last 1 hour)
+    eventEndFieldPlaceholder: Event will last 1 hour
     eventStartFieldLabel: Event start
-    eventStartFieldPlaceholder: (No field)
-    moduleLabel: Select module
-    modulePlaceholder: (No module)
-    noMultiFields: Multi-value fields are currently not supported
+    eventStartFieldPlaceholder: Field with event start date
+    moduleLabel: Module
+    modulePlaceholder: Select a module
     optionLabel: Records
     prefilterLabel: Prefilter events
     prefilterPlaceholder: field1 = 1 AND field2 = 232
-    titleLabel: Title
-    titlePlaceholder: (No field)
+    titleLabel: Event title
+    titlePlaceholder: Field used as event title
   reminderFeed:
     colorLabel: Event color
     optionLabel: Reminders
@@ -774,7 +775,6 @@ geometry:
     colorPicker: Choose a color
     moduleLabel: Module*
     modulePlaceholder: (No module)
-    noMultiFields: Multi-value fields are currently not supported
     optionLabel: Records
     prefilterLabel: Prefilter sources
     colorLabel: Marker color

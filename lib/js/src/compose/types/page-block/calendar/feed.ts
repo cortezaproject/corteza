@@ -20,7 +20,7 @@ export type FeedInput = Partial<Feed> | Feed | LegacyFeed
 
 const defOptions = {
   moduleID: NoID,
-  color: '#FFFFFF',
+  color: '#0B344E',
   prefilter: '',
 }
 
@@ -28,7 +28,7 @@ const defOptions = {
  * Feed class represents an event feed for the given calendar
  */
 export default class Feed {
-  public resource = ''
+  public resource = 'compose:record'
   public startField = ''
   public endField = ''
   public titleField = ''

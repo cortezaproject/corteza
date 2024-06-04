@@ -453,4 +453,20 @@ export default {
     white-space: pre-wrap;
   }
 }
+
+.fc-popover {
+  .fc-header {
+    padding: 0.5rem;
+  }
+
+  .fc-body {
+    padding: 0;
+
+    .fc-event-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+  }
+}
 </style>

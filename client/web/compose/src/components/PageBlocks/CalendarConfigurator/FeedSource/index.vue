@@ -1,66 +1,58 @@
 <template>
-  <div>
+  <b-row>
     <!-- Feed list -->
-    <div
+    <b-col
       v-for="(feed, i) in options.feeds"
       :key="i"
+      cols="12"
+      class="p-0"
     >
-      <div
-        v-if="feed.resource"
-        class="d-flex justify-content-end mb-3"
+      <b-card
+        class="list-background mx-3 mb-3"
       >
-        <c-input-confirm
-          v-if="feed.resource"
-          show-icon
-          size="md"
-          @confirmed="onRemoveFeed(i)"
-        />
-      </div>
+        <h5 class="d-flex align-items-center mb-3">
+          {{ $t('calendar.source.label') }} {{ i + 1 }}
 
-      <!-- define feed resource; eg. module, reminders, google calendar, ... -->
-      <b-form-group
-        :label="$t('calendar.eventSource')"
-        :label-cols="3"
-        horizontal
-        breakpoint="md"
-        label-class="text-primary"
-      >
-        <b-form-select
-          v-model="feed.resource"
-          :options="feedSources"
+          <c-input-confirm
+            show-icon
+            class="ml-auto mt-1"
+            @confirmed="onRemoveFeed(i)"
+          />
+        </h5>
+
+        <!-- define feed resource; eg. module, reminders, google calendar, ... -->
+        <b-form-group
+          :label="$t('calendar.eventSource')"
+          label-class="text-primary"
         >
-          <template slot="first">
-            <option
-              value=""
-              :disabled="true"
-            >
-              {{ $t('calendar.feedPlaceholder') }}
-            </option>
-          </template>
-        </b-form-select>
-      </b-form-group>
+          <c-input-select
+            v-model="feed.resource"
+            :options="feedSources"
+            :clearable="false"
+            label="text"
+            :reduce="o => o.value"
+          />
+        </b-form-group>
 
-      <b-form-group horizontal>
-        <!-- source configurator -->
         <component
           :is="configurator(feed)"
           v-if="feed.resource && configurator(feed)"
           :feed="feed"
           :modules="modules"
         />
-      </b-form-group>
+      </b-card>
+    </b-col>
 
-      <hr>
-    </div>
-
-    <b-button
-      variant="primary"
-      class="test-feed-add"
-      @click.prevent="handleAddButton"
-    >
-      {{ $t('calendar.addEventsSource') }}
-    </b-button>
-  </div>
+    <b-col cols="12">
+      <b-button
+        variant="primary"
+        class="test-feed-add"
+        @click.prevent="handleAddButton"
+      >
+        {{ $t('calendar.addEventsSource') }}
+      </b-button>
+    </b-col>
+  </b-row>
 </template>
 <script>
 import { mapGetters } from 'vuex'
@@ -133,3 +125,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.list-background {
+  background-color: var(--body-bg);
+}
+</style>
