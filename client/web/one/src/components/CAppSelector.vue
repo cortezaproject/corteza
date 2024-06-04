@@ -99,34 +99,12 @@
         </div>
       </b-container>
     </div>
-
-    <portal
-      to="topbar-help-dropdown"
-    >
-      <b-dropdown-item
-        data-test-id="dropdown-helper-tour"
-        @click="$refs.tour.onStartClick()"
-      >
-        {{ $t('start-tour') }}
-      </b-dropdown-item>
-    </portal>
-
-    <tour-start
-      @start="startTour"
-    />
-
-    <tour
-      ref="tour"
-      name="app-list"
-      :steps="filteredSteps"
-    />
   </div>
 </template>
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import Draggable from 'vuedraggable'
-import { components, url } from '@cortezaproject/corteza-vue'
-const { Tour, TourStart, CInputSearch } = components
+import { url } from '@cortezaproject/corteza-vue'
 
 export default {
   i18nOptions: {
@@ -135,9 +113,6 @@ export default {
 
   components: {
     Draggable,
-    Tour,
-    TourStart,
-    CInputSearch,
   },
 
   props: {
@@ -251,10 +226,6 @@ export default {
     async onDrop () {
       const applicationIDs = this.appList.map(({ applicationID }) => applicationID)
       await this.reorderApp(applicationIDs)
-    },
-
-    startTour () {
-      this.$refs.tour.onStart()
     },
 
     logoUrl (app) {

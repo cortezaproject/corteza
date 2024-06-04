@@ -114,8 +114,7 @@
     "typescript": "^3.7.4",
     "vue-eslint-parser": "^9.3.2",
     "vue-property-decorator": "^8.3.0",
-    "vue-template-compiler": "^2.6.14",
-    "vue-tour": "^2.0.0"
+    "vue-template-compiler": "^2.6.14"
   },
   "resolutions": {
     "**/**/yargs-parser": "^13.1.2",
