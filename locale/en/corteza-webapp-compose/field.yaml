@@ -157,7 +157,7 @@ kind:
       label: User roles
       placeholder: Filter by user roles
   geometry:
-    label: Geometry
+    label: Location
     latitude: Latitude
     longitude: Longitude
     clickToPlaceMarker: Click to place/remove a marker

@@ -760,8 +760,8 @@ nylas:
       mailbox: Mailbox
 
 geometry:
-  label: Geometry
-  viewLabel: Geometry
+  label: Map
+  viewLabel: Map
   feedLabel: Configure Sources
   source:
     label: Source
@@ -779,10 +779,10 @@ geometry:
     optionLabel: Records
     prefilterLabel: Prefilter sources
     colorLabel: Marker color
-    geometryFieldLabel: Geometry field*
+    geometryFieldLabel: Location field*
     titleLabel: Title
     titlePlaceholder: Title
-    geometryFieldPlaceholder: Geometry field
+    geometryFieldPlaceholder: Location field
     displayMarker: Display marker
     displayPolygon: Display polygon
   centerLabel: Center

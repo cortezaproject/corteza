@@ -146,7 +146,7 @@ fieldKinds:
   User:
     label: User selector
   Geometry:
-    label: Geometry
+    label: Location
 field:
   selectAll: Select all
   tooltip:
