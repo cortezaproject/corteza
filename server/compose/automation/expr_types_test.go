@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	aTypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/compose/types"
@@ -378,9 +379,12 @@ func TestCastToComposeRecordValues(t *testing.T) {
 			// &types.RecordValue{Name: "bools", Value: "false", Place: 1}
 		}
 
+		tt = time.Date(1999, 9, 9, 9, 9, 9, 9, time.UTC)
+
 		nilSlice      []int
 		nilUntypedMap map[string]interface{}
-		cases         = []struct {
+
+		cases = []struct {
 			name string
 			in   interface{}
 			out  types.RecordValueSet
@@ -419,6 +423,12 @@ func TestCastToComposeRecordValues(t *testing.T) {
 				in: &types.RecordValue{Name: "string", Value: "val"},
 				out: types.RecordValueSet{
 					&types.RecordValue{Name: "string", Value: "val"},
+				},
+			},
+			{
+				in: &types.RecordValue{Name: "datetime", Value: tt.String()},
+				out: types.RecordValueSet{
+					&types.RecordValue{Name: "datetime", Value: tt.String()},
 				},
 			},
 			{

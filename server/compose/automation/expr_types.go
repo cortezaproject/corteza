@@ -392,6 +392,10 @@ func assignToComposeRecordValues(res *types.Record, p expr.Pather, val interface
 	case time.Time:
 		rv.Value = utval.Format(time.RFC3339)
 	case *time.Time:
+		if utval == nil {
+			rv.Value = ""
+			break
+		}
 		rv.Value = utval.Format(time.RFC3339)
 	case []string:
 		aux := make([]interface{}, len(utval))

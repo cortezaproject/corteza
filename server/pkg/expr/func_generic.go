@@ -47,6 +47,15 @@ func length(i interface{}) int {
 }
 
 func isNil(i interface{}) bool {
+	_, isTyped := i.(TypedValue)
+
+	if isTyped {
+		switch i.(type) {
+		case *Duration, *DateTime, *Bytes, *Array, *Integer:
+			i = i.(TypedValue).Get()
+		}
+	}
+
 	return gvalfnc.IsNil(i)
 }
 
@@ -115,8 +124,6 @@ func isMap(v interface{}) bool {
 
 // toArray removes expr types (if wrapped) and checks if the variable is slice
 // internal only
-//
-//
 func toSlice(vv interface{}) (interface{}, error) {
 	vv = UntypedValue(vv)
 

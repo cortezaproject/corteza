@@ -2,14 +2,17 @@ package types
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestExprSet_Eval(t *testing.T) {
 	var (
 		ctx = context.Background()
+		tt  = time.Date(1999, 9, 9, 9, 9, 9, 9, time.UTC)
 
 		cc = []struct {
 			name   string
@@ -25,8 +28,15 @@ func TestExprSet_Eval(t *testing.T) {
 			},
 			{
 				name:   "constant assignment",
-				set:    ExprSet{&Expr{Target: "foo", Expr: `"bar"`}},
-				output: map[string]interface{}{"foo": Must(NewString("bar"))},
+				set:    ExprSet{&Expr{Target: "foo", Expr: `format("%s", bar)`, typ: &String{}}},
+				input:  map[string]interface{}{"bar": Must(NewDateTime(tt))},
+				output: map[string]interface{}{"foo": Must(NewString("1999-09-09 09:09:09.000000009 +0000 UTC"))},
+			},
+			{
+				name:   "constant assignment nil datetime",
+				set:    ExprSet{&Expr{Target: "foo", Expr: `format("%s", bar)`, typ: &String{}}},
+				input:  map[string]interface{}{"bar": Must(NewDateTime(nil))},
+				output: map[string]interface{}{"foo": Must(NewString("<nil>"))},
 			},
 			{
 				name:   "vars with path",

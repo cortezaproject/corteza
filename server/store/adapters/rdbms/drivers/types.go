@@ -133,7 +133,7 @@ func (t *TypeTimestamp) Decode(raw any) (any, bool, error) {
 }
 
 func (t *TypeTimestamp) Encode(val any) (driver.Value, error) {
-	if reflect2.IsNil(val) {
+	if reflect2.IsNil(val) || val == "" {
 		return nil, nil
 	}
 
