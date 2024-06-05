@@ -20,7 +20,7 @@
         <font-awesome-icon
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.dragAndDrop'), container: '#body' }"
           :icon="['fas', 'bars']"
-          class="handle text-secondary ml-1 mr-2"
+          class="handle text-secondary mr-3"
         />
 
         <div
@@ -34,7 +34,7 @@
         <font-awesome-icon
           v-if="removable"
           :icon="['fas', 'times']"
-          class="pointer text-danger ml-2 mr-1"
+          class="pointer text-danger ml-3"
           @click="removeValue(index)"
         />
       </div>

@@ -33,27 +33,25 @@
       </div>
     </template>
 
-    <div class="d-flex w-100">
-      <b-button
-        v-if="field.isMulti"
-        v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
-        variant="light"
-        class="w-100"
-        @click="openMap()"
-      >
-        <font-awesome-icon
-          :icon="['fas', 'map-marked-alt']"
-          class="text-primary"
-        />
-      </b-button>
-    </div>
+    <b-button
+      v-if="field.isMulti"
+      v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.openMap'), container: '#body' }"
+      variant="light"
+      class="w-100 mb-3"
+      @click="openMap()"
+    >
+      <font-awesome-icon
+        :icon="['fas', 'map-marked-alt']"
+        class="text-primary"
+      />
+    </b-button>
 
     <multi
       v-if="field.isMulti"
       v-slot="ctx"
       :value.sync="localValue"
       :errors="errors"
-      single-input
+      :default-value="{ coordinates: [] }"
     >
       <b-input-group>
         <b-form-input
@@ -245,6 +243,7 @@ export default {
         this.value = this.field.isMulti ? value.filter(v => (v || {}).coordinates).map(v => JSON.stringify(v)) : JSON.stringify(value)
       },
     },
+
     'field.isMulti': {
       immediate: true,
       handler () {
@@ -274,7 +273,7 @@ export default {
 
   methods: {
     openMap (index) {
-      this.map.value = this.localValue
+      this.map.value = [...this.localValue]
 
       this.localValueIndex = index
       const firstCoordinates = (index >= 0 ? this.localValue[index] : this.localValue) || {}

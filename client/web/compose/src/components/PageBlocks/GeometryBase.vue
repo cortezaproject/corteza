@@ -234,7 +234,7 @@ export default {
                       moduleID: record.moduleID,
                     })
                   }
-                }).filter(g => g)
+                }).filter(g => g && g.length)
               })
           })
       })).finally(() => {

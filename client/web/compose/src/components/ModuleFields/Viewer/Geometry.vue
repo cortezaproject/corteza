@@ -6,13 +6,10 @@
       :class="{ 'd-block': field.options.multiDelimiter === '\n' }"
     >
       <a
-        class="text-primary pointer"
+        class="text-nowrap text-primary pointer"
         @click.stop="openMap(index)"
       >
         {{ c.value[0] }}, {{ c.value[1] }}
-        <font-awesome-icon
-          :icon="['fas', 'map-marked-alt']"
-        />
         {{ index !== localValue.length - 1 ? field.options.multiDelimiter : '' }}
       </a>
     </span>

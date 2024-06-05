@@ -52,7 +52,7 @@
         v-for="(geometry, i) in polygons"
         :key="`polygon-${i}`"
         :lat-lngs="geometry.map(value => value.geometry)"
-        :color="geometry[0].color"
+        :color="(geometry.find(g => g) || {}).color"
       />
 
       <l-marker
