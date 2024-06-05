@@ -566,12 +566,8 @@ export default {
       }
     },
 
-    onSetFocus (groupIndex, index) {
-      let focusIndex = this.$refs.delete.findIndex(r => r.id === `${groupIndex}-${index}`)
-      if (focusIndex > 0) {
-        focusIndex--
-      }
-      this.$refs.delete[focusIndex].focus()
+    onSetFocus () {
+      this.$refs.focusMe.focus()
     },
 
     onOpen () {
@@ -611,6 +607,8 @@ export default {
       // If no filterGroups, add default
       if (!this.componentFilter.length) {
         this.componentFilter.push(this.createDefaultFilterGroup(undefined, this.selectedField))
+      } else if (!this.inFilter) {
+        this.addFilter(0)
       }
     },
 

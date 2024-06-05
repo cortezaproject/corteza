@@ -733,7 +733,6 @@
 </template>
 <script>
 import axios from 'axios'
-import { isEqual } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import base from './base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
@@ -1141,28 +1140,10 @@ export default {
 
     onFilter (filter = []) {
       filter.forEach(f => {
-        if (this.activeFilters.includes(f.name)) {
-          const filterPresets = this.filterPresets.find(p => p.name === f.name)
-
-          if (filterPresets) {
-            filterPresets.filter.forEach((filterPreset) => {
-              if (!isEqual(f.filter, filterPreset.filter)) {
-                const filterIndex = this.activeFilters.indexOf(f.name)
-                this.activeFilters.splice(filterIndex, 1)
-              }
-            })
-          }
-        }
-
-        if (f.filter.length === 1 && (!f.filter[0].value && !f.filter[0].name)) {
-          const filterIndex = this.activeFilters.indexOf(f.name)
-          this.activeFilters.splice(filterIndex, 1)
-        } else if (!this.activeFilters.includes(this.$t('recordList.customFilter'))) {
-          this.activeFilters.push(this.$t('recordList.customFilter'))
-          f.name = this.$t('recordList.customFilter')
-        }
+        f.name = this.$t('recordList.customFilter')
       })
 
+      this.activeFilters = [this.$t('recordList.customFilter')]
       this.recordListFilter = filter
       this.setStorageRecordListFilter()
       this.refresh(true)
@@ -1741,7 +1722,7 @@ export default {
           removeItem(`record-list-filters-${this.uniqueID}`)
         } else {
           this.recordListFilter = currentFilters
-          this.activeFilters = currentFilters.map(f => f.name)
+          this.activeFilters = [...new Set(currentFilters.map(f => f.name).filter(f => !!f))]
         }
       } catch (e) {
         // Land here if the filter is corrupted
