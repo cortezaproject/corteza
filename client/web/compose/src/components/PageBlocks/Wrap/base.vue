@@ -45,6 +45,11 @@ export default {
   },
 
   computed: {
+    blockID () {
+      const { blockID, meta } = this.block || {}
+      return meta.customID || blockID
+    },
+
     blockClass () {
       return [
         'block',

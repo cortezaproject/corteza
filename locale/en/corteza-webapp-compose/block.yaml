@@ -133,6 +133,11 @@ general:
   descriptionPlaceholder: Block description
   headerStyle: Block header style (color)
   magnifyLabel: Block Magnification
+  customID:
+    label: Custom ID
+    placeholder: CustomID
+    description: Can be used to reference the block in Custom CSS
+    invalid-state: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dashes. Must end with letter or number
   magnifyOptions:
     disabled: Disabled
     modal: Modal

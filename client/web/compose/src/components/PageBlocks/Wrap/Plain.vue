@@ -1,6 +1,7 @@
 <template>
   <div class="h-100">
     <div
+      :id="blockID"
       class="d-flex flex-column card bg-transparent h-100 overflow-hidden position-static"
       :class="[blockClass, cardClass]"
     >

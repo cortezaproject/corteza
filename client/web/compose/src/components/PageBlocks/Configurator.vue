@@ -1,12 +1,12 @@
 <template>
   <b-tabs
+    :value="activeTab"
     data-test-id="page-block-configurator"
     card
     lazy
   >
     <b-tab
       data-test-id="general-tab"
-      active
       :title="$t('general.label.general')"
       title-item-class="order-first"
     >
@@ -87,6 +87,37 @@
           lg="6"
         >
           <b-form-group
+            :label="$t('general.customID.label')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              id="customID"
+              v-model="block.meta.customID"
+              :state="customIDState"
+              :placeholder="$t('general.customID.placeholder')"
+            />
+
+            <b-form-invalid-feedback
+              v-if="customIDState === false"
+              :state="customIDState"
+            >
+              {{ $t('general.customID.invalid-state') }}
+            </b-form-invalid-feedback>
+
+            <b-form-text
+              v-else
+              class="text-muted"
+            >
+              {{ $t('general.customID.description') }}
+            </b-form-text>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
             :label="$t('general.headerStyle')"
             label-class="text-primary"
           >
@@ -115,6 +146,22 @@
             >
               {{ $t('general.border.show') }}
             </b-form-checkbox>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="block.options.magnifyOption !== undefined"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('general.magnifyLabel')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="block.options.magnifyOption"
+              :options="magnifyOptions"
+            />
           </b-form-group>
         </b-col>
 
@@ -149,23 +196,6 @@
             </b-form-checkbox>
           </b-form-group>
         </b-col>
-
-        <b-col
-          v-if="block.options.magnifyOption !== undefined"
-          cols="12"
-          lg="6"
-          :offset-lg="block.options.showRefresh !== undefined ? 6 : 0"
-        >
-          <b-form-group
-            :label="$t('general.magnifyLabel')"
-            label-class="text-primary"
-          >
-            <b-form-select
-              v-model="block.options.magnifyOption"
-              :options="magnifyOptions"
-            />
-          </b-form-group>
-        </b-col>
       </b-row>
     </b-tab>
 
@@ -189,6 +219,7 @@
 </template>
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { handle } from '@cortezaproject/corteza-vue'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
 import PageBlock from './index'
 
@@ -242,6 +273,14 @@ export default {
         { value: 'modal', text: this.$t('general.magnifyOptions.modal') },
         { value: 'fullscreen', text: this.$t('general.magnifyOptions.fullscreen') },
       ]
+    },
+
+    customIDState () {
+      return handle.handleState(this.block.meta.customID)
+    },
+
+    activeTab () {
+      return this.isNew ? 0 : 1
     },
   },
 

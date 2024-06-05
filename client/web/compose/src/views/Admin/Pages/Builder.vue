@@ -186,6 +186,7 @@
     <b-modal
       :ok-title="$t('build.addBlock')"
       ok-variant="primary"
+      :ok-disabled="blockEditorOkDisabled"
       cancel-variant="link"
       :cancel-title="$t('block.general.label.cancel')"
       size="xl"
@@ -275,6 +276,7 @@
           <b-button
             variant="primary"
             :title="$t('label.saveAndClose')"
+            :disabled="blockEditorOkDisabled"
             @click="updateBlocks()"
           >
             {{ $t('label.saveAndClose') }}
@@ -356,6 +358,7 @@ import Configurator from 'corteza-webapp-compose/src/components/PageBlocks/Confi
 import RecordModal from 'corteza-webapp-compose/src/components/Public/Record/Modal'
 import MagnificationModal from 'corteza-webapp-compose/src/components/Public/Page/Block/Modal'
 import { fetchID } from 'corteza-webapp-compose/src/lib/block'
+import { handle } from '@cortezaproject/corteza-vue'
 
 export default {
   i18nOptions: {
@@ -532,6 +535,16 @@ export default {
       if (!block || block.blockID === NoID) return
 
       return this.otherLayoutBlockIDs.has(this.editor.block.blockID)
+    },
+
+    blockEditorOkDisabled () {
+      if (!this.editor) return true
+
+      const { block } = this.editor
+
+      if (!block) return true
+
+      return [handle.handleState(block.meta.customID)].includes(false)
     },
   },
 
