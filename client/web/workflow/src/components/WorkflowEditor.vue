@@ -782,7 +782,7 @@ export default {
 
   methods: {
     deleteSelectedCells () {
-      if (this.sidebar.item && this.graph.get().isSelected(this.sidebar.item.node)) {
+      if (this.sidebar.item && this.graph.isCellSelected(this.sidebar.item.node)) {
         this.sidebarClose()
       }
       this.graph.removeCells()
@@ -860,11 +860,10 @@ export default {
       mxGraphHandler.prototype.guidesEnabled = true
 
       // Prevent cloning with ctrl + drag
-      mxGraphHandler.prototype.cloneEnabled = false
 
       // Alt disables guides
       mxGraphHandler.prototype.useGuidesForEvent = (evt) => {
-        return mxEvent.isAltDown(evt.getEvent())
+        return !mxEvent.isAltDown(evt.getEvent())
       }
 
       const mxGraphHandlerIsValidDropTarget = mxGraphHandler.prototype.isValidDropTarget
@@ -912,7 +911,6 @@ export default {
             const icon = this.getIcon(getStyleFromKind(vertex.config).icon, this.currentTheme)
             const type = this.$t(`steps:${style}.short`)
             const isSelected = this.selection.includes(cell.mxObjectId)
-            const border = isSelected ? 'selected-border' : 'border-light'
             const shadow = isSelected ? 'shadow' : 'shadow-sm'
             const cog = this.getIcon('cog')
             const issue = this.getIcon('issue')
@@ -1041,7 +1039,7 @@ export default {
               }
             }
 
-            label = `<div class="d-flex flex-column bg-white border rounded step position-relative ${shadow} ${border}" style="min-width: 200px; border-radius: 5px;${opacity}">` +
+            label = `<div class="d-flex flex-column bg-white border rounded step position-relative ${shadow}" style="min-width: 200px; border-radius: 5px;${opacity}">` +
                       '<div class=label-container">' +
                         '<div class="d-flex flex-row align-items-center text-primary px-2 my-1 h6 mb-0" style="width: 200px; height: 36px;">' +
                           `<img src="${icon}" class="mr-2"/>${type}` +
@@ -1117,7 +1115,7 @@ export default {
           value = style.split('gateway')[1]
         } else if (style === 'expressions') {
           value = 'Define and mutate scope variables'
-        } else if (style === 'text') {
+        } else if (style === 'content') {
           value = 'Text here'
         }
 
@@ -1740,22 +1738,27 @@ export default {
 
     styling () {
       // General
-      mxConstants.VERTEX_SELECTION_COLOR = 'none'
+      mxConstants.VERTEX_SELECTION_COLOR = '#A7D0E3'
+      mxConstants.VERTEX_SELECTION_STROKEWIDTH = 2
       mxConstants.EDGE_SELECTION_COLOR = '#A7D0E3'
       mxConstants.EDGE_SELECTION_STROKEWIDTH = 2
       mxConstants.DEFAULT_FONTFAMILY = 'Poppins-Regular'
       mxConstants.DEFAULT_FONTSIZE = 13
 
-      mxConstants.HANDLE_FILLCOLOR = '#4D7281'
+      mxConstants.HANDLE_FILLCOLOR = '#A7D0E3'
       mxConstants.HANDLE_STROKECOLOR = 'none'
-      mxConstants.CONNECT_HANDLE_FILLCOLOR = '#4D7281'
+      mxConstants.CONNECT_HANDLE_FILLCOLOR = '#A7D0E3'
+      mxConstants.OUTLINE_HIGHLIGHT_COLOR = '#A7D0E3'
+      mxConstants.TARGET_HIGHLIGHT_COLOR = '#A7D0E3'
+      mxConstants.DROP_TARGET_COLOR = '#A7D0E3'
+      mxConstants.DEFAULT_VALID_COLOR = '#A7D0E3'
       mxConstants.VALID_COLOR = '#A7D0E3'
+      mxGraphHandler.prototype.previewColor = '#A7D0E3'
 
-      mxConstants.GUIDE_COLOR = '162425'
+      mxConstants.GUIDE_COLOR = 'var(--dark)'
       mxConstants.GUIDE_STROKEWIDTH = 1
 
       // Creates the default style for vertices
-      const defaultStyle = this.graph.getStylesheet().getDefaultVertexStyle()
 
       let style = this.graph.getStylesheet().getDefaultVertexStyle()
       style[mxConstants.STYLE_SHAPE] = mxConstants.SHAPE_RECTANGLE
@@ -1797,11 +1800,10 @@ export default {
       style[mxConstants.STYLE_VERTICAL_ALIGN] = mxConstants.ALIGN_MIDDLE
       style[mxConstants.STYLE_FILLCOLOR] = 'var(--white)'
       style[mxConstants.STYLE_STROKECOLOR] = 'var(--dark)'
-      style[mxConstants.STYLE_STROKEWIDTH] = 0
-      style[mxConstants.STYLE_STROKEWIDTH] = 2
+      style[mxConstants.STYLE_STROKEWIDTH] = 1
       this.graph.getStylesheet().putCellStyle('swimlane', style)
 
-      // Text
+      // Content
       style = {}
       style[mxConstants.STYLE_RESIZABLE] = true
       style[mxConstants.STYLE_CONNECTABLE] = false
@@ -1814,7 +1816,7 @@ export default {
       style[mxConstants.STYLE_SPACING_LEFT] = 10
       style[mxConstants.STYLE_WHITE_SPACE] = 'wrap'
       style[mxConstants.STYLE_OVERFLOW] = 'hidden'
-      this.graph.getStylesheet().putCellStyle('text', style)
+      this.graph.getStylesheet().putCellStyle('content', style)
     },
 
     translateCell (style) {
@@ -1849,7 +1851,8 @@ export default {
         }
 
         const { cell } = terminal
-        let isConnectable = this.model.isVertex(cell) && !['swimlane', 'text'].includes(cell.style)
+
+        let isConnectable = this.model.isVertex(cell) && !['swimlane', 'content'].includes(cell.style)
 
         // Only one outbound connection per trigger
         if (cell.style.includes('trigger') && cell.edges) {
@@ -1950,9 +1953,7 @@ export default {
 
       // On hover outline for fixed point
       mxConstraintHandler.prototype.createHighlightShape = function () {
-        var hl = new mxEllipse(null, '#A7D0E3', '#A7D0E3', 1)
-
-        return hl
+        return new mxEllipse(null, '#A7D0E3', '#A7D0E3', 1)
       }
     },
 
@@ -2676,10 +2677,6 @@ export default {
 
 .step-values tr.title th {
   border-top: none;
-}
-
-.selected-border {
-  border: 2px dashed #A7D0E3 !important;
 }
 
 #toolbar > hr {
