@@ -273,7 +273,7 @@ export default {
 
   methods: {
     openMap (index) {
-      this.map.value = [...this.localValue]
+      this.map.value = this.field.isMulti ? [...this.localValue] : this.localValue
 
       this.localValueIndex = index
       const firstCoordinates = (index >= 0 ? this.localValue[index] : this.localValue) || {}
