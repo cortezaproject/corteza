@@ -3,7 +3,7 @@
     class="d-flex flex-column"
   >
     <b-card
-      v-if="kind !== 'Text'"
+      v-if="kind !== 'Content'"
       class="flex-grow-1 border-bottom border-light rounded-0"
     >
       <b-card-header
@@ -76,8 +76,8 @@ export default {
         return 'ErrorHandler'
       }
 
-      if (kind === 'visual' && ref === 'text') {
-        return 'Text'
+      if (kind === 'visual' && ref === 'content') {
+        return 'Content'
       }
 
       if (kind) {

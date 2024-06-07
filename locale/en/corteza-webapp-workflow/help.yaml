@@ -6,7 +6,7 @@
     'select-multiple': Select multiple
     'zoom-in/out': Zoom in/out
   shortcut:
-    'left-click': 
+    'left-click':
       background: Left click on background
       drag: Left click & drag
       label: Left click
@@ -23,7 +23,7 @@
     paste: Paste
     redo: Redo
     save: Save
-    'show-guides': Show guides
+    'hide-guides': Hide guides
     'show-help': Show help
     'reset-view-to-start-point': Reset view to starting point
     'select-all': Select all

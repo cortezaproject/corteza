@@ -136,11 +136,11 @@ const kindToStyle = {
     style: 'debug',
   },
 
-  visualText: {
+  visualContent: {
     width: 400,
-    height: 250,
-    icon: 'text',
-    style: 'text',
+    height: 240,
+    icon: 'content',
+    style: 'content',
   },
 }
 
@@ -174,8 +174,8 @@ export function getKindFromStyle (vertex) {
     }
   } else if (kind === 'swimlane') {
     return { kind: 'visual', ref: 'swimlane' }
-  } else if (kind === 'text') {
-    return { kind: 'visual', ref: 'text' }
+  } else if (kind === 'content') {
+    return { kind: 'visual', ref: 'content' }
   } else {
     return { kind }
   }

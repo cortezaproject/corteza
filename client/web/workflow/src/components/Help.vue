@@ -74,7 +74,7 @@ export default {
         { action: this.$t('help:keyboard-shortcuts.action.paste'), shortcut: 'Ctrl + V' },
         { action: this.$t('help:keyboard-shortcuts.action.save'), shortcut: 'Ctrl + S' },
         { action: this.$t('help:keyboard-shortcuts.action.nudge'), shortcut: `${this.$t('help:keyboard-shortcuts.shortcut.arrow-keys')} Shift ${this.$t('help:keyboard-shortcuts.shortcut.adjust-distance')}` },
-        { action: this.$t('help:keyboard-shortcuts.action.show-guides'), shortcut: `${this.$t('help:keyboard-shortcuts.shortcut.hold')} Alt` },
+        { action: this.$t('help:keyboard-shortcuts.action.hide-guides'), shortcut: `${this.$t('help:keyboard-shortcuts.shortcut.hold')} Alt` },
         { action: this.$t('help:keyboard-shortcuts.action.show-help'), shortcut: 'Shift + ?' },
       ],
     }

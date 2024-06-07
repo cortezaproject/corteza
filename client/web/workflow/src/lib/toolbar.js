@@ -5,7 +5,7 @@ export default [
   },
   {
     kind: 'visual',
-    ref: 'text',
+    ref: 'content',
   },
   {
     kind: 'hr',

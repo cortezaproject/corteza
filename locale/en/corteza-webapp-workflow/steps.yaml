@@ -109,7 +109,7 @@ trigger:
   tooltip: Trigger the workflow execution based on configuration
 tooltip:
   configure-step: Configure step
-text:
-  label: Text
-  short: Text
-  tooltip: Text block used for annotations
+content:
+  label: Content
+  short: Content
+  tooltip: Content block used for text annotations
