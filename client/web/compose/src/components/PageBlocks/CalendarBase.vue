@@ -359,10 +359,12 @@ export default {
         }
       }))
         .finally(() => {
-          this.processing = false
-          this.refreshing = false
+          setTimeout(() => {
+            this.processing = false
+            this.refreshing = false
 
-          this.updateSize()
+            this.updateSize()
+          }, 300)
         })
     },
 
