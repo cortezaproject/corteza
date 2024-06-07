@@ -1755,6 +1755,8 @@ export default {
       mxConstants.VALID_COLOR = '#A7D0E3'
       mxGraphHandler.prototype.previewColor = '#A7D0E3'
 
+      mxConstants.STYLE_PERIMETER = mxPerimeter.RectanglePerimeter
+
       mxConstants.GUIDE_COLOR = 'var(--dark)'
       mxConstants.GUIDE_STROKEWIDTH = 1
 
@@ -1949,7 +1951,7 @@ export default {
       }
 
       // Image for fixed point
-      mxConstraintHandler.prototype.pointImage = new mxImage(this.getIcon('connection-point'), 8, 8)
+      mxConstraintHandler.prototype.pointImage = new mxImage(this.getIcon('connection-point'), 16, 16)
 
       // On hover outline for fixed point
       mxConstraintHandler.prototype.createHighlightShape = function () {
