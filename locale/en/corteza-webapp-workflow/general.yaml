@@ -33,7 +33,6 @@ disabled: Disabled
 without: Without
 only: Only
 including: Including
-unnamed-workflow: Unnamed Workflow
 workflow-list: List of Workflows
 workflow:
   single: Workflow

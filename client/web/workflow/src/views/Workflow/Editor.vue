@@ -93,9 +93,6 @@ export default {
         runAs: '0',
         enabled: true,
         handle: '',
-        meta: {
-          name: this.$t('general:unnamed-workflow'),
-        },
       })
     }
 

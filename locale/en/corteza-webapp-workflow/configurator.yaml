@@ -1,15 +1,23 @@
 configuration: Configuration
 edge: Edge
-label: Label *
+name:
+  label: Name *
+  placeholder: Workflow name
+handle:
+  label: Handle
+  placeholder: handle (a - z, 0 - 9, underscore, dash)
+  invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+description:
+  label: Description
+  placeholder: Describe what this workflow does
 target: Target
 tooltip:
   run-workflow: Run workflow
   configure-step: Configure step
-workflow:
-  'run-as': Run as
-  'not-setup-properly': When not explicitly set, workflow will be executed by user that invoked it
-  invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
-  placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
-  sub-workflow:
-    label: Subworkflow
-    description: Subworkflows can't have enabled triggers
+run-as:
+  label: Run as
+  placeholder: User that will execute the workflow
+  description: When not explicitly set, workflow will be executed by user that invoked it
+sub-workflow:
+  label: Subworkflow
+  description: Subworkflows can't have enabled triggers

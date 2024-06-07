@@ -1,50 +1,52 @@
 <template>
   <div>
     <b-form-group
-      :label="$t('label')"
+      :label="$t('name.label')"
       label-class="text-primary"
     >
       <b-form-input
         v-model="workflow.meta.name"
         data-test-id="input-label"
+        :placeholder="$t('name.placeholder')"
         :state="nameState"
         @input="$root.$emit('change-detected')"
       />
     </b-form-group>
 
     <b-form-group
-      :label="$t('general:handle')"
+      :label="$t('handle.label')"
       label-class="text-primary"
     >
       <b-form-input
         v-model="workflow.handle"
         data-test-id="input-handle"
         :state="handleState"
-        :placeholder="$t('workflow.placeholder-handle')"
+        :placeholder="$t('handle.placeholder')"
         @input="$root.$emit('change-detected')"
       />
       <b-form-invalid-feedback
         data-test-id="input-handle-invalid-state"
         :state="handleState"
       >
-        {{ $t('workflow.invalid-handle-characters') }}
+        {{ $t('handle.invalid-handle-characters') }}
       </b-form-invalid-feedback>
     </b-form-group>
 
     <b-form-group
-      :label="$t('general:description')"
+      :label="$t('description.label')"
       label-class="text-primary"
     >
       <b-form-textarea
         v-model="workflow.meta.description"
         data-test-id="input-description"
+        :placeholder="$t('description.placeholder')"
         @input="$root.$emit('change-detected')"
       />
     </b-form-group>
 
     <b-form-group
-      :label="$t('workflow.run-as')"
-      :description="$t('workflow.not-setup-properly')"
+      :label="$t('run-as.label')"
+      :description="$t('run-as.description')"
       label-class="text-primary"
     >
       <c-input-select
@@ -53,6 +55,7 @@
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
         :value="user.value"
+        :placeholder="$t('run-as.placeholder')"
         @search="search"
         @input="updateRunAs"
       />
@@ -69,14 +72,14 @@
     </b-form-group>
 
     <b-form-group
-      :description="$t('workflow.sub-workflow.description')"
+      :description="$t('sub-workflow.description')"
     >
       <b-form-checkbox
         v-model="workflow.meta.subWorkflow"
         data-test-id="checkbox-sub-workflow"
         @change="$root.$emit('change-detected')"
       >
-        {{ $t('workflow.sub-workflow.label') }}
+        {{ $t('sub-workflow.label') }}
       </b-form-checkbox>
     </b-form-group>
   </div>
