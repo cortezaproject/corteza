@@ -543,6 +543,7 @@ export default {
     async determineLayout (pageLayoutID, variables = {}, redirectOnFail = true) {
       // Clear stored records so they can be refetched with latest values
       this.clearRecordSet()
+      this.resetErrors()
       let expressions = {}
 
       // Only evaluate if one of the layouts has an expressions variable

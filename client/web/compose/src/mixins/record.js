@@ -432,6 +432,10 @@ export default {
       }
     },
 
+    resetErrors () {
+      this.errors = new validator.Validated()
+    },
+
     /**
      * Returns errors, filtered for a specific field
      * @param name
