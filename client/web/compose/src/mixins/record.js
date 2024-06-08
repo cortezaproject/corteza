@@ -51,6 +51,18 @@ export default {
         this.errors.push(...set)
       },
     },
+
+    processing: {
+      handler (processing) {
+        // If processing is set to false we know that one of them is also true, so we reset all of them since we don't know which one is true
+        if (!processing) {
+          this.processingDelete = false
+          this.processingUndelete = false
+          this.processingSubmit = false
+          this.processingEdit = false
+        }
+      },
+    },
   },
 
   methods: {
@@ -161,7 +173,7 @@ export default {
         .then(() => this.updatePrompts())
         .then(() => {
           if (record.valueErrors.set) {
-            this.toastWarning(this.$t('notification:record.validationWarnings'))
+            throw new Error(this.toastWarning(this.$t('notification:record.validationWarnings')))
           } else {
             // reset the record initial state in cases where the record edit page is redirected to the record view page
             this.record = record
@@ -182,9 +194,11 @@ export default {
 
           this.toastSuccess(this.$t(`notification:record.${isNew ? 'create' : 'update'}Success`))
         })
-        .catch(this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`)))
-        .finally(() => {
-          this.processingSubmit = false
+        .catch(e => {
+          // Since processing is set to false by the view record component, we need to set it to false here if we error out
+          // Because the view record component watchers will not be triggered
+          this.processing = false
+          this.toastErrorHandler(this.$t(`notification:record.${isNew ? 'create' : 'update'}Failed`))(e)
         })
     }, 500),
 
@@ -240,7 +254,6 @@ export default {
             : 'notification:record.updateFailed',
         )))
         .finally(() => {
-          this.processingSubmit = false
           this.processing = false
         })
     }, 500),
@@ -266,7 +279,6 @@ export default {
         }).then(() => {
           this.toastSuccess(this.$t('notification:record.deleteSuccess'))
         }).finally(() => {
-          this.processingDelete = false
           this.processing = false
         }).catch(this.toastErrorHandler(this.$t('notification:record.deleteFailed')))
     }, 500),
@@ -288,7 +300,6 @@ export default {
         }).then(() => {
           this.toastSuccess(this.$t('notification:record.restoreSuccess'))
         }).finally(() => {
-          this.processingUndelete = false
           this.processing = false
         }).catch(this.toastErrorHandler(this.$t('notification:record.restoreFailed')))
     }, 500),
