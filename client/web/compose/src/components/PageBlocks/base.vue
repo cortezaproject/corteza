@@ -1,5 +1,5 @@
 <script>
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 import Wrap from './Wrap'
 
 export default {
@@ -105,6 +105,35 @@ export default {
       const { recordPageID, magnifiedBlockID } = this.$route.query
 
       return !!recordPageID || !!magnifiedBlockID
+    },
+
+    isRecordPage () {
+      return this.page && this.page.moduleID !== NoID
+    },
+
+    recordAutoCompleteParams () {
+      const { fields = [] } = this.module || {}
+      const moduleFields = fields.map(({ name }) => name)
+      const userProperties = this.$auth.user.properties() || []
+
+      const recordSuggestions = this.isRecordPage ? [
+        ...(['ownerID', 'recordID'].map(value => ({ interpolate: true, value }))),
+        {
+          interpolate: true,
+          value: 'record',
+          properties: [
+            ...(this.record.properties || []),
+            { value: 'values', properties: Object.keys(this.record.values) || [] },
+          ],
+        },
+      ] : []
+
+      return [
+        ...moduleFields,
+        ...recordSuggestions,
+        { interpolate: true, value: 'userID' },
+        { interpolate: true, value: 'user', properties: userProperties },
+      ]
     },
   },
 

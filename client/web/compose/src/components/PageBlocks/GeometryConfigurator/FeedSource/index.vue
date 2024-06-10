@@ -25,6 +25,8 @@
           v-if="feed.resource && configurator(feed)"
           :feed="feed"
           :modules="modules"
+          :page="page"
+          :record="record"
         />
       </b-card>
     </b-col>

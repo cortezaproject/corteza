@@ -17,10 +17,15 @@
             label-class="text-primary"
           >
             <b-input-group>
-              <b-form-input
+              <c-input-expression
                 id="title"
                 v-model="block.title"
+                auto-complete
+                lang="javascript"
                 :placeholder="$t('general.titlePlaceholder')"
+                :suggestion-params="recordAutoCompleteParams"
+                height="2.375rem"
+                class="flex-grow-1"
               />
 
               <b-input-group-append>
@@ -53,10 +58,15 @@
             label-class="text-primary"
           >
             <b-input-group>
-              <b-form-textarea
+              <c-input-expression
                 id="description"
                 v-model="block.description"
+                auto-complete
+                lang="javascript"
                 :placeholder="$t('general.descriptionPlaceholder')"
+                :suggestion-params="recordAutoCompleteParams"
+                height="3.448rem"
+                class="flex-grow-1"
               />
               <b-input-group-append>
                 <page-translator
@@ -257,9 +267,15 @@
                   ƒ
                 </b-button>
               </b-input-group-prepend>
-              <b-form-input
+              <c-input-expression
+                id="visibility-fields"
                 v-model="block.meta.visibility.expression"
+                auto-complete
+                lang="javascript"
                 :placeholder="$t('general.visibility.condition.placeholder')"
+                :suggestion-params="visibilityAutoCompleteParams"
+                height="2.375rem"
+                class="flex-grow-1"
               />
               <b-input-group-append>
                 <b-button
@@ -342,11 +358,15 @@
     </template>
   </b-tabs>
 </template>
+
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
-import { handle } from '@cortezaproject/corteza-vue'
+import { handle, components } from '@cortezaproject/corteza-vue'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
 import PageBlock from './index'
+
+const { CInputExpression } = components
 
 export default {
   i18nOptions: {
@@ -356,7 +376,10 @@ export default {
   components: {
     PageBlock,
     PageTranslator,
+    CInputExpression,
   },
+
+  mixins: [autocomplete],
 
   props: {
     block: {
@@ -364,8 +387,25 @@ export default {
       required: true,
     },
 
+    module: {
+      type: compose.Module,
+      required: false,
+      default: undefined,
+    },
+
     page: {
       type: compose.Page,
+      required: true,
+    },
+
+    record: {
+      type: [Object, null],
+      required: false,
+      default: null,
+    },
+
+    namespace: {
+      type: compose.Namespace,
       required: true,
     },
   },
@@ -494,6 +534,7 @@ export default {
   },
 }
 </script>
+
 <style scoped>
 .mh-tab {
   max-height: calc(100vh - 16rem);

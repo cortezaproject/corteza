@@ -264,30 +264,13 @@
             </b-col>
           </b-row>
 
-          <b-row>
-            <b-col>
-              <b-form-group
-                :label="$t('recordList.record.prefilterCommand')"
-                label-class="text-primary"
-              >
-                <b-form-textarea
-                  v-model="options.prefilter"
-                  :placeholder="$t('recordList.record.prefilterPlaceholder')"
-                />
-
-                <i18next
-                  path="recordList.record.prefilterFootnote"
-                  tag="small"
-                  class="text-muted"
-                >
-                  <code>${record.values.fieldName}</code>
-                  <code>${recordID}</code>
-                  <code>${ownerID}</code>
-                  <span><code>${userID}</code>, <code>${user.name}</code></span>
-                </i18next>
-              </b-form-group>
-            </b-col>
-          </b-row>
+          <prefilter
+            :record="record"
+            :module="recordListModule"
+            :namespace="namespace"
+            :options="options"
+            :page="page"
+          />
 
           <hr>
 

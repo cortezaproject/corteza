@@ -59,6 +59,8 @@
             :button="currentButton"
             :script="currentScript"
             :trigger="currentTrigger"
+            :record="record"
+            :module="module"
             @delete="deleteButton(currentButton)"
           />
         </b-col>
