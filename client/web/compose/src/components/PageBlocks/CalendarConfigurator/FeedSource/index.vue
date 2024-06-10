@@ -39,6 +39,9 @@
           v-if="feed.resource && configurator(feed)"
           :feed="feed"
           :modules="modules"
+          :page="page"
+          :record="record"
+          :module="module"
         />
       </b-card>
     </b-col>
@@ -65,10 +68,14 @@ export default {
     namespaces: 'block',
   },
 
-  components: {
-  },
-
   extends: base,
+
+  props: {
+    page: {
+      type: compose.Page,
+      required: true,
+    },
+  },
 
   computed: {
     ...mapGetters({

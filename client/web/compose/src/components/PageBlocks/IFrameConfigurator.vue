@@ -18,8 +18,12 @@
       :description="enableFromRecordURL ? $t('iframe.srcDesc') : ''"
       label-class="text-primary"
     >
-      <b-form-input
+      <c-input-expression
         v-model="options.src"
+        auto-complete
+        lang="text"
+        :suggestion-params="recordAutoCompleteParams"
+        height="2.375rem"
         type="url"
       />
       <i18next
@@ -37,6 +41,10 @@
 </template>
 <script>
 import base from './base'
+import { components } from '@cortezaproject/corteza-vue'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
+
+const { CInputExpression } = components
 
 export default {
   i18nOptions: {
@@ -45,7 +53,11 @@ export default {
 
   name: 'IFrame',
 
+  components: { CInputExpression },
+
   extends: base,
+
+  mixins: [autocomplete],
 
   computed: {
     fields () {

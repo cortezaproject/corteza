@@ -95,9 +95,11 @@
           :label="$t('calendar.recordFeed.prefilterLabel')"
           label-class="text-primary"
         >
-          <b-form-textarea
+          <c-input-expression
             v-model="feed.options.prefilter"
-            :value="true"
+            height="3.688rem"
+            lang="javascript"
+            :suggestion-params="recordAutoCompleteParams"
             :placeholder="$t('calendar.recordFeed.prefilterPlaceholder')"
           />
 
@@ -142,7 +144,10 @@
 <script>
 import base from './base'
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputColorPicker } = components
+import { compose, NoID } from '@cortezaproject/corteza-js'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
+
+const { CInputColorPicker, CInputExpression } = components
 
 export default {
   i18nOptions: {
@@ -151,9 +156,25 @@ export default {
 
   components: {
     CInputColorPicker,
+    CInputExpression,
   },
 
   extends: base,
+
+  mixins: [autocomplete],
+
+  props: {
+    record: {
+      type: compose.Record,
+      required: false,
+      default: undefined,
+    },
+
+    page: {
+      type: compose.Page,
+      required: true,
+    },
+  },
 
   computed: {
     /**
@@ -212,6 +233,14 @@ export default {
 
     themeSettings () {
       return this.$Settings.get('ui.studio.themes', [])
+    },
+
+    isRecordPage () {
+      return this.page && this.page.moduleID !== NoID
+    },
+
+    recordAutoCompleteParams () {
+      return this.processRecordAutoCompleteParams({ operators: true })
     },
   },
 

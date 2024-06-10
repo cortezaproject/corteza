@@ -112,4 +112,25 @@ export class User {
   clone (): User {
     return new User(JSON.parse(JSON.stringify(this)))
   }
+
+  properties (): string[] {
+    return [
+      'userID',
+      'handle',
+      'username',
+      'email',
+      'name',
+      'emailConfirmed',
+      'labels',
+      'meta',
+      'canGrant',
+      'canUpdateUser',
+      'canDeleteUser',
+      'createdAt',
+      'updatedAt',
+      'deletedAt',
+      'suspendedAt',
+      'roles',
+    ]
+  }
 }

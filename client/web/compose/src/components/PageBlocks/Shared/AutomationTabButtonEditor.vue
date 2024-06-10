@@ -8,8 +8,13 @@
       :label="$t('buttonLabel')"
       label-class="text-primary"
     >
-      <b-form-input
+      <c-input-expression
         v-model="button.label"
+        auto-complete
+        lang="javascript"
+        :suggestion-params="recordAutoCompleteParams"
+        :page="page"
+        height="2.375rem"
       />
       <i18next
         path="block:interpolationFootnote"
@@ -94,12 +99,22 @@
 </template>
 <script>
 import { compose, NoID } from '@cortezaproject/corteza-js'
+import { components } from '@cortezaproject/corteza-vue'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
+
+const { CInputExpression } = components
 
 export default {
   i18nOptions: {
     namespaces: 'block',
     keyPrefix: 'automation',
   },
+
+  components: {
+    CInputExpression,
+  },
+
+  extends: autocomplete,
 
   props: {
     button: {
@@ -127,6 +142,12 @@ export default {
     block: {
       type: compose.PageBlock,
       required: true,
+    },
+
+    module: {
+      type: compose.Module,
+      required: false,
+      default: undefined,
     },
   },
 
