@@ -98,7 +98,12 @@ export default {
     autoCompleteSuggestions: {
       type: Array,
       default: () => ([])
-    }
+    },
+
+    initializeEditor: {
+      type: Function,
+      required: false,
+    },
   },
 
   computed: {
@@ -115,6 +120,11 @@ export default {
 
   methods: {
     editorInit (editor) {
+      if (this.initializeEditor && typeof this.initializeEditor === 'function') {
+        this.initializeEditor(editor)
+        return
+      }
+
       require('brace/mode/text')
       require('brace/mode/html')
       require('brace/mode/css')

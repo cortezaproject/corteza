@@ -88,7 +88,6 @@
   </div>
 </template>
 <script>
-// import FieldEditor from '../ModuleFields/Editor'
 import { compose, validator } from '@cortezaproject/corteza-js'
 import FilterToolbox from 'corteza-webapp-compose/src/components/Common/FilterToolbox.vue'
 
@@ -98,7 +97,6 @@ export default {
   },
 
   components: {
-    // FieldEditor,
     FilterToolbox,
   },
 

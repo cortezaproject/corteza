@@ -8,9 +8,11 @@
       <b-row v-if="textInput">
         <b-col>
           <b-form-group label-class="text-primary">
-            <b-form-textarea
+            <c-input-expressions
               v-model="options.prefilter"
-              :placeholder="$t('recordList.record.prefilterPlaceholder')"
+              height="59px"
+              lang="javascript"
+              :suggestion-tree="filterSuggestionTree"
             />
 
             <i18next
@@ -55,12 +57,16 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import { compose, validator } from '@cortezaproject/corteza-js'
 import {
   getRecordListFilterSql,
   trimChar,
 } from 'corteza-webapp-compose/src/lib/record-filter.js'
 import FilterToolbox from 'corteza-webapp-compose/src/components/Common/FilterToolbox.vue'
+import { getRecordBasedSuggestions } from 'corteza-webapp-compose/src/lib/suggestions-tree.js'
+
+const { CInputExpressions } = components
 
 export default {
   i18nOptions: {
@@ -71,6 +77,7 @@ export default {
 
   components: {
     FilterToolbox,
+    CInputExpressions,
   },
 
   props: {
@@ -88,6 +95,18 @@ export default {
       type: compose.Module,
       required: true,
     },
+
+    record: {
+      type: [Object, null],
+      required: false,
+      default: null,
+    },
+
+    onRecordPage: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
 
   data () {
@@ -95,6 +114,17 @@ export default {
       textInput: true,
       filterGroup: [],
     }
+  },
+
+  computed: {
+    filterSuggestionTree () {
+      const moduleFields = (this.module.fields || []).map(({ name }) => name)
+      const userProperties = this.$auth.user.properties()
+      const recordProperties = this.record ? this.record.properties() : undefined
+      const recordValueFields = this.record ? Object.keys(this.record.values) : undefined
+
+      return getRecordBasedSuggestions({ moduleFields, userProperties, recordProperties, isRecordPage: this.onRecordPage, recordValueFields })
+    },
   },
 
   created () {

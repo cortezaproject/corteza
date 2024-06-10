@@ -447,4 +447,29 @@ export class Record {
   get labels (): object {
     return this.meta
   }
+
+  properties (): string[] {
+    return [
+      'recordID',
+      'moduleID',
+      'namespaceID',
+      'revision',
+      'values',
+      'meta',
+      'createdAt',
+      'updatedAt',
+      'deletedAt',
+      'ownedBy',
+      'createdBy',
+      'updatedBy',
+      'deletedBy',
+      'canUpdateRecord',
+      'canReadRecord',
+      'canDeleteRecord',
+      'canUndeleteRecord',
+      'canManageOwnerOnRecord',
+      'canSearchRevision',
+      'canGrant',
+    ]
+  }
 }
