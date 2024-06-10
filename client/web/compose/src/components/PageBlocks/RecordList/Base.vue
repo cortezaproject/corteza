@@ -742,7 +742,7 @@
 <script>
 import axios from 'axios'
 import { mapGetters, mapActions } from 'vuex'
-import base from 'corteza-webapp-compose/src/components/PageBlocks/base.vue'
+import base from 'corteza-webapp-compose/src/components/PageBlocks/base'
 import FieldViewer from 'corteza-webapp-compose/src/components/ModuleFields/Viewer'
 import FieldEditor from 'corteza-webapp-compose/src/components/ModuleFields/Editor'
 import ExporterModal from 'corteza-webapp-compose/src/components/Public/Record/Exporter'
