@@ -3,6 +3,7 @@
     class="position-relative"
   >
     <ace-editor
+      ref="aceeditor"
       v-model="editorValue"
       :lang="lang"
       :mode="lang"
@@ -30,7 +31,7 @@
 <script>
 import AceEditor from 'vue2-ace-editor'
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faExpandAlt} from '@fortawesome/free-solid-svg-icons'
+import { faExpandAlt } from '@fortawesome/free-solid-svg-icons'
 
 library.add(faExpandAlt)
 
@@ -79,7 +80,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    
+
     autoComplete: {
       type: Boolean,
       default: false,
@@ -96,9 +97,24 @@ export default {
     },
 
     autoCompleteSuggestions: {
-      type: Array,
-      default: () => ([])
-    }
+      type: [Array, Object],
+      default: () => ([]),
+    },
+
+    initExpressions: {
+      type: Boolean,
+      required: false,
+    },
+
+    fontFamily: {
+      type: String,
+      default: '',
+    },
+
+    placeholder: {
+      type: String,
+      default: '',
+    },
   },
 
   computed: {
@@ -122,7 +138,7 @@ export default {
       require('brace/mode/json')
       require('brace/mode/javascript')
       require('brace/mode/json')
-      
+
       require('brace/snippets/text')
       require('brace/snippets/html')
       require('brace/snippets/css')
@@ -147,33 +163,140 @@ export default {
         useWorker: false,
         readOnly: this.readOnly,
         highlightActiveLine: this.highlightActiveLine,
+        cursorStyle: 'smooth',
+        // // minLines: this.height,
+        // maxPixelHeight: 100,
 
         ...(this.autoComplete && {
           enableBasicAutocompletion: true,
           enableLiveAutocompletion: true,
           enableSnippets: true,
-          enableEmmet: true
+          enableEmmet: true,
         }),
-      })
-      
-      const self = this;
-      const staticWordCompleter = {
-        getCompletions: function (editor, session, pos, prefix, callback) {
-          var autoCompleteSuggestions = self.autoCompleteSuggestions;
-          callback(
-            null,
-            autoCompleteSuggestions.map(function ({ caption, value, meta }) {
-              return {
-                caption,
-                value,
-                meta,
-              };
-            })
-          );
-        },
-      };
 
-      editor.completers.push(staticWordCompleter);
+        ...(this.fontFamily && { fontFamily: this.fontFamily }),
+        ...(this.fontSize && { fontSize: this.fontSize }),
+      })
+
+      editor.on('input', this.updatePlaceholder)
+      this.updatePlaceholder(undefined, editor)
+
+      if (this.initExpressions) {
+        this.processExpressionAutoComplete(editor)
+      } else {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
+        const self = this
+        const staticWordCompleter = {
+          getCompletions: function (editor, session, pos, prefix, callback) {
+            const autoCompleteSuggestions = self.autoCompleteSuggestions
+            callback(
+              null,
+              autoCompleteSuggestions.map(function ({ caption, value, meta }) {
+                return {
+                  caption,
+                  value,
+                  meta,
+                }
+              }),
+            )
+          },
+        }
+
+        editor.completers.push(staticWordCompleter)
+      }
+    },
+
+    updatePlaceholder (_, editor) {
+      if (!this.placeholder) return
+
+      const shouldShow = !editor.session.getValue().length
+      let node = editor.renderer.emptyMessageNode
+
+      if (!shouldShow && node) {
+        editor.renderer.scroller.removeChild(editor.renderer.emptyMessageNode)
+        editor.renderer.emptyMessageNode = null
+      } else if (shouldShow && !node) {
+        node = editor.renderer.emptyMessageNode = document.createElement('div')
+        node.textContent = this.placeholder
+        node.className = 'ace_placeholder'
+        node.style.padding = '7px 10px'
+        node.style.position = 'absolute'
+        node.style.zIndex = 9
+        node.style.opacity = 0.5
+        editor.renderer.scroller.appendChild(node)
+      }
+    },
+
+    processExpressionAutoComplete (editor) {
+      const staticWordCompleter = {
+        getCompletions: (editor, session, pos, prefix, callback) => {
+          const context = this.getContext(editor, session, pos)
+          const suggestions = this.getSuggestionsForContext(context)
+
+          callback(null, suggestions.map(suggestion => {
+            let caption = ''
+            let value = ''
+
+            if (typeof suggestion === 'string') {
+              caption = suggestion
+              value = suggestion
+            } else {
+              caption = suggestion.caption
+              value = suggestion.value
+            }
+
+            return {
+              caption,
+              value,
+              meta: 'variable',
+              completer: {
+                insertMatch: function (insertEditor, data) {
+                  const insertValue = data.value
+
+                  insertEditor.jumpToMatching()
+                  const line = session.getLine(pos.row)
+                  let lastSpaceIndex = line.lastIndexOf(' ') >= 0 ? line.lastIndexOf(' ') : 0
+
+                  if (lastSpaceIndex > 0) {
+                    lastSpaceIndex += 1
+                  }
+
+                  insertEditor.session.replace({
+                    start: { row: pos.row, column: lastSpaceIndex },
+                    end: { row: pos.row, column: pos.column },
+                  }, insertValue)
+                },
+              },
+            }
+          }))
+        },
+      }
+
+      editor.completers = [staticWordCompleter]
+
+      editor.commands.on('afterExec', function (e) {
+        if (['insertstring', 'Return'].includes(e.command.name) || /^[\w.($]$/.test(e.args)) {
+          editor.execCommand('startAutocomplete')
+        }
+      })
+
+      editor.renderer.setScrollMargin(7, 7)
+      editor.renderer.setPadding(10)
+    },
+
+    getContext (editor, session, pos) {
+      const line = session.getLine(pos.row)
+      const lastSpaceIndex = line.lastIndexOf(' ') >= 0 ? line.lastIndexOf(' ') : 0
+      const textBeforeCursor = line.slice(lastSpaceIndex, pos.column)
+      const context = textBeforeCursor.split('.').slice(0, -1).join('.').trim()
+
+      return context
+    },
+
+    getSuggestionsForContext (context) {
+      const suggestions = this.autoCompleteSuggestions
+
+      return suggestions[context] || []
     },
   },
 }

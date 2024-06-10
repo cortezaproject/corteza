@@ -45,9 +45,11 @@
         :label="$t('recordList.record.prefilterLabel')"
         label-class="text-primary"
       >
-        <b-form-textarea
+        <c-input-expression
           v-model.trim="options.filter"
-          :value="true"
+          height="3.688rem"
+          lang="javascript"
+          :suggestion-params="recordAutoCompleteParams"
           :placeholder="$t('recordList.record.prefilterPlaceholder')"
         />
         <i18next
@@ -196,7 +198,12 @@
 import FieldEditor from '../ModuleFields/Editor'
 import { mapGetters } from 'vuex'
 import { compose, validator } from '@cortezaproject/corteza-js'
+import { components } from '@cortezaproject/corteza-vue'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
+
 import base from './base'
+
+const { CInputExpression } = components
 
 export default {
   i18nOptions: {
@@ -207,9 +214,12 @@ export default {
 
   components: {
     FieldEditor,
+    CInputExpression,
   },
 
   extends: base,
+
+  mixins: [autocomplete],
 
   data () {
     return {
@@ -274,6 +284,10 @@ export default {
         { value: 'newTab', text: this.$t('recordOrganizer.openInNewTab') },
         { value: 'modal', text: this.$t('recordOrganizer.openInModal') },
       ]
+    },
+
+    recordAutoCompleteParams () {
+      return this.processRecordAutoCompleteParams({ module: this.selectedModule })
     },
   },
 

@@ -44,9 +44,11 @@
         :label="$t('recordList.record.prefilterLabel')"
         label-class="text-primary"
       >
-        <b-form-textarea
+        <c-input-expression
           v-model.trim="options.filter"
-          :value="true"
+          height="3.688rem"
+          lang="javascript"
+          :suggestion-params="recordAutoCompleteParams"
           :placeholder="$t('recordList.record.prefilterPlaceholder')"
         />
 
@@ -152,7 +154,11 @@
 </template>
 <script>
 import { mapGetters } from 'vuex'
+import { components } from '@cortezaproject/corteza-vue'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
 import base from './base'
+
+const { CInputExpression } = components
 
 export default {
   i18nOptions: {
@@ -161,7 +167,14 @@ export default {
 
   name: 'CommentConfigurator',
 
+  components: {
+    CInputExpression,
+  },
+
   extends: base,
+
+  mixins: [autocomplete],
+
   data () {
     return {
       referenceList: [
@@ -219,6 +232,10 @@ export default {
         ]
       }
       return []
+    },
+
+    recordAutoCompleteParams () {
+      return this.processRecordAutoCompleteParams({ module: this.selectedModule, operators: true })
     },
   },
 
