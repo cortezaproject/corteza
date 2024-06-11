@@ -72,7 +72,7 @@ interface Options {
 const defaults: Readonly<Options> = Object.freeze({
   moduleID: NoID,
   prefilter: '',
-  presort: '',
+  presort: 'createdAt DESC',
   fields: [],
   hideHeader: false,
   hideAddButton: false,

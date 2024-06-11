@@ -857,6 +857,11 @@ export default {
           ...this.recordListModule.fields,
           ...this.recordListModule.systemFields().map(sf => {
             sf.label = this.$t(`field:system.${sf.name}`)
+
+            if (sf.name === 'recordID') {
+              sf.name = 'ID'
+            }
+
             return sf
           }),
         ].map(({ name, label }) => ({ name, label }))

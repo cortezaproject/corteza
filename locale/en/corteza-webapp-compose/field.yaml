@@ -222,6 +222,7 @@ privacy:
     label: Sensitive field usage disclosure (visible on data-privacy console)
 system:
   id: Record ID
+  ID: Record ID
   moduleID: Module ID
   namespaceID: Namespace ID
   revision: Record revision
