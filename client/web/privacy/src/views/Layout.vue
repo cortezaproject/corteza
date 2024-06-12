@@ -68,7 +68,7 @@
       </template>
 
       <div
-        class="d-flex flex-column w-100"
+        class="d-flex flex-column w-100 pb-safari"
       >
         <router-view
           class="flex-grow-1 overflow-auto"
@@ -129,3 +129,13 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+/* fixes bottom part of page being cut off */
+/* CSS specific to iOS devices */
+@supports (-webkit-touch-callout: none) {
+  .pb-safari {
+    padding-bottom: 5.5em;
+  }
+}
+</style>
