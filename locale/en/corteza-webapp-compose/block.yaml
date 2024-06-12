@@ -135,9 +135,14 @@ general:
   magnifyLabel: Block Magnification
   customID:
     label: Custom ID
-    placeholder: CustomID
-    description: Can be used to reference the block in Custom CSS
+    placeholder: customID
+    description: Used to reference the block in Custom CSS (#customID). Must be unique on the page.
     invalid-state: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dashes. Must end with letter or number
+  customCSSClass:
+    label: Custom CSS Class
+    placeholder: custom-class-1   custom-class-2
+    description: Used to reference the block in Custom CSS (.custom-class)
+    invalid-state: Can contain only letters, numbers, underscores and dashes. Must end with letter or number. Use spaces to separate multiple classes
   magnifyOptions:
     disabled: Disabled
     modal: Modal

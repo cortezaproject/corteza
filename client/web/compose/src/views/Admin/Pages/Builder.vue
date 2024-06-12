@@ -544,7 +544,9 @@ export default {
 
       if (!block) return true
 
-      return [handle.handleState(block.meta.customID)].includes(false)
+      const { customCSSClass, customID } = block.meta
+
+      return [handle.handleState(customID), handle.classState(customCSSClass)].includes(false)
     },
   },
 

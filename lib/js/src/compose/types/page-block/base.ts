@@ -25,6 +25,7 @@ interface PageBlockMeta {
   hidden?: boolean;
   tempID?: string;
   customID?: string;
+  customCSSClass?: string;
 }
 
 export type PageBlockInput = PageBlock | Partial<PageBlock>
@@ -47,6 +48,7 @@ export class PageBlock {
     hidden: false,
     tempID: undefined,
     customID: undefined,
+    customCSSClass: undefined,
   }
 
   public style: PageBlockStyle = {

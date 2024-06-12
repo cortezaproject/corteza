@@ -4,7 +4,7 @@
       :id="blockID"
       no-body
       class="d-flex flex-column h-100 shadow-sm overflow-hidden position-static"
-      :class="[blockClass, cardClass]"
+      :class="[blockClass, cardClass, customCSSClass]"
     >
       <b-card-header
         v-if="showHeader"

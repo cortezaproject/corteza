@@ -50,6 +50,11 @@ export default {
       return meta.customID || blockID
     },
 
+    customCSSClass () {
+      const { meta } = this.block || {}
+      return meta.customCSSClass
+    },
+
     blockClass () {
       return [
         'block',

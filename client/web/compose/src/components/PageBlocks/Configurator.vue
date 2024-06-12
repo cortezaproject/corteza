@@ -118,6 +118,37 @@
           lg="6"
         >
           <b-form-group
+            :label="$t('general.customCSSClass.label')"
+            label-class="text-primary"
+          >
+            <b-form-input
+              id="customCSSClass"
+              v-model="block.meta.customCSSClass"
+              :state="customCSSClassState"
+              :placeholder="$t('general.customCSSClass.placeholder')"
+            />
+
+            <b-form-invalid-feedback
+              v-if="customCSSClassState === false"
+              :state="customCSSClassState"
+            >
+              {{ $t('general.customCSSClass.invalid-state') }}
+            </b-form-invalid-feedback>
+
+            <b-form-text
+              v-else
+              class="text-muted"
+            >
+              {{ $t('general.customCSSClass.description') }}
+            </b-form-text>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
             :label="$t('general.headerStyle')"
             label-class="text-primary"
           >
@@ -126,6 +157,7 @@
               v-model="block.style.variants.headerText"
               :options="textVariants"
               :reduce="o => o.value"
+              :clearable="false"
               :placeholder="$t('general.label.none')"
               label="text"
               class="mb-1"
@@ -277,6 +309,10 @@ export default {
 
     customIDState () {
       return handle.handleState(this.block.meta.customID)
+    },
+
+    customCSSClassState () {
+      return handle.classState(this.block.meta.customCSSClass)
     },
 
     activeTab () {
