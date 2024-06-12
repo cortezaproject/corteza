@@ -1,10 +1,12 @@
 <template>
   <b-card
+    id="resource-list-wrapper"
     no-body
     footer-bg-variant="light"
     footer-class="p-0"
     :header-class="`border-0 ${cardHeaderClass}`"
     class="shadow-sm"
+    style="min-height: 45rem;"
   >
     <template #header>
       <b-container
@@ -157,18 +159,18 @@
       v-if="showFooter"
       #footer
     >
-      <div class="resource-list-footer d-flex align-items-center flex-wrap justify-content-between px-3 py-2 gap-1">
-        <div class="d-flex align-items-center flex-wrap gap-3 gap-col-3">
+      <div class="resource-list-footer d-flex align-items-center flex-wrap px-3 py-2 gap-2">
+        <div class="d-flex align-items-center flex-wrap gap-2">
           <div
             v-if="!hideTotal"
-            class="text-nowrap text-truncate"
+            class="text-nowrap text-truncate py-1"
           >
             {{ getPagination }}
           </div>
 
           <div
             v-if="!hidePerPageOption"
-            class="d-flex align-items-center gap-1 text-nowrap"
+            class="d-flex align-items-center gap-1 text-nowrap ml-auto"
           >
             <span>
               {{ $t('general:resourceList.pagination.recordsPerPage') }}
@@ -185,7 +187,7 @@
 
         <div
           v-if="!hidePagination"
-          class="d-flex align-items-center justify-content-end"
+          class="d-flex align-items-center ml-auto"
         >
           <b-button-group class="gap-1">
             <b-button
