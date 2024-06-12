@@ -50,7 +50,7 @@
       </c-sidebar>
     </aside>
 
-    <main class="d-inline-flex h-100 overflow-auto">
+    <main class="d-inline-flex h-100 overflow-auto pb-safari">
       <!--
         Content spacer
         Large and xl screens should push in content when the nav is expanded
@@ -144,3 +144,13 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+/* fixes bottom part of page being cut off */
+/* CSS specific to iOS devices */
+@supports (-webkit-touch-callout: none) {
+  .pb-safari {
+    padding-bottom: 5.5em;
+  }
+}
+</style>
