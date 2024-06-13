@@ -706,10 +706,10 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@cortezaproject/corteza-js@^2023.9.6-b":
-  version "2023.9.6-b"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.9.6-b.tgz#44de2d07cb51cb4c54d5500e582839e5c08a7c28"
-  integrity sha512-xNeVxw2lnNtAa7ZxOWKlhh//fwS/ZafYa4Uc5T6MijgqBLFU4lLlIAFqEa62cfSbc+b5yY2Hh0QOQGVVEaSgdQ==
+"@cortezaproject/corteza-js@^2023.9.7-rc.1":
+  version "2023.9.7-rc.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.9.7-rc.1.tgz#b6bd5ba37f1cd9a0e7ad64e74c694e7aa3293347"
+  integrity sha512-41kqlyHjfVXZSh19sySJXWZA+lG84ENEhK8Nnpf+7cd0IS7lyMtmf7Q/W/FGfJXc1Mr9bqbbRvroONaCGwBjBQ==
   dependencies:
     axios "^0.28.0"
     hex-rgb "^4.1.0"
@@ -720,12 +720,12 @@
     numeral "^2.0.6"
     pino "^5.16.0"
 
-"@cortezaproject/corteza-vue@^2023.9.6-b":
-  version "2023.9.6-b"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2023.9.6-b.tgz#e9e3642d0218bb848475a3a9bfab01b0626554af"
-  integrity sha512-npMCkURGF1uDyZjaHkY7q3rI28iYlAYGjaVOQPONxyVc5+l0eP3MVIDxmdDq8y2y9k1Cdnwg1PRAJuYElNApLg==
+"@cortezaproject/corteza-vue@^2023.9.7-rc.1":
+  version "2023.9.7-rc.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2023.9.7-rc.1.tgz#8c4c08e7912ad4da8f09952de8a7471644147ee0"
+  integrity sha512-BopFmWsSyHbsodX97E8ktmjCtdR4+GlR0J2HDLsItqyyyFEOnfoyDn6ShMrxa3OiPlf/13YFr4iKuzMHq0YezA==
   dependencies:
-    "@cortezaproject/corteza-js" "^2023.9.6-b"
+    "@cortezaproject/corteza-js" "^2023.9.7-rc.1"
     "@fortawesome/fontawesome-svg-core" "^1.2.26"
     "@fortawesome/free-solid-svg-icons" "^5.12.0"
     "@fortawesome/vue-fontawesome" "^0.1.9"
@@ -733,7 +733,6 @@
     "@popperjs/core" "^2.11.2"
     acorn "^7.3.1"
     bootstrap-vue "2.23.1"
-    echarts "^5.3.3"
     fuzzysort "^1.2.1"
     highlight.js "^10.4.1"
     html-parse-stringify "^3.0.1"
@@ -754,8 +753,8 @@
     tiptap "^1.26.0"
     tiptap-extensions "^1.28.4"
     v-photoswipe "^1.0.3-1"
+    vue "2.6.14"
     vue-color "^2.8.1"
-    vue-echarts "^6.2.3"
     vue-select "3.20.2"
     vue-swatches "^1.0.4"
     vue2-ace-editor "^0.0.15"
@@ -4401,14 +4400,6 @@ ecc-jsbn@~0.1.1:
   dependencies:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
-
-echarts@^5.3.3:
-  version "5.4.3"
-  resolved "https://registry.yarnpkg.com/echarts/-/echarts-5.4.3.tgz#f5522ef24419164903eedcfd2b506c6fc91fb20c"
-  integrity sha512-mYKxLxhzy6zyTi/FaEbJMOZU1ULGEQHaeIeuMR5L+JnJTpz+YR03mnnpBhbR4+UYJAgiXgpyTVLffPAjOTLkZA==
-  dependencies:
-    tslib "2.3.0"
-    zrender "5.4.4"
 
 editorconfig@^1.0.4:
   version "1.0.4"
@@ -10348,11 +10339,6 @@ reselect@^3.0.1:
   resolved "https://registry.yarnpkg.com/reselect/-/reselect-3.0.1.tgz#efdaa98ea7451324d092b2b2163a6a1d7a9a2147"
   integrity sha512-b/6tFZCmRhtBMa4xGqiiRp9jh9Aqi2A687Lo265cN0/QohJQEBPiQ52f4QB6i0eF3yp3hmLL21LSGBcML2dlxA==
 
-resize-detector@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/resize-detector/-/resize-detector-0.3.0.tgz#fe495112e184695500a8f51e0389f15774cb1cfc"
-  integrity sha512-R/tCuvuOHQ8o2boRP6vgx8hXCCy87H1eY9V5imBYeVNyNVpuL9ciReSccLj2gDcax9+2weXy3bc8Vv+NRXeEvQ==
-
 resolve-cwd@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/resolve-cwd/-/resolve-cwd-2.0.0.tgz#00a9f7387556e27038eae232caa372a6a59b665a"
@@ -11899,11 +11885,6 @@ tsconfig-paths@^3.15.0:
     minimist "^1.2.6"
     strip-bom "^3.0.0"
 
-tslib@2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/tslib/-/tslib-2.3.0.tgz#803b8cdab3e12ba581a4ca41c8839bbb0dacb09e"
-  integrity sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==
-
 tslib@^1.9.0:
   version "1.14.1"
   resolved "https://registry.yarnpkg.com/tslib/-/tslib-1.14.1.tgz#cf2d38bdc34a134bcaf1091c41f6619e2f672d00"
@@ -12372,19 +12353,6 @@ vue-color@^2.8.1:
     lodash.throttle "^4.0.0"
     material-colors "^1.0.0"
     tinycolor2 "^1.1.2"
-
-vue-demi@^0.13.11:
-  version "0.13.11"
-  resolved "https://registry.yarnpkg.com/vue-demi/-/vue-demi-0.13.11.tgz#7d90369bdae8974d87b1973564ad390182410d99"
-  integrity sha512-IR8HoEEGM65YY3ZJYAjMlKygDQn25D5ajNFNoKh9RSDMQtlzCxtfQjdQgv9jjK+m3377SsJXY8ysq8kLCZL25A==
-
-vue-echarts@^6.2.3:
-  version "6.6.8"
-  resolved "https://registry.yarnpkg.com/vue-echarts/-/vue-echarts-6.6.8.tgz#e00c2a0fcb39681fbb41e0afacbe88aef7e80f24"
-  integrity sha512-3EGrxKGCGjHnkhudRQQ4fkK5iJxxXNQ1fXvSWA/7mzR/oV7BBSHYvC3gDbG/WIW0A/Fcx2H8k5H3NDyWgjyi8g==
-  dependencies:
-    resize-detector "^0.3.0"
-    vue-demi "^0.13.11"
 
 vue-eslint-parser@^2.0.3:
   version "2.0.3"
@@ -13058,10 +13026,3 @@ yorkie@^2.0.0:
     is-ci "^1.0.10"
     normalize-path "^1.0.0"
     strip-indent "^2.0.0"
-
-zrender@5.4.4:
-  version "5.4.4"
-  resolved "https://registry.yarnpkg.com/zrender/-/zrender-5.4.4.tgz#8854f1d95ecc82cf8912f5a11f86657cb8c9e261"
-  integrity sha512-0VxCNJ7AGOMCWeHVyTrGzUgrK4asT4ml9PEkeGirAkKNYXYzoPJCLvmyfdoOXcjTHPs10OZVMfD1Rwg16AZyYw==
-  dependencies:
-    tslib "2.3.0"
