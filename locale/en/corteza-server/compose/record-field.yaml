@@ -2,4 +2,5 @@ errors:
   empty: This field is required
   invalidValue: Invalid field value
   invalidRef: Invalid field reference
-  duplicateValueInSet: This value already exists in list
+  duplicateValueInSet: The values [{{value}}] already exist in another record"
+  duplicateValue: The value "{{value}}" already exists in another record

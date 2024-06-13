@@ -9,7 +9,7 @@
       <span
         :class="{ 'text-primary': error.kind.includes('warning') }"
       >
-        {{ error.message }}
+        {{ $t(error.message, { interpolation: { escapeValue: false }, value: error.meta.value}) }}
       </span>
     </b-form-invalid-feedback>
   </div>
@@ -18,6 +18,10 @@
 import { validator } from '@cortezaproject/corteza-js'
 
 export default {
+  i18nOptions: {
+    namespaces: 'field',
+  },
+
   props: {
     errors: {
       type: validator.Validated,
