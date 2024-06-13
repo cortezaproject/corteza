@@ -69,7 +69,7 @@ func (l Language) NewEvaluableWithContext(c context.Context, expression string) 
 	}
 	if err != nil {
 		pos := p.scanner.Pos()
-		return nil, fmt.Errorf("parsing error: %s - %d:%d %s", p.scanner.Position, pos.Line, pos.Column, err)
+		return nil, fmt.Errorf("parsing error: %s - %d:%d %w", p.scanner.Position, pos.Line, pos.Column, err)
 	}
 
 	return eval, nil
@@ -88,7 +88,7 @@ func (l Language) EvaluateWithContext(c context.Context, expression string, para
 	}
 	v, err := eval(c, parameter)
 	if err != nil {
-		return nil, fmt.Errorf("can not evaluate %s: %v", expression, err)
+		return nil, fmt.Errorf("can not evaluate %s: %w", expression, err)
 	}
 	return v, nil
 }

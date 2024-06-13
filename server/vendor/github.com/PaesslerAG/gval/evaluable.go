@@ -225,7 +225,7 @@ func (*Parser) callEvaluable(fullname string, fun Evaluable, args ...Evaluable) 
 		f, err := fun(c, v)
 
 		if err != nil {
-			return nil, fmt.Errorf("could not call function: %v", err)
+			return nil, fmt.Errorf("could not call function: %w", err)
 		}
 
 		defer func() {

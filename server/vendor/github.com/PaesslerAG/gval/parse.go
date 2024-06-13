@@ -79,7 +79,7 @@ func (p *Parser) parse(c context.Context) (Evaluable, error) {
 func parseString(c context.Context, p *Parser) (Evaluable, error) {
 	s, err := strconv.Unquote(p.TokenText())
 	if err != nil {
-		return nil, fmt.Errorf("could not parse string: %s", err)
+		return nil, fmt.Errorf("could not parse string: %w", err)
 	}
 	return p.Const(s), nil
 }

@@ -78,7 +78,7 @@ func (p *Parser) isCamouflaged() bool {
 // Do not call Rewind() on a camouflaged Parser
 func (p *Parser) Camouflage(unit string, expected ...rune) {
 	if p.isCamouflaged() {
-		panic(fmt.Errorf("can only Camouflage() after Scan(): %v", p.camouflage))
+		panic(fmt.Errorf("can only Camouflage() after Scan(): %w", p.camouflage))
 	}
 	p.camouflage = p.Expected(unit, expected...)
 }
