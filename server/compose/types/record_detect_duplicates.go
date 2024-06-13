@@ -124,12 +124,12 @@ func (rule DeDupRule) IssueKind() string {
     return out.String()
 }
 
-func (rule DeDupRule) IssueMessage(value string) (out string) {
-    return fmt.Sprintf("The value %s already exists in another record", value)
+func (rule DeDupRule) IssueMessage() (out string) {
+    return "record-field.errors.duplicateValue"
 }
 
-func (rule DeDupRule) IssueMultivalueMessage(values []string) (out string) {
-    return fmt.Sprintf("The values [%s] already exist in another record", strings.Join(values, ", "))
+func (rule DeDupRule) IssueMultivalueMessage() (out string) {
+    return "record-field.errors.duplicateValueInSet"
 }
 
 func (rule DeDupRule) String() string {
@@ -146,6 +146,8 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
         recVal = rec.Values
     )
 
+    out = &RecordValueErrorSet{}
+
     for _, c := range rule.ConstraintSet {
         rvv := recVal.FilterByName(c.Attribute)
         if rvv.Len() == 0 {
@@ -160,73 +162,80 @@ func (rule DeDupRule) checkDuplication(ctx context.Context, ls localeService, re
         moduleField := rec.module.Fields.FindByName(c.Attribute)
 
         if moduleField.Multi && c.IsAllEqual() {
-            return rule.multiValueAllEqual(ctx, ls, c, rvv, existingVv)
-        }
+            multiValErr := rule.multiValueAllEqual(ctx, ls, c, rvv, existingVv)
+            out.Push(multiValErr)
+        } else {
+            rvvValueMap := make(map[string]*RecordValue)
+            _ = rvv.Walk(func(rv *RecordValue) error {
+                if len(rv.Value) > 0 {
+                    rvvValueMap[rv.Value] = rv
+                }
+                return nil
+            })
 
-        _ = vv.Walk(func(v *RecordValue) error {
-            if v.RecordID != rec.ID {
-                _ = rvv.Walk(func(rv *RecordValue) error {
-                    if len(rv.Value) > 0 && matchValue(c.Modifier, rv.Value, v.Value) {
-                        valErr.Push(RecordValueError{
-                            Kind:    rule.IssueKind(),
-                            Message: ls.T(ctx, "compose", rule.IssueMessage(v.Value)),
-                            Meta: map[string]interface{}{
-                                "field":         v.Name,
-                                "value":         v.Value,
-                                "dupValueField": rv.Name,
-                                "recordID":      cast.ToString(v.RecordID),
-                                "rule":          rule.String(),
-                            },
-                        })
-                    }
+            _ = vv.Walk(func(v *RecordValue) error {
+                if v.RecordID == rec.ID {
                     return nil
-                })
+                }
+
+                if rv, exists := rvvValueMap[v.Value]; exists && matchValue(c.Modifier, rv.Value, v.Value) {
+                    valErr.Push(RecordValueError{
+                        Kind:    rule.IssueKind(),
+                        Message: ls.T(ctx, "compose", rule.IssueMessage()),
+                        Meta: map[string]interface{}{
+                            "field":         v.Name,
+                            "value":         v.Value,
+                            "dupValueField": rv.Name,
+                            "recordID":      cast.ToString(v.RecordID),
+                            "rule":          rule.String(),
+                        },
+                    })
+                }
 
                 // 1. multiValue is empty, then all value needs to be a match then return error/warning
                 // 2. multiValue is oneOf, then one or more value needs to be a match then return error/warning
                 // 3. multiValue is equal, then all value needs to be a match then return error/warning
                 if (!valErr.IsValid() && (!c.HasMultiValue() || c.IsAllEqual()) && valErr.Len() == rvv.Len()) || (c.IsOneOf() && valErr.Len() > 0) {
-                    if out == nil {
-                        out = &RecordValueErrorSet{}
-                    }
                     out.Push(valErr.Set...)
                 }
-            }
-            return nil
-        })
+
+                return nil
+            })
+        }
     }
 
     return
 }
 
-func (rule DeDupRule) multiValueAllEqual(ctx context.Context, ls localeService, c *DeDupRuleConstraint, rvv RecordValueSet, existingVv RecordValueSet) (out *RecordValueErrorSet) {
-    var (
-        valErr = &RecordValueErrorSet{}
-    )
+func (rule DeDupRule) multiValueAllEqual(ctx context.Context, ls localeService, c *DeDupRuleConstraint, rvv RecordValueSet, existingVv RecordValueSet) (out RecordValueError) {
+    var valErr = RecordValueError{}
 
-    if rvv.Len() == existingVv.Len() {
-        rvvmap := make(map[string]int)
-        existingVvmap := make(map[string]int)
-
-        dupValues := recordValueFrequencyMap(rvvmap, c.Modifier, rvv)
-        _ = recordValueFrequencyMap(existingVvmap, c.Modifier, existingVv)
-
-        if matchRecordValueFrequencyMap(rvvmap, existingVvmap) {
-            valErr.Push(RecordValueError{
-                Kind:    rule.IssueKind(),
-                Message: ls.T(ctx, "compose", rule.IssueMultivalueMessage(dupValues)),
-                Meta: map[string]interface{}{
-                    "field":         c.Attribute,
-                    "dupValueField": c.Attribute,
-                    "rule":          rule.String(),
-                },
-            })
-
-            return valErr
-        }
+    if rvv.Len() != existingVv.Len() {
+        return valErr
     }
 
-    return nil
+    rvvmap := make(map[string]int)
+    existingVvmap := make(map[string]int)
+
+    dupValues := recordValueFrequencyMap(rvvmap, c.Modifier, rvv)
+    _ = recordValueFrequencyMap(existingVvmap, c.Modifier, existingVv)
+
+    if matchRecordValueFrequencyMap(rvvmap, existingVvmap) {
+        valErr = RecordValueError{
+            Kind:    rule.IssueKind(),
+            Message: ls.T(ctx, "compose", rule.IssueMultivalueMessage()),
+            Meta: map[string]interface{}{
+                "field":         c.Attribute,
+                "value":         strings.Join(dupValues, ", "),
+                "dupValueField": c.Attribute,
+                "rule":          rule.String(),
+            },
+        }
+
+        return valErr
+    }
+
+    return valErr
 }
 
 func (dr DeDupRuleSet) Validate() (err error) {
