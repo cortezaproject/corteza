@@ -1565,8 +1565,10 @@ export default {
           })
           .catch(this.toastErrorHandler(this.$t('notification:record.restoreBulkFailed')))
           .finally(() => {
-            this.processing = false
-            this.selectedAllRecords = false
+            setTimeout(() => {
+              this.processing = false
+              this.selectedAllRecords = false
+            }, 300)
           })
       }
     },
@@ -1599,8 +1601,10 @@ export default {
           })
           .catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkFailed')))
           .finally(() => {
-            this.processing = false
-            this.selectedAllRecords = false
+            setTimeout(() => {
+              this.processing = false
+              this.selectedAllRecords = false
+            }, 300)
           })
       }
     },
@@ -1706,7 +1710,9 @@ export default {
           }
         })
         .finally(() => {
-          this.processing = false
+          setTimeout(() => {
+            this.processing = false
+          }, 300)
         })
     },
 
