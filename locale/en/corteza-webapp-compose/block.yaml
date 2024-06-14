@@ -434,7 +434,7 @@ recordList:
     showing: '{{from}} - {{to}} of {{count}} records'
     single: One record
     single_plural: '{{count}} records'
-    recordsPerPage: Records per page
+    recordsPerPage: Per page
     selectLabel: Select an option
   positionField:
     footnote: Records will be sorted based on this field
@@ -472,7 +472,7 @@ recordList:
     inlineEditorAllow: Inline record editor
     recordsLabel: Records
     noPermission: No permission to read record
-    perPage: Records per page
+    perPage: Per Page
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     prefilterHideSearch: Users will be able to search the record list
     filterHide: Users will be able to filter the list

@@ -49,7 +49,7 @@ resourceList:
     showing: '{{from}} - {{to}} of {{count}} {{data}}'
     single: 'One {{data}}'
     single_plural: '{{count}} {{data}}'
-    recordsPerPage: Records per page
+    recordsPerPage: Per Page
 
 tooltip:
   permissions: Workflow permissions
