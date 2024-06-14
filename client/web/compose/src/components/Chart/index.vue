@@ -184,7 +184,7 @@ export default {
           }
         }
 
-        data.datasets = data.datasets.map((dataset = {}, i) => {
+        data.datasets = data.datasets.map((dataset = {}) => {
           const { label } = dataset
 
           if (label === 'count') {

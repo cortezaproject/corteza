@@ -38,19 +38,16 @@ type (
 	}
 
 	ChartConfigReport struct {
-		ReportID         uint64                   `json:"reportID,string,omitempty"`
-		Filter           string                   `json:"filter"`
-		ModuleID         uint64                   `json:"moduleID,string,omitempty"`
-		Metrics          []map[string]interface{} `json:"metrics,omitempty"`
-		Dimensions       []map[string]interface{} `json:"dimensions,omitempty"`
-		YAxis            map[string]interface{}   `json:"yAxis,omitempty"`
-		Legend           map[string]interface{}   `json:"legend,omitempty"`
-		Tooltip          map[string]interface{}   `json:"tooltip,omitempty"`
-		TooltipFormatter map[string]interface{}   `json:"tooltipFormatter,omitempty"`
-		MetricFormatter  map[string]interface{}   `json:"metricFormatter,omitempty"`
-		YAxisFormatter   map[string]interface{}   `json:"yAxisFormatter,omitempty"`
-		Offset           map[string]interface{}   `json:"offset,omitempty"`
-		Renderer         struct {
+		ReportID   uint64                   `json:"reportID,string,omitempty"`
+		Filter     string                   `json:"filter"`
+		ModuleID   uint64                   `json:"moduleID,string,omitempty"`
+		Metrics    []map[string]interface{} `json:"metrics,omitempty"`
+		Dimensions []map[string]interface{} `json:"dimensions,omitempty"`
+		YAxis      map[string]interface{}   `json:"yAxis,omitempty"`
+		Legend     map[string]interface{}   `json:"legend,omitempty"`
+		Tooltip    map[string]interface{}   `json:"tooltip,omitempty"`
+		Offset     map[string]interface{}   `json:"offset,omitempty"`
+		Renderer   struct {
 			Version string `json:"version,omitempty" `
 		} `json:"renderer,omitempty"`
 	}

@@ -2,7 +2,6 @@ import numeral from 'numeral'
 import { ModuleField, Registry, Options, defaultOptions } from './base'
 import { Apply } from '../../../cast'
 import * as fmt from '../../../formatting'
-import { formatValueAsAccountingNumber } from '../../utils'
 
 const kind = 'Number'
 
@@ -93,7 +92,7 @@ export class ModuleFieldNumber extends ModuleField {
     let out = `${n}`
 
     if (format === 'accounting') {
-      out = formatAccounting(n)
+      out = fmt.accountingNumber(n)
     } else if (format && format.length > 0) {
       out = numeral(n).format(format)
     } else {
@@ -102,20 +101,6 @@ export class ModuleFieldNumber extends ModuleField {
 
     return '' + o.prefix + (out || n) + o.suffix
   }
-}
-
-export function formatAccounting (value: number): string {
-  let result = ''
-
-  if (value === 0) {
-    return '-'
-  }
-
-  if (value < 0) {
-    result = `(${fmt.number(Math.abs(value))}`
-  }
-
-  return fmt.number(value)
 }
 
 Registry.set(kind, ModuleFieldNumber)

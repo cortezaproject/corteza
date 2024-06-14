@@ -169,10 +169,6 @@
                     name="dimension-options-options"
                     :dimension="d"
                     :is-temporal="isTemporalField(d.field)"
-                    :preset-formatted-options="{
-                      formatOptions,
-                      formattedOptionsDescription: $t('edit.additionalConfig.tooltip.formatting.presetFormats.description.accountingNumber')
-                    }"
                   />
                 </b-form-group>
               </b-col>
@@ -290,10 +286,6 @@
             name="metric-options"
             :metric="m"
             :report="editReport"
-            :preset-formatted-options="{
-              formatOptions,
-              formattedOptionsDescription: $t('edit.additionalConfig.tooltip.formatting.presetFormats.description.accountingNumber')
-            }"
           />
         </div>
       </draggable>
@@ -499,10 +491,6 @@ const aggregateFunctions = [
 ]
 
 export default {
-  i18nOptions: {
-    namespaces: 'chart',
-  },
-
   name: 'ReportEdit',
 
   components: {
@@ -526,11 +514,6 @@ export default {
       orientations: [
         { value: 'horizontal', text: this.$t('edit.additionalConfig.legend.orientation.horizontal') },
         { value: 'vertical', text: this.$t('edit.additionalConfig.legend.orientation.vertical') },
-      ],
-
-      formatOptions: [
-        { value: 'noFormat', text: this.$t('edit.additionalConfig.tooltip.formatting.presetFormats.options.noFormat') },
-        { value: 'accountingNumber', text: this.$t('edit.additionalConfig.tooltip.formatting.presetFormats.options.accountingNumber') },
       ],
     }
   },
@@ -660,6 +643,23 @@ export default {
     onMetricFieldChange (field, m) {
       if (field === 'count') {
         this.$set(m, 'aggregate', undefined)
+      } else if (field) {
+        // Set field formatting based on number field formatting
+        const moduleField = this.module.fields.find(f => f.name === field)
+
+        if (moduleField) {
+          const { presetFormat, format, prefix, suffix } = moduleField.options
+          this.$set(m, 'formatting', {
+            presetFormat,
+            format,
+            prefix,
+            suffix,
+          })
+        }
+
+        if (!m.aggregate) {
+          this.$set(m, 'aggregate', this.metricAggregates[0].value)
+        }
       }
     },
 
@@ -677,7 +677,6 @@ export default {
       this.predefinedFilters = []
       this.alignments = []
       this.orientations = []
-      this.formatOptions = []
     },
   },
 }

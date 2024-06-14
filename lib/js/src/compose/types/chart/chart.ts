@@ -3,9 +3,9 @@ import {
   Dimension,
   Metric,
   TemporalDataPoint,
-  TooltipParams,
-  formatChartTooltip,
   formatChartValue,
+  formatChartTooltip,
+  TooltipParams,
 } from './util'
 import { getColorschemeColors } from '../../../shared'
 
@@ -37,6 +37,7 @@ export default class Chart extends BaseChart {
         fixed: m.fixTooltips,
         relative: m.relativeValue && !['bar', 'line'].includes(m.type as string),
       },
+      formatting: m.formatting,
     }
   }
 
@@ -60,13 +61,9 @@ export default class Chart extends BaseChart {
     const {
       dimensions: [dimension] = [],
       yAxis,
-      yAxisFormatter,
-      metrics: [metric] = [],
       offset,
       tooltip: t,
       legend: l,
-      tooltipFormatter,
-      metricFormatter,
     } = reports[0] || {}
 
     const hasAxis = datasets.some(({ type }: any) => ['bar', 'line', 'scatter'].includes(type))
@@ -115,11 +112,7 @@ export default class Chart extends BaseChart {
             overflow: 'break',
             hideOverlap: true,
             rotate: yAxis.rotateLabel,
-            formatter: (value: string | number, index: string | number): string => {
-              const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = yAxisFormatter || {}
-
-              return formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
-            },
+            formatter: (value: string | number): string => formatChartValue(value, yAxis.formatting),
           },
           axisLine: {
             show: false,
@@ -151,21 +144,8 @@ export default class Chart extends BaseChart {
       }
     }
 
-    options.series = datasets.map(({ type, label, data, stack, tooltip, fill, smooth, step, roseType, symbol }: any, index: number) => {
+    options.series = datasets.map(({ formatting, type, label, data, stack, tooltip, fill, smooth, step, roseType, symbol }: any, index: number) => {
       const { fixed, relative } = tooltip
-      const {
-        numberFormat: metricNumForm = '',
-        prefix: metricPref = '',
-        suffix: metricSuff = '',
-        presetFormat: metricPresForm = '',
-      } = metricFormatter || {}
-
-      const {
-        numberFormat: tooltipNumForm = '',
-        prefix: tooltipPref = '',
-        suffix: tooltipSuff = '',
-        presetFormat: tooltipPresForm = '',
-      } = tooltipFormatter || {}
 
       // We should render the first metric in the dataset as the last
       const z = (datasets.length - 1) - index
@@ -212,28 +192,18 @@ export default class Chart extends BaseChart {
             trigger: 'item',
             appendToBody: true,
             formatter: (params: TooltipParams): string => {
-              const v = formatChartValue(params.value || '', {
-                numberFormat: metricNumForm,
-                prefix: metricPref,
-                suffix: metricSuff,
-                presetFormat: metricPresForm,
-              })
+              const v = formatChartValue(params.value || '', formatting)
 
-              return t?.formatting
-                ? formatChartTooltip(t?.formatting, params)
-                : `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${v}${relative ? ' (' + params.percent + '%)' : ''}</span>`
+              if (t?.formatting) {
+                return formatChartTooltip(t?.formatting, params)
+              }
+
+              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${v}${relative ? ' (' + params.percent + '%)' : ''}</span>`
             },
           },
           label: {
             ...lbl,
-            formatter: (params: TooltipParams): string => {
-              return formatChartValue(params.value || '', {
-                numberFormat: metricNumForm,
-                prefix: metricPref,
-                suffix: metricSuff,
-                presetFormat: metricPresForm,
-              })
-            },
+            formatter: (params: TooltipParams): string => formatChartValue(params.value || '', formatting),
           },
           itemStyle: {
             borderRadius: 5,
@@ -302,42 +272,20 @@ export default class Chart extends BaseChart {
             // we can either
             // add formatting to the value and apply tooltip if trigger: 'item'
             // display the same tooltip format name <br/> seriesName value if trigger: 'axis'
-            // works when trigger is set to axis
-            valueFormatter: (value: string | number): string => {
-              const v = formatChartValue(value, {
-                numberFormat: metricNumForm,
-                prefix: metricPref,
-                suffix: metricSuff,
-                presetFormat: metricPresForm,
-              })
 
-              return formatChartValue(v, {
-                numberFormat: tooltipNumForm,
-                prefix: tooltipPref,
-                suffix: tooltipSuff,
-                presetFormat: tooltipPresForm,
-              })
-            },
+            // works when trigger is set to axis
+            valueFormatter: (value: string | number): string => formatChartValue(value, formatting),
             // works when trigger is set to item
             formatter: (params: { seriesName?: string; name?: string;value: Array<any>, percent: string | number, marker: string;}): string => {
-              const { value = [], percent = '' || 0 } = params
-              const v = formatChartValue(value[1], {
-                numberFormat: metricNumForm,
-                prefix: metricPref,
-                suffix: metricSuff,
-                presetFormat: metricPresForm,
-              })
+              const { value = [], percent = '' } = params
 
-              const formattedValue = formatChartValue(v, {
-                numberFormat: tooltipNumForm,
-                prefix: tooltipPref,
-                suffix: tooltipSuff,
-                presetFormat: tooltipPresForm,
-              })
+              const formattedValue = formatChartValue(value[1], formatting)
 
-              return t?.formatting
-                ? formatChartTooltip(t?.formatting, { ...params, value: value[1], percent: params.percent })
-                : `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${formattedValue}${relative ? ' (' + params.percent + '%)' : ''}</span>`
+              if (t?.formatting) {
+                return formatChartTooltip(t?.formatting, { ...params, value: value[1], percent })
+              }
+
+              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${formattedValue}${relative ? ' (' + params.percent + '%)' : ''}</span>`
             },
           },
           label: {
@@ -348,11 +296,10 @@ export default class Chart extends BaseChart {
             tooltip: {
               trigger: 'axis',
             },
-            formatter: function (params: { seriesName: string, name: string, value: Array<any>, percent: string | number }): string {
-              const { value = [], percent = '' || 0 } = params
-              const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = metricFormatter || {}
+            formatter: (params: { seriesName: string, name: string, value: Array<any>, percent: string | number }): string => {
+              const { value = [], percent = '' } = params
 
-              return `${formatChartValue(value[1], { numberFormat, prefix, suffix, presetFormat })}${relative ? ` (${percent}%)` : ''}`
+              return `${formatChartValue(value[1], formatting)}${relative ? ` (${percent}%)` : ''}`
             },
           },
           data,
@@ -412,8 +359,8 @@ export default class Chart extends BaseChart {
     }
   }
 
-  defMetrics (): Metric {
-    return Object.assign({}, {
+  defMetric (): Metric {
+    return Object.assign(super.defMetric(), {
       smooth: true,
       fill: false,
       rose: false,

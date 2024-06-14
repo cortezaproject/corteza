@@ -82,8 +82,8 @@
           <b-form-group
             :label="$t('kind.number.presetFormats.label')"
             label-class="text-primary"
-            style="white-space: pre-line;"
             :description="formattedOptionsDescription"
+            style="white-space: pre-line;"
           >
             <b-form-select
               v-model="f.options.presetFormat"

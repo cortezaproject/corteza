@@ -64,7 +64,7 @@ edit:
     preset: Preset filters
     footnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     placeholder: field1 = 1 AND field2 = 232
-    noFilter: Select a filter or make a custom one
+    noFilter: Select a filter
     recordsCreatedLastMonth: Records created last month
     recordsCreatedLastQuarter: Records created last quarter
     recordsCreatedLastYear: Records created last year
@@ -73,6 +73,7 @@ edit:
     recordsCreatedThisYear: Records created this year
   loadData: Load data
   metric:
+    title: Metrics
     add: Add metric
     fieldLabel: Field *
     fieldPlaceholder: Select metric field
@@ -146,7 +147,6 @@ edit:
     relative: Show relative value
     relativePrecision: 'Precision:'
     cumulative: Cumulative
-    title: Metrics
   module:
     label: Module *
     placeholder: Pick a module
@@ -202,18 +202,10 @@ edit:
       label: Tooltip
       labelNextToChart: Show labels next to chart
       formatting:
-        label: Formatting
-        customFormatting: Custom formatting
+        label: Custom formatting
         description: '{a} - metrics label, {b} - dimension value, {c} - metric value, {d} - metric value percentage'
         placeholder: '{a}<br />{b} : {c} ({d}%)'
         disclaimer: Adding a value to the formatting field will disable the fields number format, prefix, and suffix and vice versa
-        presetFormats:
-          label: Format values using
-          options:
-            accounting: Accounting number
-            noFormat: No format selected
-          description:
-            accounting: 'Accounting number displays the data in the same way as the currency format with the two differences: 1) negative numbers are transformed into positive and added in brackets and 2) the value 0 is substituted by a dash'
     offset:
       label: Offset
       default: Default offset
@@ -234,6 +226,24 @@ edit:
         x: X-Axis
         y: Y-Axis
         xy: Both
+  formatting:
+    format:
+      label: Format
+      placeholder: '0.00'
+    prefix:
+      label: Prefix
+      placeholder: '#'
+    suffix:
+      label: Suffix
+      placeholder: $
+    presetFormats:
+      label: Format
+      options:
+        custom: Custom
+        accounting: Accounting number
+      description:
+        custom: ''
+        accounting: Negative numbers are transformed into positive and added in brackets and the value 0 is substituted by a dash
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
 name: Chart name *
@@ -249,6 +259,3 @@ notification:
 searchPlaceholder: Type here to search all charts in this namespace
 title: List of Charts
 undefined: undefined
-numberFormat: Number format
-prefix: Prefix
-suffix: Suffix

@@ -56,7 +56,7 @@
       </b-form-group>
     </template>
 
-    <template #metric-options="{ metric, presetFormattedOptions }">
+    <template #metric-options="{ metric }">
       <b-row>
         <b-col
           cols="12"
@@ -133,12 +133,12 @@
           md="6"
         >
           <b-form-group
-            :label="$t('prefix')"
+            :label="$t('edit.formatting.prefix.label')"
             label-class="text-primary"
           >
             <b-input
-              v-model="report.metricFormatter.prefix"
-              placeholder="USD/mo"
+              v-model="metric.formatting.prefix"
+              :placeholder="$t('edit.formatting.prefix.placeholder')"
             />
           </b-form-group>
         </b-col>
@@ -148,12 +148,12 @@
           md="6"
         >
           <b-form-group
-            :label="$t('suffix')"
+            :label="$t('edit.formatting.suffix.label')"
             label-class="text-primary"
           >
             <b-input
-              v-model="report.metricFormatter.suffix"
-              placeholder="$"
+              v-model="metric.formatting.suffix"
+              :placeholder="$t('edit.formatting.suffix.placeholder')"
             />
           </b-form-group>
         </b-col>
@@ -163,37 +163,31 @@
           md="6"
         >
           <b-form-group
-            :label="$t('numberFormat')"
+            :label="$t('edit.formatting.presetFormats.label')"
             label-class="text-primary"
-          >
-            <b-input
-              v-model="report.metricFormatter.numberFormat"
-              :disabled="report.metricFormatter.presetFormat !== 'noFormat'"
-              placeholder="0.00"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('edit.additionalConfig.tooltip.formatting.presetFormats.label')"
-            label-class="text-primary"
+            :description="$t(`edit.formatting.presetFormats.description.${metric.formatting.presetFormat}`)"
             style="white-space: pre-line;"
           >
             <b-form-select
-              v-model="report.metricFormatter.presetFormat"
-              :disabled="!!report.metricFormatter.numberFormat"
-              :options="presetFormattedOptions.formatOptions"
+              v-model="metric.formatting.presetFormat"
+              :options="formatOptions"
             />
-            <slot
-              v-if="report.metricFormatter.presetFormat === 'accountingNumber'"
-              name="description"
-            >
-              <small class="text-muted">{{ presetFormattedOptions.formattedOptionsDescription }}</small>
-            </slot>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          md="6"
+        >
+          <b-form-group
+            :label="$t('edit.formatting.format.label')"
+            label-class="text-primary"
+          >
+            <b-input
+              v-model="metric.formatting.format"
+              :disabled="metric.formatting.presetFormat !== 'custom'"
+              :placeholder="$t('edit.formatting.format.placeholder')"
+            />
           </b-form-group>
         </b-col>
       </b-row>
@@ -209,10 +203,6 @@ import base from './base'
 
 export default {
   name: 'GaugeChart',
-
-  i18nOptions: {
-    namespaces: 'chart',
-  },
 
   components: {
     ChartTranslator,

@@ -2,6 +2,10 @@
 import { compose, NoID } from '@cortezaproject/corteza-js'
 
 export default {
+  i18nOptions: {
+    namespaces: 'chart',
+  },
+
   props: {
     report: {
       type: Object,
@@ -58,6 +62,11 @@ export default {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
+
+      formatOptions: [
+        { value: 'custom', text: this.$t('edit.formatting.presetFormats.options.custom') },
+        { value: 'accounting', text: this.$t('edit.formatting.presetFormats.options.accounting') },
+      ],
     }
   },
 

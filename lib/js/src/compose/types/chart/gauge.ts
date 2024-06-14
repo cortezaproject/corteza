@@ -71,6 +71,7 @@ export default class GaugeChart extends BaseChart {
       tooltip: {
         fixed: m.fixTooltips,
       },
+      formatting: m.formatting,
     }
   }
 
@@ -86,12 +87,9 @@ export default class GaugeChart extends BaseChart {
       tooltip,
       startAngle,
       endAngle,
+      formatting,
     } = datasets.find(({ value }: any) => value) || datasets[0]
-    const {
-      tooltipFormatter,
-      metricFormatter,
-    } = reports[0] || {}
-    const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = metricFormatter || {}
+
     const colors = getColorschemeColors(colorScheme, data.customColorSchemes)
 
     const color = steps.map((s: any, i: number) => {
@@ -166,15 +164,11 @@ export default class GaugeChart extends BaseChart {
             offsetCenter: [0, '55%'],
             valueAnimation: true,
             color: themeVariables.black,
-            formatter: (value: string | number): string => {
-              const { numberFormat = '', prefix = '', suffix = '', presetFormat = '' } = tooltipFormatter || {}
-
-              return formatChartValue(value, { numberFormat, prefix, suffix, presetFormat })
-            },
+            formatter: (value: string | number): string => formatChartValue(value, formatting),
           },
           data: [
             {
-              name: formatChartValue(name, { numberFormat, prefix, suffix, presetFormat }),
+              name,
               value,
             },
           ],
@@ -187,8 +181,8 @@ export default class GaugeChart extends BaseChart {
     return 'gauge'
   }
 
-  defMetrics (): Metric {
-    return Object.assign({}, {
+  defMetric (): Metric {
+    return Object.assign(super.defMetric(), {
       type: ChartType.gauge,
       fixTooltips: true,
       startAngle: 200,

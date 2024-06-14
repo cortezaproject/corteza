@@ -7,6 +7,7 @@ import {
   dimensionFunctions,
   makeAlias,
   TemporalDataPoint,
+  defFormatData,
 } from './util'
 
 import {
@@ -116,8 +117,10 @@ export class BaseChart {
     }
 
     this.config = (conf ? _.merge(this.defConfig(), conf) : false) || this.config || this.defConfig()
+
     this.config.reports?.forEach(report => {
       const { dimensions = [], metrics = [] } = report || {}
+
       report.dimensions = dimensions.map(d => {
         // Legacy support
         if (d.modifier === 'auto') {
@@ -131,7 +134,8 @@ export class BaseChart {
 
         return _.merge(this.defDimension(), d)
       })
-      report.metrics = metrics.map(m => _.merge(this.defMetrics(), m))
+
+      report.metrics = metrics.map(m => _.merge(this.defMetric(), m))
     })
   }
 
@@ -337,8 +341,10 @@ export class BaseChart {
     })
   }
 
-  defMetrics (): Metric {
-    return Object.assign({}, {})
+  defMetric (): Metric {
+    return Object.assign({}, {
+      formatting: defFormatData(),
+    })
   }
 
   defReport (): Report {
@@ -346,23 +352,15 @@ export class BaseChart {
       moduleID: undefined,
       filter: '',
       dimensions: [this.defDimension()],
-      metrics: [this.defMetrics()],
+      metrics: [this.defMetric()],
       yAxis: {
         axisType: 'linear',
         axisPosition: 'left',
         labelPosition: 'end',
         rotateLabel: 0,
+        formatting: defFormatData(),
       },
       tooltip: {},
-      tooltipFormatter: {
-        presetFormat: 'noFormat',
-      },
-      metricFormatter: {
-        presetFormat: 'noFormat',
-      },
-      yAxisFormatter: {
-        presetFormat: 'noFormat',
-      },
       legend: {
         isScrollable: true,
         orientation: 'horizontal',
