@@ -706,10 +706,10 @@
     "@babel/helper-validator-identifier" "^7.22.20"
     to-fast-properties "^2.0.0"
 
-"@cortezaproject/corteza-js@^2023.9.7-rc.1":
-  version "2023.9.7-rc.1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.9.7-rc.1.tgz#b6bd5ba37f1cd9a0e7ad64e74c694e7aa3293347"
-  integrity sha512-41kqlyHjfVXZSh19sySJXWZA+lG84ENEhK8Nnpf+7cd0IS7lyMtmf7Q/W/FGfJXc1Mr9bqbbRvroONaCGwBjBQ==
+"@cortezaproject/corteza-js@^2023.9.7-rc.2":
+  version "2023.9.7-rc.2"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2023.9.7-rc.2.tgz#f1f35493664dd5c965db924cfc3ee053a432b8b9"
+  integrity sha512-Xy37Z7Hozkps60tTtyXVyzJvz0fYvOXPN/PfZ598uzoYb2Lf9i5bBgf5rLAjMkDWp8tOcLgmhPrxJyJfHLuUGQ==
   dependencies:
     axios "^0.28.0"
     hex-rgb "^4.1.0"
@@ -720,12 +720,12 @@
     numeral "^2.0.6"
     pino "^5.16.0"
 
-"@cortezaproject/corteza-vue@^2023.9.7-rc.1":
-  version "2023.9.7-rc.1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2023.9.7-rc.1.tgz#8c4c08e7912ad4da8f09952de8a7471644147ee0"
-  integrity sha512-BopFmWsSyHbsodX97E8ktmjCtdR4+GlR0J2HDLsItqyyyFEOnfoyDn6ShMrxa3OiPlf/13YFr4iKuzMHq0YezA==
+"@cortezaproject/corteza-vue@^2023.9.7-rc.2":
+  version "2023.9.7-rc.2"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2023.9.7-rc.2.tgz#0a63894d7d5c50d3c3b7a570d568ee87cd541f82"
+  integrity sha512-DYHbzxwiaseK0eR8TRW1yXMk4yrOelKr8Co6QFagKd6VvfBQUZqp8juWUgsBaUKHXQulJ8gqM0hAdeMr1934pg==
   dependencies:
-    "@cortezaproject/corteza-js" "^2023.9.7-rc.1"
+    "@cortezaproject/corteza-js" "^2023.9.7-rc.2"
     "@fortawesome/fontawesome-svg-core" "^1.2.26"
     "@fortawesome/free-solid-svg-icons" "^5.12.0"
     "@fortawesome/vue-fontawesome" "^0.1.9"
@@ -733,6 +733,7 @@
     "@popperjs/core" "^2.11.2"
     acorn "^7.3.1"
     bootstrap-vue "2.23.1"
+    echarts "5.5.0"
     fuzzysort "^1.2.1"
     highlight.js "^10.4.1"
     html-parse-stringify "^3.0.1"
@@ -746,7 +747,7 @@
     lodash "^4.17.21"
     moment "2.30.1"
     numeral "^2.0.6"
-    pdfjs-dist "2.4.456"
+    pdfjs-dist "2.2.228"
     pino "^5.16.0"
     portal-vue "^2.1.7"
     qs "^6.9.1"
@@ -755,6 +756,7 @@
     v-photoswipe "^1.0.3-1"
     vue "2.6.14"
     vue-color "^2.8.1"
+    vue-echarts "6.7.3"
     vue-select "3.20.2"
     vue-swatches "^1.0.4"
     vue2-ace-editor "^0.0.15"
@@ -7531,7 +7533,7 @@ loader-utils@^0.2.16:
     json5 "^0.5.0"
     object-assign "^4.0.1"
 
-loader-utils@^1.0.2, loader-utils@^1.1.0, loader-utils@^1.2.3:
+loader-utils@^1.0.0, loader-utils@^1.0.2, loader-utils@^1.1.0, loader-utils@^1.2.3:
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/loader-utils/-/loader-utils-1.4.2.tgz#29a957f3a63973883eb684f10ffd3d151fec01a3"
   integrity sha512-I5d00Pd/jwMD2QCduo657+YM/6L3KZu++pmX9VFncxaxvHcru9jx1lBaFft+r4Mt2jK0Yhp41XlRAihzPxHNCg==
@@ -8297,6 +8299,11 @@ no-case@^2.2.0:
   dependencies:
     lower-case "^1.1.1"
 
+node-ensure@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/node-ensure/-/node-ensure-0.0.0.tgz#ecae764150de99861ec5c810fd5d096b183932a7"
+  integrity sha512-DRI60hzo2oKN1ma0ckc6nQWlHU69RH6xN0sjQTjMpChPfTYvKZdcQFfdYK2RWbJcKyUizSIy/l8OTGxMAM1QDw==
+
 node-fetch@2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
@@ -9047,10 +9054,13 @@ pbkdf2@^3.0.3:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-pdfjs-dist@2.4.456:
-  version "2.4.456"
-  resolved "https://registry.yarnpkg.com/pdfjs-dist/-/pdfjs-dist-2.4.456.tgz#0eaad2906cda866bbb393e79a0e5b4e68bd75520"
-  integrity sha512-yckJEHq3F48hcp6wStEpbN9McOj328Ib09UrBlGAKxvN2k+qYPN5iq6TH6jD1C0pso7zTep+g/CKsYgdrQd5QA==
+pdfjs-dist@2.2.228:
+  version "2.2.228"
+  resolved "https://registry.yarnpkg.com/pdfjs-dist/-/pdfjs-dist-2.2.228.tgz#777b068a0a16c96418433303807c183058b47aaa"
+  integrity sha512-W5LhYPMS2UKX0ELIa4u+CFCMoox5qQNQElt0bAK2mwz1V8jZL0rvLao+0tBujce84PK6PvWG36Nwr7agCCWFGQ==
+  dependencies:
+    node-ensure "^0.0.0"
+    worker-loader "^2.0.0"
 
 performance-now@^2.1.0:
   version "2.1.0"
@@ -10613,6 +10623,14 @@ saxes@^3.1.5:
   integrity sha512-Ydydq3zC+WYDJK1+gRxRapLIED9PWeSuuS41wqyoRmzvhhh9nc+QQrVMKJYzJFULazeGhzSV0QleN2wD3boh2g==
   dependencies:
     xmlchars "^2.1.1"
+
+schema-utils@^0.4.0:
+  version "0.4.7"
+  resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-0.4.7.tgz#ba74f597d2be2ea880131746ee17d0a093c68187"
+  integrity sha512-v/iwU6wvwGK8HbU9yi3/nhGzP0yGSuhQMzL6ySiec1FSrZZDkhm4noOSWzrNFo/jEc+SJY6jRTwuwbSXJPDUnQ==
+  dependencies:
+    ajv "^6.1.0"
+    ajv-keywords "^3.1.0"
 
 schema-utils@^1.0.0:
   version "1.0.0"
@@ -12841,6 +12859,14 @@ worker-farm@^1.7.0:
   integrity sha512-rvw3QTZc8lAxyVrqcSGVm5yP/IJ2UcB3U0graE3LCFoZ0Yn2x4EoVSqJKdB/T5M+FLcRPjz4TDacRf3OCfNUzw==
   dependencies:
     errno "~0.1.7"
+
+worker-loader@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/worker-loader/-/worker-loader-2.0.0.tgz#45fda3ef76aca815771a89107399ee4119b430ac"
+  integrity sha512-tnvNp4K3KQOpfRnD20m8xltE3eWh89Ye+5oj7wXEEHKac1P4oZ6p9oTj8/8ExqoSBnk9nu5Pr4nKfQ1hn2APJw==
+  dependencies:
+    loader-utils "^1.0.0"
+    schema-utils "^0.4.0"
 
 "wrap-ansi-cjs@npm:wrap-ansi@^7.0.0":
   version "7.0.0"
