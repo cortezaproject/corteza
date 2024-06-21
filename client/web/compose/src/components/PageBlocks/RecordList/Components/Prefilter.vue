@@ -8,9 +8,12 @@
       <b-row v-if="textInput">
         <b-col>
           <b-form-group label-class="text-primary">
-            <b-form-textarea
+            <c-filter-field
               v-model="options.prefilter"
-              :placeholder="$t('recordList.record.prefilterPlaceholder')"
+              auto-complete
+              height="59px"
+              lang="javascript"
+              :suggestion-tree="filterSuggestionTree"
             />
 
             <i18next
@@ -55,12 +58,15 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import { compose, validator } from '@cortezaproject/corteza-js'
 import {
   getRecordListFilterSql,
   trimChar,
 } from 'corteza-webapp-compose/src/lib/record-filter.js'
 import FilterToolbox from 'corteza-webapp-compose/src/components/Common/FilterToolbox.vue'
+
+const { CFilterField } = components
 
 export default {
   i18nOptions: {
@@ -71,6 +77,7 @@ export default {
 
   components: {
     FilterToolbox,
+    CFilterField,
   },
 
   props: {
@@ -95,6 +102,20 @@ export default {
       textInput: true,
       filterGroup: [],
     }
+  },
+
+  computed: {
+    filterSuggestionTree () {
+      const moduleFields = (this.module.fields || []).map(({ name }) => name)
+      const userProperties = Object.keys(this.$auth.user)
+
+      return {
+        '': ['record', 'recordID', 'ownerID', 'userID', 'user'].concat(moduleFields),
+        'record': ['values'],
+        'record.values': moduleFields,
+        'user': userProperties,
+      }
+    },
   },
 
   created () {

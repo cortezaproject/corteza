@@ -1089,6 +1089,7 @@ export default {
   },
 
   created () {
+    console.log('this.$auth.user', this.$auth.user)
     if (!this.inlineEditing) {
       this.refreshBlock(this.refresh, false, true)
     }

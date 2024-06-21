@@ -17,10 +17,15 @@
             label-class="text-primary"
           >
             <b-input-group>
-              <b-form-input
+              <c-filter-field
                 id="title"
                 v-model="block.title"
+                auto-complete
+                lang="javascript"
                 :placeholder="$t('general.titlePlaceholder')"
+                :suggestion-tree="autoCompleteSuggestionTree"
+                height="37.59px"
+                class="flex-grow-1"
               />
 
               <b-input-group-append>
@@ -53,10 +58,15 @@
             label-class="text-primary"
           >
             <b-input-group>
-              <b-form-textarea
+              <c-filter-field
                 id="description"
                 v-model="block.description"
+                auto-complete
+                lang="javascript"
                 :placeholder="$t('general.descriptionPlaceholder')"
+                :suggestion-tree="autoCompleteSuggestionTree"
+                height="55.16px"
+                class="flex-grow-1"
               />
               <b-input-group-append>
                 <page-translator
@@ -271,9 +281,15 @@
                   ƒ
                 </b-button>
               </b-input-group-prepend>
-              <b-form-input
+              <c-filter-field
+                id="visibility-fields"
                 v-model="block.meta.visibility.expression"
+                auto-complete
+                lang="javascript"
                 :placeholder="$t('general.visibility.condition.placeholder')"
+                :suggestion-tree="visibilityAutoSuggestionTree"
+                height="37.59px"
+                class="flex-grow-1"
               />
               <b-input-group-append>
                 <b-button
@@ -358,10 +374,13 @@
   </b-tabs>
 </template>
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
 import PageTranslator from 'corteza-webapp-compose/src/components/Admin/Page/PageTranslator'
 import PageBlock from './index'
+
+const { CFilterField } = components
 
 export default {
   i18nOptions: {
@@ -371,12 +390,19 @@ export default {
   components: {
     PageBlock,
     PageTranslator,
+    CFilterField,
   },
 
   props: {
     block: {
       type: compose.PageBlock,
       required: true,
+    },
+
+    module: {
+      type: compose.Module,
+      required: false,
+      default: undefined,
     },
 
     page: {
@@ -459,6 +485,31 @@ export default {
       set (roles) {
         this.$set(this.block.meta.visibility, 'roles', roles)
       },
+    },
+
+    autoCompleteSuggestionTree () {
+      const moduleFields = ((this.module || {}).fields || []).map(({ name }) => name)
+      const userProperties = Object.keys(this.$auth.user)
+
+      return {
+        '': ['record', 'recordID', 'ownerID', 'userID', 'user'].concat(moduleFields),
+        ...(this.isRecordPage && { 'record': ['values'] }),
+        ...(this.isRecordPage && { 'record.values': moduleFields }),
+        'user': userProperties,
+      }
+    },
+
+    visibilityAutoSuggestionTree () {
+      const moduleFields = ((this.module || {}).fields || []).map(({ name }) => name)
+      const userProperties = Object.keys(this.$auth.user)
+
+      return {
+        '': ['user', 'record', 'screen', 'oldLayout', 'layout', 'isView', 'isCreate', 'isEdit'].concat(moduleFields),
+        ...(this.isRecordPage && { 'record': ['values'] }),
+        ...(this.isRecordPage && { 'record.values': moduleFields }),
+        'user': userProperties,
+        'screen': ['width', 'height', 'userAgent', 'breakpoint'],
+      }
     },
   },
 
