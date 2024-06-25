@@ -11,8 +11,10 @@ interface FieldCondition {
 interface Options {
   fields: unknown[];
   fieldConditions: FieldCondition[];
+  recordSelectorShowAddRecordButton: boolean;
   magnifyOption: string;
   recordSelectorDisplayOption: string;
+  recordSelectorAddRecordDisplayOption: string;
   referenceField?: string;
   referenceModuleID?: string;
   inlineRecordEditEnabled: boolean;
@@ -22,8 +24,10 @@ interface Options {
 const defaults: Readonly<Options> = Object.freeze({
   fields: [],
   fieldConditions: [],
+  recordSelectorShowAddRecordButton: false,
   magnifyOption: '',
   recordSelectorDisplayOption: 'sameTab',
+  recordSelectorAddRecordDisplayOption: 'sameTab',
   referenceField: '',
   referenceModuleID: undefined,
   inlineRecordEditEnabled: false,
@@ -43,8 +47,8 @@ export class PageBlockRecord extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'referenceField', 'referenceModuleID')
-    Apply(this.options, o, Boolean, 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled')
+    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'recordSelectorAddRecordDisplayOption', 'referenceField', 'referenceModuleID')
+    Apply(this.options, o, Boolean, 'recordSelectorShowAddRecordButton', 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled')
 
     if (o.fields) {
       this.options.fields = o.fields

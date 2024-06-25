@@ -28,6 +28,72 @@
           lg="6"
         >
           <b-form-group
+            :label="$t('record.inlineEdit.enabled')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="inlineRecordEditEnabled"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.horizontalFormLayout')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.horizontalFieldLayoutEnabled"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <template v-if="isRecordConfigured">
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('record.add')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="options.recordSelectorShowAddRecordButton"
+                switch
+                :labels="checkboxLabel"
+              />
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('record.recordSelectorAddRecordDisplayOption')"
+              label-class="text-primary"
+            >
+              <b-form-select
+                v-model="options.recordSelectorAddRecordDisplayOption"
+                :options="recordDisplayOptions"
+                :disabled="!options.recordSelectorShowAddRecordButton"
+              />
+            </b-form-group>
+          </b-col>
+        </template>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
             :label="$t('record.recordSelectorDisplayOptions')"
             label-class="text-primary"
           >
@@ -55,38 +121,6 @@
               :placeholder="$t('record.referenceRecordFieldPlaceholder')"
               :reduce="getOptionKey"
               @input="updateReferenceModule($event, [])"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('record.inlineEdit.enabled')"
-            label-class="text-primary"
-          >
-            <c-input-checkbox
-              v-model="inlineRecordEditEnabled"
-              switch
-              :labels="checkboxLabel"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('record.horizontalFormLayout')"
-            label-class="text-primary"
-          >
-            <c-input-checkbox
-              v-model="options.horizontalFieldLayoutEnabled"
-              switch
-              :labels="checkboxLabel"
             />
           </b-form-group>
         </b-col>
@@ -276,6 +310,10 @@ export default {
       set (v) {
         this.options.inlineRecordEditEnabled = v
       },
+    },
+
+    isRecordConfigured () {
+      return this.module.fields.some(f => f.kind === 'Record')
     },
   },
 

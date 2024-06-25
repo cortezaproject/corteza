@@ -262,6 +262,7 @@ metric:
     valueLabel: Value style
   label: Metric
 record:
+  add: Can create records via selector
   referenceRecordField: Reference record field
   referenceRecordFieldPlaceholder: Select reference record selector
   referenceRecordFieldDescription: Multi value record selector fields are not available
@@ -282,7 +283,7 @@ record:
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}
     untitled: Untitled
   recordDeleted: This record was deleted
-  recordSelectorDisplayOptions: On record selector click
+  recordSelectorDisplayOptions: On record value click
   openInSameTab: Open record in the same tab
   openInNewTab: Open record in a new tab
   openInModal: Open record in a modal
@@ -296,6 +297,7 @@ record:
     condition: Condition
     tooltip:
       performance: Using conditional fields will impact performance
+  recordSelectorAddRecordDisplayOption: On selector record create
 recordList:
   addRecord: Add
   cancelSelection: Cancel
@@ -526,7 +528,7 @@ recordList:
       view: View
       permissions: Permissions
     recordDisplayOptions: On record click
-    recordSelectorDisplayOptions: On record selector click
+    recordSelectorDisplayOptions: On record value click
     addRecordOptions: On add record click
     textStyles: Text Styles
     configureNonWrappingFelids: Configure non-wrapping fields

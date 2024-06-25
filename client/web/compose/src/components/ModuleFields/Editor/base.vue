@@ -57,6 +57,11 @@ export default {
       type: Boolean,
       default: false,
     },
+
+    extraOptions: {
+      type: Object,
+      default: () => ({}),
+    },
   },
 
   computed: {
