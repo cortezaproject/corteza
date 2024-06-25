@@ -129,6 +129,7 @@ kind:
     prefilterPlaceholder: field1 = 1 AND field2 = 232
     tooltip:
       moduleField: Selecting a record field will impact performance
+      addRecord: Add a record
   select:
     allow-duplicates: Allow duplicates
     label: Select
