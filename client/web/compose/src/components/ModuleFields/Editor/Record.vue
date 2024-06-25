@@ -40,86 +40,119 @@
       :show-list="field.options.selectType !== 'multiple'"
     >
       <template #single>
-        <c-input-select
-          v-if="field.options.selectType === 'multiple'"
-          v-model="multipleSelected"
-          :options="options"
-          :get-option-key="getOptionKey"
-          :get-option-label="getOptionLabel"
-          :disabled="!module"
-          :loading="processing"
-          :clearable="false"
-          :filterable="false"
-          :searchable="searchable"
-          :selectable="isSelectable"
-          :placeholder="placeholder"
-          multiple
-          @search="search"
-        >
-          <pagination
-            v-if="showPagination"
-            slot="list-footer"
-            :has-prev-page="hasPrevPage"
-            :has-next-page="hasNextPage"
-            @prev="goToPage(false)"
-            @next="goToPage(true)"
-          />
-        </c-input-select>
+        <b-input-group class="d-flex w-100">
+          <c-input-select
+            v-if="field.options.selectType === 'multiple'"
+            v-model="multipleSelected"
+            :options="options"
+            :get-option-key="getOptionKey"
+            :get-option-label="getOptionLabel"
+            :disabled="!module"
+            :loading="processing"
+            :clearable="false"
+            :filterable="false"
+            :searchable="searchable"
+            :selectable="isSelectable"
+            :placeholder="placeholder"
+            multiple
+            @search="search"
+          >
+            <pagination
+              v-if="showPagination"
+              slot="list-footer"
+              :has-prev-page="hasPrevPage"
+              :has-next-page="hasNextPage"
+              @prev="goToPage(false)"
+              @next="goToPage(true)"
+            />
+          </c-input-select>
 
-        <c-input-select
-          v-else
-          ref="singleSelect"
-          :options="options"
-          :get-option-key="getOptionKey"
-          :get-option-label="getOptionLabel"
-          :disabled="!module"
-          :loading="processing"
-          :clearable="false"
-          :filterable="false"
-          :searchable="searchable"
-          :selectable="isSelectable"
-          :placeholder="placeholder"
-          @input="selectChange($event)"
-          @search="search"
-        >
-          <pagination
-            v-if="showPagination"
-            slot="list-footer"
-            :has-prev-page="hasPrevPage"
-            :has-next-page="hasNextPage"
-            @prev="goToPage(false)"
-            @next="goToPage(true)"
-          />
-        </c-input-select>
+          <c-input-select
+            v-else
+            ref="singleSelect"
+            :options="options"
+            :get-option-key="getOptionKey"
+            :get-option-label="getOptionLabel"
+            :disabled="!module"
+            :loading="processing"
+            :clearable="false"
+            :filterable="false"
+            :searchable="searchable"
+            :selectable="isSelectable"
+            :placeholder="placeholder"
+            @input="selectChange($event)"
+            @search="search"
+          >
+            <pagination
+              v-if="showPagination"
+              slot="list-footer"
+              :has-prev-page="hasPrevPage"
+              :has-next-page="hasNextPage"
+              @prev="goToPage(false)"
+              @next="goToPage(true)"
+            />
+          </c-input-select>
+
+          <b-input-group-append>
+            <b-button
+              v-if="canAddRecordThroughSelectField"
+              v-b-tooltip.hover="{ title: $t('kind.record.tooltip.addRecord'), container: '#body' }"
+              variant="light"
+              class="d-flex align-items-center"
+              @click="addRecordThroughRecordSelectField()"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'plus']"
+                class="text-primary"
+              />
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
       </template>
-
       <template #default="ctx">
-        <c-input-select
+        <b-input-group
           v-if="field.options.selectType === 'each'"
-          :options="options"
-          :get-option-key="getOptionKey"
-          :get-option-label="getOptionLabel"
-          :disabled="!module"
-          :loading="processing"
-          :clearable="false"
-          :filterable="false"
-          :searchable="searchable"
-          :selectable="isSelectable"
-          :placeholder="placeholder"
-          :value="getRecord(ctx.index)"
-          @input="setRecord($event, ctx.index)"
-          @search="search"
+          class="d-flex w-100"
         >
-          <pagination
-            v-if="showPagination"
-            slot="list-footer"
-            :has-prev-page="hasPrevPage"
-            :has-next-page="hasNextPage"
-            @prev="goToPage(false)"
-            @next="goToPage(true)"
-          />
-        </c-input-select>
-
+          <c-input-select
+            :options="options"
+            :get-option-key="getOptionKey"
+            :get-option-label="getOptionLabel"
+            :disabled="!module"
+            :loading="processing"
+            :clearable="false"
+            :filterable="false"
+            :searchable="searchable"
+            :selectable="isSelectable"
+            :placeholder="placeholder"
+            :value="getRecord(ctx.index)"
+            @input="setRecord($event, ctx.index)"
+            @search="search"
+          >
+            <pagination
+              v-if="showPagination"
+              slot="list-footer"
+              :has-prev-page="hasPrevPage"
+              :has-next-page="hasNextPage"
+              @prev="goToPage(false)"
+              @next="goToPage(true)"
+            />
+          </c-input-select>
+          <b-input-group-append>
+            <b-button
+              v-if="canAddRecordThroughSelectField"
+              v-b-tooltip.hover="{ title: $t('kind.record.tooltip.addRecord'), container: '#body' }"
+              variant="light"
+              class="d-flex align-items-center"
+              @click="addRecordThroughRecordSelectField()"
+            >
+              <font-awesome-icon
+                :icon="['fas', 'plus']"
+                class="text-primary"
+              />
+            </b-button>
+          </b-input-group-append>
+        </b-input-group>
         <b-spinner
           v-else-if="resolving"
           variant="primary"
@@ -135,28 +168,44 @@
     <template
       v-else
     >
-      <c-input-select
-        v-model="selected"
-        :options="options"
-        :get-option-key="getOptionKey"
-        :get-option-label="getOptionLabel"
-        :disabled="!module"
-        :loading="processing"
-        :placeholder="placeholder"
-        :filterable="false"
-        :searchable="searchable"
-        :selectable="isSelectable"
-        @search="search"
-      >
-        <pagination
-          v-if="showPagination"
-          slot="list-footer"
-          :has-prev-page="hasPrevPage"
-          :has-next-page="hasNextPage"
-          @prev="goToPage(false)"
-          @next="goToPage(true)"
-        />
-      </c-input-select>
+      <b-input-group>
+        <c-input-select
+          v-model="selected"
+          :options="options"
+          :get-option-key="getOptionKey"
+          :get-option-label="getOptionLabel"
+          :disabled="!module"
+          :loading="processing"
+          :placeholder="placeholder"
+          :filterable="false"
+          :searchable="searchable"
+          :selectable="isSelectable"
+          @search="search"
+        >
+          <pagination
+            v-if="showPagination"
+            slot="list-footer"
+            :has-prev-page="hasPrevPage"
+            :has-next-page="hasNextPage"
+            @prev="goToPage(false)"
+            @next="goToPage(true)"
+          />
+        </c-input-select>
+        <b-input-group-append>
+          <b-button
+            v-if="canAddRecordThroughSelectField"
+            v-b-tooltip.hover="{ title: $t('kind.record.tooltip.addRecord'), container: '#body' }"
+            variant="light"
+            class="d-flex align-items-center"
+            @click="addRecordThroughRecordSelectField()"
+          >
+            <font-awesome-icon
+              :icon="['fas', 'plus']"
+              class="text-primary"
+            />
+          </b-button>
+        </b-input-group-append>
+      </b-input-group>
 
       <errors :errors="errors" />
     </template>
@@ -208,6 +257,7 @@ export default {
       getModuleByID: 'module/getByID',
       findUserByID: 'user/findByID',
       findRecordsByIDs: 'record/findByIDs',
+      pages: 'page/set',
     }),
 
     options () {
@@ -263,6 +313,12 @@ export default {
     hasNextPage () {
       return !!this.filter.nextPage
     },
+
+    canAddRecordThroughSelectField () {
+      if (this.module === undefined) return
+
+      return !!this.getRecordSelectorPage().page.pageID && this.module.canCreateRecord
+    },
   },
 
   watch: {
@@ -304,6 +360,7 @@ export default {
 
     createEvents () {
       this.$root.$on('record-field-change', this.refetchOnPrefilterValueChange)
+      this.$root.$on('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
 
     refetchOnPrefilterValueChange ({ fieldName }) {
@@ -499,6 +556,55 @@ export default {
       })
     },
 
+    addRecordThroughRecordSelectField () {
+      const { page } = this.getRecordSelectorPage()
+
+      if (page === undefined) return
+
+      const { pageID } = page
+      const { recordSelectorAddRecordDisplayOption } = this.extraOptions
+
+      const route = {
+        name: 'page.record.create',
+        params: { pageID, edit: true },
+      }
+
+      if (recordSelectorAddRecordDisplayOption === 'modal') {
+        this.$root.$emit('show-record-modal', {
+          recordID: NoID,
+          recordPageID: pageID,
+          edit: true,
+        })
+      } else if (recordSelectorAddRecordDisplayOption === 'newTab') {
+        window.open(this.$router.resolve(route).href)
+      } else {
+        this.$router.push(route)
+      }
+    },
+
+    refreshOnRelatedRecordsUpdate () {
+      const { page } = this.getRecordSelectorPage()
+      if (page === undefined || this.module === undefined) return
+
+      if (page.pageID !== this.$route.params.pageID) {
+        this.loadLatest()
+      }
+    },
+
+    getRecordSelectorPage () {
+      const recordFieldModuleID = this.field.options.moduleID
+
+      if (!recordFieldModuleID) return
+
+      const recordFieldPage = this.pages.find(p => p.moduleID === recordFieldModuleID)
+
+      if (!recordFieldPage) return
+
+      return {
+        page: recordFieldPage,
+      }
+    },
+
     selectChange ({ recordID } = {}) {
       if (!recordID) return
 
@@ -532,6 +638,7 @@ export default {
 
     destroyEvents () {
       this.$root.$off('record-field-change', this.refetchOnPrefilterValueChange)
+      this.$root.$off('module-records-updated', this.refreshOnRelatedRecordsUpdate)
     },
 
     setDefaultValues () {

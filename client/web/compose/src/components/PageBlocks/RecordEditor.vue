@@ -26,6 +26,7 @@
             v-bind="{ ...$props, errors: fieldErrors(field.name) }"
             :horizontal="horizontal"
             :field="field"
+            :extra-options="options"
             @change="onFieldChange(field)"
           />
 
