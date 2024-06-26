@@ -12,7 +12,9 @@
 
     <div
       v-else-if="fieldModule"
+      ref="fieldContainer"
       class="mt-3 px-3"
+      :class="fieldLayoutClass"
     >
       <template v-for="field in fields">
         <b-form-group
@@ -23,13 +25,14 @@
           :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
           :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
           :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
-          class="field-container mb-3"
+          :class="columnWrapClass"
+          :style="fieldWidth"
         >
           <template #label>
             <div
               class="d-flex text-primary mb-0"
             >
-              <span class="d-inline-block mw-100">
+              <span class="d-flex">
                 {{ field.label || field.name }}
               </span>
 
@@ -108,6 +111,7 @@ import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/B
 import users from 'corteza-webapp-compose/src/mixins/users'
 import records from 'corteza-webapp-compose/src/mixins/records'
 import conditionalFields from 'corteza-webapp-compose/src/mixins/conditionalFields'
+import recordLayout from 'corteza-webapp-compose/src/mixins/recordLayout'
 
 export default {
   i18nOptions: {
@@ -125,6 +129,7 @@ export default {
     users,
     records,
     conditionalFields,
+    recordLayout,
   ],
 
   data () {
@@ -160,6 +165,16 @@ export default {
       })
     },
 
+    fieldLayoutClass () {
+      const classes = {
+        default: 'd-flex flex-column',
+        noWrap: 'd-flex gap-2',
+        wrap: 'row no-gutters',
+      }
+
+      return classes[this.options.recordFieldLayoutOption]
+    },
+
     fieldModule () {
       return this.options.referenceField ? this.referenceModule : this.module
     },
@@ -170,6 +185,14 @@ export default {
 
     processing () {
       return !this.fieldRecord || this.evaluating
+    },
+
+    fieldWidth () {
+      if (this.options.recordFieldLayoutOption !== 'noWrap') {
+        return {}
+      }
+
+      return { 'min-width': '13rem' }
     },
   },
 
@@ -210,6 +233,29 @@ export default {
       handler (options) {
         if (options.referenceModuleID) {
           this.fetchReferenceModule(options.referenceModuleID)
+        }
+      },
+    },
+
+    processing: {
+      handler (newVal) {
+        if (this.options.recordFieldLayoutOption !== 'wrap') return
+
+        if (!newVal && this.fieldModule) {
+          this.$nextTick(() => {
+            this.initializeResizeObserver(this.$refs.fieldContainer, this.options.recordFieldLayoutOption)
+          })
+        }
+      },
+    },
+
+    'options.recordFieldLayoutOption': {
+      handler (newVal) {
+        if (newVal === 'wrap' && this.fieldModule) {
+          this.initializeResizeObserver(this.$refs.fieldContainer, this.options.recordFieldLayoutOption)
+        } else if (this.resizeObserver) {
+          this.resizeObserver.unobserve(this.$refs.fieldContainer)
+          this.columnWrapClass = ''
         }
       },
     },
@@ -318,3 +364,10 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.field-col > * {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+</style>

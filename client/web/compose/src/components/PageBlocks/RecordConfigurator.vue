@@ -50,6 +50,7 @@
             <c-input-checkbox
               v-model="options.horizontalFieldLayoutEnabled"
               switch
+              :disabled="options.recordFieldLayoutOption === 'noWrap'"
               :labels="checkboxLabel"
             />
           </b-form-group>
@@ -121,6 +122,24 @@
               :placeholder="$t('record.referenceRecordFieldPlaceholder')"
               :reduce="getOptionKey"
               @input="updateReferenceModule($event, [])"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.fieldsLayoutMode.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.recordFieldLayoutOption"
+              :options="recordFieldLayoutOptions"
+              :reduce="option => option.value"
+              :get-option-key="option => option.label"
+              @input="handleRecordFieldLayout"
             />
           </b-form-group>
         </b-col>
@@ -295,6 +314,14 @@ export default {
       ]
     },
 
+    recordFieldLayoutOptions () {
+      return [
+        { value: 'default', label: this.$t('record.fieldsLayoutMode.default') },
+        { value: 'noWrap', label: this.$t('record.fieldsLayoutMode.noWrap') },
+        { value: 'wrap', label: this.$t('record.fieldsLayoutMode.wrap') },
+      ]
+    },
+
     recordSelectorFields () {
       return this.module.fields.filter(f => f.kind === 'Record' && !f.isMulti)
     },
@@ -373,6 +400,12 @@ export default {
             this.referenceModule = new compose.Module({ ...module })
           })
       }
+    },
+
+    handleRecordFieldLayout (v) {
+      if (v !== 'noWrap') return
+
+      this.block.options.horizontalFieldLayoutEnabled = false
     },
   },
 }
