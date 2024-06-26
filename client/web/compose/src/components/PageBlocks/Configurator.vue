@@ -228,33 +228,19 @@
             </b-form-checkbox>
           </b-form-group>
         </b-col>
+      </b-row>
 
+      <hr>
+
+      <h5 class="mb-3">
+        {{ $t('general.visibility.label') }}
+      </h5>
+
+      <b-row>
         <b-col
-          v-if="block.options.magnifyOption !== undefined"
           cols="12"
           lg="6"
-          :offset-lg="block.options.showRefresh !== undefined ? 6 : 0"
         >
-          <b-form-group
-            :label="$t('general.magnifyLabel')"
-            label-class="text-primary"
-          >
-            <b-form-select
-              v-model="block.options.magnifyOption"
-              :options="magnifyOptions"
-            />
-          </b-form-group>
-        </b-col>
-        <b-col
-          cols="12"
-          sm="12"
-        >
-          <hr>
-
-          <h5 class="mb-3">
-            {{ $t('general.visibility.label') }}
-          </h5>
-
           <b-form-group
             label-class="d-flex align-items-center text-primary mb-0"
           >
@@ -317,8 +303,7 @@
 
         <b-col
           cols="12"
-          sm="12"
-          class="pt-2"
+          lg="6"
         >
           <b-form-group
             :label="$t('general.visibility.roles.label')"
