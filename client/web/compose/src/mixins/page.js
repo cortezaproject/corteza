@@ -159,8 +159,10 @@ export default {
         blocksExpressions = await this.evaluateBlocksExpressions(variables)
       }
 
-      blocks.forEach(({ blockID, xywh, meta }) => {
+      blocks.forEach(({ blockID, xywh }) => {
         const block = this.page.blocks.find(b => b.blockID === blockID)
+
+        const { meta = {} } = block || {}
         const { roles = [], expression = '' } = meta.visibility || {}
 
         if (block && (!expression || blocksExpressions[blockID])) {
