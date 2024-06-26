@@ -90,6 +90,39 @@
             />
           </b-form-group>
         </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.horizontalEditMode')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.horizontalEditingMode"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          v-if="options.horizontalEditingMode"
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.horizontalWrapFields')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.wrapFields"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
       </b-row>
     </div>
 
