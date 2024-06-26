@@ -11,7 +11,7 @@
     >
       <div
         v-if="!valueOnly"
-        class="d-flex align-items-center text-primary p-0"
+        class="d-flex align-items-center text-primary px-0"
       >
         <span
           :title="label"
@@ -47,6 +47,7 @@
         lazy-formatter
       />
     </multi>
+
     <template
       v-else
     >
