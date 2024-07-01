@@ -147,6 +147,10 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp
 
 }
 
+func (sqliteDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
+    return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
+}
+
 func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
 
 	col = &ddl.Column{

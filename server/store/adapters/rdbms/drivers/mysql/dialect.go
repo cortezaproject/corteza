@@ -162,6 +162,10 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.
 	return exp.NewLiteralExpression("?", c), nil
 }
 
+func (mysqlDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
+    return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
+}
+
 func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
 	col = &ddl.Column{
 		Ident:   attr.StoreIdent(),

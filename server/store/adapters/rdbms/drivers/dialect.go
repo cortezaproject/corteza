@@ -63,7 +63,9 @@ type (
 		// comparison or soring expression
 		AttributeCast(*dal.Attribute, exp.Expression) (exp.Expression, error)
 
-		// TableCodec returns table codec (encodes & decodes data to/from db table)
+        AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error)
+
+        // TableCodec returns table codec (encodes & decodes data to/from db table)
 		TableCodec(*dal.Model) TableCodec
 
 		// TypeWrap returns driver's type implementation for a particular attribute type

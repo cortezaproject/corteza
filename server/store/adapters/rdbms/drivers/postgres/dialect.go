@@ -1,19 +1,19 @@
 package postgres
 
 import (
-	"fmt"
-	"strings"
+    "fmt"
+    "strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
-	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
-	"github.com/doug-martin/goqu/v9"
-	"github.com/doug-martin/goqu/v9/dialect/postgres"
-	"github.com/doug-martin/goqu/v9/exp"
-	"github.com/doug-martin/goqu/v9/sqlgen"
-	"github.com/spf13/cast"
+    "github.com/cortezaproject/corteza/server/pkg/dal"
+    "github.com/cortezaproject/corteza/server/pkg/expr"
+    "github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
+    "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
+    "github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
+    "github.com/doug-martin/goqu/v9"
+    "github.com/doug-martin/goqu/v9/dialect/postgres"
+    "github.com/doug-martin/goqu/v9/exp"
+    "github.com/doug-martin/goqu/v9/sqlgen"
+    "github.com/spf13/cast"
 )
 
 type (
@@ -105,6 +105,18 @@ func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (e
 	}
 
 	return
+}
+
+func (postgresDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
+    identExpr := exp.NewIdentifierExpression("", modelIdent, ident)
+
+    // truncate timestamp data type to second mark precision
+    if attr.Type.Type() == dal.AttributeTypeTimestamp {
+        return exp.NewLiteralExpression("date_trunc(?, ?)", "second", identExpr), nil
+    }
+
+    // using column directly
+    return exp.NewLiteralExpression("?", identExpr), nil
 }
 
 func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {
