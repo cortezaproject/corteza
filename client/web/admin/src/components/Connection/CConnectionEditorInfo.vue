@@ -146,12 +146,14 @@
     </b-row>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="!fresh && !isPrimary && !disabled"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ connection.deletedAt ? $t('general:label.undelete') : $t('general:label.delete') }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <c-button-submit
         :disabled="disabled || saveDisabled"
@@ -169,7 +171,6 @@
 import { NoID } from '@cortezaproject/corteza-js'
 import { components, handle } from '@cortezaproject/corteza-vue'
 import CLocation from 'corteza-webapp-admin/src/components/CLocation'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 const { CSensitivityLevelPicker } = components
 
 export default {
@@ -181,7 +182,6 @@ export default {
   components: {
     CLocation,
     CSensitivityLevelPicker,
-    ConfirmationToggle,
   },
 
   props: {

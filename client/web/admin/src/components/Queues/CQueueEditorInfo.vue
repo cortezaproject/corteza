@@ -94,13 +94,15 @@
     </b-form>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="queue && queue.queueID && queue.canDeleteQueue"
         :data-test-id="deleteButtonStatusCypressId"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <c-button-submit
         :disabled="saveDisabled"
@@ -117,7 +119,6 @@
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 
 export default {
   name: 'CQueueEditorInfo',
@@ -125,10 +126,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.queues',
     keyPrefix: 'editor.info',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {

@@ -57,13 +57,14 @@
     </b-form>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         data-test-id="button-remove-password"
-        cta-class="light"
+        variant="light"
+        size="md"
         @confirmed="$emit('submit')"
       >
         {{ $t('removePassword') }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <c-corredor-manual-buttons
         ui-page="user/editor"
@@ -85,7 +86,6 @@
 </template>
 
 <script>
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 
 export default {
   name: 'CUserEditorPassword',
@@ -93,10 +93,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.users',
     keyPrefix: 'editor.password',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {
