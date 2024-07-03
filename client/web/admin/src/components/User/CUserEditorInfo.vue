@@ -88,32 +88,36 @@
     </template>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="!fresh && user.canDeleteUser"
         :data-test-id="deletedButtonStatusCypressId"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
-      <confirmation-toggle
+      <c-input-confirm
         v-if="!fresh"
         :data-test-id="suspendButtonStatusCypressId"
-        cta-class="light"
+        variant="light"
+        size="md"
         @confirmed="$emit('status')"
       >
         {{ getSuspendStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
-      <confirmation-toggle
+      <c-input-confirm
         v-if="!fresh"
         data-test-id="button-sessions-revoke"
         :disabled="user.userID === userID"
-        cta-class="light"
+        variant="light"
+        size="md"
         @confirmed="$emit('sessionsRevoke')"
       >
         {{ $t('revokeAllSession') }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <b-button
         v-if="!fresh && !user.emailConfirmed"
@@ -146,7 +150,6 @@
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 import { getSystemFields } from 'corteza-webapp-admin/src/lib/sysFields'
 
 export default {
@@ -155,10 +158,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.users',
     keyPrefix: 'editor.info',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {

@@ -106,7 +106,6 @@ import _ from 'lodash'
 import OidcExternal from 'corteza-webapp-admin/src/components/Settings/System/Auth/ExternalOIDC'
 import StandardExternal from 'corteza-webapp-admin/src/components/Settings/System/Auth/ExternalStd'
 import SamlExternal from 'corteza-webapp-admin/src/components/Settings/System/Auth/ExternalSAML'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 
 const idpStandard = [
   'google',
@@ -233,7 +232,6 @@ export default {
     OidcExternal,
     StandardExternal,
     SamlExternal,
-    ConfirmationToggle,
   },
 
   props: {

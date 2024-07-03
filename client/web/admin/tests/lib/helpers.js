@@ -51,7 +51,6 @@ const mounter = (component, { localVue = createLocalVue(), $auth = {}, mocks = {
     stubs: [
       'router-view',
       'router-link',
-      'confirmation-toggle',
       'user-roles',
       'c-permissions-button',
       ...stubs,
