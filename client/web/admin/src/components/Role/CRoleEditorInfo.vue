@@ -142,22 +142,25 @@
     </template>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="!fresh && editable && role.canDeleteRole && !isDataPrivacyOfficer"
         :data-test-id="deletedButtonStatusCypressId"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
-      <confirmation-toggle
+      <c-input-confirm
         v-if="!fresh && editable && !isDataPrivacyOfficer"
         :data-test-id="archivedButtonStatusCypressId"
-        cta-class="secondary"
+        variant="secondary"
+        size="md"
         @confirmed="$emit('status')"
       >
         {{ getArchiveStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <c-button-submit
         :disabled="saveDisabled"
@@ -174,7 +177,6 @@
 <script>
 import { system, NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 
 export default {
   name: 'CRoleEditorInfo',
@@ -182,10 +184,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.roles',
     keyPrefix: 'editor.info',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {

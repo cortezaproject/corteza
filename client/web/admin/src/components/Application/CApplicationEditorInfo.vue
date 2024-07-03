@@ -68,13 +68,15 @@
     </template>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="application && application.applicationID && application.canDeleteApplication"
         :data-test-id="deleteButtonStatusCypressId"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <c-button-submit
         :disabled="saveDisabled"
@@ -90,7 +92,6 @@
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 
 export default {
   name: 'CApplicationEditorInfo',
@@ -98,10 +99,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.applications',
     keyPrefix: 'editor.info',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {
