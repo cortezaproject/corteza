@@ -468,23 +468,15 @@
       <template
         v-if="canDelete"
       >
-        <confirmation-toggle
-          v-if="isDeleted"
-          data-test-id="button-undelete"
+        <c-input-confirm
+          :data-test-id="isDeleted ? 'button-undelete': 'button-delete'"
           :disabled="processing"
-          @confirmed="$emit('undelete', resource.authClientID)"
+          variant="danger"
+          size="md"
+          @confirmed="$emit(isDeleted ? 'undelete' : 'delete', resource.authClientID)"
         >
-          {{ $t('undelete') }}
-        </confirmation-toggle>
-
-        <confirmation-toggle
-          v-else
-          data-test-id="button-delete"
-          :disabled="processing"
-          @confirmed="$emit('delete', resource.authClientID)"
-        >
-          {{ $t('delete') }}
-        </confirmation-toggle>
+          {{ isDeleted ? $t('undelete') : $t('delete') }}
+        </c-input-confirm>
       </template>
 
       <c-button-submit
@@ -502,7 +494,6 @@
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { handle, components } from '@cortezaproject/corteza-vue'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 import CRolePicker from 'corteza-webapp-admin/src/components/CRolePicker'
 import CSelectUser from 'corteza-webapp-admin/src/components/Authclient/CSelectUser'
 import copy from 'copy-to-clipboard'
@@ -519,7 +510,6 @@ export default {
   },
 
   components: {
-    ConfirmationToggle,
     CRolePicker,
     CSelectUser,
     CInputDateTime,

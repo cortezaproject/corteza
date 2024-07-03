@@ -97,12 +97,14 @@
     </b-form>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="sensitivityLevel && sensitivityLevel.sensitivityLevelID"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <c-button-submit
         :disabled="saveDisabled"
@@ -119,7 +121,6 @@
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { handle } from '@cortezaproject/corteza-vue'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 
 export default {
   name: 'CSensitivityLevelEditorInfo',
@@ -127,10 +128,6 @@ export default {
   i18nOptions: {
     namespaces: 'system.sensitivityLevel',
     keyPrefix: 'editor.info',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {

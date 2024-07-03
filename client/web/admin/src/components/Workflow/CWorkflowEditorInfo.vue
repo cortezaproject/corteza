@@ -85,13 +85,15 @@
     </b-form>
 
     <template #footer>
-      <confirmation-toggle
+      <c-input-confirm
         v-if="workflow && workflow.workflowID && workflow.canDeleteWorkflow"
         :disabled="deleteDisabled"
+        variant="danger"
+        size="md"
         @confirmed="$emit('delete')"
       >
         {{ getDeleteStatus }}
-      </confirmation-toggle>
+      </c-input-confirm>
 
       <b-button
         v-if="workflow.workflowID"
@@ -115,7 +117,6 @@
 
 <script>
 import { handle } from '@cortezaproject/corteza-vue'
-import ConfirmationToggle from 'corteza-webapp-admin/src/components/ConfirmationToggle'
 import { NoID } from '@cortezaproject/corteza-js'
 
 export default {
@@ -124,10 +125,6 @@ export default {
   i18nOptions: {
     namespaces: 'automation.workflows',
     keyPrefix: 'editor.info',
-  },
-
-  components: {
-    ConfirmationToggle,
   },
 
   props: {
