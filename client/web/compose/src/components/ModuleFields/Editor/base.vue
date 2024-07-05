@@ -144,5 +144,11 @@ export default {
       return !!recordPageID || !!magnifiedBlockID
     },
   },
+
+  methods: {
+    getFieldCypressId (field) {
+      return `field-${field.toLowerCase().split(' ').join('-')}`
+    },
+  },
 }
 </script>

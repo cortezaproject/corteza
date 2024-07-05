@@ -18,6 +18,7 @@
         <b-form-group
           v-if="canDisplay(field)"
           :key="field.id"
+          :data-test-id="getFieldCypressId(field.label || field.name)"
           :label-cols-md="options.horizontalFieldLayoutEnabled && '6'"
           :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
           :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
@@ -331,6 +332,10 @@ export default {
       this.abortableRequests.forEach((cancel) => {
         cancel()
       })
+    },
+
+    getFieldCypressId (field) {
+      return `field-${field.toLowerCase().split(' ').join('-')}`
     },
   },
 }

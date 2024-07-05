@@ -1,5 +1,6 @@
 <template>
   <b-form-group
+    :data-test-id="getFieldCypressId(label || value)"
     :label-cols-md="horizontal && '5'"
     :label-cols-xl="horizontal && '4'"
     :content-cols-md="horizontal && '7'"
