@@ -65,11 +65,12 @@
                 value-only
               />
             </div>
+
             <div
               v-else
             >
               <i
-                class="text-primary"
+                class="text-muted"
               >
                 {{ $t('field.noPermission') }}
               </i>
@@ -196,29 +197,6 @@ export default {
       return this.errors
         .filterByMeta('field', name)
         .filterByMeta('id', this.errorID)
-    },
-
-    isFieldEditable (field) {
-      if (!field) return false
-
-      const { canCreateRecord, canCreateOwnedRecord } = this.module || {}
-      const { createdAt, canManageOwnerOnRecord } = this.record || {}
-      const { name, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
-
-      // If new record check canCreateRecord module permissions, otherwise canUpdateRecordValue on the record
-      if (this.isNew ? !canCreateRecord : !canUpdateRecordValue) return false
-
-      if (isSystem) {
-        // Make ownedBy field editable if correct permissions
-        if (name === 'ownedBy') {
-          // If not created we check module permissions, otherwise the canManageOwnerOnRecord
-          return createdAt ? canManageOwnerOnRecord : canCreateOwnedRecord
-        }
-
-        return false
-      }
-
-      return !expressions.value
     },
 
     onFieldChange: debounce(function (field) {

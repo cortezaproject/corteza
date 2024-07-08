@@ -47,7 +47,6 @@
           :options="options"
           :get-option-label="getOptionLabel"
           :get-option-key="getOptionKey"
-          :clearable="false"
           :filterable="false"
           :selectable="option => option.selectable"
           :loading="processing"
@@ -96,7 +95,6 @@
           :get-option-label="getOptionLabel"
           :get-option-key="getOptionKey"
           :value="getUserIDByIndex(ctx.index)"
-          :clearable="false"
           :filterable="false"
           :selectable="option => option.selectable"
           :loading="processing"
@@ -116,16 +114,13 @@
       </template>
     </multi>
 
-    <template
-      v-else
-    >
+    <template v-else>
       <c-input-select
         :placeholder="$t('kind.user.suggestionPlaceholder')"
         :options="options"
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
         :value="getUserIDByIndex()"
-        :clearable="field.name !== 'ownedBy'"
         :filterable="false"
         :selectable="option => option.selectable"
         :loading="processing"

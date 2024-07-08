@@ -4,7 +4,7 @@ import { NoID } from '@cortezaproject/corteza-js'
 export default {
   data () {
     return {
-      conditions: [],
+      conditions: [], // Array of fieldIDs that should be hidden
       evaluating: false,
     }
   },

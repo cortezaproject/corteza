@@ -74,7 +74,7 @@
           </div>
           <i
             v-else
-            class="text-primary"
+            class="text-muted"
           >
             {{ $t('field.noPermission') }}
           </i>
@@ -297,28 +297,6 @@ export default {
       this.inlineEdit.fields = []
       this.inlineEdit.record = {}
       this.inlineEdit.query = ''
-    },
-
-    isFieldEditable (field) {
-      if (!field) return false
-
-      const { canCreateOwnedRecord } = this.fieldModule || {}
-      const { createdAt, canManageOwnerOnRecord } = this.record || {}
-      const { name, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
-
-      if (!canUpdateRecordValue) return false
-
-      if (isSystem) {
-        // Make ownedBy field editable if correct permissions
-        if (name === 'ownedBy') {
-          // If not created we check module permissions, otherwise the canManageOwnerOnRecord
-          return createdAt ? canManageOwnerOnRecord : canCreateOwnedRecord
-        }
-
-        return false
-      }
-
-      return !expressions.value
     },
 
     setDefaultValues () {

@@ -38,5 +38,28 @@ export default {
         }
       }))
     },
+
+    isFieldEditable (field) {
+      if (!field) return false
+
+      const { canCreateRecord, canCreateOwnedRecord } = this.module || {}
+      const { canManageOwnerOnRecord, canUpdateRecord } = this.record || {}
+      const { name, canReadRecordValue, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
+
+      // If new record check canCreateRecord module permissions, otherwise check canUpdateRecord and only then canUpdateRecordValue
+      if (this.isNew ? !canCreateRecord : !(canUpdateRecord && canReadRecordValue && canUpdateRecordValue)) return false
+
+      if (isSystem) {
+        // Make ownedBy field editable if correct permissions
+        if (name === 'ownedBy') {
+          // If created we check module permissions, otherwise the canManageOwnerOnRecord
+          return this.isNew ? canCreateOwnedRecord : canManageOwnerOnRecord
+        }
+
+        return false
+      }
+
+      return !expressions.value
+    },
   },
 }
