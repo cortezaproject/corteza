@@ -14,25 +14,11 @@
     <b-form
       @submit.prevent="$emit('submit', settings)"
     >
-      <b-row>
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('internal.title')"
-            label-class="text-primary"
-          >
-            <c-input-checkbox
-              v-model="settings['auth.internal.enabled']"
-              :value="true"
-              switch
-              :unchecked-value="false"
-              :labels="checkboxLabel"
-            />
-          </b-form-group>
-        </b-col>
+      <h5>
+        {{ $t('internal.title') }}
+      </h5>
 
+      <b-row>
         <b-col
           cols="12"
           lg="6"
