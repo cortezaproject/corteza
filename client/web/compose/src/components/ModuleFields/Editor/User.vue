@@ -121,6 +121,7 @@
         :get-option-label="getOptionLabel"
         :get-option-key="getOptionKey"
         :value="getUserIDByIndex()"
+        :clearable="field.name !== 'ownedBy'"
         :filterable="false"
         :selectable="option => option.selectable"
         :loading="processing"
@@ -248,7 +249,9 @@ export default {
 
   created () {
     // Prefill value with current user
-    if ((!this.value || this.value.length === 0) && this.field.options.presetWithAuthenticated) {
+    const isNewRecord = this.record && this.record.recordID === NoID
+
+    if ((!this.value || this.value.length === 0) && (this.field.options.presetWithAuthenticated || (isNewRecord && this.field.name === 'ownedBy'))) {
       this.updateValue(this.$auth.user)
     }
 

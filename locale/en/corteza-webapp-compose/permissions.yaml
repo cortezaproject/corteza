@@ -81,9 +81,9 @@ resources:
           title: Update any module
         'owned-record.create':
           description: 'Default: deny'
-          specific: Manage owner when creating record "{{target}}"
-          title: Manage owner when creating record of any module
-          all-specific: Manage owner when creating record of module "{{ target }}"
+          specific: Manage owner when creating record for module "{{target}}"
+          title: Manage owner when creating record for any module
+          all-specific: Manage owner when creating record for module "{{ target }}"
 
     module-field:
       all: all module fields
@@ -98,9 +98,9 @@ resources:
           all-specific: Read record fields of module "{{ target }}"
         record.value.update:
           description: 'Default: deny'
-          specific: 'Update "{{target}}" record fields '
-          title: Update record fields of any module
-          all-specific: Update record fields of module "{{ target }}"
+          specific: 'Update "{{target}}" record field values'
+          title: Update record field values of any module
+          all-specific: Update record field values of module "{{ target }}"
 
     namespace:
       all: all namespaces

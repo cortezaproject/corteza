@@ -479,7 +479,7 @@ resources:
         delete:
           title: Delete any module
         owned-record.create:
-          title: Manage owner when creating record of any module
+          title: Manage owner when creating records for any module
         read:
           title: Read any module
         record.create:
