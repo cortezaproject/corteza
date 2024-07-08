@@ -57,8 +57,8 @@
       <slot name="end-actions" />
 
       <c-input-confirm
-        v-if="(processingDelete || isCreated) && !(isDeleted || hideDelete || settings.hideDelete)"
-        :disabled="!record || !canDeleteRecord || processing"
+        v-if="(processingDelete || isCreated) && !(isDeleted || hideDelete || settings.hideDelete) && canDeleteRecord"
+        :disabled="!record || processing"
         :processing="processingDelete"
         :text="labels.delete || $t('label.delete')"
         size="lg"
@@ -68,8 +68,8 @@
       />
 
       <c-input-confirm
-        v-else-if="(processingUndelete || isDeleted) && !(hideDelete || settings.hideDelete)"
-        :disabled="!record || !canUndeleteRecord || processing"
+        v-else-if="(processingUndelete || isDeleted) && !(hideDelete || settings.hideDelete) && canUndeleteRecord"
+        :disabled="!record || processing"
         :processing="processingUndelete"
         :text="$t('label.restore')"
         size="lg"
@@ -92,9 +92,9 @@
       </b-button>
 
       <b-button
-        v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit)"
+        v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit) && canManageRecord"
         data-test-id="button-edit"
-        :disabled="!record || !record.canUpdateRecord || processing"
+        :disabled="!record || processing"
         variant="light"
         size="lg"
         @click.prevent="$emit('edit')"
@@ -105,7 +105,7 @@
       <b-button
         v-else-if="inEditing && isCreated && !(hideEdit || settings.hideEdit)"
         data-test-id="button-view"
-        :disabled="!record || !record.canUpdateRecord || processing"
+        :disabled="!record || processing"
         variant="light"
         size="lg"
         @click.prevent="$emit('view')"
@@ -126,9 +126,9 @@
       </b-button>
 
       <c-button-submit
-        v-if="inEditing && !(hideSubmit || settings.hideSubmit)"
+        v-if="inEditing && !(hideSubmit || settings.hideSubmit) && canManageRecord"
         data-test-id="button-save"
-        :disabled="!record || !canSaveRecord || processingSubmit || processing"
+        :disabled="!record || processingSubmit || processing"
         :processing="processingSubmit"
         :text="labels.submit || $t('label.save')"
         size="lg"
@@ -257,7 +257,7 @@ export default {
       return this.$Settings.get('compose.ui.record-toolbar', {})
     },
 
-    canSaveRecord () {
+    canManageRecord () {
       if (!this.module || !this.record) {
         return false
       }
