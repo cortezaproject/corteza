@@ -147,6 +147,10 @@ export default {
     horizontal () {
       return this.block.options.horizontalFieldLayoutEnabled
     },
+
+    isNew () {
+      return this.record && this.record.recordID === NoID
+    },
   },
 
   watch: {
@@ -197,11 +201,12 @@ export default {
     isFieldEditable (field) {
       if (!field) return false
 
-      const { canCreateOwnedRecord } = this.module || {}
+      const { canCreateRecord, canCreateOwnedRecord } = this.module || {}
       const { createdAt, canManageOwnerOnRecord } = this.record || {}
       const { name, canUpdateRecordValue, isSystem, expressions = {} } = field || {}
 
-      if (!canUpdateRecordValue) return false
+      // If new record check canCreateRecord module permissions, otherwise canUpdateRecordValue on the record
+      if (this.isNew ? !canCreateRecord : !canUpdateRecordValue) return false
 
       if (isSystem) {
         // Make ownedBy field editable if correct permissions
@@ -218,6 +223,7 @@ export default {
 
     onFieldChange: debounce(function (field) {
       this.evaluateExpressions()
+
       this.$root.$emit('record-field-change', {
         fieldName: field.name,
       })
