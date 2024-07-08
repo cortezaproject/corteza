@@ -109,14 +109,14 @@
 	</div>
 	{{ end }}
 
-	{{ if and .settings.ExternalEnabled .providers}}
+	{{ if .settings.ExternalEnabled }}
 	<div class="px-3 pb-3">
-	{{ range .providers }}
-		<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
-			<i class="bi bi-{{ .Icon }} mr-1"></i>
-			{{ tr "login.template.links.external.login-with" "idp" (coalesce .Label .Handle) }}
-		</a>
-	{{ end }}
+		{{ range .providers }}
+			<a href="{{ links.External }}/{{ .Handle }}" class="btn btn-light btn-block btn-lg mb-2 mt-1 text-dark">
+				<i class="bi bi-{{ .Icon }} mr-1"></i>
+				{{ tr "login.template.links.external.login-with" "idp" (coalesce .Label .Handle) }}
+			</a>
+		{{ end }}
 	</div>
 	{{ end }}
 </div>
