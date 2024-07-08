@@ -23,7 +23,10 @@ function genericFieldValidator (field: ModuleField): ValidatorFn<Record> {
     const { value } = arg0
 
     if (field.isRequired) {
-      if (value === undefined || IsEmpty(value)) {
+      const isNewRecord = this.recordID === NoID
+      const canManageFieldValue = isNewRecord ? true : field.canReadRecordValue && field.canUpdateRecordValue
+
+      if ((value === undefined || IsEmpty(value)) && canManageFieldValue) {
         return emptyErr
       }
     }
