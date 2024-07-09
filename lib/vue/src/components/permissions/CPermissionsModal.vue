@@ -46,7 +46,6 @@
             <c-input-select
               v-model="currentRoleID"
               data-test-id="select-user-list-roles"
-              key="roleID"
               label="name"
               :disabled="!currentRoleID"
               :clearable="false"
@@ -198,13 +197,11 @@
       >
         <c-input-select
           data-test-id="select-role"
-          key="roleID"
           v-model="add.roleID"
           :options="roles"
           :get-option-key="getOptionRoleKey"
           label="name"
           multiple
-          clearable
           :disabled="!!add.userID"
           :placeholder="labels.add.role.placeholder"
         />
@@ -217,16 +214,13 @@
       >
         <c-input-select
           data-test-id="select-user"
-          key="userID"
           v-model="add.userID"
           :disabled="!!add.roleID.length"
           :options="userOptions"
           :get-option-label="getUserLabel"
           :get-option-key="getOptionUserKey"
-          :reduce="o => o.userID"
-          label="name"
-          clearable
           :placeholder="labels.add.user.placeholder"
+          :filterable="false"
           @search="searchUsers"
         />
       </b-form-group>
@@ -292,6 +286,8 @@ export default {
       currentRoleID: undefined,
 
       evaluate: [],
+
+      fetchedUsers: {},
 
       add: {
         roleID: [],
@@ -370,7 +366,7 @@ export default {
         if (!this.roles.length) {
           return this.fetchRoles()
         } else if (this.currentRoleID) {
-          return this.reevaluatePermissions(this.currentRoleID)
+          return this.reEvaluatePermissions(this.currentRoleID)
         }
       }).finally(() => {
         this.processing = false
@@ -398,10 +394,14 @@ export default {
       const roleID = this.currentRoleID
 
       this.api.permissionsUpdate({ roleID, rules }).then(() => {
-        this.reevaluatePermissions(roleID)
-      }).finally(() => {
-        this.submitting = false
-      })
+        this.reEvaluatePermissions(roleID)
+        this.toastSuccess(this.$t('permissions:ui.notification.save.success'))
+      }).catch(this.toastErrorHandler(this.$t('permissions:ui.notification.save.failed')))
+        .finally(() => {
+          setTimeout(() => {
+            this.submitting = false
+          }, 300)
+        })
     },
 
     async fetchPermissions () {
@@ -444,7 +444,7 @@ export default {
         })
     },
 
-    async reevaluatePermissions (roleID) {
+    async reEvaluatePermissions (roleID) {
       return this.fetchRules(roleID).then(() => {
         return Promise.all(this.evaluate.map(e => {
           let { roleID = [], userID } = e
@@ -467,15 +467,23 @@ export default {
 
       this.$SystemAPI.userList({ query, limit: 15 })
         .then(({ set }) => {
-          this.userOptions = set.map(m => Object.freeze(m))
+          this.userOptions = set.reduce((acc, { userID, name, username, email, handle }) => {
+            if (!this.fetchedUsers[userID]) {
+              this.fetchedUsers[userID] = name || username || email || `<@${userID}>`
+            }
+
+            acc.push(userID)
+
+            return acc
+          }, [])
         })
         .finally(() => {
           loading(false)
         })
     },
 
-    getUserLabel ({ userID, email, name, username }) {
-      return name || username || email || `<@${userID}>`
+    getUserLabel (userID) {
+      return this.fetchedUsers[userID]
     },
 
     onAddEval () {
@@ -504,8 +512,7 @@ export default {
 
     getEvalName ({ userID, roleID }) {
       if (userID) {
-        const { name, username, email, handle } = this.userOptions.find(({ userID: id }) => id === userID) || {}
-        return [name || username || email || handle || userID || '']
+        return [this.fetchedUsers[userID]]
       } else {
         return roleID.map(({ name }) => name)
       }
@@ -589,10 +596,6 @@ export default {
       return roleID
     },
 
-    getOptionUserKey ({ userID }) {
-      return userID
-    },
-
     setDefaultValues () {
       this.processing = false
       this.submitting = false
@@ -608,6 +611,7 @@ export default {
       this.currentRoleID = undefined
       this.evaluate = []
       this.add = {}
+      this.fetchedUsers = {}
     },
 
     destroyEvents() {

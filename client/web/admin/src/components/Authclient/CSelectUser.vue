@@ -5,6 +5,7 @@
     :get-option-label="getOptionLabel"
     :get-option-key="getOptionKey"
     :value="user.value"
+    :filterable="false"
     @search="search"
     @input="updateRunAs"
   />

@@ -3,7 +3,7 @@
     v-model="isVisible"
     :title="title"
     header-class="d-flex align-items-center justify-content-between reminder-sidebar-header p-3 border-bottom"
-    body-class="d-flex flex-column overflow-hidden bg-white p-3"
+    body-class="d-flex flex-column overflow-hidden bg-white"
     :backdrop="isMobile"
     no-footer
     right

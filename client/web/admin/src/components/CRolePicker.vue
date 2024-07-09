@@ -9,6 +9,7 @@
       :get-option-key="r => r.value"
       :get-option-label="r => getRoleLabel(r)"
       :placeholder="$t('admin:picker.role.placeholder')"
+      :filterable="false"
       @search="search"
       @input="updateValue($event)"
     />

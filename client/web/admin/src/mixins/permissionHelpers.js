@@ -146,6 +146,12 @@ export default {
 
       if (mode === 'edit') {
         const { roleID, name } = add.roleID || {}
+        const ID = `edit-${roleID}`
+
+        if (this.roles.some(r => r.ID === ID)) {
+          this.loaded.roles = true
+          return
+        }
 
         this.readPermissions({ roleID, name: [name] })
           .finally(() => {
@@ -157,12 +163,18 @@ export default {
         let name = ''
 
         if (userID) {
-          const { name: uname, username, email, handle } = userID
-          name = [uname || username || email || handle || userID || '']
+          name = [userID.name]
           userID = userID.userID
         } else {
           name = roleID.map(({ name }) => name)
           roleID = roleID.map(({ roleID }) => roleID)
+        }
+
+        const ID = userID ? `eval-${userID}` : `eval-${roleID.join('-')}`
+
+        if (this.roles.some(r => r.ID === ID)) {
+          this.loaded.roles = true
+          return
         }
 
         this.evaluatePermissions({ name, roleID, userID })

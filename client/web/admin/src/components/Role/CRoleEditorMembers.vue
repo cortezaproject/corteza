@@ -21,6 +21,7 @@
         :get-option-key="u => u.value"
         :get-option-label="u => getUserLabel(u)"
         :placeholder="$t('admin:picker.member.placeholder')"
+        :filterable="false"
         @search="search"
         @input="updateValue($event)"
       />
