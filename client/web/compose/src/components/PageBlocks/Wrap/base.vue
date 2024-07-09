@@ -31,6 +31,12 @@ export default {
       default: '',
     },
 
+    bodyClass: {
+      type: String,
+      required: false,
+      default: '',
+    },
+
     headerClass: {
       type: String,
       required: false,

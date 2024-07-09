@@ -87,6 +87,7 @@ chart:
   addRadar: Radar chart
   addGeneric: Generic chart
   createFailed: Could not create a chart
+  enableLiveFilter: Enable live filter
   columns:
     name: Name
     handle: Handle
@@ -121,6 +122,21 @@ chart:
   searchPlaceholder: Type here to search all charts in this namespace
   openInBuilder: Open in chart builder
   openChartList: Open chart list
+  filter:
+    modal:
+      title: Chart Filter
+      originalFilter:
+        label: Original filter
+      liveFilter:
+        label: Live filter
+        placeholder: Select a filter
+      filterPreview:
+        label: Filter Preview
+      options:
+        label: Filter options
+        and: Join filters with AND
+        or: Join filters with OR
+        overwrite: Overwrite original filter
 content:
   ok: Ok
   label: Content

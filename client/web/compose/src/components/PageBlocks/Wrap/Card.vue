@@ -80,6 +80,7 @@
       </div>
 
       <b-card-body
+        :body-class="bodyClass"
         class="p-0 flex-fill"
         :class="{ 'overflow-auto': scrollableBody }"
       >
