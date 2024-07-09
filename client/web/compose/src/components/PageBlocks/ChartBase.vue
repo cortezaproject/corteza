@@ -1,6 +1,7 @@
 <template>
   <wrap
     v-bind="$props"
+    body-class="position-relative"
     v-on="$listeners"
     @refreshBlock="refresh"
   >
@@ -12,8 +13,117 @@
       :reporter="reporter"
       @drill-down="drillDown"
     />
+
+    <template v-if="options.liveFilterEnabled">
+      <b-button
+        variant="outline-light"
+        class="chart__livefilter-btn position-absolute d-flex d-print-none border-0 px-1"
+        :class="[!!liveFilterValue && !liveFilterModal.show ? 'text-primary' : 'text-secondary']"
+        @click="showFilterModal"
+      >
+        <font-awesome-icon
+          :icon="['fas', 'filter']"
+        />
+      </b-button>
+
+      <b-modal
+        v-model="liveFilterModal.show"
+        :title="$t('chart.filter.modal.title')"
+        :ok-title="$t('general:label.saveAndClose')"
+        centered
+        size="lg"
+        cancel-variant="light"
+        no-fade
+        @ok="updateLiveFilter"
+        @hide="liveFilterModal.show = undefined"
+      >
+        <b-form-group
+          v-if="originalFilter"
+          :label="$t('chart.filter.modal.originalFilter.label')"
+          label-class="text-primary"
+        >
+          <b-form-textarea
+            :value="originalFilter"
+            readonly
+          />
+        </b-form-group>
+
+        <b-form-group
+          :label="$t('chart.filter.modal.liveFilter.label')"
+          label-class="text-primary"
+        >
+          <c-input-select
+            v-model="liveFilterModal.value"
+            :options="predefinedFilters"
+            label="text"
+            :reduce="filter => filter.value"
+            :placeholder="$t('chart.filter.modal.liveFilter.placeholder')"
+          />
+        </b-form-group>
+
+        <div v-if="originalFilter && liveFilterModal.value">
+          <hr class="my-3">
+
+          <b-form-group
+            :label="$t('chart.filter.modal.filterPreview.label')"
+            label-class="text-primary"
+          >
+            <b-form-textarea
+              :value="liveFilterPreview"
+              readonly
+            />
+          </b-form-group>
+
+          <b-form-group
+            :label="$t('chart.filter.modal.options.label')"
+            label-class="text-primary pb-0"
+          >
+            <b-form-radio
+              v-for="(option, ci) in filterOptions"
+              :key="ci"
+              v-model="liveFilterModal.option"
+              :value="option.value"
+            >
+              {{ $t(`chart.filter.modal.options.${option.label}`) }}
+            </b-form-radio>
+          </b-form-group>
+        </div>
+
+        <template #modal-footer="{ ok }">
+          <div
+            class="d-flex justify-content-between align-items-center w-100"
+          >
+            <b-button
+              type="button"
+              variant="light"
+              @click="resetLiveFilter()"
+            >
+              {{ $t('general:label.reset') }}
+            </b-button>
+
+            <div class="d-flex gap-1">
+              <b-button
+                variant="light"
+                type="button"
+                rounded
+                @click="cancelLiveFilter()"
+              >
+                {{ $t('general:label.cancel') }}
+              </b-button>
+              <b-button
+                variant="primary"
+                @click="ok()"
+              >
+                {{ $t('general:label.save') }}
+              </b-button>
+            </div>
+          </div>
+        </template>
+      </b-modal>
+    </template>
   </wrap>
 </template>
+
 <script>
 import { mapActions } from 'vuex'
 import base from './base'
@@ -22,10 +132,6 @@ import { NoID, compose } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
-  i18nOptions: {
-    namespaces: 'notification',
-  },
-
   components: {
     ChartComponent,
   },
@@ -36,9 +142,41 @@ export default {
     return {
       chart: null,
 
+      originalFilter: undefined,
       filter: undefined,
 
       drillDownFilter: undefined,
+
+      liveFilterModal: {
+        show: false,
+        value: undefined,
+        option: 'AND',
+      },
+
+      predefinedFilters: [
+        ...compose.chartUtil.predefinedFilters.map(pf => ({ ...pf, text: this.$t(`chart:edit.filter.${pf.text}`) })),
+      ],
+
+      selectedFilter: undefined,
+
+      customDate: {
+        start: undefined,
+        end: undefined,
+      },
+
+      liveFilterValue: undefined,
+      liveFilterOption: 'AND',
+
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+
+      filterOptions: [
+        { label: 'and', value: 'AND' },
+        { label: 'or', value: 'OR' },
+        { label: 'overwrite', value: '' },
+      ],
     }
   },
 
@@ -47,6 +185,10 @@ export default {
       if (!this.options) return false
 
       return this.options.drillDown && this.options.drillDown.enabled
+    },
+
+    liveFilterPreview () {
+      return this.getFilter(this.liveFilterModal.value, this.liveFilterModal.option)
     },
   },
 
@@ -121,13 +263,16 @@ export default {
             this.filter.field = { name, label }
           })
         }
-      }).catch(this.toastErrorHandler(this.$t('chart.loadFailed')))
+      }).catch(this.toastErrorHandler(this.$t('notification:chart.loadFailed')))
     },
 
-    reporter (r) {
-      this.filter = r
+    reporter (r = {}) {
+      if (!this.originalFilter) {
+        this.originalFilter = r.filter
+        this.filter = r
+      }
 
-      let filter = r.filter
+      let filter = this.getFilter()
 
       if (filter) {
         // If we use ${record} or ${ownerID} and there is no record, resolve empty
@@ -150,6 +295,31 @@ export default {
       const { namespaceID } = this.namespace
 
       return this.$ComposeAPI.recordReport({ namespaceID, ...r, filter })
+    },
+
+    getFilter (liveFilter = this.liveFilterValue, option = this.liveFilterOption) {
+      if (liveFilter) {
+        return this.originalFilter && option ? `(${this.originalFilter}) ${option} (${liveFilter})` : liveFilter
+      }
+
+      return this.originalFilter
+    },
+
+    updateLiveFilter () {
+      this.liveFilterValue = this.liveFilterModal.value
+      this.liveFilterOption = this.liveFilterModal.option
+
+      this.liveFilterModal.show = false
+      this.refresh()
+    },
+
+    resetLiveFilter () {
+      this.liveFilterModal.value = undefined
+      this.liveFilterModal.option = 'AND'
+    },
+
+    cancelLiveFilter () {
+      this.liveFilterModal.show = undefined
     },
 
     refresh () {
@@ -232,6 +402,13 @@ export default {
       }
     },
 
+    showFilterModal () {
+      this.liveFilterModal.value = this.liveFilterValue
+      this.liveFilterModal.option = this.liveFilterOption
+
+      this.liveFilterModal.show = true
+    },
+
     setDefaultValues () {
       this.chart = null
       this.filter = undefined
@@ -246,3 +423,11 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.chart__livefilter-btn {
+  right: 0.5rem;
+  top: 1.5rem;
+  z-index: 1;
+}
+</style>

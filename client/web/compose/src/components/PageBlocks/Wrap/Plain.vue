@@ -78,7 +78,7 @@
 
       <div
         class="card-body p-0 flex-fill"
-        :class="{ 'overflow-auto': scrollableBody }"
+        :class="{ 'overflow-auto': scrollableBody, bodyClass }"
         style="flex-shrink: 10;"
       >
         <slot

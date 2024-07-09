@@ -30,51 +30,73 @@
       </b-input-group>
     </b-form-group>
 
-    <template v-if="isDrillDownAvailable">
-      <b-form-group
-        :label="$t('chart.drillDown.label')"
-        :description="$t('chart.drillDown.description')"
-        label-class="d-flex align-items-center text-primary"
-        class="mb-1"
+    <b-row v-if="selectedChart">
+      <b-col
+        cols="12"
+        lg="6"
       >
-        <template #label>
-          {{ $t('chart.drillDown.label') }}
+        <template v-if="isDrillDownAvailable">
+          <b-form-group
+            :label="$t('chart.drillDown.label')"
+            :description="$t('chart.drillDown.description')"
+            label-class="d-flex align-items-center text-primary"
+          >
+            <template #label>
+              {{ $t('chart.drillDown.label') }}
 
-          <c-input-checkbox
-            v-model="options.drillDown.enabled"
-            switch
-            class="ml-1"
-          />
+              <c-input-checkbox
+                v-model="options.drillDown.enabled"
+                switch
+                class="ml-1"
+              />
+            </template>
+
+            <b-input-group>
+              <c-input-select
+                v-model="options.drillDown.blockID"
+                :options="drillDownOptions"
+                :get-option-key="getOptionKey"
+                :disabled="!options.drillDown.enabled"
+                :get-option-label="o => o.title || o.kind"
+                :reduce="option => option.blockID"
+                :clearable="true"
+                :placeholder="$t('chart.drillDown.openInModal')"
+              />
+
+              <b-input-group-append>
+                <column-picker
+                  ref="columnPicker"
+                  :module="selectedChartModule"
+                  :fields="selectedDrilldownFields"
+                  :disabled="!!options.drillDown.blockID || !options.drillDown.enabled"
+                  variant="extra-light"
+                  size="md"
+                  @updateFields="onUpdateFields"
+                >
+                  <font-awesome-icon :icon="['fas', 'wrench']" />
+                </column-picker>
+              </b-input-group-append>
+            </b-input-group>
+          </b-form-group>
         </template>
+      </b-col>
 
-        <b-input-group>
-          <c-input-select
-            v-model="options.drillDown.blockID"
-            :options="drillDownOptions"
-            :get-option-key="getOptionKey"
-            :disabled="!options.drillDown.enabled"
-            :get-option-label="o => o.title || o.kind"
-            :reduce="option => option.blockID"
-            :clearable="true"
-            :placeholder="$t('chart.drillDown.openInModal')"
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          label-class="d-flex align-items-center text-primary"
+          :label="$t('chart.enableLiveFilter')"
+        >
+          <c-input-checkbox
+            v-model="options.liveFilterEnabled"
+            switch
+            :labels="checkboxLabel"
           />
-
-          <b-input-group-append>
-            <column-picker
-              ref="columnPicker"
-              :module="selectedChartModule"
-              :fields="selectedDrilldownFields"
-              :disabled="!!options.drillDown.blockID || !options.drillDown.enabled"
-              variant="extra-light"
-              size="md"
-              @updateFields="onUpdateFields"
-            >
-              <font-awesome-icon :icon="['fas', 'wrench']" />
-            </column-picker>
-          </b-input-group-append>
-        </b-input-group>
-      </b-form-group>
-    </template>
+        </b-form-group>
+      </b-col>
+    </b-row>
   </b-tab>
 </template>
 <script>
@@ -95,6 +117,15 @@ export default {
   },
 
   extends: base,
+
+  data () {
+    return {
+      checkboxLabel: {
+        on: this.$t('general:label.yes'),
+        off: this.$t('general:label.no'),
+      },
+    }
+  },
 
   computed: {
     ...mapGetters({
