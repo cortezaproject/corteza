@@ -13,6 +13,10 @@ import (
 func (r Attachment) GetID() uint64 { return r.ID }
 
 func (r *Attachment) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -40,6 +44,10 @@ func (r *Attachment) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Attachment) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Attachment{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -69,6 +77,10 @@ func (r *Attachment) SetValue(name string, pos uint, value any) (err error) {
 func (r Chart) GetID() uint64 { return r.ID }
 
 func (r *Chart) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -90,6 +102,10 @@ func (r *Chart) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Chart) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Chart{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -116,6 +132,10 @@ func (r *Chart) SetValue(name string, pos uint, value any) (err error) {
 func (r Module) GetID() uint64 { return r.ID }
 
 func (r *Module) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -137,6 +157,10 @@ func (r *Module) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Module) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Module{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -160,6 +184,10 @@ func (r *Module) SetValue(name string, pos uint, value any) (err error) {
 func (r ModuleField) GetID() uint64 { return r.ID }
 
 func (r *ModuleField) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -189,6 +217,10 @@ func (r *ModuleField) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *ModuleField) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ModuleField{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -223,6 +255,10 @@ func (r *ModuleField) SetValue(name string, pos uint, value any) (err error) {
 func (r Namespace) GetID() uint64 { return r.ID }
 
 func (r *Namespace) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -244,6 +280,10 @@ func (r *Namespace) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Namespace) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Namespace{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -267,6 +307,10 @@ func (r *Namespace) SetValue(name string, pos uint, value any) (err error) {
 func (r Page) GetID() uint64 { return r.ID }
 
 func (r *Page) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -298,6 +342,10 @@ func (r *Page) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Page) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Page{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -334,6 +382,10 @@ func (r *Page) SetValue(name string, pos uint, value any) (err error) {
 func (r PageLayout) GetID() uint64 { return r.ID }
 
 func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -364,6 +416,10 @@ func (r *PageLayout) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &PageLayout{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -396,6 +452,10 @@ func (r *PageLayout) SetValue(name string, pos uint, value any) (err error) {
 func (r Record) GetID() uint64 { return r.ID }
 
 func (r *Record) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -430,6 +490,10 @@ func (r *Record) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Record) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Record{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)

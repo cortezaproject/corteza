@@ -13,6 +13,10 @@ import (
 func (r Workflow) GetID() uint64 { return r.ID }
 
 func (r *Workflow) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -46,6 +50,10 @@ func (r *Workflow) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Workflow) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Workflow{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -81,6 +89,10 @@ func (r *Workflow) SetValue(name string, pos uint, value any) (err error) {
 func (r Session) GetID() uint64 { return r.ID }
 
 func (r *Session) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "completedAt", "CompletedAt":
 		return r.CompletedAt, nil
@@ -108,6 +120,10 @@ func (r *Session) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Session) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Session{}
+	}
+
 	switch name {
 	case "completedAt", "CompletedAt":
 		return cast2.TimePtr(value, &r.CompletedAt)
@@ -137,6 +153,10 @@ func (r *Session) SetValue(name string, pos uint, value any) (err error) {
 func (r Trigger) GetID() uint64 { return r.ID }
 
 func (r *Trigger) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -170,6 +190,10 @@ func (r *Trigger) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Trigger) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Trigger{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)

@@ -159,6 +159,10 @@ func (r Record) Clone() *Record {
 }
 
 func (r *Record) getValue(name string, pos uint) (any, error) {
+	if r.Values == nil {
+		return nil, nil
+	}
+
 	if val := r.Values.Get(name, pos); val != nil {
 		return val.Value, nil
 	}
