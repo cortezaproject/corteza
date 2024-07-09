@@ -13,6 +13,10 @@ import (
 func (r Node) GetID() uint64 { return r.ID }
 
 func (r *Node) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "authToken", "AuthToken":
 		return r.AuthToken, nil
@@ -48,6 +52,10 @@ func (r *Node) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Node) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Node{}
+	}
+
 	switch name {
 	case "authToken", "AuthToken":
 		return cast2.String(value, &r.AuthToken)
@@ -88,6 +96,10 @@ func (r NodeSync) GetID() uint64 {
 }
 
 func (r *NodeSync) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "moduleID", "ModuleID":
 		return r.ModuleID, nil
@@ -105,6 +117,10 @@ func (r *NodeSync) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *NodeSync) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &NodeSync{}
+	}
+
 	switch name {
 	case "moduleID", "ModuleID":
 		return cast2.Uint64(value, &r.ModuleID)
@@ -124,6 +140,10 @@ func (r *NodeSync) SetValue(name string, pos uint, value any) (err error) {
 func (r ExposedModule) GetID() uint64 { return r.ID }
 
 func (r *ExposedModule) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "composeModuleID", "ComposeModuleID":
 		return r.ComposeModuleID, nil
@@ -155,6 +175,10 @@ func (r *ExposedModule) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *ExposedModule) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ExposedModule{}
+	}
+
 	switch name {
 	case "composeModuleID", "ComposeModuleID":
 		return cast2.Uint64(value, &r.ComposeModuleID)
@@ -188,6 +212,10 @@ func (r *ExposedModule) SetValue(name string, pos uint, value any) (err error) {
 func (r SharedModule) GetID() uint64 { return r.ID }
 
 func (r *SharedModule) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -217,6 +245,10 @@ func (r *SharedModule) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *SharedModule) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &SharedModule{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -251,6 +283,10 @@ func (r ModuleMapping) GetID() uint64 {
 }
 
 func (r *ModuleMapping) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "composeModuleID", "ComposeModuleID":
 		return r.ComposeModuleID, nil
@@ -266,6 +302,10 @@ func (r *ModuleMapping) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *ModuleMapping) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ModuleMapping{}
+	}
+
 	switch name {
 	case "composeModuleID", "ComposeModuleID":
 		return cast2.Uint64(value, &r.ComposeModuleID)

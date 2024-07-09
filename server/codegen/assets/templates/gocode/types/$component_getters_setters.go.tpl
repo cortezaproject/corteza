@@ -27,6 +27,10 @@ func (r {{.expIdent}}) GetID() (uint64) {
 }
 
 func (r *{{.expIdent}}) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	{{ range .model.attributes -}}
 		{{- if .omitGetter -}}
@@ -48,6 +52,10 @@ func (r *{{.expIdent}}) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *{{.expIdent}}) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &{{.expIdent}}{}
+	}
+
 	switch name {
 	{{ range .model.attributes -}}
 		{{- if .omitSetter -}}
