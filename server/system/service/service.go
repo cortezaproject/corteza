@@ -1,28 +1,29 @@
 package service
 
 import (
-	"context"
-	"errors"
-	"time"
+    "context"
+    "errors"
+    "github.com/bep/godartsass/v2"
+    "time"
 
-	automationService "github.com/cortezaproject/corteza/server/automation/service"
-	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
-	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/cortezaproject/corteza/server/pkg/eventbus"
-	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
-	"github.com/cortezaproject/corteza/server/pkg/id"
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/objstore"
-	"github.com/cortezaproject/corteza/server/pkg/objstore/minio"
-	"github.com/cortezaproject/corteza/server/pkg/objstore/plain"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
-	"github.com/cortezaproject/corteza/server/pkg/valuestore"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/automation"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"go.uber.org/zap"
+    automationService "github.com/cortezaproject/corteza/server/automation/service"
+    discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
+    "github.com/cortezaproject/corteza/server/pkg/actionlog"
+    "github.com/cortezaproject/corteza/server/pkg/dal"
+    "github.com/cortezaproject/corteza/server/pkg/eventbus"
+    "github.com/cortezaproject/corteza/server/pkg/healthcheck"
+    "github.com/cortezaproject/corteza/server/pkg/id"
+    "github.com/cortezaproject/corteza/server/pkg/logger"
+    "github.com/cortezaproject/corteza/server/pkg/objstore"
+    "github.com/cortezaproject/corteza/server/pkg/objstore/minio"
+    "github.com/cortezaproject/corteza/server/pkg/objstore/plain"
+    "github.com/cortezaproject/corteza/server/pkg/options"
+    "github.com/cortezaproject/corteza/server/pkg/rbac"
+    "github.com/cortezaproject/corteza/server/pkg/valuestore"
+    "github.com/cortezaproject/corteza/server/store"
+    "github.com/cortezaproject/corteza/server/system/automation"
+    "github.com/cortezaproject/corteza/server/system/types"
+    "go.uber.org/zap"
 )
 
 type (
@@ -61,6 +62,8 @@ var (
 
 	// DefaultSettings controls system's settings
 	DefaultSettings *settings
+
+    DefaultStylesheet *stylesheet
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
@@ -152,9 +155,12 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		}
 	}
 
+    sassTranspiler := dartSassTranspiler(log)
+
 	DefaultAccessControl = AccessControl(s)
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, DefaultActionlog, CurrentSettings, c.Webapps)
+    DefaultStylesheet = Stylesheet(sassTranspiler, log)
 
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 
@@ -343,4 +349,17 @@ func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 	}
 
 	return new.Equal(createdAt)
+}
+
+func dartSassTranspiler(log *zap.Logger) *godartsass.Transpiler {
+    transpiler, err := godartsass.Start(godartsass.Options{
+        DartSassEmbeddedFilename: "sass",
+    })
+
+    if err != nil {
+        log.Warn("dart sass is not installed in your system", zap.Error(err))
+        return nil
+    }
+
+    return transpiler
 }
