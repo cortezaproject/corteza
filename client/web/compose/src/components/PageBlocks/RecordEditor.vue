@@ -14,13 +14,18 @@
     <div
       v-else-if="module"
       class="mt-3 px-3"
-      :class="recordEditorMode"
+      :class="{
+        'd-flex flex-column flex-fill': options.recordFieldLayoutOption === 'default',
+        'd-flex flex-fill flex-wrap gap-2': options.recordFieldLayoutOption === 'wrap',
+        'd-flex flex-fill gap-2': options.recordFieldLayoutOption === 'noWrap',
+      }"
     >
       <template v-for="field in fields">
         <div
           v-if="canDisplay(field)"
           :key="field.id"
-          class="field-container mb-3 horizontal-mode"
+          class="field-container flex-fill"
+          style="min-width: 13rem;"
         >
           <field-editor
             v-if="isFieldEditable(field)"
@@ -148,22 +153,6 @@ export default {
     horizontal () {
       return this.block.options.horizontalFieldLayoutEnabled
     },
-
-    recordEditorMode () {
-      const overflowMode = 'd-flex gap-2 horizontal-mode'
-      const wrapMode = 'flex-wrap horizontal-mode'
-      let activeMode = ''
-
-      if (this.options.horizontalEditingMode) {
-        activeMode = overflowMode
-      }
-
-      if (this.options.horizontalEditingMode && this.options.wrapFields) {
-        activeMode = `${wrapMode} ${overflowMode}`
-      }
-
-      return activeMode
-    },
   },
 
   watch: {
@@ -242,9 +231,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-.horizontal-mode {
-  min-width: 13rem;
-}
-</style>

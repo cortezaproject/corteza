@@ -13,6 +13,11 @@
     <div
       v-else-if="fieldModule"
       class="mt-3 px-3"
+      :class="{
+        'd-flex flex-column flex-fill': options.recordFieldLayoutOption === 'default',
+        'd-flex flex-fill flex-wrap gap-2': options.recordFieldLayoutOption === 'wrap',
+        'd-flex flex-fill gap-2': options.recordFieldLayoutOption === 'noWrap',
+      }"
     >
       <template v-for="field in fields">
         <b-form-group
@@ -22,7 +27,8 @@
           :label-cols-xl="options.horizontalFieldLayoutEnabled && '5'"
           :content-cols-md="options.horizontalFieldLayoutEnabled && '6'"
           :content-cols-xl="options.horizontalFieldLayoutEnabled && '7'"
-          class="field-container mb-3"
+          class="field-container flex-fill"
+          style="min-width: 13rem;"
         >
           <template #label>
             <div

@@ -17,8 +17,7 @@ interface Options {
   referenceModuleID?: string;
   inlineRecordEditEnabled: boolean;
   horizontalFieldLayoutEnabled: boolean;
-  horizontalEditingMode: boolean;
-  wrapFields: boolean;
+  recordFieldLayoutOption: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -30,8 +29,7 @@ const defaults: Readonly<Options> = Object.freeze({
   referenceModuleID: undefined,
   inlineRecordEditEnabled: false,
   horizontalFieldLayoutEnabled: false,
-  horizontalEditingMode: false,
-  wrapFields: false,
+  recordFieldLayoutOption: 'default',
 })
 
 export class PageBlockRecord extends PageBlock {
@@ -47,8 +45,8 @@ export class PageBlockRecord extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
 
-    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'referenceField', 'referenceModuleID')
-    Apply(this.options, o, Boolean, 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled', 'horizontalEditingMode', 'wrapFields')
+    Apply(this.options, o, String, 'magnifyOption', 'recordSelectorDisplayOption', 'referenceField', 'referenceModuleID', 'recordFieldLayoutOption')
+    Apply(this.options, o, Boolean, 'inlineRecordEditEnabled', 'horizontalFieldLayoutEnabled')
 
     if (o.fields) {
       this.options.fields = o.fields
