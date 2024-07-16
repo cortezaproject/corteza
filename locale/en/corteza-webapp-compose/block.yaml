@@ -261,8 +261,10 @@ record:
   horizontalFormLayout: Horizontal form layout
   inlineEdit:
     enabled: Inline value editing enabled
-  horizontalEditMode: Horizontal editing mode
-  horizontalWrapFields: Wrap fields
+  fieldsLayoutMode: Fields layout mode
+  defaultFieldsLayoutMode: Default
+  noWrapFieldsLayoutMode: No wrap
+  wrapFieldsLayoutMode: Wrap
   preview:
     blockNoRecord: Cannot render this block without a record
     fieldsFromModule: Single record block, displaying fields ({{0}}) from module {{1}}

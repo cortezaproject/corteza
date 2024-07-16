@@ -96,30 +96,14 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('record.horizontalEditMode')"
+            :label="$t('record.fieldsLayoutMode')"
             label-class="text-primary"
           >
-            <c-input-checkbox
-              v-model="options.horizontalEditingMode"
-              switch
-              :labels="checkboxLabel"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          v-if="options.horizontalEditingMode"
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('record.horizontalWrapFields')"
-            label-class="text-primary"
-          >
-            <c-input-checkbox
-              v-model="options.wrapFields"
-              switch
-              :labels="checkboxLabel"
+            <c-input-select
+              v-model="options.recordFieldLayoutOption"
+              :options="recordFieldLayoutOptions"
+              :reduce="option => option.value"
+              :get-option-key="option => option.label"
             />
           </b-form-group>
         </b-col>
@@ -300,6 +284,14 @@ export default {
         { value: 'sameTab', text: this.$t('record.openInSameTab') },
         { value: 'newTab', text: this.$t('record.openInNewTab') },
         { value: 'modal', text: this.$t('record.openInModal') },
+      ]
+    },
+
+    recordFieldLayoutOptions () {
+      return [
+        { value: 'default', label: this.$t('record.defaultFieldsLayoutMode') },
+        { value: 'noWrap', label: this.$t('record.noWrapFieldsLayoutMode') },
+        { value: 'wrap', label: this.$t('record.wrapFieldsLayoutMode') },
       ]
     },
 
