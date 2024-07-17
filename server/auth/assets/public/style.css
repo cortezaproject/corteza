@@ -46,3 +46,7 @@ label {
 .footer {
   margin-top: auto;
 }
+
+.bi::before {
+  vertical-align: middle;
+}
