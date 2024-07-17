@@ -23,7 +23,6 @@
     >
       <c-map
         :map="map"
-        :active-marker-index="localValueIndex"
         :markers="localValue"
         :hide-current-location-button="field.options.hideCurrentLocationButton"
         :hide-geo-search="field.options.hideGeoSearch"
@@ -71,8 +70,11 @@ export default {
   computed: {
     localValue () {
       if (this.field.isMulti) {
-        return this.value.map(v => {
-          return { value: JSON.parse(v || '{"coordinates":[]}').coordinates || [] }
+        return this.value.map((v, i) => {
+          return {
+            value: JSON.parse(v || '{"coordinates":[]}').coordinates || [],
+            opacity: this.localValueIndex === undefined || i === this.localValueIndex ? 1.0 : 0.6,
+          }
         }).filter(c => c && c.value && c.value.length)
       } else {
         return [{ value: JSON.parse(this.value || '{"coordinates":[]}').coordinates || [] }].filter(c => c && c.value && c.value.length)
@@ -87,7 +89,10 @@ export default {
   methods: {
     openMap (index) {
       this.localValueIndex = index
-      this.map.center = (this.localValue[index] && this.localValue[index].value) || this.field.options.center
+
+      const { value } = this.localValue[index] || {}
+
+      this.map.center = value || this.field.options.center
       this.map.zoom = index >= 0 ? 13 : this.field.options.zoom
       this.map.show = true
     },
