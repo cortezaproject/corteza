@@ -180,6 +180,7 @@
                   :placeholder="$t('metric.edit.metricFieldSelect')"
                   :options="metricFields"
                   :get-option-key="getOptionMetricFieldKey"
+                  :get-option-label="getOptionMetricFieldLabel"
                   :reduce="f => f.name"
                   @input="onMetricFieldChange"
                 />
@@ -452,6 +453,10 @@ export default {
 
     getOptionMetricFieldKey ({ name }) {
       return name
+    },
+
+    getOptionMetricFieldLabel ({ name, label }) {
+      return name || label
     },
 
     getOptionAggregationOperationKey ({ operation }) {
