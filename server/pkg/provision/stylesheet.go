@@ -1,14 +1,15 @@
 package provision
 
 import (
-	"context"
-	"encoding/json"
-	"strconv"
+    "context"
+    "encoding/json"
+    "strconv"
+    "time"
 
-	"github.com/cortezaproject/corteza/server/pkg/sass"
-	"github.com/cortezaproject/corteza/server/store"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"go.uber.org/zap"
+    "github.com/cortezaproject/corteza/server/pkg/sass"
+    "github.com/cortezaproject/corteza/server/store"
+    "github.com/cortezaproject/corteza/server/system/types"
+    "go.uber.org/zap"
 )
 
 // updateWebappTheme is a function that provisions new webapp themes,
@@ -81,6 +82,7 @@ func provisionTheme(ctx context.Context, s store.Storer, name string, themes []t
 	newThemeSetting := &types.SettingValue{
 		Name:  name,
 		Value: value,
+        UpdatedAt: time.Now(),
 	}
 
 	err = store.CreateSettingValue(ctx, s, newThemeSetting)
