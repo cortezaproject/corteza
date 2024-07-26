@@ -34,6 +34,8 @@
           <c-input-select
             v-model="feed.titleField"
             :options="titleFields"
+            :get-option-key="getOptionEventFieldKey"
+            :get-option-label="getOptionEventFieldLabel"
             :reduce="o => o.name"
             :placeholder="$t('calendar.recordFeed.titlePlaceholder')"
           />
@@ -51,6 +53,8 @@
           <c-input-select
             v-model="feed.startField"
             :options="dateFields"
+            :get-option-key="getOptionEventFieldKey"
+            :get-option-label="getOptionEventFieldLabel"
             :reduce="o => o.name"
             :placeholder="$t('calendar.recordFeed.eventStartFieldPlaceholder')"
           />
@@ -68,6 +72,8 @@
           <c-input-select
             v-model="feed.endField"
             :options="dateFields"
+            :get-option-key="getOptionEventFieldKey"
+            :get-option-label="getOptionEventFieldLabel"
             :reduce="o => o.name"
             :disabled="feed.allDay"
             :placeholder="$t('calendar.recordFeed.eventEndFieldPlaceholder')"
@@ -177,6 +183,7 @@ export default {
       if (!this.module) {
         return []
       }
+
       return [...this.module.fields]
         .filter(f => ['String', 'Email', 'Url'].includes(f.kind))
         .sort((a, b) => a.label.localeCompare(b.label))
@@ -193,6 +200,7 @@ export default {
       }
 
       const moduleFields = this.module.fields.slice().sort((a, b) => a.label.localeCompare(b.label))
+
       return [
         ...moduleFields,
         ...this.module.systemFields().map(sf => {
@@ -212,6 +220,14 @@ export default {
       this.feed.titleField = ''
       this.feed.startField = ''
       this.feed.endField = ''
+    },
+
+    getOptionEventFieldKey ({ name }) {
+      return name
+    },
+
+    getOptionEventFieldLabel ({ name, label }) {
+      return name || label
     },
   },
 }

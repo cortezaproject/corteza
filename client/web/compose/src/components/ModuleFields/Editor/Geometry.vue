@@ -276,14 +276,14 @@ export default {
       this.map.value = this.field.isMulti ? [...this.localValue] : this.localValue
 
       this.localValueIndex = index
+
       const firstCoordinates = (index >= 0 ? this.localValue[index] : this.localValue) || {}
-      firstCoordinates.coordinates = firstCoordinates.coordinates ? [...firstCoordinates.coordinates] : []
+      const areCoordinatesValid = firstCoordinates.coordinates && firstCoordinates.coordinates.length === 2 && firstCoordinates.coordinates.every(isNumber)
 
-      this.map.center = firstCoordinates.coordinates &&
-                        firstCoordinates.coordinates.length === 2 &&
-                        firstCoordinates.coordinates.every(isNumber) ? firstCoordinates.coordinates : this.field.options.center
+      firstCoordinates.coordinates = areCoordinatesValid ? [...firstCoordinates.coordinates] : []
 
-      this.map.zoom = index >= 0 ? 13 : this.field.options.zoom
+      this.map.center = areCoordinatesValid ? firstCoordinates.coordinates : this.field.options.center
+      this.map.zoom = areCoordinatesValid ? 13 : this.field.options.zoom
       this.map.show = true
     },
 

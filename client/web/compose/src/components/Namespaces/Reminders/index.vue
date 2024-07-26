@@ -12,7 +12,6 @@
     <edit
       v-else
       :edit="edit"
-      :users="users"
       :disable-save="disableSave"
       :processing-save="processingSave"
       class="flex-fill"
@@ -26,7 +25,6 @@
 <script>
 import List from './List'
 import Edit from './Edit'
-import { mapGetters } from 'vuex'
 import { system, NoID } from '@cortezaproject/corteza-js'
 
 export default {
@@ -42,12 +40,6 @@ export default {
       disableSave: false,
       processingSave: false,
     }
-  },
-
-  computed: {
-    ...mapGetters({
-      users: 'user/set',
-    }),
   },
 
   mounted () {

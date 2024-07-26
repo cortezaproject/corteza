@@ -122,13 +122,13 @@
                 >
                   <c-input-select
                     v-if="a.target === 'workflow'"
-                    key="workflowID"
                     v-model="a.value"
                     :options="workflowOptions"
                     :get-option-label="getWorkflowLabel"
                     :get-option-key="getWorkflowKey"
                     :reduce="wf => a.type === 'ID' ? wf.workflowID : wf.handle"
                     :placeholder="$t('steps:function.configurator.search-workflow')"
+                    :filterable="false"
                     @input="$root.$emit('change-detected')"
                     @search="searchWorkflows"
                   />

@@ -2,7 +2,7 @@
   <div
     class="d-flex flex-column h-100"
   >
-    <div class="flex-fill overflow-auto px-2">
+    <div class="d-flex flex-column flex-fill gap-2 overflow-auto p-3">
       <div
         v-for="(r, i) in sortedReminders"
         :key="r.reminderID"
@@ -11,7 +11,7 @@
         <hr v-if="r.dismissedAt && sortedReminders[i - 1] ? !sortedReminders[i - 1].dismissedAt : false ">
 
         <div
-          class="border card shadow-sm my-2 p-1"
+          class="border card shadow-sm p-1"
         >
           <div
             class="d-flex flex-row flex-nowrap align-items-center"

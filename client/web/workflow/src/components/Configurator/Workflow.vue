@@ -56,6 +56,7 @@
         :get-option-key="getOptionKey"
         :value="user.value"
         :placeholder="$t('run-as.placeholder')"
+        :filterable="false"
         @search="search"
         @input="updateRunAs"
       />

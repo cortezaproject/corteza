@@ -1,10 +1,9 @@
 package drivers
 
 import (
-	"fmt"
-
-	"github.com/cortezaproject/corteza/server/pkg/dal"
-	"github.com/doug-martin/goqu/v9/exp"
+    "fmt"
+    "github.com/cortezaproject/corteza/server/pkg/dal"
+    "github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
@@ -132,8 +131,7 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.Expression, e
 
 	switch s := attr.Store.(type) {
 	case *dal.CodecAlias:
-		// using column directly
-		return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, s.Ident)), nil
+        return t.dialect.AttributeExpression(attr, t.model.Ident, s.Ident)
 
 	case *dal.CodecRecordValueSetJSON:
 		// using JSON to handle embedded values

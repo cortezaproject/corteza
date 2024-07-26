@@ -218,13 +218,12 @@
         class="mb-0"
       >
         <c-input-select
-          key="roleID"
           v-model="add.roleID"
           :data-test-id="`select-${add.mode}-roles`"
           :options="availableRoles"
           :get-option-key="getOptionRoleKey"
-          :multiple="add.mode === 'eval'"
           label="name"
+          :multiple="add.mode === 'eval'"
           :disabled="add.mode === 'eval' && !!add.userID"
           :placeholder="$t('ui.add.role.placeholder')"
         />
@@ -237,15 +236,13 @@
         class="mt-3 mb-0"
       >
         <c-input-select
-          key="userID"
           v-model="add.userID"
           :data-test-id="`select-${add.mode}-users`"
           :disabled="!!add.roleID.length"
-          :get-option-key="getOptionUserKey"
           :options="userOptions"
           :get-option-label="getUserLabel"
-          label="name"
           :placeholder="$t('ui.add.user.placeholder')"
+          :filterable="false"
           @search="searchUsers"
         />
       </b-form-group>
@@ -328,6 +325,8 @@ export default {
 
       newRole: null,
       permissionChanges: [],
+
+      fetchedUsers: {},
     }
   },
 
@@ -380,6 +379,10 @@ export default {
     this.searchUsers('', () => {})
   },
 
+  beforeDestroy () {
+    this.setDefaultValues()
+  },
+
   methods: {
     checkRule (ID, res, op, access) {
       const key = `${op}@${res}`
@@ -426,15 +429,23 @@ export default {
 
       this.$SystemAPI.userList({ query, limit: 15 })
         .then(({ set }) => {
-          this.userOptions = set.map(m => Object.freeze(m))
+          this.userOptions = set.reduce((acc, { userID, name, username, email }) => {
+            if (!this.fetchedUsers[userID]) {
+              this.fetchedUsers[userID] = name || username || email || `<@${userID}>`
+            }
+
+            acc.push(userID)
+
+            return acc
+          }, [])
         })
         .finally(() => {
           loading(false)
         })
     },
 
-    getUserLabel ({ userID, email, name, username }) {
-      return name || username || email || `<@${userID}>`
+    getUserLabel (userID) {
+      return this.fetchedUsers[userID]
     },
 
     getTranslation (resource, operation = '') {
@@ -461,7 +472,7 @@ export default {
     },
 
     onAdd () {
-      this.$emit('add', this.add)
+      this.$emit('add', { ...this.add, userID: { userID: this.add.userID, name: this.fetchedUsers[this.add.userID] } })
       this.add = {
         mode: 'edit',
         roleID: [],
@@ -477,8 +488,14 @@ export default {
       return roleID
     },
 
-    getOptionUserKey ({ userID }) {
-      return userID
+    setDefaultValues () {
+      this.add = {}
+      this.modeOptions = []
+      this.userOptions = []
+      this.evaluatedPermissions = undefined
+      this.newRole = null
+      this.permissionChanges = []
+      this.fetchedUsers = {}
     },
   },
 }

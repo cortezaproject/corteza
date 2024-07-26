@@ -1,7 +1,6 @@
 <template>
   <c-input-select
     data-test-id="select-sens-lvl"
-    key="type"
     :value="_value"
     :disabled="_disabled"
     :options="sensitivityLevels"

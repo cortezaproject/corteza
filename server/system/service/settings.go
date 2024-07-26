@@ -256,7 +256,7 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 				compStyles = current.FindByName("ui.studio.themes")
 			}
 
-			updateCSS(v, current.FindByName(v.Name), compStyles, v.Name, svc.webappsConf.ScssDirPath, svc.logger)
+            DefaultStylesheet.updateCSS(v, current.FindByName(v.Name), compStyles, v.Name, svc.webappsConf.ScssDirPath, svc.logger)
 		}
 
 		svc.logChange(ctx, v)

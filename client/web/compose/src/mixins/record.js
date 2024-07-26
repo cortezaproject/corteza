@@ -384,8 +384,9 @@ export default {
             if (r.deletedAt) {
               return
             }
+
             const fields = p.module.fields
-              .filter(({ canUpdateRecordValue }) => canUpdateRecordValue)
+              .filter(({ canReadRecordValue, canUpdateRecordValue }) => canReadRecordValue && canUpdateRecordValue)
               .map(({ name }) => name)
 
             // cover the edge case where all fields are not updatable
@@ -397,6 +398,7 @@ export default {
               }
             }
           })
+
           this.errors.push(...errs.set)
         }
       }

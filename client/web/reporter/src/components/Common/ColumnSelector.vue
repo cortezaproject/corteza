@@ -1,6 +1,5 @@
 <template>
   <c-input-select
-    key="name"
     :value="value"
     :options="columns"
     :get-option-label="getColumnLabel"

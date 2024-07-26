@@ -32,8 +32,10 @@
             <c-input-select
               v-model="feed.geometryField"
               :options="geometryFields"
-              :placeholder="$t('geometry.recordFeed.geometryFieldPlaceholder')"
+              :get-option-key="getOptionGeometryAndTitleFieldKey"
+              :get-option-label="getOptionGeometryAndTitleFieldLabel"
               :reduce="o => o.name"
+              :placeholder="$t('geometry.recordFeed.geometryFieldPlaceholder')"
             />
           </b-form-group>
         </b-col>
@@ -49,6 +51,8 @@
             <c-input-select
               v-model="feed.titleField"
               :options="titleFields"
+              :get-option-key="getOptionGeometryAndTitleFieldKey"
+              :get-option-label="getOptionGeometryAndTitleFieldLabel"
               :reduce="o => o.name"
               :placeholder="$t('geometry.recordFeed.titlePlaceholder')"
             />
@@ -185,6 +189,7 @@ export default {
       if (!this.module) {
         return []
       }
+
       return this.module.fields
         .filter(f => [
           'DateTime',
@@ -194,7 +199,8 @@ export default {
           'String',
           'Record',
           'User',
-        ].includes(f.kind)).toSorted((a, b) => a.label.localeCompare(b.label))
+        ].includes(f.kind) && f.label)
+        .toSorted((a, b) => a.label.localeCompare(b.label))
     },
 
     /**
@@ -212,8 +218,9 @@ export default {
         ...this.module.systemFields().map(sf => {
           sf.label = this.$t(`field:system.${sf.name}`)
           return sf
-        }),
-      ].filter(f => f.kind === 'Geometry').toSorted((a, b) => a.label.localeCompare(b.label))
+        })]
+        .filter(f => f.kind === 'Geometry')
+        .toSorted((a, b) => a.label.localeCompare(b.label))
     },
 
     themeSettings () {
@@ -225,6 +232,14 @@ export default {
     onModuleChange () {
       this.feed.geometryField = ''
       this.feed.titleField = ''
+    },
+
+    getOptionGeometryAndTitleFieldKey ({ name }) {
+      return name
+    },
+
+    getOptionGeometryAndTitleFieldLabel ({ name, label }) {
+      return name || label
     },
   },
 }

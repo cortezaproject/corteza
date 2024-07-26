@@ -223,18 +223,16 @@ export default {
                     markers = [geometry]
                   }
 
-                  if (geometry.length && geometry.length === 2) {
-                    return ({
-                      title: record.values[f.titleField],
-                      geometry: f.displayPolygon ? geometry : [],
-                      markers,
-                      color: f.options.color,
-                      displayMarker: f.displayMarker,
-                      recordID: record.recordID,
-                      moduleID: record.moduleID,
-                    })
+                  return {
+                    title: record.values[f.titleField],
+                    geometry: f.displayPolygon ? geometry : [],
+                    markers,
+                    color: f.options.color,
+                    displayMarker: f.displayMarker,
+                    recordID: record.recordID,
+                    moduleID: record.moduleID,
                   }
-                }).filter(g => g && g.length)
+                }).filter(g => g && g.markers.length)
               })
           })
       })).finally(() => {

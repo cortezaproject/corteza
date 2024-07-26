@@ -81,6 +81,7 @@
                 :placeholder="$t('progress.field.select')"
                 :options="valueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
+                :get-option-label="getOptionModuleFieldLabel"
                 :reduce="f => f.name"
                 @input="fieldChanged($event, options.value)"
               />
@@ -190,6 +191,7 @@
                 :placeholder="$t('progress.field.select')"
                 :options="minValueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
+                :get-option-label="getOptionModuleFieldLabel"
                 :reduce="f => f.name"
                 @input="fieldChanged($event, options.minValue)"
               />
@@ -299,6 +301,7 @@
                 :placeholder="$t('progress.field.select')"
                 :options="maxValueModuleFields"
                 :get-option-key="getOptionModuleFieldKey"
+                :get-option-label="getOptionModuleFieldLabel"
                 :reduce="f => f.name"
                 @input="fieldChanged($event, options.maxValue)"
               />
@@ -600,24 +603,15 @@ export default {
     },
 
     valueModuleFields () {
-      return [
-        ...this.sharedModuleFields,
-        ...this.moduleByID(this.options.value.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.label.localeCompare(b.label)),
-      ]
+      return this.returnValueModuleFields(this.options.value.moduleID)
     },
 
     minValueModuleFields () {
-      return [
-        ...this.sharedModuleFields,
-        ...this.moduleByID(this.options.minValue.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.label.localeCompare(b.label)),
-      ]
+      return this.returnValueModuleFields(this.options.minValue.moduleID)
     },
 
     maxValueModuleFields () {
-      return [
-        ...this.sharedModuleFields,
-        ...this.moduleByID(this.options.maxValue.moduleID).fields.filter(f => f.kind === 'Number').sort((a, b) => a.label.localeCompare(b.label)),
-      ]
+      return this.returnValueModuleFields(this.options.maxValue.moduleID)
     },
   },
 
@@ -678,6 +672,10 @@ export default {
       return name
     },
 
+    getOptionModuleFieldLabel ({ name, label }) {
+      return name || label
+    },
+
     getOptionAggregationOperationKey ({ operation }) {
       return operation
     },
@@ -686,6 +684,15 @@ export default {
       this.aggregationOperations = []
       this.variants = []
       this.mock = {}
+    },
+
+    returnValueModuleFields (moduleID) {
+      return [
+        ...this.sharedModuleFields,
+        ...this.moduleByID(moduleID).fields
+          .filter(f => f.kind === 'Number')
+          .sort((a, b) => a.label.localeCompare(b.label)),
+      ]
     },
   },
 }

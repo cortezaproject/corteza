@@ -20,7 +20,6 @@
         label-class="text-primary"
       >
         <c-input-select
-          key="pageID"
           v-model="options.item.pageID"
           :placeholder="$t('navigation.none')"
           :options="pageList"

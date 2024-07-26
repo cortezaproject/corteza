@@ -1,6 +1,6 @@
 <template>
   <div
-    class="d-flex flex-column h-100"
+    class="d-flex flex-column h-100 p-3"
   >
     <b-form
       v-if="reminder"
@@ -69,11 +69,9 @@
           data-test-id="select-assignee"
           :options="assignees"
           :get-option-label="getUserLabel"
-          :get-option-key="getOptionKey"
           :loading="processingUsers"
           :placeholder="$t('field.kind.user.suggestionPlaceholder')"
-          :reduce="user => user.userID"
-          option-value="userID"
+          :filterable="false"
           @search="searchUsers"
         />
       </b-form-group>
@@ -167,12 +165,6 @@ export default {
       default: () => ({}),
     },
 
-    users: {
-      type: Array,
-      required: true,
-      default: () => [],
-    },
-
     disableSave: {
       type: Boolean,
       default: false,
@@ -190,7 +182,11 @@ export default {
 
       // Do this, so we don't edit the original object
       reminder: undefined,
-      assignees: [{ userID: this.$auth.user.userID }],
+      assignees: [this.$auth.user.userID],
+
+      fetchedUsers: {
+        [this.$auth.user.userID]: this.$t('reminder.edit.assigneePlaceholder'),
+      },
     }
   },
 
@@ -207,28 +203,41 @@ export default {
       deep: true,
       handler (edit) {
         this.reminder = new system.Reminder(edit)
-        this.searchUsers()
+        this.fetchUsers()
       },
     },
   },
 
   methods: {
     searchUsers: _.debounce(function (query) {
-      this.processingUsers = true
-
-      this.$SystemAPI.userList({ query, limit: 15 }).then(({ set = [] }) => {
-        this.assignees = set
-      }).finally(() => {
-        this.processingUsers = false
-      })
+      this.fetchUsers(query)
     }, 300),
 
-    getUserLabel ({ userID, email, name, username }) {
-      if (userID === this.$auth.user.userID) {
-        return this.$t('reminder.edit.assigneePlaceholder')
-      }
+    fetchUsers (query) {
+      this.processingUsers = true
 
-      return name || username || email || `<@${userID}>`
+      return this.$SystemAPI.userList({ query, limit: 15 }).then(({ set = [] }) => {
+        this.assignees = [this.$auth.user.userID]
+        set.forEach(({ userID, name, username, email }) => {
+          if (!this.fetchedUsers[userID]) {
+            this.fetchedUsers[userID] = name || username || email || `<@${userID}>`
+          }
+
+          if (userID === this.$auth.user.userID) {
+            return
+          }
+
+          this.assignees.push(userID)
+        }, [])
+      }).finally(() => {
+        setTimeout(() => {
+          this.processingUsers = false
+        }, 300)
+      })
+    },
+
+    getUserLabel (userID) {
+      return this.fetchedUsers[userID]
     },
 
     getOptionKey ({ userID }) {

@@ -39,5 +39,16 @@ export default {
       return f(this.value) || this.$t('kind.user.na')
     },
   },
+
+  created () {
+    // Prefill value with current user only when creating a new record and field is ownedBy (since BE prefills it anyway if its undefined)
+
+    const isNewRecord = this.record && this.record.recordID === NoID
+
+    if (isNewRecord && this.field.name === 'ownedBy') {
+      const { userID } = this.$auth.user
+      this.record.ownedBy = userID
+    }
+  },
 }
 </script>
