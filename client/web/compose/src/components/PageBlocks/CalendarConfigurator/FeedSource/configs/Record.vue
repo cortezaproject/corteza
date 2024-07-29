@@ -227,7 +227,7 @@ export default {
     },
 
     getOptionEventFieldLabel ({ name, label }) {
-      return name || label
+      return label || name
     },
   },
 }

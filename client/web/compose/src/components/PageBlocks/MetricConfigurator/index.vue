@@ -456,7 +456,7 @@ export default {
     },
 
     getOptionMetricFieldLabel ({ name, label }) {
-      return name || label
+      return label || name
     },
 
     getOptionAggregationOperationKey ({ operation }) {

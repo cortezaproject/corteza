@@ -673,7 +673,7 @@ export default {
     },
 
     getOptionModuleFieldLabel ({ name, label }) {
-      return name || label
+      return label || name
     },
 
     getOptionAggregationOperationKey ({ operation }) {
