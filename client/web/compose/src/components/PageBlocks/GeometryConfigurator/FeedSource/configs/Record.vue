@@ -239,7 +239,7 @@ export default {
     },
 
     getOptionGeometryAndTitleFieldLabel ({ name, label }) {
-      return name || label
+      return label || name
     },
   },
 }
