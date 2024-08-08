@@ -123,7 +123,11 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
       hot: false,
 
       proxy: {
-        '^/custom.css': {
+       '^/custom.css': {
+          target: fetchBaseUrl(),
+        },
+
+        '^/code-snippets.js': {
           target: fetchBaseUrl(),
         },
       },

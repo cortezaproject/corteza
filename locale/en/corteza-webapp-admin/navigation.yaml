@@ -9,6 +9,7 @@ system:
     applications: Applications
     authclients: Auth Clients
     connections: Connections
+    code-snippets: Code Snippets
     sensitivityLevel: Sensitivity Levels
     permissions: Permissions
     queues: Messaging Queues
@@ -43,4 +44,3 @@ ui:
   group: User interface
   items:
     settings: Settings
-

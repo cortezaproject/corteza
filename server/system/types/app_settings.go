@@ -238,6 +238,8 @@ type (
 		// Integration gateway settings
 		Apigw ApigwSettings `kv:"apigw" json:"apigw"`
 
+		CodeSnippets []struct{ CodeSnippet } `kv:"code-snippets" json:"codeSnippets"`
+
 		// UserInterface settings
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
@@ -413,6 +415,11 @@ type (
 	Theme struct {
 		ID     string `json:"id"`
 		Values string `json:"values"`
+	}
+
+	CodeSnippet struct {
+		Name   string `json:"name"`
+		Script string `json:"script"`
 	}
 
 	SmtpServers struct {

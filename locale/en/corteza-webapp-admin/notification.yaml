@@ -268,6 +268,16 @@ settings:
     update:
       success: UI settings updated
       error: UI settings update failed
+  code-snippet:
+    fetch:
+      error: Code snippets settings fetch failed
+    update:
+      success: Code snippets settings  updated
+      error: Code snippets settings  update failed
+    delete:
+      success: Code snippet deleted
+      error: Code snippet delete failed
+
 permissions:
   fetch:
     error: Permissions fetch failed
