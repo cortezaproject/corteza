@@ -124,6 +124,10 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
         '^/custom.css': {
           target: fetchBaseUrl(),
         },
+
+        '^/custom.js': {
+          target: fetchBaseUrl(),
+        },
       },
 
       watchOptions: {

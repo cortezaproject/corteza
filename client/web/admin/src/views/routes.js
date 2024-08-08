@@ -143,7 +143,11 @@ export default [
       },
 
       {
-        ...r('ui.settings', 'ui', 'UI/Index'),
+        ...wrap(`ui`, `/ui`),
+        children: [
+          r('ui.settings', 'settings', 'UI/Index'),
+          r('ui.cdns', 'cdns', 'UI/Cdns'),
+        ],
       },
     ],
   },

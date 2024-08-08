@@ -212,6 +212,12 @@ export default {
               icon: 'eye',
               can: ['system/', 'settings.read'],
             },
+            {
+              label: 'ui.items.cdns',
+              route: 'ui.cdns',
+              icon: 'file-code',
+              can: ['system/', 'settings.read'],
+            },
           ],
         },
       ],

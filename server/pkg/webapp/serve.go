@@ -1,21 +1,24 @@
 package webapp
 
 import (
-	"bytes"
-	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"path"
-	"regexp"
-	"strings"
+    "bytes"
+    "encoding/json"
+    "fmt"
+    "golang.org/x/net/html"
+    "io"
+    "log"
+    "net/http"
+    "os"
+    "path"
+    "regexp"
+    "strings"
 
-	"github.com/cortezaproject/corteza/server/pkg/logger"
-	"github.com/cortezaproject/corteza/server/pkg/options"
-	"github.com/cortezaproject/corteza/server/system/service"
-	"github.com/cortezaproject/corteza/server/system/types"
-	"github.com/go-chi/chi/v5"
-	"go.uber.org/zap"
+    "github.com/cortezaproject/corteza/server/pkg/logger"
+    "github.com/cortezaproject/corteza/server/pkg/options"
+    "github.com/cortezaproject/corteza/server/system/service"
+    "github.com/cortezaproject/corteza/server/system/types"
+    "github.com/go-chi/chi/v5"
+    "go.uber.org/zap"
 )
 
 type (
@@ -28,6 +31,8 @@ type (
 		sentryUrl           string
 		settings            *types.AppSettings
 	}
+
+    scriptAttrs = map[string]string
 )
 
 var (
@@ -152,6 +157,50 @@ func serveConfig(r chi.Router, config webappConfig) {
 
 		_, _ = fmt.Fprint(w, stylesheet)
 	})
+
+    // serve custom.js
+    r.Get(options.CleanBase(config.appUrl, "custom.js"), func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Add("Content-Type", "text/javascript")
+
+        cdns := service.CurrentSettings.UI.CdnScripts
+
+        doc, err := html.Parse(strings.NewReader(cdns))
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        var scriptsAttrs []scriptAttrs
+        traverseScriptsNode(doc, &scriptsAttrs)
+
+        //create a javascript array of objects
+        jsonScripts, err := json.Marshal(scriptsAttrs)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        jsScripts := fmt.Sprintf(
+            `
+const cdnScripts = %s;
+
+cdnScripts.forEach(cdnScript => {
+    const scriptAttr = document.createElement("script");
+    scriptAttr.src = cdnScript.src;
+    
+    if (cdnScript.integrity) {
+        scriptAttr.integrity = cdnScript.integrity;
+    }
+    
+    if (cdnScript.crossorigin) {
+        scriptAttr.crossOrigin = cdnScript.crossorigin;
+    }
+    
+    document.head.appendChild(scriptAttr);
+});
+
+            `, string(jsonScripts))
+
+        _, _ = fmt.Fprint(w, jsScripts)
+    })
 }
 
 // Reads and modifies index HTML for the webapp
@@ -182,4 +231,26 @@ func replaceBaseHrefPlaceholder(buf []byte, app, baseHref string) []byte {
 	}
 
 	return fixed
+}
+
+func traverseScriptsNode(n *html.Node, scripts *[]scriptAttrs) {
+    if n.Type == html.ElementNode && n.Data == "script" {
+        script := scriptAttrs{}
+        for _, attr := range n.Attr {
+            switch attr.Key {
+            case "src":
+                script["src"] = attr.Val
+            case "integrity":
+                script["integrity"] = attr.Val
+            case "crossorigin":
+                script["crossorigin"] = attr.Val
+            }
+        }
+
+        *scripts = append(*scripts, script)
+    }
+
+    for c := n.FirstChild; c != nil; c = c.NextSibling {
+        traverseScriptsNode(c, scripts)
+    }
 }

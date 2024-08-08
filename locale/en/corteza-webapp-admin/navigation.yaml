@@ -43,4 +43,5 @@ ui:
   group: User interface
   items:
     settings: Settings
+    cdns: CDNs
 
