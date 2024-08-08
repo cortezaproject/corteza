@@ -2,13 +2,17 @@ package webapp
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
 	"regexp"
 	"strings"
+
+	"golang.org/x/net/html"
 
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
@@ -28,6 +32,8 @@ type (
 		sentryUrl           string
 		settings            *types.AppSettings
 	}
+
+	scriptAttrs = map[string]string
 )
 
 var (
@@ -152,6 +158,63 @@ func serveConfig(r chi.Router, config webappConfig) {
 
 		_, _ = fmt.Fprint(w, stylesheet)
 	})
+
+	// serve code-snippets.js
+	r.Get(options.CleanBase(config.appUrl, "code-snippets.js"), func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/javascript")
+
+		codeSnippets := service.CurrentSettings.CodeSnippets
+
+		snippetScripts := ""
+		for _, snippet := range codeSnippets {
+			snippetScripts += snippet.Script
+		}
+
+		doc, err := html.Parse(strings.NewReader(snippetScripts))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		scriptsAttrs := traverseScriptsNode(doc)
+
+		//create a javascript array of objects
+		snippetScriptsJson, err := json.Marshal(scriptsAttrs)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		jsScripts := fmt.Sprintf(
+			`
+const snippetScripts = %s;
+
+if (snippetScripts !== null) {
+	snippetScripts.forEach(snippetScript => {
+		const scriptAttr = document.createElement("script");
+		
+		if (snippetScript.src) {
+			scriptAttr.src = snippetScript.src;
+		}
+		
+		if (snippetScript.integrity) {
+			scriptAttr.integrity = snippetScript.integrity;
+		}
+		
+		if (snippetScript.crossorigin) {
+			scriptAttr.crossOrigin = snippetScript.crossorigin;
+		}
+
+		if (snippetScript.content) {
+			scriptAttr.textContent = snippetScript.content;
+		}
+		
+		document.head.appendChild(scriptAttr);
+	});		
+}
+
+            `, string(snippetScriptsJson))
+
+		_, _ = fmt.Fprint(w, jsScripts)
+	})
 }
 
 // Reads and modifies index HTML for the webapp
@@ -182,4 +245,35 @@ func replaceBaseHrefPlaceholder(buf []byte, app, baseHref string) []byte {
 	}
 
 	return fixed
+}
+
+func traverseScriptsNode(n *html.Node) []scriptAttrs {
+	var scripts []scriptAttrs
+
+	if n.Type == html.ElementNode && n.Data == "script" {
+		script := scriptAttrs{}
+		for _, attr := range n.Attr {
+			switch attr.Key {
+			case "src":
+				script["src"] = attr.Val
+			case "integrity":
+				script["integrity"] = attr.Val
+			case "crossorigin":
+				script["crossorigin"] = attr.Val
+			}
+		}
+
+		if n.FirstChild != nil {
+			script["content"] = n.FirstChild.Data
+		}
+
+		scripts = append(scripts, script)
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		childScripts := traverseScriptsNode(c)
+		scripts = append(scripts, childScripts...)
+	}
+
+	return scripts
 }

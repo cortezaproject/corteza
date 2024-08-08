@@ -1,0 +1,15 @@
+editor:
+  title: Code snippets
+
+  code-snippets:
+    add: Add code snippet
+    empty: No snippets yet
+    table-headers:
+      provider: Provider
+      value: Script value
+    form:
+      provider:
+        label: Provider
+      value:
+        label: Script value
+        description: Ensure that your Code snippets are within <script> tags to properly inject them into Corteza web applications.
