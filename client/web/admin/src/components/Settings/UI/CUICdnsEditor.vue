@@ -8,6 +8,9 @@
       <h4 class="m-0">
         {{ $t('custom-js.title') }}
       </h4>
+      <span class="text-muted">
+        {{ $t('custom-js.description') }}
+      </span>
     </template>
 
     <c-ace-editor
