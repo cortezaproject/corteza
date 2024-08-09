@@ -242,7 +242,6 @@ type (
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
 			IconLogo string `kv:"icon-logo" json:"iconLogo"`
-            CdnScripts string `kv:"cdn-scripts" json:"cdnScripts"`
 
 			Sidebar struct {
 				// General sidebar settings
@@ -254,6 +253,7 @@ type (
 
 				Themes    []struct{ Theme } `kv:"themes" json:"themes"`
 				CustomCSS []struct{ Theme } `kv:"custom-css" json:"customCSS"`
+                CustomJS string `kv:"custom-js" json:"customJS"`
 			} `kv:"studio" json:"studio"`
 
 			Topbar struct {

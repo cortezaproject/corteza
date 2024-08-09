@@ -162,9 +162,9 @@ func serveConfig(r chi.Router, config webappConfig) {
     r.Get(options.CleanBase(config.appUrl, "custom.js"), func(w http.ResponseWriter, r *http.Request) {
         w.Header().Add("Content-Type", "text/javascript")
 
-        cdns := service.CurrentSettings.UI.CdnScripts
+        customJS := service.CurrentSettings.UI.Studio.CustomJS
 
-        doc, err := html.Parse(strings.NewReader(cdns))
+        doc, err := html.Parse(strings.NewReader(customJS))
         if err != nil {
             log.Fatal(err)
         }
@@ -184,7 +184,10 @@ const cdnScripts = %s;
 
 cdnScripts.forEach(cdnScript => {
     const scriptAttr = document.createElement("script");
-    scriptAttr.src = cdnScript.src;
+    
+    if (cdnScript.src) {
+        scriptAttr.src = cdnScript.src;
+    }
     
     if (cdnScript.integrity) {
         scriptAttr.integrity = cdnScript.integrity;
@@ -192,6 +195,10 @@ cdnScripts.forEach(cdnScript => {
     
     if (cdnScript.crossorigin) {
         scriptAttr.crossOrigin = cdnScript.crossorigin;
+    }
+
+    if (cdnScript.content) {
+        scriptAttr.textContent = cdnScript.content;
     }
     
     document.head.appendChild(scriptAttr);
@@ -245,6 +252,10 @@ func traverseScriptsNode(n *html.Node, scripts *[]scriptAttrs) {
             case "crossorigin":
                 script["crossorigin"] = attr.Val
             }
+        }
+
+        if n.FirstChild != nil {
+            script["content"] = n.FirstChild.Data
         }
 
         *scripts = append(*scripts, script)

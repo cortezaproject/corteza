@@ -24,6 +24,16 @@
       class="mt-3"
       @submit="onSubmit($event, 'topbar')"
     />
+
+    <cui-cdns-editor
+      v-if="settings"
+      :settings="settings"
+      :processing="customJS.processing"
+      :success="customJS.success"
+      :can-manage="canManage"
+      class="mt-3"
+      @submit="onSubmit($event, 'customJS')"
+    />
   </b-container>
 </template>
 
@@ -31,6 +41,7 @@
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUIBrandingEditor from '../../components/Settings/UI/CUIBrandingEditor.vue'
 import CUITopbarSettings from 'corteza-webapp-admin/src/components/Settings/UI/CUITopbarSettings'
+import CUICdnsEditor from '../../components/Settings/UI/CUICdnsEditor.vue'
 import { mapGetters } from 'vuex'
 
 const prefix = 'ui.'
@@ -44,6 +55,7 @@ export default {
   components: {
     'c-ui-branding-editor': CUIBrandingEditor,
     'c-ui-topbar-settings': CUITopbarSettings,
+    'cui-cdns-editor': CUICdnsEditor,
   },
 
   mixins: [
@@ -65,6 +77,11 @@ export default {
       },
 
       branding: {
+        processing: false,
+        success: false,
+      },
+
+      customJS: {
         processing: false,
         success: false,
       },

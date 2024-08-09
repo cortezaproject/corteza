@@ -11,7 +11,7 @@
     </template>
 
     <c-ace-editor
-      v-model="settings[0].value"
+      v-model="settings['ui.studio.custom-js']"
       lang="javascript"
       height="500px"
       font-size="14px"
@@ -46,7 +46,7 @@ export default {
 
   props: {
     settings: {
-      type: Array,
+      type: Object,
       required: true,
     },
 
@@ -68,7 +68,7 @@ export default {
 
   methods: {
     onSubmit () {
-      this.$emit('submit', { 'ui.cdn-scripts': this.settings[0].value })
+      this.$emit('submit', { 'ui.studio.custom-js': this.settings['ui.studio.custom-js'] })
     },
   },
 }
