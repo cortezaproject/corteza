@@ -124,8 +124,8 @@ jobs:
           cp .github/workflows/assets/client/vue.config-builder.js client/web/${CLIENT_NAME}/public/vue.config-builder.js
           cp .github/workflows/assets/client/config.js client/web/${CLIENT_NAME}/public/config.js
 
-          docker-compose config > /tmp/docker-compose.corteza.yaml
-          cd ../corteza-e2e-cypress && docker-compose config > /tmp/docker-compose.corteza-e2e.yaml
+          docker compose config > /tmp/docker-compose.corteza.yaml
+          cd ../corteza-e2e-cypress && docker compose config > /tmp/docker-compose.corteza-e2e.yaml
 
       - name: Cache Docker images
         uses: ScribeMD/docker-cache@0.3.7
@@ -135,8 +135,8 @@ jobs:
       - name: Run server and db
         working-directory: corteza
         run: |
-          docker-compose run -d --name backend backend
-          docker-compose run -d --name postgres postgres
+          docker compose run -d --name backend backend
+          docker compose run -d --name postgres postgres
 
       - name: Build js
         working-directory: corteza/lib/js
@@ -157,7 +157,7 @@ jobs:
           CLIENT_NAME: ${{ matrix.client.name }}
           CLIENT_PORT: ${{ matrix.client.port }}
         run: |
-          docker-compose \
+          docker compose \
             run -d \
             --name "${CLIENT_NAME}" \
             --use-aliases \
@@ -191,7 +191,7 @@ jobs:
         run: |
           yarn install
 
-          docker-compose run \
+          docker compose run \
             --entrypoint="bash -c \" \
               cypress run --spec cypress/e2e/basic-functionalities/${CLIENT_NAME}/index.cy.js --browser chrome \
             \"" \
