@@ -7,11 +7,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestIndex(t *testing.T) {
+func TestIndexBuild(t *testing.T) {
 	tcc := []struct {
-		name string
-		in   []*Rule
-		out  []int
+		name   string
+		in     []*Rule
+		remove []*Rule
+		add    []*Rule
+		out    []int
 
 		role uint64
 		op   string
@@ -118,15 +120,159 @@ func TestIndex(t *testing.T) {
 			role: 1,
 			op:   "read",
 			res:  "a:b/c/d",
+		}, {
+			name: "removing the only element",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			remove: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			out: nil,
+
+			role: 1,
+			op:   "write",
+			res:  "a:b/c/d",
+		},
+		{
+			name: "removing twice added thing",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}, {
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			remove: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+
+			out: nil,
+
+			role: 1,
+			op:   "write",
+			res:  "a:b/c/d",
+		},
+		{
+			name: "two elements with no common root",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}, {
+				RoleID:    2,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			remove: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			out: nil,
+
+			role: 1,
+			op:   "write",
+			res:  "a:b/c/d",
+		},
+		{
+			name: "two elements with common root (get removed)",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}, {
+				RoleID:    1,
+				Resource:  "a:b/c/e",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			remove: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			out: nil,
+
+			role: 1,
+			op:   "write",
+			res:  "a:b/c/d",
+		},
+		{
+			name: "two elements with common root (get not removed)",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}, {
+				RoleID:    1,
+				Resource:  "a:b/c/e",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			remove: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			out: []int{1},
+
+			role: 1,
+			op:   "write",
+			res:  "a:b/c/e",
+		},
+		{
+			name: "add new element",
+			in: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/d",
+				Operation: "write",
+				Access:    Allow,
+			}},
+			add: []*Rule{{
+				RoleID:    1,
+				Resource:  "a:b/c/x",
+				Operation: "write",
+				Access:    Allow,
+			}},
+
+			out: []int{1},
+
+			role: 1,
+			op:   "write",
+			res:  "a:b/c/x",
 		}}
 
 	for _, tc := range tcc {
 		t.Run(tc.name, func(t *testing.T) {
 			ix := buildRuleIndex(tc.in)
+			ix.remove(tc.remove...)
+			ix.add(tc.add...)
+
 			out := RuleSet(ix.get(tc.role, tc.op, tc.res))
 			sort.Sort(out)
 
-			want := RuleSet(graby(tc.in, tc.out))
+			want := RuleSet(graby(append(tc.in, tc.add...), tc.out))
 			sort.Sort(want)
 
 			require.Len(t, out, len(want))
