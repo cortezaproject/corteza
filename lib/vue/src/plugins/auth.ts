@@ -370,15 +370,12 @@ export class Auth {
 
         const authUser = new system.User({
           userID: data.sub,
-          name: data.name,
-          email: data.email,
-          handle: data.username,
-          roles: data.roles || [],
           meta: {
             preferredLanguage: data.preferred_language || 'en',
             avatarID: data.avatarID,
             theme: data.theme,
           },
+          ...data,
         })
 
         this[user] = authUser
@@ -570,15 +567,12 @@ export class Auth {
 
     const u = new system.User({
       userID: oa2tkn.sub,
-      name: oa2tkn.name,
-      handle: oa2tkn.handle,
-      email: oa2tkn.email,
-      roles: oa2tkn.roles || [],
       meta: {
         preferredLanguage: oa2tkn.preferred_language || 'en',
         avatarID: oa2tkn.avatarID,
         theme: oa2tkn.theme,
       },
+      ...oa2tkn,
     })
 
     this[accessToken] = oa2tkn.access_token

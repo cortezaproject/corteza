@@ -457,6 +457,12 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 		response["avatarID"] = strconv.FormatUint(user.Meta.AvatarID, 10)
 	}
 
+	if user.Labels != nil {
+		response["labels"] = user.Labels
+	} else {
+		response["labels"] = make(map[string]interface{})
+	}
+
 	//include user's theme
 	response["theme"] = user.Meta.Theme
 
