@@ -56,6 +56,7 @@
             :options="selectOptions"
             :placeholder="$t('kind.select.placeholder')"
             :reduce="o => o.value"
+            :selectable="isSelectable"
             label="text"
             @input="selectChange"
           />
@@ -64,8 +65,10 @@
             v-if="field.options.selectType === 'multiple'"
             v-model="value"
             :options="selectOptions"
-            label="text"
+            :placeholder="$t('kind.select.placeholder')"
             :reduce="o => o.value"
+            :selectable="isSelectable"
+            label="text"
             multiple
           />
         </template>
@@ -77,6 +80,7 @@
             :options="selectOptions"
             :reduce="o => o.value"
             :placeholder="$t('kind.select.placeholder')"
+            :selectable="isSelectable"
             label="text"
           />
 
@@ -91,10 +95,11 @@
       <c-input-select
         v-if="field.options.selectType === 'default'"
         v-model="value"
+        :placeholder="$t('kind.select.optionNotSelected')"
         :options="selectOptions"
         :reduce="o => o.value"
+        :selectable="isSelectable"
         label="text"
-        :placeholder="$t('kind.select.optionNotSelected')"
       />
 
       <b-form-radio-group
@@ -120,12 +125,7 @@ export default {
 
   computed: {
     selectOptions () {
-      return this.field.options.options.map(o => {
-        const disabled = o.value && this.field.isMulti && !this.field.options.isUniqueMultiValue
-          ? this.value === o.value
-          : (this.value || []).includes(o.value)
-        return { ...o, disabled: this.field.options.selectType !== 'list' && disabled }
-      }).filter(({ value = '', text = '' }) => value && text)
+      return this.field.options.options.filter(({ value = '', text = '' }) => value && text)
     },
   },
 
@@ -143,6 +143,16 @@ export default {
      */
     findLabel (v) {
       return (this.selectOptions.find(({ value }) => value === v) || {}).text || v
+    },
+
+    isSelectable ({ value } = {}) {
+      if (this.field.options.selectType === 'list') return true
+
+      if (this.field.isMulti) {
+        return !this.field.options.isUniqueMultiValue || !(this.value || []).includes(value)
+      } else {
+        return this.value !== value
+      }
     },
   },
 }

@@ -340,15 +340,15 @@ export default {
       }
     },
 
-    isSelectable (recordID) {
+    isSelectable ({ recordID } = {}) {
       if (!recordID) {
         return false
       }
 
-      if (this.field.isMulti && !this.field.options.isUniqueMultiValue) {
-        return this.value !== recordID
+      if (this.field.isMulti) {
+        return !this.field.options.isUniqueMultiValue || !this.value.includes(recordID)
       } else {
-        return !(this.value || []).includes(recordID)
+        return this.value !== recordID
       }
     },
 

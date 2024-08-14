@@ -7,8 +7,9 @@
     :options="options"
     :searchable="searchable"
     :disabled="disabled"
+    :selectable="selectable"
     :calculate-position="calculateDropdownPosition"
-    :append-to-body="appendToBody"  
+    :append-to-body="appendToBody"
     class="bg-white rounded"
     :class="sizeClass"
     @search="onSearch"
@@ -78,6 +79,11 @@ export default {
     disabled: {
       type: Boolean,
       default: false,
+    },
+
+    selectable: {
+      type: Function,
+      default: o => !o.disabled,
     },
   },
 

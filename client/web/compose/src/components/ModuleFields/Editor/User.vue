@@ -48,7 +48,7 @@
           :get-option-label="getOptionLabel"
           :get-option-key="getOptionKey"
           :filterable="false"
-          :selectable="option => option.selectable"
+          :selectable="isSelectable"
           :loading="processing"
           @search="search"
           @input="updateValue($event)"
@@ -71,7 +71,7 @@
           :get-option-label="getOptionLabel"
           :get-option-key="getOptionKey"
           :filterable="false"
-          :selectable="option => option.selectable"
+          :selectable="isSelectable"
           :loading="processing"
           multiple
           @search="search"
@@ -96,7 +96,7 @@
           :get-option-key="getOptionKey"
           :value="getUserIDByIndex(ctx.index)"
           :filterable="false"
-          :selectable="option => option.selectable"
+          :selectable="isSelectable"
           :loading="processing"
           @search="search"
           @input="updateValue($event, ctx.index)"
@@ -123,7 +123,7 @@
         :value="getUserIDByIndex()"
         :clearable="field.name !== 'ownedBy'"
         :filterable="false"
-        :selectable="option => option.selectable"
+        :selectable="isSelectable"
         :loading="processing"
         @input="updateValue($event)"
         @search="search"
@@ -184,14 +184,7 @@ export default {
     }),
 
     options () {
-      return this.users.map(u => {
-        return {
-          ...u,
-          selectable: this.field.isMulti && !this.field.options.isUniqueMultiValue
-            ? this.value !== u.userID
-            : !(this.value || []).includes(u.userID),
-        }
-      })
+      return this.users
     },
 
     // This is used in the case of using the multiple select option
@@ -282,6 +275,18 @@ export default {
 
       const { name, username, email, userID } = user || {}
       return name || username || email || `<@${userID}>`
+    },
+
+    isSelectable ({ userID } = {}) {
+      if (!userID) {
+        return false
+      }
+
+      if (this.field.isMulti) {
+        return !this.field.options.isUniqueMultiValue || !this.value.includes(userID)
+      } else {
+        return this.value !== userID
+      }
     },
 
     /**
