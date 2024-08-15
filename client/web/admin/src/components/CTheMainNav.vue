@@ -121,6 +121,12 @@ export default {
               can: ['system/', 'dal-connections.search'],
             },
             {
+              label: 'system.items.cdns',
+              route: 'system.cdns',
+              icon: 'file-code',
+              can: ['system/', 'settings.read'],
+            },
+            {
               label: 'system.items.sensitivityLevel',
               route: 'system.sensitivityLevel',
               icon: 'stamp',

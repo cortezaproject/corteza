@@ -9,6 +9,7 @@ system:
     applications: Applications
     authclients: Auth Clients
     connections: Connections
+    cdns: CDNs
     sensitivityLevel: Sensitivity Levels
     permissions: Permissions
     queues: Messaging Queues

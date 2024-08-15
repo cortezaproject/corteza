@@ -88,6 +88,3 @@ editor:
       url: URL
       new-tab: New tab
   
-  custom-js:
-    title: Custom JS scripts
-    description: Ensure that your JavaScript scripts and CDN links are within <script> tags to properly inject them into Corteza web applications.

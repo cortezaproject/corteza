@@ -1,0 +1,14 @@
+editor:
+  title: CDN Providers
+
+  cdns-provider:
+    add: Add a CDN provider
+    table-headers:
+      provider: Provider
+      value: Script value
+    form:
+      provider:
+        label: Provider
+      value:
+        label: Script value
+        description: Ensure that your CDN links are within <script> tags to properly inject them into Corteza web applications.

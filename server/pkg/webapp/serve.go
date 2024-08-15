@@ -1,24 +1,25 @@
 package webapp
 
 import (
-    "bytes"
-    "encoding/json"
-    "fmt"
-    "golang.org/x/net/html"
-    "io"
-    "log"
-    "net/http"
-    "os"
-    "path"
-    "regexp"
-    "strings"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log"
+	"net/http"
+	"os"
+	"path"
+	"regexp"
+	"strings"
 
-    "github.com/cortezaproject/corteza/server/pkg/logger"
-    "github.com/cortezaproject/corteza/server/pkg/options"
-    "github.com/cortezaproject/corteza/server/system/service"
-    "github.com/cortezaproject/corteza/server/system/types"
-    "github.com/go-chi/chi/v5"
-    "go.uber.org/zap"
+	"golang.org/x/net/html"
+
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/system/service"
+	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/go-chi/chi/v5"
+	"go.uber.org/zap"
 )
 
 type (
@@ -32,7 +33,7 @@ type (
 		settings            *types.AppSettings
 	}
 
-    scriptAttrs = map[string]string
+	scriptAttrs = map[string]string
 )
 
 var (
@@ -158,28 +159,32 @@ func serveConfig(r chi.Router, config webappConfig) {
 		_, _ = fmt.Fprint(w, stylesheet)
 	})
 
-    // serve custom.js
-    r.Get(options.CleanBase(config.appUrl, "custom.js"), func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Add("Content-Type", "text/javascript")
+	// serve cdns-provider.js
+	r.Get(options.CleanBase(config.appUrl, "cdns-provider.js"), func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Content-Type", "text/javascript")
 
-        customJS := service.CurrentSettings.UI.Studio.CustomJS
+		cdns := service.CurrentSettings.CDNs
 
-        doc, err := html.Parse(strings.NewReader(customJS))
-        if err != nil {
-            log.Fatal(err)
-        }
+		cdnScripts := ""
+		for _, cdn := range cdns {
+			cdnScripts += cdn.CdnScript
+		}
 
-        var scriptsAttrs []scriptAttrs
-        traverseScriptsNode(doc, &scriptsAttrs)
+		doc, err := html.Parse(strings.NewReader(cdnScripts))
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        //create a javascript array of objects
-        jsonScripts, err := json.Marshal(scriptsAttrs)
-        if err != nil {
-            log.Fatal(err)
-        }
+		scriptsAttrs := traverseScriptsNode(doc)
 
-        jsScripts := fmt.Sprintf(
-            `
+		//create a javascript array of objects
+		cdnJsonScripts, err := json.Marshal(scriptsAttrs)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		jsScripts := fmt.Sprintf(
+			`
 const cdnScripts = %s;
 
 cdnScripts.forEach(cdnScript => {
@@ -204,10 +209,10 @@ cdnScripts.forEach(cdnScript => {
     document.head.appendChild(scriptAttr);
 });
 
-            `, string(jsonScripts))
+            `, string(cdnJsonScripts))
 
-        _, _ = fmt.Fprint(w, jsScripts)
-    })
+		_, _ = fmt.Fprint(w, jsScripts)
+	})
 }
 
 // Reads and modifies index HTML for the webapp
@@ -240,28 +245,33 @@ func replaceBaseHrefPlaceholder(buf []byte, app, baseHref string) []byte {
 	return fixed
 }
 
-func traverseScriptsNode(n *html.Node, scripts *[]scriptAttrs) {
-    if n.Type == html.ElementNode && n.Data == "script" {
-        script := scriptAttrs{}
-        for _, attr := range n.Attr {
-            switch attr.Key {
-            case "src":
-                script["src"] = attr.Val
-            case "integrity":
-                script["integrity"] = attr.Val
-            case "crossorigin":
-                script["crossorigin"] = attr.Val
-            }
-        }
+func traverseScriptsNode(n *html.Node) []scriptAttrs {
+	var scripts []scriptAttrs
 
-        if n.FirstChild != nil {
-            script["content"] = n.FirstChild.Data
-        }
+	if n.Type == html.ElementNode && n.Data == "script" {
+		script := scriptAttrs{}
+		for _, attr := range n.Attr {
+			switch attr.Key {
+			case "src":
+				script["src"] = attr.Val
+			case "integrity":
+				script["integrity"] = attr.Val
+			case "crossorigin":
+				script["crossorigin"] = attr.Val
+			}
+		}
 
-        *scripts = append(*scripts, script)
-    }
+		if n.FirstChild != nil {
+			script["content"] = n.FirstChild.Data
+		}
 
-    for c := n.FirstChild; c != nil; c = c.NextSibling {
-        traverseScriptsNode(c, scripts)
-    }
+		scripts = append(scripts, script)
+	}
+
+	for c := n.FirstChild; c != nil; c = c.NextSibling {
+		childScripts := traverseScriptsNode(c)
+		scripts = append(scripts, childScripts...)
+	}
+
+	return scripts
 }

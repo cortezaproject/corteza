@@ -238,6 +238,8 @@ type (
 		// Integration gateway settings
 		Apigw ApigwSettings `kv:"apigw" json:"apigw"`
 
+		CDNs []struct{ CDNProvider } `kv:"cdns" json:"cdns"`
+
 		// UserInterface settings
 		UI struct {
 			MainLogo string `kv:"main-logo" json:"mainLogo"`
@@ -253,7 +255,6 @@ type (
 
 				Themes    []struct{ Theme } `kv:"themes" json:"themes"`
 				CustomCSS []struct{ Theme } `kv:"custom-css" json:"customCSS"`
-                CustomJS string `kv:"custom-js" json:"customJS"`
 			} `kv:"studio" json:"studio"`
 
 			Topbar struct {
@@ -414,6 +415,11 @@ type (
 	Theme struct {
 		ID     string `json:"id"`
 		Values string `json:"values"`
+	}
+
+	CDNProvider struct {
+		Name      string `json:"name"`
+		CdnScript string `json:"cdnScript"`
 	}
 
 	SmtpServers struct {
