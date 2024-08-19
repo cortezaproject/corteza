@@ -51,6 +51,16 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 			}
 		}
 
+		filter: {
+			struct: {
+				resource: {goType: "[]string", ident: "resource", storeIdent: "resource"}
+				operation: {goType: "string", ident: "operation", storeIdent: "operation"}
+				role_id: {goType: "uint64", ident: "roleID", storeIdent: "rel_role"}
+			}
+
+			byValue: ["resource", "operation", "role_id"]
+		}
+
 		store: {
 			ident: "rbacRule"
 

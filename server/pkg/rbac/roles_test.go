@@ -97,7 +97,7 @@ func Test_getContextRoles(t *testing.T) {
 				req = require.New(t)
 			)
 
-			req.Equal(partitionRoles(tc.output...), getContextRoles(&session{rr: tc.sessionRoles}, tc.res, tc.preloadRoles))
+			req.Equal(partitionRoles(tc.output...), getContextRoles(&session{rr: tc.sessionRoles}, tc.res, tc.preloadRoles...))
 		})
 	}
 }

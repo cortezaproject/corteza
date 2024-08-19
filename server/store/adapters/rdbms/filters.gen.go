@@ -1145,6 +1145,18 @@ func QueueMessageFilter(d drivers.Dialect, f systemType.QueueMessageFilter) (ee 
 // This function is auto-generated
 func RbacRuleFilter(d drivers.Dialect, f rbacType.RuleFilter) (ee []goqu.Expression, _ rbacType.RuleFilter, err error) {
 
+	if ss := trimStringSlice(f.Resource); len(ss) > 0 {
+		ee = append(ee, goqu.C("resource").In(ss))
+	}
+
+	if val := strings.TrimSpace(f.Operation); len(val) > 0 {
+		ee = append(ee, goqu.C("operation").Eq(f.Operation))
+	}
+
+	if f.RoleID > 0 {
+		ee = append(ee, goqu.C("rel_role").Eq(f.RoleID))
+	}
+
 	return ee, f, err
 }
 

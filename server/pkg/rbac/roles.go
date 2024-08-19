@@ -116,7 +116,7 @@ func statRoles(rr ...*Role) (stats map[roleKind]int) {
 }
 
 // compare list of session roles (ids) with preloaded roles and calculate the final list
-func getContextRoles(s Session, res Resource, preloadedRoles []*Role) (out partRoles) {
+func getContextRoles(s Session, res Resource, preloadedRoles ...*Role) (out partRoles) {
 	var (
 		mm    = slice.ToUint64BoolMap(s.Roles())
 		scope = make(map[string]interface{})

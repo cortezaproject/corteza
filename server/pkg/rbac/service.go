@@ -28,6 +28,10 @@ type (
 
 	// RuleFilter is a dummy struct to satisfy store codegen
 	RuleFilter struct {
+		Resource  []string
+		Operation string
+		RoleID    uint64
+
 		Limit uint
 	}
 
@@ -94,7 +98,7 @@ func (svc *service) Can(ses Session, op string, res Resource) bool {
 // See RuleSet's Check() func for details
 func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
 	var (
-		fRoles = getContextRoles(ses, res, svc.roles)
+		fRoles = getContextRoles(ses, res, svc.roles...)
 	)
 
 	if hasWildcards(res.RbacResource()) {
@@ -150,7 +154,7 @@ func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
 	}
 
 	var (
-		fRoles = getContextRoles(ses, res, svc.roles)
+		fRoles = getContextRoles(ses, res, svc.roles...)
 	)
 
 	_ = check(svc.indexed, fRoles, op, res.RbacResource(), t)
