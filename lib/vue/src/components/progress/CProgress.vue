@@ -12,6 +12,7 @@
       <strong
         :class="textVariant"
         class="d-flex align-items-center justify-content-center position-absolute mb-0 w-100"
+        :style="textStyle"
       >
         {{ progressLabel }}
       </strong>
@@ -66,6 +67,11 @@ export default {
     thresholds: {
       type: Array,
       default: () => [],
+    },
+
+    textStyle: {
+      type: String,
+      default: '',
     },
   },
 

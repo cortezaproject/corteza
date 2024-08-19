@@ -37,6 +37,7 @@
       class="text-right"
     >
       <b-button
+        variant="primary"
         :disabled="!canContinue"
         @click="fileUploaded"
       >

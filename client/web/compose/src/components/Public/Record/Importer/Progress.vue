@@ -1,42 +1,71 @@
 <template>
   <b-card>
-    <b-form-group class="my-4 mx-4">
-      <b-progress
-        :max="progress.entryCount"
-        show-value
-        show-progress
-        variant="primary"
-        height="80px"
-        class="bg-light"
-      >
-        <b-progress-bar
-          :value="progress.completed"
-          class="progress-label"
-          variant="primary"
-        >
-          <span class="font-weight-bold">{{ $t('recordList.import.progressRatio', progress) }}</span>
-        </b-progress-bar>
-      </b-progress>
-    </b-form-group>
+    <c-progress
+      :value="progress.completed"
+      :max="progress.entryCount"
+      labeled
+      progress
+      :animated="!progress.finishedAt"
+      :relative="false"
+      variant="success"
+      text-style="font-size: 1.5rem;"
+      style="height: 4rem;"
+      class="mb-4"
+    />
 
-    <b-form-group class="mx-4 mb-0">
-      <span
-        v-if="progress.finishedAt && !progress.failed"
-        class="text-success"
-      >
+    <div
+      v-if="!progress.finishedAt"
+      class="d-flex"
+    >
+      <span class="text-secondary">
+        <b-spinner
+          variant="secondary"
+          small
+        />
+        {{ $t('recordList.import.importing') }}
+      </span>
 
+      <b-button
+        variant="light"
+        class="ml-auto"
+        @click="$emit('close')"
+      >
+        {{ $t('general:label.cancel') }}
+      </b-button>
+    </div>
+
+    <div
+      v-if="progress.finishedAt && !progress.failed"
+      class="d-flex"
+    >
+      <span class="text-success">
         {{ $t('recordList.import.success') }}
       </span>
-    </b-form-group>
+
+      <b-button
+        variant="light"
+        class="ml-auto"
+        @click="$emit('close')"
+      >
+        {{ $t('general:label.close') }}
+      </b-button>
+    </div>
   </b-card>
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+const { CProgress } = components
+
 let toHandle = null
 
 export default {
   i18nOptions: {
     namespaces: 'block',
+  },
+
+  components: {
+    CProgress,
   },
 
   props: {

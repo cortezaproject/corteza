@@ -401,13 +401,17 @@ recordList:
     failed: 'Something went wrong during the import. Please try again: {{failReason}}'
     fileColumns: File columns
     hasRequiredFileFields: 'This module has required file upload fields'
-    matchFields: 'Match imported columns with existing ones:'
+    matchFields: 'Match imported columns with existing ones'
     moduleFields: Module fields
     onError: If any record fails to import
     onErrorFail: Cancel import
     onErrorSkip: Skip record
     pickModuleField: Pick a module field
-    progressRatio: '{{completed}} / {{entryCount}} rows'
+    importing: Importing records
+    success: Import successful
+    to: Import to {{modulename}}
+    uploadFile: Upload the file you want to import (.csv or JSON format)
+    idFieldDescription: Records with matching ID's will be updated.
     report:
       count: Number of records
       detectedErrors: Detected errors
@@ -421,9 +425,6 @@ recordList:
       startedAt: Started At
       title: Record import error report
       totalRecords: Total records
-    success: Import successful
-    to: Import to {{modulename}}
-    uploadFile: Upload the file you want to import (.csv or JSON format)
   label: Record list
   moduleFootnote: Modules without a {{0}} can only be used in a record list as an inline editor
   moduleFieldsFootnote : If no fields are selected, the default fields will be shown

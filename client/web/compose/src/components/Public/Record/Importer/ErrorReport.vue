@@ -80,11 +80,11 @@
 
     <div slot="footer">
       <b-button
-        variant="dark"
+        variant="light"
         class="float-right"
         @click="$emit('close')"
       >
-        {{ $t('general.label.ok') }}
+        {{ $t('general:label.close') }}
       </b-button>
     </div>
   </b-card>
@@ -133,12 +133,12 @@ export default {
         {
           key: 'k',
           label: this.$t('recordList.import.report.error'),
-          tdClass: 'border-top text-truncate pointer',
+          tdClass: 'border-top',
         },
         {
           key: 'v',
           label: this.$t('recordList.import.report.count'),
-          tdClass: 'border-top text-truncate pointer',
+          tdClass: 'border-top',
         },
       ]
     },

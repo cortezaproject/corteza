@@ -1,23 +1,24 @@
 <template>
-  <b-card>
-    <b-form-group>
-      <div class="mb-4">
-        <label>
-          {{ $t('recordList.import.matchFields') }}
-        </label>
-        <br>
-        <small
-          v-if="hasRequiredFileFields"
-        >
-          {{ $t('recordList.import.hasRequiredFileFields') }}: {{ showRequiredFields }}
-        </small>
+  <div class="d-flex flex-column h-100 overflow-hidden">
+    <b-form-group
+      :label="$t('recordList.import.matchFields')"
+      label-class="text-primary p-3"
+      class="flex-fill overflow-auto mb-0"
+    >
+      <div
+        v-if="hasRequiredFileFields"
+        class="small px-3 mb-3"
+      >
+        {{ $t('recordList.import.hasRequiredFileFields') }}: {{ showRequiredFields }}
       </div>
 
       <b-table
         :fields="tableFields"
         :items="rows"
         head-variant="light"
-        class="field-table"
+        sticky-header
+        style="max-height: 70vh;"
+        class="field-table mb-0"
       >
         <template #head(selected)>
           <b-form-checkbox
@@ -34,27 +35,27 @@
           />
         </template>
         <template #cell(moduleField)="data">
-          <b-form-select
+          <c-input-select
             v-model="data.item.moduleField"
             :options="moduleFields"
-            @change="moduleChanged(data)"
+            :reduce="o => o.name"
+            :placeholder="$t('recordList.import.pickModuleField')"
+            :class="{ 'border border-danger': data.item.selected && !data.item.moduleField }"
+            @input="moduleChanged(data)"
+          />
+          <span
+            v-if="data.item.fileColumn === 'id'"
+            class="small text-muted"
           >
-            <template slot="first">
-              <option
-                :value="undefined"
-                disabled
-              >
-                {{ $t('recordList.import.pickModuleField') }}
-              </option>
-            </template>
-          </b-form-select>
+            {{ $t('recordList.import.idFieldDescription') }}
+          </span>
         </template>
       </b-table>
     </b-form-group>
 
-    <div slot="footer">
+    <div class="mt-auto p-3">
       <b-button
-        variant="outline-dark"
+        variant="light"
         class="float-left"
         @click="$emit('back')"
       >
@@ -70,7 +71,7 @@
         {{ $t('general.label.import') }}
       </b-button>
     </div>
-  </b-card>
+  </div>
 </template>
 
 <script>
@@ -139,16 +140,22 @@ export default {
         {
           key: 'moduleField',
           label: this.$t('recordList.import.moduleFields'),
+          thStyle: 'width: 25rem',
         },
       ]
     },
 
     moduleFields () {
-      return this.module.fields
-        .filter(({ kind }) => !['File'].includes(kind))
+      return [
+        ...this.module.fields,
+        ...this.module.systemFields().map(({ name }) => {
+          return {
+            label: this.$t(`field:system.${name}`),
+            name,
+          }
+        }),
+      ].filter(({ kind }) => !['File'].includes(kind))
         .map(field => field.isRequired === true ? { ...field, label: field.label + '*' } : field)
-        .map(({ name: value, label }) => ({ value, text: label || value }))
-        .sort((a, b) => a.text.localeCompare(b.text))
     },
 
     requiredFields () {
@@ -187,24 +194,39 @@ export default {
   created () {
     // Prep row object for us to alter
     const { fields = {} } = this.session
-    const moduleFields = {}
+
+    const moduleFields = {
+      'id': 'recordID',
+    }
+
     this.module.fields.forEach(({ name }) => {
       moduleFields[name] = name
     })
 
+    this.module.systemFields().forEach(({ name }) => {
+      moduleFields[name] = name
+    })
+
     this.rows = Object.entries(fields)
-      .map(([fileColumn, moduleField]) => ({
-        selected: false,
-        fileColumn,
-        moduleField: moduleField || moduleFields[fileColumn],
-      }))
+      .map(([fileColumn, moduleField]) => {
+        moduleField = moduleField || moduleFields[fileColumn]
+
+        return {
+          selected: false,
+          fileColumn,
+          moduleField,
+        }
+      })
   },
 
   methods: {
     moduleChanged (data) {
-      const result = this.rows.find(row => row.fileColumn === data.item.fileColumn)
-      result.selected = true
+      if (data.item.moduleField) {
+        const result = this.rows.find(row => row.moduleField === data.item.moduleField)
+        result.selected = true
+      }
     },
+
     nextStep () {
       if (!this.canContinue) {
         return
