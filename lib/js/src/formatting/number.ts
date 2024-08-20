@@ -10,7 +10,7 @@ export function accountingNumber (value: number): string {
   }
 
   if (value < 0) {
-    return `(${number(Math.abs(value))}`
+    return `(${number(Math.abs(value))})`
   }
 
   return number(value)
