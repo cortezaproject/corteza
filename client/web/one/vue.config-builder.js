@@ -125,7 +125,7 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
           target: fetchBaseUrl(),
         },
 
-        '^/cdns-provider.js': {
+        '^/code-snippets.js': {
           target: fetchBaseUrl(),
         },
       },

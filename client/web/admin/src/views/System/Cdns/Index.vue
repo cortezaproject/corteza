@@ -17,7 +17,7 @@
           size="lg"
           @click="newCDN()"
         >
-          {{ $t('cdns-provider.add') }}
+          {{ $t('code-snippets.add') }}
         </b-button>
       </div>
 
@@ -25,11 +25,23 @@
         :items="providerItems"
         :fields="cdnProviderFields"
         head-variant="light"
+        show-empty
         hover
         class="mb-0"
+        style="min-height: 50px;"
       >
         <template #cell(provider)="{ item }">
           {{ item.provider || item.tag }}
+        </template>
+
+        <template #empty>
+          <p
+            data-test-id="no-matches"
+            class="text-center text-dark"
+            style="margin-top: 1vh;"
+          >
+            {{ $t('code-snippets.empty') }}
+          </p>
         </template>
 
         <template #cell(editor)="{ item }">
@@ -59,31 +71,58 @@
         title-class="text-capitalize"
         @ok="modal.updater(modal.data)"
       >
-        <component
-          :is="modal.component"
-          v-model="modal.data"
-        />
+        <b-form-group
+          :label="$t('code-snippets.form.provider.label')"
+          label-class="text-primary"
+        >
+          <b-input-group>
+            <b-form-input v-model="modal.data.name" />
+          </b-input-group>
+        </b-form-group>
+
+        <div>
+          <div class="mb-2">
+            <h5>
+              {{ $t('code-snippets.add') }}
+            </h5>
+            <span class="text-muted">
+              {{ $t('code-snippets.form.value.description') }}
+            </span>
+          </div>
+
+          <c-ace-editor
+            v-model="modal.data.cdnScript"
+            lang="javascript"
+            height="500px"
+            font-size="14px"
+            show-line-numbers
+            :border="false"
+            :show-popout="false"
+          />
+        </div>
+
         <template #modal-footer="{ ok, cancel}">
-          <b-button
-            size="sm"
+          <c-input-confirm
+            size="md"
             variant="danger"
-            @click="deleteCDN(modal.index)"
+            @confirmed="deleteCDN(modal.index)"
           >
-            Delete
-          </b-button>
+            {{ $t('general:label.delete') }}
+          </c-input-confirm>
+
           <b-button
-            size="sm"
-            variant="secondary"
+            variant="light"
+            class="ml-auto"
             @click="cancel()"
           >
-            Cancel
+            {{ $t('general:label.cancel') }}
           </b-button>
+
           <b-button
-            size="sm"
             variant="primary"
             @click="ok()"
           >
-            OK
+            {{ $t('general:label.saveAndClose') }}
           </b-button>
         </template>
       </b-modal>
@@ -91,8 +130,8 @@
       <template #footer>
         <c-button-submit
           :disabled="!canManage"
-          :processing="processing"
-          :success="success"
+          :processing="cdn.processing"
+          :success="cdn.success"
           :text="$t('admin:general.label.submit')"
           class="ml-auto"
           @submit="onSubmit()"
@@ -104,8 +143,9 @@
 
 <script>
 import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
-import CdnProviderEditor from 'corteza-webapp-admin/src/components/Settings/System/CDNs/CSystemCdnProviderEditor'
+import { components } from '@cortezaproject/corteza-vue'
 import { mapGetters } from 'vuex'
+const { CAceEditor } = components
 
 export default {
   name: 'CSystemCdnEditor',
@@ -116,7 +156,7 @@ export default {
   },
 
   components: {
-    CdnProviderEditor,
+    CAceEditor,
   },
 
   mixins: [
@@ -149,8 +189,8 @@ export default {
 
     cdnProviderFields () {
       return [
-        { key: 'provider', label: this.$t('cdns-provider.table-headers.provider'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
-        { key: 'value', label: this.$t('cdns-provider.table-headers.value'), tdClass: 'td-content-overflow' },
+        { key: 'provider', label: this.$t('code-snippets.table-headers.provider'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
+        { key: 'value', label: this.$t('code-snippets.table-headers.value'), tdClass: 'td-content-overflow' },
         { key: 'editor', label: '', thStyle: { width: '200px' }, tdClass: 'text-right' },
       ]
     },
@@ -161,7 +201,6 @@ export default {
         value: s.cdnScript,
 
         editor: {
-          component: 'cdn-provider-editor',
           data: s,
           index: i,
           title: s.name,
@@ -191,9 +230,11 @@ export default {
 
     newCDN () {
       this.openEditor({
-        component: 'cdn-provider-editor',
-        title: this.$t('cdns-provider.add'),
-        data: {},
+        title: this.$t('code-snippets.add'),
+        data: {
+          name: '',
+          cdnScript: '<' + 'script> ' + '</' + 'script>',
+        },
         updater: (changed) => {
           this.cdns.push(changed)
         },
@@ -204,7 +245,7 @@ export default {
       this.$Settings.fetch()
       return this.$SystemAPI.settingsList({ prefix: 'cdns' })
         .then(settings => {
-          if (settings[0]) {
+          if (settings && settings[0]) {
             this.cdns = settings[0].value
           } else {
             this.cdns = []
@@ -220,11 +261,10 @@ export default {
       this.cdn.processing = true
       this.$SystemAPI.settingsUpdate({ values: [{ name: 'cdns', value: this.cdns }] })
         .then(() => {
+          this.animateSuccess('cdn')
           if (action === 'delete') {
-            this.animateSuccess('cdn')
             this.toastSuccess(this.$t('notification:settings.cdn.delete.success'))
           } else {
-            this.animateSuccess('cdn')
             this.toastSuccess(this.$t('notification:settings.cdn.update.success'))
           }
         })

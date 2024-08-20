@@ -270,13 +270,13 @@ settings:
       error: UI settings update failed
   cdn:
     fetch:
-      error: CDN providers settings fetch failed
+      error: Code snippets settings fetch failed
     update:
-      success: CDN providers settings  updated
-      error: CDN providers settings  update failed
+      success: Code snippets settings  updated
+      error: Code snippets settings  update failed
     delete:
-      success: CDN provider deleted
-      error: CDN provider delete failed
+      success: Code snippet deleted
+      error: Code snippet delete failed
 
 permissions:
   fetch:
