@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/compose/dalutils"
 	composeEnvoy "github.com/cortezaproject/corteza/server/compose/envoy"
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service"
@@ -26,6 +27,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -530,6 +532,17 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 				Placeholder: true,
 			}
 
+			keyField := []string{}
+
+			// Check if we're mapping the ID field even
+			for _, v := range importSession.Fields {
+				auxf := strings.ToLower(v)
+
+				if auxf == "id" || auxf == "recordid" || auxf == "record_id" {
+					keyField = []string{importSession.Key}
+				}
+			}
+
 			node = &envoyx.Node{
 				Datasource: &composeEnvoy.RecordDatasource{
 					Mapping: envoyx.DatasourceMapping{
@@ -537,9 +550,61 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 						References:  map[string]string{},
 						Scope:       map[string]string{},
 						Defaultable: false,
+						KeyField:    keyField,
 						Mapping: envoyx.FieldMapping{
 							Map: fieldMapping,
 						},
+					},
+
+					CheckExisting: func(ctx context.Context, idents ...[]string) (out []uint64, err error) {
+						qp := make([]string, 0, len(idents))
+						for _, ident := range idents {
+							if len(ident) != 1 {
+								continue
+							}
+
+							rid := cast.ToUint64(ident[0])
+							if rid == 0 {
+								continue
+							}
+
+							qp = append(qp, fmt.Sprintf("recordID='%d'", rid))
+						}
+
+						bong, _, err := dalutils.ComposeRecordsList(ctx, dal.Service(), mod, types.RecordFilter{
+							ModuleID:    mod.ID,
+							NamespaceID: mod.NamespaceID,
+							Query:       strings.Join(qp, " OR "),
+						})
+						if err != nil {
+							return
+						}
+
+						for _, ident := range idents {
+							if len(ident) != 1 {
+								out = append(out, 0)
+								continue
+							}
+
+							rid := cast.ToUint64(ident[0])
+							if rid == 0 {
+								out = append(out, 0)
+								continue
+							}
+
+							// Find the correct one in the fetched slice
+							got := uint64(0)
+							for _, r := range bong {
+								if r.ID == rid {
+									got = r.ID
+									break
+								}
+							}
+
+							out = append(out, got)
+						}
+
+						return
 					},
 				},
 				ResourceType: composeEnvoy.ComposeRecordDatasourceAuxType,
@@ -572,6 +637,8 @@ func (ctrl *Record) ImportRun(ctx context.Context, r *request.RecordImportRun) (
 			if err != nil {
 				return
 			}
+
+			// panic("AAAAAA")
 
 			{
 				// @todo this is temporary because the service's logic is a bit flawed for this case

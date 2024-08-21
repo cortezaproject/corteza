@@ -153,9 +153,14 @@ func (e StoreEncoder) validateRecord(*types.Record) (err error) {
 }
 
 func (e StoreEncoder) prepare(ctx context.Context, p envoyx.EncodeParams, s store.Storer, rt string, nn envoyx.NodeSet) (err error) {
+	dl, err := e.grabDal(p)
+	if err != nil {
+		return
+	}
+
 	switch rt {
 	case ComposeRecordDatasourceAuxType:
-		return e.prepareRecordDatasource(ctx, p, s, nn)
+		return e.prepareRecordDatasource(ctx, p, s, dl, nn)
 	}
 
 	return

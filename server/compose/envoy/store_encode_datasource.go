@@ -28,7 +28,7 @@ var (
 	rvFormatter = values.Formatter()
 )
 
-func (e StoreEncoder) prepareRecordDatasource(ctx context.Context, p envoyx.EncodeParams, s store.Storer, nn envoyx.NodeSet) (err error) {
+func (e StoreEncoder) prepareRecordDatasource(ctx context.Context, p envoyx.EncodeParams, s store.Storer, dl dal.FullService, nn envoyx.NodeSet) (err error) {
 	// @todo match existing records; for now use just the ID like V1
 
 	for _, n := range nn {
@@ -41,7 +41,7 @@ func (e StoreEncoder) prepareRecordDatasource(ctx context.Context, p envoyx.Enco
 			panic("unexpected datasource type: node expecting type of RecordDatasource")
 		}
 
-		err = e.prepareRecords(ctx, p, s, ds)
+		err = e.prepareRecords(ctx, p, s, dl, ds, nn)
 		if err != nil {
 			return
 		}
@@ -54,7 +54,7 @@ func (e StoreEncoder) prepareRecordDatasource(ctx context.Context, p envoyx.Enco
 	return
 }
 
-func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams, s store.Storer, ds *RecordDatasource) (err error) {
+func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams, s store.Storer, dl dal.FullService, ds *RecordDatasource, nn envoyx.NodeSet) (err error) {
 	var (
 		aux   = make(map[string]string)
 		more  bool
@@ -62,6 +62,15 @@ func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams,
 	)
 
 	ds.refToID = make(map[string]uint64)
+	ds.existingIDs = make(map[uint64]bool)
+
+	// Just so we don't need to do a branch later down the line
+	cex := ds.CheckExisting
+	if cex == nil || len(ds.Mapping.KeyField) == 0 {
+		cex = func(ctx context.Context, ref ...[]string) ([]uint64, error) {
+			return make([]uint64, len(ref)), nil
+		}
+	}
 
 	for {
 		ident, more, err = ds.Next(ctx, aux)
@@ -69,7 +78,21 @@ func (e StoreEncoder) prepareRecords(ctx context.Context, p envoyx.EncodeParams,
 			return
 		}
 
-		ds.AddRef(id.Next(), ident...)
+		// @todo we'll need to batch these up
+		existing, err := cex(ctx, ident)
+		if err != nil {
+			return err
+		}
+
+		if existing[0] != 0 {
+			ds.existingIDs[existing[0]] = true
+		}
+
+		if existing[0] == 0 {
+			existing[0] = id.Next()
+		}
+
+		ds.AddRef(existing[0], ident...)
 
 		// Construct a simple record for basic validation/preprocessing
 		rec := types.Record{}
@@ -143,7 +166,8 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 
 	var (
 		rec     types.Record
-		records types.RecordSet
+		creates types.RecordSet
+		updates types.RecordSet
 		rve     *types.RecordValueErrorSet
 	)
 	for {
@@ -185,15 +209,29 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 			}
 
 			ax := rec
-			records = append(records, &ax)
 
-			if len(records) > recordBatchMaxChunk {
-				err = dalutils.ComposeRecordCreate(ctx, dl, mod, records...)
+			if ds.existingIDs[rec.ID] {
+				updates = append(updates, &ax)
+			} else {
+				creates = append(creates, &ax)
+			}
+
+			if len(creates) > recordBatchMaxChunk {
+				err = dalutils.ComposeRecordCreate(ctx, dl, mod, creates...)
 				if err != nil {
 					return
 				}
 
-				records = make(types.RecordSet, 0, recordBatchMaxChunk/2)
+				creates = make(types.RecordSet, 0, recordBatchMaxChunk/2)
+			}
+
+			if len(updates) > recordBatchMaxChunk {
+				err = dalutils.ComposeRecordUpdate(ctx, dl, mod, updates...)
+				if err != nil {
+					return
+				}
+
+				updates = make(types.RecordSet, 0, recordBatchMaxChunk/2)
 			}
 			return
 		}()
@@ -213,8 +251,12 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 		}
 	}
 
-	if len(records) > 0 {
-		err = dalutils.ComposeRecordCreate(ctx, dl, mod, records...)
+	if len(creates) > 0 {
+		err = dalutils.ComposeRecordCreate(ctx, dl, mod, creates...)
+	}
+
+	if len(updates) > 0 {
+		err = dalutils.ComposeRecordUpdate(ctx, dl, mod, updates...)
 	}
 	return
 }

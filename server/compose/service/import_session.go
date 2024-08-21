@@ -101,7 +101,7 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, con
 
 		// @todo improve this bit
 		k := prepKey(f)
-		if k == "id" || k == "recordid" {
+		if k == "id" || k == "recordid" || k == "record_id" {
 			sh.Key = f
 		}
 	}

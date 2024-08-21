@@ -17,6 +17,8 @@ type (
 		Mapping  envoyx.DatasourceMapping
 		Provider envoyx.Provider
 
+		CheckExisting func(ctx context.Context, ref ...[]string) ([]uint64, error)
+
 		currentIndex int
 
 		// Reusable buffer for reading records
@@ -25,6 +27,8 @@ type (
 		// Index to map from ref to ID
 		// @todo we might need to flush these to the disc in case a huge dataset is passed in
 		refToID map[string]uint64
+		// @todo might be worth putting both into one map; not sure how much space we'd save up
+		existingIDs map[uint64]bool
 	}
 
 	// iteratorProvider is a wrapper around the dal.Iterator to conform to the
