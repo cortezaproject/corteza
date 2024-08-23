@@ -17,6 +17,7 @@
       hide-header
       reset-button
       today-button
+      show-decade-nav
       class="h-100 overflow-hidden"
     />
 
@@ -127,9 +128,16 @@ export default {
   .b-form-datepicker, .b-form-timepicker {
     flex: 1 0 130px;
   }
-}
 
-.b-calendar-inner {
-  background-color: var(--white);
+  .b-calendar-inner {
+    background-color: var(--white);
+
+    .b-calendar-grid-body {
+      height: 14rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+  }
 }
 </style>
