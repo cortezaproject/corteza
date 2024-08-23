@@ -251,7 +251,7 @@ export default {
             this.codeSnippets = []
           }
         })
-        .catch(this.toastErrorHandler(this.$t('notification:settings.codeSnippet.fetch.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:settings.code-snippet.fetch.error')))
         .finally(() => {
           this.decLoader()
         })
@@ -263,12 +263,12 @@ export default {
         .then(() => {
           this.animateSuccess('codeSnippet')
           if (action === 'delete') {
-            this.toastSuccess(this.$t('notification:settings.codeSnippet.delete.success'))
+            this.toastSuccess(this.$t('notification:settings.code-snippet.delete.success'))
           } else {
-            this.toastSuccess(this.$t('notification:settings.codeSnippet.update.success'))
+            this.toastSuccess(this.$t('notification:settings.code-snippet.update.success'))
           }
         })
-        .catch(this.toastErrorHandler(this.$t('notification:settings.codeSnippet.update.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:settings.code-snippet.update.error')))
         .finally(() => {
           this.codeSnippet.processing = false
         })
