@@ -106,6 +106,9 @@ const (
 	OperationTypeDelete   OperationType = "delete"
 	OperationTypePatch    OperationType = "patch"
 	OperationTypeUndelete OperationType = "undelete"
+
+	DateOnlyLayout = "2006-01-02"
+	TimeOnlyLayout = "15:04:05"
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
@@ -246,11 +249,26 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 					case "DateTime":
 						// @note temporary solution to make timestamps consistent; we should handle
 						// timezones (or the lack of) more properly
-						auxt, err := cast.ToTimeE(auxv)
-						if err != nil || auxt.IsZero() {
-							auxv = ""
-						} else {
-							auxv = cast.ToTime(auxv).Format(time.RFC3339)
+						parseAndFormat := func(value interface{}, format string) string {
+							auxt, err := cast.ToTimeE(value)
+							if err != nil || auxt.IsZero() {
+								return ""
+							}
+							return auxt.Format(format)
+						}
+
+						switch {
+						case f.IsDateOnly():
+							auxv = parseAndFormat(auxv, DateOnlyLayout)
+
+						case f.IsTimeOnly():
+							auxt, err := time.Parse(TimeOnlyLayout, auxv)
+							if err != nil || auxt.IsZero() {
+								auxv = ""
+							}
+
+						default:
+							auxv = parseAndFormat(auxv, time.RFC3339)
 						}
 					}
 				}
