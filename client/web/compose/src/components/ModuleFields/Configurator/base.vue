@@ -1,5 +1,5 @@
 <script>
-import { compose } from '@cortezaproject/corteza-js'
+import { compose, NoID } from '@cortezaproject/corteza-js'
 
 export default {
   props: {
@@ -17,6 +17,11 @@ export default {
       type: compose.ModuleField,
       required: true,
     },
+
+    hasRecords: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -28,6 +33,14 @@ export default {
       set (f) {
         this.$emit('update:field', f)
       },
+    },
+
+    isNew () {
+      return this.module.moduleID === NoID || this.field.fieldID === NoID
+    },
+
+    hasData () {
+      return !this.isNew && this.hasRecords
     },
   },
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="c-input-date-time d-flex flex-wrap w-100">
+  <div class="c-input-date-time d-flex flex-wrap w-100 gap-1">
     <b-form-datepicker
       v-if="!noDate"
       v-model="date"

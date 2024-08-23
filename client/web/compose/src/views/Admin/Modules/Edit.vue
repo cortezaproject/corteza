@@ -403,6 +403,7 @@
           :module="module"
           :connection="connection"
           :sensitivity-levels="sensitivityLevels"
+          :has-records="hasRecords"
         />
       </b-modal>
 

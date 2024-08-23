@@ -16,7 +16,7 @@
       <b-form-input
         v-model="value.name"
         required
-        :readonly="disabled"
+        :readonly="hasData"
         :state="nameState"
         type="text"
       />
@@ -49,19 +49,16 @@
       <b-input-group class="field-type">
         <c-input-select
           v-model="value.kind"
+          v-b-tooltip.hover="{ title: hasData ? $t('field:not-configurable') : '', placement: 'left', container: '#body' }"
           :options="fieldKinds"
           :reduce="kind => kind.kind"
-          :disabled="disabled"
+          :disabled="hasData"
           :clearable="false"
           @input="$emit('updateKind')"
         />
 
         <b-input-group-append>
           <b-button
-            v-b-tooltip.noninteractive.hover="{
-              title: $t('tooltip.field'),
-              container: '#body'
-            }"
             data-test-id="button-configure-field"
             variant="extra-light"
             :disabled="isEditDisabled"
@@ -104,7 +101,7 @@
       style="min-width: 100px;"
     >
       <c-permissions-button
-        v-if="canGrant && exists"
+        v-if="canGrant && !isNew"
         button-variant="outline-light"
         size="sm"
         :title="value.label || value.name || value.fieldID"
@@ -170,7 +167,7 @@ export default {
 
   computed: {
     nameState () {
-      if (this.disabled) {
+      if (this.hasData) {
         return null
       }
 
@@ -181,8 +178,8 @@ export default {
       return this.value.isValid ? null : false
     },
 
-    disabled () {
-      return this.value.fieldID !== NoID && this.hasRecords
+    hasData () {
+      return !this.isNew && this.hasRecords
     },
 
     isNew () {
@@ -195,10 +192,6 @@ export default {
         .map(kind => {
           return { kind, label: this.$t('fieldKinds.' + kind + '.label') }
         }).sort((a, b) => a.label.localeCompare(b.label))
-    },
-
-    exists () {
-      return this.module.ID !== NoID && this.value.fieldID !== NoID
     },
 
     isEditDisabled () {

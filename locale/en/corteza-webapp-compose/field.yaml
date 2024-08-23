@@ -3,6 +3,7 @@ selected-items: Selected fields
 defaultFieldValue: Default field value
 defaultValue: Default value
 required-field: This field is required
+not-configurable: Cannot change settings that affect data storage
 kind:
   bool:
     checkedValueLabel: Value when checked
@@ -13,14 +14,22 @@ kind:
     toggleTypeLabel: Checkbox Type
     toggleType: Display as switch
   dateTime:
-    dateOnly: Date Only
-    futureValuesOnly: Future Value Only
+    type:
+      label: Value Type
+      options:
+        dateTime: Date & Time
+        date: Date
+        time: Time
+    constraints:
+      label: Allowed values
+      options:
+        all: All values
+        futureValuesOnly: Future Values Only
+        pastValuesOnly: Past Values Only
     label: Date and time
     outputFormat: Output format
     outputFormatFootnote: See {{0}} for formatting options
-    pastValuesOnly: Past Values Only
     relativeOutput: 'Output Relative value (eg: 3 days ago)'
-    timeOnly: Time Only
     warning:
       futureValuesOnly: Only dates in the future will be saved
       pastValuesOnly: Only dates in the past will be saved

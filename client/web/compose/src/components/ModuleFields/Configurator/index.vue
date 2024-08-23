@@ -24,6 +24,7 @@
         :namespace="namespace"
         :module="module"
         :field.sync="f"
+        :has-records="hasRecords"
       />
     </b-tab>
 

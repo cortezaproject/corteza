@@ -123,7 +123,6 @@ reminder:
     count: Snooze count {{count}}
 tooltip:
   dragAndDrop: Drag and drop to change order
-  field: Configure field
 fieldKinds:
   Bool:
     label: Checkbox (Y/N)
