@@ -4,6 +4,7 @@ editor:
   code-snippets:
     add: Add code snippet
     empty: No snippets yet
+    enabled: Enabled
     table-headers:
       provider: Provider
       value: Script value

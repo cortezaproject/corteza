@@ -71,6 +71,13 @@
         title-class="text-capitalize"
         @ok="modal.updater(modal.data)"
       >
+        <b-checkbox
+          v-model="modal.data.enabled"
+          class="mb-3"
+        >
+          {{ $t('code-snippets.enabled') }}
+        </b-checkbox>
+
         <b-form-group
           :label="$t('code-snippets.form.provider.label')"
           label-class="text-primary"
@@ -234,6 +241,7 @@ export default {
         data: {
           name: '',
           script: '<' + 'script> ' + '</' + 'script>',
+          enabled: true,
         },
         updater: (changed) => {
           this.codeSnippets.push(changed)

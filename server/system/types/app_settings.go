@@ -420,6 +420,7 @@ type (
 	CodeSnippet struct {
 		Name   string `json:"name"`
 		Script string `json:"script"`
+        Enabled bool `json:"enabled"`
 	}
 
 	SmtpServers struct {

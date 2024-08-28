@@ -167,7 +167,9 @@ func serveConfig(r chi.Router, config webappConfig) {
 
 		snippetScripts := ""
 		for _, snippet := range codeSnippets {
-			snippetScripts += snippet.Script
+            if snippet.Enabled {
+                snippetScripts += snippet.Script
+            }
 		}
 
 		doc, err := html.Parse(strings.NewReader(snippetScripts))
