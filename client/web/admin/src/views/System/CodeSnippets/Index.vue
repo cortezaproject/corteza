@@ -15,25 +15,23 @@
         <b-button
           variant="primary"
           size="lg"
-          @click="newCodeSnippet()"
+          @click="openEditor()"
         >
           {{ $t('code-snippets.add') }}
         </b-button>
       </div>
 
       <b-table
-        :items="providerItems"
-        :fields="codeSnippetProviderFields"
+        :items="codeSnippets"
+        :fields="codeSnippetsFields"
         head-variant="light"
         show-empty
         hover
+        sort
         class="mb-0"
-        style="min-height: 50px;"
+        responsive
+        style="min-height: 5rem;"
       >
-        <template #cell(provider)="{ item }">
-          {{ item.provider || item.tag }}
-        </template>
-
         <template #empty>
           <p
             data-test-id="no-matches"
@@ -44,21 +42,27 @@
           </p>
         </template>
 
-        <template #cell(editor)="{ item }">
-          <c-input-confirm
-            v-if="item.delete"
-            :icon="item.deleted ? ['fas', 'trash-restore'] : undefined"
-            @confirmed="item.delete()"
+        <template #cell(enabled)="{ value }">
+          <font-awesome-icon
+            :icon="value ? ['fas', 'check'] : ['fas', 'times']"
+            :class="value ? 'text-primary' : 'text-extra-light'"
           />
+        </template>
 
+        <template #cell(actions)="{ index }">
           <b-button
             variant="link"
-            @click="openEditor(item.editor)"
+            @click="openEditor(index)"
           >
             <font-awesome-icon
               :icon="['fas', 'wrench']"
             />
           </b-button>
+
+          <c-input-confirm
+            :disabled="codeSnippet.processing"
+            @confirmed="deleteCodeSnippet(index)"
+          />
         </template>
       </b-table>
 
@@ -69,7 +73,7 @@
         scrollable
         size="lg"
         title-class="text-capitalize"
-        @ok="modal.updater(modal.data)"
+        @ok="saveSettings()"
       >
         <b-checkbox
           v-model="modal.data.enabled"
@@ -111,8 +115,9 @@
           />
         </div>
 
-        <template #modal-footer="{ ok, cancel}">
+        <template #modal-footer="{ ok, cancel }">
           <c-input-confirm
+            v-if="modal.index >= 0"
             size="md"
             variant="danger"
             @confirmed="deleteCodeSnippet(modal.index)"
@@ -129,7 +134,7 @@
           </b-button>
 
           <b-button
-            :disabled="!saveDisabled"
+            :disabled="saveDisabled"
             variant="primary"
             @click="ok()"
           >
@@ -137,17 +142,6 @@
           </b-button>
         </template>
       </b-modal>
-
-      <template #footer>
-        <c-button-submit
-          :disabled="!canManage || !saveDisabled"
-          :processing="codeSnippet.processing"
-          :success="codeSnippet.success"
-          :text="$t('admin:general.label.submit')"
-          class="ml-auto"
-          @submit="onSubmit()"
-        />
-      </template>
     </b-card>
   </b-container>
 </template>
@@ -179,17 +173,15 @@ export default {
       codeSnippets: [],
       modal: {
         open: false,
-        editor: null,
-        title: null,
-        data: [],
         index: null,
+        title: null,
+        data: {},
       },
 
       codeSnippet: {
         processing: false,
         success: false,
       },
-      originalCodeSnippets: [],
     }
   },
 
@@ -198,67 +190,42 @@ export default {
       canManage: 'rbac/can',
     }),
 
-    codeSnippetProviderFields () {
+    codeSnippetsFields () {
       return [
-        { key: 'provider', label: this.$t('code-snippets.table-headers.name'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
-        { key: 'value', label: this.$t('code-snippets.table-headers.value'), tdClass: 'td-content-overflow' },
-        { key: 'editor', label: '', thStyle: { width: '200px' }, tdClass: 'text-right' },
+        { key: 'name', label: this.$t('code-snippets.table-headers.name'), thStyle: { 'min-width': '8rem' } },
+        { key: 'enabled', label: this.$t('code-snippets.table-headers.enabled'), thClass: 'text-center', tdClass: 'text-center' },
+        { key: 'script', label: this.$t('code-snippets.table-headers.script'), thStyle: { 'min-width': '20rem' } },
+        { key: 'actions', label: '', thStyle: { 'min-width': '7rem' }, tdClass: 'text-right' },
       ]
     },
 
-    providerItems () {
-      return this.codeSnippets.map((s, i) => ({
-        provider: s.name,
-        value: s.script,
-
-        editor: {
-          data: s,
-          index: i,
-          title: s.name,
-          updater: (changed) => {
-            this.codeSnippets[i] = changed
-          },
-        },
-      }))
-    },
-
     saveDisabled () {
-      return this.modal.data.name !== ''
+      return !this.modal.data.name || !this.modal.data.script
     },
   },
 
   created () {
     this.fetchSettings()
-
-    this.originalCodeSnippets = [...this.codeSnippets]
   },
+
   methods: {
-    openEditor ({ component, title, data, updater }) {
+    openEditor (index) {
+      const item = index >= 0 ? this.codeSnippets[index] : {
+        name: '',
+        script: '<' + 'script> ' + '</' + 'script>',
+        enabled: true,
+      }
+
+      this.modal.index = index
+      this.modal.title = item.name || this.$t('code-snippets.add')
+      this.modal.data = { ...item }
       this.modal.open = true
-      this.modal.component = component
-      this.modal.title = title
-      this.modal.updater = updater
-
-      // deref
-      this.modal.data = data
     },
 
-    newCodeSnippet () {
-      this.openEditor({
-        title: this.$t('code-snippets.add'),
-        data: {
-          name: '',
-          script: '<' + 'script> ' + '</' + 'script>',
-          enabled: true,
-        },
-        updater: (changed) => {
-          this.codeSnippets.push(changed)
-        },
-      })
-    },
     fetchSettings () {
       this.incLoader()
       this.$Settings.fetch()
+
       return this.$SystemAPI.settingsList({ prefix: 'code-snippets' })
         .then(settings => {
           if (settings && settings[0]) {
@@ -275,8 +242,10 @@ export default {
 
     settingsUpdate (action) {
       this.codeSnippet.processing = true
+
       this.$SystemAPI.settingsUpdate({ values: [{ name: 'code-snippets', value: this.codeSnippets }] })
         .then(() => {
+          this.$Settings.fetch()
           this.animateSuccess('codeSnippet')
           if (action === 'delete') {
             this.toastSuccess(this.$t('notification:settings.code-snippet.delete.success'))
@@ -289,7 +258,14 @@ export default {
           this.codeSnippet.processing = false
         })
     },
-    onSubmit () {
+
+    saveSettings () {
+      if (this.modal.index >= 0) {
+        this.codeSnippets.splice(this.modal.index, 1, this.modal.data)
+      } else {
+        this.codeSnippets.push(this.modal.data)
+      }
+
       this.settingsUpdate('update')
     },
 
@@ -302,12 +278,3 @@ export default {
 }
 
 </script>
-
-<style>
-  .td-content-overflow {
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-</style>

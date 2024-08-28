@@ -1,16 +1,18 @@
 editor:
-  title: Code snippets
+  title: Code Snippets
 
   code-snippets:
-    add: Add code snippet
+    add: Add Code Snippet
     empty: No snippets yet
     enabled: Enabled
     table-headers:
       name: Name
-      value: Script value
+      enabled: Enabled
+      script: Code
     form:
+      title: Add Code Snippet
       name:
         label: Name
       value:
-        label: Script value
-        description: Ensure that your Code snippets are within <script> tags to properly inject them into Corteza web applications.
+        label: Code
+        description: Add external script or code snippets for services. The script must include a valid <script> tag to function.

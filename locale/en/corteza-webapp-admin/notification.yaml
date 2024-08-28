@@ -270,12 +270,12 @@ settings:
       error: UI settings update failed
   code-snippet:
     fetch:
-      error: Code snippets settings fetch failed
+      error: Code snippets fetch failed
     update:
-      success: Code snippets settings  updated
-      error: Code snippets settings  update failed
+      success: Code snippets updated, refresh the page to see the changes
+      error: Code snippets update failed
     delete:
-      success: Code snippet deleted
+      success: Code snippet deleted, refresh the page to see the changes
       error: Code snippet delete failed
 
 permissions:
