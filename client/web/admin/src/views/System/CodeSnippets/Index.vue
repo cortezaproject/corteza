@@ -79,11 +79,14 @@
         </b-checkbox>
 
         <b-form-group
-          :label="$t('code-snippets.form.provider.label')"
+          :label="$t('code-snippets.form.name.label')"
           label-class="text-primary"
         >
           <b-input-group>
-            <b-form-input v-model="modal.data.name" />
+            <b-form-input
+              v-model="modal.data.name"
+              required
+            />
           </b-input-group>
         </b-form-group>
 
@@ -126,6 +129,7 @@
           </b-button>
 
           <b-button
+            :disabled="!saveDisabled"
             variant="primary"
             @click="ok()"
           >
@@ -136,7 +140,7 @@
 
       <template #footer>
         <c-button-submit
-          :disabled="!canManage"
+          :disabled="!canManage || !saveDisabled"
           :processing="codeSnippet.processing"
           :success="codeSnippet.success"
           :text="$t('admin:general.label.submit')"
@@ -196,7 +200,7 @@ export default {
 
     codeSnippetProviderFields () {
       return [
-        { key: 'provider', label: this.$t('code-snippets.table-headers.provider'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
+        { key: 'provider', label: this.$t('code-snippets.table-headers.name'), thStyle: { width: '200px' }, tdClass: 'text-capitalize' },
         { key: 'value', label: this.$t('code-snippets.table-headers.value'), tdClass: 'td-content-overflow' },
         { key: 'editor', label: '', thStyle: { width: '200px' }, tdClass: 'text-right' },
       ]
@@ -216,6 +220,10 @@ export default {
           },
         },
       }))
+    },
+
+    saveDisabled () {
+      return this.modal.data.name !== ''
     },
   },
 
