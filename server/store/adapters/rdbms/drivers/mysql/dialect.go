@@ -42,6 +42,50 @@ func (mysqlDialect) Nuances() drivers.Nuances {
 	return nuances
 }
 
+func (d mysqlDialect) AggregateBase(t drivers.TableCodec, groupBy []dal.AggregateAttr, out []dal.AggregateAttr) (slct *goqu.SelectDataset) {
+	var (
+		cols = t.Columns()
+
+		// working around a bug inside goqu lib that adds
+		// * to the list of columns to be selected
+		// even if we clear the columns first
+		q = d.GOQU().
+			From(t.Ident())
+	)
+
+	for _, g := range groupBy {
+		// Special handling for multi value fields
+		if g.MultiValue {
+			// Only straight up columns can be multi value so we can freely use RawExpr
+			colName := g.RawExpr
+			ax, err := t.AttributeExpressionQuoted(colName)
+			if err != nil {
+				q = q.SetError(err)
+				return q
+			}
+
+			q = q.From(
+				t.Ident(),
+				goqu.Func("JSON_TABLE",
+					ax,
+					exp.NewLiteralExpression(fmt.Sprintf(`'$[*]' COLUMNS (%s TEXT PATH '$')`, colName)),
+				).As(colName),
+			)
+		}
+	}
+
+	if len(cols) == 0 {
+		return q.SetError(fmt.Errorf("can not create SELECT without columns"))
+	}
+
+	q = q.Select(t.Ident().Col(cols[0].Name()))
+	for _, col := range cols[1:] {
+		q = q.SelectAppend(t.Ident().Col(col.Name()))
+	}
+
+	return q
+}
+
 func (mysqlDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
 func (mysqlDialect) DialectOptions() *sqlgen.SQLDialectOptions { return goquDialectOptions }
 func (mysqlDialect) QuoteIdent(i string) string                { return quoteIdent + i + quoteIdent }
@@ -62,7 +106,6 @@ func (d mysqlDialect) JsonExtract(jsonDoc exp.Expression, pp ...any) (path exp.E
 	if path, err = jsonPathExpr(pp...); err != nil {
 		return
 	} else {
-		path = exp.NewCastExpression(path, "CHAR")
 		return exp.NewSQLFunctionExpression("JSON_EXTRACT", jsonDoc, path), nil
 	}
 }
@@ -163,7 +206,7 @@ func (mysqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp.
 }
 
 func (mysqlDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
-    return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
+	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
 }
 
 func (mysqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {

@@ -29,6 +29,10 @@ var (
 
 	nuances = drivers.Nuances{
 		HavingClauseMustUseAlias: true,
+
+		ExpandedJsonColumnSelector: func(ident string) exp.Expression {
+			return exp.NewLiteralExpression(fmt.Sprintf(`%s.value`, ident))
+		},
 	}
 )
 
@@ -48,6 +52,44 @@ func Dialect() *sqliteDialect {
 
 func (sqliteDialect) Nuances() drivers.Nuances {
 	return nuances
+}
+
+func (d sqliteDialect) AggregateBase(t drivers.TableCodec, groupBy []dal.AggregateAttr, out []dal.AggregateAttr) (slct *goqu.SelectDataset) {
+	var (
+		cols = t.Columns()
+
+		// working around a bug inside goqu lib that adds
+		// * to the list of columns to be selected
+		// even if we clear the columns first
+		q = d.GOQU().
+			From(t.Ident())
+	)
+
+	for _, g := range groupBy {
+		// Special handling for multi value fields
+		if g.MultiValue {
+			// Only straight up columns can be multi value so we can freely use RawExpr
+			colName := g.RawExpr
+			q = q.From(
+				t.Ident(),
+				goqu.Func("json_each",
+					goqu.C("values").Table("compose_record"),
+					exp.NewLiteralExpression(fmt.Sprintf(`'$.%s'`, colName)),
+				).As(colName),
+			)
+		}
+	}
+
+	if len(cols) == 0 {
+		return q.SetError(fmt.Errorf("can not create SELECT without columns"))
+	}
+
+	q = q.Select(t.Ident().Col(cols[0].Name()))
+	for _, col := range cols[1:] {
+		q = q.SelectAppend(t.Ident().Col(col.Name()))
+	}
+
+	return q
 }
 
 func (sqliteDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
@@ -148,7 +190,7 @@ func (sqliteDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (exp
 }
 
 func (sqliteDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
-    return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
+	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
 }
 
 func (sqliteDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {

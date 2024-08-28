@@ -26,6 +26,9 @@ type (
 		// TwoStepUpsert uses the context from the update statement to figure out
 		// if it needs to do an insert.
 		TwoStepUpsert bool
+
+		// @todo change this around; temporary fix as not sure how I'd rewrite
+		ExpandedJsonColumnSelector func(ident string) exp.Expression
 	}
 
 	Dialect interface {
@@ -63,15 +66,17 @@ type (
 		// comparison or soring expression
 		AttributeCast(*dal.Attribute, exp.Expression) (exp.Expression, error)
 
-        AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error)
+		AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error)
 
-        // TableCodec returns table codec (encodes & decodes data to/from db table)
+		// TableCodec returns table codec (encodes & decodes data to/from db table)
 		TableCodec(*dal.Model) TableCodec
 
 		// TypeWrap returns driver's type implementation for a particular attribute type
 		TypeWrap(dal.Type) Type
 
 		QuoteIdent(string) string
+
+		AggregateBase(t TableCodec, gb []dal.AggregateAttr, out []dal.AggregateAttr) *goqu.SelectDataset
 
 		// AttributeToColumn converts attribute to column defunition
 		AttributeToColumn(*dal.Attribute) (*ddl.Column, error)

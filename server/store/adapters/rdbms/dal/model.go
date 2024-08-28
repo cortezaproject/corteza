@@ -260,7 +260,7 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 		limit:   f.Limit(),
 	}
 
-	i.query = d.searchSql(f)
+	i.query = d.applyFiltersToQuery(d.selectSql(), f)
 	if err = i.query.Error(); err != nil {
 		return
 	}
@@ -360,16 +360,14 @@ func (d *model) Lookup(ctx context.Context, pkv dal.ValueGetter, r dal.ValueSett
 	return rows.Close()
 }
 
-// constructs SQL for selecting records from a table,
-// converting parts of record filter into conditions
+// converting parts of record filter into conditions for selecting records from a table
 //
 // Does not add any limits, sorting or any cursor conditions!
-func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
+func (d *model) applyFiltersToQuery(base *goqu.SelectDataset, f filter.Filter) *goqu.SelectDataset {
 	var (
-		err  error
-		base = d.selectSql()
-		tmp  exp.Expression
-		cnd  []exp.Expression
+		err error
+		tmp exp.Expression
+		cnd []exp.Expression
 	)
 
 	{
@@ -515,10 +513,10 @@ func (d *model) searchSql(f filter.Filter) *goqu.SelectDataset {
 	return base.Where(cnd...)
 }
 
-func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out []dal.AggregateAttr, having *ql.ASTNode) (q *goqu.SelectDataset) {
-	// get SELECT query based on
-	// the given filter
-	q = d.searchSql(f)
+func (m *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out []dal.AggregateAttr, having *ql.ASTNode) (q *goqu.SelectDataset) {
+	// Get the base query and apply some filters
+	q = m.dialect.AggregateBase(m.table, groupBy, out)
+	q = m.applyFiltersToQuery(q, f)
 
 	var (
 		err  error
@@ -537,18 +535,27 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 			switch {
 			case len(c.RawExpr) > 0:
 				// @todo could probably be removed since RawExpr is only a temporary solution?
-				return d.parseQuery(c.RawExpr)
+				return m.parseQuery(c.RawExpr)
 			case c.Expression != nil:
-				return d.convertQuery(c.Expression)
+				return m.convertQuery(c.Expression)
 			}
 
-			return d.table.AttributeExpression(c.Identifier)
+			return m.table.AttributeExpression(c.Identifier)
 		}
 	)
 
+	nc := m.dialect.Nuances()
 	for i, c := range groupBy {
-		if expr, err = field(c); err != nil {
-			return q.SetError(err)
+		if c.MultiValue {
+			if nc.ExpandedJsonColumnSelector != nil {
+				expr = nc.ExpandedJsonColumnSelector(c.RawExpr)
+			} else {
+				expr = goqu.C(c.RawExpr)
+			}
+		} else {
+			if expr, err = field(c); err != nil {
+				return q.SetError(err)
+			}
 		}
 
 		alias = c.Identifier
@@ -587,7 +594,7 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 
 	if having != nil {
 		var (
-			symHandler = d.qlConverterGenericSymHandler()
+			symHandler = m.qlConverterGenericSymHandler()
 
 			converter = ql.Converter(
 				// we need a more specialized symbol handler for the HAVING clause
@@ -596,7 +603,7 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 					sym := dal.NormalizeAttrNames(node.Symbol)
 
 					if a2expr[sym] != nil {
-						if d.dialect.Nuances().HavingClauseMustUseAlias {
+						if m.dialect.Nuances().HavingClauseMustUseAlias {
 							// is aliased expression?
 							return a2expr[sym], nil
 						} else {
@@ -607,7 +614,7 @@ func (d *model) aggregateSql(f filter.Filter, groupBy []dal.AggregateAttr, out [
 					// if not, use the default handler
 					return symHandler(node)
 				}),
-				ql.RefHandler(d.qlConverterGenericRefHandler()),
+				ql.RefHandler(m.qlConverterGenericRefHandler()),
 			)
 		)
 

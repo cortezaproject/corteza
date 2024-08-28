@@ -63,6 +63,12 @@ func (mssqlDialect) Nuances() drivers.Nuances {
 	return nuances
 }
 
+func (d mssqlDialect) AggregateBase(t drivers.TableCodec, groupBy []dal.AggregateAttr, out []dal.AggregateAttr) (slct *goqu.SelectDataset) {
+	// @todo as is, aggregation is not offloaded to mssql
+	panic("not implemented")
+	return nil
+}
+
 func (mssqlDialect) GOQU() goqu.DialectWrapper                 { return goquDialectWrapper }
 func (mssqlDialect) DialectOptions() *sqlgen.SQLDialectOptions { return goquDialectOptions }
 func (mssqlDialect) QuoteIdent(i string) string                { return quoteIdent + i + quoteIdent }
@@ -163,7 +169,7 @@ func (mssqlDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (expr
 }
 
 func (mssqlDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
-    return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
+	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", modelIdent, ident)), nil
 }
 
 func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {

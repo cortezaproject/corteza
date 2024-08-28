@@ -1,19 +1,19 @@
 package postgres
 
 import (
-    "fmt"
-    "strings"
+	"fmt"
+	"strings"
 
-    "github.com/cortezaproject/corteza/server/pkg/dal"
-    "github.com/cortezaproject/corteza/server/pkg/expr"
-    "github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
-    "github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
-    "github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
-    "github.com/doug-martin/goqu/v9"
-    "github.com/doug-martin/goqu/v9/dialect/postgres"
-    "github.com/doug-martin/goqu/v9/exp"
-    "github.com/doug-martin/goqu/v9/sqlgen"
-    "github.com/spf13/cast"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ql"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/dialect/postgres"
+	"github.com/doug-martin/goqu/v9/exp"
+	"github.com/doug-martin/goqu/v9/sqlgen"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -59,6 +59,49 @@ func (d postgresDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expre
 
 func (d postgresDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Expression, error) {
 	return DeepIdentJSON(false, ident, pp...), nil
+}
+
+func (d postgresDialect) AggregateBase(t drivers.TableCodec, groupBy []dal.AggregateAttr, out []dal.AggregateAttr) (slct *goqu.SelectDataset) {
+	var (
+		cols = t.Columns()
+
+		// working around a bug inside goqu lib that adds
+		// * to the list of columns to be selected
+		// even if we clear the columns first
+		q = d.GOQU().
+			From(t.Ident())
+	)
+
+	// When dealing with multi values, we need to make a cross join with every element in the array
+	// to achieve the same functionality as we had before
+	for _, g := range groupBy {
+		// Special handling for multi value fields
+		if g.MultiValue {
+			// Only straight up columns can be multi value so we can freely use RawExpr
+			colName := g.RawExpr
+			xpr, err := t.AttributeExpressionQuoted(colName)
+			if err != nil {
+				q = q.SetError(err)
+				return q
+			}
+
+			q = q.From(
+				t.Ident(),
+				goqu.Func("JSONB_ARRAY_ELEMENTS_TEXT", xpr).As(colName),
+			)
+		}
+	}
+
+	if len(cols) == 0 {
+		return q.SetError(fmt.Errorf("can not create SELECT without columns"))
+	}
+
+	q = q.Select(t.Ident().Col(cols[0].Name()))
+	for _, col := range cols[1:] {
+		q = q.SelectAppend(t.Ident().Col(col.Name()))
+	}
+
+	return q
 }
 
 // JsonArrayContains prepares postgresql compatible comparison of value and JSON array
@@ -108,15 +151,15 @@ func (postgresDialect) AttributeCast(attr *dal.Attribute, val exp.Expression) (e
 }
 
 func (postgresDialect) AttributeExpression(attr *dal.Attribute, modelIdent string, ident string) (expr exp.Expression, err error) {
-    identExpr := exp.NewIdentifierExpression("", modelIdent, ident)
+	identExpr := exp.NewIdentifierExpression("", modelIdent, ident)
 
-    // truncate timestamp data type to second mark precision
-    if attr.Type.Type() == dal.AttributeTypeTimestamp {
-        return exp.NewLiteralExpression("date_trunc(?, ?)", "second", identExpr), nil
-    }
+	// truncate timestamp data type to second mark precision
+	if attr.Type.Type() == dal.AttributeTypeTimestamp {
+		return exp.NewLiteralExpression("date_trunc(?, ?)", "second", identExpr), nil
+	}
 
-    // using column directly
-    return exp.NewLiteralExpression("?", identExpr), nil
+	// using column directly
+	return exp.NewLiteralExpression("?", identExpr), nil
 }
 
 func (postgresDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err error) {

@@ -1,9 +1,10 @@
 package drivers
 
 import (
-    "fmt"
-    "github.com/cortezaproject/corteza/server/pkg/dal"
-    "github.com/doug-martin/goqu/v9/exp"
+	"fmt"
+
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/doug-martin/goqu/v9/exp"
 )
 
 type (
@@ -15,6 +16,7 @@ type (
 		Encode(r dal.ValueGetter) (_ []any, err error)
 		Decode(buf []any, r dal.ValueSetter) (err error)
 		AttributeExpression(string) (exp.Expression, error)
+		AttributeExpressionQuoted(string) (exp.Expression, error)
 	}
 
 	// GenericTableCodec is a generic implementation of TableCodec
@@ -122,7 +124,15 @@ func (t *GenericTableCodec) Decode(buf []any, r dal.ValueSetter) (err error) {
 	return
 }
 
+func (t *GenericTableCodec) AttributeExpressionQuoted(ident string) (exp.Expression, error) {
+	return t.attributeExpression(true, ident)
+}
+
 func (t *GenericTableCodec) AttributeExpression(ident string) (exp.Expression, error) {
+	return t.attributeExpression(false, ident)
+}
+
+func (t *GenericTableCodec) attributeExpression(quoted bool, ident string) (exp.Expression, error) {
 	attr := t.model.Attributes.FindByIdent(ident)
 
 	if attr == nil {
@@ -131,16 +141,28 @@ func (t *GenericTableCodec) AttributeExpression(ident string) (exp.Expression, e
 
 	switch s := attr.Store.(type) {
 	case *dal.CodecAlias:
-        return t.dialect.AttributeExpression(attr, t.model.Ident, s.Ident)
+		return t.dialect.AttributeExpression(attr, t.model.Ident, s.Ident)
 
 	case *dal.CodecRecordValueSetJSON:
-		// using JSON to handle embedded values
-		lit, err := t.dialect.JsonExtractUnquote(exp.NewIdentifierExpression("", t.model.Ident, s.Ident), attr.Ident, 0)
-		if err != nil {
-			return nil, err
-		}
+		idfExpr := exp.NewIdentifierExpression("", t.model.Ident, s.Ident)
 
-		return t.dialect.AttributeCast(attr, lit)
+		var lit exp.Expression
+		var err error
+		if quoted {
+			lit, err = t.dialect.JsonExtract(idfExpr, attr.Ident)
+			if err != nil {
+				return nil, err
+			}
+
+			return lit, nil
+		} else {
+			// using JSON to handle embedded values
+			lit, err = t.dialect.JsonExtractUnquote(idfExpr, attr.Ident, 0)
+			if err != nil {
+				return nil, err
+			}
+			return t.dialect.AttributeCast(attr, lit)
+		}
 	}
 
 	return exp.NewLiteralExpression("?", exp.NewIdentifierExpression("", t.model.Ident, ident)), nil
