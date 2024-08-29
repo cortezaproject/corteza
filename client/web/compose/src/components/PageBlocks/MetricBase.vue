@@ -192,13 +192,13 @@ export default {
         }
 
         this.reports = rtr
-        this.$nextTick(() => {
+        setTimeout(() => {
           this.processing = false
-        })
+        }, 300)
       } catch {
-        this.$nextTick(() => {
+        setTimeout(() => {
           this.processing = false
-        })
+        }, 300)
       }
     },
     /**

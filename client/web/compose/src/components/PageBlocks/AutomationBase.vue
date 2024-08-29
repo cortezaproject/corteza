@@ -78,7 +78,9 @@ export default {
           this.automationScripts = set
         })
         .finally(() => {
-          this.processing = false
+          setTimeout(() => {
+            this.processing = false
+          }, 300)
         })
     },
 

@@ -145,7 +145,9 @@ export default {
           this.value = value
         }).catch(this.toastErrorHandler(this.$t('progress.fetch-failed')))
         .finally(() => {
-          this.processing = false
+          setTimeout(() => {
+            this.processing = false
+          }, 300)
         })
     },
 
