@@ -141,6 +141,8 @@ export default {
 
   methods: {
     onLayoutUpdated () {
+      if (!this.editable) return
+
       this.resizing = false
 
       this.blocks.forEach(({ xywh = [] }, idx) => {
