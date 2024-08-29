@@ -219,7 +219,7 @@ export default {
   },
 
   watch: {
-    'record.recordID': {
+    'record.updatedAt': {
       immediate: true,
       handler () {
         this.refresh()

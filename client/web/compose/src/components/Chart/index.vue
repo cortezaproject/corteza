@@ -66,7 +66,7 @@ export default {
   },
 
   watch: {
-    'record.recordID': {
+    'record.updatedAt': {
       immediate: true,
       handler () {
         const { pageID = NoID } = this.$route.params

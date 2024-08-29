@@ -1061,7 +1061,7 @@ export default {
       },
     },
 
-    'record.recordID': {
+    'record.updatedAt': {
       immediate: true,
       handler () {
         this.createEvents()

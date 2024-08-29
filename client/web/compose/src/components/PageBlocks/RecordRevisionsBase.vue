@@ -199,7 +199,7 @@ export default {
   },
 
   watch: {
-    'record.recordID': {
+    'record.updatedAt': {
       immediate: true,
       handler () {
         this.refresh()
@@ -246,6 +246,7 @@ export default {
       const { $ComposeAPI, $SystemAPI } = this
 
       this.processing = true
+
       return this.block.fetch($ComposeAPI, this.record)
         .then(set => {
           this.revisions = set
