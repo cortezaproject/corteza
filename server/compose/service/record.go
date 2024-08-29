@@ -1249,6 +1249,7 @@ func (svc record) patch(ctx context.Context, upd *types.Record, values types.Rec
 	}
 	upd.Values = newValues
 
+	values = svc.formatter.Run(m, values)
 	for _, v := range values {
 		err = upd.SetValue(v.Name, v.Place, v.Value)
 		if err != nil {
