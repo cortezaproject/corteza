@@ -40,8 +40,6 @@
           style="touch-action: none;"
           @move="onGridAction"
           @resize="onGridAction"
-          @moved="onBlockUpdated(index)"
-          @resized="onBlockUpdated(index)"
         >
           <slot
             :block="blocks[item.i]"
@@ -142,15 +140,18 @@ export default {
   },
 
   methods: {
-    onBlockUpdated (index) {
-      this.$emit('item-updated', index)
-
-      const { x, y, w, h } = this.layout[index]
-      this.blocks[index].xywh = [x, y, w, h]
-    },
-
     onLayoutUpdated () {
       this.resizing = false
+
+      this.blocks.forEach(({ xywh = [] }, idx) => {
+        const { x, y, w, h } = this.layout[idx]
+        const layoutXYWH = [x, y, w, h]
+
+        if (xywh.toString() === layoutXYWH.toString()) return
+
+        this.$emit('item-updated', idx)
+        this.blocks[idx].xywh = layoutXYWH
+      })
     },
 
     onGridAction () {
