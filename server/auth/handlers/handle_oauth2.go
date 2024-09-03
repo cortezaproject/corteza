@@ -11,6 +11,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"golang.org/x/text/language"
+
 	"github.com/go-chi/jwtauth"
 	oauth2errors "github.com/go-oauth2/oauth2/v4/errors"
 	"github.com/lestrrat-go/jwx/jwa"
@@ -455,6 +458,12 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 	// include user's avatarID
 	if user.Meta.AvatarID != 0 {
 		response["avatarID"] = strconv.FormatUint(user.Meta.AvatarID, 10)
+	}
+
+	if h.Locale.HasLanguage(language.Make(user.Meta.PreferredLanguage)) {
+		response["preferred_language"] = user.Meta.PreferredLanguage
+	} else {
+		response["preferred_language"] = locale.GetAcceptLanguageFromContext(req.Context()).String()
 	}
 
 	if user.Labels != nil {
