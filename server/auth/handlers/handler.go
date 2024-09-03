@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/text/language"
+
 	"github.com/cortezaproject/corteza/server/system/service"
 
 	"github.com/cortezaproject/corteza/server/auth/external"
@@ -111,6 +113,7 @@ type (
 	localeService interface {
 		NS(ctx context.Context, ns string) func(key string, rr ...string) string
 		T(ctx context.Context, ns, key string, rr ...string) string
+		HasLanguage(lang language.Tag) bool
 		LocalizedList(ctx context.Context) []*locale.Language
 	}
 
@@ -223,12 +226,23 @@ func (h *AuthHandlers) handle(fn handlerFn) http.HandlerFunc {
 
 			// make sure user (identity) is part of the context
 			// so we can properly identify ourselves when interacting
-			// with services
+			// with services, and set user's preferred language
 			if req.AuthUser != nil && !req.AuthUser.PendingMFA() {
 				req.Request = req.Request.Clone(auth.SetIdentityToContext(
 					req.Context(),
 					auth.Authenticated(req.AuthUser.User.ID, req.AuthUser.User.Roles()...),
 				))
+
+				userPreferredLanguage := language.Make(req.AuthUser.User.Meta.PreferredLanguage)
+
+				// set user's preferred language
+				if h.Locale.HasLanguage(userPreferredLanguage) {
+					ctx := req.Request.Context()
+					ctx = locale.SetAcceptLanguageToContext(ctx, userPreferredLanguage)
+					ctx = locale.SetContentLanguageToContext(ctx, userPreferredLanguage)
+
+					req.Request = req.Request.WithContext(ctx)
+				}
 			}
 
 			// Alerts show for 1 session only!
