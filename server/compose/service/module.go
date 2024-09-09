@@ -1064,10 +1064,13 @@ func loadModuleField(ctx context.Context, s store.Storer, namespaceID, moduleID,
 		err = ModuleErrNotFound()
 	}
 
-	if err == nil && (namespaceID != res.NamespaceID || moduleID != res.ModuleID) {
-		// Make sure chart belongs to the right namespace
+	if err == nil && (moduleID != res.ModuleID) {
+		// Make sure  module-field belongs to the right module
 		return nil, ModuleErrNotFound()
 	}
+
+	// add namespace ID on the module-field
+	res.NamespaceID = namespaceID
 
 	return
 }
