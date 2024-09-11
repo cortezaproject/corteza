@@ -1,5 +1,6 @@
 <template>
   <b-container
+    fluid="xl"
     class="pt-2 pb-3"
   >
     <c-content-header
@@ -28,9 +29,11 @@
         show-empty
         hover
         sort
+        sticky-header
+        tbody-tr-class="pointer"
         class="mb-0"
-        responsive
-        style="min-height: 5rem;"
+        style="min-height: 5rem; max-height: 82vh;"
+        @row-clicked="(event, index) => openEditor(index)"
       >
         <template #empty>
           <p
@@ -192,9 +195,9 @@ export default {
 
     codeSnippetsFields () {
       return [
-        { key: 'name', label: this.$t('code-snippets.table-headers.name'), thStyle: { 'min-width': '8rem' } },
+        { key: 'name', label: this.$t('code-snippets.table-headers.name') },
         { key: 'enabled', label: this.$t('code-snippets.table-headers.enabled'), thClass: 'text-center', tdClass: 'text-center' },
-        { key: 'script', label: this.$t('code-snippets.table-headers.script'), thStyle: { 'min-width': '20rem' } },
+        { key: 'script', label: this.$t('code-snippets.table-headers.script'), tdClass: 'text-break' },
         { key: 'actions', label: '', thStyle: { 'min-width': '7rem' }, tdClass: 'text-right' },
       ]
     },
@@ -210,6 +213,7 @@ export default {
 
   methods: {
     openEditor (index) {
+      console.log(index)
       const item = index >= 0 ? this.codeSnippets[index] : {
         name: '',
         script: '<' + 'script> ' + '</' + 'script>',
