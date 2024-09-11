@@ -1,7 +1,6 @@
 <template>
   <tr>
     <td
-      v-b-tooltip.noninteractive.hover
       class="handle align-middle pr-2"
     >
       <font-awesome-icon
@@ -15,6 +14,7 @@
     >
       <b-form-input
         v-model="value.name"
+        v-b-tooltip.noninteractive.hover="{ title: nameState === false ? $t('module:edit.tooltip.name') : '', placement: 'right', container: '#body' }"
         required
         :readonly="hasData"
         :state="nameState"

@@ -2,7 +2,7 @@ import { merge } from 'lodash'
 import { IsOf } from '../../../guards'
 import { Apply, CortezaID, NoID } from '../../../cast'
 
-export const FieldNameValidator = /^[A-Za-z][0-9A-Za-z_\-.]*[A-Za-z0-9]$/
+export const FieldNameValidator = /^[A-Za-z][0-9A-Za-z_-]*[A-Za-z0-9]$/
 
 const unsortableFieldKinds = ['File', 'Geometry']
 const unsortableSysFields = ['recordID']
