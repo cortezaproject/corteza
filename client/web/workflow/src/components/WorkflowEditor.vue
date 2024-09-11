@@ -1599,8 +1599,10 @@ export default {
           })
 
           if (lastVertexID) {
-            const vertex = this.vertices[lastVertexID]
-            this.sidebarReopen(vertex, vertex.config.kind)
+            this.$nextTick(() => {
+              const vertex = this.vertices[lastVertexID]
+              this.sidebarReopen(vertex, vertex.config.kind)
+            })
           }
         }
       })
