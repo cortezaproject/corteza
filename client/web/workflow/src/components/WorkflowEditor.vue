@@ -127,7 +127,7 @@
           </h5>
 
           <h5
-            v-if="deffered"
+            v-if="deferred"
             class="mb-0 mr-1"
           >
             <b-badge
@@ -564,7 +564,7 @@ export default {
     return {
       initialized: false,
 
-      deffered: false,
+      deferred: false,
       triggersPathsChanged: false,
 
       graph: undefined,
@@ -2327,7 +2327,7 @@ export default {
         })
       }
 
-      this.deffered = false
+      this.deferred = false
       this.triggersPathsChanged = false
 
       const steps = workflow.steps || []
@@ -2359,7 +2359,7 @@ export default {
               this.addCellToVertices(newCell)
 
               // Only set if not yet true
-              this.deffered = this.deffered || this.deferredKinds.includes(config.kind)
+              this.deferred = this.deferred || this.deferredKinds.includes(config.kind)
             }
           })
 
