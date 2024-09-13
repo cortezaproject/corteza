@@ -143,7 +143,6 @@ func New(ctx context.Context, log *zap.Logger, oa2m oauth2def.Manager, s store.S
 				// temp, will be replaced
 				"language": func() string { return language.Tag{}.String() },
 				"tr":       func(key string, pp ...string) string { return key },
-				"safeCSS":  func(styles string) template.CSS { return template.CSS(styles) },
 			})
 
 		useEmbedded = len(opt.AssetsPath) == 0

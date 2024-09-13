@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"html/template"
 	"io"
 	"mime/multipart"
@@ -20,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza/server/auth/saml"
 	"github.com/cortezaproject/corteza/server/auth/settings"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -411,7 +411,7 @@ func (h *AuthHandlers) enrichTmplData(req *request.AuthReq) interface{} {
 	dSettings.Providers = nil
 	d["settings"] = dSettings
 
-	d["authBg"] = h.bgStylesData()
+	d["authBg"] = template.CSS(h.bgStylesData())
 
 	return d
 }

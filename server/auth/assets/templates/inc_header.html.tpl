@@ -21,7 +21,7 @@
 	<style>
 		body {
 			font-size: 1rem !important;
-			{{ safeCSS .authBg }}
+			{{ .authBg }}
 			background-size: cover;
 			background-attachment: fixed;
 		}

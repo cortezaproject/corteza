@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 
@@ -42,8 +43,13 @@ func (h *AuthHandlers) devSceneView(w http.ResponseWriter, r *http.Request) {
 		r.URL.Query().Get("scene"),
 	)
 
+	s.Data["authBg"] = template.CSS(h.bgStylesData())
+
 	if err == nil && s != nil {
 		err = h.Templates.ExecuteTemplate(w, s.Template+".html.tpl", s.Data)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
