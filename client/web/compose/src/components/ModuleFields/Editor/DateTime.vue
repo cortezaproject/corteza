@@ -5,6 +5,7 @@
     :content-cols-md="horizontal && '7'"
     :content-cols-xl="horizontal && '8'"
     :class="formGroupStyleClasses"
+    class="date-time-field-editor"
   >
     <template
       #label
@@ -90,3 +91,10 @@ export default {
   extends: base,
 }
 </script>
+
+<style>
+/* Fix for datepicker not overflowing block when in horizontal mode */
+.date-time-field-editor .form-row div {
+  position: initial;
+}
+</style>
