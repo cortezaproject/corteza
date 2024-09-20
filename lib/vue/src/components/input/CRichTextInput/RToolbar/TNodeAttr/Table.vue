@@ -1,8 +1,7 @@
 <template>
   <b-dropdown
     menu-class="text-center"
-    variant="link"
-  >
+    variant="link">
     <template slot="button-content">
       <span class="text-dark font-weight-bold">
         <span :class="rootActiveClasses()">
@@ -19,22 +18,10 @@
     <b-dropdown-item
       v-for="v of format.variants"
       :key="v.variant"
-      @click="dispatchTransaction(v)">
+      @click="emitClick(v)"
+    >
+        {{ v.label }}
 
-      <b-button
-        variant="link"
-        class="text-dark font-weight-bold">
-
-        <span :class="activeClasses(v.attrs)">
-          <font-awesome-icon
-            v-if="format.icon"
-            :icon="v.icon"
-          />
-          <span v-else>
-            {{ v.label }}
-          </span>
-        </span>
-      </b-button>
     </b-dropdown-item>
   </b-dropdown>
 </template>
@@ -47,7 +34,7 @@ import { nodeTypes } from '../../lib/formats'
  * Component is used to display node alignment formatting
  */
 export default {
-  name: 't-nattr-alignment',
+  name: 't-nattr-table',
   extends: base,
 
   props: {
@@ -87,6 +74,10 @@ export default {
         tr.setNodeMarkup(an.position, an.node.type, { ...an.node.attrs, ...v.attrs })
       }
       this.$attrs.editor.dispatchTransaction(tr)
+    },
+
+    emitClick (v) {
+      this.$emit('click', { type: v.type, attrs: { ...v.attrs } })
     },
 
     /**

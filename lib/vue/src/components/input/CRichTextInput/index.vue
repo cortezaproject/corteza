@@ -51,6 +51,7 @@ export default {
       required: false,
       default: null,
     },
+
     labels: {
       type: Object,
       default: () => ({})
@@ -62,7 +63,7 @@ export default {
     return {
       formats,
       toolbar: getToolbar(),
-      // Helper to determine if current content differes from prop's content
+      // Helper to determine if current content differs from prop's content
       emittedContent: false,
       editor: undefined,
       currentValue: '',
