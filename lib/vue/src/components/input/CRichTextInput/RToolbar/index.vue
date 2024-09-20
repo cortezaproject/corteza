@@ -2,13 +2,13 @@
   <div class="d-flex flex-wrap">
     <component
       v-for="(f, i) of formats"
-      :key="`${f.name}${i}}`"
+      :key="`${f.name}${i}`"
       :is="getItem(f)"
       :format="f"
       v-bind="$props"
       :labels="labels"
       :current-value="currentValue"
-      @click="(commands[$event.type])($event.attrs)" />
+      @click="triggerCommand" />
 
     <!-- Extra button to remove formatting -->
     <b-button
@@ -102,6 +102,10 @@ export default {
      */
     removeMarks () {
       removeMark(null)(this.editor.view.state, this.editor.view.dispatch)
+    },
+
+    triggerCommand (v) {
+      this.commands[v.type](v.attrs)
     },
   },
 }

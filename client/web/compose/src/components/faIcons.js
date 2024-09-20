@@ -65,6 +65,7 @@ import {
   faEllipsisV,
   faLocationArrow,
   faTools,
+  faTable,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -178,4 +179,5 @@ library.add(
   faLocationArrow,
   faTools,
   faExclamationCircle,
+  faTable,
 )
