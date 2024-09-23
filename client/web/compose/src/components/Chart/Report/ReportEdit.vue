@@ -622,7 +622,7 @@ export default {
     },
 
     addMetric () {
-      this.metrics = this.metrics.concat([{}])
+      this.metrics.push(this.chart.defMetric())
     },
 
     onDimFieldChange (f, d) {
