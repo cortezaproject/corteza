@@ -719,6 +719,22 @@
               lg="6"
             >
               <b-form-group
+                :label="$t('recordList.inlineValueFilter.enabled')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.inlineValueFiltering"
+                  switch
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
                 :label="$t('recordList.record.enableBulkRecordEdit')"
                 label-class="text-primary"
               >

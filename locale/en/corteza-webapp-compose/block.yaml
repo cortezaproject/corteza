@@ -325,13 +325,16 @@ recordList:
   customFilter: Custom filter
   prefilter:
     toggleInputType: Toggle input type
+  filterByValue: Filter by value
   filterPresets:
     filterName: Filter name
     saveFilterAsPreset: Save filter as preset
+  inlineValueFilter:
+    enabled: Enable inline value filtering
   inlineEdit:
     enabled: Inline value editing enabled
     button:
-      title: Edit {{label}}
+      title: Edit value
     modal:
       title: Update record values
   bulkRecord:

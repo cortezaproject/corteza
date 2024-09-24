@@ -474,11 +474,11 @@
                     :extra-options="options"
                   />
                   <div
-                    v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
                     class="inline-actions"
                   >
                     <b-button
-                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title', { label: field.label }), container: '#body' }"
+                      v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
+                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
                       class="text-secondary border-0 ml-1"
@@ -486,6 +486,18 @@
                     >
                       <font-awesome-icon
                         :icon="['fas', 'pen']"
+                      />
+                    </b-button>
+                    <b-button
+                      v-if="options.inlineValueFiltering"
+                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filterByValue'), container: '#body' }"
+                      variant="outline-extra-light"
+                      size="sm"
+                      class="text-secondary border-0 ml-1"
+                      @click.stop="filterByValue(item.r, field)"
+                    >
+                      <font-awesome-icon
+                        :icon="['fas', 'filter']"
                       />
                     </b-button>
                   </div>
@@ -2066,6 +2078,30 @@ export default {
       this.inlineEdit.query = `recordID = ${record.recordID}`
     },
 
+    filterByValue (record, { moduleField: field }) {
+      const value = field.isSystem ? record[field.name] : record.values[field.name]
+
+      if (!this.recordListFilter.length) {
+        this.recordListFilter = [
+          {
+            groupCondition: undefined,
+            filter: [
+              this.createDefaultFilter('Where', field, value, '='),
+            ],
+          },
+        ]
+      } else {
+        const { filter } = this.recordListFilter[0]
+        if (!filter.length || (filter.length && !filter[0].name)) {
+          this.recordListFilter[0].filter = []
+          this.recordListFilter[0].filter.push(this.createDefaultFilter('Where', field, value))
+        } else {
+          this.recordListFilter[0].filter.push(this.createDefaultFilter('OR', field, value))
+        }
+      }
+      this.pullRecords(true)
+    },
+
     onInlineEditClose () {
       this.inlineEdit.fields = []
       this.inlineEdit.record = {}
@@ -2286,6 +2322,7 @@ tr:hover td.actions {
   margin-top: -2px;
   opacity: 0;
   transition: opacity 0.25s;
+  display: flex;
 }
 
 td:hover .inline-actions {
