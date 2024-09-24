@@ -705,6 +705,22 @@
               lg="6"
             >
               <b-form-group
+                :label="$t('recordList.inlineValueFilter.enabled')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.inlineValueFiltering"
+                  switch
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
                 :label="$t('recordList.record.enableBulkRecordEdit')"
                 label-class="text-primary"
               >
@@ -813,6 +829,7 @@ import RecordListFilter from 'corteza-webapp-compose/src/components/Common/Recor
 import { components } from '@cortezaproject/corteza-vue'
 import Prefilter from './RecordList/Prefilter.vue'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
+
 const { CInputPresort } = components
 
 export default {
