@@ -1,26 +1,24 @@
 <template>
   <div
     data-test-id="role-picker"
+    class="d-flex flex-column"
   >
-    <c-input-select
-      ref="picker"
+    <c-input-role
       data-test-id="input-role-picker"
-      :options="filtered"
-      :get-option-key="r => r.value"
-      :get-option-label="r => getRoleLabel(r)"
+      :selectable="r => !value.includes(r.roleID)"
       :placeholder="$t('admin:picker.role.placeholder')"
-      :filterable="false"
-      @search="search"
-      @input="updateValue($event)"
+      :visible="isRoleVisible"
+      clear-on-select
+      @input="addRole($event)"
     />
-    <b-form-text
-      v-if="$slots['description']"
-    >
-      <slot name="description" />
-    </b-form-text>
+
+    <b-spinner
+      v-if="preloading"
+      class="mx-auto my-4"
+    />
 
     <b-table-simple
-      v-if="selected"
+      v-else-if="getSelectedRoles.length"
       responsive
       small
       hover
@@ -28,7 +26,7 @@
     >
       <tbody>
         <tr
-          v-for="role in selected"
+          v-for="role in getSelectedRoles"
           :key="role.roleID"
           data-test-id="selected-row-list"
         >
@@ -39,7 +37,7 @@
             <c-input-confirm
               data-test-id="button-remove-role"
               show-icon
-              @confirmed="removeRole(role)"
+              @confirmed="removeRole(role.roleID)"
             />
           </td>
         </tr>
@@ -49,19 +47,15 @@
 </template>
 
 <script>
-import { debounce } from 'lodash'
-
-function roleSorter (a, b) {
-  return `${a.name} ${a.handle} ${a.roleID}`.localeCompare(`${b.name} ${b.handle} ${b.roleID}`)
-}
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputRole } = components
 
 export default {
-  props: {
-    label: {
-      type: String,
-      default: 'count',
-    },
+  components: {
+    CInputRole,
+  },
 
+  props: {
     // list of role IDs
     value: {
       type: Array,
@@ -71,77 +65,58 @@ export default {
 
   data () {
     return {
-      roles: [],
+      fetching: false,
+      preloading: false,
+
       filter: '',
+
+      selectedRoles: [],
     }
   },
 
   computed: {
-    selected () {
-      return this.roles
-        .filter(({ roleID }) => (this.value || []).includes(roleID))
-        .sort(roleSorter)
-    },
-
-    filtered () {
-      const match = ({ name = '', handle = '', roleID = '' }) => {
-        return `${name} ${handle} ${roleID}`.toLocaleLowerCase().indexOf(this.filter.toLocaleLowerCase()) > -1
-      }
-
-      const fits = ({ isClosed, meta = {} }) => {
-        return !(isClosed || (meta.context && meta.context.resourceTypes))
-      }
-
-      return this.roles.filter(r => !(this.value || []).includes(r.roleID) && fits(r) && match(r))
+    getSelectedRoles () {
+      return this.selectedRoles.filter(({ roleID }) => this.value.includes(roleID))
     },
   },
 
   mounted () {
-    this.preload()
+    this.preloadSelected()
   },
 
   methods: {
     addRole (role) {
       if (!this.value.includes(role.roleID)) {
-        this.value.push(role.roleID)
-        this.$emit('input', this.value)
+        this.selectedRoles.push(role)
+        this.$emit('input', [...this.value, role.roleID])
       }
     },
 
-    removeRole (r) {
-      this.value.splice(this.value.indexOf(r.roleID), 1)
-      this.filter = ''
+    removeRole (roleID) {
+      this.selectedRoles = this.selectedRoles.filter(({ roleID: rID }) => rID !== roleID)
+      this.$emit('input', this.value.filter(v => v !== roleID))
     },
 
-    preload () {
-      return this.$SystemAPI.roleList({ query: this.filter })
-        .then(({ set }) => { this.roles = set || [] })
+    preloadSelected () {
+      this.preloading = true
+
+      return this.$SystemAPI.roleList({ memberID: this.$auth.user.userID })
+        .then(({ set }) => { this.selectedRoles = set || [] })
+        .finally(() => { this.preloading = false })
         .catch(this.toastErrorHandler(this.$t('notification:role.fetch.error')))
-    },
-
-    search: debounce(function (query = '') {
-      if (query !== this.filter) {
-        this.filter = query
-      }
-
-      this.preload()
-    }, 300),
-
-    updateValue (role) {
-      // reset picker value for better value presentation
-      if (this.$refs.picker) {
-        this.$refs.picker._data._value = undefined
-      }
-
-      this.addRole(role)
     },
 
     getRoleLabel ({ name, handle, roleID }) {
       return name || handle || roleID
     },
+
+    isRoleVisible ({ isClosed, meta = {} }) {
+      return !(isClosed || (meta.context && meta.context.resourceTypes))
+    },
   },
 }
 </script>
+
 <style lang="scss">
 .results {
   z-index: 100;

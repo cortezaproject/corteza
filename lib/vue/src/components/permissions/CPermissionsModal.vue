@@ -43,16 +43,12 @@
             :label="labels.edit.label"
             label-class="text-primary"
           >
-            <c-input-select
-              v-model="currentRoleID"
+            <c-input-role
               data-test-id="select-user-list-roles"
-              label="name"
-              :disabled="!currentRoleID"
+              v-model="currentRoleID"
+              :visible="isRoleVisible"
               :clearable="false"
-              :options="roles"
-              :get-option-key="getOptionRoleKey"
-              :reduce="o => o.roleID"
-              append-to-body
+              preselect
               @input="onRoleChange"
             />
           </b-form-group>
@@ -195,15 +191,12 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <c-input-select
+        <c-input-role
           data-test-id="select-role"
+          :placeholder="labels.add.role.placeholder"
           v-model="add.roleID"
-          :options="roles"
-          :get-option-key="getOptionRoleKey"
-          label="name"
           multiple
           :disabled="!!add.userID"
-          :placeholder="labels.add.role.placeholder"
         />
       </b-form-group>
 
@@ -240,6 +233,7 @@
 <script lang="js">
 import { modalOpenEventName, split } from './def.ts'
 import CInputSelect from '../input/CInputSelect.vue'
+import CInputRole from '../input/CInputRole.vue'
 import Rules from './form/Rules.vue'
 
 export default {
@@ -250,6 +244,7 @@ export default {
   components: {
     Rules,
     CInputSelect,
+    CInputRole,
   },
 
   props: {
@@ -279,9 +274,6 @@ export default {
 
       // List of rules for the current role
       rules: [],
-
-      // List of all available roles
-      roles: [],
 
       currentRoleID: undefined,
 
@@ -363,10 +355,9 @@ export default {
       this.backendComponentName = resource.split(':')[2]
 
       this.fetchPermissions().then(() => {
-        if (!this.roles.length) {
-          return this.fetchRoles()
-        } else if (this.currentRoleID) {
-          return this.reEvaluatePermissions(this.currentRoleID)
+        if (this.currentRoleID) {
+          const { roleID } = this.currentRoleID
+          return this.reEvaluatePermissions(roleID)
         }
       }).finally(() => {
         this.processing = false
@@ -379,7 +370,7 @@ export default {
       this.target = undefined
     },
 
-    onRoleChange (roleID) {
+    onRoleChange ({ roleID }) {
       this.processing = true
 
       this.fetchRules(roleID).finally(() => {
@@ -391,7 +382,7 @@ export default {
       this.submitting = true
 
       const rules = this.collectChangedRules()
-      const roleID = this.currentRoleID
+      const { roleID } = this.currentRoleID
 
       this.api.permissionsUpdate({ roleID, rules }).then(() => {
         this.reEvaluatePermissions(roleID)
@@ -420,18 +411,8 @@ export default {
       })
     },
 
-    async fetchRoles () {
-      // Roles are always fetched from $SystemAPI.
-      return this.$SystemAPI.roleList().then(({ set }) => {
-        this.roles = set
-          .filter(({ isBypass }) => !isBypass)
-          .sort((a, b) => a.roleID.localeCompare(b.roleID))
-
-        if (this.roles.length > 0) {
-          this.currentRoleID = this.roles[0].roleID
-          this.onRoleChange(this.currentRoleID)
-        }
-      })
+    isRoleVisible ({ isBypass }) {
+      return !isBypass
     },
 
     async evaluatePermissions ({ resource = this.resource, roleID, userID }) {
@@ -607,7 +588,6 @@ export default {
       this.userOptions = []
       this.permissions = []
       this.rules = []
-      this.roles = []
       this.currentRoleID = undefined
       this.evaluate = []
       this.add = {}

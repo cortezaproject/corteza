@@ -217,15 +217,13 @@
         label-class="text-primary"
         class="mb-0"
       >
-        <c-input-select
+        <c-input-role
           v-model="add.roleID"
           :data-test-id="`select-${add.mode}-roles`"
-          :options="availableRoles"
-          :get-option-key="getOptionRoleKey"
-          label="name"
+          :placeholder="$t('ui.add.role.placeholder')"
+          :visible="isRoleVisible"
           :multiple="add.mode === 'eval'"
           :disabled="add.mode === 'eval' && !!add.userID"
-          :placeholder="$t('ui.add.role.placeholder')"
         />
       </b-form-group>
 
@@ -252,19 +250,20 @@
 
 <script>
 import _ from 'lodash'
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputRole } = components
 
 export default {
   i18nOptions: {
     namespaces: 'permissions',
   },
 
+  components: {
+    CInputRole,
+  },
+
   props: {
     roles: {
-      type: Array,
-      required: true,
-    },
-
-    allRoles: {
       type: Array,
       required: true,
     },
@@ -331,20 +330,6 @@ export default {
   },
 
   computed: {
-    editableRoles () {
-      return this.roles.filter(({ mode }) => mode !== 'eval').map(({ roleID }) => roleID.roleID)
-    },
-
-    availableRoles () {
-      if (this.add.mode === 'edit') {
-        return this.allRoles.filter(({ roleID, isBypass }) => !isBypass && !this.editableRoles.includes(roleID))
-      } else if (this.add.mode === 'eval') {
-        return this.allRoles
-      }
-
-      return []
-    },
-
     sortedPermissions () {
       return Object.keys(this.permissions).sort()
     },
@@ -444,6 +429,10 @@ export default {
         })
     },
 
+    isRoleVisible ({ isBypass }) {
+      return this.add.mode === 'edit' || !isBypass
+    },
+
     getUserLabel (userID) {
       return this.fetchedUsers[userID]
     },
@@ -472,7 +461,14 @@ export default {
     },
 
     onAdd () {
-      this.$emit('add', { ...this.add, userID: { userID: this.add.userID, name: this.fetchedUsers[this.add.userID] } })
+      let { userID } = this.add
+
+      if (userID) {
+        userID = { userID: this.add.userID, name: this.fetchedUsers[this.add.userID] }
+      }
+
+      this.$emit('add', { ...this.add, userID })
+
       this.add = {
         mode: 'edit',
         roleID: [],
@@ -482,10 +478,6 @@ export default {
 
     onHideRole (role) {
       this.$emit('hide', role)
-    },
-
-    getOptionRoleKey ({ roleID }) {
-      return roleID
     },
 
     setDefaultValues () {

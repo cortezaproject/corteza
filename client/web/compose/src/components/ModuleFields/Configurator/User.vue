@@ -7,19 +7,19 @@
     </b-form-group>
 
     <b-form-group
-      v-if="f.options.roles"
       :label="$t('kind.user.roles.label')"
       label-class="text-primary"
     >
-      <c-input-select
-        v-model="f.options.roles"
-        :options="roleOptions"
-        :get-option-key="getOptionKey"
-        :reduce="role => role.roleID"
-        :close-on-select="false"
+      <b-spinner
+        v-if="preloadingRoles"
+      />
+
+      <c-input-role
+        v-else
+        v-model="currentRoles"
         :placeholder="$t('kind.user.roles.placeholder')"
         multiple
-        label="name"
+        @input="f.options.roles = $event.map(r => r.roleID)"
       />
     </b-form-group>
 
@@ -52,11 +52,18 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import base from './base'
+
+const { CInputRole } = components
 
 export default {
   i18nOptions: {
     namespaces: 'field',
+  },
+
+  components: {
+    CInputRole,
   },
 
   extends: base,
@@ -68,7 +75,9 @@ export default {
         { text: this.$t('kind.select.optionType.multiple'), value: 'multiple' },
         { text: this.$t('kind.select.optionType.each'), value: 'each', allowDuplicates: true },
       ],
-      roleOptions: [],
+
+      preloadingRoles: true,
+      currentRoles: [],
     }
   },
 
@@ -82,9 +91,17 @@ export default {
   },
 
   mounted () {
-    this.$SystemAPI.roleList().then(({ set: roles = [] }) => {
-      this.roleOptions = roles
-    })
+    if (this.f.options.roles.length) {
+      this.preloadingRoles = true
+
+      Promise.all(this.f.options.roles.map(roleID => {
+        return this.$SystemAPI.roleRead({ roleID }).then(role => {
+          this.currentRoles.push(role)
+        })
+      })).finally(() => {
+        this.preloadingRoles = false
+      })
+    }
   },
 
   beforeDestroy () {

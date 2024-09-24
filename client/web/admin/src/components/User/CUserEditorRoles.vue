@@ -8,7 +8,10 @@
     <b-form
       @submit.prevent="$emit('submit')"
     >
-      <c-role-picker v-model="value" />
+      <c-role-picker
+        :value="value"
+        @input="$emit('input', $event)"
+      />
     </b-form>
 
     <template #header>
@@ -57,18 +60,6 @@ export default {
     success: {
       type: Boolean,
       value: false,
-    },
-  },
-
-  computed: {
-    roles: {
-      get () {
-        return this.currentRoles
-      },
-
-      set (roles) {
-        this.$emit('update:current-roles', roles)
-      },
     },
   },
 }

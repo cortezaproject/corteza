@@ -8,11 +8,15 @@ ui:
   set-for: Set permissions for {{target}}
   loading: Loading permissions
 
+  notification:
+    save:
+      success: Permissions saved
+      failed: Failed to save permissions
+
   edit:
     title: Edit permissions
     label: User roles
     description: Select role to set permissions
-  edit-or-eval: Edit or evaluate permissions
 
   evaluate:
     title: Evaluated permissions
@@ -46,6 +50,7 @@ ui:
   #############################################################################
   # Inline permission table UI:
   click-on-cell-to-allow: Click on permission/role cell to allow a specific operation
+  edit-or-eval: Edit or evaluate permissions
 
   title:
     automation: Automation permissions
@@ -56,8 +61,8 @@ ui:
   clone:
     clone: Clone
     label: Clone permissions
-    pick-role: Pick a role
-    title: Clone permissions to
+    pick-role: Start typing to search for roles
+    title: Apply permissions to
     description: This will clone all the permissions of the current role and apply them  to the selected
 
 resources:

@@ -2,12 +2,15 @@
   <vue-select
     v-model="_value"
     v-bind="$attrs"
+    ref="vueSelect"
     data-test-id="select"
     :clearable="clearable"
     :options="options"
     :searchable="searchable"
     :disabled="disabled"
     :selectable="selectable"
+    :multiple="multiple"
+    :loading="loading"
     :calculate-position="calculateDropdownPosition"
     :append-to-body="appendToBody"
     class="bg-white rounded"
@@ -40,7 +43,7 @@ export default {
 
   props: {
     value: {
-      type: [String, Array],
+      type: [String, Array, Object],
       default: () => '',
     },
 
@@ -67,7 +70,7 @@ export default {
     },
 
     defaultValue: {
-      type: [String, Array],
+      type: [String, Array, Object],
       default: () => '',
     },
 
@@ -85,12 +88,28 @@ export default {
       type: Function,
       default: o => !o.disabled,
     },
+
+    multiple: {
+      type: Boolean,
+      default: false,
+    },
+
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+  },
+
+  data () {
+    return {
+      query: '',
+    }
   },
 
   computed: {
     _value: {
       get () {
-        const fallbackValue = this.$attrs.multiple ? [] : ''
+        const fallbackValue = this.multiple ? [] : ''
         return !!this.defaultValue && (this.value === this.defaultValue) ? fallbackValue : this.value
       },
 
@@ -148,8 +167,20 @@ export default {
       return () => popper.destroy()
     },
 
-    onSearch (search, loading) {
-      this.$emit('search', search, loading)
+    onSearch (query, loading) {
+      if (this.loading) {
+        if (this.$refs.vueSelect) {
+          this.$refs.vueSelect._data.search = this.query
+        }
+
+        return
+      }
+
+      if (query !== this.query) {
+        this.query = query
+      }
+
+      this.$emit('search', query, loading)
     },
   },
 }
@@ -207,10 +238,8 @@ export default {
     // force this to not use any space
     // we still need it to be rendered for the focus
     width: 0;
-    padding: 0;
     margin: 0;
     border: none;
-    height: 0;
   }
 
   .vs__dropdown-toggle {
@@ -265,6 +294,11 @@ export default {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
   }
+}
+
+.vs__spinner {
+  border: .7em solid var(--dark);
+  border-left-color: var(--white);
 }
 
 .vs__spinner, .vs__spinner::after {

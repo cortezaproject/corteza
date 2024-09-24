@@ -59,25 +59,19 @@ export default {
   },
 
   methods: {
-    fetchRoles () {
+    prepareRoles () {
       this.incLoader()
 
-      return this.$SystemAPI.roleList()
-        .then(({ set }) => {
-          this.allRoles = set
-          this.rolePermissions = []
-          const roleIDs = this.allRoles.map(({ roleID }) => roleID)
+      this.rolePermissions = []
 
-          // We read permissions for included roles
-          return Promise.all(getIncludedRoles().filter(({ roleID, mode }) => mode === 'eval' || roleIDs.includes(roleID)).map(({ mode, name, roleID, userID }) => {
-            if (mode === 'edit') {
-              return this.readPermissions({ name, roleID })
-            } else {
-              return this.evaluatePermissions({ name, roleID, userID })
-            }
-          }))
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:user.roles.error')))
+      // We read permissions for included roles
+      return Promise.all(getIncludedRoles().map(({ mode, name, roleID, userID }) => {
+        if (mode === 'edit') {
+          return this.readPermissions({ name, roleID })
+        } else {
+          return this.evaluatePermissions({ name, roleID, userID })
+        }
+      })).catch(this.toastErrorHandler(this.$t('notification:user.roles.error')))
         .finally(() => {
           this.loaded.roles = true
           this.decLoader()
@@ -101,7 +95,7 @@ export default {
               return map
             }, {})
         })
-        .then(() => this.fetchRoles())
+        .then(() => this.prepareRoles())
         .catch(this.toastErrorHandler(this.$t('notification:permissions.fetch.system')))
         .finally(() => {
           this.loaded.permissions = true

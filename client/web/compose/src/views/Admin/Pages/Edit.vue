@@ -539,15 +539,14 @@
         :label="$t('page-layout.roles.label')"
         label-class="text-primary"
       >
-        <c-input-select
-          v-model="currentLayoutRoles"
-          :options="roles.options"
-          :loading="roles.processing"
+        <b-spinner v-if="resolvingLayoutRoles" />
+
+        <c-input-role
+          v-else
+          :value="getLayoutRoles()"
           :placeholder="$t('page-layout.roles.placeholder')"
-          :get-option-label="role => role.name"
-          :reduce="role => role.roleID"
-          :selectable="role => !currentLayoutRoles.includes(role.roleID)"
           multiple
+          @input="onLayoutRoleChange"
         />
       </b-form-group>
 
@@ -952,7 +951,8 @@ import pages from 'corteza-webapp-compose/src/mixins/pages'
 import Uploader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/Uploader'
 import Draggable from 'vuedraggable'
 import { compose, NoID } from '@cortezaproject/corteza-js'
-import { handle } from '@cortezaproject/corteza-vue'
+import { handle, components } from '@cortezaproject/corteza-vue'
+const { CInputRole } = components
 
 export default {
   i18nOptions: {
@@ -967,6 +967,7 @@ export default {
     PageLayoutTranslator,
     Uploader,
     Draggable,
+    CInputRole,
   },
 
   mixins: [
@@ -1017,19 +1018,15 @@ export default {
         layout: undefined,
       },
 
-      removedLayouts: new Set(),
+      resolvingLayoutRoles: false,
+      resolvedRoles: {},
 
-      roles: {
-        processing: false,
-        options: [],
-      },
+      removedLayouts: new Set(),
 
       checkboxLabel: {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
-
-      abortableRequests: [],
     }
   },
 
@@ -1200,12 +1197,7 @@ export default {
     },
   },
 
-  created () {
-    this.fetchRoles()
-  },
-
   beforeDestroy () {
-    this.abortRequests()
     this.setDefaultValues()
   },
 
@@ -1229,20 +1221,40 @@ export default {
       })
     },
 
-    async fetchRoles () {
-      this.roles.processing = true
+    async resolveLayoutRoles () {
+      this.resolvingLayoutRoles = true
 
-      const { response, cancel } = this.$SystemAPI
-        .roleListCancellable({})
+      if (this.currentLayoutRoles.length) {
+        Promise.all(this.currentLayoutRoles.map(roleID => {
+          if (this.resolvedRoles[roleID]) {
+            return Promise.resolve()
+          }
 
-      this.abortableRequests.push(cancel)
-
-      response()
-        .then(({ set: roles = [] }) => {
-          this.roles.options = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
-        }).finally(() => {
-          this.roles.processing = false
+          return this.$SystemAPI.roleRead({ roleID }).then(role => {
+            this.resolvedRoles[roleID] = role
+          })
+        })).finally(() => {
+          this.resolvingLayoutRoles = false
         })
+      }
+    },
+
+    getLayoutRoles () {
+      return this.currentLayoutRoles.map(roleID => this.resolvedRoles[roleID])
+    },
+
+    onLayoutRoleChange (roles) {
+      roles.forEach(r => {
+        if (!this.resolvedRoles[r.roleID]) {
+          this.resolvedRoles[r.roleID] = r
+        }
+      })
+
+      this.currentLayoutRoles = roles.map(r => r.roleID)
+    },
+
+    isRoleVisible ({ meta }) {
+      return !(meta.context && meta.context.resourceTypes)
     },
 
     addLayout () {
@@ -1268,6 +1280,8 @@ export default {
     configureLayout (index) {
       this.layoutEditor.index = index
       this.layoutEditor.layout = new compose.PageLayout(this.layouts[index])
+
+      this.resolveLayoutRoles()
     },
 
     async handleSaveLayouts () {
@@ -1490,16 +1504,10 @@ export default {
       this.linkUrl = ''
       this.layouts = []
       this.layoutEditor = {}
+      this.resolvedRoles = {}
       this.removedLayouts.clear()
-      this.roles = {}
       this.checkboxLabel = {}
       this.abortableRequests = []
-    },
-
-    abortRequests () {
-      this.abortableRequests.forEach((cancel) => {
-        cancel()
-      })
     },
   },
 }

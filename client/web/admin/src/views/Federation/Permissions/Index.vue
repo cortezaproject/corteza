@@ -9,7 +9,6 @@
 
     <c-permission-list
       :roles="sortedRoles"
-      :all-roles="allRoles"
       :permissions="permissions"
       :role-permissions="rolePermissions"
       :can-grant="canGrant"

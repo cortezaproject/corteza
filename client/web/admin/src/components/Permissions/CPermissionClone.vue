@@ -19,23 +19,19 @@
       centered
       :title="$t('ui.clone.title')"
       :ok-title="$t('ui.clone.clone')"
-      :ok-disabled="!selectedRoles.length || processingRoles || processingSubmit"
-      @ok="clonePermissions()"
+      :ok-disabled="!selectedRoles.length || processingSubmit"
+      @ok="clonePermissions"
     >
       <b-form-group
         :description="$t('ui.clone.description')"
         class="mb-0"
       >
-        <c-input-select
+        <c-input-role
           v-model="selectedRoles"
           data-test-id="select-role-list"
-          label="name"
-          :options="roles"
-          :get-option-key="getOptionKey"
-          :reduce="role => role.roleID"
-          :loading="processingRoles"
-          multiple
+          :selectable="r => !selectedRoles.some(rr => rr.roleID === r.roleID)"
           :placeholder="$t('ui.clone.pick-role')"
+          multiple
         />
       </b-form-group>
     </b-modal>
@@ -43,9 +39,16 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
+const { CInputRole } = components
+
 export default {
   i18nOptions: {
     namespaces: 'permissions',
+  },
+
+  components: {
+    CInputRole,
   },
 
   props: {
@@ -60,32 +63,19 @@ export default {
     return {
       showModal: false,
 
-      roles: [],
       selectedRoles: [],
 
       processingSubmit: false,
-      processingRoles: false,
     }
-  },
-
-  mounted () {
-    this.processingRoles = true
-
-    this.$SystemAPI.roleList()
-      .then(({ set: roles = [] }) => {
-        this.roles = roles
-      })
-      .catch(this.toastErrorHandler(this.$t('notification:role.fetch.error')))
-      .finally(() => {
-        this.processingRoles = false
-      })
   },
 
   methods: {
     clonePermissions () {
       this.processingSubmit = true
 
-      this.$SystemAPI.roleCloneRules({ roleID: this.roleId, cloneToRoleID: this.selectedRoles })
+      const cloneToRoleID = this.selectedRoles.map(({ roleID }) => roleID)
+
+      this.$SystemAPI.roleCloneRules({ roleID: this.roleId, cloneToRoleID })
         .then(() => {
           this.selectedRoles = []
           this.toastSuccess(this.$t('notification:permissions.clone.success'))
@@ -93,12 +83,7 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:permissions.clone.error')))
         .finally(() => {
           this.processingSubmit = false
-          this.showModal = false
         })
-    },
-
-    getOptionKey ({ roleID }) {
-      return roleID
     },
   },
 }

@@ -291,101 +291,103 @@
                   label-class="text-primary"
                   class="mb-0"
                 >
-                  <b-table-simple
-                    v-if="recordListModule"
-                    borderless
-                    small
-                    responsive="lg"
-                    class="mb-0"
-                  >
-                    <draggable
-                      :list.sync="options.filterPresets"
-                      group="sort"
-                      handle=".grab"
-                      tag="tbody"
+                  <b-spinner v-if="fetchingRoles" />
+
+                  <template v-else>
+                    <b-table-simple
+                      v-if="recordListModule"
+                      borderless
+                      small
+                      responsive="lg"
+                      class="mb-0"
                     >
-                      <b-tr
-                        v-for="(filter, index) in options.filterPresets"
-                        :key="index"
+                      <draggable
+                        :list.sync="options.filterPresets"
+                        group="sort"
+                        handle=".grab"
+                        tag="tbody"
                       >
-                        <b-td
-                          class="grab text-center align-middle"
-                          style="width: 40px;"
+                        <b-tr
+                          v-for="(filter, index) in options.filterPresets"
+                          :key="index"
                         >
-                          <font-awesome-icon
-                            :icon="['fas', 'bars']"
-                            class="text-secondary"
-                          />
-                        </b-td>
-
-                        <b-td
-                          class="align-middle"
-                          style="min-width: 150px;"
-                        >
-                          <b-input-group>
-                            <b-form-input
-                              v-model="filter.name"
-                              :placeholder="$t('recordList.filter.name.placeholder')"
+                          <b-td
+                            class="grab text-center align-middle"
+                            style="width: 40px;"
+                          >
+                            <font-awesome-icon
+                              :icon="['fas', 'bars']"
+                              class="text-secondary"
                             />
+                          </b-td>
 
-                            <b-input-group-append>
-                              <record-list-filter
-                                class="d-print-none"
-                                :target="`record-filter-${index}`"
-                                :namespace="namespace"
-                                :module="recordListModule"
-                                :selected-field="recordListModule.fields[0]"
-                                :record-list-filter="filter.filter"
-                                variant="extra-light"
-                                inactive-icon-class="text-light"
-                                button-class="px-2 pt-2"
-                                button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
-                                @filter="(filter) => onFilter(filter, index)"
+                          <b-td
+                            class="align-middle"
+                            style="min-width: 150px;"
+                          >
+                            <b-input-group>
+                              <b-form-input
+                                v-model="filter.name"
+                                :placeholder="$t('recordList.filter.name.placeholder')"
                               />
-                            </b-input-group-append>
-                          </b-input-group>
-                        </b-td>
 
-                        <b-td
-                          class="text-center align-middle"
-                          style="min-width: 200px;"
-                        >
-                          <c-input-select
-                            v-model="filter.roles"
-                            :options="roleOptions"
-                            :get-option-label="getRoleLabel"
-                            :get-option-key="getOptionKey"
-                            :placeholder="$t('recordList.filter.role.placeholder')"
-                            :reduce="role => role.roleID"
-                            multiple
-                          />
-                        </b-td>
+                              <b-input-group-append>
+                                <record-list-filter
+                                  class="d-print-none"
+                                  :target="`record-filter-${index}`"
+                                  :namespace="namespace"
+                                  :module="recordListModule"
+                                  :selected-field="recordListModule.fields[0]"
+                                  :record-list-filter="filter.filter"
+                                  variant="extra-light"
+                                  inactive-icon-class="text-light"
+                                  button-class="px-2 pt-2"
+                                  button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
+                                  @filter="(filter) => onFilter(filter, index)"
+                                />
+                              </b-input-group-append>
+                            </b-input-group>
+                          </b-td>
 
-                        <b-td
-                          class="text-right align-middle"
-                          style="min-width: 80px; width: 80px;"
-                        >
-                          <c-input-confirm
-                            show-icon
-                            @confirmed="options.filterPresets.splice(index, 1)"
-                          />
-                        </b-td>
-                      </b-tr>
-                    </draggable>
-                  </b-table-simple>
+                          <b-td
+                            class="text-center align-middle"
+                            style="min-width: 200px;"
+                          >
+                            <c-input-role
+                              :value="getFilterRoles(filter)"
+                              :placeholder="$t('recordList.filter.role.placeholder')"
+                              :visible="isRoleVisible"
+                              multiple
+                              @input="onFilterRoleChange(filter, $event)"
+                            />
+                          </b-td>
 
-                  <b-button
-                    variant="primary"
-                    size="sm"
-                    class="mt-1"
-                    @click="addFilterPreset"
-                  >
-                    <font-awesome-icon
-                      :icon="['fas', 'plus']"
-                      class="mr-1"
-                    />
-                    {{ $t('general:label.add') }}
-                  </b-button>
+                          <b-td
+                            class="text-right align-middle"
+                            style="min-width: 80px; width: 80px;"
+                          >
+                            <c-input-confirm
+                              show-icon
+                              @confirmed="options.filterPresets.splice(index, 1)"
+                            />
+                          </b-td>
+                        </b-tr>
+                      </draggable>
+                    </b-table-simple>
+
+                    <b-button
+                      variant="primary"
+                      size="sm"
+                      class="mt-1"
+                      @click="addFilterPreset"
+                    >
+                      <font-awesome-icon
+                        :icon="['fas', 'plus']"
+                        class="mr-1"
+                      />
+                      {{ $t('general:label.add') }}
+                    </b-button>
+                  </template>
                 </b-form-group>
               </div>
             </b-col>
@@ -792,7 +794,7 @@ import AutomationTab from './Shared/AutomationTab'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
-const { CInputPresort } = components
+const { CInputPresort, CInputRole } = components
 
 export default {
   i18nOptions: {
@@ -807,6 +809,7 @@ export default {
     CInputPresort,
     RecordListFilter,
     Draggable,
+    CInputRole,
   },
 
   extends: base,
@@ -817,7 +820,9 @@ export default {
         on: this.$t('general:label.yes'),
         off: this.$t('general:label.no'),
       },
-      roleOptions: [],
+
+      fetchingRoles: false,
+      resolvedRoles: {},
     }
   },
 
@@ -969,14 +974,44 @@ export default {
   },
 
   methods: {
-    getRoleLabel ({ name }) {
-      return name
+    async fetchRoles () {
+      this.fetchingRoles = true
+
+      if (this.options.filterPresets.length) {
+        const rolesToResolve = this.options.filterPresets.reduce((acc, { roles }) => {
+          return acc.concat(roles)
+        }, [])
+
+        Promise.all(rolesToResolve.map(roleID => {
+          if (this.resolvedRoles[roleID]) {
+            return Promise.resolve()
+          }
+
+          return this.$SystemAPI.roleRead({ roleID }).then(role => {
+            this.resolvedRoles[roleID] = role
+          })
+        })).finally(() => {
+          this.fetchingRoles = false
+        })
+      }
     },
 
-    async fetchRoles () {
-      this.$SystemAPI.roleList().then(({ set: roles = [] }) => {
-        this.roleOptions = roles.filter(({ meta }) => !(meta.context && meta.context.resourceTypes))
+    onFilterRoleChange (filter, roles) {
+      roles.forEach(r => {
+        if (!this.resolvedRoles[r.roleID]) {
+          this.resolvedRoles[r.roleID] = r
+        }
       })
+
+      filter.roles = roles.map(({ roleID }) => roleID)
+    },
+
+    getFilterRoles (filter) {
+      return filter.roles.map(roleID => this.resolvedRoles[roleID])
+    },
+
+    isRoleVisible ({ meta }) {
+      return !(meta.context && meta.context.resourceTypes)
     },
 
     onFilter (filter = [], index) {
@@ -997,7 +1032,7 @@ export default {
 
     setDefaultValues () {
       this.checkboxLabel = {}
-      this.roleOptions = []
+      this.resolvedRoles = {}
     },
   },
 }
