@@ -203,6 +203,8 @@ func (mssqlDialect) AttributeToColumn(attr *dal.Attribute) (col *ddl.Column, err
 
 	case *dal.TypeNumber:
 		col.Type.Name = "DECIMAL"
+		// @todo temporary fix to store numbers with decimal places
+		col.Type.Name += "(18,6)"
 		// @todo precision, scale?
 		col.Default = ddl.DefaultNumber(t.HasDefault, t.Precision, t.DefaultValue)
 
