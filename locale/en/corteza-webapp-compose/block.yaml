@@ -302,6 +302,7 @@ recordList:
   addRecord: Add
   cancelSelection: Cancel
   customFilter: Custom filter
+  applyValueOnFilter: Apply value on filter
   filterPresets:
     filterName: Filter name
     saveFilterAsPreset: Save filter as preset

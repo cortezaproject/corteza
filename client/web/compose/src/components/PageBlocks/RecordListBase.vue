@@ -487,6 +487,17 @@
                         :icon="['fas', 'pen']"
                       />
                     </b-button>
+                    <b-button
+                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.applyValueOnFilter'), container: '#body' }"
+                      variant="outline-extra-light"
+                      size="sm"
+                      class="text-secondary border-0 ml-1"
+                      @click.stop="applyValueOnFilter(item.r, field)"
+                    >
+                      <font-awesome-icon
+                        :icon="['fas', 'filter']"
+                      />
+                    </b-button>
                   </div>
                 </div>
 
@@ -2056,6 +2067,31 @@ export default {
       this.inlineEdit.query = `recordID = ${record.recordID}`
     },
 
+    applyValueOnFilter (record, { moduleField: field }) {
+      const value = field.isSystem ? record[field.name] : record.values[field.name]
+      field = (this.recordListModule.fields.find(f => f.name === field.name) || {})
+
+      if (!this.recordListFilter.length) {
+        this.recordListFilter = [
+          {
+            groupCondition: undefined,
+            filter: [
+              this.createDefaultFilter('Where', field, value, true),
+            ],
+          },
+        ]
+      } else {
+        const { filter } = this.recordListFilter[0]
+        if (!filter.length || (filter.length && !filter[0].name)) {
+          this.recordListFilter[0].filter = []
+          this.recordListFilter[0].filter.push(this.createDefaultFilter('Where', field, value))
+        } else {
+          this.recordListFilter[0].filter.push(this.createDefaultFilter('OR', field, value))
+        }
+      }
+      this.pullRecords(true)
+    },
+
     onInlineEditClose () {
       this.inlineEdit.fields = []
       this.inlineEdit.record = {}
@@ -2272,6 +2308,7 @@ tr:hover td.actions {
   margin-top: -2px;
   opacity: 0;
   transition: opacity 0.25s;
+  display: flex;
 }
 
 td:hover .inline-actions {
