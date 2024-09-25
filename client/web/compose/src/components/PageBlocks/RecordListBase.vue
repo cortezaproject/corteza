@@ -2078,7 +2078,7 @@ export default {
           {
             groupCondition: undefined,
             filter: [
-              this.createDefaultFilter('Where', field, value, true),
+              this.createDefaultFilter('Where', field, value, '='),
             ],
           },
         ]
