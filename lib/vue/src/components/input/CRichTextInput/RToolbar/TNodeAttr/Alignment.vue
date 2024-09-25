@@ -2,13 +2,15 @@
   <b-dropdown
     menu-class="text-center"
     variant="link"
+    boundary="window"
   >
     <template slot="button-content">
       <span class="text-dark font-weight-bold">
         <span :class="rootActiveClasses()">
           <font-awesome-icon
             v-if="format.icon"
-            :icon="format.icon" />
+            :icon="format.icon"
+          />
           <span v-else>
             {{ format.label }}
           </span>
@@ -19,12 +21,12 @@
     <b-dropdown-item
       v-for="v of format.variants"
       :key="v.variant"
-      @click="dispatchTransaction(v)">
-
+      @click="dispatchTransaction(v)"
+    >
       <b-button
         variant="link"
-        class="text-dark font-weight-bold">
-
+        class="text-dark font-weight-bold"
+      >
         <span :class="activeClasses(v.attrs)">
           <font-awesome-icon
             v-if="format.icon"
@@ -47,7 +49,7 @@ import { nodeTypes } from '../../lib/formats'
  * Component is used to display node alignment formatting
  */
 export default {
-  name: 't-nattr-alignment',
+  name: 'TNattrAlignment',
   extends: base,
 
   props: {
