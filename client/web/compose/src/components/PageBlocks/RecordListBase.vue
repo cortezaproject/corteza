@@ -473,10 +473,11 @@
                     :extra-options="options"
                   />
                   <div
-                    v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
+                    v-if="field.canEdit && !showingDeletedRecords"
                     class="inline-actions"
                   >
                     <b-button
+                      v-if="options.inlineRecordEditEnabled"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title', { label: field.label }), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
@@ -488,6 +489,7 @@
                       />
                     </b-button>
                     <b-button
+                      v-if="options.inlineValueFiltering"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.applyValueOnFilter'), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"

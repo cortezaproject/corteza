@@ -306,6 +306,8 @@ recordList:
   filterPresets:
     filterName: Filter name
     saveFilterAsPreset: Save filter as preset
+  inlineValueFilter:
+    enabled: Enable inline value filtering
   inlineEdit:
     enabled: Inline value editing enabled
     button:
