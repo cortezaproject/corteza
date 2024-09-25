@@ -1,13 +1,16 @@
 <template>
   <b-dropdown
     menu-class="text-center"
-    variant="link">
+    variant="link"
+    boundary="window"
+  >
     <template slot="button-content">
       <span class="text-dark font-weight-bold">
         <span :class="rootActiveClasses()">
           <font-awesome-icon
             v-if="format.icon"
-            :icon="format.icon" />
+            :icon="format.icon"
+          />
           <span v-else>
             {{ format.label }}
           </span>
@@ -20,8 +23,7 @@
       :key="v.variant"
       @click="emitClick(v)"
     >
-        {{ v.label }}
-
+      {{ v.label }}
     </b-dropdown-item>
   </b-dropdown>
 </template>
@@ -34,7 +36,7 @@ import { nodeTypes } from '../../lib/formats'
  * Component is used to display node alignment formatting
  */
 export default {
-  name: 't-nattr-table',
+  name: 'TNattrTable',
   extends: base,
 
   props: {
