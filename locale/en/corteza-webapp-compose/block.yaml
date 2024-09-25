@@ -496,7 +496,7 @@ recordList:
     withPresortedRecords: with presorted ({{0}}) record
   record:
     draggable: Can drag & drop records to order them
-    editMode: Users will be able to open record in edit mode when a row is clicked
+    editMode: Open records in edit mode by default
     fullPageNavigation: Full page navigation
     hideAddButton: Users will be able to add new records
     hideImportButton: Users will be able to import records
