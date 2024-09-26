@@ -197,7 +197,7 @@ export default {
       return [
         { key: 'name', label: this.$t('code-snippets.table-headers.name') },
         { key: 'enabled', label: this.$t('code-snippets.table-headers.enabled'), thClass: 'text-center', tdClass: 'text-center' },
-        { key: 'script', label: this.$t('code-snippets.table-headers.script'), tdClass: 'text-break' },
+        { key: 'script', label: this.$t('code-snippets.table-headers.script'), tdClass: 'text-break', thStyle: 'min-width: 25rem;' },
         { key: 'actions', label: '', thStyle: { 'min-width': '7rem' }, tdClass: 'text-right' },
       ]
     },
