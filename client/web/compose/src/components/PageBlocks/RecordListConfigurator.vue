@@ -828,6 +828,7 @@ import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicke
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
 import { components } from '@cortezaproject/corteza-vue'
 import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
+
 const { CInputPresort } = components
 
 export default {

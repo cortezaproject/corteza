@@ -473,11 +473,10 @@
                     :extra-options="options"
                   />
                   <div
-                    v-if="field.canEdit && !showingDeletedRecords"
                     class="inline-actions"
                   >
                     <b-button
-                      v-if="options.inlineRecordEditEnabled"
+                      v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title', { label: field.label }), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
@@ -2071,7 +2070,6 @@ export default {
 
     applyValueOnFilter (record, { moduleField: field }) {
       const value = field.isSystem ? record[field.name] : record.values[field.name]
-      field = (this.recordListModule.fields.find(f => f.name === field.name) || {})
 
       if (!this.recordListFilter.length) {
         this.recordListFilter = [
