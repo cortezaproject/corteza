@@ -44,6 +44,7 @@
         :disabled="okDisabled"
         :class="{ 'border-0': borderless }"
         class="flex-fill mr-1"
+        style="min-width: 2rem;"
         @blur.prevent="onCancel()"
         @click.prevent.stop="onConfirmation()"
       >
@@ -62,6 +63,7 @@
         :disabled="cancelDisabled"
         :class="[ borderless && 'border-0' ]"
         class="flex-fill"
+        style="min-width: 2rem;"
         @click.prevent.stop="onCancel()"
       >
         <slot name="no">
