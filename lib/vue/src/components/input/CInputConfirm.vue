@@ -2,8 +2,8 @@
   <div class="d-inline-flex">
     <template v-if="!inConfirmation">
       <b-button
-        data-test-id="button-delete"
         v-b-tooltip.noninteractive.hover="{ title: tooltip, container: '#body' }"
+        :data-test-id="dataTestId"
         :variant="variant"
         :size="size"
         :disabled="disabled || processing"
@@ -38,7 +38,7 @@
 
     <template v-else>
       <b-button
-        data-test-id="button-delete-confirm"
+        :data-test-id="`${dataTestId}-confirm`"
         :variant="variantOk"
         :size="sizeConfirm"
         :disabled="okDisabled"
@@ -56,7 +56,7 @@
       </b-button>
 
       <b-button
-        data-test-id="button-delete-cancel"
+        :data-test-id="`${dataTestId}-cancel`"
         :variant="variantCancel"
         :size="sizeConfirm"
         :disabled="cancelDisabled"
@@ -143,6 +143,11 @@ export default {
     text: {
       type: String,
       default: '',
+    },
+
+    dataTestId: {
+      type: String,
+      default: 'button-delete',
     },
   },
 
