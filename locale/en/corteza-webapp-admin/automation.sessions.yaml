@@ -6,6 +6,7 @@ editor:
     createdByUserName: Created by - Name
     delete: Delete
     deletedAt: Deleted at
+    suspendedAt: Suspended at
     error: Error
     eventType: Event type
     id: ID
