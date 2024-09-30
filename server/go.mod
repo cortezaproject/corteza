@@ -69,7 +69,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/btree v1.3.1
 	github.com/valyala/fastjson v1.6.4
-	go.uber.org/atomic v1.9.0
+	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.19.0
 	golang.org/x/image v0.15.0
