@@ -4,10 +4,11 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -73,6 +74,9 @@ func (v RecordValue) Cast(f *ModuleField) (interface{}, error) {
 		return v.Ref, nil
 
 	case f.IsDateTime():
+		if v.Value == "" {
+			return nil, nil
+		}
 		return cast.ToTimeE(v.Value)
 
 	case f.IsBoolean():
@@ -256,7 +260,6 @@ func (set RecordValueSet) Merge(mfs ModuleFieldSet, new RecordValueSet, canAcces
 //
 // This satisfies current requirements where record values are always
 // manipulated as a whole (not partial)
-//
 func (set RecordValueSet) merge(new RecordValueSet) (out RecordValueSet) {
 	if len(set) == 0 {
 		// Empty set, copy all new values and return them

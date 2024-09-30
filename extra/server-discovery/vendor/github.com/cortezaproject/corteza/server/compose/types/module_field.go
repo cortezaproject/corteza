@@ -19,7 +19,7 @@ type (
 	// Modules - CRM module definitions
 	ModuleField struct {
 		ID          uint64 `json:"fieldID,string"`
-		NamespaceID uint64 `json:"namspaceID,string"`
+        NamespaceID uint64 `json:"namespaceID,string"`
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
 

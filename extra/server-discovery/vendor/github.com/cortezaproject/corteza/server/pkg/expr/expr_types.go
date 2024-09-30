@@ -503,11 +503,14 @@ func CastToDuration(val interface{}) (out time.Duration, err error) {
 
 func CastToDateTime(val interface{}) (out *time.Time, err error) {
 	val = UntypedValue(val)
+
 	switch casted := val.(type) {
 	case *time.Time:
 		return casted, nil
 	case time.Time:
 		return &casted, nil
+	case nil:
+		return nil, nil
 	default:
 		var c time.Time
 		if c, err = cast.ToTimeE(casted); err != nil {
@@ -959,6 +962,10 @@ func (v *Any) Clone() (out TypedValue, err error) {
 	return aux, err
 }
 
+func (t *Array) IsEmpty() bool {
+	return len(t.GetValue()) == 0
+}
+
 func (v *Array) Clone() (out TypedValue, err error) {
 	if len(v.value) > cloneParallelItemThreshold {
 		return v.cloneParallel(cloneParallelItemThreshold)
@@ -1024,6 +1031,10 @@ func (v *Boolean) Clone() (out TypedValue, err error) {
 	return aux, err
 }
 
+func (t *Bytes) IsEmpty() bool {
+	return len(t.GetValue()) == 0
+}
+
 func (v *Bytes) Clone() (out TypedValue, err error) {
 	cpy := make([]byte, len(v.value))
 	copy(cpy, v.value)
@@ -1033,10 +1044,11 @@ func (v *Bytes) Clone() (out TypedValue, err error) {
 }
 
 func (v *DateTime) Clone() (out TypedValue, err error) {
-	t := *v.GetValue()
+	if v.value == nil {
+		return NewDateTime(nil)
+	}
 
-	aux, err := NewDateTime(&t)
-	return aux, err
+	return NewDateTime(*v.value)
 }
 
 func (v *Duration) Clone() (out TypedValue, err error) {
@@ -1127,4 +1139,8 @@ func (v *UnsignedInteger) Clone() (out TypedValue, err error) {
 
 func (v Unresolved) Clone() (out TypedValue, err error) {
 	return nil, fmt.Errorf("cannot unref unresolved type")
+}
+
+func (v DateTime) IsEmpty() bool {
+	return v.GetValue() == nil
 }
