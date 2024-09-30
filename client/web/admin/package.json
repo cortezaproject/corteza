@@ -73,7 +73,7 @@
     "stylelint-config-standard": "^18.2.0",
     "stylelint-scss": "3.14.2",
     "stylelint-webpack-plugin": "^0.10.5",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.7.16"
   },
   "resolutions": {
     "**/**/node-forge": "^0.10.0",
