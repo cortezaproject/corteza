@@ -108,7 +108,7 @@
     "rollup-plugin-typescript2": "^0.25.3",
     "rollup-plugin-vue": "^5.1.5",
     "sass": "^1.49.9",
-    "sinon": "8.1.0",
+    "sinon": "19.0.2",
     "source-map-support": "^0.5.16",
     "ts-node": "^9.0.0",
     "ts-node-dev": "^1.1.0",
