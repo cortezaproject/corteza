@@ -11,3 +11,7 @@ updates:
       - "/lib/*"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
