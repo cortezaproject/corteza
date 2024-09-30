@@ -302,7 +302,7 @@ recordList:
   addRecord: Add
   cancelSelection: Cancel
   customFilter: Custom filter
-  applyValueOnFilter: Apply value on filter
+  filterByValue: Filter by value
   filterPresets:
     filterName: Filter name
     saveFilterAsPreset: Save filter as preset
@@ -311,7 +311,7 @@ recordList:
   inlineEdit:
     enabled: Inline value editing enabled
     button:
-      title: Edit {{label}}
+      title: Edit value
     modal:
       title: Update record values
   bulkRecord:

@@ -477,7 +477,7 @@
                   >
                     <b-button
                       v-if="options.inlineRecordEditEnabled && field.canEdit && !showingDeletedRecords"
-                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title', { label: field.label }), container: '#body' }"
+                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.inlineEdit.button.title'), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
                       class="text-secondary border-0 ml-1"
@@ -489,11 +489,11 @@
                     </b-button>
                     <b-button
                       v-if="options.inlineValueFiltering"
-                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.applyValueOnFilter'), container: '#body' }"
+                      v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filterByValue'), container: '#body' }"
                       variant="outline-extra-light"
                       size="sm"
                       class="text-secondary border-0 ml-1"
-                      @click.stop="applyValueOnFilter(item.r, field)"
+                      @click.stop="filterByValue(item.r, field)"
                     >
                       <font-awesome-icon
                         :icon="['fas', 'filter']"
@@ -2068,7 +2068,7 @@ export default {
       this.inlineEdit.query = `recordID = ${record.recordID}`
     },
 
-    applyValueOnFilter (record, { moduleField: field }) {
+    filterByValue (record, { moduleField: field }) {
       const value = field.isSystem ? record[field.name] : record.values[field.name]
 
       if (!this.recordListFilter.length) {
