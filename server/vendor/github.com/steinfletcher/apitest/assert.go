@@ -23,6 +23,12 @@ type TestingT interface {
 	Fatalf(format string, args ...interface{})
 }
 
+// failureMessageArgs are passed to the verifier but get stripped out from the user facing error message that gets printed
+// it allows the test to pass additional info about the failure such as the test name.
+type failureMessageArgs struct {
+	Name string
+}
+
 // Verifier is the assertion interface allowing consumers to inject a custom assertion implementation.
 // It also allows failure scenarios to be tested within apitest
 type Verifier interface {
@@ -93,7 +99,7 @@ func (a DefaultVerifier) Fail(t TestingT, failureMessage string, msgAndArgs ...i
 
 	message := messageFromMsgAndArgs(msgAndArgs...)
 	if len(message) > 0 {
-		content = append(content, labeledContent{"Messages", message})
+		content = append(content, message...)
 	}
 
 	t.Errorf("\n%s", ""+labeledOutput(content...))
@@ -169,21 +175,49 @@ func validateEqualArgs(expected, actual interface{}) error {
 	return nil
 }
 
-func messageFromMsgAndArgs(msgAndArgs ...interface{}) string {
+func messageFromMsgAndArgs(msgAndArgs ...interface{}) []labeledContent {
 	if len(msgAndArgs) == 0 || msgAndArgs == nil {
-		return ""
+		return nil
 	}
+
 	if len(msgAndArgs) == 1 {
 		msg := msgAndArgs[0]
 		if msgAsStr, ok := msg.(string); ok {
-			return msgAsStr
+			return []labeledContent{{"Messages", msgAsStr}}
 		}
-		return fmt.Sprintf("%+v", msg)
+		if failureMsg, ok := msg.(failureMessageArgs); ok {
+			if failureMsg.Name == "" {
+				return nil
+			}
+			return []labeledContent{{"Name", failureMsg.Name}}
+		}
+		return []labeledContent{{"Messages", fmt.Sprintf("%+v", msg)}}
 	}
+
 	if len(msgAndArgs) > 1 {
-		return fmt.Sprintf(msgAndArgs[0].(string), msgAndArgs[1:]...)
+		var strMsgs []string
+		var structuredMsg *labeledContent
+		for _, msg := range msgAndArgs {
+			if msgAsStr, ok := msg.(string); ok {
+				strMsgs = append(strMsgs, msgAsStr)
+			}
+			if failureMsg, ok := msg.(failureMessageArgs); ok {
+				if failureMsg.Name == "" {
+					return nil
+				}
+				structuredMsg = &labeledContent{"Name", failureMsg.Name}
+			}
+		}
+		combinedContent := []labeledContent{}
+		if len(strMsgs) > 0 {
+			combinedContent = append(combinedContent, labeledContent{"Messages", strings.Join(strMsgs, ", ")})
+		}
+		if structuredMsg != nil {
+			combinedContent = append(combinedContent, *structuredMsg)
+		}
+		return combinedContent
 	}
-	return ""
+	return nil
 }
 
 func labeledOutput(content ...labeledContent) string {

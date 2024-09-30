@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"runtime"
 	"strings"
 )
@@ -28,6 +29,8 @@ const (
 	red   = "\033[31m"
 	green = "\033[32m"
 )
+
+var colorizeLog = true
 
 func min(a, b int) int {
 	if a < b {
@@ -205,12 +208,15 @@ func (m *SequenceMatcher) isBJunk(s string) bool {
 // If IsJunk is not defined:
 //
 // Return (i,j,k) such that a[i:i+k] is equal to b[j:j+k], where
-//     alo <= i <= i+k <= ahi
-//     blo <= j <= j+k <= bhi
+//
+//	alo <= i <= i+k <= ahi
+//	blo <= j <= j+k <= bhi
+//
 // and for all (i',j',k') meeting those conditions,
-//     k >= k'
-//     i <= i'
-//     and if i == i', j <= j'
+//
+//	k >= k'
+//	i <= i'
+//	and if i == i', j <= j'
 //
 // In other words, of all maximal matching blocks, return one that
 // starts earliest in a, and of all those maximal matching blocks that
@@ -563,6 +569,7 @@ type UnifiedDiff struct {
 // 'fromfile', 'tofile', 'fromfiledate', and 'tofiledate'.
 // The modification times are normally expressed in the ISO 8601 format.
 func WriteUnifiedDiff(writer io.Writer, diff UnifiedDiff) error {
+	SetColorizeLogs()
 	buf := bufio.NewWriter(writer)
 	defer buf.Flush()
 	wf := func(format string, args ...interface{}) error {
@@ -638,7 +645,7 @@ func WriteUnifiedDiff(writer io.Writer, diff UnifiedDiff) error {
 }
 
 func colorize(color, message string) string {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" || !colorizeLog {
 		return message
 	}
 	return color + message + "\033[0m"
@@ -782,4 +789,13 @@ func SplitLines(s string) []string {
 	lines := strings.SplitAfter(s, "\n")
 	lines[len(lines)-1] += "\n"
 	return lines
+}
+
+// Remove colorizing from the log if env variable COLORIZE_LOGS=false
+func SetColorizeLogs() {
+	colorize := os.Getenv("COLORIZE_LOGS")
+
+	if colorize == "false" {
+		colorizeLog = false
+	}
 }

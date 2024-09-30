@@ -64,7 +64,7 @@ require (
 	github.com/spf13/afero v1.8.2
 	github.com/spf13/cast v1.4.1
 	github.com/spf13/cobra v1.4.0
-	github.com/steinfletcher/apitest v1.5.11
+	github.com/steinfletcher/apitest v1.5.17
 	github.com/steinfletcher/apitest-jsonpath v1.7.1
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/btree v1.3.1
