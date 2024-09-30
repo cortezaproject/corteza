@@ -41,7 +41,7 @@
     "serialize-javascript": "^3.1.0",
     "set-value": "^4.0.1",
     "sinon": "^7.3.2",
-    "vue": "2.6.14",
+    "vue": "2.7.16",
     "vue-echarts": "6.7.3",
     "vue-native-websocket": "^2.0.15",
     "vue-router": "3.1.5",
@@ -73,7 +73,7 @@
     "stylelint-config-standard": "^18.2.0",
     "stylelint-scss": "3.14.2",
     "stylelint-webpack-plugin": "^0.10.5",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.7.16"
   },
   "resolutions": {
     "**/**/node-forge": "^0.10.0",

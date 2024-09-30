@@ -29,7 +29,7 @@
     "i18next-browser-languagedetector": "^3.0.2",
     "lodash": "^4.17.21",
     "portal-vue": "^2.1.7",
-    "vue": "2.6.14",
+    "vue": "2.7.16",
     "vue-router": "^3.4.9",
     "vue-text-highlight": "^2.0.10",
     "vuelayers": "^0.11.37",
@@ -61,7 +61,7 @@
     "stylelint-config-standard": "^18.3.0",
     "stylelint-scss": "^3.14.2",
     "stylelint-webpack-plugin": "^0.10.5",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.7.16"
   },
   "stylelint": {
     "plugins": [

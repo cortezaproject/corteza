@@ -32,7 +32,7 @@
     "tiptap": "^1.32.2",
     "tiptap-commands": "^1.17.1",
     "tiptap-extensions": "^1.35.2",
-    "vue": "2.6.14",
+    "vue": "2.7.16",
     "vue-echarts": "6.7.3",
     "vue-grid-layout": "^2.3.12",
     "vue-router": "3.1.5",
@@ -67,7 +67,7 @@
     "stylelint-config-standard": "^18.3.0",
     "stylelint-scss": "^3.14.2",
     "stylelint-webpack-plugin": "^0.10.5",
-    "vue-template-compiler": "2.6.14"
+    "vue-template-compiler": "2.7.16"
   },
   "stylelint": {
     "plugins": [
