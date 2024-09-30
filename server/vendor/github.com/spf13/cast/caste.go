@@ -18,6 +18,14 @@ import (
 
 var errNegativeNotAllowed = errors.New("unable to cast negative value")
 
+type float64EProvider interface {
+	Float64() (float64, error)
+}
+
+type float64Provider interface {
+	Float64() float64
+}
+
 // ToTimeE casts an interface to a time.Time type.
 func ToTimeE(i interface{}) (tim time.Time, err error) {
 	return ToTimeInDefaultLocationE(i, time.UTC)
@@ -34,6 +42,12 @@ func ToTimeInDefaultLocationE(i interface{}, location *time.Location) (tim time.
 		return v, nil
 	case string:
 		return StringToDateInDefaultLocation(v, location)
+	case json.Number:
+		s, err1 := ToInt64E(v)
+		if err1 != nil {
+			return time.Time{}, fmt.Errorf("unable to cast %#v of type %T to Time", i, i)
+		}
+		return time.Unix(s, 0), nil
 	case int:
 		return time.Unix(int64(v), 0), nil
 	case int64:
@@ -71,6 +85,14 @@ func ToDurationE(i interface{}) (d time.Duration, err error) {
 			d, err = time.ParseDuration(s + "ns")
 		}
 		return
+	case float64EProvider:
+		var v float64
+		v, err = s.Float64()
+		d = time.Duration(v)
+		return
+	case float64Provider:
+		d = time.Duration(s.Float64())
+		return
 	default:
 		err = fmt.Errorf("unable to cast %#v of type %T to Duration", i, i)
 		return
@@ -87,12 +109,39 @@ func ToBoolE(i interface{}) (bool, error) {
 	case nil:
 		return false, nil
 	case int:
-		if i.(int) != 0 {
-			return true, nil
-		}
-		return false, nil
+		return b != 0, nil
+	case int64:
+		return b != 0, nil
+	case int32:
+		return b != 0, nil
+	case int16:
+		return b != 0, nil
+	case int8:
+		return b != 0, nil
+	case uint:
+		return b != 0, nil
+	case uint64:
+		return b != 0, nil
+	case uint32:
+		return b != 0, nil
+	case uint16:
+		return b != 0, nil
+	case uint8:
+		return b != 0, nil
+	case float64:
+		return b != 0, nil
+	case float32:
+		return b != 0, nil
+	case time.Duration:
+		return b != 0, nil
 	case string:
 		return strconv.ParseBool(i.(string))
+	case json.Number:
+		v, err := ToInt64E(b)
+		if err == nil {
+			return v != 0, nil
+		}
+		return false, fmt.Errorf("unable to cast %#v of type %T to bool", i, i)
 	default:
 		return false, fmt.Errorf("unable to cast %#v of type %T to bool", i, i)
 	}
@@ -102,12 +151,15 @@ func ToBoolE(i interface{}) (bool, error) {
 func ToFloat64E(i interface{}) (float64, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return float64(intv), nil
+	}
+
 	switch s := i.(type) {
 	case float64:
 		return s, nil
 	case float32:
-		return float64(s), nil
-	case int:
 		return float64(s), nil
 	case int64:
 		return float64(s), nil
@@ -133,10 +185,20 @@ func ToFloat64E(i interface{}) (float64, error) {
 			return v, nil
 		}
 		return 0, fmt.Errorf("unable to cast %#v of type %T to float64", i, i)
+	case float64EProvider:
+		v, err := s.Float64()
+		if err == nil {
+			return v, nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to float64", i, i)
+	case float64Provider:
+		return s.Float64(), nil
 	case bool:
 		if s {
 			return 1, nil
 		}
+		return 0, nil
+	case nil:
 		return 0, nil
 	default:
 		return 0, fmt.Errorf("unable to cast %#v of type %T to float64", i, i)
@@ -147,13 +209,16 @@ func ToFloat64E(i interface{}) (float64, error) {
 func ToFloat32E(i interface{}) (float32, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return float32(intv), nil
+	}
+
 	switch s := i.(type) {
 	case float64:
 		return float32(s), nil
 	case float32:
 		return s, nil
-	case int:
-		return float32(s), nil
 	case int64:
 		return float32(s), nil
 	case int32:
@@ -178,10 +243,20 @@ func ToFloat32E(i interface{}) (float32, error) {
 			return float32(v), nil
 		}
 		return 0, fmt.Errorf("unable to cast %#v of type %T to float32", i, i)
+	case float64EProvider:
+		v, err := s.Float64()
+		if err == nil {
+			return float32(v), nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to float32", i, i)
+	case float64Provider:
+		return float32(s.Float64()), nil
 	case bool:
 		if s {
 			return 1, nil
 		}
+		return 0, nil
+	case nil:
 		return 0, nil
 	default:
 		return 0, fmt.Errorf("unable to cast %#v of type %T to float32", i, i)
@@ -192,9 +267,12 @@ func ToFloat32E(i interface{}) (float32, error) {
 func ToInt64E(i interface{}) (int64, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return int64(intv), nil
+	}
+
 	switch s := i.(type) {
-	case int:
-		return int64(s), nil
 	case int64:
 		return s, nil
 	case int32:
@@ -218,11 +296,13 @@ func ToInt64E(i interface{}) (int64, error) {
 	case float32:
 		return int64(s), nil
 	case string:
-		v, err := strconv.ParseInt(s, 0, 0)
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
 		if err == nil {
 			return v, nil
 		}
 		return 0, fmt.Errorf("unable to cast %#v of type %T to int64", i, i)
+	case json.Number:
+		return ToInt64E(string(s))
 	case bool:
 		if s {
 			return 1, nil
@@ -239,9 +319,12 @@ func ToInt64E(i interface{}) (int64, error) {
 func ToInt32E(i interface{}) (int32, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return int32(intv), nil
+	}
+
 	switch s := i.(type) {
-	case int:
-		return int32(s), nil
 	case int64:
 		return int32(s), nil
 	case int32:
@@ -265,11 +348,13 @@ func ToInt32E(i interface{}) (int32, error) {
 	case float32:
 		return int32(s), nil
 	case string:
-		v, err := strconv.ParseInt(s, 0, 0)
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
 		if err == nil {
 			return int32(v), nil
 		}
 		return 0, fmt.Errorf("unable to cast %#v of type %T to int32", i, i)
+	case json.Number:
+		return ToInt32E(string(s))
 	case bool:
 		if s {
 			return 1, nil
@@ -286,9 +371,12 @@ func ToInt32E(i interface{}) (int32, error) {
 func ToInt16E(i interface{}) (int16, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return int16(intv), nil
+	}
+
 	switch s := i.(type) {
-	case int:
-		return int16(s), nil
 	case int64:
 		return int16(s), nil
 	case int32:
@@ -312,11 +400,13 @@ func ToInt16E(i interface{}) (int16, error) {
 	case float32:
 		return int16(s), nil
 	case string:
-		v, err := strconv.ParseInt(s, 0, 0)
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
 		if err == nil {
 			return int16(v), nil
 		}
 		return 0, fmt.Errorf("unable to cast %#v of type %T to int16", i, i)
+	case json.Number:
+		return ToInt16E(string(s))
 	case bool:
 		if s {
 			return 1, nil
@@ -333,9 +423,12 @@ func ToInt16E(i interface{}) (int16, error) {
 func ToInt8E(i interface{}) (int8, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return int8(intv), nil
+	}
+
 	switch s := i.(type) {
-	case int:
-		return int8(s), nil
 	case int64:
 		return int8(s), nil
 	case int32:
@@ -359,11 +452,13 @@ func ToInt8E(i interface{}) (int8, error) {
 	case float32:
 		return int8(s), nil
 	case string:
-		v, err := strconv.ParseInt(s, 0, 0)
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
 		if err == nil {
 			return int8(v), nil
 		}
 		return 0, fmt.Errorf("unable to cast %#v of type %T to int8", i, i)
+	case json.Number:
+		return ToInt8E(string(s))
 	case bool:
 		if s {
 			return 1, nil
@@ -380,9 +475,12 @@ func ToInt8E(i interface{}) (int8, error) {
 func ToIntE(i interface{}) (int, error) {
 	i = indirect(i)
 
+	intv, ok := toInt(i)
+	if ok {
+		return intv, nil
+	}
+
 	switch s := i.(type) {
-	case int:
-		return s, nil
 	case int64:
 		return int(s), nil
 	case int32:
@@ -406,11 +504,13 @@ func ToIntE(i interface{}) (int, error) {
 	case float32:
 		return int(s), nil
 	case string:
-		v, err := strconv.ParseInt(s, 0, 0)
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
 		if err == nil {
 			return int(v), nil
 		}
-		return 0, fmt.Errorf("unable to cast %#v of type %T to int", i, i)
+		return 0, fmt.Errorf("unable to cast %#v of type %T to int64", i, i)
+	case json.Number:
+		return ToIntE(string(s))
 	case bool:
 		if s {
 			return 1, nil
@@ -427,18 +527,26 @@ func ToIntE(i interface{}) (int, error) {
 func ToUintE(i interface{}) (uint, error) {
 	i = indirect(i)
 
-	switch s := i.(type) {
-	case string:
-		v, err := strconv.ParseUint(s, 0, 0)
-		if err == nil {
-			return uint(v), nil
-		}
-		return 0, fmt.Errorf("unable to cast %#v to uint: %s", i, err)
-	case int:
-		if s < 0 {
+	intv, ok := toInt(i)
+	if ok {
+		if intv < 0 {
 			return 0, errNegativeNotAllowed
 		}
-		return uint(s), nil
+		return uint(intv), nil
+	}
+
+	switch s := i.(type) {
+	case string:
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
+		if err == nil {
+			if v < 0 {
+				return 0, errNegativeNotAllowed
+			}
+			return uint(v), nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to uint", i, i)
+	case json.Number:
+		return ToUintE(string(s))
 	case int64:
 		if s < 0 {
 			return 0, errNegativeNotAllowed
@@ -495,18 +603,26 @@ func ToUintE(i interface{}) (uint, error) {
 func ToUint64E(i interface{}) (uint64, error) {
 	i = indirect(i)
 
-	switch s := i.(type) {
-	case string:
-		v, err := strconv.ParseUint(s, 0, 64)
-		if err == nil {
-			return v, nil
-		}
-		return 0, fmt.Errorf("unable to cast %#v to uint64: %s", i, err)
-	case int:
-		if s < 0 {
+	intv, ok := toInt(i)
+	if ok {
+		if intv < 0 {
 			return 0, errNegativeNotAllowed
 		}
-		return uint64(s), nil
+		return uint64(intv), nil
+	}
+
+	switch s := i.(type) {
+	case string:
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
+		if err == nil {
+			if v < 0 {
+				return 0, errNegativeNotAllowed
+			}
+			return uint64(v), nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to uint64", i, i)
+	case json.Number:
+		return ToUint64E(string(s))
 	case int64:
 		if s < 0 {
 			return 0, errNegativeNotAllowed
@@ -563,18 +679,26 @@ func ToUint64E(i interface{}) (uint64, error) {
 func ToUint32E(i interface{}) (uint32, error) {
 	i = indirect(i)
 
-	switch s := i.(type) {
-	case string:
-		v, err := strconv.ParseUint(s, 0, 32)
-		if err == nil {
-			return uint32(v), nil
-		}
-		return 0, fmt.Errorf("unable to cast %#v to uint32: %s", i, err)
-	case int:
-		if s < 0 {
+	intv, ok := toInt(i)
+	if ok {
+		if intv < 0 {
 			return 0, errNegativeNotAllowed
 		}
-		return uint32(s), nil
+		return uint32(intv), nil
+	}
+
+	switch s := i.(type) {
+	case string:
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
+		if err == nil {
+			if v < 0 {
+				return 0, errNegativeNotAllowed
+			}
+			return uint32(v), nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to uint32", i, i)
+	case json.Number:
+		return ToUint32E(string(s))
 	case int64:
 		if s < 0 {
 			return 0, errNegativeNotAllowed
@@ -631,18 +755,26 @@ func ToUint32E(i interface{}) (uint32, error) {
 func ToUint16E(i interface{}) (uint16, error) {
 	i = indirect(i)
 
-	switch s := i.(type) {
-	case string:
-		v, err := strconv.ParseUint(s, 0, 16)
-		if err == nil {
-			return uint16(v), nil
-		}
-		return 0, fmt.Errorf("unable to cast %#v to uint16: %s", i, err)
-	case int:
-		if s < 0 {
+	intv, ok := toInt(i)
+	if ok {
+		if intv < 0 {
 			return 0, errNegativeNotAllowed
 		}
-		return uint16(s), nil
+		return uint16(intv), nil
+	}
+
+	switch s := i.(type) {
+	case string:
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
+		if err == nil {
+			if v < 0 {
+				return 0, errNegativeNotAllowed
+			}
+			return uint16(v), nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to uint16", i, i)
+	case json.Number:
+		return ToUint16E(string(s))
 	case int64:
 		if s < 0 {
 			return 0, errNegativeNotAllowed
@@ -699,18 +831,26 @@ func ToUint16E(i interface{}) (uint16, error) {
 func ToUint8E(i interface{}) (uint8, error) {
 	i = indirect(i)
 
-	switch s := i.(type) {
-	case string:
-		v, err := strconv.ParseUint(s, 0, 8)
-		if err == nil {
-			return uint8(v), nil
-		}
-		return 0, fmt.Errorf("unable to cast %#v to uint8: %s", i, err)
-	case int:
-		if s < 0 {
+	intv, ok := toInt(i)
+	if ok {
+		if intv < 0 {
 			return 0, errNegativeNotAllowed
 		}
-		return uint8(s), nil
+		return uint8(intv), nil
+	}
+
+	switch s := i.(type) {
+	case string:
+		v, err := strconv.ParseInt(trimZeroDecimal(s), 0, 0)
+		if err == nil {
+			if v < 0 {
+				return 0, errNegativeNotAllowed
+			}
+			return uint8(v), nil
+		}
+		return 0, fmt.Errorf("unable to cast %#v of type %T to uint8", i, i)
+	case json.Number:
+		return ToUint8E(string(s))
 	case int64:
 		if s < 0 {
 			return 0, errNegativeNotAllowed
@@ -792,8 +932,8 @@ func indirectToStringerOrError(a interface{}) interface{} {
 		return nil
 	}
 
-	var errorType = reflect.TypeOf((*error)(nil)).Elem()
-	var fmtStringerType = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
+	errorType := reflect.TypeOf((*error)(nil)).Elem()
+	fmtStringerType := reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
 
 	v := reflect.ValueOf(a)
 	for !v.Type().Implements(fmtStringerType) && !v.Type().Implements(errorType) && v.Kind() == reflect.Ptr && !v.IsNil() {
@@ -835,6 +975,8 @@ func ToStringE(i interface{}) (string, error) {
 		return strconv.FormatUint(uint64(s), 10), nil
 	case uint8:
 		return strconv.FormatUint(uint64(s), 10), nil
+	case json.Number:
+		return s.String(), nil
 	case []byte:
 		return string(s), nil
 	case template.HTML:
@@ -860,7 +1002,7 @@ func ToStringE(i interface{}) (string, error) {
 
 // ToStringMapStringE casts an interface to a map[string]string type.
 func ToStringMapStringE(i interface{}) (map[string]string, error) {
-	var m = map[string]string{}
+	m := map[string]string{}
 
 	switch v := i.(type) {
 	case map[string]string:
@@ -890,7 +1032,7 @@ func ToStringMapStringE(i interface{}) (map[string]string, error) {
 
 // ToStringMapStringSliceE casts an interface to a map[string][]string type.
 func ToStringMapStringSliceE(i interface{}) (map[string][]string, error) {
-	var m = map[string][]string{}
+	m := map[string][]string{}
 
 	switch v := i.(type) {
 	case map[string][]string:
@@ -954,7 +1096,7 @@ func ToStringMapStringSliceE(i interface{}) (map[string][]string, error) {
 
 // ToStringMapBoolE casts an interface to a map[string]bool type.
 func ToStringMapBoolE(i interface{}) (map[string]bool, error) {
-	var m = map[string]bool{}
+	m := map[string]bool{}
 
 	switch v := i.(type) {
 	case map[interface{}]interface{}:
@@ -979,7 +1121,7 @@ func ToStringMapBoolE(i interface{}) (map[string]bool, error) {
 
 // ToStringMapE casts an interface to a map[string]interface{} type.
 func ToStringMapE(i interface{}) (map[string]interface{}, error) {
-	var m = map[string]interface{}{}
+	m := map[string]interface{}{}
 
 	switch v := i.(type) {
 	case map[interface{}]interface{}:
@@ -999,7 +1141,7 @@ func ToStringMapE(i interface{}) (map[string]interface{}, error) {
 
 // ToStringMapIntE casts an interface to a map[string]int{} type.
 func ToStringMapIntE(i interface{}) (map[string]int, error) {
-	var m = map[string]int{}
+	m := map[string]int{}
 	if i == nil {
 		return m, fmt.Errorf("unable to cast %#v of type %T to map[string]int", i, i)
 	}
@@ -1040,7 +1182,7 @@ func ToStringMapIntE(i interface{}) (map[string]int, error) {
 
 // ToStringMapInt64E casts an interface to a map[string]int64{} type.
 func ToStringMapInt64E(i interface{}) (map[string]int64, error) {
-	var m = map[string]int64{}
+	m := map[string]int64{}
 	if i == nil {
 		return m, fmt.Errorf("unable to cast %#v of type %T to map[string]int64", i, i)
 	}
@@ -1277,37 +1419,35 @@ func (f timeFormat) hasTimezone() bool {
 	return f.typ >= timeFormatNumericTimezone && f.typ <= timeFormatNumericAndNamedTimezone
 }
 
-var (
-	timeFormats = []timeFormat{
-		timeFormat{time.RFC3339, timeFormatNumericTimezone},
-		timeFormat{"2006-01-02T15:04:05", timeFormatNoTimezone}, // iso8601 without timezone
-		timeFormat{time.RFC1123Z, timeFormatNumericTimezone},
-		timeFormat{time.RFC1123, timeFormatNamedTimezone},
-		timeFormat{time.RFC822Z, timeFormatNumericTimezone},
-		timeFormat{time.RFC822, timeFormatNamedTimezone},
-		timeFormat{time.RFC850, timeFormatNamedTimezone},
-		timeFormat{"2006-01-02 15:04:05.999999999 -0700 MST", timeFormatNumericAndNamedTimezone}, // Time.String()
-		timeFormat{"2006-01-02T15:04:05-0700", timeFormatNumericTimezone},                        // RFC3339 without timezone hh:mm colon
-		timeFormat{"2006-01-02 15:04:05Z0700", timeFormatNumericTimezone},                        // RFC3339 without T or timezone hh:mm colon
-		timeFormat{"2006-01-02 15:04:05", timeFormatNoTimezone},
-		timeFormat{time.ANSIC, timeFormatNoTimezone},
-		timeFormat{time.UnixDate, timeFormatNamedTimezone},
-		timeFormat{time.RubyDate, timeFormatNumericTimezone},
-		timeFormat{"2006-01-02 15:04:05Z07:00", timeFormatNumericTimezone},
-		timeFormat{"2006-01-02", timeFormatNoTimezone},
-		timeFormat{"02 Jan 2006", timeFormatNoTimezone},
-		timeFormat{"2006-01-02 15:04:05 -07:00", timeFormatNumericTimezone},
-		timeFormat{"2006-01-02 15:04:05 -0700", timeFormatNumericTimezone},
-		timeFormat{time.Kitchen, timeFormatTimeOnly},
-		timeFormat{time.Stamp, timeFormatTimeOnly},
-		timeFormat{time.StampMilli, timeFormatTimeOnly},
-		timeFormat{time.StampMicro, timeFormatTimeOnly},
-		timeFormat{time.StampNano, timeFormatTimeOnly},
-	}
-)
+var timeFormats = []timeFormat{
+	// Keep common formats at the top.
+	{"2006-01-02", timeFormatNoTimezone},
+	{time.RFC3339, timeFormatNumericTimezone},
+	{"2006-01-02T15:04:05", timeFormatNoTimezone}, // iso8601 without timezone
+	{time.RFC1123Z, timeFormatNumericTimezone},
+	{time.RFC1123, timeFormatNamedTimezone},
+	{time.RFC822Z, timeFormatNumericTimezone},
+	{time.RFC822, timeFormatNamedTimezone},
+	{time.RFC850, timeFormatNamedTimezone},
+	{"2006-01-02 15:04:05.999999999 -0700 MST", timeFormatNumericAndNamedTimezone}, // Time.String()
+	{"2006-01-02T15:04:05-0700", timeFormatNumericTimezone},                        // RFC3339 without timezone hh:mm colon
+	{"2006-01-02 15:04:05Z0700", timeFormatNumericTimezone},                        // RFC3339 without T or timezone hh:mm colon
+	{"2006-01-02 15:04:05", timeFormatNoTimezone},
+	{time.ANSIC, timeFormatNoTimezone},
+	{time.UnixDate, timeFormatNamedTimezone},
+	{time.RubyDate, timeFormatNumericTimezone},
+	{"2006-01-02 15:04:05Z07:00", timeFormatNumericTimezone},
+	{"02 Jan 2006", timeFormatNoTimezone},
+	{"2006-01-02 15:04:05 -07:00", timeFormatNumericTimezone},
+	{"2006-01-02 15:04:05 -0700", timeFormatNumericTimezone},
+	{time.Kitchen, timeFormatTimeOnly},
+	{time.Stamp, timeFormatTimeOnly},
+	{time.StampMilli, timeFormatTimeOnly},
+	{time.StampMicro, timeFormatTimeOnly},
+	{time.StampNano, timeFormatTimeOnly},
+}
 
 func parseDateWith(s string, location *time.Location, formats []timeFormat) (d time.Time, e error) {
-
 	for _, format := range formats {
 		if d, e = time.Parse(format.format, s); e == nil {
 
@@ -1334,4 +1474,37 @@ func parseDateWith(s string, location *time.Location, formats []timeFormat) (d t
 func jsonStringToObject(s string, v interface{}) error {
 	data := []byte(s)
 	return json.Unmarshal(data, v)
+}
+
+// toInt returns the int value of v if v or v's underlying type
+// is an int.
+// Note that this will return false for int64 etc. types.
+func toInt(v interface{}) (int, bool) {
+	switch v := v.(type) {
+	case int:
+		return v, true
+	case time.Weekday:
+		return int(v), true
+	case time.Month:
+		return int(v), true
+	default:
+		return 0, false
+	}
+}
+
+func trimZeroDecimal(s string) string {
+	var foundZero bool
+	for i := len(s); i > 0; i-- {
+		switch s[i-1] {
+		case '.':
+			if foundZero {
+				return s[:i-1]
+			}
+		case '0':
+			foundZero = true
+		default:
+			return s
+		}
+	}
+	return s
 }
