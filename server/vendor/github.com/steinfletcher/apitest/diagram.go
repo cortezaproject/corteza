@@ -155,9 +155,9 @@ var templateFunc = &htmlTemplate.FuncMap{
 }
 
 func formatDiagramRequest(req *http.Request) string {
-	out := req.URL.Path
+	out := fmt.Sprintf("%s %s", req.Method, req.URL.Path)
 	if req.URL.RawQuery != "" {
-		out = fmt.Sprintf("%s %s?%s", req.Method, out, req.URL.RawQuery)
+		out = fmt.Sprintf("%s?%s", out, req.URL.RawQuery)
 	}
 	if len(out) > 65 {
 		return fmt.Sprintf("%s...", out[:65])

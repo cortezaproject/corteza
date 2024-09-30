@@ -174,6 +174,7 @@ func buildResponseFromMock(mockResponse *MockResponse) *http.Response {
 		return nil
 	}
 
+	mockResponse.mu.RLock() // Lock for reading
 	contentTypeHeader := mockResponse.headers["Content-Type"]
 	var contentType string
 
@@ -189,6 +190,8 @@ func buildResponseFromMock(mockResponse *MockResponse) *http.Response {
 			contentType = contentTypeHeader[0]
 		}
 	}
+
+	mockResponse.mu.RUnlock() // Unlock after reading
 
 	res := &http.Response{
 		Body:          ioutil.NopCloser(strings.NewReader(mockResponse.body)),
@@ -206,7 +209,9 @@ func buildResponseFromMock(mockResponse *MockResponse) *http.Response {
 	}
 
 	if contentType != "" {
+		mockResponse.mu.Lock() // Lock for writing
 		res.Header.Set("Content-Type", contentType)
+		mockResponse.mu.Unlock() // Unlock after writing
 	}
 
 	return res
@@ -222,6 +227,7 @@ type Mock struct {
 	debugStandalone bool
 	times           int
 	timesSet        bool
+	anyTimesSet     bool
 }
 
 // Matches checks whether the given request matches the mock
@@ -243,8 +249,7 @@ func (m *Mock) copy() *Mock {
 	req := *m.request
 	newMock.request = &req
 
-	res := *m.response
-	newMock.response = &res
+	newMock.response = m.response.deepCopy()
 
 	return &newMock
 }
@@ -287,6 +292,32 @@ type MockResponse struct {
 	body             string
 	statusCode       int
 	fixedDelayMillis int64
+	mu               sync.RWMutex // Add a mutex for thread-safe access
+}
+
+func (r *MockResponse) deepCopy() *MockResponse {
+	newResponse := &MockResponse{
+		timeout:          r.timeout,
+		headers:          make(map[string][]string),
+		cookies:          make([]*Cookie, len(r.cookies)),
+		body:             r.body,
+		statusCode:       r.statusCode,
+		fixedDelayMillis: r.fixedDelayMillis,
+		mu:               sync.RWMutex{},
+	}
+
+	for k, v := range r.headers {
+		newHeader := make([]string, len(v))
+		copy(newHeader, v)
+		newResponse.headers[k] = newHeader
+	}
+
+	for i, cookie := range r.cookies {
+		newCookie := *cookie
+		newResponse.cookies[i] = &newCookie
+	}
+
+	return newResponse
 }
 
 // StandaloneMocks for using mocks outside of API tests context
@@ -448,7 +479,7 @@ func matches(req *http.Request, mocks []*Mock) (*MockResponse, error) {
 	mockError := newUnmatchedMockError()
 	for mockNumber, mock := range mocks {
 		mock.m.Lock() // lock is for isUsed when matches is called concurrently by RoundTripper
-		if mock.isUsed {
+		if mock.isUsed && mock.anyTimesSet == false {
 			mock.m.Unlock()
 			continue
 		}
@@ -475,7 +506,7 @@ func (r *MockRequest) Body(b string) *MockRequest {
 
 // BodyRegexp configures the mock request to match the given body using the regexp matcher
 func (r *MockRequest) BodyRegexp(b string) *MockRequest {
-	r.body = b
+	r.bodyRegexp = b
 	return r
 }
 
@@ -634,6 +665,9 @@ func (r *MockResponse) Timeout() *MockResponse {
 
 // Header respond with the given header
 func (r *MockResponse) Header(key string, value string) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	normalizedKey := textproto.CanonicalMIMEHeaderKey(key)
 	r.headers[normalizedKey] = append(r.headers[normalizedKey], value)
 	return r
@@ -641,6 +675,9 @@ func (r *MockResponse) Header(key string, value string) *MockResponse {
 
 // Headers respond with the given headers
 func (r *MockResponse) Headers(headers map[string]string) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	for k, v := range headers {
 		normalizedKey := textproto.CanonicalMIMEHeaderKey(k)
 		r.headers[normalizedKey] = append(r.headers[normalizedKey], v)
@@ -650,18 +687,27 @@ func (r *MockResponse) Headers(headers map[string]string) *MockResponse {
 
 // Cookies respond with the given cookies
 func (r *MockResponse) Cookies(cookie ...*Cookie) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.cookies = append(r.cookies, cookie...)
 	return r
 }
 
 // Cookie respond with the given cookie
 func (r *MockResponse) Cookie(name, value string) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.cookies = append(r.cookies, NewCookie(name).Value(value))
 	return r
 }
 
 // Body sets the mock response body
 func (r *MockResponse) Body(body string) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.body = body
 	return r
 }
@@ -673,6 +719,9 @@ func (r *MockResponse) Bodyf(format string, args ...interface{}) *MockResponse {
 
 // BodyFromFile defines the mock response body from a file
 func (r *MockResponse) BodyFromFile(f string) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	b, err := ioutil.ReadFile(f)
 	if err != nil {
 		panic(err)
@@ -697,6 +746,9 @@ func (r *MockResponse) JSON(v interface{}) *MockResponse {
 
 // Status respond with the given status
 func (r *MockResponse) Status(statusCode int) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.statusCode = statusCode
 	return r
 }
@@ -709,10 +761,19 @@ func (r *MockResponse) FixedDelay(delay int64) *MockResponse {
 	return r
 }
 
-// Times respond the given number of times
+// Times respond the given number of times, if AnyTimes is set this has no effect
 func (r *MockResponse) Times(times int) *MockResponse {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
 	r.mock.times = times
 	r.mock.timesSet = true
+	return r
+}
+
+// AnyTimes respond any number of times
+func (r *MockResponse) AnyTimes() *MockResponse {
+	r.mock.anyTimesSet = true
 	return r
 }
 

@@ -4,7 +4,6 @@
 
 <p align="center">
 <a href="https://godoc.org/github.com/steinfletcher/apitest"><img src="https://godoc.org/github.com/steinfletcher/apitest?status.svg" alt="Godoc" /></a>
-<a href="https://coveralls.io/github/steinfletcher/apitest?branch=master&service=github"><img src="https://coveralls.io/repos/github/steinfletcher/apitest/badge.svg?branch=master" alt="Coverage Status"/></a>
 <a href="https://circleci.com/gh/steinfletcher/apitest"><img src="https://circleci.com/gh/steinfletcher/apitest.svg?style=shield" alt="Build Status" /></a>
 <a href="https://goreportcard.com/report/github.com/steinfletcher/apitest"><img src="https://goreportcard.com/badge/github.com/steinfletcher/apitest" alt="Go Report Card" /></a>
 <a href="https://github.com/avelino/awesome-go/#testing"><img src="https://awesome.re/mentioned-badge.svg" alt="Mentioned in Awesome Go" /></a>
@@ -20,6 +19,8 @@ Join the conversation at #apitest on [https://gophers.slack.com](https://gophers
 
 <span>Logo by <a target="_blank" href="https://twitter.com/egonelbre">@egonelbre</a><span>
 
+Note: The API for apitest is stable and complete - despite the lack of activity this repository is still actively maintained. Any new issues will be addressed. Feature requests will be considered.
+
 ## Documentation
 
 Please visit [https://apitest.dev](https://apitest.dev) for the latest documentation.
@@ -29,6 +30,10 @@ Please visit [https://apitest.dev](https://apitest.dev) for the latest documenta
 ```bash
 go get -u github.com/steinfletcher/apitest
 ```
+
+## Demo
+
+![animated gif](./apitest.gif)
 
 ## Examples
 
@@ -76,7 +81,7 @@ func TestApi(t *testing.T) {
 		Get("/user/1234").
 		Expect(t).
 		Body(`{"id": "1234", "name": "Tate"}`).
-		Status(http.StatusCreated).
+		Status(http.StatusOK).
 		End()
 }
 ```
@@ -132,7 +137,7 @@ func TestApi(t *testing.T) {
 		Patch("/hello").
 		Expect(t).
 		Status(http.StatusOK).
-		Cookies(apitest.Cookie"ABC").Value("12345")).
+		Cookies(apitest.Cookie("ABC").Value("12345")).
 		CookiePresent("Session-Token").
 		CookieNotPresent("XXX").
 		Cookies(
@@ -184,6 +189,20 @@ func TestApi(t *testing.T) {
 		End()
 }
 ```
+It is possible to configure the mock for using `AnyTimes` feature,  it allows a mock to be invoked any number of times 
+without failing the asserts if it is not used the expected number of times. 
+
+This is very useful in scenarios where the exact number of invocations is not known or not important.
+
+```go
+var getUser := apitest.NewMock().
+    Get("http://localhost:8080").
+    RespondWith().
+    Status(http.StatusOK).
+    AnyTimes().
+    End()
+```
+Note: The `AnyTimes` method can be combined with other methods such as `Times`, but if `AnyTimes` is set, the `Times` setting will have no effect.
 
 #### Generating sequence diagrams from tests
 
@@ -226,6 +245,19 @@ func TestApi(t *testing.T) {
 	apitest.Handler(handler).
 		Get("/hello").
 		BasicAuth("username", "password").
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+```
+
+#### Pass a custom context to the request
+
+```go
+func TestApi(t *testing.T) {
+	apitest.Handler(handler).
+		Get("/hello").
+		WithContext(context.TODO()).
 		Expect(t).
 		Status(http.StatusOK).
 		End()
@@ -298,6 +330,20 @@ func TestApi(t *testing.T) {
 		FormData("b", "2").
 		FormData("b", "3").
 		FormData("c", "4", "5", "6").
+		Expect(t).
+		Status(http.StatusOK).
+		End()
+}
+```
+
+#### Provide a multipart/form-data
+
+```go
+func TestApi(t *testing.T) {
+	apitest.Handler(handler).
+		Post("/hello").
+		MultipartFormData("a", "1", "2").
+		MultipartFile("file", "path/to/some.file1", "path/to/some.file2").
 		Expect(t).
 		Status(http.StatusOK).
 		End()
