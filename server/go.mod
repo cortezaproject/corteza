@@ -50,7 +50,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/lestrrat-go/jwx v1.2.28
 	github.com/lestrrat-go/strftime v1.0.6
-	github.com/lib/pq v1.10.5
+	github.com/lib/pq v1.10.9
 	github.com/markbates/goth v1.71.1
 	github.com/mat/besticon v3.12.0+incompatible
 	github.com/mattn/go-sqlite3 v1.14.23

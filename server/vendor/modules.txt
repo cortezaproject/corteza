@@ -329,7 +329,7 @@ github.com/lestrrat-go/option
 ## explicit; go 1.13
 github.com/lestrrat-go/strftime
 github.com/lestrrat-go/strftime/internal/errors
-# github.com/lib/pq v1.10.5
+# github.com/lib/pq v1.10.9
 ## explicit; go 1.13
 github.com/lib/pq
 github.com/lib/pq/oid
