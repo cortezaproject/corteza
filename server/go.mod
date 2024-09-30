@@ -53,7 +53,7 @@ require (
 	github.com/lib/pq v1.10.5
 	github.com/markbates/goth v1.71.1
 	github.com/mat/besticon v3.12.0+incompatible
-	github.com/mattn/go-sqlite3 v1.14.12
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/microcosm-cc/bluemonday v1.0.18
 	github.com/minio/minio-go/v6 v6.0.57
 	github.com/modern-go/reflect2 v1.0.2
