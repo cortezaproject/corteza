@@ -39,7 +39,7 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.4.3
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/golang/mock v1.6.0
-	github.com/golang/protobuf v1.5.3
+	github.com/golang/protobuf v1.5.4
 	github.com/google/uuid v1.6.0
 	github.com/gorhill/cronexpr v0.0.0-20180427100037-88b0669f7d75
 	github.com/gorilla/csrf v1.7.1
@@ -77,7 +77,7 @@ require (
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.61.1
-	google.golang.org/protobuf v1.32.0
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/mail.v2 v2.3.1
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0
