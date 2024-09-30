@@ -54,7 +54,7 @@ require (
 	github.com/markbates/goth v1.71.1
 	github.com/mat/besticon v3.12.0+incompatible
 	github.com/mattn/go-sqlite3 v1.14.23
-	github.com/microcosm-cc/bluemonday v1.0.18
+	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/minio/minio-go/v6 v6.0.57
 	github.com/modern-go/reflect2 v1.0.2
 	github.com/ngrok/sqlmw v0.0.0-20211220175533-9d16fdc47b31
@@ -71,11 +71,11 @@ require (
 	github.com/valyala/fastjson v1.6.4
 	go.uber.org/atomic v1.11.0
 	go.uber.org/zap v1.21.0
-	golang.org/x/crypto v0.19.0
+	golang.org/x/crypto v0.24.0
 	golang.org/x/image v0.15.0
-	golang.org/x/net v0.21.0
+	golang.org/x/net v0.26.0
 	golang.org/x/oauth2 v0.16.0
-	golang.org/x/text v0.14.0
+	golang.org/x/text v0.16.0
 	google.golang.org/grpc v1.61.1
 	google.golang.org/protobuf v1.32.0
 	gopkg.in/mail.v2 v2.3.1
@@ -104,7 +104,7 @@ require (
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10 // indirect
-	github.com/gorilla/css v1.0.0 // indirect
+	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
@@ -136,8 +136,8 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/fasthttp v1.35.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/sys v0.17.0 // indirect
-	golang.org/x/term v0.17.0 // indirect
+	golang.org/x/sys v0.21.0 // indirect
+	golang.org/x/term v0.21.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240213162025-012b6fc9bca9 // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
