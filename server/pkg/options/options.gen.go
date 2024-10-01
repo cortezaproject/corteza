@@ -347,7 +347,7 @@ func HttpServer() (o *HttpServerOpt) {
 		ApiBaseUrl:             "/",
 		WebappBaseUrl:          "/",
 		WebappBaseDir:          "./webapp/public",
-		WebappList:             "admin,compose,workflow,reporter",
+		WebappList:             "admin,compose,workflow,reporter,privacy",
 		SslTerminated:          isSecure(),
 		WebConsoleEnabled:      false,
 		WebConsoleUsername:     "admin",
