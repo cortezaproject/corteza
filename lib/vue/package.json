@@ -100,7 +100,7 @@
     "node-watch": "^0.6.3",
     "nodemon": "2.0.2",
     "nyc": "15.0.0",
-    "rollup": "^1.29.0",
+    "rollup": "^2.79.2",
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-import-css": "^3.0.0",
     "rollup-plugin-json": "^4.0.0",
