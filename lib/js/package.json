@@ -43,7 +43,7 @@
     "@typescript-eslint/parser": "^2.11.0",
     "@vue/cli-plugin-eslint": "^4.5.0",
     "@vue/eslint-config-standard": "^4.0.0",
-    "chai": "^4.2.0",
+    "chai": "^4.5.0",
     "chai-as-promised": "^7.1.1",
     "esformatter": "^0.11.2",
     "esformatter-add-trailing-commas": "^1.1.0",

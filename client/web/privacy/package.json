@@ -43,7 +43,7 @@
     "babel-eslint": "^10.0.3",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-preset-vue": "^2.0.2",
-    "chai": "^4.2.0",
+    "chai": "^4.5.0",
     "eslint": "^5.8.0",
     "eslint-config-corteza-client": "file:../../../lib/eslint-client",
     "eslint-plugin-vue": "^9.28.0",
