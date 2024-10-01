@@ -64,7 +64,7 @@
     "node-watch": "^0.6.3",
     "nodemon": "^2.0.2",
     "nyc": "^15.0.0",
-    "rollup": "^1.29.0",
+    "rollup": "^2.79.2",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-typescript2": "^0.25.3",
     "source-map-support": "^0.5.16",
