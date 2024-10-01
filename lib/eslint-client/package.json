@@ -5,8 +5,8 @@
   "license": "Apache-2.0",
   "main": "./index.js",
   "peerDependencies": {
-    "@vue/cli-plugin-eslint": ">=3.10.0",
-    "@vue/eslint-config-standard": ">=4.0.0",
+    "@vue/cli-plugin-eslint": "^4.5.0",
+    "@vue/eslint-config-standard": "^4.0.0",
     "babel-eslint": ">=10.0.2",
     "eslint": ">=5.8.0",
     "eslint-plugin-vue": ">=5.2.3",
