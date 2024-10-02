@@ -40,7 +40,7 @@
     "portal-vue": "^2.1.7",
     "serialize-javascript": "^3.1.0",
     "set-value": "^4.0.1",
-    "vue": "2.7.16",
+    "vue": "3.5.10",
     "vue-echarts": "6.7.3",
     "vue-native-websocket": "^2.0.15",
     "vue-router": "3.1.5",
