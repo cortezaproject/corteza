@@ -77,13 +77,17 @@ namespace: {
 			"read": {}
 			"update": {}
 			"delete": {}
+			"export": description:         "Access to export the entire namespace"
 			"manage": description:         "Access to namespace admin panel"
 			"module.create": description:  "Create module on namespace"
 			"modules.search": description: "List, search or filter module on namespace"
+			"modules.export": description: "Export modules on namespace"
 			"chart.create": description:   "Create chart on namespace"
 			"charts.search": description:  "List, search or filter chart on namespace"
+			"charts.export": description:  "Export charts on namespace"
 			"page.create": description:    "Create page on namespace"
 			"pages.search": description:   "List, search or filter pages on namespace"
+			"pages.export": description:   "Export pages on namespace"
 		}
 	}
 
