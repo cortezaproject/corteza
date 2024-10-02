@@ -17,7 +17,7 @@
     "@cortezaproject/corteza-js": "^2023.9.8",
     "@cortezaproject/corteza-vue": "^2023.9.8",
     "@fortawesome/fontawesome-svg-core": "^1.2.21",
-    "@fortawesome/free-regular-svg-icons": "^5.10.1",
+    "@fortawesome/free-regular-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^5.10.1",
     "@fortawesome/vue-fontawesome": "^0.1.9",
     "bootstrap-vue": "2.23.1",
