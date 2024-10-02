@@ -31,12 +31,16 @@ type (
 		*types.Namespace
 
 		CanGrant           bool `json:"canGrant"`
+		CanExportNamespace bool `json:"canExportNamespace"`
 		CanUpdateNamespace bool `json:"canUpdateNamespace"`
 		CanDeleteNamespace bool `json:"canDeleteNamespace"`
 		CanManageNamespace bool `json:"canManageNamespace"`
 		CanCreateModule    bool `json:"canCreateModule"`
+		CanExportModule    bool `json:"canExportModule"`
 		CanCreateChart     bool `json:"canCreateChart"`
+		CanExportChart     bool `json:"canExportChart"`
 		CanCreatePage      bool `json:"canCreatePage"`
+		CanExportPage      bool `json:"canExportPage"`
 	}
 
 	namespaceSetPayload struct {
@@ -71,13 +75,17 @@ type (
 	namespaceAccessController interface {
 		CanGrant(context.Context) bool
 
+		CanExportNamespace(context.Context, *types.Namespace) bool
 		CanUpdateNamespace(context.Context, *types.Namespace) bool
 		CanDeleteNamespace(context.Context, *types.Namespace) bool
 		CanManageNamespace(context.Context, *types.Namespace) bool
 
 		CanCreateModuleOnNamespace(context.Context, *types.Namespace) bool
+		CanExportModulesOnNamespace(context.Context, *types.Namespace) bool
 		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
+		CanExportChartsOnNamespace(context.Context, *types.Namespace) bool
 		CanCreatePageOnNamespace(context.Context, *types.Namespace) bool
+		CanExportPagesOnNamespace(context.Context, *types.Namespace) bool
 	}
 )
 
@@ -351,13 +359,17 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		Namespace: ns,
 
 		CanGrant:           ctrl.ac.CanGrant(ctx),
+		CanExportNamespace: ctrl.ac.CanExportNamespace(ctx, ns),
 		CanUpdateNamespace: ctrl.ac.CanUpdateNamespace(ctx, ns),
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
 		CanManageNamespace: ctrl.ac.CanManageNamespace(ctx, ns),
 
 		CanCreateModule: ctrl.ac.CanCreateModuleOnNamespace(ctx, ns),
+		CanExportModule: ctrl.ac.CanExportModulesOnNamespace(ctx, ns),
 		CanCreateChart:  ctrl.ac.CanCreateChartOnNamespace(ctx, ns),
+		CanExportChart:  ctrl.ac.CanExportChartsOnNamespace(ctx, ns),
 		CanCreatePage:   ctrl.ac.CanCreatePageOnNamespace(ctx, ns),
+		CanExportPage:   ctrl.ac.CanExportPagesOnNamespace(ctx, ns),
 	}, nil
 }
 
@@ -421,6 +433,13 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 	if err != nil {
 		return
 	}
+
+	// @todo this isn't ok, will do for now
+	if !ctrl.ac.CanExportNamespace(ctx, n) {
+		err = fmt.Errorf("not allowed to export namespace %s", n.Name)
+		return
+	}
+
 	nsNode, err := composeEnvoy.NamespaceToEnvoyNode(n)
 	if err != nil {
 		return

@@ -5,12 +5,17 @@ allow:
 
     corteza::compose:namespace/*:
       - read
+      - export
+      - modules.export
+      - charts.export
+      - pages.export
       - pages.search
       - modules.search
       - charts.search
 
     corteza::compose:module/*/*:
       - read
+      - export
       - records.search
 
     corteza::compose:module-field/*/*/*:
@@ -18,12 +23,14 @@ allow:
 
     corteza::compose:page/*/*:
       - read
+      - export
 
     corteza::compose:page-layout/*/*/*:
       - read
 
     corteza::compose:chart/*/*:
       - read
+      - export
 
     corteza::compose:record/*/*/*:
       - read
@@ -41,6 +48,10 @@ allow:
       - update
       - delete
       - manage
+      - export
+      - modules.export
+      - charts.export
+      - pages.export
       - page.create
       - pages.search
       - module.create
@@ -52,6 +63,7 @@ allow:
       - read
       - update
       - delete
+      - export
       - record.create
       - records.search
 
@@ -69,11 +81,13 @@ allow:
       - read
       - update
       - delete
+      - export
 
     corteza::compose:page/*/*:
       - read
       - update
       - delete
+      - export
 
     corteza::compose:page-layout/*/*/*:
       - read
@@ -93,6 +107,10 @@ allow:
       - update
       - delete
       - manage
+      - export
+      - modules.export
+      - charts.export
+      - pages.export
       - page.create
       - pages.search
       - module.create
@@ -104,6 +122,7 @@ allow:
       - read
       - update
       - delete
+      - export
       - record.create
       - records.search
 
@@ -120,8 +139,10 @@ allow:
       - read
       - update
       - delete
+      - export
 
     corteza::compose:page/*/*:
       - read
       - update
       - delete
+      - export

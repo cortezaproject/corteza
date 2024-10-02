@@ -20,6 +20,7 @@ type (
 		Children []*pagePayload `json:"children,omitempty"`
 
 		CanGrant      bool `json:"canGrant"`
+		CanExportPage bool `json:"canExportPage"`
 		CanUpdatePage bool `json:"canUpdatePage"`
 		CanDeletePage bool `json:"canDeletePage"`
 	}
@@ -60,6 +61,7 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdatePage(context.Context, *types.Page) bool
+		CanExportPage(context.Context, *types.Page) bool
 		CanDeletePage(context.Context, *types.Page) bool
 	}
 )
@@ -273,6 +275,7 @@ func (ctrl Page) makePayload(ctx context.Context, c *types.Page, err error) (*pa
 		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdatePage: ctrl.ac.CanUpdatePage(ctx, c),
+		CanExportPage: ctrl.ac.CanExportPage(ctx, c),
 		CanDeletePage: ctrl.ac.CanDeletePage(ctx, c),
 	}, nil
 }
