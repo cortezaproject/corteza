@@ -88,7 +88,7 @@
                 </b-button>
 
                 <export
-                  v-if="module.canExportModule"
+                  v-if="namespace.canExportModules"
                   :list="[module]"
                   type="module"
                   class="mr-1"

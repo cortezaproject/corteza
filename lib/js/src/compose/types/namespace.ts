@@ -51,8 +51,8 @@ export class Namespace {
   public canCloneNamespace = false
   public canExportNamespace = false
   public canGrant = false
-  public canExportChart = false
-  public canExportModule = false
+  public canExportCharts = false
+  public canExportModules = false
 
   constructor (i?: PartialNamespace) {
     this.apply(i)
@@ -87,10 +87,10 @@ export class Namespace {
       'canExportNamespace',
       'canGrant',
       'canCreateModule',
-      'canExportModule',
+      'canExportModules',
       'canCreatePage',
       'canCreateChart',
-      'canExportChart',
+      'canExportCharts',
     )
   }
 
