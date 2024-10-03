@@ -25,7 +25,7 @@
           >
             <b-card-header class="d-flex py-3 align-items-center border-bottom gap-1">
               <export
-                v-if="chart.canExportChart"
+                v-if="namespace.canExportCharts"
                 slot="header"
                 :list="[chart]"
                 type="chart"

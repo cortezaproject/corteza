@@ -40,7 +40,6 @@ export class BaseChart {
   public canUpdateChart = false
   public canDeleteChart = false
   public canGrant = false
-  public canExportChart = false
 
   public config: ChartConfig = {}
 
@@ -107,7 +106,7 @@ export class BaseChart {
     Apply(this, c, CortezaID, 'chartID', 'namespaceID')
     Apply(this, c, String, 'name', 'handle')
     Apply(this, c, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, c, Boolean, 'canUpdateChart', 'canDeleteChart', 'canGrant', 'canExportChart')
+    Apply(this, c, Boolean, 'canUpdateChart', 'canDeleteChart', 'canGrant')
     Apply(this, c, Object, 'config')
 
     if (typeof c.config === 'object') {

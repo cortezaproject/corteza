@@ -187,7 +187,6 @@ export class Module {
 
   public canUpdateModule = false;
   public canDeleteModule = false;
-  public canExportModule = false;
   public canCreateRecord = false;
   public canCreateOwnedRecord = false;
   public canGrant = false;
@@ -251,7 +250,6 @@ export class Module {
     Apply(this, m, Boolean,
       'canUpdateModule',
       'canDeleteModule',
-      'canExportModule',
       'canCreateRecord',
       'canCreateOwnedRecord',
       'canGrant',
