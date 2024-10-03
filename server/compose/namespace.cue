@@ -87,7 +87,6 @@ namespace: {
 			"charts.export": description:  "Export charts on namespace"
 			"page.create": description:    "Create page on namespace"
 			"pages.search": description:   "List, search or filter pages on namespace"
-			"pages.export": description:   "Export pages on namespace"
 		}
 	}
 
