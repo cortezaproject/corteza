@@ -1,5 +1,0 @@
-namespaces:
-  service-solution:
-    (envoy): { onExisting: "skip" }
-    name: Case management
-    enabled: true
