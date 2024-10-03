@@ -49,7 +49,10 @@ export class Namespace {
   public canUpdateNamespace = false
   public canManageNamespace = false
   public canCloneNamespace = false
+  public canExportNamespace = false
   public canGrant = false
+  public canExportChart = false
+  public canExportModule = false
 
   constructor (i?: PartialNamespace) {
     this.apply(i)
@@ -77,14 +80,17 @@ export class Namespace {
 
     Apply(this, n, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, n, Boolean,
-      'canCreateChart',
-      'canCreateModule',
-      'canCreatePage',
       'canDeleteNamespace',
       'canUpdateNamespace',
       'canManageNamespace',
       'canCloneNamespace',
+      'canExportNamespace',
       'canGrant',
+      'canCreateModule',
+      'canExportModule',
+      'canCreatePage',
+      'canCreateChart',
+      'canExportChart',
     )
   }
 

@@ -52,6 +52,7 @@
         />
 
         <export
+          v-if="namespace.canExportModule"
           :list="modules"
           type="module"
         />

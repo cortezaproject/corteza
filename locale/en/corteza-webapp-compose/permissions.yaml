@@ -41,6 +41,68 @@ ui:
 
 resources:
   compose:
+    namespace:
+      all: all namespaces
+      specific: namespace "{{target}}"
+      tooltip: Namespace permissions
+      operations:
+        read:
+          description: ""
+          specific: Read namespace "{{target}}"
+          title: Read any namespace
+        update:
+          description: ""
+          specific: Update namespace "{{target}}"
+          title: Update any namespace
+        delete:
+          description: ""
+          specific: Delete namespace "{{target}}"
+          title: Delete any namespace
+        manage:
+          description: Allow access to namespace's admin pages
+          specific: Manage namespace "{{target}}"
+          title: Manage any namespace
+        export:
+          description: ""
+          specific: Export namespace "{{target}}"
+          title: Export any namespace
+        module.create:
+          description: ""
+          specific: Create modules under namespace "{{target}}"
+          title: Create modules under any namespace
+        modules.export:
+          description: ""
+          specific: Export modules in namespace "{{target}}"
+          title: Export modules in any namespace
+        modules.search:
+          description: ""
+          specific: List and search modules under namespace "{{target}}"
+          title: List and search modules under any namespace
+        page.create:
+          description: ""
+          specific: Create pages under namespace "{{target}}"
+          title: Create pages under any namespace
+        pages.search:
+          description: ""
+          specific: List and search pages under namespace "{{target}}"
+          title: List and search pages under any namespace
+        pages.export:
+          description: ""
+          specific: Export pages in namespace "{{target}}"
+          title: Export pages in any namespace
+        chart.create:
+          description: ""
+          specific: Create charts under namespace "{{target}}"
+          title: Create charts under any namespace
+        charts.search:
+          description: ""
+          specific: List and search charts under namespace "{{target}}"
+          title: List and search charts under any namespace
+        charts.export:
+          description: ""
+          specific: Export charts in namespace "{{target}}"
+          title: Export charts in any namespace
+
     chart:
       all: all charts
       specific: chart "{{target}}"
@@ -106,52 +168,6 @@ resources:
           specific: 'Update "{{target}}" record field values'
           title: Update record field values of any module
           all-specific: Update record field values of module "{{ target }}"
-
-    namespace:
-      all: all namespaces
-      specific: namespace "{{target}}"
-      tooltip: Namespace permissions
-      operations:
-        chart.create:
-          description: ""
-          specific: Create charts under namespace "{{target}}"
-          title: Create charts under any namespace
-        charts.search:
-          description: ""
-          specific: List and search charts under namespace "{{target}}"
-          title: List and search charts under any namespace
-        delete:
-          description: ""
-          specific: Delete namespace "{{target}}"
-          title: Delete any namespace
-        manage:
-          description: Allow access to namespace's admin pages
-          specific: Manage namespace "{{target}}"
-          title: Manage any namespace
-        module.create:
-          description: ""
-          specific: Create modules under namespace "{{target}}"
-          title: Create modules under any namespace
-        modules.search:
-          description: ""
-          specific: List and search modules under namespace "{{target}}"
-          title: List and search modules under any namespace
-        page.create:
-          description: ""
-          specific: Create pages under namespace "{{target}}"
-          title: Create pages under any namespace
-        pages.search:
-          description: ""
-          specific: List and search pages under namespace "{{target}}"
-          title: List and search pages under any namespace
-        read:
-          description: ""
-          specific: Read namespace "{{target}}"
-          title: Read any namespace
-        update:
-          description: ""
-          specific: Update namespace "{{target}}"
-          title: Update any namespace
 
     page:
       all: all pages

@@ -507,6 +507,8 @@ resources:
           title: Create charts under any namespace
         charts.search:
           title: List and search charts under any namespace
+        charts.export:
+          title: Export charts under any namespace
         delete:
           title: Delete any namespace
         manage:
@@ -515,6 +517,8 @@ resources:
           title: Create modules under any namespace
         modules.search:
           title: List and search modules under any namespace
+        modules.export:
+          title: Export modules under any namespace
         page.create:
           title: Create pages under any namespace
         pages.search:
@@ -523,6 +527,8 @@ resources:
           title: Access any namespace
         update:
           title: Update any namespace
+        export:
+          title: Export any namespace
     page:
       label: Pages
       operations:

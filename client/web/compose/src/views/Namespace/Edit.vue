@@ -63,6 +63,7 @@
             #header
           >
             <b-btn
+              v-if="namespace.canExportNamespace"
               data-test-id="button-export-namespace"
               variant="light"
               size="lg"
