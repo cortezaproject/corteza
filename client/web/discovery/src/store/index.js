@@ -16,17 +16,20 @@ export default new Vuex.Store({
       state.processing = value
     },
 
-    updateTypes (state, types) {
+    updateTypes (state, types = []) {
       state.types = types
     },
-    updateAggregations (state, aggs) {
+
+    updateAggregations (state, aggs = []) {
       state.aggregations = aggs
     },
-    updateModules (state, value) {
-      state.modules = value
+
+    updateModules (state, modules = []) {
+      state.modules = modules
     },
-    updateNamespaces (state, value) {
-      state.namespaces = value
+
+    updateNamespaces (state, namespaces = []) {
+      state.namespaces = namespaces
     },
   },
   actions: {
