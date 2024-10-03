@@ -61,6 +61,7 @@
         />
 
         <export
+          v-if="namespace.canExportChart"
           :list="charts"
           type="chart"
         />

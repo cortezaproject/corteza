@@ -23,12 +23,21 @@
             no-body
             class="shadow-sm"
           >
-            <b-card-header class="d-flex py-3 align-items-center border-bottom">
+            <b-card-header class="d-flex py-3 align-items-center border-bottom gap-1">
               <export
+                v-if="chart.canExportChart"
                 slot="header"
                 :list="[chart]"
                 type="chart"
-                class="float-right"
+              />
+
+              <c-permissions-button
+                v-if="namespace.canGrant"
+                :title="chart.name || chart.handle || chart.chartID"
+                :target="chart.name || chart.handle || chart.chartID"
+                :resource="`corteza::compose:chart/${namespace.namespaceID}/${chart.chartID}`"
+                :button-label="$t('general.label.permissions')"
+                class="btn-lg"
               />
             </b-card-header>
 
