@@ -16,7 +16,6 @@ type (
 
 		CanGrant       bool `json:"canGrant"`
 		CanUpdateChart bool `json:"canUpdateChart"`
-		CanExportChart bool `json:"canExportChart"`
 		CanDeleteChart bool `json:"canDeleteChart"`
 	}
 
@@ -43,7 +42,6 @@ type (
 		CanGrant(context.Context) bool
 
 		CanUpdateChart(context.Context, *types.Chart) bool
-		CanExportChart(context.Context, *types.Chart) bool
 		CanDeleteChart(context.Context, *types.Chart) bool
 	}
 )
@@ -156,7 +154,6 @@ func (ctrl Chart) makePayload(ctx context.Context, c *types.Chart, err error) (*
 		CanGrant: ctrl.ac.CanGrant(ctx),
 
 		CanUpdateChart: ctrl.ac.CanUpdateChart(ctx, c),
-		CanExportChart: ctrl.ac.CanExportChart(ctx, c),
 		CanDeleteChart: ctrl.ac.CanDeleteChart(ctx, c),
 	}, nil
 }

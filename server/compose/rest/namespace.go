@@ -36,11 +36,10 @@ type (
 		CanDeleteNamespace bool `json:"canDeleteNamespace"`
 		CanManageNamespace bool `json:"canManageNamespace"`
 		CanCreateModule    bool `json:"canCreateModule"`
-		CanExportModule    bool `json:"canExportModule"`
+		CanExportModules   bool `json:"canExportModules"`
 		CanCreateChart     bool `json:"canCreateChart"`
-		CanExportChart     bool `json:"canExportChart"`
+		CanExportCharts    bool `json:"canExportCharts"`
 		CanCreatePage      bool `json:"canCreatePage"`
-		CanExportPage      bool `json:"canExportPage"`
 	}
 
 	namespaceSetPayload struct {
@@ -85,7 +84,6 @@ type (
 		CanCreateChartOnNamespace(context.Context, *types.Namespace) bool
 		CanExportChartsOnNamespace(context.Context, *types.Namespace) bool
 		CanCreatePageOnNamespace(context.Context, *types.Namespace) bool
-		CanExportPagesOnNamespace(context.Context, *types.Namespace) bool
 	}
 )
 
@@ -364,12 +362,11 @@ func (ctrl Namespace) makePayload(ctx context.Context, ns *types.Namespace, err 
 		CanDeleteNamespace: ctrl.ac.CanDeleteNamespace(ctx, ns),
 		CanManageNamespace: ctrl.ac.CanManageNamespace(ctx, ns),
 
-		CanCreateModule: ctrl.ac.CanCreateModuleOnNamespace(ctx, ns),
-		CanExportModule: ctrl.ac.CanExportModulesOnNamespace(ctx, ns),
-		CanCreateChart:  ctrl.ac.CanCreateChartOnNamespace(ctx, ns),
-		CanExportChart:  ctrl.ac.CanExportChartsOnNamespace(ctx, ns),
-		CanCreatePage:   ctrl.ac.CanCreatePageOnNamespace(ctx, ns),
-		CanExportPage:   ctrl.ac.CanExportPagesOnNamespace(ctx, ns),
+		CanCreateModule:  ctrl.ac.CanCreateModuleOnNamespace(ctx, ns),
+		CanExportModules: ctrl.ac.CanExportModulesOnNamespace(ctx, ns),
+		CanCreateChart:   ctrl.ac.CanCreateChartOnNamespace(ctx, ns),
+		CanExportCharts:  ctrl.ac.CanExportChartsOnNamespace(ctx, ns),
+		CanCreatePage:    ctrl.ac.CanCreatePageOnNamespace(ctx, ns),
 	}, nil
 }
 

@@ -168,11 +168,6 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "delete",
 		},
 		{
-			"type": types.ChartResourceType,
-			"any":  types.ChartRbacResource(0, 0),
-			"op":   "export",
-		},
-		{
 			"type": types.ModuleResourceType,
 			"any":  types.ModuleRbacResource(0, 0),
 			"op":   "read",
@@ -186,11 +181,6 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ModuleResourceType,
 			"any":  types.ModuleRbacResource(0, 0),
 			"op":   "delete",
-		},
-		{
-			"type": types.ModuleResourceType,
-			"any":  types.ModuleRbacResource(0, 0),
-			"op":   "export",
 		},
 		{
 			"type": types.ModuleResourceType,
@@ -283,11 +273,6 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "pages.search",
 		},
 		{
-			"type": types.NamespaceResourceType,
-			"any":  types.NamespaceRbacResource(0),
-			"op":   "pages.export",
-		},
-		{
 			"type": types.PageResourceType,
 			"any":  types.PageRbacResource(0, 0),
 			"op":   "read",
@@ -301,11 +286,6 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.PageResourceType,
 			"any":  types.PageRbacResource(0, 0),
 			"op":   "delete",
-		},
-		{
-			"type": types.PageResourceType,
-			"any":  types.PageRbacResource(0, 0),
-			"op":   "export",
 		},
 		{
 			"type": types.PageResourceType,
@@ -505,13 +485,6 @@ func (svc accessControl) CanDeleteChart(ctx context.Context, r *types.Chart) boo
 	return svc.can(ctx, "delete", r)
 }
 
-// CanExportChart checks if current user can access to export charts
-//
-// This function is auto-generated
-func (svc accessControl) CanExportChart(ctx context.Context, r *types.Chart) bool {
-	return svc.can(ctx, "export", r)
-}
-
 // CanReadModule checks if current user can read
 //
 // This function is auto-generated
@@ -531,13 +504,6 @@ func (svc accessControl) CanUpdateModule(ctx context.Context, r *types.Module) b
 // This function is auto-generated
 func (svc accessControl) CanDeleteModule(ctx context.Context, r *types.Module) bool {
 	return svc.can(ctx, "delete", r)
-}
-
-// CanExportModule checks if current user can access to export modules
-//
-// This function is auto-generated
-func (svc accessControl) CanExportModule(ctx context.Context, r *types.Module) bool {
-	return svc.can(ctx, "export", r)
 }
 
 // CanCreateRecordOnModule checks if current user can create record
@@ -666,13 +632,6 @@ func (svc accessControl) CanSearchPagesOnNamespace(ctx context.Context, r *types
 	return svc.can(ctx, "pages.search", r)
 }
 
-// CanExportPagesOnNamespace checks if current user can export pages on namespace
-//
-// This function is auto-generated
-func (svc accessControl) CanExportPagesOnNamespace(ctx context.Context, r *types.Namespace) bool {
-	return svc.can(ctx, "pages.export", r)
-}
-
 // CanReadPage checks if current user can read
 //
 // This function is auto-generated
@@ -692,13 +651,6 @@ func (svc accessControl) CanUpdatePage(ctx context.Context, r *types.Page) bool 
 // This function is auto-generated
 func (svc accessControl) CanDeletePage(ctx context.Context, r *types.Page) bool {
 	return svc.can(ctx, "delete", r)
-}
-
-// CanExportPage checks if current user can access to export pages
-//
-// This function is auto-generated
-func (svc accessControl) CanExportPage(ctx context.Context, r *types.Page) bool {
-	return svc.can(ctx, "export", r)
 }
 
 // CanCreatePageLayoutOnPage checks if current user can create page layout on namespace
@@ -932,14 +884,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"read":   true,
 			"update": true,
 			"delete": true,
-			"export": true,
 		}
 	case types.ModuleResourceType:
 		return map[string]bool{
 			"read":                true,
 			"update":              true,
 			"delete":              true,
-			"export":              true,
 			"record.create":       true,
 			"owned-record.create": true,
 			"records.search":      true,
@@ -964,14 +914,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"charts.export":  true,
 			"page.create":    true,
 			"pages.search":   true,
-			"pages.export":   true,
 		}
 	case types.PageResourceType:
 		return map[string]bool{
 			"read":                true,
 			"update":              true,
 			"delete":              true,
-			"export":              true,
 			"page-layout.create":  true,
 			"page-layouts.search": true,
 		}

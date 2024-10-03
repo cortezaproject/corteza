@@ -99,7 +99,6 @@ chart: {
 			"read": {}
 			"update": {}
 			"delete": {}
-			"export": description:  "Access to export charts"
 		}
 	}
 

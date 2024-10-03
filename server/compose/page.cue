@@ -166,7 +166,6 @@ page: {
 			"read": {}
 			"update": {}
 			"delete": {}
-			"export":             description:  "Access to export pages"
 			"page-layout.create": description:    "Create page layout on namespace"
 			"page-layouts.search": description:   "List, search or filter page layouts on namespace"
 		}
