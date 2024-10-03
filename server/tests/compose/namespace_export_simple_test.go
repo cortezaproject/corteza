@@ -2,6 +2,9 @@ package compose
 
 import (
 	"testing"
+
+	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 )
 
 func Test_namespace_export_simple(t *testing.T) {
@@ -11,6 +14,10 @@ func Test_namespace_export_simple(t *testing.T) {
 
 	ns, _, _, _, _, err := fetchEntireNamespace(ctx, s, "ns1")
 	h.a.NoError(err)
+
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "export")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "modules.export")
+	helpers.AllowMe(h, types.NamespaceRbacResource(0), "charts.export")
 
 	arch := namespaceExportSafe(t, h, ns.ID)
 	sessionID := namespaceImportInitSafe(t, h, arch)
