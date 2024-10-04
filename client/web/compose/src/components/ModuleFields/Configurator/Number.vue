@@ -23,14 +23,13 @@
         lg="6"
       >
         <b-form-group
-          v-b-tooltip.hover="{ title: hasData ? $t('not-configurable') : '', container: '#body' }"
+          v-b-tooltip.hover="{ title: hasData ? $t('not-configurable') : $t('kind.number.precisionTooltip'), container: '#body' }"
           :label="`${$t('kind.number.precisionLabel')} ${(f.options.precision)}`"
           label-class="mb-2 text-primary"
         >
           <b-form-input
             v-model="f.options.precision"
             :disabled="hasData"
-            :placeholder="$t('kind.number.precisionPlaceholder')"
             type="range"
             min="0"
             max="6"

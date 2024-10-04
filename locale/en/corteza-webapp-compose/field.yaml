@@ -72,8 +72,8 @@ kind:
     formatPlaceholder: Format
     label: Number
     liveExample: Live example
-    precisionLabel: Precision
-    precisionPlaceholder: Precision
+    precisionLabel: Scale
+    precisionTooltip: Number of decimal places
     prefixLabel: Prefix
     prefixPlaceholder: Prefix
     suffixLabel: Suffix
