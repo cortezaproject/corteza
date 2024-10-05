@@ -81,13 +81,18 @@ export default {
   },
 
   mounted () {
-    this.preloadSelected()
+    if (this.value.length) {
+      this.preloadSelected()
+    }
   },
 
   methods: {
     addRole (role) {
       if (!this.value.includes(role.roleID)) {
-        this.selectedRoles.push(role)
+        if (!this.selectedRoles.some(({ roleID }) => roleID === role.roleID)) {
+          this.selectedRoles.push(role)
+        }
+
         this.$emit('input', [...this.value, role.roleID])
       }
     },
@@ -100,8 +105,10 @@ export default {
     preloadSelected () {
       this.preloading = true
 
-      return this.$SystemAPI.roleList({ memberID: this.$auth.user.userID })
-        .then(({ set }) => { this.selectedRoles = set || [] })
+      return this.$SystemAPI.roleList({ roleID: this.value })
+        .then(({ set }) => {
+          this.selectedRoles = set || []
+        })
         .finally(() => { this.preloading = false })
         .catch(this.toastErrorHandler(this.$t('notification:role.fetch.error')))
     },
