@@ -2,12 +2,15 @@
   <b-tab :title="$t('recordOrganizer.label')">
     <b-form-group
       :label="$t('general.module')"
+      label-class="text-primary"
     >
       <c-input-select
         v-model="options.moduleID"
-        :options="moduleOptions"
+        :options="modules"
         label="name"
         :reduce="m => m.moduleID"
+        :placeholder="$t('recordOrganizer.module.placeholder')"
+        default-value="0"
         required
       />
     </b-form-group>
@@ -59,103 +62,140 @@
         </i18next>
       </b-form-group>
 
-      <b-form-group
-        :label="$t('recordOrganizer.labelField.label')"
-        label-class="text-primary"
-      >
-        <c-input-select
-          v-model="options.labelField"
-          :options="selectedModuleFields"
-          :reduce="o => o.name"
-          :get-option-label="fieldLabel"
-          :placeholder="$t('general.label.none')"
-        />
-        <b-form-text>{{ $t('recordOrganizer.labelField.footnote') }}</b-form-text>
-      </b-form-group>
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.labelField.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.labelField"
+              :options="selectedModuleFields"
+              :reduce="o => o.name"
+              :get-option-label="fieldLabel"
+              :placeholder="$t('general.label.none')"
+            />
+            <b-form-text>{{ $t('recordOrganizer.labelField.footnote') }}</b-form-text>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        :label="$t('recordOrganizer.descriptionField.label')"
-        label-class="text-primary"
-      >
-        <c-input-select
-          v-model="options.descriptionField"
-          :options="selectedModuleFields"
-          :reduce="o => o.name"
-          :get-option-label="descriptionLabel"
-          :placeholder="$t('general.label.none')"
-        />
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.descriptionField.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.descriptionField"
+              :options="selectedModuleFields"
+              :reduce="o => o.name"
+              :get-option-label="descriptionLabel"
+              :placeholder="$t('general.label.none')"
+            />
 
-        <b-form-text class="text-secondary small">
-          {{ $t('recordOrganizer.descriptionField.footnote') }}
-        </b-form-text>
-      </b-form-group>
+            <b-form-text class="text-secondary small">
+              {{ $t('recordOrganizer.descriptionField.footnote') }}
+            </b-form-text>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        :label="$t('recordOrganizer.positionField.label')"
-        label-class="text-primary"
-      >
-        <c-input-select
-          v-model="options.positionField"
-          :placeholder="$t('recordOrganizer.positionField.placeholder')"
-          :reduce="f => f.name"
-          label="label"
-        />
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.groupField.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.groupField"
+              :options="groupFields"
+              :reduce="o => o.name"
+              :get-option-label="groupFieldLabel"
+              :placeholder="$t('general.label.none')"
+            />
 
-        <b-form-text class="text-secondary small">
-          {{ $t('recordOrganizer.positionField.footnote') }}
-        </b-form-text>
-      </b-form-group>
+            <b-form-text class="text-secondary small">
+              {{ $t('recordOrganizer.groupField.footnote') }}
+            </b-form-text>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        :label="$t('recordOrganizer.groupField.label')"
-        label-class="text-primary"
-      >
-        <c-input-select
-          v-model="options.groupField"
-          :options="groupFields"
-          :reduce="o => o.name"
-          :get-option-label="groupFieldLabel"
-          :placeholder="$t('general.label.none')"
-        />
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.group.label')"
+            label-class="text-primary"
+          >
+            <field-editor
+              v-if="options.groupField"
+              v-bind="mock"
+              value-only
+              class="mb-0"
+            />
 
-        <b-form-text class="text-secondary small">
-          {{ $t('recordOrganizer.groupField.footnote') }}
-        </b-form-text>
-      </b-form-group>
+            <b-form-input
+              v-else
+              disabled
+            />
 
-      <b-form-group
-        v-if="options.groupField"
-        :label="$t('recordOrganizer.group.label')"
-        label-class="text-primary"
-      >
-        <field-editor
-          class="mb-0"
-          value-only
-          v-bind="mock"
-        />
-        <b-form-text class="text-secondary small">
-          {{ $t('recordOrganizer.group.footnote') }}
-        </b-form-text>
-      </b-form-group>
+            <b-form-text class="text-secondary small">
+              {{ $t('recordOrganizer.group.footnote') }}
+            </b-form-text>
+          </b-form-group>
+        </b-col>
 
-      <b-form-group
-        v-if="options.groupField"
-        :label="$t('recordOrganizer.onRecordClick')"
-        label-class="text-primary"
-        class="mb-0"
-      >
-        <b-form-select
-          v-model="options.displayOption"
-          :options="displayOptions"
-        />
-      </b-form-group>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.positionField.label')"
+            label-class="text-primary"
+          >
+            <c-input-select
+              v-model="options.positionField"
+              :placeholder="$t('recordOrganizer.positionField.placeholder')"
+              :reduce="f => f.name"
+              label="label"
+            />
+
+            <b-form-text class="text-secondary small">
+              {{ $t('recordOrganizer.positionField.footnote') }}
+            </b-form-text>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('recordOrganizer.onRecordClick')"
+            label-class="text-primary"
+            class="mb-0"
+          >
+            <b-form-select
+              v-model="options.displayOption"
+              :options="displayOptions"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
     </div>
   </b-tab>
 </template>
 <script>
 import FieldEditor from '../ModuleFields/Editor'
 import { mapGetters } from 'vuex'
-import { compose, validator, NoID } from '@cortezaproject/corteza-js'
+import { compose, validator } from '@cortezaproject/corteza-js'
 import base from './base'
 
 export default {
@@ -191,13 +231,6 @@ export default {
     ...mapGetters({
       modules: 'module/set',
     }),
-
-    moduleOptions () {
-      return [
-        { moduleID: NoID, name: this.$t('general.label.none') },
-        ...this.modules,
-      ]
-    },
 
     selectedModule () {
       return this.modules.find(m => m.moduleID === this.options.moduleID)

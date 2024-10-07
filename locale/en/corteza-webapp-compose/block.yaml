@@ -426,6 +426,7 @@ recordList:
       title: Record import error report
       totalRecords: Total records
   label: Record list
+  modulePlaceholder: Select a module
   moduleFootnote: Modules without a {{0}} can only be used in a record list as an inline editor
   moduleFieldsFootnote : If no fields are selected, the default fields will be shown
   noRecords: There are no records matching your request
@@ -468,12 +469,12 @@ recordList:
     pagingLabel: Paging
     pagingOptions: Paging Options
     moreOptions: More Options
-    hidePaging: User will be able to use Paging
+    hidePaging: User will be able to navigate through pages
     inlineEditor: Inline Options
     inlineEditorAllow: Inline record editor
     recordsLabel: Records
     noPermission: No permission to read record
-    perPage: Per Page
+    perPage: Records per page
     prefilterFootnote: Simplified SQL condition (WHERE ...) syntax is supported. Variables like {{0}}, {{1}}, {{2}} and {{3}} are evaluated (when available)
     prefilterHideSearch: Users will be able to search the record list
     filterHide: Users will be able to filter the list
@@ -488,7 +489,7 @@ recordList:
     presortInputLabel: Presort
     presortPlaceholder: field1 DESC, field2 ASC
     showTotalCount: Show total record count
-    showRecordPerPageOption: Allow users to select records per page
+    showRecordPerPageOption: User will be able to select records per page
     showDeletedRecordsOption: Show option to see deleted records
     setCustomFilterPresets: User will be able to set custom filter presets
     openInSameTab: Open record in the same tab
@@ -525,6 +526,8 @@ recordOrganizer:
   openInSameTab: Open in the same tab
   openInNewTab: Open in a new tab
   openInModal: Open in a modal
+  module:
+    placeholder: Select a module
   descriptionField:
     footnote: Field value will be used as record description
     label: Description field
@@ -617,6 +620,8 @@ field:
       title: Update record values
 comment:
   label: Comments
+  module:
+    placeholder: Select a module
   titleField:
     label: Title field
     footnote: Field value will be used as record title
@@ -628,12 +633,12 @@ comment:
   submit: Submit
   sortDirection:
     label: Sort direction
-    footnote: Field value will be used as sorting direction reference
-    asc: ASC
-    desc: DESC
+    footnote: Sort comments by when they were created
+    asc: Ascending
+    desc: Descending
   referenceField:
     label: Reference field
-    footnote: Field value will be used as reference
+    footnote: Field that links comments with the parent record
 navigation:
   chart: Charts
   colorPicker: Choose a color

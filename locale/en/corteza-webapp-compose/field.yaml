@@ -116,7 +116,7 @@ kind:
     currentUnnamedModule: (Current unnamed module)
     label: Record
     moduleLabel: Module
-    modulePlaceholder: Pick module
+    modulePlaceholder: Select a module
     queryFieldsLabel: Query fields on search
     moduleField: Label field
     variantField: Variant field

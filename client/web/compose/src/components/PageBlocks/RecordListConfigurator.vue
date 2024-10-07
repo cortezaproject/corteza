@@ -15,7 +15,7 @@
         <b-row>
           <b-col
             cols="12"
-            lg="6"
+            :lg="isInlineEditorAllowed ? 6 : 12"
           >
             <b-form-group
               :label="$t('general.module')"
@@ -24,16 +24,18 @@
             >
               <c-input-select
                 v-model="options.moduleID"
-                :options="moduleOptions"
+                :options="modules"
                 label="name"
                 :reduce="o => o.moduleID"
+                :placeholder="$t('recordList.modulePlaceholder')"
+                default-value="0"
                 required
               />
             </b-form-group>
           </b-col>
 
           <b-col
-            v-if="recordListModule && (onRecordPage || options.editable)"
+            v-if="isInlineEditorAllowed"
             cols="12"
             lg="6"
           >
@@ -84,7 +86,7 @@
                 :module="recordListModule"
                 :fields.sync="options.fields"
                 class="mb-3"
-                style="height: 40vh;"
+                style="height: 50vh;"
               />
             </b-col>
 
@@ -150,7 +152,7 @@
               :fields.sync="options.editFields"
               :field-subset="options.fields"
               disable-system-fields
-              style="height: 40vh;"
+              style="height: 50vh;"
             />
           </b-form-group>
 
@@ -476,9 +478,33 @@
               lg="6"
             >
               <b-form-group
+                label-class="d-flex align-items-center text-primary p-0"
+              >
+                <template #label>
+                  {{ $t('recordList.record.fullPageNavigation') }}
+                  <c-hint
+                    :tooltip="$t('recordList.tooltip.performance.impact')"
+                    icon-class="text-warning"
+                  />
+                </template>
+
+                <c-input-checkbox
+                  v-model="options.fullPageNavigation"
+                  switch
+                  :labels="checkboxLabel"
+                  data-test-id="hide-page-navigation"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
                 horizontal
                 breakpoint="md"
-                label-class="d-flex align-items-center text-primary p-0"
+                label-class="d-flex align-items-center text-primary"
               >
                 <template #label>
                   {{ $t('recordList.record.perPage') }}
@@ -493,25 +519,6 @@
                   data-test-id="input-records-per-page"
                   type="number"
                   class="mb-2"
-                />
-              </b-form-group>
-            </b-col>
-          </b-row>
-
-          <b-row>
-            <b-col
-              cols="12"
-              lg="6"
-            >
-              <b-form-group
-                :label="$t('recordList.record.showTotalCount')"
-                label-class="text-primary"
-              >
-                <c-input-checkbox
-                  v-model="options.showTotalCount"
-                  data-test-id="show-total-record-count"
-                  switch
-                  :labels="checkboxLabel"
                 />
               </b-form-group>
             </b-col>
@@ -531,29 +538,20 @@
                 />
               </b-form-group>
             </b-col>
-          </b-row>
 
-          <b-row>
             <b-col
               cols="12"
               lg="6"
             >
               <b-form-group
-                label-class="d-flex align-items-center text-primary p-0"
+                :label="$t('recordList.record.showTotalCount')"
+                label-class="text-primary"
               >
-                <template #label>
-                  {{ $t('recordList.record.fullPageNavigation') }}
-                  <c-hint
-                    :tooltip="$t('recordList.tooltip.performance.impact')"
-                    icon-class="text-warning"
-                  />
-                </template>
-
                 <c-input-checkbox
-                  v-model="options.fullPageNavigation"
+                  v-model="options.showTotalCount"
+                  data-test-id="show-total-record-count"
                   switch
                   :labels="checkboxLabel"
-                  data-test-id="hide-page-navigation"
                 />
               </b-form-group>
             </b-col>
@@ -841,13 +839,6 @@ export default {
       ]
     },
 
-    moduleOptions () {
-      return [
-        { moduleID: NoID, name: this.$t('general.label.none') },
-        ...this.modules,
-      ]
-    },
-
     recordListModule () {
       if (this.options.moduleID !== NoID) {
         return this.getModuleByID(this.options.moduleID)
@@ -903,22 +894,8 @@ export default {
       return []
     },
 
-    /*
-      Inline record editor is disabled if:
-      - An inline record editor for the same module already exists
-      - Record list module doesn't have record page (inline record autoselected and disabled)
-    */
-    disableInlineEditor () {
-      const thisModuleID = this.options.moduleID
-
-      // Finds another inline editor block with the same recordListModule as this one
-      const otherInlineWithSameModule = this.blocks.some(({ kind, options }, index) => {
-        if (this.blockIndex !== index) {
-          return kind === 'RecordList' && options.editable && options.moduleID === thisModuleID
-        }
-      })
-
-      return otherInlineWithSameModule || !this.recordListModuleRecordPage
+    isInlineEditorAllowed () {
+      return this.recordListModule && (this.onRecordPage || this.options.editable)
     },
   },
 
@@ -974,10 +951,10 @@ export default {
   },
 
   methods: {
-    async fetchRoles () {
-      this.fetchingRoles = true
-
+    fetchRoles () {
       if (this.options.filterPresets.length) {
+        this.fetchingRoles = true
+
         const rolesToResolve = this.options.filterPresets.reduce((acc, { roles }) => {
           return acc.concat(roles)
         }, [])
