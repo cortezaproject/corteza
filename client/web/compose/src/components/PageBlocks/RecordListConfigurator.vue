@@ -952,25 +952,23 @@ export default {
 
   methods: {
     fetchRoles () {
-      if (this.options.filterPresets.length) {
-        this.fetchingRoles = true
-
-        const rolesToResolve = this.options.filterPresets.reduce((acc, { roles }) => {
-          return acc.concat(roles)
-        }, [])
-
-        Promise.all(rolesToResolve.map(roleID => {
-          if (this.resolvedRoles[roleID]) {
-            return Promise.resolve()
-          }
-
-          return this.$SystemAPI.roleRead({ roleID }).then(role => {
-            this.resolvedRoles[roleID] = role
-          })
-        })).finally(() => {
-          this.fetchingRoles = false
-        })
+      if (!this.options.filterPresets.length) {
+        return
       }
+
+      this.fetchingRoles = true
+
+      const rolesToResolve = this.options.filterPresets.reduce((acc, { roles }) => {
+        return acc.concat(roles)
+      }, [])
+
+      this.$SystemAPI.roleList({ roleID: rolesToResolve }).then(({ set }) => {
+        set.forEach(role => {
+          this.resolvedRoles[role.roleID] = role
+        })
+      }).finally(() => {
+        this.fetchingRoles = false
+      })
     },
 
     onFilterRoleChange (filter, roles) {

@@ -98,11 +98,19 @@ export default {
     },
 
     preloadSelected () {
+      if (!this.value.length) {
+        return
+      }
+
       this.preloading = true
 
-      return this.$SystemAPI.roleList({ memberID: this.$auth.user.userID })
-        .then(({ set }) => { this.selectedRoles = set || [] })
-        .finally(() => { this.preloading = false })
+      return this.$SystemAPI.roleList({ roleID: this.value })
+        .then(({ set }) => {
+          this.selectedRoles = set || []
+        })
+        .finally(() => {
+          this.preloading = false
+        })
         .catch(this.toastErrorHandler(this.$t('notification:role.fetch.error')))
     },
 

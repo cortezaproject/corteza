@@ -59,7 +59,7 @@
     />
 
     <c-user-editor-roles
-      v-if="user && userID"
+      v-if="user && userID && membership.active"
       v-model="membership.active"
       class="mt-3"
       :processing="roles.processing"
@@ -147,8 +147,8 @@ export default {
       initialUserState: undefined,
 
       membership: {
-        active: [],
-        initial: [],
+        active: undefined,
+        initial: undefined,
       },
 
       externalAuthProviders: [],
@@ -238,7 +238,10 @@ export default {
       this.incLoader()
       return this.$SystemAPI.userMembershipList({ userID: this.userID })
         .then((set = []) => {
-          this.membership = { active: [...set], initial: [...set] }
+          this.membership = {
+            active: [...set],
+            initial: [...set],
+          }
         })
         .catch(this.toastErrorHandler(this.$t('notification:user.roles.error')))
         .finally(() => {
