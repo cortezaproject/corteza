@@ -47,6 +47,11 @@ type (
 		// Search roles for member
 		MemberID uint64 `json:",string"`
 
+		// RoleID GET parameter
+		//
+		// Search roles by ID
+		RoleID []string
+
 		// Deleted GET parameter
 		//
 		// Exclude (0, default), include (1) or return only (2) deleted roles
@@ -277,6 +282,7 @@ func (r RoleList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"query":      r.Query,
 		"memberID":   r.MemberID,
+		"roleID":     r.RoleID,
 		"deleted":    r.Deleted,
 		"archived":   r.Archived,
 		"labels":     r.Labels,
@@ -295,6 +301,11 @@ func (r RoleList) GetQuery() string {
 // Auditable returns all auditable/loggable parameters
 func (r RoleList) GetMemberID() uint64 {
 	return r.MemberID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleList) GetRoleID() []string {
+	return r.RoleID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -347,6 +358,17 @@ func (r *RoleList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["memberID"]; ok && len(val) > 0 {
 			r.MemberID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["roleID[]"]; ok {
+			r.RoleID, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["roleID"]; ok {
+			r.RoleID, err = val, nil
 			if err != nil {
 				return err
 			}

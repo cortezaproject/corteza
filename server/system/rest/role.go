@@ -67,6 +67,7 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 			Query:    r.Query,
 			Labels:   r.Labels,
 			MemberID: r.MemberID,
+			RoleID:   r.RoleID,
 
 			Archived: filter.State(r.Archived),
 			Deleted:  filter.State(r.Deleted),

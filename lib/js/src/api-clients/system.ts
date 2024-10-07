@@ -696,6 +696,7 @@ export default class System {
     const {
       query,
       memberID,
+      roleID,
       deleted,
       archived,
       labels,
@@ -712,6 +713,7 @@ export default class System {
     cfg.params = {
       query,
       memberID,
+      roleID,
       deleted,
       archived,
       labels,
