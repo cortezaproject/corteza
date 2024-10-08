@@ -62,16 +62,14 @@
       @ok="saveExpression"
       @hidden="resetExpression"
     >
-      <c-ace-editor
+      <expression-editor
         v-model="currentExpressionValue"
         height="500"
         lang="javascript"
         font-size="18px"
         show-line-numbers
-        auto-complete
         :border="false"
         :show-popout="false"
-        :auto-complete-suggestions="expressionAutoCompleteValues"
       />
     </b-modal>
   </div>
@@ -80,14 +78,11 @@
 <script>
 import base from './base'
 import ExpressionTable from '../ExpressionTable.vue'
-import { components } from '@cortezaproject/corteza-vue'
-import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../../lib/editor-auto-complete.js'
-
-const { CAceEditor } = components
+import ExpressionEditor from '../ExpressionEditor.vue'
 
 export default {
   components: {
-    CAceEditor,
+    ExpressionEditor,
     ExpressionTable,
   },
 
@@ -101,8 +96,6 @@ export default {
         currentIndex: undefined,
         currentExpression: undefined,
       },
-
-      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
     }
   },
 
