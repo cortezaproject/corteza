@@ -97,12 +97,10 @@
               <b-form-group
                 class="mb-0"
               >
-                <c-ace-editor
+                <expression-editor
                   v-model="item[valueField]"
                   lang="javascript"
                   show-line-numbers
-                  auto-complete
-                  :auto-complete-suggestions="expressionAutoCompleteValues"
                   @open="$emit('open-editor', index)"
                   @input="$root.$emit('change-detected')"
                 />
@@ -116,16 +114,13 @@
 </template>
 
 <script>
-import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../lib/editor-auto-complete.js'
-import { components } from '@cortezaproject/corteza-vue'
+import ExpressionEditor from './ExpressionEditor.vue'
 import { objectSearchMaker } from '../lib/filter'
 import draggable from 'vuedraggable'
 
-const { CAceEditor } = components
-
 export default {
   components: {
-    CAceEditor,
+    ExpressionEditor,
     draggable,
   },
 
@@ -149,12 +144,6 @@ export default {
       type: Array,
       required: true,
     },
-  },
-
-  data () {
-    return {
-      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
-    }
   },
 
   methods: {

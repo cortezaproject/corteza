@@ -157,23 +157,19 @@
                     {{ a.target }}
                   </b-form-checkbox>
 
-                  <c-ace-editor
+                  <expression-editor
                     v-else
                     v-model="a.value"
-                    auto-complete
-                    :auto-complete-suggestions="expressionAutoCompleteValues"
                     @open="openInEditor(index)"
                     @input="$root.$emit('change-detected')"
                   />
                 </div>
 
-                <c-ace-editor
+                <expression-editor
                   v-else-if="a.valueType === 'expr'"
                   v-model="a.expr"
                   lang="javascript"
                   show-line-numbers
-                  auto-complete
-                  :auto-complete-suggestions="expressionAutoCompleteValues"
                   @open="openInEditor(index)"
                   @input="$root.$emit('change-detected')"
                 />
@@ -309,16 +305,14 @@
       @ok="saveExpression"
       @hidden="resetExpression"
     >
-      <c-ace-editor
+      <expression-editor
         v-model="currentExpressionValue"
         :lang="expressionEditor.lang"
         height="500"
         font-size="18px"
         show-line-numbers
-        auto-complete
         :border="false"
         :show-popout="false"
-        :auto-complete-suggestions="expressionAutoCompleteValues"
       />
     </b-modal>
   </div>
@@ -327,15 +321,12 @@
 <script>
 import base from './base'
 import ExpressionTable from '../ExpressionTable.vue'
+import ExpressionEditor from '../ExpressionEditor.vue'
 import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
-import { components } from '@cortezaproject/corteza-vue'
-import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../../lib/editor-auto-complete.js'
-
-const { CAceEditor } = components
 
 export default {
   components: {
-    CAceEditor,
+    ExpressionEditor,
     ExpressionTable,
   },
 
@@ -363,8 +354,6 @@ export default {
         currentExpression: undefined,
         lang: 'javascript',
       },
-
-      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
     }
   },
 

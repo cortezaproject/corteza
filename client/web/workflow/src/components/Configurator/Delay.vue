@@ -21,14 +21,11 @@
           label-class="text-primary"
           class="mb-0"
         >
-          <c-ace-editor
+          <expression-editor
             v-model="item.config.arguments[0].expr"
             lang="javascript"
             font-size="18px"
             show-line-numbers
-            auto-complete
-            :show-popout="false"
-            :auto-complete-suggestions="expressionAutoCompleteValues"
             @input="valueChanged"
           />
         </b-form-group>
@@ -39,23 +36,14 @@
 
 <script>
 import base from './base'
-import { components } from '@cortezaproject/corteza-vue'
-import { EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES } from '../../lib/editor-auto-complete.js'
-
-const { CAceEditor } = components
+import ExpressionEditor from '../ExpressionEditor'
 
 export default {
   components: {
-    CAceEditor,
+    ExpressionEditor,
   },
 
   extends: base,
-
-  data () {
-    return {
-      expressionAutoCompleteValues: EXPRESSION_EDITOR_AUTO_COMPLETE_VALUES,
-    }
-  },
 
   watch: {
     'item.config.stepID': {
