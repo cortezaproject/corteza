@@ -234,12 +234,14 @@ export default {
     margin: 0;
   }
 
-  &:not(.vs--open) .vs__selected + .vs__search {
+  &:not(.vs--open):not(.vs--loading) .vs__selected + .vs__search {
     // force this to not use any space
     // we still need it to be rendered for the focus
     width: 0;
     margin: 0;
     border: none;
+    padding: 0;
+    height: 0;
   }
 
   .vs__dropdown-toggle {

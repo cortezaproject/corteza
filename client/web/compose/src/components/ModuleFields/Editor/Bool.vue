@@ -49,7 +49,7 @@
     </c-input-checkbox>
 
     <div
-      v-if="!field.options.switch"
+      v-if="!valueOnly && !field.options.switch"
       class="small text-muted"
     >
       {{ description }}

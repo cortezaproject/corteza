@@ -111,10 +111,6 @@ export default {
     },
 
     label () {
-      if (this.valueOnly) {
-        return ''
-      }
-
       return this.field.label || this.field.name
     },
 

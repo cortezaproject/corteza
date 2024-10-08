@@ -72,18 +72,18 @@ export default {
   },
 
   mounted () {
-    this.fetchRoles()
+    this.fetchRoles(this.preselect)
   },
 
   methods: {
-    fetchRoles () {
+    fetchRoles (preselect = false) {
       this.loading = true
 
       return this.$SystemAPI.roleList({ query: this.filter, limit: 20 })
         .then(({ set }) => {
           this.roles = set.filter(this.visible)
 
-          if (this.preselect && (!this.value || !this.value.length)) {
+          if (preselect && (!this.value || !this.value.length)) {
             this.updateValue(this.roles[0])
           }
         }).finally(() => {
