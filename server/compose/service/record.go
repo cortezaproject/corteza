@@ -1744,6 +1744,8 @@ func (svc record) Organize(ctx context.Context, namespaceID, moduleID, recordID 
 			}
 		}
 
+		svc.recordInfoUpdate(ctx, r)
+
 		return store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) error {
 			if err = dalutils.ComposeRecordUpdate(ctx, svc.dal, m, r); err != nil {
 				return err
