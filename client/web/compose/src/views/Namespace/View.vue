@@ -1,6 +1,6 @@
 <template>
   <div
-    :id="namespace ? namespace.slug || namespace.namespaceID : ''"
+    id="namespace-view"
     class="d-flex w-100"
   >
     <router-view
