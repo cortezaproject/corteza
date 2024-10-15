@@ -615,6 +615,10 @@ export default {
     processFilter () {
       return this.componentFilter.map(({ groupCondition, filter = [], name }) => {
         filter = filter.map(({ record, ...f }) => {
+          if (!f.name) {
+            return
+          }
+
           if (record) {
             f.value = record[f.name] || record.values[f.name]
           }
@@ -627,10 +631,10 @@ export default {
           }
 
           return f
-        })
+        }).filter(f => f)
 
         return { groupCondition, filter, name }
-      })
+      }).filter(({ filter }) => filter.length)
     },
 
     onSave (close = true, type = 'filter') {

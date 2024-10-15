@@ -1139,11 +1139,16 @@ export default {
     },
 
     onFilter (filter = []) {
-      filter.forEach(f => {
-        f.name = this.$t('recordList.customFilter')
-      })
+      if (filter.length) {
+        filter.forEach(f => {
+          f.name = this.$t('recordList.customFilter')
+        })
 
-      this.activeFilters = [this.$t('recordList.customFilter')]
+        this.activeFilters = [this.$t('recordList.customFilter')]
+      } else {
+        this.activeFilters = []
+      }
+
       this.recordListFilter = filter
       this.setStorageRecordListFilter()
       this.refresh(true)
