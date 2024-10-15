@@ -1258,8 +1258,8 @@ export default {
       const r = new compose.Record(this.recordListModule, {})
 
       // Set record values that should be prefilled
-      if (this.record.recordID && this.options.refField) {
-        r.values[this.options.refField] = this.record.recordID
+      if ((this.record || {}).recordID && this.options.refField) {
+        r.values[this.options.refField] = (this.record || {}).recordID
       }
 
       this.items.unshift(this.wrapRecord(r))
@@ -1380,7 +1380,7 @@ export default {
         filter.push(`(${pf})`)
       }
 
-      if (refField && this.record.recordID) {
+      if (refField && (this.record || {}).recordID) {
         filter.push(`(${refField} = ${this.record.recordID})`)
       }
 
