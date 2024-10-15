@@ -124,7 +124,7 @@
 
         <div
           v-if="drillDownFilter || options.showDeletedRecordsOption || groupRecordListFilter.length"
-          class="d-block gap-1"
+          class="d-flex align-items-start gap-1"
         >
           <div
             v-if="groupRecordListFilter.length"
