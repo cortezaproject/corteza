@@ -1277,15 +1277,9 @@ export default {
     },
 
     onFilter (filter = []) {
-      if (filter.length) {
-        filter.forEach(f => {
-          f.name = this.$t('recordList.customFilter')
-        })
-
-        this.activeFilters = [this.$t('recordList.customFilter')]
-      } else {
-        this.activeFilters = []
-      }
+      filter.forEach(f => {
+        f.name = this.$t('recordList.customFilter')
+      })
 
       this.recordListFilter = filter
       this.setStorageRecordListFilter()
@@ -1523,7 +1517,7 @@ export default {
         filter.push(`(${pf})`)
       }
 
-      if (refField && (this.record || {}).recordID) {
+      if (refField && this.record.recordID) {
         filter.push(`(${refField} = ${this.record.recordID})`)
       }
 
