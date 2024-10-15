@@ -75,6 +75,7 @@
 
             <b-dropdown
               v-if="filterPresets.length"
+              ref="filterPresets"
               variant="light"
               size="lg"
               menu-class="shadow-sm"
@@ -1793,6 +1794,10 @@ export default {
     removeStorageRecordListFilterPreset (name) {
       this.customPresetFilters = this.customPresetFilters.filter(f => f.name !== name)
 
+      if (this.$refs.filterPresets) {
+        this.$refs.filterPresets.hide(true)
+      }
+
       try {
         setItem(`record-list-preset-${this.uniqueID}`, this.customPresetFilters)
       } catch (e) {
@@ -1914,6 +1919,10 @@ export default {
       this.recordListFilter = this.recordListFilter.concat(filter)
       this.activeFilters.push(name)
       this.refresh(true)
+
+      if (this.$refs.filterPresets) {
+        this.$refs.filterPresets.hide(true)
+      }
     },
 
     removeFilter (filterIndex) {
