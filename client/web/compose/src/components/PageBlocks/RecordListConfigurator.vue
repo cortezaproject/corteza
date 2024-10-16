@@ -303,100 +303,85 @@
                 >
                   <b-spinner v-if="fetchingRoles" />
 
-                  <template v-else>
-                    <b-table-simple
-                      borderless
-                      small
-                      responsive="lg"
-                      class="mb-0"
+                  <b-table-simple
+                    v-else
+                    borderless
+                    small
+                    responsive="lg"
+                    class="mb-2"
+                  >
+                    <draggable
+                      :list.sync="options.filterPresets"
+                      group="sort"
+                      handle=".grab"
+                      tag="tbody"
                     >
-                      <draggable
-                        :list.sync="options.filterPresets"
-                        group="sort"
-                        handle=".grab"
-                        tag="tbody"
+                      <b-tr
+                        v-for="(filter, index) in options.filterPresets"
+                        :key="index"
                       >
-                        <b-tr
-                          v-for="(filter, index) in options.filterPresets"
-                          :key="index"
+                        <b-td
+                          class="grab text-center align-middle"
+                          style="width: 40px;"
                         >
-                          <b-td
-                            class="grab text-center align-middle"
-                            style="width: 40px;"
-                          >
-                            <font-awesome-icon
-                              :icon="['fas', 'bars']"
-                              class="text-secondary"
-                            />
-                          </b-td>
+                          <font-awesome-icon
+                            :icon="['fas', 'bars']"
+                            class="text-secondary"
+                          />
+                        </b-td>
 
-                          <b-td
-                            class="align-middle"
-                            style="min-width: 150px;"
-                          >
-                            <b-input-group>
-                              <b-form-input
-                                v-model="filter.name"
-                                :placeholder="$t('recordList.filter.name.placeholder')"
+                        <b-td
+                          class="align-middle"
+                          style="min-width: 150px;"
+                        >
+                          <b-input-group>
+                            <b-form-input
+                              v-model="filter.name"
+                              :placeholder="$t('recordList.filter.name.placeholder')"
+                            />
+
+                            <b-input-group-append>
+                              <record-list-filter
+                                class="d-print-none"
+                                :target="`record-filter-${index}`"
+                                :namespace="namespace"
+                                :module="recordListModule"
+                                :record-list-filter="filter.filter"
+                                variant="extra-light"
+                                inactive-icon-class="text-light"
+                                button-class="px-2 pt-2"
+                                button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
+                                @filter="(filter) => onFilter(filter, index)"
                               />
+                            </b-input-group-append>
+                          </b-input-group>
+                        </b-td>
 
-                              <b-input-group-append>
-                                <record-list-filter
-                                  class="d-print-none"
-                                  :target="`record-filter-${index}`"
-                                  :namespace="namespace"
-                                  :module="recordListModule"
-                                  :selected-field="recordListModule.fields[0]"
-                                  :record-list-filter="filter.filter"
-                                  variant="extra-light"
-                                  inactive-icon-class="text-light"
-                                  button-class="px-2 pt-2"
-                                  button-style="border-top-left-radius: 0; border-bottom-left-radius: 0;"
-                                  @filter="(filter) => onFilter(filter, index)"
-                                />
-                              </b-input-group-append>
-                            </b-input-group>
-                          </b-td>
+                        <b-td
+                          class="text-center align-middle"
+                          style="min-width: 200px;"
+                        >
+                          <c-input-role
+                            :value="getFilterRoles(filter)"
+                            :placeholder="$t('recordList.filter.role.placeholder')"
+                            :visible="isRoleVisible"
+                            multiple
+                            @input="onFilterRoleChange(filter, $event)"
+                          />
+                        </b-td>
 
-                          <b-td
-                            class="text-center align-middle"
-                            style="min-width: 200px;"
-                          >
-                            <c-input-role
-                              :value="getFilterRoles(filter)"
-                              :placeholder="$t('recordList.filter.role.placeholder')"
-                              :visible="isRoleVisible"
-                              multiple
-                              @input="onFilterRoleChange(filter, $event)"
-                            />
-                          </b-td>
-
-                          <b-td
-                            class="text-right align-middle"
-                            style="min-width: 80px; width: 80px;"
-                          >
-                            <c-input-confirm
-                              show-icon
-                              @confirmed="options.filterPresets.splice(index, 1)"
-                            />
-                          </b-td>
-                        </b-tr>
-                      </draggable>
-                    </b-table-simple>
-
-                    <b-button
-                      variant="primary"
-                      size="sm"
-                      class="mt-1"
-                      @click="addFilterPreset"
-                    >
-                      <font-awesome-icon
-                        :icon="['fas', 'plus']"
-                        class="mr-1"
-                      />
-                      {{ $t('general:label.add') }}
-                    </b-button>
-                  </template>
+                        <b-td
+                          class="text-right align-middle"
+                          style="min-width: 80px; width: 80px;"
+                        >
+                          <c-input-confirm
+                            show-icon
+                            @confirmed="options.filterPresets.splice(index, 1)"
+                          />
+                        </b-td>
+                      </b-tr>
+                    </draggable>
+                  </b-table-simple>
                 </c-form-table-wrapper>
               </b-form-group>
             </b-col>

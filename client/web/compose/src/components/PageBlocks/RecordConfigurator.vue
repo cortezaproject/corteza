@@ -56,51 +56,20 @@
           </b-form-group>
         </b-col>
 
-        <template v-if="isRecordConfigured">
-          <b-col
-            cols="12"
-            lg="6"
-          >
-            <b-form-group
-              :label="$t('record.add')"
-              label-class="text-primary"
-            >
-              <c-input-checkbox
-                v-model="options.recordSelectorShowAddRecordButton"
-                switch
-                :labels="checkboxLabel"
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            lg="6"
-          >
-            <b-form-group
-              :label="$t('record.recordSelectorAddRecordDisplayOption')"
-              label-class="text-primary"
-            >
-              <b-form-select
-                v-model="options.recordSelectorAddRecordDisplayOption"
-                :options="recordDisplayOptions"
-                :disabled="!options.recordSelectorShowAddRecordButton"
-              />
-            </b-form-group>
-          </b-col>
-        </template>
-
         <b-col
           cols="12"
           lg="6"
         >
           <b-form-group
-            :label="$t('record.recordSelectorDisplayOptions')"
+            :label="$t('record.fieldsLayoutMode.label')"
             label-class="text-primary"
           >
-            <b-form-select
-              v-model="options.recordSelectorDisplayOption"
-              :options="recordDisplayOptions"
+            <c-input-select
+              v-model="options.recordFieldLayoutOption"
+              :options="recordFieldLayoutOptions"
+              :reduce="option => option.value"
+              :get-option-key="option => option.label"
+              @input="handleRecordFieldLayout"
             />
           </b-form-group>
         </b-col>
@@ -125,24 +94,6 @@
             />
           </b-form-group>
         </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('record.fieldsLayoutMode.label')"
-            label-class="text-primary"
-          >
-            <c-input-select
-              v-model="options.recordFieldLayoutOption"
-              :options="recordFieldLayoutOptions"
-              :reduce="option => option.value"
-              :get-option-key="option => option.label"
-              @input="handleRecordFieldLayout"
-            />
-          </b-form-group>
-        </b-col>
       </b-row>
     </div>
 
@@ -163,6 +114,58 @@
             :fields.sync="options.fields"
             style="height: 52vh;"
           />
+        </b-col>
+      </b-row>
+
+      <b-row
+        v-if="isRecordConfigured"
+        class="mt-3"
+      >
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.recordSelectorDisplayOptions')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="options.recordSelectorDisplayOption"
+              :options="recordDisplayOptions"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.recordSelectorCanAddRecord')"
+            label-class="text-primary"
+          >
+            <c-input-checkbox
+              v-model="options.recordSelectorShowAddRecordButton"
+              switch
+              :labels="checkboxLabel"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('record.recordSelectorAddRecordDisplayOption')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="options.recordSelectorAddRecordDisplayOption"
+              :options="recordDisplayOptions"
+              :disabled="!options.recordSelectorShowAddRecordButton"
+            />
+          </b-form-group>
         </b-col>
       </b-row>
     </div>
@@ -340,7 +343,7 @@ export default {
     },
 
     isRecordConfigured () {
-      return this.module.fields.some(f => f.kind === 'Record')
+      return this.options.fields.some(f => f.kind === 'Record')
     },
   },
 

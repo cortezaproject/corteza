@@ -1,5 +1,8 @@
 <template>
-  <div>
+  <b-table-simple
+    borderless
+    class="mb-0"
+  >
     <template v-for="(filterGroup, groupIndex) in value">
       <template v-if="filterGroup.filter.length">
         <b-tr
@@ -7,28 +10,7 @@
           :key="`${groupIndex}-${index}`"
           class="pb-2"
         >
-          <b-td
-            class="align-middle"
-            style="width: 1%;"
-          >
-            <h6
-              v-if="index === 0"
-              class="mb-0"
-            >
-              {{ $t("recordList.filter.where") }}
-            </h6>
-
-            <b-form-select
-              v-else
-              v-model="filter.condition"
-              :options="conditions"
-            />
-          </b-td>
-
-          <b-td
-            class="px-2"
-            style="width: 250px;"
-          >
+          <b-td style="width: 250px;">
             <c-input-select
               v-model="filter.name"
               :options="fieldOptions"
@@ -44,7 +26,7 @@
           <b-td
             v-if="getField(filter.name)"
             style="width: 250px;"
-            :class="{ 'pr-2': getField(filter.name) }"
+            :class="{ 'px-2': getField(filter.name) }"
           >
             <b-form-select
               v-if="getField(filter.name)"
@@ -54,6 +36,7 @@
               @change="updateFilterProperties(filter)"
             />
           </b-td>
+
           <b-td v-if="getField(filter.name)">
             <template v-if="isBetweenOperator(filter.operator)">
               <template v-if="getField(`${filter.name}-start`)">
@@ -90,6 +73,7 @@
               />
             </template>
           </b-td>
+
           <b-td
             v-if="getField(filter.name)"
             class="align-middle"
@@ -98,8 +82,8 @@
             <b-button
               :id="`${groupIndex}-${index}`"
               ref="delete"
-              variant="link"
-              class="d-flex align-items-center"
+              variant="outline-extra-light"
+              class="d-block text-dark border-0 h-full ml-2 px-2"
               @click="deleteFilter(groupIndex, index)"
             >
               <font-awesome-icon
@@ -110,16 +94,19 @@
           </b-td>
         </b-tr>
 
-        <b-tr :key="`addFilter-${groupIndex}`">
+        <b-tr
+          v-if="showAddCondition"
+          :key="`addFilter-${groupIndex}`"
+        >
           <b-td class="pb-0">
             <b-button
-              variant="link text-decoration-none"
-              style="min-height: 38px; min-width: 84px;"
+              variant="primary"
+              size="sm"
+              class="d-block mr-auto"
               @click="addFilter(groupIndex)"
             >
               <font-awesome-icon
                 :icon="['fas', 'plus']"
-                size="sm"
                 class="mr-1"
               />
               {{ $t("general.label.add") }}
@@ -134,17 +121,12 @@
             :class="{ 'pb-3': filterGroup.groupCondition }"
           >
             <div class="group-separator">
-              <b-form-select
-                v-if="filterGroup.groupCondition"
-                v-model="filterGroup.groupCondition"
-                class="m-auto w-auto d-block"
-                :options="conditions"
-              />
+              <div style="height: 20px; width: 100%;" />
 
               <b-button
-                v-else
+                v-if="groupIndex === (value.length - 1)"
                 variant="outline-primary"
-                class="py-2 px-3 m-auto bg-white d-block btn-add-group"
+                class="btn-add-group d-block py-2 px-3 m-auto bg-white  "
                 @click="addGroup()"
               >
                 <font-awesome-icon
@@ -157,7 +139,7 @@
         </b-tr>
       </template>
     </template>
-  </div>
+  </b-table-simple>
 </template>
 
 <script>
@@ -186,9 +168,9 @@ export default {
       required: true,
     },
 
-    namespace: {
-      type: compose.Namespace,
-      required: true,
+    selectedField: {
+      type: Object,
+      default: undefined,
     },
 
     mock: {
@@ -197,6 +179,11 @@ export default {
     },
 
     resetFilterOnCreated: {
+      type: Boolean,
+      default: false,
+    },
+
+    startEmpty: {
       type: Boolean,
       default: false,
     },
@@ -230,11 +217,25 @@ export default {
         }),
       ].filter(({ isFilterable }) => isFilterable)
     },
+
+    resolvedSelectedField () {
+      if (this.selectedField) {
+        return this.selectedField
+      } else if (this.fields.length) {
+        return this.fields[0]
+      }
+
+      return {}
+    },
+
+    showAddCondition () {
+      return this.value.length >= 1 && this.value[0].filter[0].name
+    },
   },
 
   created () {
-    if (this.resetFilterOnCreated) {
-      this.resetFilter()
+    if (this.resetFilterOnCreated || !this.startEmpty) {
+      this.$emit('input', [this.createDefaultFilterGroup(undefined, this.startEmpty ? undefined : this.resolvedSelectedField)])
     }
   },
 
@@ -371,7 +372,7 @@ export default {
     },
 
     deleteFilter (groupIndex, index) {
-      const value = this.value
+      let value = this.value
       const filterExists = !!(
         value[groupIndex] || { filter: [] }
       ).filter[index]
@@ -386,12 +387,13 @@ export default {
 
           // If no more filterGroups, add default back
           if (!value.length) {
-            this.resetFilter()
+            value = [this.createDefaultFilterGroup()]
           } else if (groupIndex === value.length) {
             // Reset first filterGroup groupCondition if last filterGroup was deleted
             value[groupIndex - 1].groupCondition = undefined
           }
         }
+
         this.$emit('input', value)
       }
 
@@ -409,10 +411,6 @@ export default {
       }
     },
 
-    resetFilter () {
-      this.$emit('input', [this.createDefaultFilterGroup()])
-    },
-
     getOptionKey ({ name }) {
       return name
     },
@@ -422,7 +420,7 @@ export default {
 
       if ((value[groupIndex] || {}).filter) {
         value[groupIndex].filter.push(
-          this.createDefaultFilter('AND', this.selectedField)
+          this.createDefaultFilter('AND', this.resolvedSelectedField)
         )
       }
 
@@ -442,7 +440,7 @@ export default {
       value[value.length - 1].groupCondition =
         'AND'
       value.push(
-        this.createDefaultFilterGroup(undefined, this.selectedField)
+        this.createDefaultFilterGroup(undefined, this.resolvedSelectedField)
       )
 
       this.$emit('input', value)

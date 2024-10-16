@@ -1,7 +1,7 @@
 <template>
   <b-card
-    :header="workflow ? $t('editTitle.workflow') : $t('editTitle.script')"
-    footer-class="text-right"
+    :title="workflow ? $t('editTitle.workflow') : $t('editTitle.script')"
+    footer-class="text-right pt-0"
     class="border"
   >
     <b-form-group

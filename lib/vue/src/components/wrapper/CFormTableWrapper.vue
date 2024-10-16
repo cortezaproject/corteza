@@ -1,6 +1,6 @@
 <template>
   <div class="list-background w-100 p-3 rounded border border-light">
-    <slot></slot>
+    <slot />
 
     <b-button
       v-if="!hideAddButton"
@@ -11,10 +11,10 @@
       :disabled="disableAddButton"
       @click="$emit('add-item')"
     >
-       <font-awesome-icon
-         :icon="['fas', 'plus']"
-         class="mr-1"
-       />
+      <font-awesome-icon
+        :icon="['fas', 'plus']"
+        class="mr-1"
+      />
 
       {{ labels.addButton || '' }}
     </b-button>
@@ -46,10 +46,10 @@ export default {
       default: '',
     },
 
-    buttonTestId : {
+    buttonTestId: {
       type: String,
       default: '',
-    }
+    },
   },
 }
 </script>

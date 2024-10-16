@@ -93,9 +93,8 @@
             />
           </c-input-select>
 
-          <b-input-group-append>
+          <b-input-group-append v-if="canAddRecordThroughSelectField">
             <b-button
-              v-if="canAddRecordThroughSelectField"
               v-b-tooltip.hover="{ title: $t('kind.record.tooltip.addRecord'), container: '#body' }"
               variant="light"
               class="d-flex align-items-center"
@@ -138,9 +137,9 @@
               @next="goToPage(true)"
             />
           </c-input-select>
-          <b-input-group-append>
+
+          <b-input-group-append v-if="canAddRecordThroughSelectField">
             <b-button
-              v-if="canAddRecordThroughSelectField"
               v-b-tooltip.hover="{ title: $t('kind.record.tooltip.addRecord'), container: '#body' }"
               variant="light"
               class="d-flex align-items-center"
@@ -191,9 +190,9 @@
             @next="goToPage(true)"
           />
         </c-input-select>
-        <b-input-group-append>
+
+        <b-input-group-append v-if="canAddRecordThroughSelectField">
           <b-button
-            v-if="canAddRecordThroughSelectField"
             v-b-tooltip.hover="{ title: $t('kind.record.tooltip.addRecord'), container: '#body' }"
             variant="light"
             class="d-flex align-items-center"
@@ -315,7 +314,7 @@ export default {
     },
 
     canAddRecordThroughSelectField () {
-      if (this.module === undefined) return
+      if (!this.extraOptions.recordSelectorShowAddRecordButton || this.module === undefined) return
 
       return !!this.getRecordSelectorPage().page.pageID && this.module.canCreateRecord
     },

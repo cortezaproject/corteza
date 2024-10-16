@@ -15,7 +15,7 @@
       <b-row>
         <b-col lg="6">
           <b-card
-            :header="$t('automation.configuredButtons')"
+            :title="$t('automation.configuredButtons')"
             footer-class="text-right"
             class="border"
           >
@@ -70,7 +70,7 @@
         <b-col>
           <b-card
             v-if="available.length > 0"
-            :header="$t('automation.availableScriptsAndWorkflow', { count: available.length })"
+            :title="$t('automation.availableScriptsAndWorkflow', { count: available.length })"
             class="border"
           >
             <c-input-search
@@ -87,12 +87,12 @@
               @click.prevent="appendButton(b)"
             >
               <b-list-group-item>
-                <div class="d-flex w-100 justify-content-between">
-                  <h5>
+                <div class="d-flex align-items-center w-100 justify-content-between">
+                  <h6>
                     {{ b.label || b.script }}
                     <b-badge
                       v-if="b.workflowID"
-                      variant="light"
+                      variant="info"
                     >
                       {{ $t('automation.badge.workflow') }}
                     </b-badge>
@@ -102,7 +102,7 @@
                     >
                       {{ $t('automation.badge.script') }}
                     </b-badge>
-                  </h5>
+                  </h6>
                   <code v-if="b.label && b.script">{{ b.script }}</code>
                 </div>
                 <p

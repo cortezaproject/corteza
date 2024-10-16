@@ -32,21 +32,17 @@
         class="position-static w-100"
       >
         <b-card-body
-          class="px-1 pb-0 overflow-auto"
+          class="px-2 pb-0 overflow-auto"
         >
-          <b-table-simple
+          <filter-toolbox
             v-if="componentFilter.length"
-            borderless
-            class="mb-0"
-          >
-            <filter-toolbox
-              v-model="componentFilter"
-              :module="module"
-              :namespace="namespace"
-              :mock.sync="mock"
-              @prevent-close="onValueChange"
-            />
-          </b-table-simple>
+            v-model="componentFilter"
+            :module="module"
+            :selected-field="selectedField"
+            :namespace="namespace"
+            :mock.sync="mock"
+            @prevent-close="onValueChange"
+          />
         </b-card-body>
 
         <b-card-footer
@@ -108,7 +104,7 @@ export default {
 
     selectedField: {
       type: Object,
-      required: true,
+      default: undefined,
     },
 
     namespace: {
@@ -166,12 +162,12 @@ export default {
   computed: {
     inFilter () {
       return this.recordListFilter.some(({ filter }) => {
-        return filter.some(({ name }) => name === this.selectedField.name)
+        return filter.some(({ name }) => name === (this.selectedField || {}).name)
       })
     },
 
     popoverTarget () {
-      return `${this.target || '0'}-${this.selectedField.name}`
+      return `${this.target || '0'}-${(this.selectedField || {}).name}`
     },
   },
 
@@ -374,7 +370,7 @@ export default {
     width: 800px;
     min-width: min(99vw, 350px);
     max-width: 99vw;
-    max-height: 60vh;
+    max-height: 25rem;
     padding: 0;
     color: var(--black);
     text-align: center;
@@ -398,28 +394,6 @@ export default {
     &::after {
       border-top-color: var(--white);
     }
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-.group-separator {
-  background-image: linear-gradient(to left, lightgray, lightgray);
-  background-repeat: no-repeat;
-  background-size: 100% 1px;
-  background-position: center;
-}
-
-td {
-  padding: 0;
-  padding-bottom: 0.5rem;
-  vertical-align: middle;
-}
-
-.btn-add-group {
-  &:hover, &:active {
-    background-color: var(--primary) !important;
-    color: var(--white) !important;
   }
 }
 </style>

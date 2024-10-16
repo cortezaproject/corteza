@@ -8,9 +8,11 @@
       <b-row v-if="textInput">
         <b-col>
           <b-form-group label-class="text-primary">
-            <b-form-textarea
+            <c-input-expression
               v-model="options.prefilter"
-              :placeholder="$t('recordList.record.prefilterPlaceholder')"
+              height="3.688rem"
+              lang="javascript"
+              :suggestion-params="recordAutoCompleteParams"
             />
 
             <i18next
@@ -27,18 +29,14 @@
         </b-col>
       </b-row>
 
-      <c-form-table-wrapper
+      <filter-toolbox
         v-else
-        hide-add-button
-      >
-        <filter-toolbox
-          v-model="filterGroup"
-          :module="module"
-          :namespace="namespace"
-          :mock.sync="mock"
-          reset-filter-on-created
-        />
-      </c-form-table-wrapper>
+        v-model="filterGroup"
+        :module="module"
+        :mock.sync="mock"
+        reset-filter-on-created
+        start-empty
+      />
 
       <div class="mt-1 d-flex align-items-center">
         <b-button
@@ -55,12 +53,16 @@
 </template>
 
 <script>
+import { components } from '@cortezaproject/corteza-vue'
 import { compose, validator } from '@cortezaproject/corteza-js'
 import {
   getRecordListFilterSql,
   trimChar,
 } from 'corteza-webapp-compose/src/lib/record-filter.js'
 import FilterToolbox from 'corteza-webapp-compose/src/components/Common/FilterToolbox.vue'
+import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
+
+const { CInputExpression } = components
 
 export default {
   i18nOptions: {
@@ -71,7 +73,10 @@ export default {
 
   components: {
     FilterToolbox,
+    CInputExpression,
   },
+
+  mixins: [autocomplete],
 
   props: {
     options: {
@@ -88,6 +93,12 @@ export default {
       type: compose.Module,
       required: true,
     },
+
+    record: {
+      type: [Object, null],
+      required: false,
+      default: null,
+    },
   },
 
   data () {
@@ -95,6 +106,12 @@ export default {
       textInput: true,
       filterGroup: [],
     }
+  },
+
+  computed: {
+    recordAutoCompleteParams () {
+      return this.processRecordAutoCompleteParams({ operators: true })
+    },
   },
 
   created () {
@@ -129,7 +146,7 @@ export default {
   methods: {
     toggleFilterView () {
       if (!this.textInput) {
-        this.options.prefilter = this.parseFilter()
+        this.options.prefilter = this.parseFilter() || this.options.prefilter
       }
 
       this.textInput = !this.textInput
