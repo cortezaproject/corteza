@@ -35,16 +35,13 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
     switch (op.toUpperCase()) {
       case '!=':
       case 'NOT LIKE':
-        return `(${left} ${op} ${right} OR ${left} IS NULL)`
+        return `((${left} ${op} ${right}) OR (${left} IS NULL))`
       case 'IN':
       case 'NOT IN':
         // flip left/right for IN/NOT IN
-        return `${right} ${op} ${left}`
-      case 'BETWEEN':
-      case 'NOT BETWEEN':
-        return `${left} ${op} ${right}`
+        return `(${right} ${op} ${left})`
       default:
-        return `${left} ${op} ${right}`
+        return `(${left} ${op} ${right})`
     }
   }
 
@@ -56,18 +53,18 @@ export function getFieldFilter (name, kind, query = '', operator = '=') {
     const boolQuery = toBoolean(query)
 
     if (boolQuery) {
-      return `${name} ${operation} true`
+      return `(${name} ${operation} true)`
     } else {
-      return `(${name} ${operation} false OR ${name} IS NULL)`
+      return `((${name} ${operation} false) OR (${name} IS NULL))`
     }
   }
 
   // Take care of special case where query is undefined and its not a Bool field
   if (!query && query !== 0) {
     if (operator === '=') {
-      return `${name} IS NULL`
+      return `(${name} IS NULL)`
     } else if (operator === '!=') {
-      return `${name} IS NOT NULL`
+      return `(${name} IS NOT NULL)`
     }
 
     return undefined
@@ -189,7 +186,7 @@ export function queryToFilter (searchQuery = '', prefilter = '', fields = [], re
   // Trim AND/OR from end of string
   const recordListFilterSql = trimChar(trimChar(recordListFilterSqlArray.join(''), ' AND '), ' OR ')
 
-  return [prefilter, searchQuery, recordListFilterSql].filter(f => f).join(' AND ')
+  return [prefilter, recordListFilterSql, searchQuery].filter(f => f).join(' AND ')
 }
 
 // Evaluates the given prefilter. Allows JS template literal expressions
