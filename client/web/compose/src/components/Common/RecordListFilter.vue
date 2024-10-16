@@ -32,7 +32,7 @@
         class="position-static w-100"
       >
         <b-card-body
-          class="px-2 pb-0 overflow-auto"
+          class="px-3 pb-0 overflow-auto"
         >
           <filter-toolbox
             v-if="componentFilter.length"

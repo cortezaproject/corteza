@@ -5,49 +5,65 @@
       label-class="text-primary"
       class="m-0"
     >
-      <b-row v-if="textInput">
-        <b-col>
-          <b-form-group label-class="text-primary">
-            <c-input-expression
-              v-model="options.prefilter"
-              height="3.688rem"
-              lang="javascript"
-              :suggestion-params="recordAutoCompleteParams"
-            />
+      <template v-if="textInput">
+        <c-input-expression
+          v-model="options.prefilter"
+          height="3.688rem"
+          lang="javascript"
+          :suggestion-params="recordAutoCompleteParams"
+        />
 
-            <i18next
-              path="recordList.record.prefilterFootnote"
-              tag="small"
-              class="text-muted"
-            >
-              <code>${record.values.fieldName}</code>
-              <code>${recordID}</code>
-              <code>${ownerID}</code>
-              <span><code>${userID}</code>, <code>${user.name}</code></span>
-            </i18next>
-          </b-form-group>
-        </b-col>
-      </b-row>
-
-      <filter-toolbox
-        v-else
-        v-model="filterGroup"
-        :module="module"
-        :mock.sync="mock"
-        reset-filter-on-created
-        start-empty
-      />
-
-      <div class="mt-1 d-flex align-items-center">
-        <b-button
-          variant="link"
-          size="sm"
-          class="ml-auto text-decoration-none"
-          @click="toggleFilterView"
+        <i18next
+          path="recordList.record.prefilterFootnote"
+          tag="small"
+          class="text-muted"
         >
-          {{ $t('recordList.prefilter.toggleInputType') }}
-        </b-button>
-      </div>
+          <code>${record.values.fieldName}</code>
+          <code>${recordID}</code>
+          <code>${ownerID}</code>
+          <span><code>${userID}</code>, <code>${user.name}</code></span>
+        </i18next>
+
+        <div class="d-flex align-items-center justify-content-end mt-1">
+          <b-button
+            variant="link"
+            size="sm"
+            class="text-decoration-none"
+            @click="toggleFilterInputType"
+          >
+            {{ $t('recordList.prefilter.toggleInputType') }}
+          </b-button>
+        </div>
+      </template>
+
+      <template v-else>
+        <filter-toolbox
+          v-model="filterGroup"
+          :module="module"
+          :mock.sync="mock"
+          reset-filter-on-created
+          start-empty
+        />
+
+        <div class="d-flex align-items-center justify-content-end mt-1 gap-1">
+          <b-button
+            variant="light"
+            size="sm"
+            @click="toggleFilterInputType"
+          >
+            {{ $t('general:label.cancel') }}
+          </b-button>
+
+          <b-button
+            variant="primary"
+            size="sm"
+            class="ml-1"
+            @click="saveFilter"
+          >
+            {{ $t('general:label.save') }}
+          </b-button>
+        </div>
+      </template>
     </b-form-group>
   </c-form-table-wrapper>
 </template>
@@ -144,11 +160,16 @@ export default {
   },
 
   methods: {
-    toggleFilterView () {
-      if (!this.textInput) {
-        this.options.prefilter = this.parseFilter() || this.options.prefilter
+    saveFilter (filter) {
+      if (filter && filter[0] && !filter[0].filter[0].name) {
+        return
       }
 
+      this.options.prefilter = this.parseFilter()
+      this.toggleFilterInputType()
+    },
+
+    toggleFilterInputType () {
       this.textInput = !this.textInput
     },
 
