@@ -79,6 +79,20 @@ func (v RecordValue) Cast(f *ModuleField) (interface{}, error) {
 		}
 		return cast.ToTimeE(v.Value)
 
+	case f.IsDateOnly():
+		if v.Value == "" {
+			return nil, nil
+		}
+
+		return time.Parse(DateOnlyLayout, v.Value)
+
+	case f.IsTimeOnly():
+		if v.Value == "" {
+			return nil, nil
+		}
+
+		return time.Parse(TimeOnlyLayout, v.Value)
+
 	case f.IsBoolean():
 		return expr.CastToBoolean(v.Value)
 
