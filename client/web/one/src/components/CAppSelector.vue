@@ -1,6 +1,6 @@
 <template>
   <div
-    class="app-selector d-flex flex-column h-100 mt-3"
+    class="app-selector d-flex flex-column h-100 py-2"
   >
     <div class="d-flex justify-content-center align-items-center">
       <b-img
@@ -9,21 +9,17 @@
       />
     </div>
 
-    <div class="search w-100 mx-auto my-3 px-5">
-      <div class="flex-grow-1 mt-1">
-        <c-input-search
-          v-model.trim="query"
-          data-v-onboarding="app-list"
-          :aria-label="$t('search')"
-          :placeholder="$t('search')"
-          :debounce="200"
-        />
-      </div>
+    <div class="search w-100 mx-auto my-4 px-5">
+      <c-input-search
+        v-model.trim="query"
+        data-v-onboarding="app-list"
+        :aria-label="$t('search')"
+        :placeholder="$t('search')"
+        :debounce="200"
+      />
     </div>
 
-    <div
-      class="flex-fill overflow-auto"
-    >
+    <div class="flex-fill overflow-auto">
       <b-container
         class="h-100"
       >
@@ -94,7 +90,7 @@
             data-test-id="heading-no-apps"
             class="mt-5"
           >
-            {{ $t('no-applications') }}
+            {{ query ? $t('no-applications-found') : $t('no-applications') }}
           </h4>
         </div>
       </b-container>
@@ -104,7 +100,8 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import Draggable from 'vuedraggable'
-import { url } from '@cortezaproject/corteza-vue'
+import { url, components } from '@cortezaproject/corteza-vue'
+const { CInputSearch } = components
 
 export default {
   i18nOptions: {
@@ -112,6 +109,7 @@ export default {
   },
 
   components: {
+    CInputSearch,
     Draggable,
   },
 
@@ -157,17 +155,6 @@ export default {
       return this.query
         ? this.appList.filter(({ name }) => (name.toUpperCase()).includes(query))
         : this.appList
-    },
-
-    filteredSteps () {
-      return this.steps.filter(step => {
-        if (step.dynamic) {
-          return this.filteredApps.some(app => {
-            return this.getStepName(app.unify.url) === step.name
-          })
-        }
-        return true
-      }).map(s => { return s.name })
     },
   },
 
