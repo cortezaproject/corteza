@@ -8,33 +8,6 @@ applications:
       logo: applications/low-code-platform.png
       url: compose/
 
-  - name: CRM Suite
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      icon: applications/low-code-crm-app.png
-      logo: applications/low-code-crm-app.png
-      url: compose/ns/crm/pages
-
-  - name: Case Management
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      icon: applications/low-code-service-solution-app.png
-      logo: applications/low-code-service-solution-app.png
-      url: compose/ns/service-solution/pages
-
-  - name: Jitsi Video Conferencing
-    (envoy): { skipIf: "!missing" }
-    enabled: true
-    unify:
-      listed: true
-      icon: applications/video-conference.png
-      logo: applications/video-conference.png
-      url: bridge/jitsi/
-
   - name: Admin Area
     (envoy): { skipIf: "!missing" }
     enabled: true
@@ -52,6 +25,15 @@ applications:
       icon: applications/workflows.png
       logo: applications/workflows.png
       url: workflow/
+
+  - name: Jitsi Video Conferencing
+    (envoy): { skipIf: "!missing" }
+    enabled: true
+    unify:
+      listed: true
+      icon: applications/video-conference.png
+      logo: applications/video-conference.png
+      url: bridge/jitsi/
 
   - name: Reporter
     (envoy): { skipIf: "!missing" }
