@@ -9,6 +9,7 @@
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.3.0/font/bootstrap-icons.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="icon" id="favicon" href="{{ links.AuthAssets }}/favicon.png">
 
 	<!-- Fonts -->
 	<link href="{{ links.AuthAssets }}/fonts.css" rel="stylesheet">
