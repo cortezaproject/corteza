@@ -101,7 +101,6 @@
       <b-dropdown
         v-if="!settings.hideProfile"
         data-test-id="dropdown-profile"
-        data-v-onboarding="profile"
         :variant="avatarExists ? 'link' : 'outline-extra-light'"
         :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
         size="lg"

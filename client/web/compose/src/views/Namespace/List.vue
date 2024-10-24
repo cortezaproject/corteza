@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="d-flex w-100 overflow-auto"
-  >
+  <div class="d-flex flex-column w-100 py-2 overflow-hidden h-100 py-2">
     <portal to="topbar-title">
       {{ $t('title') }}
     </portal>
@@ -23,52 +21,52 @@
       </b-btn>
     </portal>
 
-    <b-container
-      class="ns-wrapper"
-      fluid="xl"
-    >
-      <b-row
-        class="my-3"
-        no-gutters
-      >
-        <b-col
-          offset-md="2"
-          offset-lg="3"
-          md="8"
-          lg="6"
-        >
-          <c-input-search
-            v-model.trim="query"
-            :placeholder="$t('searchPlaceholder')"
-          />
-        </b-col>
-      </b-row>
+    <div class="d-flex flex-column justify-content-center align-items-center mx-4 my-2">
+      <b-img
+        :src="logo"
+        class="logo px-2"
+      />
 
-      <transition-group
-        v-if="filtered && filtered.length"
-        name="namespace-list"
-        tag="div"
-        class="row my-3 card-deck no-gutters"
-      >
-        <namespace-item
-          v-for="n in filtered"
-          :key="n.namespaceID"
-          :namespace="n"
+      <div class="search w-100 mx-auto my-4">
+        <c-input-search
+          v-model.trim="query"
+          :placeholder="$t('searchPlaceholder')"
+          :debounce="200"
         />
-      </transition-group>
-
-      <div
-        v-else
-        class="d-flex justify-content-center align-items-center h-50 w-100"
-      >
-        <h3
-          data-test-id="no-namespaces-found"
-          class="text-left"
-        >
-          {{ $t('noResults') }}
-        </h3>
       </div>
-    </b-container>
+    </div>
+
+    <div class="flex-fill overflow-auto">
+      <b-container class="ns-wrapper h-100">
+        <transition-group
+          v-if="filtered && filtered.length"
+          name="namespace-list"
+          tag="b-row"
+          class="d-flex flex-wrap align-items-stretch justify-content-center mx-2"
+        >
+          <b-col
+            v-for="n in filtered"
+            :key="n.namespaceID"
+            cols="12"
+            md="6"
+            lg="4"
+            xl="3"
+            class="p-2"
+          >
+            <namespace-item :namespace="n" />
+          </b-col>
+        </transition-group>
+
+        <div
+          v-else
+          class="d-flex justify-content-center align-items-center mt-5 w-100"
+        >
+          <h3 data-test-id="no-namespaces-found">
+            {{ $t('noResults') }}
+          </h3>
+        </div>
+      </b-container>
+    </div>
   </div>
 </template>
 <script>
@@ -109,6 +107,10 @@ export default {
       }, false)
     },
 
+    logo () {
+      return this.$Settings.attachment('ui.mainLogo')
+    },
+
     importNamespaceEndpoint () {
       return this.$ComposeAPI.namespaceImportEndpoint({})
     },
@@ -145,3 +147,21 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.logo {
+  max-height: 20vh;
+  max-width: 500px;
+  width: auto;
+}
+
+.search {
+  max-width: 600px;
+}
+
+@media only screen and (max-width: 576px) {
+  .logo {
+    max-width: 100%;
+  }
+}
+</style>

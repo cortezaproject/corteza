@@ -1,28 +1,23 @@
 <template>
-  <div
-    class="app-selector d-flex flex-column h-100 py-2"
-  >
-    <div class="d-flex justify-content-center align-items-center">
+  <div class="app-selector d-flex flex-column h-100 py-2">
+    <div class="d-flex flex-column justify-content-center align-items-center mx-4 my-2">
       <b-img
         :src="logo"
-        class="logo px-3"
+        class="logo px-2"
       />
-    </div>
 
-    <div class="search w-100 mx-auto my-4 px-5">
-      <c-input-search
-        v-model.trim="query"
-        data-v-onboarding="app-list"
-        :aria-label="$t('search')"
-        :placeholder="$t('search')"
-        :debounce="200"
-      />
+      <div class="search w-100 mx-auto my-4">
+        <c-input-search
+          v-model.trim="query"
+          :aria-label="$t('search')"
+          :placeholder="$t('search')"
+          :debounce="200"
+        />
+      </div>
     </div>
 
     <div class="flex-fill overflow-auto">
-      <b-container
-        class="h-100"
-      >
+      <b-container class="h-100">
         <draggable
           v-if="filteredApps.length"
           v-model="appList"
@@ -40,11 +35,10 @@
               v-for="app in filteredApps"
               :key="app.applicationID"
               cols="12"
-              sm="6"
-              md="4"
-              lg="3"
-              class="p-0 mb-3 mt-1"
-              :data-v-onboarding="getStepName(app.unify.url)"
+              md="6"
+              lg="4"
+              xl="3"
+              class="p-2"
             >
               <b-card
                 no-body
@@ -53,9 +47,7 @@
                 @mouseover="hovered = app.applicationID"
                 @mouseleave="hovered = undefined"
               >
-                <div
-                  class="align-content-center d-flex flex-grow-1 flex-wrap"
-                >
+                <div class="align-content-center d-flex flex-grow-1 flex-wrap">
                   <b-card-img
                     class="rounded-bottom thumbnail"
                     :src="logoUrl(app)"
@@ -63,11 +55,9 @@
                   />
                 </div>
 
-                <b-card-text
-                  class="text-center my-4 h6"
-                >
+                <h6 class="text-center my-4">
                   {{ app.unify.name || app.name }}
-                </b-card-text>
+                </h6>
 
                 <b-link
                   :data-test-id="app.name"
@@ -84,12 +74,9 @@
 
         <div
           v-else
-          class="d-flex justify-content-center w-100"
+          class="d-flex justify-content-center align-items-center mt-5 w-100"
         >
-          <h4
-            data-test-id="heading-no-apps"
-            class="mt-5"
-          >
+          <h4 data-test-id="heading-no-apps">
             {{ query ? $t('no-applications-found') : $t('no-applications') }}
           </h4>
         </div>
@@ -181,19 +168,6 @@ export default {
       unpinApp: 'applications/unpin',
     }),
 
-    getStepName (url) {
-      switch (url) {
-        case 'compose/':
-          return 'low-code'
-        case 'compose/ns/crm/pages':
-          return 'crm'
-        case 'reporter/':
-          return 'reporter'
-        case 'workflow/':
-          return 'workflow'
-      }
-    },
-
     fetchEffective () {
       this.$SystemAPI.permissionsEffective({ resource: 'application' })
         .then(p => {
@@ -263,7 +237,6 @@ export default {
     transition: all 0.2s ease;
     box-shadow: 0;
     top: 0;
-    margin: 0 0.625rem;
 
     .thumbnail {
       max-width: 100%;
