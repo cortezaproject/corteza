@@ -21,12 +21,7 @@
       </b-btn>
     </portal>
 
-    <div class="d-flex flex-column justify-content-center align-items-center mx-4 my-2">
-      <b-img
-        :src="logo"
-        class="logo px-2"
-      />
-
+    <div class="d-flex flex-column justify-content-center align-items-center mx-4 mb-2">
       <div class="search w-100 mx-auto my-4">
         <c-input-search
           v-model.trim="query"
@@ -107,10 +102,6 @@ export default {
       }, false)
     },
 
-    logo () {
-      return this.$Settings.attachment('ui.mainLogo')
-    },
-
     importNamespaceEndpoint () {
       return this.$ComposeAPI.namespaceImportEndpoint({})
     },
@@ -149,19 +140,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.logo {
-  max-height: 20vh;
-  max-width: 500px;
-  width: auto;
-}
-
 .search {
   max-width: 600px;
-}
-
-@media only screen and (max-width: 576px) {
-  .logo {
-    max-width: 100%;
-  }
 }
 </style>

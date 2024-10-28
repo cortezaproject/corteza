@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center py-2 px-3 gap-1">
+  <div class="header-navigation d-flex flex-wrap align-items-center py-2 px-3 gap-2">
     <div
       class="sidebar-spacer"
       :class="{
@@ -21,7 +21,7 @@
         data-test-id="app-selector"
         variant="outline-extra-light"
         :href="appSelectorURL"
-        class="text-dark border-0"
+        class="text-dark border-0 px-1"
       >
         {{ labels.appMenu }}
       </b-button>
