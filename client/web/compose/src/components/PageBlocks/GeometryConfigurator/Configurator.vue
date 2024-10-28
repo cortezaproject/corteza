@@ -202,7 +202,7 @@ export default {
 
     updateBounds (value) {
       if (value) {
-        const bounds = this.bounds || this.bounds
+        const bounds = this.bounds || {}
         const { _northEast, _southWest } = bounds
 
         this.options.bounds = [Object.values(_northEast), Object.values(_southWest)]
