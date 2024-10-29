@@ -225,7 +225,7 @@ export default {
         const { fields = [] } = this.options.metrics[metricIndex].drillDown.recordListOptions || {}
 
         const block = new compose.PageBlockRecordList({
-          title: name || this.$t('metric.metricDrillDown'),
+          title: name || title || this.$t('metric.metricDrillDown'),
           blockID: `drillDown-${metricID}`,
           options: {
             moduleID,
