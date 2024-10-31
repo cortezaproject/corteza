@@ -62,7 +62,6 @@ var (
 // setRecord updates recordActionProps's record
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setRecord(record *types.Record) *recordActionProps {
 	p.record = record
 	return p
@@ -71,7 +70,6 @@ func (p *recordActionProps) setRecord(record *types.Record) *recordActionProps {
 // setChanged updates recordActionProps's changed
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setChanged(changed *types.Record) *recordActionProps {
 	p.changed = changed
 	return p
@@ -80,7 +78,6 @@ func (p *recordActionProps) setChanged(changed *types.Record) *recordActionProps
 // setFilter updates recordActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setFilter(filter *types.RecordFilter) *recordActionProps {
 	p.filter = filter
 	return p
@@ -89,7 +86,6 @@ func (p *recordActionProps) setFilter(filter *types.RecordFilter) *recordActionP
 // setNamespace updates recordActionProps's namespace
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setNamespace(namespace *types.Namespace) *recordActionProps {
 	p.namespace = namespace
 	return p
@@ -98,7 +94,6 @@ func (p *recordActionProps) setNamespace(namespace *types.Namespace) *recordActi
 // setModule updates recordActionProps's module
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setModule(module *types.Module) *recordActionProps {
 	p.module = module
 	return p
@@ -107,7 +102,6 @@ func (p *recordActionProps) setModule(module *types.Module) *recordActionProps {
 // setBulkOperation updates recordActionProps's bulkOperation
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setBulkOperation(bulkOperation string) *recordActionProps {
 	p.bulkOperation = bulkOperation
 	return p
@@ -116,7 +110,6 @@ func (p *recordActionProps) setBulkOperation(bulkOperation string) *recordAction
 // setField updates recordActionProps's field
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setField(field string) *recordActionProps {
 	p.field = field
 	return p
@@ -125,7 +118,6 @@ func (p *recordActionProps) setField(field string) *recordActionProps {
 // setPositionField updates recordActionProps's positionField
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setPositionField(positionField *types.ModuleField) *recordActionProps {
 	p.positionField = positionField
 	return p
@@ -134,7 +126,6 @@ func (p *recordActionProps) setPositionField(positionField *types.ModuleField) *
 // setGroupField updates recordActionProps's groupField
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setGroupField(groupField *types.ModuleField) *recordActionProps {
 	p.groupField = groupField
 	return p
@@ -143,7 +134,6 @@ func (p *recordActionProps) setGroupField(groupField *types.ModuleField) *record
 // setValue updates recordActionProps's value
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setValue(value string) *recordActionProps {
 	p.value = value
 	return p
@@ -152,7 +142,6 @@ func (p *recordActionProps) setValue(value string) *recordActionProps {
 // setValueErrors updates recordActionProps's valueErrors
 //
 // This function is auto-generated.
-//
 func (p *recordActionProps) setValueErrors(valueErrors *types.RecordValueErrorSet) *recordActionProps {
 	p.valueErrors = valueErrors
 	return p
@@ -161,7 +150,6 @@ func (p *recordActionProps) setValueErrors(valueErrors *types.RecordValueErrorSe
 // Serialize converts recordActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p recordActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -219,7 +207,6 @@ func (p recordActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p recordActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -385,7 +372,6 @@ func (p recordActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *recordAction) String() string {
 	var props = &recordActionProps{}
 
@@ -413,7 +399,6 @@ func (e *recordAction) ToAction() *actionlog.Action {
 // RecordActionSearch returns "compose:record.search" action
 //
 // This function is auto-generated.
-//
 func RecordActionSearch(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -433,7 +418,6 @@ func RecordActionSearch(props ...*recordActionProps) *recordAction {
 // RecordActionSearchSensitive returns "compose:record.searchSensitive" action
 //
 // This function is auto-generated.
-//
 func RecordActionSearchSensitive(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -453,7 +437,6 @@ func RecordActionSearchSensitive(props ...*recordActionProps) *recordAction {
 // RecordActionLookup returns "compose:record.lookup" action
 //
 // This function is auto-generated.
-//
 func RecordActionLookup(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -473,7 +456,6 @@ func RecordActionLookup(props ...*recordActionProps) *recordAction {
 // RecordActionReport returns "compose:record.report" action
 //
 // This function is auto-generated.
-//
 func RecordActionReport(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -493,7 +475,6 @@ func RecordActionReport(props ...*recordActionProps) *recordAction {
 // RecordActionBulk returns "compose:record.bulk" action
 //
 // This function is auto-generated.
-//
 func RecordActionBulk(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -513,7 +494,6 @@ func RecordActionBulk(props ...*recordActionProps) *recordAction {
 // RecordActionCreate returns "compose:record.create" action
 //
 // This function is auto-generated.
-//
 func RecordActionCreate(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -533,7 +513,6 @@ func RecordActionCreate(props ...*recordActionProps) *recordAction {
 // RecordActionUpdate returns "compose:record.update" action
 //
 // This function is auto-generated.
-//
 func RecordActionUpdate(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -553,7 +532,6 @@ func RecordActionUpdate(props ...*recordActionProps) *recordAction {
 // RecordActionDelete returns "compose:record.delete" action
 //
 // This function is auto-generated.
-//
 func RecordActionDelete(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -573,7 +551,6 @@ func RecordActionDelete(props ...*recordActionProps) *recordAction {
 // RecordActionPatch returns "compose:record.patch" action
 //
 // This function is auto-generated.
-//
 func RecordActionPatch(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -593,7 +570,6 @@ func RecordActionPatch(props ...*recordActionProps) *recordAction {
 // RecordActionUndelete returns "compose:record.undelete" action
 //
 // This function is auto-generated.
-//
 func RecordActionUndelete(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -613,7 +589,6 @@ func RecordActionUndelete(props ...*recordActionProps) *recordAction {
 // RecordActionImport returns "compose:record.import" action
 //
 // This function is auto-generated.
-//
 func RecordActionImport(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -633,7 +608,6 @@ func RecordActionImport(props ...*recordActionProps) *recordAction {
 // RecordActionSearchRevisions returns "compose:record.searchRevisions" action
 //
 // This function is auto-generated.
-//
 func RecordActionSearchRevisions(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -653,7 +627,6 @@ func RecordActionSearchRevisions(props ...*recordActionProps) *recordAction {
 // RecordActionExport returns "compose:record.export" action
 //
 // This function is auto-generated.
-//
 func RecordActionExport(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -673,7 +646,6 @@ func RecordActionExport(props ...*recordActionProps) *recordAction {
 // RecordActionOrganize returns "compose:record.organize" action
 //
 // This function is auto-generated.
-//
 func RecordActionOrganize(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -693,7 +665,6 @@ func RecordActionOrganize(props ...*recordActionProps) *recordAction {
 // RecordActionIteratorInvoked returns "compose:record.iteratorInvoked" action
 //
 // This function is auto-generated.
-//
 func RecordActionIteratorInvoked(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -713,7 +684,6 @@ func RecordActionIteratorInvoked(props ...*recordActionProps) *recordAction {
 // RecordActionIteratorIteration returns "compose:record.iteratorIteration" action
 //
 // This function is auto-generated.
-//
 func RecordActionIteratorIteration(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -733,7 +703,6 @@ func RecordActionIteratorIteration(props ...*recordActionProps) *recordAction {
 // RecordActionIteratorClone returns "compose:record.iteratorClone" action
 //
 // This function is auto-generated.
-//
 func RecordActionIteratorClone(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -753,7 +722,6 @@ func RecordActionIteratorClone(props ...*recordActionProps) *recordAction {
 // RecordActionIteratorUpdate returns "compose:record.iteratorUpdate" action
 //
 // This function is auto-generated.
-//
 func RecordActionIteratorUpdate(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -773,7 +741,6 @@ func RecordActionIteratorUpdate(props ...*recordActionProps) *recordAction {
 // RecordActionIteratorDelete returns "compose:record.iteratorDelete" action
 //
 // This function is auto-generated.
-//
 func RecordActionIteratorDelete(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -793,7 +760,6 @@ func RecordActionIteratorDelete(props ...*recordActionProps) *recordAction {
 // RecordActionIteratorUndelete returns "compose:record.iteratorUndelete" action
 //
 // This function is auto-generated.
-//
 func RecordActionIteratorUndelete(props ...*recordActionProps) *recordAction {
 	a := &recordAction{
 		timestamp: time.Now(),
@@ -816,9 +782,7 @@ func RecordActionIteratorUndelete(props ...*recordActionProps) *recordAction {
 
 // RecordErrGeneric returns "compose:record.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrGeneric(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -852,9 +816,7 @@ func RecordErrGeneric(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotFound returns "compose:record.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotFound(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -886,9 +848,7 @@ func RecordErrNotFound(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNamespaceNotFound returns "compose:record.namespaceNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNamespaceNotFound(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -920,9 +880,7 @@ func RecordErrNamespaceNotFound(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrModuleNotFoundModule returns "compose:record.moduleNotFoundModule" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrModuleNotFoundModule(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -954,9 +912,7 @@ func RecordErrModuleNotFoundModule(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidID returns "compose:record.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidID(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -988,9 +944,7 @@ func RecordErrInvalidID(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidNamespaceID returns "compose:record.invalidNamespaceID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidNamespaceID(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1022,9 +976,7 @@ func RecordErrInvalidNamespaceID(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidModuleID returns "compose:record.invalidModuleID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidModuleID(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1056,9 +1008,7 @@ func RecordErrInvalidModuleID(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrStaleData returns "compose:record.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrStaleData(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1090,9 +1040,7 @@ func RecordErrStaleData(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToRead returns "compose:record.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToRead(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1126,9 +1074,7 @@ func RecordErrNotAllowedToRead(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToSearch returns "compose:record.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToSearch(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1162,9 +1108,7 @@ func RecordErrNotAllowedToSearch(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToSearchRevisions returns "compose:record.notAllowedToSearchRevisions" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToSearchRevisions(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1198,9 +1142,7 @@ func RecordErrNotAllowedToSearchRevisions(mm ...*recordActionProps) *errors.Erro
 
 // RecordErrRevisionsDisabledOnModule returns "compose:record.revisionsDisabledOnModule" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrRevisionsDisabledOnModule(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1234,9 +1176,7 @@ func RecordErrRevisionsDisabledOnModule(mm ...*recordActionProps) *errors.Error 
 
 // RecordErrNotAllowedToReadNamespace returns "compose:record.notAllowedToReadNamespace" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToReadNamespace(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1270,9 +1210,7 @@ func RecordErrNotAllowedToReadNamespace(mm ...*recordActionProps) *errors.Error 
 
 // RecordErrNotAllowedToReadModule returns "compose:record.notAllowedToReadModule" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToReadModule(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1306,9 +1244,7 @@ func RecordErrNotAllowedToReadModule(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToListRecords returns "compose:record.notAllowedToListRecords" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToListRecords(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1342,9 +1278,7 @@ func RecordErrNotAllowedToListRecords(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToCreate returns "compose:record.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToCreate(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1378,9 +1312,7 @@ func RecordErrNotAllowedToCreate(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToUpdate returns "compose:record.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToUpdate(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1414,9 +1346,7 @@ func RecordErrNotAllowedToUpdate(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToDelete returns "compose:record.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToDelete(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1450,9 +1380,7 @@ func RecordErrNotAllowedToDelete(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToUndelete returns "compose:record.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToUndelete(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1486,9 +1414,7 @@ func RecordErrNotAllowedToUndelete(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrNotAllowedToChangeFieldValue returns "compose:record.notAllowedToChangeFieldValue" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrNotAllowedToChangeFieldValue(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1520,11 +1446,43 @@ func RecordErrNotAllowedToChangeFieldValue(mm ...*recordActionProps) *errors.Err
 	return e
 }
 
-// RecordErrMissingPositionField returns "compose:record.missingPositionField" as *errors.Error
-//
+// RecordErrMaxRecordsReached returns "compose:record.maxRecordsReached" as *errors.Error
 //
 // This function is auto-generated.
+func RecordErrMaxRecordsReached(mm ...*recordActionProps) *errors.Error {
+	var p = &recordActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("maximum number of records per namespace reached", nil),
+
+		errors.Meta("type", "maxRecordsReached"),
+		errors.Meta("resource", "compose:record"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(recordLogMetaKey{}, "maximum number of records per namespace reached"),
+		errors.Meta(recordPropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "compose"),
+		errors.Meta(locale.ErrorMetaKey{}, "record.errors.maxRecordsReached"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RecordErrMissingPositionField returns "compose:record.missingPositionField" as *errors.Error
 //
+// This function is auto-generated.
 func RecordErrMissingPositionField(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1558,9 +1516,7 @@ func RecordErrMissingPositionField(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidPositionFieldKind returns "compose:record.invalidPositionFieldKind" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidPositionFieldKind(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1594,9 +1550,7 @@ func RecordErrInvalidPositionFieldKind(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidPositionFieldConfigMultiValue returns "compose:record.invalidPositionFieldConfigMultiValue" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidPositionFieldConfigMultiValue(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1630,9 +1584,7 @@ func RecordErrInvalidPositionFieldConfigMultiValue(mm ...*recordActionProps) *er
 
 // RecordErrInvalidPositionValueType returns "compose:record.invalidPositionValueType" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidPositionValueType(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1666,9 +1618,7 @@ func RecordErrInvalidPositionValueType(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrMissingGroupField returns "compose:record.missingGroupField" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrMissingGroupField(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1702,9 +1652,7 @@ func RecordErrMissingGroupField(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidGroupFieldConfigMultiValue returns "compose:record.invalidGroupFieldConfigMultiValue" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidGroupFieldConfigMultiValue(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1738,9 +1686,7 @@ func RecordErrInvalidGroupFieldConfigMultiValue(mm ...*recordActionProps) *error
 
 // RecordErrImportSessionAlreadActive returns "compose:record.importSessionAlreadActive" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrImportSessionAlreadActive(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1774,9 +1720,7 @@ func RecordErrImportSessionAlreadActive(mm ...*recordActionProps) *errors.Error 
 
 // RecordErrFieldNotFound returns "compose:record.fieldNotFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrFieldNotFound(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1808,9 +1752,7 @@ func RecordErrFieldNotFound(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidValueStructure returns "compose:record.invalidValueStructure" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidValueStructure(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1842,9 +1784,7 @@ func RecordErrInvalidValueStructure(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrUnknownBulkOperation returns "compose:record.unknownBulkOperation" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrUnknownBulkOperation(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1876,9 +1816,7 @@ func RecordErrUnknownBulkOperation(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrInvalidReferenceFormat returns "compose:record.invalidReferenceFormat" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrInvalidReferenceFormat(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1910,9 +1848,7 @@ func RecordErrInvalidReferenceFormat(mm ...*recordActionProps) *errors.Error {
 
 // RecordErrValueInput returns "compose:record.valueInput" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func RecordErrValueInput(mm ...*recordActionProps) *errors.Error {
 	var p = &recordActionProps{}
 	if len(mm) > 0 {
@@ -1950,7 +1886,6 @@ func RecordErrValueInput(mm ...*recordActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc record) recordAction(ctx context.Context, props *recordActionProps, actionFn func(...*recordActionProps) *recordAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

@@ -162,7 +162,8 @@ type (
 	}
 
 	LimitOpt struct {
-		SystemUsers int `env:"LIMIT_SYSTEM_USERS"`
+		SystemUsers             int `env:"LIMIT_SYSTEM_USERS"`
+		RecordCountPerNamespace int `env:"LIMIT_RECORD_COUNT_PER_NAMESPACE"`
 	}
 
 	LocaleOpt struct {

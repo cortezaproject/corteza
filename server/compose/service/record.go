@@ -52,6 +52,8 @@ type (
 		namespace namespaceFinder
 		module    moduleFinder
 
+		opt RecordOptions
+
 		revisions *recordRevisions
 
 		formatter   recordValuesFormatter
@@ -154,6 +156,10 @@ type (
 		Country() string
 	}
 
+	RecordOptions struct {
+		LimitRecords int
+	}
+
 	RecordImportSession struct {
 		Name        string `json:"-"`
 		SessionID   uint64 `json:"sessionID,string"`
@@ -198,7 +204,7 @@ type (
 	recordReportEntry map[string]any
 )
 
-func Record() *record {
+func Record(opts RecordOptions) *record {
 	svc := &record{
 		actionlog: DefaultActionlog,
 		ac:        DefaultAccessControl,
@@ -208,6 +214,8 @@ func Record() *record {
 
 		namespace: DefaultNamespace,
 		module:    DefaultModule,
+
+		opt: opts,
 
 		revisions: &recordRevisions{revisions.Service(dal.Service())},
 
@@ -817,6 +825,11 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	aProps.setNamespace(ns)
 	aProps.setModule(m)
 
+	// check the records limit per namespace
+	if err = svc.checkLimit(ctx, m); err != nil {
+		return nil, nil, err
+	}
+
 	if !svc.ac.CanCreateRecordOnModule(ctx, m) {
 		return nil, dd, RecordErrNotAllowedToCreate()
 	}
@@ -885,6 +898,27 @@ func (svc record) create(ctx context.Context, new *types.Record) (rec *types.Rec
 	}
 
 	return
+}
+
+func (svc record) checkLimit(ctx context.Context, m *types.Module) (err error) {
+	if svc.opt.LimitRecords == 0 {
+		return nil
+	}
+
+	// get the number of records count for the namespace
+	recordsCount, err := dalutils.ComposeRecordsCount(ctx, svc.dal, m, types.RecordFilter{
+		NamespaceID: m.NamespaceID,
+		ModuleID:    0,
+	})
+	if err != nil {
+		return err
+	}
+
+	if recordsCount >= uint(svc.opt.LimitRecords) {
+		return RecordErrMaxRecordsReached()
+	}
+
+	return nil
 }
 
 // RecordValueSanitization does basic field and format validation

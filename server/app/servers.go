@@ -94,7 +94,7 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			}
 
 			if app.Opt.Federation.Enabled {
-				r.Route("/federation", federationRest.MountRoutes())
+				r.Route("/federation", federationRest.MountRoutes(app.Opt.Limit))
 			}
 
 			var fullpathDocs = options.CleanBase(ho.BaseUrl, ho.ApiBaseUrl, "docs")

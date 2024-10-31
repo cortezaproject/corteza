@@ -64,7 +64,7 @@ func InitTestApp() {
 		r = chi.NewRouter()
 		r.Use(server.BaseMiddleware(false, logger.Default())...)
 		helpers.BindAuthMiddleware(r)
-		r.Group(rest.MountRoutes())
+		r.Group(rest.MountRoutes(testApp.Opt.Limit))
 	}
 }
 

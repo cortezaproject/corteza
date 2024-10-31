@@ -49,6 +49,9 @@ type (
 		// Search returns an iterator which can be used to access all if the bits
 		Search(context.Context, *Model, filter.Filter) (Iterator, error)
 
+		// Count returns the total number of rows matching the filter
+		Count(context.Context, *Model, filter.Filter) (uint, error)
+
 		// Analyze returns the operation analysis the connection can perform for the model
 		Analyze(ctx context.Context, m *Model) (map[string]OpAnalysis, error)
 
