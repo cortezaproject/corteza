@@ -183,6 +183,10 @@ errors:
     message: "not allowed to change value of field {{field}}"
     log: "failed to change value of field {{field}}; insufficient permissions"
 
+  - error: maxRecordsReached
+    message: "maximum number of records per namespace reached"
+    log: "maximum number of records per namespace reached"
+
   # Organizer
   - error: missingPositionField
     message: "position module field not found"

@@ -11,6 +11,10 @@ limit: schema.#optionsGroup & {
 			type:        "int"
 			description: "Maximum number of valid (not deleted, not suspended) users"
 		}
+		record_count_per_namespace: {
+			type: "int"
+			description:  "Maximum number of records per namespace"
+		}
 	}
 	title: "Limits"
 }

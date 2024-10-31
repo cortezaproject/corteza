@@ -268,6 +268,52 @@ func (d *model) Search(f filter.Filter) (i *iterator, err error) {
 	return
 }
 
+func (d *model) Count(ctx context.Context, f filter.Filter) (c uint, err error) {
+	var (
+		aux = struct {
+			Count uint `db:"count"`
+		}{}
+
+		rows  *sql.Rows
+		exprs []exp.Expression
+
+		q = d.dialect.GOQU().
+			From(d.table.Ident()).Select(goqu.COUNT(goqu.Star()).As("count"))
+	)
+
+	for ident, val := range f.Constraints() {
+		attrExpr, err := d.table.AttributeExpression(ident)
+		if err != nil {
+			return 0, err
+		}
+
+		exprs = append(exprs, exp.NewBooleanExpression(exp.EqOp, attrExpr, val))
+	}
+
+	query, args, err := q.Where(exprs...).Limit(1).ToSQL()
+	if err != nil {
+		return
+	}
+
+	rows, err = d.conn.QueryContext(ctx, query, args...)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+	if !rows.Next() {
+		return 0, errors.NotFound("not found")
+	}
+
+	if err = rows.Scan(&aux.Count); err != nil {
+		return
+	}
+
+	c = aux.Count
+
+	return c, nil
+}
+
 // Aggregate constructs SELECT sql with group-by and an optional having CLAUSE
 //
 // All group-by attributes are prepended to aggregation

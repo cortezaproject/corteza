@@ -53,6 +53,7 @@ type (
 		Update(ctx context.Context, mf ModelRef, operations OperationSet, rr ...ValueGetter) (err error)
 		Search(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (iter Iterator, err error)
 		Lookup(ctx context.Context, mf ModelRef, operations OperationSet, lookup ValueGetter, dst ValueSetter) (err error)
+		Count(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (uint, error)
 		Delete(ctx context.Context, mf ModelRef, operations OperationSet, vv ...ValueGetter) (err error)
 		Truncate(ctx context.Context, mf ModelRef, operations OperationSet) (err error)
 
@@ -486,6 +487,21 @@ func (svc *service) Search(ctx context.Context, mf ModelRef, operations Operatio
 	}
 
 	return cw.connection.Search(ctx, model, f)
+}
+
+func (svc *service) Count(ctx context.Context, mf ModelRef, operations OperationSet, f filter.Filter) (cnt uint, err error) {
+	if err = svc.canOpData(mf); err != nil {
+		err = fmt.Errorf("cannot count data entry: %w", err)
+		return
+	}
+
+	model, cw, err := svc.storeOpPrep(ctx, mf, operations)
+	if err != nil {
+		err = fmt.Errorf("cannot count data entry: %w", err)
+		return
+	}
+
+	return cw.connection.Count(ctx, model, f)
 }
 
 // Run returns an iterator based on the provided Pipeline

@@ -1,53 +1,53 @@
 package app
 
 import (
-    "context"
-    "crypto/tls"
-    "fmt"
-    "net/url"
-    "os"
-    "regexp"
-    "strings"
-    "time"
+	"context"
+	"crypto/tls"
+	"fmt"
+	"net/url"
+	"os"
+	"regexp"
+	"strings"
+	"time"
 
-    authService "github.com/cortezaproject/corteza/server/auth"
-    "github.com/cortezaproject/corteza/server/auth/saml"
-    authSettings "github.com/cortezaproject/corteza/server/auth/settings"
-    autService "github.com/cortezaproject/corteza/server/automation/service"
-    cmpService "github.com/cortezaproject/corteza/server/compose/service"
-    cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
-    discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
-    fedService "github.com/cortezaproject/corteza/server/federation/service"
-    "github.com/cortezaproject/corteza/server/pkg/actionlog"
-    "github.com/cortezaproject/corteza/server/pkg/apigw"
-    apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
-    "github.com/cortezaproject/corteza/server/pkg/auth"
-    "github.com/cortezaproject/corteza/server/pkg/corredor"
-    "github.com/cortezaproject/corteza/server/pkg/eventbus"
-    "github.com/cortezaproject/corteza/server/pkg/healthcheck"
-    "github.com/cortezaproject/corteza/server/pkg/http"
-    "github.com/cortezaproject/corteza/server/pkg/id"
-    "github.com/cortezaproject/corteza/server/pkg/locale"
-    "github.com/cortezaproject/corteza/server/pkg/logger"
-    "github.com/cortezaproject/corteza/server/pkg/mail"
-    "github.com/cortezaproject/corteza/server/pkg/messagebus"
-    "github.com/cortezaproject/corteza/server/pkg/monitor"
-    "github.com/cortezaproject/corteza/server/pkg/options"
-    "github.com/cortezaproject/corteza/server/pkg/provision"
-    "github.com/cortezaproject/corteza/server/pkg/rbac"
-    "github.com/cortezaproject/corteza/server/pkg/scheduler"
-    "github.com/cortezaproject/corteza/server/pkg/sentry"
-    "github.com/cortezaproject/corteza/server/pkg/valuestore"
-    "github.com/cortezaproject/corteza/server/pkg/version"
-    "github.com/cortezaproject/corteza/server/pkg/websocket"
-    "github.com/cortezaproject/corteza/server/store"
-    "github.com/cortezaproject/corteza/server/system/service"
-    sysService "github.com/cortezaproject/corteza/server/system/service"
-    sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
-    "github.com/cortezaproject/corteza/server/system/types"
-    "github.com/lestrrat-go/jwx/jwt"
-    "go.uber.org/zap"
-    gomail "gopkg.in/mail.v2"
+	authService "github.com/cortezaproject/corteza/server/auth"
+	"github.com/cortezaproject/corteza/server/auth/saml"
+	authSettings "github.com/cortezaproject/corteza/server/auth/settings"
+	autService "github.com/cortezaproject/corteza/server/automation/service"
+	cmpService "github.com/cortezaproject/corteza/server/compose/service"
+	cmpEvent "github.com/cortezaproject/corteza/server/compose/service/event"
+	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
+	fedService "github.com/cortezaproject/corteza/server/federation/service"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/apigw"
+	apigwTypes "github.com/cortezaproject/corteza/server/pkg/apigw/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/corredor"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza/server/pkg/http"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/locale"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/mail"
+	"github.com/cortezaproject/corteza/server/pkg/messagebus"
+	"github.com/cortezaproject/corteza/server/pkg/monitor"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/provision"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/scheduler"
+	"github.com/cortezaproject/corteza/server/pkg/sentry"
+	"github.com/cortezaproject/corteza/server/pkg/valuestore"
+	"github.com/cortezaproject/corteza/server/pkg/version"
+	"github.com/cortezaproject/corteza/server/pkg/websocket"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/service"
+	sysService "github.com/cortezaproject/corteza/server/system/service"
+	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
+	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/lestrrat-go/jwx/jwt"
+	"go.uber.org/zap"
+	gomail "gopkg.in/mail.v2"
 )
 
 const (
@@ -416,6 +416,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		ActionLog:        app.Opt.ActionLog,
 		Discovery:        app.Opt.Discovery,
 		Storage:          app.Opt.ObjStore,
+		Limit:            app.Opt.Limit,
 		UserFinder:       sysService.DefaultUser,
 		SchemaAltManager: sysService.DefaultDalSchemaAlteration,
 	})
@@ -562,9 +563,9 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 
 	app.AuthService.Watch(ctx)
 
-    updateSassInstallSettings(ctx, sysService.DefaultStylesheet.SassInstalled(), app.Log)
+	updateSassInstallSettings(ctx, sysService.DefaultStylesheet.SassInstalled(), app.Log)
 	//Generate CSS for webapps
-    if err = sysService.DefaultStylesheet.GenerateCSS(sysService.CurrentSettings, app.Opt.Webapp.ScssDirPath, app.Log); err != nil {
+	if err = sysService.DefaultStylesheet.GenerateCSS(sysService.CurrentSettings, app.Opt.Webapp.ScssDirPath, app.Log); err != nil {
 		return fmt.Errorf("could not generate css for webapps: %w", err)
 	}
 

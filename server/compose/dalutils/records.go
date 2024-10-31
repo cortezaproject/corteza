@@ -3,7 +3,6 @@ package dalutils
 import (
 	"context"
 	"fmt"
-
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
@@ -28,6 +27,10 @@ type (
 
 	deleter interface {
 		Delete(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, pkv ...dal.ValueGetter) (err error)
+	}
+
+	counter interface {
+		Count(ctx context.Context, m dal.ModelRef, operations dal.OperationSet, f filter.Filter) (uint, error)
 	}
 )
 
@@ -63,6 +66,20 @@ func ComposeRecordsFind(ctx context.Context, l lookuper, mod *types.Module, reco
 	}
 
 	return
+}
+
+func ComposeRecordsCount(ctx context.Context, c counter, mod *types.Module, filter types.RecordFilter) (cnt uint, err error) {
+	constraints := map[string][]interface{}{
+		"namespaceID": {mod.NamespaceID},
+	}
+
+	if filter.ModuleID != 0 {
+		constraints["moduleID"] = []interface{}{filter.ModuleID}
+	}
+
+	dalFilter := filter.ToConstraintedFilter(constraints)
+
+	return c.Count(ctx, mod.ModelRef(), recLookupOperations(mod), dalFilter)
 }
 
 func ComposeRecordCreate(ctx context.Context, c creator, mod *types.Module, records ...*types.Record) (err error) {

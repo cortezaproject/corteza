@@ -22,3 +22,4 @@ errors:
   staleData: stale data
   unknownBulkOperation: unknown bulk operation {bulkOperation}
   valueInput: invalid record value input
+  maxRecordsReached: maximum number of records per namespace reached

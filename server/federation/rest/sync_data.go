@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/options"
 	"net/http"
 	"strings"
 	"time"
@@ -21,7 +22,9 @@ import (
 )
 
 type (
-	SyncData struct{}
+	SyncData struct {
+		opts options.LimitOpt
+	}
 
 	recordPayload struct {
 		*ct.Record
@@ -50,8 +53,10 @@ type (
 	}
 )
 
-func (SyncData) New() *SyncData {
-	return &SyncData{}
+func (SyncData) New(opts options.LimitOpt) *SyncData {
+	return &SyncData{
+		opts: opts,
+	}
 }
 
 func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataReadExposedAll) (interface{}, error) {
@@ -95,7 +100,7 @@ func (ctrl SyncData) ReadExposedAll(ctx context.Context, r *request.SyncDataRead
 
 		// todo - handle error properly
 		// @todo !!!
-		if list, _, err := (cs.Record()).Find(ctx, rf); err != nil || len(list) == 0 {
+		if list, _, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerNamespace})).Find(ctx, rf); err != nil || len(list) == 0 {
 			continue
 		}
 
@@ -223,7 +228,7 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 	}
 
 	// @todo !!!
-	list, f, err := (cs.Record()).Find(ctx, f)
+	list, f, err := (cs.Record(cs.RecordOptions{LimitRecords: ctrl.opts.RecordCountPerNamespace})).Find(ctx, f)
 
 	if err != nil {
 		return nil, err

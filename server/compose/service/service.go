@@ -42,6 +42,7 @@ type (
 		ActionLog        options.ActionLogOpt
 		Discovery        options.DiscoveryOpt
 		Storage          options.ObjectStoreOpt
+		Limit            options.LimitOpt
 		UserFinder       userFinder
 		SchemaAltManager schemaAltManager
 	}
@@ -185,7 +186,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 	DefaultModule = Module(c.SchemaAltManager)
 
 	DefaultImportSession = ImportSession()
-	DefaultRecord = Record()
+	DefaultRecord = Record(RecordOptions{LimitRecords: c.Limit.RecordCountPerNamespace})
 	DefaultPage = Page()
 	DefaultPageLayout = PageLayout()
 	DefaultChart = Chart()

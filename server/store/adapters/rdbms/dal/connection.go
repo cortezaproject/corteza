@@ -109,6 +109,13 @@ func (c *connection) Search(ctx context.Context, m *dal.Model, f filter.Filter) 
 	})
 }
 
+func (c *connection) Count(ctx context.Context, m *dal.Model, f filter.Filter) (i uint, _ error) {
+	return i, c.withModel(m, func(m *model) (err error) {
+		i, err = m.Count(ctx, f)
+		return
+	})
+}
+
 func (c *connection) Analyze(ctx context.Context, m *dal.Model) (a map[string]dal.OpAnalysis, err error) {
 	// @todo somehow (probably operations) bring in the info what can be done
 	//       for now, since we're quite rigid on the drivers, this will do.
