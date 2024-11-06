@@ -216,6 +216,10 @@ func (mb *messageBus) initConsumer(ctx context.Context, q string, c string) (cns
 		cns = consumer.NewStoreConsumer(q, mb.qservicer)
 		return
 
+	case string(types.ConsumerServicebus):
+		cns = consumer.NewServicebusConsumer(q, mb.qservicer) // fixme: add package reference
+		return
+
 	default:
 		err = fmt.Errorf("message queue consumer %s not implemented", c)
 		return

@@ -5,11 +5,12 @@ import (
 )
 
 const (
-	ConsumerCorteza  ConsumerType = "corteza"
-	ConsumerNoop     ConsumerType = "noop"
-	ConsumerRedis    ConsumerType = "redis"
-	ConsumerStore    ConsumerType = "store"
-	ConsumerEventbus ConsumerType = "eventbus"
+	ConsumerCorteza    ConsumerType = "corteza"
+	ConsumerNoop       ConsumerType = "noop"
+	ConsumerRedis      ConsumerType = "redis"
+	ConsumerStore      ConsumerType = "store"
+	ConsumerEventbus   ConsumerType = "eventbus"
+	ConsumerServicebus ConsumerType = "servicebus"
 )
 
 type (
@@ -26,5 +27,6 @@ func ConsumerTypes() []ConsumerType {
 		ConsumerEventbus,
 		ConsumerRedis,
 		ConsumerStore,
+		ConsumerServicebus,
 	}
 }
