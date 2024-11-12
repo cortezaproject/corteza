@@ -217,7 +217,7 @@ func (mb *messageBus) initConsumer(ctx context.Context, q string, c string) (cns
 		return
 
 	case string(types.ConsumerServicebus):
-		cns = consumer.NewServicebusConsumer(q, mb.qservicer) // fixme: add package reference
+		// cns = consumer.NewServicebusConsumer(q, mb.qservicer) // fixme: add package reference
 		return
 
 	default:
