@@ -379,7 +379,7 @@ export default {
 
         this.fetchPrefiltered({ namespaceID, moduleID, query, sort: this.sortString(), limit, pageCursor })
       }
-    }, 300),
+    }, 600),
 
     loadLatest () {
       const namespaceID = this.namespace.namespaceID

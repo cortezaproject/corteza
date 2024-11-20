@@ -182,12 +182,14 @@ export default {
       const { limit, pageCursor } = this.filter
       const namespaceID = this.namespaceID
       const moduleID = this.module.moduleID
+      const queryFields = this.pVal('queryFields') || []
 
       if (moduleID && moduleID !== NoID) {
         // Determine what fields to use for searching
         // Default to label field
-        let qf = this.pVal('queryFields').map(f => f['@value']).filter(f => !!f)
-        if (!qf || qf.length === 0) {
+        let qf = queryFields.map(f => f['@value']).filter(f => !!f)
+
+        if ((!qf || qf.length === 0) && this.pVal('labelField')) {
           qf = [this.pVal('labelField')]
         }
 
@@ -198,9 +200,11 @@ export default {
           }).join(' OR ')
         }
 
-        this.fetchPrefiltered({ namespaceID, moduleID, query, limit })
+        const sort = qf.filter(f => !!f).join(', ')
+
+        this.fetchPrefiltered({ namespaceID, moduleID, query, sort, limit })
       }
-    }, 300),
+    }, 600),
 
     fetchPrefiltered (q) {
       this.processing = true
