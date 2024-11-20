@@ -235,10 +235,12 @@
           class="d-flex align-items-center w-100 h5 mb-0 p-2"
         >
           <b-img
+            v-if="getSidebarItemIcon"
             :src="getSidebarItemIcon"
+            class="mr-2"
           />
           <h4
-            class="text-primary font-weight-bold ml-2 mb-0"
+            class="text-primary font-weight-bold mb-0"
           >
             <b>{{ getSidebarItemType }}</b>
           </h4>
@@ -631,8 +633,14 @@ export default {
 
   computed: {
     getSidebarItemType () {
-      const { item } = this.sidebar
-      return this.$t(`steps:${item.node.style}.short`) || item.node.style
+      const { item = {} } = this.sidebar || {}
+      const { style, edge } = item.node || {}
+
+      if (edge) {
+        return this.$t('steps:path.short')
+      }
+
+      return this.$t(`steps:${style}.short`) || style
     },
 
     getSidebarItemIcon () {
@@ -641,6 +649,7 @@ export default {
       if (item && item.config) {
         return this.getIcon(getStyleFromKind(item.config).icon, this.currentTheme)
       }
+
       return undefined
     },
 
@@ -2560,6 +2569,10 @@ export default {
     },
 
     getIcon (icon, mode = 'light') {
+      if (!icon) {
+        return ''
+      }
+
       return `${mxClient.imageBasePath}/${mode === 'dark' ? 'dark/' : ''}${icon}.svg`
     },
   },

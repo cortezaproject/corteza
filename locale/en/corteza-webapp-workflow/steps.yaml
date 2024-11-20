@@ -113,3 +113,6 @@ content:
   label: Content
   short: Content
   tooltip: Content block used for text annotations
+path:
+  label: Path
+  short: Path
