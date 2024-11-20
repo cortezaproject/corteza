@@ -49,6 +49,7 @@ import {
   faEllipsisV,
   faTools,
   faClone,
+  faDownload,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -114,4 +115,5 @@ library.add(
   faEllipsisV,
   faTools,
   faClone,
+  faDownload,
 )

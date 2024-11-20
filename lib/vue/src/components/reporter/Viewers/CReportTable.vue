@@ -110,8 +110,19 @@
     </b-table-simple>
 
     <b-card-footer
-      class="d-flex rounded-0 bg-light px-3 py-2"
+      class="d-flex rounded-0 bg-light p-2"
     >
+      <b-button
+        v-b-tooltip.hover="'Export to CSV'"
+        variant="outline-extra-light"
+        class="text-dark border-0 mr-auto py-1 px-2"
+        @click="exportCSV"
+      >
+        <font-awesome-icon
+          :icon="['fas', 'download']"
+        />
+      </b-button>
+
       <b-button-group
         class="ml-auto gap-1"
       >
@@ -496,6 +507,25 @@ export default {
           this.$emit('update', definition)
         }
       }
+    },
+
+    exportCSV () {
+      const header = this.tabelify.header.map(({ column }) => {
+        const value = column ? column.label : ''
+        return value.includes(',') ? `"${value}"` : value
+      })
+
+      const rows = this.tabelify.rows.map(row => row.map(({ value }) => value.includes(',') ? `"${value}"` : value))
+
+      const csv = [header, ...rows].map(row => row.join(',')).join('\n')
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${this.displayElement.name || 'report'}-${new Date().toISOString()}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
     },
   },
 }
