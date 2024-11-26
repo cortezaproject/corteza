@@ -212,12 +212,13 @@ func (mb *messageBus) initConsumer(ctx context.Context, q string, c string) (cns
 		cns = consumer.NewEventbusConsumer(q, mb.qservicer)
 		return
 
-	case string(types.ConsumerStore):
-		cns = consumer.NewStoreConsumer(q, mb.qservicer)
-		return
+	// case string(types.ConsumerStore):
+	// cns = consumer.NewStoreConsumer(q, mb.qservicer)
+	// return
 
-	case string(types.ConsumerServicebus):
-		// cns = consumer.NewServicebusConsumer(q, mb.qservicer) // fixme: add package reference
+	// case string(types.ConsumerServicebus):
+	case string(types.ConsumerStore):
+		cns = consumer.NewServicebusConsumer(q, mb.qservicer) // fixme: add package reference
 		return
 
 	default:
