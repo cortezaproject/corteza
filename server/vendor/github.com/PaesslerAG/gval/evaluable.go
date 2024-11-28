@@ -19,7 +19,7 @@ type Selector interface {
 // Evaluable evaluates given parameter
 type Evaluable func(c context.Context, parameter interface{}) (interface{}, error)
 
-//EvalInt evaluates given parameter to an int
+// EvalInt evaluates given parameter to an int
 func (e Evaluable) EvalInt(c context.Context, parameter interface{}) (int, error) {
 	v, err := e(c, parameter)
 	if err != nil {
@@ -33,7 +33,7 @@ func (e Evaluable) EvalInt(c context.Context, parameter interface{}) (int, error
 	return int(f), nil
 }
 
-//EvalFloat64 evaluates given parameter to a float64
+// EvalFloat64 evaluates given parameter to a float64
 func (e Evaluable) EvalFloat64(c context.Context, parameter interface{}) (float64, error) {
 	v, err := e(c, parameter)
 	if err != nil {
@@ -47,7 +47,7 @@ func (e Evaluable) EvalFloat64(c context.Context, parameter interface{}) (float6
 	return f, nil
 }
 
-//EvalBool evaluates given parameter to a bool
+// EvalBool evaluates given parameter to a bool
 func (e Evaluable) EvalBool(c context.Context, parameter interface{}) (bool, error) {
 	v, err := e(c, parameter)
 	if err != nil {
@@ -61,7 +61,7 @@ func (e Evaluable) EvalBool(c context.Context, parameter interface{}) (bool, err
 	return b, nil
 }
 
-//EvalString evaluates given parameter to a string
+// EvalString evaluates given parameter to a string
 func (e Evaluable) EvalString(c context.Context, parameter interface{}) (string, error) {
 	o, err := e(c, parameter)
 	if err != nil {
@@ -70,7 +70,7 @@ func (e Evaluable) EvalString(c context.Context, parameter interface{}) (string,
 	return fmt.Sprintf("%v", o), nil
 }
 
-//Const Evaluable represents given constant
+// Const Evaluable represents given constant
 func (*Parser) Const(value interface{}) Evaluable {
 	return constant(value)
 }
@@ -82,15 +82,16 @@ func constant(value interface{}) Evaluable {
 	}
 }
 
-//Var Evaluable represents value at given path.
-//It supports with default language VariableSelector:
-//	map[interface{}]interface{},
-//	map[string]interface{} and
-// 	[]interface{} and via reflect
-//	struct fields,
-//	struct methods,
-//	slices and
-//  map with int or string key.
+// Var Evaluable represents value at given path.
+// It supports with default language VariableSelector:
+//
+//		map[interface{}]interface{},
+//		map[string]interface{} and
+//		[]interface{} and via reflect
+//		struct fields,
+//		struct methods,
+//		slices and
+//	 map with int or string key.
 func (p *Parser) Var(path ...Evaluable) Evaluable {
 	if p.selector == nil {
 		return variable(path)
@@ -168,11 +169,25 @@ func reflectSelect(key string, value interface{}) (selection interface{}, ok boo
 		if vvElem.IsValid() {
 			return vvElem.Interface(), true
 		}
+
+		// key didn't exist. Check if there is a bound method
+		method := vv.MethodByName(key)
+		if method.IsValid() {
+			return method.Interface(), true
+		}
+
 	case reflect.Slice:
 		if i, err := strconv.Atoi(key); err == nil && i >= 0 && vv.Len() > i {
 			vvElem = resolvePotentialPointer(vv.Index(i))
 			return vvElem.Interface(), true
 		}
+
+		// key not an int. Check if there is a bound method
+		method := vv.MethodByName(key)
+		if method.IsValid() {
+			return method.Interface(), true
+		}
+
 	case reflect.Struct:
 		field := vvElem.FieldByName(key)
 		if field.IsValid() {
@@ -276,7 +291,7 @@ func (*Parser) callEvaluable(fullname string, fun Evaluable, args ...Evaluable) 
 	}
 }
 
-//IsConst returns if the Evaluable is a Parser.Const() value
+// IsConst returns if the Evaluable is a Parser.Const() value
 func (e Evaluable) IsConst() bool {
 	pc := reflect.ValueOf(constant(nil)).Pointer()
 	pe := reflect.ValueOf(e).Pointer()

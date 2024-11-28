@@ -12,7 +12,7 @@ func toFunc(f interface{}) function {
 	if f, ok := f.(func(arguments ...interface{}) (interface{}, error)); ok {
 		return function(func(ctx context.Context, arguments ...interface{}) (interface{}, error) {
 			var v interface{}
-			errCh := make(chan error)
+			errCh := make(chan error, 1)
 			go func() {
 				defer func() {
 					if recovered := recover(); recovered != nil {
@@ -28,6 +28,7 @@ func toFunc(f interface{}) function {
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			case err := <-errCh:
+				close(errCh)
 				return v, err
 			}
 		})
@@ -40,7 +41,7 @@ func toFunc(f interface{}) function {
 	t := fun.Type()
 	return func(ctx context.Context, args ...interface{}) (interface{}, error) {
 		var v interface{}
-		errCh := make(chan error)
+		errCh := make(chan error, 1)
 		go func() {
 			defer func() {
 				if recovered := recover(); recovered != nil {
@@ -83,6 +84,7 @@ func toFunc(f interface{}) function {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case err := <-errCh:
+			close(errCh)
 			return v, err
 		}
 	}
@@ -115,7 +117,7 @@ func createCallArguments(ctx context.Context, t reflect.Type, args []interface{}
 		}
 		argVal := reflect.ValueOf(arg)
 		if arg == nil {
-			argVal = reflect.ValueOf(reflect.Interface)
+			argVal = reflect.Zero(reflect.TypeOf((*interface{})(nil)).Elem())
 		} else if !argVal.Type().AssignableTo(inType) {
 			return nil, fmt.Errorf("expected type %s for parameter %d but got %T",
 				inType.String(), i, arg)

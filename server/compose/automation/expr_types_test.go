@@ -42,6 +42,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.ModuleField{Name: "n1", Multi: false, Kind: "Number"},
 			&types.ModuleField{Name: "n2", Multi: false, Kind: "Number"},
 			&types.ModuleField{Name: "n3", Multi: false, Kind: "Number"},
+			&types.ModuleField{Name: "d1", Multi: false, Kind: "DateTime"},
+			&types.ModuleField{Name: "d2", Multi: false, Kind: "DateTime"},
 			&types.ModuleField{Name: "ref1", Multi: false, Kind: "Record"},
 			&types.ModuleField{Name: "ref2", Multi: false, Kind: "Record"},
 		}}
@@ -56,6 +58,8 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			&types.RecordValue{Name: "n2", Value: "0", Place: 0},
 			&types.RecordValue{Name: "n3", Value: "2", Place: 0},
 			&types.RecordValue{Name: "ref2", Value: "", Ref: 2, Place: 0},
+			&types.RecordValue{Name: "d1", Value: "", Place: 0},
+			&types.RecordValue{Name: "d2", Value: "1999-09-09 09:09:09.000000009 +0000 UTC", Place: 0},
 		}
 		raw = &types.Record{Values: rawValues}
 
@@ -237,6 +241,14 @@ func TestRecordFieldValuesAccess(t *testing.T) {
 			{true, `rec.values.ref1 != 2`},
 			{true, `rec.values.ref2 == 2`},
 			{true, `rec.values.ref2 == "2"`},
+
+			{true, `isNil(nil)`},
+			{true, `isNil(rec.values.d1)`},
+			{true, `rec.values.n3 ? true : false`},
+			{false, `rec.values.d1 ? true : false`},
+			{true, `rec.values.d2 ? true : false`},
+			{true, `rec.values.d1 ? true : false || true `},
+			{false, `rec.values.d1 ? true : false && true `},
 		}
 
 		for _, tc := range tcc {

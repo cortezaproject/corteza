@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//ParseExpression scans an expression into an Evaluable.
+// ParseExpression scans an expression into an Evaluable.
 func (p *Parser) ParseExpression(c context.Context) (eval Evaluable, err error) {
 	stack := stageStack{}
 	for {
@@ -31,7 +31,7 @@ func (p *Parser) ParseExpression(c context.Context) (eval Evaluable, err error) 
 	}
 }
 
-//ParseNextExpression scans the expression ignoring following operators
+// ParseNextExpression scans the expression ignoring following operators
 func (p *Parser) ParseNextExpression(c context.Context) (eval Evaluable, err error) {
 	scan := p.Scan()
 	ex, ok := p.prefixes[scan]

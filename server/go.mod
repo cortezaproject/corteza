@@ -73,6 +73,7 @@ require (
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.19.0
 	golang.org/x/image v0.15.0
+	golang.org/x/net v0.21.0
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/text v0.14.0
 	google.golang.org/grpc v1.61.1
@@ -135,7 +136,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/fasthttp v1.35.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/term v0.17.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
@@ -147,4 +147,4 @@ require (
 
 replace github.com/doug-martin/goqu/v9 => github.com/cortezaproject/goqu/v9 v9.18.4
 
-replace github.com/PaesslerAG/gval => github.com/cortezaproject/gval v1.2.2
+replace github.com/PaesslerAG/gval => github.com/cortezaproject/gval v1.2.4

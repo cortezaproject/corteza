@@ -8,7 +8,7 @@ import (
 	"unicode"
 )
 
-//Parser parses expressions in a Language into an Evaluable
+// Parser parses expressions in a Language into an Evaluable
 type Parser struct {
 	scanner scanner.Scanner
 	Language
@@ -39,7 +39,7 @@ func (p *Parser) resetScannerProperties() {
 func (p *Parser) SetWhitespace(chars ...rune) {
 	var mask uint64
 	for _, char := range chars {
-		mask |= 1 << char
+		mask |= 1 << uint(char)
 	}
 
 	p.scanner.Whitespace = mask
@@ -113,7 +113,7 @@ func (p *Parser) TokenText() string {
 	return p.scanner.TokenText()
 }
 
-//Expected returns an error signaling an unexpected Scan() result
+// Expected returns an error signaling an unexpected Scan() result
 func (p *Parser) Expected(unit string, expected ...rune) error {
 	return unexpectedRune{unit, expected, p.lastScan}
 }

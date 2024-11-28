@@ -171,7 +171,7 @@ func PrefixMetaPrefix(r rune, ext func(context.Context, *Parser) (call string, a
 	return l
 }
 
-//PrefixOperator returns a Language with given prefix
+// PrefixOperator returns a Language with given prefix
 func PrefixOperator(name string, e Evaluable) Language {
 	l := newLanguage()
 	l.prefixes[l.makePrefixKey(name)] = func(c context.Context, p *Parser) (Evaluable, error) {

@@ -293,11 +293,6 @@ func composeRecordValuesGValSelector(res *types.Record, k string) (interface{}, 
 			return false, nil
 		}
 
-		// return nil time.Time for date and time fields
-		if field != nil && (field.IsDateOnly() || field.IsDateTime() || field.IsTimeOnly()) {
-			return expr.NewDateTime(nil)
-		}
-
 		return nil, nil
 
 	case len(vv) == 1 && !multiValueField:

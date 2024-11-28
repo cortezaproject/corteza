@@ -2,10 +2,9 @@ package expr
 
 import (
 	"fmt"
-	"reflect"
-
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
+	"reflect"
 )
 
 type (

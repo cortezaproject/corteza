@@ -146,6 +146,19 @@ func convertToBool(o interface{}) (bool, bool) {
 		return b, true
 	}
 	v := reflect.ValueOf(o)
+
+	if v.Kind() == reflect.Func {
+		if vt := v.Type(); vt.NumIn() == 0 && vt.NumOut() == 1 {
+			retType := vt.Out(0)
+
+			if retType.Kind() == reflect.Bool {
+				funcResults := v.Call([]reflect.Value{})
+				v = funcResults[0]
+				o = v.Interface()
+			}
+		}
+	}
+
 	for o != nil && v.Kind() == reflect.Ptr {
 		v = v.Elem()
 		if !v.IsValid() {
@@ -153,6 +166,7 @@ func convertToBool(o interface{}) (bool, bool) {
 		}
 		o = v.Interface()
 	}
+
 	if o == false || o == nil || o == "false" || o == "FALSE" {
 		return false, true
 	}

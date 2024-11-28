@@ -19,7 +19,7 @@ github.com/Masterminds/semver
 # github.com/Masterminds/sprig v2.22.0+incompatible
 ## explicit
 github.com/Masterminds/sprig
-# github.com/PaesslerAG/gval v1.2.1 => github.com/cortezaproject/gval v1.2.2
+# github.com/PaesslerAG/gval v1.2.1 => github.com/cortezaproject/gval v1.2.4
 ## explicit; go 1.15
 github.com/PaesslerAG/gval
 # github.com/PaesslerAG/jsonpath v0.1.1
@@ -688,4 +688,4 @@ rsc.io/qr
 rsc.io/qr/coding
 rsc.io/qr/gf256
 # github.com/doug-martin/goqu/v9 => github.com/cortezaproject/goqu/v9 v9.18.4
-# github.com/PaesslerAG/gval => github.com/cortezaproject/gval v1.2.2
+# github.com/PaesslerAG/gval => github.com/cortezaproject/gval v1.2.4
