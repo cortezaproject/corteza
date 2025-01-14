@@ -32,23 +32,47 @@
       </div>
     </template>
 
-    <uploader
-      :endpoint="endpoint"
-      :accepted-files="mimetypes"
-      :max-filesize="maxSize"
-      :form-data="uploaderFormData"
-      @uploaded="appendAttachment"
-    />
+    <div class="d-flex gap-1">
+      <uploader
+        ref="uploader"
+        :endpoint="endpoint"
+        :accepted-files="mimetypes"
+        :max-filesize="maxSize"
+        :form-data="uploaderFormData"
+        class="flex-grow-1"
+        @uploaded="appendAttachment"
+      />
+
+      <c-webcam
+        v-if="field.options.enableWebcam"
+        :labels="{
+          tooltip: $t('webcam.tooltip'),
+          modalTitle: $t('webcam.title'),
+          cancelButtonLabel: $t('webcam.buttons.cancel'),
+          confirmButtonLabel: $t('webcam.buttons.confirm'),
+          captureButtonLabel: $t('webcam.buttons.capture'),
+          cameraErrorMessage: $t('webcam.errors.camera')
+        }"
+        @upload="uploadWebcamImage"
+      >
+        <font-awesome-icon
+          class="text-primary"
+          :icon="['fas', 'camera']"
+        />
+      </c-webcam>
+    </div>
 
     <list-loader
+      v-if="set.length > 0"
       kind="record"
       :set.sync="set"
       :namespace="namespace"
       :enable-order="field.isMulti"
       enable-delete
       mode="list"
-      class="mt-2"
+      class="mt-3"
     />
+
     <errors :errors="errors" />
   </b-form-group>
 </template>
@@ -59,6 +83,10 @@ import ListLoader from 'corteza-webapp-compose/src/components/Public/Page/Attach
 import { NoID } from '@cortezaproject/corteza-js'
 
 export default {
+  i18nOptions: {
+    namespaces: 'general',
+  },
+
   components: {
     Uploader,
     ListLoader,
@@ -106,7 +134,7 @@ export default {
 
     set: {
       get () {
-        return this.field.isMulti ? this.value : [this.value]
+        return this.field.isMulti ? this.value : [this.value].filter(id => !!id)
       },
 
       set (v) {
@@ -126,6 +154,11 @@ export default {
       } else {
         this.value = attachmentID
       }
+    },
+
+    uploadWebcamImage (file) {
+      const uploader = this.$refs.uploader
+      uploader.$refs.dropzone.addFile(file)
     },
   },
 }

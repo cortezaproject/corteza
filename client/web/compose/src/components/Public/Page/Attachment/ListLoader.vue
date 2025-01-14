@@ -54,6 +54,7 @@
               v-if="a.download"
               :href="a.download"
               variant="outline-light"
+              size="sm"
               class="border-0 text-primary px-2 ml-2"
             >
               <font-awesome-icon :icon="['fas', 'download']" />

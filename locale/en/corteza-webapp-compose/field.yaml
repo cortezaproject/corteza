@@ -44,6 +44,10 @@ kind:
       list: List
       maxSizeLabel: Maximum file size
       mimetypesFootnote: 'MIME types, separated with ",". Example: "text/plain,text/csv"'
+      webcam:
+        enable:
+          label: Enable Webcam Capture
+          footnote: Use the webcam to capture a picture and upload it
       mimetypesLabel: File type allow list
       modeFootnote: How files are represented in page blocks
       modeLabel: View mode

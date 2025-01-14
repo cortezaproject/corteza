@@ -28,6 +28,7 @@ interface FileOptions extends Options {
   clickToView?: boolean;
   enableDownload?: boolean;
   multiDelimiter: string;
+  enableWebcam?: boolean
 }
 
 const defaults = (): Readonly<FileOptions> => Object.freeze({
@@ -49,6 +50,7 @@ const defaults = (): Readonly<FileOptions> => Object.freeze({
   clickToView: true,
   enableDownload: true,
   multiDelimiter: '\n',
+  enableWebcam: false,
 })
 
 export class ModuleFieldFile extends ModuleField {
@@ -66,7 +68,7 @@ export class ModuleFieldFile extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, Number, 'maxSize')
-    Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName', 'clickToView', 'enableDownload')
+    Apply(this.options, o, Boolean, 'allowImages', 'allowDocuments', 'inline', 'hideFileName', 'clickToView', 'enableDownload', 'enableWebcam')
     Apply(this.options, o, String, 'mimetypes', 'height', 'width', 'maxHeight', 'maxWidth', 'borderRadius', 'margin', 'backgroundColor')
 
     // Legacy

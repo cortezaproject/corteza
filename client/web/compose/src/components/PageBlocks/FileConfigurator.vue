@@ -37,12 +37,34 @@
       </b-form-checkbox>
     </b-form-group>
 
-    <uploader
-      :endpoint="endpoint"
-      :max-filesize="$s('compose.Page.Attachments.MaxSize', 100)"
-      :accepted-files="$s('compose.Page.Attachments.Mimetypes', ['*/*'])"
-      @uploaded="appendAttachment"
-    />
+    <div class="d-flex gap-1">
+      <uploader
+        ref="uploader"
+        :endpoint="endpoint"
+        :max-filesize="$s('compose.Page.Attachments.MaxSize', 100)"
+        :accepted-files="$s('compose.Page.Attachments.Mimetypes', ['*/*'])"
+        class="flex-grow-1"
+        @uploaded="appendAttachment"
+      />
+
+      <c-webcam
+        :labels="{
+          tooltip: $t('general:webcam.tooltip'),
+          modalTitle: $t('general:webcam.title'),
+          cancelButtonLabel: $t('general:webcam.buttons.cancel'),
+          confirmButtonLabel: $t('general:webcam.buttons.confirm'),
+          captureButtonLabel: $t('general:webcam.buttons.capture'),
+          cameraErrorMessage: $t('general:webcam.errors.camera')
+        }"
+        @upload="uploadWebcamImage"
+      >
+        <font-awesome-icon
+          class="text-primary"
+          :icon="['fas', 'camera']"
+        />
+      </c-webcam>
+    </div>
+
     <list-loader
       kind="page"
       enable-delete
@@ -238,6 +260,11 @@ export default {
   methods: {
     appendAttachment ({ attachmentID } = {}) {
       this.options.attachments.push(attachmentID)
+    },
+
+    uploadWebcamImage (file) {
+      const uploader = this.$refs.uploader
+      uploader.$refs.dropzone.addFile(file)
     },
   },
 }
