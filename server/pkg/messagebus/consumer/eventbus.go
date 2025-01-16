@@ -36,3 +36,11 @@ func (cq *EventbusConsumer) Write(ctx context.Context, p []byte) error {
 	cq.dispatcher.Dispatch(ctx, cq.servicer.CreateQueueEvent(cq.queue, p))
 	return nil
 }
+
+func (cq *EventbusConsumer) GetConsumerType() string {
+	if cq.handle == "" {
+		return ""
+	}
+
+	return string(cq.handle)
+}

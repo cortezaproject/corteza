@@ -391,3 +391,9 @@ func TestAuth_multiCreateUserTokenForPasswordReset(t *testing.T) {
 	}
 
 }
+
+func TestUUID(t *testing.T) {
+	for i := 0; i < 100; i++ {
+		nextID()
+	}
+}

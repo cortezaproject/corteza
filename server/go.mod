@@ -1,6 +1,6 @@
 module github.com/cortezaproject/corteza/server
 
-go 1.19
+go 1.20
 
 // This is useful when testing changes on corteza-locale
 // and you do not want to push on every change in the locale repo
@@ -9,6 +9,7 @@ go 1.19
 require (
 	github.com/766b/chi-prometheus v0.0.0-20211217152057-87afa9aa2ca8
 	github.com/99designs/basicauth-go v0.0.0-20160802081356-2a93ba0f464d
+	github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus v1.7.3
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PaesslerAG/gval v1.2.1
 	github.com/SentimensRG/ctx v0.0.0-20180729130232-0bfd988c655d
@@ -73,6 +74,7 @@ require (
 	go.uber.org/zap v1.21.0
 	golang.org/x/crypto v0.27.0
 	golang.org/x/image v0.15.0
+	golang.org/x/net v0.29.0
 	golang.org/x/oauth2 v0.16.0
 	golang.org/x/text v0.18.0
 	google.golang.org/grpc v1.61.1
@@ -89,9 +91,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.10.0 // indirect
-	github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus v1.7.3 // indirect
 	github.com/Azure/go-amqp v1.1.0 // indirect
-	github.com/AzureAD/microsoft-authentication-library-for-go v1.2.2 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/PaesslerAG/jsonpath v0.1.1 // indirect
@@ -106,7 +106,6 @@ require (
 	github.com/go-sourcemap/sourcemap v2.1.3+incompatible // indirect
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/google/pprof v0.0.0-20230228050547-1710fef4ab10 // indirect
@@ -118,7 +117,6 @@ require (
 	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid v1.2.3 // indirect
-	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
@@ -132,7 +130,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
-	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pquerna/cachecontrol v0.0.0-20180517163645-1555304b9b35 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -144,7 +141,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/valyala/fasthttp v1.35.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/term v0.24.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect

@@ -3,58 +3,75 @@ package servicebus
 import (
 	"context"
 	"fmt"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
-	"github.com/cortezaproject/corteza/server/pkg/messagebus/types"
-	"os"
+	azadmin "github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus/admin"
+	"go.uber.org/zap"
 )
 
 type (
-	Client interface {
-		SendMessage(context.Context, types.QueueMessage) error
-		GetMessage(context.Context, int, types.QueueMessage)
-	}
-
 	sbClient struct {
-		client *azservicebus.Client
-		store  azservicebus.Client
+		logger *zap.Logger
+
+		azClient *azadmin.Client
+		client   *azservicebus.Client
+		// store    azservicebus.Client
 	}
 )
 
-func NewClient() *sbClient {
-	// ex: myservicebus.servicebus.windows.net
-	// @fixme: put up this to proper channels
-	namespace, ok := os.LookupEnv("AZURE_SERVICEBUS_HOSTNAME")
-	if !ok {
-		// todo err
-		fmt.Println("AZURE_SERVICEBUS_HOSTNAME environment variable not found")
-		return nil
+func newClient(logger *zap.Logger, connStr string) (cc *sbClient, err error) {
+	cc = &sbClient{
+		logger: logger,
 	}
 
-	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	// to create the queues
+	cc.azClient, err = azadmin.NewClientFromConnectionString(connStr, nil)
 	if err != nil {
-		// todo err
-		fmt.Println(err)
-		return nil
+		cc.logger.Error("could not create service bus admin client", zap.Error(err))
+		return
 	}
 
-	client, err := azservicebus.NewClient(namespace, cred, nil)
+	// to send and receive the messages
+	cc.client, err = azservicebus.NewClientFromConnectionString(connStr, nil)
 	if err != nil {
-		// todo err
-		return nil
+		cc.logger.Error("could not create service bus client", zap.Error(err))
+		return
 	}
 
-	return &sbClient{client: client}
+	return
 }
 
-func (c *sbClient) SendMessage(ctx context.Context, qm types.QueueMessage) (err error) {
-	sender, err := c.client.NewSender(qm.Queue, nil)
+func (c *sbClient) CreateQueue(ctx context.Context, q string) (err error) {
+	_, err = c.azClient.CreateQueue(ctx, q, nil)
+	if err != nil {
+		// todo err
+		return
+	}
+	return
+}
+
+func (c *sbClient) DeleteQueue(ctx context.Context, q string) (err error) {
+	_, err = c.azClient.DeleteQueue(ctx, q, nil)
+	if err != nil {
+		// todo err
+		return
+	}
+	return
+}
+
+func (c *sbClient) SendMessage(ctx context.Context, q string, payload []byte) (err error) {
+	// fixme: get queue name from event
+	fmt.Println("SendMessage q: ", q)
+	fmt.Println("SendMessage payload: ", string(payload))
+	fmt.Println("SendMessage client 000: ", c)
+	fmt.Println("SendMessage client: ", c.client)
+	sender, err := c.client.NewSender(q, nil)
 	if err != nil {
 		// todo err
 		return
 	}
 	defer func(sender *azservicebus.Sender, ctx context.Context) {
 		err = sender.Close(ctx)
+		fmt.Println("SENDMESSAGE err: ", err)
 		if err != nil {
 			// fixme err
 			return
@@ -62,16 +79,16 @@ func (c *sbClient) SendMessage(ctx context.Context, qm types.QueueMessage) (err 
 	}(sender, ctx)
 
 	sbMessage := &azservicebus.Message{
-		Body: qm.Payload,
+		Body: payload,
 	}
 	err = sender.SendMessage(ctx, sbMessage, nil)
+	fmt.Println("SENDMESSAGE err 3333: ", err)
 	if err != nil {
 		// todo err
 		return
 	}
 
-	c.GetMessage(ctx, 1, qm)
-
+	fmt.Println("SENDMESSAGE ENDDDD: ", string(payload))
 	return
 }
 
@@ -110,34 +127,34 @@ func (c *sbClient) SendMessageBatch(ctx context.Context, q string, payload [][]b
 }
 
 // func (c *sbClient) GetMessage(ctx context.Context, q string, count int) {
-func (c *sbClient) GetMessage(ctx context.Context, count int, qm types.QueueMessage) {
-	receiver, err := c.client.NewReceiverForQueue(qm.Queue, nil) // Change myqueue to env var
-	if err != nil {
-		panic(err)
-	}
-	defer func(receiver *azservicebus.Receiver, ctx context.Context) {
-		err := receiver.Close(ctx)
-		if err != nil {
-			// todo err
-			return
-		}
-	}(receiver, ctx)
-
-	messages, err := receiver.ReceiveMessages(ctx, count, nil)
-	if err != nil {
-		// todo err
-		return
-	}
-
-	for _, message := range messages {
-		body := message.Body
-		// fixme: handle message
-		fmt.Printf("%s\n", string(body))
-
-		err = receiver.CompleteMessage(ctx, message, nil)
-		if err != nil {
-			// todo err
-			return
-		}
-	}
-}
+// func (c *sbClient) GetMessage(ctx context.Context, count int, qm types.QueueMessage) {
+// 	receiver, err := c.client.NewReceiverForQueue(qm.Queue, nil) // Change myqueue to env var
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	defer func(receiver *azservicebus.Receiver, ctx context.Context) {
+// 		err := receiver.Close(ctx)
+// 		if err != nil {
+// 			// todo err
+// 			return
+// 		}
+// 	}(receiver, ctx)
+//
+// 	messages, err := receiver.ReceiveMessages(ctx, count, nil)
+// 	if err != nil {
+// 		// todo err
+// 		return
+// 	}
+//
+// 	for _, message := range messages {
+// 		body := message.Body
+// 		// fixme: handle message
+// 		fmt.Printf("%s\n", string(body))
+//
+// 		err = receiver.CompleteMessage(ctx, message, nil)
+// 		if err != nil {
+// 			// todo err
+// 			return
+// 		}
+// 	}
+// }

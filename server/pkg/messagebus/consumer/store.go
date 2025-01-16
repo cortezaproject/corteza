@@ -38,3 +38,11 @@ func (cq *StoreConsumer) SetStore(s types.QueueStorer) {
 func (cq *StoreConsumer) GetStore() types.QueueStorer {
 	return cq.client.GetStore()
 }
+
+func (cq *StoreConsumer) GetConsumerType() string {
+	if cq.handle == "" {
+		return ""
+	}
+
+	return string(cq.handle)
+}

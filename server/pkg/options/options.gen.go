@@ -183,8 +183,9 @@ type (
 	}
 
 	MessagebusOpt struct {
-		Enabled    bool `env:"MESSAGEBUS_ENABLED"`
-		LogEnabled bool `env:"MESSAGEBUS_LOG_ENABLED"`
+		Enabled                    bool   `env:"MESSAGEBUS_ENABLED"`
+		LogEnabled                 bool   `env:"MESSAGEBUS_LOG_ENABLED"`
+		ServicebusConnectionString string `env:"MESSAGEBUS_SERVICEBUS_CONNECTION_STRING"`
 	}
 
 	MonitorOpt struct {

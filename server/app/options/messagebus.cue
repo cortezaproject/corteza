@@ -16,6 +16,10 @@ messagebus: schema.#optionsGroup & {
 			type:        "bool"
 			description: "Enable extra logging for messagebus watchers"
 		}
+		servicebus_connection_string: {
+			type:        "string"
+			description: "Service Bus connection string for the namespace or for an entity, which contains a SharedAccessKeyName and SharedAccessKey properties"
+		}
 	}
 	title: "Messaging queue"
 }

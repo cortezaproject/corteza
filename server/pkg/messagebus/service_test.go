@@ -100,6 +100,9 @@ func (mh *mockQueueHandler) Write(ctx context.Context, p []byte) error {
 func (mh *mockQueueHandler) SetStore(qs types.QueueStorer) {
 	mh.setStore(qs)
 }
+func (mh *mockQueueHandler) GetConsumerType() string {
+	return ""
+}
 
 func (md mockDispatcher) Register(h eventbus.HandlerFn, ops ...eventbus.HandlerRegOp) (p uintptr) {
 	return md.register(h, ops...)

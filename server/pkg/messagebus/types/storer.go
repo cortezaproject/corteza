@@ -20,5 +20,10 @@ type (
 	QueueServicer interface {
 		QueueStorer
 		QueueEventBuilder
+		QueueServicebuser
+	}
+
+	QueueServicebuser interface {
+		CreateQueue(context.Context, string) error
 	}
 )

@@ -18,6 +18,7 @@ type (
 
 	Consumer interface {
 		Write(ctx context.Context, p []byte) error
+		GetConsumerType() string
 	}
 )
 
