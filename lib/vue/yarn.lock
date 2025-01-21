@@ -5449,10 +5449,10 @@ function-bind@^1.1.2:
   resolved "https://registry.yarnpkg.com/function-bind/-/function-bind-1.1.2.tgz#2c02d864d97f3ea6c8830c464cbd11ab6eab7a1c"
   integrity sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==
 
-fuzzysort@^1.2.1:
-  version "1.2.1"
-  resolved "https://registry.yarnpkg.com/fuzzysort/-/fuzzysort-1.2.1.tgz#ea23d3c4d7726422888f538044fcea265644d54c"
-  integrity sha512-egTSF3U6H6T9tXtAhEm5P5guSSDjd96/NUWrbmoGlIu3ATMdXra13gwQdEFRY6ehsFe8xec7UnQz+k34CGWCIg==
+fuzzysort@^3.1.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/fuzzysort/-/fuzzysort-3.1.0.tgz#4d7832d8fa48ad381753eaa7a7aae9927bdc10a8"
+  integrity sha512-sR9BNCjBg6LNgwvxlBd0sBABvQitkLzoVY9MYYROQVX/FvfJ4Mai9LsGhDgd8qYdds0bY77VzYd5iuB+v5rwQQ==
 
 generic-names@^1.0.2:
   version "1.0.3"

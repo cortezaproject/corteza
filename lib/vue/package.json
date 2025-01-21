@@ -31,7 +31,7 @@
     "acorn": "^7.3.1",
     "bootstrap-vue": "2.23.1",
     "echarts": "5.5.0",
-    "fuzzysort": "^1.2.1",
+    "fuzzysort": "^3.1.0",
     "highlight.js": "^10.4.1",
     "html-parse-stringify": "^3.0.1",
     "i18next": "^20.0.0",
