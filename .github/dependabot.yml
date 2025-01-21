@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/client/web/*"
+      - "/lib/*"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "Dependabot"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "production"
