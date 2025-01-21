@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/lib/*"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "Dependabot"
+    open-pull-requests-limit: 1
+    allow:
+      - dependency-type: "production"
