@@ -106,6 +106,9 @@ const (
 	OperationTypeDelete   OperationType = "delete"
 	OperationTypePatch    OperationType = "patch"
 	OperationTypeUndelete OperationType = "undelete"
+
+	DateOnlyLayout = "2006-01-02"
+	TimeOnlyLayout = "15:04:05"
 )
 
 func (f RecordFilter) ToConstraintedFilter(c map[string][]any) filter.Filter {
@@ -159,6 +162,10 @@ func (r Record) Clone() *Record {
 }
 
 func (r *Record) getValue(name string, pos uint) (any, error) {
+	if r.Values == nil {
+		return nil, nil
+	}
+
 	if val := r.Values.Get(name, pos); val != nil {
 		return val.Value, nil
 	}
@@ -242,7 +249,27 @@ func (r *Record) setValue(name string, pos uint, value any) (err error) {
 					case "DateTime":
 						// @note temporary solution to make timestamps consistent; we should handle
 						// timezones (or the lack of) more properly
-						auxv = cast.ToTime(auxv).Format(time.RFC3339)
+						parseAndFormat := func(value interface{}, format string) string {
+							auxt, err := cast.ToTimeE(value)
+							if err != nil || auxt.IsZero() {
+								return ""
+							}
+							return auxt.Format(format)
+						}
+
+						switch {
+						case f.IsDateOnly():
+							auxv = parseAndFormat(auxv, DateOnlyLayout)
+
+						case f.IsTimeOnly():
+							auxt, err := time.Parse(TimeOnlyLayout, auxv)
+							if err != nil || auxt.IsZero() {
+								auxv = ""
+							}
+
+						default:
+							auxv = parseAndFormat(auxv, time.RFC3339)
+						}
 					}
 				}
 			}
@@ -354,7 +381,7 @@ func (set RecordBulkSet) ToBulkOperations(dftModule uint64, dftNamespace uint64)
 }
 
 // GetValuesByName filters values for records by names
-func (set RecordSet) GetValuesByName(names ...string) (out RecordValueSet) {
+func (set RecordSet) GetValuesByName(names ...string) (out map[uint64]RecordValueSet) {
 	nameMap := make(map[string]bool)
 	for _, n := range names {
 		if len(n) > 0 {
@@ -362,11 +389,13 @@ func (set RecordSet) GetValuesByName(names ...string) (out RecordValueSet) {
 		}
 	}
 
+	out = make(map[uint64]RecordValueSet)
 	err := set.Walk(func(rec *Record) error {
 		_ = rec.Values.Walk(func(val *RecordValue) error {
 			if val != nil && nameMap[val.Name] {
 				val.RecordID = rec.ID
-				out = append(out, val)
+
+				out[val.RecordID] = append(out[val.RecordID], val)
 			}
 			return nil
 		})

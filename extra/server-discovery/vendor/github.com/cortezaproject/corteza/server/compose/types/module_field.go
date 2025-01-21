@@ -19,7 +19,7 @@ type (
 	// Modules - CRM module definitions
 	ModuleField struct {
 		ID          uint64 `json:"fieldID,string"`
-		NamespaceID uint64 `json:"namspaceID,string"`
+        NamespaceID uint64 `json:"namespaceID,string"`
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
 
@@ -248,7 +248,14 @@ func (f *ModuleField) decodeTranslationsMetaOptionsValueText(tt locale.ResourceT
 	}
 
 	for i, optUnknown := range optsSlice {
-		outOpt := map[string]string{}
+		outOpt := map[string]any{
+			"value": "",
+			"text":  "",
+			"style": map[string]any{
+				"textColor":       "",
+				"backgroundColor": "",
+			},
+		}
 
 		// what is this we're dealing with? slice of strings (values) or map (value+text)
 		switch opt := optUnknown.(type) {
@@ -266,12 +273,16 @@ func (f *ModuleField) decodeTranslationsMetaOptionsValueText(tt locale.ResourceT
 			}
 
 			outOpt["text"], _ = opt["text"].(string)
+
+			if style, ok := opt["style"].(map[string]any); ok {
+				outOpt["style"] = style
+			}
 		}
 
 		// find the translation for that value
 		// and update the option (effectively overwriting
 		// the original text value (in case of map option)
-		trKey := strings.NewReplacer("{{value}}", outOpt["value"]).Replace(LocaleKeyModuleFieldMetaOptionsValueText.Path)
+		trKey := strings.NewReplacer("{{value}}", outOpt["value"].(string)).Replace(LocaleKeyModuleFieldMetaOptionsValueText.Path)
 		if tr = tt.FindByKey(trKey); tr != nil {
 			outOpt["text"] = tr.Msg
 		}

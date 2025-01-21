@@ -13,6 +13,10 @@ import (
 func (r Attachment) GetID() uint64 { return r.ID }
 
 func (r *Attachment) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -38,6 +42,10 @@ func (r *Attachment) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Attachment) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Attachment{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -65,6 +73,10 @@ func (r *Attachment) SetValue(name string, pos uint, value any) (err error) {
 func (r Application) GetID() uint64 { return r.ID }
 
 func (r *Application) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -88,6 +100,10 @@ func (r *Application) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Application) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Application{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -113,6 +129,10 @@ func (r *Application) SetValue(name string, pos uint, value any) (err error) {
 func (r ApigwRoute) GetID() uint64 { return r.ID }
 
 func (r *ApigwRoute) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -142,6 +162,10 @@ func (r *ApigwRoute) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *ApigwRoute) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ApigwRoute{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -173,6 +197,10 @@ func (r *ApigwRoute) SetValue(name string, pos uint, value any) (err error) {
 func (r ApigwFilter) GetID() uint64 { return r.ID }
 
 func (r *ApigwFilter) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -204,6 +232,10 @@ func (r *ApigwFilter) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *ApigwFilter) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ApigwFilter{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -237,6 +269,10 @@ func (r *ApigwFilter) SetValue(name string, pos uint, value any) (err error) {
 func (r AuthClient) GetID() uint64 { return r.ID }
 
 func (r *AuthClient) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -278,6 +314,10 @@ func (r *AuthClient) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *AuthClient) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &AuthClient{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -321,6 +361,10 @@ func (r *AuthClient) SetValue(name string, pos uint, value any) (err error) {
 func (r DataPrivacyRequestComment) GetID() uint64 { return r.ID }
 
 func (r *DataPrivacyRequestComment) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "comment", "Comment":
 		return r.Comment, nil
@@ -346,6 +390,10 @@ func (r *DataPrivacyRequestComment) GetValue(name string, pos uint) (any, error)
 }
 
 func (r *DataPrivacyRequestComment) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DataPrivacyRequestComment{}
+	}
+
 	switch name {
 	case "comment", "Comment":
 		return cast2.String(value, &r.Comment)
@@ -373,6 +421,10 @@ func (r *DataPrivacyRequestComment) SetValue(name string, pos uint, value any) (
 func (r Queue) GetID() uint64 { return r.ID }
 
 func (r *Queue) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "consumer", "Consumer":
 		return r.Consumer, nil
@@ -398,6 +450,10 @@ func (r *Queue) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Queue) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Queue{}
+	}
+
 	switch name {
 	case "consumer", "Consumer":
 		return cast2.String(value, &r.Consumer)
@@ -425,6 +481,10 @@ func (r *Queue) SetValue(name string, pos uint, value any) (err error) {
 func (r Report) GetID() uint64 { return r.ID }
 
 func (r *Report) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -450,6 +510,10 @@ func (r *Report) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Report) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Report{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -477,6 +541,10 @@ func (r *Report) SetValue(name string, pos uint, value any) (err error) {
 func (r ResourceTranslation) GetID() uint64 { return r.ID }
 
 func (r *ResourceTranslation) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -506,6 +574,10 @@ func (r *ResourceTranslation) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *ResourceTranslation) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &ResourceTranslation{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -540,6 +612,10 @@ func (r *ResourceTranslation) SetValue(name string, pos uint, value any) (err er
 func (r Role) GetID() uint64 { return r.ID }
 
 func (r *Role) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "archivedAt", "ArchivedAt":
 		return r.ArchivedAt, nil
@@ -561,6 +637,10 @@ func (r *Role) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Role) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Role{}
+	}
+
 	switch name {
 	case "archivedAt", "ArchivedAt":
 		return cast2.TimePtr(value, &r.ArchivedAt)
@@ -587,6 +667,10 @@ func (r RoleMember) GetID() uint64 {
 }
 
 func (r *RoleMember) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "roleID", "RoleID":
 		return r.RoleID, nil
@@ -598,6 +682,10 @@ func (r *RoleMember) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *RoleMember) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &RoleMember{}
+	}
+
 	switch name {
 	case "roleID", "RoleID":
 		return cast2.Uint64(value, &r.RoleID)
@@ -611,6 +699,10 @@ func (r *RoleMember) SetValue(name string, pos uint, value any) (err error) {
 func (r Template) GetID() uint64 { return r.ID }
 
 func (r *Template) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -638,6 +730,10 @@ func (r *Template) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *Template) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &Template{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -667,6 +763,10 @@ func (r *Template) SetValue(name string, pos uint, value any) (err error) {
 func (r User) GetID() uint64 { return r.ID }
 
 func (r *User) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -694,6 +794,10 @@ func (r *User) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *User) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &User{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -723,6 +827,10 @@ func (r *User) SetValue(name string, pos uint, value any) (err error) {
 func (r DalConnection) GetID() uint64 { return r.ID }
 
 func (r *DalConnection) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -748,6 +856,10 @@ func (r *DalConnection) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *DalConnection) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DalConnection{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -775,6 +887,10 @@ func (r *DalConnection) SetValue(name string, pos uint, value any) (err error) {
 func (r DalSensitivityLevel) GetID() uint64 { return r.ID }
 
 func (r *DalSensitivityLevel) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return r.CreatedAt, nil
@@ -800,6 +916,10 @@ func (r *DalSensitivityLevel) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *DalSensitivityLevel) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DalSensitivityLevel{}
+	}
+
 	switch name {
 	case "createdAt", "CreatedAt":
 		return cast2.Time(value, &r.CreatedAt)
@@ -827,6 +947,10 @@ func (r *DalSensitivityLevel) SetValue(name string, pos uint, value any) (err er
 func (r DalSchemaAlteration) GetID() uint64 { return r.ID }
 
 func (r *DalSchemaAlteration) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
 	switch name {
 	case "batchID", "BatchID":
 		return r.BatchID, nil
@@ -870,6 +994,10 @@ func (r *DalSchemaAlteration) GetValue(name string, pos uint) (any, error) {
 }
 
 func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &DalSchemaAlteration{}
+	}
+
 	switch name {
 	case "batchID", "BatchID":
 		return cast2.Uint64(value, &r.BatchID)

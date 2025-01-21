@@ -44,7 +44,8 @@ type (
 
 	// AggregateAttr is a simple wrapper to outline aggregated attribute definitions
 	AggregateAttr struct {
-		Key bool
+		MultiValue bool
+		Key        bool
 
 		// @todo change; temporary for compose service
 		RawExpr string
