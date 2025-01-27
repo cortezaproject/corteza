@@ -112,7 +112,6 @@ const idpStandard = [
   'github',
   'facebook',
   'linkedin',
-  'nylas',
 ]
 
 const idpSecurity = {

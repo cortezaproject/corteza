@@ -809,34 +809,6 @@ progress:
     success: Success
     warning: Warning
 
-nylas:
-  label: Office365/Google
-
-  viewer:
-    connect: Connect with Nylas
-    noExternal: Nylas external provider is not configured
-    noComponentID: Nylas component ID is not configured
-
-  configurator:
-    label: Office365/Google
-    kind: Component kind
-    componentID: Component ID
-    accessTokenRequired: Access token required
-    prefill:
-      title: Prefill values
-      selectField: Select field
-      body: Body
-      subject: Subject
-      queryString: Query string
-      to: To
-    kinds:
-      agenda: Agenda
-      composer: Composer
-      contactList: Contact List
-      conversation: Conversation
-      email: Email
-      mailbox: Mailbox
-
 geometry:
   label: Map
   viewLabel: Map

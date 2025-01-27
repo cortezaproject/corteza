@@ -9,16 +9,6 @@
     </b-form-group>
 
     <b-form-group
-      v-if="value.handle === 'nylas'"
-    >
-      <b-form-checkbox
-        v-model="providerUsage"
-      >
-        {{ $t('apiAccess') }}
-      </b-form-checkbox>
-    </b-form-group>
-
-    <b-form-group
       :label="$t('clientKey')"
       label-class="text-primary"
     >
