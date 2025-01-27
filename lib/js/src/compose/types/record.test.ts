@@ -13,7 +13,7 @@ const m = Object.freeze(new Module({
   ],
 }))
 
-describe(__filename, () => {
+describe('record', () => {
   describe('record creation', () => {
     const assertAllUndefined = function (r: Record): void {
       expect(r.module).to.eq(m)

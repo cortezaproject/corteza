@@ -210,7 +210,7 @@ export default {
     window.addEventListener('resize', this.checkIfMobile)
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.$root.$off('close-sidebar', this.closeSidebar)
     window.removeEventListener('resize', this.checkIfMobile)
   },
@@ -280,7 +280,7 @@ export default {
       if (this.sidebarSettings[this.$root.$options.name]) {
         this.sidebarSettings[this.$root.$options.name].pinned = pinned
       } else {
-        this.sidebarSettings[this.$root.$options.name] = { pinned: pinned }
+        this.sidebarSettings[this.$root.$options.name] = { pinned }
       }
       window.localStorage.setItem('sidebarSettings', JSON.stringify(this.sidebarSettings))
     },

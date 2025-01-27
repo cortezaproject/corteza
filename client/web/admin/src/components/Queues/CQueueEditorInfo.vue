@@ -169,8 +169,8 @@ export default {
     },
 
     durationState () {
-      let pd = (this.queue.meta || {}).poll_delay || ''
-      let m = pd.match(/^((\d+h)?(\d+m)?(\d+s)?)|(\s)$/g)
+      const pd = (this.queue.meta || {}).poll_delay || ''
+      const m = pd.match(/^((\d+h)?(\d+m)?(\d+s)?)|(\s)$/g)
 
       if (m.length && m[0] === pd) {
         return null

@@ -109,10 +109,12 @@ const controls = [
 ]
 
 const scenarios = [
-  { label: 'full form',
+  {
+    label: 'full form',
     props,
   },
-  { label: 'empty form',
+  {
+    label: 'empty form',
     props: {
       title: 'null',
       value: {

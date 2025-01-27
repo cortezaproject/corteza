@@ -235,13 +235,13 @@ export function formatActiveFilterOperator (op) {
   const operators = {
     '=': 'equal',
     '!=': 'notEqual',
-    'IN': 'in',
+    IN: 'in',
     'NOT IN': 'notIn',
     '>': 'greaterThan',
     '<': 'lessThan',
-    'LIKE': 'like',
+    LIKE: 'like',
     'NOT LIKE': 'notLike',
-    'BETWEEN': 'between',
+    BETWEEN: 'between',
     'NOT BETWEEN': 'notBetween',
   }
 

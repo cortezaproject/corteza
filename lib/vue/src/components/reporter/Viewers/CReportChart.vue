@@ -12,13 +12,13 @@ import base from './base.vue'
 import { CChart } from '../../chart/index.ts'
 
 export default {
-  extends: base,
-
-  title: 'CReportChart',
 
   components: {
     CChart,
   },
+  extends: base,
+
+  title: 'CReportChart',
 
   data () {
     return {
@@ -46,7 +46,7 @@ export default {
           this.renderChart()
         })
       },
-    }
+    },
   },
 
   methods: {

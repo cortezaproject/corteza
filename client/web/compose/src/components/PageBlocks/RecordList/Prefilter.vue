@@ -181,7 +181,7 @@ export default {
       return filterGroup.map(({ groupCondition, filter = [], name }) => {
         filter = filter.map(({ record, ...f }) => {
           if (!f.name || !record) {
-            return
+            return undefined
           }
 
           if (this.isBetweenOperator(f.operator)) {
@@ -222,7 +222,7 @@ export default {
 
       const filterSql = trimChar(
         trimChar(filterSqlArray.join(''), ' AND '),
-        ' OR '
+        ' OR ',
       )
 
       return filterSql

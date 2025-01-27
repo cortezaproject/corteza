@@ -8,7 +8,7 @@ export default {
 
     labels: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
     },
   },
 

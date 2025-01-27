@@ -108,15 +108,15 @@ export default {
         options: [
           {
             label: this.$t('snippets.interpolate'),
-            copyValue: () => `{{.parameter}}`,
+            copyValue: () => '{{.parameter}}',
           },
           {
             label: this.$t('snippets.iterator'),
-            copyValue: () => `{{range $index, $element := .ListOfItems}}\n\n{{end}}`,
+            copyValue: () => '{{range $index, $element := .ListOfItems}}\n\n{{end}}',
           },
           {
             label: this.$t('snippets.funcCall'),
-            copyValue: () => `{{funcName param1 param2 paramN}}`,
+            copyValue: () => '{{funcName param1 param2 paramN}}',
           },
         ],
       },

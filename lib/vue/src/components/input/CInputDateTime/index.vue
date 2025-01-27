@@ -47,6 +47,7 @@ export default {
     value: {
       type: [String, Date],
       required: false,
+      default: '',
     },
 
     noTime: {

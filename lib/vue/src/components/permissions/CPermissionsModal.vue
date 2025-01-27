@@ -44,8 +44,8 @@
             label-class="text-primary"
           >
             <c-input-role
-              data-test-id="select-user-list-roles"
               v-model="currentRoleID"
+              data-test-id="select-user-list-roles"
               :visible="isRoleVisible"
               :clearable="false"
               preselect
@@ -56,8 +56,8 @@
 
         <b-col
           v-for="(e, i) in evaluate"
-          data-test-id="icon-remove"
           :key="i"
+          data-test-id="icon-remove"
           lg="2"
           class="pointer hide-eval border-bottom d-none d-lg-flex flex-column align-items-center justify-content-center overflow-hidden border-left p-3"
           @click="onHideEval(i)"
@@ -192,9 +192,9 @@
         class="mb-0"
       >
         <c-input-role
+          v-model="add.roleID"
           data-test-id="select-role"
           :placeholder="labels.add.role.placeholder"
-          v-model="add.roleID"
           multiple
           :disabled="!!add.userID"
         />
@@ -206,8 +206,8 @@
         class="mt-3 mb-0"
       >
         <c-input-select
-          data-test-id="select-user"
           v-model="add.userID"
+          data-test-id="select-user"
           :disabled="!!add.roleID.length"
           :options="userOptions"
           :get-option-label="getUserLabel"
@@ -321,10 +321,10 @@ export default {
         } else if (this.title) {
           target = this.$t(`permissions:${i18nPrefix}.specific`, { target: this.title, interpolation: { escapeValue: false } })
         } else {
-          target = this.$t(`permissions:${i18nPrefix}.all`,)
+          target = this.$t(`permissions:${i18nPrefix}.all`)
         }
 
-        return this.$t('permissions:ui.set-for', { target: target, interpolation: { escapeValue: false } })
+        return this.$t('permissions:ui.set-for', { target, interpolation: { escapeValue: false } })
       }
 
       return undefined
@@ -337,7 +337,7 @@ export default {
     this.$root.$on(modalOpenEventName, this.loadModal)
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.destroyEvents()
     this.setDefaultValues()
   },
@@ -528,7 +528,7 @@ export default {
     // Removes unneeded permissions (ones that do not match resource prop)
     // and translates the rest
     filterPermissions (pp) {
-      const [ resourceType ] = this.resource.split('/', 2)
+      const [resourceType] = this.resource.split('/', 2)
       return pp
         .filter(({ type }) => resourceType === type)
         .map(({ type, op: operation }) => {
@@ -536,7 +536,7 @@ export default {
             ...this.describePermission({ resource: type, operation }),
             operation,
             // override resource-type with the actual resource-ID
-            resource: this.resource
+            resource: this.resource,
           }
         })
     },
@@ -594,7 +594,7 @@ export default {
       this.fetchedUsers = {}
     },
 
-    destroyEvents() {
+    destroyEvents () {
       this.$root.$off(modalOpenEventName)
     },
   },

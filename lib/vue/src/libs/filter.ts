@@ -11,7 +11,7 @@ function toNFD (s: string): string {
 // Here we try to calculate the quality of the match using relative numbers.
 // By default, fuzzy sort uses score that is not capped.
 const goodMatchThreshold = 0.35
-function fuzzyMatch ({ indexes }: { indexes: Array<number> }): number {
+function fuzzyMatch ({ indexes }: { indexes: readonly number[] }): number {
   return indexes.length / (Math.max(...indexes) + 1)
 }
 

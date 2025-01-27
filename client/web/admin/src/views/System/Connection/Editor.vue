@@ -189,7 +189,7 @@ export default {
 
         if (!updating) {
           const { connectionID } = connection
-          this.$router.push({ name: `system.connection.edit`, params: { connectionID } })
+          this.$router.push({ name: 'system.connection.edit', params: { connectionID } })
         } else {
           connection.config.dal = this.connection.config.dal
           connection.meta.properties = this.connection.meta.properties
@@ -277,7 +277,7 @@ export default {
             this.connection.deletedAt = new Date()
             this.initialConnectionState.deletedAt = this.connection.deletedAt
 
-            this.$router.push({ name: `system.connection` })
+            this.$router.push({ name: 'system.connection' })
           } else {
             this.connection.deletedAt = null
             this.initialConnectionState.deletedAt = null

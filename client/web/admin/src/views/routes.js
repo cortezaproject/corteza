@@ -32,7 +32,7 @@ function wrap (name, path) {
   return {
     path,
     name,
-    component: { name: name + 'Wrap', template: `<router-view />` },
+    component: { name: name + 'Wrap', template: '<router-view />' },
     props: true,
     // canReuse: false,
   }
@@ -64,8 +64,8 @@ function combo (ns, name, opt = {}) {
     ...wrap(`${ns}.${name}`, `/${ns}/${name}`),
     redirect: `/${ns}/${name}/list`,
     children: [
-      r(`${ns}.${name}.list`, `list`, `${opt.cmpDir}/List`),
-      r(`${ns}.${name}.new`, `new`, `${opt.cmpDir}/Editor`),
+      r(`${ns}.${name}.list`, 'list', `${opt.cmpDir}/List`),
+      r(`${ns}.${name}.new`, 'new', `${opt.cmpDir}/Editor`),
       r(`${ns}.${name}.edit`, `edit/:${opt.pkey}`, `${opt.cmpDir}/Editor`),
     ],
   }
@@ -80,7 +80,7 @@ export default [
     children: [
       r('dashboard', 'dashboard', 'Dashboard'),
       {
-        ...wrap(`system`, `/system`),
+        ...wrap('system', '/system'),
 
         children: [
           r('system.stats', 'stats', 'System/Stats'),
@@ -119,7 +119,7 @@ export default [
       },
 
       {
-        ...wrap(`compose`, `/compose`),
+        ...wrap('compose', '/compose'),
         children: [
           r('compose.settings', 'settings', 'Compose/Settings/Index'),
           r('compose.permissions', 'permissions', 'Compose/Permissions/Index'),
@@ -127,7 +127,7 @@ export default [
       },
 
       {
-        ...wrap(`automation`, `/automation`),
+        ...wrap('automation', '/automation'),
         children: [
           combo('automation', 'workflow'),
           r('automation.scripts', 'scripts', 'Automation/Scripts/Index'),
@@ -137,7 +137,7 @@ export default [
       },
 
       {
-        ...wrap(`federation`, `/federation`),
+        ...wrap('federation', '/federation'),
         children: [
           combo('federation', 'nodes', { pkey: 'nodeID' }),
           r('federation.permissions', 'permissions', 'Federation/Permissions/Index'),

@@ -20,7 +20,7 @@ const ns = (h: ComposeHelper): { namespaceID: string } => {
   return { namespaceID }
 }
 
-describe(__filename, () => {
+describe('compose', () => {
   describe('supporting functions', () => {
     describe('resolving module', () => {
       let h: StubbedInstance<ComposeHelper>
@@ -106,7 +106,6 @@ describe(__filename, () => {
           new ComposeHelper({ ComposeAPI: new ComposeAPI({}) }),
           [
             'findNamespaceBySlug',
-            'findNamespaceByName',
             'findNamespaceByID',
           ],
         )

@@ -1,17 +1,18 @@
 <template>
   <div>
     <b-button
+      :id="`color-popover-${format.type}`"
       variant="link"
       class="text-dark font-weight-bold text-decoration-none"
-      :id="`color-popover-${format.type}`">
-
+    >
       <span
         class="icon"
-        :class="typeStyle">A</span>
-
+        :class="typeStyle"
+      >A</span>
     </b-button>
 
     <b-popover
+      ref="popover"
       :delay="0"
       no-fade
       custom-class="tcl-popover"
@@ -19,14 +20,13 @@
       :target="`color-popover-${format.type}`"
       placement="bottom"
       :container="null"
-      ref="popover">
-
+    >
       <swatches
         swatch-size="14"
         colors="text-advanced"
+        inline
         @input="onClick(format.type, { color: $event })"
-        inline />
-
+      />
     </b-popover>
   </div>
 </template>
@@ -41,7 +41,7 @@ import 'vue-swatches/dist/vue-swatches.min.css'
  * input the URL that should be applied.
  */
 export default {
-  name: 't-mark-color',
+  name: 'TMarkColor',
 
   components: {
     Swatches,

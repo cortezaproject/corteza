@@ -114,7 +114,7 @@ export default {
         name: 'page.record',
         params: {
           pageID: this.recordPage.pageID,
-          recordID: recordID,
+          recordID,
         },
       }
     },

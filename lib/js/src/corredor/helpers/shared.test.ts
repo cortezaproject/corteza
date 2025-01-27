@@ -1,14 +1,11 @@
-import { describe, it, beforeEach } from 'mocha'
+import { describe, it } from 'mocha'
 import { expect } from 'chai'
-import sinon, { stubObject } from 'ts-sinon'
+import { stubObject } from 'ts-sinon'
 import { extractID, genericPermissionUpdater } from './shared'
 import { NoID } from '../../cast'
 import { System as SystemAPI } from '../../api-clients'
 
-describe(__filename, () => {
-  beforeEach(() => {
-    sinon.restore()
-  })
+describe('shared', () => {
 
   describe('extractID', () => {
     it('should extract the ID', () => {

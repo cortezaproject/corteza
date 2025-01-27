@@ -1,6 +1,5 @@
 import { expect } from 'chai'
 import { Apply } from './cast'
-
 class Foo {
   baz = ''
   bool = false
@@ -8,7 +7,7 @@ class Foo {
   ff: Foo[] = []
 }
 
-describe(__filename, () => {
+describe('cast', () => {
   describe('ensure that applying actually works', () => {
     let foo: Foo
 

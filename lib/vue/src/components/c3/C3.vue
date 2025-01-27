@@ -2,7 +2,8 @@
   <div class="layout">
     <aside class="sidebar p-2">
       <h5
-        class="border-bottom">
+        class="border-bottom"
+      >
         C3: Component Catalogue
       </h5>
       <component-list
@@ -28,13 +29,13 @@
     </main>
 
     <div
-      class="controls px-5 py-2 mt-2"
       v-if="current"
+      class="controls px-5 py-2 mt-2"
     >
       <div
-        class="control-group mr-2"
         v-for="(cg, g) in controlGroups"
         :key="`control-group-${g}`"
+        class="control-group mr-2"
       >
         <h3>
           Controls
@@ -89,6 +90,12 @@ export default {
     },
   },
 
+  data () {
+    return {
+      current: undefined,
+    }
+  },
+
   computed: {
     controlGroups () {
       if (this.current.controls.length === 0) {
@@ -103,12 +110,6 @@ export default {
       // make one virtual group holding all controls
       return [this.current.controls]
     },
-  },
-
-  data () {
-    return {
-      current: undefined,
-    }
   },
 
   methods: {

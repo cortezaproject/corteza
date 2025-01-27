@@ -9,7 +9,6 @@ export interface FunctionMeta {
   webapps: Array<string>;
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 interface FunctionCtr extends Partial<Omit<Function, 'parameters' | 'results'>> {
   parameters?: Array<Partial<Param>>;
   results?: Array<Partial<Param>>;

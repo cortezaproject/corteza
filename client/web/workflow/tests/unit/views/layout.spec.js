@@ -1,40 +1,52 @@
 /* eslint-disable no-unused-expressions */
-/* eslint-disable no-unused-vars */
 import { expect } from 'chai'
-import sinon from 'sinon'
+import { shallowMount, createLocalVue } from '@vue/test-utils'
 import Layout from '../../../src/views/Layout'
-import { shallowMount } from '../../lib/helpers'
-import fp from 'flush-promises'
+import BootstrapVue from 'bootstrap-vue'
+import PortalVue from 'portal-vue'
+import sinon from 'sinon'
 
-describe('/views/Layout.vue', () => {
+describe('Layout.vue', () => {
+  let localVue
+
+  beforeEach(() => {
+    localVue = createLocalVue()
+    localVue.use(BootstrapVue)
+    localVue.use(PortalVue)
+  })
+
   afterEach(() => {
     sinon.restore()
   })
 
-  let $auth, $Settings
-
-  beforeEach(() => {
-    $auth = {
-      user: {},
-    }
-
-    $Settings = {
-      get: () => ({}),
-      attachment: () => '',
-    }
-  })
-
-  const mountLayout = (opt) => shallowMount(Layout, {
-    mocks: { $auth, $Settings },
-    ...opt,
-  })
-
-  describe('Init', () => {
-    it('It renders', async () => {
-      const wrapper = mountLayout()
-
-      await fp()
-      expect(wrapper.find('div')).to.exist
+  it('renders', () => {
+    const wrapper = shallowMount(Layout, {
+      localVue,
+      mocks: {
+        $auth: {
+          user: {},
+        },
+        $Settings: {
+          get: () => ({}),
+          attachment: () => '',
+        },
+        $t: (key) => key,
+      },
+      stubs: [
+        'router-view',
+        'portal-target',
+        'c-topbar',
+        'c-sidebar',
+        'c-permissions-modal',
+      ],
     })
+
+    expect(wrapper.find('div').classes()).to.include.members([
+      'd-flex',
+      'flex-column',
+      'w-100',
+      'vh-100',
+      'overflow-hidden',
+    ])
   })
 })

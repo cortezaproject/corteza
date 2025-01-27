@@ -2,11 +2,13 @@
   <b-button
     variant="link"
     class="text-dark font-weight-bold text-decoration-none"
-    @click="onClick(format.type, format.attrs)">
+    @click="onClick(format.type, format.attrs)"
+  >
     <span :class="activeClasses(format.attrs)">
       <font-awesome-icon
         v-if="format.icon"
-        :icon="format.icon" />
+        :icon="format.icon"
+      />
 
       <span v-else>
         {{ format.label }}
@@ -22,7 +24,7 @@ import base from './base.vue'
  * Component is used to display node types; paragraph, headding, ...
  */
 export default {
-  name: 't-node-item',
+  name: 'TNodeItem',
   extends: base,
 }
 </script>

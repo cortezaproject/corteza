@@ -1,4 +1,6 @@
-import { get } from 'lodash'
+import lodash from 'lodash'
+const { get } = lodash
+
 import colorschemes from './colorschemes'
 
 export const getColorschemeColors = (colorscheme?: string, customColorSchemes?: any[]): string[] => {

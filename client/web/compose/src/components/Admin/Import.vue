@@ -170,7 +170,7 @@ export default {
 
       if (files[0]) {
         this.processing = true
-        var reader = new FileReader()
+        const reader = new FileReader()
         reader.readAsText(files[0])
         reader.onload = (evt) => {
           try {

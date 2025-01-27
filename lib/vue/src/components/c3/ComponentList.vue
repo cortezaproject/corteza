@@ -4,7 +4,7 @@
       v-if="!root"
       class="mb-0"
     >
-      {{  group  }}
+      {{ group }}
     </h5>
 
     <div
@@ -13,8 +13,8 @@
       <div
         v-for="(cmp, i) in components"
         :key="i"
-        @click="$emit('select', cmp)"
         class="component ml-2"
+        @click="$emit('select', cmp)"
       >
         {{ cmp.name || cmp.component.name || 'Untitled' }}
         <b-badge
@@ -26,18 +26,18 @@
         </b-badge>
       </div>
       <component-list
-        v-for="(group) in subgroups"
-        :key="group"
+        v-for="(g) in subgroups"
+        :key="g"
         :catalogue="catalogue"
-        :path="[...path, group]"
-        @select="$emit('select', $event)"
+        :path="[...path, g]"
         class="my-3"
+        @select="$emit('select', $event)"
       />
     </div>
   </div>
 </template>
 <script>
-import {ExtractComponents, ExtractSubgroups} from './helpers.ts'
+import { ExtractComponents, ExtractSubgroups } from './helpers.ts'
 
 export default {
   name: 'ComponentList',
@@ -49,7 +49,7 @@ export default {
 
     path: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
   },
 
@@ -72,8 +72,8 @@ export default {
     components () {
       // return ExtractComponents(this.catalogue, ...this.path)
       return ExtractComponents(this.catalogue, ...this.path)
-    }
-  }
+    },
+  },
 }
 </script>
 <style lang="scss" scoped>

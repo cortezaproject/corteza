@@ -953,6 +953,8 @@ export default {
           if (kind === 'Record' && !isMulti && this.record) {
             return options.moduleID === this.record.moduleID
           }
+
+          return false
         })
       }
       return []

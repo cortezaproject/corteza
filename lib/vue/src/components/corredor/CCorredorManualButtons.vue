@@ -18,7 +18,10 @@
 <script lang="js">
 export default {
   props: {
-    resourceType: {},
+    resourceType: {
+      type: String,
+      required: true,
+    },
 
     uiSlot: {
       type: String,
@@ -32,24 +35,24 @@ export default {
 
     defaultVariant: {
       type: String,
-      default: () => 'link'
+      default: 'link',
     },
 
     buttonClass: {
       type: String,
-      default: () => 'mr-1'
+      default: 'mr-1',
     },
 
     size: {
       type: String,
-      default: () => 'md'
+      default: 'md',
     },
   },
 
   computed: {
     buttons () {
       return this.$UIHooks.Find(this.resourceType, this.uiPage, this.uiSlot)
-    }
-  }
+    },
+  },
 }
 </script>

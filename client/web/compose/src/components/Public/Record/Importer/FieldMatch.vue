@@ -196,7 +196,7 @@ export default {
     const { fields = {} } = this.session
 
     const moduleFields = {
-      'id': 'recordID',
+      id: 'recordID',
     }
 
     this.module.fields.forEach(({ name }) => {

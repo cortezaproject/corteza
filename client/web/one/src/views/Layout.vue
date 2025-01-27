@@ -20,11 +20,7 @@
           lightTheme: $t('themes.labels.light'),
           darkTheme: $t('themes.labels.dark'),
         }"
-      >
-        <template #help-dropdown>
-          <portal-target name="topbar-help-dropdown" />
-        </template>
-      </c-topbar>
+      />
     </header>
 
     <main

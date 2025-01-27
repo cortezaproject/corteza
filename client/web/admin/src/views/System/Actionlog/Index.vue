@@ -403,22 +403,38 @@ export default {
       items: [],
 
       severity: [
-        { label: this.$t('severity.emergency'),
-          class: 'text-danger' },
-        { label: this.$t('severity.alert'),
-          class: 'text-danger' },
-        { label: this.$t('severity.critical'),
-          class: 'text-danger' },
-        { label: this.$t('severity.error'),
-          class: 'text-danger' },
-        { label: this.$t('severity.warning'),
-          class: 'text-warning' },
-        { label: this.$t('severity.notice'),
-          class: 'text-success' },
-        { label: this.$t('severity.info'),
-          class: 'text-success' },
-        { label: this.$t('severity.debug'),
-          class: '' },
+        {
+          label: this.$t('severity.emergency'),
+          class: 'text-danger',
+        },
+        {
+          label: this.$t('severity.alert'),
+          class: 'text-danger',
+        },
+        {
+          label: this.$t('severity.critical'),
+          class: 'text-danger',
+        },
+        {
+          label: this.$t('severity.error'),
+          class: 'text-danger',
+        },
+        {
+          label: this.$t('severity.warning'),
+          class: 'text-warning',
+        },
+        {
+          label: this.$t('severity.notice'),
+          class: 'text-success',
+        },
+        {
+          label: this.$t('severity.info'),
+          class: 'text-success',
+        },
+        {
+          label: this.$t('severity.debug'),
+          class: '',
+        },
       ],
     }
   },

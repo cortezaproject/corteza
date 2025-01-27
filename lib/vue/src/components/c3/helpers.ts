@@ -1,10 +1,10 @@
-export interface Catalogue {
-  [_: string]: CatalogueItem;
-}
-
 export interface CatalogueItem {
   group?: Array<string>;
   name?: string;
+}
+
+export interface Catalogue {
+  [_: string]: CatalogueItem;
 }
 
 const del = '|||'

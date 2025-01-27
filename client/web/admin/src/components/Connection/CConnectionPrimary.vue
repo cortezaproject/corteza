@@ -1,4 +1,3 @@
-
 <template>
   <b-card
     data-test-id="card-primary-database"

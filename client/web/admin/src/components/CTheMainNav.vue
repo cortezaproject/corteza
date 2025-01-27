@@ -237,7 +237,7 @@ export default {
             const page = {
               name: itm.route,
               title: this.$t(itm.label),
-              icon: [ 'fas', itm.icon ],
+              icon: ['fas', itm.icon],
             }
 
             if (!itm.can) {

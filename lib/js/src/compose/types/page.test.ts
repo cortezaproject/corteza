@@ -3,7 +3,7 @@ import { expect } from 'chai'
 import { Page } from './page'
 import { PageBlock } from './page-block'
 
-describe(__filename, () => {
+describe('page', () => {
   describe('initialization', () => {
     it('simple', () => {
       const page = new Page({})

@@ -36,6 +36,8 @@ export default {
         if (recordIDs.length) {
           return this.$store.dispatch('record/resolveRecords', { namespaceID, moduleID, recordIDs })
         }
+
+        return Promise.resolve([])
       }))
     },
 

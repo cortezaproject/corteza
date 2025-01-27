@@ -1,4 +1,4 @@
-import minimatch from 'minimatch'
+import { minimatch } from 'minimatch'
 import { IsOf } from '../guards'
 
 interface Constraint {

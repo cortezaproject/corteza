@@ -7,8 +7,14 @@
     @click="onClick"
   >
     <slot>
-      <font-awesome-icon v-if="showButtonIcon" :icon="['fas', 'lock']" />
-      <span v-if="buttonLabel" class="permissions-button-label">
+      <font-awesome-icon
+        v-if="showButtonIcon"
+        :icon="['fas', 'lock']"
+      />
+      <span
+        v-if="buttonLabel"
+        class="permissions-button-label"
+      >
         {{ buttonLabel }}
       </span>
     </slot>
@@ -67,7 +73,7 @@ export default {
     // Use this prop if you want the translations to look for all-specific key instead of all/specific
     allSpecific: {
       type: Boolean,
-      default: false
+      default: false,
     },
 
     tooltip: {
@@ -82,7 +88,7 @@ export default {
         target: this.target,
         resource: this.resource,
         title: this.title,
-        allSpecific: this.allSpecific
+        allSpecific: this.allSpecific,
       })
     },
   },

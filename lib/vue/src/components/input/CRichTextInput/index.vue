@@ -89,7 +89,7 @@ export default {
     this.init()
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.editor.destroy()
   },
 

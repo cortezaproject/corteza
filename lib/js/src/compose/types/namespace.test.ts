@@ -2,7 +2,7 @@ import { NoID } from '../../cast'
 import { expect } from 'chai'
 import { Namespace } from './namespace'
 
-describe(__filename, () => {
+describe('namespace', () => {
   describe('initialization', () => {
     // it('requires name and slug', () => {
     //   expect(() => new Namespace({})).to.throw('field name is empty')

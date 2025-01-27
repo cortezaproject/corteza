@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { ConstraintMaker } from './constraints'
 
-describe(__filename, () => {
+describe('constraints', () => {
   describe('maker', () => {
     it('should make simple equal matcher', () => {
       expect(ConstraintMaker({ value: ['foo'] }).Match('foo')).to.be.true

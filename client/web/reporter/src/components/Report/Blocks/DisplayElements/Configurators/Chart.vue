@@ -771,7 +771,7 @@ export default {
 
   methods: {
     updateDataColumns (columns) {
-      let result = columns.map((c) => this.dataColumns.find(({ name }) => name === c))
+      const result = columns.map((c) => this.dataColumns.find(({ name }) => name === c))
 
       result.forEach((c, idx) => {
         const initialCol = this.options.dataColumns.find(({ name }) => name === c.name)

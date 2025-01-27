@@ -1,5 +1,6 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 import { Apply } from '../../../cast'
 import { Options as PageBlockRecordListOptions } from './record-list'
 const kind = 'Metric'

@@ -1,7 +1,8 @@
 import { PageBlock, PageBlockInput, Registry } from './base'
 import { Apply, NoID } from '../../../cast'
 import { Options as PageBlockRecordListOptions } from './record-list'
-import { cloneDeep, merge } from 'lodash'
+import lodash from 'lodash'
+const { cloneDeep, merge } = lodash
 
 const kind = 'Chart'
 

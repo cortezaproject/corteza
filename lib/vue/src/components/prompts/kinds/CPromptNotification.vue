@@ -1,8 +1,8 @@
 <template>
   <div>
     <p
-      v-html="message"
       class="mb-0"
+      v-html="message"
     />
   </div>
 </template>
@@ -10,13 +10,13 @@
 import base from './base.vue'
 
 export default {
+  name: 'CPromptNotification',
   extends: base,
-  name: 'c-prompt-notification',
 
-    mounted () {
+  mounted () {
     // Non blocking, return to workflow right away
     // keep indicates if toast will be kept open until auto delay hides it
     this.$emit('submit', { keep: true })
-  }
+  },
 }
 </script>

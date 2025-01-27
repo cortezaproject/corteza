@@ -5,7 +5,7 @@
     class="w-auto"
     @change="$emit('action', $event)"
   >
-    <template v-slot:first>
+    <template #first>
       <option
         :value="null"
         disabled

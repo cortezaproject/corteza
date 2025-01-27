@@ -1,40 +1,77 @@
 /* eslint-disable no-unused-expressions */
-/* eslint-disable no-unused-vars */
+/* global jest */
 import { expect } from 'chai'
-import sinon from 'sinon'
+import { shallowMount, createLocalVue } from '@vue/test-utils'
 import Layout from '../../../src/views/Layout'
-import { shallowMount } from '../../lib/helpers'
-import fp from 'flush-promises'
+import BootstrapVue from 'bootstrap-vue'
+import PortalVue from 'portal-vue'
+import Vuex from 'vuex'
+import sinon from 'sinon'
 
-describe('/views/Layout.vue', () => {
+describe('Layout.vue', () => {
+  let localVue
+  let store
+  let rbacModule
+
+  beforeEach(() => {
+    localVue = createLocalVue()
+    localVue.use(BootstrapVue)
+    localVue.use(PortalVue)
+    localVue.use(Vuex)
+
+    // Mock the Vuex store
+    rbacModule = {
+      namespaced: true,
+      getters: {
+        can: () => () => true,
+      },
+    }
+
+    store = new Vuex.Store({
+      modules: {
+        rbac: rbacModule,
+      },
+    })
+  })
+
   afterEach(() => {
     sinon.restore()
   })
 
-  let $auth, $Settings
-
-  beforeEach(() => {
-    $auth = {
-      user: {},
-    }
-
-    $Settings = {
-      get: () => ({}),
-      attachment: () => '',
-    }
-  })
-
-  const mountLayout = (opt) => shallowMount(Layout, {
-    mocks: { $auth, $Settings },
-    ...opt,
-  })
-
-  describe('Init', () => {
-    it('It renders', async () => {
-      const wrapper = mountLayout()
-
-      await fp()
-      expect(wrapper.find('div')).to.exist
+  it('renders', () => {
+    const wrapper = shallowMount(Layout, {
+      localVue,
+      store,
+      mocks: {
+        $auth: {
+          user: {},
+        },
+        $Settings: {
+          get: () => ({}),
+          attachment: () => '',
+        },
+        $t: (key) => key,
+        textDirectionality: () => 'ltr',
+        $root: {
+          $on: jest.fn(),
+        },
+      },
+      stubs: [
+        'router-view',
+        'portal-target',
+        'c-topbar',
+        'c-sidebar',
+        'c-prompts',
+        'c-permissions-modal',
+      ],
     })
+
+    expect(wrapper.find('div').exists()).to.be.true
+    expect(wrapper.find('div').classes()).to.include.members([
+      'd-flex',
+      'flex-column',
+      'w-100',
+      'vh-100',
+    ])
   })
 })

@@ -146,7 +146,7 @@ export default {
   },
 
   watch: {
-    'apps': {
+    apps: {
       immediate: true,
       handler (apps) {
         this.appList = apps

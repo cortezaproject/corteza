@@ -1,40 +1,71 @@
 /* eslint-disable no-unused-expressions */
-/* eslint-disable no-unused-vars */
 import { expect } from 'chai'
-import sinon from 'sinon'
+import { shallowMount, createLocalVue } from '@vue/test-utils'
 import Layout from 'corteza-webapp-compose/src/views/Layout'
-import { shallowMount } from 'corteza-webapp-compose/tests/lib/helpers'
-import fp from 'flush-promises'
+import BootstrapVue from 'bootstrap-vue'
+import PortalVue from 'portal-vue'
+import Vuex from 'vuex'
 
-describe('/views/Layout.vue', () => {
-  afterEach(() => {
-    sinon.restore()
-  })
+describe('Layout.vue', () => {
+  it('renders', () => {
+    const localVue = createLocalVue()
+    localVue.use(BootstrapVue)
+    localVue.use(PortalVue)
+    localVue.use(Vuex)
 
-  let $auth, $Settings
-
-  beforeEach(() => {
-    $auth = {
-      user: {},
-    }
-
-    $Settings = {
-      get: () => ({}),
-      attachment: () => '',
-    }
-  })
-
-  const mountLayout = (opt) => shallowMount(Layout, {
-    mocks: { $auth, $Settings },
-    ...opt,
-  })
-
-  describe('Init', () => {
-    it('It renders', async () => {
-      const wrapper = mountLayout()
-
-      await fp()
-      expect(wrapper.find('div')).to.exist
+    // Create a mock store
+    const store = new Vuex.Store({
+      modules: {
+        ui: {
+          namespaced: true,
+          state: {
+            namespaceSlug: 'test-namespace',
+            pageHandle: 'test-page',
+            layoutHandle: 'test-layout',
+          },
+          getters: {
+            namespaceSlug: state => state.namespaceSlug,
+            pageHandle: state => state.pageHandle,
+            layoutHandle: state => state.layoutHandle,
+          },
+          actions: {
+            setNamespaceSlug: () => {},
+          },
+        },
+      },
     })
+
+    const wrapper = shallowMount(Layout, {
+      localVue,
+      store,
+      mocks: {
+        $auth: {
+          user: {},
+        },
+        $Settings: {
+          get: () => ({}),
+          attachment: () => '',
+        },
+        $route: {
+          params: {
+            slug: 'test-namespace',
+          },
+        },
+        $root: {
+          $on: () => {},
+        },
+        $t: (key) => key,
+        textDirectionality: () => 'ltr',
+      },
+      stubs: ['router-view', 'portal-target'],
+    })
+
+    expect(wrapper.find('div').classes()).to.include.members([
+      'd-flex',
+      'flex-column',
+      'w-100',
+      'vh-100',
+      'overflow-hidden',
+    ])
   })
 })

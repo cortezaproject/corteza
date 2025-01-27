@@ -397,7 +397,7 @@ export default {
     })
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.setDefaultValues()
   },
 

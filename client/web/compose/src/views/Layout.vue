@@ -113,6 +113,7 @@
     <c-translation-modal />
   </div>
 </template>
+
 <script>
 import moment from 'moment'
 import CTranslationModal from '../components/Translator/CTranslatorModal'

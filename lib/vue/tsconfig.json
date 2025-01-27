@@ -4,7 +4,8 @@
     "lib": [
       "es2017",
       "es2015",
-      "DOM"
+      "DOM",
+      "ESNext"
     ],
     "typeRoots": [
       "./node_modules/@types",
@@ -22,14 +23,18 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["node"]
   },
 
   "include": [
     "./src/**/*"
   ],
-
-  "typeRoots": ["./node_modules/@types"],
 
   "exclude": [
     "./src/**/*.test.ts",

@@ -54,6 +54,7 @@ export default {
 
     size: {
       type: String,
+      default: 'md',
     },
 
     disabled: {
@@ -87,12 +88,6 @@ export default {
     }
   },
 
-  watch: {
-    value (value) {
-      this.localValue = value
-    },
-  },
-
   computed: {
     inputType () {
       return this.clearable ? 'search' : 'text'
@@ -108,6 +103,12 @@ export default {
 
     showSubmittableAndClearable () {
       return this.clearable && this.submittable
+    },
+  },
+
+  watch: {
+    value (value) {
+      this.localValue = value
     },
   },
 

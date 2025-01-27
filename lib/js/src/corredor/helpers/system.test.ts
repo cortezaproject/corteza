@@ -6,7 +6,7 @@ import { User, Role } from '../../system/'
 import { System as SystemAPI } from '../../api-clients'
 import { kv } from './shared'
 
-describe(__filename, () => {
+describe('system', () => {
   describe('supporting functions', () => {
     describe('resolving user', () => {
       let h: StubbedInstance<SystemHelper>

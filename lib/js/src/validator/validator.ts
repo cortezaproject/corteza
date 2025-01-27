@@ -1,5 +1,6 @@
 import { IsOf } from '../guards'
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 
 interface Meta { [key: string]: unknown }
 

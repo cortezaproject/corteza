@@ -13,7 +13,7 @@ const m = Object.freeze(new Module({
   ],
 }))
 
-describe(__filename, () => {
+describe('record', () => {
   let r: Record, v: RecordValidator
 
   beforeEach(() => {

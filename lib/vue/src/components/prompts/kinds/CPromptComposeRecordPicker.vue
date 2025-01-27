@@ -1,6 +1,9 @@
 <template>
   <div>
-    <p v-if="!!message" v-html="message" />
+    <p
+      v-if="!!message"
+      v-html="message"
+    />
 
     <div class="d-flex flex-column gap-1">
       <c-input-select
@@ -17,14 +20,16 @@
         class="w-100 mb-3"
         @search="search"
       >
-        <c-pagination
-          v-if="showPagination"
-          slot="list-footer"
-          :has-prev-page="hasPrevPage"
-          :has-next-page="hasNextPage"
-          @prev="goToPage(false)"
-          @next="goToPage(true)"
-        />
+        <template #list-footer>
+          <c-pagination
+            v-if="showPagination"
+          
+            :has-prev-page="hasPrevPage"
+            :has-next-page="hasNextPage"
+            @prev="goToPage(false)"
+            @next="goToPage(true)"
+          />
+        </template>
       </c-input-select>
 
       <b-button
@@ -47,13 +52,13 @@ import { compose, NoID } from '@cortezaproject/corteza-js'
 import { debounce } from 'lodash'
 
 export default {
-  extends: base,
-  name: 'c-prompt-compose-record-picker',
+  name: 'CPromptComposeRecordPicker',
 
   components: {
     CInputSelect,
     CPagination,
   },
+  extends: base,
 
   data () {
     return {
@@ -149,7 +154,7 @@ export default {
     this.loadLatest()
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.setDefaultValues()
   },
 

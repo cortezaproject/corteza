@@ -120,7 +120,7 @@ export default {
 
   computed: {
     fresh () {
-      return this.value.hasOwnProperty('fresh') && this.value.fresh
+      return Object.prototype.hasOwnProperty.call(this.value, 'fresh') && this.value.fresh
     },
   },
 

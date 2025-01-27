@@ -1,7 +1,8 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf, AreObjectsOf } from '../../guards'
 import { PageBlock, PageBlockMaker } from './page-block'
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 
 interface PartialPage extends Partial<Omit<Page, 'children' | 'meta' | 'blocks' |'createdAt' | 'updatedAt' | 'deletedAt'>> {
   children?: Array<PartialPage>;

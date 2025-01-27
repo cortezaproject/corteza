@@ -155,7 +155,7 @@ export default {
         },
         {
           key: 'meta.name',
-          label: this.$t(`columns.name`),
+          label: this.$t('columns.name'),
         },
         {
           key: 'enabled',

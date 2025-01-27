@@ -251,9 +251,11 @@ export default {
             if (filter.filterID && filter.filterID !== NoID) {
               return filter.deleted ? this.deleteFilter(filter) : this.updateFilter(filter)
             } else {
-              return filter.deleted ? undefined : this.createFilter(filter)
+              return filter.deleted ? Promise.resolve() : this.createFilter(filter)
             }
           }
+
+          return Promise.resolve()
         })).then(async () => {
           await this.fetchFilters()
 

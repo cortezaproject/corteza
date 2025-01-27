@@ -69,6 +69,7 @@
       <c-corredor-manual-buttons
         ui-page="user/editor"
         ui-slot="passwordFooter"
+        resource-type="system:user"
         default-variant="light"
         @click="dispatchCortezaSystemEvent($event)"
       />
@@ -86,7 +87,6 @@
 </template>
 
 <script>
-
 export default {
   name: 'CUserEditorPassword',
 

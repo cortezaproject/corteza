@@ -39,7 +39,7 @@ export default {
   ],
 
   i18nOptions: {
-    namespaces: [ 'system.apigw' ],
+    namespaces: ['system.apigw'],
   },
 
   data () {

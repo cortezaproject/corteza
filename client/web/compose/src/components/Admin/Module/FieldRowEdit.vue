@@ -202,7 +202,8 @@ export default {
 </script>
 <style lang="scss" scoped>
 td {
-  input, .input-group {
+  input,
+  .input-group {
     min-width: 150px;
   }
 

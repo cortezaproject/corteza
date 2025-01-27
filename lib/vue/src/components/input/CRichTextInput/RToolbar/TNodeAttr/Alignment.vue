@@ -4,7 +4,7 @@
     variant="link"
     boundary="window"
   >
-    <template slot="button-content">
+    <template #button-content>
       <span class="text-dark font-weight-bold">
         <span :class="rootActiveClasses()">
           <font-awesome-icon
@@ -95,8 +95,8 @@ export default {
      * Helper method to determine if the root formater should be shown as active
      * @returns {Array|undefined}
      */
-    rootActiveClasses (v) {
-      if (this.format.variants.find(({ type, attrs }) => this.activeClasses(attrs))) {
+    rootActiveClasses () {
+      if (this.format.variants.find(({ attrs }) => this.activeClasses(attrs))) {
         return ['text-success']
       }
     },

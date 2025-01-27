@@ -1,4 +1,5 @@
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 
 interface KVV {
   [key: string]: string[];

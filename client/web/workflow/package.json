@@ -1,61 +1,20 @@
 {
-  "name": "corteza-workflow",
+  "name": "corteza-webapp-workflow",
+  "description": "Corteza Workflow WebApp",
   "version": "2024.9.1",
+  "license": "Apache-2.0",
+  "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "dev-env": "vue-cli-service serve src/dev-env.js",
     "build": "vue-cli-service build --mode production",
-    "lint": "vue-cli-service lint --no-fix && stylelint '**/*.{vue,scss}' --fix",
+    "lint": "vue-cli-service lint --fix",
+    "cdeps": "yarn link @cortezaproject/corteza-js @cortezaproject/corteza-vue",
     "test:unit": "vue-cli-service test:unit",
-    "test:unit:cc": "nyc vue-cli-service test:unit",
-    "cdeps": "yarn upgrade @cortezaproject/corteza-js @cortezaproject/corteza-vue"
+    "test": "yarn test:unit"
   },
   "gitHooks": {
     "pre-commit": "yarn lint"
-  },
-  "dependencies": {
-    "@cortezaproject/corteza-js": "^2024.9.1-a",
-    "@cortezaproject/corteza-vue": "^2024.9.1-b",
-    "@fortawesome/fontawesome-svg-core": "^1.2.21",
-    "@fortawesome/free-regular-svg-icons": "^5.10.1",
-    "@fortawesome/free-solid-svg-icons": "^5.10.1",
-    "@fortawesome/vue-fontawesome": "^0.1.9",
-    "bootstrap-vue": "2.23.1",
-    "file-saver": "^2.0.5",
-    "mxgraph": "^4.2.0",
-    "portal-vue": "^2.1.7",
-    "v-jsoneditor": "^1.4.2",
-    "vue": "2.6.14",
-    "vue-router": "3.1.5",
-    "vuedraggable": "^2.23.0",
-    "vuex": "^3.6.2"
-  },
-  "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "^3.10.0",
-    "@vue/cli-plugin-unit-mocha": "^4.5.13",
-    "@vue/cli-service": "~4.5.0",
-    "@vue/eslint-config-standard": "^4.0.0",
-    "@vue/test-utils": "^1.0.0-beta.25",
-    "babel-eslint": "^10.0.3",
-    "babel-plugin-istanbul": "^5.2.0",
-    "babel-preset-vue": "^2.0.2",
-    "chai": "^4.2.0",
-    "eslint": "^5.8.0",
-    "eslint-config-corteza-client": "file:../../../lib/eslint-client",
-    "eslint-plugin-vue": "^9.21.1",
-    "flush-promises": "^1.0.2",
-    "null-loader": "^4.0.1",
-    "nyc": "^14.1.1",
-    "resolve-url-loader": "^3.1.2",
-    "sass": "^1.49.9",
-    "sass-loader": "^10",
-    "sinon": "^7.3.2",
-    "stylelint": "^8.0.0",
-    "stylelint-config-standard": "^18.3.0",
-    "stylelint-scss": "^3.14.2",
-    "stylelint-webpack-plugin": "^0.10.5",
-    "vue-template-compiler": "2.6.14"
   },
   "stylelint": {
     "plugins": [
@@ -63,39 +22,56 @@
     ],
     "extends": "stylelint-config-standard",
     "rules": {
-      "color-hex-case": null,
       "color-hex-length": null,
-      "no-empty-source": null,
-      "selector-list-comma-newline-after": null
+      "no-empty-source": null
     }
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead"
-  ],
-  "nyc": {
-    "all": true,
-    "reporter": [
-      "lcov",
-      "text"
-    ],
-    "include": [
-      "src/**/*.{js,vue}"
-    ],
-    "exclude": [
-      "**/index.js",
-      "**/*.spec.js"
-    ],
-    "extension": [
-      ".js",
-      ".vue"
-    ],
-    "check-coverage": true,
-    "per-file": true,
-    "branches": 0,
-    "lines": 0,
-    "functions": 0,
-    "statements": 0
+  "dependencies": {
+    "@cortezaproject/corteza-js": "^2024.9.1-a",
+    "@cortezaproject/corteza-vue": "^2024.9.1-b",
+    "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
+    "@fortawesome/free-solid-svg-icons": "^6.7.2",
+    "@fortawesome/vue-fontawesome": "^2.0.10",
+    "bootstrap-vue": "2.23.1",
+    "file-saver": "^2.0.5",
+    "mxgraph": "^4.2.0",
+    "portal-vue": "^2.1.7",
+    "v-jsoneditor": "^1.4.2",
+    "vue": "2.7.16",
+    "vue-router": "3.1.5",
+    "vuedraggable": "^2.23.0",
+    "vuex": "^3.6.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.7",
+    "@babel/eslint-parser": "^7.26.5",
+    "@vue/cli-plugin-babel": "5.0.8",
+    "@vue/cli-plugin-eslint": "5.0.8",
+    "@vue/cli-plugin-unit-jest": "^5.0.8",
+    "@vue/cli-service": "5.0.8",
+    "@vue/eslint-config-standard": "^8.0.1",
+    "@vue/test-utils": "^1.3.6",
+    "@vue/vue2-jest": "^27.0.0",
+    "babel-jest": "^27.1.0",
+    "chai": "^4.3.7",
+    "chai-as-promised": "^7.1.1",
+    "eslint": "^8.7.2",
+    "eslint-config-corteza-client": "file:../../../lib/eslint-client",
+    "eslint-plugin-vue": "^9.32.0",
+    "jest": "^27.1.0",
+    "null-loader": "^4.0.1",
+    "resolve-url-loader": "^3.1.0",
+    "rtlcss": "^4.3.0",
+    "sass": "^1.85.1",
+    "sass-loader": "^10",
+    "sinon": "^9.2.4",
+    "stylelint": "16.14.1",
+    "stylelint-config-standard": "^37.0.0",
+    "stylelint-scss": "^6.11.0",
+    "stylelint-webpack-plugin": "^5.0.1",
+    "vue-eslint-parser": "^9.4.3",
+    "vue-template-compiler": "2.7.16",
+    "webpack": "^5.97.1"
   }
 }

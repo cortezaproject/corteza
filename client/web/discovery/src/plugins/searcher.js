@@ -35,9 +35,9 @@ function stdResolve (response) {
 }
 
 class Searcher {
-  baseURL;
-  accessTokenFn;
-  headers = {};
+  baseURL
+  accessTokenFn
+  headers = {}
 
   constructor ({ baseURL, headers, accessTokenFn }) {
     this.baseURL = baseURL

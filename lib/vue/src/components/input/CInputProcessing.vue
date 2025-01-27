@@ -3,8 +3,8 @@
     :variant="variant"
     :disabled="disabled || processing"
     :size="size"
-    v-on="$listeners"
     class="d-inline-flex align-items-center justify-content-center"
+    v-on="$listeners"
   >
     <slot />
     <b-spinner
@@ -21,11 +21,11 @@ export default {
   props: {
     variant: {
       type: String,
-      default: "primary",
+      default: 'primary',
     },
     size: {
       type: String,
-      default: "md",
+      default: 'md',
     },
     processing: {
       type: Boolean,
@@ -36,5 +36,5 @@ export default {
       default: false,
     },
   },
-};
+}
 </script>

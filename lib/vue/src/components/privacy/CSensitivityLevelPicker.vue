@@ -30,7 +30,7 @@ export default {
 
     options: {
       type: Array,
-      required: true
+      required: true,
     },
 
     placeholder: {
@@ -41,12 +41,12 @@ export default {
     // ID of sensitivityLevel with the maximum allowed level
     maxLevel: {
       type: String,
-      default: undefined
+      default: undefined,
     },
 
     disabled: {
       type: Boolean,
-      default: false
+      default: false,
     },
   },
 
@@ -84,7 +84,7 @@ export default {
         if (!isValueCompatible) {
           this.$emit('input', NoID)
         }
-      }
+      },
     },
   },
 
@@ -94,13 +94,13 @@ export default {
     },
 
     onInput (sensitivityLevelID) {
-      this.$emit('input', sensitivityLevelID ? sensitivityLevelID : NoID)
+      this.$emit('input', sensitivityLevelID || NoID)
     },
 
     getOptionKey ({ sensitivityLevelID }) {
       return sensitivityLevelID
     },
-  }
+  },
 }
 </script>
 

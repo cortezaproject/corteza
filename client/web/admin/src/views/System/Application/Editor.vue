@@ -166,7 +166,7 @@ export default {
 
           this.application = new system.Application(application)
           this.initialApplicationState = this.application.clone()
-        },)
+        })
         .catch(this.toastErrorHandler(this.$t('notification:application.fetch.error')))
         .finally(() => {
           this.decLoader()

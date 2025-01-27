@@ -137,7 +137,7 @@ export default {
   },
 
   watch: {
-    'dal': {
+    dal: {
       handler: function (dal) {
         this.paramsJson = JSON.stringify(dal.params || { dsn: '' }, null, 2)
       },
@@ -166,7 +166,7 @@ export default {
           this.$set(this.dal, 'params', {})
         }
         for (const key in json) {
-          if (json.hasOwnProperty(key)) {
+          if (Object.prototype.hasOwnProperty.call(json, key)) {
             this.$set(this.dal.params, key, json[key])
           }
         }

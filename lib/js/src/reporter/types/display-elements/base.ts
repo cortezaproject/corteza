@@ -1,5 +1,6 @@
 import { Apply, CortezaID, NoID } from '../../../cast'
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 
 export type PartialDisplayElement = Partial<DisplayElement>
 export type DisplayElementInput = DisplayElement | PartialDisplayElement

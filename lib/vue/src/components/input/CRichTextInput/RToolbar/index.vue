@@ -1,21 +1,22 @@
 <template>
   <div class="d-flex flex-wrap">
     <component
+      :is="getItem(f)"
       v-for="(f, i) of formats"
       :key="`${f.name}${i}`"
-      :is="getItem(f)"
       :format="f"
       v-bind="$props"
       :labels="labels"
       :current-value="currentValue"
-      @click="triggerCommand" />
+      @click="triggerCommand"
+    />
 
     <!-- Extra button to remove formatting -->
     <b-button
       variant="link"
       class="text-dark font-weight-bold"
-      @click="removeMarks">
-
+      @click="removeMarks"
+    >
       <font-awesome-icon icon="remove-format" />
     </b-button>
   </div>
@@ -52,12 +53,12 @@ export default {
     },
     labels: {
       type: Object,
-      default: () => ({})
+      default: () => ({}),
     },
     currentValue: {
       type: String,
-      required: false,
-    }
+      default: '',
+    },
   },
 
   methods: {

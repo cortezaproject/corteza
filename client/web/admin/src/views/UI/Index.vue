@@ -37,7 +37,7 @@ const prefix = 'ui.'
 
 export default {
   i18nOptions: {
-    namespaces: [ 'ui.settings' ],
+    namespaces: ['ui.settings'],
     keyPrefix: 'editor',
   },
 
@@ -91,7 +91,7 @@ export default {
       this.incLoader()
 
       this.$Settings.fetch()
-      return this.$SystemAPI.settingsList({ prefix: prefix })
+      return this.$SystemAPI.settingsList({ prefix })
         .then(settings => {
           this.settings = {}
 

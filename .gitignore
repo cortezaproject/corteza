@@ -8,3 +8,4 @@
 *.sln
 *.sw*
 .run
+node_modules

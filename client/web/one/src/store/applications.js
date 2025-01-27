@@ -38,7 +38,7 @@ export default ({ api }) => {
         }
       },
 
-      async reorder ({ dispatch }, applicationIDs,) {
+      async reorder ({ dispatch }, applicationIDs) {
         return api.applicationReorder({ applicationIDs }).then(() => {
           return dispatch('load')
         })

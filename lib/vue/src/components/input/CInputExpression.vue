@@ -110,7 +110,7 @@ export default {
 
       function addSuggestion (key, caption, value) {
         if (!result[key]) result[key] = []
-        result[key].push({ caption: caption, value: value })
+        result[key].push({ caption, value })
       }
 
       function processProperties (prefix, properties, interpolate) {

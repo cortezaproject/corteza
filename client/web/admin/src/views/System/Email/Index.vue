@@ -64,7 +64,7 @@ export default {
     },
 
     server () {
-      let s = this.settings.find(({ name }) => name === 'smtp.servers')
+      const s = this.settings.find(({ name }) => name === 'smtp.servers')
 
       if (!s || !s.value || s.value.length === 0 || (typeof s.value[0] !== 'object')) {
         return {}

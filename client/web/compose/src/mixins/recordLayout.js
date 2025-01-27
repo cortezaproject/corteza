@@ -9,7 +9,7 @@ export default {
   methods: {
     initializeResizeObserver (el) {
       this.resizeObserver = new ResizeObserver((entries) => {
-        for (let entry of entries) {
+        for (const entry of entries) {
           // Handle the resize event here
           this.applyColumnClasses(entry.contentRect.width)
         }

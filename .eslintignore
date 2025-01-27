@@ -1,0 +1,7 @@
+node_modules
+dist
+api-clients/automation.ts
+api-clients/compose.ts
+api-clients/federation.ts
+api-clients/system.ts
+**/*.test.ts

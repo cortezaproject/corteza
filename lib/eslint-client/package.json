@@ -5,12 +5,10 @@
   "license": "Apache-2.0",
   "main": "./index.js",
   "peerDependencies": {
-    "@vue/cli-plugin-eslint": ">=3.10.0",
-    "@vue/eslint-config-standard": ">=4.0.0",
-    "babel-eslint": ">=10.0.2",
-    "eslint": ">=5.8.0",
-    "eslint-plugin-vue": ">=5.2.3",
-    "eslint-plugin-standard": ">=4.0.1",
-    "eslint-config-standard": ">=16.0.3"
+    "@vue/cli-plugin-eslint": "5.0.8",
+    "@vue/eslint-config-standard": "^8.0.1",
+    "@babel/eslint-parser": "^7.26.5",
+    "eslint": "^8.7.2",
+    "eslint-plugin-vue": "^9.32.0"
   }
 }

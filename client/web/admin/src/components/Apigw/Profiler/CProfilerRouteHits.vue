@@ -236,7 +236,7 @@ export default {
           this.filter = { ...this.filter, next }
           this.items = [
             ...(append ? this.items : []),
-            ...set.map(i => ({ ...i, 'hitID': i.ID })),
+            ...set.map(i => ({ ...i, hitID: i.ID })),
           ]
           this.totalItems = append ? this.totalItems + set.length : this.totalItems
 
@@ -304,10 +304,10 @@ export default {
 
     getStatusCodeVariant (statusCode = '') {
       const codeVariants = {
-        '2': 'success',
-        '3': 'info',
-        '4': 'danger',
-        '5': 'warning',
+        2: 'success',
+        3: 'info',
+        4: 'danger',
+        5: 'warning',
       }
 
       return codeVariants[statusCode[0]]

@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { DummyHandler, Handler } from './handlers'
 
-describe('handler', () => {
+describe('handlers', () => {
   it('should match compatible event', () => {
     const h = new Handler(DummyHandler, { eventTypes: ['e1'], resourceTypes: ['r1'] })
     expect(h.Match({ resourceType: 'r1', eventType: 'e1' })).to.equal(true)

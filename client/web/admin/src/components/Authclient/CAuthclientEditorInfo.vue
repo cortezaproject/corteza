@@ -618,7 +618,7 @@ export default {
   },
 
   watch: {
-    'redirectURI': {
+    redirectURI: {
       handler (redirectURI) {
         this.resource.redirectURI = redirectURI.filter(ru => ru).join(' ')
       },

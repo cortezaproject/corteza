@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore,no-unused-expressions */
-
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import { Args } from './args'
 import { CortezaTypes } from './args-corteza'
 import { Module } from '../compose/types/module'
 
-describe(__filename, () => {
+describe('args', () => {
   it('should provide getter for a given arg', () => {
     const args = new Args({ foo: 'bar' })
     expect(args).to.haveOwnProperty('foo')

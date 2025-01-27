@@ -152,7 +152,7 @@ export default {
         },
         {
           key: 'unify.name',
-          label: this.$t(`columns.appListName`),
+          label: this.$t('columns.appListName'),
         },
         {
           key: 'enabled',

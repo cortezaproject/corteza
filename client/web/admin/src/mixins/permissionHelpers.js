@@ -108,8 +108,8 @@ export default {
       Promise.all(roleRules.filter(({ ID }) => ID.includes('edit')).map(({ ID, rules }) => {
         const externalRules = []
         const roleID = ID.split('-')[1]
-        Object.entries(rules).forEach(([ key, value ]) => {
-          let [ operation, resource ] = key.split('@', 2)
+        Object.entries(rules).forEach(([key, value]) => {
+          const [operation, resource] = key.split('@', 2)
           externalRules.push({ roleID, resource, operation, access: value })
         })
 
@@ -121,7 +121,7 @@ export default {
         .finally(() => {
           Promise.all(this.roles.filter(({ mode }) => mode === 'eval').map(({ roleID, userID }) => {
             return this.api.permissionsTrace({ roleID, userID }).then(rr => {
-              let ID = userID ? `eval-${userID}` : `eval-${roleID.join('-')}`
+              const ID = userID ? `eval-${userID}` : `eval-${roleID.join('-')}`
 
               this.rolePermissions = [
                 ...this.rolePermissions.filter(rp => rp.ID !== ID),
@@ -227,7 +227,7 @@ export default {
     roleRules (rules, mode = 'edit') {
       return (rules || [])
         .reduce((map, { resource, operation, access, resolution }) => {
-          const [ type ] = resource.split('/', 2)
+          const [type] = resource.split('/', 2)
           if ((this.permissions[type] || { ops: [] }).ops.indexOf(operation) > -1) {
             if (mode === 'eval') {
               if (resolution === 'unknown-context') {

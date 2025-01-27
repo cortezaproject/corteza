@@ -1,4 +1,5 @@
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 import { PageBlock, Registry } from '../base'
 import Feed, { FeedInput } from './feed'
 import { ReminderFeed } from './feed-reminder'

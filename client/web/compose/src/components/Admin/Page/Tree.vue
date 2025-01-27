@@ -427,7 +427,8 @@ $dropping-color: var(--primary);
     padding-bottom: $padding !important;
     padding-top: $padding !important;
 
-    .exist-li, .blank-li {
+    .exist-li,
+    .blank-li {
       border-top: none;
       padding-top: 0 !important;
       padding-bottom: 0 !important;

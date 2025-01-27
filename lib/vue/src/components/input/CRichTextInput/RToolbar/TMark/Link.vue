@@ -14,10 +14,10 @@
     <b-popover
       v-if="currentValue"
       ref="popover"
+      :show.sync="visible"
       triggers="focus"
       target="link-popover"
       placement="auto"
-      :show.sync="visible"
       container="link-popover-container"
     >
       <b-input-group style="min-width: 250px;">

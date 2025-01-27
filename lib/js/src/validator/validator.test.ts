@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { IsEmpty, NormalizeValidatorResults, Validated, ValidatorError } from './validator'
 
-describe(__filename, () => {
+describe('validator', () => {
   describe('ValidatorError class', () => {
     it('should properly construct from a simple string', () => {
       const err = new ValidatorError('foo')

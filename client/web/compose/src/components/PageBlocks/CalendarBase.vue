@@ -351,6 +351,8 @@ export default {
               .then(events => {
                 this.events.push(...events)
               })
+          default:
+            return Promise.resolve([])
         }
       }))
         .finally(() => {
@@ -435,7 +437,8 @@ export default {
 </style>
 <style lang="scss">
 .calendar-container {
-  .fc-content, .event-record {
+  .fc-content,
+  .event-record {
     cursor: pointer;
   }
 

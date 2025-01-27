@@ -2,7 +2,7 @@ import { EventBus } from './eventbus'
 import { expect } from 'chai'
 import { onManual } from './shared'
 
-describe(__filename, () => {
+describe('eventbus', () => {
   describe('dispatching', () => {
     let eb: EventBus
 

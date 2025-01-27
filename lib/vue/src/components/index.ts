@@ -13,7 +13,6 @@ export {
   CInputProcessing,
   CInputDateTime,
   CInputPresort,
-  CInputCron,
   CInputSearch,
   CRichTextInput,
   CInputCheckbox,

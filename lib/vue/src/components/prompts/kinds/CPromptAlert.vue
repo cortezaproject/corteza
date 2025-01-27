@@ -1,12 +1,15 @@
 <template>
   <div>
-    <p v-if="!!message" v-html="message" />
+    <p
+      v-if="!!message"
+      v-html="message"
+    />
 
     <div class="d-flex justify-content-end gap-1">
       <b-button
-        @click="$emit('submit', { confirmed: pRaw('buttonValue', true, 'Boolean') })"
         :variant="pVal('buttonVariant', 'primary')"
         :disabled="loading"
+        @click="$emit('submit', { confirmed: pRaw('buttonValue', true, 'Boolean') })"
       >
         {{ pVal('buttonLabel', 'OK') }}
       </b-button>
@@ -17,7 +20,7 @@
 import base from './base.vue'
 
 export default {
+  name: 'CPromptAlert',
   extends: base,
-  name: 'c-prompt-alert',
 }
 </script>

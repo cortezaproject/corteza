@@ -131,25 +131,25 @@ export default {
 
   methods: {
     editorInit (editor) {
-      require('brace/mode/text')
-      require('brace/mode/html')
-      require('brace/mode/css')
-      require('brace/mode/scss')
-      require('brace/mode/json')
-      require('brace/mode/javascript')
-      require('brace/mode/json')
+      import('brace/mode/text')
+      import('brace/mode/html')
+      import('brace/mode/css')
+      import('brace/mode/scss')
+      import('brace/mode/json')
+      import('brace/mode/javascript')
+      import('brace/mode/json')
 
-      require('brace/snippets/text')
-      require('brace/snippets/html')
-      require('brace/snippets/css')
-      require('brace/snippets/scss')
-      require('brace/snippets/json')
-      require('brace/snippets/javascript')
-      require('brace/snippets/json')
+      import('brace/snippets/text')
+      import('brace/snippets/html')
+      import('brace/snippets/css')
+      import('brace/snippets/scss')
+      import('brace/snippets/json')
+      import('brace/snippets/javascript')
+      import('brace/snippets/json')
 
-      require('brace/theme/chrome')
-      require('brace/ext/language_tools')
-      require('brace/ext/emmet')
+      import('brace/theme/chrome')
+      import('brace/ext/language_tools')
+      import('brace/ext/emmet')
 
       editor.setOptions({
         tabSize: 2,

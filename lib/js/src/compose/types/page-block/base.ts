@@ -1,7 +1,7 @@
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 import { Apply, NoID } from '../../../cast'
 import { generateUID } from '../../helpers/idgen'
-import { PageBlockMaker } from '.'
 
 interface PageBlockStyleVariants {
   [_: string]: string;

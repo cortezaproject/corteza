@@ -1,6 +1,6 @@
 import * as apiClients from '../api-clients'
 import { SystemHelper, ComposeHelper } from './helpers'
-import { BaseLogger } from 'pino'
+import { Logger } from 'pino'
 import { BaseArgs } from './shared'
 import { User } from '../system'
 
@@ -48,7 +48,7 @@ export class Ctx {
   protected args: BaseArgs;
   protected config?: Config;
 
-  protected logger: BaseLogger;
+  protected logger: Logger;
 
   protected systemAPI?:
     apiClients.System;
@@ -56,7 +56,7 @@ export class Ctx {
   protected composeAPI?:
     apiClients.Compose;
 
-  constructor (args: BaseArgs, logger: BaseLogger, a?: CtxInitArgs) {
+  constructor (args: BaseArgs, logger: Logger, a?: CtxInitArgs) {
     this.args = args
     this.logger = logger
 
@@ -68,14 +68,14 @@ export class Ctx {
   /**
    * Alias for log, to make developer's life easier <3
    */
-  get console (): BaseLogger {
+  get console (): Logger {
     return this.logger
   }
 
   /**
    * Alias for log, to make developer's life easier <3
    */
-  get log (): BaseLogger {
+  get log (): Logger {
     return this.logger
   }
 
@@ -89,7 +89,6 @@ export class Ctx {
    */
   get $authUser (): Promise<User> {
     const [, payload] = this.args.authToken.split('.')
-    // eslint-disable-next-line node/no-deprecated-api
     const buf = new Buffer(payload, 'base64')
     const { sub: userID } = JSON.parse(buf.toString('ascii'))
 

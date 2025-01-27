@@ -1,7 +1,7 @@
-var webpack = require('webpack')
-var exec = require('child_process').execSync
-var path = require('path')
-var Vue = require('vue')
+const webpack = require('webpack')
+const exec = require('child_process').execSync
+const path = require('path')
+const Vue = require('vue')
 
 module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, theme, packageAlias, root = path.resolve('.'), env = process.env.NODE_ENV }) => {
   const isDevelopment = (env === 'development')
@@ -17,31 +17,50 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
     Vue.config.performance = true
   }
 
-  const optimization = isTest ? {} : {
-    usedExports: true,
-    runtimeChunk: 'single',
-    splitChunks: {
-      cacheGroups: {
-        vendor: {
-          test: /[\\/]node_modules[\\/]/,
-          name: 'vendors',
+  const optimization = isTest
+    ? {}
+    : {
+        usedExports: true,
+        runtimeChunk: 'single',
+        splitChunks: {
           chunks: 'all',
+          minSize: 20000,
+          maxSize: 244000,
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: -10,
+            },
+            common: {
+              minChunks: 2,
+              priority: -20,
+              reuseExistingChunk: true,
+            },
+          },
         },
-      },
-    },
-  }
+      }
 
   return {
-    publicPath: './',
+    publicPath: '/',
     lintOnSave: true,
     runtimeCompiler: true,
 
     configureWebpack: {
       // other webpack options to merge in ...
 
-      // Make sure webpack is not too nosy
-      // and tries to tinker around linked packages
-      resolve: { symlinks: false },
+      // Webpack 5 specific configuration
+      resolve: {
+        symlinks: false,
+        fallback: {
+          path: false,
+          fs: false, // Add explicit false for Node.js core modules
+          crypto: false,
+          stream: false,
+          util: false,
+        },
+      },
 
       plugins: [
         new webpack.DefinePlugin({
@@ -52,7 +71,23 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
         }),
       ],
 
-      optimization,
+      optimization: {
+        ...optimization,
+        moduleIds: 'deterministic',
+        chunkIds: 'named',
+        emitOnErrors: false,
+      },
+
+      stats: {
+        warnings: false,
+        errors: false,
+      },
+
+      performance: {
+        hints: isDevelopment ? false : 'warning',
+        maxEntrypointSize: 512000,
+        maxAssetSize: 512000,
+      },
     },
 
     chainWebpack: config => {
@@ -66,18 +101,21 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
         args[0].additionalTransformers = [
           vueCli3Transformer,
           error => {
-            const regexp = /\[mini-css-extract-plugin\]/
-            if (regexp.test(error.message)) return {}
-            return error
+            return /\[mini-css-extract-plugin\]/.test(error.message) ? {} : error
           },
         ]
         return args
       })
 
-      // Do not copy config files (deployment procedure will do that)
+      // Update copy-webpack-plugin configuration for v8+
       config.plugins.has('copy') && config.plugin('copy').tap(options => {
-        options[0][0].ignore.push('config*js')
-        options[0][0].ignore.push('*gitignore')
+        options[0].patterns = [{
+          from: 'public',
+          globOptions: {
+            ignore: ['**/config*js', '**/*gitignore', '**/index.html'],
+          },
+          noErrorOnMissing: true,
+        }]
         return options
       })
 
@@ -103,6 +141,9 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
         .tap(options => ({
           ...options,
           sourceMap: true,
+          sassOptions: {
+            outputStyle: isDevelopment ? 'expanded' : 'compressed',
+          },
         }))
 
       // Load CSS assets according to their location
@@ -113,12 +154,19 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
           root: path.join(root, 'src/themes', theme),
         })
         .before('sass-loader')
+
+      // Keep this to ensure we don't have multiple HTML plugins
     },
 
     devServer: {
       host: '127.0.0.1',
+      port: 8080,
       hot: true,
-      disableHostCheck: true,
+      allowedHosts: 'all', // replaces disableHostCheck
+      webSocketServer: 'ws',
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+      },
 
       proxy: {
         '^/custom.css': {
@@ -130,29 +178,50 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
         },
       },
 
-      watchOptions: {
-        ignored: [
-          // Do not watch for changes under node_modules
-          // (exception is node_modules/@cortezaproject)
-          /node_modules([\\]+|\/)+(?!@cortezaproject)/,
+      // Webpack 5 DevServer configuration
+      watchFiles: {
+        paths: [
+          '**/*',
+          '!**/node_modules/!(@cortezaproject)/**',
         ],
-        aggregateTimeout: 200,
-        poll: 1000,
+        options: {
+          usePolling: true,
+          aggregateTimeout: 200,
+          poll: 1000,
+        },
+      },
+
+      client: {
+        overlay: false,
+        progress: true,
       },
     },
 
     css: {
       sourceMap: isDevelopment,
+      extract: !isTest,
       loaderOptions: {
-        sass: {},
+        sass: {
+          sassOptions: {
+            outputStyle: isDevelopment ? 'expanded' : 'compressed',
+          },
+        },
+        postcss: {
+          postcssOptions: {
+            plugins: [
+              require('autoprefixer'),
+              require('rtlcss'),
+            ],
+          },
+        },
       },
     },
   }
 }
 
 function fetchBaseUrl () {
-  var fs = require('fs')
-  var window = {}
+  const fs = require('fs')
+  const window = {}
 
   const fileContents =
     fs.existsSync('public/config.js')

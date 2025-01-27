@@ -1171,7 +1171,7 @@ export default {
                 f.condition,
                 { name: f.name, kind: f.kind, isMulti: f.isMulti },
                 f.value,
-                f.operator
+                f.operator,
               ))
               .sort((a, b) => a.name.localeCompare(b.name)),
             groupCondition: index < this.recordListFilter.length - 1 ? 'OR' : undefined,
@@ -1193,7 +1193,7 @@ export default {
             filters.map((filter, idx) => ({
               ...filter,
               condition: idx === 0 ? (groupIndex === 0 ? 'Where' : 'AND') : 'OR',
-            }))
+            })),
           )
 
           return groupFilter
@@ -1565,7 +1565,7 @@ export default {
           params: {
             slug: this.namespace.slug || this.namespace.namespaceID,
             pageID: this.recordPageID,
-            recordID: recordID,
+            recordID,
           },
         },
       }
@@ -2267,7 +2267,7 @@ export default {
         return {
           name: this.$route.name,
           params: this.$route.params,
-          query: { ...this.$route.query, recordPageID: this.recordPageID, recordID: recordID },
+          query: { ...this.$route.query, recordPageID: this.recordPageID, recordID },
           edit: false,
         }
       }
@@ -2285,7 +2285,7 @@ export default {
         return {
           name: this.$route.name,
           params: this.$route.params,
-          query: { ...this.$route.query, recordPageID: this.recordPageID, recordID: recordID },
+          query: { ...this.$route.query, recordPageID: this.recordPageID, recordID },
           edit: true,
         }
       }
@@ -2301,7 +2301,7 @@ export default {
     handleCloneRecordAction (recordID, values) {
       if (this.inModal) {
         this.$root.$emit('show-record-modal', {
-          recordID: recordID,
+          recordID,
           recordPageID: this.recordPageID,
           values,
           edit: true,

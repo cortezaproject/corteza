@@ -1,6 +1,9 @@
 <template>
   <div>
-    <p v-if="!!message" v-html="message" />
+    <p
+      v-if="!!message"
+      v-html="message"
+    />
 
     <b-form-group
       :label="pVal('label', 'Input')"
@@ -8,12 +11,15 @@
     >
       <b-form-select
         v-if="type === 'select'"
+        v-model="value"
         :options="options"
         :disabled="loading"
         :multiple="multiple"
-        v-model="value"
       >
-        <template v-if="!multiple" #first>
+        <template
+          v-if="!multiple"
+          #first
+        >
           <b-form-select-option
             :value="undefined"
             disabled
@@ -48,29 +54,41 @@ const validTypes = [
 ]
 
 export default {
+  name: 'CPromptOptions',
   extends: base,
-  name: 'c-prompt-options',
 
   data () {
     return {
-      value: undefined
+      value: undefined,
     }
   },
 
-  methods: {
-    encodeValue () {
-      if (Array.isArray(this.value)) {
-        return {
-          '@type': 'Array',
-          '@value': this.value || []
-        }
-      } else {
-        return { '@type': 'String', '@value': this.value }
+  computed: {
+    options () {
+      const out = []
+      const options = this.pVal('options', {})
+      for (const value in options) {
+        out.push({ value, text: options[value] })
       }
+
+      return out
+    },
+
+    type () {
+      const t = this.pVal('type', 'text')
+      if (validTypes.indexOf(t) === -1) {
+        return 'select'
+      }
+
+      return t
+    },
+
+    multiple () {
+      return this.pVal('multiselect', false)
     },
   },
 
-  beforeMount() {
+  beforeMount () {
     let value = this.pVal('value')
 
     if (this.pVal('multiselect', false)) {
@@ -84,29 +102,17 @@ export default {
     this.value = value
   },
 
-  computed: {
-    options() {
-      const out = []
-      const options = this.pVal('options', {})
-      for (const value in options) {
-        out.push({value, text: options[value]})
+  methods: {
+    encodeValue () {
+      if (Array.isArray(this.value)) {
+        return {
+          '@type': 'Array',
+          '@value': this.value || [],
+        }
+      } else {
+        return { '@type': 'String', '@value': this.value }
       }
-
-      return out
     },
-
-    type() {
-      const t = this.pVal('type', 'text')
-      if (validTypes.indexOf(t) === -1) {
-        return 'select'
-      }
-
-      return t
-    },
-
-    multiple () {
-      return this.pVal('multiselect', false)
-    }
   },
 }
 </script>

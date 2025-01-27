@@ -702,13 +702,18 @@ export default {
 
     // Datasources
     getDatasourceComponent ({ step }) {
+      let datasource
+
       if (step) {
         for (const s in step) {
-          return datasources(s)
+          datasource = datasources(s)
+          if (datasource) {
+            break
+          }
         }
       }
 
-      return undefined
+      return datasource
     },
 
     datasourceLabel (datasource, currentIndex) {

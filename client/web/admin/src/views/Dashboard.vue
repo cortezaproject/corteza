@@ -388,7 +388,7 @@ export default {
       const data = this.users.dailyCreated
       const unit = this.getComfortableTimeUnit(data)
 
-      let aux = {}
+      const aux = {}
       for (let i = 0; i < data.length; i += 2) {
         const ts = moment.unix(data[i]).startOf(unit).format(unit === 'month' ? 'MMM YYYY' : 'D MMM YYYY')
         aux[ts] = (aux[ts] || 0) + data[i + 1]
@@ -397,7 +397,7 @@ export default {
       const dates = []
       const values = []
 
-      for (let date in aux) {
+      for (const date in aux) {
         dates.push(date)
         values.push(aux[date])
       }

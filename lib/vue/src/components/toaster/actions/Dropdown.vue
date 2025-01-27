@@ -1,6 +1,6 @@
 <template>
   <b-dropdown v-bind="options">
-    <template v-slot:button-content>
+    <template #button-content>
       <span v-html="label" />
     </template>
 

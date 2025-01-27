@@ -220,10 +220,7 @@ export default {
     },
 
     getField (name = '') {
-      const field = name ? (
-        this.mock.module.fields.find(f => f.name === name) ||
-        this.mock.module.systemFields().find(f => f.name === name)
-      ) : undefined
+      const field = name ? (this.mock.module.fields.find(f => f.name === name) || this.mock.module.systemFields().find(f => f.name === name)) : undefined
 
       return field ? { ...field } : undefined
     },
@@ -314,7 +311,7 @@ export default {
       return this.componentFilter.map(({ groupCondition, filter = [], name }) => {
         filter = filter.map(({ record, ...f }) => {
           if (!f.name || !record) {
-            return
+            return undefined
           }
 
           if (this.isBetweenOperator(f.operator)) {
@@ -379,7 +376,9 @@ export default {
     font-size: 0.9rem;
   }
 
-  .v-select, .field-operator, .field-editor {
+  .v-select,
+  .field-operator,
+  .field-editor {
     min-width: 120px;
   }
 

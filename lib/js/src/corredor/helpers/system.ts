@@ -370,7 +370,9 @@ export default class SystemHelper {
           } else if (u.indexOf('@') > 0) {
             return await this.findUserByEmail(u)
           }
-        } catch (e) {}
+        } catch (e) {
+          console.error(e)
+        }
 
         // Always fall back to handle
         return this.findUserByHandle(u)

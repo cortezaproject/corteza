@@ -452,7 +452,7 @@ export default {
           },
           children: [],
           params: {
-            pageID: pageID,
+            pageID,
           },
         }
       })

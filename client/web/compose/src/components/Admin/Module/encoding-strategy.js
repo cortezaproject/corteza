@@ -1,4 +1,3 @@
-
 export const types = {
   Omit: 'omit',
   Plain: 'plain',

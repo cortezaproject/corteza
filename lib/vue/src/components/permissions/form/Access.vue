@@ -34,7 +34,7 @@ export default {
     options () {
       return ['allow', 'inherit', 'deny'].map(value => ({
         value,
-        text: this.$t('permissions:ui.access.' + value)
+        text: this.$t('permissions:ui.access.' + value),
       }))
     },
 

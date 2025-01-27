@@ -1,4 +1,6 @@
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
+
 import { ModuleField, ModuleFieldMaker } from './module-field'
 import { CortezaID, NoID, ISO8601Date, Apply } from '../../cast'
 import { AreObjects, AreStrings, IsOf } from '../../guards'

@@ -1,10 +1,6 @@
 import { apiClients } from '@cortezaproject/corteza-js'
 import { PluginFunction } from 'vue'
 
-interface JWTFetcher {
-  (): string|null;
-}
-
 interface Options {
   baseURL?: string;
   accessTokenFn?: () => string | undefined;

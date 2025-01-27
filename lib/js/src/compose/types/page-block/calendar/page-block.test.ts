@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 import { PageBlockCalendar } from './page-block'
 
-describe(__filename, () => {
+describe('calendar', () => {
   describe('check namespace casting', () => {
     it('simple assignment', () => {
       const cal = new PageBlockCalendar({

@@ -241,8 +241,11 @@ export default class FunnelChart extends BaseChart {
     // Determine color to render for specific value
     const colorMap: { [_: string]: string } = {}
     this.config.reports?.forEach(r => {
-      for (const { value, color } of r.dimensions?.[0].meta?.fields) {
-        colorMap[value] = color
+      const dimension = r.dimensions?.[0]
+      if (dimension?.meta?.fields) {
+        for (const { value, color } of dimension.meta.fields) {
+          colorMap[value] = color
+        }
       }
     })
 

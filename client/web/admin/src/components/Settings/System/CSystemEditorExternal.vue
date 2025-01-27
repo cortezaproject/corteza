@@ -141,9 +141,9 @@ function prepareExternal (external) {
   }
 
   const extractKeys = (provider, base = {}) => {
-    let out = { ...base }
+    const out = { ...base }
 
-    for (let k in base) {
+    for (const k in base) {
       out[k] = extractKey(`providers.${provider}.${k}`, Array.isArray(out[k]) ? 'array' : typeof out[k])
     }
 
@@ -194,7 +194,7 @@ function prepareExternal (external) {
     security: extractSec(`providers.${handle}`),
   }))
 
-  const prefix = `auth.external.providers.openid-connect.`
+  const prefix = 'auth.external.providers.openid-connect.'
 
   data.oidc =
     [...new Set(external
@@ -372,7 +372,7 @@ export default {
      */
     changes () {
       let name, value
-      let c = []
+      const c = []
 
       const prefix = 'auth.external.providers'
       const o = this.original
@@ -427,23 +427,23 @@ export default {
             `${prefix}.openid-connect.${p.handle}`,
             p,
             o.oidc[i] || {},
-            oidcKeys
+            oidcKeys,
           )
         }
       })
 
       mapKeys(
-        `auth.external.saml`,
+        'auth.external.saml',
         e.saml,
         o.saml,
-        ['enabled', 'name', 'key', 'cert', 'sign-method', 'sign-requests', 'binding', 'security']
+        ['enabled', 'name', 'key', 'cert', 'sign-method', 'sign-requests', 'binding', 'security'],
       )
 
       mapKeys(
-        `auth.external.saml.idp`,
+        'auth.external.saml.idp',
         e.saml.idp,
         o.saml.idp,
-        ['url', 'ident-name', 'ident-handle', 'ident-identifier']
+        ['url', 'ident-name', 'ident-handle', 'ident-identifier'],
       )
 
       return c

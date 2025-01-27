@@ -241,7 +241,7 @@ export default {
           this.filter = { ...this.filter, next }
           this.items = [
             ...(append ? this.items : []),
-            ...set.map(i => ({ ...i, 'routeID': this.encodeRouteID(i.path) })),
+            ...set.map(i => ({ ...i, routeID: this.encodeRouteID(i.path) })),
           ]
           this.totalItems = append ? this.totalItems + set.length : this.totalItems
 

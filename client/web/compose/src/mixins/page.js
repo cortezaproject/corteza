@@ -104,7 +104,7 @@ export default {
 
       // Check layouts for expressions/roles and find the first one that fits
       const matchedLayout = this.layouts.find(l => {
-        if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return
+        if (pageLayoutID && l.pageLayoutID !== pageLayoutID) return false
 
         const { expression, roles = [] } = l.config.visibility
 

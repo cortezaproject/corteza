@@ -1,13 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
-
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
 import { Ctx } from './ctx'
 import { User } from '../system'
-// @ts-ignore
 import pino from 'pino'
 
-describe(__filename, () => {
+describe('ctx', () => {
   describe('context sanity check', () => {
     it('should have a valid getter', () => {
       const cscfg = { apiBaseURL: '' }
@@ -21,7 +18,6 @@ describe(__filename, () => {
       )
 
       expect(ctx.console).to.not.be.undefined
-      // expect(ctx.$authUser).to.not.be.undefined
       expect(ctx.SystemAPI).to.not.be.undefined
       expect(ctx.ComposeAPI).to.not.be.undefined
       expect(ctx.System).to.not.be.undefined

@@ -1,13 +1,5 @@
 module.exports = {
   presets: [
-    '@vue/app',
+    ['@vue/app', { useBuiltIns: 'entry' }],
   ],
-
-  env: {
-    test: {
-      plugins: [
-        [ 'istanbul', { useInlineSourceMaps: false } ],
-      ],
-    },
-  },
 }

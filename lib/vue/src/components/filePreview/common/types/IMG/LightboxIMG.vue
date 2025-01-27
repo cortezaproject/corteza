@@ -62,12 +62,12 @@ export default {
     },
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.setDefaultValues()
   },
 
   methods: {
-    setDefaultValues() {
+    setDefaultValues () {
       this.options = {}
     },
   },

@@ -240,7 +240,7 @@ export default {
   name: 'CProfilerHitInfo',
 
   i18nOptions: {
-    namespaces: [ 'system.apigw' ],
+    namespaces: ['system.apigw'],
     keyPrefix: 'profiler.hit',
   },
 
@@ -273,7 +273,7 @@ export default {
   computed: {
     request () {
       // eslint-disable-next-line camelcase
-      const { request = {}, body = '', route = NoID, time_duration = 0, time_start, time_finish, http_status_code } = this.hit || {}
+      const { request = {}, body = '', route = NoID, time_duration: duration = 0, time_start, time_finish, http_status_code: statusCode } = this.hit || {}
       const { URL = {}, RequestURI, Method, RemoteAddr, Header = {} } = request
       const { Path } = URL
       const headers = Object.entries(Header).map(([key, value = []]) => {
@@ -291,9 +291,9 @@ export default {
         route: Path,
         url: RequestURI,
         method: Method,
-        statusCode: http_status_code,
+        statusCode,
         remoteAddress: RemoteAddr,
-        duration: `${time_duration.toFixed(2)} ms`,
+        duration: `${duration.toFixed(2)} ms`,
         start: fmt.fullDateTime(time_start),
         end: fmt.fullDateTime(time_finish),
         headers,
@@ -309,10 +309,10 @@ export default {
   methods: {
     getStatusCodeVariant (statusCode = '') {
       const codeVariants = {
-        '2': 'success',
-        '3': 'info',
-        '4': 'danger',
-        '5': 'warning',
+        2: 'success',
+        3: 'info',
+        4: 'danger',
+        5: 'warning',
       }
 
       return codeVariants[statusCode[0]]

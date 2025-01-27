@@ -17,11 +17,11 @@ import CPromptModal from './CPromptModal.vue'
  * All communication between the two components go through wf-prompt state
  */
 export default {
-  name: 'c-prompts',
+  name: 'CPrompts',
 
   components: {
     CPromptToast,
-    CPromptModal
+    CPromptModal,
   },
 
   props: {

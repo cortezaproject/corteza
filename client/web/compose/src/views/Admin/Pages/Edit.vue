@@ -1263,6 +1263,8 @@ export default {
           } else if (layout.meta.updated) {
             return this.updatePageLayout(layout)
           }
+
+          return Promise.resolve([])
         }))
       })
     },

@@ -823,7 +823,7 @@ export default {
           if (closeOnSuccess) {
             this.redirect()
           } else {
-            this.$router.push({ name: 'admin.charts.edit', params: { chartID: chartID } })
+            this.$router.push({ name: 'admin.charts.edit', params: { chartID } })
           }
         })
           .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))

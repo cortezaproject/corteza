@@ -310,7 +310,7 @@ export default {
         }
       })
 
-      const outColgroups = [{ size: outHeader.length, isLocal: isLocal }]
+      const outColgroups = [{ size: outHeader.length, isLocal }]
 
       const relFrames = this.getForeignFrames(frame)
       const usedKeys = this.keyColumns(frame)

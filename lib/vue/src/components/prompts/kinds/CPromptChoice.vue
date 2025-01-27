@@ -1,20 +1,23 @@
 <template>
   <div>
-    <p v-if="!!message" v-html="message" />
+    <p
+      v-if="!!message"
+      v-html="message"
+    />
 
     <div class="d-flex align-items-between justify-content-center gap-2">
       <b-button
-        @click="$emit('submit', { value: pRaw('confirmButtonValue', true, 'Boolean') })"
         :variant="pVal('confirmButtonVariant', 'primary')"
         :disabled="loading"
+        @click="$emit('submit', { value: pRaw('confirmButtonValue', true, 'Boolean') })"
       >
         {{ pVal('confirmButtonLabel', 'Yes') }}
       </b-button>
 
       <b-button
-        @click="$emit('submit', { value: pRaw('rejectButtonValue', false, 'Boolean') })"
         :disabled="loading"
         :variant="pVal('rejectButtonVariant', 'light')"
+        @click="$emit('submit', { value: pRaw('rejectButtonValue', false, 'Boolean') })"
       >
         {{ pVal('rejectButtonLabel', 'No') }}
       </b-button>
@@ -25,7 +28,7 @@
 import base from './base.vue'
 
 export default {
+  name: 'CPromptChoice',
   extends: base,
-  name: 'c-prompt-choice',
 }
 </script>

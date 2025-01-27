@@ -43,7 +43,7 @@ export default {
     invert: {
       type: Boolean,
       default: false,
-    }
+    },
   },
 
   computed: {
@@ -52,7 +52,7 @@ export default {
       return {
         'text-muted': value,
         'font-weight-bold': !value,
-        'mr-2': !!this.labels.off
+        'mr-2': !!this.labels.off,
       }
     },
 
@@ -61,9 +61,9 @@ export default {
       return {
         'text-muted': !value,
         'font-weight-bold': value,
-        'ml-1': !!this.labels.on
+        'ml-1': !!this.labels.on,
       }
-    }
+    },
   },
 }
 </script>

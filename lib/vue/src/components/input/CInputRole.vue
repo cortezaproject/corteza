@@ -22,7 +22,7 @@ import { debounce } from 'lodash'
 export default {
   props: {
     value: {
-      type: Array | String | Object,
+      type: [Array, String, Object],
       default: '',
     },
 
@@ -59,7 +59,7 @@ export default {
     preselect: {
       type: Boolean,
       default: false,
-    }
+    },
   },
 
   data () {

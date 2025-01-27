@@ -301,7 +301,7 @@ export default {
       const { roleID } = this.role
       if (roleID) {
         Promise.all(this.roleMembers.map(async user => {
-          let { userID, current, dirty } = user
+          const { userID, current, dirty } = user
           if (dirty !== current) {
             if (dirty) {
               return this.$SystemAPI.roleMemberAdd({ roleID, userID })

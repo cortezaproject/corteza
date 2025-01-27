@@ -2,7 +2,6 @@ import axios, { AxiosInstance } from 'axios'
 import { Make } from '../libs/url'
 import { system } from '@cortezaproject/corteza-js'
 import { PluginFunction } from 'vue'
-import { User } from '@cortezaproject/corteza-js/dist/system'
 
 const accessToken = Symbol('accessToken')
 const user = Symbol('user')
@@ -25,7 +24,7 @@ const storeKeyRefreshToken = 'auth.refresh-token'
 const maxStartAttempts = 5
 
 // signature copied from dom definition
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, no-undef
 type eventListenerSignature = <K extends keyof WindowEventMap>(type: K, listener: (this: Window, ev: WindowEventMap[K]) => any, options?: boolean | AddEventListenerOptions) => void
 
 interface AuthInfo {
@@ -172,6 +171,7 @@ export class Auth {
     })
   }
 
+  // eslint-disable-next-line no-undef
   vue (vue: Vue): Auth {
     this.$emit = (event, ...args): void => { vue.$emit(event, ...args) }
     return this
@@ -497,7 +497,7 @@ export class Auth {
    */
   private async exchangeCode (code = ''): Promise<AuthInfo> {
     return this.oauth2token({
-      code: code,
+      code,
       scope: oauth2Scope,
       redirect_uri: this.callbackURL,
     }).then((oa2tr) => this.procTokenResponse(oa2tr))

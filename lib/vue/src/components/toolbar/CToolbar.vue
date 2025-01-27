@@ -11,8 +11,10 @@
     <div
       class="d-flex align-items-center flex-sm-grow-0 flex-sm-shrink-0 flex-fill fill-width gap-1 flex-wrap ml-sm-auto"
     >
-      <slot name="center" class="d-flex align-items-center flex-sm-grow-0 flex-sm-shrink-0 flex-fill fill-width gap-1 flex-wrap ml-sm-auto" />
-
+      <slot
+        name="center"
+        class="d-flex align-items-center flex-sm-grow-0 flex-sm-shrink-0 flex-fill fill-width gap-1 flex-wrap ml-sm-auto"
+      />
     </div>
 
     <div

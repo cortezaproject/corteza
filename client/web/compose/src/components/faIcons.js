@@ -181,5 +181,5 @@ library.add(
   faTools,
   faExclamationCircle,
   faTable,
-  faCamera
+  faCamera,
 )

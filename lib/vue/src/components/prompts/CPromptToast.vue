@@ -16,8 +16,8 @@
       </template>
 
       <component
-        v-if="component"
         :is="component"
+        v-if="component"
         :payload="prompt.payload"
         :loading="isLoading"
         @submit="resumeToast({ input: $event, prompt })"
@@ -31,7 +31,7 @@ import definitions from './kinds/index.ts'
 import { pVal } from './utils.ts'
 
 export default {
-  name: 'c-prompt-toast',
+  name: 'CPromptToast',
 
   props: {
     hideToasts: {
@@ -42,7 +42,7 @@ export default {
 
   data () {
     return {
-      passive: [],
+      passivePrompts: [],
 
       hasFocus: null,
       hasFocusObserver: 0,
@@ -85,7 +85,7 @@ export default {
     /**
      * All non-passive prompts with components
      */
-    active() {
+    activePrompts () {
       return this.withComponents.filter(({ passive }) => !passive)
     },
 
@@ -96,15 +96,17 @@ export default {
      * passive (no feedback or input from user required) first and the rest later
      */
     toasts () {
-      return this.hideToasts ? [] : [
-        ...this.passive,
-        ...this.active
-      ]
+      return this.hideToasts
+        ? []
+        : [
+          ...this.passivePrompts,
+          ...this.activePrompts,
+        ]
     },
 
     defaultTimeout () {
       return 7
-    }
+    },
   },
 
   watch: {
@@ -129,8 +131,8 @@ export default {
       immediate: true,
       handler (wc) {
         wc.forEach(p => {
-          if (p.passive && !this.passive.some(({ prompt }) => prompt.stateID === p.prompt.stateID)) {
-            this.passive.push(p)
+          if (p.passive && !this.passivePrompts.some(({ prompt }) => prompt.stateID === p.prompt.stateID)) {
+            this.passivePrompts.push(p)
           }
         })
       },
@@ -141,7 +143,7 @@ export default {
     this.setDocumentFocusObserver()
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.clearDocumentFocusObserver()
     this.setDefaultValues()
   },
@@ -165,7 +167,7 @@ export default {
     onToastHide ({ prompt, passive }) {
       setTimeout(() => {
         if (passive) {
-          this.passive = this.passive.filter(({ prompt: p }) => p.stateID !== prompt.stateID)
+          this.passivePrompts = this.passivePrompts.filter(({ prompt: p }) => p.stateID !== prompt.stateID)
         } else {
           this.cancel(prompt)
         }
@@ -176,7 +178,7 @@ export default {
       return pVal(prompt.payload, k, def)
     },
 
-    clearDocumentFocusObserver() {
+    clearDocumentFocusObserver () {
       if (this.hasFocusObserver) {
         window.clearInterval(this.hasFocusObserver)
       }
@@ -185,7 +187,7 @@ export default {
     /**
      * Interval check if window has focus
      */
-    setDocumentFocusObserver() {
+    setDocumentFocusObserver () {
       this.clearDocumentFocusObserver()
 
       this.hasFocusObserver = window.setInterval(() => {

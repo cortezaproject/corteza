@@ -244,6 +244,8 @@ export default {
               att.splice(index, 1, new shared.Attachment(a, this.baseURL))
             })
           }
+
+          return Promise.resolve([])
         }))
           .then(() => {
           // Filter out invalid/missing attachments

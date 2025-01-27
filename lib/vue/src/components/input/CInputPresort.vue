@@ -7,7 +7,7 @@
     <b-form-group
       v-if="!textInput"
       :label="labels.title"
-       label-class="text-primary"
+      label-class="text-primary"
     >
       <b-table-simple
         borderless
@@ -161,8 +161,8 @@ export default {
     },
 
     availableFields () {
-      return this.fields.map(f => ({ ...f,label: `${f.label} (${f.name})` }))
-    }
+      return this.fields.map(f => ({ ...f, label: `${f.label} (${f.name})` }))
+    },
   },
 
   watch: {
@@ -206,7 +206,7 @@ export default {
     },
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     this.setDefaultValues()
   },
 

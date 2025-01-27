@@ -1,4 +1,5 @@
-import { merge } from 'lodash'
+import lodash from 'lodash'
+const { merge } = lodash
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { PageBlock } from './page-block/base'
 import { Button } from './page-block/types'

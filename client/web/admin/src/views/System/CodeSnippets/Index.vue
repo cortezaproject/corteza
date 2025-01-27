@@ -214,11 +214,13 @@ export default {
   methods: {
     openEditor (index) {
       console.log(index)
-      const item = index >= 0 ? this.codeSnippets[index] : {
-        name: '',
-        script: '<' + 'script> ' + '</' + 'script>',
-        enabled: true,
-      }
+      const item = index >= 0
+        ? this.codeSnippets[index]
+        : {
+            name: '',
+            script: '<' + 'script> ' + '</' + 'script>',
+            enabled: true,
+          }
 
       this.modal.index = index
       this.modal.title = item.name || this.$t('code-snippets.add')

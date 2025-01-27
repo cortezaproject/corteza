@@ -14,7 +14,7 @@ const mod = new Module({
   ],
 })
 
-describe(__filename, () => {
+describe('module', () => {
   describe('check module casting', () => {
     it('simple assignment', () => {
       expect(mod.name).to.equal('modName')

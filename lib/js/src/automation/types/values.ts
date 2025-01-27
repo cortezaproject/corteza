@@ -1,4 +1,6 @@
-import { capitalize } from 'lodash'
+import lodash from 'lodash'
+const { capitalize } = lodash
+
 export interface Typed {
   '@type': string;
   '@value': any;

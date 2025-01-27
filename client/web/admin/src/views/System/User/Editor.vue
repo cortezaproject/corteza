@@ -528,8 +528,8 @@ export default {
       if (isNewPage || deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
-        let userChangesStatus = !isEqual(this.user, this.initialUserState)
-        let membershipChangesStatus = !isEqual(this.membership.initial, this.membership.active)
+        const userChangesStatus = !isEqual(this.user, this.initialUserState)
+        const membershipChangesStatus = !isEqual(this.membership.initial, this.membership.active)
 
         next((userChangesStatus || membershipChangesStatus) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }

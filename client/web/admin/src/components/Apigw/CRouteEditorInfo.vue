@@ -144,7 +144,7 @@ export default {
   name: 'CRouteEditorInfo',
 
   i18nOptions: {
-    namespaces: [ 'system.apigw' ],
+    namespaces: ['system.apigw'],
     keyPrefix: 'editor.info',
   },
 

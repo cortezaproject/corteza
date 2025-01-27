@@ -17,20 +17,20 @@ export default {
     chart: {
       type: shared.Chart,
       required: true,
-    }
+    },
   },
 
   computed: {
     theme () {
       const { darkMode } = this.chart || {}
       return darkMode ? 'dark' : 'light'
-    }
+    },
   },
 
-  beforeDestroy () {
+  beforeUnmount () {
     if (this.$refs.chart) {
       this.$refs.chart.dispose()
     }
-  }
+  },
 }
 </script>

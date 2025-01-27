@@ -33,10 +33,12 @@ export default {
   ],
 
   scenarios: [
-    { label: 'Full form',
+    {
+      label: 'Full form',
       props,
     },
-    { label: 'Empty form',
+    {
+      label: 'Empty form',
       props: {
         ...props,
         template: {

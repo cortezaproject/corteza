@@ -4,7 +4,7 @@
     variant="link"
     boundary="window"
   >
-    <template slot="button-content">
+    <template #button-content>
       <span class="text-dark font-weight-bold">
         <span :class="rootActiveClasses()">
           <font-awesome-icon

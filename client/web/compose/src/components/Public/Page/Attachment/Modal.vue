@@ -92,7 +92,7 @@ export default {
         download,
         meta,
         src: url,
-        name: name,
+        name,
         caption: name,
         enableDownload,
       }

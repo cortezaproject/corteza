@@ -675,7 +675,7 @@ export default {
       const systemFieldEncoding = this.module.config.dal.systemFieldEncoding || {}
 
       return this.module.systemFields().map(sf => {
-        if (!sf) return
+        if (!sf) return false
         sf.label = this.$t(`field:system.${sf.name}`)
         return { ...sf, ...(systemFieldEncoding[sf.name] || {}) }
       }).filter(sf => sf)
@@ -898,7 +898,7 @@ export default {
           // make sure module is loaded from the API every time!
           force: true,
           namespace: this.namespace,
-          moduleID: moduleID,
+          moduleID,
         }
 
         await this.findModuleByID(params).then((module) => {

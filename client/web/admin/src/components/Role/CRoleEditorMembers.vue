@@ -138,9 +138,9 @@ export default {
         const label = this.getUserLabel(member)
         const i = this.memberIndex(member.userID)
         if (i < 0) {
-          this.members.push({ userID: member.userID, label: label, current: false, dirty: true })
+          this.members.push({ userID: member.userID, label, current: false, dirty: true })
         } else {
-          this.$set(this.members, i, { ...this.members[i], label: label, dirty: true })
+          this.$set(this.members, i, { ...this.members[i], label, dirty: true })
         }
 
         this.memberUsers.push(member)
