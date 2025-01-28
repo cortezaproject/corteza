@@ -3,7 +3,7 @@ template:
   form:
     email:
       label: Email
-      placeholder: email@domain.ltd
+      placeholder: email@domain.tld
       resend-confirmation-link: Email is not verified, <a data-test-id="link-resend-confirmation" href="{{link}}?resend">resend confirmation link.</a>
     name:
       label: Full name

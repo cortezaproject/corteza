@@ -2,8 +2,8 @@ template:
   title: Accept Invite
   form:
     email:
-      label: E-mail
-      placeholder: email@domain.ltd
+      label: Email
+      placeholder: email@domain.tld
     new-password:
       label: Password
       placeholder: password

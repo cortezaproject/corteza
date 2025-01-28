@@ -2,8 +2,8 @@ template:
   title: Log in to continue
   form:
     email:
-      label: E-mail
-      placeholder: email@domain.ltd
+      label: Email
+      placeholder: email@domain.tld
     password:
       label: Password
       placeholder: password
