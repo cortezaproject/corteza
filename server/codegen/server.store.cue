@@ -60,6 +60,8 @@ _StoreResource: {
 			"byValue":      [ for name in res.filter.byValue      {res.filter.struct[name]}]
 			"byLabel":      res.features.labels
 			"byFlag":       res.features.flags
+
+			"rawFilter": res.filter.rawFilter
 		}
 
 		auxIdent:  "aux\(expIdent)"

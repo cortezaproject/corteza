@@ -1,25 +1,19 @@
 package rbac
 
 import (
-	"fmt"
 	"strings"
-	"sync"
 )
 
 type (
 	wrapperIndex struct {
-		mux   sync.RWMutex
-		index *ruleIndex
-
 		// indexed permits only max level identifiers
 		indexed map[string]bool
+		index   *ruleIndex
 	}
 )
 
-func (svc *wrapperIndex) add(role uint64, resource string, rules ...*Rule) (added bool) {
-	svc.mux.Lock()
-	defer svc.mux.Unlock()
-
+// add indexes the given rules
+func (svc *wrapperIndex) add(resource string, rules ...*Rule) (added bool) {
 	if svc.indexed == nil {
 		svc.indexed = make(map[string]bool, 24)
 	}
@@ -31,9 +25,9 @@ func (svc *wrapperIndex) add(role uint64, resource string, rules ...*Rule) (adde
 	// Since we're only allowed to index under full resource identifiers
 	// we'll only optionally update indexes if something new comes in.
 	if strings.Contains(resource, "*") {
-		return svc.addWild(role, resource, rules...)
+		return svc.addWild(resource, rules...)
 	} else {
-		return svc.addPlain(role, resource, rules...)
+		return svc.addPlain(resource, rules...)
 	}
 }
 
@@ -43,12 +37,16 @@ func (svc *wrapperIndex) add(role uint64, resource string, rules ...*Rule) (adde
 // if so, add it to the index, if not, ignore.
 //
 // In no case should we add this to the indexed map since it only permits max lvl identifiers.
-func (svc *wrapperIndex) addWild(role uint64, resource string, rules ...*Rule) (added bool) {
+func (svc *wrapperIndex) addWild(resource string, rules ...*Rule) (added bool) {
 	give := false
-	rKey := svc.makeKey(role, resource)
+	pp := strings.SplitN(resource, "*", 2)
+	resource = strings.TrimRight(pp[0], "/")
 
-	for k := range svc.indexed {
-		give = give || strings.HasPrefix(k, rKey)
+	for r := range svc.indexed {
+		if strings.HasPrefix(r, resource) {
+			give = true
+			break
+		}
 	}
 
 	if !give {
@@ -59,40 +57,22 @@ func (svc *wrapperIndex) addWild(role uint64, resource string, rules ...*Rule) (
 	return true
 }
 
-func (svc *wrapperIndex) addPlain(role uint64, resource string, rules ...*Rule) (added bool) {
-	svc.indexed[svc.makeKey(role, resource)] = true
+// addPlain handles scenario where we specify rules with a max level resource identifier (no wildcards)
+func (svc *wrapperIndex) addPlain(resource string, rules ...*Rule) (added bool) {
+	svc.indexed[resource] = true
 	svc.index.add(rules...)
 
 	return true
 }
 
-func (svc *wrapperIndex) get(role uint64, op string, res string) (out []*Rule) {
-	if svc == nil {
-		return
-	}
-
-	svc.mux.RLock()
-	defer svc.mux.RUnlock()
-
-	if svc.index == nil {
-		return
-	}
-
-	return svc.index.get(role, op, res)
+// get returns the rules for the given role, operation and resource
+func (svc *wrapperIndex) get(op string, res string) (out []*Rule) {
+	// @note we'll expect the state is good and no nil checks are needed
+	return svc.index.get(op, res)
 }
 
-func (svc *wrapperIndex) getIndexed() (out []string) {
-	for k := range svc.indexed {
-		out = append(out, k)
-	}
-
-	return
-}
-
+// getSize returns the number of indexed resources (may not match to number of rules)
 func (svc *wrapperIndex) getSize() int {
-	svc.mux.RLock()
-	defer svc.mux.RUnlock()
-
 	return len(svc.indexed)
 }
 
@@ -105,26 +85,16 @@ func (svc *wrapperIndex) getSize() int {
 //
 // @todo consider keeping track of prefixes so we can know for a fact.
 // It doesn't really matter at this point since referencing functions don't care about this
-func (svc *wrapperIndex) isIndexed(role uint64, resource string) (ok bool) {
+func (svc *wrapperIndex) isIndexed(resource string) (ok bool) {
 	// In case of wildcards, assume we have it indexed; further functions need
 	// to handle this properly
 	if strings.Contains(resource, "*") {
 		return true
 	}
 
-	svc.mux.RLock()
-	defer svc.mux.RUnlock()
-
 	if svc.indexed == nil {
 		return false
 	}
 
-	return svc.indexed[svc.makeKey(role, resource)]
-}
-
-func (svc *wrapperIndex) makeKey(role uint64, resource string) string {
-	pp := strings.SplitN(resource, "*", 2)
-	resource = strings.TrimRight(pp[0], "/")
-
-	return fmt.Sprintf("%d:%s", role, resource)
+	return svc.indexed[resource]
 }

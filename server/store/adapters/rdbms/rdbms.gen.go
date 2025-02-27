@@ -18342,6 +18342,8 @@ func (s *Store) QueryRbacRules(
 		rows        *sql.Rows
 		count       uint
 		expr, tExpr []goqu.Expression
+
+		sortExpr []exp.OrderedExpression
 	)
 
 	if s.Filters.RbacRule != nil {
@@ -18360,6 +18362,16 @@ func (s *Store) QueryRbacRules(
 	expr = append(expr, tExpr...)
 
 	query := rbacRuleSelectQuery(s.Dialect.GOQU()).Where(expr...)
+
+	// sorting feature is enabled
+	if sortExpr, err = order(f.Sort, s.sortableRbacRuleFields()); err != nil {
+		err = fmt.Errorf("could generate order expression for RbacRule: %w", err)
+		return
+	}
+
+	if len(sortExpr) > 0 {
+		query = query.Order(sortExpr...)
+	}
 
 	if f.Limit > 0 {
 		query = query.Limit(f.Limit)

@@ -97,6 +97,14 @@ func {{ .expIdent }}Filter(d drivers.Dialect, f {{ .goFilterType }})(ee []goqu.E
 	}
 	{{ end }}
 
+	{{ if .filter.rawFilter }}
+	if f.RawFilter != "" {
+		// @note this is only acceptable for system-generated queries.
+		//       This should be improved regardless.
+		ee = append(ee, goqu.Literal(f.RawFilter))
+	}
+	{{- end }}
+
 	return ee, f, err
 }
 {{ end }}

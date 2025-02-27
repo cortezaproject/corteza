@@ -22,7 +22,12 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 		identPlural: "rules"
 		expIdent: "Rule"
 
-		features: _allFeaturesDisabled
+		features: {
+			sorting: true
+			labels: false
+			paging: false
+			checkFn: false
+		}
 
 
 		model: {
@@ -59,6 +64,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 			}
 
 			byValue: ["resource", "operation", "role_id"]
+			rawFilter: true
 		}
 
 		store: {

@@ -2,26 +2,13 @@ package rbac
 
 import (
 	"sort"
-	"strings"
 )
 
 type (
 	// ruleIndex indexes all given RBAC rules to optimize lookup times
-	//
-	// The algorithm is based on the standard trie structure.
-	// The max depth for a check operation is M+2 where M is the number of
-	// RBAC resource path elements + component + some meta.
 	ruleIndex struct {
-		children map[uint64]*ruleIndexNode
-	}
-
-	ruleIndexNode struct {
-		children map[string]*ruleIndexNode
-		isLeaf   bool
-		access   Access
-		rule     *Rule
-
-		count int
+		// children map[uint64]*ruleIndexNode
+		bits map[string]map[string]*Rule
 	}
 )
 
@@ -36,45 +23,27 @@ func buildRuleIndex(rules []*Rule) (index *ruleIndex) {
 
 // add adds a new Rule to the index
 func (index *ruleIndex) add(rules ...*Rule) {
-	if index.children == nil {
-		index.children = make(map[uint64]*ruleIndexNode, len(rules)/2)
+	if index.bits == nil {
+		index.bits = make(map[string]map[string]*Rule, len(rules)/2)
 	}
 
 	for _, r := range rules {
-		if _, ok := index.children[r.RoleID]; !ok {
-			index.children[r.RoleID] = &ruleIndexNode{
-				children: make(map[string]*ruleIndexNode, 4),
-			}
-		}
-		index.children[r.RoleID].count++
-		n := index.children[r.RoleID]
-
-		bits := append([]string{r.Operation}, strings.Split(r.Resource, "/")...)
-		for _, b := range bits {
-			if _, ok := n.children[b]; !ok {
-				n.children[b] = &ruleIndexNode{
-					children: make(map[string]*ruleIndexNode, 4),
-				}
-			}
-			n.children[b].count++
-
-			n = n.children[b]
+		if _, ok := index.bits[r.Operation]; !ok {
+			index.bits[r.Operation] = make(map[string]*Rule, 4)
 		}
 
-		n.isLeaf = true
-		n.access = r.Access
-		n.rule = r
+		index.bits[r.Operation][r.Resource] = r
 	}
 }
 
 // has checks if the rule is already in there
 func (t *ruleIndex) has(r *Rule) bool {
-	return len(t.collect(true, r.RoleID, r.Operation, r.Resource)) > 0
+	return len(t.collect(true, r.Operation, r.Resource)) > 0
 }
 
 // get returns the matching rules
-func (t *ruleIndex) get(role uint64, op, res string) (out []*Rule) {
-	return t.collect(false, role, op, res)
+func (t *ruleIndex) get(op, res string) (out []*Rule) {
+	return t.collect(false, op, res)
 }
 
 // get returns all RBAC rules matching these constraints
@@ -83,97 +52,31 @@ func (t *ruleIndex) get(role uint64, op, res string) (out []*Rule) {
 // the operation + 1 for the role.
 //
 // Our longest bit will be 6 so this is essentially constant time.
-func (t *ruleIndex) collect(exact bool, role uint64, op, res string) (out []*Rule) {
-	if t.children == nil {
+func (t *ruleIndex) collect(exact bool, op, res string) (out []*Rule) {
+	if t.bits[op] == nil {
 		return
 	}
 
-	if _, ok := t.children[role]; !ok {
-		return
-	}
-
-	// An edge case implied by the test suite
-	if op == "" && res == "" {
-		if t.children[role].children[""] == nil || t.children[role].children[""].children[""] == nil {
-			return
+	for _, res := range permuteResource(res) {
+		aux := t.bits[op][res]
+		if aux == nil {
+			continue
 		}
 
-		out = append(out, t.children[role].children[""].children[""].rule)
-		return
+		out = append(out, t.bits[op][res])
 	}
 
-	// Pull out the nodes for the role
-	aux, ok := t.children[role]
-	if !ok {
-		return
-	}
-
-	aux, ok = aux.children[op]
-	if !ok {
-		return
-	}
-
-	return aux.get(exact, res, 0)
-}
-
-// get returns all of the rules matching these constraints
-//
-// Under the hood...
-// We're avoiding string processing (concatenation, splitting, ...) as that can
-// be a memory hog in scenarios where we're pounding this function.
-//
-// The from denotes the substring we've not yet processed.
-func (n *ruleIndexNode) get(exact bool, res string, from int) (out []*Rule) {
-	if n == nil || n.children == nil {
-		return
-	}
-
-	// If we've reached the leaf node but haven't yet processed the entire resource,
-	// we've reached an invalid scenario since we can't go any deeper
-	to := len(res)
-	if n.isLeaf && from < to {
-		return
-	}
-
-	// Once from passes to, we've processed the entire resource
-	if from >= to {
-		if n.isLeaf {
-			out = append(out, n.rule)
-			return
-		}
-	}
-
-	// Get the next / delimiter.
-	// Clamp the index to the length of the resource.
-	// Adjust the index to account the from (the start index of the remaining resource)
-	nextDelim := strings.Index(res[from:to], "/")
-	if nextDelim < 0 {
-		nextDelim = len(res)
-	} else {
-		nextDelim += from
-	}
-
-	// Get RBAC rules down the actual path
-	pathBit := res[from:nextDelim]
-	if n.children[pathBit] != nil {
-		out = append(out, n.children[pathBit].get(exact, res, nextDelim+1)...)
-	}
-
-	// Get RBAC rules down the wildcard path
-	if !exact && n.children[wildcard] != nil {
-		out = append(out, n.children[wildcard].get(exact, res, nextDelim+1)...)
-	}
-
-	return
+	return out
 }
 
 // empty returns true if the index is empty
 func (t *ruleIndex) empty() bool {
-	return t == nil || t.children == nil || len(t.children) == 0
+	return t == nil || t.bits == nil || len(t.bits) == 0
 }
 
-func (t *ruleIndex) matchingRule(role uint64, op, res string) (out *Rule) {
-	set := RuleSet(t.get(role, op, res))
+// matchingRule returns the first matching rule for the role, op, res
+func (t *ruleIndex) matchingRule(op, res string) (out *Rule) {
+	set := RuleSet(t.get(op, res))
 	sort.Sort(set)
 
 	for _, s := range set {

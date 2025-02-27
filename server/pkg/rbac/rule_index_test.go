@@ -1,6 +1,7 @@
 package rbac
 
 import (
+	"math/rand"
 	"sort"
 	"testing"
 
@@ -14,18 +15,16 @@ func TestIndexBuild(t *testing.T) {
 		add  []*Rule
 		out  []int
 
-		role uint64
-		op   string
-		res  string
+		op  string
+		res string
 	}{
 		{
 			name: "empty",
 			in:   nil,
 			out:  nil,
 
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
+			op:  "read",
+			res: "a:b/c/d",
 		}, {
 			name: "match",
 			in: []*Rule{{
@@ -36,9 +35,8 @@ func TestIndexBuild(t *testing.T) {
 			}},
 			out: []int{0},
 
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
+			op:  "read",
+			res: "a:b/c/d",
 		}, {
 			name: "multiple matches",
 			in: []*Rule{{
@@ -54,45 +52,8 @@ func TestIndexBuild(t *testing.T) {
 			}},
 			out: []int{0, 1},
 
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
-		}, {
-			name: "one match one role missmatch",
-			in: []*Rule{{
-				RoleID:    2,
-				Resource:  "a:b/c/d",
-				Operation: "read",
-				Access:    Allow,
-			}, {
-				RoleID:    1,
-				Resource:  "a:b/*/*",
-				Operation: "read",
-				Access:    Inherit,
-			}},
-			out: []int{1},
-
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
-		}, {
-			name: "role missmatch",
-			in: []*Rule{{
-				RoleID:    2,
-				Resource:  "a:b/c/d",
-				Operation: "read",
-				Access:    Allow,
-			}, {
-				RoleID:    3,
-				Resource:  "a:b/*/*",
-				Operation: "read",
-				Access:    Inherit,
-			}},
-			out: nil,
-
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
+			op:  "read",
+			res: "a:b/c/d",
 		}, {
 			name: "path missmatch",
 			in: []*Rule{{
@@ -103,9 +64,8 @@ func TestIndexBuild(t *testing.T) {
 			}},
 			out: nil,
 
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
+			op:  "read",
+			res: "a:b/c/d",
 		}, {
 			name: "operation missmatch",
 			in: []*Rule{{
@@ -116,9 +76,8 @@ func TestIndexBuild(t *testing.T) {
 			}},
 			out: nil,
 
-			role: 1,
-			op:   "read",
-			res:  "a:b/c/d",
+			op:  "read",
+			res: "a:b/c/d",
 		},
 		{
 			name: "add new element",
@@ -137,9 +96,8 @@ func TestIndexBuild(t *testing.T) {
 
 			out: []int{1},
 
-			role: 1,
-			op:   "write",
-			res:  "a:b/c/x",
+			op:  "write",
+			res: "a:b/c/x",
 		}}
 
 	for _, tc := range tcc {
@@ -147,7 +105,7 @@ func TestIndexBuild(t *testing.T) {
 			ix := buildRuleIndex(tc.in)
 			ix.add(tc.add...)
 
-			out := RuleSet(ix.get(tc.role, tc.op, tc.res))
+			out := RuleSet(ix.get(tc.op, tc.res))
 			sort.Sort(out)
 
 			want := RuleSet(grabIndexMatches(append(tc.in, tc.add...), tc.out))
@@ -159,48 +117,6 @@ func TestIndexBuild(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestIndexUpsert(t *testing.T) {
-	var (
-		ix  = &ruleIndex{}
-		req = require.New(t)
-	)
-
-	t.Run("add specific item", func(t *testing.T) {
-		ix.add(&Rule{
-			RoleID:    1,
-			Resource:  "corteza::compose:namespace/5",
-			Operation: "read",
-			Access:    Allow,
-		})
-
-		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["5"].access)
-	})
-
-	t.Run("add wildcard item", func(t *testing.T) {
-		ix.add(&Rule{
-			RoleID:    1,
-			Resource:  "corteza::compose:namespace/*",
-			Operation: "read",
-			Access:    Deny,
-		})
-
-		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["5"].access)
-		req.Equal(Deny, ix.children[1].children["read"].children["corteza::compose:namespace"].children["*"].access)
-	})
-
-	t.Run("add existing item (update)", func(t *testing.T) {
-		ix.add(&Rule{
-			RoleID:    1,
-			Resource:  "corteza::compose:namespace/*",
-			Operation: "read",
-			Access:    Allow,
-		})
-
-		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["5"].access)
-		req.Equal(Allow, ix.children[1].children["read"].children["corteza::compose:namespace"].children["*"].access)
-	})
 }
 
 func TestIndexHas(t *testing.T) {
@@ -219,11 +135,19 @@ func TestIndexHas(t *testing.T) {
 	}))
 
 	require.False(t, ix.has(&Rule{
-		RoleID:    2,
-		Resource:  "a:b/c/x",
+		RoleID:    1,
+		Resource:  "a:b/c/*",
 		Operation: "write",
 		Access:    Allow,
 	}))
+
+	require.False(t, ix.has(&Rule{
+		RoleID:    1,
+		Resource:  "a:b/c/zz",
+		Operation: "write",
+		Access:    Allow,
+	}))
+
 }
 
 func grabIndexMatches(rr []*Rule, want []int) (out []*Rule) {
@@ -240,10 +164,10 @@ func grabIndexMatches(rr []*Rule, want []int) (out []*Rule) {
 // goarch: arm64
 // pkg: github.com/cortezaproject/corteza/server/pkg/rbac
 // cpu: Apple M3 Pro
-// BenchmarkIndexBuild_100-12                 26077             43467 ns/op           94785 B/op       1119 allocs/op
-// BenchmarkIndexBuild_1000-12                 2316            505664 ns/op          939447 B/op      10219 allocs/op
-// BenchmarkIndexBuild_10000-12                 228           5301265 ns/op         9008425 B/op      98033 allocs/op
-// BenchmarkIndexBuild_100000-12                 19          68454059 ns/op        70832448 B/op     843270 allocs/op
+// BenchmarkIndexBuild_100-12                140071              7721 ns/op           10936 B/op         19 allocs/op
+// BenchmarkIndexBuild_1000-12                14124             83847 ns/op          121899 B/op         45 allocs/op
+// BenchmarkIndexBuild_10000-12                1161            944820 ns/op         1461061 B/op        429 allocs/op
+// BenchmarkIndexBuild_100000-12                 98          12371088 ns/op        13424712 B/op       3409 allocs/op
 func benchmarkIndexBuild(b *testing.B, rules []*Rule) {
 	b.ResetTimer()
 
@@ -266,4 +190,17 @@ func BenchmarkIndexBuild_10000(b *testing.B) {
 
 func BenchmarkIndexBuild_100000(b *testing.B) {
 	benchmarkIndexBuild(b, makeRuleSet(100000, 10))
+}
+
+func makeRuleSet(count int, roleCount int) (out RuleSet) {
+	for i := 0; i < count; i++ {
+		out = append(out, &Rule{
+			RoleID:    uint64(1000 + int(rand.Intn(roleCount))),
+			Resource:  randomResource(),
+			Operation: randomOperation(),
+			Access:    randomAccess(),
+		})
+	}
+
+	return
 }

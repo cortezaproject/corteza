@@ -3,12 +3,14 @@ package rbac
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/spf13/cast"
 	"go.uber.org/zap"
@@ -25,8 +27,10 @@ type (
 		noopAccess Access
 
 		usageCounter *usageCounter[string]
-		index        *wrapperIndex
 		roles        []*Role
+
+		indexes       []*wrapperIndex
+		indexMappings map[uint64]int
 
 		RuleStorage rbacRulesStore
 		RoleStorage rbacRoleStore
@@ -123,11 +127,15 @@ type (
 	}
 
 	RuleFilter struct {
+		RawFilter string
+
 		Resource  []string
 		Operation string
 		RoleID    uint64
 
 		Limit uint
+
+		filter.Sorting
 	}
 
 	RoleSettings struct {
@@ -155,6 +163,8 @@ const (
 	ReindexStrategySpeed ReindexStrategy = "speed"
 
 	RuleResourceType = "corteza::generic:rbac-rule"
+
+	maxRuleFetchChunk = 10000
 )
 
 var (
@@ -200,7 +210,7 @@ func NewService(ctx context.Context, l *zap.Logger, store rbacRulesStore, cc Con
 		return
 	}
 
-	svc.index, err = svc.loadIndex(ctx)
+	svc.indexes, svc.indexMappings, err = svc.loadIndex(ctx)
 	if err != nil {
 		return
 	}
@@ -388,19 +398,26 @@ func (svc *Service) Grant(ctx context.Context, rules ...*Rule) (err error) {
 		svc.logger.Debug(r.Access.String() + " " + r.Operation + " on " + r.Resource + " to " + strconv.FormatUint(r.RoleID, 10))
 	}
 
-	svc.mux.Lock()
-	if svc.index == nil {
-		svc.index = &wrapperIndex{}
+	if svc.isIndexEmpty() {
+		err = svc.flush(ctx, rules...)
+		if err != nil {
+			return
+		}
+
+		return
 	}
+
+	svc.mux.Lock()
+
 	// @todo we might manage to optimize this a bit by grouping
 	for _, r := range rules {
 		// If this resource role combo isn't indexed, we don't care
-		if !svc.index.isIndexed(r.RoleID, r.Resource) {
+		if !svc.isRuleIndexed(r) {
 			continue
 		}
 
 		// If it is, we need to assure this thing is inside the index now
-		if !svc.index.add(r.RoleID, r.Resource, r) {
+		if !svc.indexRule(r) {
 			// Don't hit cache update in case nothing happened
 			continue
 		}
@@ -447,7 +464,15 @@ func (svc *Service) Stats() (out Stats, err error) {
 		out.LastDatabaseTimings,
 		out.LastIndexTimings = svc.StatLogger.Stats()
 
-	out.IndexSize = svc.index.getSize()
+	out.IndexSize = svc.indexSize()
+
+	return
+}
+
+func (svc *Service) indexSize() (out int) {
+	for _, ix := range svc.indexes {
+		out += ix.getSize()
+	}
 
 	return
 }
@@ -496,32 +521,6 @@ func (svc *Service) FindRulesByRoleID(ctx context.Context, roleID uint64) (rr Ru
 	return
 }
 
-// Remove role removes the role from the service
-//
-// @todo this won't clean out the removed rules until the next reload
-func (svc *Service) RemoveRole(r *Role) {
-	svc.mux.Lock()
-	defer svc.mux.Unlock()
-
-	for i, xr := range svc.roles {
-		if xr.id != r.id {
-			continue
-		}
-
-		svc.roles = append(svc.roles[:i], svc.roles[i+1:]...)
-		return
-	}
-}
-
-// IndexSize returns the number of indexed role/rule combos
-func (svc *Service) IndexSize() int {
-	if svc.index == nil {
-		return 0
-	}
-
-	return svc.index.getSize()
-}
-
 // SignificantRoles returns two list of significant roles.
 //
 // See sigRoles on rules for more details
@@ -549,7 +548,8 @@ func (svc *Service) Rules(ctx context.Context) (out RuleSet, err error) {
 // Clear cleans out all the data
 func (svc *Service) Clear() {
 	svc.usageCounter = nil
-	svc.index = nil
+	svc.indexes = nil
+	svc.indexMappings = nil
 	svc.roles = nil
 }
 
@@ -679,6 +679,48 @@ func (svc *Service) preflightCheck(roles partRoles) (a Access, resolved bool) {
 	}
 
 	return Inherit, false
+}
+
+func (svc *Service) isRuleIndexed(r *Rule) bool {
+	ix := svc.getIndexForRole(r.RoleID)
+	if ix == nil {
+		return false
+	}
+
+	return ix.isIndexed(r.Resource)
+}
+
+func (svc *Service) indexRule(r *Rule) (added bool) {
+	ix := svc.getIndexForRole(r.RoleID)
+	if ix == nil {
+		return
+	}
+
+	if !ix.isIndexed(r.Resource) {
+		return
+	}
+
+	return ix.add(r.Resource, r)
+}
+
+func (svc *Service) getIndexedRules(roleID uint64, op string, resoirce string) (out []*Rule) {
+	ix := svc.getIndexForRole(roleID)
+	if ix == nil {
+		return
+	}
+
+	return ix.get(op, resoirce)
+}
+
+// at least one of the roles must be set to true
+func member(r partRoles, k roleKind) bool {
+	for _, is := range r[k] {
+		if is {
+			return true
+		}
+	}
+
+	return false
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -831,7 +873,7 @@ func (svc *Service) getMatchingRule(st evaluationState, kind roleKind, role uint
 
 	// Indexed
 	now := time.Now()
-	aux = svc.index.get(role, st.op, st.res)
+	aux = svc.getIndexedRules(role, st.op, st.res)
 	svc.logIndexTiming(time.Since(now))
 
 	rules = append(rules, aux...)
@@ -862,7 +904,7 @@ func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, uni
 	unindexed = partRoles{}
 	indexed = partRoles{}
 
-	if svc.index == nil || svc.index.index == nil || svc.index.index.empty() {
+	if svc.isIndexEmpty() {
 		return indexed, roles, nil
 	}
 
@@ -871,7 +913,8 @@ func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, uni
 
 	for k, rg := range roles {
 		for r := range rg {
-			if svc.index.isIndexed(r, resource) {
+			ix := svc.getIndex(r, resource)
+			if ix != nil {
 				if indexed[k] == nil {
 					indexed[k] = make(map[uint64]bool)
 				}
@@ -889,6 +932,41 @@ func (svc *Service) segmentRoles(roles partRoles, resource string) (indexed, uni
 	}
 
 	return
+}
+
+func (svc *Service) getIndexForRole(role uint64) *wrapperIndex {
+	if _, ok := svc.indexMappings[role]; !ok {
+		return nil
+	}
+
+	return svc.indexes[svc.indexMappings[role]]
+}
+
+func (svc *Service) getIndex(role uint64, resource string) *wrapperIndex {
+	ix := svc.getIndexForRole(role)
+	if ix == nil {
+		return nil
+	}
+
+	if !ix.isIndexed(resource) {
+		return nil
+	}
+
+	return ix
+}
+
+func (svc *Service) isIndexEmpty() bool {
+	if len(svc.indexes) == 0 {
+		return false
+	}
+
+	out := false
+
+	for _, ix := range svc.indexes {
+		out = out || ix.index.empty()
+	}
+
+	return out
 }
 
 // CloneRulesByRoleID clone all rules of a Role S to a specific Role T by removing its existing rules
@@ -990,12 +1068,12 @@ func (svc *Service) updateWrapperIndex(ctx context.Context) (err error) {
 }
 
 func (svc *Service) updateWrapperIndexMemFirst(ctx context.Context) (err error) {
-	auxIndex, err := svc.buildNewIndex(ctx)
+	auxIndex, auxMappings, err := svc.buildNewIndex(ctx)
 	if err != nil {
 		return
 	}
 
-	svc.swapIndexes(auxIndex)
+	svc.swapIndexes(auxIndex, auxMappings)
 	return
 }
 
@@ -1003,41 +1081,150 @@ func (svc *Service) updateWrapperIndexSpeedFirst(ctx context.Context) (err error
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
-	svc.index = nil
+	svc.indexes = nil
+	svc.indexMappings = nil
 
-	auxIndex, err := svc.buildNewIndex(ctx)
+	auxIndex, auxMappings, err := svc.buildNewIndex(ctx)
 	if err != nil {
 		return
 	}
 
-	svc.index = auxIndex
+	svc.indexes = auxIndex
+	svc.indexMappings = auxMappings
 	return
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // //
 // Boilerplate & state management stuff
 
-func (svc *Service) indexForResources(ctx context.Context, res ...string) (index *wrapperIndex, err error) {
-	index = &wrapperIndex{}
-	var auxRules []*Rule
+func (svc *Service) indexForResources(ctx context.Context, res ...string) (indexes []*wrapperIndex, mappings map[uint64]int, err error) {
+	permResMapping := make(map[string][]string, 64)
 
-	for _, b := range res {
-		pp := strings.SplitN(b, ":", 2)
-		role := cast.ToUint64(pp[0])
-		resource := pp[1]
+	queries := makeQueryStrings(permResMapping, res...)
+	rules := make(RuleSet, 0, len(queries))
+	for _, q := range queries {
+		var aux RuleSet
 
-		auxRules, err = svc.pullRules(ctx, role, resource)
+		// @todo can this produce multiple pages?
+		aux, _, err = svc.RuleStorage.SearchRbacRules(ctx, RuleFilter{
+			RawFilter: q,
+			Limit:     maxRuleFetchChunk,
+
+			// Sort here so we can optimally chunk up the rules based on roles
+			Sorting: filter.Sorting{
+				Sort: filter.SortExprSet{{
+					Column:     "roleID",
+					Descending: false,
+				}},
+			},
+		})
 		if err != nil {
 			return
 		}
 
-		index.add(role, resource, auxRules...)
+		rules = append(rules, aux...)
+	}
+
+	if len(rules) == 0 {
+		return
+	}
+
+	// Fill up the indexes here so we can build up these chinks in parallel
+	mappings = make(map[uint64]int)
+	indexes = make([]*wrapperIndex, 0, 16)
+	for _, r := range rules {
+		if _, ok := mappings[r.RoleID]; !ok {
+			mappings[r.RoleID] = len(indexes)
+			indexes = append(indexes, nil)
+		}
+	}
+
+	wg := sync.WaitGroup{}
+	walkRulesByRole(rules, func(rules RuleSet) {
+		wg.Add(1)
+		go func(rules RuleSet) {
+			defer wg.Done()
+
+			index := &wrapperIndex{}
+			for _, r := range rules {
+				pp := strings.TrimRight(r.Resource, "/*")
+				for _, res := range permResMapping[pp] {
+					index.add(res, r)
+				}
+			}
+
+			indexes[mappings[rules[0].RoleID]] = index
+		}(rules)
+	})
+	wg.Wait()
+
+	return
+}
+
+// Assign resource to each resource permutation and set it to mapping
+func assignPermutations(mapping map[string][]string, resource string) {
+	pp := strings.Split(resource, "/")
+	mapping[resource] = append(mapping[resource], resource)
+
+	for i := 1; i < len(pp); i++ {
+		kk := strings.Join(pp[:i], "/")
+
+		aux := mapping[kk]
+		aux = append(aux, resource)
+
+		mapping[kk] = aux
+	}
+}
+
+// @todo perhaps some query strings would improve
+func makeQueryStrings(bits map[string][]string, resources ...string) (out []string) {
+	raw := make([]string, 0, len(resources)/maxRuleFetchChunk)
+	for i := 0; i < len(resources); i += maxRuleFetchChunk {
+		res := resources[i:int(math.Min(float64(len(resources)), float64(i+maxRuleFetchChunk)))]
+
+		for _, b := range res {
+			pp := strings.SplitN(b, ":", 2)
+			role := cast.ToUint64(pp[0])
+			resource := pp[1]
+			assignPermutations(bits, resource)
+
+			resources := permuteResource(resource)
+
+			rxs := make([]string, len(resources))
+			for i, rx := range resources {
+				rxs[i] = fmt.Sprintf("resource='%s'", rx)
+			}
+
+			raw = append(raw, fmt.Sprintf("(rel_role=%d and (%s))", role, strings.Join(rxs, " or ")))
+		}
+
+		out = append(out, strings.Join(raw, " or "))
 	}
 
 	return
 }
 
-func (svc *Service) loadIndex(ctx context.Context) (out *wrapperIndex, err error) {
+func walkRulesByRole(rules RuleSet, fn func(rr RuleSet)) {
+	crtRole := rules[0].RoleID
+	startIx := 0
+
+	for i := 1; i < len(rules); i++ {
+		if rules[i].RoleID == crtRole {
+			continue
+		}
+
+		fn(rules[startIx:i])
+
+		crtRole = rules[i].RoleID
+		startIx = i
+	}
+
+	if startIx != len(rules) {
+		fn(rules[startIx:len(rules)])
+	}
+}
+
+func (svc *Service) loadIndex(ctx context.Context) (indexes []*wrapperIndex, mappings map[uint64]int, err error) {
 	// How do we figure out what resources we have?
 	// do we just start from empty?
 
@@ -1047,7 +1234,7 @@ func (svc *Service) loadIndex(ctx context.Context) (out *wrapperIndex, err error
 	// Records would be those things that need max performance I suppose so it'd be a good starting point
 
 	if svc.cfg.PullInitialState == nil {
-		return &wrapperIndex{}, nil
+		return []*wrapperIndex{}, nil, nil
 	}
 
 	rr, err := svc.cfg.PullInitialState(ctx, svc.cfg.MaxIndexSize)
@@ -1058,7 +1245,7 @@ func (svc *Service) loadIndex(ctx context.Context) (out *wrapperIndex, err error
 	return svc.indexForResources(ctx, rr...)
 }
 
-func (svc *Service) buildNewIndex(ctx context.Context) (index *wrapperIndex, err error) {
+func (svc *Service) buildNewIndex(ctx context.Context) (indexes []*wrapperIndex, mappings map[uint64]int, err error) {
 	svc.usageCounter.lock.RLock()
 	defer svc.usageCounter.lock.RUnlock()
 
@@ -1066,7 +1253,7 @@ func (svc *Service) buildNewIndex(ctx context.Context) (index *wrapperIndex, err
 	return svc.indexForResources(ctx, res...)
 }
 
-func (svc *Service) swapIndexes(auxIndex *wrapperIndex) {
+func (svc *Service) swapIndexes(auxIndex []*wrapperIndex, mappings map[uint64]int) {
 	if auxIndex == nil {
 		return
 	}
@@ -1074,7 +1261,8 @@ func (svc *Service) swapIndexes(auxIndex *wrapperIndex) {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
 
-	svc.index = auxIndex
+	svc.indexes = auxIndex
+	svc.indexMappings = mappings
 }
 
 // Performance monitoring
@@ -1195,19 +1383,23 @@ func (svc *Service) logCachePerformanceAsync(hits, misses partRoles, resource, o
 func (svc *Service) DebuggerSetIndex(role uint64, resource string, rules ...*Rule) (err error) {
 	index := &wrapperIndex{}
 
-	index.add(role, resource, rules...)
+	index.add(resource, rules...)
 
-	svc.index = index
+	svc.indexes = []*wrapperIndex{index}
+	svc.indexMappings = map[uint64]int{role: 0}
 
 	return
 }
 
 func (svc *Service) DebuggerAddIndex(role uint64, resource string, rules ...*Rule) (err error) {
-	index := svc.index
+	ix := svc.getIndexForRole(role)
+	if ix == nil {
+		ix = &wrapperIndex{}
+		svc.indexes = append(svc.indexes, ix)
+		svc.indexMappings[role] = len(svc.indexes) - 1
+	}
 
-	index.add(role, resource, rules...)
-
-	svc.index = index
+	ix.add(resource, rules...)
 
 	return
 }
@@ -1251,11 +1443,11 @@ func (svc *Service) watch(ctx context.Context) {
 					lg.Error("reindex failed", zap.Error(err))
 				}
 
-			case <-flushTck.C:
-				err := svc.cfg.FlushIndexState(ctx, svc.index.getIndexed())
-				if err != nil {
-					lg.Error("failed to flush the index state", zap.Error(err))
-				}
+			// case <-flushTck.C:
+			// 	err := svc.cfg.FlushIndexState(ctx, svc.index.getIndexed())
+			// 	if err != nil {
+			// 		lg.Error("failed to flush the index state", zap.Error(err))
+			// 	}
 
 			case <-ctx.Done():
 				return

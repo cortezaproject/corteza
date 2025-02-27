@@ -1157,6 +1157,12 @@ func RbacRuleFilter(d drivers.Dialect, f rbacType.RuleFilter) (ee []goqu.Express
 		ee = append(ee, goqu.C("rel_role").Eq(f.RoleID))
 	}
 
+	if f.RawFilter != "" {
+		// @note this is only acceptable for system-generated queries.
+		//       This should be improved regardless.
+		ee = append(ee, goqu.Literal(f.RawFilter))
+	}
+
 	return ee, f, err
 }
 
