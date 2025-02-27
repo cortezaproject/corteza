@@ -37,6 +37,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 					goType: "uint64",
 					ident: "roleID",
 					storeIdent: "rel_role"
+					sortable: true,
 					dal: { type: "Ref", refModelResType: "corteza::system:role" }
 				}
 				resource:  {

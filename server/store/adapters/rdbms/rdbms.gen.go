@@ -333,7 +333,7 @@ func (s *Store) LookupActionlogByID(ctx context.Context, id uint64) (_ *actionlo
 func (Store) sortableActionlogFields() map[string]string {
 	return map[string]string{
 		"id":        "id",
-		"timestamp": "timestamp",
+		"timestamp": "ts",
 	}
 }
 
@@ -916,7 +916,7 @@ func (Store) sortableApigwFilterFields() map[string]string {
 		"enabled":    "enabled",
 		"id":         "id",
 		"kind":       "kind",
-		"route":      "route",
+		"route":      "rel_route",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 		"weight":     "weight",
@@ -1421,7 +1421,7 @@ func (s *Store) QueryApigwRoutes(
 
 // LookupApigwRouteByID searches for route by ID
 //
-// It returns route even if deleted or suspended
+// # It returns route even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupApigwRouteByID(ctx context.Context, id uint64) (_ *systemType.ApigwRoute, err error) {
@@ -1463,7 +1463,7 @@ func (s *Store) LookupApigwRouteByID(ctx context.Context, id uint64) (_ *systemT
 
 // LookupApigwRouteByEndpoint searches for route by endpoint
 //
-// It returns route even if deleted or suspended
+// # It returns route even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupApigwRouteByEndpoint(ctx context.Context, endpoint string) (_ *systemType.ApigwRoute, err error) {
@@ -1517,7 +1517,7 @@ func (Store) sortableApigwRouteFields() map[string]string {
 		"deletedat":  "deleted_at",
 		"enabled":    "enabled",
 		"endpoint":   "endpoint",
-		"group":      "group",
+		"group":      "rel_group",
 		"id":         "id",
 		"method":     "method",
 		"updated_at": "updated_at",
@@ -2023,7 +2023,7 @@ func (s *Store) QueryApplications(
 
 // LookupApplicationByID searches for role by ID
 //
-// It returns role even if deleted or suspended
+// # It returns role even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupApplicationByID(ctx context.Context, id uint64) (_ *systemType.Application, err error) {
@@ -3132,7 +3132,7 @@ func (s *Store) QueryAuthClients(
 
 // LookupAuthClientByID 	searches for auth client by ID
 //
-// 	It returns auth clint even if deleted
+//	It returns auth clint even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupAuthClientByID(ctx context.Context, id uint64) (_ *systemType.AuthClient, err error) {
@@ -3174,7 +3174,7 @@ func (s *Store) LookupAuthClientByID(ctx context.Context, id uint64) (_ *systemT
 
 // LookupAuthClientByHandle searches for auth client by ID
 //
-// It returns auth clint even if deleted
+// # It returns auth clint even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupAuthClientByHandle(ctx context.Context, handle string) (_ *systemType.AuthClient, err error) {
@@ -3599,12 +3599,12 @@ func (s *Store) LookupAuthConfirmedClientByUserIDClientID(ctx context.Context, u
 // This function is auto-generated
 func (Store) sortableAuthConfirmedClientFields() map[string]string {
 	return map[string]string{
-		"client_id":    "client_id",
-		"clientid":     "client_id",
+		"client_id":    "rel_client",
+		"clientid":     "rel_client",
 		"confirmed_at": "confirmed_at",
 		"confirmedat":  "confirmed_at",
-		"user_id":      "user_id",
-		"userid":       "user_id",
+		"user_id":      "rel_user",
+		"userid":       "rel_user",
 	}
 }
 
@@ -4871,7 +4871,7 @@ func (s *Store) QueryAutomationSessions(
 
 // LookupAutomationSessionByID searches for session by ID
 //
-// It returns session even if deleted
+// # It returns session even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupAutomationSessionByID(ctx context.Context, id uint64) (_ *automationType.Session, err error) {
@@ -4933,8 +4933,8 @@ func (Store) sortableAutomationSessionFields() map[string]string {
 		"status":        "status",
 		"suspended_at":  "suspended_at",
 		"suspendedat":   "suspended_at",
-		"workflow_id":   "workflow_id",
-		"workflowid":    "workflow_id",
+		"workflow_id":   "rel_workflow",
+		"workflowid":    "rel_workflow",
 	}
 }
 
@@ -5438,7 +5438,7 @@ func (s *Store) QueryAutomationTriggers(
 
 // LookupAutomationTriggerByID searches for trigger by ID
 //
-// It returns trigger even if deleted
+// # It returns trigger even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupAutomationTriggerByID(ctx context.Context, id uint64) (_ *automationType.Trigger, err error) {
@@ -5498,8 +5498,8 @@ func (Store) sortableAutomationTriggerFields() map[string]string {
 		"resourcetype":  "resource_type",
 		"updated_at":    "updated_at",
 		"updatedat":     "updated_at",
-		"workflow_id":   "workflow_id",
-		"workflowid":    "workflow_id",
+		"workflow_id":   "rel_workflow",
+		"workflowid":    "rel_workflow",
 	}
 }
 
@@ -6001,7 +6001,7 @@ func (s *Store) QueryAutomationWorkflows(
 
 // LookupAutomationWorkflowByID searches for workflow by ID
 //
-// It returns workflow even if deleted
+// # It returns workflow even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupAutomationWorkflowByID(ctx context.Context, id uint64) (_ *automationType.Workflow, err error) {
@@ -6043,7 +6043,7 @@ func (s *Store) LookupAutomationWorkflowByID(ctx context.Context, id uint64) (_ 
 
 // LookupAutomationWorkflowByHandle searches for workflow by their handle
 //
-// It returns only valid workflows
+// # It returns only valid workflows
 //
 // This function is auto-generated
 func (s *Store) LookupAutomationWorkflowByHandle(ctx context.Context, handle string) (_ *automationType.Workflow, err error) {
@@ -6679,8 +6679,8 @@ func (Store) sortableComposeAttachmentFields() map[string]string {
 		"id":         "id",
 		"kind":       "kind",
 		"name":       "name",
-		"owner_id":   "owner_id",
-		"ownerid":    "owner_id",
+		"owner_id":   "rel_owner",
+		"ownerid":    "rel_owner",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -7182,7 +7182,7 @@ func (s *Store) QueryComposeCharts(
 
 // LookupComposeChartByID searches for compose chart by ID
 //
-// It returns compose chart even if deleted
+// # It returns compose chart even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupComposeChartByID(ctx context.Context, id uint64) (_ *composeType.Chart, err error) {
@@ -7863,7 +7863,7 @@ func (s *Store) LookupComposeModuleByNamespaceIDName(ctx context.Context, namesp
 
 // LookupComposeModuleByID searches for compose module by ID
 //
-// It returns compose module even if deleted
+// # It returns compose module even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupComposeModuleByID(ctx context.Context, id uint64) (_ *composeType.Module, err error) {
@@ -8906,7 +8906,7 @@ func (s *Store) LookupComposeNamespaceBySlug(ctx context.Context, slug string) (
 
 // LookupComposeNamespaceByID searches for compose namespace by ID
 //
-// It returns compose namespace even if deleted
+// # It returns compose namespace even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupComposeNamespaceByID(ctx context.Context, id uint64) (_ *composeType.Namespace, err error) {
@@ -9571,7 +9571,7 @@ func (s *Store) LookupComposePageByNamespaceIDModuleID(ctx context.Context, name
 
 // LookupComposePageByID searches for compose page by ID
 //
-// It returns compose page even if deleted
+// # It returns compose page even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupComposePageByID(ctx context.Context, id uint64) (_ *composeType.Page, err error) {
@@ -10218,7 +10218,7 @@ func (s *Store) LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx context.Con
 
 // LookupComposePageLayoutByID searches for compose page layour by ID
 //
-// It returns compose page layour even if deleted
+// # It returns compose page layour even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupComposePageLayoutByID(ctx context.Context, id uint64) (_ *composeType.PageLayout, err error) {
@@ -10564,7 +10564,7 @@ func (s *Store) QueryCredentials(
 
 // LookupCredentialByID searches for credentials by ID
 //
-// It returns credentials even if deleted
+// # It returns credentials even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupCredentialByID(ctx context.Context, id uint64) (_ *systemType.Credential, err error) {
@@ -11120,7 +11120,7 @@ func (s *Store) QueryDalConnections(
 
 // LookupDalConnectionByID searches for connection by ID
 //
-// It returns connection even if deleted or suspended
+// # It returns connection even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupDalConnectionByID(ctx context.Context, id uint64) (_ *systemType.DalConnection, err error) {
@@ -12288,7 +12288,7 @@ func (s *Store) QueryDalSensitivityLevels(
 
 // LookupDalSensitivityLevelByID searches for user by ID
 //
-// It returns user even if deleted or suspended
+// # It returns user even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupDalSensitivityLevelByID(ctx context.Context, id uint64) (_ *systemType.DalSensitivityLevel, err error) {
@@ -12843,7 +12843,7 @@ func (s *Store) QueryDataPrivacyRequests(
 
 // LookupDataPrivacyRequestByID searches for data privacy request by ID
 //
-// It returns data privacy request even if deleted
+// # It returns data privacy request even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupDataPrivacyRequestByID(ctx context.Context, id uint64) (_ *systemType.DataPrivacyRequest, err error) {
@@ -13911,7 +13911,7 @@ func (s *Store) QueryFederationExposedModules(
 
 // LookupFederationExposedModuleByID searches for federation module by ID
 //
-// It returns federation module
+// # It returns federation module
 //
 // This function is auto-generated
 func (s *Store) LookupFederationExposedModuleByID(ctx context.Context, id uint64) (_ *federationType.ExposedModule, err error) {
@@ -13966,8 +13966,8 @@ func (Store) sortableFederationExposedModuleFields() map[string]string {
 		"handle":     "handle",
 		"id":         "id",
 		"name":       "name",
-		"node_id":    "node_id",
-		"nodeid":     "node_id",
+		"node_id":    "rel_node",
+		"nodeid":     "rel_node",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -14461,7 +14461,7 @@ func (s *Store) QueryFederationModuleMappings(
 
 // LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID searches for module mapping by federation module id and compose module id
 //
-// It returns module mapping
+// # It returns module mapping
 //
 // This function is auto-generated
 func (s *Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleIDComposeNamespaceID(ctx context.Context, federationModuleID uint64, composeModuleID uint64, composeNamespaceID uint64) (_ *federationType.ModuleMapping, err error) {
@@ -14505,7 +14505,7 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleIDComposeModuleID
 
 // LookupFederationModuleMappingByFederationModuleID searches for module mapping by federation module id
 //
-// It returns module mapping
+// # It returns module mapping
 //
 // This function is auto-generated
 func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Context, federationModuleID uint64) (_ *federationType.ModuleMapping, err error) {
@@ -14553,12 +14553,12 @@ func (s *Store) LookupFederationModuleMappingByFederationModuleID(ctx context.Co
 // This function is auto-generated
 func (Store) sortableFederationModuleMappingFields() map[string]string {
 	return map[string]string{
-		"compose_module_id":    "compose_module_id",
-		"compose_namespace_id": "compose_namespace_id",
-		"composemoduleid":      "compose_module_id",
-		"composenamespaceid":   "compose_namespace_id",
-		"federation_module_id": "federation_module_id",
-		"federationmoduleid":   "federation_module_id",
+		"compose_module_id":    "rel_compose_module",
+		"compose_namespace_id": "rel_compose_namespace",
+		"composemoduleid":      "rel_compose_module",
+		"composenamespaceid":   "rel_compose_namespace",
+		"federation_module_id": "rel_federation_module",
+		"federationmoduleid":   "rel_federation_module",
 		"node_id":              "node_id",
 		"nodeid":               "node_id",
 	}
@@ -15049,7 +15049,7 @@ func (s *Store) QueryFederationNodes(
 
 // LookupFederationNodeByID searches for federation node by ID
 //
-// It returns federation node
+// # It returns federation node
 //
 // This function is auto-generated
 func (s *Store) LookupFederationNodeByID(ctx context.Context, id uint64) (_ *federationType.Node, err error) {
@@ -15695,7 +15695,7 @@ func (s *Store) QueryFederationNodeSyncs(
 
 // LookupFederationNodeSyncByNodeID searches for sync activity by node ID
 //
-// It returns sync activity
+// # It returns sync activity
 //
 // This function is auto-generated
 func (s *Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) (_ *federationType.NodeSync, err error) {
@@ -15737,7 +15737,7 @@ func (s *Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uin
 
 // LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus searches for activity by node, type and status
 //
-// It returns sync activity
+// # It returns sync activity
 //
 // This function is auto-generated
 func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, nodeID uint64, moduleID uint64, syncType string, syncStatus string) (_ *federationType.NodeSync, err error) {
@@ -16293,7 +16293,7 @@ func (s *Store) QueryFederationSharedModules(
 
 // LookupFederationSharedModuleByID searches for shared federation module by ID
 //
-// It returns shared federation module
+// # It returns shared federation module
 //
 // This function is auto-generated
 func (s *Store) LookupFederationSharedModuleByID(ctx context.Context, id uint64) (_ *federationType.SharedModule, err error) {
@@ -16345,13 +16345,13 @@ func (Store) sortableFederationSharedModuleFields() map[string]string {
 		"createdat":                     "created_at",
 		"deleted_at":                    "deleted_at",
 		"deletedat":                     "deleted_at",
-		"external_federation_module_id": "external_federation_module_id",
-		"externalfederationmoduleid":    "external_federation_module_id",
+		"external_federation_module_id": "xref_module",
+		"externalfederationmoduleid":    "xref_module",
 		"handle":                        "handle",
 		"id":                            "id",
 		"name":                          "name",
-		"node_id":                       "node_id",
-		"nodeid":                        "node_id",
+		"node_id":                       "rel_node",
+		"nodeid":                        "rel_node",
 		"updated_at":                    "updated_at",
 		"updatedat":                     "updated_at",
 	}
@@ -16695,8 +16695,8 @@ func (Store) sortableFlagFields() map[string]string {
 		"name":        "name",
 		"owned_by":    "owned_by",
 		"ownedby":     "owned_by",
-		"resource_id": "resource_id",
-		"resourceid":  "resource_id",
+		"resource_id": "rel_resource",
+		"resourceid":  "rel_resource",
 	}
 }
 
@@ -17040,8 +17040,8 @@ func (Store) sortableLabelFields() map[string]string {
 	return map[string]string{
 		"kind":        "kind",
 		"name":        "name",
-		"resource_id": "resource_id",
-		"resourceid":  "resource_id",
+		"resource_id": "rel_resource",
+		"resourceid":  "rel_resource",
 	}
 }
 
@@ -18431,8 +18431,8 @@ func (Store) sortableRbacRuleFields() map[string]string {
 	return map[string]string{
 		"operation": "operation",
 		"resource":  "resource",
-		"role_id":   "role_id",
-		"roleid":    "role_id",
+		"role_id":   "rel_role",
+		"roleid":    "rel_role",
 	}
 }
 
@@ -19495,7 +19495,7 @@ func (s *Store) QueryReports(
 
 // LookupReportByID searches for report by ID
 //
-// It returns report even if deleted
+// # It returns report even if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupReportByID(ctx context.Context, id uint64) (_ *systemType.Report, err error) {
@@ -19537,7 +19537,7 @@ func (s *Store) LookupReportByID(ctx context.Context, id uint64) (_ *systemType.
 
 // LookupReportByHandle searches for report by handle
 //
-// It returns report if deleted
+// # It returns report if deleted
 //
 // This function is auto-generated
 func (s *Store) LookupReportByHandle(ctx context.Context, handle string) (_ *systemType.Report, err error) {
@@ -19907,7 +19907,7 @@ func (s *Store) QueryResourceActivitys(
 func (Store) sortableResourceActivityFields() map[string]string {
 	return map[string]string{
 		"id":        "id",
-		"timestamp": "timestamp",
+		"timestamp": "ts",
 	}
 }
 
@@ -20932,7 +20932,7 @@ func (s *Store) QueryRoles(
 
 // LookupRoleByID searches for role by ID
 //
-// It returns role even if deleted or suspended
+// # It returns role even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupRoleByID(ctx context.Context, id uint64) (_ *systemType.Role, err error) {
@@ -21421,10 +21421,10 @@ func (s *Store) QueryRoleMembers(
 // This function is auto-generated
 func (Store) sortableRoleMemberFields() map[string]string {
 	return map[string]string{
-		"role_id": "role_id",
-		"roleid":  "role_id",
-		"user_id": "user_id",
-		"userid":  "user_id",
+		"role_id": "rel_role",
+		"roleid":  "rel_role",
+		"user_id": "rel_user",
+		"userid":  "rel_user",
 	}
 }
 
@@ -21751,8 +21751,8 @@ func (s *Store) LookupSettingValueByNameOwnedBy(ctx context.Context, name string
 func (Store) sortableSettingValueFields() map[string]string {
 	return map[string]string{
 		"name":       "name",
-		"owned_by":   "owned_by",
-		"ownedby":    "owned_by",
+		"owned_by":   "rel_owner",
+		"ownedby":    "rel_owner",
 		"updated_at": "updated_at",
 		"updatedat":  "updated_at",
 	}
@@ -22886,7 +22886,7 @@ func (s *Store) QueryUsers(
 
 // LookupUserByID searches for user by ID
 //
-// It returns user even if deleted or suspended
+// # It returns user even if deleted or suspended
 //
 // This function is auto-generated
 func (s *Store) LookupUserByID(ctx context.Context, id uint64) (_ *systemType.User, err error) {
