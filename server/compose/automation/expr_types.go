@@ -350,6 +350,15 @@ func composeRecordValuesTypedValueSelector(res *types.Record, k string) (expr.Ty
 // We'll be using types.Record for the base (and not types.RecordValueSet)
 func assignToComposeRecordValues(res *types.Record, p expr.Pather, val interface{}) (err error) {
 	if p == nil || !p.More() {
+		switch val := val.(type) {
+		case *ComposeRecordValues:
+			res.Values = val.value.Values
+			return
+		case *ComposeRecord:
+			*res = *val.value
+			return
+		}
+
 		switch val := expr.UntypedValue(val).(type) {
 		case types.RecordValueSet:
 			res.Values = val
