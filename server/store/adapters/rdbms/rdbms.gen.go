@@ -14169,9 +14169,9 @@ func (s *Store) SearchFederationModuleMappings(ctx context.Context, f federation
 	}
 
 	// Make sure results are always sorted at least by primary keys
-	if f.Sort.Get("id") == nil {
+	if f.Sort.Get("node_id") == nil {
 		f.Sort = append(f.Sort, &filter.SortExpr{
-			Column:     "id",
+			Column:     "node_id",
 			Descending: f.Sort.LastDescending(),
 		})
 	}
@@ -15366,15 +15366,6 @@ func (s *Store) DeleteFederationNodeSync(ctx context.Context, rr ...*federationT
 	return nil
 }
 
-// DeleteFederationNodeSyncByNodeID deletes single entry from federationNodeSync collection
-//
-// This function is auto-generated
-func (s *Store) DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error {
-	return s.Exec(ctx, federationNodeSyncDeleteQuery(s.Dialect.GOQU(), goqu.Ex{
-		"node_id": nodeID,
-	}))
-}
-
 // TruncateFederationNodeSyncs Deletes all rows from the federationNodeSync collection
 func (s *Store) TruncateFederationNodeSyncs(ctx context.Context) error {
 	return s.Exec(ctx, federationNodeSyncTruncateQuery(s.Dialect.GOQU()))
@@ -15403,9 +15394,9 @@ func (s *Store) SearchFederationNodeSyncs(ctx context.Context, f federationType.
 	}
 
 	// Make sure results are always sorted at least by primary keys
-	if f.Sort.Get("id") == nil {
+	if f.Sort.Get("rel_node") == nil {
 		f.Sort = append(f.Sort, &filter.SortExpr{
-			Column:     "id",
+			Column:     "rel_node",
 			Descending: f.Sort.LastDescending(),
 		})
 	}
@@ -15704,7 +15695,7 @@ func (s *Store) LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uin
 		rows   *sql.Rows
 		aux    = new(auxFederationNodeSync)
 		lookup = federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(
-			goqu.I("node_id").Eq(nodeID),
+			goqu.I("rel_node").Eq(nodeID),
 		).Limit(1)
 	)
 
@@ -15746,8 +15737,8 @@ func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx c
 		rows   *sql.Rows
 		aux    = new(auxFederationNodeSync)
 		lookup = federationNodeSyncSelectQuery(s.Dialect.GOQU()).Where(
-			goqu.I("node_id").Eq(nodeID),
-			goqu.I("module_id").Eq(moduleID),
+			goqu.I("rel_node").Eq(nodeID),
+			goqu.I("rel_compose_module").Eq(moduleID),
 			goqu.I("sync_type").Eq(syncType),
 			goqu.I("sync_status").Eq(syncStatus),
 		).Limit(1)
@@ -15789,10 +15780,10 @@ func (s *Store) LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx c
 // This function is auto-generated
 func (Store) sortableFederationNodeSyncFields() map[string]string {
 	return map[string]string{
-		"module_id":      "module_id",
-		"moduleid":       "module_id",
-		"node_id":        "node_id",
-		"nodeid":         "node_id",
+		"moduleid":       "rel_module",
+		"nodeid":         "rel_node",
+		"rel_module":     "rel_module",
+		"rel_node":       "rel_node",
 		"sync_status":    "sync_status",
 		"sync_type":      "sync_type",
 		"syncstatus":     "sync_status",
@@ -15820,13 +15811,10 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 
 		hasUnique bool
 
-		pkNodeID bool
-
 		collect = func(cc ...*filter.SortExpr) {
 			getVal := func(col string) interface{} {
 				switch col {
 				case "nodeID":
-					pkNodeID = true
 					return res.NodeID
 				case "moduleID":
 					return res.ModuleID
@@ -15860,9 +15848,6 @@ func (s *Store) collectFederationNodeSyncCursorValues(res *federationType.NodeSy
 	_ = hasUnique
 
 	collect(cc...)
-	if !hasUnique || !pkNodeID {
-		collect(&filter.SortExpr{Column: "nodeID", Descending: false})
-	}
 
 	return cur
 

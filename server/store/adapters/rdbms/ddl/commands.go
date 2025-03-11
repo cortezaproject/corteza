@@ -64,6 +64,12 @@ type (
 		Column  string
 		Type    *ColumnType
 	}
+
+	DropConstraint struct {
+		Dialect    dialect
+		Table      string
+		Constraint string
+	}
 )
 
 // Exec is a utility for executing series of commands

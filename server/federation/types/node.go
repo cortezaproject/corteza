@@ -10,6 +10,7 @@ var (
 	NodeStatusPending       = "pending"
 	NodeStatusPairRequested = "pair_requested"
 	NodeStatusPaired        = "paired"
+	NodeStatusFailed        = "failed"
 )
 
 type (

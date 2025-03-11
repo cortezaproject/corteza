@@ -18,6 +18,7 @@ import (
 	labelsType "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
@@ -49,6 +50,10 @@ var (
 		fix_2022_09_07_changePostgresIdColumnsDatatype,
 		fix_2022_09_00_migrateComposeModuleDiscoveryConfigSettings,
 		fix_2023_03_00_migrateComposePageMeta,
+		fix_2024_09_03_dropFederationNodeSyncPrimaryKey,
+		fix_2024_09_03_renameFederationNodeSyncNodeID,
+		fix_2024_09_03_renameFederationNodeSyncComposeID,
+		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
 	}
 )
 
@@ -312,8 +317,8 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 		crvTableIdent = "compose_record_value"
 
 		recordsPerModule = `
-	SELECT id 
-	  FROM compose_record 
+	SELECT id
+	  FROM compose_record
 	 WHERE rel_namespace = %d AND rel_module = %d AND id > %d AND deleted_at IS NULL ORDER BY id LIMIT %d
 `
 
@@ -324,7 +329,7 @@ func fix_2022_09_00_migrateOldComposeRecordValues(ctx context.Context, s *Store)
 		recValuesPerModule = `
 	SELECT record_id, name, value, ref, place
 	  FROM compose_record_value
-	 WHERE record_id IN (%s) 
+	 WHERE record_id IN (%s)
 	   AND deleted_at IS NULL
 	 ORDER BY record_id, name, place`
 	)
@@ -701,7 +706,7 @@ func fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup(ctx context.Context
 	const (
 		moduleConfigRecordDeDup = `
 			SELECT compose_module.config -> 'recordDeDup' AS recordDeDup
-			FROM compose_module 
+			FROM compose_module
 			WHERE compose_module.id = %d`
 	)
 
@@ -791,6 +796,77 @@ func fix_2023_03_00_migrateComposeModuleConfigForRecordDeDup(ctx context.Context
 	}
 
 	return
+}
+
+func fix_2024_09_03_dropFederationNodeSyncPrimaryKey(ctx context.Context, s *Store) (err error) {
+	// confirm that the table exists first
+	_, err = s.DataDefiner.TableLookup(ctx, "federation_nodes_sync")
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	if !strings.HasPrefix(s.DB.DriverName(), "sqlite") {
+		query := `ALTER TABLE federation_nodes_sync DROP CONSTRAINT IF EXISTS federation_nodes_sync_pkey`
+		if _, err = s.DB.ExecContext(ctx, query); err != nil {
+			if strings.Contains(err.Error(), "does not exist") {
+				return nil
+			}
+			return fmt.Errorf("failed to drop primary key constraint on federation_nodes_sync: %w", err)
+		}
+	}
+
+	tempTable := "federation_nodes_sync_temp"
+
+	sqlStatements := []string{
+		fmt.Sprintf(`CREATE TABLE %s AS SELECT * FROM federation_nodes_sync WHERE 1=0`, tempTable),
+		fmt.Sprintf(`INSERT INTO %s SELECT * FROM federation_nodes_sync`, tempTable),
+		fmt.Sprintf(`DROP TABLE federation_nodes_sync`),
+		fmt.Sprintf(`ALTER TABLE %s RENAME TO federation_nodes_sync`, tempTable),
+	}
+
+	for _, sql := range sqlStatements {
+		if _, err = s.DB.ExecContext(ctx, sql); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func fix_2024_09_03_renameFederationNodeSyncNodeID(ctx context.Context, s *Store) (err error) {
+	return renameColumn(ctx, s, "federation_nodes_sync", "node_id", "rel_node")
+}
+
+func fix_2024_09_03_renameFederationNodeSyncComposeID(ctx context.Context, s *Store) (err error) {
+	return renameColumn(ctx, s, "federation_nodes_sync", "module_id", "rel_module")
+}
+
+func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Store) (err error) {
+	// confirm that the table exists first
+	_, err = s.DataDefiner.TableLookup(ctx, "federation_nodes_sync")
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	nodeIDIndx := ddl.Index{
+		TableIdent: "federation_nodes_sync",
+		Ident:      "federation_nodes_sync_idxRelNode",
+		Type:       "BTREE",
+
+		Fields: []*ddl.IndexField{
+			{
+				Column: "rel_node",
+			},
+		},
+	}
+
+	return s.DataDefiner.IndexCreate(ctx, "federation_nodes_sync", &nodeIDIndx)
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

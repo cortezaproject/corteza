@@ -57,7 +57,7 @@ func (svc nodeSync) LookupLastSuccessfulSync(ctx context.Context, nodeID uint64,
 		SyncStatus: types.NodeSyncStatusSuccess,
 		Sorting: filter.Sorting{
 			Sort: filter.SortExprSet{
-				&filter.SortExpr{Column: "time_action", Descending: true},
+				&filter.SortExpr{Column: "time_of_action", Descending: true},
 			},
 		},
 		Paging: filter.Paging{Limit: 1},

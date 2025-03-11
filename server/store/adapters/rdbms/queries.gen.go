@@ -3249,8 +3249,8 @@ var (
 	// This function is auto-generated
 	federationNodeSyncSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
-			"node_id",
-			"module_id",
+			"rel_node",
+			"rel_compose_module",
 			"sync_type",
 			"sync_status",
 			"time_of_action",
@@ -3263,11 +3263,11 @@ var (
 	federationNodeSyncInsertQuery = func(d goqu.DialectWrapper, res *federationType.NodeSync) *goqu.InsertDataset {
 		return d.Insert(federationNodeSyncTable).
 			Rows(goqu.Record{
-				"node_id":        res.NodeID,
-				"module_id":      res.ModuleID,
-				"sync_type":      res.SyncType,
-				"sync_status":    res.SyncStatus,
-				"time_of_action": res.TimeOfAction,
+				"rel_node":           res.NodeID,
+				"rel_compose_module": res.ModuleID,
+				"sync_type":          res.SyncType,
+				"sync_status":        res.SyncStatus,
+				"time_of_action":     res.TimeOfAction,
 			})
 	}
 
@@ -3275,16 +3275,17 @@ var (
 	//
 	// This function is auto-generated
 	federationNodeSyncUpsertQuery = func(d goqu.DialectWrapper, res *federationType.NodeSync) *goqu.InsertDataset {
-		var target = `,node_id`
+		var target = ``
 
 		return federationNodeSyncInsertQuery(d, res).
 			OnConflict(
 				goqu.DoUpdate(target[1:],
 					goqu.Record{
-						"module_id":      res.ModuleID,
-						"sync_type":      res.SyncType,
-						"sync_status":    res.SyncStatus,
-						"time_of_action": res.TimeOfAction,
+						"rel_node":           res.NodeID,
+						"rel_compose_module": res.ModuleID,
+						"sync_type":          res.SyncType,
+						"sync_status":        res.SyncStatus,
+						"time_of_action":     res.TimeOfAction,
 					},
 				),
 			)
@@ -3296,10 +3297,11 @@ var (
 	federationNodeSyncUpdateQuery = func(d goqu.DialectWrapper, res *federationType.NodeSync) *goqu.UpdateDataset {
 		return d.Update(federationNodeSyncTable).
 			Set(goqu.Record{
-				"module_id":      res.ModuleID,
-				"sync_type":      res.SyncType,
-				"sync_status":    res.SyncStatus,
-				"time_of_action": res.TimeOfAction,
+				"rel_node":           res.NodeID,
+				"rel_compose_module": res.ModuleID,
+				"sync_type":          res.SyncType,
+				"sync_status":        res.SyncStatus,
+				"time_of_action":     res.TimeOfAction,
 			}).
 			Where(federationNodeSyncPrimaryKeys(res))
 	}
@@ -3322,9 +3324,7 @@ var (
 	//
 	// This function is auto-generated
 	federationNodeSyncPrimaryKeys = func(res *federationType.NodeSync) goqu.Ex {
-		return goqu.Ex{
-			"node_id": res.NodeID,
-		}
+		return goqu.Ex{}
 	}
 
 	// federationSharedModuleTable represents federationSharedModules store table

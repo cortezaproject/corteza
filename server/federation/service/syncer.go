@@ -56,6 +56,8 @@ func (h *Syncer) Fetch(ctx context.Context, url string) (io.Reader, error) {
 		req.Header.Add("Authorization", `Bearer `+authToken.(string))
 	}
 
+	req.Header.Add("Accept", "application/json")
+
 	resp, err := h.client.Do(req)
 	if err != nil {
 		return nil, err
@@ -83,7 +85,6 @@ func (h *Syncer) Process(ctx context.Context, payload []byte, out chan Url, url 
 			Meta: processer,
 		}
 	}
-
 	return processer.Process(ctx, payload)
 }
 

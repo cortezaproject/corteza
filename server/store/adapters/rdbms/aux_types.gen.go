@@ -465,8 +465,8 @@ type (
 
 	// auxFederationNodeSync is an auxiliary structure used for transporting to/from RDBMS store
 	auxFederationNodeSync struct {
-		NodeID       uint64    `db:"node_id"`
-		ModuleID     uint64    `db:"module_id"`
+		NodeID       uint64    `db:"rel_node"`
+		ModuleID     uint64    `db:"rel_module"`
 		SyncType     string    `db:"sync_type"`
 		SyncStatus   string    `db:"sync_status"`
 		TimeOfAction time.Time `db:"time_of_action"`

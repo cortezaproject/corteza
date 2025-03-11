@@ -12,15 +12,17 @@ nodeSync: {
 	model: {
 		ident: "federation_nodes_sync"
 		attributes: {
-			node_id: {
-				sortable: true,
+			rel_node: {
+			  sortable: true,
 				ident: "nodeID",
+				storeIdent: "rel_node",
 				goType: "uint64",
 				dal: { type: "ID" }
 			}
-			module_id: {
+			rel_module: {
 				sortable: true,
 				ident: "moduleID",
+				storeIdent: "rel_compose_module",
 				goType: "uint64"
 				dal: { type: "ID" }
 			}
@@ -38,19 +40,19 @@ nodeSync: {
 		}
 
 		indexes: {
-			"primary": { attribute: "node_id" }
+			"idx_rel_node": { attribute: "rel_node" }
 		}
 	}
 
 	filter: {
 		struct: {
-			node_id:     { goType: "uint64", storeIdent: "rel_node",   ident: "nodeID" }
-			module_id:   { goType: "uint64", storeIdent: "rel_module", ident: "moduleID" }
+			rel_node:     { goType: "uint64", storeIdent: "rel_node",   ident: "nodeID" }
+			rel_module:   { goType: "uint64", storeIdent: "rel_module", ident: "moduleID" }
 			sync_status: { goType: "string", storeIdent: "sync_status" }
 			sync_type:   { goType: "string", storeIdent: "sync_type"   }
 		}
 
-		byValue: ["node_id", "module_id", "sync_status", "sync_type"]
+		byValue: ["rel_node", "rel_module", "sync_status", "sync_type"]
 	}
 
 	envoy: {
@@ -63,14 +65,14 @@ nodeSync: {
 		api: {
 			lookups: [
 				{
-					fields: ["node_id"]
+					fields: ["rel_node"]
 					description: """
 						searches for sync activity by node ID
 
 						It returns sync activity
 						"""
 				}, {
-					fields: ["node_id", "module_id", "sync_type", "sync_status"]
+					fields: ["rel_node", "rel_module", "sync_type", "sync_status"]
 					description: """
 						searches for activity by node, type and status
 

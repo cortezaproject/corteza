@@ -2,8 +2,9 @@ package service
 
 import (
 	"context"
-	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"strconv"
+
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 
 	cs "github.com/cortezaproject/corteza/server/compose/service"
 	ct "github.com/cortezaproject/corteza/server/compose/types"
@@ -327,7 +328,11 @@ func loadExposedModule(ctx context.Context, s store.FederationExposedModules, no
 		err = SharedModuleErrNotFound()
 	}
 
-	if err == nil && nodeID != res.NodeID {
+	if err != nil {
+		return
+	}
+
+	if nodeID != res.NodeID {
 		// Make sure chart belongs to the right namespace
 		return nil, SharedModuleErrNotFound()
 	}

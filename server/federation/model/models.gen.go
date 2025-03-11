@@ -337,13 +337,13 @@ var NodeSync = &dal.Model{
 		&dal.Attribute{
 			Ident: "NodeID", Sortable: true,
 			Type:  &dal.TypeID{},
-			Store: &dal.CodecAlias{Ident: "node_id"},
+			Store: &dal.CodecAlias{Ident: "rel_node"},
 		},
 
 		&dal.Attribute{
 			Ident: "ModuleID", Sortable: true,
 			Type:  &dal.TypeID{},
-			Store: &dal.CodecAlias{Ident: "module_id"},
+			Store: &dal.CodecAlias{Ident: "rel_compose_module"},
 		},
 
 		&dal.Attribute{
@@ -367,7 +367,7 @@ var NodeSync = &dal.Model{
 
 	Indexes: dal.IndexSet{
 		&dal.Index{
-			Ident: "PRIMARY",
+			Ident: "federation_nodes_sync_idxRelNode",
 			Type:  "BTREE",
 
 			Fields: []*dal.IndexField{

@@ -162,14 +162,23 @@ func (s *Store) Search{{ .expIdentPlural }}(ctx context.Context, {{ template "ex
 		}
 	}
 
-	// Make sure results are always sorted at least by primary keys
-	if f.Sort.Get("id") == nil {
+	{{- $sortColumn := "id" }}
+
+	{{ if (eq .expIdentPlural "FederationModuleMappings") }}
+        {{ $sortColumn = "node_id" }}
+    {{ end }}
+
+    {{ if (eq .expIdentPlural "FederationNodeSyncs") }}
+        {{ $sortColumn = "rel_node" }}
+    {{ end }}
+
+    // Make sure results are always sorted at least by primary keys
+	if f.Sort.Get("{{ $sortColumn }}") == nil {
 		f.Sort = append(f.Sort, &filter.SortExpr{
-			Column:     "id",
+			Column:     "{{ $sortColumn }}",
 			Descending: f.Sort.LastDescending(),
 		})
 	}
-
 
 	// Cloned sorting instructions for the actual sorting
 	// Original are passed to the etchFullPageOf{{ .expIdentPlural }} fn used for cursor creation;

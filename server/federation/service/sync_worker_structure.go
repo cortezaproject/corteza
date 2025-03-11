@@ -177,11 +177,19 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 			}
 
 			processed, errProcess := w.syncService.ProcessPayload(ctx, body, urls, u, meta)
-			countProcess += processed.(structureProcesserResponse).Processed
+
+			var processedModID uint64
+			switch v := processed.(type) {
+			case structureProcesserResponse:
+				processedModID = v.ModuleID
+				countProcess += v.Processed
+			case int:
+				countProcess += v
+			}
 
 			// error raised before the actual persist process
 			// ignore
-			if moduleID := processed.(structureProcesserResponse).ModuleID; moduleID == 0 {
+			if moduleID := processedModID; moduleID == 0 {
 				w.logger.Info("no structure change from last change, skipping",
 					logger.Uint64("nodeID", meta.Node.ID),
 					zap.String("host", meta.Node.BaseURL))
@@ -196,7 +204,7 @@ func (w *syncWorkerStructure) Watch(ctx context.Context, delay time.Duration, li
 
 			new := &types.NodeSync{
 				NodeID:       meta.Node.ID,
-				ModuleID:     processed.(structureProcesserResponse).ModuleID,
+				ModuleID:     processedModID,
 				SyncStatus:   syncStatus,
 				SyncType:     types.NodeSyncTypeStructure,
 				TimeOfAction: time.Now().UTC(),

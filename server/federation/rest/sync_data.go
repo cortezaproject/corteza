@@ -215,9 +215,10 @@ func (ctrl SyncData) readExposed(ctx context.Context, r *request.SyncDataReadExp
 	}
 
 	f := ct.RecordFilter{
-		ModuleID: em.ComposeModuleID,
-		Query:    query,
-		Deleted:  filter.StateInclusive,
+		NamespaceID: em.ComposeNamespaceID,
+		ModuleID:    em.ComposeModuleID,
+		Query:       query,
+		Deleted:     filter.StateInclusive,
 	}
 
 	if f.Paging, err = filter.NewPaging(r.Limit, r.PageCursor); err != nil {

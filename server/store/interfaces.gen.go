@@ -463,7 +463,6 @@ type (
 		UpsertFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) error
 		DeleteFederationNodeSync(ctx context.Context, rr ...*federationType.NodeSync) error
 
-		DeleteFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) error
 		TruncateFederationNodeSyncs(ctx context.Context) error
 		LookupFederationNodeSyncByNodeID(ctx context.Context, nodeID uint64) (*federationType.NodeSync, error)
 		LookupFederationNodeSyncByNodeIDModuleIDSyncTypeSyncStatus(ctx context.Context, nodeID uint64, moduleID uint64, syncType string, syncStatus string) (*federationType.NodeSync, error)
@@ -2524,13 +2523,6 @@ func UpsertFederationNodeSync(ctx context.Context, s FederationNodeSyncs, rr ...
 // This function is auto-generated
 func DeleteFederationNodeSync(ctx context.Context, s FederationNodeSyncs, rr ...*federationType.NodeSync) error {
 	return s.DeleteFederationNodeSync(ctx, rr...)
-}
-
-// DeleteFederationNodeSyncByID deletes one or more FederationNodeSyncs from store
-//
-// This function is auto-generated
-func DeleteFederationNodeSyncByNodeID(ctx context.Context, s FederationNodeSyncs, nodeID uint64) error {
-	return s.DeleteFederationNodeSyncByNodeID(ctx, nodeID)
 }
 
 // TruncateFederationNodeSyncs Deletes all FederationNodeSyncs from store

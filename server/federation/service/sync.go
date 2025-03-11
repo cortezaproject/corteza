@@ -166,7 +166,7 @@ func (s *Sync) PrepareModuleMappings(ctx context.Context, mappings *types.Module
 	return s.mapper.Prepare((*mappings).FieldMapping), nil
 }
 
-func (s *Sync) GetLastStructureSyncStatus(ctx context.Context, nodeID, externalFederationModuleID uint64) (syncStatus string, err error) {
+func (s *Sync) GetLastStructureSyncStatus(ctx context.Context, nodeID, externalFederationModuleID uint64) (sync types.NodeSync, err error) {
 	var list types.NodeSyncSet
 
 	list, _, err = DefaultNodeSync.Search(ctx, types.NodeSyncFilter{
@@ -175,25 +175,21 @@ func (s *Sync) GetLastStructureSyncStatus(ctx context.Context, nodeID, externalF
 		SyncType: types.NodeSyncTypeStructure,
 		Sorting: filter.Sorting{
 			Sort: filter.SortExprSet{
-				&filter.SortExpr{Column: "time_action", Descending: true},
+				&filter.SortExpr{Column: "time_of_action", Descending: true},
 			},
 		},
 		Paging: filter.Paging{Limit: 1},
 	})
 
 	if err != nil {
-		syncStatus = types.NodeSyncStatusSuccess
 		return
 	}
 
 	if len(list) == 0 {
-		syncStatus = types.NodeSyncStatusSuccess
 		return
 	}
 
-	syncStatus = list[0].SyncStatus
-
-	return
+	return *list[0], nil
 }
 
 func (s *Sync) GetLastSyncTime(ctx context.Context, nodeID uint64, syncType string) (*time.Time, error) {

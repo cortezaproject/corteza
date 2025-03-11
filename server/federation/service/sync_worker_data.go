@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/federation/types"
@@ -89,15 +89,16 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 				zap.Int("pagesize", w.limit),
 			}
 
+			// TODO: rename lastSyncStatus to lastSybc prolly!!!!
+
 			// if the last sync was error'd, log and skip
 			lastSyncStatus, err := w.syncService.GetLastStructureSyncStatus(ctx, n.ID, sm.ExternalFederationModuleID)
-
 			if err != nil {
 				w.logger.Info("could not get last sync status, skipping", z...)
 				continue
 			}
 
-			if lastSyncStatus == types.NodeSyncStatusError {
+			if lastSyncStatus.SyncStatus == types.NodeSyncStatusError {
 				w.logger.Info("last structure sync was not complete, admin resolve needed, skipping", z...)
 				continue
 			}
@@ -118,6 +119,8 @@ func (w *syncWorkerData) PrepareForNodes(ctx context.Context, urls chan Url) {
 
 			// get the last sync per-node
 			lastSync, _ := w.syncService.GetLastSyncTime(ctx, n.ID, types.NodeSyncTypeData)
+			// todo this is where we get the last sync value. prolly the issue could be on the fetch!
+
 			basePath := fmt.Sprintf("/nodes/%d/modules/%d/records/", n.SharedNodeID, sm.ExternalFederationModuleID)
 
 			if lastSync != nil {
@@ -194,6 +197,8 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			// use the authToken from node pairing
 			ctx = context.WithValue(ctx, FederationUserToken, meta.Node.AuthToken)
 
+			// TODO: Implement logic to handle last sync time before sending request
+
 			responseBody, err := w.syncService.FetchUrl(ctx, s)
 
 			if err != nil {
@@ -214,7 +219,7 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 			payloads <- spayload
 		case p := <-payloads:
 			meta := p.Meta.(*dataProcesser)
-			body, err := ioutil.ReadAll(p.Payload)
+			body, err := io.ReadAll(p.Payload)
 
 			// handle error
 			if err != nil {
@@ -234,8 +239,14 @@ func (w *syncWorkerData) Watch(ctx context.Context, delay time.Duration, limit i
 				Limit:   w.limit,
 			}
 
+			// the base path is okay
 			processed, errProcess := w.syncService.ProcessPayload(ctx, body, urls, u, meta)
-			countProcess += processed.(dataProcesserResponse).Processed
+
+			if response, ok := processed.(dataProcesserResponse); ok {
+				countProcess += response.Processed
+			} else {
+				w.logger.Error("unexpected response type", zap.Any("response", processed))
+			}
 
 			// error raised before the actual persist process
 			// ignore
