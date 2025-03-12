@@ -16,11 +16,11 @@ env:
   BUILD_OS: linux
   BUILD_ARCH: amd64
 
-  GO_VERSION: 1.19
+  GO_VERSION: 1.24.1
   GOFLAGS: -mod=readonly
   WORKFLOW_STACK_TRACE_FULL: true
 
-  NODE_VERSION: 16
+  NODE_VERSION: 22
 
 jobs:
   lib-test:

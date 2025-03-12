@@ -14,10 +14,10 @@ env:
   BUILD_OS: linux
   BUILD_ARCH: amd64
 
-  GO_VERSION: 1.19
+  GO_VERSION: 1.24.1
   GOFLAGS: -mod=readonly
 
-  NODE_VERSION: 16
+  NODE_VERSION: 22
   CYPRESS_VERSION: 13.5.0
   CYPRESS_HOST: http://localhost:8888
   CYPRESS_BASE_URL: http://localhost:8888

@@ -14,13 +14,13 @@ env:
   BUILD_OS: linux
   BUILD_ARCH: amd64
 
-  GO_VERSION: 1.19
+  GO_VERSION: 1.24.1
   GOFLAGS: -mod=readonly
 
-  NODE_VERSION: 16
+  NODE_VERSION: 22
 
   RELEASE_BASE_URL: "https://releases.cortezaproject.org/files"
-  SASS_VERSION: 1.69.5
+  SASS_VERSION: 1.85.1
 
 jobs:
   server-test:
@@ -149,7 +149,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           registry-url: 'https://registry.npmjs.org/'
-          node-version: "${{ env.NODE_VERSION }}" 
+          node-version: "${{ env.NODE_VERSION }}"
       - uses: actions/cache@v3
         if: ${{ !env.ACT }}
         with:
