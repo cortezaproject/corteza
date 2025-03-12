@@ -1,7 +1,7 @@
 {
   "name": "@cortezaproject/corteza-vue",
   "description": "Corteza Vue.js JavaScript/TypeScript libs",
-  "version": "2024.9.1-b",
+  "version": "2024.9.2-dev.1",
   "license": "Apache-2.0",
   "author": "Denis Arh <denis.arh@crust.tech>",
   "type": "module",
@@ -23,7 +23,7 @@
     "pre-commit": "yarn lint"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js": "^2024.9.1-a",
+    "@cortezaproject/corteza-js": "^2024.9.2-dev.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/vue-fontawesome": "^2.0.10",
