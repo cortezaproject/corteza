@@ -34,6 +34,8 @@ type (
 
 		opt options.WorkflowOpt
 
+		loaded bool
+
 		log *zap.Logger
 
 		// cache of workflows, graphs to workflow ID (key, uint64)
@@ -507,7 +509,24 @@ func (svc workflow) handleUndelete(ctx context.Context, res *types.Workflow) (wo
 	return workflowChanged, nil
 }
 
+func (svc *workflow) Reload(ctx context.Context) error {
+	svc.muxWIndex.Lock()
+	svc.loaded = false
+	svc.muxWIndex.Unlock()
+
+	return svc.Load(ctx)
+}
+
 func (svc *workflow) Load(ctx context.Context) error {
+	svc.muxWIndex.Lock()
+	defer svc.muxWIndex.Unlock()
+
+	if svc.loaded {
+		return nil
+	}
+
+	svc.loaded = true
+
 	var (
 		set, _, err = store.SearchAutomationWorkflows(ctx, svc.store, types.WorkflowFilter{
 			Deleted:     filter.StateInclusive,
@@ -520,9 +539,6 @@ func (svc *workflow) Load(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-
-	svc.muxWIndex.Lock()
-	defer svc.muxWIndex.Unlock()
 
 	for _, wf := range set {
 		svc.wIndex[wf.Handle] = wf.ID

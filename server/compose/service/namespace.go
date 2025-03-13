@@ -857,7 +857,7 @@ func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (e
 	}
 
 	// Reload workflow-triggers (in case import brought in something new)
-	if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
+	if err = automationService.DefaultWorkflow.Reload(ctx); err != nil {
 		// should not be a fatal error
 		err = nil
 	}

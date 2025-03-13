@@ -128,7 +128,7 @@ func loadScenarioWithName(ctx context.Context, t *testing.T, scenario string) {
 	}
 
 	// Reload and register workflows
-	if err = service.DefaultWorkflow.Load(ctx); err != nil {
+	if err = service.DefaultWorkflow.Reload(ctx); err != nil {
 		t.Fatalf("failed to reload workflows: %v", err)
 	}
 }
