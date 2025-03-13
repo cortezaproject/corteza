@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -68,7 +69,7 @@ func NewConnection(ctx context.Context, opt options.CorredorOpt, logger *zap.Log
 
 		// Append the client certificates from the CA
 		if ok := certPool.AppendCertsFromPEM(ca); !ok {
-			return nil, fmt.Errorf("failed to append ca certs" + expl)
+			return nil, errors.New("failed to append ca certs" + expl)
 		}
 
 		crds := credentials.NewTLS(&tls.Config{

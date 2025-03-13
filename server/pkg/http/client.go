@@ -10,6 +10,8 @@ import (
 	"net/http/httputil"
 	"strings"
 	"time"
+
+	"errors"
 )
 
 type (
@@ -158,5 +160,5 @@ func ToError(resp *http.Response) error {
 	if body == nil || err != nil {
 		return fmt.Errorf("unexpected response (%d, %s)", resp.StatusCode, err)
 	}
-	return fmt.Errorf(string(body))
+	return errors.New(string(body))
 }

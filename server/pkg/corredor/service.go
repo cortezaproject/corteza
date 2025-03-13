@@ -825,6 +825,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 
 			case codes.NotFound:
 				// When requested script is not found on automation server
+				//nolint:govet
 				return errors.NotFound(msg)
 
 			case codes.Aborted:
@@ -844,6 +845,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 				// This is always a hard error
 				return errors.Automation(msg).Apply(
 					errors.Meta("script", script),
+					//nolint:govet
 					errors.AddNodeStack(trailer.Get("stack")),
 				)
 
@@ -851,6 +853,7 @@ func (svc service) exec(ctx context.Context, script string, runAs string, args S
 				// Automation server might yield INVALID_ARGUMENT status.
 				// This can be caused by JSON encoding and it is highly unlikely
 				// when arguments are prepared by the server
+				//nolint:govet
 				return errors.InvalidData(msg)
 
 			default:

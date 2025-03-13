@@ -141,7 +141,7 @@ func writeHttpJSON(ctx context.Context, w io.Writer, err error, mask bool) {
 
 	if se, is := err.(interface{ Safe() bool }); !is || !se.Safe() || mask {
 		// trim error details when not debugging or error is not safe or maske
-		err = fmt.Errorf(err.Error())
+		err = errors.New(err.Error())
 	}
 
 	// if error is translatable, pass in the lambda that returns
