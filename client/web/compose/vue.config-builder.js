@@ -122,7 +122,8 @@ module.exports = ({ appFlavour, appLabel, version = process.env.BUILD_VERSION, t
 
       proxy: {
         '^/custom.css': {
-          target: fetchBaseUrl(),
+          target: 'http://127.0.0.1:80',
+          changeOrigin: true,
         },
 
         '^/code-snippets.js': {
