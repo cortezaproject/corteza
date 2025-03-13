@@ -207,7 +207,7 @@ func loadScenarioWithName(ctx context.Context, s store.Storer, t *testing.T, h h
 }
 
 func loadWorkflows(ctx context.Context, h helper) {
-	err := as.DefaultWorkflow.Load(ctx)
+	err := as.DefaultWorkflow.Reload(ctx)
 	h.a.NoError(err)
 }
 
