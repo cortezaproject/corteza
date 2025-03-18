@@ -19,7 +19,7 @@ type (
 	// Modules - CRM module definitions
 	ModuleField struct {
 		ID          uint64 `json:"fieldID,string"`
-        NamespaceID uint64 `json:"namespaceID,string"`
+		NamespaceID uint64 `json:"namespaceID,string"`
 		ModuleID    uint64 `json:"moduleID,string"`
 		Place       int    `json:"-"`
 
@@ -439,6 +439,9 @@ func (f ModuleField) Clone() *ModuleField {
 
 func (f ModuleField) setOptionKey(v interface{}, kk ...string) {
 	opt := f.Options
+	if opt == nil {
+		opt = ModuleFieldOptions{}
+	}
 
 	for _, k := range kk[0 : len(kk)-1] {
 		_, ok := opt[k]
