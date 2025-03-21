@@ -302,17 +302,13 @@ export default {
     handleBulkUpdateSelectedRecords: throttle(function (query) {
       this.processing = true
 
-      const values = []
-      this.fields.forEach(f => {
-        const { name, isMulti, isSystem } = this.getField(f)
-        const value = isSystem ? this.record[name] : this.record.values[name]
+      const values = this.record.serializeValues().filter(val => this.fields.includes(val.name))
 
-        if (!isMulti) {
-          values.push({ name, value: value ? value.toString() : value })
-        } else {
-          value.forEach(v => {
-            values.push({ name, value: v ? v.toString() : v })
-          })
+      // handle system fields separately because they're stored directly on the Record
+      this.fields.forEach(f => {
+        const { name, isSystem } = this.getField(f)
+        if (isSystem && this.record[name] !== undefined) {
+          values.push({ name, value: this.record[name].toString() })
         }
       })
 
