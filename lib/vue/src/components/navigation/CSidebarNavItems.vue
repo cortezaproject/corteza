@@ -168,7 +168,7 @@ export default {
   }
 
   .title {
-    font-family: var(--font-regular) !important;
+    font-family: "codenext-extrabold", "Bai Jamjuree", sans-serif !important;
     color: var(--black);
   }
 }
@@ -179,7 +179,7 @@ export default {
   }
 
   .title {
-    font-family: var(--font-semibold) !important;
+    font-family: "codenext-extrabold", "Bai Jamjuree", sans-serif !important;
     color: var(--primary);
     transition: color 0.25s;
   }
@@ -191,7 +191,7 @@ export default {
   }
 
   .title {
-    font-family: var(--font-semibold) !important;
+    font-family: "codenext-extrabold", "Bai Jamjuree", sans-serif !important;
     color: var(--primary);
     transition: color 0.5s
   }

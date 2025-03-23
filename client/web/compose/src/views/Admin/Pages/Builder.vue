@@ -306,7 +306,7 @@
           v-b-modal.createBlockSelector
           data-test-id="button-add-block"
           variant="light"
-          size="lg"
+          size="sm"
         >
           + {{ $t('build.addBlock') }}
         </b-button>
@@ -317,7 +317,7 @@
             data-test-id="dropdown-saveAsCopy"
             :text="$t('general:label.saveAsCopy')"
             :disabled="processing"
-            size="lg"
+            size="sm"
             variant="light"
           >
             <b-dropdown-item-button

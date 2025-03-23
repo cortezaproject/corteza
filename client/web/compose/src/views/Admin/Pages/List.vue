@@ -51,7 +51,7 @@
             <b-dropdown
               v-if="namespace.canGrant"
               data-test-id="dropdown-permissions"
-              size="lg"
+              size="sm"
               variant="light"
               class="d-flex align-items-center flex-sm-grow-0 flex-sm-shrink-0 flex-fill permissions-dropdown"
             >

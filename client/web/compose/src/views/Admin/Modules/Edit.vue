@@ -62,7 +62,7 @@
                   v-if="federationEnabled"
                   data-test-id="button-federation-settings"
                   variant="light"
-                  size="lg"
+                  size="sm"
                   class="mr-1"
                   @click="federationSettings.modal = true"
                 >
@@ -77,7 +77,7 @@
                   v-if="discoveryEnabled"
                   data-test-id="button-discovery-settings"
                   variant="light"
-                  size="lg"
+                  size="sm"
                   class="mr-1"
                   @click="discoverySettings.modal = true"
                 >
@@ -97,7 +97,7 @@
                 <b-dropdown
                   v-if="module.canGrant"
                   data-test-id="dropdown-permissions"
-                  size="lg"
+                  size="sm"
                   variant="light"
                   class="permissions-dropdown mr-1"
                 >
@@ -144,7 +144,7 @@
                 <related-pages
                   :namespace="namespace"
                   :module="module"
-                  size="lg"
+                  size="sm"
                   class="d-flex ml-auto"
                 />
               </b-row>
@@ -451,7 +451,7 @@
         :ok-title="$t('general.label.saveAndClose')"
         ok-only
         ok-variant="primary"
-        size="lg"
+        size="sm"
         :visible="!!updateField"
         body-class="p-0 border-top-0"
         header-class="p-3 pb-0 border-bottom-0"

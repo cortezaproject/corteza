@@ -47,7 +47,7 @@
 				autocomplete="current-password"
 				aria-label="{{ tr "login.template.form.password.label" }}">
 		</div>
-		<div class="row">
+		<div class="row pt-2">
 			<div class="col text-right">
 				{{ if .enableRememberMe }}
 				<button

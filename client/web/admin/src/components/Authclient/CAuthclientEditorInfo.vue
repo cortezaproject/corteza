@@ -480,7 +480,7 @@
           :data-test-id="isDeleted ? 'button-undelete': 'button-delete'"
           :disabled="processing"
           variant="danger"
-          size="md"
+          size="sm"
           @confirmed="$emit(isDeleted ? 'undelete' : 'delete', resource.authClientID)"
         >
           {{ isDeleted ? $t('undelete') : $t('delete') }}

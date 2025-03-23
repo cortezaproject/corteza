@@ -3,7 +3,7 @@
   "version": "2024.9.1-a",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
+    "serve": "export NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve",
     "dev-env": "vue-cli-service serve src/dev-env.js",
     "build": "vue-cli-service build --mode production",
     "lint": "vue-cli-service lint --no-fix && stylelint '**/*.{vue,scss}' --fix",

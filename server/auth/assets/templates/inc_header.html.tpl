@@ -25,6 +25,10 @@
 			{{ .authBg }}
 			background-size: cover;
 			background-attachment: fixed;
+			backdrop-filter: blur(3px) brightness(0.6);
+		}
+		.auth {
+    		max-width: 460px;
 		}
 	</style>
 </head>

@@ -25,7 +25,7 @@
     <template #end>
       <c-input-confirm
         v-if="!hideDelete"
-        size="lg"
+        size="sm"
         size-confirm="lg"
         variant="danger"
         :disabled="deleteDisabled || processingDelete || processing"
@@ -42,7 +42,7 @@
         variant="light"
         :text="$t('general:label.clone')"
         class="text-nowrap"
-        size="lg"
+        size="sm"
         @submit="$emit('clone')"
       />
 
@@ -51,7 +51,7 @@
         :disabled="saveDisabled || processingSave || processing"
         :processing="processingSave"
         :text="$t('general:label.save')"
-        size="lg"
+        size="sm"
         @submit="$emit('save')"
       />
     </template>

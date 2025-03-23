@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex">
     <b-button
-      size="lg"
+      size="sm"
       variant="light"
       class="flex-fill"
       @click="toggleModal"
@@ -11,7 +11,7 @@
 
     <b-modal
       :visible="showExportModal"
-      size="lg"
+      size="sm"
       :title="$t('general:label.export')"
       no-fade
       scrollable

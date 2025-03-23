@@ -65,7 +65,7 @@
           <b-dropdown
             v-if="page.canGrant || namespace.canGrant"
             data-test-id="dropdown-permissions"
-            size="lg"
+            size="sm"
             variant="light"
             class="permissions-dropdown mr-1"
           >
@@ -381,7 +381,7 @@
       ok-variant="primary"
       :ok-disabled="!layoutEditor.layout.meta.title"
       cancel-variant="light"
-      size="xl"
+      size="sm"
       scrollable
       no-fade
       @ok="updateLayout()"
@@ -747,7 +747,7 @@
     <b-modal
       v-model="showIconModal"
       :title="$t('icon.configure')"
-      size="lg"
+      size="sm"
       label-class="text-primary"
       footer-class="d-flex align-items-center"
       no-fade
@@ -756,7 +756,7 @@
         <c-input-confirm
           v-if="attachments && selectedAttachmentID"
           :disabled="(attachments && !selectedAttachmentID) || processingIcon"
-          size="md"
+          size="sm"
           variant="danger"
           @confirmed="deleteIcon"
         >
@@ -888,7 +888,7 @@
           <b-dropdown
             v-if="showDeleteDropdown"
             data-test-id="dropdown-delete"
-            size="lg"
+            size="sm"
             variant="danger"
             :text="$t('general:label.delete')"
           >

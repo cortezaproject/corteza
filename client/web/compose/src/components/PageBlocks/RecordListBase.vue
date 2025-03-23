@@ -35,7 +35,7 @@
                   v-if="!options.hideAddButton"
                   data-test-id="button-add-record"
                   variant="primary"
-                  size="lg"
+                  size="sm"
                   @click="addInlineRecord()"
                 >
                   + {{ $t('recordList.addRecord') }}
@@ -47,7 +47,7 @@
                   v-if="!options.hideAddButton"
                   data-test-id="button-add-record"
                   variant="primary"
-                  size="lg"
+                  size="sm"
                   @click="handleAddRecord()"
                 >
                   + {{ $t('recordList.addRecord') }}
@@ -77,7 +77,7 @@
               v-if="filterPresets.length"
               ref="filterPresets"
               variant="light"
-              size="lg"
+              size="sm"
               menu-class="shadow-sm"
               boundary="viewport"
               :text="$t('recordList.filter.filters.label')"
@@ -567,7 +567,7 @@
                       borderless
                       variant="link"
                       variant-ok="warning"
-                      size="md"
+                      size="sm"
                       button-class="dropdown-item"
                       icon-class="text-warning"
                       class="w-100"
@@ -665,7 +665,7 @@
                       borderless
                       variant="link"
                       variant-ok="warning"
-                      size="md"
+                      size="sm"
                       button-class="dropdown-item"
                       icon-class="text-warning"
                       class="w-100"

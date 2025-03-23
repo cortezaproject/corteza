@@ -32,8 +32,8 @@
         :disabled="disableDelete || processing"
         :processing="processingDelete"
         :text="$t('label.delete')"
-        size="lg"
-        size-confirm="lg"
+        size="sm"
+        size-confirm="sm"
         variant="danger"
         :title="deleteTooltip"
         :borderless="false"
@@ -50,7 +50,7 @@
         :processing="processingClone"
         variant="light"
         :text="$t('label.saveAsCopy')"
-        size="lg"
+        size="sm"
         class="text-nowrap"
         @submit="$emit('clone')"
       />
@@ -62,7 +62,7 @@
         :processing="processingSaveAndClose"
         variant="light"
         :text="$t('label.saveAndClose')"
-        size="lg"
+        size="sm"
         class="text-nowrap"
         @submit="$emit('saveAndClose')"
       />
@@ -73,7 +73,7 @@
         :disabled="disableSave || processing"
         :processing="processingSave"
         :text="$t('label.save')"
-        size="lg"
+        size="sm"
         @submit="$emit('save')"
       />
     </template>

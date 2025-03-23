@@ -27,4 +27,10 @@
 .fill-width > * {
   flex: 1;
 }
+
+.c-toolbar {
+    border: 1px solid #EFEEE9 !important;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
 </style>

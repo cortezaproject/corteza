@@ -27,7 +27,7 @@
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('recordNavigation.prev'), container: '#body' }"
           pill
-          size="lg"
+          size="sm"
           variant="outline-primary"
           :disabled="!isCreated || !record || processing || !recordNavigation.prev"
           @click="navigateToRecord(recordNavigation.prev)"
@@ -37,7 +37,7 @@
 
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('recordNavigation.next'), container: '#body' }"
-          size="lg"
+          size="sm"
           pill
           variant="outline-primary"
           :disabled="!isCreated || !record || processing || !recordNavigation.next"
@@ -61,7 +61,7 @@
         :disabled="!record || processing"
         :processing="processingDelete"
         :text="labels.delete || $t('label.delete')"
-        size="lg"
+        size="sm"
         size-confirm="lg"
         variant="danger"
         @confirmed="$emit('delete')"
@@ -72,7 +72,7 @@
         :disabled="!record || processing"
         :processing="processingUndelete"
         :text="$t('label.restore')"
-        size="lg"
+        size="sm"
         size-confirm="lg"
         variant="warning"
         variant-ok="warning"
@@ -83,7 +83,7 @@
         v-if="isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
         data-test-id="button-clone"
         variant="light"
-        size="lg"
+        size="sm"
         :disabled="!record || processing"
         class="text-nowrap"
         @click.prevent="$emit('clone')"
@@ -96,7 +96,7 @@
         data-test-id="button-edit"
         :disabled="!record || processing"
         variant="light"
-        size="lg"
+        size="sm"
         @click.prevent="$emit('edit')"
       >
         {{ labels.edit || $t('label.edit') }}
@@ -107,7 +107,7 @@
         data-test-id="button-view"
         :disabled="!record || processing"
         variant="light"
-        size="lg"
+        size="sm"
         @click.prevent="$emit('view')"
       >
         {{ labels.edit || $t('label.view') }}
@@ -117,7 +117,7 @@
         v-if="!inEditing && module.canCreateRecord && !(hideNew || settings.hideNew)"
         data-test-id="button-add-new"
         variant="primary"
-        size="lg"
+        size="sm"
         :disabled="!record || processing"
         class="text-nowrap"
         @click.prevent="$emit('add')"
@@ -131,7 +131,7 @@
         :disabled="!record || processingSubmit || processing"
         :processing="processingSubmit"
         :text="labels.submit || $t('label.save')"
-        size="lg"
+        size="sm"
         @submit="$emit('submit')"
       />
     </template>

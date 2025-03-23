@@ -158,7 +158,7 @@
               <c-input-confirm
                 v-else
                 show-icon
-                size="md"
+                size="sm"
                 button-class="px-2"
                 :processing="item.processingDelete"
                 class="ml-2"

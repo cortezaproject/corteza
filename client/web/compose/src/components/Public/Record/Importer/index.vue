@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex">
     <b-button
-      size="lg"
+      size="sm"
       variant="light"
       class="flex-fill"
       @click="showModal=true"
@@ -11,7 +11,7 @@
 
     <b-modal
       :visible="showModal"
-      size="lg"
+      size="sm"
       :title="$t('recordList.import.to', { modulename: module.name })"
       hide-footer
       ok-variant="primary"
