@@ -166,7 +166,7 @@ func NewSession(ctx context.Context, g *Graph, oo ...SessionOpt) *Session {
 		id:       nextID(),
 		started:  *now(),
 		qState:   make(chan *State, sessionStateChanBuf),
-		qErr:     make(chan error, 1),
+		qErr:     make(chan error, 256),
 		execLock: make(chan struct{}, sessionConcurrentExec),
 		delayed:  make(map[uint64]*delayed),
 		prompted: make(map[uint64]*prompted),
