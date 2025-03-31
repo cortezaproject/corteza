@@ -62,6 +62,10 @@ func (svc reminder) Find(ctx context.Context, filter types.ReminderFilter) (rr t
 		raProps = &reminderActionProps{filter: &filter}
 	)
 
+	filter.Check = func(r *types.Reminder) (bool, error) {
+		return !svc.checkAssignTo(ctx, r), nil
+	}
+
 	err = func() (err error) {
 		rr, f, err = store.SearchReminders(ctx, svc.store, filter)
 		if err != nil {
