@@ -81,8 +81,8 @@ func TestComposeRecord_MarshalEnvoy(t *testing.T) {
 			req.NotNil(rec)
 
 			rec.Walker(func(r *resource.ComposeRecordRaw) error {
-				req.Equal(fmt.Sprintf("mod%d f1 v1", ri+1), r.Values["f1"])
-				req.Equal(fmt.Sprintf("mod%d f2 v1", ri+1), r.Values["f2"])
+				req.Equal(fmt.Sprintf("mod%d f1 v1", ri+1), r.Values["f1"].Value)
+				req.Equal(fmt.Sprintf("mod%d f2 v1", ri+1), r.Values["f2"].Value)
 				return nil
 			})
 		}

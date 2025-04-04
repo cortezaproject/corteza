@@ -18,9 +18,10 @@ type (
 		DeletedAt string
 		DeletedBy string
 	}
+
 	ComposeRecordRaw struct {
 		ID     string
-		Values map[string]string
+		Values map[string]ComposeRecordRawValue
 
 		Ts *Timestamps
 		Us *Userstamps
@@ -28,6 +29,14 @@ type (
 		Config *EnvoyConfig
 	}
 	ComposeRecordRawSet []*ComposeRecordRaw
+
+	ComposeRecordRawValue struct {
+		Name    string
+		IsMulti bool
+
+		Value  string
+		Values []string
+	}
 
 	CrsWalker func(f func(r *ComposeRecordRaw) error) error
 

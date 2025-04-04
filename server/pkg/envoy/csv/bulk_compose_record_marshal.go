@@ -56,6 +56,17 @@ func (n *bulkComposeRecordEncoder) Encode(ctx context.Context, w io.Writer, stat
 	hh := make([]string, 0, 100)
 	hh = append(hh, "id")
 
+	pickLast := func(v resource.ComposeRecordRawValue) string {
+		if v.IsMulti {
+			if len(v.Values) > 0 {
+				return v.Values[len(v.Values)-1]
+			}
+			return ""
+		}
+
+		return v.Value
+	}
+
 	fx := make(map[string]int)
 	// 1 sys fields
 	sysFields := []string{"ownedBy", "createdAt", "createdBy", "updatedAt", "updatedBy", "deletedAt", "deletedBy"}
@@ -132,12 +143,12 @@ func (n *bulkComposeRecordEncoder) Encode(ctx context.Context, w io.Writer, stat
 			}
 
 			if f.Kind == "User" {
-				row[cell], err = n.res.UserFlakes.GetByKey(v).Model()
+				row[cell], err = n.res.UserFlakes.GetByKey(pickLast(v)).Model()
 				if err != nil {
 					return err
 				}
 			} else {
-				row[cell] = v
+				row[cell] = pickLast(v)
 			}
 		}
 		return enc.Write(row)

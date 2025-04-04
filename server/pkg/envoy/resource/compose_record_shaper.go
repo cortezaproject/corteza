@@ -58,9 +58,19 @@ func (crt *composeRecordShaper) toResource(def *ComposeRecordTemplate, dt *Resou
 			}
 
 			// Get the bits in order
+			vv := crt.mapValues(mr, def.FieldMap, def.Defaultable)
+			auxVals := make(map[string]ComposeRecordRawValue)
+
+			for k, v := range vv {
+				auxVals[k] = ComposeRecordRawValue{
+					Name:  k,
+					Value: v,
+				}
+			}
+
 			rRaw := &ComposeRecordRaw{
 				ID:     crt.getKey(mr, def.Key),
-				Values: crt.mapValues(mr, def.FieldMap, def.Defaultable),
+				Values: auxVals,
 			}
 
 			crt.getTimestamps(rRaw)
@@ -122,17 +132,17 @@ func (crt *composeRecordShaper) getTimestamps(r *ComposeRecordRaw) {
 		switch strings.ToLower(k) {
 		case "createdat",
 			"created_at":
-			ts.CreatedAt = MakeTimestamp(v)
+			ts.CreatedAt = MakeTimestamp(v.Value)
 			delete(r.Values, k)
 
 		case "updatedat",
 			"updated_at":
-			ts.UpdatedAt = MakeTimestamp(v)
+			ts.UpdatedAt = MakeTimestamp(v.Value)
 			delete(r.Values, k)
 
 		case "deletedat",
 			"deleted_at":
-			ts.DeletedAt = MakeTimestamp(v)
+			ts.DeletedAt = MakeTimestamp(v.Value)
 			delete(r.Values, k)
 		}
 	}
@@ -148,21 +158,21 @@ func (crt *composeRecordShaper) getUserstamps(r *ComposeRecordRaw) {
 		case "createdby",
 			"creatorid",
 			"creator":
-			us.CreatedBy = MakeUserstampFromRef(v)
+			us.CreatedBy = MakeUserstampFromRef(v.Value)
 			delete(r.Values, k)
 
 		case "updatedby":
-			us.UpdatedBy = MakeUserstampFromRef(v)
+			us.UpdatedBy = MakeUserstampFromRef(v.Value)
 			delete(r.Values, k)
 
 		case "deletedby":
-			us.DeletedBy = MakeUserstampFromRef(v)
+			us.DeletedBy = MakeUserstampFromRef(v.Value)
 			delete(r.Values, k)
 
 		case "ownedby",
 			"ownerid",
 			"owner":
-			us.OwnedBy = MakeUserstampFromRef(v)
+			us.OwnedBy = MakeUserstampFromRef(v.Value)
 			delete(r.Values, k)
 
 		}
@@ -171,10 +181,13 @@ func (crt *composeRecordShaper) getUserstamps(r *ComposeRecordRaw) {
 	r.Us = us
 }
 
-func (crt *composeRecordShaper) cloneValues(r *ComposeRecordRaw) map[string]string {
-	rr := make(map[string]string)
+func (crt *composeRecordShaper) cloneValues(r *ComposeRecordRaw) map[string]ComposeRecordRawValue {
+	rr := make(map[string]ComposeRecordRawValue)
 	for k, v := range r.Values {
-		rr[k] = v
+		rr[k] = ComposeRecordRawValue{
+			Name:  v.Name,
+			Value: v.Value,
+		}
 	}
 	return rr
 }

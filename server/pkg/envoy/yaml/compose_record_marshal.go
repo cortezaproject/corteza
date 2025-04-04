@@ -55,6 +55,17 @@ func (n *composeRecordEncoder) Prepare(ctx context.Context, state *envoy.Resourc
 }
 
 func (n *composeRecordEncoder) Encode(ctx context.Context, doc *Document, state *envoy.ResourceState) (err error) {
+	pickLast := func(v resource.ComposeRecordRawValue) string {
+		if v.IsMulti {
+			if len(v.Values) > 0 {
+				return v.Values[len(v.Values)-1]
+			}
+
+			return ""
+		}
+		return v.Value
+	}
+
 	return n.res.Walker(func(r *resource.ComposeRecordRaw) (err error) {
 		n.res.IDMap[r.ID], err = strconv.ParseUint(r.ID, 10, 64)
 		if err != nil {
@@ -79,6 +90,8 @@ func (n *composeRecordEncoder) Encode(ctx context.Context, doc *Document, state 
 		}
 
 		vv := r.Values
+		cr.values = make(map[string]string)
+
 		for k, v := range vv {
 			f := n.res.RelMod.Fields.FindByName(k)
 			if f == nil {
@@ -87,14 +100,15 @@ func (n *composeRecordEncoder) Encode(ctx context.Context, doc *Document, state 
 
 			// Resolve user references
 			if f.Kind == "User" {
-				r.Values[k], err = n.res.UserFlakes.GetByKey(v).Model()
+				cr.values[k], err = n.res.UserFlakes.GetByKey(pickLast(v)).Model()
 				if err != nil {
 					return err
 				}
+			} else {
+				cr.values[k] = pickLast(v)
 			}
 		}
 
-		cr.values = vv
 		doc.addComposeRecord(cr)
 		return nil
 	})

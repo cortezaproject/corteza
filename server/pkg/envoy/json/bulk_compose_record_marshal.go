@@ -45,6 +45,27 @@ func (n *bulkComposeRecordEncoder) Encode(ctx context.Context, w io.Writer, stat
 	enc := json.NewEncoder(w)
 	all := len(n.encoderConfig.Fields) == 0
 
+	getMapValue := func(v resource.ComposeRecordRawValue, proc func(k any) *resource.Userstamp) any {
+		if v.IsMulti {
+			if proc == nil {
+				return v.Values
+			}
+
+			out := make([]interface{}, 0, len(v.Values))
+			for _, vv := range v.Values {
+				out = append(out, proc(vv))
+			}
+
+			return out
+		}
+
+		if proc == nil {
+			return v.Value
+		}
+
+		return proc(v.Value)
+	}
+
 	err = n.res.Walker(func(r *resource.ComposeRecordRaw) error {
 		m, err := makeMap(
 			"id", r.ID,
@@ -92,11 +113,11 @@ func (n *bulkComposeRecordEncoder) Encode(ctx context.Context, w io.Writer, stat
 			}
 			if f.Kind == "User" {
 				m, err = addMap(m,
-					k, n.res.UserFlakes.GetByKey(v),
+					k, getMapValue(v, n.res.UserFlakes.GetByKey),
 				)
 			} else {
 				m, err = addMap(m,
-					k, v,
+					k, getMapValue(v, nil),
 				)
 			}
 			if err != nil {

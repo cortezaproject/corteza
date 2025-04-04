@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/store"
 	stypes "github.com/cortezaproject/corteza/server/system/types"
+	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -225,13 +226,34 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 	}
 	relUsers.Add(uu...)
 
-	mapValues := func(r *types.Record) map[string]string {
-		rr := make(map[string]string)
+	mapValues := func(r *types.Record) map[string]resource.ComposeRecordRawValue {
+		mod := r.GetModule()
+
+		spew.Dump("hasMod", mod != nil)
+		out := make(map[string]resource.ComposeRecordRawValue, len(r.Values))
+
 		for _, v := range r.Values {
-			rr[v.Name] = v.Value
+			f := mod.Fields.FindByName(v.Name)
+			if f == nil || !f.Multi {
+				out[v.Name] = resource.ComposeRecordRawValue{
+					Name:  v.Name,
+					Value: v.Value,
+				}
+			} else {
+				if _, ok := out[v.Name]; !ok {
+					out[v.Name] = resource.ComposeRecordRawValue{
+						Name:    v.Name,
+						IsMulti: true,
+					}
+				}
+
+				vx := out[v.Name]
+				vx.Values = append(vx.Values, v.Value)
+				out[v.Name] = vx
+			}
 		}
 
-		return rr
+		return out
 	}
 
 	// Prepare a series of resource.ComposeRecord instances; one for each provided filter

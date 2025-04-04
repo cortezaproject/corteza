@@ -123,10 +123,18 @@ func (wset composeRecordSet) MarshalEnvoy() ([]resource.Interface, error) {
 			rww = append(rww, rrx[ix])
 		}
 
+		auxValues := make(map[string]resource.ComposeRecordRawValue)
+		for k, v := range res.values {
+			auxValues[k] = resource.ComposeRecordRawValue{
+				Name:  k,
+				Value: v,
+			}
+		}
+
 		r := &resource.ComposeRecordRaw{
 			ID:     res.getID(),
 			Config: res.config,
-			Values: res.values,
+			Values: auxValues,
 			Ts:     res.ts,
 			Us:     res.us,
 		}
