@@ -1,6 +1,7 @@
 package rbac
 
 import (
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/slice"
 )
 
@@ -162,6 +163,15 @@ func (set RuleSet) sigRoles(res string, op string) (aRR, dRR []uint64) {
 		if chk {
 			dRR = append(dRR, r)
 		}
+	}
+
+	// add bypass roles
+	for _, r := range auth.BypassRoles() {
+		if r == nil {
+			continue
+		}
+
+		aRR = append(aRR, r.ID)
 	}
 
 	return

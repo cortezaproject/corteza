@@ -282,7 +282,7 @@ func DefaultFilters() (f *extendedFilters) {
 		// query = query.OrderBy("id DESC")
 
 		if f.FromTimestamp != nil {
-			ee = append(ee, goqu.C("ts").Gte(f.ToTimestamp))
+			ee = append(ee, goqu.C("ts").Gte(f.FromTimestamp))
 		}
 
 		if f.ToTimestamp != nil {

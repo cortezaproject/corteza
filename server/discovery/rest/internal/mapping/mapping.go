@@ -39,7 +39,6 @@ func change() *property {
 
 func security() *property {
 	return &property{
-		Type: "nested",
 		Properties: map[string]*property{
 			"allowedRoles": {Type: "long"},
 			"deniedRoles":  {Type: "long"},

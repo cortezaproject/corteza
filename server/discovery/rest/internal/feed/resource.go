@@ -2,12 +2,13 @@ package feed
 
 import (
 	"context"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/options"
-	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 )
@@ -55,6 +56,13 @@ func (a resourceActivity) ResourceActivities(ctx context.Context, limit uint, cu
 		if from.After(*to) {
 			return errors.Internal("invalid from timestamp, it must be before to timestamp")
 		}
+
+		// Ensure both 'from' and 'to' are in UTC
+		utcFrom := from.UTC()
+		utcTo := to.UTC()
+
+		from = &utcFrom
+		to = &utcTo
 
 		f.FromTimestamp = from
 		f.ToTimestamp = to

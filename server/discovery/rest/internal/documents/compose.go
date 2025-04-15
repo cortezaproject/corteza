@@ -3,6 +3,7 @@ package documents
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
@@ -168,7 +169,12 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 				},
 			}
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(ns, "read")
+			allowedRoles, deniedRoles := d.rbac.SignificantRoles(ns, "read")
+
+			doc.Security = append(doc.Security, docSecurity{
+				AllowedRoles: stringifyUints64(allowedRoles),
+				DeniedRoles:  stringifyUints64(deniedRoles),
+			})
 
 			rsp.Documents[i].Source = doc
 		}
@@ -255,7 +261,12 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 				},
 			}
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(mod, "read")
+			allowedRoles, deniedRoles := d.rbac.SignificantRoles(mod, "read")
+
+			doc.Security = append(doc.Security, docSecurity{
+				AllowedRoles: stringifyUints64(allowedRoles),
+				DeniedRoles:  stringifyUints64(deniedRoles),
+			})
 
 			rsp.Documents[i].Source = doc
 		}
@@ -378,7 +389,12 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 			// Values and value labels
 			doc.Values, doc.ValueLabels = d.recordValues(ctx, rec, mod.Fields)
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(rec, "read")
+			allowedRoles, deniedRoles := d.rbac.SignificantRoles(rec, "read")
+
+			doc.Security = append(doc.Security, docSecurity{
+				AllowedRoles: stringifyUints64(allowedRoles),
+				DeniedRoles:  stringifyUints64(deniedRoles),
+			})
 
 			rsp.Documents[i].Source = doc
 		}
@@ -483,4 +499,12 @@ func (d composeResources) getUserInfo(ctx context.Context, ID uint64, users map[
 		}
 		return u, users, err
 	}
+}
+
+func stringifyUints64(uints []uint64) []string {
+	strings := make([]string, len(uints))
+	for i, num := range uints {
+		strings[i] = strconv.FormatUint(num, 10)
+	}
+	return strings
 }

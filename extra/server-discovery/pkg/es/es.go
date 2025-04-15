@@ -2,8 +2,11 @@ package es
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -49,6 +52,15 @@ func (es *es) Client() (*elasticsearch.Client, error) {
 		config.Username = es.opt.Username
 		config.Password = es.opt.Password
 	}
+
+	if !es.opt.Secure {
+		config.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		}
+	}
+
 	return elasticsearch.NewClient(config)
 }
 

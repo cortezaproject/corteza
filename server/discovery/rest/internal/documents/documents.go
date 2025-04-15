@@ -47,7 +47,7 @@ type (
 		Updated      *docPartialChange `json:"updated,omitempty"`
 		Created      *docPartialChange `json:"created,omitempty"`
 		Deleted      *docPartialChange `json:"deleted,omitempty"`
-		Security     docSecurity       `json:"security"`
+		Security     []docSecurity       `json:"security"`
 	}
 
 	docComposeNamespace struct {
@@ -62,7 +62,7 @@ type (
 		Updated  *docPartialChange `json:"updated,omitempty"`
 		Created  *docPartialChange `json:"created,omitempty"`
 		Deleted  *docPartialChange `json:"deleted,omitempty"`
-		Security docSecurity       `json:"security"`
+		Security []docSecurity       `json:"security"`
 
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
@@ -90,7 +90,7 @@ type (
 		Updated      *docPartialChange               `json:"updated,omitempty"`
 		Created      *docPartialChange               `json:"created,omitempty"`
 		Deleted      *docPartialChange               `json:"deleted,omitempty"`
-		Security     docSecurity                     `json:"security"`
+		Security     []docSecurity                     `json:"security"`
 
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
@@ -118,7 +118,7 @@ type (
 		Updated      *docPartialChange        `json:"updated,omitempty"`
 		Created      *docPartialChange        `json:"created,omitempty"`
 		Deleted      *docPartialChange        `json:"deleted,omitempty"`
-		Security     docSecurity              `json:"security"`
+		Security     []docSecurity              `json:"security"`
 
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
@@ -127,10 +127,10 @@ type (
 
 	docSecurity struct {
 		// list of roles that are allowed to read the resource
-		AllowedRoles []uint64 `json:"allowedRoles"`
+		AllowedRoles []string `json:"allowedRoles"`
 
 		// list of roles that are disallowed to read the resource
-		DeniedRoles []uint64 `json:"deniedRoles"`
+		DeniedRoles []string `json:"deniedRoles"`
 	}
 )
 

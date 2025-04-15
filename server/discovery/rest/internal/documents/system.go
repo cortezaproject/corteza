@@ -92,7 +92,12 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string, user
 				doc.Url = fmt.Sprintf("%s/admin/system/user/edit/%d", d.opt.CortezaDomain, u.ID)
 			}
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(u, "read")
+			allowedRoles, deniedRoles := d.rbac.SignificantRoles(u, "read")
+
+			doc.Security = append(doc.Security, docSecurity{
+				AllowedRoles: stringifyUints64(allowedRoles),
+				DeniedRoles:  stringifyUints64(deniedRoles),
+			})
 
 			rsp.Documents[i].ID = u.ID
 			rsp.Documents[i].Source = doc
