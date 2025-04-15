@@ -55,7 +55,6 @@ var (
 // setAuthClient updates authClientActionProps's authClient
 //
 // This function is auto-generated.
-//
 func (p *authClientActionProps) setAuthClient(authClient *types.AuthClient) *authClientActionProps {
 	p.authClient = authClient
 	return p
@@ -64,7 +63,6 @@ func (p *authClientActionProps) setAuthClient(authClient *types.AuthClient) *aut
 // setNew updates authClientActionProps's new
 //
 // This function is auto-generated.
-//
 func (p *authClientActionProps) setNew(new *types.AuthClient) *authClientActionProps {
 	p.new = new
 	return p
@@ -73,7 +71,6 @@ func (p *authClientActionProps) setNew(new *types.AuthClient) *authClientActionP
 // setUpdate updates authClientActionProps's update
 //
 // This function is auto-generated.
-//
 func (p *authClientActionProps) setUpdate(update *types.AuthClient) *authClientActionProps {
 	p.update = update
 	return p
@@ -82,7 +79,6 @@ func (p *authClientActionProps) setUpdate(update *types.AuthClient) *authClientA
 // setFilter updates authClientActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *authClientActionProps) setFilter(filter *types.AuthClientFilter) *authClientActionProps {
 	p.filter = filter
 	return p
@@ -91,7 +87,6 @@ func (p *authClientActionProps) setFilter(filter *types.AuthClientFilter) *authC
 // Serialize converts authClientActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p authClientActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -121,7 +116,6 @@ func (p authClientActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p authClientActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -210,7 +204,6 @@ func (p authClientActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *authClientAction) String() string {
 	var props = &authClientActionProps{}
 
@@ -238,7 +231,6 @@ func (e *authClientAction) ToAction() *actionlog.Action {
 // AuthClientActionSearch returns "system:auth-client.search" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionSearch(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -258,7 +250,6 @@ func AuthClientActionSearch(props ...*authClientActionProps) *authClientAction {
 // AuthClientActionLookup returns "system:auth-client.lookup" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionLookup(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -278,7 +269,6 @@ func AuthClientActionLookup(props ...*authClientActionProps) *authClientAction {
 // AuthClientActionCreate returns "system:auth-client.create" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionCreate(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -298,7 +288,6 @@ func AuthClientActionCreate(props ...*authClientActionProps) *authClientAction {
 // AuthClientActionUpdate returns "system:auth-client.update" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionUpdate(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -318,7 +307,6 @@ func AuthClientActionUpdate(props ...*authClientActionProps) *authClientAction {
 // AuthClientActionDelete returns "system:auth-client.delete" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionDelete(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -338,7 +326,6 @@ func AuthClientActionDelete(props ...*authClientActionProps) *authClientAction {
 // AuthClientActionUndelete returns "system:auth-client.undelete" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionUndelete(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -358,7 +345,6 @@ func AuthClientActionUndelete(props ...*authClientActionProps) *authClientAction
 // AuthClientActionExposeSecret returns "system:auth-client.exposeSecret" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionExposeSecret(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -378,7 +364,6 @@ func AuthClientActionExposeSecret(props ...*authClientActionProps) *authClientAc
 // AuthClientActionRegenerateSecret returns "system:auth-client.regenerateSecret" action
 //
 // This function is auto-generated.
-//
 func AuthClientActionRegenerateSecret(props ...*authClientActionProps) *authClientAction {
 	a := &authClientAction{
 		timestamp: time.Now(),
@@ -401,9 +386,7 @@ func AuthClientActionRegenerateSecret(props ...*authClientActionProps) *authClie
 
 // AuthClientErrGeneric returns "system:auth-client.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrGeneric(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -437,9 +420,7 @@ func AuthClientErrGeneric(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrNotFound returns "system:auth-client.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotFound(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -471,9 +452,7 @@ func AuthClientErrNotFound(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrInvalidID returns "system:auth-client.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -505,9 +484,7 @@ func AuthClientErrInvalidID(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrStaleData returns "system:auth-client.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrStaleData(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -539,9 +516,7 @@ func AuthClientErrStaleData(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrMissingName returns "system:auth-client.missingName" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrMissingName(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -573,9 +548,7 @@ func AuthClientErrMissingName(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrUnknownGrantType returns "system:auth-client.unknownGrantType" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrUnknownGrantType(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -607,9 +580,7 @@ func AuthClientErrUnknownGrantType(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrUnknownScope returns "system:auth-client.unknownScope" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrUnknownScope(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -641,9 +612,7 @@ func AuthClientErrUnknownScope(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrUnableToChangeDefaultClientHandle returns "system:auth-client.unableToChangeDefaultClientHandle" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrUnableToChangeDefaultClientHandle(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -677,9 +646,7 @@ func AuthClientErrUnableToChangeDefaultClientHandle(mm ...*authClientActionProps
 
 // AuthClientErrUnableToDisableDefaultClient returns "system:auth-client.unableToDisableDefaultClient" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrUnableToDisableDefaultClient(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -713,9 +680,7 @@ func AuthClientErrUnableToDisableDefaultClient(mm ...*authClientActionProps) *er
 
 // AuthClientErrUnableToDeleteDefaultClient returns "system:auth-client.unableToDeleteDefaultClient" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrUnableToDeleteDefaultClient(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -749,9 +714,7 @@ func AuthClientErrUnableToDeleteDefaultClient(mm ...*authClientActionProps) *err
 
 // AuthClientErrNotAllowedToRead returns "system:auth-client.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -785,9 +748,7 @@ func AuthClientErrNotAllowedToRead(mm ...*authClientActionProps) *errors.Error {
 
 // AuthClientErrNotAllowedToSearch returns "system:auth-client.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotAllowedToSearch(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -821,9 +782,7 @@ func AuthClientErrNotAllowedToSearch(mm ...*authClientActionProps) *errors.Error
 
 // AuthClientErrNotAllowedToCreate returns "system:auth-client.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -857,9 +816,7 @@ func AuthClientErrNotAllowedToCreate(mm ...*authClientActionProps) *errors.Error
 
 // AuthClientErrNotAllowedToUpdate returns "system:auth-client.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotAllowedToUpdate(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -893,9 +850,7 @@ func AuthClientErrNotAllowedToUpdate(mm ...*authClientActionProps) *errors.Error
 
 // AuthClientErrNotAllowedToDelete returns "system:auth-client.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotAllowedToDelete(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -929,9 +884,7 @@ func AuthClientErrNotAllowedToDelete(mm ...*authClientActionProps) *errors.Error
 
 // AuthClientErrNotAllowedToUndelete returns "system:auth-client.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func AuthClientErrNotAllowedToUndelete(mm ...*authClientActionProps) *errors.Error {
 	var p = &authClientActionProps{}
 	if len(mm) > 0 {
@@ -971,7 +924,6 @@ func AuthClientErrNotAllowedToUndelete(mm ...*authClientActionProps) *errors.Err
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc authClient) recordAction(ctx context.Context, props *authClientActionProps, actionFn func(...*authClientActionProps) *authClientAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

@@ -33,3 +33,11 @@ func (h apigwBodyHandler) read(ctx context.Context, args *apigwBodyReadArgs) (re
 
 	return
 }
+
+func (h apigwBodyHandler) readFile(ctx context.Context, args *apigwBodyReadFileArgs) (res *apigwBodyReadFileResults, err error) {
+	// @note the contents are already parsed; will probably need to rework behind the scenes bits
+	res = &apigwBodyReadFileResults{}
+	res.File, _, err = args.Request.FormFile(args.Name)
+
+	return
+}

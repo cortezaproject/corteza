@@ -57,7 +57,6 @@ var (
 // setDalSchemaAlteration updates dalSchemaAlterationActionProps's dalSchemaAlteration
 //
 // This function is auto-generated.
-//
 func (p *dalSchemaAlterationActionProps) setDalSchemaAlteration(dalSchemaAlteration *types.DalSchemaAlteration) *dalSchemaAlterationActionProps {
 	p.dalSchemaAlteration = dalSchemaAlteration
 	return p
@@ -66,7 +65,6 @@ func (p *dalSchemaAlterationActionProps) setDalSchemaAlteration(dalSchemaAlterat
 // setNew updates dalSchemaAlterationActionProps's new
 //
 // This function is auto-generated.
-//
 func (p *dalSchemaAlterationActionProps) setNew(new *types.DalSchemaAlteration) *dalSchemaAlterationActionProps {
 	p.new = new
 	return p
@@ -75,7 +73,6 @@ func (p *dalSchemaAlterationActionProps) setNew(new *types.DalSchemaAlteration) 
 // setApply updates dalSchemaAlterationActionProps's apply
 //
 // This function is auto-generated.
-//
 func (p *dalSchemaAlterationActionProps) setApply(apply []uint64) *dalSchemaAlterationActionProps {
 	p.apply = apply
 	return p
@@ -84,7 +81,6 @@ func (p *dalSchemaAlterationActionProps) setApply(apply []uint64) *dalSchemaAlte
 // setDismiss updates dalSchemaAlterationActionProps's dismiss
 //
 // This function is auto-generated.
-//
 func (p *dalSchemaAlterationActionProps) setDismiss(dismiss []uint64) *dalSchemaAlterationActionProps {
 	p.dismiss = dismiss
 	return p
@@ -93,7 +89,6 @@ func (p *dalSchemaAlterationActionProps) setDismiss(dismiss []uint64) *dalSchema
 // setExisting updates dalSchemaAlterationActionProps's existing
 //
 // This function is auto-generated.
-//
 func (p *dalSchemaAlterationActionProps) setExisting(existing *types.DalSchemaAlteration) *dalSchemaAlterationActionProps {
 	p.existing = existing
 	return p
@@ -102,7 +97,6 @@ func (p *dalSchemaAlterationActionProps) setExisting(existing *types.DalSchemaAl
 // setFilter updates dalSchemaAlterationActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *dalSchemaAlterationActionProps) setFilter(filter *types.DalSchemaAlterationFilter) *dalSchemaAlterationActionProps {
 	p.filter = filter
 	return p
@@ -111,7 +105,6 @@ func (p *dalSchemaAlterationActionProps) setFilter(filter *types.DalSchemaAltera
 // Serialize converts dalSchemaAlterationActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p dalSchemaAlterationActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -142,7 +135,6 @@ func (p dalSchemaAlterationActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p dalSchemaAlterationActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -231,7 +223,6 @@ func (p dalSchemaAlterationActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *dalSchemaAlterationAction) String() string {
 	var props = &dalSchemaAlterationActionProps{}
 
@@ -259,7 +250,6 @@ func (e *dalSchemaAlterationAction) ToAction() *actionlog.Action {
 // DalSchemaAlterationActionSearch returns "system:dal-schema-alteration.search" action
 //
 // This function is auto-generated.
-//
 func DalSchemaAlterationActionSearch(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
 	a := &dalSchemaAlterationAction{
 		timestamp: time.Now(),
@@ -279,7 +269,6 @@ func DalSchemaAlterationActionSearch(props ...*dalSchemaAlterationActionProps) *
 // DalSchemaAlterationActionApply returns "system:dal-schema-alteration.apply" action
 //
 // This function is auto-generated.
-//
 func DalSchemaAlterationActionApply(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
 	a := &dalSchemaAlterationAction{
 		timestamp: time.Now(),
@@ -299,7 +288,6 @@ func DalSchemaAlterationActionApply(props ...*dalSchemaAlterationActionProps) *d
 // DalSchemaAlterationActionDismiss returns "system:dal-schema-alteration.dismiss" action
 //
 // This function is auto-generated.
-//
 func DalSchemaAlterationActionDismiss(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
 	a := &dalSchemaAlterationAction{
 		timestamp: time.Now(),
@@ -319,7 +307,6 @@ func DalSchemaAlterationActionDismiss(props ...*dalSchemaAlterationActionProps) 
 // DalSchemaAlterationActionLookup returns "system:dal-schema-alteration.lookup" action
 //
 // This function is auto-generated.
-//
 func DalSchemaAlterationActionLookup(props ...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction {
 	a := &dalSchemaAlterationAction{
 		timestamp: time.Now(),
@@ -342,9 +329,7 @@ func DalSchemaAlterationActionLookup(props ...*dalSchemaAlterationActionProps) *
 
 // DalSchemaAlterationErrGeneric returns "system:dal-schema-alteration.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalSchemaAlterationErrGeneric(mm ...*dalSchemaAlterationActionProps) *errors.Error {
 	var p = &dalSchemaAlterationActionProps{}
 	if len(mm) > 0 {
@@ -378,9 +363,7 @@ func DalSchemaAlterationErrGeneric(mm ...*dalSchemaAlterationActionProps) *error
 
 // DalSchemaAlterationErrNotFound returns "system:dal-schema-alteration.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalSchemaAlterationErrNotFound(mm ...*dalSchemaAlterationActionProps) *errors.Error {
 	var p = &dalSchemaAlterationActionProps{}
 	if len(mm) > 0 {
@@ -412,9 +395,7 @@ func DalSchemaAlterationErrNotFound(mm ...*dalSchemaAlterationActionProps) *erro
 
 // DalSchemaAlterationErrInvalidID returns "system:dal-schema-alteration.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalSchemaAlterationErrInvalidID(mm ...*dalSchemaAlterationActionProps) *errors.Error {
 	var p = &dalSchemaAlterationActionProps{}
 	if len(mm) > 0 {
@@ -446,9 +427,7 @@ func DalSchemaAlterationErrInvalidID(mm ...*dalSchemaAlterationActionProps) *err
 
 // DalSchemaAlterationErrNotAllowedToManage returns "system:dal-schema-alteration.notAllowedToManage" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalSchemaAlterationErrNotAllowedToManage(mm ...*dalSchemaAlterationActionProps) *errors.Error {
 	var p = &dalSchemaAlterationActionProps{}
 	if len(mm) > 0 {
@@ -488,7 +467,6 @@ func DalSchemaAlterationErrNotAllowedToManage(mm ...*dalSchemaAlterationActionPr
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc dalSchemaAlteration) recordAction(ctx context.Context, props *dalSchemaAlterationActionProps, actionFn func(...*dalSchemaAlterationActionProps) *dalSchemaAlterationAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

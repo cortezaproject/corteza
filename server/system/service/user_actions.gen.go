@@ -56,7 +56,6 @@ var (
 // setUser updates userActionProps's user
 //
 // This function is auto-generated.
-//
 func (p *userActionProps) setUser(user *types.User) *userActionProps {
 	p.user = user
 	return p
@@ -65,7 +64,6 @@ func (p *userActionProps) setUser(user *types.User) *userActionProps {
 // setNew updates userActionProps's new
 //
 // This function is auto-generated.
-//
 func (p *userActionProps) setNew(new *types.User) *userActionProps {
 	p.new = new
 	return p
@@ -74,7 +72,6 @@ func (p *userActionProps) setNew(new *types.User) *userActionProps {
 // setUpdate updates userActionProps's update
 //
 // This function is auto-generated.
-//
 func (p *userActionProps) setUpdate(update *types.User) *userActionProps {
 	p.update = update
 	return p
@@ -83,7 +80,6 @@ func (p *userActionProps) setUpdate(update *types.User) *userActionProps {
 // setExisting updates userActionProps's existing
 //
 // This function is auto-generated.
-//
 func (p *userActionProps) setExisting(existing *types.User) *userActionProps {
 	p.existing = existing
 	return p
@@ -92,7 +88,6 @@ func (p *userActionProps) setExisting(existing *types.User) *userActionProps {
 // setFilter updates userActionProps's filter
 //
 // This function is auto-generated.
-//
 func (p *userActionProps) setFilter(filter *types.UserFilter) *userActionProps {
 	p.filter = filter
 	return p
@@ -101,7 +96,6 @@ func (p *userActionProps) setFilter(filter *types.UserFilter) *userActionProps {
 // Serialize converts userActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p userActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -153,7 +147,6 @@ func (p userActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p userActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -292,7 +285,6 @@ func (p userActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *userAction) String() string {
 	var props = &userActionProps{}
 
@@ -320,7 +312,6 @@ func (e *userAction) ToAction() *actionlog.Action {
 // UserActionSearch returns "system:user.search" action
 //
 // This function is auto-generated.
-//
 func UserActionSearch(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -340,7 +331,6 @@ func UserActionSearch(props ...*userActionProps) *userAction {
 // UserActionLookup returns "system:user.lookup" action
 //
 // This function is auto-generated.
-//
 func UserActionLookup(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -360,7 +350,6 @@ func UserActionLookup(props ...*userActionProps) *userAction {
 // UserActionCreate returns "system:user.create" action
 //
 // This function is auto-generated.
-//
 func UserActionCreate(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -380,7 +369,6 @@ func UserActionCreate(props ...*userActionProps) *userAction {
 // UserActionUpdate returns "system:user.update" action
 //
 // This function is auto-generated.
-//
 func UserActionUpdate(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -400,7 +388,6 @@ func UserActionUpdate(props ...*userActionProps) *userAction {
 // UserActionDelete returns "system:user.delete" action
 //
 // This function is auto-generated.
-//
 func UserActionDelete(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -420,7 +407,6 @@ func UserActionDelete(props ...*userActionProps) *userAction {
 // UserActionUndelete returns "system:user.undelete" action
 //
 // This function is auto-generated.
-//
 func UserActionUndelete(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -440,7 +426,6 @@ func UserActionUndelete(props ...*userActionProps) *userAction {
 // UserActionSuspend returns "system:user.suspend" action
 //
 // This function is auto-generated.
-//
 func UserActionSuspend(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -460,7 +445,6 @@ func UserActionSuspend(props ...*userActionProps) *userAction {
 // UserActionUnsuspend returns "system:user.unsuspend" action
 //
 // This function is auto-generated.
-//
 func UserActionUnsuspend(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -480,7 +464,6 @@ func UserActionUnsuspend(props ...*userActionProps) *userAction {
 // UserActionSetPassword returns "system:user.setPassword" action
 //
 // This function is auto-generated.
-//
 func UserActionSetPassword(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -500,7 +483,6 @@ func UserActionSetPassword(props ...*userActionProps) *userAction {
 // UserActionRemovePassword returns "system:user.removePassword" action
 //
 // This function is auto-generated.
-//
 func UserActionRemovePassword(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -520,7 +502,6 @@ func UserActionRemovePassword(props ...*userActionProps) *userAction {
 // UserActionDeleteAuthTokens returns "system:user.deleteAuthTokens" action
 //
 // This function is auto-generated.
-//
 func UserActionDeleteAuthTokens(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -540,7 +521,6 @@ func UserActionDeleteAuthTokens(props ...*userActionProps) *userAction {
 // UserActionDeleteAuthSessions returns "system:user.deleteAuthSessions" action
 //
 // This function is auto-generated.
-//
 func UserActionDeleteAuthSessions(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -560,7 +540,6 @@ func UserActionDeleteAuthSessions(props ...*userActionProps) *userAction {
 // UserActionUploadAvatar returns "system:user.uploadAvatar" action
 //
 // This function is auto-generated.
-//
 func UserActionUploadAvatar(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -580,7 +559,6 @@ func UserActionUploadAvatar(props ...*userActionProps) *userAction {
 // UserActionGenerateAvatar returns "system:user.generateAvatar" action
 //
 // This function is auto-generated.
-//
 func UserActionGenerateAvatar(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -600,7 +578,6 @@ func UserActionGenerateAvatar(props ...*userActionProps) *userAction {
 // UserActionDeleteAvatar returns "system:user.deleteAvatar" action
 //
 // This function is auto-generated.
-//
 func UserActionDeleteAvatar(props ...*userActionProps) *userAction {
 	a := &userAction{
 		timestamp: time.Now(),
@@ -623,9 +600,7 @@ func UserActionDeleteAvatar(props ...*userActionProps) *userAction {
 
 // UserErrGeneric returns "system:user.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrGeneric(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -659,9 +634,7 @@ func UserErrGeneric(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotFound returns "system:user.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotFound(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -693,9 +666,7 @@ func UserErrNotFound(mm ...*userActionProps) *errors.Error {
 
 // UserErrInvalidID returns "system:user.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrInvalidID(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -727,9 +698,7 @@ func UserErrInvalidID(mm ...*userActionProps) *errors.Error {
 
 // UserErrInvalidHandle returns "system:user.invalidHandle" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrInvalidHandle(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -761,9 +730,7 @@ func UserErrInvalidHandle(mm ...*userActionProps) *errors.Error {
 
 // UserErrInvalidEmail returns "system:user.invalidEmail" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrInvalidEmail(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -795,9 +762,7 @@ func UserErrInvalidEmail(mm ...*userActionProps) *errors.Error {
 
 // UserErrStaleData returns "system:user.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrStaleData(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -829,9 +794,7 @@ func UserErrStaleData(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToRead returns "system:user.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToRead(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -865,9 +828,7 @@ func UserErrNotAllowedToRead(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToSearch returns "system:user.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToSearch(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -901,9 +862,7 @@ func UserErrNotAllowedToSearch(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToListUsers returns "system:user.notAllowedToListUsers" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToListUsers(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -937,9 +896,7 @@ func UserErrNotAllowedToListUsers(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToCreate returns "system:user.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToCreate(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -973,9 +930,7 @@ func UserErrNotAllowedToCreate(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToCreateSystem returns "system:user.notAllowedToCreateSystem" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToCreateSystem(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1009,9 +964,7 @@ func UserErrNotAllowedToCreateSystem(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToUpdate returns "system:user.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToUpdate(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1045,9 +998,7 @@ func UserErrNotAllowedToUpdate(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToUpdateSystem returns "system:user.notAllowedToUpdateSystem" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToUpdateSystem(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1081,9 +1032,7 @@ func UserErrNotAllowedToUpdateSystem(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToDelete returns "system:user.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToDelete(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1117,9 +1066,7 @@ func UserErrNotAllowedToDelete(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToUndelete returns "system:user.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToUndelete(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1153,9 +1100,7 @@ func UserErrNotAllowedToUndelete(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToSuspend returns "system:user.notAllowedToSuspend" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToSuspend(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1189,9 +1134,7 @@ func UserErrNotAllowedToSuspend(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToUnsuspend returns "system:user.notAllowedToUnsuspend" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToUnsuspend(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1225,9 +1168,7 @@ func UserErrNotAllowedToUnsuspend(mm ...*userActionProps) *errors.Error {
 
 // UserErrHandleNotUnique returns "system:user.handleNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrHandleNotUnique(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1261,9 +1202,7 @@ func UserErrHandleNotUnique(mm ...*userActionProps) *errors.Error {
 
 // UserErrEmailNotUnique returns "system:user.emailNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrEmailNotUnique(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1297,9 +1236,7 @@ func UserErrEmailNotUnique(mm ...*userActionProps) *errors.Error {
 
 // UserErrUsernameNotUnique returns "system:user.usernameNotUnique" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrUsernameNotUnique(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1333,9 +1270,7 @@ func UserErrUsernameNotUnique(mm ...*userActionProps) *errors.Error {
 
 // UserErrPasswordNotSecure returns "system:user.passwordNotSecure" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrPasswordNotSecure(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1367,9 +1302,7 @@ func UserErrPasswordNotSecure(mm ...*userActionProps) *errors.Error {
 
 // UserErrMaxUserLimitReached returns "system:user.maxUserLimitReached" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrMaxUserLimitReached(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1401,9 +1334,7 @@ func UserErrMaxUserLimitReached(mm ...*userActionProps) *errors.Error {
 
 // UserErrNotAllowedToDeleteAvatar returns "system:user.notAllowedToDeleteAvatar" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func UserErrNotAllowedToDeleteAvatar(mm ...*userActionProps) *errors.Error {
 	var p = &userActionProps{}
 	if len(mm) > 0 {
@@ -1443,7 +1374,6 @@ func UserErrNotAllowedToDeleteAvatar(mm ...*userActionProps) *errors.Error {
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc user) recordAction(ctx context.Context, props *userActionProps, actionFn func(...*userActionProps) *userAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is
