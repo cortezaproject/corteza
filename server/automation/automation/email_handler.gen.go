@@ -113,9 +113,10 @@ func (a emailSendArgs) GetPlain() (bool, string, io.Reader) {
 // Send function Email
 //
 // expects implementation of send function:
-// func (h emailHandler) send(ctx context.Context, args *emailSendArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) send(ctx context.Context, args *emailSendArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) Send() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailSend",
@@ -357,9 +358,10 @@ func (a emailMessageArgs) GetPlain() (bool, string, io.Reader) {
 // Message function Email builder
 //
 // expects implementation of message function:
-// func (h emailHandler) message(ctx context.Context, args *emailMessageArgs) (results *emailMessageResults, err error) {
-//    return
-// }
+//
+//	func (h emailHandler) message(ctx context.Context, args *emailMessageArgs) (results *emailMessageResults, err error) {
+//	   return
+//	}
 func (h emailHandler) Message() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailMessage",
@@ -563,9 +565,10 @@ type (
 // SendMessage function Email sender
 //
 // expects implementation of sendMessage function:
-// func (h emailHandler) sendMessage(ctx context.Context, args *emailSendMessageArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) sendMessage(ctx context.Context, args *emailSendMessageArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) SendMessage() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailSendMessage",
@@ -615,9 +618,10 @@ type (
 // SetSubject function Email subject
 //
 // expects implementation of setSubject function:
-// func (h emailHandler) setSubject(ctx context.Context, args *emailSetSubjectArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) setSubject(ctx context.Context, args *emailSetSubjectArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) SetSubject() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailSetSubject",
@@ -675,9 +679,10 @@ type (
 // SetHeaders function Email headers
 //
 // expects implementation of setHeaders function:
-// func (h emailHandler) setHeaders(ctx context.Context, args *emailSetHeadersArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) setHeaders(ctx context.Context, args *emailSetHeadersArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) SetHeaders() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailSetHeaders",
@@ -738,9 +743,10 @@ type (
 // SetHeader function Email header
 //
 // expects implementation of setHeader function:
-// func (h emailHandler) setHeader(ctx context.Context, args *emailSetHeaderArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) setHeader(ctx context.Context, args *emailSetHeaderArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) SetHeader() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailSetHeader",
@@ -813,9 +819,10 @@ type (
 // SetAddress function Email set address
 //
 // expects implementation of setAddress function:
-// func (h emailHandler) setAddress(ctx context.Context, args *emailSetAddressArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) setAddress(ctx context.Context, args *emailSetAddressArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) SetAddress() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailSetAddress",
@@ -896,9 +903,10 @@ type (
 // AddAddress function Email add address
 //
 // expects implementation of addAddress function:
-// func (h emailHandler) addAddress(ctx context.Context, args *emailAddAddressArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) addAddress(ctx context.Context, args *emailAddAddressArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) AddAddress() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailAddAddress",
@@ -982,9 +990,10 @@ func (a emailAttachArgs) GetContent() (bool, io.Reader, string) {
 // Attach function Email attachment
 //
 // expects implementation of attach function:
-// func (h emailHandler) attach(ctx context.Context, args *emailAttachArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) attach(ctx context.Context, args *emailAttachArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) Attach() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailAttach",
@@ -1064,9 +1073,10 @@ type (
 // Embed function Email embedded attachment
 //
 // expects implementation of embed function:
-// func (h emailHandler) embed(ctx context.Context, args *emailEmbedArgs) (err error) {
-//    return
-// }
+//
+//	func (h emailHandler) embed(ctx context.Context, args *emailEmbedArgs) (err error) {
+//	   return
+//	}
 func (h emailHandler) Embed() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "emailEmbed",

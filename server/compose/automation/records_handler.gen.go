@@ -10,7 +10,6 @@ package automation
 
 import (
 	"context"
-
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -508,7 +507,7 @@ func (a recordsFirstArgs) GetNamespace() (bool, uint64, string, *types.Namespace
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// First function Compose record lookup (first created)
+// First function Compose record lookup (oldest)
 //
 // expects implementation of first function:
 //
@@ -638,7 +637,7 @@ func (a recordsLastArgs) GetNamespace() (bool, uint64, string, *types.Namespace)
 	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
 }
 
-// Last function Compose record lookup (last created)
+// Last function Compose record lookup (newest)
 //
 // expects implementation of last function:
 //

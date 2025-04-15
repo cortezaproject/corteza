@@ -44,9 +44,10 @@ type (
 // Env function Get ENV variable
 //
 // expects implementation of env function:
-// func (h valuestoreHandler) env(ctx context.Context, args *valuestoreEnvArgs) (results *valuestoreEnvResults, err error) {
-//    return
-// }
+//
+//	func (h valuestoreHandler) env(ctx context.Context, args *valuestoreEnvArgs) (results *valuestoreEnvResults, err error) {
+//	   return
+//	}
 func (h valuestoreHandler) Env() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "valuestoreEnv",

@@ -57,9 +57,10 @@ func (a jsenvExecuteArgs) GetScope() (bool, interface{}, io.Reader) {
 // Execute function Process arbitrary data in jsenv
 //
 // expects implementation of execute function:
-// func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (results *jsenvExecuteResults, err error) {
-//    return
-// }
+//
+//	func (h jsenvHandler) execute(ctx context.Context, args *jsenvExecuteArgs) (results *jsenvExecuteResults, err error) {
+//	   return
+//	}
 func (h jsenvHandler) Execute() *atypes.Function {
 	return &atypes.Function{
 		Ref:    "jsenvExecute",

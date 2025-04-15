@@ -55,7 +55,6 @@ var (
 // setConnection updates dalConnectionActionProps's connection
 //
 // This function is auto-generated.
-//
 func (p *dalConnectionActionProps) setConnection(connection *types.DalConnection) *dalConnectionActionProps {
 	p.connection = connection
 	return p
@@ -64,7 +63,6 @@ func (p *dalConnectionActionProps) setConnection(connection *types.DalConnection
 // setNew updates dalConnectionActionProps's new
 //
 // This function is auto-generated.
-//
 func (p *dalConnectionActionProps) setNew(new *types.DalConnection) *dalConnectionActionProps {
 	p.new = new
 	return p
@@ -73,7 +71,6 @@ func (p *dalConnectionActionProps) setNew(new *types.DalConnection) *dalConnecti
 // setUpdate updates dalConnectionActionProps's update
 //
 // This function is auto-generated.
-//
 func (p *dalConnectionActionProps) setUpdate(update *types.DalConnection) *dalConnectionActionProps {
 	p.update = update
 	return p
@@ -82,7 +79,6 @@ func (p *dalConnectionActionProps) setUpdate(update *types.DalConnection) *dalCo
 // setSearch updates dalConnectionActionProps's search
 //
 // This function is auto-generated.
-//
 func (p *dalConnectionActionProps) setSearch(search *types.DalConnectionFilter) *dalConnectionActionProps {
 	p.search = search
 	return p
@@ -91,7 +87,6 @@ func (p *dalConnectionActionProps) setSearch(search *types.DalConnectionFilter) 
 // Serialize converts dalConnectionActionProps to actionlog.Meta
 //
 // This function is auto-generated.
-//
 func (p dalConnectionActionProps) Serialize() actionlog.Meta {
 	var (
 		m = make(actionlog.Meta)
@@ -118,7 +113,6 @@ func (p dalConnectionActionProps) Serialize() actionlog.Meta {
 // tr translates string and replaces meta value placeholder with values
 //
 // This function is auto-generated.
-//
 func (p dalConnectionActionProps) Format(in string, err error) string {
 	var (
 		pairs = []string{"{{err}}"}
@@ -200,7 +194,6 @@ func (p dalConnectionActionProps) Format(in string, err error) string {
 // String returns loggable description as string
 //
 // This function is auto-generated.
-//
 func (a *dalConnectionAction) String() string {
 	var props = &dalConnectionActionProps{}
 
@@ -228,7 +221,6 @@ func (e *dalConnectionAction) ToAction() *actionlog.Action {
 // DalConnectionActionSearch returns "system:dal-connection.search" action
 //
 // This function is auto-generated.
-//
 func DalConnectionActionSearch(props ...*dalConnectionActionProps) *dalConnectionAction {
 	a := &dalConnectionAction{
 		timestamp: time.Now(),
@@ -248,7 +240,6 @@ func DalConnectionActionSearch(props ...*dalConnectionActionProps) *dalConnectio
 // DalConnectionActionLookup returns "system:dal-connection.lookup" action
 //
 // This function is auto-generated.
-//
 func DalConnectionActionLookup(props ...*dalConnectionActionProps) *dalConnectionAction {
 	a := &dalConnectionAction{
 		timestamp: time.Now(),
@@ -268,7 +259,6 @@ func DalConnectionActionLookup(props ...*dalConnectionActionProps) *dalConnectio
 // DalConnectionActionCreate returns "system:dal-connection.create" action
 //
 // This function is auto-generated.
-//
 func DalConnectionActionCreate(props ...*dalConnectionActionProps) *dalConnectionAction {
 	a := &dalConnectionAction{
 		timestamp: time.Now(),
@@ -288,7 +278,6 @@ func DalConnectionActionCreate(props ...*dalConnectionActionProps) *dalConnectio
 // DalConnectionActionUpdate returns "system:dal-connection.update" action
 //
 // This function is auto-generated.
-//
 func DalConnectionActionUpdate(props ...*dalConnectionActionProps) *dalConnectionAction {
 	a := &dalConnectionAction{
 		timestamp: time.Now(),
@@ -308,7 +297,6 @@ func DalConnectionActionUpdate(props ...*dalConnectionActionProps) *dalConnectio
 // DalConnectionActionDelete returns "system:dal-connection.delete" action
 //
 // This function is auto-generated.
-//
 func DalConnectionActionDelete(props ...*dalConnectionActionProps) *dalConnectionAction {
 	a := &dalConnectionAction{
 		timestamp: time.Now(),
@@ -328,7 +316,6 @@ func DalConnectionActionDelete(props ...*dalConnectionActionProps) *dalConnectio
 // DalConnectionActionUndelete returns "system:dal-connection.undelete" action
 //
 // This function is auto-generated.
-//
 func DalConnectionActionUndelete(props ...*dalConnectionActionProps) *dalConnectionAction {
 	a := &dalConnectionAction{
 		timestamp: time.Now(),
@@ -351,9 +338,7 @@ func DalConnectionActionUndelete(props ...*dalConnectionActionProps) *dalConnect
 
 // DalConnectionErrGeneric returns "system:dal-connection.generic" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrGeneric(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -387,9 +372,7 @@ func DalConnectionErrGeneric(mm ...*dalConnectionActionProps) *errors.Error {
 
 // DalConnectionErrNotFound returns "system:dal-connection.notFound" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotFound(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -421,9 +404,7 @@ func DalConnectionErrNotFound(mm ...*dalConnectionActionProps) *errors.Error {
 
 // DalConnectionErrInvalidID returns "system:dal-connection.invalidID" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrInvalidID(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -455,9 +436,7 @@ func DalConnectionErrInvalidID(mm ...*dalConnectionActionProps) *errors.Error {
 
 // DalConnectionErrMissingName returns "system:dal-connection.missingName" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrMissingName(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -489,9 +468,7 @@ func DalConnectionErrMissingName(mm ...*dalConnectionActionProps) *errors.Error 
 
 // DalConnectionErrInvalidEndpoint returns "system:dal-connection.invalidEndpoint" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrInvalidEndpoint(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -523,9 +500,7 @@ func DalConnectionErrInvalidEndpoint(mm ...*dalConnectionActionProps) *errors.Er
 
 // DalConnectionErrStaleData returns "system:dal-connection.staleData" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrStaleData(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -557,9 +532,7 @@ func DalConnectionErrStaleData(mm ...*dalConnectionActionProps) *errors.Error {
 
 // DalConnectionErrExistsEndpoint returns "system:dal-connection.existsEndpoint" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrExistsEndpoint(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -591,9 +564,7 @@ func DalConnectionErrExistsEndpoint(mm ...*dalConnectionActionProps) *errors.Err
 
 // DalConnectionErrAlreadyExists returns "system:dal-connection.alreadyExists" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrAlreadyExists(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -625,9 +596,7 @@ func DalConnectionErrAlreadyExists(mm ...*dalConnectionActionProps) *errors.Erro
 
 // DalConnectionErrNotAllowedToCreate returns "system:dal-connection.notAllowedToCreate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToCreate(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -661,9 +630,7 @@ func DalConnectionErrNotAllowedToCreate(mm ...*dalConnectionActionProps) *errors
 
 // DalConnectionErrNotAllowedToRead returns "system:dal-connection.notAllowedToRead" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToRead(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -697,9 +664,7 @@ func DalConnectionErrNotAllowedToRead(mm ...*dalConnectionActionProps) *errors.E
 
 // DalConnectionErrNotAllowedToSearch returns "system:dal-connection.notAllowedToSearch" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToSearch(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -733,9 +698,7 @@ func DalConnectionErrNotAllowedToSearch(mm ...*dalConnectionActionProps) *errors
 
 // DalConnectionErrNotAllowedToUpdate returns "system:dal-connection.notAllowedToUpdate" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToUpdate(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -769,9 +732,7 @@ func DalConnectionErrNotAllowedToUpdate(mm ...*dalConnectionActionProps) *errors
 
 // DalConnectionErrNotAllowedToDelete returns "system:dal-connection.notAllowedToDelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToDelete(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -805,9 +766,7 @@ func DalConnectionErrNotAllowedToDelete(mm ...*dalConnectionActionProps) *errors
 
 // DalConnectionErrNotAllowedToUndelete returns "system:dal-connection.notAllowedToUndelete" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToUndelete(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -841,9 +800,7 @@ func DalConnectionErrNotAllowedToUndelete(mm ...*dalConnectionActionProps) *erro
 
 // DalConnectionErrNotAllowedToExec returns "system:dal-connection.notAllowedToExec" as *errors.Error
 //
-//
 // This function is auto-generated.
-//
 func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.Error {
 	var p = &dalConnectionActionProps{}
 	if len(mm) > 0 {
@@ -883,7 +840,6 @@ func DalConnectionErrNotAllowedToExec(mm ...*dalConnectionActionProps) *errors.E
 // It will wrap unrecognized/internal errors with generic errors.
 //
 // This function is auto-generated.
-//
 func (svc dalConnection) recordAction(ctx context.Context, props *dalConnectionActionProps, actionFn func(...*dalConnectionActionProps) *dalConnectionAction, err error) error {
 	if svc.actionlog == nil || actionFn == nil {
 		// action log disabled or no action fn passed, return error as-is

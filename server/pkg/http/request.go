@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type (
@@ -27,13 +28,24 @@ type (
 )
 
 func NewRequest(r *http.Request) (rr *Request, err error) {
-	rs, err := NewBufferedReader(r.Body)
-
-	if err != nil {
-		return
+	rr = &Request{
+		Request: r,
 	}
 
-	rr = &Request{r, rs}
+	contentType := r.Header.Get("Content-Type")
+	if strings.HasPrefix(contentType, "multipart/form-data") {
+		err = getFilesAsReaders(r)
+		if err != nil {
+			return
+		}
+	} else {
+		// @todo support for others when needed?
+		rr.Body, err = NewBufferedReader(r.Body)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 
@@ -116,4 +128,17 @@ func (bb *Request) MarshalJSON() ([]byte, error) {
 		RemoteAddr:    bb.RemoteAddr,
 		RequestURI:    bb.RequestURI,
 	})
+}
+
+func getFilesAsReaders(r *http.Request) (err error) {
+	err = r.ParseMultipartForm(32 << 20)
+	if err != nil {
+		return fmt.Errorf("error parsing multipart form: %w", err)
+	}
+
+	if r.MultipartForm == nil {
+		return fmt.Errorf("no multipart form found")
+	}
+
+	return nil
 }

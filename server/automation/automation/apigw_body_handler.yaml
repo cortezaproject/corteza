@@ -2,6 +2,7 @@ name: apigwBody
 
 imports:
   - github.com/cortezaproject/corteza/server/pkg/http
+  - io
 
 functions:
   read:
@@ -15,3 +16,18 @@ functions:
     results:
       body:
         wf: String
+  readFile:
+    meta:
+      short: Read file from integration gateway
+    params:
+      request:
+        required: true
+        types:
+          - { wf: HttpRequest, go: '*http.Request' }
+      name:
+        required: true
+        types:
+          - { wf: String }
+    results:
+      file:
+        wf: Reader
