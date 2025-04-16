@@ -51,7 +51,7 @@ jobs:
           # - { port: 8083, name: reporter }
           # - { port: 8086, name: one }
           # - { port: 8087, name: privacy }
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Setup environment
         env:
@@ -220,7 +220,7 @@ jobs:
 
   notify-failure:
     needs: [ server-client-setup ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: failure()
     steps:
       - name: Send message on failed testing results
