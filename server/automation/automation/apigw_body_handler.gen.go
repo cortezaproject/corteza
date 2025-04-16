@@ -121,7 +121,9 @@ type (
 	}
 
 	apigwBodyReadFileResults struct {
-		File io.Reader
+		File     io.Reader
+		FileName string
+		Exists   bool
 	}
 )
 
@@ -158,6 +160,16 @@ func (h apigwBodyHandler) ReadFile() *atypes.Function {
 				Name:  "file",
 				Types: []string{"Reader"},
 			},
+
+			{
+				Name:  "fileName",
+				Types: []string{"String"},
+			},
+
+			{
+				Name:  "exists",
+				Types: []string{"Boolean"},
+			},
 		},
 
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
@@ -188,6 +200,32 @@ func (h apigwBodyHandler) ReadFile() *atypes.Function {
 				if tval, err = h.reg.Type("Reader").Cast(results.File); err != nil {
 					return
 				} else if err = expr.Assign(out, "file", tval); err != nil {
+					return
+				}
+			}
+
+			{
+				// converting results.FileName (string) to String
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("String").Cast(results.FileName); err != nil {
+					return
+				} else if err = expr.Assign(out, "fileName", tval); err != nil {
+					return
+				}
+			}
+
+			{
+				// converting results.Exists (bool) to Boolean
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("Boolean").Cast(results.Exists); err != nil {
+					return
+				} else if err = expr.Assign(out, "exists", tval); err != nil {
 					return
 				}
 			}
