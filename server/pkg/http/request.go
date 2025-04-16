@@ -27,6 +27,8 @@ type (
 	}
 )
 
+const maxMemory = 1 << 30 // 1GB
+
 func NewRequest(r *http.Request) (rr *Request, err error) {
 	rr = &Request{
 		Request: r,
@@ -34,7 +36,29 @@ func NewRequest(r *http.Request) (rr *Request, err error) {
 
 	contentType := r.Header.Get("Content-Type")
 	if strings.HasPrefix(contentType, "multipart/form-data") {
+		// @todo consider increasing the limit; should be plenty for now
+		var body []byte
+		body, err = io.ReadAll(io.LimitReader(r.Body, maxMemory))
+		if err != nil {
+			return
+		}
+		r.Body.Close()
+
+		// Save a copy of the body
+		bCopy := make([]byte, len(body))
+		copy(bCopy, body)
+
+		// Restore the body so we can parse it
+		r.Body = io.NopCloser(bytes.NewReader(body))
+
+		// Pull files (this consumes the body)
 		err = getFilesAsReaders(r)
+		if err != nil {
+			return
+		}
+
+		// Restore & parse
+		rr.Body, err = NewBufferedReader(bytes.NewBuffer(bCopy))
 		if err != nil {
 			return
 		}
