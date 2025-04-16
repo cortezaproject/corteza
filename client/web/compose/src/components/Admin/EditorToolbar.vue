@@ -45,7 +45,7 @@
       <c-button-submit
         v-if="!hideClone"
         data-test-id="button-clone"
-        :disabled="disableClone || processing"
+        :disabled="disableClone || disableSave || processing"
         :title="cloneTooltip"
         :processing="processingClone"
         variant="light"

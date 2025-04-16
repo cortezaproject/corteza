@@ -76,7 +76,6 @@ copyOf: "Copy of {{title}}"
 build:
   addBlock: Add block
   selectBlockTitle: Select type of the new block
-  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
   saveAsCopy:
     ref: With references
     noRef: Without references
@@ -117,7 +116,6 @@ moduleEdit: Edit module
 navigation:
   page: Pages
   viewPage: View Page
-unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 noBlock: No block added yet
 noPages: No pages
 notVisible: Hidden
@@ -127,7 +125,6 @@ showSubPages: Expand sub-pages in the sidebar
 customTitle: Use custom title
 title: List of Pages
 tooltip:
-  unsavedChanges: Unsaved Changes
   view: View page
   edit:
     page: Edit page

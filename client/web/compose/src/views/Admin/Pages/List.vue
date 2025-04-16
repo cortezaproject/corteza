@@ -177,7 +177,7 @@ export default {
           this.tree = tree.map(p => new compose.Page(p))
         }).catch((e) => {
           if (!axios.isCancel(e)) {
-            this.toastErrorHandler(this.$t('notification:page.loadFailed'))(e)
+            this.toastErrorHandler(this.$t('notification:page.listFailed'))(e)
           }
         })
         .finally(() => {

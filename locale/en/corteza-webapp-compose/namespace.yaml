@@ -60,7 +60,6 @@ manage:
   title: Manage namespaces
   list-view: Back to namespace list
   delete: Delete
-  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 
   disabled: Disabled
 

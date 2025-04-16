@@ -46,7 +46,7 @@
     </portal>
 
     <div
-      v-if="processing"
+      v-if="loading"
       class="d-flex align-items-center justify-content-center h-100"
     >
       <b-spinner />
@@ -974,11 +974,11 @@ export default {
   ],
 
   beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedComposePage(next)
+    this.checkUnsavedChanges(next)
   },
 
   beforeRouteLeave (to, from, next) {
-    this.checkUnsavedComposePage(next)
+    this.checkUnsavedChanges(next)
   },
 
   props: {
@@ -1001,6 +1001,8 @@ export default {
       processingSaveAndClose: false,
       processingClone: false,
       processingDelete: false,
+
+      loading: false,
 
       page: new compose.Page(),
       initialPageState: new compose.Page(),
@@ -1197,26 +1199,8 @@ export default {
   watch: {
     pageID: {
       immediate: true,
-      handler (pageID) {
-        this.page = undefined
-        this.initialPageState = undefined
-        this.layouts = []
-
-        this.removedLayouts = new Set()
-
-        if (pageID) {
-          this.processing = true
-
-          const { namespaceID } = this.namespace
-          this.findPageByID({ namespaceID, pageID, force: true }).then((page) => {
-            this.page = page.clone()
-            this.initialPageState = page.clone()
-            return this.fetchAttachments()
-          }).then(this.fetchLayouts)
-            .finally(() => {
-              this.processing = false
-            }).catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
-        }
+      handler () {
+        this.fetchPage()
       },
     },
   },
@@ -1237,6 +1221,36 @@ export default {
       updatePageLayout: 'pageLayout/update',
       deletePageLayout: 'pageLayout/delete',
     }),
+
+    fetchPage (pageID = this.pageID) {
+      this.loading = true
+      this.processing = true
+
+      if (pageID === NoID) {
+        this.$router.push({ name: 'admin.pages' })
+        this.toastErrorHandler(this.$t('notification:page.loadFailed'))({ message: this.$t('notification:page.notFound') })
+        return
+      }
+
+      const { namespaceID } = this.namespace
+
+      this.findPageByID({ namespaceID, pageID, force: true }).then((page) => {
+        this.page = page.clone()
+        this.initialPageState = page.clone()
+
+        return this.fetchAttachments()
+      }).then(this.fetchLayouts)
+        .catch(e => {
+          this.toastErrorHandler(this.$t('notification:page.loadFailed'))(e)
+          this.$router.push({ name: 'admin.pages' })
+        })
+        .finally(() => {
+          setTimeout(() => {
+            this.loading = false
+            this.processing = false
+          }, 300)
+        })
+    },
 
     async fetchLayouts () {
       const { namespaceID } = this.namespace
@@ -1333,13 +1347,11 @@ export default {
     },
 
     handleSave ({ closeOnSuccess = false } = {}) {
-      const toggleProcessing = () => {
-        this.processing = !this.processing
-
+      const toggleProcessing = (value = true) => {
         if (closeOnSuccess) {
-          this.processingSaveAndClose = !this.processingSaveAndClose
+          this.processingSaveAndClose = value
         } else {
-          this.processingSave = !this.processingSave
+          this.processingSave = value
         }
       }
 
@@ -1349,7 +1361,9 @@ export default {
        */
       const resourceTranslationLanguage = this.currentLanguage
 
+      this.processing = true
       toggleProcessing()
+
       const { namespaceID } = this.namespace
 
       return this.saveIcon().then(icon => {
@@ -1358,6 +1372,7 @@ export default {
       }).then(page => {
         this.page = page.clone()
         this.initialPageState = page.clone()
+
         return this.handleSaveLayouts()
       }).then(this.handlePageLayoutReorder)
         .then(() => {
@@ -1369,7 +1384,10 @@ export default {
             this.$router.push(this.previousPage || { name: 'admin.pages' })
           }
         }).finally(() => {
-          toggleProcessing()
+          setTimeout(() => {
+            this.processing = false
+            toggleProcessing(false)
+          }, 300)
         }).catch(this.toastErrorHandler(this.$t('notification:page.saveFailed')))
     },
 
@@ -1508,15 +1526,17 @@ export default {
       return handle.handleState(layoutHandle)
     },
 
-    checkUnsavedComposePage (next) {
-      if (!this.page.deletedAt) {
+    checkUnsavedChanges (next) {
+      const { pageID = NoID } = this.page
+
+      if (pageID === NoID) {
+        return next(true)
+      } else {
         const layoutsStateChange = this.layouts.some((layout) => layout.meta.updated)
         const pageStateChange = !isEqual(this.page, this.initialPageState)
 
-        return next((layoutsStateChange || pageStateChange) ? window.confirm(this.$t('unsavedChanges')) : true)
+        return next((layoutsStateChange || pageStateChange) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
-
-      next()
     },
 
     setDefaultValues () {

@@ -859,7 +859,6 @@ tabs:
   displayTitle: Display Options
   preview: Live example
   newBlockModal: Add new block
-  unsavedChanges: Unsaved Changes
   placeholder:
     block: Select a block to tab
   style:

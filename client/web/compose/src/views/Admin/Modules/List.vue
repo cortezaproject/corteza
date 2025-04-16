@@ -314,6 +314,7 @@ export default {
       if (!(canUpdateModule || canDeleteModule)) {
         return
       }
+
       this.$router.push({
         name: 'admin.modules.edit',
         params: { moduleID },

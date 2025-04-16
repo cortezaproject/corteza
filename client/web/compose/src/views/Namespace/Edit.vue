@@ -31,7 +31,7 @@
           data-test-id="button-visit-admin-panel"
           variant="primary"
           class="d-flex align-items-center"
-          :to="{ name: 'admin.modules', params: { slug: namespace.slug } }"
+          :to="{ name: 'admin.modules', params: { slug: namespace.slug || namespace.namespaceID } }"
           style="margin-left:2px;"
         >
           <font-awesome-icon
@@ -627,7 +627,9 @@ export default {
       this.initialNamespaceState = this.namespace.clone()
       this.isApplicationInitialState = this.isApplication
 
-      toggleProcessing()
+      setTimeout(() => {
+        toggleProcessing()
+      }, 300)
 
       // Handle different navigation scenarios after namespace operation
       if (closeOnSuccess) {
@@ -654,7 +656,7 @@ export default {
       let { name, slug } = this.namespace
 
       name = `${name} (${this.$t('cloneSuffix')})`
-      slug = slug ? `${slug}_${this.$t('cloneSuffix')}` : ''
+      slug = ''
 
       return this.cloneNamespace({ ...this.namespace, name, slug }).then(({ namespaceID }) => {
         this.$route.params.namespaceID = namespaceID
@@ -797,7 +799,7 @@ export default {
       const isApplicationState = !(this.isApplication === this.isApplicationInitialState)
       const namespaceAssetsState = !isEqual(this.namespaceAssets, this.namespaceAssetsInitialState)
 
-      return next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('manage.unsavedChanges')) : true)
+      return next((namespaceState || isApplicationState || namespaceAssetsState) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
     },
 
     setDefaultValues () {

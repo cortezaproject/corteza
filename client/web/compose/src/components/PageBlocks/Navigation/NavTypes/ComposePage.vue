@@ -114,7 +114,7 @@ export default {
         .then(({ set: pages }) => {
           this.pageList = pages.map(p => new compose.Page(p)).filter(p => p.moduleID === NoID)
         })
-        .catch(this.toastErrorHandler(this.$t('notification:page.loadFailed')))
+        .catch(this.toastErrorHandler(this.$t('notification:page.listFailed')))
     },
 
     updateLabelValue (pageID) {

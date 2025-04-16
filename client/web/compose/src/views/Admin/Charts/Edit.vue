@@ -5,7 +5,7 @@
     </portal>
 
     <div
-      v-if="!chart"
+      v-if="loading"
       class="d-flex align-items-center justify-content-center h-100"
     >
       <b-spinner />
@@ -442,7 +442,7 @@
   </div>
 </template>
 <script>
-import { isEqual, debounce, cloneDeep } from 'lodash'
+import { isEqual, debounce } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import EditorToolbar from 'corteza-webapp-compose/src/components/Admin/EditorToolbar'
 import { compose, NoID, shared } from '@cortezaproject/corteza-js'
@@ -480,11 +480,11 @@ export default {
   },
 
   beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedChart(next)
+    this.checkUnsavedChanges(next)
   },
 
   beforeRouteLeave (to, from, next) {
-    this.checkUnsavedChart(next)
+    this.checkUnsavedChanges(next)
   },
 
   props: {
@@ -515,6 +515,8 @@ export default {
       processingClone: false,
       processingSaveAndClose: false,
       processingDelete: false,
+
+      loading: false,
 
       editReportIndex: undefined,
 
@@ -689,43 +691,8 @@ export default {
   watch: {
     chartID: {
       immediate: true,
-      handler (chartID) {
-        this.chart = undefined
-        this.initialChartState = undefined
-
-        const { namespaceID } = this.namespace
-
-        if (this.canManageColorSchemes) {
-          this.fetchCustomColorSchemes()
-        }
-
-        if (chartID === NoID) {
-          let c = new compose.Chart({ namespaceID: this.namespace.namespaceID })
-
-          switch (this.category) {
-            case 'gauge':
-              c = new compose.GaugeChart(c)
-              break
-
-            case 'funnel':
-              c = new compose.FunnelChart(c)
-              break
-
-            case 'radar':
-              c = new compose.RadarChart(c)
-              break
-          }
-          this.chart = c
-          this.initialChartState = cloneDeep(c)
-          this.onEditReport(0)
-        } else {
-          this.findChartByID({ namespaceID, chartID, force: true }).then((chart) => {
-            // Make a copy so that we do not change store item by ref
-            this.chart = chartConstructor(chart)
-            this.initialChartState = cloneDeep(chartConstructor(chart))
-            this.onEditReport(0)
-          }).catch(this.toastErrorHandler(this.$t('notification:chart.loadFailed')))
-        }
+      handler () {
+        this.fetchChart()
       },
     },
 
@@ -751,6 +718,56 @@ export default {
       return this.modByID(moduleID).name
     },
 
+    fetchChart (chartID = this.chartID) {
+      const { namespaceID } = this.namespace
+
+      if (this.canManageColorSchemes) {
+        this.fetchCustomColorSchemes()
+      }
+
+      if (chartID === NoID) {
+        let c = new compose.Chart({ namespaceID })
+
+        switch (this.category) {
+          case 'gauge':
+            c = new compose.GaugeChart(c)
+            break
+
+          case 'funnel':
+            c = new compose.FunnelChart(c)
+            break
+
+          case 'radar':
+            c = new compose.RadarChart(c)
+            break
+        }
+
+        this.chart = c
+        this.initialChartState = this.chart.clone()
+
+        this.onEditReport(0)
+      } else {
+        this.loading = true
+        this.processing = true
+
+        this.findChartByID({ namespaceID, chartID, force: true }).then((chart) => {
+          // Make a copy so that we do not change store item by ref
+          this.chart = chartConstructor(chart)
+          this.initialChartState = this.chart.clone()
+
+          this.onEditReport(0)
+        }).catch(e => {
+          this.toastErrorHandler(this.$t('notification:chart.loadFailed'))(e)
+          this.$router.push({ name: 'admin.charts' })
+        }).finally(() => {
+          setTimeout(() => {
+            this.loading = false
+            this.processing = false
+          }, 300)
+        })
+      }
+    },
+
     reporter (r) {
       const nr = { ...r }
 
@@ -768,7 +785,9 @@ export default {
     },
 
     update () {
-      this.$refs.chart.updateChart()
+      if (this.$refs.chart) {
+        this.$refs.chart.updateChart()
+      }
     },
 
     onConfigUpdate: debounce(function () {
@@ -779,32 +798,19 @@ export default {
       this.processing = false
     },
 
-    toggleProcessing ({ closeOnSuccess = false, isClone = false }) {
-      this.processing = !this.processing
-
-      if (closeOnSuccess) {
-        this.processingSaveAndClose = !this.processingSaveAndClose
-      } else if (isClone) {
-        this.processingClone = !this.processingClone
-      } else {
-        this.processingSave = !this.processingSave
-      }
-    },
-
     handleSave ({ chart = this.chart, closeOnSuccess = false, isClone = false } = {}) {
-      const toggleSaveProcessing = () => {
-        this.processing = !this.processing
-
+      const toggleProcessing = (value = true) => {
         if (closeOnSuccess) {
-          this.processingSaveAndClose = !this.processingSaveAndClose
+          this.processingSaveAndClose = value
         } else if (isClone) {
-          this.processingClone = !this.processingClone
+          this.processingClone = value
         } else {
-          this.processingSave = !this.processingSave
+          this.processingSave = value
         }
       }
 
-      toggleSaveProcessing()
+      this.processing = true
+      toggleProcessing()
 
       /**
        * Pass a special tag alongside payload that
@@ -815,34 +821,42 @@ export default {
       const c = Object.assign({}, chart, resourceTranslationLanguage)
 
       if (chart.chartID === NoID) {
-        this.createChart(c).then(({ chartID }) => {
-          this.chart = chartConstructor(chart)
-          this.initialChartState = cloneDeep(chartConstructor(this.chart))
+        this.createChart(c).then(chart => {
+          this.loading = true
 
-          this.toastSuccess(this.$t('notification:chart.saved'))
+          this.chart = chartConstructor(chart)
+          this.initialChartState = this.chart.clone()
+
+          this.toastSuccess(this.$t('notification:chart.created'))
+
+          toggleProcessing(false)
+
           if (closeOnSuccess) {
-            this.redirect()
+            this.$router.push({ name: 'admin.charts' })
           } else {
-            this.$router.push({ name: 'admin.charts.edit', params: { chartID } })
+            this.$router.push({ name: 'admin.charts.edit', params: { chartID: chart.chartID } })
           }
+        }).catch(e => {
+          this.toastErrorHandler(this.$t('notification:chart.createFailed'))(e)
+          this.processing = false
+          toggleProcessing(false)
         })
-          .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
-          .finally(() => {
-            toggleSaveProcessing()
-          })
       } else {
         this.updateChart(c).then((chart) => {
           this.chart = chartConstructor(chart)
-          this.initialChartState = cloneDeep(chartConstructor(chart))
+          this.initialChartState = this.chart.clone()
 
-          this.toastSuccess(this.$t('notification:chart.saved'))
+          this.toastSuccess(this.$t('notification:chart.updated'))
+
           if (closeOnSuccess) {
-            this.redirect()
+            this.$router.push({ name: 'admin.charts' })
           }
-        })
-          .catch(this.toastErrorHandler(this.$t('notification:chart.saveFailed')))
+        }).catch(this.toastErrorHandler(this.$t('notification:chart.updateFailed')))
           .finally(() => {
-            toggleSaveProcessing()
+            this.processing = false
+            setTimeout(() => {
+              toggleProcessing(false)
+            }, 300)
           })
       }
     },
@@ -853,6 +867,7 @@ export default {
 
       this.deleteChart(this.chart).then(() => {
         this.chart.deletedAt = new Date()
+        this.initialChartState = this.chart.clone()
 
         this.toastSuccess(this.$t('notification:chart.deleted'))
         this.$router.push({ name: 'admin.charts' })
@@ -868,13 +883,9 @@ export default {
       const chart = this.chart.clone()
       chart.chartID = NoID
       chart.name = `${this.chart.name} (copy)`
-      chart.handle = this.chart.handle ? `${this.chart.handle}_copy` : ''
+      chart.handle = ''
 
       this.handleSave({ chart, isClone: true })
-    },
-
-    redirect () {
-      this.$router.push(this.previousPage || { name: 'admin.charts' })
     },
 
     onEditReport (i) {
@@ -991,11 +1002,17 @@ export default {
       return value
     },
 
-    checkUnsavedChart (next) {
-      if (!this.chart.deletedAt) {
-        return next(!isEqual(this.chart, this.initialChartState) ? window.confirm(this.$t('notification.unsavedChanges')) : true)
+    checkUnsavedChanges (next) {
+      const { chartID = NoID } = this.chart || {}
+
+      if (chartID === NoID) {
+        return next(window.confirm(this.$t('general:editor.unsavedChanges')))
+      } else {
+        const chartState = this.chart ? this.chart.clone() : {}
+        const initialChartState = this.initialChartState ? this.initialChartState.clone() : {}
+
+        return next(isEqual(chartState, initialChartState) || window.confirm(this.$t('general:editor.unsavedChanges')))
       }
-      next()
     },
   },
 }

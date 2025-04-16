@@ -1,6 +1,7 @@
 automation:
   scriptFailed: Could not execute automation
 chart:
+  created: Chart created
   createFailed: Could not create a chart
   deleteFailed: Could not delete this chart
   deleted: Chart deleted
@@ -15,8 +16,8 @@ chart:
     missingReports: Reports not defined
   loadFailed: Could not load chart
   optionsBuildFailed: Could not build chart options
-  saveFailed: Could not save this chart
-  saved: Chart saved
+  updateFailed: Could not update this chart
+  updated: Chart updated
   unsupportedRenderer: Unsupported renderer
   colorScheme:
     fetch:
@@ -65,9 +66,10 @@ list:
     error: Failed to load resource list
 module:
   created: Module created
-  createFailed: Could not create a module
+  createFailed: Could not create module
   deleteFailed: Could not delete this module
   deleted: Module deleted
+  loadFailed: Could not load module
   saveFailed: Could not save this module
   saved: Module saved
   columns:
@@ -100,17 +102,20 @@ namespace:
   cloneFailed: Could not clone this namespace
   imported: Namespace imported
   importFailed: Namespace failed to import
+  loadFailed: Could not load namespace
 page:
   block:
     calendar:
       eventFetchFailed: Could not fetch  list of events
+  notFound: Page not found
   createFailed: Could not create a page
   cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page
   iconFetchFailed: Could not fetch list of icons
   iconDeleteFailed:  Could not delete selected icon
   iconDeleteSuccess: Icon deleted
-  loadFailed: Could not load the page tree
+  loadFailed: Could not load page
+  listFailed: Could not load page list
   noPages: No pages found
   saveFailed: Could not save this page
   saveFailedRequired: Could not save this page, all required module fields must be present

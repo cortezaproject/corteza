@@ -86,7 +86,7 @@
           >
             <div
               v-if="unsavedBlocks.has(block.blockID !== '0' ? block.blockID : block.meta.tempID)"
-              v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.unsavedChanges'), container: '#body' }"
+              v-b-tooltip.noninteractive.hover="{ title: $t('general:label.unsavedChanges'), container: '#body' }"
               class="btn border-0"
             >
               <font-awesome-icon
@@ -1094,7 +1094,7 @@ export default {
     checkUnsavedBlocks (next, to = { query: {} }) {
       // Check if additional query params will be appended to url
       const queryParams = Object.keys(to.query).filter(key => key !== 'layoutID').length > 0
-      next(!this.unsavedBlocks.size || queryParams || window.confirm(this.$t('build.unsavedChanges')))
+      next(!this.unsavedBlocks.size || queryParams || window.confirm(this.$t('general:editor.unsavedChanges')))
     },
 
     async setLayout (layoutID, processing = true) {

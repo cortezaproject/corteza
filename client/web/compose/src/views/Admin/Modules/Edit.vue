@@ -3,6 +3,7 @@
     <portal to="topbar-title">
       {{ title }}
     </portal>
+
     <portal to="topbar-tools">
       <b-button-group
         v-if="isEdit"
@@ -32,7 +33,7 @@
     </portal>
 
     <div
-      v-if="!module"
+      v-if="loading"
       class="d-flex align-items-center justify-content-center h-100"
     >
       <b-spinner />
@@ -216,6 +217,7 @@
                     @add-item="handleNewField"
                   >
                     <b-table-simple
+                      v-if="module.fields.length > 0"
                       data-test-id="table-module-fields"
                       borderless
                       responsive
@@ -224,7 +226,6 @@
                       <thead>
                         <tr>
                           <th
-                            v-if="module.fields.length > 0"
                             scope="col"
                           />
                           <th
@@ -556,11 +557,11 @@ export default {
   },
 
   beforeRouteUpdate (to, from, next) {
-    this.checkUnsavedModule(next)
+    this.checkUnsavedChanges(next)
   },
 
   beforeRouteLeave (to, from, next) {
-    this.checkUnsavedModule(next)
+    this.checkUnsavedChanges(next)
   },
 
   props: {
@@ -578,6 +579,8 @@ export default {
 
   data () {
     return {
+      loading: false,
+
       activeTab: 0,
 
       connection: undefined,
@@ -727,10 +730,10 @@ export default {
   watch: {
     moduleID: {
       immediate: true,
-      async handler (moduleID) {
-        await this.fetchModule(moduleID)
-        this.fetchSensitivityLevels()
-        this.checkAlterations()
+      handler () {
+        this.fetchModule().then(() => {
+          this.checkAlterations()
+        })
       },
     },
 
@@ -739,6 +742,10 @@ export default {
         this.fetchConnection(connectionID)
       },
     },
+  },
+
+  mounted () {
+    this.fetchSensitivityLevels()
   },
 
   beforeDestroy () {
@@ -755,19 +762,6 @@ export default {
       deleteModule: 'module/delete',
       deletePage: 'page/delete',
     }),
-
-    checkUnsavedModule (next) {
-      if (this.isNew) {
-        next(true)
-      } else if (!this.module.deletedAt) {
-        const moduleState = this.module ? this.module.clone() : {}
-        const initialModuleState = this.initialModuleState ? this.initialModuleState.clone() : {}
-
-        next(!isEqual(moduleState, initialModuleState) ? window.confirm(this.$t('general.unsavedChanges')) : true)
-      } else {
-        next(true)
-      }
-    },
 
     handleNewField () {
       this.module.fields.push(new compose.ModuleFieldString())
@@ -804,18 +798,17 @@ export default {
        */
       const resourceTranslationLanguage = this.currentLanguage
 
-      const toggleProcessing = () => {
-        this.processing = !this.processing
-
+      const toggleProcessing = (value = true) => {
         if (closeOnSuccess) {
-          this.processingSaveAndClose = !this.processingSaveAndClose
+          this.processingSaveAndClose = value
         } else if (isClone) {
-          this.processingClone = !this.processingClone
+          this.processingClone = value
         } else {
-          this.processingSave = !this.processingSave
+          this.processingSave = value
         }
       }
 
+      this.processing = true
       toggleProcessing()
 
       if (module.moduleID === NoID) {
@@ -845,44 +838,51 @@ export default {
             module = await this.updateModule({ ...module, fields })
           }
 
+          this.loading = true
+
           this.module = new compose.Module({ ...module }, this.namespace)
           this.initialModuleState = this.module.clone()
 
           this.toastSuccess(this.$t('notification:module.created'))
+
+          toggleProcessing(false)
+
           if (closeOnSuccess) {
-            this.$router.push(this.previousPage || { name: 'admin.modules' })
+            this.$router.push({ name: 'admin.modules' })
           } else {
             this.$router.push({ name: 'admin.modules.edit', params: { moduleID: this.module.moduleID } })
           }
-        }).catch(this.toastErrorHandler(this.$t('notification:module.saveFailed')))
-          .finally(() => {
-            toggleProcessing()
-          })
+        }).catch(e => {
+          this.toastErrorHandler(this.$t('notification:module.createFailed'))(e)
+          this.processing = false
+          toggleProcessing(false)
+        })
       } else {
         this.updateModule({ ...module, resourceTranslationLanguage }).then(module => {
           this.module = new compose.Module({ ...module }, this.namespace)
           this.initialModuleState = this.module.clone()
 
           this.toastSuccess(this.$t('notification:module.saved'))
+
           if (closeOnSuccess) {
-            this.$router.push(this.previousPage || { name: 'admin.modules' })
+            this.$router.push({ name: 'admin.modules' })
           }
         }).catch(this.toastErrorHandler(this.$t('notification:module.saveFailed')))
           .finally(() => {
-            toggleProcessing()
+            setTimeout(() => {
+              this.processing = false
+              toggleProcessing(false)
+            }, 300)
           })
       }
     },
 
-    async onDalAlterationsHide () {
-      await this.fetchModule(this.moduleID)
+    onDalAlterationsHide () {
+      this.fetchModule()
       this.dalSchemaAlterations.batchID = undefined
     },
 
     async fetchModule (moduleID = this.moduleID) {
-      this.module = undefined
-      this.initialModuleState = undefined
-
       /**
        * Every time module changes we switch to the 1st tab
        */
@@ -890,10 +890,14 @@ export default {
 
       if (moduleID === NoID) {
         this.module = new compose.Module(
-          { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: this.$t('general.placeholder.sample') })] },
+          { fields: [new compose.ModuleFieldString({ fieldID: NoID, name: '' })] },
           this.namespace,
         )
+        this.initialModuleState = this.module.clone()
       } else {
+        this.loading = true
+        this.processing = true
+
         const params = {
           // make sure module is loaded from the API every time!
           force: true,
@@ -901,9 +905,10 @@ export default {
           moduleID,
         }
 
-        await this.findModuleByID(params).then((module) => {
+        return this.findModuleByID(params).then((module) => {
           // Make a copy so that we do not change store item by ref
           this.module = module.clone()
+          this.initialModuleState = this.module.clone()
 
           const { moduleID, namespaceID, issues = [] } = this.module
           if (issues.length > 0) {
@@ -918,12 +923,18 @@ export default {
 
           this.abortableRequests.push(cancel)
 
-          response()
+          return response()
             .then(({ set }) => { this.hasRecords = (set.length > 0) })
+        }).catch(e => {
+          this.toastErrorHandler(this.$t('notification:module.loadFailed'))(e)
+          this.$router.push({ name: 'admin.modules' })
+        }).finally(() => {
+          setTimeout(() => {
+            this.loading = false
+            this.processing = false
+          }, 300)
         })
       }
-
-      this.initialModuleState = this.module.clone()
     },
 
     checkAlterations () {
@@ -955,13 +966,14 @@ export default {
         if (moduleRecordPage) {
           return this.deletePage({ ...moduleRecordPage, strategy: 'rebase' })
         }
-      })
-        .catch(this.toastErrorHandler(this.$t('notification:module.deleteFailed')))
+      }).then(() => {
+        this.initialModuleState = this.module.clone()
+        this.toastSuccess(this.$t('notification:module.deleted'))
+        this.$router.push({ name: 'admin.modules' })
+      }).catch(this.toastErrorHandler(this.$t('notification:module.deleteFailed')))
         .finally(() => {
-          this.toastSuccess(this.$t('notification:module.deleted'))
           this.processing = false
           this.processingDelete = false
-          this.$router.push({ name: 'admin.modules' })
         })
     },
 
@@ -969,7 +981,7 @@ export default {
       const module = this.module.clone()
       module.moduleID = NoID
       module.name = `${this.module.name} (copy)`
-      module.handle = this.module.handle ? `${this.module.handle}_copy` : ''
+      module.handle = ''
 
       this.handleSave({ module, isClone: true })
     },
@@ -999,6 +1011,19 @@ export default {
         .finally(() => {
           this.processing = false
         })
+    },
+
+    checkUnsavedChanges (next) {
+      const { moduleID = NoID } = this.module || {}
+
+      if (moduleID === NoID) {
+        return next(window.confirm(this.$t('general:editor.unsavedChanges')))
+      } else {
+        const moduleState = this.module ? this.module.clone() : {}
+        const initialModuleState = this.initialModuleState ? this.initialModuleState.clone() : {}
+
+        return next(isEqual(moduleState, initialModuleState) || window.confirm(this.$t('general:editor.unsavedChanges')))
+      }
     },
 
     setDefaultValues () {
