@@ -25,7 +25,7 @@ env:
 jobs:
   lib-test:
     name: "Library test (${{ matrix.lib }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         lib: [ "js", "vue" ]
@@ -50,7 +50,7 @@ jobs:
 
   client-web-test:
     name: "Web client test (${{ matrix.app }})"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix: { app: [ admin, compose, discovery, privacy, reporter, one, workflow ] }
     steps:
@@ -76,7 +76,7 @@ jobs:
 
   server-test:
     name: "Server tests"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       GOFLAGS: -mod=readonly
     steps:
@@ -99,7 +99,7 @@ jobs:
   notify:
     if: failure()
     name: "Send matrix testing notification"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: [ server-test, client-web-test, lib-test ]
     steps:
       - name: "Send message via Matrix on failed tests"
