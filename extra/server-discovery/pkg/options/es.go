@@ -22,7 +22,7 @@ func ES() (o *EsOpt, err error) {
 	return o, func() error {
 		o.Username = options.EnvString("ES_USERNAME", "")
 		o.Password = options.EnvString("ES_PASSWORD", "")
-		o.Secure = options.EnvBool("ES_SECURE", false)
+		o.Secure = options.EnvBool("ES_SECURE", true)
 
 		o.EnableRetryOnTimeout = options.EnvBool("ES_ENABLE_RETRY_ON_TIMEOUT", true)
 		o.MaxRetries = options.EnvInt("ES_MAX_RETRIES", 5)
