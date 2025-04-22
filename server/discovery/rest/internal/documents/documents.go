@@ -1,9 +1,10 @@
 package documents
 
 import (
+	"time"
+
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"time"
 )
 
 type (
@@ -47,7 +48,7 @@ type (
 		Updated      *docPartialChange `json:"updated,omitempty"`
 		Created      *docPartialChange `json:"created,omitempty"`
 		Deleted      *docPartialChange `json:"deleted,omitempty"`
-		Security     []docSecurity       `json:"security"`
+		Security     []docSecurity     `json:"security"`
 	}
 
 	docComposeNamespace struct {
@@ -62,7 +63,7 @@ type (
 		Updated  *docPartialChange `json:"updated,omitempty"`
 		Created  *docPartialChange `json:"created,omitempty"`
 		Deleted  *docPartialChange `json:"deleted,omitempty"`
-		Security []docSecurity       `json:"security"`
+		Security []docSecurity     `json:"security"`
 
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
@@ -90,7 +91,7 @@ type (
 		Updated      *docPartialChange               `json:"updated,omitempty"`
 		Created      *docPartialChange               `json:"created,omitempty"`
 		Deleted      *docPartialChange               `json:"deleted,omitempty"`
-		Security     []docSecurity                     `json:"security"`
+		Security     []docSecurity                   `json:"security"`
 
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
@@ -118,7 +119,7 @@ type (
 		Updated      *docPartialChange        `json:"updated,omitempty"`
 		Created      *docPartialChange        `json:"created,omitempty"`
 		Deleted      *docPartialChange        `json:"deleted,omitempty"`
-		Security     []docSecurity              `json:"security"`
+		Security     []docSecurity            `json:"security"`
 
 		// Aggregation update
 		Namespace docPartialComposeNamespace `json:"namespace"`
