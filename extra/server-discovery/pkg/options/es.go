@@ -1,8 +1,9 @@
 package options
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/options"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/options"
 )
 
 type (
@@ -10,6 +11,7 @@ type (
 		Addresses            []string `env:"ES_ADDRESS"`
 		Username             string   `env:"ES_USERNAME"`
 		Password             string   `env:"ES_PASSWORD"`
+		CertFile             string   `env:"ES_CERT_FILE"`
 		Secure               bool     `env:"ES_SECURE"`
 		EnableRetryOnTimeout bool     `env:"ES_ENABLE_RETRY_ON_TIMEOUT"`
 		MaxRetries           int      `env:"ES_MAX_RETRIES"`
@@ -23,6 +25,7 @@ func ES() (o *EsOpt, err error) {
 		o.Username = options.EnvString("ES_USERNAME", "")
 		o.Password = options.EnvString("ES_PASSWORD", "")
 		o.Secure = options.EnvBool("ES_SECURE", true)
+		o.CertFile = options.EnvString("ES_CERT_FILE", "")
 
 		o.EnableRetryOnTimeout = options.EnvBool("ES_ENABLE_RETRY_ON_TIMEOUT", true)
 		o.MaxRetries = options.EnvInt("ES_MAX_RETRIES", 5)
