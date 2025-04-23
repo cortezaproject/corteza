@@ -128,13 +128,13 @@ export default class Automation {
 
   workflowListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -186,13 +186,13 @@ export default class Automation {
 
   workflowCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -252,13 +252,13 @@ export default class Automation {
 
   workflowUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -290,13 +290,13 @@ export default class Automation {
 
   workflowReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -328,13 +328,13 @@ export default class Automation {
 
   workflowDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -366,13 +366,13 @@ export default class Automation {
 
   workflowUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -412,13 +412,13 @@ export default class Automation {
 
   workflowTestCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowTest(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowTest(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -464,13 +464,13 @@ export default class Automation {
 
   workflowExecCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.workflowExec(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.workflowExec(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -520,13 +520,13 @@ export default class Automation {
 
   triggerListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.triggerList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.triggerList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -585,13 +585,13 @@ export default class Automation {
 
   triggerCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.triggerCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.triggerCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -658,13 +658,13 @@ export default class Automation {
 
   triggerUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.triggerUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.triggerUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -696,13 +696,13 @@ export default class Automation {
 
   triggerReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.triggerRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.triggerRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -734,13 +734,13 @@ export default class Automation {
 
   triggerDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.triggerDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.triggerDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -772,13 +772,13 @@ export default class Automation {
 
   triggerUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.triggerUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.triggerUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -828,13 +828,13 @@ export default class Automation {
 
   sessionListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.sessionList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.sessionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -863,13 +863,13 @@ export default class Automation {
 
   sessionReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.sessionRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.sessionRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -901,13 +901,13 @@ export default class Automation {
 
   sessionCancelCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.sessionCancel(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.sessionCancel(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -932,13 +932,13 @@ export default class Automation {
 
   sessionListPromptsCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.sessionListPrompts(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.sessionListPrompts(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -974,13 +974,13 @@ export default class Automation {
 
   sessionResumeStateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.sessionResumeState(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.sessionResumeState(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1006,13 +1006,13 @@ export default class Automation {
 
   functionListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.functionList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.functionList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1034,13 +1034,13 @@ export default class Automation {
 
   typeListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.typeList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.typeList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1062,13 +1062,13 @@ export default class Automation {
 
   eventTypesListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.eventTypesList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.eventTypesList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1090,13 +1090,13 @@ export default class Automation {
 
   permissionsListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1123,13 +1123,13 @@ export default class Automation {
 
   permissionsEffectiveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsEffective(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsEffective(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1160,13 +1160,13 @@ export default class Automation {
 
   permissionsTraceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsTrace(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsTrace(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1199,13 +1199,13 @@ export default class Automation {
 
   permissionsReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1237,13 +1237,13 @@ export default class Automation {
 
   permissionsDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1281,13 +1281,13 @@ export default class Automation {
 
   permissionsUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 

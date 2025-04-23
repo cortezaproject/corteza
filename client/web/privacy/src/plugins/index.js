@@ -1,8 +1,9 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+import VueNativeSock from 'vue-native-websocket'
 
-import { plugins } from '@cortezaproject/corteza-vue'
+import { plugins, websocket } from '@cortezaproject/corteza-vue'
 
 Vue.use(Router)
 
@@ -21,3 +22,4 @@ Vue.use(plugins.CortezaAPI('system'))
 Vue.use(plugins.CortezaAPI('compose'))
 
 Vue.use(plugins.Settings, { api: Vue.prototype.$SystemAPI })
+Vue.use(VueNativeSock, websocket.endpoint(), websocket.config)

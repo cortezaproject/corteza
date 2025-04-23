@@ -1,0 +1,25 @@
+title: Notifications
+empty: No notifications
+emptyDescription: You will see notifications here when they arrive
+notifications: Notifications
+markAllAsRead: Mark all as read
+markAsRead: Mark as read
+delete: Delete
+refresh: Refresh notifications
+all: All
+unread: Unread
+read: Read
+noNotificationsInTab: No notifications in this tab
+noUnreadNotifications: You have no unread notifications
+success: Success
+allMarkedAsRead: All notifications have been marked as read
+notificationDeleted: Notification has been deleted
+loadMore: Load More
+viewRecord: View Record
+recordRedirectError: Error navigating to record
+mute: Mute notifications
+unmute: Unmute notifications
+muted: Notifications muted
+unmuted: Notifications unmuted
+markAllAsReadError: Error marking all notifications as read
+notificationDeletedError: Error deleting notification

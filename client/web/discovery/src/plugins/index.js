@@ -1,10 +1,24 @@
 import Vue from 'vue'
+import Vuex from 'vuex'
 import Router from 'vue-router'
-import { plugins } from '@cortezaproject/corteza-vue'
+import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
+import VueNativeSock from 'vue-native-websocket'
+import { plugins, websocket } from '@cortezaproject/corteza-vue'
 import DiscoveryAPI from './searcher.js'
 
+Vue.use(Vuex)
 Vue.use(Router)
+Vue.use(BootstrapVue, {
+  BToast: {
+    // see https://bootstrap-vue.org/docs/components/toast#comp-ref-b-toast-props
+    autoHideDelay: 7000,
+    toaster: 'b-toaster-bottom-right',
+  },
+})
+Vue.use(BootstrapVueIcons)
 Vue.use(plugins.Auth(), { app: 'discovery' })
 Vue.use(plugins.CortezaAPI('system'))
+Vue.use(plugins.CortezaAPI('compose'))
 Vue.use(plugins.Settings, { api: Vue.prototype.$SystemAPI })
 Vue.use(DiscoveryAPI())
+Vue.use(VueNativeSock, websocket.endpoint(), websocket.config)

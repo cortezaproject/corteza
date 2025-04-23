@@ -13,6 +13,7 @@ import {
   faCloudDownloadAlt,
   faTimes,
   faCheck,
+  faCheckDouble,
   faBold,
   faItalic,
   faUnderline,
@@ -67,6 +68,8 @@ import {
   faTools,
   faTable,
   faCamera,
+  faBellSlash,
+  faBell as faBellSolid,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -117,6 +120,7 @@ library.add(
   faCloudDownloadAlt,
   faTimes,
   faCheck,
+  faCheckDouble,
   faBell,
   faClock,
   faSquare,
@@ -182,4 +186,7 @@ library.add(
   faExclamationCircle,
   faTable,
   faCamera,
+  faBell,
+  faBellSolid,
+  faBellSlash,
 )

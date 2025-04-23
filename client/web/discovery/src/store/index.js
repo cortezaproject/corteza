@@ -1,39 +1,21 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
+import discovery from './discovery'
+import { store as cvStore } from '@cortezaproject/corteza-vue'
+
 Vue.use(Vuex)
 
 export default new Vuex.Store({
-  state: {
-    processing: false,
-    types: [],
-    aggregations: [],
-    modules: [],
-    namespaces: [],
-  },
-  mutations: {
-    updateProcessing (state, value = false) {
-      state.processing = value
-    },
+  strict: process.env.NODE_ENV !== 'production',
 
-    updateTypes (state, types = []) {
-      state.types = types
-    },
-
-    updateAggregations (state, aggs = []) {
-      state.aggregations = aggs
-    },
-
-    updateModules (state, modules = []) {
-      state.modules = modules
-    },
-
-    updateNamespaces (state, namespaces = []) {
-      state.namespaces = namespaces
-    },
-  },
-  actions: {
-  },
   modules: {
+    discovery,
+    notifications: {
+      namespaced: true,
+      ...cvStore.notifications({
+        api: Vue.prototype.$SystemAPI,
+      }),
+    },
   },
 })

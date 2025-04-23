@@ -7,6 +7,7 @@ import {
   faChevronRight,
   faThLarge,
   faCheck,
+  faCheckDouble,
   faTimes,
   faAngleUp,
   faAngleDown,
@@ -15,11 +16,16 @@ import {
   faAngleDoubleLeft,
   faAngleDoubleRight,
   faSearch,
+  faBellSlash,
+  faBell as faBellSolid,
+  faEllipsisV,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
   faUser,
   faQuestionCircle,
+  faBell,
+  faTrashAlt,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -32,6 +38,7 @@ library.add(
   faChevronRight,
   faGripHorizontal,
   faCheck,
+  faCheckDouble,
   faTimes,
   faAngleLeft,
   faAngleRight,
@@ -40,4 +47,9 @@ library.add(
   faSearch,
   faAngleUp,
   faAngleDown,
+  faBell,
+  faBellSolid,
+  faBellSlash,
+  faEllipsisV,
+  faTrashAlt,
 )

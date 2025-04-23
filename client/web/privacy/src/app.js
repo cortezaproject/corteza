@@ -6,9 +6,11 @@ import './console-splash'
 import './plugins'
 import './mixins'
 import './components'
+import './filters'
+
 import store from './store'
 
-import { i18n } from '@cortezaproject/corteza-vue'
+import { i18n, websocket } from '@cortezaproject/corteza-vue'
 
 import router from './router'
 
@@ -29,7 +31,9 @@ export default (options = {}) => {
         this.i18nLoaded = true
       })
 
-      this.$auth.handle().then(({ accessTokenFn, user }) => {
+      this.websocket()
+
+      return this.$auth.vue(this).handle().then(async ({ user }) => {
         if (user.meta.preferredLanguage) {
           // After user is authenticated, get his preferred language
           // and instruct i18next to change it
@@ -43,6 +47,9 @@ export default (options = {}) => {
 
         // Load effective permissions
         this.$store.dispatch('rbac/load')
+
+        // Initialize notifications
+        this.$store.dispatch('notifications/fetchNotifications')
 
         this.$Settings.init({ api: this.$SystemAPI }).then(() => {
           this.loaded = true
@@ -72,6 +79,42 @@ export default (options = {}) => {
         })
     },
 
+    methods: {
+      /**
+       * Registers event listener for websocket messages and
+       * routes them depending on their type
+       */
+      websocket () {
+        // cross-link auth & websocket so that ws can use the right access token
+        websocket.init(this)
+
+        // register event listener for messages
+        this.$on('websocket-message', ({ data }) => {
+          const msg = JSON.parse(data)
+          switch (msg['@type']) {
+            case 'notification':
+              this.$store.dispatch('notifications/addNotification', msg['@value'])
+              break
+
+            case 'notification.read':
+              this.$store.dispatch('notifications/updateReadNotification', msg['@value'])
+              break
+
+            case 'notification.read.all':
+              this.$store.dispatch('notifications/updateAllReadNotifications', msg['@value'])
+              break
+
+            case 'notification.delete':
+              this.$store.dispatch('notifications/removeNotification', msg['@value'])
+              break
+
+            case 'error':
+              this.toastDanger('Websocket message with error', msg['@value'])
+          }
+        })
+      },
+    },
+
     router,
     store,
     i18n: i18n(Vue,
@@ -83,6 +126,7 @@ export default (options = {}) => {
       'module-records',
       'navigation',
       'notification',
+      'notifications',
       'request',
       'sensitive-data',
     ),

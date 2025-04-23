@@ -10034,6 +10034,11 @@ vue-loader@^17.0.0:
     hash-sum "^2.0.0"
     watchpack "^2.4.0"
 
+vue-native-websocket@^2.0.15:
+  version "2.0.15"
+  resolved "https://registry.yarnpkg.com/vue-native-websocket/-/vue-native-websocket-2.0.15.tgz#e94af2bb7f54beeaac5281d953751d2858b76964"
+  integrity sha512-i3UvRL99rY8ytV0VJzcWDwY3fRPoeh2fGYvB9862JocEQOx/oCw/VtPIUwP4tSzmzJvJZNkvP71wfhfS1sVhxQ==
+
 vue-router@3.1.5:
   version "3.1.5"
   resolved "https://registry.yarnpkg.com/vue-router/-/vue-router-3.1.5.tgz#ff29b8a1e1306c526b52d4dc0532109f16c41231"

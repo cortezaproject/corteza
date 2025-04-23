@@ -13,7 +13,7 @@
       <slot name="tools" />
     </div>
 
-    <div class="d-flex align-items-center ml-auto">
+    <div class="d-flex align-items-center ml-auto gap-1">
       <b-button
         v-if="!hideAppSelector && !settings.hideAppSelector"
         data-test-id="app-selector"
@@ -24,6 +24,12 @@
         {{ labels.appMenu }}
       </b-button>
 
+      <slot name="right-tools" />
+
+      <c-notification-button
+        v-if="!settings.hideNotifications"
+      />
+
       <b-dropdown
         v-if="!settings.hideHelp"
         data-test-id="dropdown-helper"
@@ -33,7 +39,7 @@
         menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
         right
         no-caret
-        class="nav-icon mx-1 text-sm-nowrap"
+        class="nav-icon text-sm-nowrap"
       >
         <template #button-content>
           <div
@@ -209,10 +215,14 @@
 <script>
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
+import CNotificationButton from '../notifications/CNotificationButton.vue'
 
 library.add(faMoon, faSun)
 
 export default {
+  components: {
+    CNotificationButton,
+  },
 
   props: {
     sidebarPinned: {

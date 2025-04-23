@@ -6,6 +6,8 @@ import './console-splash'
 import './plugins'
 import './mixins'
 import './components'
+import './filters'
+
 import store from './store'
 import router from './router'
 
@@ -27,6 +29,8 @@ export default (options = {}) => {
         this.i18nLoaded = true
       })
 
+      this.websocket()
+
       return this.$auth.vue(this).handle().then(({ user }) => {
         // switch the page directionality on body based on language
         document.body.setAttribute('dir', this.textDirectionality(user.meta.preferredLanguage))
@@ -44,9 +48,10 @@ export default (options = {}) => {
 
         this.$store.dispatch('wfPrompts/update')
 
-        return this.$Settings.init({ api: this.$SystemAPI }).finally(() => {
-          this.websocket()
+        // Initialize notifications
+        this.$store.dispatch('notifications/fetchNotifications')
 
+        this.$Settings.init({ api: this.$SystemAPI }).finally(() => {
           this.loaded = true
 
           // This bit removes code from the query params
@@ -95,6 +100,22 @@ export default (options = {}) => {
               this.$store.dispatch('wfPrompts/clear', msg['@value'])
               break
 
+            case 'notification':
+              this.$store.dispatch('notifications/addNotification', msg['@value'])
+              break
+
+            case 'notification.read':
+              this.$store.dispatch('notifications/updateReadNotification', msg['@value'])
+              break
+
+            case 'notification.read.all':
+              this.$store.dispatch('notifications/updateAllReadNotifications', msg['@value'])
+              break
+
+            case 'notification.delete':
+              this.$store.dispatch('notifications/removeNotification', msg['@value'])
+              break
+
             case 'error':
               this.toastDanger('Websocket message with error', msg['@value'])
           }
@@ -109,6 +130,7 @@ export default (options = {}) => {
       'app',
       'layout',
       'navigation',
+      'notifications',
     ),
 
     // Any additional options we want to merge

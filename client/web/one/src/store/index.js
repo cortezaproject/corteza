@@ -17,6 +17,12 @@ const store = new Vuex.Store({
         webapp: 'one',
       }),
     },
+    notifications: {
+      namespaced: true,
+      ...cvStore.notifications({
+        api: Vue.prototype.$SystemAPI,
+      }),
+    },
   },
 })
 

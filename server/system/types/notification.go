@@ -9,6 +9,8 @@ import (
 )
 
 type (
+	OpenModeType string
+
 	Notification struct {
 		ID uint64 `json:"notificationID,string"`
 
@@ -53,14 +55,20 @@ type (
 
 	// RecordNotificationConfig defines the structure for a record notification
 	RecordNotificationConfig struct {
-		Title       string `json:"title"`
-		Description string `json:"description"`
-		ModuleID    uint64 `json:"moduleID,string"`
-		NamespaceID uint64 `json:"namespaceID,string"`
-		RecordID    uint64 `json:"recordID,string"`
-		OpenMode    string `json:"openMode,omitempty"` // "modal", "newTab", or "sameTab" (default)
-		Edit        bool   `json:"edit,omitempty"`     // Whether to open the record in edit mode
+		Title       string       `json:"title"`
+		Description string       `json:"description"`
+		ModuleID    uint64       `json:"moduleID,string"`
+		NamespaceID uint64       `json:"namespaceID,string"`
+		RecordID    uint64       `json:"recordID,string"`
+		OpenMode    OpenModeType `json:"openMode,omitempty"`
+		Edit        bool         `json:"edit,omitempty"`
 	}
+)
+
+const (
+	OpenModeModal   OpenModeType = "modal"
+	OpenModeNewTab  OpenModeType = "newTab"
+	OpenModeSameTab OpenModeType = "sameTab"
 )
 
 const (

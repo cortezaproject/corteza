@@ -9,7 +9,7 @@ import './mixins'
 import './components'
 import store from './store'
 
-import { i18n } from '@cortezaproject/corteza-vue'
+import { i18n, websocket } from '@cortezaproject/corteza-vue'
 
 import router from './router'
 
@@ -30,7 +30,9 @@ export default (options = {}) => {
         this.i18nLoaded = true
       })
 
-      this.$auth.handle().then(({ accessTokenFn, user }) => {
+      this.websocket()
+
+      return this.$auth.vue(this).handle().then(async ({ user }) => {
         if (user.meta.preferredLanguage) {
           // After user is authenticated, get his preferred language
           // and instruct i18next to change it
@@ -52,7 +54,10 @@ export default (options = {}) => {
         // Load effective permissions
         this.$store.dispatch('rbac/load')
 
-        this.$Settings.init({ api: this.$SystemAPI }).then(() => {
+        // Initialize notifications
+        this.$store.dispatch('notifications/fetchNotifications')
+
+        this.$Settings.init({ api: this.$SystemAPI }).finally(() => {
           this.loaded = true
 
           // This bit removes code from the query params
@@ -67,17 +72,52 @@ export default (options = {}) => {
             window.location.replace(url.toString())
           }
         })
-      })
-        .catch((err) => {
-          if (err instanceof Error && err.message === 'Unauthenticated') {
+      }).catch((err) => {
+        if (err instanceof Error && err.message === 'Unauthenticated') {
           // user not logged-in,
           // start with authentication flow
-            this.$auth.startAuthenticationFlow()
-            return
-          }
+          this.$auth.startAuthenticationFlow()
+          return
+        }
 
-          throw err
+        throw err
+      })
+    },
+
+    methods: {
+      /**
+       * Registers event listener for websocket messages and
+       * routes them depending on their type
+       */
+      websocket () {
+        // cross-link auth & websocket so that ws can use the right access token
+        websocket.init(this)
+
+        // register event listener for messages
+        this.$on('websocket-message', ({ data }) => {
+          const msg = JSON.parse(data)
+          switch (msg['@type']) {
+            case 'notification':
+              this.$store.dispatch('notifications/addNotification', msg['@value'])
+              break
+
+            case 'notification.read':
+              this.$store.dispatch('notifications/updateReadNotification', msg['@value'])
+              break
+
+            case 'notification.read.all':
+              this.$store.dispatch('notifications/updateAllReadNotifications', msg['@value'])
+              break
+
+            case 'notification.delete':
+              this.$store.dispatch('notifications/removeNotification', msg['@value'])
+              break
+
+            case 'error':
+              this.toastDanger('Websocket message with error', msg['@value'])
+          }
         })
+      },
     },
 
     router,
@@ -93,6 +133,7 @@ export default (options = {}) => {
       'list',
       'navigation',
       'notification',
+      'notifications',
       'permissions',
       'scenarios',
       'sidebar',

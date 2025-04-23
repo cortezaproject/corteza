@@ -47,6 +47,8 @@
         warning: (countdownTime) => $t('extendSession.labels.warning', { countdownTime }),
       }"
     />
+
+    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
   </div>
 </template>
 
@@ -55,7 +57,7 @@ import { mapActions } from 'vuex'
 import CAppSelector from '../components/CAppSelector'
 import { components } from '@cortezaproject/corteza-vue'
 
-const { CTopbar, CLoaderLogo, CPrompts, CExtendSession } = components
+const { CTopbar, CLoaderLogo, CPrompts, CExtendSession, CNotificationSidebar } = components
 
 export default {
   i18nOptions: {
@@ -68,6 +70,7 @@ export default {
     CLoaderLogo,
     CPrompts,
     CExtendSession,
+    CNotificationSidebar,
   },
 
   data () {

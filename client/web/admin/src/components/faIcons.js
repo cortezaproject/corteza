@@ -11,6 +11,7 @@ import {
   faAngleDoubleRight,
   faPowerOff,
   faCheck,
+  faCheckDouble,
   faTachometerAlt,
   faTimes,
   faFileCode,
@@ -53,6 +54,8 @@ import {
   faTrashRestore,
   faLocationArrow,
   faEyeSlash,
+  faBellSlash,
+  faBell as faBellSolid,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -62,6 +65,7 @@ import {
   faUser,
   faTrashAlt,
   faEdit,
+  faBell,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -77,6 +81,7 @@ library.add(
   faAngleDoubleRight,
   faPowerOff,
   faCheck,
+  faCheckDouble,
   faTachometerAlt,
   faTimes,
   faFileCode,
@@ -125,4 +130,7 @@ library.add(
   faAngleUp,
   faAngleDown,
   faEyeSlash,
+  faBell,
+  faBellSolid,
+  faBellSlash,
 )

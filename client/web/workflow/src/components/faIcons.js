@@ -1,6 +1,7 @@
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {
   faCheck,
+  faCheckDouble,
   faTimes,
   faHome,
   faSave,
@@ -48,6 +49,8 @@ import {
   faParagraph,
   faTasks,
   faTable,
+  faBellSlash,
+  faBell as faBellSolid,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -55,12 +58,14 @@ import {
   faTrashAlt,
   faQuestionCircle,
   faUser,
+  faBell,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
   faEdit,
   faTrashAlt,
   faCheck,
+  faCheckDouble,
   faTimes,
   faHome,
   faSave,
@@ -110,4 +115,7 @@ library.add(
   faParagraph,
   faTasks,
   faTable,
+  faBell,
+  faBellSolid,
+  faBellSlash,
 )

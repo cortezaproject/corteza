@@ -117,6 +117,8 @@
         warning: (countdownTime) => $t('general:extendSession.labels.warning', { countdownTime }),
       }"
     />
+
+    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
   </div>
 </template>
 
@@ -125,7 +127,7 @@ import CTheMainNav from 'corteza-webapp-admin/src/components/CTheMainNav'
 import { components, mixins } from '@cortezaproject/corteza-vue'
 import { mapGetters } from 'vuex'
 
-const { CExtendSession, CPermissionsModal, CPrompts, CTopbar, CSidebar } = components
+const { CExtendSession, CPermissionsModal, CPrompts, CTopbar, CSidebar, CNotificationSidebar } = components
 
 export default {
   i18nOptions: {
@@ -139,6 +141,7 @@ export default {
     CSidebar,
     CTheMainNav,
     CExtendSession,
+    CNotificationSidebar,
   },
 
   mixins: [

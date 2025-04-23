@@ -42,5 +42,11 @@ export default new Vuex.Store({
         webapp: 'compose',
       }),
     },
+    notifications: {
+      namespaced: true,
+      ...cvStore.notifications({
+        api: Vue.prototype.$SystemAPI,
+      }),
+    },
   },
 })

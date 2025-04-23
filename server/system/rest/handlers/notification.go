@@ -166,6 +166,6 @@ func (h Notification) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 		r.Get("/notification/{notificationID}", h.Read)
 		r.Delete("/notification/{notificationID}", h.Delete)
 		r.Patch("/notification/{notificationID}/read", h.MarkAsRead)
-		r.Patch("/notification/read/all", h.MarkAllAsRead)
+		r.Patch("/notification/all/read", h.MarkAllAsRead)
 	})
 }

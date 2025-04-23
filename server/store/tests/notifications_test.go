@@ -110,7 +110,7 @@ func testNotifications(t *testing.T, s store.Notifications) {
 
 			// Check that all notifications are initially unread
 			filter := types.NotificationFilter{
-				Unread: filter.StateExclusive, // Only unread notifications
+				Read: filter.StateExcluded, // Only unread notifications
 			}
 			set, _, err := s.SearchNotifications(ctx, filter)
 			req.NoError(err)

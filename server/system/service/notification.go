@@ -134,7 +134,9 @@ func (svc notification) Create(ctx context.Context, new *types.Notification) (n 
 		// Send the notification via websocket
 		if svc.notificationSender != nil {
 			// Send only to the recipient
-			_ = svc.notificationSender.Send("notification", n, n.Recipient)
+			if err = svc.notificationSender.Send("notification", n, n.Recipient); err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -218,7 +220,18 @@ func (svc notification) Delete(ctx context.Context, ID uint64) (err error) {
 
 		n.DeletedAt = now()
 
-		return store.UpdateNotification(ctx, svc.store, n)
+		if err = store.UpdateNotification(ctx, svc.store, n); err != nil {
+			return err
+		}
+
+		// Send the deleted notification via websocket so client can update UI
+		if svc.notificationSender != nil {
+			if err = svc.notificationSender.Send("notification.delete", n, n.Recipient); err != nil {
+				return err
+			}
+		}
+
+		return nil
 	}()
 
 	return svc.recordAction(ctx, raProps, NotificationActionDelete, err)
@@ -257,6 +270,13 @@ func (svc notification) MarkAsRead(ctx context.Context, ID uint64) (err error) {
 			return err
 		}
 
+		// Send the updated notification via websocket so client can update UI
+		if svc.notificationSender != nil {
+			if err = svc.notificationSender.Send("notification.read", n, n.Recipient); err != nil {
+				return err
+			}
+		}
+
 		return nil
 	}()
 
@@ -283,9 +303,9 @@ func (svc notification) MarkAllAsRead(ctx context.Context) (err error) {
 				// Query unread notifications with pagination
 				f = types.NotificationFilter{
 					Recipient: currentUserID,
-					Read:      filter.StateExcluded, // Only unread notifications
+					Read:      filter.StateExcluded,
 					Paging: filter.Paging{
-						Limit:      100, // Process in batches of 100
+						Limit:      100,
 						PageCursor: cursor,
 					},
 				}
@@ -306,6 +326,13 @@ func (svc notification) MarkAllAsRead(ctx context.Context) (err error) {
 					return err
 				}
 
+				// Send the updated notifications via websocket so client can update UI
+				if svc.notificationSender != nil && len(nn) > 0 {
+					if err = svc.notificationSender.Send("notification.read.all", nn, currentUserID); err != nil {
+						return err
+					}
+				}
+
 				// Update cursor for next page or break if no more pages
 				cursor = f.PageCursor
 				if cursor == nil {
@@ -322,18 +349,13 @@ func (svc notification) MarkAllAsRead(ctx context.Context) (err error) {
 
 func (svc notification) checkAssignee(ctx context.Context, n *types.Notification) (err error) {
 	// Check if user is assigning to someone else
-	if svc.checkAssignTo(ctx, n) {
+	if n.Recipient != svc.currentUser(ctx) {
 		if !svc.ac.CanAssignNotification(ctx) {
 			return NotificationErrNotAllowedToAssign()
 		}
 	}
 
 	return nil
-}
-
-// checkAssignTo compares current user with notification.Recipient and return bool
-func (svc notification) checkAssignTo(ctx context.Context, n *types.Notification) (valid bool) {
-	return n.Recipient != svc.currentUser(ctx)
 }
 
 func (svc notification) currentUser(ctx context.Context) uint64 {

@@ -139,7 +139,7 @@ func (h notificationHandler) sendRecord(ctx context.Context, args *notificationS
 			ModuleID:    args.ModuleID,
 			NamespaceID: args.NamespaceID,
 			RecordID:    args.RecordID,
-			OpenMode:    args.OpenMode,
+			OpenMode:    systemTypes.OpenModeType(args.OpenMode),
 			Edit:        args.Edit,
 		},
 	}

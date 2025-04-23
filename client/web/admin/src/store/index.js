@@ -27,5 +27,11 @@ export default new Vuex.Store({
         webapp: 'admin',
       }),
     },
+    notifications: {
+      namespaced: true,
+      ...cvStore.notifications({
+        api: Vue.prototype.$SystemAPI,
+      }),
+    },
   },
 })

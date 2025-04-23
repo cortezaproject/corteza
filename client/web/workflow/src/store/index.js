@@ -11,6 +11,12 @@ const store = new Vuex.Store({
       namespaced: true,
       ...cvStore.RBAC(Vue.prototype.$AutomationAPI),
     },
+    notifications: {
+      namespaced: true,
+      ...cvStore.notifications({
+        api: Vue.prototype.$SystemAPI,
+      }),
+    },
   },
 })
 

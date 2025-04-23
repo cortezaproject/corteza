@@ -22,6 +22,12 @@
         </b-form-checkbox>
 
         <b-form-checkbox
+          v-model="topbarSettings.hideNotifications"
+        >
+          {{ $t('notifications.hide') }}
+        </b-form-checkbox>
+
+        <b-form-checkbox
           v-model="topbarSettings.hideHelp"
         >
           {{ $t('help.hide') }}

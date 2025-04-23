@@ -92,6 +92,9 @@ export default (options = {}) => {
         // Initializes reminders subsystems, do prefetch of all pending reminders
         this.$Reminder.init(this, { filter: { assignedTo: user.userID } })
 
+        // Initialize notifications
+        this.$store.dispatch('notifications/fetchNotifications')
+
         this.loadBundle(bundleLoaderOpt)
           .then(() => this.$ComposeAPI.automationList({ excludeInvalid: true }))
           .then(this.makeAutomationScriptsRegistrator(
@@ -153,6 +156,22 @@ export default (options = {}) => {
               this.$Reminder.enqueueRaw(msg['@value'])
               break
 
+            case 'notification':
+              this.$store.dispatch('notifications/addNotification', msg['@value'])
+              break
+
+            case 'notification.read':
+              this.$store.dispatch('notifications/updateReadNotification', msg['@value'])
+              break
+
+            case 'notification.read.all':
+              this.$store.dispatch('notifications/updateAllReadNotifications', msg['@value'])
+              break
+
+            case 'notification.delete':
+              this.$store.dispatch('notifications/removeNotification', msg['@value'])
+              break
+
             case 'error':
               this.toastDanger('Websocket message with error', msg['@value'])
           }
@@ -172,6 +191,7 @@ export default (options = {}) => {
       'namespace',
       'navigation',
       'notification',
+      'notifications',
       'onboarding',
       'page',
       'permissions',

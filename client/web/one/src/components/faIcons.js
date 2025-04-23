@@ -4,11 +4,18 @@ import {
   faGripHorizontal,
   faSearch,
   faTimes,
+  faCheck,
+  faCheckDouble,
+  faBellSlash,
+  faBell as faBellSolid,
+  faEllipsisV,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
   faQuestionCircle,
   faUser,
+  faBell,
+  faTrashAlt,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -18,4 +25,11 @@ library.add(
   faUser,
   faSearch,
   faTimes,
+  faCheck,
+  faCheckDouble,
+  faBell,
+  faBellSolid,
+  faBellSlash,
+  faEllipsisV,
+  faTrashAlt,
 )

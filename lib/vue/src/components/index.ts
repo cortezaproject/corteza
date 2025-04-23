@@ -106,4 +106,9 @@ export {
   CWebcam,
 } from './webcam'
 
+export {
+  CNotificationButton,
+  CNotificationSidebar,
+} from './notifications'
+
 export { default as C3 } from './c3'

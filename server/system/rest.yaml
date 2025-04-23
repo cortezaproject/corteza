@@ -1653,7 +1653,7 @@ endpoints:
   - name: markAllAsRead
     method: PATCH
     title: Mark all notifications as read for current user
-    path: "/read/all"
+    path: "/all/read"
 - title: Attachments
   path: "/attachment/{kind}"
   entrypoint: attachment

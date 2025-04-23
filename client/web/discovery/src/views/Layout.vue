@@ -63,6 +63,7 @@
         warning: (countdownTime) => $t('general:extendSession.labels.warning', { countdownTime }),
       }"
     />
+    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
   </div>
 </template>
 
@@ -70,7 +71,7 @@
 import Search from '../components/Search.vue'
 import Filters from '../components/Filters.vue'
 import { components } from '@cortezaproject/corteza-vue'
-const { CTopbar, CSidebar, CExtendSession } = components
+const { CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
 
 export default {
   i18nOptions: {
@@ -83,6 +84,7 @@ export default {
     Search,
     Filters,
     CExtendSession,
+    CNotificationSidebar,
   },
 
   data () {
@@ -120,22 +122,6 @@ export default {
           favicon.href = icon
         }
       },
-    },
-  },
-
-  created () {
-    this.$root.$on('alert', this.displayToast)
-  },
-
-  methods: {
-    displayToast ({ title, message, variant, countdown }) {
-      this.$bvToast.toast(message, {
-        title,
-        variant,
-        solid: true,
-        autoHideDelay: countdown,
-        toaster: 'b-toaster-bottom-right',
-      })
     },
   },
 }

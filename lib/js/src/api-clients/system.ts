@@ -112,13 +112,13 @@ export default class System {
 
   authImpersonateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authImpersonate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authImpersonate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -157,13 +157,13 @@ export default class System {
 
   authClientListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -209,13 +209,13 @@ export default class System {
 
   authClientCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -269,13 +269,13 @@ export default class System {
 
   authClientUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -307,13 +307,13 @@ export default class System {
 
   authClientReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -345,13 +345,13 @@ export default class System {
 
   authClientDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -383,13 +383,13 @@ export default class System {
 
   authClientUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -421,13 +421,13 @@ export default class System {
 
   authClientRegenerateSecretCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientRegenerateSecret(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientRegenerateSecret(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -459,13 +459,13 @@ export default class System {
 
   authClientExposeSecretCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.authClientExposeSecret(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.authClientExposeSecret(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -496,13 +496,13 @@ export default class System {
 
   expressionEvaluateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.expressionEvaluate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.expressionEvaluate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -529,13 +529,13 @@ export default class System {
 
   settingsListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.settingsList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.settingsList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -564,13 +564,13 @@ export default class System {
 
   settingsUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.settingsUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.settingsUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -603,13 +603,13 @@ export default class System {
 
   settingsGetCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.settingsGet(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.settingsGet(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -646,13 +646,13 @@ export default class System {
 
   settingsSetCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.settingsSet(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.settingsSet(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -677,13 +677,13 @@ export default class System {
 
   settingsCurrentCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.settingsCurrent(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.settingsCurrent(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -728,13 +728,13 @@ export default class System {
 
   roleListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -771,13 +771,13 @@ export default class System {
 
   roleCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -819,13 +819,13 @@ export default class System {
 
   roleUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -857,13 +857,13 @@ export default class System {
 
   roleReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -895,13 +895,13 @@ export default class System {
 
   roleDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -933,13 +933,13 @@ export default class System {
 
   roleArchiveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleArchive(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleArchive(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -971,13 +971,13 @@ export default class System {
 
   roleUnarchiveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleUnarchive(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleUnarchive(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1009,13 +1009,13 @@ export default class System {
 
   roleUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1053,13 +1053,13 @@ export default class System {
 
   roleMoveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleMove(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleMove(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1097,13 +1097,13 @@ export default class System {
 
   roleMergeCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleMerge(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleMerge(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1135,13 +1135,13 @@ export default class System {
 
   roleMemberListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleMemberList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleMemberList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1177,13 +1177,13 @@ export default class System {
 
   roleMemberAddCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleMemberAdd(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleMemberAdd(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1220,13 +1220,13 @@ export default class System {
 
   roleMemberRemoveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleMemberRemove(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleMemberRemove(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1267,13 +1267,13 @@ export default class System {
 
   roleTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleTriggerScript(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleTriggerScript(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1312,13 +1312,13 @@ export default class System {
 
   roleCloneRulesCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.roleCloneRules(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.roleCloneRules(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1378,13 +1378,13 @@ export default class System {
 
   userListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1423,13 +1423,13 @@ export default class System {
 
   userCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1476,13 +1476,13 @@ export default class System {
 
   userUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1514,13 +1514,13 @@ export default class System {
 
   userPartialUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userPartialUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userPartialUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1552,13 +1552,13 @@ export default class System {
 
   userReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1590,13 +1590,13 @@ export default class System {
 
   userDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1628,13 +1628,13 @@ export default class System {
 
   userSuspendCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userSuspend(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userSuspend(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1666,13 +1666,13 @@ export default class System {
 
   userUnsuspendCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userUnsuspend(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userUnsuspend(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1704,13 +1704,13 @@ export default class System {
 
   userUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1745,13 +1745,13 @@ export default class System {
 
   userSetPasswordCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userSetPassword(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userSetPassword(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1783,13 +1783,13 @@ export default class System {
 
   userMembershipListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userMembershipList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userMembershipList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1825,13 +1825,13 @@ export default class System {
 
   userMembershipAddCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userMembershipAdd(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userMembershipAdd(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1868,13 +1868,13 @@ export default class System {
 
   userMembershipRemoveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userMembershipRemove(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userMembershipRemove(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1915,13 +1915,13 @@ export default class System {
 
   userTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userTriggerScript(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userTriggerScript(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1953,13 +1953,13 @@ export default class System {
 
   userSessionsRemoveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userSessionsRemove(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userSessionsRemove(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -1991,13 +1991,13 @@ export default class System {
 
   userListCredentialsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userListCredentials(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userListCredentials(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2033,13 +2033,13 @@ export default class System {
 
   userDeleteCredentialsCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userDeleteCredentials(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userDeleteCredentials(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2079,13 +2079,13 @@ export default class System {
 
   userProfileAvatarCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userProfileAvatar(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userProfileAvatar(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2122,13 +2122,13 @@ export default class System {
 
   userProfileAvatarInitialCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userProfileAvatarInitial(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userProfileAvatarInitial(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2160,13 +2160,13 @@ export default class System {
 
   userDeleteAvatarCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userDeleteAvatar(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userDeleteAvatar(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2204,13 +2204,13 @@ export default class System {
 
   userExportCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userExport(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userExport(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2242,13 +2242,13 @@ export default class System {
 
   userImportCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.userImport(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.userImport(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2270,13 +2270,13 @@ export default class System {
 
   dalDriverListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalDriverList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalDriverList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2307,13 +2307,13 @@ export default class System {
 
   dalSensitivityLevelListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSensitivityLevelList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSensitivityLevelList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2349,13 +2349,13 @@ export default class System {
 
   dalSensitivityLevelCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSensitivityLevelCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSensitivityLevelCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2399,13 +2399,13 @@ export default class System {
 
   dalSensitivityLevelUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSensitivityLevelUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSensitivityLevelUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2437,13 +2437,13 @@ export default class System {
 
   dalSensitivityLevelReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSensitivityLevelRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSensitivityLevelRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2475,13 +2475,13 @@ export default class System {
 
   dalSensitivityLevelDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSensitivityLevelDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSensitivityLevelDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2513,13 +2513,13 @@ export default class System {
 
   dalSensitivityLevelUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSensitivityLevelUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSensitivityLevelUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2565,13 +2565,13 @@ export default class System {
 
   dalSchemaAlterationListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSchemaAlterationList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSchemaAlterationList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2600,13 +2600,13 @@ export default class System {
 
   dalSchemaAlterationReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSchemaAlterationRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSchemaAlterationRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2639,13 +2639,13 @@ export default class System {
 
   dalSchemaAlterationApplyCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSchemaAlterationApply(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSchemaAlterationApply(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2675,13 +2675,13 @@ export default class System {
 
   dalSchemaAlterationDismissCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalSchemaAlterationDismiss(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalSchemaAlterationDismiss(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2716,13 +2716,13 @@ export default class System {
 
   dalConnectionListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalConnectionList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalConnectionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2763,13 +2763,13 @@ export default class System {
 
   dalConnectionCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalConnectionCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalConnectionCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2818,13 +2818,13 @@ export default class System {
 
   dalConnectionUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalConnectionUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalConnectionUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2856,13 +2856,13 @@ export default class System {
 
   dalConnectionReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalConnectionRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalConnectionRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2894,13 +2894,13 @@ export default class System {
 
   dalConnectionDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalConnectionDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalConnectionDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2932,13 +2932,13 @@ export default class System {
 
   dalConnectionUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dalConnectionUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dalConnectionUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -2986,13 +2986,13 @@ export default class System {
 
   applicationListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3031,13 +3031,13 @@ export default class System {
 
   applicationCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3084,13 +3084,13 @@ export default class System {
 
   applicationUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3122,13 +3122,13 @@ export default class System {
 
   applicationUploadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationUpload(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationUpload(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3162,13 +3162,13 @@ export default class System {
 
   applicationFlagCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationFlagCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationFlagCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3207,13 +3207,13 @@ export default class System {
 
   applicationFlagDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationFlagDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationFlagDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3251,13 +3251,13 @@ export default class System {
 
   applicationReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3289,13 +3289,13 @@ export default class System {
 
   applicationDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3327,13 +3327,13 @@ export default class System {
 
   applicationUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3373,13 +3373,13 @@ export default class System {
 
   applicationTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationTriggerScript(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationTriggerScript(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3411,13 +3411,13 @@ export default class System {
 
   applicationReorderCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.applicationReorder(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.applicationReorder(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3439,13 +3439,13 @@ export default class System {
 
   permissionsListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3472,13 +3472,13 @@ export default class System {
 
   permissionsEffectiveCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsEffective(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsEffective(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3509,13 +3509,13 @@ export default class System {
 
   permissionsTraceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsTrace(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsTrace(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3548,13 +3548,13 @@ export default class System {
 
   permissionsReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3586,13 +3586,13 @@ export default class System {
 
   permissionsDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3630,13 +3630,13 @@ export default class System {
 
   permissionsUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.permissionsUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.permissionsUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3686,13 +3686,13 @@ export default class System {
 
   reminderListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3733,13 +3733,13 @@ export default class System {
 
   reminderCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3786,13 +3786,13 @@ export default class System {
 
   reminderUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3824,13 +3824,13 @@ export default class System {
 
   reminderReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3862,13 +3862,13 @@ export default class System {
 
   reminderDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3900,13 +3900,13 @@ export default class System {
 
   reminderDismissCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderDismiss(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderDismiss(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3938,13 +3938,13 @@ export default class System {
 
   reminderUndismissCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderUndismiss(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderUndismiss(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3982,13 +3982,13 @@ export default class System {
 
   reminderSnoozeCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reminderSnooze(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reminderSnooze(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -3997,6 +3997,292 @@ export default class System {
       reminderID,
     } = a || {}
     return `/reminder/${reminderID}/snooze`
+  }
+
+  // List/read notifications
+  async notificationList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      notificationID,
+      kind,
+      read,
+      deleted,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.notificationListEndpoint(),
+    }
+    cfg.params = {
+      notificationID,
+      kind,
+      read,
+      deleted,
+      limit,
+      pageCursor,
+      sort,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationListEndpoint (): string {
+    return '/notification/'
+  }
+
+  // Add new notification
+  async notificationCreate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      kind,
+      config,
+      recipient,
+    } = (a as KV) || {}
+    if (!kind) {
+      throw Error('field kind is empty')
+    }
+    if (!config) {
+      throw Error('field config is empty')
+    }
+    if (!recipient) {
+      throw Error('field recipient is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.notificationCreateEndpoint(),
+    }
+    cfg.data = {
+      kind,
+      config,
+      recipient,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationCreateEndpoint (): string {
+    return '/notification/'
+  }
+
+  // Update notification
+  async notificationUpdate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      notificationID,
+      kind,
+      config,
+      recipient,
+    } = (a as KV) || {}
+    if (!notificationID) {
+      throw Error('field notificationID is empty')
+    }
+    if (!kind) {
+      throw Error('field kind is empty')
+    }
+    if (!config) {
+      throw Error('field config is empty')
+    }
+    if (!recipient) {
+      throw Error('field recipient is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.notificationUpdateEndpoint({
+        notificationID,
+      }),
+    }
+    cfg.data = {
+      kind,
+      config,
+      recipient,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationUpdateEndpoint (a: KV): string {
+    const {
+      notificationID,
+    } = a || {}
+    return `/notification/${notificationID}`
+  }
+
+  // Read notification by ID
+  async notificationRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      notificationID,
+    } = (a as KV) || {}
+    if (!notificationID) {
+      throw Error('field notificationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.notificationReadEndpoint({
+        notificationID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationReadEndpoint (a: KV): string {
+    const {
+      notificationID,
+    } = a || {}
+    return `/notification/${notificationID}`
+  }
+
+  // Delete notification
+  async notificationDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      notificationID,
+    } = (a as KV) || {}
+    if (!notificationID) {
+      throw Error('field notificationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.notificationDeleteEndpoint({
+        notificationID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationDeleteEndpoint (a: KV): string {
+    const {
+      notificationID,
+    } = a || {}
+    return `/notification/${notificationID}`
+  }
+
+  // Mark notification as read
+  async notificationMarkAsRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      notificationID,
+    } = (a as KV) || {}
+    if (!notificationID) {
+      throw Error('field notificationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.notificationMarkAsReadEndpoint({
+        notificationID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationMarkAsReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationMarkAsRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationMarkAsReadEndpoint (a: KV): string {
+    const {
+      notificationID,
+    } = a || {}
+    return `/notification/${notificationID}/read`
+  }
+
+  // Mark all notifications as read for current user
+  async notificationMarkAllAsRead (extra: AxiosRequestConfig = {}): Promise<KV> {
+
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'patch',
+      url: this.notificationMarkAllAsReadEndpoint(),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  notificationMarkAllAsReadCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.notificationMarkAllAsRead(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  notificationMarkAllAsReadEndpoint (): string {
+    return '/notification/all/read'
   }
 
   // Attachment details
@@ -4030,13 +4316,13 @@ export default class System {
 
   attachmentReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.attachmentRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.attachmentRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4079,13 +4365,13 @@ export default class System {
 
   attachmentDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.attachmentDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.attachmentDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4134,13 +4420,13 @@ export default class System {
 
   attachmentOriginalCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.attachmentOriginal(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.attachmentOriginal(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4188,13 +4474,13 @@ export default class System {
 
   attachmentPreviewCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.attachmentPreview(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.attachmentPreview(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4246,13 +4532,13 @@ export default class System {
 
   templateListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4292,13 +4578,13 @@ export default class System {
 
   templateCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4327,13 +4613,13 @@ export default class System {
 
   templateReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4384,13 +4670,13 @@ export default class System {
 
   templateUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4422,13 +4708,13 @@ export default class System {
 
   templateDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4460,13 +4746,13 @@ export default class System {
 
   templateUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4491,13 +4777,13 @@ export default class System {
 
   templateRenderDriversCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateRenderDrivers(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateRenderDrivers(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4542,13 +4828,13 @@ export default class System {
 
   templateRenderCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.templateRender(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.templateRender(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4594,13 +4880,13 @@ export default class System {
 
   reportListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4636,13 +4922,13 @@ export default class System {
 
   reportCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4686,13 +4972,13 @@ export default class System {
 
   reportUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4724,13 +5010,13 @@ export default class System {
 
   reportReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4762,13 +5048,13 @@ export default class System {
 
   reportDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4800,13 +5086,13 @@ export default class System {
 
   reportUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4839,13 +5125,13 @@ export default class System {
 
   reportDescribeCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportDescribe(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportDescribe(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4877,13 +5163,13 @@ export default class System {
 
   reportRunCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.reportRun(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.reportRun(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4908,13 +5194,13 @@ export default class System {
 
   statsListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.statsList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.statsList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4951,13 +5237,13 @@ export default class System {
 
   automationListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.automationList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.automationList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -4985,13 +5271,13 @@ export default class System {
 
   automationBundleCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.automationBundle(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.automationBundle(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5027,13 +5313,13 @@ export default class System {
 
   automationTriggerScriptCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.automationTriggerScript(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.automationTriggerScript(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5072,13 +5358,13 @@ export default class System {
 
   actionlogListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.actionlogList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.actionlogList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5115,13 +5401,13 @@ export default class System {
 
   queuesListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.queuesList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.queuesList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5157,13 +5443,13 @@ export default class System {
 
   queuesCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.queuesCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.queuesCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5192,13 +5478,13 @@ export default class System {
 
   queuesReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.queuesRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.queuesRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5245,13 +5531,13 @@ export default class System {
 
   queuesUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.queuesUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.queuesUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5283,13 +5569,13 @@ export default class System {
 
   queuesDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.queuesDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.queuesDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5321,13 +5607,13 @@ export default class System {
 
   queuesUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.queuesUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.queuesUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5373,13 +5659,13 @@ export default class System {
 
   apigwRouteListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwRouteList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwRouteList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5416,13 +5702,13 @@ export default class System {
 
   apigwRouteCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwRouteCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwRouteCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5467,13 +5753,13 @@ export default class System {
 
   apigwRouteUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwRouteUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwRouteUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5505,13 +5791,13 @@ export default class System {
 
   apigwRouteReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwRouteRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwRouteRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5543,13 +5829,13 @@ export default class System {
 
   apigwRouteDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwRouteDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwRouteDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5581,13 +5867,13 @@ export default class System {
 
   apigwRouteUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwRouteUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwRouteUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5630,13 +5916,13 @@ export default class System {
 
   apigwFilterListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5675,13 +5961,13 @@ export default class System {
 
   apigwFilterCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5728,13 +6014,13 @@ export default class System {
 
   apigwFilterUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterUpdate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5766,13 +6052,13 @@ export default class System {
 
   apigwFilterReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5804,13 +6090,13 @@ export default class System {
 
   apigwFilterDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterDelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5842,13 +6128,13 @@ export default class System {
 
   apigwFilterUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterUndelete(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5878,13 +6164,13 @@ export default class System {
 
   apigwFilterDefFilterCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterDefFilter(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterDefFilter(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5906,13 +6192,13 @@ export default class System {
 
   apigwFilterDefProxyAuthCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwFilterDefProxyAuth(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwFilterDefProxyAuth(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5945,13 +6231,13 @@ export default class System {
 
   apigwProfilerAggregationCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwProfilerAggregation(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwProfilerAggregation(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -5990,13 +6276,13 @@ export default class System {
 
   apigwProfilerRouteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwProfilerRoute(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwProfilerRoute(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6028,13 +6314,13 @@ export default class System {
 
   apigwProfilerHitCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwProfilerHit(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwProfilerHit(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6059,13 +6345,13 @@ export default class System {
 
   apigwProfilerPurgeAllCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwProfilerPurgeAll(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwProfilerPurgeAll(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6094,13 +6380,13 @@ export default class System {
 
   apigwProfilerPurgeCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.apigwProfilerPurge(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.apigwProfilerPurge(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6144,13 +6430,13 @@ export default class System {
 
   localeListResourceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeListResource(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeListResource(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6198,13 +6484,13 @@ export default class System {
 
   localeCreateResourceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeCreateResource(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeCreateResource(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6248,13 +6534,13 @@ export default class System {
 
   localeUpdateResourceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeUpdateResource(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeUpdateResource(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6286,13 +6572,13 @@ export default class System {
 
   localeReadResourceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeReadResource(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeReadResource(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6324,13 +6610,13 @@ export default class System {
 
   localeDeleteResourceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeDeleteResource(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeDeleteResource(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6362,13 +6648,13 @@ export default class System {
 
   localeUndeleteResourceCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeUndeleteResource(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeUndeleteResource(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6393,13 +6679,13 @@ export default class System {
 
   localeListCancellable (extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeList(options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeList(options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6432,13 +6718,13 @@ export default class System {
 
   localeGetCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.localeGet(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.localeGet(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6475,13 +6761,13 @@ export default class System {
 
   dataPrivacyConnectionListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyConnectionList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyConnectionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6520,13 +6806,13 @@ export default class System {
 
   dataPrivacyRequestListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyRequestList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyRequestList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6557,13 +6843,13 @@ export default class System {
 
   dataPrivacyRequestCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyRequestCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyRequestCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6592,13 +6878,13 @@ export default class System {
 
   dataPrivacyRequestReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyRequestRead(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyRequestRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6634,13 +6920,13 @@ export default class System {
 
   dataPrivacyRequestUpdateStatusCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyRequestUpdateStatus(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyRequestUpdateStatus(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6681,13 +6967,13 @@ export default class System {
 
   dataPrivacyRequestCommentListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyRequestCommentList(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyRequestCommentList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6725,13 +7011,13 @@ export default class System {
 
   dataPrivacyRequestCommentCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.dataPrivacyRequestCommentCreate(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.dataPrivacyRequestCommentCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 
@@ -6775,13 +7061,13 @@ export default class System {
 
   smtpConfigurationCheckerCheckCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
     const cancelTokenSource = axios.CancelToken.source();
-    let options = {...extra, cancelToken: cancelTokenSource.token }
+    const options = {...extra, cancelToken: cancelTokenSource.token }
 
     return {
-        response: () => this.smtpConfigurationCheckerCheck(a, options),
-        cancel: () => {
-          cancelTokenSource.cancel();
-        }
+      response: () => this.smtpConfigurationCheckerCheck(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
     }
   }
 

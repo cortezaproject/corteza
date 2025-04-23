@@ -121,13 +121,15 @@
         warning: (countdownTime) => $t('general:extendSession.labels.warning', { countdownTime }),
       }"
     />
+
+    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
   </div>
 </template>
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
 import ReportSidebar from 'corteza-webapp-reporter/src/components/ReportSidebar'
-const { CPermissionsModal, CTopbar, CSidebar, CExtendSession } = components
+const { CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
 
 export default {
   components: {
@@ -136,6 +138,7 @@ export default {
     CSidebar,
     ReportSidebar,
     CExtendSession,
+    CNotificationSidebar,
   },
 
   data () {

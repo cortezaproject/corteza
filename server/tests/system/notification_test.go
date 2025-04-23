@@ -396,17 +396,17 @@ func TestNotificationMarkAllAsRead(t *testing.T) {
 	h.makeNotification()
 
 	h.apiInit().
-		Patch("/notification/read/all").
+		Patch("/notification/all/read").
 		Header("Accept", "application/json").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
 		End()
 
-	// List notifications and verify all are marked as read
+	// List read notifications and verify all are marked as read
 	h.apiInit().
 		Get("/notification/").
-		Query("read", "2"). // Only read notifications
+		Query("read", "2").
 		Expect(t).
 		Status(http.StatusOK).
 		Assert(helpers.AssertNoErrors).
@@ -431,7 +431,7 @@ func TestNotificationAssign_forbidden(t *testing.T) {
 					Description: "This is a test notification",
 				},
 			},
-			"recipient": strconv.FormatUint(id.Next(), 10), // Another user ID
+			"recipient": strconv.FormatUint(id.Next(), 10),
 		}).
 		Expect(t).
 		Status(http.StatusOK).

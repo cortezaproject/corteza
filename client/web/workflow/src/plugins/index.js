@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import Router from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
-
-import { plugins } from '@cortezaproject/corteza-vue'
+import VueNativeSock from 'vue-native-websocket'
+import { plugins, websocket } from '@cortezaproject/corteza-vue'
 
 Vue.use(BootstrapVue, {
   BToast: {
@@ -23,3 +23,4 @@ Vue.use(plugins.CortezaAPI('system'))
 Vue.use(plugins.CortezaAPI('compose'))
 Vue.use(plugins.CortezaAPI('automation'))
 Vue.use(plugins.Settings, { api: Vue.prototype.$SystemAPI })
+Vue.use(VueNativeSock, websocket.endpoint(), websocket.config)

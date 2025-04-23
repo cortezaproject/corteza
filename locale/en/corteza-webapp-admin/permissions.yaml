@@ -151,6 +151,8 @@ resources:
           title: List and search messaging queues
         reminder.assign:
           title: Allow reminder assignment
+        notification.assign:
+          title: Allow notification assignment
         role.create:
           title: Create new role
         roles.search:

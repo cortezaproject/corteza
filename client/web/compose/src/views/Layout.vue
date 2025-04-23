@@ -120,6 +120,8 @@
         warning: (countdownTime) => $t('general:extendSession.labels.warning', { countdownTime }),
       }"
     />
+
+    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
   </div>
 </template>
 
@@ -129,7 +131,7 @@ import CTranslationModal from '../components/Translator/CTranslatorModal'
 import { mapGetters, mapActions } from 'vuex'
 import { debounce } from 'lodash'
 import { components } from '@cortezaproject/corteza-vue'
-const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession } = components
+const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
 
 export default {
   i18nOptions: {
@@ -144,6 +146,7 @@ export default {
     CSidebar,
     CToaster, // Only used for reminders
     CExtendSession,
+    CNotificationSidebar,
   },
 
   data () {
@@ -369,3 +372,14 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.sidebar-spacer {
+  width: 0;
+  transition: width 0.2s ease-in-out;
+
+  &.expanded {
+    width: 240px;
+  }
+}
+</style>
