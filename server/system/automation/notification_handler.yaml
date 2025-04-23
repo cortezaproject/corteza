@@ -1,0 +1,82 @@
+name: notification
+imports:
+  - github.com/cortezaproject/corteza/server/system/types
+
+snippets:
+  lookupUser: &lookupUser
+    required: true
+    types:
+      - { wf: ID     }
+      - { wf: Handle }
+      - { wf: String, suffix: email }
+      - { wf: User,   suffix: res }
+
+functions:
+  send:
+    meta:
+      short: Send simple notification
+      description: Sends a simple notification with title and description to a user
+    params:
+      recipient: *lookupUser
+      title:
+        types:
+          - { wf: String }
+        required: true
+        description: The title of the simple notification
+      description:
+        types:
+          - { wf: String }
+        required: false
+        description: Optional description for the simple notification
+
+  sendRecord:
+    meta:
+      short: Send record notification
+      description: Sends a notification that links to a specific record
+    params:
+      recipient: *lookupUser
+      title:
+        types:
+          - { wf: String }
+        required: true
+        description: The title of the record notification
+      description:
+        types:
+          - { wf: String }
+        required: false
+        description: Optional description for the record notification
+      moduleID:
+        required: true
+        types:
+          - { wf: ID }
+        description: The module ID of the record
+      namespaceID:
+        required: true
+        types:
+          - { wf: ID }
+        description: The namespace ID of the record
+      recordID:
+        required: false
+        types:
+          - { wf: ID }
+        description: The record ID to link to
+      openMode:
+        types:
+          - { wf: String }
+        required: false
+        description: How to open the record - "modal", "newTab", or "sameTab" (default)
+        meta:
+          visual:
+            input:
+              type: select
+              properties:
+                options:
+                  - { value: 'sameTab', text: 'Open link in the same tab' }
+                  - { value: 'newTab', text: 'Open link in a new tab' }
+                  - { value: 'modal', text: 'Open in a modal' }
+              default: 'modal'
+      edit:
+        types:
+          - { wf: Boolean }
+        required: false
+        description: Whether to open the record in edit mode (default is false)

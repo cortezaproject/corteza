@@ -126,6 +126,9 @@ type (
 		// optional label filter function called after the generated function
 		Label func(*Store, labelsType.LabelFilter) ([]goqu.Expression, labelsType.LabelFilter, error)
 
+		// optional notification filter function called after the generated function
+		Notification func(*Store, systemType.NotificationFilter) ([]goqu.Expression, systemType.NotificationFilter, error)
+
 		// optional queue filter function called after the generated function
 		Queue func(*Store, systemType.QueueFilter) ([]goqu.Expression, systemType.QueueFilter, error)
 
@@ -1084,6 +1087,34 @@ func LabelFilter(d drivers.Dialect, f labelsType.LabelFilter) (ee []goqu.Express
 
 	if len(f.ResourceID) > 0 {
 		ee = append(ee, goqu.C("rel_resource").In(f.ResourceID))
+	}
+
+	return ee, f, err
+}
+
+// NotificationFilter returns logical expressions
+//
+// This function is called from Store.QueryNotifications() and can be extended
+// by setting Store.Filters.Notification. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func NotificationFilter(d drivers.Dialect, f systemType.NotificationFilter) (ee []goqu.Expression, _ systemType.NotificationFilter, err error) {
+
+	if expr := stateNilComparison(d, "read_at", f.Read); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.NotificationID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.NotificationID))
+	}
+
+	if f.Recipient > 0 {
+		ee = append(ee, goqu.C("recipient").Eq(f.Recipient))
 	}
 
 	return ee, f, err

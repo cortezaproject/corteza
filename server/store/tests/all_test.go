@@ -110,6 +110,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("label", func(t *testing.T) {
 		testLabels(t, s)
 	})
+	t.Run("notification", func(t *testing.T) {
+		testNotifications(t, s)
+	})
 	t.Run("queue", func(t *testing.T) {
 		testQueues(t, s)
 	})

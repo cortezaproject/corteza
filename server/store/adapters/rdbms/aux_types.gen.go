@@ -505,6 +505,19 @@ type (
 		Value      string `db:"value"`
 	}
 
+	// auxNotification is an auxiliary structure used for transporting to/from RDBMS store
+	auxNotification struct {
+		ID        uint64                        `db:"id"`
+		Kind      systemType.NotificationKind   `db:"kind"`
+		Config    systemType.NotificationConfig `db:"config"`
+		Recipient uint64                        `db:"recipient"`
+		CreatedBy uint64                        `db:"created_by"`
+		ReadAt    *time.Time                    `db:"read_at"`
+		CreatedAt time.Time                     `db:"created_at"`
+		UpdatedAt *time.Time                    `db:"updated_at"`
+		DeletedAt *time.Time                    `db:"deleted_at"`
+	}
+
 	// auxQueue is an auxiliary structure used for transporting to/from RDBMS store
 	auxQueue struct {
 		ID        uint64               `db:"id"`
@@ -2454,6 +2467,56 @@ func (aux *auxLabel) scan(row scanner) error {
 		&aux.ResourceID,
 		&aux.Name,
 		&aux.Value,
+	)
+}
+
+// encodes Notification to auxNotification
+//
+// This function is auto-generated
+func (aux *auxNotification) encode(res *systemType.Notification) (_ error) {
+	aux.ID = res.ID
+	aux.Kind = res.Kind
+	aux.Config = res.Config
+	aux.Recipient = res.Recipient
+	aux.CreatedBy = res.CreatedBy
+	aux.ReadAt = res.ReadAt
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes Notification from auxNotification
+//
+// This function is auto-generated
+func (aux auxNotification) decode() (res *systemType.Notification, _ error) {
+	res = new(systemType.Notification)
+	res.ID = aux.ID
+	res.Kind = aux.Kind
+	res.Config = aux.Config
+	res.Recipient = aux.Recipient
+	res.CreatedBy = aux.CreatedBy
+	res.ReadAt = aux.ReadAt
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxNotification fields
+//
+// This function is auto-generated
+func (aux *auxNotification) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Kind,
+		&aux.Config,
+		&aux.Recipient,
+		&aux.CreatedBy,
+		&aux.ReadAt,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
 	)
 }
 

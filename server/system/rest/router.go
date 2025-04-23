@@ -44,6 +44,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewStats(Stats{}.New()).MountRoutes(r)
 			handlers.NewReminder(Reminder{}.New()).MountRoutes(r)
 			handlers.NewActionlog(Actionlog{}.New()).MountRoutes(r)
+			handlers.NewNotification(Notification{}.New()).MountRoutes(r)
 			handlers.NewQueues(Queue{}.New()).MountRoutes(r)
 			handlers.NewApigwRoute(ApigwRoute{}.New()).MountRoutes(r)
 			handlers.NewApigwFilter(ApigwFilter{}.New()).MountRoutes(r)

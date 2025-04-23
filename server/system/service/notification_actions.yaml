@@ -1,0 +1,75 @@
+# List of loggable service actions
+
+resource: system:notification
+service: notification
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: notification
+    type: "*types.Notification"
+    fields: [ ID, recipient, createdBy, kind, config ]
+  - name: new
+    type: "*types.Notification"
+    fields: [ ID, recipient, createdBy, kind, config ]
+  - name: updated
+    type: "*types.Notification"
+    fields: [ ID, recipient, createdBy, kind, config ]
+  - name: filter
+    type: "*types.NotificationFilter"
+    fields: [ notificationID, recipient, kind, read, deleted ]
+
+actions:
+  - action: search
+    log: "searched for notifications"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{notification}}"
+    severity: info
+
+  - action: create
+    log: "created {{notification}}"
+
+  - action: update
+    log: "updated {{notification}}"
+
+  - action: delete
+    log: "deleted {{notification}}"
+
+  - action: markAsRead
+    log: "marked {{notification}} as read"
+
+  - action: markAllAsRead
+    log: "marked all notifications as read for current user"
+
+errors:
+  - error: notFound
+    message: "notification not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read notifications of other users"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create notifications"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update notifications"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete notifications"
+
+  - error: notAllowedToAssign
+    message: "not allowed to assign notifications to other users"

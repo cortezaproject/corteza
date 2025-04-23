@@ -22,6 +22,7 @@ component: schema.#component & {
     "queue":                 				queue
     "queue-message":         				queue_message
     "reminder":              				reminder
+		"notification":									notification
     "report":                				report
     "resource-translation":  				resource_translation
     "role":                  				role
@@ -78,5 +79,7 @@ component: schema.#component & {
 
 		"data-privacy-request.create": description:  "Create data privacy requests"
 		"data-privacy-requests.search": description: "List, search or filter data privacy requests"
+
+		"notification.assign": description: "Assign notifications to other users"
 	}
 }

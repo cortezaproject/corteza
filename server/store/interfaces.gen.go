@@ -76,6 +76,7 @@ type (
 		FederationSharedModules
 		Flags
 		Labels
+		Notifications
 		Queues
 		QueueMessages
 		RbacRules
@@ -503,6 +504,18 @@ type (
 		TruncateLabels(ctx context.Context) error
 		LookupLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) (*labelsType.Label, error)
 		DeleteExtraLabels(ctx context.Context, kind string, resourceId uint64, name ...string) error
+	}
+
+	Notifications interface {
+		SearchNotifications(ctx context.Context, f systemType.NotificationFilter) (systemType.NotificationSet, systemType.NotificationFilter, error)
+		CreateNotification(ctx context.Context, rr ...*systemType.Notification) error
+		UpdateNotification(ctx context.Context, rr ...*systemType.Notification) error
+		UpsertNotification(ctx context.Context, rr ...*systemType.Notification) error
+		DeleteNotification(ctx context.Context, rr ...*systemType.Notification) error
+
+		DeleteNotificationByID(ctx context.Context, id uint64) error
+		TruncateNotifications(ctx context.Context) error
+		LookupNotificationByID(ctx context.Context, id uint64) (*systemType.Notification, error)
 	}
 
 	Queues interface {
@@ -2720,6 +2733,62 @@ func LookupLabelByKindResourceIDName(ctx context.Context, s Labels, kind string,
 // This function is auto-generated
 func DeleteExtraLabels(ctx context.Context, s Labels, kind string, resourceId uint64, name ...string) error {
 	return s.DeleteExtraLabels(ctx, kind, resourceId, name...)
+}
+
+// SearchNotifications returns all matching Notifications from store
+//
+// This function is auto-generated
+func SearchNotifications(ctx context.Context, s Notifications, f systemType.NotificationFilter) (systemType.NotificationSet, systemType.NotificationFilter, error) {
+	return s.SearchNotifications(ctx, f)
+}
+
+// CreateNotification creates one or more Notifications in store
+//
+// This function is auto-generated
+func CreateNotification(ctx context.Context, s Notifications, rr ...*systemType.Notification) error {
+	return s.CreateNotification(ctx, rr...)
+}
+
+// UpdateNotification updates one or more (existing) Notifications in store
+//
+// This function is auto-generated
+func UpdateNotification(ctx context.Context, s Notifications, rr ...*systemType.Notification) error {
+	return s.UpdateNotification(ctx, rr...)
+}
+
+// UpsertNotification creates new or updates existing one or more Notifications in store
+//
+// This function is auto-generated
+func UpsertNotification(ctx context.Context, s Notifications, rr ...*systemType.Notification) error {
+	return s.UpsertNotification(ctx, rr...)
+}
+
+// DeleteNotification deletes one or more Notifications from store
+//
+// This function is auto-generated
+func DeleteNotification(ctx context.Context, s Notifications, rr ...*systemType.Notification) error {
+	return s.DeleteNotification(ctx, rr...)
+}
+
+// DeleteNotificationByID deletes one or more Notifications from store
+//
+// This function is auto-generated
+func DeleteNotificationByID(ctx context.Context, s Notifications, id uint64) error {
+	return s.DeleteNotificationByID(ctx, id)
+}
+
+// TruncateNotifications Deletes all Notifications from store
+//
+// This function is auto-generated
+func TruncateNotifications(ctx context.Context, s Notifications) error {
+	return s.TruncateNotifications(ctx)
+}
+
+// LookupNotificationByID
+//
+// This function is auto-generated
+func LookupNotificationByID(ctx context.Context, s Notifications, id uint64) (*systemType.Notification, error) {
+	return s.LookupNotificationByID(ctx, id)
 }
 
 // SearchQueues returns all matching Queues from store

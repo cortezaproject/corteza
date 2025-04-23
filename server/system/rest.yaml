@@ -1539,6 +1539,121 @@ endpoints:
         name: remindAt
         required: true
         title: New Remind At Time
+- title: Notifications
+  entrypoint: notification
+  path: "/notification"
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - sqlxTypes github.com/jmoiron/sqlx/types
+  apis:
+  - name: list
+    method: GET
+    title: List/read notifications
+    path: "/"
+    parameters:
+      get:
+      - name: notificationID
+        title: Filter by notification ID
+        type: "[]string"
+      - name: kind
+        title: Only notifications of a specific kind
+        type: string
+        required: false
+      - name: read
+        title: Exclude (0, default), include (1) or return only (2) read notifications
+        type: uint
+        required: false
+      - name: deleted
+        title: Exclude (0, default), include (1) or return only (2) deleted notifications
+        type: uint
+        required: false
+      - name: limit
+        title: Limit
+        type: uint
+        required: false
+      - name: pageCursor
+        title: Page cursor
+        type: string
+      - name: sort
+        title: Sort items
+        type: string
+  - name: create
+    method: POST
+    title: Add new notification
+    path: "/"
+    parameters:
+      post:
+      - name: kind
+        title: Kind
+        type: string
+        required: true
+      - name: config
+        title: Configuration data for the notification
+        type: sqlxTypes.JSONText
+        required: true
+      - name: recipient
+        title: Recipient
+        type: uint64
+        required: true
+  - name: update
+    method: PUT
+    title: Update notification
+    path: "/{notificationID}"
+    parameters:
+      path:
+      - type: uint64
+        name: notificationID
+        required: true
+        title: Notification ID
+      post:
+      - name: kind
+        title: Kind
+        type: string
+        required: true
+      - name: config
+        title: Configuration data for the notification
+        type: sqlxTypes.JSONText
+        required: true
+      - name: recipient
+        title: Recipient
+        type: uint64
+        required: true
+  - name: read
+    method: GET
+    title: Read notification by ID
+    path: "/{notificationID}"
+    parameters:
+      path:
+      - type: uint64
+        name: notificationID
+        required: true
+        title: Notification ID
+  - name: delete
+    method: DELETE
+    title: Delete notification
+    path: "/{notificationID}"
+    parameters:
+      path:
+      - type: uint64
+        name: notificationID
+        required: true
+        title: Notification ID
+  - name: markAsRead
+    method: PATCH
+    title: Mark notification as read
+    path: "/{notificationID}/read"
+    parameters:
+      path:
+      - type: uint64
+        name: notificationID
+        required: true
+        title: Notification ID
+  - name: markAllAsRead
+    method: PATCH
+    title: Mark all notifications as read for current user
+    path: "/read/all"
 - title: Attachments
   path: "/attachment/{kind}"
   entrypoint: attachment

@@ -515,6 +515,11 @@ func (svc accessControl) List() (out []map[string]string) {
 			"any":  types.ComponentRbacResource(),
 			"op":   "data-privacy-requests.search",
 		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "notification.assign",
+		},
 	}
 
 	func(svc interface{}) {
@@ -1141,6 +1146,14 @@ func (svc accessControl) CanSearchDataPrivacyRequests(ctx context.Context) bool 
 	return svc.can(ctx, "data-privacy-requests.search", r)
 }
 
+// CanAssignNotification checks if current user can assign notifications to other users
+//
+// This function is auto-generated
+func (svc accessControl) CanAssignNotification(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "notification.assign", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -1370,6 +1383,7 @@ func rbacResourceOperations(r string) map[string]bool {
 			"dal-schema-alterations.manage": true,
 			"data-privacy-request.create":   true,
 			"data-privacy-requests.search":  true,
+			"notification.assign":           true,
 		}
 	}
 

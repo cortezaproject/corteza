@@ -1,29 +1,30 @@
 package service
 
 import (
-    "context"
-    "errors"
-    "github.com/bep/godartsass/v2"
-    "time"
+	"context"
+	"errors"
+	"time"
 
-    automationService "github.com/cortezaproject/corteza/server/automation/service"
-    discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
-    "github.com/cortezaproject/corteza/server/pkg/actionlog"
-    "github.com/cortezaproject/corteza/server/pkg/dal"
-    "github.com/cortezaproject/corteza/server/pkg/eventbus"
-    "github.com/cortezaproject/corteza/server/pkg/healthcheck"
-    "github.com/cortezaproject/corteza/server/pkg/id"
-    "github.com/cortezaproject/corteza/server/pkg/logger"
-    "github.com/cortezaproject/corteza/server/pkg/objstore"
-    "github.com/cortezaproject/corteza/server/pkg/objstore/minio"
-    "github.com/cortezaproject/corteza/server/pkg/objstore/plain"
-    "github.com/cortezaproject/corteza/server/pkg/options"
-    "github.com/cortezaproject/corteza/server/pkg/rbac"
-    "github.com/cortezaproject/corteza/server/pkg/valuestore"
-    "github.com/cortezaproject/corteza/server/store"
-    "github.com/cortezaproject/corteza/server/system/automation"
-    "github.com/cortezaproject/corteza/server/system/types"
-    "go.uber.org/zap"
+	"github.com/bep/godartsass/v2"
+
+	automationService "github.com/cortezaproject/corteza/server/automation/service"
+	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
+	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/dal"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
+	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
+	"github.com/cortezaproject/corteza/server/pkg/objstore"
+	"github.com/cortezaproject/corteza/server/pkg/objstore/minio"
+	"github.com/cortezaproject/corteza/server/pkg/objstore/plain"
+	"github.com/cortezaproject/corteza/server/pkg/options"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
+	"github.com/cortezaproject/corteza/server/pkg/valuestore"
+	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/automation"
+	"github.com/cortezaproject/corteza/server/system/types"
+	"go.uber.org/zap"
 )
 
 type (
@@ -63,7 +64,7 @@ var (
 	// DefaultSettings controls system's settings
 	DefaultSettings *settings
 
-    DefaultStylesheet *stylesheet
+	DefaultStylesheet *stylesheet
 
 	// DefaultAccessControl Access control checking
 	DefaultAccessControl *accessControl
@@ -87,6 +88,7 @@ var (
 	DefaultRole                *role
 	DefaultApplication         *application
 	DefaultReminder            ReminderService
+	DefaultNotification        NotificationService
 	DefaultAttachment          AttachmentService
 	DefaultRenderer            TemplateService
 	DefaultResourceTranslation ResourceTranslationService
@@ -155,12 +157,12 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		}
 	}
 
-    sassTranspiler := dartSassTranspiler(log)
+	sassTranspiler := dartSassTranspiler(log)
 
 	DefaultAccessControl = AccessControl(s)
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, DefaultActionlog, CurrentSettings, c.Webapps)
-    DefaultStylesheet = Stylesheet(sassTranspiler, log)
+	DefaultStylesheet = Stylesheet(sassTranspiler, log)
 
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 
@@ -219,6 +221,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultRole = Role(rbac.Global())
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx, DefaultLogger.Named("reminder"), ws)
+	DefaultNotification = Notification(ctx, DefaultLogger.Named("notification"), ws)
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultQueue = Queue()
@@ -268,8 +271,17 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultRole,
 	)
 
+	// Register notification handler
+	automation.NotificationHandler(
+		automationService.Registry(),
+		DefaultNotification,
+		DefaultUser,
+		log,
+	)
+
 	// ValuestoreHandler isn't (yet) a system thing but this initialization resides
 	// here just so we can easily register it
+
 	automation.ValuestoreHandler(
 		automationService.Registry(),
 		valuestore.Global(),
@@ -352,14 +364,14 @@ func isStale(new *time.Time, updatedAt *time.Time, createdAt time.Time) bool {
 }
 
 func dartSassTranspiler(log *zap.Logger) *godartsass.Transpiler {
-    transpiler, err := godartsass.Start(godartsass.Options{
-        DartSassEmbeddedFilename: "sass",
-    })
+	transpiler, err := godartsass.Start(godartsass.Options{
+		DartSassEmbeddedFilename: "sass",
+	})
 
-    if err != nil {
-        log.Warn("dart sass is not installed in your system", zap.Error(err))
-        return nil
-    }
+	if err != nil {
+		log.Warn("dart sass is not installed in your system", zap.Error(err))
+		return nil
+	}
 
-    return transpiler
+	return transpiler
 }

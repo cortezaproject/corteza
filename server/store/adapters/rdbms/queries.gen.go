@@ -3610,6 +3610,110 @@ var (
 		}
 	}
 
+	// notificationTable represents notifications store table
+	//
+	// This value is auto-generated
+	notificationTable = goqu.T("notifications")
+
+	// notificationSelectQuery assembles select query for fetching notifications
+	//
+	// This function is auto-generated
+	notificationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"kind",
+			"config",
+			"recipient",
+			"created_by",
+			"read_at",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(notificationTable)
+	}
+
+	// notificationInsertQuery assembles query inserting notifications
+	//
+	// This function is auto-generated
+	notificationInsertQuery = func(d goqu.DialectWrapper, res *systemType.Notification) *goqu.InsertDataset {
+		return d.Insert(notificationTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"kind":       res.Kind,
+				"config":     res.Config,
+				"recipient":  res.Recipient,
+				"created_by": res.CreatedBy,
+				"read_at":    res.ReadAt,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+			})
+	}
+
+	// notificationUpsertQuery assembles (insert+on-conflict) query for replacing notifications
+	//
+	// This function is auto-generated
+	notificationUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Notification) *goqu.InsertDataset {
+		var target = `,id`
+
+		return notificationInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"kind":       res.Kind,
+						"config":     res.Config,
+						"recipient":  res.Recipient,
+						"created_by": res.CreatedBy,
+						"read_at":    res.ReadAt,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// notificationUpdateQuery assembles query for updating notifications
+	//
+	// This function is auto-generated
+	notificationUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Notification) *goqu.UpdateDataset {
+		return d.Update(notificationTable).
+			Set(goqu.Record{
+				"kind":       res.Kind,
+				"config":     res.Config,
+				"recipient":  res.Recipient,
+				"created_by": res.CreatedBy,
+				"read_at":    res.ReadAt,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+			}).
+			Where(notificationPrimaryKeys(res))
+	}
+
+	// notificationDeleteQuery assembles delete query for removing notifications
+	//
+	// This function is auto-generated
+	notificationDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(notificationTable).Where(ee...)
+	}
+
+	// notificationDeleteQuery assembles delete query for removing notifications
+	//
+	// This function is auto-generated
+	notificationTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(notificationTable)
+	}
+
+	// notificationPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	notificationPrimaryKeys = func(res *systemType.Notification) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// queueTable represents queues store table
 	//
 	// This value is auto-generated
