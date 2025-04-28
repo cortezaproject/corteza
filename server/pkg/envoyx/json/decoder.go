@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
 	"github.com/gabriel-vasile/mimetype"
 )
 
@@ -65,7 +66,7 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 
 	seenHeader := make(map[string]bool)
 
-	var aux map[string]string
+	var aux datasource.RawRecord
 	for out.reader.More() {
 		err = out.reader.Decode(&aux)
 		if err == io.EOF {
@@ -87,6 +88,11 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 		out.count++
 	}
 
+	return
+}
+
+func (d *decoder) SetConfigs(config map[string]any) (err error) {
+	// @todo when needed
 	return
 }
 
@@ -122,8 +128,10 @@ func (d *decoder) Reset(_ context.Context) error {
 }
 
 // Next returns the field: value mapping for the next row
-func (d *decoder) Next(_ context.Context, out map[string]string) (more bool, err error) {
-	err = d.reader.Decode(&out)
+func (d *decoder) Next(_ context.Context, out datasource.RawRecord) (more bool, err error) {
+	tmp := make(datasource.RawRecord)
+	err = d.reader.Decode(&tmp)
+
 	if err == io.EOF {
 		return false, nil
 	} else if err != nil {
@@ -132,9 +140,15 @@ func (d *decoder) Next(_ context.Context, out map[string]string) (more bool, err
 
 	// Empty out missing fields to keep consistent with CSV
 	for _, h := range d.header {
-		if _, ok := out[h]; !ok {
-			out[h] = ""
+		if _, ok := tmp[h]; !ok {
+			vv := tmp[h]
+			vv.Values = make([]string, 0)
+			tmp[h] = vv
 		}
+	}
+
+	for k, v := range tmp {
+		out[k] = v
 	}
 
 	return true, nil

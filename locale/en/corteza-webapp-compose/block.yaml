@@ -316,6 +316,21 @@ recordList:
     allow: Users will be able to export records
     csv: CSV Export
     dateRange: Select date range
+    multiValueDelimiter:
+      label: Multi value delimiter
+
+      semicolon:
+        label: value 1;value 2;...;value n
+      comma:
+        label: value 1,value 2,...,value n
+      pipe:
+        label: value 1|value 2|...|value n
+      semicolonArray:
+        label: "[value 1;value 2;...;value n]"
+      commaArray:
+        label: "[value 1,value 2,...,value n]"
+      pipeArray:
+        label: "[value 1|value 2|...|value n]"
     query:
       label: Search query
       placeholder: Search...
@@ -412,6 +427,21 @@ recordList:
     to: Import to {{modulename}}
     uploadFile: Upload the file you want to import (.csv or JSON format)
     idFieldDescription: Records with matching ID's will be updated.
+    multiValueDelimiter:
+      label: Multi value delimiter
+
+      semicolon:
+        label: value 1;value 2;...;value n
+      comma:
+        label: value 1,value 2,...,value n
+      pipe:
+        label: value 1|value 2|...|value n
+      semicolonArray:
+        label: "[value 1;value 2;...;value n]"
+      commaArray:
+        label: "[value 1,value 2,...,value n]"
+      pipeArray:
+        label: "[value 1|value 2|...|value n]"
     report:
       count: Number of records
       detectedErrors: Detected errors

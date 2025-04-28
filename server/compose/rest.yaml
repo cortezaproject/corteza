@@ -1086,6 +1086,9 @@ endpoints:
         type: string
         required: true
         title: What happens if record fails to import
+      - type: string
+        name: multiValueDelimiter
+        title: Imported namespace multiValueDelimiter
   - name: importProgress
     path: "/import/{sessionID}"
     method: GET
@@ -1123,6 +1126,14 @@ endpoints:
         type: string
         required: false
         title: Convert times to this timezone
+      - name: multiValueDelimiter
+        type: string
+        required: false
+        title: Multi value delimiter for CSV exports
+      - name: wrapMultiValue
+        type: string
+        required: false
+        title: Wrap multi value fields in brachets
   - name: exec
     path: "/exec/{procedure}"
     method: POST

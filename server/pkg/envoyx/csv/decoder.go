@@ -3,12 +3,15 @@ package csv
 import (
 	"context"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
 	"github.com/gabriel-vasile/mimetype"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -20,8 +23,12 @@ type (
 		reader   *csv.Reader
 		skipHead bool
 
+		delimiter           string
+		multiValueDelimiter string
+		multiValueBrackets  bool
+
 		header []string
-		row    map[string]string
+		row    datasource.RawRecord
 		count  uint64
 	}
 )
@@ -47,9 +54,14 @@ func CanDecodeExt(ext string) bool {
 // Decoder inits a new csv decoder from the given reader
 //
 // @todo hold small files in mem to avoid needles disc access
-func Decoder(r io.Reader, ident string) (out *decoder, err error) {
+func Decoder(r io.Reader, ident string, config map[string]any) (out *decoder, err error) {
 	out = &decoder{
 		ident: ident,
+	}
+
+	err = out.parseConfig(config)
+	if err != nil {
+		return
 	}
 
 	out.src, err = ioutil.TempFile(os.TempDir(), "*.csv")
@@ -65,6 +77,9 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 
 	out.reader = csv.NewReader(r)
 	out.reader.ReuseRecord = true
+	if out.delimiter != "" {
+		out.reader.Comma = []rune(out.delimiter)[0]
+	}
 
 	// Header
 	aux, err := out.reader.Read()
@@ -73,7 +88,7 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 		return
 	}
 
-	out.row = make(map[string]string, len(out.header))
+	out.row = make(datasource.RawRecord, len(out.header))
 
 	for {
 		_, err = out.reader.Read()
@@ -86,6 +101,10 @@ func Decoder(r io.Reader, ident string) (out *decoder, err error) {
 		// Entry count
 		out.count++
 	}
+}
+
+func (d *decoder) SetConfigs(config map[string]any) (err error) {
+	return d.parseConfig(config)
 }
 
 // Cleanup should be called before we stop using the decoder
@@ -116,7 +135,7 @@ func (d *decoder) Reset(_ context.Context) error {
 }
 
 // Next returns the field: value mapping for the next row
-func (d *decoder) Next(_ context.Context, out map[string]string) (more bool, err error) {
+func (d *decoder) Next(_ context.Context, out datasource.RawRecord) (more bool, err error) {
 	if d.skipHead {
 		_, err = d.reader.Read()
 		if err != nil {
@@ -131,9 +150,13 @@ func (d *decoder) Next(_ context.Context, out map[string]string) (more bool, err
 	} else if err != nil {
 		return false, err
 	}
-
 	for i, h := range d.header {
-		out[h] = aux[i]
+		for j, v := range d.parseComplexCSVCell(aux[i]) {
+			err = out.SetValue(h, uint(j), v)
+			if err != nil {
+				return
+			}
+		}
 	}
 
 	return true, nil
@@ -152,4 +175,67 @@ func (d *decoder) flushTemp(r io.Reader) (_ io.Reader, err error) {
 
 	d.src.Seek(0, 0)
 	return d.src, nil
+}
+
+func (d *decoder) parseComplexCSVCell(cell string) []string {
+	if d.multiValueBrackets {
+		if strings.HasPrefix(cell, "[") && strings.HasSuffix(cell, "]") {
+			cell = cell[1 : len(cell)-1]
+		}
+	}
+
+	if len(cell) == 0 {
+		return nil
+	}
+
+	r := csv.NewReader(strings.NewReader(cell))
+	if d.multiValueDelimiter != "" {
+		r.Comma = []rune(d.multiValueDelimiter)[0]
+	}
+
+	records, err := r.ReadAll()
+	if err != nil {
+		return nil
+	}
+
+	return records[0]
+}
+
+func (d *decoder) parseConfig(cfg map[string]any) error {
+	if cfg == nil {
+		return nil
+	}
+
+	for k := range cfg {
+		switch k {
+		case "delimiter":
+			d.delimiter = cast.ToString(cfg[k])
+		case "multiValueDelimiter":
+			switch cast.ToString(cast.ToString(cfg[k])) {
+			case ",":
+				d.multiValueDelimiter = ","
+				d.multiValueBrackets = false
+			case ";":
+				d.multiValueDelimiter = ";"
+				d.multiValueBrackets = false
+			case "|":
+				d.multiValueDelimiter = "|"
+				d.multiValueBrackets = false
+			case "[,]":
+				d.multiValueDelimiter = ","
+				d.multiValueBrackets = true
+			case "[;]":
+				d.multiValueDelimiter = ";"
+				d.multiValueBrackets = true
+			case "[|]":
+				d.multiValueDelimiter = "|"
+				d.multiValueBrackets = true
+			}
+
+		default:
+			return fmt.Errorf("unknown parameter %s", k)
+		}
+	}
+
+	return nil
 }

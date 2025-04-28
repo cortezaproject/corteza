@@ -2508,6 +2508,7 @@ export default class Compose {
       sessionID,
       fields,
       onError,
+      multiValueDelimiter,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2534,6 +2535,7 @@ export default class Compose {
     cfg.data = {
       fields,
       onError,
+      multiValueDelimiter,
     }
     return this.api().request(cfg).then(result => stdResolve(result))
   }
@@ -2617,6 +2619,8 @@ export default class Compose {
       filter,
       fields,
       timezone,
+      multiValueDelimiter,
+      wrapMultiValue,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2641,6 +2645,8 @@ export default class Compose {
       filter,
       fields,
       timezone,
+      multiValueDelimiter,
+      wrapMultiValue,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))

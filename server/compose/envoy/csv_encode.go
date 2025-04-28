@@ -5,8 +5,11 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
+	"github.com/spf13/cast"
 )
 
 type (
@@ -47,8 +50,64 @@ func (e CsvEncoder) encodeRecordDatasources(ctx context.Context, writer *csv.Wri
 func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writer, p envoyx.EncodeParams, node *envoyx.Node, tt envoyx.Traverser) (_ any, err error) {
 	rds := node.Datasource.(*RecordDatasource)
 
-	out := make(map[string]string)
+	out := make(datasource.RawRecord)
 	header := make([]string, 0, 4)
+
+	mvDelimiter := ";"
+	wrapBrackets := false
+
+	if p.Params["multiValueDelimiter"] == nil {
+		wrapBrackets = false
+		mvDelimiter = ";"
+	}
+
+	switch cast.ToString(p.Params["multiValueDelimiter"]) {
+	case ",":
+		mvDelimiter = ","
+		wrapBrackets = false
+	case ";":
+		mvDelimiter = ";"
+		wrapBrackets = false
+	case "|":
+		mvDelimiter = "|"
+		wrapBrackets = false
+	case "[,]":
+		mvDelimiter = ","
+		wrapBrackets = true
+	case "[;]":
+		mvDelimiter = ";"
+		wrapBrackets = true
+	case "[|]":
+		mvDelimiter = "|"
+		wrapBrackets = true
+	}
+
+	getValue := func(h string) string {
+		v := out[h]
+		if len(v.Values) == 0 {
+			return ""
+		}
+
+		if !rds.multivalues[h] {
+			return v.Values[0]
+		}
+
+		auxv := make([]string, 0, len(v.Values))
+		for _, vv := range v.Values {
+			if strings.Contains(vv, mvDelimiter) {
+				auxv = append(auxv, fmt.Sprintf("\"%s\"", vv))
+			} else {
+				auxv = append(auxv, vv)
+			}
+		}
+
+		out := strings.Join(auxv, mvDelimiter)
+		if wrapBrackets {
+			out = fmt.Sprintf("[%s]", out)
+		}
+
+		return out
+	}
 
 	row := make([]string, 0, 4)
 	var more bool
@@ -69,7 +128,7 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 		}
 
 		for _, h := range header {
-			row = append(row, out[h])
+			row = append(row, getValue(h))
 		}
 
 		err = writer.Write(row)

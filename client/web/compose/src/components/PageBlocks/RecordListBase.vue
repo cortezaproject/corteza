@@ -1452,6 +1452,7 @@ export default {
         query: {
           fields: e.fields,
           // url.Make already URL encodes the the values, so the filter shouldn't be encoded
+          multiValueDelimiter: e.multiValueDelimiter,
           filter: this.selectedAllRecords ? this.bulkQuery : filter,
           jwt: this.$auth.accessToken,
           timezone: timezone ? timezone.tzCode : undefined,
