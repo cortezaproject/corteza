@@ -75,10 +75,9 @@ type (
 	DecodeParams struct {
 		Type   decodeType
 		Params map[string]any
-		Config DecoderConfig
+		Config map[string]any
 		Filter map[string]ResourceFilter
 	}
-	DecoderConfig struct{}
 
 	EncodeParams struct {
 		Type    encodeType

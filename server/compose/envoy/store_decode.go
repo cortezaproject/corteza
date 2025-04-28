@@ -239,8 +239,19 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 		return
 	}
 
+	mv := make(map[string]bool)
+	for _, f := range module.Fields {
+		if !f.Multi {
+			continue
+		}
+
+		mv[f.Name] = true
+	}
+
 	ou := &RecordDatasource{
 		Provider:    &iteratorProvider{iter: iter},
+		multivalues: mv,
+
 		refToID:     make(map[string]uint64),
 		existingIDs: make(map[uint64]bool),
 		// @todo consider providing defaults from the outside

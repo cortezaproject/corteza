@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
 	"github.com/spf13/cast"
 )
 
@@ -17,12 +18,11 @@ type (
 		Mapping  envoyx.DatasourceMapping
 		Provider envoyx.Provider
 
+		multivalues map[string]bool
+
 		CheckExisting func(ctx context.Context, ref ...[]string) ([]uint64, error)
 
 		currentIndex int
-
-		// Reusable buffer for reading records
-		rowCache map[string]string
 
 		// Index to map from ref to ID
 		// @todo we might need to flush these to the disc in case a huge dataset is passed in
@@ -35,11 +35,7 @@ type (
 	// envoy.Provider interface
 	iteratorProvider struct {
 		iter dal.Iterator
-
-		rowCache auxRecord
 	}
-
-	auxRecord map[string]string
 )
 
 func (rd *RecordDatasource) SetProvider(s envoyx.Provider) bool {
@@ -51,23 +47,21 @@ func (rd *RecordDatasource) SetProvider(s envoyx.Provider) bool {
 	return true
 }
 
-func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (ident []string, more bool, err error) {
-	if rd.rowCache == nil {
-		rd.rowCache = make(map[string]string)
-	}
+func (rd *RecordDatasource) Next(ctx context.Context, out datasource.RawRecord) (ident []string, more bool, err error) {
+	rowCache := make(datasource.RawRecord)
 
-	more, err = rd.Provider.Next(ctx, rd.rowCache)
+	more, err = rd.Provider.Next(ctx, rowCache)
 	if err != nil || !more {
 		return
 	}
 
-	rd.applyMapping(rd.rowCache, out)
+	rd.applyMapping(rowCache, out)
 
 	if len(rd.Mapping.KeyField) == 0 {
 		ident = append(ident, strconv.FormatInt(int64(rd.currentIndex), 10))
 	} else {
 		for _, k := range rd.Mapping.KeyField {
-			ident = append(ident, rd.rowCache[k])
+			ident = append(ident, strings.Join(rowCache[k].Values, ","))
 		}
 	}
 
@@ -76,12 +70,16 @@ func (rd *RecordDatasource) Next(ctx context.Context, out map[string]string) (id
 	return
 }
 
+func (rd *iteratorProvider) SetConfigs(map[string]any) error {
+	return nil
+}
+
 func (rd *RecordDatasource) Reset(ctx context.Context) (err error) {
 	rd.currentIndex = 0
 	return rd.Provider.Reset(ctx)
 }
 
-func (rd *RecordDatasource) applyMapping(in, out map[string]string) {
+func (rd *RecordDatasource) applyMapping(in, out datasource.RawRecord) {
 	if len(rd.Mapping.Mapping.Map) == 0 {
 		if !rd.Mapping.Defaultable {
 			return
@@ -100,7 +98,7 @@ func (rd *RecordDatasource) applyMapping(in, out map[string]string) {
 	}
 }
 
-func (rd *RecordDatasource) applyMappingWithDefaults(in, out map[string]string) {
+func (rd *RecordDatasource) applyMappingWithDefaults(in, out datasource.RawRecord) {
 	maps := make(map[string]envoyx.MapEntry)
 	for k, v := range rd.Mapping.Mapping.Map {
 		maps[k] = v
@@ -118,7 +116,7 @@ func (rd *RecordDatasource) applyMappingWithDefaults(in, out map[string]string) 
 	}
 }
 
-func (rd *RecordDatasource) applyMappingWoDefaults(in, out map[string]string) {
+func (rd *RecordDatasource) applyMappingWoDefaults(in, out datasource.RawRecord) {
 	for _, m := range rd.Mapping.Mapping.Map {
 		if m.Skip {
 			continue
@@ -160,26 +158,19 @@ func (rd *RecordDatasource) AddRef(id uint64, idents ...string) {
 	rd.refToID[strings.Join(idents, "-")] = id
 }
 
-func (ar auxRecord) SetValue(name string, pos uint, value any) (err error) {
-	ar[name] = cast.ToString(value)
-	return
-}
-
-func (ip *iteratorProvider) Next(ctx context.Context, out map[string]string) (more bool, err error) {
-	if ip.rowCache == nil {
-		ip.rowCache = make(auxRecord)
-	}
+func (ip *iteratorProvider) Next(ctx context.Context, out datasource.RawRecord) (more bool, err error) {
+	rowCache := make(datasource.RawRecord)
 
 	if !ip.iter.Next(ctx) {
 		return false, ip.iter.Err()
 	}
 
-	err = ip.iter.Scan(ip.rowCache)
+	err = ip.iter.Scan(rowCache)
 	if err != nil {
 		return
 	}
 
-	for k, v := range ip.rowCache {
+	for k, v := range rowCache {
 		out[k] = v
 	}
 

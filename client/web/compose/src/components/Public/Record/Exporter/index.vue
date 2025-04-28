@@ -148,6 +148,18 @@
             :placeholder="$t('recordList.export.timezonePlaceholder')"
           />
         </b-form-group>
+
+        <template>
+          <b-form-group
+            :label="$t('recordList.export.multiValueDelimiter.label')"
+            label-class="text-primary"
+          >
+            <b-form-select
+              v-model="multiValueDelimiter"
+              :options="multiValueDelimiterOptions"
+            />
+          </b-form-group>
+        </template>
       </template>
 
       <template #modal-footer>
@@ -285,6 +297,7 @@ export default {
         rangeType: 'all',
         query: this.query,
         filter: this.filter,
+        multiValueDelimiter: ';',
         rangeBy: null,
         date: {
           range: 'lastMonth',
@@ -345,6 +358,36 @@ export default {
         {
           value: 'updatedAt',
           text: this.$t('recordList.export.filter.updatedAt'),
+        },
+      ]
+    },
+
+    multiValueDelimiterOptions () {
+      return [
+        {
+          value: ';',
+          text: this.$t('recordList.export.multiValueDelimiter.semicolon.label'),
+        },
+        {
+          value: ',',
+          text: this.$t('recordList.export.multiValueDelimiter.comma.label'),
+        },
+        {
+          value: '|',
+          text: this.$t('recordList.export.multiValueDelimiter.pipe.label'),
+        },
+
+        {
+          value: '[;]',
+          text: this.$t('recordList.export.multiValueDelimiter.semicolonArray.label'),
+        },
+        {
+          value: '[,]',
+          text: this.$t('recordList.export.multiValueDelimiter.commaArray.label'),
+        },
+        {
+          value: '[|]',
+          text: this.$t('recordList.export.multiValueDelimiter.pipeArray.label'),
         },
       ]
     },
@@ -412,6 +455,16 @@ export default {
 
       set (rangeBy) {
         this.exportConfig.rangeBy = rangeBy
+      },
+    },
+
+    multiValueDelimiter: {
+      get () {
+        return this.exportConfig.multiValueDelimiter
+      },
+
+      set (rangeBy) {
+        this.exportConfig.multiValueDelimiter = rangeBy
       },
     },
 
@@ -611,6 +664,7 @@ export default {
         fields: encodeURIComponent(this.fields.map(({ name }) => name)),
         filter: encodeURIComponent(this.makeFilter(this.exportConfig)),
         filterRaw: encodeURIComponent(this.exportConfig),
+        multiValueDelimiter: encodeURIComponent(this.exportConfig.multiValueDelimiter),
         timezone: encodeURIComponent(this.forTimezone ? this.exportTimezone : undefined),
       })
     },

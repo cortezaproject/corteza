@@ -4,20 +4,22 @@ import (
 	"context"
 	"strings"
 
+	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
 	"github.com/cortezaproject/corteza/server/pkg/y7s"
 	"gopkg.in/yaml.v3"
 )
 
 type (
 	Provider interface {
-		Next(ctx context.Context, out map[string]string) (more bool, err error)
+		Next(ctx context.Context, out datasource.RawRecord) (more bool, err error)
 		Reset(ctx context.Context) error
 		SetIdent(string)
+		SetConfigs(map[string]any) error
 		Ident() string
 	}
 
 	Datasource interface {
-		Next(ctx context.Context, out map[string]string) (ident []string, more bool, err error)
+		Next(ctx context.Context, out datasource.RawRecord) (ident []string, more bool, err error)
 		Reset(ctx context.Context) error
 		SetProvider(Provider) bool
 	}

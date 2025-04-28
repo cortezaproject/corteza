@@ -12,14 +12,14 @@ func TestDecoder(t *testing.T) {
 	req := require.New(t)
 
 	t.Run("init & meta", func(t *testing.T) {
-		dc, err := Decoder(testReader(), "test.csv")
+		dc, err := Decoder(testReader(), "test.csv", nil)
 		req.NoError(err)
 
 		req.Equal(uint64(3), dc.Count())
 	})
 
 	t.Run("fields", func(t *testing.T) {
-		dc, err := Decoder(testReader(), "test.csv")
+		dc, err := Decoder(testReader(), "test.csv", nil)
 		req.NoError(err)
 
 		hh := dc.Fields()
@@ -29,7 +29,7 @@ func TestDecoder(t *testing.T) {
 	})
 
 	t.Run("iterate", func(t *testing.T) {
-		dc, err := Decoder(testReader(), "test.csv")
+		dc, err := Decoder(testReader(), "test.csv", nil)
 		req.NoError(err)
 
 		aux := make(map[string]string)

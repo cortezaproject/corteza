@@ -32,6 +32,24 @@
       </b-form-select>
     </b-form-group>
 
+    <b-form-group
+      :label="$t('recordList.import.multiValueDelimiter.label')"
+      label-class="text-primary"
+    >
+      <b-form-select
+        v-model="multiValueDelimiter"
+        class="w-auto"
+      >
+        <option
+          v-for="d of multiValueDelimiterOptions"
+          :key="d.value"
+          :value="d.value"
+        >
+          {{ d.text }}
+        </option>
+      </b-form-select>
+    </b-form-group>
+
     <div
       slot="footer"
       class="text-right"
@@ -76,6 +94,7 @@ export default {
     return {
       session: null,
       onError: 'FAIL',
+      multiValueDelimiter: ';',
       sessionFile: null,
     }
   },
@@ -86,6 +105,36 @@ export default {
         namespaceID: this.namespace.namespaceID,
         moduleID: this.module.moduleID,
       })
+    },
+
+    multiValueDelimiterOptions () {
+      return [
+        {
+          value: ';',
+          text: this.$t('recordList.import.multiValueDelimiter.semicolon.label'),
+        },
+        {
+          value: ',',
+          text: this.$t('recordList.import.multiValueDelimiter.comma.label'),
+        },
+        {
+          value: '|',
+          text: this.$t('recordList.import.multiValueDelimiter.pipe.label'),
+        },
+
+        {
+          value: '[;]',
+          text: this.$t('recordList.import.multiValueDelimiter.semicolonArray.label'),
+        },
+        {
+          value: '[,]',
+          text: this.$t('recordList.import.multiValueDelimiter.commaArray.label'),
+        },
+        {
+          value: '[|]',
+          text: this.$t('recordList.import.multiValueDelimiter.pipeArray.label'),
+        },
+      ]
     },
 
     canContinue () {
@@ -111,6 +160,7 @@ export default {
       this.$emit('fileUploaded', {
         ...this.session || {},
         onError: this.onError,
+        multiValueDelimiter: this.multiValueDelimiter,
       })
     },
   },

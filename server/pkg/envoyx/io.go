@@ -167,7 +167,7 @@ func (nvyx *Service) decodeFile(ctx context.Context, p DecodeParams, basePath, p
 
 	if csv.CanDecodeFile(f) || csv.CanDecodeExt(f.Name()) {
 		f.Seek(0, 0)
-		aux, err := csv.Decoder(f, providerIdent)
+		aux, err := csv.Decoder(f, providerIdent, p.Config)
 		if err != nil {
 			return nil, nil, err
 		}
