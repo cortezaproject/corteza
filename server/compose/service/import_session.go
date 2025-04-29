@@ -75,7 +75,7 @@ func (svc *importSession) Create(ctx context.Context, f io.ReadSeeker, name, con
 	rd, err := func() (pp countableProvider, err error) {
 		if envoyCsv.CanDecodeFile(f) || envoyCsv.CanDecodeMime(contentType) {
 			f.Seek(0, 0)
-			return envoyCsv.Decoder(f, name)
+			return envoyCsv.Decoder(f, name, nil)
 		}
 
 		if envoyJson.CanDecodeFile(f) || envoyJson.CanDecodeMime(contentType) {
