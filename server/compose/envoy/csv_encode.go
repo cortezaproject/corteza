@@ -53,6 +53,17 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 	out := make(datasource.RawRecord)
 	header := make([]string, 0, 4)
 
+	hasID := false
+	for _, m := range p.FieldMapping {
+		header = append(header, m.Field)
+
+		hasID = hasID || strings.ToLower(m.Field) == "id"
+	}
+
+	if !hasID {
+		header = append([]string{"ID"}, header...)
+	}
+
 	mvDelimiter := ";"
 	wrapBrackets := false
 
@@ -110,7 +121,10 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 	}
 
 	row := make([]string, 0, 4)
-	var more bool
+	var (
+		more     bool
+		hWritten bool
+	)
 	for {
 		_, more, err = rds.Next(ctx, out)
 		if err != nil || !more {
@@ -121,6 +135,11 @@ func (e CsvEncoder) encodeRecordDatasource(ctx context.Context, writer *csv.Writ
 			for k := range out {
 				header = append(header, k)
 			}
+		}
+
+		if !hWritten {
+			hWritten = true
+
 			err = writer.Write(header)
 			if err != nil {
 				return

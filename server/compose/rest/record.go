@@ -795,6 +795,14 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 			return
 		}
 
+		mapping := make([]envoyx.MapEntry, 0, len(r.Fields))
+		for _, f := range r.Fields {
+			mapping = append(mapping, envoyx.MapEntry{
+				Column: f,
+				Field:  f,
+			})
+		}
+
 		err = envoySvc.Encode(ctx, envoyx.EncodeParams{
 			Type: envoyx.EncodeTypeIo,
 			Params: map[string]any{
@@ -802,6 +810,7 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 				"multiValueDelimiter": r.MultiValueDelimiter,
 				"wrapMultiValue":      r.WrapMultiValue,
 			},
+			FieldMapping: mapping,
 		}, gg)
 		if err != nil {
 			return

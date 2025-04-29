@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/service/values"
 	"github.com/cortezaproject/corteza/server/compose/types"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
@@ -193,6 +194,7 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 			rec.ModuleID = mod.ID
 			rec.CreatedAt = time.Now()
 			rec.OwnedBy = service.CalcRecordOwner(0, rec.OwnedBy, p.Encoder.DefaultUserID)
+			rec.CreatedBy = e.getCreatedBy(ctx, rec)
 			rec.ID, err = ds.ResolveRefS(ident...)
 			if err != nil {
 				return err
@@ -262,6 +264,19 @@ func (e StoreEncoder) encodeRecordDatasource(ctx context.Context, p envoyx.Encod
 		err = dalutils.ComposeRecordUpdate(ctx, dl, mod, updates...)
 	}
 	return
+}
+
+func (e StoreEncoder) getCreatedBy(ctx context.Context, rec types.Record) uint64 {
+	if rec.CreatedBy > 0 {
+		return rec.CreatedBy
+	}
+
+	idt := auth.GetIdentityFromContext(ctx)
+	if idt == nil {
+		return 0
+	}
+
+	return idt.Identity()
 }
 
 // maceRecordGetters returns a map of getters where the key is the field name

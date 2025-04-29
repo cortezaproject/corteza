@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx/datasource"
@@ -48,6 +49,17 @@ func (e JsonlEncoder) encodeRecordDatasources(ctx context.Context, writer *json.
 func (e JsonlEncoder) encodeRecordDatasource(ctx context.Context, writer *json.Encoder, p envoyx.EncodeParams, node *envoyx.Node, tt envoyx.Traverser) (_ any, err error) {
 	rds := node.Datasource.(*RecordDatasource)
 	header := make([]string, 0, 4)
+
+	hasID := false
+	for _, m := range p.FieldMapping {
+		header = append(header, m.Field)
+
+		hasID = hasID || strings.ToLower(m.Field) == "id"
+	}
+
+	if !hasID {
+		header = append([]string{"ID"}, header...)
+	}
 
 	var more bool
 	for {

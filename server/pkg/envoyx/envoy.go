@@ -85,6 +85,8 @@ type (
 		Envoy   EnvoyConfig
 		Encoder EncoderConfig
 
+		FieldMapping []MapEntry
+
 		// @note these are only used by records since v1 did just that
 		// @todo make these more expanded
 		DeferOk  func()
