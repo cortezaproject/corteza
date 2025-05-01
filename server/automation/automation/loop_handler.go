@@ -26,6 +26,15 @@ func LoopHandler(reg loopHandlerRegistry, p expr.Parsable) *loopHandler {
 	return h
 }
 
+func signOf(n int64) int64 {
+    if n > 0 {
+        return 1
+    } else if n < 0 {
+        return -1
+    }
+    return 0
+}
+
 func (h loopHandler) sequence(_ context.Context, args *loopSequenceArgs) (wfexec.IteratorHandler, error) {
 	if !args.hasFirst {
 		args.First = 0
@@ -39,8 +48,9 @@ func (h loopHandler) sequence(_ context.Context, args *loopSequenceArgs) (wfexec
 		args.Step = 1
 	}
 
-	if args.First*(args.Step/args.Step) >= args.Last*(args.Step/args.Step) {
-		return nil, fmt.Errorf("failed to initialize counter iterator with first step greater than last")
+	sign := signOf(args.Step)
+	if args.First*sign >= args.Last*sign {
+		return nil, fmt.Errorf("failed to initialize counter iterator with first value greater than last or with zero step")
 	}
 
 	i := &sequenceIterator{
