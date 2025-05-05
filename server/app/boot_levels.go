@@ -258,15 +258,10 @@ func (app *CortezaApp) Provision(ctx context.Context) (err error) {
 		// @todo envoy should be decoupled from RBAC and import directly into store,
 		//       w/o using any access control
 
-		var (
-			ac  = rbac.NewService(zap.NewNop(), app.Store)
-			acr = make([]*rbac.Role, 0)
-		)
-		for _, r := range auth.ProvisionUser().Roles() {
-			acr = append(acr, rbac.BypassRole.Make(r, auth.BypassRoleHandle))
-		}
-		ac.UpdateRoles(acr...)
-		rbac.SetGlobal(ac)
+		rbac.SetGlobal(rbac.NoopSvc(rbac.Allow, rbac.Config{
+			RuleStorage: app.Store,
+			RoleStorage: app.Store,
+		}))
 		defer rbac.SetGlobal(nil)
 	}
 
@@ -355,10 +350,30 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		}
 
 		// Initialize RBAC subsystem
-		ac := rbac.NewService(log, app.Store)
+		// @todo add state management
+		// @todo potentially add .Activate like other services?
+		ac, err := rbac.NewService(ctx, log, app.Store, rbac.Config{
+			MaxIndexSize:       app.Opt.RBAC.MaxIndexSize,
+			Synchronous:        app.Opt.RBAC.Synchronous,
+			ReindexStrategy:    rbac.ReindexStrategy(app.Opt.RBAC.ReindexStrategy),
+			DecayFactor:        app.Opt.RBAC.DecayFactor,
+			DecayInterval:      app.Opt.RBAC.DecayInterval,
+			CleanupInterval:    app.Opt.RBAC.CleanupInterval,
+			IndexFlushInterval: app.Opt.RBAC.IndexFlushInterval,
+			ReindexInterval:    app.Opt.RBAC.ReindexInterval,
+			RuleStorage:        app.Store,
+			RoleStorage:        app.Store,
 
-		// and (re)load rules from the storage backend
-		ac.Reload(ctx)
+			PullInitialState: func(ctx context.Context, n int) ([]string, error) {
+				return nil, nil
+			},
+			FlushIndexState: func(ctx context.Context, s []string) error {
+				return nil
+			},
+		})
+		if err != nil {
+			return fmt.Errorf("failed to initialize RBAC service: %w", err)
+		}
 
 		rbac.SetGlobal(ac)
 	}
@@ -504,8 +519,6 @@ func (app *CortezaApp) Activate(ctx context.Context) (err error) {
 	}
 
 	monitor.Watcher(ctx)
-
-	rbac.Global().Watch(ctx)
 
 	if err = sysService.Activate(ctx); err != nil {
 		return fmt.Errorf("could not activate system services: %w", err)

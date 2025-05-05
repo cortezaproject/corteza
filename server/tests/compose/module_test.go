@@ -160,7 +160,7 @@ func TestModuleList_filterForbidden(t *testing.T) {
 	h.makeModule(ns, "module")
 	f := h.makeModule(ns, "module_forbidden")
 
-	helpers.DenyMe(h, types.ModuleRbacResource(0, f.ID), "read")
+	helpers.DenyMe(h, types.ModuleRbacResource(f.NamespaceID, f.ID), "read")
 
 	h.apiInit().
 		Get(fmt.Sprintf("/namespace/%d/module/", ns.ID)).

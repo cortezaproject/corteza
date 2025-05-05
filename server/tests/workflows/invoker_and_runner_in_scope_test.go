@@ -6,7 +6,6 @@ import (
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
 	"github.com/stretchr/testify/require"
@@ -45,8 +44,6 @@ func Test_invoker_and_runner_in_scope(t *testing.T) {
 	helpers.UpdateRBAC(
 		wfInvokers.ID,
 	)
-
-	rbac.Global().Reload(ctx)
 
 	t.Run("invoker set in scope", func(t *testing.T) {
 		var (

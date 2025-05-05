@@ -22,7 +22,12 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 		identPlural: "rules"
 		expIdent: "Rule"
 
-		features: _allFeaturesDisabled
+		features: {
+			sorting: true
+			labels: false
+			paging: false
+			checkFn: false
+		}
 
 
 		model: {
@@ -32,6 +37,7 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 					goType: "uint64",
 					ident: "roleID",
 					storeIdent: "rel_role"
+					sortable: true,
 					dal: { type: "Ref", refModelResType: "corteza::system:role" }
 				}
 				resource:  {
@@ -49,6 +55,17 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 			indexes: {
 				"primary": { attributes: [ "role_id", "resource", "operation" ] }
 			}
+		}
+
+		filter: {
+			struct: {
+				resource: {goType: "[]string", ident: "resource", storeIdent: "resource"}
+				operation: {goType: "string", ident: "operation", storeIdent: "operation"}
+				role_id: {goType: "uint64", ident: "roleID", storeIdent: "rel_role"}
+			}
+
+			byValue: ["resource", "operation", "role_id"]
+			rawFilter: true
 		}
 
 		store: {

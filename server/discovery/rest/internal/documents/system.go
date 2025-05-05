@@ -21,7 +21,7 @@ type (
 		settings *types.AppSettings
 
 		rbac interface {
-			SignificantRoles(res rbac.Resource, op string) (aRR, dRR []uint64)
+			SignificantRoles(ctx context.Context, res rbac.Resource, op string) (aRR, dRR []uint64, err error)
 		}
 
 		ac interface {
@@ -92,7 +92,10 @@ func (d systemResources) Users(ctx context.Context, limit uint, cur string, user
 				doc.Url = fmt.Sprintf("%s/admin/system/user/edit/%d", d.opt.CortezaDomain, u.ID)
 			}
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(u, "read")
+			doc.Security.AllowedRoles, doc.Security.DeniedRoles, err = d.rbac.SignificantRoles(ctx, u, "read")
+			if err != nil {
+				return
+			}
 
 			rsp.Documents[i].ID = u.ID
 			rsp.Documents[i].Source = doc

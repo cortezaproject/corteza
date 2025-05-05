@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
@@ -26,7 +27,6 @@ import (
 )
 
 func makeTestRecordService(t *testing.T, mods ...any) *record {
-
 	var (
 		err error
 		req = require.New(t)
@@ -68,10 +68,6 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 		}
 	}
 
-	if svc.ac == nil {
-		svc.ac = &accessControl{rbac: rbac.NewService(log, nil)}
-	}
-
 	if svc.store == nil {
 		svc.store, err = sqlite.ConnectInMemoryWithDebug(ctx)
 		req.NoError(err)
@@ -83,7 +79,21 @@ func makeTestRecordService(t *testing.T, mods ...any) *record {
 		req.NoError(store.TruncateComposeModules(ctx, svc.store))
 		req.NoError(store.TruncateComposeModuleFields(ctx, svc.store))
 		req.NoError(store.TruncateRbacRules(ctx, svc.store))
+	}
 
+	if svc.ac == nil {
+		rc, err := rbac.NewService(ctx, log, svc.store, rbac.Config{
+			Synchronous:        true,
+			DecayInterval:      time.Hour * 2,
+			CleanupInterval:    time.Hour * 2,
+			ReindexInterval:    time.Hour * 2,
+			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        svc.store,
+			RoleStorage:        svc.store,
+		})
+		require.NoError(t, err)
+		svc.rbacSvc = rc
+		svc.ac = &accessControl{rbac: rc}
 	}
 
 	resourceMaker(ctx, t, svc.store, mods...)
@@ -255,8 +265,8 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
 
 		mod         = &types.Module{ID: nextID(), NamespaceID: ns.ID, Config: modConf}
-		stringField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "string", Kind: "String"}
-		boolField   = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
+		stringField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "string", Kind: "String"}
+		boolField   = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "bool", Kind: "Boolean"}
 
 		authRoleID uint64 = 1
 
@@ -264,14 +274,8 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 		writerRole = &sysTypes.Role{Name: "writer", ID: nextID()}
 
 		//
-		rbacService = rbac.NewService(
-			zap.NewNop(),
-			//logger.MakeDebugLogger(),
-			nil,
-		)
 
 		svc = makeTestRecordService(t,
-			rbacService,
 			logger.MakeDebugLogger(),
 			u,
 			ns,
@@ -294,13 +298,13 @@ func TestRecord_boolFieldPermissionIssueKBR(t *testing.T) {
 
 	svc.validator = defaultValidator(svc)
 
-	rbacService.UpdateRoles(
+	svc.rbacSvc.UpdateRoles(
 		rbac.CommonRole.Make(readerRole.ID, readerRole.Name),
 		rbac.CommonRole.Make(writerRole.ID, writerRole.Name),
 		rbac.AuthenticatedRole.Make(authRoleID, "authenticated"),
 	)
 
-	rbacService.Grant(ctx,
+	svc.rbacSvc.Grant(ctx,
 		// base permissions
 		rbac.AllowRule(authRoleID, mod.RbacResource(), "record.create"),
 		rbac.AllowRule(authRoleID, types.RecordRbacResource(0, 0, 0), "read"),
@@ -382,12 +386,6 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 		req = require.New(t)
 		ctx = context.Background()
 
-		rbacService = rbac.NewService(
-			//zap.NewNop(),
-			logger.MakeDebugLogger(),
-			nil,
-		)
-
 		user = &sysTypes.User{ID: nextID()}
 
 		modConf = types.ModuleConfig{DAL: types.ModuleConfigDAL{ConnectionID: 1}}
@@ -398,7 +396,6 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 		readableField = &types.ModuleField{ID: nextID(), ModuleID: mod.ID, NamespaceID: ns.ID, Name: "readable", Kind: "String", DefaultValue: types.RecordValueSet{{Value: "def-r"}}}
 
 		svc = makeTestRecordService(t,
-			rbacService,
 			user,
 			ns,
 			mod,
@@ -440,12 +437,12 @@ func TestRecord_defValueFieldPermissionIssue(t *testing.T) {
 
 	t.Log("setting up security")
 
-	rbacService.UpdateRoles(
+	svc.rbacSvc.UpdateRoles(
 		rbac.CommonRole.Make(editorRole.ID, editorRole.Name),
 		rbac.AuthenticatedRole.Make(authRoleID, "authenticated"),
 	)
 
-	rbacService.Grant(ctx,
+	svc.rbacSvc.Grant(ctx,
 		// base permissions
 		rbac.AllowRule(authRoleID, mod.RbacResource(), "record.create"),
 		rbac.AllowRule(authRoleID, types.RecordRbacResource(0, 0, 0), "read"),
@@ -526,11 +523,6 @@ func TestRecord_refAccessControl(t *testing.T) {
 	req.NoError(store.TruncateRbacRules(ctx, s))
 
 	var (
-		rbacService = rbac.NewService(
-			//zap.NewNop(),
-			logger.MakeDebugLogger(),
-			nil,
-		)
 		nextIDi uint64 = 1
 		nextID         = func() uint64 {
 			nextIDi++
@@ -558,7 +550,6 @@ func TestRecord_refAccessControl(t *testing.T) {
 		testerRole = &sysTypes.Role{Name: "tester", ID: nextID()}
 
 		svc = makeTestRecordService(t,
-			rbacService,
 			user,
 			ns,
 			mod1,
@@ -581,7 +572,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 	svc.validator = defaultValidator(svc)
 
 	t.Log("inform rbac service about new roles")
-	rbacService.UpdateRoles(
+	svc.rbacSvc.UpdateRoles(
 		rbac.CommonRole.Make(testerRole.ID, testerRole.Name),
 	)
 
@@ -596,7 +587,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.EqualError(err, "not allowed to create records")
 
 		t.Logf("granting permissions to create records on this module")
-		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1.RbacResource(), "record.create")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1.RbacResource(), "record.create")))
 
 		t.Log("retry creating record on 1st module; should fail because we do not have permissions to update field")
 		_, _, err = svc.Create(ctx, mod1rec1)
@@ -604,7 +595,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.True(types.IsRecordValueErrorSet(err).HasKind("updateDenied"))
 
 		t.Logf("granting permissions to update records values on module field")
-		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1strField.RbacResource(), "record.value.update")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1strField.RbacResource(), "record.value.update")))
 
 		t.Log("retry creating record on 1st module; should succeed")
 		mod1rec1, _, err = svc.Create(ctx, mod1rec1)
@@ -624,17 +615,17 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.EqualError(err, "not allowed to create records")
 
 		t.Log("grant record.create on namespace level")
-		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleRbacResource(ns.ID, 0), "record.create")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleRbacResource(ns.ID, 0), "record.create")))
 
 		t.Log("grant record.value.update on namespace level")
-		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleFieldRbacResource(ns.ID, 0, 0), "record.value.update")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, types.ModuleFieldRbacResource(ns.ID, 0, 0), "record.value.update")))
 
 		t.Log("create record on 2nd module with ref to record on the 1st module; most fail, not allowed to read (referenced) mod1rec1")
 		_, _, err = svc.Create(ctx, mod2rec1)
 		req.EqualError(err, "invalid record value input")
 
 		t.Log("grant read on record")
-		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
 
 		t.Log("create record on 2nd module with ref to record on the 1st module")
 		mod2rec1, _, err = svc.Create(ctx, mod2rec1)
@@ -646,7 +637,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 		req.EqualError(err, "not allowed to update this record")
 
 		t.Log("grant update on namespace level")
-		req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, types.RecordRbacResource(ns.ID, 0, 0), "update")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, types.RecordRbacResource(ns.ID, 0, 0), "update")))
 
 		t.Log("update record on 2nd module with unchanged values")
 		mod2rec1, _, err = svc.Update(ctx, mod2rec1)
@@ -664,7 +655,7 @@ func TestRecord_refAccessControl(t *testing.T) {
 	}
 	{
 		t.Log("revoke read on record")
-		req.NoError(rbacService.Grant(ctx, rbac.DenyRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
+		req.NoError(svc.rbacSvc.Grant(ctx, rbac.DenyRule(testerRole.ID, mod1rec1.RbacResource(), "read")))
 
 		t.Log("link 2nd record to 1st one again but w/o permissions; must work, value did not change")
 		mod2rec1.Values = mod2rec1.Values.Set(&types.RecordValue{Name: "ref", Value: fmt.Sprintf("%d", mod1rec1.ID)})
@@ -678,12 +669,6 @@ func TestRecord_searchAccessControl(t *testing.T) {
 		err error
 		req = require.New(t)
 		ctx = context.Background()
-
-		rbacService = rbac.NewService(
-			//zap.NewNop(),
-			logger.MakeDebugLogger(),
-			nil,
-		)
 
 		nextIDi uint64 = 1
 		nextID         = func() uint64 {
@@ -699,7 +684,6 @@ func TestRecord_searchAccessControl(t *testing.T) {
 		strField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "str", Kind: "String"}
 
 		svc = makeTestRecordService(t,
-			rbacService,
 			user,
 			ns,
 			mod,
@@ -734,13 +718,13 @@ func TestRecord_searchAccessControl(t *testing.T) {
 	}
 
 	t.Log("inform rbac service about new roles")
-	rbacService.UpdateRoles(
+	svc.rbacSvc.UpdateRoles(
 		rbac.CommonRole.Make(testerRole.ID, testerRole.Name),
 	)
 
 	t.Log("log-in with test user ")
 	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, testerRole.ID))
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, mod.RbacResource(), "records.search")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, mod.RbacResource(), "records.search")))
 
 	t.Log("search for the newly created records; should not find any (all denied)")
 	f.IncTotal = true
@@ -750,8 +734,8 @@ func TestRecord_searchAccessControl(t *testing.T) {
 	req.Equal(uint(0), f.Total)
 
 	t.Log("allow read access for two records")
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[3].RbacResource(), "read")))
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[6].RbacResource(), "read")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[3].RbacResource(), "read")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(testerRole.ID, rr[6].RbacResource(), "read")))
 
 	t.Log("search for the newly created records; should find 2 we're allowed to read")
 	f.IncTotal = true
@@ -769,8 +753,6 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 
 		//log = zap.NewNop()
 		log = logger.MakeDebugLogger()
-
-		rbacService = rbac.NewService(log, nil)
 
 		nextIDi uint64 = 1
 		nextID         = func() uint64 {
@@ -794,7 +776,6 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 		boolField = &types.ModuleField{ID: nextID(), NamespaceID: ns.ID, ModuleID: mod.ID, Name: "yes", Kind: "String"}
 
 		svc = makeTestRecordService(t,
-			rbacService,
 			log,
 			user,
 			ns,
@@ -878,14 +859,14 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 	// read:  x   x x x x x x x x (all but one)
 
 	t.Log("inform rbac service about new roles")
-	rbacService.UpdateRoles(
+	svc.rbacSvc.UpdateRoles(
 		rbac.CommonRole.Make(baseRole.ID, baseRole.Name),
 		rbac.MakeContextRole(ownerRole.ID, ownerRole.Name, roleCheckFnMaker("resource.ownedBy == userID"), types.RecordResourceType),
 		rbac.MakeContextRole(truthyRole.ID, truthyRole.Name, roleCheckFnMaker(`has(resource.values, "yes") ? resource.values.yes : false`), types.RecordResourceType),
 		rbac.MakeContextRole(tttRole.ID, tttRole.Name, roleCheckFnMaker(`has(resource.values, "num") ? resource.values.num == 333 : false`), types.RecordResourceType),
 	)
 
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(baseRole.ID, types.ModuleRbacResource(0, 0), "records.search")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(baseRole.ID, types.ModuleRbacResource(0, 0), "records.search")))
 
 	t.Log("log-in with test user")
 	ctx = auth.SetIdentityToContext(ctx, auth.Authenticated(user.ID, baseRole.ID))
@@ -896,19 +877,19 @@ func TestRecord_contextualRolesAccessControl(t *testing.T) {
 	req.Len(hits, 0)
 
 	t.Log("expecting to find 5 records (owned by us)")
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(ownerRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(ownerRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
 	hits, _, err = svc.Find(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 5)
 
 	t.Log("expecting to find 2 records (owned by us and with true value for 'yes' field)")
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(truthyRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(truthyRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
 	hits, _, err = svc.Find(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 8)
 
 	t.Log("expecting to find 2 records (owned by us and with true value for 'yes' field + 333 for num)")
-	req.NoError(rbacService.Grant(ctx, rbac.AllowRule(tttRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
+	req.NoError(svc.rbacSvc.Grant(ctx, rbac.AllowRule(tttRole.ID, types.RecordRbacResource(0, 0, 0), "read")))
 	hits, _, err = svc.Find(ctx, f)
 	req.NoError(err)
 	req.Len(hits, 9)
@@ -931,11 +912,15 @@ func TestSetRecordOwner(t *testing.T) {
 	req.NoError(store.TruncateRbacRules(ctx, s))
 
 	var (
-		rbacService = rbac.NewService(
-			zap.NewNop(),
-			//logger.MakeDebugLogger(),
-			nil,
-		)
+		rbacService = rbac.NewServiceMust(ctx, zap.NewNop(), s, rbac.Config{
+			Synchronous:        true,
+			DecayInterval:      time.Hour * 2,
+			CleanupInterval:    time.Hour * 2,
+			ReindexInterval:    time.Hour * 2,
+			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        s,
+			RoleStorage:        s,
+		})
 		ac = &accessControl{rbac: rbacService}
 
 		invoker          = &sysTypes.User{ID: 1001}

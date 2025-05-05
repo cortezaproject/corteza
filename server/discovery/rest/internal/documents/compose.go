@@ -22,7 +22,7 @@ type (
 		settings *sysTypes.AppSettings
 
 		rbac interface {
-			SignificantRoles(res rbac.Resource, op string) (aRR, dRR []uint64)
+			SignificantRoles(ctx context.Context, res rbac.Resource, op string) (aRR, dRR []uint64, err error)
 		}
 
 		ac interface {
@@ -168,7 +168,10 @@ func (d composeResources) Namespaces(ctx context.Context, limit uint, cur string
 				},
 			}
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(ns, "read")
+			doc.Security.AllowedRoles, doc.Security.DeniedRoles, err = d.rbac.SignificantRoles(ctx, ns, "read")
+			if err != nil {
+				return
+			}
 
 			rsp.Documents[i].Source = doc
 		}
@@ -255,7 +258,10 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 				},
 			}
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(mod, "read")
+			doc.Security.AllowedRoles, doc.Security.DeniedRoles, err = d.rbac.SignificantRoles(ctx, mod, "read")
+			if err != nil {
+				return
+			}
 
 			rsp.Documents[i].Source = doc
 		}
@@ -378,7 +384,10 @@ func (d composeResources) Records(ctx context.Context, namespaceID, moduleID uin
 			// Values and value labels
 			doc.Values, doc.ValueLabels = d.recordValues(ctx, rec, mod.Fields)
 
-			doc.Security.AllowedRoles, doc.Security.DeniedRoles = d.rbac.SignificantRoles(rec, "read")
+			doc.Security.AllowedRoles, doc.Security.DeniedRoles, err = d.rbac.SignificantRoles(ctx, rec, "read")
+			if err != nil {
+				return
+			}
 
 			rsp.Documents[i].Source = doc
 		}

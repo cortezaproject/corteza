@@ -403,7 +403,7 @@ var Rule = &dal.Model{
 
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
-			Ident: "RoleID",
+			Ident: "RoleID", Sortable: true,
 			Type: &dal.TypeRef{
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{

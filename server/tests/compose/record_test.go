@@ -326,7 +326,7 @@ func TestRecordListForbiddenFields(t *testing.T) {
 
 	module := h.repoMakeRecordModuleWithFields("record testing module")
 	helpers.AllowMe(h, module.RbacResource(), "records.create", "records.search")
-	helpers.DenyMe(h, types.ModuleFieldRbacResource(0, 0, module.Fields[0].ID), "record.value.read")
+	helpers.DenyMe(h, types.ModuleFieldRbacResource(module.NamespaceID, module.ID, module.Fields[0].ID), "record.value.read")
 
 	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_0"}, &types.RecordValue{Name: "email", Value: "v_email_0"})
 	h.makeRecord(module, &types.RecordValue{Name: "name", Value: "v_name_1"}, &types.RecordValue{Name: "email", Value: "v_email_1"})
@@ -657,9 +657,9 @@ func TestRecordUpdate_forbiddenFields(t *testing.T) {
 		&types.RecordValue{Name: "f-b-t-n", Value: "1"}, // no-value
 		&types.RecordValue{Name: "f-b-t-v", Value: "1"}, // value
 	)
-	helpers.AllowMe(h, types.RecordRbacResource(0, 0, record.ID), "update")
+	helpers.AllowMe(h, types.RecordRbacResource(record.NamespaceID, record.ModuleID, record.ID), "update")
 	helpers.AllowMe(h, module.Fields[0].RbacResource(), "record.value.update")
-	helpers.DenyMe(h, types.ModuleFieldRbacResource(0, record.ModuleID, 0), "record.value.update")
+	helpers.DenyMe(h, types.ModuleFieldRbacResource(record.NamespaceID, record.ModuleID, 0), "record.value.update")
 
 	h.apiInit().
 		Post(fmt.Sprintf("/namespace/%d/module/%d/record/%d", module.NamespaceID, module.ID, record.ID)).

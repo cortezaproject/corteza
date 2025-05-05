@@ -12,6 +12,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/spf13/cast"
 
@@ -44,6 +45,7 @@ type (
 
 		actionlog actionlog.Recorder
 
+		rbacSvc  *rbac.Service
 		ac       recordAccessController
 		eventbus eventDispatcher
 

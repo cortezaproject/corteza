@@ -513,7 +513,10 @@ func (ctrl Namespace) exportCompose(ctx context.Context, namespaceID uint64) (re
 
 func (ctrl Namespace) exportRBAC(ctx context.Context, base envoyx.NodeSet) (resources envoyx.NodeSet, err error) {
 	// Prepare RBAC Rules
-	rawRules := rbac.Global().Rules()
+	rawRules, err := rbac.Global().Rules(ctx)
+	if err != nil {
+		return
+	}
 
 	resources, err = envoyx.RBACRulesForNodes(rawRules, base...)
 	if err != nil {

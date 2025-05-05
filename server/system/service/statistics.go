@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -26,6 +27,8 @@ type (
 		Users        *types.UserMetrics        `json:"users"`
 		Roles        *types.RoleMetrics        `json:"roles"`
 		Applications *types.ApplicationMetrics `json:"applications"`
+
+		Rbac rbac.Stats `json:"rbac"`
 	}
 )
 
@@ -60,6 +63,12 @@ func (svc statistics) Metrics(ctx context.Context) (rval *StatisticsMetricsPaylo
 			if rval.Applications, err = store.ApplicationMetrics(ctx, svc.store); err != nil {
 				return err
 			}
+		}
+
+		// @todo rbac
+		rval.Rbac, err = rbac.Global().Stats()
+		if err != nil {
+			return err
 		}
 
 		return nil

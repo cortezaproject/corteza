@@ -2,12 +2,13 @@ package feed
 
 import (
 	"context"
+	"time"
+
 	"github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/discovery/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/options"
-	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 )
@@ -17,7 +18,7 @@ type (
 		opt options.DiscoveryOpt
 
 		rbac interface {
-			SignificantRoles(res rbac.Resource, op string) (aRR, dRR []uint64)
+			SignificantRoles(ctx context.Context, res rbac.Resource, op string) (aRR, dRR []uint64, err error)
 		}
 
 		ac interface {

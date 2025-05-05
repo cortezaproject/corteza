@@ -48,7 +48,10 @@ func TestCharts(t *testing.T) {
 		req := require.New(t)
 		svc := &chart{
 			store: s,
-			ac:    &accessControl{rbac: &rbac.ServiceAllowAll{}},
+			ac: &accessControl{rbac: rbac.NoopSvc(rbac.Allow, rbac.Config{
+				RuleStorage: s,
+				RoleStorage: s,
+			})},
 		}
 		res, err := svc.Create(ctx, &types.Chart{Name: "My first chart", NamespaceID: namespaceID})
 		req.NoError(unwrapChartInternal(err))

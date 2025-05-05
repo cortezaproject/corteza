@@ -17,7 +17,9 @@ func Test0002_rbac_fn(t *testing.T) {
 
 	loadScenario(ctx, t)
 
-	req.Len(rbac.Global().Rules(), 0)
+	rr, err := rbac.Global().Rules(ctx)
+	req.NoError(err)
+	req.Len(rr, 0)
 
 	var (
 		aux = struct {
@@ -30,5 +32,7 @@ func Test0002_rbac_fn(t *testing.T) {
 	req.NoError(vars.Decode(&aux))
 	req.Equal("y", aux.CanCurrentRead)
 	req.Equal("n", aux.CanOtherRead)
-	req.Len(rbac.Global().Rules(), 1)
+	rr, err = rbac.Global().Rules(ctx)
+	req.NoError(err)
+	req.Len(rr, 1)
 }

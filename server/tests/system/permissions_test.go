@@ -1,6 +1,7 @@
 package system
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -117,6 +118,8 @@ func TestPermissionsUpdate(t *testing.T) {
 }
 
 func TestPermissionsDelete(t *testing.T) {
+	ctx := context.Background()
+
 	h := newHelper(t)
 	p := rbac.Global()
 
@@ -126,12 +129,14 @@ func TestPermissionsDelete(t *testing.T) {
 	// New role.
 	permDelRole := h.roleID + 1
 
-	h.a.Len(rbac.Global().FindRulesByRoleID(permDelRole), 0)
+	rr := mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, permDelRole))
+	h.a.Len(rr, 0)
 
 	// Setup a few fake rules for new role
 	helpers.Grant(rbac.AllowRule(permDelRole, types.ComponentRbacResource(), "user.create"))
 
-	h.a.Len(p.FindRulesByRoleID(permDelRole), 1)
+	rr = mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, permDelRole))
+	h.a.Len(rr, 1)
 
 	h.apiInit().
 		Delete(fmt.Sprintf("/permissions/%d/rules", permDelRole)).
@@ -142,7 +147,8 @@ func TestPermissionsDelete(t *testing.T) {
 		End()
 
 	// Make sure all rules for this role are deleted
-	for _, r := range p.FindRulesByRoleID(permDelRole) {
+	rr = mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, permDelRole))
+	for _, r := range rr {
 		h.a.True(r.Access == rbac.Inherit)
 	}
 }
@@ -166,6 +172,7 @@ func TestPermissionsTrace(t *testing.T) {
 func TestPermissionsCloneToSingleRole(t *testing.T) {
 	h := newHelper(t)
 	p := rbac.Global()
+	ctx := context.Background()
 
 	// Make sure our user can grant
 	helpers.AllowMe(h, types.ComponentRbacResource(), "grant")
@@ -174,8 +181,8 @@ func TestPermissionsCloneToSingleRole(t *testing.T) {
 	roleS := h.roleID + 1
 	roleT := h.roleID + 2
 
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleS), 0)
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleT), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleS)), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleT)), 0)
 
 	// Set up a few fake rules for new role
 	helpers.Grant(rbac.AllowRule(roleS, types.ComponentRbacResource(), "user.create"))
@@ -183,8 +190,8 @@ func TestPermissionsCloneToSingleRole(t *testing.T) {
 	helpers.Grant(rbac.AllowRule(roleT, types.ComponentRbacResource(), "user.update"))
 	helpers.Grant(rbac.AllowRule(roleT, types.ComponentRbacResource(), "user.delete"))
 
-	h.a.Len(p.FindRulesByRoleID(roleS), 1)
-	h.a.Len(p.FindRulesByRoleID(roleT), 2)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleS)), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleT)), 2)
 
 	h.apiInit().
 		Post(fmt.Sprintf("/roles/%d/rules/clone", roleS)).
@@ -196,12 +203,13 @@ func TestPermissionsCloneToSingleRole(t *testing.T) {
 		End()
 
 	// Make sure all rules for role S are intact
-	h.a.Len(p.FindRulesByRoleID(roleS), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleS)), 1)
 	// Make sure all rules for role T are cloned from role S
-	h.a.Len(p.FindRulesByRoleID(roleT), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleT)), 1)
 }
 
 func TestPermissionsCloneToMultipleRole(t *testing.T) {
+	ctx := context.Background()
 	h := newHelper(t)
 	p := rbac.Global()
 
@@ -213,9 +221,9 @@ func TestPermissionsCloneToMultipleRole(t *testing.T) {
 	roleT := h.roleID + 2
 	roleY := h.roleID + 3
 
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleS), 0)
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleT), 0)
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleY), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleS)), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleT)), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleY)), 0)
 
 	// Set up a few fake rules for new role
 	helpers.Grant(rbac.AllowRule(roleS, types.ComponentRbacResource(), "user.create"))
@@ -227,9 +235,9 @@ func TestPermissionsCloneToMultipleRole(t *testing.T) {
 	helpers.Grant(rbac.AllowRule(roleY, types.ComponentRbacResource(), "user.update"))
 	helpers.Grant(rbac.AllowRule(roleY, types.ComponentRbacResource(), "user.delete"))
 
-	h.a.Len(p.FindRulesByRoleID(roleS), 1)
-	h.a.Len(p.FindRulesByRoleID(roleT), 2)
-	h.a.Len(p.FindRulesByRoleID(roleY), 3)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleS)), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleT)), 2)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleY)), 3)
 
 	h.apiInit().
 		Post(fmt.Sprintf("/roles/%d/rules/clone", roleS)).
@@ -242,14 +250,15 @@ func TestPermissionsCloneToMultipleRole(t *testing.T) {
 		End()
 
 	// Make sure all rules for role S are intact
-	h.a.Len(p.FindRulesByRoleID(roleS), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleS)), 1)
 	// Make sure all rules for role T are cloned from role S
-	h.a.Len(p.FindRulesByRoleID(roleT), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleT)), 1)
 	// Make sure all rules for role Y are cloned from role S
-	h.a.Len(p.FindRulesByRoleID(roleY), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleY)), 1)
 }
 
 func TestPermissionsCloneNotAllowed(t *testing.T) {
+	ctx := context.Background()
 	h := newHelper(t)
 	p := rbac.Global()
 
@@ -257,8 +266,8 @@ func TestPermissionsCloneNotAllowed(t *testing.T) {
 	roleS := h.roleID + 1
 	roleT := h.roleID + 2
 
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleS), 0)
-	h.a.Len(rbac.Global().FindRulesByRoleID(roleT), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleS)), 0)
+	h.a.Len(mustFindRulesByRoleID(rbac.Global().FindRulesByRoleID(ctx, roleT)), 0)
 
 	// Set up a few fake rules for new role
 	helpers.Grant(rbac.AllowRule(roleS, types.ComponentRbacResource(), "user.create"))
@@ -266,8 +275,8 @@ func TestPermissionsCloneNotAllowed(t *testing.T) {
 	helpers.Grant(rbac.AllowRule(roleT, types.ComponentRbacResource(), "user.update"))
 	helpers.Grant(rbac.AllowRule(roleT, types.ComponentRbacResource(), "user.delete"))
 
-	h.a.Len(p.FindRulesByRoleID(roleS), 1)
-	h.a.Len(p.FindRulesByRoleID(roleT), 2)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleS)), 1)
+	h.a.Len(mustFindRulesByRoleID(p.FindRulesByRoleID(ctx, roleT)), 2)
 
 	h.apiInit().
 		Post(fmt.Sprintf("/roles/%d/rules/clone", roleS)).
@@ -277,4 +286,12 @@ func TestPermissionsCloneNotAllowed(t *testing.T) {
 		Status(http.StatusOK).
 		Assert(helpers.AssertError("role.errors.notAllowedToCloneRules")).
 		End()
+}
+
+func mustFindRulesByRoleID(rr rbac.RuleSet, err error) rbac.RuleSet {
+	if err != nil {
+		panic(err)
+	}
+
+	return rr
 }

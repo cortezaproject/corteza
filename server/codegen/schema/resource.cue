@@ -47,6 +47,9 @@ import (
 
 		// filter resources by fields (eq)
 		"byValue": [...string]
+
+		// filter allows raw query construction
+		"rawFilter": bool | *false
 	}
 	// operations: #Operations
 

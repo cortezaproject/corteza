@@ -52,11 +52,19 @@ type (
 	}
 
 	RbacOpt struct {
-		Log                bool   `env:"RBAC_LOG"`
-		ServiceUser        string `env:"RBAC_SERVICE_USER"`
-		BypassRoles        string `env:"RBAC_BYPASS_ROLES"`
-		AuthenticatedRoles string `env:"RBAC_AUTHENTICATED_ROLES"`
-		AnonymousRoles     string `env:"RBAC_ANONYMOUS_ROLES"`
+		Log                bool          `env:"RBAC_LOG"`
+		MaxIndexSize       int           `env:"RBAC_MAX_INDEX_SIZE"`
+		Synchronous        bool          `env:"RBAC_SYNCHRONOUS"`
+		ReindexStrategy    string        `env:"RBAC_REINDEX_STRATEGY"`
+		DecayFactor        float64       `env:"RBAC_DECAY_FACTOR"`
+		DecayInterval      time.Duration `env:"RBAC_DECAY_INTERVAL"`
+		CleanupInterval    time.Duration `env:"RBAC_CLEANUP_INTERVAL"`
+		ReindexInterval    time.Duration `env:"RBAC_REINDEX_INTERVAL"`
+		IndexFlushInterval time.Duration `env:"RBAC_INDEX_FLUSH_INTERVAL"`
+		ServiceUser        string        `env:"RBAC_SERVICE_USER"`
+		BypassRoles        string        `env:"RBAC_BYPASS_ROLES"`
+		AuthenticatedRoles string        `env:"RBAC_AUTHENTICATED_ROLES"`
+		AnonymousRoles     string        `env:"RBAC_ANONYMOUS_ROLES"`
 	}
 
 	SCIMOpt struct {
@@ -379,6 +387,14 @@ func HttpServer() (o *HttpServerOpt) {
 // This function is auto-generated
 func Rbac() (o *RbacOpt) {
 	o = &RbacOpt{
+		MaxIndexSize:       -1,
+		Synchronous:        false,
+		ReindexStrategy:    "",
+		DecayFactor:        0.9,
+		DecayInterval:      time.Minute * 30,
+		CleanupInterval:    time.Minute * 31,
+		ReindexInterval:    time.Minute * 10,
+		IndexFlushInterval: time.Minute * 35,
 		BypassRoles:        "super-admin",
 		AuthenticatedRoles: "authenticated",
 		AnonymousRoles:     "anonymous",

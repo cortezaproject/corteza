@@ -7,7 +7,6 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/service"
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
-	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
 	"github.com/stretchr/testify/require"
 )
@@ -45,8 +44,6 @@ func Test_exec_permissions(t *testing.T) {
 	helpers.UpdateRBAC(
 		executors.ID,
 	)
-
-	rbac.Global().Reload(ctx)
 
 	t.Run("exec allowed", func(t *testing.T) {
 		ctx = auth.SetIdentityToContext(ctx, execAllowed)

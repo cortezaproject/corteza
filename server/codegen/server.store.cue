@@ -60,6 +60,8 @@ _StoreResource: {
 			"byValue":      [ for name in res.filter.byValue      {res.filter.struct[name]}]
 			"byLabel":      res.features.labels
 			"byFlag":       res.features.flags
+
+			"rawFilter": res.filter.rawFilter
 		}
 
 		auxIdent:  "aux\(expIdent)"
@@ -146,8 +148,8 @@ _StoreResource: {
 					fields: {
 						for attr in res.model.attributes if attr.sortable || attr.unique || list.Contains(pkAttrNames, attr.name) {
 							{
-								"\(strings.ToLower(attr.name))":  attr.name
-								"\(strings.ToLower(attr.ident))": attr.name
+								"\(strings.ToLower(attr.name))":  attr.storeIdent
+								"\(strings.ToLower(attr.ident))": attr.storeIdent
 							}
 						}
 					}

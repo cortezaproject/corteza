@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -38,8 +39,6 @@ func TestUser_ProtectedSearch(t *testing.T) {
 
 		testUser = &types.User{ID: 42}
 
-		acRBAC = rbac.NewService(zap.NewNop(), nil)
-
 		s store.Storer
 	)
 
@@ -48,6 +47,18 @@ func TestUser_ProtectedSearch(t *testing.T) {
 	} else if err = store.Upgrade(ctx, zap.NewNop(), s); err != nil {
 		req.NoError(err)
 	}
+
+	var (
+		acRBAC = rbac.NewServiceMust(ctx, zap.NewNop(), s, rbac.Config{
+			Synchronous:        true,
+			DecayInterval:      time.Hour * 2,
+			CleanupInterval:    time.Hour * 2,
+			ReindexInterval:    time.Hour * 2,
+			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        s,
+			RoleStorage:        s,
+		})
+	)
 
 	acRBAC.UpdateRoles(rbac.CommonRole.Make(testRoleID, "test-role"))
 	req.NoError(acRBAC.Grant(ctx,

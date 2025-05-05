@@ -850,8 +850,14 @@ func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (e
 		return
 	}
 
-	// Reload RBAC rules (in case import brought in something new)
-	rbac.Global().Reload(ctx)
+	// Reload some RBAC bits in case things changed
+	//
+	// @note no need to reload rules; just roles for now
+	err = rbac.Global().ReloadRoles(ctx)
+	if err != nil {
+		return
+	}
+
 	if err = locale.Global().ReloadResourceTranslations(ctx); err != nil {
 		return
 	}

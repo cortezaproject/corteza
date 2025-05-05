@@ -58,10 +58,6 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 		}
 	}
 
-	if svc.ac == nil {
-		svc.ac = &accessControl{rbac: rbac.NewService(log, nil)}
-	}
-
 	if svc.store == nil {
 		t.Log("using SQLite in-memory Store")
 		svc.store, err = sqlite.ConnectInMemoryWithDebug(ctx)
@@ -78,7 +74,20 @@ func makeTestModuleService(t *testing.T, mods ...any) *module {
 		req.NoError(store.TruncateComposeModuleFields(ctx, svc.store))
 		req.NoError(store.TruncateRbacRules(ctx, svc.store))
 		req.NoError(store.TruncateLabels(ctx, svc.store))
+	}
 
+	if svc.ac == nil {
+		rc, err := rbac.NewService(ctx, log, svc.store, rbac.Config{
+			Synchronous:        true,
+			DecayInterval:      time.Hour * 2,
+			CleanupInterval:    time.Hour * 2,
+			ReindexInterval:    time.Hour * 2,
+			IndexFlushInterval: time.Hour * 2,
+			RuleStorage:        svc.store,
+			RoleStorage:        svc.store,
+		})
+		require.NoError(t, err)
+		svc.ac = &accessControl{rbac: rc}
 	}
 
 	resourceMaker(ctx, t, svc.store, mods...)
@@ -122,7 +131,7 @@ func TestModules(t *testing.T) {
 
 		svc := makeTestModuleService(t,
 			ns,
-			&rbac.ServiceAllowAll{},
+			rbac.NoopSvc(rbac.Allow, rbac.Config{}),
 		)
 
 		res, err := svc.Create(ctx, &types.Module{Name: "My first module", NamespaceID: ns.ID})
@@ -167,7 +176,7 @@ func TestModule_LabelSearch(t *testing.T) {
 		req = require.New(t)
 		svc = makeTestModuleService(t,
 			ns,
-			&rbac.ServiceAllowAll{},
+			rbac.NoopSvc(rbac.Allow, rbac.Config{}),
 		)
 
 		ctx = context.Background()
@@ -239,7 +248,7 @@ func TestModule_LabelCRUD(t *testing.T) {
 		req = require.New(t)
 		svc = makeTestModuleService(t,
 			ns,
-			&rbac.ServiceAllowAll{},
+			rbac.NoopSvc(rbac.Allow, rbac.Config{}),
 		)
 
 		findAndReturnLabel = func(id uint64) map[string]string {

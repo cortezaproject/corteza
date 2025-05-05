@@ -22,9 +22,9 @@ import (
 type (
 	rbacService interface {
 		Can(rbac.Session, string, rbac.Resource) bool
-		Trace(rbac.Session, string, rbac.Resource) *rbac.Trace
+		Trace(rbac.Session, string, rbac.Resource) (*rbac.Trace, error)
 		Grant(context.Context, ...*rbac.Rule) error
-		FindRulesByRoleID(roleID uint64) (rr rbac.RuleSet)
+		FindRulesByRoleID(ctx context.Context, roleID uint64) (rr rbac.RuleSet, err error)
 	}
 
 	accessControl struct {
@@ -120,11 +120,16 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 		return nil, fmt.Errorf("no roles specified")
 	}
 
+	var auxTrace *rbac.Trace
 	session := rbac.ParamsToSession(ctx, userID, roles...)
 	for _, res := range resources {
 		r := res.RbacResource()
 		for op := range rbacResourceOperations(r) {
-			ee = append(ee, svc.rbac.Trace(session, op, res))
+			auxTrace, err = svc.rbac.Trace(session, op, res)
+			if err != nil {
+				return
+			}
+			ee = append(ee, auxTrace)
 		}
 	}
 
@@ -300,7 +305,7 @@ func (svc accessControl) FindRulesByRoleID(ctx context.Context, roleID uint64) (
 		return nil, AccessControlErrNotAllowedToSetPermissions()
 	}
 
-	return svc.rbac.FindRulesByRoleID(roleID), nil
+	return svc.rbac.FindRulesByRoleID(ctx, roleID)
 }
 
 // CanReadWorkflow checks if current user can read workflow

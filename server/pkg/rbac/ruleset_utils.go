@@ -55,16 +55,6 @@ func eq(a, b *Rule) bool {
 		a.Operation == b.Operation
 }
 
-func ruleByRole(base RuleSet, roleID uint64) (out RuleSet) {
-	for _, r := range base {
-		if r.RoleID == roleID {
-			out = append(out, r)
-		}
-	}
-
-	return
-}
-
 // Dirty returns list of deleted (Access==Inherit) and changed (dirty) rules
 func flushable(set RuleSet) (deletable, updatable, final RuleSet) {
 	deletable, updatable, final = RuleSet{}, RuleSet{}, RuleSet{}
