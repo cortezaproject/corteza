@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/cli"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/mssql"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/drivers/mysql"
@@ -25,6 +27,7 @@ var (
 
 func init() {
 	helpers.RecursiveDotEnvLoad()
+	id.Init(cli.Context())
 }
 
 func Test_RDBMS_SQLITE(t *testing.T) {
