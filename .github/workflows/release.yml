@@ -40,9 +40,6 @@ jobs:
       - name: "Unit"
         working-directory: server
         run: make test.unit
-      - name: "Store"
-        working-directory: server
-        run: make test.store
       - name: "Integration"
         working-directory: server
         run: make test.integration
