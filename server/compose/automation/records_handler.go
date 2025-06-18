@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
@@ -440,13 +441,20 @@ func wrapRecordValueErrorSet(rr *types.Record, res *types.RecordValueErrorSet, e
 func (h recordsHandler) clone(ctx context.Context, args *recordsCloneArgs) (*recordsCloneResults, error) {
 	results := &recordsCloneResults{}
 
-	// Get the source record
 	rec, err := h.lookupRecord(ctx, args)
 	if err != nil {
 		return nil, err
 	}
 
-	// Clone the record - Record.Clone() already handles clearing IDs and timestamps
 	results.Record = rec.Clone()
+
+	rec.ID = 0
+	rec.CreatedAt = time.Now()
+	rec.UpdatedAt = nil
+	rec.DeletedAt = nil
+	rec.CreatedBy = 0
+	rec.UpdatedBy = 0
+	rec.DeletedBy = 0
+
 	return results, nil
 }
