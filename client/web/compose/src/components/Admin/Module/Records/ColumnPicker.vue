@@ -1,15 +1,14 @@
 <template>
   <div class="d-flex">
     <b-button
+      v-b-tooltip.noninteractive.hover="buttonTooltip"
       :size="size"
       :variant="variant"
-      class="flex-fill"
+      :class="buttonClass"
       :disabled="disabled"
       @click="showModal = true"
     >
-      <slot>
-        {{ $t('allRecords.columns.title') }}
-      </slot>
+      <slot />
     </b-button>
 
     <b-modal
@@ -29,7 +28,6 @@
           icon-class="text-warning"
         />
       </template>
-
       <field-picker
         :module="module"
         :fields.sync="filteredFields"
@@ -80,10 +78,20 @@ export default {
       default: 'light',
     },
 
+    buttonClass: {
+      type: String,
+      default: 'flex-fill',
+    },
+
     fieldSubset: {
       type: Array,
       required: false,
       default: () => null,
+    },
+
+    buttonTooltip: {
+      type: Object,
+      default: () => ({}),
     },
   },
 

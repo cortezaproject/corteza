@@ -2281,7 +2281,14 @@ export default {
     },
 
     showInlineEdit (field) {
-      return this.options.inlineRecordEditEnabled && field.canEdit && !this.showingDeletedRecords
+      const isfieldInlineEditable = () => {
+        if (Array.isArray(this.options.inlineEditFields) && this.options.inlineEditFields.length === 0) {
+          return true
+        }
+        return this.options.inlineEditFields.some(fieldID => fieldID === field.moduleField.fieldID || fieldID === field.moduleField.name)
+      }
+
+      return this.options.inlineRecordEditEnabled && field.canEdit && !this.showingDeletedRecords && isfieldInlineEditable()
     },
 
     showInlineFilter () {

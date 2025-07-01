@@ -36,6 +36,7 @@ export interface Options {
   prefilter: string;
   presort: string;
   fields: unknown[];
+  inlineEditFields: unknown[];
   hideHeader: boolean;
   hideAddButton: boolean;
   hideImportButton: boolean;
@@ -105,6 +106,7 @@ const defaults: Readonly<Options> = Object.freeze({
   prefilter: '',
   presort: 'createdAt DESC',
   fields: [],
+  inlineEditFields: [],
   hideHeader: false,
   hideAddButton: false,
   hideImportButton: false,
@@ -195,6 +197,10 @@ export class PageBlockRecordList extends PageBlock {
 
     if (o.fields) {
       this.options.fields = o.fields
+    }
+
+    if (o.inlineEditFields) {
+      this.options.inlineEditFields = o.inlineEditFields
     }
 
     if (o.filterPresets) {

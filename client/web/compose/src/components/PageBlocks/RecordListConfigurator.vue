@@ -791,10 +791,29 @@
               cols="12"
               lg="6"
             >
-              <b-form-group
-                :label="$t('recordList.inlineEdit.enabled')"
-                label-class="text-primary"
-              >
+              <b-form-group label-class="d-flex text-primary gap-1">
+                <template #label>
+                  {{ $t('recordList.inlineEdit.enabled') }}
+
+                  <column-picker
+                    size="sm"
+                    button-class="text-secondary border-0"
+                    variant="outline-extra-light"
+                    :button-tooltip="{
+                      title: $t('recordList.inlineEdit.fields.configure.tooltip'),
+                      container: '#body'
+                    }"
+                    :module="recordListModule"
+                    :fields="options.inlineEditFields"
+                    :field-subset="options.fields.length ? options.fields : recordListModule.fields"
+                    @updateFields="onUpdateInlineEditableFields"
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'cog']"
+                    />
+                  </column-picker>
+                </template>
+
                 <c-input-checkbox
                   v-model="options.inlineRecordEditEnabled"
                   switch
@@ -1208,6 +1227,10 @@ export default {
     setDefaultValues () {
       this.checkboxLabel = {}
       this.resolvedRoles = {}
+    },
+
+    onUpdateInlineEditableFields (fields = []) {
+      this.options.inlineEditFields = fields.map(f => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
     },
 
     onUpdateTextWrapOption (fields = []) {

@@ -336,6 +336,9 @@ recordList:
   inlineEdit:
     enabled: Inline value editing enabled
     allowAddField: Allow adding fields to inline edit
+    fields:
+      configure:
+        tooltip: Configure the fields for inline editing
     button:
       title: Edit value
     modal:
