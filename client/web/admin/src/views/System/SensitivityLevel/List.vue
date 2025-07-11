@@ -160,7 +160,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$SystemAPI.dalSensitivityLevelList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.dalSensitivityLevelListCancellable(this.encodeListParams()))
     },
 
     handleDelete (sensitivityLevel) {

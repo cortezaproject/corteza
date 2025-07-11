@@ -29,10 +29,10 @@
             class="flex-fill"
           >
             <c-input-search
-              v-model.trim="filter[queryField]"
+              :value="filter[queryField]"
               :placeholder="translations.searchPlaceholder"
-              :debounce="300"
-              @input="$emit('search')"
+              :submittable="true"
+              @search="handleSearch"
             />
           </div>
         </b-row>
@@ -334,8 +334,8 @@ export default {
 
     hidePerPageOption: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
   data () {
@@ -356,7 +356,7 @@ export default {
           key: 'select',
           label: '',
           thStyle: 'width: 0; white-space: nowrap;',
-        }
+        },
       ] : []
 
       return [
@@ -405,7 +405,7 @@ export default {
         from: ((page - 1) * limit) + 1,
         to: limit > 0 ? Math.min((page * limit), total) : total,
         count: total,
-        data: total == 1 ? this.translations.resourceSingle : this.translations.resourcePlural
+        data: total === 1 ? this.translations.resourceSingle : this.translations.resourcePlural,
       }
 
       return this.$t(this.translations[total > limit ? 'showingPagination' : 'singlePluralPagination'], pagination)
@@ -427,7 +427,7 @@ export default {
   methods: {
     tableRowClasses (item = {}) {
       return {
-        'pointer': this.clickable,
+        pointer: this.clickable,
         ...this.rowClass(item),
       }
     },
@@ -489,7 +489,7 @@ export default {
     },
 
     setDefaultValues () {
-      this.selected = [],
+      this.selected = []
       this.selectableItemIDs = []
     },
 
@@ -498,6 +498,11 @@ export default {
       this.sorting.sortDesc = !this.sorting.sortDesc
       this.pagination.page = 1
       this.$refs.resourceList.refresh()
+    },
+
+    handleSearch (searchQuery) {
+      this.filter[this.queryField] = searchQuery ? searchQuery.trim() : ''
+      this.$emit('search')
     },
   },
 }

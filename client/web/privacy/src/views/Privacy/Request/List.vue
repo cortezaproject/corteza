@@ -214,13 +214,14 @@ export default {
     },
 
     items () {
-      return this.procListResults(this.$SystemAPI.dataPrivacyRequestList(this.encodeListParams())
-        .then(async ({ filter, set }) => {
-          if (this.isDC) {
+      return this.procListResults(this.$SystemAPI.dataPrivacyRequestListCancellable(this.encodeListParams()))
+        .then(async (set) => {
+          if (this.isDC && set && set.length) {
             await this.fetchUsers(set.map(({ requestedBy }) => requestedBy))
           }
-          return { filter, set }
-        }))
+
+          return set
+        })
     },
 
     handleSelectedRequests (selected, status) {

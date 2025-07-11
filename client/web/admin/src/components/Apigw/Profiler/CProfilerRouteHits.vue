@@ -230,7 +230,7 @@ export default {
       this.filter.routeID = this.route
       this.pagination.limit = append ? 10 : this.totalItems
 
-      this.$SystemAPI.apigwProfilerRoute(this.encodeListParams())
+      this.$SystemAPI.apigwProfilerRouteCancellable(this.encodeListParams())
         .then(({ filter = {}, set = [] }) => {
           const { next } = filter
           this.filter = { ...this.filter, next }

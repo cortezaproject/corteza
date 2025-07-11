@@ -203,7 +203,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$SystemAPI.templateList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.templateListCancellable(this.encodeListParams()))
     },
 
     handleDelete (template) {

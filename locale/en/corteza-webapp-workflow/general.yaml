@@ -25,7 +25,7 @@ now: Now
 offset: Offset
 offset-expression: Offset (expression)
 permissions: Permissions
-searchPlaceholder: Type here to search all workflows...
+searchPlaceholder: Search workflows
 subworkflow: Subworkflow
 subworkflows: Subworkflows
 deleted: Deleted

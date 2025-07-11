@@ -220,7 +220,7 @@ export default {
     }),
 
     items () {
-      return this.procListResults(this.$SystemAPI.apigwRouteList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.apigwRouteListCancellable(this.encodeListParams()))
     },
 
     handleDelete (route) {

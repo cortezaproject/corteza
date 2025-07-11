@@ -195,7 +195,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$AutomationAPI.sessionList(this.encodeListParams()))
+      return this.procListResults(this.$AutomationAPI.sessionListCancellable(this.encodeListParams()))
     },
 
     rowClass (item) {

@@ -13,7 +13,7 @@ resourceList:
   noItems: No items
   notFound: Not found
   search:
-    placeholder: Type here to search items
+    placeholder: Search
   pagination:
     next: Next
     prev: Previous

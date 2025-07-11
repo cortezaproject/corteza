@@ -348,7 +348,7 @@ export default {
     },
 
     items () {
-      return this.procListResults(this.$ComposeAPI.moduleList(this.encodeListParams()))
+      return this.procListResults(this.$ComposeAPI.moduleListCancellable(this.encodeListParams()))
     },
 
     onImportSuccessful () {

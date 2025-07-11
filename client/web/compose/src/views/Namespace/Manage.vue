@@ -254,7 +254,7 @@ export default {
     },
 
     namespaceList () {
-      return this.procListResults(this.$ComposeAPI.namespaceList(this.encodeListParams()))
+      return this.procListResults(this.$ComposeAPI.namespaceListCancellable(this.encodeListParams()))
     },
 
     fetchApplication (namespace) {

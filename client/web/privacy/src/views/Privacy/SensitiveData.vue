@@ -104,7 +104,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$ComposeAPI.dataPrivacyModuleList(this.encodeListParams()))
+      return this.procListResults(this.$ComposeAPI.dataPrivacyModuleListCancellable(this.encodeListParams()))
     },
 
     rowClicked ({ namespace, module }) {

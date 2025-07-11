@@ -320,7 +320,7 @@ export default {
   },
 
   created () {
-    this.procListResults(this.$SystemAPI.automationList(this.encodeListParams()))
+    this.procListResults(this.$SystemAPI.automationListCancellable(this.encodeListParams()))
       .then(set => { this.items = set || [] })
   },
 

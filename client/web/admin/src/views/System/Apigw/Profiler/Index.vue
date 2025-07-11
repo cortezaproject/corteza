@@ -235,7 +235,7 @@ export default {
       this.filter.routeID = this.$route.params.routeID
       this.pagination.limit = append ? 10 : this.totalItems
 
-      this.$SystemAPI.apigwProfilerAggregation(this.encodeListParams())
+      this.$SystemAPI.apigwProfilerAggregationCancellable(this.encodeListParams())
         .then(({ filter = {}, set = [] }) => {
           const { next } = filter
           this.filter = { ...this.filter, next }

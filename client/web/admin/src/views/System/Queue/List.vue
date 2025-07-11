@@ -168,7 +168,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$SystemAPI.queuesList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.queuesListCancellable(this.encodeListParams()))
     },
 
     handleDelete (queue) {

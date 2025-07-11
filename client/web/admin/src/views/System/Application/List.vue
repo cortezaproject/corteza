@@ -198,7 +198,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$SystemAPI.applicationList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.applicationListCancellable(this.encodeListParams()))
     },
 
     getAppInfo (item) {

@@ -223,7 +223,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$SystemAPI.roleList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.roleListCancellable(this.encodeListParams()))
     },
 
     rowClass (item) {

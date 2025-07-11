@@ -1,4 +1,4 @@
-import { debounce } from 'lodash'
+import axios from 'axios'
 import { mapActions } from 'vuex'
 
 export default {
@@ -23,6 +23,9 @@ export default {
       tempQuery: undefined,
 
       sorting: {},
+
+      abortableRequests: [],
+      cancelled: false,
     }
   },
 
@@ -41,6 +44,10 @@ export default {
 
   created () {
     this.handleQueryParams(true)
+  },
+
+  beforeDestroy () {
+    this.abortRequests()
   },
 
   methods: {
@@ -109,7 +116,7 @@ export default {
       }
     },
 
-    filterList: debounce(function () {
+    filterList () {
       // reset pagination when filtering changes
       //
       // we want to prevent situations with page is preset to a number that
@@ -120,8 +127,9 @@ export default {
       // notify b-table about the change
       //
       // this effectively calls items()/procListResults()
+      this.abortRequests()
       this.$root.$emit('bv::refresh::table', 'resource-list')
-    }, 300),
+    },
 
     encodeListParams () {
       const { sortBy, sortDesc } = this.sorting
@@ -158,6 +166,11 @@ export default {
      * @returns {Promise}
      */
     procListResults (p, updateQuery = true) {
+      this.abortRequests()
+
+      const { response, cancel } = p
+      this.abortableRequests.push(cancel)
+
       this.incLoader()
 
       // Push new router/params to cause URL change
@@ -168,7 +181,7 @@ export default {
         this.$router.replace(this.encodeRouteParams())
       }
 
-      return p.then(async ({ set, filter } = {}) => {
+      return response().then(async ({ set, filter } = {}) => {
         if (filter.incTotal) {
           this.pagination.total = filter.total
         }
@@ -187,12 +200,21 @@ export default {
         this.pagination.prevPage = filter.prevPage
 
         return set
-      }).catch(this.toastErrorHandler(this.$t('notification:list.load.error')))
-        .finally(async () => {
+      }).catch(error => {
+        if (!axios.isCancel(error)) {
+          this.toastErrorHandler(this.$t('notification:list.load.error'))(error)
+        } else {
+          this.cancelled = true
+        }
+      }).finally(async () => {
+        if (!this.cancelled) {
           await new Promise(resolve => setTimeout(resolve, 300))
+        } else {
+          this.cancelled = false
+        }
 
-          this.decLoader()
-        })
+        this.decLoader()
+      })
     },
 
     genericRowClass (item) {
@@ -240,6 +262,13 @@ export default {
 
     getActionIcon (r) {
       return r.deletedAt ? ['fas', 'trash-restore'] : ['far', 'trash-alt']
+    },
+
+    abortRequests () {
+      this.abortableRequests.forEach((cancel) => {
+        cancel()
+      })
+      this.abortableRequests = []
     },
   },
 }

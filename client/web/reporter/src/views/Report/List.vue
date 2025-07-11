@@ -241,7 +241,7 @@ export default {
     },
 
     reportList () {
-      return this.procListResults(this.$SystemAPI.reportList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.reportListCancellable(this.encodeListParams()))
     },
 
     handleDelete (report) {

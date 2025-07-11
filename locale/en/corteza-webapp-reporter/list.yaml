@@ -5,7 +5,7 @@ report:
   list: List of Reports
   new: New Report
   delete: Delete
-searchPlaceholder: Type here to search reports
+searchPlaceholder: Search reports
 title: Reports
 tooltip:
   permissions: Report permissions

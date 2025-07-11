@@ -254,7 +254,7 @@ recordListPage:
   create: Create record list page
   edit: Edit record list page
 related-pages: Related Pages
-searchPlaceholder: Type here to search all modules in this namespace
+searchPlaceholder: Search modules in this namespace
 title: List of Modules
 tooltip:
   permissions: Module permissions

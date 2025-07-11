@@ -202,7 +202,7 @@ export default {
 
   methods: {
     items () {
-      return this.procListResults(this.$SystemAPI.authClientList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.authClientListCancellable(this.encodeListParams()))
     },
 
     handleDelete (authclient) {

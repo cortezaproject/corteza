@@ -167,7 +167,7 @@ export default {
   methods: {
 
     items () {
-      return this.procListResults(this.$SystemAPI.dalConnectionList(this.encodeListParams()))
+      return this.procListResults(this.$SystemAPI.dalConnectionListCancellable(this.encodeListParams()))
     },
 
     handleDelete (connection) {
