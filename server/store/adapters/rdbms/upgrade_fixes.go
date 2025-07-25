@@ -808,29 +808,87 @@ func fix_2024_09_03_dropFederationNodeSyncPrimaryKey(ctx context.Context, s *Sto
 		return err
 	}
 
-	if !strings.HasPrefix(s.DB.DriverName(), "sqlite") {
-		query := `ALTER TABLE federation_nodes_sync DROP CONSTRAINT IF EXISTS federation_nodes_sync_pkey`
-		if _, err = s.DB.ExecContext(ctx, query); err != nil {
-			if strings.Contains(err.Error(), "does not exist") {
-				return nil
-			}
-			return fmt.Errorf("failed to drop primary key constraint on federation_nodes_sync: %w", err)
+	var (
+		alterQry   string
+		rows       *sql.Rows
+		tableName  = "federation_nodes_sync"
+		driverName = s.DB.DriverName()
+	)
+
+	switch {
+	case strings.HasPrefix(driverName, "sqlite"):
+		tempTable := tableName + "_temp"
+		sqlStatements := []string{
+			fmt.Sprintf("CREATE TABLE %s AS SELECT * FROM %s WHERE 1=0", tempTable, tableName),
+			fmt.Sprintf("INSERT INTO %s SELECT * FROM %s", tempTable, tableName),
+			fmt.Sprintf("DROP TABLE %s", tableName),
+			fmt.Sprintf("ALTER TABLE %s RENAME TO %s", tempTable, tableName),
 		}
-	}
 
-	tempTable := "federation_nodes_sync_temp"
+		if err = s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+			for _, sql := range sqlStatements {
+				if _, err = s.(*Store).DB.ExecContext(ctx, sql); err != nil {
+					return err
+				}
+			}
 
-	sqlStatements := []string{
-		fmt.Sprintf(`CREATE TABLE %s AS SELECT * FROM federation_nodes_sync WHERE 1=0`, tempTable),
-		fmt.Sprintf(`INSERT INTO %s SELECT * FROM federation_nodes_sync`, tempTable),
-		fmt.Sprintf(`DROP TABLE federation_nodes_sync`),
-		fmt.Sprintf(`ALTER TABLE %s RENAME TO federation_nodes_sync`, tempTable),
-	}
-
-	for _, sql := range sqlStatements {
-		if _, err = s.DB.ExecContext(ctx, sql); err != nil {
+			return
+		}); err != nil {
 			return err
 		}
+
+		return nil
+	case strings.HasPrefix(driverName, "mysql"):
+		// check if the primary key exists
+		pkExistsQry := `SELECT COUNT(*) as pk_exists FROM information_schema.table_constraints
+        WHERE table_name = 'federation_nodes_sync' AND constraint_type = 'PRIMARY KEY'`
+		rows, err = s.DB.QueryContext(ctx, pkExistsQry)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+		var pkCount int
+		if rows.Next() {
+			err := rows.Scan(&pkCount)
+			if err != nil {
+				return err
+			}
+		}
+		// if the primary key doesn't exists, we skip the drop
+		if pkCount == 0 {
+			return nil
+		}
+		alterQry = `ALTER TABLE federation_nodes_sync DROP PRIMARY KEY`
+
+	case strings.HasPrefix(driverName, "sqlserver"):
+		pkQry := `SELECT CONSTRAINT_NAME AS primary_key FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+		    WHERE CONSTRAINT_TYPE='PRIMARY KEY' AND TABLE_NAME='federation_nodes_sync'`
+
+		rows, err = s.DB.QueryContext(ctx, pkQry)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		var pkName string
+		if rows.Next() {
+			err := rows.Scan(&pkName)
+			if err != nil {
+				return err
+			}
+		}
+
+		if pkName == "" {
+			return nil
+		}
+		alterQry = fmt.Sprintf("ALTER TABLE federation_nodes_sync DROP CONSTRAINT %s", pkName)
+
+	case strings.HasPrefix(driverName, "postgres"):
+		alterQry = `ALTER TABLE federation_nodes_sync DROP CONSTRAINT IF EXISTS federation_nodes_sync_pkey`
+	}
+
+	if _, err = s.DB.ExecContext(ctx, alterQry); err != nil {
+		return fmt.Errorf("failed to drop primary key constraint on federation_nodes_sync: %w", err)
 	}
 
 	return nil
@@ -845,8 +903,14 @@ func fix_2024_09_03_renameFederationNodeSyncComposeID(ctx context.Context, s *St
 }
 
 func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Store) (err error) {
-	// confirm that the table exists first
-	_, err = s.DataDefiner.TableLookup(ctx, "federation_nodes_sync")
+	var (
+		tableName  = "federation_nodes_sync"
+		indexName  = "federation_nodes_sync_idxRelNode"
+		driverName = s.DB.DriverName()
+	)
+
+	// confirm that the table exists
+	_, err = s.DataDefiner.TableLookup(ctx, tableName)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return nil
@@ -854,9 +918,21 @@ func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Sto
 		return err
 	}
 
+	if strings.HasPrefix(driverName, "mysql") || strings.HasPrefix(driverName, "sqlserver") {
+		indx, err := s.DataDefiner.IndexLookup(ctx, indexName, tableName)
+		if err != nil {
+			return err
+		}
+
+		// if the index already exists, skip the creation
+		if indx != nil {
+			return nil
+		}
+	}
+
 	nodeIDIndx := ddl.Index{
-		TableIdent: "federation_nodes_sync",
-		Ident:      "federation_nodes_sync_idxRelNode",
+		TableIdent: tableName,
+		Ident:      indexName,
 		Type:       "BTREE",
 
 		Fields: []*ddl.IndexField{
