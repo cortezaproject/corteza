@@ -1,34 +1,36 @@
 <template>
   <b-card
-    no-body
-    class="editor rt-content"
+    header-class="p-0 border-bottom"
+    body-class="p-2"
+    class="border border-light rounded"
   >
-    <template v-if="editor">
-      <b-card-header header-class="p-0 border-bottom">
-        <editor-menu-bar
-          v-slot="{ commands, isActive, getMarkAttrs, getNodeAttrs }"
+    <template
+      v-if="editor"
+      #header
+    >
+      <editor-menu-bar
+        v-slot="{ commands, isActive, getMarkAttrs, getNodeAttrs }"
+        :editor="editor"
+      >
+        <r-toolbar
           :editor="editor"
-        >
-          <r-toolbar
-            :editor="editor"
-            :formats="toolbar"
-            :commands="commands"
-            :is-active="isActive"
-            :get-mark-attrs="getMarkAttrs"
-            :get-node-attrs="getNodeAttrs"
-            :labels="labels"
-            :current-value="currentValue"
-          />
-        </editor-menu-bar>
-      </b-card-header>
-
-      <b-card-body>
-        <editor-content
-          :editor="editor"
-          class="editor__content"
+          :formats="toolbar"
+          :commands="commands"
+          :is-active="isActive"
+          :get-mark-attrs="getMarkAttrs"
+          :get-node-attrs="getNodeAttrs"
+          :labels="labels"
+          :current-value="currentValue"
         />
-      </b-card-body>
+      </editor-menu-bar>
     </template>
+
+    <editor-content
+      :editor="editor"
+      :class="bodyClass"
+      class="rt-editor-content rt-content"
+      :style="{ minHeight: minBodyHeight, maxHeight: maxBodyHeight }"
+    />
   </b-card>
 </template>
 
@@ -56,6 +58,21 @@ export default {
     labels: {
       type: Object,
       default: () => ({}),
+    },
+
+    minBodyHeight: {
+      type: String,
+      default: '',
+    },
+
+    maxBodyHeight: {
+      type: String,
+      default: '',
+    },
+
+    bodyClass: {
+      type: String,
+      default: '',
     },
   },
 
@@ -127,3 +144,13 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.rt-editor-content {
+  height: 100%;
+
+  .ProseMirror {
+    height: 100%;
+  }
+}
+</style>

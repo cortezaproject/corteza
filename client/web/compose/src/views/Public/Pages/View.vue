@@ -206,8 +206,8 @@ export default {
   beforeDestroy () {
     this.setPageHandle('')
     this.setLayoutHandle('')
-
     this.setDefaultValues()
+    this.clearRecordSet()
   },
 
   methods: {

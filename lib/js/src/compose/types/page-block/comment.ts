@@ -1,5 +1,5 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
-import { Apply, CortezaID, NoID } from '../../../cast'
+import { Apply, CortezaID, NoID } from '../../../cast';
+import { PageBlock, PageBlockInput, Registry } from './base';
 
 const kind = 'Comment'
 interface Options {
@@ -7,6 +7,7 @@ interface Options {
   filter: string;
   titleField: string;
   contentField: string;
+  replyField: string;
   referenceField: string;
   sortDirection: string;
   refreshRate: number;
@@ -19,7 +20,8 @@ const defaults: Readonly<Options> = Object.freeze({
   filter: '',
   titleField: '',
   contentField: '',
-  sortDirection: '',
+  replyField: '',
+  sortDirection: 'asc',
   referenceField: '',
   refreshRate: 0,
   showRefresh: false,
@@ -39,7 +41,7 @@ export class PageBlockComment extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'titleField', 'contentField', 'referenceField', 'filter', 'sortDirection', 'magnifyOption')
+    Apply(this.options, o, String, 'titleField', 'contentField', 'replyField', 'referenceField', 'filter', 'sortDirection', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
   }

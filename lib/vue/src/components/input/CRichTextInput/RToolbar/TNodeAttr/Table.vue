@@ -3,17 +3,16 @@
     menu-class="text-center"
     variant="link"
     boundary="window"
+    no-caret
   >
     <template #button-content>
       <span class="text-dark font-weight-bold">
-        <span :class="rootActiveClasses()">
-          <font-awesome-icon
-            v-if="format.icon"
-            :icon="format.icon"
-          />
-          <span v-else>
-            {{ format.label }}
-          </span>
+        <font-awesome-icon
+          v-if="format.icon"
+          :icon="format.icon"
+        />
+        <span v-else>
+          {{ format.label }}
         </span>
       </span>
     </template>
@@ -29,8 +28,8 @@
 </template>
 
 <script>
-import base from '../TNode/base.vue'
 import { nodeTypes } from '../../lib/formats'
+import base from '../TNode/base.vue'
 
 /**
  * Component is used to display node alignment formatting
@@ -60,7 +59,7 @@ export default {
       }
 
       if (ac(an.node.type.name, { ...an.node.attrs, ...attrs })) {
-        return ['text-success']
+        return ['text-primary']
       }
 
       return undefined
@@ -89,7 +88,7 @@ export default {
      */
     rootActiveClasses (v) {
       if (this.format.variants.find(({ type, attrs }) => this.activeClasses(attrs))) {
-        return ['text-success']
+        return ['text-primary']
       }
     },
   },

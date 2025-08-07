@@ -767,17 +767,26 @@ comment:
   contentField:
     label: Content field *
     footnote: Field value will be used as record content
-  titleInput: Enter comment title
-  contentInput: Enter comment content
+  replyField:
+    label: Reply field
+    footnote: Field value will be used as record reply
+  titleInput: Title
+  contentInput: Content
   submit: Submit
+  noComments: No comments yet
+  load:
+    older: Load older comments
+    newer: Load newer comments
   sortDirection:
     label: Sort direction
     footnote: Sort comments by when they were created
-    asc: Ascending
-    desc: Descending
+    asc: Newest first
+    desc: Oldest first
   referenceField:
     label: Reference field
     footnote: Field that links comments with the parent record
+  today: Today
+  yesterday: Yesterday
 navigation:
   chart: Charts
   colorPicker: Choose a color

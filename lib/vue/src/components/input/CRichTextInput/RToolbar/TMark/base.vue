@@ -42,7 +42,7 @@ export default {
      */
     activeClasses (attrs) {
       if ((this.isActive[this.format.type])(attrs)) {
-        return ['text-success']
+        return ['text-primary']
       }
       return undefined
     },

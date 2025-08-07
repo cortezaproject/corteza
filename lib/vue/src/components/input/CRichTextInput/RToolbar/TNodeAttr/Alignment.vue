@@ -3,6 +3,7 @@
     menu-class="text-center"
     variant="link"
     boundary="window"
+    no-caret
   >
     <template #button-content>
       <span class="text-dark font-weight-bold">
@@ -37,8 +38,8 @@
 </template>
 
 <script>
-import base from '../TNode/base.vue'
 import { nodeTypes } from '../../lib/formats'
+import base from '../TNode/base.vue'
 
 /**
  * Component is used to display node alignment formatting
@@ -68,7 +69,7 @@ export default {
         return b && (b(attrs))
       }
       if (ac(an.node.type.name, { ...an.node.attrs, ...attrs })) {
-        return ['text-success']
+        return ['text-primary']
       }
 
       return undefined
@@ -93,7 +94,7 @@ export default {
      */
     rootActiveClasses () {
       if (this.format.variants.find(({ attrs }) => this.activeClasses(attrs))) {
-        return ['text-success']
+        return ['text-primary']
       }
     },
   },

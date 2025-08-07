@@ -71,6 +71,7 @@
           <b-form-group
             :label="$t('comment.titleField.label')"
             label-class="text-primary"
+            :description="$t('comment.titleField.footnote')"
           >
             <c-input-select
               v-model="options.titleField"
@@ -79,9 +80,6 @@
               :reduce="f => f.name"
               :placeholder="$t('general.label.none')"
             />
-            <b-form-text>
-              {{ $t('comment.titleField.footnote') }}
-            </b-form-text>
           </b-form-group>
         </b-col>
 
@@ -92,6 +90,7 @@
           <b-form-group
             :label="$t('comment.contentField.label')"
             label-class="text-primary"
+            :description="$t('comment.contentField.footnote')"
           >
             <c-input-select
               v-model="options.contentField"
@@ -100,9 +99,25 @@
               :reduce="f => f.name"
               :placeholder="$t('general.label.none')"
             />
-            <b-form-text>
-              {{ $t('comment.contentField.footnote') }}
-            </b-form-text>
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('comment.replyField.label')"
+            label-class="text-primary"
+            :description="$t('comment.replyField.footnote')"
+          >
+            <c-input-select
+              v-model="options.replyField"
+              :options="selectedModuleFieldsByType('Record')"
+              :get-option-label="f => `${f.label || f.name} (${f.kind})`"
+              :reduce="f => f.name"
+              :placeholder="$t('general.label.none')"
+            />
           </b-form-group>
         </b-col>
 
@@ -113,6 +128,7 @@
           <b-form-group
             :label="$t('comment.referenceField.label')"
             label-class="text-primary"
+            :description="$t('comment.referenceField.footnote')"
           >
             <c-input-select
               v-model="options.referenceField"
@@ -121,9 +137,6 @@
               :reduce="f => f.name"
               :placeholder="$t('general.label.none')"
             />
-            <b-form-text>
-              {{ $t('comment.referenceField.footnote') }}
-            </b-form-text>
           </b-form-group>
         </b-col>
 
@@ -134,6 +147,7 @@
           <b-form-group
             :label="$t('comment.sortDirection.label')"
             label-class="text-primary"
+            :description="$t('comment.sortDirection.footnote')"
           >
             <c-input-select
               v-model="options.sortDirection"
@@ -142,9 +156,6 @@
               :clearable="false"
               :reduce="o => o.value"
             />
-            <b-form-text>
-              {{ $t('comment.sortDirection.footnote') }}
-            </b-form-text>
           </b-form-group>
         </b-col>
       </b-row>
@@ -155,7 +166,7 @@
 import { mapGetters } from 'vuex'
 import { components } from '@cortezaproject/corteza-vue'
 import autocomplete from 'corteza-webapp-compose/src/mixins/autocomplete.js'
-import base from './base'
+import base from '../base'
 
 const { CInputExpression } = components
 

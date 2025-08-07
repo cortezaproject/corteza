@@ -102,7 +102,7 @@ export default {
      */
     activeClasses (attrs) {
       if (this.isActiveCheck([this.format.type], attrs)) {
-        return ['text-success']
+        return ['text-primary']
       }
 
       return undefined

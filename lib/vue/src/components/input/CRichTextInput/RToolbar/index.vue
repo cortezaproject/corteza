@@ -8,13 +8,14 @@
       v-bind="$props"
       :labels="labels"
       :current-value="currentValue"
+      class="toolbar-item"
       @click="triggerCommand"
     />
 
     <!-- Extra button to remove formatting -->
     <b-button
       variant="link"
-      class="text-dark font-weight-bold"
+      class="toolbar-item text-dark font-weight-bold"
       @click="removeMarks"
     >
       <font-awesome-icon icon="remove-format" />
@@ -111,3 +112,20 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+.toolbar-item {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem !important;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  border-radius: 0.25rem !important;
+
+  &:hover {
+    background-color: var(--light) !important;
+  }
+}
+</style>
