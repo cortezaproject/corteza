@@ -93,6 +93,13 @@ func NewSamlSPService(log *zap.Logger, args SamlSPArgs) (s *SamlSPService, err e
 		return
 	}
 
+	if log != nil {
+		handler.OnError = func(w http.ResponseWriter, r *http.Request, err error) {
+			log.Error("error", zap.Error(err))
+			samlsp.DefaultOnError(w, r, err)
+		}
+	}
+
 	handler.RequestTracker = samlsp.DefaultRequestTracker(opts, &handler.ServiceProvider)
 	handler.ServiceProvider = sp
 	handler.Binding = args.Binding
