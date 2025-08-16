@@ -1,42 +1,33 @@
 <template>
   <b-card
     header-class="p-0 border-bottom"
-    body-class="p-2"
+    body-class="p-0"
     class="border border-light rounded"
   >
     <template
       v-if="editor"
       #header
     >
-      <editor-menu-bar
-        v-slot="{ commands, isActive, getMarkAttrs, getNodeAttrs }"
+      <r-toolbar
         :editor="editor"
-      >
-        <r-toolbar
-          :editor="editor"
-          :formats="toolbar"
-          :commands="commands"
-          :is-active="isActive"
-          :get-mark-attrs="getMarkAttrs"
-          :get-node-attrs="getNodeAttrs"
-          :labels="labels"
-          :current-value="currentValue"
-        />
-      </editor-menu-bar>
+        :formats="toolbar"
+        :labels="labels"
+        :current-value="currentValue"
+      />
     </template>
 
     <editor-content
       :editor="editor"
       :class="bodyClass"
-      class="rt-editor-content rt-content"
+      class="rt-editor-content rt-content p-2"
       :style="{ minHeight: minBodyHeight, maxHeight: maxBodyHeight }"
     />
   </b-card>
 </template>
 
 <script>
+import { Editor, EditorContent } from '@tiptap/vue-2'
 import RToolbar from './RToolbar/index.vue'
-import { EditorMenuBar, Editor, EditorContent } from 'tiptap'
 import { getFormats, getToolbar } from './lib'
 
 export default {
@@ -45,7 +36,6 @@ export default {
   components: {
     EditorContent,
     RToolbar,
-    EditorMenuBar,
   },
 
   props: {
@@ -62,7 +52,7 @@ export default {
 
     minBodyHeight: {
       type: String,
-      default: '',
+      default: '10rem',
     },
 
     maxBodyHeight: {
@@ -93,7 +83,7 @@ export default {
       handler: function (val) {
         // Update happened due to external content change, not model change
         if (!this.emittedContent) {
-          this.editor.setContent(val)
+          this.editor.commands.setContent(val, false)
         }
 
         this.emittedContent = false
@@ -106,8 +96,8 @@ export default {
     this.init()
   },
 
-  beforeUnmount () {
-    this.editor.destroy()
+  beforeDestroy () {
+    if (this.editor) this.editor.destroy()
   },
 
   methods: {
@@ -117,13 +107,12 @@ export default {
     init () {
       this.editor = new Editor({
         extensions: this.formats,
-        // Bypass Editor default empty white space script with an empty space string if there is no value because it's not really valid html
-        // also ensuring that the unsaved changes alert detection is not triggered when the Editor does not have any changes
         content: this.value || ' ',
         parseOptions: {
           preserveWhitespace: 'full',
         },
         onUpdate: this.onUpdate,
+        systemAPI: this.$SystemAPI,
       })
     },
 
@@ -133,7 +122,7 @@ export default {
      * Because of this, we are using `view.dom.innerHTML`. This should be improved at a later point
      */
     onUpdate () {
-      this.currentValue = this.editor.view.dom.innerHTML
+      this.currentValue = this.editor.getHTML()
 
       // Makes sure to default to '' as the value if no text is present, for validation purposes
       this.currentValue = this.currentValue !== '<p><br></p>' ? this.currentValue : ''
@@ -151,6 +140,12 @@ export default {
 
   .ProseMirror {
     height: 100%;
+  }
+
+  /* Make checkboxes only editable inside the editor */
+  input[type="checkbox"] {
+    pointer-events: auto !important;
+    cursor: pointer !important;
   }
 }
 </style>

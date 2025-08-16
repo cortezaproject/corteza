@@ -1,6 +1,6 @@
 <template>
   <b-dropdown
-    menu-class="text-center"
+    menu-class="text-center bg-white"
     variant="link"
     boundary="window"
     no-caret
@@ -54,8 +54,7 @@ export default {
       }
 
       const ac = (type, attrs) => {
-        const b = (this.isActive[type])
-        return b && (b(attrs))
+        return this.editor.isActive(type, attrs)
       }
 
       if (ac(an.node.type.name, { ...an.node.attrs, ...attrs })) {
@@ -71,11 +70,11 @@ export default {
      */
     dispatchTransaction (v) {
       const ann = this.activeNodes(nodeTypes)
-      const tr = this.$attrs.editor.state.tr
+      const tr = this.editor.state.tr
       for (const an of ann) {
         tr.setNodeMarkup(an.position, an.node.type, { ...an.node.attrs, ...v.attrs })
       }
-      this.$attrs.editor.dispatchTransaction(tr)
+      this.editor.dispatchTransaction(tr)
     },
 
     emitClick (v) {
@@ -94,3 +93,6 @@ export default {
   },
 }
 </script>
+
+<style lang="scss">
+</style>

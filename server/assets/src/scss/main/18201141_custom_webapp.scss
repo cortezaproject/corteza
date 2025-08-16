@@ -156,85 +156,6 @@ fieldset.required {
   }
 }
 
-// Rich text content styling
-.rt-content {
-  p {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  // blockquote
-  blockquote {
-    border-left: 3px solid rgba(var(--black), 0.1) !important;
-    padding-left: 0.8rem !important;
-    font-style: italic !important;
-  }
-
-  // Code
-  pre {
-    background-color: var(--black) !important;
-    color: var(--white) !important;
-    overflow: visible !important;
-    white-space: pre-wrap !important;
-    margin-bottom: 5px !important;
-    margin-top: 5px !important;
-    padding: 5px 10px !important;
-    border-radius: 3px !important;
-  }
-
-  // todo list - https://github.com/scrumpy/tiptap/blob/master/examples/Components/Routes/TodoList/index.vue
-  li[data-type="todo_item"] {
-    display: flex !important;
-    flex-direction: row !important;
-  }
-
-  .todo-checkbox {
-    border: 2px solid var(--black) !important;
-    height: 0.9em !important;
-    width: 0.9em !important;
-    box-sizing: border-box !important;
-    margin-right: 10px !important;
-    margin-top: 0.3rem !important;
-    user-select: none !important;
-    cursor: pointer !important;
-    border-radius: 0.2em !important;
-    background-color: transparent !important;
-    transition: 0.4s background !important;
-  }
-
-  .todo-content {
-    flex: 1 !important;
-
-    > p:last-of-type {
-      margin-bottom: 0 !important;
-    }
-
-    > ul[data-type="todo_list"] {
-      margin: 0.5rem 0 !important;
-    }
-  }
-
-  li[data-done="true"] {
-    > .todo-content {
-      > p {
-        text-decoration: line-through !important;
-      }
-    }
-
-    > .todo-checkbox {
-      background-color: var(--black) !important;
-    }
-  }
-
-  li[data-done="false"] {
-    text-decoration: none !important;
-  }
-}
-
-.ProseMirror.ProseMirror-focused {
-  outline: none !important;
-}
-
 .vue-grid-layout {
   transition: none !important;
 }
@@ -301,72 +222,263 @@ fieldset.required {
 // Rich text editor stuff
 /* Basic editor styles */
 .rt-content {
-  position: static !important;
+  position: static;
+
+  :first-child {
+    margin-top: 0 !important;
+  }
+
+  p {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 1.6;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.1;
+    margin-top: 2.5rem;
+    text-wrap: pretty;
+  }
+
+  h1, h2 {
+    margin-top: 3.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.4rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  h4, h5, h6 {
+    font-size: 1rem;
+  }
+
+  /* Lists */
+  ul, ol {
+    padding: 0 1rem;
+    margin: 1.25rem 1rem 1.25rem 0.4rem;
+
+    li p {
+      margin-top: 0.25em;
+      margin-bottom: 0.25em;
+    }
+  }
+
+  ol {
+    margin-left: 0.1rem !important;
+  }
+
+  /* Blockquote */
+  blockquote {
+    border-left: 3px solid var(--light);
+    margin: 1.5rem 0;
+    padding-left: 1rem;
+    font-style: italic;
+  }
+
+  /* Code and preformatted text */
+  code {
+    background-color: var(--light);
+    border-radius: 0.4rem;
+    color: var(--dark);
+    font-size: 0.85rem;
+    padding: 0.25em 0.3em;
+  }
+
+  pre {
+    background: var(--dark);
+    border-radius: 0.5rem;
+    color: var(--light);
+    font-family: 'JetBrainsMono', monospace;
+    margin: 1.5rem 0;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+
+    code {
+      background: none;
+      color: inherit;
+      font-size: 0.8rem;
+      padding: 0;
+    }
+  }
+
+  /* Task list - official Tiptap structure */
+  ul[data-type='taskList'] {
+    list-style: none;
+    margin-left: 0;
+    padding: 0;
+
+    li {
+      align-items: flex-start;
+      display: flex;
+      margin-bottom: 0.25rem;
+
+      > label {
+        flex: 0 0 auto;
+        margin-bottom: 0 !important;
+        user-select: none;
+      }
+
+      > div {
+        flex: 1 1 auto;
+      }
+    }
+
+    input[type='checkbox'] {
+      pointer-events: none;
+      cursor: default;
+      width: 0.9rem;
+      height: 0.9rem;
+      margin: 0.175rem 0.5rem 0rem 0rem !important
+    }
+
+    ul[data-type='taskList'] {
+      margin: 0;
+    }
+  }
+
+  /* Links */
+  a {
+    color: var(--primary);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--dark);
+    }
+  }
+
+  /* Horizontal rule */
+  hr {
+    border: none;
+    border-top: 1px solid var(--light);
+    margin: 2rem 0;
+  }
+
+  /* Images */
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 1em 0;
+  }
+
+  /* Emphasis */
+  strong, b {
+    font-weight: 600;
+  }
+
+  em, i {
+    font-style: italic;
+  }
+
+  /* Strikethrough */
+  s, del {
+    text-decoration: line-through;
+  }
+
+  /* Subscript and superscript */
+  sub, sup {
+    font-size: 0.75em;
+    line-height: 0;
+  }
+
+  sub {
+    vertical-align: sub;
+  }
+
+  sup {
+    vertical-align: super;
+  }
+
+  /* Mark/highlight */
+  mark {
+    background-color: var(--primary);
+    color: var(--white);
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+  }
+
+  table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+
+    td,
+    th {
+      border: 1px solid var(--extra-light);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 6px 8px;
+      position: relative;
+      vertical-align: top;
+
+      > * {
+        margin-bottom: 0;
+      }
+    }
+
+    th {
+      background-color: var(--extra-light);
+      font-weight: bold;
+      text-align: left;
+    }
+
+    .selectedCell:after {
+      background: var(--light);
+      content: '';
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+      position: absolute;
+      z-index: 2;
+    }
+
+    .column-resize-handle {
+      background-color: var(--primary);
+      bottom: -2px;
+      pointer-events: none;
+      position: absolute;
+      right: -2px;
+      top: 0;
+      width: 4px;
+    }
+  }
+
+  .tableWrapper {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .mention {
+    background-color: var(--extra-light);
+    border-radius: 0.25rem;
+    box-decoration-break: clone;
+    color: var(--primary);
+    padding: 0.125rem 0.275rem;
+    font-weight: 500;
+    border: 1px solid var(--light);
+  }
+
+  .resize-cursor {
+    cursor: ew-resize;
+    cursor: col-resize;
+  }
 }
 
-.rt-content :first-child {
-  margin-top: 0 !important;
-}
-
-/* Table-specific styling */
-.rt-content  table {
-  white-space: normal !important;
-  border-collapse: collapse !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  table-layout: fixed !important;
-  width: 100% !important;
-}
-
-.rt-content  td,
-.rt-content  th {
-  border: 1px solid var(--extra-light) !important;
-  box-sizing: border-box !important;
-  min-width: 1em !important;
-  padding: 6px 8px !important;
-  position: relative !important;
-  vertical-align: top !important;
-}
-
-.rt-content  td > *,
-.rt-content  th > * {
-  margin-bottom: 0 !important;
-}
-
-.rt-content  th {
-  background-color: var(--extra-light) !important;
-  font-weight: bold !important;
-  text-align: left !important;
-}
-
-.rt-content  .selectedCell::after {
-  background: var(--light) !important;
-  opacity: 0.8 !important;
-  content: "" !important;
-  left: 0 !important;
-  right: 0 !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  z-index: 2 !important;
-}
-
-.rt-content  .column-resize-handle {
-  background-color: var(--primary) !important;
-  bottom: -2px !important;
-  pointer-events: none !important;
-  position: absolute !important;
-  right: -2px !important;
-  top: 0 !important;
-  width: 4px !important;
-}
-
-.rt-content  .tableWrapper {
-  overflow-x: auto !important;
-}
-
-.rt-content .resize-cursor {
-  cursor: ew-resize !important;
-  cursor: col-resize !important;
+.ProseMirror.ProseMirror-focused {
+  outline: none;
 }

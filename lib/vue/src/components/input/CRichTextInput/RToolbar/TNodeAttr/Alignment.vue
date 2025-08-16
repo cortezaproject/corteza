@@ -1,16 +1,16 @@
 <template>
   <b-dropdown
-    menu-class="text-center"
+    menu-class="text-center bg-white"
     variant="link"
     boundary="window"
     no-caret
   >
     <template #button-content>
       <span class="text-dark font-weight-bold">
-        <span :class="rootActiveClasses()">
+        <span :class="{ 'text-primary': !!activeType && activeType !== 'left' }">
           <font-awesome-icon
-            v-if="format.icon"
-            :icon="format.icon"
+            v-if="activeIcon"
+            :icon="activeIcon"
           />
           <span v-else>
             {{ format.label }}
@@ -22,23 +22,20 @@
     <b-dropdown-item-button
       v-for="v of format.variants"
       :key="v.variant"
-      @click="dispatchTransaction(v)"
+      @click="$emit('click', { type: 'alignment', attrs: v.attrs })"
     >
-      <span :class="activeClasses(v.attrs)">
-        <font-awesome-icon
-          v-if="format.icon"
-          :icon="v.icon"
-        />
-        <span v-else>
-          {{ v.label }}
-        </span>
+      <font-awesome-icon
+        v-if="format.icon"
+        :icon="v.icon"
+      />
+      <span v-else>
+        {{ v.label }}
       </span>
     </b-dropdown-item-button>
   </b-dropdown>
 </template>
 
 <script>
-import { nodeTypes } from '../../lib/formats'
 import base from '../TNode/base.vue'
 
 /**
@@ -57,46 +54,28 @@ export default {
     },
   },
 
-  methods: {
-    activeClasses (attrs) {
-      const an = this.activeNode(nodeTypes, attrs)
-      if (!an || !an.node) {
-        return undefined
-      }
+  computed: {
+    activeType () {
+      const alignments = ['left', 'center', 'right', 'justify']
 
-      const ac = (type, attrs) => {
-        const b = (this.isActive[type])
-        return b && (b(attrs))
-      }
-      if (ac(an.node.type.name, { ...an.node.attrs, ...attrs })) {
-        return ['text-primary']
-      }
-
-      return undefined
+      return alignments.find(alignment =>
+        this.editor.isActive({ textAlign: alignment }),
+      )
     },
 
-    /**
-     * dispatches node attr update for all affected nodes
-     * use a single transaction, so ctrl + z works as intended
-     */
-    dispatchTransaction (v) {
-      const ann = this.activeNodes(nodeTypes)
-      const tr = this.$attrs.editor.state.tr
-      for (const an of ann) {
-        tr.setNodeMarkup(an.position, an.node.type, { ...an.node.attrs, ...v.attrs })
+    activeIcon () {
+      const alignmentMap = {
+        left: 'align-left',
+        center: 'align-center',
+        right: 'align-right',
+        justify: 'align-justify',
       }
-      this.$attrs.editor.dispatchTransaction(tr)
-    },
 
-    /**
-     * Helper method to determine if the root formater should be shown as active
-     * @returns {Array|undefined}
-     */
-    rootActiveClasses () {
-      if (this.format.variants.find(({ attrs }) => this.activeClasses(attrs))) {
-        return ['text-primary']
-      }
+      return alignmentMap[this.activeType] || 'align-left'
     },
   },
 }
 </script>
+
+<style lang="scss">
+</style>

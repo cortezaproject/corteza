@@ -5,7 +5,9 @@
       v-for="(f, i) of formats"
       :key="`${f.name}${i}`"
       :format="f"
-      v-bind="$props"
+      v-bind="{ ...$props, ...f.props }"
+      :is-active="isActive()"
+      :get-mark-attrs="getMarkAttrs"
       :labels="labels"
       :current-value="currentValue"
       class="toolbar-item"
@@ -25,7 +27,6 @@
 
 <script>
 import cc from './loader'
-import { removeMark } from 'tiptap-commands'
 
 export default {
   inheritAttrs: true,
@@ -33,18 +34,6 @@ export default {
   props: {
     editor: {
       type: Object,
-      required: true,
-    },
-    commands: {
-      type: Object,
-      required: true,
-    },
-    isActive: {
-      type: Object,
-      required: true,
-    },
-    getMarkAttrs: {
-      type: Function,
       required: true,
     },
     formats: {
@@ -63,6 +52,12 @@ export default {
   },
 
   methods: {
+    isActive () {
+      return new Proxy({}, {
+        get: (_, prop) => (attrs) => this.editor.isActive(prop, attrs),
+      })
+    },
+
     /**
      * Helper method to determine what item type we should display.
      * It can be a simple button (bold, italic, ...) or a dropdown (alignment)
@@ -103,11 +98,56 @@ export default {
      * @returns {Range}
      */
     removeMarks () {
-      removeMark(null)(this.editor.view.state, this.editor.view.dispatch)
+      this.editor.chain().focus().unsetAllMarks().run()
     },
 
     triggerCommand (v) {
-      this.commands[v.type](v.attrs)
+      const e = this.editor.chain().focus()
+      const t = v.type
+      const a = v.attrs || {}
+
+      switch (t) {
+        case 'bold': e.toggleBold().run(); break
+        case 'italic': e.toggleItalic().run(); break
+        case 'underline': e.toggleUnderline().run(); break
+        case 'strike': e.toggleStrike().run(); break
+        case 'color': e.setColor(a.color).run(); break
+        case 'background': e.setBackgroundColor(a.color).run(); break
+        case 'blockquote': e.toggleBlockquote().run(); break
+        case 'codeBlock': e.toggleCodeBlock().run(); break
+        case 'heading': e.setHeading(a).run(); break
+        case 'paragraph': e.setParagraph().run(); break
+        case 'orderedList': e.toggleOrderedList().run(); break
+        case 'bulletList': e.toggleBulletList().run(); break
+        case 'taskList': e.toggleTaskList().run(); break
+        case 'horizontalRule': e.setHorizontalRule().run(); break
+        case 'alignment': e.setTextAlign(a).run(); break
+        case 'link': {
+          if (!a.href) {
+            e.unsetLink().run()
+          } else {
+            e.setLink(a).run()
+          }
+          break
+        }
+
+        // table actions
+        case 'insertTable': e.insertTable(a).run(); break
+        case 'addColumnBefore': e.addColumnBefore().run(); break
+        case 'addColumnAfter': e.addColumnAfter().run(); break
+        case 'deleteColumn': e.deleteColumn().run(); break
+        case 'addRowBefore': e.addRowBefore().run(); break
+        case 'addRowAfter': e.addRowAfter().run(); break
+        case 'deleteRow': e.deleteRow().run(); break
+        case 'mergeCells': e.mergeCells().run(); break
+        case 'splitCell': e.splitCell().run(); break
+        case 'toggleHeaderRow': e.toggleHeaderRow().run(); break
+        case 'toggleHeaderCell': e.toggleHeaderCell().run(); break
+        case 'toggleHeaderColumn': e.toggleHeaderColumn().run(); break
+        case 'deleteTable': e.deleteTable().run(); break
+        default:
+          break
+      }
     },
   },
 }

@@ -4,6 +4,11 @@
  */
 export default {
   props: {
+    editor: {
+      type: Object,
+      required: true,
+      default: () => ({}),
+    },
     format: {
       type: Object,
       required: true,
@@ -41,7 +46,8 @@ export default {
      * @returns {Array|undefined}
      */
     activeClasses (attrs) {
-      if ((this.isActive[this.format.type])(attrs)) {
+      const isActive = this.editor.isActive(this.format.type, attrs)
+      if (isActive) {
         return ['text-primary']
       }
       return undefined

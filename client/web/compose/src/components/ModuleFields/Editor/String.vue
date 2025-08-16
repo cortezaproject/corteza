@@ -44,6 +44,10 @@
       <c-rich-text-input
         v-if="field.options.useRichTextEditor"
         :value="value[ctx.index]"
+        :labels="{
+          urlPlaceholder: $t('content.urlPlaceholder'),
+          ok: $t('content.ok'),
+        }"
         @input="setMultiValue($event, ctx.index)"
       />
 

@@ -10,10 +10,11 @@
     />
   </wrap>
 </template>
+
 <script>
-import base from './base'
-import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import { NoID } from '@cortezaproject/corteza-js'
+import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import base from './base'
 
 export default {
   extends: base,

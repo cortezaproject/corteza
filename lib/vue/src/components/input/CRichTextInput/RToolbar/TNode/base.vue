@@ -6,6 +6,11 @@ import { nodeTypes } from '../../lib/formats'
  */
 export default {
   props: {
+    editor: {
+      type: Object,
+      required: true,
+      default: () => ({}),
+    },
     format: {
       type: Object,
       required: true,
@@ -38,10 +43,11 @@ export default {
 
       // preserve some attrs
       const cAttr = n.attrs
-      const target = this.$attrs.editor.nodes[type]
+      const target = this.editor.schema.nodes[type]
       const nAttrs = {}
 
-      for (const a in target.attrs) {
+      const targetAttrs = (target && target.spec && target.spec.attrs) ? Object.keys(target.spec.attrs) : []
+      for (const a of targetAttrs) {
         if (attrs[a] === undefined) {
           nAttrs[a] = cAttr[a]
         } else {
@@ -58,11 +64,11 @@ export default {
      * nodes.
      */
     activeNodes (types, attrs) {
-      const ed = this.$attrs.editor
+      const ed = this.editor
       const rtr = []
       ed.state.doc.nodesBetween(
-        ed.selection.from,
-        ed.selection.to,
+        ed.state.selection.from,
+        ed.state.selection.to,
         (n, pos) => {
           if (types.includes(n.type.name)) {
             if (attrs) {

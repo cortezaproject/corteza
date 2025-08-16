@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex align-items-center">
       <b-button
-        :style="`color: ${currentColor}; fill: ${currentColor};`"
+        :style="`color: ${value}; fill: ${value};`"
         class="p-0 rounded-circle bg-white border-white shadow-none"
         @click="toggleMenu"
       >
@@ -61,6 +61,7 @@
       :title="translations.modalTitle"
       centered
       size="md"
+      :hide-header="!Boolean(translations.modalTitle)"
       body-class="p-0"
       no-fade
       @hide="closeMenu"
@@ -103,7 +104,7 @@
           variant="light"
           @click="setColor()"
         >
-          {{ translations.defaultBtnLabel }}
+          {{ translations.defaultBtnLabel || 'Default' }}
         </b-button>
         <slot name="footer" />
 
@@ -112,14 +113,14 @@
           class="ml-auto text-primary border-0"
           @click="closeMenu"
         >
-          {{ translations.cancelBtnLabel }}
+          {{ translations.cancelBtnLabel || 'Cancel' }}
         </b-button>
 
         <b-button
           variant="primary"
           @click="saveColor"
         >
-          {{ translations.saveBtnLabel }}
+          {{ translations.saveBtnLabel || 'Save' }}
         </b-button>
       </template>
     </b-modal>
@@ -140,7 +141,7 @@ export default {
   props: {
     value: {
       type: String,
-      default: 'rgba(0,0,0,0)',
+      default: '#000000FF',
     },
 
     defaultValue: {

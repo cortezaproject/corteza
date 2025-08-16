@@ -19,6 +19,7 @@
       target="link-popover"
       placement="auto"
       container="link-popover-container"
+      custom-class="bg-white"
     >
       <b-input-group style="min-width: 250px;">
         <b-form-input

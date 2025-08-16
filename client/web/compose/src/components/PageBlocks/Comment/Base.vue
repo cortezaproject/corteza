@@ -9,7 +9,7 @@
       v-if="!isBlockConfigured"
       class="d-flex h-100 align-items-center justify-content-center"
     >
-      <p class="mb-0">
+      <p class="mb-0 my-3">
         {{ $t('noConfiguration') }}
       </p>
     </div>
@@ -94,7 +94,7 @@
           v-else
           class="d-flex align-items-center justify-content-center h-100"
         >
-          <p class="mb-0">
+          <p class="mb-0 my-3">
             {{ $t('comment.noComments') }}
           </p>
         </div>
@@ -147,7 +147,7 @@
               urlPlaceholder: $t('content.urlPlaceholder'),
               ok: $t('content.ok'),
             }"
-            min-body-height="3rem"
+            min-body-height="4rem"
             max-body-height="10rem"
             body-class="overflow-auto"
           />
@@ -214,8 +214,8 @@ import records from 'corteza-webapp-compose/src/mixins/records'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import { mapGetters } from 'vuex'
 import base from '../base'
-import CommentReply from './Reply.vue'
 import CommentItem from './Item.vue'
+import CommentReply from './Reply.vue'
 const { CRichTextInput } = components
 
 export default {
@@ -578,7 +578,7 @@ export default {
         record.values[this.referenceField.name] = this.reference
       }
 
-      if (this.replyField) {
+      if (this.replyField && this.newRecord.replyTo) {
         record.values[this.replyField.name] = this.newRecord.replyTo.recordID
       }
 
