@@ -21,7 +21,7 @@ func init() {
 	p.AllowStyles("background-color").Matching(regexp.MustCompile("(?i)^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$")).Globally()
 
 	// allow text alignment
-	p.AllowStyles("text-align").Matching(regexp.MustCompile("^(left|center|right|justify)$")).OnElements("span", "p")
+	p.AllowStyles("text-align").Matching(regexp.MustCompile("^(left|center|right|justify)$")).OnElements("span", "p", "h1", "h2", "h3", "h4", "h5", "h6", "h7")
 
 	// allow checklists
 	p.AllowAttrs("data-type").Matching(regexp.MustCompile("^(todo_list|todo_item)$")).OnElements("ul", "li")
