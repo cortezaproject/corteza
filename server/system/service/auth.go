@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -371,6 +372,8 @@ func (svc *auth) InternalSignUp(ctx context.Context, input *types.User, password
 			Username: input.Username,
 			Handle:   input.Handle,
 
+			UserGroupID: input.UserGroupID,
+
 			// Do we need confirmed email?
 			EmailConfirmed: !svc.settings.Auth.Internal.Signup.EmailConfirmationRequired,
 		}
@@ -609,7 +612,7 @@ func (svc *auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 	}
 
 	for _, r := range internalAuth.BypassRoles() {
-		m := &types.RoleMember{UserID: u.ID, RoleID: r.ID}
+		m := &types.RoleMember{Resource: fmt.Sprintf("corteza::system:user/%d", u.ID), RoleID: r.ID}
 		if err = store.CreateRoleMember(ctx, svc.store, m); err != nil {
 			return err
 		}
@@ -625,7 +628,7 @@ func (svc *auth) autoPromote(ctx context.Context, u *types.User) (err error) {
 //
 // @todo move this to role service
 func (svc *auth) LoadRoleMemberships(ctx context.Context, u *types.User) error {
-	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{MemberID: u.ID})
+	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{Resource: fmt.Sprintf("corteza::system:user/%d", u.ID)})
 	if err != nil {
 		return err
 	}

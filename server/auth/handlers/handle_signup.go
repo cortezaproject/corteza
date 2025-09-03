@@ -19,9 +19,10 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 	req.SetKV(nil)
 
 	payload := &types.User{
-		Email:  req.Request.PostFormValue("email"),
-		Handle: req.Request.PostFormValue("handle"),
-		Name:   req.Request.PostFormValue("name"),
+		Email:       req.Request.PostFormValue("email"),
+		Handle:      req.Request.PostFormValue("handle"),
+		Name:        req.Request.PostFormValue("name"),
+		UserGroupID: req.Client.Security.UserGroup,
 	}
 
 	newUser, err := h.AuthService.InternalSignUp(
