@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/sentry"
 	"go.uber.org/zap"
 )
@@ -22,6 +23,8 @@ type (
 		indexed *ruleIndex
 
 		roles []*Role
+
+		orgTree *orgTree
 
 		store rbacRulesStore
 	}
@@ -78,6 +81,12 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 	return
 }
 
+// @todo consider a more graceful update
+func (svc *service) UpdateUserGroups(gm ...GroupMembers) (err error) {
+	svc.orgTree, err = OrgTree(gm...)
+	return
+}
+
 // Can function performs permission check for roles in context
 //
 // First extracts roles from context, then
@@ -92,20 +101,92 @@ func (svc *service) Can(ses Session, op string, res Resource) bool {
 // Check verifies if role has access to perform an operation on a resource
 //
 // See RuleSet's Check() func for details
-func (svc *service) Check(ses Session, op string, res Resource) (a Access) {
-	var (
-		fRoles = getContextRoles(ses, res, svc.roles)
-	)
-
-	if hasWildcards(res.RbacResource()) {
-		// prevent use of wildcard resources for checking permissions
+func (svc *service) Check(ses Session, op string, res Resource) (userAccess Access) {
+	if !svc.checkValidity(ses, op, res) {
 		return Inherit
 	}
 
-	a = check(svc.indexed, fRoles, op, res.RbacResource(), nil)
+	sesRoles := getSessionRoles(ses, res, svc.roles)
 
-	return
+	// @todo probably move this somewhere
+	if member(sesRoles, BypassRole) {
+		return Allow
+	}
+
+	treeAccess := svc.checkMemberBranch(ses, op, res)
+	userAccess = check(svc.indexed, sesRoles, op, res.RbacResource(), nil)
+
+	out := svc.mergeAccess(treeAccess, userAccess)
+
+	return out
 }
+
+func (svc *service) checkValidity(ses Session, op string, res Resource) bool {
+	// prevent use of wildcard resources for checking permissions
+	if hasWildcards(res.RbacResource()) {
+		return false
+	}
+
+	return true
+}
+
+func (svc *service) checkMemberBranch(ses Session, op string, res Resource) Access {
+	mm, err := svc.orgTree.MemberBranch(id.MustNumID(ses.Identity()))
+	if err != nil {
+		return Deny
+	}
+
+	return svc.evalSubBranch(mm, op, res.RbacResource())
+}
+
+func (svc *service) mergeAccess(treeAccess, userAccess Access) Access {
+	if treeAccess == Deny || userAccess == Deny {
+		return Deny
+	}
+
+	if treeAccess == Allow || userAccess == Allow {
+		return Allow
+	}
+
+	return Inherit
+}
+
+func (svc *service) evalSubBranch(nn []*groupNode, op, res string) (a Access) {
+	aux := make([]Access, len(nn))
+
+	wg := sync.WaitGroup{}
+	wg.Add(len(nn))
+
+	for i, n := range nn {
+		go func() {
+			aux[i] = svc.evalNode(n, op, res)
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+
+	for _, x := range aux {
+		if x == Allow {
+			return Allow
+		}
+	}
+
+	return Inherit
+}
+
+func (svc *service) evalNode(n *groupNode, op, res string) (a Access) {
+	thingy := make(map[uint64]bool, len(n.roles))
+	for _, r := range n.roles {
+		thingy[r.Number()] = true
+	}
+
+	return check(svc.indexed, partRoles{
+		CommonRole: thingy,
+	}, op, res, nil)
+}
+
+// func (svc *service) grabCtxRoles(ses Session, res Resource)
 
 // Trace checks RBAC rules and returns all decision trace log
 func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
@@ -150,7 +231,7 @@ func (svc *service) Trace(ses Session, op string, res Resource) *Trace {
 	}
 
 	var (
-		fRoles = getContextRoles(ses, res, svc.roles)
+		fRoles = getSessionRoles(ses, res, svc.roles)
 	)
 
 	_ = check(svc.indexed, fRoles, op, res.RbacResource(), t)
@@ -198,6 +279,24 @@ func (svc *service) Watch(ctx context.Context) {
 	}()
 
 	svc.logger.Debug("watcher initialized")
+}
+
+func (svc *service) AssignGroupMembers(group id.ID, members ...id.ID) (err error) {
+	return svc.orgTree.AssignGroupMembers(group, members...)
+}
+
+func (svc *service) RemoveGroupMembers(group id.ID, members ...id.ID) (err error) {
+	return svc.orgTree.RemoveGroupMembers(group, members...)
+}
+
+func (svc *service) AddNode(id id.ID, handle string, selfID id.ID) (err error) {
+	return svc.orgTree.AddNode(id, handle, selfID)
+}
+func (svc *service) UpdateNode(id id.ID, handle string, selfID id.ID) (err error) {
+	return svc.orgTree.UpdateNode(id, handle, selfID)
+}
+func (svc *service) RemoveNode(id id.ID) (err error) {
+	return svc.orgTree.RemoveNode(id)
 }
 
 // FindRulesByRoleID returns all RBAC rules that belong to a role
