@@ -33,15 +33,26 @@ type (
 )
 
 var (
-	parser gval.Language
+	parser      gval.Language
+	initialized = false
 )
 
-func init() {
-	parser = gval.Full(AllFunctions()...)
+func Init(ext ...func() []gval.Language) {
+	aux := make([]gval.Language, 0, len(ext))
+
+	for _, e := range ext {
+		aux = append(aux, e()...)
+	}
+
+	initialized = true
+	parser = gval.Full(aux...)
 }
 
 // Parser returns global parser instance
 func Parser() gval.Language {
+	if !initialized {
+		Init()
+	}
 	return parser
 }
 
