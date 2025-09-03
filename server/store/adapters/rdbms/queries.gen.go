@@ -4550,7 +4550,7 @@ var (
 	// This function is auto-generated
 	roleMemberSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
 		return d.Select(
-			"rel_user",
+			"rel_resource",
 			"rel_role",
 		).From(roleMemberTable)
 	}
@@ -4561,8 +4561,8 @@ var (
 	roleMemberInsertQuery = func(d goqu.DialectWrapper, res *systemType.RoleMember) *goqu.InsertDataset {
 		return d.Insert(roleMemberTable).
 			Rows(goqu.Record{
-				"rel_user": res.UserID,
-				"rel_role": res.RoleID,
+				"rel_resource": res.Resource,
+				"rel_role":     res.RoleID,
 			})
 	}
 
@@ -4570,7 +4570,7 @@ var (
 	//
 	// This function is auto-generated
 	roleMemberUpsertQuery = func(d goqu.DialectWrapper, res *systemType.RoleMember) *goqu.InsertDataset {
-		var target = `,rel_user,rel_role`
+		var target = `,rel_resource,rel_role`
 
 		return roleMemberInsertQuery(d, res).
 			OnConflict(
@@ -4608,8 +4608,8 @@ var (
 	// This function is auto-generated
 	roleMemberPrimaryKeys = func(res *systemType.RoleMember) goqu.Ex {
 		return goqu.Ex{
-			"rel_user": res.UserID,
-			"rel_role": res.RoleID,
+			"rel_resource": res.Resource,
+			"rel_role":     res.RoleID,
 		}
 	}
 
@@ -4829,6 +4829,7 @@ var (
 			"id",
 			"email",
 			"email_confirmed",
+			"rel_user_group",
 			"username",
 			"name",
 			"handle",
@@ -4850,6 +4851,7 @@ var (
 				"id":              res.ID,
 				"email":           res.Email,
 				"email_confirmed": res.EmailConfirmed,
+				"rel_user_group":  res.UserGroupID,
 				"username":        res.Username,
 				"name":            res.Name,
 				"handle":          res.Handle,
@@ -4874,6 +4876,7 @@ var (
 					goqu.Record{
 						"email":           res.Email,
 						"email_confirmed": res.EmailConfirmed,
+						"rel_user_group":  res.UserGroupID,
 						"username":        res.Username,
 						"name":            res.Name,
 						"handle":          res.Handle,
@@ -4896,6 +4899,7 @@ var (
 			Set(goqu.Record{
 				"email":           res.Email,
 				"email_confirmed": res.EmailConfirmed,
+				"rel_user_group":  res.UserGroupID,
 				"username":        res.Username,
 				"name":            res.Name,
 				"handle":          res.Handle,
@@ -4927,6 +4931,106 @@ var (
 	//
 	// This function is auto-generated
 	userPrimaryKeys = func(res *systemType.User) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// userGroupTable represents userGroups store table
+	//
+	// This value is auto-generated
+	userGroupTable = goqu.T("user_groups")
+
+	// userGroupSelectQuery assembles select query for fetching userGroups
+	//
+	// This function is auto-generated
+	userGroupSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"meta",
+			"self_id",
+			"archived_at",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+		).From(userGroupTable)
+	}
+
+	// userGroupInsertQuery assembles query inserting userGroups
+	//
+	// This function is auto-generated
+	userGroupInsertQuery = func(d goqu.DialectWrapper, res *systemType.UserGroup) *goqu.InsertDataset {
+		return d.Insert(userGroupTable).
+			Rows(goqu.Record{
+				"id":          res.ID,
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"self_id":     res.SelfID,
+				"archived_at": res.ArchivedAt,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+			})
+	}
+
+	// userGroupUpsertQuery assembles (insert+on-conflict) query for replacing userGroups
+	//
+	// This function is auto-generated
+	userGroupUpsertQuery = func(d goqu.DialectWrapper, res *systemType.UserGroup) *goqu.InsertDataset {
+		var target = `,id`
+
+		return userGroupInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":      res.Handle,
+						"meta":        res.Meta,
+						"self_id":     res.SelfID,
+						"archived_at": res.ArchivedAt,
+						"created_at":  res.CreatedAt,
+						"updated_at":  res.UpdatedAt,
+						"deleted_at":  res.DeletedAt,
+					},
+				),
+			)
+	}
+
+	// userGroupUpdateQuery assembles query for updating userGroups
+	//
+	// This function is auto-generated
+	userGroupUpdateQuery = func(d goqu.DialectWrapper, res *systemType.UserGroup) *goqu.UpdateDataset {
+		return d.Update(userGroupTable).
+			Set(goqu.Record{
+				"handle":      res.Handle,
+				"meta":        res.Meta,
+				"self_id":     res.SelfID,
+				"archived_at": res.ArchivedAt,
+				"created_at":  res.CreatedAt,
+				"updated_at":  res.UpdatedAt,
+				"deleted_at":  res.DeletedAt,
+			}).
+			Where(userGroupPrimaryKeys(res))
+	}
+
+	// userGroupDeleteQuery assembles delete query for removing userGroups
+	//
+	// This function is auto-generated
+	userGroupDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(userGroupTable).Where(ee...)
+	}
+
+	// userGroupDeleteQuery assembles delete query for removing userGroups
+	//
+	// This function is auto-generated
+	userGroupTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(userGroupTable)
+	}
+
+	// userGroupPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	userGroupPrimaryKeys = func(res *systemType.UserGroup) goqu.Ex {
 		return goqu.Ex{
 			"id": res.ID,
 		}

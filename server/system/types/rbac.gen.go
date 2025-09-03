@@ -233,6 +233,36 @@ func RoleRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for UserGroup by calling UserGroupRbacResource fn
+//
+// RBAC resource is in the corteza::system:user-group/... format
+//
+// This function is auto-generated
+func (r UserGroup) RbacResource() string {
+	return UserGroupRbacResource(r.ID)
+}
+
+// UserGroupRbacResource returns string representation of RBAC resource for UserGroup
+//
+// RBAC resource is in the corteza::system:user-group/... format
+//
+// This function is auto-generated
+func UserGroupRbacResource(id uint64) string {
+	cpts := []interface{}{UserGroupResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(UserGroupRbacResourceTpl(), cpts...)
+
+}
+
+func UserGroupRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Template by calling TemplateRbacResource fn
 //
 // RBAC resource is in the corteza::system:template/... format

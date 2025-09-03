@@ -2817,6 +2817,25 @@ func (d *auxYamlDoc) unmarshalUserNode(dctx documentContext, n *yaml.Node, meta 
 
 			break
 
+		case "usergroupid", "usergroup", "user_group", "user_group_id", "group":
+			// Handle references
+			err = y7s.DecodeScalar(n, "userGroupID", &auxNodeValue)
+			if err != nil {
+				return err
+			}
+
+			// Omit if not defined
+			tmp := cast.ToString(auxNodeValue)
+			if tmp == "0" || tmp == "" {
+				break
+			}
+			refs["UserGroupID"] = envoyx.Ref{
+				ResourceType: "corteza::system:user-group",
+				Identifiers:  envoyx.MakeIdentifiers(auxNodeValue),
+			}
+
+			break
+
 		// Handle RBAC rules
 		case "allow":
 			auxOut, err = unmarshalAllowNode(n)

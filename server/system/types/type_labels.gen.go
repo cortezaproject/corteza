@@ -151,3 +151,27 @@ func (User) LabelResourceKind() string {
 func (m User) LabelResourceID() uint64 {
 	return m.ID
 }
+
+// SetLabel adds new label to label map
+func (m *UserGroup) SetLabel(key string, value string) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]string)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m UserGroup) GetLabels() map[string]string {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (UserGroup) LabelResourceKind() string {
+	return "userGroup"
+}
+
+// GetLabels adds new label to label map
+func (m UserGroup) LabelResourceID() uint64 {
+	return m.ID
+}

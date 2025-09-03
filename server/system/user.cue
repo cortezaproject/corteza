@@ -18,6 +18,18 @@ user: {
 		  	goType: "bool"
 				dal: { type: "Boolean" }
 			}
+			user_group_id: {
+				ident: "userGroupID",
+				goType: "uint64",
+				storeIdent: "rel_user_group"
+				dal: { type: "Ref", refModelResType: "corteza::system:user-group" }
+
+				envoy: {
+					yaml: {
+						identKeyAlias: ["usergroup", "user_group", "user_group_id", "group"]
+					}
+				}
+			}
 		  username: {
 		  	sortable: true,
 		  	unique: true,
@@ -81,6 +93,7 @@ user: {
 		struct: {
 			user_id: {goType: "[]uint64", ident: "userID", storeIdent: "id"}
 			role_id: {goType: "[]uint64", ident: "roleID"}
+			user_group_id: {goType: "uint64", ident: "userGroupID"}
 			email: {goType: "string"}
 			name: {goType: "string"}
 			username: {goType: "string"}

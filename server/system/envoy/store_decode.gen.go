@@ -955,6 +955,12 @@ func UserToEnvoyNode(r *types.User) (node *envoyx.Node, err error) {
 	// Handle references
 	// Omit any non-defined values
 	refs := map[string]envoyx.Ref{}
+	if r.UserGroupID > 0 {
+		refs["UserGroupID"] = envoyx.Ref{
+			ResourceType: "corteza::system:user-group",
+			Identifiers:  envoyx.MakeIdentifiers(r.UserGroupID),
+		}
+	}
 
 	var scope envoyx.Scope
 
@@ -989,6 +995,11 @@ func (d StoreDecoder) makeUserFilter(scope *envoyx.Node, refs map[string]*envoyx
 	)
 	_ = ar
 	_ = ok
+
+	ar, ok = refs["UserGroupID"]
+	if ok {
+		out.UserGroupID = ar.Resource.GetID()
+	}
 
 	return
 }

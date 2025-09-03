@@ -623,8 +623,8 @@ type (
 
 	// auxRoleMember is an auxiliary structure used for transporting to/from RDBMS store
 	auxRoleMember struct {
-		UserID uint64 `db:"user_id"`
-		RoleID uint64 `db:"role_id"`
+		Resource string `db:"resource"`
+		RoleID   uint64 `db:"role_id"`
 	}
 
 	// auxSettingValue is an auxiliary structure used for transporting to/from RDBMS store
@@ -657,6 +657,7 @@ type (
 		ID             uint64               `db:"id"`
 		Email          string               `db:"email"`
 		EmailConfirmed bool                 `db:"email_confirmed"`
+		UserGroupID    uint64               `db:"user_group_id"`
 		Username       string               `db:"username"`
 		Name           string               `db:"name"`
 		Handle         string               `db:"handle"`
@@ -666,6 +667,18 @@ type (
 		CreatedAt      time.Time            `db:"created_at"`
 		UpdatedAt      *time.Time           `db:"updated_at"`
 		DeletedAt      *time.Time           `db:"deleted_at"`
+	}
+
+	// auxUserGroup is an auxiliary structure used for transporting to/from RDBMS store
+	auxUserGroup struct {
+		ID         uint64                    `db:"id"`
+		Handle     string                    `db:"handle"`
+		Meta       *systemType.UserGroupMeta `db:"meta"`
+		SelfID     uint64                    `db:"self_id"`
+		ArchivedAt *time.Time                `db:"archived_at"`
+		CreatedAt  time.Time                 `db:"created_at"`
+		UpdatedAt  *time.Time                `db:"updated_at"`
+		DeletedAt  *time.Time                `db:"deleted_at"`
 	}
 )
 
@@ -2921,7 +2934,7 @@ func (aux *auxRole) scan(row scanner) error {
 //
 // This function is auto-generated
 func (aux *auxRoleMember) encode(res *systemType.RoleMember) (_ error) {
-	aux.UserID = res.UserID
+	aux.Resource = res.Resource
 	aux.RoleID = res.RoleID
 	return
 }
@@ -2931,7 +2944,7 @@ func (aux *auxRoleMember) encode(res *systemType.RoleMember) (_ error) {
 // This function is auto-generated
 func (aux auxRoleMember) decode() (res *systemType.RoleMember, _ error) {
 	res = new(systemType.RoleMember)
-	res.UserID = aux.UserID
+	res.Resource = aux.Resource
 	res.RoleID = aux.RoleID
 	return
 }
@@ -2941,7 +2954,7 @@ func (aux auxRoleMember) decode() (res *systemType.RoleMember, _ error) {
 // This function is auto-generated
 func (aux *auxRoleMember) scan(row scanner) error {
 	return row.Scan(
-		&aux.UserID,
+		&aux.Resource,
 		&aux.RoleID,
 	)
 }
@@ -3050,6 +3063,7 @@ func (aux *auxUser) encode(res *systemType.User) (_ error) {
 	aux.ID = res.ID
 	aux.Email = res.Email
 	aux.EmailConfirmed = res.EmailConfirmed
+	aux.UserGroupID = res.UserGroupID
 	aux.Username = res.Username
 	aux.Name = res.Name
 	aux.Handle = res.Handle
@@ -3070,6 +3084,7 @@ func (aux auxUser) decode() (res *systemType.User, _ error) {
 	res.ID = aux.ID
 	res.Email = aux.Email
 	res.EmailConfirmed = aux.EmailConfirmed
+	res.UserGroupID = aux.UserGroupID
 	res.Username = aux.Username
 	res.Name = aux.Name
 	res.Handle = aux.Handle
@@ -3090,12 +3105,60 @@ func (aux *auxUser) scan(row scanner) error {
 		&aux.ID,
 		&aux.Email,
 		&aux.EmailConfirmed,
+		&aux.UserGroupID,
 		&aux.Username,
 		&aux.Name,
 		&aux.Handle,
 		&aux.Kind,
 		&aux.Meta,
 		&aux.SuspendedAt,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+	)
+}
+
+// encodes UserGroup to auxUserGroup
+//
+// This function is auto-generated
+func (aux *auxUserGroup) encode(res *systemType.UserGroup) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Meta = res.Meta
+	aux.SelfID = res.SelfID
+	aux.ArchivedAt = res.ArchivedAt
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	return
+}
+
+// decodes UserGroup from auxUserGroup
+//
+// This function is auto-generated
+func (aux auxUserGroup) decode() (res *systemType.UserGroup, _ error) {
+	res = new(systemType.UserGroup)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Meta = aux.Meta
+	res.SelfID = aux.SelfID
+	res.ArchivedAt = aux.ArchivedAt
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	return
+}
+
+// scans row and fills auxUserGroup fields
+//
+// This function is auto-generated
+func (aux *auxUserGroup) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Meta,
+		&aux.SelfID,
+		&aux.ArchivedAt,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

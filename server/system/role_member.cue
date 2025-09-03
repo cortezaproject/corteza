@@ -10,11 +10,11 @@ role_member: {
 
 	model: {
 		attributes: {
-			user_id: {
-				goType: "uint64",
-				storeIdent: "rel_user",
-				ident: "userID"
-				dal: { type: "Ref", refModelResType: "corteza::system:user" }
+			resource: {
+				goType: "string",
+				storeIdent: "rel_resource",
+				ident: "resource"
+				dal: {}
 			}
 			role_id: {
 				goType: "uint64",
@@ -25,17 +25,17 @@ role_member: {
 		}
 
 		indexes: {
-			"primary": { attributes: ["user_id", "role_id"] }
+			"primary": { attributes: ["resource", "role_id"] }
 		}
 	}
 
 	filter: {
 		struct: {
-			user_id: {goType: "uint64", ident: "userID", storeIdent: "rel_user" }
+			resource: {goType: "string", ident: "resource", storeIdent: "rel_resource" }
 			role_id: {goType: "uint64", ident: "roleID", storeIdent: "rel_role" }
 		}
 
-		byValue: [ "user_id", "role_id"]
+		byValue: [ "resource", "role_id"]
 	}
 
 	envoy: {

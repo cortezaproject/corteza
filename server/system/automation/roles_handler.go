@@ -6,6 +6,7 @@ import (
 
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/spf13/cast"
@@ -99,7 +100,7 @@ func (h rolesHandler) searchMembers(ctx context.Context, args *rolesSearchMember
 	// Get actual users
 	uu := make([]string, len(mm))
 	for i, m := range mm {
-		uu[i] = cast.ToString(m.UserID)
+		uu[i] = cast.ToString(rbac.ResourceID(m.Resource))
 	}
 	results.Users, _, err = h.uSvc.Find(ctx, types.UserFilter{
 		UserID: uu,
@@ -137,7 +138,7 @@ func (h rolesHandler) eachMember(ctx context.Context, args *rolesEachMemberArgs)
 	// Get actual users
 	uu := make([]string, len(mm))
 	for i, m := range mm {
-		uu[i] = cast.ToString(m.UserID)
+		uu[i] = cast.ToString(rbac.ResourceID(m.Resource))
 	}
 	i.buffer, i.filter, err = h.uSvc.Find(ctx, types.UserFilter{
 		UserID: uu,

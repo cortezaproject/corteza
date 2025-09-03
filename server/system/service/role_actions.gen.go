@@ -22,6 +22,7 @@ import (
 type (
 	roleActionProps struct {
 		member   *types.User
+		group    *types.UserGroup
 		role     *types.Role
 		new      *types.Role
 		update   *types.Role
@@ -60,6 +61,14 @@ var (
 // This function is auto-generated.
 func (p *roleActionProps) setMember(member *types.User) *roleActionProps {
 	p.member = member
+	return p
+}
+
+// setGroup updates roleActionProps's group
+//
+// This function is auto-generated.
+func (p *roleActionProps) setGroup(group *types.UserGroup) *roleActionProps {
+	p.group = group
 	return p
 }
 
@@ -124,6 +133,10 @@ func (p roleActionProps) Serialize() actionlog.Meta {
 		m.Set("member.email", p.member.Email, true)
 		m.Set("member.name", p.member.Name, true)
 		m.Set("member.ID", p.member.ID, true)
+	}
+	if p.group != nil {
+		m.Set("group.handle", p.group.Handle, true)
+		m.Set("group.ID", p.group.ID, true)
 	}
 	if p.role != nil {
 		m.Set("role.handle", p.role.Handle, true)
@@ -204,6 +217,20 @@ func (p roleActionProps) Format(in string, err error) string {
 		pairs = append(pairs, "{{member.email}}", fns(p.member.Email))
 		pairs = append(pairs, "{{member.name}}", fns(p.member.Name))
 		pairs = append(pairs, "{{member.ID}}", fns(p.member.ID))
+	}
+
+	if p.group != nil {
+		// replacement for "{{group}}" (in order how fields are defined)
+		pairs = append(
+			pairs,
+			"{{group}}",
+			fns(
+				p.group.Handle,
+				p.group.ID,
+			),
+		)
+		pairs = append(pairs, "{{group.handle}}", fns(p.group.Handle))
+		pairs = append(pairs, "{{group.ID}}", fns(p.group.ID))
 	}
 
 	if p.role != nil {
@@ -729,6 +756,40 @@ func RoleErrStaleData(mm ...*roleActionProps) *errors.Error {
 		// translation namespace & key
 		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
 		errors.Meta(locale.ErrorMetaKey{}, "role.errors.staleData"),
+
+		errors.StackSkip(1),
+	)
+
+	if len(mm) > 0 {
+	}
+
+	return e
+}
+
+// RoleErrSearchByMemberUserGroup returns "system:role.searchByMemberUserGroup" as *errors.Error
+//
+// This function is auto-generated.
+func RoleErrSearchByMemberUserGroup(mm ...*roleActionProps) *errors.Error {
+	var p = &roleActionProps{}
+	if len(mm) > 0 {
+		p = mm[0]
+	}
+
+	var e = errors.New(
+		errors.KindInternal,
+
+		p.Format("can't search by both member and user group", nil),
+
+		errors.Meta("type", "searchByMemberUserGroup"),
+		errors.Meta("resource", "system:role"),
+
+		// action log entry; no formatting, it will be applied inside recordAction fn.
+		errors.Meta(roleLogMetaKey{}, "failed to search or list roles; can't search by both member and user group"),
+		errors.Meta(rolePropsMetaKey{}, p),
+
+		// translation namespace & key
+		errors.Meta(locale.ErrorMetaNamespace{}, "system"),
+		errors.Meta(locale.ErrorMetaKey{}, "role.errors.searchByMemberUserGroup"),
 
 		errors.StackSkip(1),
 	)

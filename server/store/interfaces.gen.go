@@ -89,6 +89,7 @@ type (
 		SettingValues
 		Templates
 		Users
+		UserGroups
 	}
 
 	Actionlogs interface {
@@ -624,7 +625,7 @@ type (
 		UpsertRoleMember(ctx context.Context, rr ...*systemType.RoleMember) error
 		DeleteRoleMember(ctx context.Context, rr ...*systemType.RoleMember) error
 
-		DeleteRoleMemberByUserIDRoleID(ctx context.Context, userID uint64, roleID uint64) error
+		DeleteRoleMemberByResourceRoleID(ctx context.Context, resource string, roleID uint64) error
 		TruncateRoleMembers(ctx context.Context) error
 		TransferRoleMembers(ctx context.Context, src uint64, dst uint64) error
 	}
@@ -669,6 +670,19 @@ type (
 		LookupUserByUsername(ctx context.Context, username string) (*systemType.User, error)
 		CountUsers(ctx context.Context, u systemType.UserFilter) (uint, error)
 		UserMetrics(ctx context.Context) (*systemType.UserMetrics, error)
+	}
+
+	UserGroups interface {
+		SearchUserGroups(ctx context.Context, f systemType.UserGroupFilter) (systemType.UserGroupSet, systemType.UserGroupFilter, error)
+		CreateUserGroup(ctx context.Context, rr ...*systemType.UserGroup) error
+		UpdateUserGroup(ctx context.Context, rr ...*systemType.UserGroup) error
+		UpsertUserGroup(ctx context.Context, rr ...*systemType.UserGroup) error
+		DeleteUserGroup(ctx context.Context, rr ...*systemType.UserGroup) error
+
+		DeleteUserGroupByID(ctx context.Context, id uint64) error
+		TruncateUserGroups(ctx context.Context) error
+		LookupUserGroupByID(ctx context.Context, id uint64) (*systemType.UserGroup, error)
+		LookupUserGroupByHandle(ctx context.Context, handle string) (*systemType.UserGroup, error)
 	}
 )
 
@@ -3308,8 +3322,8 @@ func DeleteRoleMember(ctx context.Context, s RoleMembers, rr ...*systemType.Role
 // DeleteRoleMemberByID deletes one or more RoleMembers from store
 //
 // This function is auto-generated
-func DeleteRoleMemberByUserIDRoleID(ctx context.Context, s RoleMembers, userID uint64, roleID uint64) error {
-	return s.DeleteRoleMemberByUserIDRoleID(ctx, userID, roleID)
+func DeleteRoleMemberByResourceRoleID(ctx context.Context, s RoleMembers, resource string, roleID uint64) error {
+	return s.DeleteRoleMemberByResourceRoleID(ctx, resource, roleID)
 }
 
 // TruncateRoleMembers Deletes all RoleMembers from store
@@ -3546,4 +3560,71 @@ func CountUsers(ctx context.Context, s Users, u systemType.UserFilter) (uint, er
 // This function is auto-generated
 func UserMetrics(ctx context.Context, s Users) (*systemType.UserMetrics, error) {
 	return s.UserMetrics(ctx)
+}
+
+// SearchUserGroups returns all matching UserGroups from store
+//
+// This function is auto-generated
+func SearchUserGroups(ctx context.Context, s UserGroups, f systemType.UserGroupFilter) (systemType.UserGroupSet, systemType.UserGroupFilter, error) {
+	return s.SearchUserGroups(ctx, f)
+}
+
+// CreateUserGroup creates one or more UserGroups in store
+//
+// This function is auto-generated
+func CreateUserGroup(ctx context.Context, s UserGroups, rr ...*systemType.UserGroup) error {
+	return s.CreateUserGroup(ctx, rr...)
+}
+
+// UpdateUserGroup updates one or more (existing) UserGroups in store
+//
+// This function is auto-generated
+func UpdateUserGroup(ctx context.Context, s UserGroups, rr ...*systemType.UserGroup) error {
+	return s.UpdateUserGroup(ctx, rr...)
+}
+
+// UpsertUserGroup creates new or updates existing one or more UserGroups in store
+//
+// This function is auto-generated
+func UpsertUserGroup(ctx context.Context, s UserGroups, rr ...*systemType.UserGroup) error {
+	return s.UpsertUserGroup(ctx, rr...)
+}
+
+// DeleteUserGroup deletes one or more UserGroups from store
+//
+// This function is auto-generated
+func DeleteUserGroup(ctx context.Context, s UserGroups, rr ...*systemType.UserGroup) error {
+	return s.DeleteUserGroup(ctx, rr...)
+}
+
+// DeleteUserGroupByID deletes one or more UserGroups from store
+//
+// This function is auto-generated
+func DeleteUserGroupByID(ctx context.Context, s UserGroups, id uint64) error {
+	return s.DeleteUserGroupByID(ctx, id)
+}
+
+// TruncateUserGroups Deletes all UserGroups from store
+//
+// This function is auto-generated
+func TruncateUserGroups(ctx context.Context, s UserGroups) error {
+	return s.TruncateUserGroups(ctx)
+}
+
+// LookupUserGroupByID searches for user group by ID
+//
+// It returns user group even if deleted or suspended
+//
+// This function is auto-generated
+func LookupUserGroupByID(ctx context.Context, s UserGroups, id uint64) (*systemType.UserGroup, error) {
+	return s.LookupUserGroupByID(ctx, id)
+}
+
+// LookupUserGroupByHandle searches for user group by handle
+//
+// It returns only valid user group (not deleted, not suspended)
+//
+// This function is auto-generated
+func LookupUserGroupByHandle(ctx context.Context, s UserGroups, handle string) (*systemType.UserGroup, error) {
+	return s.LookupUserGroupByHandle(ctx, handle)
 }

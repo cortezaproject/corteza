@@ -134,6 +134,11 @@ type (
 		// Handle
 		Handle string
 
+		// UserGroupID POST parameter
+		//
+		// User group ID the user belongs to
+		UserGroupID uint64 `json:",string"`
+
 		// Kind POST parameter
 		//
 		// Kind (normal, bot)
@@ -170,6 +175,11 @@ type (
 		//
 		// Handle
 		Handle string
+
+		// UserGroupID POST parameter
+		//
+		// User group ID the user belongs to
+		UserGroupID uint64 `json:",string"`
 
 		// Kind POST parameter
 		//
@@ -629,12 +639,13 @@ func NewUserCreate() *UserCreate {
 // Auditable returns all auditable/loggable parameters
 func (r UserCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"email":  r.Email,
-		"name":   r.Name,
-		"handle": r.Handle,
-		"kind":   r.Kind,
-		"labels": r.Labels,
-		"meta":   r.Meta,
+		"email":       r.Email,
+		"name":        r.Name,
+		"handle":      r.Handle,
+		"userGroupID": r.UserGroupID,
+		"kind":        r.Kind,
+		"labels":      r.Labels,
+		"meta":        r.Meta,
 	}
 }
 
@@ -651,6 +662,11 @@ func (r UserCreate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r UserCreate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserCreate) GetUserGroupID() uint64 {
+	return r.UserGroupID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -705,6 +721,13 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["userGroupID"]; ok && len(val) > 0 {
+				r.UserGroupID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -771,6 +794,13 @@ func (r *UserCreate) Fill(req *http.Request) (err error) {
 			}
 		}
 
+		if val, ok := req.Form["userGroupID"]; ok && len(val) > 0 {
+			r.UserGroupID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+
 		if val, ok := req.Form["kind"]; ok && len(val) > 0 {
 			r.Kind, err = types.UserKind(val[0]), nil
 			if err != nil {
@@ -814,14 +844,15 @@ func NewUserUpdate() *UserUpdate {
 // Auditable returns all auditable/loggable parameters
 func (r UserUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"userID":    r.UserID,
-		"email":     r.Email,
-		"name":      r.Name,
-		"handle":    r.Handle,
-		"kind":      r.Kind,
-		"labels":    r.Labels,
-		"meta":      r.Meta,
-		"updatedAt": r.UpdatedAt,
+		"userID":      r.UserID,
+		"email":       r.Email,
+		"name":        r.Name,
+		"handle":      r.Handle,
+		"userGroupID": r.UserGroupID,
+		"kind":        r.Kind,
+		"labels":      r.Labels,
+		"meta":        r.Meta,
+		"updatedAt":   r.UpdatedAt,
 	}
 }
 
@@ -843,6 +874,11 @@ func (r UserUpdate) GetName() string {
 // Auditable returns all auditable/loggable parameters
 func (r UserUpdate) GetHandle() string {
 	return r.Handle
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r UserUpdate) GetUserGroupID() uint64 {
+	return r.UserGroupID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -902,6 +938,13 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["userGroupID"]; ok && len(val) > 0 {
+				r.UserGroupID, err = payload.ParseUint64(val[0]), nil
 				if err != nil {
 					return err
 				}
@@ -970,6 +1013,13 @@ func (r *UserUpdate) Fill(req *http.Request) (err error) {
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["userGroupID"]; ok && len(val) > 0 {
+			r.UserGroupID, err = payload.ParseUint64(val[0]), nil
 			if err != nil {
 				return err
 			}

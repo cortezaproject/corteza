@@ -86,6 +86,7 @@ var (
 	DefaultDalSensitivityLevel *dalSensitivityLevel
 	DefaultDalSchemaAlteration *dalSchemaAlteration
 	DefaultRole                *role
+	DefaultUserGroup           *userGroup
 	DefaultApplication         *application
 	DefaultReminder            ReminderService
 	DefaultNotification        NotificationService
@@ -219,6 +220,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultCredentials = Credentials()
 	DefaultReport = Report(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultRole = Role(rbac.Global())
+	DefaultUserGroup = UserGroup(rbac.Global())
 	DefaultApplication = Application(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultReminder = Reminder(ctx, DefaultLogger.Named("reminder"), ws)
 	DefaultNotification = Notification(ctx, DefaultLogger.Named("notification"), ws)
@@ -322,6 +324,11 @@ func Watchers(ctx context.Context) {
 func Activate(ctx context.Context) (err error) {
 	// Run initial update of current settings
 	err = DefaultSettings.UpdateCurrent(ctx)
+	if err != nil {
+		return
+	}
+
+	err = DefaultUserGroup.Activate(ctx)
 	if err != nil {
 		return
 	}

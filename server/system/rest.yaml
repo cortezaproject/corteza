@@ -255,6 +255,7 @@ endpoints:
       get:
       - { type: "string",            name: "query",      title: "Search query" }
       - { type: "uint64",            name: "memberID",   title: "Search roles for member"}
+      - { type: "uint64",            name: "userGroupID",title: "Search roles for user group"}
       - { type: "[]string",          name: "roleID",     title: "Search roles by ID" }
       - { type: "uint",              name: "deleted",    title: "Exclude (0, default), include (1) or return only (2) deleted roles" }
       - { type: "uint",              name: "archived",   title: "Exclude (0, default), include (1) or return only (2) archived roles" }
@@ -378,6 +379,20 @@ endpoints:
         name: roleID
         required: true
         title: Source Role ID
+  - name: memberAddGroup
+    method: POST
+    title: Add user group to a user group
+    path: "/{roleID}/member-g/{userGroupID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Source Role ID
+      - type: uint64
+        name: userGroupID
+        required: true
+        title: User Group ID
   - name: memberAdd
     method: POST
     title: Add member to a role
@@ -440,6 +455,121 @@ endpoints:
           type: "[]string"
           required: true
           title: Clone set of rules to roleID
+- title: User Groups
+  description: User groups outline role hierarchy
+  path: "/user-groups"
+  entrypoint: userGroup
+  authentication:
+  - Client ID
+  - Session ID
+  imports:
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - github.com/cortezaproject/corteza/server/pkg/id
+    - time
+  apis:
+  - name: list
+    method: GET
+    title: List user groups
+    path: "/"
+    parameters:
+      get:
+      - { type: "string",            name: "query",       title: "Search query" }
+      - { type: "uint64",            name: "memberID",    title: "Search roles for member"}
+      - { type: "[]id.ID",           name: "userGroupID", title: "Search roles by ID", parser: "id.ParseIDs" }
+      - { type: "uint",              name: "deleted",     title: "Exclude (0, default), include (1) or return only (2) deleted user groups" }
+      - { type: "uint",              name: "archived",    title: "Exclude (0, default), include (1) or return only (2) archived user groups" }
+      - { type: "map[string]string", name: "labels",      title: "Labels", parser: "label.ParseStrings" }
+      - { type: "uint",              name: "limit",       title: "Limit" }
+      - { name: "incTotal",          type: "bool",        title: "Include total counter" }
+      - { type: "string",            name: "pageCursor",  title: "Page cursor" }
+      - { type: "string",            name: "sort",        title: "Sort items" }
+  - name: create
+    method: POST
+    title: Update user groups details
+    path: "/"
+    parameters:
+      post:
+      - { type: "string",              name: "name",       required: true,  title: "Name of user group" }
+      - { type: "string",              name: "handle",                      title: "Handle for user group" }
+      - { type: "[]string",            name: "members",                     title: "user group member IDs" }
+      - { type: uint64,                name: selfID,       required: false, title: Parent user group ID }
+      - { type: "*types.UserGroupMeta",name: "meta",                        title: "Meta",           parser: "types.ParseUserGroupMeta" }
+      - { type: "map[string]string",   name: "labels",                      title: "Labels",         parser: "label.ParseStrings" }
+  - name: update
+    method: PUT
+    title: Update user group details
+    path: "/{userGroupID}"
+    parameters:
+      path:
+      - { type: "id.ID",             name: "userGroupID",     required: true,  title: User Group ID, parser: "id.ParseID" }
+      post:
+      - { type: "string",             name: "name",       required: false, title: "Name of user group" }
+      - { type: "string",             name: "handle",     required: false, title: "Handle for user group" }
+      - { type: "[]string",           name: "members",    required: false, title: "user group member IDs" }
+      - { type: uint64,               name: selfID,       required: false, title: Parent user group ID }
+      - { type: "*types.UserGroupMeta",name: "meta",                       title: "Meta",            parser: "types.ParseUserGroupMeta" }
+      - { type: "map[string]string",  name: "labels",                      title: "Labels",          parser: "label.ParseStrings" }
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
+  - name: read
+    method: GET
+    title: Read user group details and memberships
+    path: "/{userGroupID}"
+    parameters:
+      path:
+      - type: "id.ID"
+        name: userGroupID
+        required: true
+        title: User group ID
+        parser: "id.ParseID"
+  - name: delete
+    method: DELETE
+    title: Remove user group
+    path: "/{userGroupID}"
+    parameters:
+      path:
+      - type: "id.ID"
+        name: userGroupID
+        required: true
+        title: User Group ID
+        parser: "id.ParseID"
+  - name: undelete
+    method: POST
+    title: Undelete user group
+    path: "/{userGroupID}/undelete"
+    parameters:
+      path:
+      - type: "id.ID"
+        name: userGroupID
+        required: true
+        title: User group ID
+        parser: "id.ParseID"
+  - name: memberList
+    method: GET
+    title: Returns all user group members
+    path: "/{userGroupID}/members"
+    parameters:
+      path:
+      - type: "id.ID"
+        name: userGroupID
+        required: true
+        title: Source User Group ID
+        parser: "id.ParseID"
+  - name: memberAdd
+    method: POST
+    title: Add member to a user group
+    path: "/{userGroupID}/member/{userID}"
+    parameters:
+      path:
+      - type: "id.ID"
+        name: userGroupID
+        required: true
+        title: Source User Group ID
+        parser: "id.ParseID"
+      - type: uint64
+        name: userID
+        required: true
+        title: User ID
 - title: Users
   path: "/users"
   entrypoint: user
@@ -535,6 +665,10 @@ endpoints:
         type: string
         required: false
         title: Handle
+      - name: "userGroupID"
+        type: "uint64"
+        required: true
+        title: "User group ID the user belongs to"
       - name: kind
         type: types.UserKind
         required: false
@@ -569,6 +703,10 @@ endpoints:
         type: string
         required: false
         title: Handle
+      - name: "userGroupID"
+        type: "uint64"
+        required: true
+        title: "User group ID the user belongs to"
       - name: kind
         type: types.UserKind
         required: false

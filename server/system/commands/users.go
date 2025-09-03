@@ -3,10 +3,11 @@ package commands
 import (
 	"context"
 	"fmt"
-	"github.com/brianvoe/gofakeit/v6"
 	"strconv"
 	"syscall"
 	"time"
+
+	"github.com/brianvoe/gofakeit/v6"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
@@ -163,7 +164,7 @@ func Users(ctx context.Context, app serviceInitializer) *cobra.Command {
 
 			if len(mm) > 0 {
 				_ = mm.Walk(func(m *types.RoleMember) error {
-					m.UserID = user.ID
+					m.Resource = fmt.Sprintf("corteza::system:user/%d", user.ID)
 					return nil
 				})
 

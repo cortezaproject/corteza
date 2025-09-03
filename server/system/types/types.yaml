@@ -17,6 +17,8 @@ types:
     labelResourceType: role
   RoleMember:
     noIdField: true
+  UserGroup:
+    labelResourceType: userGroup
   Credential: {}
   Reminder: {}
   Notification: {}

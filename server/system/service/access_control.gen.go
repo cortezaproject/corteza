@@ -101,7 +101,7 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 			return nil, fmt.Errorf("userID and roles are mutually exclusive")
 		}
 
-		members, _, err = store.SearchRoleMembers(ctx, svc.store, systemTypes.RoleMemberFilter{UserID: userID})
+		members, _, err = store.SearchRoleMembers(ctx, svc.store, systemTypes.RoleMemberFilter{Resource: fmt.Sprintf("corteza::system:user/%d", userID)})
 		if err != nil {
 			return nil, err
 		}
@@ -143,6 +143,7 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.QueueRbacResource(0)),
 		rbac.NewResource(types.ReportRbacResource(0)),
 		rbac.NewResource(types.RoleRbacResource(0)),
+		rbac.NewResource(types.UserGroupRbacResource(0)),
 		rbac.NewResource(types.TemplateRbacResource(0)),
 		rbac.NewResource(types.UserRbacResource(0)),
 		rbac.NewResource(types.DalConnectionRbacResource(0)),
@@ -281,6 +282,26 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "members.manage",
 		},
 		{
+			"type": types.UserGroupResourceType,
+			"any":  types.UserGroupRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.UserGroupResourceType,
+			"any":  types.UserGroupRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.UserGroupResourceType,
+			"any":  types.UserGroupRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.UserGroupResourceType,
+			"any":  types.UserGroupRbacResource(0),
+			"op":   "members.manage",
+		},
+		{
 			"type": types.TemplateResourceType,
 			"any":  types.TemplateRbacResource(0),
 			"op":   "read",
@@ -404,6 +425,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "roles.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "user-group.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "user-groups.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -787,6 +818,34 @@ func (svc accessControl) CanManageMembersOnRole(ctx context.Context, r *types.Ro
 	return svc.can(ctx, "members.manage", r)
 }
 
+// CanReadUserGroup checks if current user can read user group
+//
+// This function is auto-generated
+func (svc accessControl) CanReadUserGroup(ctx context.Context, r *types.UserGroup) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateUserGroup checks if current user can update user group
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateUserGroup(ctx context.Context, r *types.UserGroup) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteUserGroup checks if current user can delete user group
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteUserGroup(ctx context.Context, r *types.UserGroup) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanManageMembersOnUserGroup checks if current user can manage members
+//
+// This function is auto-generated
+func (svc accessControl) CanManageMembersOnUserGroup(ctx context.Context, r *types.UserGroup) bool {
+	return svc.can(ctx, "members.manage", r)
+}
+
 // CanReadTemplate checks if current user can read template
 //
 // This function is auto-generated
@@ -968,6 +1027,22 @@ func (svc accessControl) CanCreateRole(ctx context.Context) bool {
 func (svc accessControl) CanSearchRoles(ctx context.Context) bool {
 	r := &types.Component{}
 	return svc.can(ctx, "roles.search", r)
+}
+
+// CanCreateUserGroup checks if current user can create user groups
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateUserGroup(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "user-group.create", r)
+}
+
+// CanSearchUserGroups checks if current user can list, search or filter user groups
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchUserGroups(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "user-groups.search", r)
 }
 
 // CanCreateUser checks if current user can create users
@@ -1173,6 +1248,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacReportResourceValidator(r, oo...)
 	case types.RoleResourceType:
 		return rbacRoleResourceValidator(r, oo...)
+	case types.UserGroupResourceType:
+		return rbacUserGroupResourceValidator(r, oo...)
 	case types.TemplateResourceType:
 		return rbacTemplateResourceValidator(r, oo...)
 	case types.UserResourceType:
@@ -1248,6 +1325,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadRole(ctx, svc.store, ids[0])
+	case types.UserGroupResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.UserGroupRbacResource(ids[0])), nil
+		}
+
+		return loadUserGroup(ctx, svc.store, ids[0])
 	case types.TemplateResourceType:
 		if hasWildcard {
 			return rbac.NewResource(types.TemplateRbacResource(ids[0])), nil
@@ -1325,6 +1408,13 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete":         true,
 			"members.manage": true,
 		}
+	case types.UserGroupResourceType:
+		return map[string]bool{
+			"read":           true,
+			"update":         true,
+			"delete":         true,
+			"members.manage": true,
+		}
 	case types.TemplateResourceType:
 		return map[string]bool{
 			"read":   true,
@@ -1361,6 +1451,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"auth-clients.search":           true,
 			"role.create":                   true,
 			"roles.search":                  true,
+			"user-group.create":             true,
+			"user-groups.search":            true,
 			"user.create":                   true,
 			"users.search":                  true,
 			"dal-connection.create":         true,
@@ -1695,6 +1787,51 @@ func rbacRoleResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for role resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacUserGroupResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacUserGroupResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.UserGroupResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for userGroup resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.UserGroupResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for userGroup resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

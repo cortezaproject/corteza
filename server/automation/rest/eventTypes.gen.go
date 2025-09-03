@@ -3613,5 +3613,208 @@ func getEventTypeDefinitions() []eventTypeDef {
 				},
 			},
 		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "onManual",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "beforeCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "beforeUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "beforeDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "afterCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "afterUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:user-group",
+			EventType:    "afterDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "userGroup",
+					Type:      "",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldUserGroup",
+					Type:      "",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "userGroup.handle",
+				},
+
+				{
+					Name: "userGroup.name",
+				},
+			},
+		},
 	}
 }

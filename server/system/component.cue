@@ -27,6 +27,7 @@ component: schema.#component & {
     "resource-translation":  				resource_translation
     "role":                  				role
     "role-member":           				role_member
+		"user-group":                  	user_group
     "settings":              				settings
     "template":              				template
     "user":                  				user
@@ -45,6 +46,9 @@ component: schema.#component & {
 
 		"role.create": description:  "Create roles"
 		"roles.search": description: "List, search or filter roles"
+
+		"user-group.create": description:  "Create user groups"
+		"user-groups.search": description: "List, search or filter user groups"
 
 		"user.create": description:  "Create users"
 		"users.search": description: "List, search or filter users"

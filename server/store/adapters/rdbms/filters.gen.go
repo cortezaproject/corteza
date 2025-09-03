@@ -164,6 +164,9 @@ type (
 
 		// optional user filter function called after the generated function
 		User func(*Store, systemType.UserFilter) ([]goqu.Expression, systemType.UserFilter, error)
+
+		// optional userGroup filter function called after the generated function
+		UserGroup func(*Store, systemType.UserGroupFilter) ([]goqu.Expression, systemType.UserGroupFilter, error)
 	}
 )
 
@@ -1325,8 +1328,8 @@ func RoleFilter(d drivers.Dialect, f systemType.RoleFilter) (ee []goqu.Expressio
 // This function is auto-generated
 func RoleMemberFilter(d drivers.Dialect, f systemType.RoleMemberFilter) (ee []goqu.Expression, _ systemType.RoleMemberFilter, err error) {
 
-	if f.UserID > 0 {
-		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
+	if val := strings.TrimSpace(f.Resource); len(val) > 0 {
+		ee = append(ee, goqu.C("rel_resource").Eq(f.Resource))
 	}
 
 	if f.RoleID > 0 {
@@ -1442,6 +1445,44 @@ func UserFilter(d drivers.Dialect, f systemType.UserFilter) (ee []goqu.Expressio
 			goqu.C("username").ILike("%"+f.Query+"%"),
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 			goqu.C("name").ILike("%"+f.Query+"%"),
+		))
+	}
+
+	return ee, f, err
+}
+
+// UserGroupFilter returns logical expressions
+//
+// This function is called from Store.QueryUserGroups() and can be extended
+// by setting Store.Filters.UserGroup. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func UserGroupFilter(d drivers.Dialect, f systemType.UserGroupFilter) (ee []goqu.Expression, _ systemType.UserGroupFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if expr := stateNilComparison(d, "archived_at", f.Archived); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.UserGroupID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.UserGroupID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
 		))
 	}
 

@@ -116,7 +116,7 @@ func addAuthSuperUsers(ctx context.Context, log *zap.Logger, s store.Storer, aut
 
 			//assign the user a bypass role
 			for _, r := range internalAuth.BypassRoles() {
-				m := &types.RoleMember{UserID: u.ID, RoleID: r.ID}
+				m := &types.RoleMember{Resource: fmt.Sprintf("corteza::system:user/%d", u.ID), RoleID: r.ID}
 				if err = store.CreateRoleMember(ctx, s, m); err != nil {
 					return err
 				}

@@ -16,6 +16,9 @@ props:
   - name: member
     type: "*types.User"
     fields: [ handle, email, name, ID ]
+  - name: group
+    type: "*types.UserGroup"
+    fields: [ handle, ID ]
   - name: role
     type: "*types.Role"
     fields: [ handle, name, ID ]
@@ -91,6 +94,10 @@ errors:
   - error: staleData
     message: "stale data"
     severity: warning
+
+  - error: searchByMemberUserGroup
+    message: "can't search by both member and user group"
+    log: "failed to search or list roles; can't search by both member and user group"
 
   - error: notAllowedToRead
     message: "not allowed to read this role"
