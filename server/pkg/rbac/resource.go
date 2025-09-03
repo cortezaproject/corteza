@@ -148,3 +148,16 @@ func isSpecific(r string) (out bool) {
 
 	return
 }
+
+func ResourceID(res string) uint64 {
+	pp := strings.Split(res, pathSep)
+	if len(pp) < 2 {
+		return 0
+	}
+
+	if pp[len(pp)-1] == wildcard {
+		return 0
+	}
+
+	return cast.ToUint64(pp[len(pp)-1])
+}
