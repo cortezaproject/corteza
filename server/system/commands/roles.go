@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/cli"
@@ -50,8 +51,8 @@ func rolesAddUser(ctx context.Context, app serviceInitializer) *cobra.Command {
 			cli.HandleError(err)
 
 			cli.HandleError(store.CreateRoleMember(ctx, service.DefaultStore, &types.RoleMember{
-				RoleID: role.ID,
-				UserID: user.ID,
+				RoleID:   role.ID,
+				Resource: fmt.Sprintf("corteza::system:user/%d", user.ID),
 			}))
 
 			cmd.Printf("Added user [%d] %q to [%d] %q role\n", user.ID, user.Email, role.ID, role.Name)

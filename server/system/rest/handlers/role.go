@@ -30,6 +30,7 @@ type (
 		Move(context.Context, *request.RoleMove) (interface{}, error)
 		Merge(context.Context, *request.RoleMerge) (interface{}, error)
 		MemberList(context.Context, *request.RoleMemberList) (interface{}, error)
+		MemberAddGroup(context.Context, *request.RoleMemberAddGroup) (interface{}, error)
 		MemberAdd(context.Context, *request.RoleMemberAdd) (interface{}, error)
 		MemberRemove(context.Context, *request.RoleMemberRemove) (interface{}, error)
 		TriggerScript(context.Context, *request.RoleTriggerScript) (interface{}, error)
@@ -38,21 +39,22 @@ type (
 
 	// HTTP API interface
 	Role struct {
-		List          func(http.ResponseWriter, *http.Request)
-		Create        func(http.ResponseWriter, *http.Request)
-		Update        func(http.ResponseWriter, *http.Request)
-		Read          func(http.ResponseWriter, *http.Request)
-		Delete        func(http.ResponseWriter, *http.Request)
-		Archive       func(http.ResponseWriter, *http.Request)
-		Unarchive     func(http.ResponseWriter, *http.Request)
-		Undelete      func(http.ResponseWriter, *http.Request)
-		Move          func(http.ResponseWriter, *http.Request)
-		Merge         func(http.ResponseWriter, *http.Request)
-		MemberList    func(http.ResponseWriter, *http.Request)
-		MemberAdd     func(http.ResponseWriter, *http.Request)
-		MemberRemove  func(http.ResponseWriter, *http.Request)
-		TriggerScript func(http.ResponseWriter, *http.Request)
-		CloneRules    func(http.ResponseWriter, *http.Request)
+		List           func(http.ResponseWriter, *http.Request)
+		Create         func(http.ResponseWriter, *http.Request)
+		Update         func(http.ResponseWriter, *http.Request)
+		Read           func(http.ResponseWriter, *http.Request)
+		Delete         func(http.ResponseWriter, *http.Request)
+		Archive        func(http.ResponseWriter, *http.Request)
+		Unarchive      func(http.ResponseWriter, *http.Request)
+		Undelete       func(http.ResponseWriter, *http.Request)
+		Move           func(http.ResponseWriter, *http.Request)
+		Merge          func(http.ResponseWriter, *http.Request)
+		MemberList     func(http.ResponseWriter, *http.Request)
+		MemberAddGroup func(http.ResponseWriter, *http.Request)
+		MemberAdd      func(http.ResponseWriter, *http.Request)
+		MemberRemove   func(http.ResponseWriter, *http.Request)
+		TriggerScript  func(http.ResponseWriter, *http.Request)
+		CloneRules     func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -234,6 +236,22 @@ func NewRole(h RoleAPI) *Role {
 
 			api.Send(w, r, value)
 		},
+		MemberAddGroup: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRoleMemberAddGroup()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.MemberAddGroup(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		MemberAdd: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewRoleMemberAdd()
@@ -315,6 +333,7 @@ func (h Role) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.H
 		r.Post("/roles/{roleID}/move", h.Move)
 		r.Post("/roles/{roleID}/merge", h.Merge)
 		r.Get("/roles/{roleID}/members", h.MemberList)
+		r.Post("/roles/{roleID}/member-g/{userGroupID}", h.MemberAddGroup)
 		r.Post("/roles/{roleID}/member/{userID}", h.MemberAdd)
 		r.Delete("/roles/{roleID}/member/{userID}", h.MemberRemove)
 		r.Post("/roles/{roleID}/trigger", h.TriggerScript)

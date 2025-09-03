@@ -497,6 +497,65 @@ type (
 	userAfterSuspend struct {
 		*userBase
 	}
+
+	// userGroupBase
+	//
+	// This type is auto-generated.
+	userGroupBase struct {
+		immutable    bool
+		userGroup    *types.UserGroup
+		oldUserGroup *types.UserGroup
+		invoker      auth.Identifiable
+	}
+
+	// userGroupOnManual
+	//
+	// This type is auto-generated.
+	userGroupOnManual struct {
+		*userGroupBase
+	}
+
+	// userGroupBeforeCreate
+	//
+	// This type is auto-generated.
+	userGroupBeforeCreate struct {
+		*userGroupBase
+	}
+
+	// userGroupBeforeUpdate
+	//
+	// This type is auto-generated.
+	userGroupBeforeUpdate struct {
+		*userGroupBase
+	}
+
+	// userGroupBeforeDelete
+	//
+	// This type is auto-generated.
+	userGroupBeforeDelete struct {
+		*userGroupBase
+	}
+
+	// userGroupAfterCreate
+	//
+	// This type is auto-generated.
+	userGroupAfterCreate struct {
+		*userGroupBase
+	}
+
+	// userGroupAfterUpdate
+	//
+	// This type is auto-generated.
+	userGroupAfterUpdate struct {
+		*userGroupBase
+	}
+
+	// userGroupAfterDelete
+	//
+	// This type is auto-generated.
+	userGroupAfterDelete struct {
+		*userGroupBase
+	}
 )
 
 // ResourceType returns "system"
@@ -4000,6 +4059,415 @@ func (res *userBase) DecodeVars(vars *expr.Vars) (err error) {
 		res.user = aux.GetValue()
 	}
 	// oldUser marked as immutable
+	// Could not find expression-type counterpart for auth.Identifiable
+
+	return
+}
+
+// ResourceType returns "system:user-group"
+//
+// This function is auto-generated.
+func (userGroupBase) ResourceType() string {
+	return "system:user-group"
+}
+
+// EventType on userGroupOnManual returns "onManual"
+//
+// This function is auto-generated.
+func (userGroupOnManual) EventType() string {
+	return "onManual"
+}
+
+// EventType on userGroupBeforeCreate returns "beforeCreate"
+//
+// This function is auto-generated.
+func (userGroupBeforeCreate) EventType() string {
+	return "beforeCreate"
+}
+
+// EventType on userGroupBeforeUpdate returns "beforeUpdate"
+//
+// This function is auto-generated.
+func (userGroupBeforeUpdate) EventType() string {
+	return "beforeUpdate"
+}
+
+// EventType on userGroupBeforeDelete returns "beforeDelete"
+//
+// This function is auto-generated.
+func (userGroupBeforeDelete) EventType() string {
+	return "beforeDelete"
+}
+
+// EventType on userGroupAfterCreate returns "afterCreate"
+//
+// This function is auto-generated.
+func (userGroupAfterCreate) EventType() string {
+	return "afterCreate"
+}
+
+// EventType on userGroupAfterUpdate returns "afterUpdate"
+//
+// This function is auto-generated.
+func (userGroupAfterUpdate) EventType() string {
+	return "afterUpdate"
+}
+
+// EventType on userGroupAfterDelete returns "afterDelete"
+//
+// This function is auto-generated.
+func (userGroupAfterDelete) EventType() string {
+	return "afterDelete"
+}
+
+// UserGroupOnManual creates onManual for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupOnManual(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupOnManual {
+	return &userGroupOnManual{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupOnManualImmutable creates onManual for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupOnManualImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupOnManual {
+	return &userGroupOnManual{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeCreate creates beforeCreate for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupBeforeCreate(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeCreate {
+	return &userGroupBeforeCreate{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeCreateImmutable creates beforeCreate for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupBeforeCreateImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeCreate {
+	return &userGroupBeforeCreate{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeUpdate creates beforeUpdate for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupBeforeUpdate(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeUpdate {
+	return &userGroupBeforeUpdate{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeUpdateImmutable creates beforeUpdate for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupBeforeUpdateImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeUpdate {
+	return &userGroupBeforeUpdate{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeDelete creates beforeDelete for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupBeforeDelete(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeDelete {
+	return &userGroupBeforeDelete{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeDeleteImmutable creates beforeDelete for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupBeforeDeleteImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeDelete {
+	return &userGroupBeforeDelete{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterCreate creates afterCreate for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupAfterCreate(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterCreate {
+	return &userGroupAfterCreate{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterCreateImmutable creates afterCreate for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupAfterCreateImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterCreate {
+	return &userGroupAfterCreate{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterUpdate creates afterUpdate for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupAfterUpdate(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterUpdate {
+	return &userGroupAfterUpdate{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterUpdateImmutable creates afterUpdate for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupAfterUpdateImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterUpdate {
+	return &userGroupAfterUpdate{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterDelete creates afterDelete for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupAfterDelete(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterDelete {
+	return &userGroupAfterDelete{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterDeleteImmutable creates afterDelete for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupAfterDeleteImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterDelete {
+	return &userGroupAfterDelete{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// SetUserGroup sets new userGroup value
+//
+// This function is auto-generated.
+func (res *userGroupBase) SetUserGroup(argUserGroup *types.UserGroup) {
+	res.userGroup = argUserGroup
+}
+
+// UserGroup returns userGroup
+//
+// This function is auto-generated.
+func (res userGroupBase) UserGroup() *types.UserGroup {
+	return res.userGroup
+}
+
+// OldUserGroup returns oldUserGroup
+//
+// This function is auto-generated.
+func (res userGroupBase) OldUserGroup() *types.UserGroup {
+	return res.oldUserGroup
+}
+
+// SetInvoker sets new invoker value
+//
+// This function is auto-generated.
+func (res *userGroupBase) SetInvoker(argInvoker auth.Identifiable) {
+	res.invoker = argInvoker
+}
+
+// Invoker returns invoker
+//
+// This function is auto-generated.
+func (res userGroupBase) Invoker() auth.Identifiable {
+	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res userGroupBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["userGroup"], err = json.Marshal(res.userGroup); err != nil {
+		return nil, err
+	}
+
+	if args["oldUserGroup"], err = json.Marshal(res.oldUserGroup); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Encode internal data to be passed as event params & arguments to workflow
+func (res userGroupBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
+
+	// Could not found expression-type counterpart for *types.UserGroup
+
+	// Could not found expression-type counterpart for *types.UserGroup
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	_ = v
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *userGroupBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.userGroup != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.userGroup); err != nil {
+				return
+			}
+		}
+	}
+
+	if res.userGroup != nil {
+		if r, ok := results["userGroup"]; ok {
+			if err = json.Unmarshal(r, res.userGroup); err != nil {
+				return
+			}
+		}
+	}
+
+	// Do not decode oldUserGroup; marked as immutable
+
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+func (res *userGroupBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	// Could not find expression-type counterpart for *types.UserGroup
+	// oldUserGroup marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return

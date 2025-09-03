@@ -2433,14 +2433,9 @@ var RoleMember = &dal.Model{
 
 	Attributes: dal.AttributeSet{
 		&dal.Attribute{
-			Ident: "UserID",
-			Type: &dal.TypeRef{
-				RefAttribute: "id",
-				RefModel: &dal.ModelRef{
-					ResourceType: "corteza::system:user",
-				},
-			},
-			Store: &dal.CodecAlias{Ident: "rel_user"},
+			Ident: "Resource",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "rel_resource"},
 		},
 
 		&dal.Attribute{
@@ -2462,7 +2457,7 @@ var RoleMember = &dal.Model{
 
 			Fields: []*dal.IndexField{
 				{
-					AttributeIdent: "UserID",
+					AttributeIdent: "Resource",
 				},
 
 				{
@@ -2682,6 +2677,17 @@ var User = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "UserGroupID",
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user-group",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_user_group"},
+		},
+
+		&dal.Attribute{
 			Ident: "Username", Sortable: true,
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "username"},
@@ -2793,6 +2799,83 @@ var User = &dal.Model{
 	},
 }
 
+var UserGroup = &dal.Model{
+	Ident:        "user_groups",
+	ResourceType: types.UserGroupResourceType,
+
+	Attributes: dal.AttributeSet{
+		&dal.Attribute{
+			Ident: "ID",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "id"},
+		},
+
+		&dal.Attribute{
+			Ident: "Handle",
+			Type:  &dal.TypeText{Length: 64},
+			Store: &dal.CodecAlias{Ident: "handle"},
+		},
+
+		&dal.Attribute{
+			Ident: "Meta",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "meta"},
+		},
+
+		&dal.Attribute{
+			Ident: "SelfID", Sortable: true,
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user-group",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "self_id"},
+		},
+
+		&dal.Attribute{
+			Ident: "ArchivedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "archived_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "CreatedAt", Sortable: true,
+			Type: &dal.TypeTimestamp{
+				DefaultCurrentTimestamp: true, Timezone: true, Precision: -1,
+			},
+			Store: &dal.CodecAlias{Ident: "created_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "UpdatedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "updated_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+	},
+
+	Indexes: dal.IndexSet{
+		&dal.Index{
+			Ident: "PRIMARY",
+			Type:  "BTREE",
+
+			Fields: []*dal.IndexField{
+				{
+					AttributeIdent: "ID",
+				},
+			},
+		},
+	},
+}
+
 func init() {
 	models = append(
 		models,
@@ -2821,5 +2904,6 @@ func init() {
 		SettingValue,
 		Template,
 		User,
+		UserGroup,
 	)
 }

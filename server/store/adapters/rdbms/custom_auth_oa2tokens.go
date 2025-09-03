@@ -2,6 +2,7 @@ package rdbms
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
@@ -24,5 +25,5 @@ func (s Store) DeleteAuthOA2TokenByRefresh(ctx context.Context, refresh string) 
 }
 
 func (s Store) DeleteAuthOA2TokenByUserID(ctx context.Context, userID uint64) error {
-	return s.Exec(ctx, authOa2tokenDeleteQuery(s.Dialect.GOQU(), goqu.C("rel_user").Eq(userID)))
+	return s.Exec(ctx, authOa2tokenDeleteQuery(s.Dialect.GOQU(), goqu.C("rel_resource").Eq(fmt.Sprintf("corteza::system:user/%d", userID))))
 }

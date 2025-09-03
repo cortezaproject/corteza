@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/service/event"
@@ -64,10 +65,12 @@ func (ctrl Role) List(ctx context.Context, r *request.RoleList) (interface{}, er
 	var (
 		err error
 		f   = types.RoleFilter{
-			Query:    r.Query,
-			Labels:   r.Labels,
-			MemberID: r.MemberID,
-			RoleID:   r.RoleID,
+			Query:  r.Query,
+			Labels: r.Labels,
+			RoleID: r.RoleID,
+
+			MemberID:    r.MemberID,
+			UserGroupID: r.UserGroupID,
 
 			Archived: filter.State(r.Archived),
 			Deleted:  filter.State(r.Deleted),
@@ -137,7 +140,7 @@ func (ctrl Role) Update(ctx context.Context, r *request.RoleUpdate) (interface{}
 			return nil, err
 		}
 		for _, member := range members {
-			err := ctrl.role.MemberRemove(ctx, role.ID, member.UserID)
+			err := ctrl.role.MemberRemove(ctx, role.ID, rbac.ResourceID(member.Resource))
 			if err != nil {
 				return nil, err
 			}
@@ -191,7 +194,7 @@ func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (int
 	} else {
 		rval := make([]string, len(mm))
 		for i := range mm {
-			rval[i] = payload.Uint64toa(mm[i].UserID)
+			rval[i] = payload.Uint64toa(rbac.ResourceID(mm[i].Resource))
 		}
 		return rval, nil
 	}
@@ -199,6 +202,10 @@ func (ctrl Role) MemberList(ctx context.Context, r *request.RoleMemberList) (int
 
 func (ctrl Role) MemberAdd(ctx context.Context, r *request.RoleMemberAdd) (interface{}, error) {
 	return api.OK(), ctrl.role.MemberAdd(ctx, r.RoleID, r.UserID)
+}
+
+func (ctrl Role) MemberAddGroup(ctx context.Context, r *request.RoleMemberAddGroup) (interface{}, error) {
+	return api.OK(), ctrl.role.MemberAddGroup(ctx, r.RoleID, r.UserGroupID)
 }
 
 func (ctrl Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) (interface{}, error) {

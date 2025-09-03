@@ -18,7 +18,9 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/sass"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service/event"
@@ -34,7 +36,8 @@ type (
 	user struct {
 		actionlog actionlog.Recorder
 
-		settings *types.AppSettings
+		settings   *types.AppSettings
+		userGroups ugMemberManager
 
 		auth userAuth
 
@@ -51,6 +54,11 @@ type (
 		preloaded map[string]*types.User
 
 		att AttachmentService
+	}
+
+	ugMemberManager interface {
+		AssignGroupMembers(group id.ID, members ...id.ID) (err error)
+		RemoveGroupMembers(group id.ID, members ...id.ID) (err error)
 	}
 
 	synteticUserDataGen interface {
@@ -114,10 +122,11 @@ type (
 
 func User(opt UserOptions) *user {
 	return &user{
-		eventbus: eventbus.Service(),
-		ac:       DefaultAccessControl,
-		settings: CurrentSettings,
-		auth:     DefaultAuth,
+		eventbus:   eventbus.Service(),
+		ac:         DefaultAccessControl,
+		settings:   CurrentSettings,
+		auth:       DefaultAuth,
+		userGroups: rbac.Global(),
 
 		store: DefaultStore,
 
@@ -246,7 +255,7 @@ func (svc user) FindByAny(ctx context.Context, identifier interface{}) (u *types
 		return
 	}
 
-	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{MemberID: u.ID})
+	rr, _, err := store.SearchRoles(ctx, svc.store, types.RoleFilter{Resource: fmt.Sprintf("corteza::system:user/%d", u.ID)})
 	if err != nil {
 		return nil, err
 	}
@@ -415,6 +424,11 @@ func (svc user) Create(ctx context.Context, new *types.User) (u *types.User, err
 			return
 		}
 
+		err = svc.userGroups.AssignGroupMembers(id.MustNumID(new.UserGroupID), id.MustNumID(new.ID))
+		if err != nil {
+			return
+		}
+
 		_ = svc.eventbus.WaitFor(ctx, event.UserAfterCreate(new, u))
 		return
 	}()
@@ -467,6 +481,7 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 		u.Username = upd.Username
 		u.Name = upd.Name
 		u.Handle = upd.Handle
+		u.UserGroupID = upd.UserGroupID
 		u.Kind = upd.Kind
 		u.UpdatedAt = now()
 
@@ -497,6 +512,11 @@ func (svc user) Update(ctx context.Context, upd *types.User) (u *types.User, err
 			}
 
 			u.Labels = upd.Labels
+		}
+
+		err = svc.userGroups.AssignGroupMembers(id.MustNumID(u.UserGroupID), id.MustNumID(u.ID))
+		if err != nil {
+			return
 		}
 
 		_ = svc.eventbus.WaitFor(ctx, event.UserAfterUpdate(upd, u))
@@ -569,6 +589,11 @@ func (svc user) Delete(ctx context.Context, userID uint64) (err error) {
 			return
 		}
 
+		err = svc.userGroups.RemoveGroupMembers(id.MustNumID(u.UserGroupID), id.MustNumID(u.ID))
+		if err != nil {
+			return
+		}
+
 		if err = svc.auth.RemoveAccessTokens(ctx, u); err != nil {
 			return
 		}
@@ -611,6 +636,11 @@ func (svc user) Undelete(ctx context.Context, userID uint64) (err error) {
 
 		u.DeletedAt = nil
 		if err = store.UpdateUser(ctx, svc.store, u); err != nil {
+			return
+		}
+
+		err = svc.userGroups.AssignGroupMembers(id.MustNumID(u.UserGroupID), id.MustNumID(u.ID))
+		if err != nil {
 			return
 		}
 

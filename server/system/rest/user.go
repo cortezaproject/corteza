@@ -145,6 +145,8 @@ func (ctrl User) Create(ctx context.Context, r *request.UserCreate) (interface{}
 		Kind:   r.Kind,
 		Labels: r.Labels,
 		Meta:   r.Meta,
+
+		UserGroupID: r.UserGroupID,
 	}
 
 	res, err := ctrl.user.Create(ctx, user)
@@ -161,6 +163,8 @@ func (ctrl User) Update(ctx context.Context, r *request.UserUpdate) (interface{}
 		Labels:    r.Labels,
 		Meta:      r.Meta,
 		UpdatedAt: r.UpdatedAt,
+
+		UserGroupID: r.UserGroupID,
 	}
 
 	res, err := ctrl.user.Update(ctx, user)

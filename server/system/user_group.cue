@@ -4,20 +4,31 @@ import (
 	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
-role: {
+user_group: {
 	model: {
 		attributes: {
 			id: schema.IdField
-			name: {
-				sortable: true
-				dal: {}
-			}
 			handle: schema.HandleField
 			meta: {
-				goType: "*types.RoleMeta"
+				goType: "*types.UserGroupMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
+			}
+
+			self_id: {
+				ident: "selfID",
+				goType: "uint64",
+				dal: { type: "Ref", refModelResType: "corteza::system:user-group" }
+				sortable: true
+				envoy: {
+					store: {
+						filterRefField: "ParentID"
+					}
+					yaml: {
+						identKeyAlias: ["parent"]
+					}
+				}
 			}
 
 			archived_at: schema.SortableTimestampNilField
@@ -33,36 +44,28 @@ role: {
 
 	filter: {
 		struct: {
-			role_id: {goType: "[]uint64", ident: "roleID", storeIdent: "id" }
+			user_group_id: {goType: "[]uint64", ident: "userGroupID", storeIdent: "id" }
 			member_id: {goType: "uint64" }
-			user_group_id: {goType: "uint64" }
-			resource: {goType: "string" }
 			handle: {goType: "string"}
-			name: {goType: "string"}
 
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 			archived: {goType: "filter.State", storeIdent: "archived_at"}
 		}
 
-		query: ["handle", "name"]
-		byValue: ["role_id", "name", "handle"]
+		query: ["handle"]
+		byValue: ["user_group_id", "handle"]
 		byNilState: ["deleted", "archived"]
 	}
 
 	envoy: {
-		yaml: {
-			supportMappedInput: true
-			mappedField: "Handle"
-			identKeyAlias: ["roles"]
-		}
-		store: {}
+		omit: true
 	}
 
 	rbac: {
 		operations: {
-			read: description:             "Read role"
-			update: description:           "Update role"
-			delete: description:           "Delete role"
+			read: description:             "Read user group"
+			update: description:           "Update user group"
+			delete: description:           "Delete user group"
 			"members.manage": description: "Manage members"
 		}
 	}
@@ -73,35 +76,20 @@ role: {
 				{
 					fields: ["id"]
 					description: """
-						searches for role by ID
+						searches for user group by ID
 
-						It returns role even if deleted or suspended
+						It returns user group even if deleted or suspended
 						"""
 				}, {
 					fields: ["handle"]
 					nullConstraint: ["deleted_at"]
 					constraintCheck: true
 					description: """
-						searches for role by handle
+						searches for user group by handle
 
-						It returns only valid role (not deleted, not suspended)
+						It returns only valid user group (not deleted, not suspended)
 						"""
-				}, {
-					fields: ["name"]
-					nullConstraint: ["deleted_at"]
-					constraintCheck: true
-					description: """
-						searches for role by name
-
-						It returns only valid role (not deleted, not suspended)
-						"""
-				},
-			]
-			functions: [
-				{
-					expIdent: "RoleMetrics"
-					return: [ "*types.RoleMetrics"]
-				},
+				}
 			]
 		}
 	}

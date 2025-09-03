@@ -20,6 +20,8 @@ type (
 		Handle   string   `json:"handle"`
 		Kind     UserKind `json:"kind"`
 
+		UserGroupID uint64 `json:"userGroupID,string"`
+
 		Meta *UserMeta `json:"meta"`
 
 		EmailConfirmed bool `json:"emailConfirmed"`
@@ -69,13 +71,14 @@ type (
 	}
 
 	UserFilter struct {
-		UserID   []string `json:"userID"`
-		RoleID   []string `json:"roleID"`
-		Query    string   `json:"query"`
-		Email    string   `json:"email"`
-		Username string   `json:"username"`
-		Handle   string   `json:"handle"`
-		Kind     UserKind `json:"kind"`
+		UserID      []string `json:"userID"`
+		RoleID      []string `json:"roleID"`
+		UserGroupID uint64   `json:"userGroupID,string"`
+		Query       string   `json:"query"`
+		Email       string   `json:"email"`
+		Username    string   `json:"username"`
+		Handle      string   `json:"handle"`
+		Kind        UserKind `json:"kind"`
 
 		// Set to true if you want to get all kinds/types of users
 		AllKinds bool `json:"anyKind"`

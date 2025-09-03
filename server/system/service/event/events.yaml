@@ -98,6 +98,19 @@ system:role:member:
     - name: user.email
 
 
+system:user-group:
+  on: ['manual']
+  ba: ['create', 'update', 'delete']
+  props:
+    - name: 'userGroup'
+      type: '*types.UserGroup'
+    - name: 'oldUserGroup'
+      type: '*types.UserGroup'
+      immutable: true
+  constraints:
+    - name: userGroup.handle
+    - name: userGroup.name
+
 system:application:
   on: ['manual']
   ba: ['create', 'update', 'delete']

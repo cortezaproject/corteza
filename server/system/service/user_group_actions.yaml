@@ -1,0 +1,131 @@
+# List of loggable service actions
+
+resource: system:user-group
+service: userGroup
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: member
+    type: "*types.User"
+    fields: [ handle, email, ID ]
+  - name: userGroup
+    type: "*types.UserGroup"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.UserGroup"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.UserGroup"
+    fields: [ handle, ID ]
+  - name: existing
+    type: "*types.UserGroup"
+    fields: [ handle, ID ]
+  - name: filter
+    type: "*types.UserGroupFilter"
+    fields: [ userGroupID, handle, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for matching userGroups"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{userGroup}}"
+    severity: info
+
+  - action: create
+    log: "created {{userGroup}}"
+
+  - action: update
+    log: "updated {{userGroup}}"
+
+  - action: delete
+    log: "deleted {{userGroup}}"
+
+  - action: undelete
+    log: "undeleted {{userGroup}}"
+
+  - action: members
+    log: "searched for members of {{userGroup}}"
+
+  - action: memberAdd
+    log: "added {{member.email}} to {{userGroup}}"
+
+  - action: memberRemove
+    log: "removed {{member.email}} from {{userGroup}}"
+
+errors:
+  - error: notFound
+    message: "userGroup not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: invalidHandle
+    message: "invalid handle"
+    severity: warning
+
+  - error: missingSelfID
+    message: "missing self ID"
+
+  - error: invalidSelfID
+    message: "invalid self ID"
+
+  - error: invalidUpdateStructure
+    message: "invalid structure after update"
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this userGroup"
+    log: "failed to read {{userGroup.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to list or search userGroups"
+    log: "failed to search for userGroups; insufficient permissions"
+
+  - error: notAllowedToListUserGroups
+    message: "not allowed to list userGroups"
+    log: "failed to list userGroup; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create userGroups"
+    log: "failed to create userGroups; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this userGroup"
+    log: "failed to update {{userGroup.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this userGroup"
+    log: "failed to delete {{userGroup.handle}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this userGroup"
+    log: "failed to undelete {{userGroup.handle}}; insufficient permissions"
+
+  - error: handleNotUnique
+    message: "handle not unique"
+    log: "used duplicate handle ({{userGroup.handle}}) for userGroup"
+    severity: warning
+
+  - error: nameNotUnique
+    message: "name not unique"
+    log: "used duplicate name ({{userGroup.handle}}) for userGroup"
+    severity: warning
+
+  - error: notAllowedToManageMembers
+    message: "not allowed to manage user group members"
+    log: "failed to manage {{userGroup.handle}} members; insufficient permissions"

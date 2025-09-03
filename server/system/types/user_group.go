@@ -11,12 +11,13 @@ import (
 )
 
 type (
-	Role struct {
-		ID     uint64 `json:"roleID,string"`
-		Name   string `json:"name"`
+	UserGroup struct {
+		ID     uint64 `json:"userGroupID,string"`
 		Handle string `json:"handle"`
 
-		Meta   *RoleMeta         `json:"meta"`
+		SelfID uint64 `json:"selfID,string"`
+
+		Meta   *UserGroupMeta    `json:"meta"`
 		Labels map[string]string `json:"labels,omitempty"`
 
 		CreatedAt  time.Time  `json:"createdAt,omitempty"`
@@ -25,24 +26,14 @@ type (
 		DeletedAt  *time.Time `json:"deletedAt,omitempty"`
 	}
 
-	RoleMeta struct {
-		Description string       `json:"description,omitempty"`
-		Context     *RoleContext `json:"context,omitempty"`
+	UserGroupMeta struct {
+		Description string `json:"description"`
+		Short       string `json:"short"`
 	}
 
-	RoleContext struct {
-		Resource []string `json:"resourceTypes,omitempty" yaml:"resourceType"`
-		Expr     string   `json:"expr,omitempty"`
-	}
-
-	RoleFilter struct {
-		RoleID      []string `json:"roleID"`
+	UserGroupFilter struct {
+		UserGroupID []string `json:"userGroupID"`
 		MemberID    uint64   `json:"memberID,string"`
-		UserGroupID uint64   `json:"userGroupID,string"`
-
-		// @todo will migrate from MemberID/UserGroupID in a later releae
-		// For internal use only
-		Resource string `json:"-"`
 
 		Query string `json:"query"`
 
@@ -59,33 +50,21 @@ type (
 		// modify the resource and return false if store should not return it
 		//
 		// Store then loads additional resources to satisfy the paging parameters
-		Check func(*Role) (bool, error) `json:"-"`
+		Check func(*UserGroup) (bool, error) `json:"-"`
 
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
 	}
-
-	RoleMetrics struct {
-		Total         uint   `json:"total"`
-		Valid         uint   `json:"valid"`
-		Deleted       uint   `json:"deleted"`
-		Archived      uint   `json:"archived"`
-		DailyCreated  []uint `json:"dailyCreated"`
-		DailyDeleted  []uint `json:"dailyDeleted"`
-		DailyUpdated  []uint `json:"dailyUpdated"`
-		DailyArchived []uint `json:"dailyArchived"`
-	}
 )
 
-func (r *Role) Clone() *Role {
+func (r *UserGroup) Clone() *UserGroup {
 	if r == nil {
 		return nil
 	}
 
-	return &Role{
+	return &UserGroup{
 		ID:         r.ID,
-		Name:       r.Name,
 		Handle:     r.Handle,
 		Meta:       r.Meta,
 		Labels:     r.Labels,
@@ -96,8 +75,8 @@ func (r *Role) Clone() *Role {
 	}
 }
 
-// FindByHandle finds role by it's handle
-func (set RoleSet) FindByHandle(handle string) *Role {
+// FindByHandle finds userGroup by it's handle
+func (set UserGroupSet) FindByHandle(handle string) *UserGroup {
 	for i := range set {
 		if set[i].Handle == handle {
 			return set[i]
@@ -107,5 +86,5 @@ func (set RoleSet) FindByHandle(handle string) *Role {
 	return nil
 }
 
-func (vv *RoleMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
-func (vv *RoleMeta) Value() (driver.Value, error) { return json.Marshal(vv) }
+func (vv *UserGroupMeta) Scan(src any) error           { return sql.ParseJSON(src, vv) }
+func (vv *UserGroupMeta) Value() (driver.Value, error) { return json.Marshal(vv) }

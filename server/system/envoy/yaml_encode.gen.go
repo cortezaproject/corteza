@@ -864,6 +864,10 @@ func (e YamlEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, node
 	if err != nil {
 		return
 	}
+	auxUserGroupID, err := e.encodeRef(p, res.UserGroupID, "UserGroupID", node, tt)
+	if err != nil {
+		return
+	}
 
 	out, err = y7s.AddMap(out,
 		"createdAt", auxCreatedAt,
@@ -877,6 +881,7 @@ func (e YamlEncoder) encodeUser(ctx context.Context, p envoyx.EncodeParams, node
 		"name", res.Name,
 		"suspendedAt", auxSuspendedAt,
 		"updatedAt", auxUpdatedAt,
+		"userGroupID", auxUserGroupID,
 		"username", res.Username,
 	)
 	if err != nil {

@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 	"github.com/cortezaproject/corteza/server/store"
@@ -115,7 +116,7 @@ func (n *user) membership(ctx context.Context, s store.Storer, res *types.User, 
 	// @todo some smarter diff calculations; should be fine for now but could be improved.
 	var mm types.RoleMemberSet
 	if exists {
-		mm, _, err = s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: n.u.ID})
+		mm, _, err = s.SearchRoleMembers(ctx, types.RoleMemberFilter{Resource: fmt.Sprintf("corteza::system:user/%d", n.u.ID)})
 		if err != nil {
 			return
 		}
@@ -127,7 +128,7 @@ func (n *user) membership(ctx context.Context, s store.Storer, res *types.User, 
 		}
 	}
 	for _, r := range roles {
-		if err = store.CreateRoleMember(ctx, s, &types.RoleMember{UserID: res.ID, RoleID: r}); err != nil {
+		if err = store.CreateRoleMember(ctx, s, &types.RoleMember{Resource: fmt.Sprintf("corteza::system:user/%d", res.ID), RoleID: r}); err != nil {
 			return
 		}
 	}

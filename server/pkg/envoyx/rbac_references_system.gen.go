@@ -101,6 +101,19 @@ func SystemRoleRbacReferences(role string) (res *Ref, pp []*Ref, err error) {
 	return
 }
 
+// SystemUserGroupRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemUserGroupRbacReferences(userGroup string) (res *Ref, pp []*Ref, err error) {
+	if userGroup != "*" {
+		res = &Ref{ResourceType: types.UserGroupResourceType, Identifiers: MakeIdentifiers(userGroup)}
+	}
+
+	return
+}
+
 // SystemTemplateRbacReferences generates RBAC references
 //
 // Resources with "envoy: false" are skipped

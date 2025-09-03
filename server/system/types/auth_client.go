@@ -71,6 +71,9 @@ type (
 		// ignored when non client-credentials grant is used
 		ImpersonateUser uint64 `json:"impersonateUser,string,omitempty"`
 
+		// The default user group the user falls into
+		UserGroup uint64 `json:"userGroup,string,omitempty"`
+
 		// Subset of roles, permitted to be used with this client
 		// IDs are intentionally stored as strings to support JS (int64 only)
 		PermittedRoles []string `json:"permittedRoles,omitempty"`
