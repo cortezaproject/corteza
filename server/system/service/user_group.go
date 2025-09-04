@@ -563,7 +563,7 @@ func (svc userGroup) MemberAdd(ctx context.Context, userGroupID, memberID uint64
 
 		m.UserGroupID = g.ID
 
-		if err = svc.eventbus.WaitFor(ctx, event.UserGroupMemberBeforeAdd(g, m)); err != nil {
+		if err = svc.eventbus.WaitFor(ctx, event.UserGroupBeforeMemberAdd(g, g)); err != nil {
 			return
 		}
 
@@ -580,7 +580,7 @@ func (svc userGroup) MemberAdd(ctx context.Context, userGroupID, memberID uint64
 			return
 		}
 
-		_ = svc.eventbus.WaitFor(ctx, event.UserGroupMemberAfterAdd(g, m))
+		_ = svc.eventbus.WaitFor(ctx, event.UserGroupAfterMemberAdd(g, g))
 		return nil
 	}()
 
