@@ -449,6 +449,24 @@
         </b-col>
       </b-row>
 
+      <b-row>
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('security.defaultUserGroup.label')"
+            label-class="text-primary"
+          >
+            <c-input-user-group
+              v-model="resource.security.userGroup"
+              :placeholder="$t('security.defaultUserGroup.placeholder')"
+              :clearable="true"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
       <c-system-fields
         :resource="resource"
       />
@@ -504,7 +522,7 @@ import CRolePicker from 'corteza-webapp-admin/src/components/CRolePicker'
 import copy from 'copy-to-clipboard'
 import axios from 'axios'
 
-const { CInputDateTime, CInputUser } = components
+const { CInputDateTime, CInputUser, CInputUserGroup } = components
 
 export default {
   name: 'CAuthclientEditorInfo',
@@ -518,6 +536,7 @@ export default {
     CRolePicker,
     CInputUser,
     CInputDateTime,
+    CInputUserGroup,
   },
 
   props: {

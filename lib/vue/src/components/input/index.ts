@@ -14,3 +14,4 @@ export {
 export { default as CInputSelect } from './CInputSelect.vue'
 export { default as CInputRole } from './CInputRole.vue'
 export { default as CInputUser } from './CInputUser.vue'
+export { default as CInputUserGroup } from './CInputUserGroup.vue'

@@ -71,6 +71,12 @@ export default {
               ],
             },
             {
+              label: 'system.items.usergroups',
+              route: 'system.userGroup',
+              icon: 'chart-diagram',
+              can: ['system/', 'user-groups.search'],
+            },
+            {
               label: 'system.items.applications',
               route: 'system.application',
               icon: 'th-large',

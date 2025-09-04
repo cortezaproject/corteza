@@ -95,6 +95,7 @@ export default [
           r('system.email', 'email', 'System/Email/Index'),
 
           combo('system', 'authClient', { pkey: 'authClientID' }),
+          combo('system', 'userGroup', { pkey: 'userGroupID' }),
 
           r('system.apigw', 'apigw', 'System/Apigw/Index'),
           r('system.apigw.new', 'apigw/new', 'System/Apigw/Editor'),

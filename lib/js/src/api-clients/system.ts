@@ -696,6 +696,7 @@ export default class System {
     const {
       query,
       memberID,
+      userGroupID,
       roleID,
       deleted,
       archived,
@@ -713,6 +714,7 @@ export default class System {
     cfg.params = {
       query,
       memberID,
+      userGroupID,
       roleID,
       deleted,
       archived,
@@ -1152,6 +1154,49 @@ export default class System {
     return `/roles/${roleID}/members`
   }
 
+  // Add user group to a role
+  async roleMemberAddGroup (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      roleID,
+      userGroupID,
+    } = (a as KV) || {}
+    if (!roleID) {
+      throw Error('field roleID is empty')
+    }
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.roleMemberAddGroupEndpoint({
+        roleID, userGroupID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  roleMemberAddGroupCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.roleMemberAddGroup(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  roleMemberAddGroupEndpoint (a: KV): string {
+    const {
+      roleID,
+      userGroupID,
+    } = a || {}
+    return `/roles/${roleID}/member-g/${userGroupID}`
+  }
+
   // Add member to a role
   async roleMemberAdd (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
@@ -1329,6 +1374,350 @@ export default class System {
     return `/roles/${roleID}/rules/clone`
   }
 
+  // List user groups
+  async userGroupList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      query,
+      memberID,
+      userGroupID,
+      deleted,
+      archived,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.userGroupListEndpoint(),
+    }
+    cfg.params = {
+      query,
+      memberID,
+      userGroupID,
+      deleted,
+      archived,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupListEndpoint (): string {
+    return '/user-groups/'
+  }
+
+  // Update user groups details
+  async userGroupCreate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      name,
+      handle,
+      members,
+      selfID,
+      meta,
+      labels,
+    } = (a as KV) || {}
+    if (!name) {
+      throw Error('field name is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.userGroupCreateEndpoint(),
+    }
+    cfg.data = {
+      name,
+      handle,
+      members,
+      selfID,
+      meta,
+      labels,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupCreateEndpoint (): string {
+    return '/user-groups/'
+  }
+
+  // Update role details
+  async userGroupUpdate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      userGroupID,
+      name,
+      handle,
+      members,
+      selfID,
+      meta,
+      labels,
+      updatedAt,
+    } = (a as KV) || {}
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.userGroupUpdateEndpoint({
+        userGroupID,
+      }),
+    }
+    cfg.data = {
+      name,
+      handle,
+      members,
+      selfID,
+      meta,
+      labels,
+      updatedAt,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupUpdateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupUpdateEndpoint (a: KV): string {
+    const {
+      userGroupID,
+    } = a || {}
+    return `/user-groups/${userGroupID}`
+  }
+
+  // Read role details and memberships
+  async userGroupRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      userGroupID,
+    } = (a as KV) || {}
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.userGroupReadEndpoint({
+        userGroupID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupReadCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupReadEndpoint (a: KV): string {
+    const {
+      userGroupID,
+    } = a || {}
+    return `/user-groups/${userGroupID}`
+  }
+
+  // Remove role
+  async userGroupDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      userGroupID,
+    } = (a as KV) || {}
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.userGroupDeleteEndpoint({
+        userGroupID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupDeleteEndpoint (a: KV): string {
+    const {
+      userGroupID,
+    } = a || {}
+    return `/user-groups/${userGroupID}`
+  }
+
+  // Undelete role
+  async userGroupUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      userGroupID,
+    } = (a as KV) || {}
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.userGroupUndeleteEndpoint({
+        userGroupID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupUndeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupUndeleteEndpoint (a: KV): string {
+    const {
+      userGroupID,
+    } = a || {}
+    return `/user-groups/${userGroupID}/undelete`
+  }
+
+  // Returns all role members
+  async userGroupMemberList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      userGroupID,
+    } = (a as KV) || {}
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.userGroupMemberListEndpoint({
+        userGroupID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupMemberListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupMemberList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupMemberListEndpoint (a: KV): string {
+    const {
+      userGroupID,
+    } = a || {}
+    return `/user-groups/${userGroupID}/members`
+  }
+
+  // Add member to a role
+  async userGroupMemberAdd (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      userGroupID,
+      userID,
+    } = (a as KV) || {}
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    if (!userID) {
+      throw Error('field userID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.userGroupMemberAddEndpoint({
+        userGroupID, userID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  userGroupMemberAddCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.userGroupMemberAdd(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  userGroupMemberAddEndpoint (a: KV): string {
+    const {
+      userGroupID,
+      userID,
+    } = a || {}
+    return `/user-groups/${userGroupID}/member/${userID}`
+  }
+
   // Search users (Directory)
   async userList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
@@ -1398,12 +1787,16 @@ export default class System {
       email,
       name,
       handle,
+      userGroupID,
       kind,
       labels,
       meta,
     } = (a as KV) || {}
     if (!email) {
       throw Error('field email is empty')
+    }
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -1414,6 +1807,7 @@ export default class System {
       email,
       name,
       handle,
+      userGroupID,
       kind,
       labels,
       meta,
@@ -1444,6 +1838,7 @@ export default class System {
       email,
       name,
       handle,
+      userGroupID,
       kind,
       labels,
       meta,
@@ -1454,6 +1849,9 @@ export default class System {
     }
     if (!email) {
       throw Error('field email is empty')
+    }
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,
@@ -1466,6 +1864,7 @@ export default class System {
       email,
       name,
       handle,
+      userGroupID,
       kind,
       labels,
       meta,

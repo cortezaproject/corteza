@@ -22,6 +22,9 @@ editor:
     undelete: Undelete
     unsuspend: Unsuspend
     updatedAt: Updated at
+    userGroup:
+      label: User group
+      placeholder: User group
   avatar:
     title: Profile avatar
     preview:

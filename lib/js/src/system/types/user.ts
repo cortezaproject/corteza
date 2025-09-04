@@ -31,6 +31,7 @@ export class User {
   public userID = NoID
   public handle = ''
   public username = ''
+  public userGroupID = NoID
   public email = ''
   public name = ''
   public emailConfirmed = false
@@ -64,7 +65,7 @@ export class User {
   }
 
   apply (u?: PartialUser): void {
-    Apply(this, u, CortezaID, 'userID')
+    Apply(this, u, CortezaID, 'userID', 'userGroupID')
     Apply(this, u, String, 'handle', 'username', 'email', 'name')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
     Apply(this, u, Boolean, 'emailConfirmed', 'canGrant', 'canUpdateUser', 'canDeleteUser')
@@ -119,6 +120,7 @@ export class User {
       'handle',
       'username',
       'email',
+      'userGroupID',
       'name',
       'emailConfirmed',
       'labels',
