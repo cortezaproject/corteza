@@ -536,6 +536,20 @@ type (
 		*userGroupBase
 	}
 
+	// userGroupBeforeMemberAdd
+	//
+	// This type is auto-generated.
+	userGroupBeforeMemberAdd struct {
+		*userGroupBase
+	}
+
+	// userGroupBeforeMemberRemove
+	//
+	// This type is auto-generated.
+	userGroupBeforeMemberRemove struct {
+		*userGroupBase
+	}
+
 	// userGroupAfterCreate
 	//
 	// This type is auto-generated.
@@ -554,6 +568,20 @@ type (
 	//
 	// This type is auto-generated.
 	userGroupAfterDelete struct {
+		*userGroupBase
+	}
+
+	// userGroupAfterMemberAdd
+	//
+	// This type is auto-generated.
+	userGroupAfterMemberAdd struct {
+		*userGroupBase
+	}
+
+	// userGroupAfterMemberRemove
+	//
+	// This type is auto-generated.
+	userGroupAfterMemberRemove struct {
 		*userGroupBase
 	}
 )
@@ -4099,6 +4127,20 @@ func (userGroupBeforeDelete) EventType() string {
 	return "beforeDelete"
 }
 
+// EventType on userGroupBeforeMemberAdd returns "beforeMemberAdd"
+//
+// This function is auto-generated.
+func (userGroupBeforeMemberAdd) EventType() string {
+	return "beforeMemberAdd"
+}
+
+// EventType on userGroupBeforeMemberRemove returns "beforeMemberRemove"
+//
+// This function is auto-generated.
+func (userGroupBeforeMemberRemove) EventType() string {
+	return "beforeMemberRemove"
+}
+
 // EventType on userGroupAfterCreate returns "afterCreate"
 //
 // This function is auto-generated.
@@ -4118,6 +4160,20 @@ func (userGroupAfterUpdate) EventType() string {
 // This function is auto-generated.
 func (userGroupAfterDelete) EventType() string {
 	return "afterDelete"
+}
+
+// EventType on userGroupAfterMemberAdd returns "afterMemberAdd"
+//
+// This function is auto-generated.
+func (userGroupAfterMemberAdd) EventType() string {
+	return "afterMemberAdd"
+}
+
+// EventType on userGroupAfterMemberRemove returns "afterMemberRemove"
+//
+// This function is auto-generated.
+func (userGroupAfterMemberRemove) EventType() string {
+	return "afterMemberRemove"
 }
 
 // UserGroupOnManual creates onManual for system:user-group resource
@@ -4256,6 +4312,74 @@ func UserGroupBeforeDeleteImmutable(
 	}
 }
 
+// UserGroupBeforeMemberAdd creates beforeMemberAdd for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupBeforeMemberAdd(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeMemberAdd {
+	return &userGroupBeforeMemberAdd{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeMemberAddImmutable creates beforeMemberAdd for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupBeforeMemberAddImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeMemberAdd {
+	return &userGroupBeforeMemberAdd{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeMemberRemove creates beforeMemberRemove for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupBeforeMemberRemove(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeMemberRemove {
+	return &userGroupBeforeMemberRemove{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupBeforeMemberRemoveImmutable creates beforeMemberRemove for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupBeforeMemberRemoveImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupBeforeMemberRemove {
+	return &userGroupBeforeMemberRemove{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
 // UserGroupAfterCreate creates afterCreate for system:user-group resource
 //
 // This function is auto-generated.
@@ -4350,6 +4474,74 @@ func UserGroupAfterDeleteImmutable(
 	argOldUserGroup *types.UserGroup,
 ) *userGroupAfterDelete {
 	return &userGroupAfterDelete{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterMemberAdd creates afterMemberAdd for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupAfterMemberAdd(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterMemberAdd {
+	return &userGroupAfterMemberAdd{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterMemberAddImmutable creates afterMemberAdd for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupAfterMemberAddImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterMemberAdd {
+	return &userGroupAfterMemberAdd{
+		userGroupBase: &userGroupBase{
+			immutable:    true,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterMemberRemove creates afterMemberRemove for system:user-group resource
+//
+// This function is auto-generated.
+func UserGroupAfterMemberRemove(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterMemberRemove {
+	return &userGroupAfterMemberRemove{
+		userGroupBase: &userGroupBase{
+			immutable:    false,
+			userGroup:    argUserGroup,
+			oldUserGroup: argOldUserGroup,
+		},
+	}
+}
+
+// UserGroupAfterMemberRemoveImmutable creates afterMemberRemove for system:user-group resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func UserGroupAfterMemberRemoveImmutable(
+	argUserGroup *types.UserGroup,
+	argOldUserGroup *types.UserGroup,
+) *userGroupAfterMemberRemove {
+	return &userGroupAfterMemberRemove{
 		userGroupBase: &userGroupBase{
 			immutable:    true,
 			userGroup:    argUserGroup,

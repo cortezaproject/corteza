@@ -100,7 +100,7 @@ system:role:member:
 
 system:user-group:
   on: ['manual']
-  ba: ['create', 'update', 'delete']
+  ba: ['create', 'update', 'delete', 'memberAdd', 'memberRemove']
   props:
     - name: 'userGroup'
       type: '*types.UserGroup'
