@@ -17,6 +17,7 @@ interface AuthClientMeta {
 }
 
 interface DefSecurity {
+  userGroup: string;
   impersonateUser: string;
   permittedRoles: Array<string>;
   prohibitedRoles: Array<string>;
@@ -36,7 +37,8 @@ export class AuthClient {
   };
 
   public security: DefSecurity = {
-    impersonateUser: '0',
+    userGroup: NoID,
+    impersonateUser: NoID,
     permittedRoles: [],
     prohibitedRoles: [],
     forcedRoles: [],

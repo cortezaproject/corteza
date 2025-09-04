@@ -1,0 +1,68 @@
+editor:
+  info:
+    id: ID
+    createdAt: Created at
+    createdBy: Created by
+    delete: Delete
+    deletedAt: Deleted at
+    placeholder-handle: handle (a - z, 0 - 9, underscore, dash)
+    handle: Handle
+    invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
+    parent: Parent user group
+    meta.short: Name
+    meta.description: Description
+    title: Basic information
+    undelete: Undelete
+    updatedAt: Updated at
+  new: New User Group
+  permissions: Permissions
+  roles:
+    add: Add
+    count: roles
+    remove: Remove
+    title: Role membership
+    unnamed: Unnamed role
+  title:
+    create: Create user
+    edit: Edit user
+list:
+  columns:
+    actions: ""
+    createdAt: Created
+    enabled: Enabled
+    handle: Handle
+    state: State
+    meta:
+      short: Name
+  delete: Delete
+  undelete: Undelete
+  export: Export
+  rows:
+    filters:
+      deleted: Deleted
+  filterForm:
+    deleted:
+      label: deleted users
+    excluded:
+      label: Without
+    exclusive:
+      label: Only
+    inclusive:
+      label: Including
+    query:
+      label: Filter user groups list
+      placeholder: Filter user groups by handle
+  loading: Loading user groups
+  new: New User Group
+  numFound: '{{count}} user group found'
+  numFound_plural: '{{count}} user groups found'
+  permissions: Permissions
+  title: User Groups
+export:
+  buttonLabel: Export
+  title: Export user groups
+  export: Export
+import:
+  buttonLabel: Import
+  title: Import user groups
+  uploadFilePlaceholder: Click or drop files here to import

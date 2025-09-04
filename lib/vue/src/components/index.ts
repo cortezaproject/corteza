@@ -27,6 +27,7 @@ export {
   CInputSelect,
   CInputRole,
   CInputUser,
+  CInputUserGroup,
 } from './input'
 
 export {

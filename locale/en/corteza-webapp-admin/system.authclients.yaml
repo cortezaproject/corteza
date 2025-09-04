@@ -28,6 +28,9 @@ editor:
     remove: Remove
     secret: Secret
     security:
+      defaultUserGroup:
+        label: Default user group for new users
+        placeholder: Default user group for new users
       prohibitedRoles:
         description: Roles from this list will be removed from security context when user authorizes this client
         label: Prohibited roles

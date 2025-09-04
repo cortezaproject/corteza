@@ -1,12 +1,12 @@
 <template>
   <b-card
-    data-test-id="card-user-info"
+    data-test-id="card-user-group-info"
     header-class="border-bottom"
     footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
   >
     <b-form
-      @submit.prevent="$emit('submit', user)"
+      @submit.prevent="$emit('submit', userGroup)"
     >
       <b-row>
         <b-col
@@ -14,29 +14,11 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('email')"
+            :label="$t('meta.short')"
             label-class="text-primary"
           >
             <b-form-input
-              v-model="user.email"
-              data-test-id="input-email"
-              required
-              :state="emailState"
-              type="email"
-            />
-          </b-form-group>
-        </b-col>
-
-        <b-col
-          cols="12"
-          lg="6"
-        >
-          <b-form-group
-            :label="$t('name')"
-            label-class="text-primary"
-          >
-            <b-form-input
-              v-model="user.name"
+              v-model="userGroup.meta.short"
               data-test-id="input-name"
               required
             />
@@ -49,11 +31,11 @@
         >
           <b-form-group
             :label="$t('handle')"
-            :class="{ 'mb-0': !user.userID }"
+            :class="{ 'mb-0': !userGroup.userGroupID }"
             label-class="text-primary"
           >
             <b-form-input
-              v-model="user.handle"
+              v-model="userGroup.handle"
               data-test-id="input-handle"
               :placeholder="$t('placeholder-handle')"
               :state="handleState"
@@ -71,22 +53,37 @@
           lg="6"
         >
           <b-form-group
-            :label="$t('userGroup.label')"
-            :class="{ 'mb-0': !user.userID }"
+            :label="$t('parent')"
             label-class="text-primary"
           >
-            <c-input-user-group
-              v-model="user.userGroupID"
-              :placeholder="$t('userGroup.placeholder')"
-              :clearable="true"
+            <b-form-select
+              v-model="userGroup.selfID"
+              data-test-id="select-parent"
+              :options="parentUserGroups"
+            />
+          </b-form-group>
+        </b-col>
+      </b-row>
+
+      <b-row>
+        <b-col
+          cols="12"
+        >
+          <b-form-group
+            :label="$t('meta.description')"
+            label-class="text-primary"
+          >
+            <b-form-textarea
+              v-model="userGroup.meta.description"
+              data-test-id="textarea-description"
             />
           </b-form-group>
         </b-col>
       </b-row>
 
       <c-system-fields
-        :id="user.userID"
-        :resource="user"
+        :id="userGroup.userGroupID"
+        :resource="userGroup"
       />
 
       <!--
@@ -108,7 +105,7 @@
 
     <template #footer>
       <c-input-confirm
-        v-if="!fresh && user.canDeleteUser"
+        v-if="!fresh && userGroup.canDeleteUserGroup"
         :data-test-id="deletedButtonStatusCypressId"
         :text="getDeleteStatus"
         variant="danger"
@@ -116,39 +113,12 @@
         @confirmed="$emit('delete')"
       />
 
-      <c-input-confirm
-        v-if="!fresh"
-        :data-test-id="suspendButtonStatusCypressId"
-        :text="getSuspendStatus"
-        variant="light"
-        size="md"
-        @confirmed="$emit('status')"
-      />
-
-      <c-input-confirm
-        v-if="!fresh"
-        data-test-id="button-sessions-revoke"
-        :text="$t('revokeAllSession')"
-        :disabled="user.userID === userID"
-        variant="light"
-        size="md"
-        @confirmed="$emit('sessionsRevoke')"
-      />
-
-      <b-button
-        v-if="!fresh && !user.emailConfirmed"
-        variant="light"
-        @click="$emit('patch', '/emailConfirmed', true)"
-      >
-        {{ $t('confirmEmail') }}
-      </b-button>
-
       <c-corredor-manual-buttons
-        ui-page="user/editor"
+        ui-page="user-group/editor"
         ui-slot="infoFooter"
-        resource-type="system:user"
+        resource-type="system:user-group"
         default-variant="light"
-        @click="dispatchCortezaSystemUserEvent($event, { user })"
+        @click="dispatchCortezaSystemUserGroupEvent($event, { userGroup })"
       />
 
       <c-button-submit
@@ -157,7 +127,7 @@
         :success="success"
         :text="$t('admin:general.label.submit')"
         class="ml-auto"
-        @submit="$emit('submit', user)"
+        @submit="$emit('submit', userGroup)"
       />
     </template>
   </b-card>
@@ -165,26 +135,27 @@
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
-import { handle, components } from '@cortezaproject/corteza-vue'
+import { handle } from '@cortezaproject/corteza-vue'
 import { getSystemFields } from 'corteza-webapp-admin/src/lib/sysFields'
-const { CInputUserGroup } = components
 
 export default {
   name: 'CUserEditorInfo',
 
   i18nOptions: {
-    namespaces: 'system.users',
+    namespaces: 'system.user-groups',
     keyPrefix: 'editor.info',
   },
 
-  components: {
-    CInputUserGroup,
-  },
-
   props: {
-    user: {
+    userGroup: {
       type: Object,
       required: true,
+    },
+
+    parentUserGroups: {
+      type: Array,
+      required: false,
+      default: () => [],
     },
 
     processing: {
@@ -205,39 +176,30 @@ export default {
 
   computed: {
     getDeleteStatus () {
-      return this.user.deletedAt ? this.$t('undelete') : this.$t('delete')
+      return this.userGroup.deletedAt ? this.$t('undelete') : this.$t('delete')
     },
 
-    getSuspendStatus () {
-      return this.user.suspendedAt ? this.$t('unsuspend') : this.$t('suspend')
-    },
-
-    userID () {
-      if (this.$auth.user) {
-        return this.$auth.user.userID
+    userGroupID () {
+      if (this.$auth.userGroup) {
+        return this.$auth.userGroup.userGroupID
       }
       return undefined
     },
 
     fresh () {
-      return !this.user.userID || this.user.userID === NoID
+      return !this.userGroup.userGroupID || this.userGroup.userGroupID === NoID
     },
 
     editable () {
-      return this.fresh ? this.canCreate : this.user.canUpdateUser
-    },
-
-    emailState () {
-      const { email } = this.user
-      return email ? null : false
+      return this.fresh ? this.canCreate : this.userGroup.canUpdateUserGroup
     },
 
     handleState () {
-      return handle.handleState(this.user.handle)
+      return handle.handleState(this.userGroup.handle)
     },
 
     saveDisabled () {
-      return !this.editable || [this.emailState, this.handleState].includes(false)
+      return !this.editable || [this.handleState].includes(false)
     },
 
     deletedButtonStatusCypressId () {

@@ -4,6 +4,7 @@ system:
   group: System
   items:
     users: Users
+    usergroups: User Groups
     actionlog: Action log
     apigw: Integration Gateway
     applications: Applications
