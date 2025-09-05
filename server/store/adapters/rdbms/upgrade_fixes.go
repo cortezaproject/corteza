@@ -19,6 +19,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
+	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
@@ -54,6 +55,8 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncNodeID,
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
+		fix_2024_09_05_addUserGroupReferenceToUser,
+		fix_2024_09_05_addDefaultUserGroupReferences,
 	}
 )
 
@@ -900,6 +903,91 @@ func fix_2024_09_03_renameFederationNodeSyncNodeID(ctx context.Context, s *Store
 
 func fix_2024_09_03_renameFederationNodeSyncComposeID(ctx context.Context, s *Store) (err error) {
 	return renameColumn(ctx, s, "federation_nodes_sync", "module_id", "rel_module")
+}
+
+func fix_2024_09_05_addUserGroupReferenceToUser(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"users",
+		&dal.Attribute{
+			Ident: "rel_user_group", Sortable: true,
+			Type: &dal.TypeRef{
+				RefAttribute: "id",
+				RefModel: &dal.ModelRef{
+					ResourceType: "corteza::system:user-group",
+				},
+			},
+			Store: &dal.CodecAlias{Ident: "rel_user_group"},
+		},
+	)
+}
+
+func fix_2024_09_05_addDefaultUserGroupReferences(ctx context.Context, s *Store) (err error) {
+	// ---
+	// users
+	// ---
+
+	h, ok := os.LookupEnv("AUTH_DEFAULT_USER_GROUP")
+	if !ok {
+		h = "default-root"
+	}
+	ug, err := store.LookupUserGroupByHandle(ctx, s, h)
+	if err != nil {
+		return
+	}
+
+	db := s.DB.(goqu.SQLDatabase)
+	sql, params, err := s.Dialect.
+		GOQU().
+		DB(db).
+		Update("users").
+		Set(goqu.Record{
+			"rel_user_group": ug.ID,
+		}).
+		Where(
+			goqu.And(
+				goqu.C("kind").NotLike("sys"),
+				goqu.Or(
+					goqu.C("rel_user_group").IsNull(),
+					goqu.C("rel_user_group").Eq(0),
+				),
+			),
+		).
+		ToSQL()
+
+	if err != nil {
+		return err
+	}
+
+	_, err = db.ExecContext(ctx, sql, params...)
+	if err != nil {
+		return err
+	}
+
+	// ---
+	// auth clients
+	//
+	// We'll use the store interface to avoid complications re. JSON encoding.
+	// The number of auth clients will probably always be next to zero so performance shouldn't be affected.
+	// ---
+
+	cc, _, err := store.SearchAuthClients(ctx, s, sysTypes.AuthClientFilter{})
+	if err != nil {
+		return
+	}
+
+	for _, c := range cc {
+		if c.Security.UserGroup != 0 {
+			continue
+		}
+
+		c.Security.UserGroup = ug.ID
+		err = store.UpdateAuthClient(ctx, s, c)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Store) (err error) {

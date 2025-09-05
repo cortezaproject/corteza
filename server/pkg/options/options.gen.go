@@ -120,6 +120,7 @@ type (
 		CsrfFieldName            string        `env:"AUTH_CSRF_FIELD_NAME"`
 		CsrfCookieName           string        `env:"AUTH_CSRF_COOKIE_NAME"`
 		DefaultClient            string        `env:"AUTH_DEFAULT_CLIENT"`
+		DefaultUserGroup         string        `env:"AUTH_DEFAULT_USER_GROUP"`
 		AssetsPath               string        `env:"AUTH_ASSETS_PATH"`
 		DevelopmentMode          bool          `env:"AUTH_DEVELOPMENT_MODE"`
 		ProvisionSuperUser       string        `env:"AUTH_PROVISION_SUPER_USER"`
@@ -541,6 +542,7 @@ func Auth() (o *AuthOpt) {
 		CsrfFieldName:            "same-site-authenticity-token",
 		CsrfCookieName:           "same-site-authenticity-token",
 		DefaultClient:            "corteza-webapp",
+		DefaultUserGroup:         "default-root",
 	}
 
 	// Custom defaults

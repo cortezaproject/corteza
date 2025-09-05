@@ -213,6 +213,14 @@ auth: schema.#optionsGroup & {
 
 				"""
 		}
+		default_user_group: {
+			defaultValue: "default-root"
+			description: """
+				Default user group all users are assigned to.
+
+				Each user must belong to a user group if it wishes to use the system.
+				"""
+		}
 		assets_path: {
 			description: """
 				Path to js, css, images and template source files
