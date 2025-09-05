@@ -238,6 +238,10 @@ func DefaultFilters() (f *extendedFilters) {
 			ee = append(ee, goqu.C("id").In(members))
 		}
 
+		if f.UserGroupID > 0 {
+			ee = append(ee, goqu.C("rel_user_group").Eq(f.UserGroupID))
+		}
+
 		return ee, f, nil
 	}
 

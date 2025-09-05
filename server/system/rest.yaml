@@ -490,7 +490,6 @@ endpoints:
     path: "/"
     parameters:
       post:
-      - { type: "string",              name: "name",       required: true,  title: "Name of user group" }
       - { type: "string",              name: "handle",                      title: "Handle for user group" }
       - { type: "[]string",            name: "members",                     title: "user group member IDs" }
       - { type: uint64,                name: selfID,       required: false, title: Parent user group ID }
@@ -504,7 +503,6 @@ endpoints:
       path:
       - { type: "id.ID",             name: "userGroupID",     required: true,  title: User Group ID, parser: "id.ParseID" }
       post:
-      - { type: "string",             name: "name",       required: false, title: "Name of user group" }
       - { type: "string",             name: "handle",     required: false, title: "Handle for user group" }
       - { type: "[]string",           name: "members",    required: false, title: "user group member IDs" }
       - { type: uint64,               name: selfID,       required: false, title: Parent user group ID }

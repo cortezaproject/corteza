@@ -1154,7 +1154,7 @@ export default class System {
     return `/roles/${roleID}/members`
   }
 
-  // Add user group to a role
+  // Add user group to a user group
   async roleMemberAddGroup (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       roleID,
@@ -1428,23 +1428,18 @@ export default class System {
   // Update user groups details
   async userGroupCreate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
-      name,
       handle,
       members,
       selfID,
       meta,
       labels,
     } = (a as KV) || {}
-    if (!name) {
-      throw Error('field name is empty')
-    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
       url: this.userGroupCreateEndpoint(),
     }
     cfg.data = {
-      name,
       handle,
       members,
       selfID,
@@ -1470,11 +1465,10 @@ export default class System {
     return '/user-groups/'
   }
 
-  // Update role details
+  // Update user group details
   async userGroupUpdate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       userGroupID,
-      name,
       handle,
       members,
       selfID,
@@ -1493,7 +1487,6 @@ export default class System {
       }),
     }
     cfg.data = {
-      name,
       handle,
       members,
       selfID,
@@ -1523,7 +1516,7 @@ export default class System {
     return `/user-groups/${userGroupID}`
   }
 
-  // Read role details and memberships
+  // Read user group details and memberships
   async userGroupRead (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       userGroupID,
@@ -1561,7 +1554,7 @@ export default class System {
     return `/user-groups/${userGroupID}`
   }
 
-  // Remove role
+  // Remove user group
   async userGroupDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       userGroupID,
@@ -1599,7 +1592,7 @@ export default class System {
     return `/user-groups/${userGroupID}`
   }
 
-  // Undelete role
+  // Undelete user group
   async userGroupUndelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       userGroupID,
@@ -1637,7 +1630,7 @@ export default class System {
     return `/user-groups/${userGroupID}/undelete`
   }
 
-  // Returns all role members
+  // Returns all user group members
   async userGroupMemberList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       userGroupID,
@@ -1675,7 +1668,7 @@ export default class System {
     return `/user-groups/${userGroupID}/members`
   }
 
-  // Add member to a role
+  // Add member to a user group
   async userGroupMemberAdd (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {
       userGroupID,

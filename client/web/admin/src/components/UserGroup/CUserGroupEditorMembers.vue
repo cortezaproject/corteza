@@ -69,7 +69,7 @@ import { debounce } from 'lodash'
 
 export default {
   i18nOptions: {
-    namespaces: 'system.roles',
+    namespaces: 'system.user-groups',
     keyPrefix: 'editor.members',
   },
 
