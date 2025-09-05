@@ -170,11 +170,51 @@ func createUserHandle(u *types.User) (hdl string) {
 	return hdl
 }
 
+func defaultUserGroup(ctx context.Context, log *zap.Logger, s store.UserGroups, authOpt options.AuthOpt) error {
+	g := &types.UserGroup{
+		ID:     id.Next(),
+		Handle: authOpt.DefaultUserGroup,
+		SelfID: 0,
+		Meta: &types.UserGroupMeta{
+			Short:       "Default User Group",
+			Description: "The default user group",
+		},
+		CreatedAt: *now(),
+	}
+
+	_, err := store.LookupUserGroupByHandle(ctx, s, g.Handle)
+	if err == nil {
+		return nil
+	}
+
+	if !errors.IsNotFound(err) {
+		return err
+	}
+
+	if err = store.CreateUserGroup(ctx, s, g); err != nil {
+		return err
+	}
+
+	log.Info(
+		"Added default user group",
+		zap.String("name", g.Meta.Short),
+		zap.String("handle", g.Handle),
+		logger.Uint64("userGroupID", g.ID),
+	)
+
+	return nil
+}
+
 // defaultAuthClient checks if default client exists (handle = AUTH_DEFAULT_CLIENT) and adds it
-func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients, authOpt options.AuthOpt) error {
+func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.Storer, authOpt options.AuthOpt) error {
 	if authOpt.DefaultClient == "" {
 		// Default client not set
 		return nil
+	}
+
+	ug, err := store.LookupUserGroupByHandle(ctx, s, authOpt.DefaultUserGroup)
+	if err != nil {
+		return err
 	}
 
 	c := &types.AuthClient{
@@ -191,16 +231,18 @@ func defaultAuthClient(ctx context.Context, log *zap.Logger, s store.AuthClients
 			return ""
 		}(),
 
-		Secret:    string(rand.Bytes(64)),
-		Scope:     "profile api",
-		Enabled:   true,
-		Trusted:   true,
-		Security:  &types.AuthClientSecurity{},
+		Secret:  string(rand.Bytes(64)),
+		Scope:   "profile api",
+		Enabled: true,
+		Trusted: true,
+		Security: &types.AuthClientSecurity{
+			UserGroup: ug.ID,
+		},
 		Labels:    nil,
 		CreatedAt: *now(),
 	}
 
-	_, err := store.LookupAuthClientByHandle(ctx, s, c.Handle)
+	_, err = store.LookupAuthClientByHandle(ctx, s, c.Handle)
 	if err == nil {
 		return nil
 	}

@@ -38,6 +38,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return apigwFilters(ctx, log.Named("apigw.filters"), s) },
 		func() error { return authAddExternals(ctx, log.Named("auth.externals"), s) },
 		func() error { return oidcAutoDiscovery(ctx, log.Named("auth.oidc-auto-discovery"), s, authOpt) },
+		func() error { return defaultUserGroup(ctx, log.Named("user-groups"), s, authOpt) },
 		func() error { return defaultAuthClient(ctx, log.Named("auth.clients"), s, authOpt) },
 		func() error { return addAuthSuperUsers(ctx, log.Named("auth.super-users"), s, authOpt) },
 		func() error { return invalidateDedupRules(ctx, log.Named("compose.deduplication"), s) },
