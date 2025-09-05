@@ -23,10 +23,6 @@
         <font-awesome-icon :icon="['fas', 'lock']" />
         {{ $t('permissions') }}
       </c-permissions-button>
-      <c-permission-clone
-        v-if="userGroupID && canGrant"
-        :user-group-id="userGroupID"
-      />
     </c-content-header>
 
     <c-user-group-editor-info
@@ -37,7 +33,6 @@
       :parent-user-groups="parentUserGroups"
       @submit="onInfoSubmit"
       @delete="onDelete"
-      @status="onStatusChange"
     />
     <c-user-group-editor-members
       v-if="canManageMembers"
@@ -317,7 +312,7 @@ export default {
             this.animateSuccess('info')
             this.toastSuccess(this.$t('notification:suer-group.create.success'))
 
-            this.$router.push({ name: 'system.suer-group.edit', params: { userGroupID } })
+            this.$router.push({ name: 'system.userGroup.edit', params: { userGroupID } })
           })
           .catch(this.toastErrorHandler(this.$t('notification:user-group.create.error')))
           .finally(() => {

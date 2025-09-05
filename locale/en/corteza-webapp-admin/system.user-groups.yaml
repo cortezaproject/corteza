@@ -9,13 +9,20 @@ editor:
     handle: Handle
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
     parent: Parent user group
-    meta.short: Name
+    meta.short: Name *
     meta.description: Description
     title: Basic information
     undelete: Undelete
     updatedAt: Updated at
   new: New User Group
   permissions: Permissions
+  members:
+    add: Add
+    count: Members ({{count}})
+    remove: Remove
+    searchUsers: Search users
+    title: User Group Members
+    unnamed: Unnamed user
   roles:
     add: Add
     count: roles
