@@ -230,18 +230,18 @@ export default {
       this.filter.routeID = this.route
       this.pagination.limit = append ? 10 : this.totalItems
 
-      this.$SystemAPI.apigwProfilerRouteCancellable(this.encodeListParams())
-        .then(({ filter = {}, set = [] }) => {
-          const { next } = filter
-          this.filter = { ...this.filter, next }
-          this.items = [
-            ...(append ? this.items : []),
-            ...set.map(i => ({ ...i, 'hitID': i.ID })),
-          ]
-          this.totalItems = append ? this.totalItems + set.length : this.totalItems
+      const { response } = this.$SystemAPI.apigwProfilerRouteCancellable(this.encodeListParams())
+      response().then(({ filter = {}, set = [] }) => {
+        const { next } = filter
+        this.filter = { ...this.filter, next }
+        this.items = [
+          ...(append ? this.items : []),
+          ...set.map(i => ({ ...i, hitID: i.ID })),
+        ]
+        this.totalItems = append ? this.totalItems + set.length : this.totalItems
 
-          return { filter, set }
-        })
+        return { filter, set }
+      })
         .catch(this.toastErrorHandler(this.$t('notification:gateway.profiler.fetch.error')))
         .finally(() => {
           if (!append) {
