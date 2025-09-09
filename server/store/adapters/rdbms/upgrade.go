@@ -15,7 +15,7 @@ import (
 )
 
 func (s *Store) Upgrade(ctx context.Context) (err error) {
-	for _, fix := range fixes {
+	for _, fix := range fixesPre {
 		if err = fix(ctx, s); err != nil {
 			return
 		}
@@ -33,6 +33,12 @@ func (s *Store) Upgrade(ctx context.Context) (err error) {
 
 	if err != nil {
 		return err
+	}
+
+	for _, fix := range fixesPost {
+		if err = fix(ctx, s); err != nil {
+			return
+		}
 	}
 
 	return
@@ -101,27 +107,32 @@ func dropTable(ctx context.Context, s *Store, table string) error {
 // If table does not exist adding column can be skipped
 // We can assume that 2nd step of the upgrade process will include the column
 func addColumn(ctx context.Context, s *Store, table string, attr *dal.Attribute) error {
+	err, _ := addColumnExists(ctx, s, table, attr)
+	return err
+}
+
+func addColumnExists(ctx context.Context, s *Store, table string, attr *dal.Attribute) (err error, exists bool) {
 	tbl, err := s.DataDefiner.TableLookup(ctx, table)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			return nil
+			return nil, false
 		}
 
-		return err
+		return err, false
 	}
 
 	if tbl.ColumnByIdent(attr.StoreIdent()) != nil {
-		return nil
+		return nil, true
 	}
 
 	s.log(ctx).Info(fmt.Sprintf("extending %q table with %q column", table, attr.StoreIdent()))
 
 	col, err := s.DataDefiner.ConvertAttribute(attr)
 	if err != nil {
-		return err
+		return err, false
 	}
 
-	return s.DataDefiner.ColumnAdd(ctx, table, col)
+	return s.DataDefiner.ColumnAdd(ctx, table, col), false
 }
 
 // dropColumns removes columns from a table but only if table exists!

@@ -22,7 +22,12 @@ user: {
 				ident: "userGroupID",
 				goType: "uint64",
 				storeIdent: "rel_user_group"
-				dal: { type: "Ref", refModelResType: "corteza::system:user-group" }
+				dal: {
+					type: "Ref",
+					refModelResType: "corteza::system:user-group",
+					nullable: true,
+					default: 0,
+				}
 
 				envoy: {
 					yaml: {

@@ -2678,7 +2678,9 @@ var User = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "UserGroupID",
-			Type: &dal.TypeRef{
+			Type: &dal.TypeRef{Nullable: true, HasDefault: true,
+				DefaultValue: 0,
+
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
 					ResourceType: "corteza::system:user-group",
