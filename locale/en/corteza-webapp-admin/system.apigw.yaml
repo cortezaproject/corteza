@@ -7,8 +7,6 @@ list:
   profiler: Profiler
   yaml: YAML
   loading: Loading routes
-  numFound: '{{count}} route found'
-  numFound_plural: '{{count}} routes found'
   filterForm:
     query:
       label: Filter route list

@@ -59,8 +59,6 @@ list:
       placeholder: Filter applications by name
   loading: Loading applications
   new: New Application
-  numFound: '{{count}} application found'
-  numFound_plural: '{{count}} applications found'
   permissions: Permissions
   title: Applications
   yaml: YAML

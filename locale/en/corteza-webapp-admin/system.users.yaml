@@ -112,8 +112,6 @@ list:
       label: suspended users
   loading: Loading users
   new: New User
-  numFound: '{{count}} user found'
-  numFound_plural: '{{count}} users found'
   permissions: Permissions
   title: Users
   yaml: YAML

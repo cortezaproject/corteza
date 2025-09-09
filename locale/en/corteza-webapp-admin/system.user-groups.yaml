@@ -36,9 +36,7 @@ list:
   columns:
     actions: ""
     createdAt: Created
-    enabled: Enabled
     handle: Handle
-    state: State
     meta:
       short: Name
   delete: Delete
@@ -61,8 +59,6 @@ list:
       placeholder: Filter user groups by handle
   loading: Loading user groups
   new: New User Group
-  numFound: '{{count}} user group found'
-  numFound_plural: '{{count}} user groups found'
   permissions: Permissions
   title: User Groups
 export:

@@ -66,8 +66,6 @@ list:
       placeholder: Filter roles by name
   loading: Loading roles
   new: New Role
-  numFound: '{{count}} role found'
-  numFound_plural: '{{count}} roles found'
   permissions: Permissions
   title: Roles
   yaml: YAML

@@ -12,10 +12,13 @@ label:
   role:
     single: Role
     plural: Roles
+  user-group:
+    single: User Group
+    plural: User Groups
   application:
     single: Application
     plural: Applications
-  auth_client:
+  auth-client:
     single: Auth Client
     plural: Auth Clients
   queue:
@@ -27,7 +30,7 @@ label:
   connection:
     single: Database Connection
     plural: Database Connections
-  sensitivity_level:
+  sensitivity-level:
     single: Sensitivity Level
     plural: Sensitivity Levels
   session:

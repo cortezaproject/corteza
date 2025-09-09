@@ -76,6 +76,26 @@ role:
   membershipUpdate:
     success: Membership updated
     error: Membership update failed
+userGroup:
+  fetch:
+    error: User group fetch failed
+  roles:
+    error: User group roles fetch failed
+  membershipUpdate:
+    success: User group membership updated
+    error: User group membership update failed
+  create:
+    success: User group created
+    error: User group create failed
+  update:
+    success: User group updated
+    error: User group update failed
+  delete:
+    success: User group deleted
+    error: User group delete failed
+  undelete:
+    success: User group restored
+    error: User group restore failed
 application:
   fetch:
     error: Application fetch failed

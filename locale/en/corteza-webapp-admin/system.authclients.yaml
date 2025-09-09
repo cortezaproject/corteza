@@ -98,8 +98,6 @@ list:
       placeholder: Filter clients
   loading: Loading clients
   new: New Auth Client
-  numFound: '{{count}} clients found'
-  numFound_plural: '{{count}} clients found'
   permissions: Permissions
   title: Auth Clients
   yaml: YAML

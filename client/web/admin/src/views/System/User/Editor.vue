@@ -95,16 +95,16 @@
 </template>
 
 <script>
-import { isEqual } from 'lodash'
 import { NoID, system } from '@cortezaproject/corteza-js'
-import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
-import CUserEditorInfo from 'corteza-webapp-admin/src/components/User/CUserEditorInfo'
-import CUserEditorAvatar from '../../../components/User/CUserEditorAvatar'
-import CUserEditorPassword from 'corteza-webapp-admin/src/components/User/CUserEditorPassword'
-import CUserEditorMfa from 'corteza-webapp-admin/src/components/User/CUserEditorMFA'
-import CUserEditorRoles from 'corteza-webapp-admin/src/components/User/CUserEditorRoles'
 import CUserEditorExternalAuthProviders from 'corteza-webapp-admin/src/components/User/CUserEditorExternalAuthProviders'
+import CUserEditorInfo from 'corteza-webapp-admin/src/components/User/CUserEditorInfo'
+import CUserEditorMfa from 'corteza-webapp-admin/src/components/User/CUserEditorMFA'
+import CUserEditorPassword from 'corteza-webapp-admin/src/components/User/CUserEditorPassword'
+import CUserEditorRoles from 'corteza-webapp-admin/src/components/User/CUserEditorRoles'
+import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
+import { isEqual } from 'lodash'
 import { mapGetters } from 'vuex'
+import CUserEditorAvatar from '../../../components/User/CUserEditorAvatar'
 
 export default {
   components: {
@@ -216,10 +216,6 @@ export default {
   },
 
   methods: {
-    makeEvent (res) {
-      return system.UserEvent(res)
-    },
-
     async fetchUser () {
       this.incLoader()
 

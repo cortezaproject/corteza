@@ -89,7 +89,7 @@
           />
 
           <c-input-confirm
-            v-if="u.canDeleteUser"
+            v-if="u.canDeleteUserGroup"
             :text="getActionText(u)"
             show-icon
             :icon="getActionIcon(u)"
@@ -108,11 +108,10 @@
 </template>
 
 <script>
-import { system } from '@cortezaproject/corteza-js'
-import moment from 'moment'
-import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
-import { mapGetters } from 'vuex'
 import { components } from '@cortezaproject/corteza-vue'
+import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
+import moment from 'moment'
+import { mapGetters } from 'vuex'
 const { CResourceList } = components
 
 export default {
@@ -152,7 +151,7 @@ export default {
       fields: [
         {
           key: 'meta.short',
-          sortable: true,
+          sortable: false,
         },
         {
           key: 'handle',
@@ -186,22 +185,18 @@ export default {
   },
 
   methods: {
-    makeEvent () {
-      return system.SystemEvent()
-    },
-
     items () {
       return this.procListResults(this.$SystemAPI.userGroupListCancellable(this.encodeListParams()))
     },
 
     rowClass (item) {
-      return { 'text-secondary': item && (!!item.deletedAt || !!item.suspendedAt) }
+      return { 'text-secondary': item && !!item.deletedAt }
     },
 
     handleDelete (userGroup) {
       this.handleItemDelete({
         resource: userGroup,
-        resourceName: 'user-group',
+        resourceName: 'userGroup',
       })
     },
   },
