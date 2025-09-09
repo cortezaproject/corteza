@@ -60,6 +60,157 @@ func TestIsAbove(t *testing.T) {
 	})
 }
 
+func TestAddNode(t *testing.T) {
+	t.Run("empty svc", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(1), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		ii := svc.root.inline()
+
+		require.Len(t, ii, 1)
+		require.Equal(t, id.MustNumID(1), ii[0].id)
+	})
+
+	t.Run("add children", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(202), "c2", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(301), "c3", id.MustNumID(201))
+		require.NoError(t, err)
+
+		// ---
+
+		checkInline(t, svc.root, id.MustNumID(101), id.MustNumID(201), id.MustNumID(202), id.MustNumID(301))
+
+		checkInline(t, svc.branchIndex[id.MustNumID(101)], id.MustNumID(101), id.MustNumID(201), id.MustNumID(202), id.MustNumID(301))
+		checkInline(t, svc.branchIndex[id.MustNumID(201)], id.MustNumID(201), id.MustNumID(301))
+		checkInline(t, svc.branchIndex[id.MustNumID(202)], id.MustNumID(202))
+		checkInline(t, svc.branchIndex[id.MustNumID(301)], id.MustNumID(301))
+	})
+}
+
+func TestUpdateNode(t *testing.T) {
+	t.Run("update without move", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.UpdateNode(id.MustNumID(101), "root edited", id.MustNumID(0))
+		require.NoError(t, err)
+
+		require.Equal(t, id.MustNumID(101), svc.root.id)
+		require.Equal(t, "root edited", svc.root.handle)
+		require.Equal(t, id.MustNumID(0), svc.root.selfID)
+	})
+
+	t.Run("change parent", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(202), "c2", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(301), "c3", id.MustNumID(201))
+		require.NoError(t, err)
+
+		err = svc.UpdateNode(id.MustNumID(301), "c3 edited", id.MustNumID(202))
+		require.NoError(t, err)
+
+		checkInline(t, svc.branchIndex[id.MustNumID(201)], id.MustNumID(201))
+		checkInline(t, svc.branchIndex[id.MustNumID(202)], id.MustNumID(202), id.MustNumID(301))
+	})
+
+	t.Run("update non existing node", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.UpdateNode(id.MustNumID(999), "root edited", id.MustNumID(0))
+		require.Error(t, err)
+	})
+}
+
+func TestRemoveNode(t *testing.T) {
+	t.Run("remove leaf node", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.RemoveNode(id.MustNumID(201))
+		require.NoError(t, err)
+
+		checkInline(t, svc.branchIndex[id.MustNumID(101)], id.MustNumID(101))
+		checkInline(t, svc.branchIndex[id.MustNumID(201)])
+	})
+
+	t.Run("can not remove non-lief nodes", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(301), "c2", id.MustNumID(201))
+		require.NoError(t, err)
+
+		err = svc.RemoveNode(id.MustNumID(201))
+		require.Error(t, err)
+	})
+
+	t.Run("can not remove non-existing nodes", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.RemoveNode(id.MustNumID(999))
+		require.Error(t, err)
+	})
+}
+
+func checkInline(t *testing.T, node *groupNode, ii ...id.ID) {
+	nn := node.inline()
+	require.Len(t, nn, len(ii))
+
+	for i, n := range nn {
+		require.Equal(t, ii[i], n.id)
+	}
+}
+
 func TestAssignGroupMembers(t *testing.T) {
 	t.Run("new", func(t *testing.T) {
 		svc, err := OrgTree(

@@ -97,18 +97,89 @@ func (svc *orgTree) AddNode(id id.ID, handle string, selfID id.ID) (err error) {
 	})
 }
 
-func (svc *orgTree) addNode(n *groupNode) (err error) {
-	// @todo
+func (svc *orgTree) addNode(node *groupNode) (err error) {
+	if svc.root == nil {
+		svc.root = node
+
+		if svc.branchIndex == nil {
+			svc.branchIndex = make(map[id.ID]*groupNode)
+		}
+		svc.branchIndex[node.id] = node
+
+		if svc.groupMemberIndex == nil {
+			svc.groupMemberIndex = make(map[id.ID][]id.ID)
+		}
+		svc.groupMemberIndex[node.id] = []id.ID{}
+
+		return
+	}
+
+	i, n := svc.findNode(node.selfID)
+	if i < 0 {
+		return fmt.Errorf("cannot insert node %v (%s): parent node %v not found", node.id.Value(), node.handle, node.selfID.Value())
+	}
+
+	n.children = append(n.children, node)
+
+	svc.branchIndex[node.id] = node
+	svc.groupMemberIndex[node.id] = []id.ID{}
+
 	return
 }
 
-func (svc *orgTree) UpdateNode(id id.ID, handle string, selfID id.ID) (err error) {
-	// @todo
+func (svc *orgTree) UpdateNode(idx id.ID, handle string, selfID id.ID) (err error) {
+	i, n := svc.findNode(idx)
+	if i < 0 {
+		return fmt.Errorf("cannot update node %v (%s): not indexed", idx.Value(), handle)
+	}
+
+	oldSelfID := n.selfID
+
+	n.handle = handle
+	n.selfID = selfID
+
+	if svc.branchIndex == nil {
+		svc.branchIndex = make(map[id.ID]*groupNode)
+	}
+
+	if !oldSelfID.Equal(id.MustNumID(0)) {
+		i = svc.isInSlice(svc.branchIndex[oldSelfID].children, idx)
+		svc.branchIndex[oldSelfID].children = append(svc.branchIndex[oldSelfID].children[:i], svc.branchIndex[oldSelfID].children[i+1:]...)
+	}
+
+	if !selfID.Equal(id.MustNumID(0)) {
+		svc.branchIndex[selfID].children = append(svc.branchIndex[selfID].children, n)
+	}
+
 	return
 }
 
 func (svc *orgTree) RemoveNode(id id.ID) (err error) {
-	// @todo
+	i, n := svc.findNode(id)
+	if i < 0 {
+		return fmt.Errorf("cannot delete node %v: not indexed", id.Value())
+	}
+
+	if len(svc.groupMemberIndex[id]) > 0 {
+		return fmt.Errorf("cannot remove node %v: node has members", id)
+	}
+
+	if len(n.children) > 0 {
+		return fmt.Errorf("cannot remove node %v: node is above a node ", id)
+	}
+
+	for _, n := range svc.root.inline() {
+		i := svc.isInSlice(n.children, id)
+		if i < 0 {
+			continue
+		}
+
+		n.children = append(n.children[:i], n.children[i+1:]...)
+	}
+
+	delete(svc.branchIndex, id)
+	delete(svc.groupMemberIndex, id)
+
 	return
 }
 
@@ -257,6 +328,10 @@ func buildOrgTree(gg ...*groupNode) (root *groupNode, index map[id.ID]*groupNode
 
 // inline converts the subtree in a slice using BFS
 func (root *groupNode) inline() []*groupNode {
+	if root == nil {
+		return nil
+	}
+
 	out := make([]*groupNode, 0)
 	fifo := make([]*groupNode, 0)
 
@@ -276,4 +351,34 @@ func (root *groupNode) inline() []*groupNode {
 	}
 
 	return out
+}
+
+func (svc *orgTree) findNode(id id.ID) (i int, n *groupNode) {
+	nn := svc.root.inline()
+
+	i = 0
+	for i = range nn {
+		n = nn[i]
+
+		if n.id.Equal(id) {
+			break
+		}
+	}
+
+	if i < 0 {
+		n = nil
+		i = -1
+	}
+
+	return
+}
+
+func (svc *orgTree) isInSlice(ss []*groupNode, id id.ID) int {
+	for i, s := range ss {
+		if s.id.Equal(id) {
+			return i
+		}
+	}
+
+	return -1
 }
