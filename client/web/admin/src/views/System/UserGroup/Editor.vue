@@ -54,13 +54,12 @@
 </template>
 
 <script>
-import { isEqual } from 'lodash'
 import { system } from '@cortezaproject/corteza-js'
-import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
 import CUserGroupEditorInfo from 'corteza-webapp-admin/src/components/UserGroup/CUserGroupEditorInfo'
 import CUserGroupEditorMembers from 'corteza-webapp-admin/src/components/UserGroup/CUserGroupEditorMembers'
 import CUserGroupEditorRoles from 'corteza-webapp-admin/src/components/UserGroup/CUserGroupEditorRoles'
-import CPermissionClone from 'corteza-webapp-admin/src/components/Permissions/CPermissionClone'
+import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
+import { isEqual } from 'lodash'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -68,7 +67,6 @@ export default {
     CUserGroupEditorInfo,
     CUserGroupEditorMembers,
     CUserGroupEditorRoles,
-    CPermissionClone,
   },
 
   i18nOptions: {
@@ -195,7 +193,7 @@ export default {
             initial: [...set.map(({ roleID }) => roleID)],
           }
         })
-        .catch(this.toastErrorHandler(this.$t('notification:user-group.roles.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:userGroup.roles.error')))
         .finally(() => {
           this.decLoader()
         })
@@ -222,7 +220,7 @@ export default {
             })
           }
         })
-        .catch(this.toastErrorHandler(this.$t('notification:user-group.fetch.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:userGroup.fetch.error')))
         .finally(() => {
           this.decLoader()
         })
@@ -253,9 +251,9 @@ export default {
           this.animateSuccess('roles')
           await this.fetchMembership()
 
-          this.toastSuccess(this.$t('notification:user-group.membershipUpdate.success'))
+          this.toastSuccess(this.$t('notification:userGroup.membershipUpdate.success'))
         })
-        .catch(this.toastErrorHandler(this.$t('notification:user-group.membershipUpdate.error')))
+        .catch(this.toastErrorHandler(this.$t('notification:userGroup.membershipUpdate.error')))
         .finally(() => {
           this.roles.processing = false
         })
@@ -269,9 +267,9 @@ export default {
           .then(() => {
             this.fetchUserGroup()
 
-            this.toastSuccess(this.$t('notification:user-group.undelete.success'))
+            this.toastSuccess(this.$t('notification:userGroup.undelete.success'))
           })
-          .catch(this.toastErrorHandler(this.$t('notification:user-group.undelete.error')))
+          .catch(this.toastErrorHandler(this.$t('notification:userGroup.undelete.error')))
           .finally(() => {
             this.decLoader()
           })
@@ -281,10 +279,10 @@ export default {
             this.fetchUserGroup()
 
             this.userGroup.deletedAt = new Date()
-            this.toastSuccess(this.$t('notification:user-group.delete.success'))
+            this.toastSuccess(this.$t('notification:userGroup.delete.success'))
             this.$router.push({ name: 'system.user-group' })
           })
-          .catch(this.toastErrorHandler(this.$t('notification:user-group.delete.error')))
+          .catch(this.toastErrorHandler(this.$t('notification:userGroup.delete.error')))
           .finally(() => {
             this.decLoader()
           })
@@ -300,9 +298,9 @@ export default {
             this.fetchUserGroup()
 
             this.animateSuccess('info')
-            this.toastSuccess(this.$t('notification:user-group.update.success'))
+            this.toastSuccess(this.$t('notification:userGroup.update.success'))
           })
-          .catch(this.toastErrorHandler(this.$t('notification:user-group.update.error')))
+          .catch(this.toastErrorHandler(this.$t('notification:userGroup.update.error')))
           .finally(() => {
             this.info.processing = false
           })
@@ -310,11 +308,11 @@ export default {
         this.$SystemAPI.userGroupCreate(userGroup)
           .then(({ userGroupID }) => {
             this.animateSuccess('info')
-            this.toastSuccess(this.$t('notification:suer-group.create.success'))
+            this.toastSuccess(this.$t('notification:userGroup.create.success'))
 
             this.$router.push({ name: 'system.userGroup.edit', params: { userGroupID } })
           })
-          .catch(this.toastErrorHandler(this.$t('notification:user-group.create.error')))
+          .catch(this.toastErrorHandler(this.$t('notification:userGroup.create.error')))
           .finally(() => {
             this.info.processing = false
           })
@@ -340,9 +338,9 @@ export default {
             this.fetchUserGroup()
             this.animateSuccess('members')
 
-            this.toastSuccess(this.$t('notification:user-group.membershipUpdate.success'))
+            this.toastSuccess(this.$t('notification:userGroup.membershipUpdate.success'))
           })
-          .catch(this.toastErrorHandler(this.$t('notification:user-group.membershipUpdate.error')))
+          .catch(this.toastErrorHandler(this.$t('notification:userGroup.membershipUpdate.error')))
           .finally(() => {
             this.members.processing = false
           })

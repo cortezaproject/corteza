@@ -22,8 +22,8 @@
         singlePluralPagination: 'admin:general.pagination.single',
         prevPagination: $t('admin:general.pagination.prev'),
         nextPagination: $t('admin:general.pagination.next'),
-        resourceSingle: $t('general:label.auth_client.single'),
-        resourcePlural: $t('general:label.auth_client.plural'),
+        resourceSingle: $t('general:label.auth-client.single'),
+        resourcePlural: $t('general:label.auth-client.plural'),
       }"
       clickable
       sticky-header
@@ -108,10 +108,10 @@
 </template>
 
 <script>
-import * as moment from 'moment'
-import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
-import { mapGetters } from 'vuex'
 import { components } from '@cortezaproject/corteza-vue'
+import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
+import * as moment from 'moment'
+import { mapGetters } from 'vuex'
 const { CResourceList } = components
 
 export default {

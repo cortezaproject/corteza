@@ -134,7 +134,6 @@
 </template>
 
 <script>
-import { system } from '@cortezaproject/corteza-js'
 import moment from 'moment'
 import listHelpers from 'corteza-webapp-admin/src/mixins/listHelpers'
 import CUserExportModal from 'corteza-webapp-admin/src/components/User/CUserExportModal'
@@ -220,10 +219,6 @@ export default {
   },
 
   methods: {
-    makeEvent () {
-      return system.SystemEvent()
-    },
-
     onExport (e) {
       const params = {
         filename: 'export',

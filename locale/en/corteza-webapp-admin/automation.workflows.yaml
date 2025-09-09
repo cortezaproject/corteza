@@ -54,8 +54,6 @@ list:
       placeholder: Filter workflows by name
   loading: Loading workflows
   new: New Workflow
-  numFound: '{{count}} workflow found'
-  numFound_plural: '{{count}} workflows found'
   permissions: Permissions
   title: Workflows
   yaml: YAML

@@ -3,16 +3,16 @@ import Vue from 'vue'
 import './config-check'
 import './console-splash'
 
-import './plugins'
-import './mixins'
 import './components'
 import './filters'
+import './mixins'
+import './plugins'
 
-import store from './store'
 import router from './router'
+import store from './store'
 
 import { system } from '@cortezaproject/corteza-js'
-import { mixins, corredor, websocket, i18n } from '@cortezaproject/corteza-vue'
+import { corredor, i18n, mixins, websocket } from '@cortezaproject/corteza-vue'
 import { mapGetters } from 'vuex'
 
 const notProduction = (process.env.NODE_ENV !== 'production')
@@ -197,11 +197,13 @@ export default (options = {}) => {
       'system.stats',
       'system.applications',
       'system.users',
+      'system.user-groups',
       'system.roles',
       'system.templates',
       'system.scripts',
       'system.settings',
       'system.authclients',
+      'system.code-snippets',
       'system.permissions',
       'system.actionlog',
       'system.queues',

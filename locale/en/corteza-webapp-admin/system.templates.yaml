@@ -73,8 +73,6 @@ list:
       label: Including
   loading: Loading templates
   new: New Template
-  numFound: '{{count}} template found'
-  numFound_plural: '{{count}} templates found'
   permissions: Permissions
   title: Templates
   yaml: YAML

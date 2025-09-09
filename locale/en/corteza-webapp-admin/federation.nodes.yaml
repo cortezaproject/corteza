@@ -42,8 +42,6 @@ list:
       placeholder: Filter servers by name
   loading: Loading federated nodes
   new: New Federated Node
-  numFound: '{{count}} server found'
-  numFound_plural: '{{count}} servers found'
   pair:
     confirm: Confirm
     label: Pair Federated Node

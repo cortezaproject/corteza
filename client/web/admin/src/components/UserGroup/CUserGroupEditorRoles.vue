@@ -1,6 +1,6 @@
 <template>
   <b-card
-    data-test-id="card-role-membership"
+    data-test-id="card-user-group-edit-roles"
     header-class="border-bottom"
     footer-class="border-top d-flex flex-wrap flex-fill-child gap-1"
     class="shadow-sm"
