@@ -44,6 +44,7 @@ func Run(ctx context.Context, log *zap.Logger, s store.Storer, provisionOpt opti
 		func() error { return invalidateDedupRules(ctx, log.Named("compose.deduplication"), s) },
 		func() error { return setUsersTheme(ctx, log.Named("users.theme"), s) },
 		func() error { return updateWebappTheme(ctx, log.Named("webapp.themes"), s) },
+		func() error { return setDefaultUserGroupRefs(ctx, log.Named("user-group.references"), s, authOpt) },
 	}
 
 	for _, fn := range ffn {

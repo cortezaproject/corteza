@@ -19,7 +19,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/store/adapters/rdbms/ddl"
-	sysTypes "github.com/cortezaproject/corteza/server/system/types"
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
 	"github.com/spf13/cast"
@@ -36,7 +35,7 @@ import (
 
 var (
 	// all enabled fix function need to be listed here
-	fixes = []func(context.Context, *Store) error{
+	fixesPre = []func(context.Context, *Store) error{
 		fix_2022_09_00_extendComposeModuleForPrivacyAndDAL,
 		fix_2022_09_00_extendComposeModuleFieldsForPrivacyAndDAL,
 		fix_2022_09_00_dropObsoleteComposeModuleFields,
@@ -55,8 +54,11 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncNodeID,
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
+		fix_2024_09_05_addRelResourceRoleMembershipColumn,
+	}
+
+	fixesPost = []func(context.Context, *Store) error{
 		fix_2024_09_05_addUserGroupReferenceToUser,
-		fix_2024_09_05_addDefaultUserGroupReferences,
 	}
 )
 
@@ -909,8 +911,10 @@ func fix_2024_09_05_addUserGroupReferenceToUser(ctx context.Context, s *Store) (
 	return addColumn(ctx, s,
 		"users",
 		&dal.Attribute{
-			Ident: "rel_user_group", Sortable: true,
-			Type: &dal.TypeRef{
+			Ident: "UserGroupID",
+			Type: &dal.TypeRef{Nullable: true, HasDefault: true,
+				DefaultValue: 0,
+
 				RefAttribute: "id",
 				RefModel: &dal.ModelRef{
 					ResourceType: "corteza::system:user-group",
@@ -921,17 +925,20 @@ func fix_2024_09_05_addUserGroupReferenceToUser(ctx context.Context, s *Store) (
 	)
 }
 
-func fix_2024_09_05_addDefaultUserGroupReferences(ctx context.Context, s *Store) (err error) {
-	// ---
-	// users
-	// ---
-
-	h, ok := os.LookupEnv("AUTH_DEFAULT_USER_GROUP")
-	if !ok {
-		h = "default-root"
-	}
-	ug, err := store.LookupUserGroupByHandle(ctx, s, h)
+func fix_2024_09_05_addRelResourceRoleMembershipColumn(ctx context.Context, s *Store) (err error) {
+	err, exists := addColumnExists(ctx, s,
+		"role_members",
+		&dal.Attribute{
+			Ident: "rel_resource",
+			Type:  &dal.TypeText{Nullable: true, HasDefault: false},
+			Store: &dal.CodecAlias{Ident: "rel_resource"},
+		},
+	)
 	if err != nil {
+		return
+	}
+
+	if exists {
 		return
 	}
 
@@ -939,19 +946,13 @@ func fix_2024_09_05_addDefaultUserGroupReferences(ctx context.Context, s *Store)
 	sql, params, err := s.Dialect.
 		GOQU().
 		DB(db).
-		Update("users").
+		Update("role_members").
 		Set(goqu.Record{
-			"rel_user_group": ug.ID,
-		}).
-		Where(
-			goqu.And(
-				goqu.C("kind").NotLike("sys"),
-				goqu.Or(
-					goqu.C("rel_user_group").IsNull(),
-					goqu.C("rel_user_group").Eq(0),
-				),
+			"rel_resource": goqu.Func("concat",
+				goqu.L("'corteza::system:user/'"),
+				goqu.C("rel_user"),
 			),
-		).
+		}).
 		ToSQL()
 
 	if err != nil {
@@ -963,31 +964,18 @@ func fix_2024_09_05_addDefaultUserGroupReferences(ctx context.Context, s *Store)
 		return err
 	}
 
-	// ---
-	// auth clients
-	//
-	// We'll use the store interface to avoid complications re. JSON encoding.
-	// The number of auth clients will probably always be next to zero so performance shouldn't be affected.
-	// ---
-
-	cc, _, err := store.SearchAuthClients(ctx, s, sysTypes.AuthClientFilter{})
-	if err != nil {
-		return
-	}
-
-	for _, c := range cc {
-		if c.Security.UserGroup != 0 {
-			continue
-		}
-
-		c.Security.UserGroup = ug.ID
-		err = store.UpdateAuthClient(ctx, s, c)
-		if err != nil {
-			return
-		}
-	}
-
 	return
+}
+
+func fix_2024_09_05_addRelResourceColumn(ctx context.Context, s *Store) (err error) {
+	return addColumn(ctx, s,
+		"role_members",
+		&dal.Attribute{
+			Ident: "rel_resource",
+			Type:  &dal.TypeText{Nullable: true},
+			Store: &dal.CodecAlias{Ident: "rel_resource"},
+		},
+	)
 }
 
 func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Store) (err error) {
