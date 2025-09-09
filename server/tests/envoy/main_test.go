@@ -17,7 +17,6 @@ import (
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/service"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/cortezaproject/corteza/server/tests/helpers"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap"
 )
@@ -28,10 +27,10 @@ var (
 	defaultDal   dal.FullService
 )
 
-func init() {
-	helpers.RecursiveDotEnvLoad()
-	id.Init(cli.Context())
-}
+// func init() {
+// 	helpers.RecursiveDotEnvLoad()
+// 	id.Init(cli.Context())
+// }
 
 func TestMain(m *testing.M) {
 	InitTestApp()
