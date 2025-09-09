@@ -138,7 +138,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 		u           *types.User
 		ops         = make([]func() error, 0, len(payload.Operations))
 		err         error
-		memberships = make(map[uint64]bool)
+		memberships = make(map[string]bool)
 	)
 
 	{
@@ -153,7 +153,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		for _, m := range mm {
-			memberships[m.UserID] = true
+			memberships[m.Resource] = true
 		}
 	}
 
@@ -180,7 +180,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 
 			// making sure u is not overwritten
 			// in the next iteration
-			memberId := u.ID
+			memberId := fmt.Sprintf("corteza::system:user/%d", u.ID)
 
 			switch op.Operation {
 			case patchOpAdd:
@@ -193,7 +193,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 					}
 
 					memberships[memberId] = true
-					return svc.MemberAdd(ctx, res.ID, memberId)
+					return svc.MemberAdd(ctx, res.ID, u.ID)
 				})
 
 			case patchOpRemove:
@@ -206,7 +206,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 					}
 
 					delete(memberships, memberId)
-					return svc.MemberRemove(ctx, res.ID, memberId)
+					return svc.MemberRemove(ctx, res.ID, u.ID)
 				})
 
 			default:
