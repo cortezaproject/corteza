@@ -235,23 +235,23 @@ export default {
       this.filter.routeID = this.$route.params.routeID
       this.pagination.limit = append ? 10 : this.totalItems
 
-      this.$SystemAPI.apigwProfilerAggregationCancellable(this.encodeListParams())
-        .then(({ filter = {}, set = [] }) => {
-          const { next } = filter
-          this.filter = { ...this.filter, next }
-          this.items = [
-            ...(append ? this.items : []),
-            ...set.map(i => ({ ...i, 'routeID': this.encodeRouteID(i.path) })),
-          ]
-          this.totalItems = append ? this.totalItems + set.length : this.totalItems
+      const { response } = this.$SystemAPI.apigwProfilerAggregationCancellable(this.encodeListParams())
+      response().then(({ filter = {}, set = [] }) => {
+        const { next } = filter
+        this.filter = { ...this.filter, next }
+        this.items = [
+          ...(append ? this.items : []),
+          ...set.map(i => ({ ...i, 'routeID': this.encodeRouteID(i.path) })),
+        ]
+        this.totalItems = append ? this.totalItems + set.length : this.totalItems
 
-          return { filter, set }
-        }).finally(() => {
-          if (!append) {
-            this.filter.before = oldBeforeID
-          }
-          this.startRefresh()
-        })
+        return { filter, set }
+      }).finally(() => {
+        if (!append) {
+          this.filter.before = oldBeforeID
+        }
+        this.startRefresh()
+      })
     },
 
     purgeRequests () {
