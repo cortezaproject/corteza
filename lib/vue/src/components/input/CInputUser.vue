@@ -95,8 +95,9 @@ export default {
       }
     },
 
-    onUserUpdate ({ userID }) {
-      this.$emit('input', userID)
+    onUserUpdate (u) {
+      this.$emit('input', u.userID)
+      this.$emit('input-object', u)
     },
 
     getOptionKey ({ userID }) {

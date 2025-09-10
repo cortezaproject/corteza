@@ -23,12 +23,7 @@ editor:
       resource-types-label: Resource type
 
   members:
-    add: Add
-    count: Members ({{count}})
-    remove: Remove
-    searchUsers: Search users
     title: Role members
-    unnamed: Unnamed user
   new: New Role
   permissions: Permissions
   title:

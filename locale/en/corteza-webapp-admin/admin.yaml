@@ -112,6 +112,7 @@ navigation:
     profile: Profile
     theme: Theme
 picker:
+  unnamed: Unnamed
   role:
     placeholder: Start typing to search for roles
   member:
