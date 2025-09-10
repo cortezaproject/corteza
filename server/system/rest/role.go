@@ -212,6 +212,10 @@ func (ctrl Role) MemberRemove(ctx context.Context, r *request.RoleMemberRemove) 
 	return api.OK(), ctrl.role.MemberRemove(ctx, r.RoleID, r.UserID)
 }
 
+func (ctrl Role) MemberRemoveGroup(ctx context.Context, r *request.RoleMemberRemoveGroup) (interface{}, error) {
+	return api.OK(), ctrl.role.MemberRemoveGroup(ctx, r.RoleID, r.UserGroupID)
+}
+
 func (ctrl *Role) TriggerScript(ctx context.Context, r *request.RoleTriggerScript) (rsp interface{}, err error) {
 	var (
 		role *types.Role

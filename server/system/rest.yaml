@@ -421,6 +421,20 @@ endpoints:
         name: userID
         required: true
         title: User ID
+  - name: memberRemoveGroup
+    method: DELETE
+    title: Remove user group from a role
+    path: "/{roleID}/member-g/{userGroupID}"
+    parameters:
+      path:
+      - type: uint64
+        name: roleID
+        required: true
+        title: Source Role ID
+      - type: uint64
+        name: userGroupID
+        required: true
+        title: User Group ID
   - name: triggerScript
     method: POST
     title: Fire system:role trigger

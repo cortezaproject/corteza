@@ -90,11 +90,6 @@ type (
 	}
 
 	UserGroupCreate struct {
-		// Name POST parameter
-		//
-		// Name of user group
-		Name string
-
 		// Handle POST parameter
 		//
 		// Handle for user group
@@ -126,11 +121,6 @@ type (
 		//
 		// User Group ID
 		UserGroupID id.ID
-
-		// Name POST parameter
-		//
-		// Name of user group
-		Name string
 
 		// Handle POST parameter
 		//
@@ -365,18 +355,12 @@ func NewUserGroupCreate() *UserGroupCreate {
 // Auditable returns all auditable/loggable parameters
 func (r UserGroupCreate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
-		"name":    r.Name,
 		"handle":  r.Handle,
 		"members": r.Members,
 		"selfID":  r.SelfID,
 		"meta":    r.Meta,
 		"labels":  r.Labels,
 	}
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r UserGroupCreate) GetName() string {
-	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -425,13 +409,6 @@ func (r *UserGroupCreate) Fill(req *http.Request) (err error) {
 		} else if err == nil {
 			// Multipart params
 
-			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
-				r.Name, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
 				if err != nil {
@@ -478,13 +455,6 @@ func (r *UserGroupCreate) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
-
-		if val, ok := req.Form["name"]; ok && len(val) > 0 {
-			r.Name, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil
@@ -544,7 +514,6 @@ func NewUserGroupUpdate() *UserGroupUpdate {
 func (r UserGroupUpdate) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"userGroupID": r.UserGroupID,
-		"name":        r.Name,
 		"handle":      r.Handle,
 		"members":     r.Members,
 		"selfID":      r.SelfID,
@@ -557,11 +526,6 @@ func (r UserGroupUpdate) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r UserGroupUpdate) GetUserGroupID() id.ID {
 	return r.UserGroupID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r UserGroupUpdate) GetName() string {
-	return r.Name
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -614,13 +578,6 @@ func (r *UserGroupUpdate) Fill(req *http.Request) (err error) {
 			return err
 		} else if err == nil {
 			// Multipart params
-
-			if val, ok := req.MultipartForm.Value["name"]; ok && len(val) > 0 {
-				r.Name, err = val[0], nil
-				if err != nil {
-					return err
-				}
-			}
 
 			if val, ok := req.MultipartForm.Value["handle"]; ok && len(val) > 0 {
 				r.Handle, err = val[0], nil
@@ -675,13 +632,6 @@ func (r *UserGroupUpdate) Fill(req *http.Request) (err error) {
 		}
 
 		// POST params
-
-		if val, ok := req.Form["name"]; ok && len(val) > 0 {
-			r.Name, err = val[0], nil
-			if err != nil {
-				return err
-			}
-		}
 
 		if val, ok := req.Form["handle"]; ok && len(val) > 0 {
 			r.Handle, err = val[0], nil

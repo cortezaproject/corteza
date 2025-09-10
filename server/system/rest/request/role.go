@@ -259,6 +259,18 @@ type (
 		UserID uint64 `json:",string"`
 	}
 
+	RoleMemberRemoveGroup struct {
+		// RoleID PATH parameter
+		//
+		// Source Role ID
+		RoleID uint64 `json:",string"`
+
+		// UserGroupID PATH parameter
+		//
+		// User Group ID
+		UserGroupID uint64 `json:",string"`
+	}
+
 	RoleTriggerScript struct {
 		// RoleID PATH parameter
 		//
@@ -1316,6 +1328,53 @@ func (r *RoleMemberRemove) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "userID")
 		r.UserID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewRoleMemberRemoveGroup request
+func NewRoleMemberRemoveGroup() *RoleMemberRemoveGroup {
+	return &RoleMemberRemoveGroup{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleMemberRemoveGroup) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"roleID":      r.RoleID,
+		"userGroupID": r.UserGroupID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleMemberRemoveGroup) GetRoleID() uint64 {
+	return r.RoleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RoleMemberRemoveGroup) GetUserGroupID() uint64 {
+	return r.UserGroupID
+}
+
+// Fill processes request and fills internal variables
+func (r *RoleMemberRemoveGroup) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "roleID")
+		r.RoleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "userGroupID")
+		r.UserGroupID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}
