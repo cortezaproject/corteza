@@ -1283,6 +1283,49 @@ export default class System {
     return `/roles/${roleID}/member/${userID}`
   }
 
+  // Remove user group from a role
+  async roleMemberRemoveGroup (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      roleID,
+      userGroupID,
+    } = (a as KV) || {}
+    if (!roleID) {
+      throw Error('field roleID is empty')
+    }
+    if (!userGroupID) {
+      throw Error('field userGroupID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.roleMemberRemoveGroupEndpoint({
+        roleID, userGroupID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  roleMemberRemoveGroupCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.roleMemberRemoveGroup(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  roleMemberRemoveGroupEndpoint (a: KV): string {
+    const {
+      roleID,
+      userGroupID,
+    } = a || {}
+    return `/roles/${roleID}/member-g/${userGroupID}`
+  }
+
   // Fire system:role trigger
   async roleTriggerScript (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

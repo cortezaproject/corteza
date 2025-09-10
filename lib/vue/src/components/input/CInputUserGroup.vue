@@ -65,21 +65,26 @@ export default {
       this.fetchUserGroups()
     }, 300),
 
-    fetchUserGroups () {
+    fetchUserGroups() {
       this.processing = true
 
-      return this.$SystemAPI.userGroupList(this.userGroup.filter).then(({ set }) => {
-        this.userGroup.options = set.map(m => Object.freeze(m))
-      }).finally(() => {
-        setTimeout(() => {
-          this.processing = false
-        }, 500)
-      })
+      return this.$SystemAPI
+        .userGroupList(this.userGroup.filter)
+        .then(({ set }) => {
+          this.userGroup.options = set.map((m) => Object.freeze(m))
+        })
+        .finally(() => {
+          setTimeout(() => {
+            this.processing = false
+          }, 500)
+        })
     },
 
     getUserGroupByID (userGroupID) {
       if (!userGroupID || userGroupID === NoID) {
-        this.userGroup.value = undefined
+        this.userGroup.value = this.userGroup.options.find(
+          ({ selfID }) => selfID === NoID,
+        )
         return
       }
 
@@ -88,10 +93,12 @@ export default {
       if (userGroup) {
         this.userGroup.value = userGroup
       } else {
-        return this.$SystemAPI.userGroupRead({ userGroupID }).then(userGroup => {
-          this.userGroup.value = userGroup
-          this.userGroup.options.push(Object.freeze(userGroup))
-        })
+        return this.$SystemAPI.userGroupRead({ userGroupID }).then((userGroup) => {
+            this.userGroup.options.push(Object.freeze(userGroup))
+            this.userGroup.value = this.userGroup.options.find(
+              ({ selfID }) => selfID === NoID,
+            )
+          })
       }
     },
 
@@ -103,7 +110,7 @@ export default {
       return userGroupID
     },
 
-    getOptionLabel ({ handle, meta, userGroupID }) {
+    getOptionLabel ({ handle, meta = {}, userGroupID }) {
       return handle || meta.short || userGroupID
     },
   },

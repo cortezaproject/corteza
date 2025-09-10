@@ -17,12 +17,7 @@ editor:
   new: New User Group
   permissions: Permissions
   members:
-    add: Add
-    count: Members ({{count}})
-    remove: Remove
-    searchUsers: Search users
     title: User Group Members
-    unnamed: Unnamed user
   roles:
     add: Add
     count: roles
@@ -30,8 +25,8 @@ editor:
     title: Role membership
     unnamed: Unnamed role
   title:
-    create: Create user
-    edit: Edit user
+    create: Create user group
+    edit: Edit user group
 list:
   columns:
     actions: ""
