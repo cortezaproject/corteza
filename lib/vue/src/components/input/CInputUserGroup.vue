@@ -85,6 +85,8 @@ export default {
         this.userGroup.value = this.userGroup.options.find(
           ({ selfID }) => selfID === NoID,
         )
+
+        this.$emit('input', this.userGroup.value?.userGroupID)
         return
       }
 
@@ -94,11 +96,11 @@ export default {
         this.userGroup.value = userGroup
       } else {
         return this.$SystemAPI.userGroupRead({ userGroupID }).then((userGroup) => {
-            this.userGroup.options.push(Object.freeze(userGroup))
-            this.userGroup.value = this.userGroup.options.find(
-              ({ selfID }) => selfID === NoID,
-            )
-          })
+          this.userGroup.options.push(Object.freeze(userGroup))
+          this.userGroup.value = this.userGroup.options.find(
+            ({ selfID }) => selfID === NoID,
+          )
+        })
       }
     },
 
@@ -111,7 +113,7 @@ export default {
     },
 
     getOptionLabel ({ handle, meta = {}, userGroupID }) {
-      return handle || meta.short || userGroupID
+      return meta.short || handle || userGroupID
     },
   },
 }

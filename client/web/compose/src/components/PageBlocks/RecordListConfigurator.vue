@@ -957,16 +957,16 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
-import Draggable from 'vuedraggable'
-import base from './base'
-import AutomationTab from './Shared/AutomationTab'
+import { components } from '@cortezaproject/corteza-vue'
+import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
 import FieldPicker from 'corteza-webapp-compose/src/components/Common/FieldPicker'
 import RecordListFilter from 'corteza-webapp-compose/src/components/Common/RecordListFilter'
-import { components } from '@cortezaproject/corteza-vue'
+import Draggable from 'vuedraggable'
+import { mapGetters } from 'vuex'
 import Prefilter from './RecordList/Prefilter.vue'
-import ColumnPicker from 'corteza-webapp-compose/src/components/Admin/Module/Records/ColumnPicker'
+import AutomationTab from './Shared/AutomationTab'
+import base from './base'
 const { CInputPresort, CInputRole } = components
 
 export default {

@@ -56,10 +56,10 @@
             :label="$t('parent')"
             label-class="text-primary"
           >
-            <b-form-select
+            <c-input-user-group
               v-model="userGroup.selfID"
-              data-test-id="select-parent"
-              :options="parentUserGroups"
+              :placeholder="$t('parent')"
+              :clearable="false"
             />
           </b-form-group>
         </b-col>
@@ -135,8 +135,8 @@
 
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
-import { handle } from '@cortezaproject/corteza-vue'
-import { getSystemFields } from 'corteza-webapp-admin/src/lib/sysFields'
+import { handle, components } from '@cortezaproject/corteza-vue'
+const { CInputUserGroup } = components
 
 export default {
   name: 'CUserEditorInfo',
@@ -146,16 +146,14 @@ export default {
     keyPrefix: 'editor.info',
   },
 
+  components: {
+    CInputUserGroup,
+  },
+
   props: {
     userGroup: {
       type: Object,
       required: true,
-    },
-
-    parentUserGroups: {
-      type: Array,
-      required: false,
-      default: () => [],
     },
 
     processing: {
@@ -208,10 +206,6 @@ export default {
 
     suspendButtonStatusCypressId () {
       return `button-${this.getSuspendStatus.toLowerCase()}`
-    },
-
-    systemFields () {
-      return getSystemFields(this.role)
     },
   },
 }

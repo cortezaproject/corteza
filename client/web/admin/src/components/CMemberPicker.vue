@@ -1,15 +1,14 @@
 <template>
   <div
-    data-test-id="role-picker"
+    data-test-id="member-picker"
     class="d-flex flex-column"
   >
     <c-input-user
-      data-test-id="input-user-picker"
+      data-test-id="input-member-picker"
       :selectable="r => !value.includes(r.userID)"
-      :placeholder="$t('admin:picker.user.placeholder')"
-      :visible="isUserVisible"
+      :placeholder="$t('admin:picker.member.placeholder')"
       clear-on-select
-      @input-object="addUser($event)"
+      @input-object="addUser"
     />
 
     <b-spinner
@@ -123,26 +122,9 @@ export default {
         .catch(this.toastErrorHandler(this.$t('notification:user.fetch.error')))
     },
 
-    getUserLabel ({ name, handle, userID }) {
-      return name || handle || userID
-    },
-
-    isUserVisible ({ isClosed, meta = {} }) {
-      return !(isClosed || (meta.context && meta.context.resourceTypes))
+    getUserLabel ({ name, handle, userID, email }) {
+      return name || handle || email || userID
     },
   },
 }
 </script>
-
-<style lang="scss">
-.results {
-  z-index: 100;
-  .filtered-user {
-    cursor: pointer;
-    &:hover {
-      background-color: var(--light);
-    }
-  }
-}
-
-</style>

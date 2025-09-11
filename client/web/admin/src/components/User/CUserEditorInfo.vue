@@ -63,9 +63,7 @@
             </b-form-invalid-feedback>
           </b-form-group>
         </b-col>
-      </b-row>
 
-      <b-row>
         <b-col
           cols="12"
           lg="6"
@@ -166,7 +164,6 @@
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { handle, components } from '@cortezaproject/corteza-vue'
-import { getSystemFields } from 'corteza-webapp-admin/src/lib/sysFields'
 const { CInputUserGroup } = components
 
 export default {
@@ -246,10 +243,6 @@ export default {
 
     suspendButtonStatusCypressId () {
       return `button-${this.getSuspendStatus.toLowerCase()}`
-    },
-
-    systemFields () {
-      return getSystemFields(this.role)
     },
   },
 }

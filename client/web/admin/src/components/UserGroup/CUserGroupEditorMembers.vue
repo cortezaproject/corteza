@@ -7,8 +7,8 @@
   >
     <b-form @submit.prevent="$emit('submit')">
       <c-member-picker
-        no-remove
         :value="value"
+        no-remove
         @input="$emit('input', $event)"
       />
     </b-form>

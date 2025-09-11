@@ -1,6 +1,7 @@
 <template>
   <c-input-select
-    v-model="user.value"
+    ref="userSelect"
+    :value="user.value"
     data-test-id="select-user"
     :options="user.options"
     :get-option-label="getOptionLabel"
@@ -30,6 +31,11 @@ export default {
     placeholder: {
       type: String,
       default: '',
+    },
+
+    clearOnSelect: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -95,9 +101,13 @@ export default {
       }
     },
 
-    onUserUpdate (u) {
-      this.$emit('input', u.userID)
-      this.$emit('input-object', u)
+    onUserUpdate (user) {
+      if (this.clearOnSelect && this.$refs.userSelect) {
+        this.$refs.userSelect._data._value = undefined
+      }
+
+      this.$emit('input', user.userID)
+      this.$emit('input-object', user)
     },
 
     getOptionKey ({ userID }) {
