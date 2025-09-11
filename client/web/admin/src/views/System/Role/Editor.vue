@@ -51,22 +51,22 @@
 
     <c-role-editor-members
       v-if="!isContext && canManageMembers"
-      class="mt-3"
+      v-model="members.active"
       :processing="members.processing"
       :success="members.success"
-      :current-members.sync="roleMembers"
+      class="mt-3"
       @submit="onMembersSubmit"
     />
   </b-container>
 </template>
 
 <script>
-import { isEqual } from 'lodash'
 import { system } from '@cortezaproject/corteza-js'
-import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
+import CPermissionClone from 'corteza-webapp-admin/src/components/Permissions/CPermissionClone'
 import CRoleEditorInfo from 'corteza-webapp-admin/src/components/Role/CRoleEditorInfo'
 import CRoleEditorMembers from 'corteza-webapp-admin/src/components/Role/CRoleEditorMembers'
-import CPermissionClone from 'corteza-webapp-admin/src/components/Permissions/CPermissionClone'
+import editorHelpers from 'corteza-webapp-admin/src/mixins/editorHelpers'
+import { isEqual } from 'lodash'
 import { mapGetters } from 'vuex'
 
 export default {
@@ -107,14 +107,15 @@ export default {
       initialRoleState: undefined,
       isContext: false,
 
-      roleMembers: undefined,
-
       info: {
         processing: false,
         success: false,
       },
 
       members: {
+        active: undefined,
+        initial: undefined,
+
         processing: false,
         success: false,
       },
@@ -130,7 +131,7 @@ export default {
       return this.role &&
         this.role.canManageMembersOnRole &&
         this.role.roleID &&
-        this.roleMembers &&
+        this.members.active &&
         !this.role.isClosed &&
         !this.role.isContext
     },
@@ -158,7 +159,6 @@ export default {
           this.role = new system.Role()
           this.initialRoleState = this.role.clone()
           this.isContext = false
-          this.roleMembers = undefined
         }
       },
     },
@@ -191,7 +191,8 @@ export default {
 
           if (this.role.canManageMembersOnRole && !this.role.isContext && !this.role.isClosed) {
             return this.$SystemAPI.roleMemberList(r).then((mm = []) => {
-              this.roleMembers = mm.map(userID => ({ userID, current: true, dirty: true }))
+              this.members.active = [...mm]
+              this.members.initial = [...mm]
             })
           }
         })
@@ -299,17 +300,17 @@ export default {
       this.members.processing = true
 
       const { roleID } = this.role
+
+      const { active, initial } = this.members
       if (roleID) {
-        Promise.all(this.roleMembers.map(async user => {
-          const { userID, current, dirty } = user
-          if (dirty !== current) {
-            if (dirty) {
-              return this.$SystemAPI.roleMemberAdd({ roleID, userID })
-            } else {
-              return this.$SystemAPI.roleMemberRemove({ roleID, userID })
-            }
-          }
-        }))
+        Promise.all([
+          ...active.filter(userID => !initial.includes(userID)).map(userID => {
+            return this.$SystemAPI.roleMemberAdd({ roleID, userID })
+          }),
+          ...initial.filter(userID => !active.includes(userID)).map(userID => {
+            return this.$SystemAPI.roleMemberRemove({ roleID, userID })
+          }),
+        ])
           .then(() => {
             this.fetchRole()
             this.animateSuccess('members')
@@ -330,7 +331,7 @@ export default {
       if (isNewPage || deletedAt) {
         next(true)
       } else if (!to.name.includes('edit')) {
-        const isDirty = (this.roleMembers || []).some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)
+        const isDirty = (this.members.active || []).some(m => m.dirty !== m.current) || !isEqual(this.role, this.initialRoleState)
         next(isDirty ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
       }
     },

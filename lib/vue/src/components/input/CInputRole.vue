@@ -1,6 +1,6 @@
 <template>
   <c-input-select
-    ref="picker"
+    ref="roleSelect"
     :value="value"
     :options="roles"
     :placeholder="placeholder"
@@ -104,9 +104,9 @@ export default {
     }, 400),
 
     updateValue (role) {
-      // reset picker value for better value presentation
-      if (this.$refs.picker && this.clearOnSelect) {
-        this.$refs.picker._data._value = undefined
+      // reset role-select value for better value presentation
+      if (this.clearOnSelect && this.$refs.roleSelect) {
+        this.$refs.roleSelect._data._value = undefined
       }
 
       this.$emit('input', role)

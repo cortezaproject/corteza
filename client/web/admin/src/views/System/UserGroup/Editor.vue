@@ -28,26 +28,25 @@
       :processing="info.processing"
       :success="info.success"
       :can-create="canCreate"
-      :parent-user-groups="parentUserGroups"
       @submit="onInfoSubmit"
       @delete="onDelete"
     />
 
     <c-user-group-editor-members
-      v-if="canManageMembers && groupMembers.active"
+      v-if="canManageMembers"
       v-model="groupMembers.active"
-      class="mt-3"
       :processing="groupMembers.processing"
       :success="groupMembers.success"
+      class="mt-3"
       @submit="onMembersSubmit"
     />
 
     <c-user-group-editor-roles
-      v-if="userGroup && userGroupID && groupRoles.active"
+      v-if="canManageRoles"
       v-model="groupRoles.active"
-      class="mt-3"
       :processing="groupRoles.processing"
       :success="groupRoles.success"
+      class="mt-3"
       @submit="onUserGroupRolesSubmit"
     />
   </b-container>
@@ -76,13 +75,13 @@ export default {
 
   mixins: [editorHelpers],
 
-  // beforeRouteUpdate (to, from, next) {
-  //   this.checkUnsavedChanges(next, to)
-  // },
+  beforeRouteUpdate (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
 
-  // beforeRouteLeave (to, from, next) {
-  //   this.checkUnsavedChanges(next, to)
-  // },
+  beforeRouteLeave (to, from, next) {
+    this.checkUnsavedChanges(next, to)
+  },
 
   props: {
     userGroupID: {
@@ -117,8 +116,6 @@ export default {
         processing: false,
         success: false,
       },
-
-      parentUserGroups: [],
     }
   },
 
@@ -131,7 +128,16 @@ export default {
       return (
         this.userGroup &&
         this.userGroup.canManageMembersOnUserGroup &&
-        this.userGroup.userGroupID
+        this.userGroup.userGroupID &&
+        this.groupMembers.active
+      )
+    },
+
+    canManageRoles () {
+      return (
+        this.userGroup &&
+        this.userGroup.userGroupID &&
+        this.groupRoles.active
       )
     },
 
@@ -160,24 +166,11 @@ export default {
           this.userGroup = new system.UserGroup()
           this.initialUserGroupState = this.userGroup.clone()
         }
-
-        await this.fetchUserGroups()
       },
     },
   },
 
   methods: {
-    async fetchUserGroups () {
-      const { set: userGroups } = await this.$SystemAPI.userGroupList()
-
-      this.parentUserGroups = userGroups
-        .filter(({ userGroupID }) => userGroupID !== this.userGroupID)
-        .map(({ name, handle, userGroupID }) => ({
-          value: userGroupID,
-          text: name || handle || userGroupID,
-        }))
-    },
-
     async fetchUserGroupRoles () {
       this.incLoader()
       return this.$SystemAPI
@@ -198,7 +191,6 @@ export default {
       this.incLoader()
       return this.$SystemAPI.userGroupMemberList({ userGroupID: this.userGroupID })
         .then((set = []) => {
-          console.log({ set })
           this.groupMembers.active = [...set]
           this.groupMembers.initial = [...set]
         })
@@ -236,14 +228,10 @@ export default {
       const { active, initial } = this.groupRoles
 
       Promise.all([
-        // all removed memberships
         ...initial
           .filter((roleID) => !active.includes(roleID))
           .map((roleID) => {
-            return this.$SystemAPI.roleMemberRemoveGroup({
-              roleID,
-              userGroupID,
-            })
+            return this.$SystemAPI.roleMemberRemoveGroup({ roleID, userGroupID })
           }),
         // all new memberships
         ...active
@@ -382,24 +370,19 @@ export default {
         })
     },
 
-    // checkUnsavedChanges (next, to) {
-    //   const isNewPage =
-    //     this.$route.path.includes('/new') && to.name.includes('edit')
-    //   const { deletedAt } = this.userGroup || {}
+    checkUnsavedChanges (next, to) {
+      const isNewPage = this.$route.path.includes('/new') && to.name.includes('edit')
+      const { deletedAt } = this.userGroup || {}
 
-    //   if (isNewPage || deletedAt) {
-    //     next(true)
-    //   } else if (!to.name.includes('edit')) {
-    //     const isDirty =
-    //       (this.userGroupMembers || []).some((m) => m.dirty !== m.current) ||
-    //       !isEqual(this.userGroup, this.initialUserGroupState)
-    //     next(
-    //       isDirty
-    //         ? window.confirm(this.$t('general:editor.unsavedChanges'))
-    //         : true,
-    //     )
-    //   }
-    // },
+      if (isNewPage || deletedAt) {
+        next(true)
+      } else if (!to.name.includes('edit')) {
+        const userGroupChangesStatus = !isEqual(this.userGroup, this.initialUserGroupState)
+        const userGroupMembersChangesStatus = (this.userGroupMembers || []).some((m) => m.dirty !== m.current)
+
+        next((userGroupChangesStatus || userGroupMembersChangesStatus) ? window.confirm(this.$t('general:editor.unsavedChanges')) : true)
+      }
+    },
   },
 }
 </script>
