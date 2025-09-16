@@ -54,10 +54,10 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncNodeID,
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
-		fix_2024_09_05_addRelResourceRoleMembershipColumn,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
+		fix_2024_09_05_addRelResourceRoleMembershipColumn,
 		fix_2024_09_05_addUserGroupReferenceToUser,
 	}
 )
