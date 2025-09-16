@@ -51,7 +51,7 @@ func Init(ext ...func() []gval.Language) {
 // Parser returns global parser instance
 func Parser() gval.Language {
 	if !initialized {
-		Init()
+		Init(AllFunctions)
 	}
 	return parser
 }
