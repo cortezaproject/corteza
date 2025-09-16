@@ -2,12 +2,14 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	"testing"
+
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func testRoleMembers(t *testing.T, s store.RoleMembers) {
@@ -17,8 +19,8 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 		makeNew = func(nn ...string) *types.RoleMember {
 			// minimum data set for new RoleMember
 			return &types.RoleMember{
-				RoleID: id.Next(),
-				UserID: id.Next(),
+				RoleID:   id.Next(),
+				Resource: fmt.Sprintf("corteza::system:user/%d", id.Next()),
 			}
 		}
 
@@ -84,14 +86,14 @@ func testRoleMembers(t *testing.T, s store.RoleMembers) {
 		t.Run("by role member", func(t *testing.T) {
 			req, roleMember := truncAndCreate(t)
 			req.NoError(s.DeleteRoleMember(ctx, roleMember))
-			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
+			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{Resource: roleMember.Resource, RoleID: roleMember.RoleID})
 			req.Len(roleMembers, 0)
 		})
 
 		t.Run("by RoleID and UserID", func(t *testing.T) {
 			req, roleMember := truncAndCreate(t)
-			req.NoError(s.DeleteRoleMemberByUserIDRoleID(ctx, roleMember.UserID, roleMember.RoleID))
-			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{UserID: roleMember.UserID, RoleID: roleMember.RoleID})
+			req.NoError(s.DeleteRoleMemberByResourceRoleID(ctx, roleMember.Resource, roleMember.RoleID))
+			roleMembers, _, _ := s.SearchRoleMembers(ctx, types.RoleMemberFilter{Resource: roleMember.Resource, RoleID: roleMember.RoleID})
 			req.Len(roleMembers, 0)
 		})
 	})

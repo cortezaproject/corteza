@@ -180,7 +180,8 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 
 			// making sure u is not overwritten
 			// in the next iteration
-			memberId := fmt.Sprintf("corteza::system:user/%d", u.ID)
+			uID := u.ID
+			memberId := fmt.Sprintf("corteza::system:user/%d", uID)
 
 			switch op.Operation {
 			case patchOpAdd:
@@ -193,7 +194,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 					}
 
 					memberships[memberId] = true
-					return svc.MemberAdd(ctx, res.ID, u.ID)
+					return svc.MemberAdd(ctx, res.ID, uID)
 				})
 
 			case patchOpRemove:
@@ -206,7 +207,7 @@ func (h groupsHandler) patch(w http.ResponseWriter, r *http.Request) {
 					}
 
 					delete(memberships, memberId)
-					return svc.MemberRemove(ctx, res.ID, u.ID)
+					return svc.MemberRemove(ctx, res.ID, uID)
 				})
 
 			default:

@@ -2,6 +2,7 @@ package workflows
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
@@ -36,7 +37,7 @@ func Test_invoker_and_runner_in_scope(t *testing.T) {
 	// invokers group with permissions to execute workflow
 	wfInvokers, err := defStore.LookupRoleByHandle(ctx, "wf-invokers")
 	req.NoError(err)
-	err = defStore.CreateRoleMember(ctx, &sysTypes.RoleMember{UserID: wfInvoker.ID, RoleID: wfInvokers.ID})
+	err = defStore.CreateRoleMember(ctx, &sysTypes.RoleMember{Resource: fmt.Sprintf("corteza::system:user/%d", wfInvoker.ID), RoleID: wfInvokers.ID})
 	req.NoError(err)
 
 	wfInvoker.SetRoles(wfInvokers.ID)

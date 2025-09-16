@@ -18,11 +18,16 @@ func (h *AuthHandlers) signupProc(req *request.AuthReq) error {
 	req.RedirectTo = GetLinks().Signup
 	req.SetKV(nil)
 
+	ugID := uint64(0)
+	if req.Client != nil && req.Client.Security != nil {
+		ugID = req.Client.Security.UserGroup
+	}
+
 	payload := &types.User{
 		Email:       req.Request.PostFormValue("email"),
 		Handle:      req.Request.PostFormValue("handle"),
 		Name:        req.Request.PostFormValue("name"),
-		UserGroupID: req.Client.Security.UserGroup,
+		UserGroupID: ugID,
 	}
 
 	newUser, err := h.AuthService.InternalSignUp(

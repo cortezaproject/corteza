@@ -374,6 +374,35 @@ func TestBuildOrgTree(t *testing.T) {
 	})
 }
 
+func TestFindNode(t *testing.T) {
+	svc, err := testPrepState(t)
+	require.NoError(t, err)
+
+	t.Run("first", func(t *testing.T) {
+		i, n := svc.findNode(id.MustNumID(1))
+		require.Equal(t, 0, i)
+		require.NotNil(t, n)
+	})
+
+	t.Run("last", func(t *testing.T) {
+		i, n := svc.findNode(id.MustNumID(4))
+		require.Equal(t, 3, i)
+		require.NotNil(t, n)
+	})
+
+	t.Run("middle", func(t *testing.T) {
+		i, n := svc.findNode(id.MustNumID(3))
+		require.Equal(t, 2, i)
+		require.NotNil(t, n)
+	})
+
+	t.Run("not existing", func(t *testing.T) {
+		i, n := svc.findNode(id.MustNumID(999))
+		require.Equal(t, -1, i)
+		require.Nil(t, n)
+	})
+}
+
 func testPrepState(t *testing.T) (svc *orgTree, err error) {
 	return OrgTree(GroupMembers{
 		group: &groupNode{

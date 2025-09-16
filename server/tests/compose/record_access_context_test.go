@@ -26,8 +26,8 @@ func crissCrossUserRoles(ctx context.Context, s store.Storer, h helper, uu syste
 		}
 		rID := rx[u.Name].ID
 		h.a.NoError(store.CreateRoleMember(ctx, s, &systemTypes.RoleMember{
-			RoleID: rID,
-			UserID: u.ID,
+			RoleID:   rID,
+			Resource: fmt.Sprintf("corteza::system:user/%d", u.ID),
 		}))
 		u.SetRoles(rID)
 	}

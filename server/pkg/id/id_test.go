@@ -14,21 +14,6 @@ type (
 	}
 )
 
-func TestThing(t *testing.T) {
-	var tr TestRes
-
-	aux := `{"Id": "12345678901"}`
-	err := json.Unmarshal([]byte(aux), &tr)
-	require.NoError(t, err)
-	require.Equal(t, uint64(12345678901), tr.Id.Number())
-
-	aux = `{"Id": "asd-f-xx-75"}`
-	err = json.Unmarshal([]byte(aux), &tr)
-	require.NoError(t, err)
-	require.Equal(t, "asd-f-xx-75", tr.Id.String())
-	panic("aaaaaaaa")
-}
-
 func TestNumericIdentifiers(t *testing.T) {
 	ints := []uint64{
 		1,
