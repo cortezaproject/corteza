@@ -69,8 +69,8 @@ func (h helper) lookupRoleByID(ID uint64) *types.Role {
 
 func (h helper) createRoleMember(userID, roleID uint64) *types.RoleMember {
 	var r = &types.RoleMember{
-		RoleID: roleID,
-		UserID: userID,
+		RoleID:   roleID,
+		Resource: fmt.Sprintf("corteza::system:user/%d", userID),
 	}
 
 	h.a.NoError(store.CreateRoleMember(context.Background(), service.DefaultStore, r))

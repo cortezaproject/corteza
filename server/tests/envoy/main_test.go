@@ -9,6 +9,7 @@ import (
 	automationEnvoy "github.com/cortezaproject/corteza/server/automation/envoy"
 	composeEnvoy "github.com/cortezaproject/corteza/server/compose/envoy"
 	systemEnvoy "github.com/cortezaproject/corteza/server/system/envoy"
+	"github.com/cortezaproject/corteza/server/tests/helpers"
 
 	"github.com/cortezaproject/corteza/server/pkg/cli"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
@@ -27,10 +28,10 @@ var (
 	defaultDal   dal.FullService
 )
 
-// func init() {
-// 	helpers.RecursiveDotEnvLoad()
-// 	id.Init(cli.Context())
-// }
+func init() {
+	helpers.RecursiveDotEnvLoad()
+	id.Init(cli.Context())
+}
 
 func TestMain(m *testing.M) {
 	InitTestApp()

@@ -231,6 +231,10 @@ func (svc *orgTree) MemberBranch(user id.ID) (group []*groupNode, err error) {
 
 // AssignGroupMembers assigns the members to the specified group
 func (svc *orgTree) AssignGroupMembers(group id.ID, members ...id.ID) (err error) {
+	if group.IsZero() {
+		return
+	}
+
 	if svc.memberGroupIndex == nil {
 		svc.memberGroupIndex = make(map[id.ID]*groupNode)
 	}
@@ -266,6 +270,10 @@ func (svc *orgTree) AssignGroupMembers(group id.ID, members ...id.ID) (err error
 
 // RemoveGroupMembers removes the members from the given user group
 func (svc *orgTree) RemoveGroupMembers(group id.ID, members ...id.ID) (err error) {
+	if svc == nil {
+		return
+	}
+
 	if svc.memberGroupIndex == nil {
 		return
 	}
@@ -357,15 +365,17 @@ func (svc *orgTree) findNode(id id.ID) (i int, n *groupNode) {
 	nn := svc.root.inline()
 
 	i = 0
+	found := false
 	for i = range nn {
 		n = nn[i]
 
 		if n.id.Equal(id) {
+			found = true
 			break
 		}
 	}
 
-	if i < 0 {
+	if !found {
 		n = nil
 		i = -1
 	}

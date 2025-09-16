@@ -322,7 +322,7 @@ func TestScimPatchingGroupMembership(t *testing.T) {
 	h.clearRoleMembers()
 
 	isMember := func(r *types.Role, u *types.User) bool {
-		mm, _, err := store.SearchRoleMembers(h.secCtx(), service.DefaultStore, types.RoleMemberFilter{RoleID: r.ID, UserID: u.ID})
+		mm, _, err := store.SearchRoleMembers(h.secCtx(), service.DefaultStore, types.RoleMemberFilter{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user/%d", u.ID)})
 		h.a.NoError(err)
 		return len(mm) > 0
 	}

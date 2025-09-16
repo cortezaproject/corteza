@@ -59,6 +59,10 @@ func TestMain(m *testing.M) {
 		panic(fmt.Errorf("could not activate corteza: %v", err))
 	}
 
+	if err := defApp.InitExpr(ctx); err != nil {
+		panic(fmt.Errorf("could not init expressions: %v", err))
+	}
+
 	m.Run()
 }
 
@@ -183,8 +187,8 @@ func addRoleMember(ctx context.Context, req *require.Assertions, r string, uu ..
 		req.NoError(err)
 
 		rr[i] = &sysTypes.RoleMember{
-			RoleID: role.ID,
-			UserID: usr.ID,
+			RoleID:   role.ID,
+			Resource: fmt.Sprintf("corteza::system:user/%d", usr.ID),
 		}
 	}
 
