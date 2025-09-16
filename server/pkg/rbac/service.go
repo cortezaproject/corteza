@@ -139,13 +139,28 @@ func (svc *service) checkMemberBranch(ses Session, op string, res Resource) Acce
 	return svc.evalSubBranch(mm, op, res.RbacResource())
 }
 
+// @note being ery explicit with branches for the sake of clarity
 func (svc *service) mergeAccess(treeAccess, userAccess Access) Access {
-	if treeAccess == Deny || userAccess == Deny {
+	if userAccess == Deny {
 		return Deny
 	}
 
-	if treeAccess == Allow || userAccess == Allow {
+	if userAccess == Allow {
 		return Allow
+	}
+
+	// @note userAccess will always be Inherit here; adding a little guard
+	// just in case we ever expand this
+	if userAccess != Inherit {
+		panic("new edge case; to address")
+	}
+
+	if treeAccess == Allow {
+		return Allow
+	}
+
+	if treeAccess == Deny {
+		return Deny
 	}
 
 	return Inherit
