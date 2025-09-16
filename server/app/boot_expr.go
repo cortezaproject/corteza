@@ -7,8 +7,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 )
 
-func (app *CortezaApp) initExpr(ctx context.Context) (err error) {
-	expr.Init(rbac.AllFunctions)
+func (app *CortezaApp) InitExpr(ctx context.Context) (err error) {
+	expr.Init(rbac.AllFunctions, expr.AllFunctions)
 
 	return
 }
