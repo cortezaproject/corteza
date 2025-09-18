@@ -58,7 +58,14 @@ func (h httpRequestHandler) send(ctx context.Context, args *httpRequestSendArgs)
 	r.Headers = rsp.Header
 	r.ContentLength = rsp.ContentLength
 	r.ContentType = rsp.Header.Get("Content-Type")
-	r.Body = rsp.Body
+
+	defer rsp.Body.Close()
+	bodyBuffer := new(bytes.Buffer)
+	_, err = io.Copy(bodyBuffer, rsp.Body)
+	if err != nil {
+		return nil, err
+	}
+	r.Body = io.NopCloser(bodyBuffer)
 
 	return
 }
