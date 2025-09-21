@@ -17,6 +17,8 @@ type (
 
 		SelfID uint64 `json:"selfID,string"`
 
+		IsRoot bool `json:"isRoot"`
+
 		Meta   *UserGroupMeta    `json:"meta"`
 		Labels map[string]string `json:"labels,omitempty"`
 
