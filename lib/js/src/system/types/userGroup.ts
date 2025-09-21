@@ -27,6 +27,8 @@ export class UserGroup {
 
   public selfID = NoID
 
+  public isRoot = false
+
   public canGrant = false
   public canUpdateUserGroup = false
   public canDeleteUserGroup = false
@@ -46,7 +48,7 @@ export class UserGroup {
     Apply(this, u, CortezaID, 'userGroupID', 'selfID')
     Apply(this, u, String, 'handle')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
-    Apply(this, u, Boolean, 'canGrant', 'canUpdateUserGroup', 'canDeleteUserGroup', 'canManageMembersOnUserGroup')
+    Apply(this, u, Boolean, 'isRoot', 'canGrant', 'canUpdateUserGroup', 'canDeleteUserGroup', 'canManageMembersOnUserGroup')
 
     if (u?.roles) {
       this.roles = []
@@ -99,6 +101,7 @@ export class UserGroup {
       'userGroupID',
       'handle',
       'labels',
+      'isRoot',
       'canGrant',
       'canUpdateUserGroup',
       'canDeleteUserGroup',
