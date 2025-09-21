@@ -62,7 +62,7 @@ func TestIsAbove(t *testing.T) {
 
 func TestAddGroupRole(t *testing.T) {
 	t.Run("add role", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -82,7 +82,7 @@ func TestAddGroupRole(t *testing.T) {
 	})
 
 	t.Run("add duplicate role", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -102,7 +102,7 @@ func TestAddGroupRole(t *testing.T) {
 	})
 
 	t.Run("append role", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -129,7 +129,7 @@ func TestAddGroupRole(t *testing.T) {
 
 func TestRemoveGroupRole(t *testing.T) {
 	t.Run("remove role", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -151,7 +151,7 @@ func TestRemoveGroupRole(t *testing.T) {
 	})
 
 	t.Run("remove roles", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -176,7 +176,7 @@ func TestRemoveGroupRole(t *testing.T) {
 
 func TestAddNode(t *testing.T) {
 	t.Run("empty svc", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(1), "root", id.MustNumID(0))
@@ -189,7 +189,7 @@ func TestAddNode(t *testing.T) {
 	})
 
 	t.Run("add children", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -217,7 +217,7 @@ func TestAddNode(t *testing.T) {
 
 func TestUpdateNode(t *testing.T) {
 	t.Run("update without move", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -232,7 +232,7 @@ func TestUpdateNode(t *testing.T) {
 	})
 
 	t.Run("change parent", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -255,7 +255,7 @@ func TestUpdateNode(t *testing.T) {
 	})
 
 	t.Run("update non existing node", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -268,7 +268,7 @@ func TestUpdateNode(t *testing.T) {
 
 func TestRemoveNode(t *testing.T) {
 	t.Run("remove leaf node", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -285,7 +285,7 @@ func TestRemoveNode(t *testing.T) {
 	})
 
 	t.Run("can not remove non-lief nodes", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -302,7 +302,7 @@ func TestRemoveNode(t *testing.T) {
 	})
 
 	t.Run("can not remove non-existing nodes", func(t *testing.T) {
-		svc, err := OrgTree()
+		svc, err := mkOrgTree()
 		require.NoError(t, err)
 
 		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
@@ -327,7 +327,7 @@ func checkInline(t *testing.T, node *groupNode, ii ...id.ID) {
 
 func TestAssignGroupMembers(t *testing.T) {
 	t.Run("new", func(t *testing.T) {
-		svc, err := OrgTree(
+		svc, err := mkOrgTree(
 			GroupMembers{
 				group: &groupNode{
 					id:     id.MustNumID(1),
@@ -350,7 +350,7 @@ func TestAssignGroupMembers(t *testing.T) {
 	})
 
 	t.Run("update", func(t *testing.T) {
-		svc, err := OrgTree(
+		svc, err := mkOrgTree(
 			GroupMembers{
 				group: &groupNode{
 					id:     id.MustNumID(1),
@@ -386,7 +386,7 @@ func TestAssignGroupMembers(t *testing.T) {
 }
 
 func TestRemoveGroupMembers(t *testing.T) {
-	svc, err := OrgTree(
+	svc, err := mkOrgTree(
 		GroupMembers{
 			group: &groupNode{
 				id:     id.MustNumID(1),
@@ -518,7 +518,7 @@ func TestFindNode(t *testing.T) {
 }
 
 func testPrepState(t *testing.T) (svc *orgTree, err error) {
-	return OrgTree(GroupMembers{
+	return mkOrgTree(GroupMembers{
 		group: &groupNode{
 			id:     id.MustNumID(1),
 			handle: "root",
