@@ -47,7 +47,8 @@ var (
 )
 
 const (
-	watchInterval = time.Hour
+	watchInterval      = time.Hour
+	debugWatchInterval = time.Minute * 5
 
 	RuleResourceType = "corteza::generic:rbac-rule"
 )
@@ -83,7 +84,10 @@ func NewService(logger *zap.Logger, s rbacRulesStore) (svc *service) {
 
 // @todo consider a more graceful update
 func (svc *service) UpdateUserGroups(gm ...GroupMembers) (err error) {
-	svc.orgTree, err = OrgTree(gm...)
+	svc.orgTree, err = OrgTree(
+		svc.logger.Named("org tree"),
+		gm...,
+	)
 	return
 }
 
@@ -280,7 +284,10 @@ func (svc *service) Watch(ctx context.Context) {
 		defer sentry.Recover()
 
 		var ticker = time.NewTicker(watchInterval)
+		var debugTicker = time.NewTicker(debugWatchInterval)
+
 		defer ticker.Stop()
+		defer debugTicker.Stop()
 		for {
 			select {
 			case <-ctx.Done():
@@ -289,6 +296,8 @@ func (svc *service) Watch(ctx context.Context) {
 				svc.Reload(ctx)
 			case <-svc.f:
 				svc.Reload(ctx)
+			case <-debugTicker.C:
+				svc.LogDebug(ctx)
 			}
 		}
 	}()
@@ -461,4 +470,18 @@ func (svc *service) CloneRulesByRoleID(ctx context.Context, fromRoleID uint64, t
 	}
 
 	return svc.Grant(ctx, updatedRules...)
+}
+
+func (svc *service) LogDebug(ctx context.Context) {
+	nodes := make([]map[string]any, 0, 4)
+	for _, n := range svc.orgTree.root.inline() {
+		nodes = append(nodes, n.format())
+	}
+
+	children := make(map[string]string, 4)
+	for u, g := range svc.orgTree.memberGroupIndex {
+		children[u.Value()] = g.id.Value()
+	}
+
+	svc.logger.Debug("internal org tree state", zap.Any("nodes", nodes), zap.Any("role membership", children))
 }

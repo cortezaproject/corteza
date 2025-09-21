@@ -5,10 +5,13 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 type (
 	orgTree struct {
+		logger *zap.Logger
+
 		root *groupNode
 
 		// branchIndex provides all of the available sub-trees in the given orgTree
@@ -56,8 +59,11 @@ func ConvUserGroup(id id.ID, handle string, selfID id.ID, members, roles []id.ID
 }
 
 // OrgTree prepares the organization tree subservice
-func OrgTree(gm ...GroupMembers) (svc *orgTree, err error) {
-	svc = &orgTree{}
+func OrgTree(log *zap.Logger, gm ...GroupMembers) (svc *orgTree, err error) {
+	svc = &orgTree{
+		logger: log,
+	}
+
 	err = svc.Rebuild(gm...)
 	return
 }
@@ -90,6 +96,8 @@ func (svc *orgTree) Rebuild(gm ...GroupMembers) (err error) {
 }
 
 func (svc *orgTree) AddNode(id id.ID, handle string, selfID id.ID) (err error) {
+	svc.logger.Debug("adding node", zap.Any("id", id.Value()), zap.String("handle", handle), zap.Any("selfID", selfID.Value()))
+
 	err = svc.addNode(&groupNode{
 		id:     id,
 		handle: handle,
@@ -133,6 +141,8 @@ func (svc *orgTree) addNode(node *groupNode) (err error) {
 }
 
 func (svc *orgTree) UpdateNode(idx id.ID, handle string, selfID id.ID) (err error) {
+	svc.logger.Debug("updating node", zap.Any("id", idx.Value()), zap.String("handle", handle), zap.Any("selfID", selfID.Value()))
+
 	i, n := svc.findNode(idx)
 	if i < 0 {
 		return fmt.Errorf("cannot update node %v (%s): not indexed", idx.Value(), handle)
@@ -160,6 +170,8 @@ func (svc *orgTree) UpdateNode(idx id.ID, handle string, selfID id.ID) (err erro
 }
 
 func (svc *orgTree) RemoveNode(id id.ID) (err error) {
+	svc.logger.Debug("removing node", zap.Any("id", id.Value()))
+
 	i, n := svc.findNode(id)
 	if i < 0 {
 		return fmt.Errorf("cannot delete node %v: not indexed", id.Value())
@@ -235,6 +247,8 @@ func (svc *orgTree) MemberBranch(user id.ID) (group []*groupNode, err error) {
 }
 
 func (svc *orgTree) AddGroupRole(group id.ID, roles ...id.ID) (err error) {
+	svc.logger.Debug("adding group roles", zap.Any("group", group.Value()), zap.Any("roles", id.StringifySlice(roles...)))
+
 	i, n := svc.findNode(group)
 	if i < 0 {
 		return fmt.Errorf("node %v not found", group)
@@ -252,6 +266,8 @@ func (svc *orgTree) AddGroupRole(group id.ID, roles ...id.ID) (err error) {
 }
 
 func (svc *orgTree) RemoveGroupRole(group id.ID, roles ...id.ID) (err error) {
+	svc.logger.Debug("removing group roles", zap.Any("group", group.Value()), zap.Any("roles", id.StringifySlice(roles...)))
+
 	i, n := svc.findNode(group)
 	if i < 0 {
 		return fmt.Errorf("node %v not found", group)
@@ -269,6 +285,8 @@ func (svc *orgTree) AssignGroupMembers(group id.ID, members ...id.ID) (err error
 	if group.IsZero() {
 		return
 	}
+
+	svc.logger.Debug("assigning group members", zap.Any("group", group.Value()), zap.Any("roles", id.StringifySlice(members...)))
 
 	if svc.memberGroupIndex == nil {
 		svc.memberGroupIndex = make(map[id.ID]*groupNode)
@@ -308,6 +326,8 @@ func (svc *orgTree) RemoveGroupMembers(group id.ID, members ...id.ID) (err error
 	if svc == nil {
 		return
 	}
+
+	svc.logger.Debug("assigning group members", zap.Any("group", group.Value()), zap.Any("roles", id.StringifySlice(members...)))
 
 	if svc.memberGroupIndex == nil {
 		return
@@ -392,6 +412,24 @@ func (root *groupNode) inline() []*groupNode {
 
 		i++
 	}
+
+	return out
+}
+
+func (n *groupNode) format() map[string]any {
+	out := map[string]any{
+		"id":     n.id.Value(),
+		"handle": n.handle,
+		"selfID": n.selfID.Value(),
+		"roles":  id.StringifySlice(n.roles...),
+	}
+
+	cc := make([]id.ID, 0, len(n.children))
+	for _, c := range n.children {
+		cc = append(cc, c.id)
+	}
+
+	out["children"] = id.StringifySlice(cc...)
 
 	return out
 }
