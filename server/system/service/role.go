@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
@@ -92,6 +93,9 @@ type (
 
 	rbacRuleService interface {
 		CloneRulesByRoleID(ctx context.Context, roleID uint64, toRoleID ...uint64) error
+
+		AddGroupRole(group id.ID, roles ...id.ID) (err error)
+		RemoveGroupRole(group id.ID, roles ...id.ID) (err error)
 	}
 
 	roleAuth interface {
@@ -779,6 +783,10 @@ func (svc role) MemberAddGroup(ctx context.Context, roleID, userGroupID uint64) 
 			return
 		}
 
+		if err = svc.rbac.AddGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
+			return
+		}
+
 		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(nil, r))
 		return nil
 	}()
@@ -888,6 +896,10 @@ func (svc role) MemberRemoveGroup(ctx context.Context, roleID, userGroupID uint6
 		}
 
 		if err = store.DeleteRoleMember(ctx, svc.store, &types.RoleMember{RoleID: r.ID, Resource: fmt.Sprintf("corteza::system:user-group/%d", ug.ID)}); err != nil {
+			return
+		}
+
+		if err = svc.rbac.RemoveGroupRole(id.MustNumID(userGroupID), id.MustNumID(roleID)); err != nil {
 			return
 		}
 

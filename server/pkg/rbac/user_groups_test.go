@@ -60,6 +60,120 @@ func TestIsAbove(t *testing.T) {
 	})
 }
 
+func TestAddGroupRole(t *testing.T) {
+	t.Run("add role", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddGroupRole(id.MustNumID(101), id.MustNumID(991))
+		require.NoError(t, err)
+
+		_, n := svc.findNode(id.MustNumID(101))
+		require.NotNil(t, n)
+
+		require.Len(t, n.roles, 1)
+		require.Equal(t, id.MustNumID(991), n.roles[0])
+	})
+
+	t.Run("add duplicate role", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddGroupRole(id.MustNumID(101), id.MustNumID(991), id.MustNumID(991))
+		require.NoError(t, err)
+
+		_, n := svc.findNode(id.MustNumID(101))
+		require.NotNil(t, n)
+
+		require.Len(t, n.roles, 1)
+		require.Equal(t, id.MustNumID(991), n.roles[0])
+	})
+
+	t.Run("append role", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddGroupRole(id.MustNumID(101), id.MustNumID(991))
+		require.NoError(t, err)
+
+		err = svc.AddGroupRole(id.MustNumID(101), id.MustNumID(992), id.MustNumID(993))
+		require.NoError(t, err)
+
+		_, n := svc.findNode(id.MustNumID(101))
+		require.NotNil(t, n)
+
+		require.Len(t, n.roles, 3)
+		require.Equal(t, id.MustNumID(991), n.roles[0])
+		require.Equal(t, id.MustNumID(992), n.roles[1])
+		require.Equal(t, id.MustNumID(993), n.roles[2])
+	})
+}
+
+func TestRemoveGroupRole(t *testing.T) {
+	t.Run("remove role", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddGroupRole(id.MustNumID(101), id.MustNumID(991))
+		require.NoError(t, err)
+
+		err = svc.RemoveGroupRole(id.MustNumID(101), id.MustNumID(991))
+		require.NoError(t, err)
+
+		_, n := svc.findNode(id.MustNumID(101))
+		require.NotNil(t, n)
+
+		require.Len(t, n.roles, 0)
+	})
+
+	t.Run("remove roles", func(t *testing.T) {
+		svc, err := OrgTree()
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(101), "root", id.MustNumID(0))
+		require.NoError(t, err)
+
+		err = svc.AddNode(id.MustNumID(201), "c1", id.MustNumID(101))
+		require.NoError(t, err)
+
+		err = svc.AddGroupRole(id.MustNumID(101), id.MustNumID(991), id.MustNumID(992), id.MustNumID(993))
+		require.NoError(t, err)
+
+		err = svc.RemoveGroupRole(id.MustNumID(101), id.MustNumID(991), id.MustNumID(993))
+		require.NoError(t, err)
+
+		_, n := svc.findNode(id.MustNumID(101))
+		require.NotNil(t, n)
+
+		require.Len(t, n.roles, 1)
+		require.Equal(t, id.MustNumID(992), n.roles[0])
+	})
+}
+
 func TestAddNode(t *testing.T) {
 	t.Run("empty svc", func(t *testing.T) {
 		svc, err := OrgTree()

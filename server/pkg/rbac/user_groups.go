@@ -90,11 +90,16 @@ func (svc *orgTree) Rebuild(gm ...GroupMembers) (err error) {
 }
 
 func (svc *orgTree) AddNode(id id.ID, handle string, selfID id.ID) (err error) {
-	return svc.addNode(&groupNode{
+	err = svc.addNode(&groupNode{
 		id:     id,
 		handle: handle,
 		selfID: selfID,
 	})
+	if err != nil {
+		return
+	}
+
+	return err
 }
 
 func (svc *orgTree) addNode(node *groupNode) (err error) {
@@ -227,6 +232,36 @@ func (svc *orgTree) MemberBranch(user id.ID) (group []*groupNode, err error) {
 	}
 
 	return ss.inline(), nil
+}
+
+func (svc *orgTree) AddGroupRole(group id.ID, roles ...id.ID) (err error) {
+	i, n := svc.findNode(group)
+	if i < 0 {
+		return fmt.Errorf("node %v not found", group)
+	}
+
+	for _, r := range roles {
+		if id.InSlice(r, n.roles...) {
+			continue
+		}
+
+		n.roles = append(n.roles, r)
+	}
+
+	return
+}
+
+func (svc *orgTree) RemoveGroupRole(group id.ID, roles ...id.ID) (err error) {
+	i, n := svc.findNode(group)
+	if i < 0 {
+		return fmt.Errorf("node %v not found", group)
+	}
+
+	for _, r := range roles {
+		n.roles = id.RemoveFromSlice(r, n.roles...)
+	}
+
+	return
 }
 
 // AssignGroupMembers assigns the members to the specified group
