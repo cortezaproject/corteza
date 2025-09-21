@@ -60,8 +60,20 @@ func ConvUserGroup(id id.ID, handle string, selfID id.ID, members, roles []id.ID
 
 // OrgTree prepares the organization tree subservice
 func OrgTree(log *zap.Logger, gm ...GroupMembers) (svc *orgTree, err error) {
+	svc, err = mkOrgTree(gm...)
+	if err != nil {
+		return
+	}
+
+	svc.logger = log
+
+	err = svc.Rebuild(gm...)
+	return
+}
+
+func mkOrgTree(gm ...GroupMembers) (svc *orgTree, err error) {
 	svc = &orgTree{
-		logger: log,
+		logger: zap.NewNop(),
 	}
 
 	err = svc.Rebuild(gm...)
