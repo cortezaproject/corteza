@@ -28,6 +28,8 @@ type (
 		user UserService
 		role RoleService
 
+		rootUserGroup uint64
+
 		store store.Storer
 	}
 
@@ -98,6 +100,10 @@ func (svc userGroup) Activate(ctx context.Context) (err error) {
 	}
 
 	for _, g := range groups {
+		if g.SelfID == 0 {
+			svc.rootUserGroup = g.ID
+		}
+
 		roles, _, err := svc.role.Find(ctx, types.RoleFilter{
 			Resource: fmt.Sprintf("corteza::system:user-group/%d", g.ID),
 		})
@@ -185,6 +191,10 @@ func (svc userGroup) Find(ctx context.Context, filter types.UserGroupFilter) (rr
 			return err
 		}
 
+		for _, r := range rr {
+			r.IsRoot = r.ID == svc.rootUserGroup
+		}
+
 		if err = label.Load(ctx, svc.store, toLabeledUserGroups(rr)...); err != nil {
 			return err
 		}
@@ -204,6 +214,8 @@ func (svc userGroup) FindByID(ctx context.Context, userGroupID uint64) (r *types
 		if r, err = svc.findByID(ctx, userGroupID); err != nil {
 			return err
 		}
+
+		r.IsRoot = r.ID == svc.rootUserGroup
 
 		raProps.setUserGroup(r)
 		return nil
