@@ -296,6 +296,14 @@ func (svc *service) Watch(ctx context.Context) {
 	svc.logger.Debug("watcher initialized")
 }
 
+func (svc *service) AddGroupRole(group id.ID, roles ...id.ID) (err error) {
+	return svc.orgTree.AddGroupRole(group, roles...)
+}
+
+func (svc *service) RemoveGroupRole(group id.ID, roles ...id.ID) (err error) {
+	return svc.orgTree.RemoveGroupRole(group, roles...)
+}
+
 func (svc *service) AssignGroupMembers(group id.ID, members ...id.ID) (err error) {
 	return svc.orgTree.AssignGroupMembers(group, members...)
 }
