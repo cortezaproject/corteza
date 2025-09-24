@@ -49,7 +49,21 @@ types:
       - { name: 'updatedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
       - { name: 'archivedAt',      exprType: 'DateTime',   goType: '*time.Time', mode: ro }
       - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
-
+  Reminder:
+    as: '*types.Reminder'
+    struct:
+      - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro, alias: 'reminderID' }
+      - { name: 'resource',        exprType: 'String',     goType: 'string' }
+      - { name: 'snoozeCount',     exprType: 'UnsignedInteger', goType: 'uint', mode: ro }
+      - { name: 'assignedTo',      exprType: 'ID',         goType: 'uint64' }
+      - { name: 'assignedBy',      exprType: 'ID',         goType: 'uint64', mode: ro }
+      - { name: 'assignedAt',      exprType: 'DateTime',   goType: 'time.Time', mode: ro }
+      - { name: 'dismissedBy',     exprType: 'ID',         goType: 'uint64', mode: ro }
+      - { name: 'dismissedAt',     exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'remindAt',        exprType: 'DateTime',   goType: '*time.Time' }
+      - { name: 'createdAt',       exprType: 'DateTime',   goType: 'time.Time', mode: ro }
+      - { name: 'updatedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
   DocumentType:
     as: 'types.DocumentType'
   TemplateMeta:

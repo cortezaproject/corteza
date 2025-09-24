@@ -2948,13 +2948,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -2977,13 +2977,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3006,13 +3006,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3035,13 +3035,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3064,13 +3064,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3093,13 +3093,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3122,13 +3122,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3151,13 +3151,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3180,13 +3180,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3209,13 +3209,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},
@@ -3238,13 +3238,13 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 				{
 					Name:      "reminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: false,
 				},
 
 				{
 					Name:      "oldReminder",
-					Type:      "",
+					Type:      "Reminder",
 					Immutable: true,
 				},
 			},

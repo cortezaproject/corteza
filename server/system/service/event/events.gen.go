@@ -3179,9 +3179,21 @@ func (res reminderBase) EncodeVars() (out *expr.Vars, err error) {
 	out = &expr.Vars{}
 	var v expr.TypedValue
 
-	// Could not found expression-type counterpart for *types.Reminder
+	if v, err = automation.NewReminder(res.reminder); err == nil {
+		err = out.Set("reminder", v)
+	}
 
-	// Could not found expression-type counterpart for *types.Reminder
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewReminder(res.oldReminder); err == nil {
+		err = out.Set("oldReminder", v)
+	}
+
+	if err != nil {
+		return
+	}
 
 	// Could not found expression-type counterpart for auth.Identifiable
 
@@ -3228,7 +3240,15 @@ func (res *reminderBase) DecodeVars(vars *expr.Vars) (err error) {
 		// Respect immutability
 		return
 	}
-	// Could not find expression-type counterpart for *types.Reminder
+	if res.reminder != nil && vars.Has("reminder") {
+		var aux *automation.Reminder
+		aux, err = automation.NewReminder(expr.Must(vars.Select("reminder")))
+		if err != nil {
+			return
+		}
+
+		res.reminder = aux.GetValue()
+	}
 	// oldReminder marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 

@@ -69,6 +69,30 @@ func CastToRole(val interface{}) (out *types.Role, err error) {
 	}
 }
 
+func CastToReminder(val interface{}) (out *types.Reminder, err error) {
+	switch val := val.(type) {
+	case expr.Iterator:
+		out = &types.Reminder{}
+		return out, val.Each(func(k string, v expr.TypedValue) error {
+			return assignToReminder(out, k, v)
+		})
+	}
+
+	switch val := expr.UntypedValue(val).(type) {
+	case *types.Reminder:
+		return val, nil
+	case map[string]interface{}:
+		out = &types.Reminder{}
+		m, _ := json.Marshal(val)
+		_ = json.Unmarshal(m, out)
+		return out, nil
+	case nil:
+		return &types.Reminder{}, nil
+	default:
+		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
+	}
+}
+
 func CastToTemplate(val interface{}) (out *types.Template, err error) {
 	switch val := val.(type) {
 	case expr.Iterator:
@@ -241,6 +265,11 @@ func (v *RenderOptions) Clone() (expr.TypedValue, error) {
 func (v *RenderedDocument) Clone() (expr.TypedValue, error) {
 	aux := *v.value
 	return NewRenderedDocument(&aux)
+}
+
+func (v *Reminder) Clone() (expr.TypedValue, error) {
+	aux := *v.value
+	return NewReminder(&aux)
 }
 
 func (v *Role) Clone() (expr.TypedValue, error) {
