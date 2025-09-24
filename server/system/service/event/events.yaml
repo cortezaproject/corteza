@@ -130,3 +130,16 @@ system:data-privacy-request:
       immutable: true
   constraints:
     - name: role.name
+
+system:reminder:
+  on: ['manual']
+  ba: ['create','update','delete','dismiss','snooze']
+  props:
+    - name: 'reminder'
+      type: '*types.Reminder'
+    - name: 'oldReminder'
+      type: '*types.Reminder'
+      immutable: true
+  constraints:
+    - name: reminder.resource
+    - name: reminder.assigned-to

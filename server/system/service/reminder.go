@@ -6,10 +6,12 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/getsentry/sentry-go"
 	"go.uber.org/zap"
+	"github.com/cortezaproject/corteza/server/system/service/event"
 )
 
 type (
@@ -24,6 +26,7 @@ type (
 		actionlog      actionlog.Recorder
 		store          store.Reminders
 		reminderSender reminderSender
+		eventbus 	   eventDispatcher //adding eventbus
 	}
 
 	reminderAccessController interface {
@@ -54,6 +57,7 @@ func Reminder(ctx context.Context, log *zap.Logger, rs reminderSender) ReminderS
 		log:            log,
 		store:          DefaultStore,
 		reminderSender: rs,
+		eventbus: 		eventbus.Service(),
 	}
 }
 
@@ -144,6 +148,10 @@ func (svc reminder) Create(ctx context.Context, new *types.Reminder) (r *types.R
 		if err := svc.checkAssignee(ctx, new); err != nil {
 			return err
 		}
+		if err = svc.eventbus.WaitFor(ctx, event.ReminderBeforeCreate(new, r)); err != nil {
+              return
+        }
+
 
 		r = new
 		r.ID = nextID()

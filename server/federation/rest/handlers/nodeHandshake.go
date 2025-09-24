@@ -10,11 +10,10 @@ package handlers
 
 import (
 	"context"
-	"net/http"
-
 	"github.com/cortezaproject/corteza/server/federation/rest/request"
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/go-chi/chi/v5"
+	"net/http"
 )
 
 type (
