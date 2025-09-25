@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"time"
+	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	. "github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
-	 sqlxtypes "github.com/jmoiron/sqlx/types"
+	sqlxtypes "github.com/jmoiron/sqlx/types"
 )
 
 
@@ -139,6 +140,34 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 	}
 	return i, i.loader()
 }
+// func (h remindersHandler) make(ctx context.Context, args *remindersMakeArgs) (results *remindersMakeResults, err error) {
+//       results = &remindersMakeResults{}
+
+//       // Create empty reminder object
+//       results.Reminder = &types.Reminder{
+//           Resource: "workflow-reminder",
+//           // All other fields will be zero values - can be set via expressions
+//       }
+
+//       return
+//   }
+  func (h remindersHandler) make(ctx context.Context, args *remindersMakeArgs) (results *remindersMakeResults, err error) {
+      results = &remindersMakeResults{}
+
+      // Get current user from context
+      currentUser := intAuth.GetIdentityFromContext(ctx).Identity()
+
+      results.Reminder = &types.Reminder{
+          Resource:   "workflow-reminder",
+          AssignedTo: currentUser,
+          AssignedBy: currentUser,
+          Payload:    sqlxtypes.JSONText(`{"title": "", "note": ""}`),
+      }
+
+      return results, nil
+  }
+
+ 
 
  func (h remindersHandler) create(ctx context.Context, args *remindersCreateArgs) (results *remindersCreateResults, err error) {
   	results = &remindersCreateResults{}

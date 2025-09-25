@@ -3,6 +3,7 @@ imports:
   - github.com/cortezaproject/corteza/server/system/types
   - github.com/cortezaproject/corteza/server/pkg/rbac
   - github.com/cortezaproject/corteza/server/pkg/actionlog
+ 
 
 types:
   Template:
@@ -53,7 +54,7 @@ types:
     as: '*types.Reminder'
     struct:
       - { name: 'ID',              exprType: 'ID',         goType: 'uint64', mode: ro, alias: 'reminderID' }
-      - { name: 'resource',        exprType: 'String',     goType: 'string' }
+      - { name: 'resource',        exprType: 'String',     goType: 'string'}
       - { name: 'snoozeCount',     exprType: 'UnsignedInteger', goType: 'uint', mode: ro }
       - { name: 'assignedTo',      exprType: 'ID',         goType: 'uint64' }
       - { name: 'assignedBy',      exprType: 'ID',         goType: 'uint64', mode: ro }

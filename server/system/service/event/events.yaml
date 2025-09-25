@@ -132,7 +132,7 @@ system:data-privacy-request:
     - name: role.name
 
 system:reminder:
-  on: ['manual']
+  # on: ['manual']
   ba: ['create','update','delete','dismiss','snooze']
   props:
     - name: 'reminder'

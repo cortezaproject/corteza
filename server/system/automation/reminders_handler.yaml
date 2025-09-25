@@ -1,5 +1,6 @@
 imports:
   - github.com/cortezaproject/corteza/server/system/types
+  - time
 
 params:
   lookup: &lookup
@@ -69,9 +70,20 @@ functions:
     results:
       reminder: *rvReminder
       total: *rvTotal
+  make:
+      meta:
+        short: Reminder maker
+        description: Create a new reminder object for manipulation
+      labels:
+        <<: *labels
+        make: "step"
+      results:
+        reminder: *rvReminder
+
+
   create:
     meta:
-      short: Reminder creator
+      short: Reminder create
     labels:
       <<: *labels
       create: "step"

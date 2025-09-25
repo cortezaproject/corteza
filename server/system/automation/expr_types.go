@@ -68,7 +68,6 @@ func CastToRole(val interface{}) (out *types.Role, err error) {
 		return nil, fmt.Errorf("unable to cast type %T to %T", val, out)
 	}
 }
-
 func CastToReminder(val interface{}) (out *types.Reminder, err error) {
 	switch val := val.(type) {
 	case expr.Iterator:

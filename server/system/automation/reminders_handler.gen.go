@@ -10,12 +10,11 @@ package automation
 
 import (
 	"context"
-	"time"
-
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"time"
 )
 
 var _ wfexec.ExecResponse
@@ -32,6 +31,7 @@ func (h remindersHandler) register() {
 		h.Lookup(),
 		h.Search(),
 		h.Each(),
+		h.Make(),
 		h.Create(),
 		h.Update(),
 		h.Dismiss(),
@@ -403,6 +403,76 @@ func (h remindersHandler) Each() *atypes.Function {
 }
 
 type (
+	remindersMakeArgs struct {
+	}
+
+	remindersMakeResults struct {
+		Reminder *types.Reminder
+	}
+)
+
+// Make function Reminder maker
+//
+// expects implementation of make function:
+//
+//	func (h remindersHandler) make(ctx context.Context, args *remindersMakeArgs) (results *remindersMakeResults, err error) {
+//	   return
+//	}
+func (h remindersHandler) Make() *atypes.Function {
+	return &atypes.Function{
+		Ref:    "remindersMake",
+		Kind:   "function",
+		Labels: map[string]string{"make": "step", "reminders": "step,workflow"},
+		Meta: &atypes.FunctionMeta{
+			Short:       "Reminder maker",
+			Description: "Create a new reminder object for manipulation",
+		},
+
+		Parameters: []*atypes.Param{},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "reminder",
+				Types: []string{"Reminder"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &remindersMakeArgs{}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			var results *remindersMakeResults
+			if results, err = h.make(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Reminder (*types.Reminder) to Reminder
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.reg.Type("Reminder").Cast(results.Reminder); err != nil {
+					return
+				} else if err = expr.Assign(out, "reminder", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+type (
 	remindersCreateArgs struct {
 		hasReminder bool
 		Reminder    *types.Reminder
@@ -413,7 +483,7 @@ type (
 	}
 )
 
-// Create function Reminder creator
+// Create function Reminder create
 //
 // expects implementation of create function:
 //
@@ -426,7 +496,7 @@ func (h remindersHandler) Create() *atypes.Function {
 		Kind:   "function",
 		Labels: map[string]string{"create": "step", "reminders": "step,workflow"},
 		Meta: &atypes.FunctionMeta{
-			Short: "Reminder creator",
+			Short: "Reminder create",
 		},
 
 		Parameters: []*atypes.Param{
