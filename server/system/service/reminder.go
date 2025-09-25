@@ -148,19 +148,16 @@ func (svc reminder) Create(ctx context.Context, new *types.Reminder) (r *types.R
 		if err := svc.checkAssignee(ctx, new); err != nil {
 			return err
 		}
-		if err = svc.eventbus.WaitFor(ctx, event.ReminderBeforeCreate(new, r)); err != nil {
-              return
-        }
-
-
 		r = new
 		r.ID = nextID()
 		r.CreatedAt = *now()
-
+		if err = svc.eventbus.WaitFor(ctx, event.ReminderBeforeCreate(new, r)); err != nil {
+              return
+        }
 		if err = store.CreateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
-
+		svc.eventbus.Dispatch(ctx,event.ReminderAfterCreate(new,r))
 		return nil
 	}()
 
@@ -210,11 +207,13 @@ func (svc reminder) Update(ctx context.Context, upd *types.Reminder) (r *types.R
 		r.Payload = upd.Payload
 		r.Resource = upd.Resource
 		r.UpdatedAt = now()
-
+		if err = svc.eventbus.WaitFor(ctx,event.ReminderBeforeUpdate(upd,r)); err!=nil {
+			return
+		}
 		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
-
+		svc.eventbus.Dispatch(ctx,event.ReminderAfterUpdate(upd,r))
 		return nil
 	}()
 
@@ -247,11 +246,13 @@ func (svc reminder) Dismiss(ctx context.Context, ID uint64) (err error) {
 		n := time.Now()
 		r.DismissedAt = &n
 		r.DismissedBy = svc.currentUser(ctx)
-
+		if err=svc.eventbus.WaitFor(ctx,event.ReminderBeforeDismiss(nil,r)); err!=nil{
+			return
+		}
 		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
-
+		svc.eventbus.Dispatch(ctx,event.ReminderAfterDismiss(nil,r))
 		return nil
 	}()
 
@@ -283,7 +284,7 @@ func (svc reminder) Undismiss(ctx context.Context, ID uint64) (err error) {
 		// Assign changed values
 		r.DismissedAt = nil
 		r.DismissedBy = 0
-
+		//pending eventbus integration
 		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
@@ -315,10 +316,13 @@ func (svc reminder) Snooze(ctx context.Context, ID uint64, remindAt *time.Time) 
 		// Assign changed values
 		r.SnoozeCount++
 		r.RemindAt = remindAt
-
+		if err=svc.eventbus.WaitFor(ctx,event.ReminderBeforeSnooze(nil,r));err!=nil {
+			return
+		}
 		if err = store.UpdateReminder(ctx, svc.store, r); err != nil {
 			return err
 		}
+		svc.eventbus.Dispatch(ctx,event.ReminderAfterSnooze(nil,r))
 
 		return nil
 	}()
@@ -345,8 +349,14 @@ func (svc reminder) Delete(ctx context.Context, ID uint64) (err error) {
 		r.DeletedAt = now()
 
 		raProps.setReminder(r)
-
-		return store.UpdateReminder(ctx, svc.store, r)
+		if err=svc.eventbus.WaitFor(ctx,event.ReminderBeforeDelete(nil,r));err != nil {
+			return
+		}
+		if err=store.UpdateReminder(ctx, svc.store, r);err!=nil{
+			return err
+		}
+		svc.eventbus.Dispatch(ctx,event.ReminderAfterDelete(nil,r))
+		return nil
 	}()
 
 	return svc.recordAction(ctx, raProps, ReminderActionDelete, err)

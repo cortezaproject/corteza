@@ -268,6 +268,9 @@ func (v *RenderedDocument) Clone() (expr.TypedValue, error) {
 }
 
 func (v *Reminder) Clone() (expr.TypedValue, error) {
+	if v.value == nil {
+		return NewReminder(nil)
+	}
 	aux := *v.value
 	return NewReminder(&aux)
 }
