@@ -792,10 +792,10 @@
     "@babel/helper-string-parser" "^7.25.9"
     "@babel/helper-validator-identifier" "^7.25.9"
 
-"@cortezaproject/corteza-js@^2024.9.5":
-  version "2024.9.5"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.5.tgz#fa8a85d9c75ab9a559559ba8634622bb9b5916dd"
-  integrity sha512-x6Ah76iNk6vCX6NmzbgjrbhwcNC5waYKaVJhrD/LFmzomDFj78wRWW+NP6XOV9vmpoM9Sxe66ZTphquZU24WeQ==
+"@cortezaproject/corteza-js@^2024.9.6-dev.1":
+  version "2024.9.6-dev.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.6-dev.1.tgz#1e6edbcb58dc586308da72ff1cc4fc4cde114f0c"
+  integrity sha512-dZYwqcl8SWx6aCwq8Lbog8SHqBUQwJGVAmn6Rw1Sc2URTf0zVkD9lwtCMg23bHuJqUyuEws6yLnyrFbzSeIlPw==
   dependencies:
     axios "^1.8.3"
     hex-rgb "^5.0.0"
@@ -992,7 +992,7 @@
   dependencies:
     "@floating-ui/utils" "^0.2.10"
 
-"@floating-ui/dom@^1.0.0", "@floating-ui/dom@^1.7.4":
+"@floating-ui/dom@^1.0.0":
   version "1.7.4"
   resolved "https://registry.yarnpkg.com/@floating-ui/dom/-/dom-1.7.4.tgz#ee667549998745c9c3e3e84683b909c31d6c9a77"
   integrity sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA==
