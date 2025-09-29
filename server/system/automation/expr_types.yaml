@@ -65,6 +65,7 @@ types:
       - { name: 'createdAt',       exprType: 'DateTime',   goType: 'time.Time', mode: ro }
       - { name: 'updatedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
       - { name: 'deletedAt',       exprType: 'DateTime',   goType: '*time.Time', mode: ro }
+      - { name: 'payload',         exprType: 'Bytes',         goType: 'types.JSONText'}
   DocumentType:
     as: 'types.DocumentType'
   TemplateMeta:

@@ -410,6 +410,8 @@ func (t *Reminder) Has(k string) bool {
 		return true
 	case "deletedAt":
 		return true
+	case "payload":
+		return true
 	}
 	return false
 }
@@ -444,6 +446,8 @@ func reminderGValSelector(res *types.Reminder, k string) (interface{}, error) {
 		return res.UpdatedAt, nil
 	case "deletedAt":
 		return res.DeletedAt, nil
+	case "payload":
+		return res.Payload, nil
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
@@ -479,6 +483,8 @@ func reminderTypedValueSelector(res *types.Reminder, k string) (TypedValue, erro
 		return NewDateTime(res.UpdatedAt)
 	case "deletedAt":
 		return NewDateTime(res.DeletedAt)
+	case "payload":
+		return NewBytes(res.Payload)
 	}
 
 	return nil, fmt.Errorf("unknown field '%s'", k)
@@ -529,6 +535,14 @@ func assignToReminder(res *types.Reminder, k string, val interface{}) error {
 		return fmt.Errorf("field '%s' is read-only", k)
 	case "deletedAt":
 		return fmt.Errorf("field '%s' is read-only", k)
+	case "payload":
+		aux, err := CastToBytes(val)
+		if err != nil {
+			return err
+		}
+
+		res.Payload = aux
+		return nil
 	}
 
 	return fmt.Errorf("unknown field '%s'", k)
