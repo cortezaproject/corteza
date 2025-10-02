@@ -2,9 +2,10 @@ package expr
 
 import (
 	"fmt"
+	"reflect"
+
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
-	"reflect"
 )
 
 type (
@@ -36,6 +37,7 @@ func length(i interface{}) int {
 	if isEmpty(i) {
 		return 0
 	}
+	i = UntypedValue(i)
 
 	switch reflect.TypeOf(i).Kind() {
 	case reflect.Slice, reflect.Array, reflect.Ptr, reflect.Map, reflect.String:
