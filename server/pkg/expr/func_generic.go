@@ -34,10 +34,10 @@ func coalesce(aa ...interface{}) interface{} {
 }
 
 func length(i interface{}) int {
+	i = UntypedValue(i)
 	if isEmpty(i) {
 		return 0
 	}
-	i = UntypedValue(i)
 
 	switch reflect.TypeOf(i).Kind() {
 	case reflect.Slice, reflect.Array, reflect.Ptr, reflect.Map, reflect.String:
