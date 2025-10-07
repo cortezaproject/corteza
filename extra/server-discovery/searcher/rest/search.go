@@ -12,7 +12,13 @@ import (
 )
 
 type (
-	search struct{}
+	search struct {
+		embedder embedderService
+	}
+
+	embedderService interface {
+		GenerateEmbeddings(input string) ([]float32, error)
+	}
 
 	cResponse struct {
 		Response struct {
@@ -60,8 +66,10 @@ type (
 	}
 )
 
-func Search() *search {
-	return &search{}
+func Search(embedderSvc embedderService) *search {
+	return &search{
+		embedder: embedderSvc,
+	}
 }
 
 func (s search) SearchResources(ctx context.Context, r *request.SearchResources) (out interface{}, err error) {

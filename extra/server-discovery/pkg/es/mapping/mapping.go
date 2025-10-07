@@ -9,6 +9,7 @@ import (
 	"net/url"
 
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/reindex"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
@@ -55,6 +56,10 @@ type (
 		Boost float32 `json:"boost,omitempty"`
 
 		Properties map[string]*property `json:"properties,omitempty"`
+
+		// for vector search
+		Dimension int            `json:"dimension,omitempty"`
+		Method    map[string]any `json:"method,omitempty"`
 	}
 
 	esService interface {
@@ -154,6 +159,9 @@ func (m *mapper) Mappings(ctx context.Context, esc *elasticsearch.Client, indexP
 					},
 				},
 			},
+			"index": map[string]any{
+				"knn": true,
+			},
 		}
 		esReq.Mappings.Properties = im.Mapping
 
@@ -181,6 +189,7 @@ func (m *mapper) Mappings(ctx context.Context, esc *elasticsearch.Client, indexP
 				iLog.Error("index creation failed", zap.Error(err))
 			}
 			if len(esRsp.String()) > 0 {
+				spew.Dump("kileee", im)
 				iLog.Error(fmt.Sprintf("index creation failed due to %s", esRsp.String()))
 			}
 			continue

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -64,16 +65,29 @@ type (
 		} `json:"multi_match"`
 	}
 
+	VectorValue struct {
+		Vector []float32     `json:"vector"`
+		K      int           `json:"k"`
+		Filter []interface{} `json:"filter,omitempty"`
+	}
+
+	KNN struct {
+		VectorValue VectorValue `json:"vectorValue"`
+	}
+
 	esSearchParams struct {
 		Query struct {
 			Bool struct {
 				// query context
-				Must []interface{} `json:"must,omitempty"`
+				Must   []interface{} `json:"must,omitempty"`
+				Should []interface{} `json:"should,omitempty"`
 
 				// filter context
 				Filter  []interface{} `json:"filter,omitempty"`
 				MustNot []interface{} `json:"must_not,omitempty"`
 			} `json:"bool,omitempty"`
+
+			//KNN KNN `json:"knn,omitempty"`
 		} `json:"query"`
 
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
@@ -205,6 +219,7 @@ type (
 		mAggOnly bool
 
 		allowedRoles map[interface{}]bool
+		//embedder *embedder
 	}
 )
 
@@ -289,13 +304,39 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// Search string filter
 	if !noQ {
-		query.Query.Bool.Must = append(query.Query.Bool.Must, map[string]interface{}{
-			"wildcard": map[string]interface{}{
-				"catch_all": map[string]interface{}{
-					"value": fmt.Sprintf("*%s*", sqs.Wrap.Query),
+		vector, err := vectorsearch.GenerateEmbeddings(sqs.Wrap.Query)
+		if err != nil {
+			log.Error("failed to generate embeddings", zap.Error(err))
+
+			// Only text search
+			query.Query.Bool.Must = append(query.Query.Bool.Must, map[string]interface{}{
+				"wildcard": map[string]interface{}{
+					"catch_all": map[string]interface{}{
+						"value": fmt.Sprintf("*%s*", sqs.Wrap.Query),
+					},
 				},
-			}})
-		// query.Query.DisMax.Queries = append(query.Query.DisMax.Queries, sqs)
+			})
+		} else {
+			// Hybrid search: combine vector and text in should clause
+			query.Query.Bool.Should = append(query.Query.Bool.Should,
+				map[string]interface{}{
+					"knn": map[string]interface{}{
+						"vectorsValue": map[string]interface{}{
+							"vector": vector,
+							"k":      10,
+						},
+					},
+				},
+
+				map[string]interface{}{
+					"wildcard": map[string]interface{}{
+						"catch_all": map[string]interface{}{
+							"value": fmt.Sprintf("*%s*", sqs.Wrap.Query),
+						},
+					},
+				},
+			)
+		}
 	}
 
 	var (
@@ -482,6 +523,8 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// Perform the search request.
 	res, err := esc.Search(sReqArgs...)
+
+	spew.Dump("kotikooo", res)
 
 	if err != nil {
 		return

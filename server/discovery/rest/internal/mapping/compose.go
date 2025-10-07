@@ -222,6 +222,10 @@ func (m composeMapping) records(ctx context.Context, mod *types.Module, mm types
 		},
 	}
 
+	// TODO: if vector embediings is enabled.
+	// pass every config using the Env.
+	mapping.Mapping["vectorsValue"] = vector()
+
 	return
 }
 

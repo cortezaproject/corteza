@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
@@ -86,6 +87,10 @@ type (
 		BulkIndexer() (esutil.BulkIndexer, error)
 	}
 
+	embedderService interface {
+		GenerateEmbeddings(input string) ([]float32, error)
+	}
+
 	apiClientService interface {
 		HttpClient() *http.Client
 		Mappings() (*http.Request, error)
@@ -99,6 +104,7 @@ type (
 		log            *zap.Logger
 		esOpt          options.EsOpt
 		es             esService
+		embedder       embedderService
 		api            apiClientService
 		assureMappings func(context.Context) error
 	}
@@ -108,11 +114,12 @@ const (
 	IndexTpl = "corteza-%s-%s"
 )
 
-func ReIndexer(log *zap.Logger, es esService, api apiClientService, esOpt options.EsOpt, assureMappings func(context.Context) error) *reIndexer {
+func ReIndexer(log *zap.Logger, es esService, api apiClientService, embedderSvc embedderService, esOpt options.EsOpt, assureMappings func(context.Context) error) *reIndexer {
 	return &reIndexer{
 		log:            log,
 		esOpt:          esOpt,
 		es:             es,
+		embedder:       embedderSvc,
 		api:            api,
 		assureMappings: assureMappings,
 	}
@@ -310,11 +317,17 @@ func (ri *reIndexer) reindex(ctx context.Context, esb esutil.BulkIndexer, indexP
 		}
 
 		for _, doc := range rspPayload.Response.Documents {
+			body := bytes.NewBuffer(doc.Source)
+			err = processResource(body)
+			if err != nil {
+				ri.log.Error("Failed to process record's for embeddings: ", zap.Error(err))
+			}
+
 			err = esb.Add(ctx, esutil.BulkIndexerItem{
 				Index:      fmt.Sprintf(IndexTpl, indexPrefix, ds.index),
 				Action:     "index",
 				DocumentID: doc.ID,
-				Body:       bytes.NewBuffer(doc.Source),
+				Body:       body,
 				OnFailure: func(ctx context.Context, req esutil.BulkIndexerItem, rsp esutil.BulkIndexerResponseItem, err error) {
 					spew.Dump(req)
 					spew.Dump(rsp)
@@ -672,7 +685,7 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 				return
 			case <-ticker.C:
 				if processing {
-					ri.log.Warn("skupping feed changes reindexing: already processing")
+					ri.log.Warn("skipping feed changes reindexing: already processing")
 					continue
 				}
 
@@ -743,4 +756,60 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (ri *reIndexer) processResource(source *bytes.Buffer) error {
+	var data map[string]interface{}
+	if err := json.Unmarshal(source.Bytes(), &data); err != nil {
+		return fmt.Errorf("Error unmarshaling: %v\n", err)
+	}
+
+	resourceType, ok := data["resourceType"].(string)
+	if !ok {
+		return fmt.Errorf("resourceType not found or not a string")
+	}
+
+	// only generate embeddings for compose:record for now
+	if resourceType == "compose:record" {
+		catchAll, ok := data["catch_all"].([]interface{})
+		if !ok {
+			return fmt.Errorf("records catch_all not found or not an array")
+		}
+
+		//spew.Dump("okaaari", catchAll, data)
+
+		embeddings, err := ri.embedder.GenerateEmbeddings(convertValuesToString(catchAll))
+		if err != nil {
+			return err
+		}
+
+		data["vectorsValue"] = embeddings
+
+		updatedJSON, err := json.Marshal(data)
+		if err != nil {
+			return fmt.Errorf("Error marshaling: %v\n", err)
+		}
+
+		source.Reset()
+		source.Write(updatedJSON)
+	}
+
+	return nil
+}
+
+func convertValuesToString(values []interface{}) string {
+	var parts []string
+
+	for _, item := range values {
+		switch val := item.(type) {
+		case string:
+			parts = append(parts, val)
+		case float64:
+			parts = append(parts, fmt.Sprintf("%.0f", val))
+		default:
+			parts = append(parts, fmt.Sprintf("%v", val))
+		}
+	}
+
+	return strings.Join(parts, " ")
 }

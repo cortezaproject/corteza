@@ -2,13 +2,14 @@ package options
 
 type (
 	Options struct {
-		Corteza     CortezaOpt
-		ES          EsOpt
-		Indexer     IndexerOpt
-		Searcher    SearcherOpt
-		Environment EnvironmentOpt
-		HTTPServer  HttpServerOpt
-		WaitFor     WaitForOpt
+		Corteza      CortezaOpt
+		ES           EsOpt
+		Indexer      IndexerOpt
+		Searcher     SearcherOpt
+		Environment  EnvironmentOpt
+		HTTPServer   HttpServerOpt
+		WaitFor      WaitForOpt
+		VectorSearch VectorSearchOpt
 	}
 )
 
@@ -35,13 +36,19 @@ func Init() (opt *Options, err error) {
 		return
 	}
 
+	vectorSearch, err := VectorSearch()
+	if err != nil {
+		return
+	}
+
 	return &Options{
-		Corteza:     *corteza,
-		ES:          *es,
-		Indexer:     *indexer,
-		Searcher:    *searcher,
-		Environment: *Environment(),
-		HTTPServer:  *HttpServer(),
-		WaitFor:     *WaitFor(),
+		Corteza:      *corteza,
+		ES:           *es,
+		Indexer:      *indexer,
+		Searcher:     *searcher,
+		Environment:  *Environment(),
+		HTTPServer:   *HttpServer(),
+		WaitFor:      *WaitFor(),
+		VectorSearch: *vectorSearch,
 	}, nil
 }

@@ -17,6 +17,10 @@ type (
 		Analyzer string `json:"analyzer,omitempty"`
 
 		Properties map[string]*property `json:"properties,omitempty"`
+
+		// for vector indexing
+		Dimension int            `json:"dimension,omitempty"`
+		Method    map[string]any `json:"method,omitempty"`
 	}
 
 	Context struct {
@@ -44,6 +48,22 @@ func security() *property {
 		Properties: map[string]*property{
 			"allowedRoles": {Type: "long"},
 			"deniedRoles":  {Type: "long"},
+		},
+	}
+}
+
+// TODO:: all the configurations should be configurable by the USER on the admin.
+func vector() *property {
+	return &property{
+		Type:      "knn_vector",
+		Dimension: 384,
+		Method: map[string]any{
+			"name":   "hnsw",
+			"engine": "lucene",
+			"parameters": map[string]any{
+				"ef_construction": 128,
+				"m":               16,
+			},
 		},
 	}
 }
