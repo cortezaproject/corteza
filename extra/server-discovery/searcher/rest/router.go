@@ -6,11 +6,11 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func MountRoutes() func(r chi.Router) {
+func MountRoutes(embeddingSvc embedderService) func(r chi.Router) {
 	return func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(auth.HttpTokenValidator("discovery"))
-			handlers.NewSearch(Search()).MountRoutes(r)
+			handlers.NewSearch(Search(embeddingSvc)).MountRoutes(r)
 		})
 	}
 }

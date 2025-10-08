@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
@@ -219,7 +218,7 @@ type (
 		mAggOnly bool
 
 		allowedRoles map[interface{}]bool
-		//embedder *embedder
+		embedder     embedderService
 	}
 )
 
@@ -304,7 +303,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// Search string filter
 	if !noQ {
-		vector, err := vectorsearch.GenerateEmbeddings(sqs.Wrap.Query)
+		vector, err := p.embedder.GenerateEmbeddings(sqs.Wrap.Query)
 		if err != nil {
 			log.Error("failed to generate embeddings", zap.Error(err))
 

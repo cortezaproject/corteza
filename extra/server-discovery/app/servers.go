@@ -3,6 +3,7 @@ package app
 import (
 	"strings"
 
+	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
 	searcherRest "github.com/cortezaproject/corteza/extra/server-discovery/searcher/rest"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/go-chi/chi/v5"
@@ -28,7 +29,12 @@ func (app *CortezaDiscoveryApp) MountHttpRoutes(r chi.Router) {
 				zap.String("baseUrl", fullPathAPI),
 			)
 
-			r.Route("/", searcherRest.MountRoutes())
+			embedderSvc, err := vectorsearch.Embedder(app.Log, app.Opt.VectorSearch)
+			if err != nil {
+				app.Log.Error(err.Error())
+			}
+
+			r.Route("/", searcherRest.MountRoutes(embedderSvc))
 		})
 	}()
 

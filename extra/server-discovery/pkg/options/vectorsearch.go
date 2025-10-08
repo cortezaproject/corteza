@@ -1,6 +1,8 @@
 package options
 
-import "github.com/cortezaproject/corteza/server/pkg/options"
+import (
+	"github.com/cortezaproject/corteza/server/pkg/options"
+)
 
 type (
 	VectorSearchOpt struct {

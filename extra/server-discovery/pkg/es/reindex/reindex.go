@@ -318,7 +318,7 @@ func (ri *reIndexer) reindex(ctx context.Context, esb esutil.BulkIndexer, indexP
 
 		for _, doc := range rspPayload.Response.Documents {
 			body := bytes.NewBuffer(doc.Source)
-			err = processResource(body)
+			err = ri.processResource(body)
 			if err != nil {
 				ri.log.Error("Failed to process record's for embeddings: ", zap.Error(err))
 			}

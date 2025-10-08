@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/reindex"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"go.uber.org/zap"
@@ -73,6 +74,8 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	if err != nil {
 		return
 	}
+
+	spew.Dump("karikoo", c.VectorSearch)
 
 	schema := c.Indexer.Schemas[0]
 	if len(schema.ClientKey) == 0 || len(schema.ClientSecret) == 0 {

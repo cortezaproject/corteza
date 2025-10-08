@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+
 	"github.com/cortezaproject/corteza/extra/server-discovery/indexer"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/auth"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/healthcheck"
@@ -75,9 +76,10 @@ func (app *CortezaDiscoveryApp) InitServices(ctx context.Context) (err error) {
 
 	if app.Opt.Indexer.Enabled {
 		err = indexer.Initialize(ctx, app.Log, indexer.Config{
-			Corteza: app.Opt.Corteza,
-			ES:      app.Opt.ES,
-			Indexer: app.Opt.Indexer,
+			Corteza:      app.Opt.Corteza,
+			ES:           app.Opt.ES,
+			Indexer:      app.Opt.Indexer,
+			VectorSearch: app.Opt.VectorSearch,
 		})
 		if err != nil {
 			return

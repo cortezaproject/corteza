@@ -117,6 +117,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		namespaceAggs: namespaceAggs,
 		dumpRaw:       validDumpRaw,
 		allowedRoles:  allowedRoles,
+		embedder:      s.embedder,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute search: %w", err)
@@ -229,6 +230,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		aggOnly:       true,
 		mAggOnly:      true,
 		allowedRoles:  allowedRoles,
+		embedder:      s.embedder,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute module aggregation search: %w", err)
