@@ -175,7 +175,7 @@ func (p *PageLayout) decodeTranslations(tt locale.ResourceTranslationIndex) {
 			"{{actionID}}", strconv.FormatUint(actionID, 10),
 		)
 
-		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPagePageBlockBlockIDTitle.Path)); aux != nil {
+		if aux = tt.FindByKey(rpl.Replace(LocaleKeyPageLayoutConfigActionsActionIDMetaLabel.Path)); aux != nil {
 			p.Config.Actions[i].Meta.Label = aux.Msg
 		}
 	}
