@@ -53,9 +53,9 @@
             <b-button
               v-if="a.download"
               :href="a.download"
-              variant="outline-light"
+              variant="outline-extra-light"
               size="sm"
-              class="border-0 text-primary px-2 ml-2"
+              class="download-button text-secondary border-0 px-2 ml-2"
             >
               <font-awesome-icon :icon="['fas', 'download']" />
             </b-button>
@@ -112,9 +112,9 @@
           <b-button
             v-if="a.download"
             :href="a.download"
-            variant="outline-light"
+            variant="outline-extra-light"
             size="sm"
-            class="border-0 text-primary px-2"
+            class="download-button text-secondary border-0"
           >
             <font-awesome-icon :icon="['fas', 'download']" />
           </b-button>
@@ -371,5 +371,9 @@ export default {
 
 .item:hover {
   background-color: var(--gray-200);
+}
+
+.download-button:hover {
+  color: var(--primary) !important;
 }
 </style>
