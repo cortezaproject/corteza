@@ -791,21 +791,21 @@
               cols="12"
               lg="6"
             >
-              <b-form-group label-class="d-flex text-primary gap-1">
+              <b-form-group label-class="d-flex text-primary">
                 <template #label>
                   {{ $t('recordList.inlineEdit.enabled') }}
 
                   <column-picker
-                    size="sm"
-                    button-class="text-secondary border-0"
-                    variant="outline-extra-light"
+                    :module="recordListModule"
+                    :fields="options.inlineEditFields"
+                    :field-subset="options.fields.length ? options.fields : recordListModule.fields"
                     :button-tooltip="{
                       title: $t('recordList.inlineEdit.fields.configure.tooltip'),
                       container: '#body'
                     }"
-                    :module="recordListModule"
-                    :fields="options.inlineEditFields"
-                    :field-subset="options.fields.length ? options.fields : recordListModule.fields"
+                    variant="outline-extra-light"
+                    button-class="d-flex align-items-center text-secondary border-0 py-0 px-1 ml-1"
+                    size="sm"
                     @updateFields="onUpdateInlineEditableFields"
                   >
                     <font-awesome-icon

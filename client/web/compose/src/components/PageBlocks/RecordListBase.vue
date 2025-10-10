@@ -2622,6 +2622,14 @@ tr:hover .inline-actions {
     width: 1%;
     font-family: var(--font-regular) !important;
   }
+
+  tbody {
+    tr {
+      td:nth-last-child(2) {
+        padding-right: 5rem;
+      }
+    }
+  }
 }
 
 .record-list-footer {
