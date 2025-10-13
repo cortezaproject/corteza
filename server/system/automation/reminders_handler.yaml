@@ -70,17 +70,6 @@ functions:
     results:
       reminder: *rvReminder
       total: *rvTotal
-  make:
-      meta:
-        short: Reminder maker
-        description: Create a new reminder object for manipulation
-      labels:
-        <<: *labels
-        make: "step"
-      results:
-        reminder: *rvReminder
-
-
   create:
     meta:
       short: Reminder create
@@ -88,9 +77,19 @@ functions:
       <<: *labels
       create: "step"
     params:
-      reminder:
-        <<: *reminder
+      # reminder:
+      #   <<: *reminder
+      #   required: true
+      assignedTo:
+        types:
+          - { wf: ID }
+      remindAt:
+        types:
+          - { wf: DateTime}
         required: true
+      payload:
+        types:
+          - { wf: Bytes }
     results:
       reminder: *rvReminder
   update:

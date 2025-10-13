@@ -8,6 +8,10 @@ var _ = eventbus.ConstraintMaker
 
 // Match returns false if given conditions do not match event & resource internals
 func (res reminderBase) Match(c eventbus.ConstraintMatcher) bool {
+	// Prevent recursion: don't trigger workflows for workflow-created reminders
+	if res.reminder != nil && res.reminder.Resource == "workflow-reminder" {
+		return false
+	}
 	// By default we match no mather what kind of constraints we receive
 	//
 	// Function will be called multiple times - once for every trigger constraint

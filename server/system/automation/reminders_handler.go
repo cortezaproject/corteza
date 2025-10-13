@@ -140,40 +140,32 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 	}
 	return i, i.loader()
 }
-// func (h remindersHandler) make(ctx context.Context, args *remindersMakeArgs) (results *remindersMakeResults, err error) {
-//       results = &remindersMakeResults{}
-
-//       // Create empty reminder object
-//       results.Reminder = &types.Reminder{
-//           Resource: "workflow-reminder",
-//           // All other fields will be zero values - can be set via expressions
-//       }
-
-//       return
-//   }
-  func (h remindersHandler) make(ctx context.Context, args *remindersMakeArgs) (results *remindersMakeResults, err error) {
-      results = &remindersMakeResults{}
-
-      // Get current user from context
-      currentUser := intAuth.GetIdentityFromContext(ctx).Identity()
-
-      results.Reminder = &types.Reminder{
-          Resource:   "workflow-reminder",
-          AssignedTo: currentUser,
-          AssignedBy: currentUser,
-          Payload:    sqlxtypes.JSONText(`{"title": "", "note": ""}`),
-      }
-
-      return results, nil
-  }
-
- 
 
  func (h remindersHandler) create(ctx context.Context, args *remindersCreateArgs) (results *remindersCreateResults, err error) {
+	
   	results = &remindersCreateResults{}
-  	results.Reminder, err = h.rSvc.Create(ctx, args.Reminder)
+	currentUser := intAuth.GetIdentityFromContext(ctx).Identity()
+
+	reminder := &types.Reminder{
+		Resource: "workflow-reminder",
+		AssignedTo: args.AssignedTo,
+		AssignedBy: currentUser,
+		RemindAt: args.RemindAt,
+		Payload: args.Payload,
+	}
+	if reminder.AssignedTo == 0 {
+		reminder.AssignedTo= currentUser
+	}
+	if len(reminder.Payload) == 0 {
+      reminder.Payload = sqlxtypes.JSONText(`{"title": "", "note": ""}`)
+  	}
+	if reminder.RemindAt == nil {
+      return nil, fmt.Errorf("remindAt is required")
+  	}
+  	results.Reminder, err = h.rSvc.Create(ctx, reminder)
   	return
   }
+
   func (h remindersHandler) update(ctx context.Context, args *remindersUpdateArgs) (results *remindersUpdateResults, err error) {
   	results = &remindersUpdateResults{}
   	results.Reminder, err = h.rSvc.Update(ctx, args.Reminder)
