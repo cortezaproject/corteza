@@ -1,17 +1,13 @@
 <template>
-  <div
-    style="min-width: fit-content;"
-    @click.stop
-  >
-    <list-loader
-      kind="record"
-      :set="set"
-      :namespace="namespace"
-      :mode="field.options.mode"
-      :hide-file-name="field.options.hideFileName"
-      :preview-options="options"
-    />
-  </div>
+  <list-loader
+    kind="record"
+    :set="set"
+    :namespace="namespace"
+    :mode="field.options.mode"
+    :hide-file-name="field.options.hideFileName"
+    :preview-options="options"
+    style="min-width: 15rem;"
+  />
 </template>
 
 <script>

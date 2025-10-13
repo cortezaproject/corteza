@@ -218,7 +218,7 @@
       right
       lazy
       no-enforce-focus
-      width="500px"
+      width="600px"
       :no-header="!sidebar.item"
       header-class="bg-white border-bottom border-light p-2"
       body-class="bg-white"
@@ -473,6 +473,8 @@ import { encodeGraph } from '../lib/codec'
 import { getStyleFromKind, getKindFromStyle } from '../lib/style'
 import { encodeInput } from '../lib/dry-run'
 import toolbarConfig from '../lib/toolbar'
+import { getConstraintNameLabel } from '../lib/constraint'
+import { camelToTitle } from '../lib/string'
 import Configurator from '../components/Configurator'
 import Tooltip from '../components/Tooltip.vue'
 import WorkflowConfigurator from '../components/Configurator/Workflow'
@@ -996,10 +998,7 @@ export default {
               }
 
               if (eventType) {
-                eventType = eventType.replace('on', '')
-                  .split(/(?=[A-Z])/)
-                  .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                  .join(' ')
+                eventType = camelToTitle(eventType.replace('on', ''))
               }
 
               values.push('<tr class="title"><td><b>Configuration</b></td><td/><td/></tr>')
@@ -1007,17 +1006,6 @@ export default {
               values.push(`<tr><td><var>Event</var></td><td/><td><code>${eventType || ''}</code></td></tr>`)
 
               if (constraints.length && eventType && eventType !== 'onManual') {
-                const getConstraintNameLabel = (name) => {
-                  return name
-                    .split('.')
-                    .map(s => {
-                      const first = s[0] || ''
-                      const rest = s.slice(1) || ''
-                      return first.toUpperCase() + rest.toLowerCase()
-                    })
-                    .join(' ')
-                }
-
                 constraints = [
                   '<tr class="title"><td><b>Constraints</b></td><td/><td/></tr>',
                   ...constraints.map(({ name = '', op = '', values = '' }) => {

@@ -15,7 +15,9 @@ import:
   upload-files: Browse or drop files to upload...
 label:
   all: All
+  any: Any
   label: Label
+  or: Or
 loading: Loading
 name: Name
 new-workflow: New Workflow

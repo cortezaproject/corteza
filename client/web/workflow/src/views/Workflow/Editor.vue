@@ -231,13 +231,6 @@ export default {
     padding-top: 0;
   }
 
-  .trash {
-    right: 0;
-    left: 1;
-    top: 0;
-    bottom: 0;
-  }
-
   .arrow-up {
     width: 0;
     height: 0;
