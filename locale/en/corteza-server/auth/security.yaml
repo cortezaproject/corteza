@@ -21,7 +21,7 @@ template:
       enforced: Enabled and required on login
       enable: Enable
       disable: Disable
-      enabled: Two factor authentication with over email enabled
-      disabled: Two factor authentication with over email disabled
+      enabled: Two factor authentication over email enabled
+      disabled: Two factor authentication over email disabled
 
     all-disabled: All MFA methods are currently disabled. Ask your administrator to enable them.

@@ -2,16 +2,14 @@
   <a
     v-if="canPreview && attachment.clickToView"
     :href="attachment.url"
-    @click.exact.prevent="openLightbox({ ...attachment, ...$event })"
+    @click.exact.prevent.stop="openLightbox({ ...attachment, ...$event })"
   >
     <slot>
       {{ attachment.name }}
     </slot>
   </a>
 
-  <a
-    v-else
-  >
+  <a v-else>
     <slot>
       {{ attachment.name }}
     </slot>

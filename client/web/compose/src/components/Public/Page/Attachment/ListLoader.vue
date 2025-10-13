@@ -13,27 +13,42 @@
       <draggable
         :list.sync="attachments"
         :disabled="!enableOrder"
+        handle=".handle"
       >
         <b-row
           v-for="(a, index) in attachments"
           :key="a.attachmentID"
           no-gutters
-          class="flex-nowrap item mb-2"
+          class="flex-nowrap item mb-2 rounded"
         >
           <b-col cols="auto">
-            <div
+            <font-awesome-icon
               v-if="enableOrder"
-              class="d-inline p-1 mr-2"
-            >
-              <font-awesome-icon
-                :icon="['fas', 'bars']"
-                class="handle text-secondary"
-              />
-            </div>
+              :icon="['fas', 'bars']"
+              class="handle text-secondary my-1 mr-3"
+              style="padding-top: 0.05rem;"
+            />
           </b-col>
 
-          <b-col style="word-break:break-all;">
-            <attachment-link :attachment="a" />
+          <b-col>
+            <div class="d-flex flex-wrap align-items-start gap-1">
+              <attachment-link
+                :attachment="a"
+                style="word-break: break-all;"
+              >
+                {{ a.name }}
+                <b-button
+                  v-if="a.download"
+                  :href="a.download"
+                  variant="outline-extra-light"
+                  size="sm"
+                  class="download-button text-secondary border-0"
+                  @click.stop
+                >
+                  <font-awesome-icon :icon="['fas', 'download']" />
+                </b-button>
+              </attachment-link>
+            </div>
 
             <i18next
               path="general.label.attachmentFileInfo"
@@ -50,16 +65,6 @@
             cols="auto"
             class="d-flex align-items-start"
           >
-            <b-button
-              v-if="a.download"
-              :href="a.download"
-              variant="outline-extra-light"
-              size="sm"
-              class="download-button text-secondary border-0 px-2 ml-2"
-            >
-              <font-awesome-icon :icon="['fas', 'download']" />
-            </b-button>
-
             <c-input-confirm
               v-if="enableDelete"
               show-icon
@@ -370,7 +375,7 @@ export default {
 }
 
 .item:hover {
-  background-color: var(--gray-200);
+  background-color: var(--light);
 }
 
 .download-button:hover {

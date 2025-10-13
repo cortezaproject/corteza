@@ -28,6 +28,7 @@
             :reduce="r => r.value"
             :filter="resTypeFilter"
             :placeholder="$t('steps:trigger.configurator.select-resource-type')"
+            :clearable="false"
             @input="resourceChanged"
           />
         </b-form-group>
@@ -45,6 +46,7 @@
             :reduce="e => e.eventType"
             :filter="evtTypeFilter"
             :placeholder="$t('steps:trigger.configurator.select-event-type')"
+            :clearable="false"
             @input="eventChanged"
           />
         </b-form-group>
@@ -78,15 +80,17 @@
         >
           {{ $t('steps:trigger.configurator.constraints') }}
         </h5>
+
         <b-button
           v-if="constraintNameTypes.length"
           variant="primary"
-          class="align-top border-0 ml-3"
+          class="ml-3"
           @click="addConstraint()"
         >
           {{ $t('steps:trigger.configurator.add-constraints') }}
         </b-button>
       </b-card-header>
+
       <b-card-body
         class="p-0"
       >
@@ -101,36 +105,40 @@
           :items="item.triggers.constraints"
           :fields="constraintFields"
           :tbody-tr-class="rowClass"
+          show-empty
+          class="mb-0"
           @row-clicked="item=>$set(item, '_showDetails', !item._showDetails)"
         >
+          <template #empty>
+            <p class="text-center text-muted m-4">
+              {{ $t('steps:trigger.configurator.no-constraints') }}
+            </p>
+          </template>
+
           <template #cell(name)="{ item: c }">
-            <samp v-if="c.name">
-              {{ getConstraintNameLabel(c.name) }}
-            </samp>
+            {{ getConstraintNameLabel(c.name) }}
+          </template>
+
+          <template #cell(op)="{ item: c }">
+            <p style="margin-bottom: 0.4rem;">
+              {{ getConstraintOperatorLabel(c.op) }}
+            </p>
           </template>
 
           <template #cell(values)="{ item: c, index }">
-            <div
-              class="text-truncate"
-              :class="{ 'w-75': c._showDetails}"
-            >
-              <samp>{{ c.values.join(' or ') }}</samp>
-            </div>
+            {{ c.values.join(' or ') }}
 
             <c-input-confirm
-              v-if="c._showDetails"
               show-icon
-              class="position-absolute trash"
-              size="md"
+              class="delete-btn ml-auto"
               @confirmed="removeConstraint(index)"
             />
           </template>
 
           <template #row-details="{ item: c }">
             <div class="arrow-up" />
-            <b-card
-              class="bg-light"
-            >
+
+            <b-card class="bg-light">
               <b-form-group
                 :label="$t('steps:trigger.configurator.resource')"
                 label-class="text-primary"
@@ -143,6 +151,7 @@
                   :reduce="c => c.value"
                   :filter="constrFilter"
                   :placeholder="$t('steps:trigger.configurator.select-constraint-type')"
+                  :clearable="false"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>
@@ -158,41 +167,48 @@
                   label="text"
                   :reduce="c => c.value"
                   :placeholder="$t('steps:trigger.configurator.select-operator')"
+                  :clearable="false"
                   @input="$root.$emit('change-detected')"
                 />
               </b-form-group>
 
-              <b-form-group>
-                <template #label>
-                  <div
-                    class="d-flex text-primary"
-                  >
-                    Values
-                    <b-button
-                      variant="link"
-                      class="align-top border-0 p-0 ml-2"
-                      @click="c.values.push('')"
-                    >
-                      {{ $t('steps:trigger.configurator.add') }}
-                    </b-button>
-                  </div>
-                </template>
-
-                <b-input-group
+              <b-form-group
+                label="Values"
+                label-class="text-primary"
+              >
+                <div
                   v-for="(value, index) in c.values"
                   :key="index"
                   class="mb-2"
                 >
-                  <b-form-input
-                    v-model="c.values[index]"
-                    @input="$root.$emit('change-detected')"
-                  />
+                  <p
+                    v-if="index > 0"
+                    class="text-center text-uppercase text-muted mb-2"
+                  >
+                    {{ $t('general:label.or') }}
+                  </p>
 
-                  <c-input-confirm
-                    show-icon
-                    @confirmed="c.values.splice(index, 1)"
-                  />
-                </b-input-group>
+                  <div class="d-flex align-items-center gap-1">
+                    <b-form-input
+                      v-model="c.values[index]"
+                      @input="$root.$emit('change-detected')"
+                    />
+
+                    <c-input-confirm
+                      show-icon
+                      @confirmed="c.values.splice(index, 1)"
+                    />
+                  </div>
+                </div>
+
+                <b-button
+                  variant="primary"
+                  size="sm"
+                  class="mr-auto"
+                  @click="c.values.push('')"
+                >
+                  {{ $t('steps:trigger.configurator.add') }}
+                </b-button>
               </b-form-group>
             </b-card>
           </template>
@@ -215,6 +231,7 @@
               />
             </a>
           </template>
+
           <c-input-date-time
             v-if="item.triggers.eventType === 'onTimestamp'"
             v-model="item.triggers.constraints[0].values[0]"
@@ -263,7 +280,7 @@
           :fields="scopeFields"
         >
           <template #cell(type)="{ item: v }">
-            <var>{{ v.type }}</var>
+            <var>{{ v.type || $t('general:label.any') }}</var>
           </template>
         </b-table>
       </b-card-body>
@@ -275,6 +292,9 @@
 import base from './base'
 import { components } from '@cortezaproject/corteza-vue'
 import { objectSearchMaker } from '../../lib/filter'
+import { getConstraintNameLabel } from '../../lib/constraint'
+import { getDocumentationURL } from '../../lib/version'
+import { camelToTitle } from '../../lib/string'
 const { CInputDateTime } = components
 
 export default {
@@ -317,19 +337,17 @@ export default {
       return [
         {
           key: 'name',
-          thClass: 'pl-3 py-2 w-auto',
-          tdClass: 'pr-0 text-truncate pointer',
+          tdClass: 'pointer',
         },
         {
           key: 'op',
           label: this.$t('steps:trigger.configurator.operator'),
-          thClass: 'py-2 operator text-center',
-          tdClass: 'pl-0 text-truncate text-center pointer',
+          thClass: 'text-center',
+          tdClass: 'text-truncate text-center pointer',
         },
         {
           key: 'values',
-          thClass: 'pr-3 py-2 w-auto text-center',
-          tdClass: 'position-relative pointer text-center',
+          tdClass: 'd-flex align-items-start gap-2 pointer pr-2',
         },
       ]
     },
@@ -370,14 +388,11 @@ export default {
         { value: '!=', text: this.$t('steps:trigger.configurator.not-equal') },
         { value: 'like', text: this.$t('steps:trigger.configurator.like') },
         { value: 'not like', text: this.$t('steps:trigger.configurator.not-like') },
-
       ]
     },
 
     intervalDocumentationURL () {
-      // eslint-disable-next-line no-undef
-      const [year, month] = VERSION.split('.')
-      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/automation/workflows/index.html#deferred-interval`
+      return getDocumentationURL('integrator-guide/automation/workflows/index.html#deferred-interval')
     },
   },
 
@@ -398,6 +413,7 @@ export default {
     resTypeFilter: objectSearchMaker('text'),
     evtTypeFilter: objectSearchMaker('eventType'),
     constrFilter: objectSearchMaker('text'),
+    getConstraintNameLabel,
 
     async getEventTypes () {
       return this.$AutomationAPI.eventTypesList()
@@ -416,7 +432,7 @@ export default {
 
     addConstraint () {
       this.item.triggers.constraints.push({
-        name: null,
+        name: '',
         op: '=',
         values: [''],
         _showDetails: true,
@@ -438,9 +454,8 @@ export default {
     },
 
     eventChanged () {
-      this.item.triggers.constraints = []
-
       if (['onTimestamp', 'onInterval'].includes(this.item.triggers.eventType)) {
+        this.item.triggers.constraints = []
         this.addConstraint()
       }
 
@@ -495,25 +510,25 @@ export default {
     getEventTypeLabel ({ eventType = '' } = {}) {
       if (!eventType) return ''
 
-      return eventType
-        .replace('on', '')
-        .split(/(?=[A-Z])/)
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ')
+      return camelToTitle(eventType.replace('on', ''))
     },
 
-    getConstraintNameLabel (name) {
-      return name
-        .split('.')
-        .map(s => s[0].toUpperCase() + s.slice(1).toLowerCase())
-        .join(' ')
+    getConstraintOperatorLabel (op) {
+      const operator = this.constraintOperatorTypes.find(type => type.value === op)
+      return operator ? operator.text : op
     },
   },
 }
 </script>
 
 <style lang="scss" scoped>
-.operator {
-  width: 100px;
+#constraints {
+  tbody tr .delete-btn {
+    display: none !important;
+  }
+
+  tbody tr:hover .delete-btn {
+    display: inline-flex !important;
+  }
 }
 </style>

@@ -334,6 +334,7 @@ import base from './base'
 import ExpressionTable from '../ExpressionTable.vue'
 import ExpressionEditor from '../ExpressionEditor.vue'
 import { objectSearchMaker, stringSearchMaker } from '../../lib/filter'
+import { getDocumentationURL } from '../../lib/version'
 
 export default {
   components: {
@@ -459,9 +460,7 @@ export default {
     },
 
     documentationURL () {
-      // eslint-disable-next-line no-undef
-      const [year, month] = VERSION.split('.')
-      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/integrator-guide/expr/index.html`
+      return getDocumentationURL('integrator-guide/expr/index.html')
     },
   },
 

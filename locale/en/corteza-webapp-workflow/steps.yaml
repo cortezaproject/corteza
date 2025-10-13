@@ -97,6 +97,7 @@ trigger:
     add: + Add
     add-constraints: + Add Constraints
     constraints: Constraints
+    no-constraints: No constraints
     event*: Event*
     failed-fetch-event-types: Failed to fetch event types
     initial-scope: Initial Scope
