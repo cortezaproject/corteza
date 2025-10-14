@@ -303,6 +303,10 @@ func Test_length(t *testing.T) {
 			{3, "foo"},
 			{0, make(chan string)},
 			{0, 34234},
+			{2, Must(NewAny([]int{1,2}))},
+			{6, Must(NewAny("foobar"))},
+			{5, Must(NewArray([]string{"A","R","R","A","Y"}))},
+			{0, Must(NewArray([]string{}))},
 		}
 	)
 
