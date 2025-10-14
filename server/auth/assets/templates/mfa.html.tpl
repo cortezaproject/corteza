@@ -8,7 +8,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>{{ tr "mfa.template.email.instructions" }}</h5>
+		<p>{{ tr "mfa.template.email.instructions" }}</p>
 
 		{{ if .form.emailOtpError }}
 		<div class="text-danger my-4 font-weight-bold" role="alert">
@@ -63,7 +63,7 @@
 		method="POST"
 		action="{{ links.Mfa }}"
 	>
-		<h5>{{ tr "mfa.template.totp.instructions" }}</h5>
+		<p>{{ tr "mfa.template.totp.instructions" }}</p>
 
 		{{ if .form.totpError }}
 		<div class="alert alert-danger" role="alert">
@@ -94,10 +94,10 @@
 			name="action"
 			value="verifyTotp"
 		>
-			{{ tr "mfa.template.email.verify" }}
+			{{ tr "mfa.template.totp.verify" }}
 		</button>
 	</form>
-	{{ else if not .totpDisabled }}
+	{{ else if and (not .totpDisabled) (not .totpPending) (not .totpUnconfigured) }}
 		<p class="px-3 pt-3 pb-2 mb-0">
 			<i class="bi bi-check-circle text-success h5 mr-1"></i> {{ tr "mfa.template.totp.confirmed" }}
 		</p>

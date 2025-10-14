@@ -100,7 +100,7 @@ func (au *authUser) set(s *settings.Settings, u *types.User) {
 	} else if !umsp.EnforcedTOTP && gmsp.TOTP.Enforced {
 		// TOTP not enforced on user but enforced globally
 		mfaStatus[authByTOTP] = authStatusUnconfigured
-	} else if gmsp.TOTP.Enforced {
+	} else if umsp.EnforcedTOTP || gmsp.TOTP.Enforced {
 		mfaStatus[authByTOTP] = authStatusPending
 	}
 

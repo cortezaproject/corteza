@@ -100,9 +100,6 @@ func (h *AuthHandlers) loginProc(req *request.AuthReq) (err error) {
 			zap.Duration("lifetime", lifetime),
 		)
 
-		t := translator(req, "auth")
-		req.PushAlert(t("login.alerts.logged-in"))
-
 		if req.AuthUser.PendingEmailOTP() {
 			// Email OTP enforced (globally or by user sec. policy)
 			//

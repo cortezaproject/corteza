@@ -8,17 +8,17 @@ template:
   mfa:
     title: Multi-factor authentication
     totp:
-      title: Additional security with mobile app (time-based one-time-password)
-      enforced: Configured and required on login
+      title: TOTP (time-based one-time password via mobile app)
+      enforced: Enabled
       configure: Configure
       enable: Enable
       disable: Disable
       enabled: Time-based one-time-password enabled
-      disabled: Time-based one-time-password disabled
+      disabled: Disabled
 
     email:
-      title: Additional security with one-time-password over email
-      enforced: Enabled and required on login
+      title: Email OTP (one-time password sent to email)
+      enforced: Enabled
       enable: Enable
       disable: Disable
       enabled: Two factor authentication over email enabled

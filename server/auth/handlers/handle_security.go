@@ -11,8 +11,9 @@ func (h *AuthHandlers) securityForm(req *request.AuthReq) error {
 	// user's MFA security policy
 	umsp := req.AuthUser.User.Meta.SecurityPolicy.MFA
 
-	req.Data["emailOtpEnforced"] = umsp.EnforcedEmailOTP
-	req.Data["totpEnforced"] = umsp.EnforcedTOTP
+	// Check if email OTP or TOTP is enforced (either by user settings or globally)
+	req.Data["emailOtpEnforced"] = umsp.EnforcedEmailOTP || h.Settings.MultiFactor.EmailOTP.Enforced
+	req.Data["totpEnforced"] = umsp.EnforcedTOTP || h.Settings.MultiFactor.TOTP.Enforced
 
 	return nil
 }
@@ -51,6 +52,13 @@ func (h *AuthHandlers) securityProc(req *request.AuthReq) error {
 
 			// Make sure we update User's data in the session
 			req.AuthUser.User = user
+			req.AuthUser.Update(h.Settings, user)
+
+			// If enabling, mark as complete in the current session; required for future logins
+			if enable {
+				req.AuthUser.CompleteEmailOTP()
+			}
+
 			req.AuthUser.Save(req.Session)
 
 			h.Log.Info("email OTP configured", zap.Bool("enabled", enable))

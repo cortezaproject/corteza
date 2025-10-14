@@ -20,12 +20,12 @@
 
 	<div>
 		{{ .csrfField }}
-		<h5>{{ tr "security.template.mfa.title" }}</h5>
+		<h5 class="mb-3">{{ tr "security.template.mfa.title" }}</h5>
 		{{ if or .settings.MultiFactor.TOTP.Enabled .settings.MultiFactor.EmailOTP.Enabled }}
 			{{ if .settings.MultiFactor.TOTP.Enabled }}
-			<div class="py-4">
-				<h6>{{ tr "security.template.mfa.totp.title" }}</h6>
-				<div class="d-flex pt-2">
+			<div class="mb-4">
+				<label class="text-primary">{{ tr "security.template.mfa.totp.title" }}</label>
+				<div class="d-flex align-items-center">
 					<div>
 						{{ if .totpEnforced }}
 						  <i class="bi bi-check-circle text-success h5 mr-1"></i>
@@ -46,7 +46,7 @@
                   data-test-id="button-disable-totp"
                   name="action"
                   value="disableTOTP"
-                  class="btn btn-danger float-right"
+                  class="btn btn-danger"
                 >
                   {{ tr "security.template.mfa.totp.disable" }}
                 </button>
@@ -56,7 +56,7 @@
 								data-test-id="button-configure-totp"
 								name="action"
 								value="configureTOTP"
-								class="btn btn-primary float-right"
+								class="btn btn-primary"
 							>
 								{{ tr "security.template.mfa.totp.configure" }}
 							</button>
@@ -67,9 +67,9 @@
 			{{ end }}
 
 			{{ if .settings.MultiFactor.EmailOTP.Enabled }}
-			<div class="pt-4 pb-1">
-				<h6>{{ tr "security.template.mfa.email.title" }}</h6>
-				<div class="d-flex align-items-center pt-2">
+			<div class="mb-3">
+				<label class="text-primary">{{ tr "security.template.mfa.email.title" }}</label class="text-primary">
+				<div class="d-flex align-items-center">
 					<div>
             {{ if .emailOtpEnforced }}
               <i class="bi bi-check-circle text-success h5 mr-1"></i>
@@ -91,7 +91,7 @@
 							data-test-id="button-disable-email-otp"
 							name="action"
 							value="disableEmailOTP"
-							class="btn btn-danger float-right"
+							class="btn btn-danger"
 						>
 							{{ tr "security.template.mfa.email.disable" }}
 						</button>
@@ -101,7 +101,7 @@
 							data-test-id="button-enable-email-otp"
 							name="action"
 							value="enableEmailOTP"
-							class="btn btn-primary float-right"
+							class="btn btn-primary"
 						>
 							{{ tr "security.template.mfa.email.enable" }}
 						</button>

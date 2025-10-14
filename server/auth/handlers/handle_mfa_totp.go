@@ -183,7 +183,7 @@ func (h AuthHandlers) mfaTotpDisableProc(req *request.AuthReq) (err error) {
 
 		// Make sure we update User's data in the session
 		req.AuthUser.User = user
-		req.AuthUser.ResetTOTP()
+		req.AuthUser.Update(h.Settings, user)
 		req.AuthUser.Save(req.Session)
 
 		h.Log.Info("TOTP disabled")

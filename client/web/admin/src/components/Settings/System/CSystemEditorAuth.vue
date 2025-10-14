@@ -270,25 +270,6 @@
             lg="6"
           >
             <b-form-group
-              :label="$t('mfa.emailOTP.enforced')"
-              label-class="text-primary"
-            >
-              <c-input-checkbox
-                v-model="authSettings['auth.multi-factor.email-otp.enforced']"
-                :value="true"
-                :unchecked-value="false"
-                :labels="checkboxLabel"
-                :disabled="!authSettings['auth.multi-factor.email-otp.enabled']"
-                switch
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            lg="6"
-          >
-            <b-form-group
               :label="$t('mfa.emailOTP.expires.label')"
               :description="$t('mfa.emailOTP.expires.description')"
               label-class="text-primary"
@@ -300,6 +281,27 @@
                   placeholder="60"
                 />
               </b-input-group>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            v-if="authSettings['auth.multi-factor.email-otp.enabled']"
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.emailOTP.enforced')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="authSettings['auth.multi-factor.email-otp.enforced']"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                :disabled="!authSettings['auth.multi-factor.email-otp.enabled']"
+                switch
+                @change="handleEmailOTPEnforcedChange"
+              />
             </b-form-group>
           </b-col>
         </b-row>
@@ -334,25 +336,6 @@
             lg="6"
           >
             <b-form-group
-              :label="$t('mfa.TOTP.enforced')"
-              label-class="text-primary"
-            >
-              <c-input-checkbox
-                v-model="authSettings['auth.multi-factor.totp.enforced']"
-                :value="true"
-                :unchecked-value="false"
-                :labels="checkboxLabel"
-                :disabled="!authSettings['auth.multi-factor.totp.enabled']"
-                switch
-              />
-            </b-form-group>
-          </b-col>
-
-          <b-col
-            cols="12"
-            lg="6"
-          >
-            <b-form-group
               :label="$t('mfa.TOTP.issuer.label')"
               :description="$t('mfa.TOTP.issuer.description')"
               label-class="text-primary"
@@ -363,6 +346,27 @@
                   placeholder="Corteza"
                 />
               </b-input-group>
+            </b-form-group>
+          </b-col>
+
+          <b-col
+            v-if="authSettings['auth.multi-factor.totp.enabled']"
+            cols="12"
+            lg="6"
+          >
+            <b-form-group
+              :label="$t('mfa.TOTP.enforced')"
+              label-class="text-primary"
+            >
+              <c-input-checkbox
+                v-model="authSettings['auth.multi-factor.totp.enforced']"
+                :value="true"
+                :unchecked-value="false"
+                :labels="checkboxLabel"
+                :disabled="!authSettings['auth.multi-factor.totp.enabled']"
+                switch
+                @change="handleTOTPEnforcedChange"
+              />
             </b-form-group>
           </b-col>
         </b-row>
@@ -584,6 +588,18 @@ export default {
     handleTOTPEnabledChange (value) {
       if (!value) {
         this.authSettings['auth.multi-factor.totp.enforced'] = false
+      }
+    },
+
+    handleEmailOTPEnforcedChange (value) {
+      if (value) {
+        this.authSettings['auth.multi-factor.email-otp.enforced'] = true
+      }
+    },
+
+    handleTOTPEnforcedChange (value) {
+      if (value) {
+        this.authSettings['auth.multi-factor.totp.enforced'] = true
       }
     },
   },

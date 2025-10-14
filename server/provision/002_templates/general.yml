@@ -18,9 +18,9 @@ templates:
                         <table width="800" cellspacing="0" cellpadding="0" border="0">
                           <tbody>
                             <tr style="background-color:#FFFFFF;height:50px;">
-                              <td style="border-bottom:2px solid #568ba2;">
+                              <td style="border-bottom: 2px solid #E4E9EF;">
                                 <a href="{{ .BaseURL }}" style="text-decoration:none" target="_blank">
-                                  <img src="{{ .Logo }}" style="display: block;margin: 0 auto;padding: 10px;">
+                                  <img src="{{ .Logo }}" style="display: block;margin: 0 auto;padding: 10px; width: 50%;">
                                 </a>
                               </td>
                             </tr>
@@ -37,8 +37,8 @@ templates:
       </td>
                             </tr>
                             <tr>
-                              <td style="padding:30px;border-top: 1px solid #F9FAFB">
-                                <p>If you have any questions, please contact <a href="mailto:{{ .SignatureEmail }}" style="color:#568ba2;">{{ .SignatureEmail }}</a>.</p>
+                              <td style="padding:30px;border-top: 1px solid #E4E9EF">
+                                <p>If you have any questions, please contact <a href="mailto:{{ .SignatureEmail }}" style="color:#FF9661;">{{ .SignatureEmail }}</a>.</p>
                                 <p>Kind regards, <br>
                                 {{ .SignatureName }}</p>
                               </td>

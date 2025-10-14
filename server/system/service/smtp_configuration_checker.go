@@ -4,14 +4,15 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	htpl "html/template"
+	"io/ioutil"
+	"strings"
+
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/mail"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/system/types"
 	gomail "gopkg.in/mail.v2"
-	htpl "html/template"
-	"io/ioutil"
-	"strings"
 )
 
 type (
@@ -101,7 +102,7 @@ func (svc smtpConfigurationChecker) smtpSend(ctx context.Context, recipients []s
 	// if we cannot find an email template
 	if err != nil {
 		ntf.SetHeader("Subject", "SMTP Configuration check")
-		ntf.SetBody("text/html", "<h2 style=\"color: #568ba2;text-align: center;\">SMTP configurations check passed</h2>")
+		ntf.SetBody("text/html", "<h2 style=\"color: #FF9661;text-align: center;\">SMTP configurations check passed</h2>")
 
 		err = mail.Send(ntf)
 
