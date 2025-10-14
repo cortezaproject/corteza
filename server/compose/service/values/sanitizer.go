@@ -140,7 +140,7 @@ func (s sanitizer) RunXSS(m *types.Module, vv types.RecordValueSet) types.Record
 
 		switch strings.ToLower(f.Kind) {
 		case "string":
-			v.Value = sString(v.Value)
+			v.Value = sString(v.Value, f.Options.SanitizeXSS())
 		}
 	}
 
@@ -258,13 +258,17 @@ func sNumber(num interface{}, p uint, s uint) string {
 	return str
 }
 
-func sString(str interface{}) string {
+func sString(str interface{}, sanitizeXSS bool) string {
 	base, err := cast.ToStringE(str)
 	if err != nil {
 		return ""
 	}
 
-	return xss.RichText(base)
+	if sanitizeXSS {
+		return xss.RichText(base)
+	}
+
+	return base
 }
 
 // sanitize casts value to field kind format
@@ -278,7 +282,7 @@ func sanitize(f *types.ModuleField, v interface{}) string {
 		// @todo !! This is temporary; precision and scale require a rework
 		v = sNumber(v, maxPrecision, f.Options.Precision())
 	case "string":
-		v = sString(v)
+		v = sString(v, f.Options.SanitizeXSS())
 	}
 
 	return fmt.Sprintf("%v", v)

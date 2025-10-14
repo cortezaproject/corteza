@@ -164,6 +164,9 @@ kind:
     label: String
     multiLine: Multi line
     richText: Use Rich Text Editor
+    sanitizeXSS:
+      label: XSS Sanitization
+      warning: Disabling XSS sanitization is dangerous and may expose your application to security vulnerabilities. Only disable if you fully trust the data source and understand the risks.
   url:
     example: 'Example URL: https://example.com'
     label: URL
