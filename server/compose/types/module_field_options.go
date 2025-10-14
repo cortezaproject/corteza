@@ -4,9 +4,10 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"github.com/spf13/cast"
-	"strconv"
 )
 
 type (
@@ -37,6 +38,8 @@ const (
 	moduleFieldNumberOptionPrecision         = "precision"
 	moduleFieldNumberOptionPrecisionMin uint = 0
 	moduleFieldNumberOptionPrecisionMax uint = 6
+
+	moduleFieldStringOptionSanitizeXSS = "sanitizeXSS"
 )
 
 func (opt *ModuleFieldOptions) Scan(src any) error          { return sql.ParseJSON(src, opt) }
@@ -180,4 +183,18 @@ func (opt ModuleFieldOptions) Index() *ModuleFieldOptionIndex {
 	}
 
 	return nil
+}
+
+// SanitizeXSS - should XSS sanitization be applied to this string field?
+func (opt ModuleFieldOptions) SanitizeXSS() bool {
+	// Default to true if not set
+	if _, has := opt[moduleFieldStringOptionSanitizeXSS]; !has {
+		return true
+	}
+	return opt.Bool(moduleFieldStringOptionSanitizeXSS)
+}
+
+// SetSanitizeXSS - set whether XSS sanitization should be applied to this string field
+func (opt ModuleFieldOptions) SetSanitizeXSS(value bool) {
+	opt[moduleFieldStringOptionSanitizeXSS] = value
 }

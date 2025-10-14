@@ -1,11 +1,18 @@
 <template>
   <div class="rt-content">
     <p
-      v-if="formatted"
-      :style="{ 'white-space': field.options.useRichTextEditor && 'pre-line' }"
+      v-if="formatted && field.options.useRichTextEditor"
+      :style="{ 'white-space': 'pre-line' }"
       :class="[ 'multiline' && field.isMulti || field.options.multiLine, ...classes ]"
       v-html="formatted"
     />
+
+    <p
+      v-else-if="formatted"
+      :class="[ 'multiline' && field.isMulti || field.options.multiLine, ...classes ]"
+    >
+      {{ formatted }}
+    </p>
   </div>
 </template>
 <script>
