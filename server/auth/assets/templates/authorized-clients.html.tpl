@@ -2,15 +2,14 @@
 <div class="card-body p-0">
 	<form
 		method="POST"
-		class="clearfix"
 		action="{{ links.AuthorizedClients }}"
-		class="p-3"
+		class="clearfix p-3"
 	>
 
-		{{ .csrfField }}
+  {{ .csrfField }}
 
-	{{ range .authorizedClients}}
-        <div class="p-3">
+	{{ range .authorizedClients }}
+        <div class="mb-2 pb-2 border-bottom">
             <div class="text-primary font-weight-bold">{{ .Name }}</div>
             <div>
                 {{ tr "authorized-clients.template.list.authorized-on" }}
@@ -25,7 +24,7 @@
                 type="submit"
                 name="revoke"
                 value="{{ .ID }}"
-                class="btn btn-sm btn-danger"
+                class="btn btn-sm btn-danger my-2"
             >
                 {{ tr "authorized-clients.template.list.buttons.revoke" }}
             </button>

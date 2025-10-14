@@ -44,14 +44,14 @@ editor:
     mfa:
       title: Multi-factor authentication
       TOTP:
-        enabled: Allow users to use time based one-time-password (using mobile application)
-        enforced: Force users to use time based one-time-password (using mobile application)
+        enabled: Enable TOTP (time-based one-time password via mobile app)
+        enforced: Require all users to use TOTP
         issuer:
-          description: Issuer name will be send to authenticator app when user configures it
+          description: Issuer name will be sent to authenticator app when user configures it
           label: Issuer
       emailOTP:
-        enabled: Allow users to use one-time-password over email
-        enforced: Force users to use one-time-password over email
+        enabled: Enable email OTP (one-time password sent to email)
+        enforced: Require all users to use email OTP
         expires:
           description: How long will password be valid before it expires
           label: Valid for

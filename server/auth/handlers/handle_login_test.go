@@ -73,13 +73,13 @@ func Test_loginProc(t *testing.T) {
 		{
 			name:    "successful login",
 			payload: map[string]string(nil),
-			alerts:  []request.Alert{{Type: "primary", Text: "login.alerts.logged-in", Html: ""}},
+			alerts:  []request.Alert(nil),
 			link:    GetLinks().Profile,
 			fn: func(_ *settings.Settings) {
 				authService = &authServiceMocked{
 					internalLogin: func(ctx context.Context, email, password string) (u *types.User, err error) {
 						u = &types.User{Meta: &types.UserMeta{}}
-						u.Meta.SecurityPolicy.MFA.EnforcedEmailOTP = true
+						u.Meta.SecurityPolicy.MFA.EnforcedEmailOTP = false
 						u.Meta.SecurityPolicy.MFA.EnforcedTOTP = false
 
 						err = nil

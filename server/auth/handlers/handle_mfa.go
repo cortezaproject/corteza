@@ -28,7 +28,7 @@ func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 
 		t := translator(req, "auth")
 
-		req.PushAlert(t("mfa.email.resent"))
+		req.PushAlert(t("mfa.alerts.email.resent"))
 		req.RedirectTo = GetLinks().Mfa
 	}
 
@@ -37,6 +37,7 @@ func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 	req.Data["emailOtpPending"] = req.AuthUser.PendingEmailOTP()
 	req.Data["totpDisabled"] = req.AuthUser.DisabledTOTP()
 	req.Data["totpPending"] = req.AuthUser.PendingTOTP()
+	req.Data["totpUnconfigured"] = req.AuthUser.UnconfiguredTOTP()
 	return nil
 }
 
@@ -59,7 +60,7 @@ func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 
 		t := translator(req, "auth")
 
-		req.PushAlert(t("mfa.email.resent"))
+		req.PushAlert(t("mfa.alerts.email.confirmed"))
 		req.AuthUser.CompleteEmailOTP()
 
 	case "verifyTotp":
@@ -75,7 +76,7 @@ func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 
 		t := translator(req, "auth")
 
-		req.PushAlert(t("mfa.topt.valid"))
+		req.PushAlert(t("mfa.alerts.totp.confirmed"))
 		req.AuthUser.CompleteTOTP()
 	}
 

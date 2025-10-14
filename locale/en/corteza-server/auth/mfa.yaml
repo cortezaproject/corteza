@@ -2,14 +2,14 @@ template:
   title: Multi-factor authentication
 
   email:
-    instructions: Check your inbox and enter the received code
+    instructions: Check your inbox and enter the code
     code: Code
     verify: Verify
     resend: Resend
     confirmed: Email OTP confirmed
 
   totp:
-    instructions: Check your TOTP application and enter the code you received
+    instructions: Check your TOTP application and enter the code
     code: Code
     confirmed: TOTP confirmed
     verify: Verify
@@ -17,6 +17,7 @@ template:
 alerts:
   email:
     resent: Email OTP resent
+    confirmed: Email OTP confirmed
 
-  topt:
-    valid: TOTP valid
+  totp:
+    confirmed: TOTP confirmed

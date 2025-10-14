@@ -17,9 +17,25 @@
 		class="container p-3 m-0"
 	>
 		<div class="row">
+      <div class="col-12 col-sm-6">
+				<p>
+				{{ tr "mfa-totp.template.instructions" }}
+				</p>
+				<ul>
+					<li>
+						{{ tr "mfa-totp.template.lastpass" "lastpass" "https://lastpass.com/auth/" }}
+					</li>
+					<li>
+						{{ tr "mfa-totp.template.gauth" "android" "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" "iphone" "https://apps.apple.com/us/app/google-authenticator/id388497605" }}
+					</li>
+					<li>
+						{{ tr "mfa-totp.template.authy" "link" "https://authy.com" }}
+					</li>
+				</ul>
+			</div>
 			<div class="col-12 col-sm-6 p-0 mb-3">
-				<pre class="h5 px-4">{{ .secret }}</pre>
-				<img style="width: 280px" class="d-block m-auto pb-2" src="{{ if .devQRImage }}{{ .devQRImage }}{{ else }}{{ links.MfaTotpQRImage }}{{ end }}" />
+				<img class="px-4 w-100" style="margin-top: -1rem; margin-bottom: -1rem;" src="{{ if .devQRImage }}{{ .devQRImage }}{{ else }}{{ links.MfaTotpQRImage }}{{ end }}" />
+				<h5 class="px-4 text-center mb-3">{{ .secret }}</h5>
 
 				<form
 					class="px-3"
@@ -60,22 +76,6 @@
 						{{ tr "mfa-totp.template.form.button" }}
 					</button>
 				</form>
-			</div>
-			<div class="col-12 col-sm-6">
-				<p class="text-justify">
-				{{ tr "mfa-totp.template.instructions" }}
-				</p>
-				<ul>
-					<li>
-						{{ tr "mfa-totp.template.lastpass" "lastpass" "https://lastpass.com/auth/" }}
-					</li>
-					<li>
-						{{ tr "mfa-totp.template.gauth" "android" "https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2" "iphone" "https://apps.apple.com/us/app/google-authenticator/id388497605" }}
-					</li>
-					<li>
-						{{ tr "mfa-totp.template.authy" "link" "https://authy.com" }}
-					</li>
-				</ul>
 			</div>
 		</div>
 	</div>

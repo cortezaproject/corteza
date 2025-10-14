@@ -28,7 +28,7 @@
 		{{ .csrfField }}
 
 	{{ range .sessions}}
-		<div class="mb-3 border-bottom">
+		<div class="mb-2 border-bottom">
 			{{ if .Current }}
                 <h5>{{ tr "sessions.template.list.current" }}</h5>
 			{{ end }}
