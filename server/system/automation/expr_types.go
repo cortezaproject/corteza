@@ -82,8 +82,13 @@ func CastToReminder(val interface{}) (out *types.Reminder, err error) {
 		return val, nil
 	case map[string]interface{}:
 		out = &types.Reminder{}
-		m, _ := json.Marshal(val)
-		_ = json.Unmarshal(m, out)
+		// m, _ := json.Marshal(val)
+		// _ = json.Unmarshal(m, out)
+		for k,v := range val {
+			if err = assignToReminder(out, k,v);err != nil{
+				return nil, err
+			}
+		}
 		return out, nil
 	case nil:
 		return &types.Reminder{}, nil
