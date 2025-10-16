@@ -2943,6 +2943,35 @@ func getEventTypeDefinitions() []eventTypeDef {
 
 		{
 			ResourceType: "system:reminder",
+			EventType:    "onManual",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
 			EventType:    "beforeCreate",
 			Properties: []eventTypePropertyDef{
 

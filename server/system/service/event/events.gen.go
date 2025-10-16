@@ -321,6 +321,13 @@ type (
 		invoker     auth.Identifiable
 	}
 
+	// reminderOnManual
+	//
+	// This type is auto-generated.
+	reminderOnManual struct {
+		*reminderBase
+	}
+
 	// reminderBeforeCreate
 	//
 	// This type is auto-generated.
@@ -2662,6 +2669,13 @@ func (reminderBase) ResourceType() string {
 	return "system:reminder"
 }
 
+// EventType on reminderOnManual returns "onManual"
+//
+// This function is auto-generated.
+func (reminderOnManual) EventType() string {
+	return "onManual"
+}
+
 // EventType on reminderBeforeCreate returns "beforeCreate"
 //
 // This function is auto-generated.
@@ -2730,6 +2744,40 @@ func (reminderAfterDismiss) EventType() string {
 // This function is auto-generated.
 func (reminderAfterSnooze) EventType() string {
 	return "afterSnooze"
+}
+
+// ReminderOnManual creates onManual for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderOnManual(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderOnManual {
+	return &reminderOnManual{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderOnManualImmutable creates onManual for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderOnManualImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderOnManual {
+	return &reminderOnManual{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
 }
 
 // ReminderBeforeCreate creates beforeCreate for system:reminder resource

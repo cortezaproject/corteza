@@ -403,8 +403,14 @@ func (h remindersHandler) Each() *atypes.Function {
 
 type (
 	remindersCreateArgs struct {
+		hasResource bool
+		Resource    string
+
 		hasAssignedTo bool
 		AssignedTo    uint64
+
+		hasAssignedBy bool
+		AssignedBy    uint64
 
 		hasRemindAt bool
 		RemindAt    *time.Time
@@ -436,7 +442,15 @@ func (h remindersHandler) Create() *atypes.Function {
 
 		Parameters: []*atypes.Param{
 			{
+				Name:  "resource",
+				Types: []string{"String"},
+			},
+			{
 				Name:  "assignedTo",
+				Types: []string{"ID"},
+			},
+			{
+				Name:  "assignedBy",
 				Types: []string{"ID"},
 			},
 			{
@@ -460,7 +474,9 @@ func (h remindersHandler) Create() *atypes.Function {
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
 				args = &remindersCreateArgs{
+					hasResource:   in.Has("resource"),
 					hasAssignedTo: in.Has("assignedTo"),
+					hasAssignedBy: in.Has("assignedBy"),
 					hasRemindAt:   in.Has("remindAt"),
 					hasPayload:    in.Has("payload"),
 				}

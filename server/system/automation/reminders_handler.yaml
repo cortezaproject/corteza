@@ -77,10 +77,13 @@ functions:
       <<: *labels
       create: "step"
     params:
-      # reminder:
-      #   <<: *reminder
-      #   required: true
+      resource:
+        types:
+          - { wf: String}
       assignedTo:
+        types:
+          - { wf: ID }
+      assignedBy:
         types:
           - { wf: ID }
       remindAt:

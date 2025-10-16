@@ -26,7 +26,7 @@ type (
 		actionlog      actionlog.Recorder
 		store          store.Reminders
 		reminderSender reminderSender
-		eventbus 	   eventDispatcher //adding eventbus
+		eventbus 	   eventDispatcher
 	}
 
 	reminderAccessController interface {

@@ -147,14 +147,17 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 	currentUser := intAuth.GetIdentityFromContext(ctx).Identity()
 
 	reminder := &types.Reminder{
-		Resource: "workflow-reminder",
+		Resource:args.Resource,
 		AssignedTo: args.AssignedTo,
-		AssignedBy: currentUser,
+		AssignedBy: args.AssignedBy,
 		RemindAt: args.RemindAt,
 		Payload: args.Payload,
 	}
 	if reminder.AssignedTo == 0 {
-		reminder.AssignedTo= currentUser
+		reminder.AssignedTo = currentUser
+	}
+	if reminder.AssignedBy == 0 {
+		reminder.AssignedBy = currentUser
 	}
 	if len(reminder.Payload) == 0 {
       reminder.Payload = sqlxtypes.JSONText(`{"title": "", "note": ""}`)
