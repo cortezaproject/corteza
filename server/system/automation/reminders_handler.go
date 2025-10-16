@@ -171,7 +171,26 @@ func (h remindersHandler) each(ctx context.Context, args *remindersEachArgs) (ou
 
   func (h remindersHandler) update(ctx context.Context, args *remindersUpdateArgs) (results *remindersUpdateResults, err error) {
   	results = &remindersUpdateResults{}
-  	results.Reminder, err = h.rSvc.Update(ctx, args.Reminder)
+	reminder, err := lookupReminder(ctx, h.rSvc, args)
+	if err != nil {
+		return nil, err
+	}
+	if args.hasResource {
+		reminder.Resource = args.Resource
+	}
+	if args.hasAssignedTo {
+		reminder.AssignedTo = args.AssignedTo
+	}
+	if args.hasAssignedBy {
+		reminder.AssignedBy = args.AssignedBy
+	}
+	if args.hasRemindAt {
+		reminder.RemindAt = args.RemindAt
+	}
+	if args.hasPayload {
+		reminder.Payload = args.Payload
+	}
+  	results.Reminder, err = h.rSvc.Update(ctx, reminder)
   	return
   }
   func (h remindersHandler) dismiss(ctx context.Context, args *remindersDismissArgs) error {

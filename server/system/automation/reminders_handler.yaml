@@ -102,9 +102,22 @@ functions:
       <<: *labels
       update: "step"
     params:
-      reminder:
-        <<: *reminder
-        required: true
+      lookup: *lookup
+      resource:
+        types:
+          - { wf: String}
+      assignedTo:
+        types:
+          - { wf: ID }
+      assignedBy:
+        types:
+          - { wf: ID }
+      remindAt:
+        types:
+          - { wf: DateTime}
+      payload:
+        types:
+          - { wf: Bytes }
     results:
       reminder: *rvReminder
   dismiss:

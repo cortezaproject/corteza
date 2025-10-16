@@ -513,14 +513,35 @@ func (h remindersHandler) Create() *atypes.Function {
 
 type (
 	remindersUpdateArgs struct {
-		hasReminder bool
-		Reminder    *types.Reminder
+		hasLookup bool
+		Lookup    interface{}
+		lookupID  uint64
+		lookupRes *types.Reminder
+
+		hasResource bool
+		Resource    string
+
+		hasAssignedTo bool
+		AssignedTo    uint64
+
+		hasAssignedBy bool
+		AssignedBy    uint64
+
+		hasRemindAt bool
+		RemindAt    *time.Time
+
+		hasPayload bool
+		Payload    []byte
 	}
 
 	remindersUpdateResults struct {
 		Reminder *types.Reminder
 	}
 )
+
+func (a remindersUpdateArgs) GetLookup() (bool, uint64, *types.Reminder) {
+	return a.hasLookup, a.lookupID, a.lookupRes
+}
 
 // Update function Reminder update
 //
@@ -540,8 +561,28 @@ func (h remindersHandler) Update() *atypes.Function {
 
 		Parameters: []*atypes.Param{
 			{
-				Name:  "reminder",
-				Types: []string{"Reminder"}, Required: true,
+				Name:  "lookup",
+				Types: []string{"ID", "Reminder"}, Required: true,
+			},
+			{
+				Name:  "resource",
+				Types: []string{"String"},
+			},
+			{
+				Name:  "assignedTo",
+				Types: []string{"ID"},
+			},
+			{
+				Name:  "assignedBy",
+				Types: []string{"ID"},
+			},
+			{
+				Name:  "remindAt",
+				Types: []string{"DateTime"},
+			},
+			{
+				Name:  "payload",
+				Types: []string{"Bytes"},
 			},
 		},
 
@@ -556,12 +597,28 @@ func (h remindersHandler) Update() *atypes.Function {
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
 			var (
 				args = &remindersUpdateArgs{
-					hasReminder: in.Has("reminder"),
+					hasLookup:     in.Has("lookup"),
+					hasResource:   in.Has("resource"),
+					hasAssignedTo: in.Has("assignedTo"),
+					hasAssignedBy: in.Has("assignedBy"),
+					hasRemindAt:   in.Has("remindAt"),
+					hasPayload:    in.Has("payload"),
 				}
 			)
 
 			if err = in.Decode(args); err != nil {
 				return
+			}
+
+			// Converting Lookup argument
+			if args.hasLookup {
+				aux := expr.Must(expr.Select(in, "lookup"))
+				switch aux.Type() {
+				case h.reg.Type("ID").Type():
+					args.lookupID = aux.Get().(uint64)
+				case h.reg.Type("Reminder").Type():
+					args.lookupRes = aux.Get().(*types.Reminder)
+				}
 			}
 
 			var results *remindersUpdateResults
