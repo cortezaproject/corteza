@@ -129,7 +129,9 @@
             :disabled="processing"
             size="lg"
             class="text-nowrap"
-            @click.prevent="handleAction(action)"
+            :to="generateActionLink(action)"
+            :href="generateActionHref(action)"
+            :target="generateActionTarget(action)"
           >
             {{ action.meta.label }}
           </b-button>
@@ -143,7 +145,9 @@
             :disabled="processing"
             size="lg"
             class="text-nowrap"
-            @click.prevent="handleAction(action)"
+            :to="generateActionLink(action)"
+            :href="generateActionHref(action)"
+            :target="generateActionTarget(action)"
           >
             {{ action.meta.label }}
           </b-button>
@@ -157,7 +161,9 @@
             :disabled="processing"
             size="lg"
             class="text-nowrap"
-            @click.prevent="handleAction(action)"
+            :to="generateActionLink(action)"
+            :href="generateActionHref(action)"
+            :target="generateActionTarget(action)"
           >
             {{ action.meta.label }}
           </b-button>
@@ -237,7 +243,7 @@ export default {
     // Open record in a modal
     inModal: {
       type: Boolean,
-      required: false,
+      default: false,
     },
 
     edit: {
@@ -354,7 +360,7 @@ export default {
     },
 
     uniqueID () {
-      return [(this.page || {}).pageID, this.recordID, this.edit]
+      return [(this.page || {}).pageID, this.$route.query.layoutID, this.$route.query.modalLayoutID, this.recordID, this.edit]
     },
   },
 
@@ -362,16 +368,39 @@ export default {
     uniqueID: {
       immediate: true,
       handler (value = [], oldValue = []) {
-        const [pageID = ''] = value
-        const [oldPageID = ''] = oldValue
+        const [pageID = '', pageLayoutID = '', modalPageLayoutID = '', recordID = '', edit = ''] = value
+        const [oldPageID = '', oldPageLayoutID = '', oldModalPageLayoutID = '', oldRecordID = '', oldEdit = ''] = oldValue
+
+        if (!pageID || pageID === NoID) return
 
         // If page changed, get layouts
-        if (pageID && pageID !== NoID && pageID !== oldPageID) {
+        if (pageID !== oldPageID) {
           this.loading = true
           this.layouts = this.getPageLayouts(this.page.pageID)
         }
 
-        this.refresh()
+        // Only refresh if the record ID has changed or the edit state has changed
+        if ((recordID === NoID && recordID !== oldRecordID) || recordID !== oldRecordID || edit !== oldEdit) {
+          this.refresh()
+          return
+        }
+
+        // Determine which layout ID to use based on modal state
+        const currentLayoutID = this.inModal ? modalPageLayoutID : pageLayoutID
+        const oldLayoutID = this.inModal ? oldModalPageLayoutID : oldPageLayoutID
+
+        // Only update layout if it has actually changed
+        if (currentLayoutID !== oldLayoutID) {
+          this.determineLayout({ pageLayoutID: currentLayoutID })
+            .then(blocks => {
+              if (blocks) {
+                this.blocks = blocks
+              }
+            })
+            .finally(() => {
+              this.processing = false
+            })
+        }
       },
     },
 
@@ -621,7 +650,9 @@ export default {
       return this.loadRecord().then(record => {
         this.tempRecord = record
 
-        return this.determineLayout().then(blocks => {
+        const pageLayoutID = this.$route.query.layoutID
+
+        return this.determineLayout({ pageLayoutID }).then(blocks => {
           if (blocks) {
             this.blocks = blocks
           }
@@ -638,24 +669,54 @@ export default {
       })
     },
 
-    handleAction ({ kind, params = {} }) {
-      if (kind === 'toLayout') {
-        this.processing = true
-        this.loadingRecord = true
+    generateActionLink (action) {
+      const { kind, params = {} } = action
 
+      if (kind === 'toLayout') {
         const pageLayoutID = params.pageLayoutID
 
-        this.determineLayout({ pageLayoutID, redirectOnFail: false }).then(blocks => {
-          if (blocks) {
-            this.blocks = blocks
+        if (pageLayoutID) {
+          if (this.inModal) {
+            return {
+              ...this.$route,
+              query: {
+                ...this.$route.query,
+                modalLayoutID: pageLayoutID,
+              },
+            }
+          } else {
+            return {
+              ...this.$route,
+              query: {
+                ...this.$route.query,
+                layoutID: pageLayoutID,
+              },
+            }
           }
-        }).finally(() => {
-          this.processing = false
-          this.loadingRecord = false
-        })
-      } else if (kind === 'toURL') {
-        window.open(params.url, params.openIn === 'newTab' ? '_blank' : '_self')
+        }
       }
+
+      return undefined
+    },
+
+    generateActionHref (action) {
+      const { kind, params = {} } = action
+
+      if (kind === 'toURL') {
+        return params.url
+      }
+
+      return undefined
+    },
+
+    generateActionTarget (action) {
+      const { kind, params = {} } = action
+
+      if (kind === 'toURL') {
+        return params.openIn === 'newTab' ? '_blank' : '_self'
+      }
+
+      return undefined
     },
 
     setDefaultValues () {
@@ -703,7 +764,7 @@ export default {
         if (bvEvent) {
           bvEvent.preventDefault()
         }
-      } else {
+      } else if (this.record) {
         this.initialRecordState = this.record.clone()
       }
 

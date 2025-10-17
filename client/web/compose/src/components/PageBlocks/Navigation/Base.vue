@@ -32,7 +32,7 @@
           <template v-if="navItem.type === 'dropdown' || isComposeDropdownPage(navItem)">
             <b-button
               :id="`dropdown-popover-${index}-${block.blockID}`"
-              class="text-decoration-none p-0 w-100 h-100"
+              class="p-0 w-100 h-100"
               variant="link"
               :style="{ color: navItem.options.textColor, background: navItem.options.backgroundColor }"
             >
@@ -167,15 +167,51 @@ export default {
         return
       }
 
-      let to = ''
-
       if (navItem.type === 'compose') {
         const pageID = navItem.options.item.pageID
+        const pageLayoutID = navItem.options.item.pageLayoutID
+        const moduleID = navItem.options.item.moduleID
 
-        to = { name: 'page', params: { pageID } }
+        // Handle modal context - update modal layout ID
+        if (this.inModal && pageID === this.$route.query.recordPageID) {
+          return {
+            ...this.$route,
+            query: {
+              ...this.$route.query,
+              modalLayoutID: pageLayoutID,
+            },
+          }
+        }
+
+        // Determine if we're staying on the same page
+        const isSamePage = pageID === this.$route.params.pageID
+
+        // Handle record pages
+        if (moduleID) {
+          return isSamePage
+            ? {
+                ...this.$route,
+                query: { layoutID: pageLayoutID },
+              }
+            : {
+                name: 'page.record.create',
+                params: { pageID },
+                query: { layoutID: pageLayoutID },
+              }
+        }
+
+        // Handle regular pages
+        return isSamePage
+          ? {
+              ...this.$route,
+              query: { layoutID: pageLayoutID },
+            }
+          : {
+              name: 'page',
+              params: { pageID },
+              query: { layoutID: pageLayoutID },
+            }
       }
-
-      return to
     },
 
     generateHrefAttributeLink (navItem) {
@@ -188,3 +224,9 @@ export default {
   },
 }
 </script>
+
+<style lang="scss" scoped>
+.nav-link:hover {
+  text-decoration: underline !important;
+}
+</style>

@@ -813,6 +813,9 @@ navigation:
   add: Add navigation item
   addDropdown: Add dropdown item
   composePage: Compose page
+  pageLayout: Page Layout
+  defaultLayout: Default Layout
+  unnamedLayout: Unnamed Layout
   tabs: Tabs
   pills: Pills
   small: Small

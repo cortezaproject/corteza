@@ -103,53 +103,65 @@
                     <tr>
                       <th
                         scope="col"
-                        style="width: auto;"
-                      />
+                        class="grab"
+                        style="vertical-align: middle; width: 1rem;"
+                      >
+                        <font-awesome-icon
+                          :icon="['fas', 'bars']"
+                          class="text-secondary"
+                        />
+                      </th>
 
                       <th
                         scope="col"
-                        style="min-width: 200px;"
+                        style="vertical-align: middle; min-width: 200px;"
                       >
                         {{ $t("navigation.type") }}
                       </th>
 
                       <th
                         scope="col"
-                        style="min-width: 200px;"
+                        style="vertical-align: middle; min-width: 200px;"
                       >
                         {{ $t("navigation.color") }}
                       </th>
 
                       <th
                         scope="col"
-                        style="min-width: 200px;"
+                        style="vertical-align: middle; min-width: 200px;"
                       >
                         {{ $t("navigation.background") }}
                       </th>
 
                       <th
-                        class="text-center"
                         scope="col"
-                        style="width: 50px; min-width: 50px;"
+                        style="vertical-align: middle; width: 50px; min-width: 50px;"
                       >
                         {{ $t("navigation.enabled") }}
                       </th>
 
                       <th
                         scope="col"
-                        style="width: auto; min-width: 100px;"
+                        style="vertical-align: middle; width: auto; min-width: 100px;"
                       />
+
+                      <th
+                        scope="col"
+                        class="text-right"
+                      >
+                        <c-input-confirm
+                          show-icon
+                          button-class="px-2"
+                          size="md"
+                          @confirmed="options.navigationItems.splice(index, 1)"
+                        />
+                      </th>
                     </tr>
                   </thead>
 
                   <tbody>
                     <tr>
-                      <td class="grab align-middle text-center">
-                        <font-awesome-icon
-                          :icon="['fas', 'bars']"
-                          class="text-secondary"
-                        />
-                      </td>
+                      <td />
 
                       <td class="align-middle">
                         <b-form-select
@@ -187,19 +199,11 @@
                           class="w-100"
                         />
                       </td>
-                      <td class="d-flex align-items-center justify-content-center">
+                      <td class="d-flex align-items-center">
                         <c-input-checkbox
                           v-model="item.options.enabled"
                           switch
                           :labels="{}"
-                        />
-                      </td>
-                      <td class="text-right align-middle">
-                        <c-input-confirm
-                          show-icon
-                          button-class="px-2"
-                          size="md"
-                          @confirmed="options.navigationItems.splice(index, 1)"
                         />
                       </td>
                     </tr>

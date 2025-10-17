@@ -222,6 +222,7 @@ export default {
               moduleID: undefined,
               recordPageID: undefined,
               edit: undefined,
+              modalLayoutID: undefined,
             },
           })
         }

@@ -19,6 +19,8 @@ interface ItemOptions {
   target: string;
   delimiter: boolean;
   pageID: string;
+  pageLayoutID: string;
+  moduleID: string;
   displaySubPages: boolean;
   dropdown: Dropdown;
   align: string;
@@ -43,6 +45,8 @@ const defOptions = {
     target: '',
     delimiter: false,
     pageID: '',
+    pageLayoutID: '',
+    moduleID: '',
     displaySubPages: false,
     align: 'bottom',
     dropdown: {

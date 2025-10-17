@@ -141,6 +141,7 @@ page:
     delete:
       success: Layout deleted
       failed: Failed to delete layout
+    listFailed: Could not load page layouts
 record:
   createFailed: Could not create record
   createSuccess: Record created

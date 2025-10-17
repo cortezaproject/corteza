@@ -152,20 +152,29 @@ export default {
 
       return undefined
     },
+
+    uniqueID () {
+      return [this.page.pageID, this.$route.query.layoutID]
+    },
   },
 
   watch: {
-    'page.pageID': {
+    uniqueID: {
       immediate: true,
-      handler (pageID) {
-        if (pageID === NoID) return
+      handler (value = [], oldValue = []) {
+        const [pageID = '', pageLayoutID = ''] = value
+        const [oldPageID = ''] = oldValue
 
-        this.layouts = this.getPageLayouts(this.page.pageID)
-        this.layout = undefined
-        this.pageTitle = this.page.title
+        if (!pageID || pageID === NoID) return
+
+        if (pageID !== oldPageID) {
+          this.layouts = this.getPageLayouts(this.page.pageID)
+          this.layout = undefined
+          this.pageTitle = this.page.title
+        }
 
         if (!this.isRecordPage) {
-          this.determineLayout().then(blocks => {
+          this.determineLayout({ pageLayoutID }).then(blocks => {
             if (blocks) {
               this.blocks = blocks
             }

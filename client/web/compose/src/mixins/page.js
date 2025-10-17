@@ -38,6 +38,8 @@ export default {
   computed: {
     ...mapGetters({
       getPageLayouts: 'pageLayout/getByPageID',
+      previousPages: 'ui/previousPages',
+      modalPreviousPages: 'ui/modalPreviousPages',
     }),
 
     isRecordPage () {
@@ -74,6 +76,8 @@ export default {
     ...mapActions({
       clearRecordSet: 'record/clearSet',
       updatePageSet: 'page/updateSet',
+      popPreviousPages: 'ui/popPreviousPages',
+      popModalPreviousPage: 'ui/popModalPreviousPage',
     }),
 
     expressionVariables () {
@@ -146,7 +150,6 @@ export default {
 
       if (!matchedLayout) {
         this.toastWarning(this.$t('notification:page.page-layout.notFound.view'))
-
         if (redirectOnFail) {
           this.$router.go(-1)
         }
