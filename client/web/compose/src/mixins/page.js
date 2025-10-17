@@ -38,8 +38,6 @@ export default {
   computed: {
     ...mapGetters({
       getPageLayouts: 'pageLayout/getByPageID',
-      previousPages: 'ui/previousPages',
-      modalPreviousPages: 'ui/modalPreviousPages',
     }),
 
     isRecordPage () {

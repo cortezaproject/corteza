@@ -213,7 +213,7 @@ export default {
         border = position === 'end' ? 'border-left' : 'border-right'
         style = `${style} overflow-auto`
       } else if (position === 'end') {
-        border = 'border-top'
+        border = 'card-header border-top'
       } else if (this.block.options.style.appearance === 'pills') {
         style = `${style} pb-2 mt-2`
       }
@@ -250,7 +250,7 @@ export default {
 
     getTitleItemClass (index) {
       const { justify, alignment, orientation } = this.block.options.style
-      return `order-${index} ${orientation === 'horizontal' ? 'text-truncate' : ''} text-${alignment} ${justify !== 'none' ? 'flex-fill' : ''}`
+      return `${orientation === 'horizontal' ? 'text-truncate' : ''} text-${alignment} ${justify !== 'none' ? 'flex-fill' : ''}`
     },
 
     getTabTitle ({ title = '', block = {} }, tabIndex) {
