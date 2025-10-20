@@ -311,6 +311,93 @@ type (
 		*queueBase
 	}
 
+	// reminderBase
+	//
+	// This type is auto-generated.
+	reminderBase struct {
+		immutable   bool
+		reminder    *types.Reminder
+		oldReminder *types.Reminder
+		invoker     auth.Identifiable
+	}
+
+	// reminderOnManual
+	//
+	// This type is auto-generated.
+	reminderOnManual struct {
+		*reminderBase
+	}
+
+	// reminderBeforeCreate
+	//
+	// This type is auto-generated.
+	reminderBeforeCreate struct {
+		*reminderBase
+	}
+
+	// reminderBeforeUpdate
+	//
+	// This type is auto-generated.
+	reminderBeforeUpdate struct {
+		*reminderBase
+	}
+
+	// reminderBeforeDelete
+	//
+	// This type is auto-generated.
+	reminderBeforeDelete struct {
+		*reminderBase
+	}
+
+	// reminderBeforeDismiss
+	//
+	// This type is auto-generated.
+	reminderBeforeDismiss struct {
+		*reminderBase
+	}
+
+	// reminderBeforeSnooze
+	//
+	// This type is auto-generated.
+	reminderBeforeSnooze struct {
+		*reminderBase
+	}
+
+	// reminderAfterCreate
+	//
+	// This type is auto-generated.
+	reminderAfterCreate struct {
+		*reminderBase
+	}
+
+	// reminderAfterUpdate
+	//
+	// This type is auto-generated.
+	reminderAfterUpdate struct {
+		*reminderBase
+	}
+
+	// reminderAfterDelete
+	//
+	// This type is auto-generated.
+	reminderAfterDelete struct {
+		*reminderBase
+	}
+
+	// reminderAfterDismiss
+	//
+	// This type is auto-generated.
+	reminderAfterDismiss struct {
+		*reminderBase
+	}
+
+	// reminderAfterSnooze
+	//
+	// This type is auto-generated.
+	reminderAfterSnooze struct {
+		*reminderBase
+	}
+
 	// roleBase
 	//
 	// This type is auto-generated.
@@ -2570,6 +2657,599 @@ func (res *queueBase) DecodeVars(vars *expr.Vars) (err error) {
 
 		res.payload = aux.GetValue()
 	}
+	// Could not find expression-type counterpart for auth.Identifiable
+
+	return
+}
+
+// ResourceType returns "system:reminder"
+//
+// This function is auto-generated.
+func (reminderBase) ResourceType() string {
+	return "system:reminder"
+}
+
+// EventType on reminderOnManual returns "onManual"
+//
+// This function is auto-generated.
+func (reminderOnManual) EventType() string {
+	return "onManual"
+}
+
+// EventType on reminderBeforeCreate returns "beforeCreate"
+//
+// This function is auto-generated.
+func (reminderBeforeCreate) EventType() string {
+	return "beforeCreate"
+}
+
+// EventType on reminderBeforeUpdate returns "beforeUpdate"
+//
+// This function is auto-generated.
+func (reminderBeforeUpdate) EventType() string {
+	return "beforeUpdate"
+}
+
+// EventType on reminderBeforeDelete returns "beforeDelete"
+//
+// This function is auto-generated.
+func (reminderBeforeDelete) EventType() string {
+	return "beforeDelete"
+}
+
+// EventType on reminderBeforeDismiss returns "beforeDismiss"
+//
+// This function is auto-generated.
+func (reminderBeforeDismiss) EventType() string {
+	return "beforeDismiss"
+}
+
+// EventType on reminderBeforeSnooze returns "beforeSnooze"
+//
+// This function is auto-generated.
+func (reminderBeforeSnooze) EventType() string {
+	return "beforeSnooze"
+}
+
+// EventType on reminderAfterCreate returns "afterCreate"
+//
+// This function is auto-generated.
+func (reminderAfterCreate) EventType() string {
+	return "afterCreate"
+}
+
+// EventType on reminderAfterUpdate returns "afterUpdate"
+//
+// This function is auto-generated.
+func (reminderAfterUpdate) EventType() string {
+	return "afterUpdate"
+}
+
+// EventType on reminderAfterDelete returns "afterDelete"
+//
+// This function is auto-generated.
+func (reminderAfterDelete) EventType() string {
+	return "afterDelete"
+}
+
+// EventType on reminderAfterDismiss returns "afterDismiss"
+//
+// This function is auto-generated.
+func (reminderAfterDismiss) EventType() string {
+	return "afterDismiss"
+}
+
+// EventType on reminderAfterSnooze returns "afterSnooze"
+//
+// This function is auto-generated.
+func (reminderAfterSnooze) EventType() string {
+	return "afterSnooze"
+}
+
+// ReminderOnManual creates onManual for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderOnManual(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderOnManual {
+	return &reminderOnManual{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderOnManualImmutable creates onManual for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderOnManualImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderOnManual {
+	return &reminderOnManual{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeCreate creates beforeCreate for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderBeforeCreate(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeCreate {
+	return &reminderBeforeCreate{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeCreateImmutable creates beforeCreate for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderBeforeCreateImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeCreate {
+	return &reminderBeforeCreate{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeUpdate creates beforeUpdate for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderBeforeUpdate(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeUpdate {
+	return &reminderBeforeUpdate{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeUpdateImmutable creates beforeUpdate for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderBeforeUpdateImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeUpdate {
+	return &reminderBeforeUpdate{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeDelete creates beforeDelete for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderBeforeDelete(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeDelete {
+	return &reminderBeforeDelete{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeDeleteImmutable creates beforeDelete for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderBeforeDeleteImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeDelete {
+	return &reminderBeforeDelete{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeDismiss creates beforeDismiss for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderBeforeDismiss(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeDismiss {
+	return &reminderBeforeDismiss{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeDismissImmutable creates beforeDismiss for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderBeforeDismissImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeDismiss {
+	return &reminderBeforeDismiss{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeSnooze creates beforeSnooze for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderBeforeSnooze(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeSnooze {
+	return &reminderBeforeSnooze{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderBeforeSnoozeImmutable creates beforeSnooze for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderBeforeSnoozeImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderBeforeSnooze {
+	return &reminderBeforeSnooze{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterCreate creates afterCreate for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderAfterCreate(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterCreate {
+	return &reminderAfterCreate{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterCreateImmutable creates afterCreate for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderAfterCreateImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterCreate {
+	return &reminderAfterCreate{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterUpdate creates afterUpdate for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderAfterUpdate(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterUpdate {
+	return &reminderAfterUpdate{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterUpdateImmutable creates afterUpdate for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderAfterUpdateImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterUpdate {
+	return &reminderAfterUpdate{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterDelete creates afterDelete for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderAfterDelete(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterDelete {
+	return &reminderAfterDelete{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterDeleteImmutable creates afterDelete for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderAfterDeleteImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterDelete {
+	return &reminderAfterDelete{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterDismiss creates afterDismiss for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderAfterDismiss(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterDismiss {
+	return &reminderAfterDismiss{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterDismissImmutable creates afterDismiss for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderAfterDismissImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterDismiss {
+	return &reminderAfterDismiss{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterSnooze creates afterSnooze for system:reminder resource
+//
+// This function is auto-generated.
+func ReminderAfterSnooze(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterSnooze {
+	return &reminderAfterSnooze{
+		reminderBase: &reminderBase{
+			immutable:   false,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// ReminderAfterSnoozeImmutable creates afterSnooze for system:reminder resource
+//
+// None of the arguments will be mutable!
+//
+// This function is auto-generated.
+func ReminderAfterSnoozeImmutable(
+	argReminder *types.Reminder,
+	argOldReminder *types.Reminder,
+) *reminderAfterSnooze {
+	return &reminderAfterSnooze{
+		reminderBase: &reminderBase{
+			immutable:   true,
+			reminder:    argReminder,
+			oldReminder: argOldReminder,
+		},
+	}
+}
+
+// SetReminder sets new reminder value
+//
+// This function is auto-generated.
+func (res *reminderBase) SetReminder(argReminder *types.Reminder) {
+	res.reminder = argReminder
+}
+
+// Reminder returns reminder
+//
+// This function is auto-generated.
+func (res reminderBase) Reminder() *types.Reminder {
+	return res.reminder
+}
+
+// OldReminder returns oldReminder
+//
+// This function is auto-generated.
+func (res reminderBase) OldReminder() *types.Reminder {
+	return res.oldReminder
+}
+
+// SetInvoker sets new invoker value
+//
+// This function is auto-generated.
+func (res *reminderBase) SetInvoker(argInvoker auth.Identifiable) {
+	res.invoker = argInvoker
+}
+
+// Invoker returns invoker
+//
+// This function is auto-generated.
+func (res reminderBase) Invoker() auth.Identifiable {
+	return res.invoker
+}
+
+// Encode internal data to be passed as event params & arguments to triggered Corredor script
+func (res reminderBase) Encode() (args map[string][]byte, err error) {
+	args = make(map[string][]byte)
+
+	if args["reminder"], err = json.Marshal(res.reminder); err != nil {
+		return nil, err
+	}
+
+	if args["oldReminder"], err = json.Marshal(res.oldReminder); err != nil {
+		return nil, err
+	}
+
+	if args["invoker"], err = json.Marshal(res.invoker); err != nil {
+		return nil, err
+	}
+
+	return
+}
+
+// Encode internal data to be passed as event params & arguments to workflow
+func (res reminderBase) EncodeVars() (out *expr.Vars, err error) {
+	out = &expr.Vars{}
+	var v expr.TypedValue
+
+	if v, err = automation.NewReminder(res.reminder); err == nil {
+		err = out.Set("reminder", v)
+	}
+
+	if err != nil {
+		return
+	}
+
+	if v, err = automation.NewReminder(res.oldReminder); err == nil {
+		err = out.Set("oldReminder", v)
+	}
+
+	if err != nil {
+		return
+	}
+
+	// Could not found expression-type counterpart for auth.Identifiable
+
+	_ = v
+	return
+}
+
+// Decode return values from Corredor script into struct props
+func (res *reminderBase) Decode(results map[string][]byte) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.reminder != nil {
+		if r, ok := results["result"]; ok && len(results) == 1 {
+			if err = json.Unmarshal(r, res.reminder); err != nil {
+				return
+			}
+		}
+	}
+
+	if res.reminder != nil {
+		if r, ok := results["reminder"]; ok {
+			if err = json.Unmarshal(r, res.reminder); err != nil {
+				return
+			}
+		}
+	}
+
+	// Do not decode oldReminder; marked as immutable
+
+	if res.invoker != nil {
+		if r, ok := results["invoker"]; ok {
+			if err = json.Unmarshal(r, res.invoker); err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
+func (res *reminderBase) DecodeVars(vars *expr.Vars) (err error) {
+	if res.immutable {
+		// Respect immutability
+		return
+	}
+	if res.reminder != nil && vars.Has("reminder") {
+		var aux *automation.Reminder
+		aux, err = automation.NewReminder(expr.Must(vars.Select("reminder")))
+		if err != nil {
+			return
+		}
+
+		res.reminder = aux.GetValue()
+	}
+	// oldReminder marked as immutable
 	// Could not find expression-type counterpart for auth.Identifiable
 
 	return

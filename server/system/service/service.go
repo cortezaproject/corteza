@@ -245,6 +245,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		automation.RenderOptions{},
 		automation.RenderedDocument{},
 		automation.RbacResource{},
+		automation.Reminder{},
 	)
 
 	automation.UsersHandler(
@@ -262,6 +263,10 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		automationService.Registry(),
 		DefaultRole,
 		DefaultUser,
+	)
+	automation.RemindersHandler(
+		automationService.Registry(),
+		DefaultReminder,
 	)
 
 	automation.RbacHandler(

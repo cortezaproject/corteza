@@ -308,6 +308,246 @@ func (t *RbacResource) Assign(val interface{}) error {
 	}
 }
 
+// Reminder is an expression type, wrapper for *types.Reminder type
+type Reminder struct {
+	value *types.Reminder
+	mux   sync.RWMutex
+}
+
+// NewReminder creates new instance of Reminder expression type
+func NewReminder(val interface{}) (*Reminder, error) {
+	if c, err := CastToReminder(val); err != nil {
+		return nil, fmt.Errorf("unable to create Reminder: %w", err)
+	} else {
+		return &Reminder{value: c}, nil
+	}
+}
+
+// Get return underlying value on Reminder
+func (t *Reminder) Get() interface{} {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// GetValue returns underlying value on Reminder
+func (t *Reminder) GetValue() *types.Reminder {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return t.value
+}
+
+// Type return type name
+func (Reminder) Type() string { return "Reminder" }
+
+// Cast converts value to *types.Reminder
+func (Reminder) Cast(val interface{}) (TypedValue, error) {
+	return NewReminder(val)
+}
+
+// Assign new value to Reminder
+//
+// value is first passed through CastToReminder
+func (t *Reminder) Assign(val interface{}) error {
+	if c, err := CastToReminder(val); err != nil {
+		return err
+	} else {
+		t.value = c
+		return nil
+	}
+}
+
+func (t *Reminder) AssignFieldValue(key string, val TypedValue) error {
+	t.mux.Lock()
+	defer t.mux.Unlock()
+	return assignToReminder(t.value, key, val)
+}
+
+// SelectGVal implements gval.Selector requirements
+//
+// It allows gval lib to access Reminder's underlying value (*types.Reminder)
+// and it's fields
+func (t *Reminder) SelectGVal(ctx context.Context, k string) (interface{}, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return reminderGValSelector(t.value, k)
+}
+
+// Select is field accessor for *types.Reminder
+//
+// Similar to SelectGVal but returns typed values
+func (t *Reminder) Select(k string) (TypedValue, error) {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	return reminderTypedValueSelector(t.value, k)
+}
+
+func (t *Reminder) Has(k string) bool {
+	t.mux.RLock()
+	defer t.mux.RUnlock()
+	switch k {
+	case "ID", "reminderID":
+		return true
+	case "resource":
+		return true
+	case "snoozeCount":
+		return true
+	case "assignedTo":
+		return true
+	case "assignedBy":
+		return true
+	case "assignedAt":
+		return true
+	case "dismissedBy":
+		return true
+	case "dismissedAt":
+		return true
+	case "remindAt":
+		return true
+	case "createdAt":
+		return true
+	case "updatedAt":
+		return true
+	case "deletedAt":
+		return true
+	case "payload":
+		return true
+	}
+	return false
+}
+
+// reminderGValSelector is field accessor for *types.Reminder
+func reminderGValSelector(res *types.Reminder, k string) (interface{}, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID", "reminderID":
+		return res.ID, nil
+	case "resource":
+		return res.Resource, nil
+	case "snoozeCount":
+		return res.SnoozeCount, nil
+	case "assignedTo":
+		return res.AssignedTo, nil
+	case "assignedBy":
+		return res.AssignedBy, nil
+	case "assignedAt":
+		return res.AssignedAt, nil
+	case "dismissedBy":
+		return res.DismissedBy, nil
+	case "dismissedAt":
+		return res.DismissedAt, nil
+	case "remindAt":
+		return res.RemindAt, nil
+	case "createdAt":
+		return res.CreatedAt, nil
+	case "updatedAt":
+		return res.UpdatedAt, nil
+	case "deletedAt":
+		return res.DeletedAt, nil
+	case "payload":
+		return res.Payload, nil
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// reminderTypedValueSelector is field accessor for *types.Reminder
+func reminderTypedValueSelector(res *types.Reminder, k string) (TypedValue, error) {
+	if res == nil {
+		return nil, nil
+	}
+	switch k {
+	case "ID", "reminderID":
+		return NewID(res.ID)
+	case "resource":
+		return NewString(res.Resource)
+	case "snoozeCount":
+		return NewUnsignedInteger(res.SnoozeCount)
+	case "assignedTo":
+		return NewID(res.AssignedTo)
+	case "assignedBy":
+		return NewID(res.AssignedBy)
+	case "assignedAt":
+		return NewDateTime(res.AssignedAt)
+	case "dismissedBy":
+		return NewID(res.DismissedBy)
+	case "dismissedAt":
+		return NewDateTime(res.DismissedAt)
+	case "remindAt":
+		return NewDateTime(res.RemindAt)
+	case "createdAt":
+		return NewDateTime(res.CreatedAt)
+	case "updatedAt":
+		return NewDateTime(res.UpdatedAt)
+	case "deletedAt":
+		return NewDateTime(res.DeletedAt)
+	case "payload":
+		return NewBytes(res.Payload)
+	}
+
+	return nil, fmt.Errorf("unknown field '%s'", k)
+}
+
+// assignToReminder is field value setter for *types.Reminder
+func assignToReminder(res *types.Reminder, k string, val interface{}) error {
+	switch k {
+	case "ID", "reminderID":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "resource":
+		aux, err := CastToString(val)
+		if err != nil {
+			return err
+		}
+
+		res.Resource = aux
+		return nil
+	case "snoozeCount":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "assignedTo":
+		aux, err := CastToID(val)
+		if err != nil {
+			return err
+		}
+
+		res.AssignedTo = aux
+		return nil
+	case "assignedBy":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "assignedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "dismissedBy":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "dismissedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "remindAt":
+		aux, err := CastToDateTime(val)
+		if err != nil {
+			return err
+		}
+
+		res.RemindAt = aux
+		return nil
+	case "createdAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "updatedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "deletedAt":
+		return fmt.Errorf("field '%s' is read-only", k)
+	case "payload":
+		aux, err := CastToBytes(val)
+		if err != nil {
+			return err
+		}
+
+		res.Payload = aux
+		return nil
+	}
+
+	return fmt.Errorf("unknown field '%s'", k)
+}
+
 // RenderOptions is an expression type, wrapper for map[string]string type
 type RenderOptions struct {
 	value map[string]string

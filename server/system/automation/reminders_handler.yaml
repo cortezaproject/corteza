@@ -1,0 +1,150 @@
+imports:
+  - github.com/cortezaproject/corteza/server/system/types
+  - time
+
+params:
+  lookup: &lookup
+    required: true
+    types:
+      - { wf: ID,       }
+      - { wf: Reminder, suffix: res }
+  reminder: &reminder
+    types:
+      - { wf: Reminder }
+  rvReminder: &rvReminder
+    wf: Reminder
+  rvTotal: &rvTotal
+    wf: UnsignedInteger
+  filterParams: &filterParams
+    resource:
+      types:
+        - { wf: String }
+    assignedTo:
+      types:
+        - { wf: ID }
+    excludeDismissed:
+      types:
+        - { wf: Boolean }
+    scheduledOnly:
+      types:
+        - { wf: Boolean }
+    sort:
+      types:
+        - { wf: String }
+    limit:
+      types:
+        - { wf: UnsignedInteger }
+    pageCursor:
+      types:
+        - { wf: String }
+labels: &labels
+  reminders: "step,workflow"
+functions:
+  lookup:
+    meta:
+      short: Reminder lookup
+      description: Find specific reminder by ID
+    labels:
+      <<: *labels
+    params:
+      lookup: *lookup
+    results:
+      reminder: *rvReminder
+  search:
+    meta:
+      short: Reminders search
+      description: Search reminders
+    labels:
+      <<: *labels
+    params: *filterParams
+    results:
+      reminders:
+        <<: *rvReminder
+        isArray: true
+      total: *rvTotal
+  each:
+    kind: iterator
+    meta:
+      short: Iterate reminders
+    params: *filterParams
+    results:
+      reminder: *rvReminder
+      total: *rvTotal
+  create:
+    meta:
+      short: Reminder create
+    labels:
+      <<: *labels
+      create: "step"
+    params:
+      resource:
+        types:
+          - { wf: String}
+      assignedTo:
+        types:
+          - { wf: ID }
+      assignedBy:
+        types:
+          - { wf: ID }
+      remindAt:
+        types:
+          - { wf: DateTime}
+        required: true
+      payload:
+        types:
+          - { wf: Bytes }
+    results:
+      reminder: *rvReminder
+  update:
+    meta:
+      short: Reminder update
+    labels:
+      <<: *labels
+      update: "step"
+    params:
+      lookup: *lookup
+      resource:
+        types:
+          - { wf: String}
+      assignedTo:
+        types:
+          - { wf: ID }
+      assignedBy:
+        types:
+          - { wf: ID }
+      remindAt:
+        types:
+          - { wf: DateTime}
+      payload:
+        types:
+          - { wf: Bytes }
+    results:
+      reminder: *rvReminder
+  dismiss:
+    meta:
+      short: Dismiss reminder
+    labels:
+      <<: *labels
+      dismiss: "step"
+    params:
+      lookup: *lookup
+  snooze:
+    meta:
+      short: Snooze reminder
+    labels:
+      <<: *labels
+      snooze: "step"
+    params:
+      lookup: *lookup
+      remindAt:
+        types:
+          - { wf: DateTime }
+        required: true
+  delete:
+    meta:
+      short: Reminder delete
+    labels:
+      <<: *labels
+      delete: "step"
+    params:
+      lookup: *lookup

@@ -2942,6 +2942,325 @@ func getEventTypeDefinitions() []eventTypeDef {
 		},
 
 		{
+			ResourceType: "system:reminder",
+			EventType:    "onManual",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "beforeCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "beforeUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "beforeDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "beforeDismiss",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "beforeSnooze",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "afterCreate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "afterUpdate",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "afterDelete",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "afterDismiss",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
+			ResourceType: "system:reminder",
+			EventType:    "afterSnooze",
+			Properties: []eventTypePropertyDef{
+
+				{
+					Name:      "reminder",
+					Type:      "Reminder",
+					Immutable: false,
+				},
+
+				{
+					Name:      "oldReminder",
+					Type:      "Reminder",
+					Immutable: true,
+				},
+			},
+			Constraints: []eventTypeConstraintDef{
+
+				{
+					Name: "reminder.resource",
+				},
+
+				{
+					Name: "reminder.assigned-to",
+				},
+			},
+		},
+
+		{
 			ResourceType: "system:role",
 			EventType:    "onManual",
 			Properties: []eventTypePropertyDef{
