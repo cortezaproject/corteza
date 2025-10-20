@@ -1433,7 +1433,6 @@ export default {
       }
 
       this.showCustomPresetFilterModal = true
-      this.refresh(true)
     },
 
     resetFilter () {
@@ -2088,14 +2087,16 @@ export default {
       }
     },
 
-    setStorageRecordListFilterPreset ({ name }) {
+    setStorageRecordListFilterPreset ({ name } = {}) {
       this.showCustomPresetFilterModal = false
 
       const currentListFilters = [...this.customPresetFilters]
-      currentListFilters.push({ ...this.currentCustomPresetFilter, name })
+
+      if (name) {
+        currentListFilters.push({ ...this.currentCustomPresetFilter, name })
+      }
 
       this.customPresetFilters = currentListFilters
-      this.updateFilter(this.currentCustomPresetFilter.filter, name)
 
       try {
         setItem(`record-list-preset-${this.uniqueID}`, currentListFilters)
