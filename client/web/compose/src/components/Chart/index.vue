@@ -127,6 +127,8 @@ export default {
 
           if (!field) throw new Error('Dimension field not found')
 
+          const isValidValue = (value) => value !== dimension.default && value !== 'undefined'
+
           if (field.kind === 'Bool') {
             const { trueLabel, falseLabel } = field.options
 
@@ -143,7 +145,7 @@ export default {
             })
           } else if (field.kind === 'User') {
             // Fetch and map users to labels
-            await this.resolveUsers(data.labels)
+            await this.resolveUsers(data.labels.filter(userID => isValidValue(userID)))
             data.labels = data.labels.map(userID => {
               const label = field.formatter(this.getUserByID(userID)) || userID
               this.valueMap[label] = userID
@@ -154,9 +156,8 @@ export default {
             const { namespaceID } = this.chart || {}
             const recordModule = this.getModuleByID(field.options.moduleID)
             if (recordModule && data.labels) {
-              const isValidRecordID = (recordID) => recordID !== dimension.default && recordID !== 'undefined'
               await Promise.all(data.labels.map(recordID => {
-                if (isValidRecordID(recordID)) {
+                if (isValidValue(recordID)) {
                   return this.$ComposeAPI.recordRead({ namespaceID, moduleID: recordModule.moduleID, recordID }).then(record => {
                     record = new compose.Record(recordModule, record)
 
