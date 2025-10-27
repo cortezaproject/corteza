@@ -14,7 +14,7 @@ import (
 
 type (
 	EmbeddingRequest struct {
-		Input []string `json:"input"` // TODO:: replace this with "input"
+		Input []string `json:"input"`
 		Model string   `json:"model,omitempty"`
 	}
 

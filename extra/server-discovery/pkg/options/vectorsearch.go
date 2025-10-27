@@ -9,6 +9,8 @@ type (
 		EmbeddingsAPIUrl string `env:"EMBEDDINGS_API_URL"`
 		EmbeddingsAPIKey string `env:"EMBEDDINGS_API_KEY"`
 		EmbeddingsModel  string `env:"EMBEDDINGS_MODEL"`
+		OpenAIBaseURL    string `env:"OPENAI_BASE_URL"`
+		OpenAIAPIKey     string `env:"OPENAI_API_KEY"`
 	}
 )
 
@@ -19,6 +21,8 @@ func VectorSearch() (o *VectorSearchOpt, err error) {
 		o.EmbeddingsAPIKey = options.EnvString("EMBEDDINGS_API_KEY", "")
 		o.EmbeddingsAPIUrl = options.EnvString("EMBEDDINGS_API_URL", "")
 		o.EmbeddingsModel = options.EnvString("EMBEDDINGS_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
+		o.OpenAIBaseURL = options.EnvString("OPENAI_BASE_URL", "")
+		o.OpenAIAPIKey = options.EnvString("OPENAI_API_KEY", "")
 
 		return nil
 	}()

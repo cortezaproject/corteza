@@ -70,13 +70,13 @@ type (
 		Filter []interface{} `json:"filter,omitempty"`
 	}
 
-	KNN struct {
-		VectorValue VectorValue `json:"vectorValue"`
+	KNNQuery struct {
+		Query map[string]interface{} `json:"query"`
 	}
 
 	esSearchParams struct {
 		Query struct {
-			Bool struct {
+			Bool *struct {
 				// query context
 				Must   []interface{} `json:"must,omitempty"`
 				Should []interface{} `json:"should,omitempty"`
@@ -86,7 +86,7 @@ type (
 				MustNot []interface{} `json:"must_not,omitempty"`
 			} `json:"bool,omitempty"`
 
-			//KNN KNN `json:"knn,omitempty"`
+			KNN map[string]interface{} `json:"knn,omitempty"`
 		} `json:"query"`
 
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
@@ -268,6 +268,15 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 	query := esSearchParams{}
 	index := esSearchParamsIndex{}
 
+	if query.Query.Bool == nil {
+		query.Query.Bool = &struct {
+			Must    []interface{} `json:"must,omitempty"`
+			Should  []interface{} `json:"should,omitempty"`
+			Filter  []interface{} `json:"filter,omitempty"`
+			MustNot []interface{} `json:"must_not,omitempty"`
+		}{}
+	}
+
 	// Decide what indexes we can use
 	if userID == 0 {
 		// Missing, invalid, expired access token (JWT)
@@ -317,24 +326,13 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 			})
 		} else {
 			// Hybrid search: combine vector and text in should clause
-			query.Query.Bool.Should = append(query.Query.Bool.Should,
-				map[string]interface{}{
-					"knn": map[string]interface{}{
-						"vectorsValue": map[string]interface{}{
-							"vector": vector,
-							"k":      10,
-						},
-					},
+			query.Query.Bool = nil
+			query.Query.KNN = map[string]interface{}{
+				"vectorsValue": map[string]interface{}{
+					"vector": vector,
+					"k":      10,
 				},
-
-				map[string]interface{}{
-					"wildcard": map[string]interface{}{
-						"catch_all": map[string]interface{}{
-							"value": fmt.Sprintf("*%s*", sqs.Wrap.Query),
-						},
-					},
-				},
-			)
+			}
 		}
 	}
 
@@ -522,8 +520,6 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// Perform the search request.
 	res, err := esc.Search(sReqArgs...)
-
-	spew.Dump("kotikooo", res)
 
 	if err != nil {
 		return

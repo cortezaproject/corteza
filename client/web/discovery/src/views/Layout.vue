@@ -66,12 +66,15 @@
       }"
     />
     <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
+
+    <rag v-if="showRag" />
   </div>
 </template>
 
 <script>
 import Search from '../components/Search.vue'
 import Filters from '../components/Filters.vue'
+import Rag from '../components/Rag.vue'
 import { components } from '@cortezaproject/corteza-vue'
 const { CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
 
@@ -85,6 +88,7 @@ export default {
     CSidebar,
     Search,
     Filters,
+    Rag,
     CExtendSession,
     CNotificationSidebar,
   },
@@ -92,6 +96,7 @@ export default {
   data () {
     return {
       expanded: false,
+      showRag: true,
     }
   },
 

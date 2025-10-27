@@ -36,8 +36,8 @@ type (
 	}
 
 	cdHit struct {
-		Type  string      `json:"type"`
-		Value interface{} `json:"value"`
+		Type  string                 `json:"type"`
+		Value map[string]interface{} `json:"value"`
 	}
 
 	cdAggregation struct {

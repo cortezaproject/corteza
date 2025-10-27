@@ -776,8 +776,6 @@ func (ri *reIndexer) processResource(source *bytes.Buffer) error {
 			return fmt.Errorf("records catch_all not found or not an array")
 		}
 
-		//spew.Dump("okaaari", catchAll, data)
-
 		embeddings, err := ri.embedder.GenerateEmbeddings(convertValuesToString(catchAll))
 		if err != nil {
 			return err

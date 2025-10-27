@@ -89,6 +89,19 @@ class Searcher {
     })
   }
 
+  ragApi () {
+    const headers = { ...this.headers }
+    const accessToken = this.accessTokenFn ? this.accessTokenFn() : undefined
+    if (accessToken) {
+      headers.Authorization = 'Bearer ' + accessToken
+    }
+    return axios.create({
+      withCredentials: true,
+      baseURL: this.baseURL,
+      headers,
+    })
+  }
+
   // List namespaces
   async query (a, extra = {}) {
     const {
@@ -126,5 +139,34 @@ class Searcher {
     } = a || {}
 
     return `/?q=${query}`
+  }
+
+  // RAG Query
+  async rag (question, extra = {}) {
+    const params = new URLSearchParams()
+    params.append('question', question)
+
+    const cfg = {
+      ...extra,
+      method: 'get',
+      url: '/rag',
+      params,
+    }
+
+    return this.ragApi()
+      .request(cfg)
+      .then((response) => {
+        if (response.data) {
+          return {
+            response: response.data.response,
+            sources: response.data.sources || [],
+          }
+        }
+        return response.data
+      })
+      .catch((error) => {
+        console.error('RAG API error:', error)
+        throw error
+      })
   }
 }
