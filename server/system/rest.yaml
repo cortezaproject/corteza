@@ -1446,7 +1446,30 @@ endpoints:
         type: "[]string"
         required: true
         title: Application order
-
+- title: Labels
+  entrypoint: label
+  authentication: []
+  imports: 
+    - github.com/cortezaproject/corteza/server/pkg/label/types
+  apis:
+  - name: list
+    method: Get
+    title: List labels
+    path: "/"
+    parameters:
+      get: 
+      - name: kind
+        type: string
+        required: false
+        title: Filter by resource kind (namespace, module, etc)
+      - name: name
+        type: string
+        required: false
+        title: Filter by label key/name
+      - name: limit
+        type: uint64
+        required: false
+        title: Limit
 - title: Permissions
   parameters: {}
   entrypoint: permissions
