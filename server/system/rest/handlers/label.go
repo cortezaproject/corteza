@@ -52,6 +52,6 @@ func NewLabel(h LabelAPI) *Label {
 func (h Label) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.Handler) {
 	r.Group(func(r chi.Router) {
 		r.Use(middlewares...)
-		r.Get("/", h.List)
+		r.Get("/label", h.List)
 	})
 }
