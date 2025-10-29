@@ -11,7 +11,6 @@ package request
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -48,7 +47,7 @@ type (
 		// Limit GET parameter
 		//
 		// Limit
-		Limit uint64 `json:",string"`
+		Limit uint
 	}
 )
 
@@ -77,7 +76,7 @@ func (r LabelList) GetName() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r LabelList) GetLimit() uint64 {
+func (r LabelList) GetLimit() uint {
 	return r.Limit
 }
 
@@ -101,7 +100,7 @@ func (r *LabelList) Fill(req *http.Request) (err error) {
 			}
 		}
 		if val, ok := tmp["limit"]; ok && len(val) > 0 {
-			r.Limit, err = payload.ParseUint64(val[0]), nil
+			r.Limit, err = payload.ParseUint(val[0]), nil
 			if err != nil {
 				return err
 			}

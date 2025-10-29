@@ -1449,13 +1449,11 @@ endpoints:
 - title: Labels
   entrypoint: label
   authentication: []
-  imports: 
-    - github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: Get
     title: List labels
-    path: "/"
+    path: "/label"
     parameters:
       get: 
       - name: kind
@@ -1467,7 +1465,7 @@ endpoints:
         required: false
         title: Filter by label key/name
       - name: limit
-        type: uint64
+        type: uint
         required: false
         title: Limit
 - title: Permissions
