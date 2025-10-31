@@ -26,7 +26,10 @@
         class="d-flex align-items-center justify-content-center p-2 border-0 text-secondary"
         @click="showRag = false"
       >
-        <font-awesome-icon :icon="['fas', 'times']" class="h6 mb-0" />
+        <font-awesome-icon
+          :icon="['fas', 'times']"
+          class="h6 mb-0"
+        />
       </b-button>
     </template>
 
@@ -48,14 +51,19 @@
         class="h-100 d-flex align-items-center justify-content-center"
       >
         <div class="text-center">
-          <h2 class="h4 mb-2">{{ $t("welcome-title") }}</h2>
+          <h2 class="h4 mb-2">
+            {{ $t("welcome-title") }}
+          </h2>
           <p class="text-muted">
             {{ $t("welcome-message") }}
           </p>
         </div>
       </div>
 
-      <div v-else class="container py-4">
+      <div
+        v-else
+        class="container py-4"
+      >
         <div class="row">
           <div class="col-12">
             <chat-message
@@ -66,7 +74,10 @@
             />
 
             <!-- Loading indicator -->
-            <div v-if="isLoading" class="d-flex justify-content-center py-4">
+            <div
+              v-if="isLoading"
+              class="d-flex justify-content-center py-4"
+            >
               <div class="d-flex align-items-center gap-2">
                 <div
                   class="spinner-grow spinner-grow-sm text-primary"

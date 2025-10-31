@@ -85,7 +85,10 @@
       aria-label="Toggle chat"
       @click="showRag = !showRag"
     >
-      <font-awesome-icon :icon="['fas', 'robot']" class="h4 mb-0" />
+      <font-awesome-icon
+        :icon="['fas', 'robot']"
+        class="h4 mb-0"
+      />
     </b-button>
   </div>
 </template>

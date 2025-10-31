@@ -52,5 +52,5 @@ library.add(
   faEnvelope,
   faEnvelopeOpen,
   faPaperPlane,
-  faRobot
+  faRobot,
 )

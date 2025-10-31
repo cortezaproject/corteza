@@ -671,9 +671,31 @@ func (ri *reIndexer) feedReindexChanges(ctx context.Context, esb esutil.BulkInde
 }
 
 func (ri *reIndexer) Watch(ctx context.Context) {
+	var now time.Time
+
+	isFirst, err := ri.IsFirstRunWithMarker(ctx)
+	if err != nil {
+		ri.log.Warn(fmt.Sprintf("failed to check first run marker: %s", err))
+		isFirst = false
+	}
+
+	if isFirst {
+		now = time.Now().AddDate(0, -4, 0)
+		ri.log.Info(fmt.Sprintf("First run detected: starting from 4 months ago (%s)",
+			now.UTC().Format(time.RFC3339)))
+
+		defer func() {
+			if err := ri.SaveLastIndexTime(ctx); err != nil {
+				ri.log.Error(fmt.Sprintf("failed to save first run marker: %s", err))
+			}
+		}()
+	} else {
+		now = time.Now()
+		ri.log.Info("Continuing from current time")
+	}
+
 	timeOut := ri.esOpt.IndexInterval
 	ticker := time.NewTicker(time.Second * time.Duration(timeOut))
-	now := time.Now()
 
 	go func() {
 		defer ticker.Stop()
@@ -790,6 +812,78 @@ func (ri *reIndexer) processResource(source *bytes.Buffer) error {
 
 		source.Reset()
 		source.Write(updatedJSON)
+	}
+
+	return nil
+}
+
+func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
+	esClient, err := ri.es.Client()
+	if err != nil {
+		return false, fmt.Errorf("failed to prepare es client: %w", err)
+	}
+
+	markerIndex := "corteza_indexer_state"
+	markerID := "last_index_time"
+
+	res, err := esClient.Get(
+		markerIndex,
+		markerID,
+		esClient.Get.WithContext(ctx),
+	)
+
+	if err != nil {
+		return false, err
+	}
+
+	defer res.Body.Close()
+
+	if res.IsError() {
+		// marker index does'nt exist
+		if res.StatusCode == http.StatusNotFound {
+			return true, err
+		}
+	}
+
+	return false, nil
+}
+
+func (ri *reIndexer) SaveLastIndexTime(ctx context.Context) error {
+	esClient, err := ri.es.Client()
+	if err != nil {
+		return fmt.Errorf("failed to prepare es client: %w", err)
+	}
+
+	markerIndex := "corteza_indexer_state"
+	markerID := "last_index_time"
+
+	doc := map[string]interface{}{
+		"last_run":    time.Now().UTC().Format(time.RFC3339),
+		"initialized": true,
+	}
+
+	docBytes, err := json.Marshal(doc)
+	if err != nil {
+		return fmt.Errorf("failed to marshal marker document: %w", err)
+	}
+
+	// create/update the marker document
+	res, err := esClient.Index(
+		markerIndex,
+		bytes.NewReader(docBytes),
+		esClient.Index.WithContext(ctx),
+		esClient.Index.WithDocumentID(markerID),
+		esClient.Index.WithRefresh("true"),
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to save marker: %w", err)
+	}
+
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return fmt.Errorf("failed to save marker: %s", res.Status())
 	}
 
 	return nil
