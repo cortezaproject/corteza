@@ -487,7 +487,10 @@ func (ri *reIndexer) feedReindex(ctx context.Context, esb esutil.BulkIndexer, in
 			}
 			if action != "delete" {
 				esbItem.Action = "index"
-				esbItem.Body = bytes.NewBuffer(doc.Source)
+				body := bytes.NewBuffer(doc.Source)
+				err = ri.processResource(body)
+
+				esbItem.Body = body
 			}
 
 			err = esb.Add(ctx, esbItem)
