@@ -3,6 +3,7 @@ import Vuex from 'vuex'
 import Router from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import VueNativeSock from 'vue-native-websocket'
+import VueSimpleMarkdown from 'vue-simple-markdown'
 import { plugins, websocket } from '@cortezaproject/corteza-vue'
 import DiscoveryAPI from './searcher.js'
 
@@ -25,3 +26,4 @@ Vue.use(plugins.CortezaAPI('compose'))
 Vue.use(plugins.Settings, { api: Vue.prototype.$SystemAPI })
 Vue.use(DiscoveryAPI())
 Vue.use(VueNativeSock, websocket.endpoint(), websocket.config)
+Vue.use(VueSimpleMarkdown)

@@ -1,23 +1,17 @@
 <template>
-  <div :class="['d-flex', isUser ? 'justify-content-end' : 'justify-content-start']">
-    <div
-      class="w-100"
-      style="max-width: 48rem;"
-    >
-      <div
-        :class="[
-          'card',
-          isUser ? 'bg-primary text-white' : ''
-        ]"
-      >
+  <div
+    :class="[
+      'd-flex',
+      isUser ? 'justify-content-end' : 'justify-content-start',
+    ]"
+  >
+    <div class="w-100" style="max-width: 48rem">
+      <div :class="['card', isUser ? 'bg-primary text-white' : '']">
         <div class="card-body">
-          <p
+          <vue-simple-markdown
+            :source="message.content"
             class="card-text small mb-0"
-            style="white-space: pre-wrap;"
-          >
-            {{ message.content }}
-          </p>
-
+          />
           <div
             v-if="message.sources && message.sources.length > 0"
             class="mt-3 pt-3 border-top"

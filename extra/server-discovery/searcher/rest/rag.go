@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza/extra/server-discovery/searcher/rest/request"
 	"github.com/tmc/langchaingo/llms"
+	"go.uber.org/zap"
 )
 
 type (
@@ -19,14 +20,16 @@ type (
 		searchAPI searchAPI
 		llm       llms.Model
 		memory    []llms.ChatMessage
+		log       *zap.Logger
 	}
 )
 
-func Rag(searchAPI searchAPI, llm llms.Model) *ConversationalRAGChain {
+func Rag(searchAPI searchAPI, llm llms.Model, log *zap.Logger) *ConversationalRAGChain {
 	return &ConversationalRAGChain{
 		searchAPI: searchAPI,
 		llm:       llm,
 		memory:    make([]llms.ChatMessage, 0),
+		log:       log,
 	}
 }
 
@@ -36,16 +39,19 @@ func (crc *ConversationalRAGChain) Query(ctx context.Context, question string, t
 
 	results, err := crc.searchAPI.SearchResources(ctx, searchReq)
 	if err != nil {
+		crc.log.Error(err.Error())
 		return "", err
 	}
 
 	prompt, err := crc.buildRAGPrompt(results, question)
 	if err != nil {
+		crc.log.Error(err.Error())
 		return "", err
 	}
 
 	response, err := llms.GenerateFromSinglePrompt(ctx, crc.llm, prompt)
 	if err != nil {
+		crc.log.Error(err.Error())
 		return "", err
 	}
 

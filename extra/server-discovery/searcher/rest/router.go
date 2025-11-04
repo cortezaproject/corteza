@@ -33,7 +33,7 @@ func MountRoutes(log *zap.Logger, opt options.VectorSearchOpt) func(r chi.Router
 			}
 
 			handlers.NewSearch(search).MountRoutes(r)
-			handlers.NewRagQuery(Rag(search, llm)).MountRoutes(r)
+			handlers.NewRagQuery(Rag(search, llm, log)).MountRoutes(r)
 		})
 	}
 }
