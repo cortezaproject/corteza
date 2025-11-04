@@ -678,23 +678,23 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 
 	isFirst, err := ri.IsFirstRunWithMarker(ctx)
 	if err != nil {
-		ri.log.Warn(fmt.Sprintf("failed to check first run marker: %s", err))
+		ri.log.Warn(fmt.Sprintf("failed to check first run indexes marker: %s", err))
 		isFirst = false
 	}
 
 	if isFirst {
-		now = time.Now().AddDate(0, -4, 0)
-		ri.log.Info(fmt.Sprintf("First run detected: starting from 4 months ago (%s)",
-			now.UTC().Format(time.RFC3339)))
+		now = time.Now().AddDate(0, -ri.esOpt.IndexBackFillMonths, 0)
+		ri.log.Info(fmt.Sprintf("First run detected: starting from %d months ago (%s)",
+			ri.esOpt.IndexBackFillMonths, now.UTC().Format(time.RFC3339)))
 
 		defer func() {
 			if err := ri.SaveLastIndexTime(ctx); err != nil {
-				ri.log.Error(fmt.Sprintf("failed to save first run marker: %s", err))
+				ri.log.Error(fmt.Sprintf("failed to save indexer state to [corteza_indexer_state]: %s", err))
 			}
 		}()
 	} else {
 		now = time.Now()
-		ri.log.Info("Continuing from current time")
+		ri.log.Info("Continuing reindexing from current time")
 	}
 
 	timeOut := ri.esOpt.IndexInterval
@@ -880,13 +880,13 @@ func (ri *reIndexer) SaveLastIndexTime(ctx context.Context) error {
 	)
 
 	if err != nil {
-		return fmt.Errorf("failed to save marker: %w", err)
+		return fmt.Errorf("failed to save marker index document: %w", err)
 	}
 
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return fmt.Errorf("failed to save marker: %s", res.Status())
+		return fmt.Errorf("failed to save marker index document: %s", res.Status())
 	}
 
 	return nil
