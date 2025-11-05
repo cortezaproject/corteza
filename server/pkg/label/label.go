@@ -13,8 +13,8 @@ type (
 	Labels map[string]string
 
 	LabeledResource interface {
-		GetLabels() map[string]string
-		SetLabel(key string, value string)
+		GetLabels() map[string]types.LabelValue
+		SetLabel(key string, value types.LabelValue)
 		LabelResourceKind() string
 		LabelResourceID() uint64
 	}
