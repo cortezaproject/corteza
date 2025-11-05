@@ -44,6 +44,11 @@ type (
 		// Filter by label key/name
 		Name string
 
+		// Value GET parameter
+		//
+		// Filter by value
+		Value []string
+
 		// Limit GET parameter
 		//
 		// Limit
@@ -61,6 +66,7 @@ func (r LabelList) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"kind":  r.Kind,
 		"name":  r.Name,
+		"value": r.Value,
 		"limit": r.Limit,
 	}
 }
@@ -73,6 +79,11 @@ func (r LabelList) GetKind() string {
 // Auditable returns all auditable/loggable parameters
 func (r LabelList) GetName() string {
 	return r.Name
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r LabelList) GetValue() []string {
+	return r.Value
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -95,6 +106,17 @@ func (r *LabelList) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["name"]; ok && len(val) > 0 {
 			r.Name, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["value[]"]; ok {
+			r.Value, err = val, nil
+			if err != nil {
+				return err
+			}
+		} else if val, ok := tmp["value"]; ok {
+			r.Value, err = val, nil
 			if err != nil {
 				return err
 			}

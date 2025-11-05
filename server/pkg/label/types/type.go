@@ -1,6 +1,10 @@
 package types
 
 type (
+	LabelValue struct{
+			Value string	`json:"value,omitempty"`
+			Values []string `json:"values,omitempty"`
+		}
 	Label struct {
 		// Kind of the labeled resource
 		Kind string
@@ -9,7 +13,7 @@ type (
 		ResourceID uint64
 
 		Name  string
-		Value string
+		Value LabelValue	
 	}
 
 	LabelFilter struct {
@@ -17,6 +21,8 @@ type (
 		ResourceID []uint64
 		Filter     map[string]string
 		Limit      uint
+		Name      string
+		Value 	  []string //use a slice of string
 	}
 )
 
@@ -33,11 +39,11 @@ func (set LabelSet) ResourceIDs() (rr []uint64) {
 	return
 }
 
-func (set LabelSet) FilterByResource(kind string, ID uint64) map[string]string {
-	var kv = make(map[string]string)
+func (set LabelSet) FilterByResource(kind string, ID uint64) map[string]LabelValue {
+	var kv = make(map[string]LabelValue)
 	for _, label := range set {
 		if kind == label.Kind && ID == label.ResourceID {
-			kv[label.Name] = label.Value
+					kv[label.Name] = label.Value
 		}
 	}
 
