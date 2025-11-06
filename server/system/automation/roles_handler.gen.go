@@ -12,6 +12,7 @@ import (
 	"context"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -561,7 +562,7 @@ type (
 		Name    string
 
 		hasLabels bool
-		Labels    map[string]string
+		Labels    map[string]labelTypes.LabelValue
 
 		hasDeleted bool
 		Deleted    uint64
@@ -626,7 +627,7 @@ func (h rolesHandler) Search() *atypes.Function {
 			},
 			{
 				Name:  "labels",
-				Types: []string{"KV"},
+				Types: []string{"LabelValue"},
 			},
 			{
 				Name:  "deleted",
@@ -754,7 +755,7 @@ type (
 		Name    string
 
 		hasLabels bool
-		Labels    map[string]string
+		Labels    map[string]labelTypes.LabelValue
 
 		hasDeleted bool
 		Deleted    uint64
@@ -819,7 +820,7 @@ func (h rolesHandler) Each() *atypes.Function {
 			},
 			{
 				Name:  "labels",
-				Types: []string{"KV"},
+				Types: []string{"LabelValue"},
 			},
 			{
 				Name:  "deleted",
