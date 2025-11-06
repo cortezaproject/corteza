@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cast"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -21,7 +22,7 @@ type (
 		Name   string      `json:"name"`
 		Config ChartConfig `json:"config"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		NamespaceID uint64 `json:"namespaceID,string"`
 
@@ -60,7 +61,7 @@ type (
 		Query       string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

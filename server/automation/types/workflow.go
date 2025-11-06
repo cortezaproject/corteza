@@ -10,6 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -17,7 +18,7 @@ type (
 	Workflow struct {
 		ID      uint64            `json:"workflowID,string"`
 		Handle  string            `json:"handle"`
-		Labels  map[string]string `json:"labels,omitempty"`
+		Labels  map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 		Meta    *WorkflowMeta     `json:"meta,omitempty"`
 		Enabled bool              `json:"enabled"`
 
@@ -60,7 +61,7 @@ type (
 		SubWorkflow filter.State `json:"subWorkflow"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it
