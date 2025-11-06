@@ -4,6 +4,7 @@ imports:
   - time
   - github.com/cortezaproject/corteza/server/pkg/http
   - net/url
+  - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
 
 types:
   Any:
@@ -75,6 +76,9 @@ types:
     as: 'map[string][]string'
     assignFn: assignToKVV
 
+  LabelValue:
+    as: 'map[string]labelTypes.LabelValue'
+    assignFn: assignToLabelValue
   Meta:
     as: 'map[string]any'
 
