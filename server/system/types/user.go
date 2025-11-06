@@ -9,6 +9,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -26,7 +28,7 @@ type (
 
 		EmailConfirmed bool `json:"emailConfirmed"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		CreatedAt   time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt   *time.Time `json:"updatedAt,omitempty"`
@@ -84,7 +86,7 @@ type (
 		AllKinds bool `json:"anyKind"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted   filter.State `json:"deleted"`
 		Suspended filter.State `json:"suspended"`

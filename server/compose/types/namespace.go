@@ -7,6 +7,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -16,7 +17,7 @@ type (
 		Enabled bool          `json:"enabled"`
 		Meta    NamespaceMeta `json:"meta"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
 		UpdatedAt *time.Time `json:"updatedAt,omitempty"`
@@ -36,7 +37,7 @@ type (
 		Name  string `json:"name"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 

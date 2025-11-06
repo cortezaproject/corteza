@@ -12,6 +12,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/sql"
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -30,7 +32,7 @@ type (
 		Config PageLayoutConfig `json:"config"`
 		Blocks PageLayoutBlocks `json:"blocks,omitempty"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		OwnedBy uint64 `json:"ownedBy,string"`
 
@@ -134,7 +136,7 @@ type (
 		Query        string   `json:"query"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		Deleted filter.State `json:"deleted"`
 
