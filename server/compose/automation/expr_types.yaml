@@ -9,7 +9,7 @@ types:
       - { name: 'ID',              exprType: 'ID',           goType: 'uint64',                 mode: ro, alias: 'namespaceID' }
       - { name: 'name',            exprType: 'String',       goType: 'string' }
       - { name: 'slug',            exprType: 'Handle',       goType: 'string',                           alias: 'handle'}
-      - { name: 'labels',          exprType: 'KV',           goType: 'map[string]string' }
+      - { name: 'labels',          exprType: 'LabelValue',           goType: 'map[string]labelTypes.LabelValue' }
       - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
       - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
       - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
@@ -20,7 +20,7 @@ types:
       - { name: 'namespaceID',     exprType: 'ID',           goType: 'uint64',                 mode: ro }
       - { name: 'name',            exprType: 'String',       goType: 'string' }
       - { name: 'handle',          exprType: 'Handle',       goType: 'string' }
-      - { name: 'labels',          exprType: 'KV',           goType: 'map[string]string' }
+      - { name: 'labels',          exprType: 'LabelValue',           goType: 'map[string]labelTypes.LabelValue' }
       - { name: 'createdAt',       exprType: 'DateTime',     goType: 'time.Time',              mode: ro }
       - { name: 'updatedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }
       - { name: 'deletedAt',       exprType: 'DateTime',     goType: '*time.Time',             mode: ro }

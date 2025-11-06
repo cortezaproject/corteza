@@ -889,7 +889,7 @@ func roleTypedValueSelector(res *types.Role, k string) (TypedValue, error) {
 	case "handle":
 		return NewHandle(res.Handle)
 	case "labels":
-		return NewKV(res.Labels)
+		return NewLabelValue(res.Labels)
 	case "createdAt":
 		return NewDateTime(res.CreatedAt)
 	case "updatedAt":
@@ -925,7 +925,7 @@ func assignToRole(res *types.Role, k string, val interface{}) error {
 		res.Handle = aux
 		return nil
 	case "labels":
-		aux, err := CastToKV(val)
+		aux, err := CastToLabelValue(val)
 		if err != nil {
 			return err
 		}
@@ -1111,7 +1111,7 @@ func templateTypedValueSelector(res *types.Template, k string) (TypedValue, erro
 	case "template":
 		return NewString(res.Template)
 	case "labels":
-		return NewKV(res.Labels)
+		return NewLabelValue(res.Labels)
 	case "ownerID":
 		return NewID(res.OwnerID)
 	case "createdAt":
@@ -1181,7 +1181,7 @@ func assignToTemplate(res *types.Template, k string, val interface{}) error {
 		res.Template = aux
 		return nil
 	case "labels":
-		aux, err := CastToKV(val)
+		aux, err := CastToLabelValue(val)
 		if err != nil {
 			return err
 		}
@@ -1493,7 +1493,7 @@ func userTypedValueSelector(res *types.User, k string) (TypedValue, error) {
 	case "emailConfirmed":
 		return NewBoolean(res.EmailConfirmed)
 	case "labels":
-		return NewKV(res.Labels)
+		return NewLabelValue(res.Labels)
 	case "createdAt":
 		return NewDateTime(res.CreatedAt)
 	case "updatedAt":
@@ -1553,7 +1553,7 @@ func assignToUser(res *types.User, k string, val interface{}) error {
 		res.EmailConfirmed = aux
 		return nil
 	case "labels":
-		aux, err := CastToKV(val)
+		aux, err := CastToLabelValue(val)
 		if err != nil {
 			return err
 		}

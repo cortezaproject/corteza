@@ -359,7 +359,7 @@ func composeModuleTypedValueSelector(res *types.Module, k string) (TypedValue, e
 	case "handle":
 		return NewHandle(res.Handle)
 	case "labels":
-		return NewKV(res.Labels)
+		return NewLabelValue(res.Labels)
 	case "createdAt":
 		return NewDateTime(res.CreatedAt)
 	case "updatedAt":
@@ -395,7 +395,7 @@ func assignToComposeModule(res *types.Module, k string, val interface{}) error {
 		res.Handle = aux
 		return nil
 	case "labels":
-		aux, err := CastToKV(val)
+		aux, err := CastToLabelValue(val)
 		if err != nil {
 			return err
 		}
@@ -547,7 +547,7 @@ func composeNamespaceTypedValueSelector(res *types.Namespace, k string) (TypedVa
 	case "slug", "handle":
 		return NewHandle(res.Slug)
 	case "labels":
-		return NewKV(res.Labels)
+		return NewLabelValue(res.Labels)
 	case "createdAt":
 		return NewDateTime(res.CreatedAt)
 	case "updatedAt":
@@ -581,7 +581,7 @@ func assignToComposeNamespace(res *types.Namespace, k string, val interface{}) e
 		res.Slug = aux
 		return nil
 	case "labels":
-		aux, err := CastToKV(val)
+		aux, err := CastToLabelValue(val)
 		if err != nil {
 			return err
 		}
