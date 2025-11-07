@@ -5,7 +5,10 @@
       isUser ? 'justify-content-end' : 'justify-content-start',
     ]"
   >
-    <div class="w-100" style="max-width: 48rem">
+    <div
+      class="w-100"
+      style="max-width: 48rem"
+    >
       <div :class="['card', isUser ? 'bg-primary text-white' : '']">
         <div class="card-body">
           <vue-simple-markdown
@@ -83,5 +86,9 @@ export default {
 <style scoped>
 .gap-2 {
   gap: 0.5rem;
+}
+
+.markdown-body {
+    font-size: 0.9rem;
 }
 </style>

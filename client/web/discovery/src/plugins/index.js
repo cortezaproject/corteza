@@ -4,6 +4,7 @@ import Router from 'vue-router'
 import { BootstrapVue, BootstrapVueIcons } from 'bootstrap-vue'
 import VueNativeSock from 'vue-native-websocket'
 import VueSimpleMarkdown from 'vue-simple-markdown'
+import 'vue-simple-markdown/dist/vue-simple-markdown.css'
 import { plugins, websocket } from '@cortezaproject/corteza-vue'
 import DiscoveryAPI from './searcher.js'
 
