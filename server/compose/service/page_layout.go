@@ -140,11 +140,15 @@ func (svc pageLayout) search(ctx context.Context, filter types.PageLayoutFilter)
 		aProps.setNamespace(ns)
 
 		if len(filter.Labels) > 0 {
+			labelStrings := make(map[string]string,len(filter.Labels))
+			for k, v := range filter.Labels {
+				labelStrings[k] = v.Value
+			}
 			filter.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
 				types.PageLayout{}.LabelResourceKind(),
-				filter.Labels,
+				labelStrings,
 			)
 
 			if err != nil {

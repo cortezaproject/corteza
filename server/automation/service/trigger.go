@@ -104,11 +104,15 @@ func (svc *trigger) Search(ctx context.Context, filter types.TriggerFilter) (rr 
 		}
 
 		if len(filter.Labels) > 0 {
+			labelStrings := make(map[string]string,len(filter.Labels))
+			for k, v := range filter.Labels {
+				labelStrings[k] = v.Value
+			}
 			filter.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
 				types.Trigger{}.LabelResourceKind(),
-				filter.Labels,
+				labelStrings,
 			)
 
 			if err != nil {

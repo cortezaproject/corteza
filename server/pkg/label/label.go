@@ -3,6 +3,7 @@ package label
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/str"
@@ -21,11 +22,11 @@ type (
 )
 
 // Changed checks if label maps are same or different
-func Changed(old, new map[string]string) bool {
+func Changed(old, new map[string]types.LabelValue) bool {
 	for k := range old {
 		if _, has := new[k]; !has {
 			return true
-		} else if new[k] != old[k] {
+		} else if !reflect.DeepEqual(new[k],old[k]) {
 			return true
 		}
 	}
@@ -33,7 +34,7 @@ func Changed(old, new map[string]string) bool {
 	for k := range new {
 		if _, has := old[k]; !has {
 			return true
-		} else if new[k] != old[k] {
+		} else if !reflect.DeepEqual(new[k],old[k]) {
 			return true
 		}
 	}

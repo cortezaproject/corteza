@@ -188,11 +188,15 @@ func (svc module) Find(ctx context.Context, filter types.ModuleFilter) (set type
 		}
 
 		if len(filter.Labels) > 0 {
+			labelStrings := make(map[string]string,len(filter.Labels))
+			for k, v := range filter.Labels {
+				labelStrings[k] = v.Value
+			}
 			filter.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
 				types.Module{}.LabelResourceKind(),
-				filter.Labels,
+				labelStrings,
 				id.Uints(filter.ModuleID...)...,
 			)
 
