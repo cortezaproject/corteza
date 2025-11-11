@@ -104,11 +104,15 @@ func (svc *report) Search(ctx context.Context, rf types.ReportFilter) (rr types.
 		}
 
 		if len(rf.Labels) > 0 {
+			labelStrings := make(map[string]string, len(rf.Labels))
+			for k,v := range rf.Labels {
+				labelStrings[k] = v.Value
+			}
 			rf.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
 				types.Report{}.LabelResourceKind(),
-				rf.Labels,
+				labelStrings,
 			)
 
 			if err != nil {
