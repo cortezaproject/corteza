@@ -17,7 +17,7 @@ type (
 	}
 
 	embedderService interface {
-		GenerateEmbeddings(input string) ([]float32, error)
+		GenerateEmbeddings(input string) ([]float64, error)
 	}
 
 	cResponse struct {
@@ -102,10 +102,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		mHandleMap  = make(map[string]mMeta)
 	)
 
-	esc, err := searcher.DefaultEs.Client()
-	if err != nil {
-		return nil, err
-	}
+	esc := searcher.DefaultEsClient
 
 	results, page, err = esSearch(ctx, log, esc, searchParams{
 		title:         "results",

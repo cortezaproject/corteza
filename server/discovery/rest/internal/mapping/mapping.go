@@ -56,7 +56,7 @@ func security() *property {
 func vector() *property {
 	return &property{
 		Type:      "knn_vector",
-		Dimension: 384,
+		Dimension: 1024,
 		Method: map[string]any{
 			"name":   "hnsw",
 			"engine": "lucene",

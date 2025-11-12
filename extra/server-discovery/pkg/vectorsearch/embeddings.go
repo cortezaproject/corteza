@@ -18,10 +18,27 @@ type (
 		Model string   `json:"model,omitempty"`
 	}
 
+	EmbeddingData struct {
+		Object    string    `json:"object"`
+		Embedding []float64 `json:"embedding"`
+		Index     int       `json:"index"`
+	}
+
+	EmbeddingUsage struct {
+		PromptAudioSeconds interface{} `json:"prompt_audio_seconds"`
+		PromptTokens       int         `json:"prompt_tokens"`
+		TotalTokens        int         `json:"total_tokens"`
+		CompletionTokens   int         `json:"completion_tokens"`
+		RequestCount       interface{} `json:"request_count"`
+		PromptTokenDetails interface{} `json:"prompt_token_details"`
+	}
+
 	EmbeddingResponse struct {
-		Embeddings [][]float32 `json:"embeddings"`
-		Dimension  int         `json:"dimension"`
-		Count      int         `json:"count"`
+		ID      string          `json:"id"`
+		Object  string          `json:"object"`
+		Data    []EmbeddingData `json:"data"`
+		Usage   EmbeddingUsage  `json:"usage"`
+		Message string          `json:"message"`
 	}
 
 	embedder struct {
@@ -37,9 +54,10 @@ func Embedder(log *zap.Logger, opt options.VectorSearchOpt) (out *embedder, err 
 
 // GenerateEmbeddings generates embeddings for the given input text
 // by calling the external embedding API service.
-func (embedder *embedder) GenerateEmbeddings(input string) ([]float32, error) {
+func (embedder *embedder) GenerateEmbeddings(input string) ([]float64, error) {
 	requestBody := EmbeddingRequest{
 		Input: []string{input},
+		Model: embedder.vectorSearchOpt.EmbeddingsModel,
 	}
 
 	body, err := json.Marshal(requestBody)
@@ -80,14 +98,14 @@ func (embedder *embedder) GenerateEmbeddings(input string) ([]float32, error) {
 		return nil, fmt.Errorf("failed to decode embedding response: %v", err)
 	}
 
-	if len(result.Embeddings) == 0 {
-		return nil, fmt.Errorf("no embeddings returned")
+	if result.Object == "error" {
+		return nil, fmt.Errorf("embedding service error: %s", result.Message)
 	}
 
-	return result.Embeddings[0], nil
+	return result.Data[0].Embedding, nil
 }
 
-func (embedder *embedder) ValidateEmbeddingsAPI(dimension int) (bool, error) {
+func (embedder *embedder) ValidateEmbeddingDimensions(dimension int) (bool, error) {
 	embeddings, err := embedder.GenerateEmbeddings("Corteza")
 	if err != nil {
 		return false, err

@@ -21,7 +21,7 @@ func VectorSearch() (o *VectorSearchOpt, err error) {
 	return o, func() error {
 		o.EmbeddingsAPIKey = options.EnvString("EMBEDDINGS_API_KEY", "")
 		o.EmbeddingsAPIUrl = options.EnvString("EMBEDDINGS_API_URL", "")
-		o.EmbeddingsModel = options.EnvString("EMBEDDINGS_MODEL", "paraphrase-multilingual-MiniLM-L12-v2")
+		o.EmbeddingsModel = options.EnvString("EMBEDDINGS_MODEL", "mistral-embed")
 		o.LLMBaseURL = options.EnvString("LLM_BASE_URL", "")
 		o.LLMAPIKey = options.EnvString("LLM_API_KEY", "")
 		o.LLMModel = options.EnvString("LLM_MODEL", "mistral-medium-latest")

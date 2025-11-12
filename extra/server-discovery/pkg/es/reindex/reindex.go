@@ -83,12 +83,11 @@ type (
 	}
 
 	esService interface {
-		Client() (*elasticsearch.Client, error)
 		BulkIndexer() (esutil.BulkIndexer, error)
 	}
 
 	embedderService interface {
-		GenerateEmbeddings(input string) ([]float32, error)
+		GenerateEmbeddings(input string) ([]float64, error)
 	}
 
 	apiClientService interface {
@@ -104,6 +103,7 @@ type (
 		log            *zap.Logger
 		esOpt          options.EsOpt
 		es             esService
+		esClient       *elasticsearch.Client
 		embedder       embedderService
 		api            apiClientService
 		assureMappings func(context.Context) error
@@ -111,14 +111,17 @@ type (
 )
 
 const (
-	IndexTpl = "corteza-%s-%s"
+	IndexTpl    = "corteza-%s-%s"
+	MarkerIndex = "corteza_indexer_state"
+	MarkerID    = "last_index_time"
 )
 
-func ReIndexer(log *zap.Logger, es esService, api apiClientService, embedderSvc embedderService, esOpt options.EsOpt, assureMappings func(context.Context) error) *reIndexer {
+func ReIndexer(log *zap.Logger, es esService, esc *elasticsearch.Client, api apiClientService, embedderSvc embedderService, esOpt options.EsOpt, assureMappings func(context.Context) error) *reIndexer {
 	return &reIndexer{
 		log:            log,
 		esOpt:          esOpt,
 		es:             es,
+		esClient:       esc,
 		embedder:       embedderSvc,
 		api:            api,
 		assureMappings: assureMappings,
@@ -684,7 +687,7 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 
 	if isFirst {
 		now = time.Now().AddDate(0, -ri.esOpt.IndexBackFillMonths, 0)
-		ri.log.Info(fmt.Sprintf("First run detected: starting from %d months ago (%s)",
+		ri.log.Info(fmt.Sprintf("first run detected: starting from %d months ago (%s)",
 			ri.esOpt.IndexBackFillMonths, now.UTC().Format(time.RFC3339)))
 
 		defer func() {
@@ -694,7 +697,7 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 		}()
 	} else {
 		now = time.Now()
-		ri.log.Info("Continuing reindexing from current time")
+		ri.log.Info("continuing reindexing from current time")
 	}
 
 	timeOut := ri.esOpt.IndexInterval
@@ -784,7 +787,7 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 }
 
 func (ri *reIndexer) processResource(source *bytes.Buffer) error {
-	var data map[string]interface{}
+	var data map[string]any
 	if err := json.Unmarshal(source.Bytes(), &data); err != nil {
 		return fmt.Errorf("Error unmarshaling: %v\n", err)
 	}
@@ -821,18 +824,10 @@ func (ri *reIndexer) processResource(source *bytes.Buffer) error {
 }
 
 func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
-	esClient, err := ri.es.Client()
-	if err != nil {
-		return false, fmt.Errorf("failed to prepare es client: %w", err)
-	}
-
-	markerIndex := "corteza_indexer_state"
-	markerID := "last_index_time"
-
-	res, err := esClient.Get(
-		markerIndex,
-		markerID,
-		esClient.Get.WithContext(ctx),
+	res, err := ri.esClient.Get(
+		MarkerIndex,
+		MarkerID,
+		ri.esClient.Get.WithContext(ctx),
 	)
 
 	if err != nil {
@@ -852,14 +847,6 @@ func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
 }
 
 func (ri *reIndexer) SaveLastIndexTime(ctx context.Context) error {
-	esClient, err := ri.es.Client()
-	if err != nil {
-		return fmt.Errorf("failed to prepare es client: %w", err)
-	}
-
-	markerIndex := "corteza_indexer_state"
-	markerID := "last_index_time"
-
 	doc := map[string]interface{}{
 		"last_run":    time.Now().UTC().Format(time.RFC3339),
 		"initialized": true,
@@ -871,12 +858,12 @@ func (ri *reIndexer) SaveLastIndexTime(ctx context.Context) error {
 	}
 
 	// create/update the marker document
-	res, err := esClient.Index(
-		markerIndex,
+	res, err := ri.esClient.Index(
+		MarkerIndex,
 		bytes.NewReader(docBytes),
-		esClient.Index.WithContext(ctx),
-		esClient.Index.WithDocumentID(markerID),
-		esClient.Index.WithRefresh("true"),
+		ri.esClient.Index.WithContext(ctx),
+		ri.esClient.Index.WithDocumentID(MarkerID),
+		ri.esClient.Index.WithRefresh("true"),
 	)
 
 	if err != nil {

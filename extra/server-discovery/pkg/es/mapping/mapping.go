@@ -9,10 +9,8 @@ import (
 	"net/url"
 
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/reindex"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esapi"
-	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"go.uber.org/zap"
 )
 
@@ -62,11 +60,6 @@ type (
 		Method    map[string]any `json:"method,omitempty"`
 	}
 
-	esService interface {
-		Client() (*elasticsearch.Client, error)
-		BulkIndexer() (esutil.BulkIndexer, error)
-	}
-
 	apiClientService interface {
 		HttpClient() *http.Client
 		Mappings() (*http.Request, error)
@@ -76,17 +69,17 @@ type (
 	}
 
 	mapper struct {
-		log *zap.Logger
-		es  esService
-		api apiClientService
+		log      *zap.Logger
+		esClient *elasticsearch.Client
+		api      apiClientService
 	}
 )
 
-func Mapper(log *zap.Logger, esc esService, api apiClientService) *mapper {
+func Mapper(log *zap.Logger, esClient *elasticsearch.Client, api apiClientService) *mapper {
 	return &mapper{
-		log: log,
-		es:  esc,
-		api: api,
+		log:      log,
+		esClient: esClient,
+		api:      api,
 	}
 }
 
@@ -189,7 +182,6 @@ func (m *mapper) Mappings(ctx context.Context, esc *elasticsearch.Client, indexP
 				iLog.Error("index creation failed", zap.Error(err))
 			}
 			if len(esRsp.String()) > 0 {
-				spew.Dump("kileee", im)
 				iLog.Error(fmt.Sprintf("index creation failed due to %s", esRsp.String()))
 			}
 			continue
@@ -221,10 +213,7 @@ func (m *mapper) getExistingIndexes(ctx context.Context) (ii []*esIndex, err err
 
 	ii = make([]*esIndex, 100)
 
-	esc, err := m.es.Client()
-	if err != nil {
-		return
-	}
+	esc := m.esClient
 
 	esRsp, err = esc.Cat.Indices(
 		esc.Cat.Indices.WithContext(ctx),
@@ -262,10 +251,7 @@ func (m *mapper) ConfigurationMapping(ctx context.Context) (err error) {
 	)
 
 	index := fmt.Sprintf(CortezaConfigurationIndex)
-	esc, err := m.es.Client()
-	if err != nil {
-		return
-	}
+	esc := m.esClient
 
 	if err = json.NewEncoder(buf).Encode(configMap); err != nil {
 		return
