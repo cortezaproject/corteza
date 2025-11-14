@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
@@ -15,6 +14,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"github.com/jmoiron/sqlx/types"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -320,8 +320,7 @@ func (ri *reIndexer) reindex(ctx context.Context, esb esutil.BulkIndexer, indexP
 		}
 
 		for _, doc := range rspPayload.Response.Documents {
-			body := bytes.NewBuffer(doc.Source)
-			err = ri.processResource(body)
+			body, err := ri.processResource(doc.Source)
 			if err != nil {
 				ri.log.Error("Failed to process record's for embeddings: ", zap.Error(err))
 			}
@@ -490,8 +489,10 @@ func (ri *reIndexer) feedReindex(ctx context.Context, esb esutil.BulkIndexer, in
 			}
 			if action != "delete" {
 				esbItem.Action = "index"
-				body := bytes.NewBuffer(doc.Source)
-				err = ri.processResource(body)
+				body, err := ri.processResource(doc.Source)
+				if err != nil {
+					return err
+				}
 
 				esbItem.Body = body
 			}
@@ -786,41 +787,36 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 	}()
 }
 
-func (ri *reIndexer) processResource(source *bytes.Buffer) error {
+func (ri *reIndexer) processResource(source []byte) (*bytes.Reader, error) {
 	var data map[string]any
-	if err := json.Unmarshal(source.Bytes(), &data); err != nil {
-		return fmt.Errorf("Error unmarshaling: %v\n", err)
+	if err := json.Unmarshal(source, &data); err != nil {
+		return nil, fmt.Errorf("error unmarshaling: %v\n", err)
 	}
 
 	resourceType, ok := data["resourceType"].(string)
 	if !ok {
-		return fmt.Errorf("resourceType not found or not a string")
+		return nil, fmt.Errorf("resourceType not found or not a string")
 	}
 
-	// only generate embeddings for compose:record for now
-	if resourceType == "compose:record" {
+	switch resourceType {
+	case "compose:record":
 		catchAll, ok := data["catch_all"].([]interface{})
 		if !ok {
-			return fmt.Errorf("records catch_all not found or not an array")
+			return nil, fmt.Errorf("records catch_all not found or not an array")
 		}
-
-		embeddings, err := ri.embedder.GenerateEmbeddings(convertValuesToString(catchAll))
+		embeddings, err := ri.embedder.GenerateEmbeddings(cast.ToString(catchAll))
 		if err != nil {
-			return err
+			return nil, err
 		}
-
 		data["vectorsValue"] = embeddings
-
 		updatedJSON, err := json.Marshal(data)
 		if err != nil {
-			return fmt.Errorf("Error marshaling: %v\n", err)
+			return nil, fmt.Errorf("Error marshaling: %v\n", err)
 		}
-
-		source.Reset()
-		source.Write(updatedJSON)
+		return bytes.NewReader(updatedJSON), nil
+	default:
+		return nil, nil
 	}
-
-	return nil
 }
 
 func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
@@ -877,21 +873,4 @@ func (ri *reIndexer) SaveLastIndexTime(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func convertValuesToString(values []interface{}) string {
-	var parts []string
-
-	for _, item := range values {
-		switch val := item.(type) {
-		case string:
-			parts = append(parts, val)
-		case float64:
-			parts = append(parts, fmt.Sprintf("%.0f", val))
-		default:
-			parts = append(parts, fmt.Sprintf("%v", val))
-		}
-	}
-
-	return strings.Join(parts, " ")
 }
