@@ -108,6 +108,42 @@ type (
 		api            apiClientService
 		assureMappings func(context.Context) error
 	}
+
+	NamespaceRef struct {
+		NamespaceID string `json:"namespaceID,omitempty"`
+		Name        string `json:"name,omitempty"`
+	}
+
+	ModuleRef struct {
+		ModuleID string `json:"moduleID,omitempty"`
+		Name     string `json:"name,omitempty"`
+		Handle   string `json:"handle,omitempty"`
+	}
+
+	TimestampInfo struct {
+		At time.Time `json:"at,omitempty"`
+		By any       `json:"by,omitempty"`
+	}
+
+	SecurityRule struct {
+		AllowedRoles []string `json:"allowedRoles,omitempty"`
+		DeniedRoles  []string `json:"deniedRoles,omitempty"`
+	}
+
+	ComposeRecord struct {
+		ResourceType string            `json:"resourceType"`
+		RecordID     string            `json:"recordID"`
+		ValueLabels  map[string]string `json:"valueLabels,omitempty"`
+		Values       map[string]any    `json:"values,omitempty"`
+		CatchAll     []any             `json:"catch_all,omitempty"`
+		Updated      *TimestampInfo    `json:"updated,omitempty"`
+		Created      *TimestampInfo    `json:"created,omitempty"`
+		Deleted      *TimestampInfo    `json:"deleted,omitempty"`
+		Security     []SecurityRule    `json:"security,omitempty"`
+		Namespace    *NamespaceRef     `json:"namespace,omitempty"`
+		Module       *ModuleRef        `json:"module,omitempty"`
+		VectorsValue []float64         `json:"vectorsValue,omitempty"`
+	}
 )
 
 const (
@@ -322,7 +358,7 @@ func (ri *reIndexer) reindex(ctx context.Context, esb esutil.BulkIndexer, indexP
 		for _, doc := range rspPayload.Response.Documents {
 			body, err := ri.processResource(doc.Source)
 			if err != nil {
-				ri.log.Error("Failed to process record's for embeddings: ", zap.Error(err))
+				ri.log.Error("failed to process record's for embeddings: ", zap.Error(err))
 			}
 
 			err = esb.Add(ctx, esutil.BulkIndexerItem{
@@ -687,19 +723,26 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 	}
 
 	if isFirst {
-		now = time.Now().AddDate(0, -ri.esOpt.IndexBackFillMonths, 0)
-		ri.log.Info(fmt.Sprintf("first run detected: starting from %d months ago (%s)",
-			ri.esOpt.IndexBackFillMonths, now.UTC().Format(time.RFC3339)))
+		startTime := time.Date(2018, time.January, 1, 0, 0, 0, 0, time.UTC) // Corteza start year
+		if ri.esOpt.IndexBackFillMonths != 0 {
+			startTime = time.Now().AddDate(0, -ri.esOpt.IndexBackFillMonths, 0)
+		}
+
+		ri.log.Info(fmt.Sprintf("first run detected: starting from (%s)", startTime.UTC().Format(time.RFC3339)))
+
+		if err := ri.processBacklogInChunks(ctx, startTime, &now); err != nil {
+			ri.log.Error(fmt.Sprintf("backlog processing failed: %s", err))
+		}
 
 		defer func() {
 			if err := ri.SaveLastIndexTime(ctx); err != nil {
 				ri.log.Error(fmt.Sprintf("failed to save indexer state to [corteza_indexer_state]: %s", err))
 			}
 		}()
-	} else {
-		now = time.Now()
-		ri.log.Info("continuing reindexing from current time")
 	}
+
+	now = time.Now()
+	ri.log.Info("continuing reindexing from current time")
 
 	timeOut := ri.esOpt.IndexInterval
 	ticker := time.NewTicker(time.Second * time.Duration(timeOut))
@@ -724,63 +767,14 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 						processing = false
 					}()
 
-					esb, err := ri.es.BulkIndexer()
-					if err != nil {
-						ri.log.Error(fmt.Sprintf("failed to prepare bulk indexer for feed changes: %s", err))
-						return
-					}
-
-					var (
-						req *http.Request
-						rsp *http.Response
-
-						qs = url.Values{"from": []string{now.UTC().Format(time.RFC3339)}}
-					)
-
-					feeds := &feedResponse{}
-
-					// store time before making request
 					tmpTime := time.Now()
 
-					if req, err = ri.api.Feed(qs); err != nil {
-						ri.log.Error(fmt.Sprintf("failed to prepare feed request: %s", err))
+					if err := ri.fetchAndIndex(ctx, now, nil); err != nil {
+						ri.log.Error(fmt.Sprintf("reindex error: %s", err))
 						return
 					}
 
-					if rsp, err = ri.api.HttpClient().Do(req.WithContext(ctx)); err != nil {
-						ri.log.Error(fmt.Sprintf("failed to send feed request: %s", err))
-						return
-					}
-
-					if rsp.StatusCode != http.StatusOK {
-						ri.log.Error(fmt.Sprintf("request resulted in an unexpected status '%s' for feed", rsp.Status))
-						return
-					}
-
-					if err = json.NewDecoder(rsp.Body).Decode(feeds); err != nil {
-						ri.log.Error(fmt.Sprintf("failed to decode feed resources: %s", err))
-						return
-					}
-
-					if err = rsp.Body.Close(); err != nil {
-						ri.log.Error(fmt.Sprintf("failed to close feed response body: %s", err))
-						return
-					}
-
-					// Update time after successful request
 					now = tmpTime
-
-					if feeds != nil && feeds.Response != nil && len(feeds.Response.ActivityLogs) > 0 {
-						err = ri.feedReindexChanges(ctx, esb, "private", feeds.Response.ActivityLogs)
-						if err != nil {
-							ri.log.Error(fmt.Sprintf("failed to update indexes for feed changes: %s", err))
-							return
-						}
-					} else {
-						ri.log.Debug(fmt.Sprintf("No feed changes since last %d seconds; current time: %s", timeOut, now.UTC().String()))
-					}
-
-					_ = esb.Close(ctx)
 				}()
 			}
 		}
@@ -788,35 +782,41 @@ func (ri *reIndexer) Watch(ctx context.Context) {
 }
 
 func (ri *reIndexer) processResource(source []byte) (*bytes.Reader, error) {
-	var data map[string]any
-	if err := json.Unmarshal(source, &data); err != nil {
-		return nil, fmt.Errorf("error unmarshaling: %v\n", err)
+	var peekResource struct {
+		ResourceType string `json:"resourceType"`
 	}
 
-	resourceType, ok := data["resourceType"].(string)
-	if !ok {
-		return nil, fmt.Errorf("resourceType not found or not a string")
+	if err := json.Unmarshal(source, &peekResource); err != nil {
+		return nil, fmt.Errorf("error unmarshaling: %v", err)
 	}
 
-	switch resourceType {
-	case "compose:record":
-		catchAll, ok := data["catch_all"].([]interface{})
-		if !ok {
-			return nil, fmt.Errorf("records catch_all not found or not an array")
-		}
-		embeddings, err := ri.embedder.GenerateEmbeddings(cast.ToString(catchAll))
-		if err != nil {
-			return nil, err
-		}
-		data["vectorsValue"] = embeddings
-		updatedJSON, err := json.Marshal(data)
-		if err != nil {
-			return nil, fmt.Errorf("Error marshaling: %v\n", err)
-		}
-		return bytes.NewReader(updatedJSON), nil
-	default:
-		return nil, nil
+	if peekResource.ResourceType != "compose:record" {
+		return bytes.NewReader(source), nil
 	}
+
+	// process record's resource
+	var record ComposeRecord
+	if err := json.Unmarshal(source, &record); err != nil {
+		return nil, fmt.Errorf("error unmarshaling record: %v", err)
+	}
+
+	if len(record.CatchAll) == 0 {
+		return nil, fmt.Errorf("records catch_all not found or empty")
+	}
+
+	embeddings, err := ri.embedder.GenerateEmbeddings(cast.ToString(record.CatchAll))
+	if err != nil {
+		return nil, err
+	}
+
+	record.VectorsValue = embeddings
+
+	updatedJSON, err := json.Marshal(record)
+	if err != nil {
+		return nil, fmt.Errorf("error marshaling: %v", err)
+	}
+
+	return bytes.NewReader(updatedJSON), nil
 }
 
 func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
@@ -870,6 +870,107 @@ func (ri *reIndexer) SaveLastIndexTime(ctx context.Context) error {
 
 	if res.IsError() {
 		return fmt.Errorf("failed to save marker index document: %s", res.Status())
+	}
+
+	return nil
+}
+
+func (ri *reIndexer) fetchAndIndex(ctx context.Context, fromTime time.Time, toTime *time.Time) error {
+	esb, err := ri.es.BulkIndexer()
+	if err != nil {
+		return err
+	}
+	defer esb.Close(ctx)
+
+	feeds, err := ri.fetchSinglePage(ctx, fromTime, toTime, "")
+	if err != nil {
+		return err
+	}
+
+	if feeds != nil && feeds.Response != nil && len(feeds.Response.ActivityLogs) > 0 {
+		ri.log.Info(fmt.Sprintf("indexing %d records", len(feeds.Response.ActivityLogs)))
+		return ri.feedReindexChanges(ctx, esb, "private", feeds.Response.ActivityLogs)
+	} else {
+		ri.log.Debug(fmt.Sprintf("no feed changes since %s; current time: %s", fromTime.UTC().String(), time.Now().UTC().String()))
+	}
+
+	return nil
+}
+
+func (ri *reIndexer) fetchSinglePage(ctx context.Context, fromTime time.Time, toTime *time.Time, cursor string) (*feedResponse, error) {
+	qs := url.Values{
+		"from":  []string{fromTime.UTC().Format(time.RFC3339)},
+		"limit": []string{"500"},
+	}
+	if toTime != nil {
+		qs.Set("to", toTime.UTC().Format(time.RFC3339))
+	}
+	if cursor != "" {
+		qs.Set("cursor", cursor)
+	}
+
+	req, err := ri.api.Feed(qs)
+	if err != nil {
+		ri.log.Error(fmt.Sprintf("failed to prepare feed request: %s", err))
+		return nil, err
+	}
+
+	rsp, err := ri.api.HttpClient().Do(req.WithContext(ctx))
+	if err != nil {
+		return nil, err
+	}
+	defer rsp.Body.Close()
+
+	if rsp.StatusCode != http.StatusOK {
+		ri.log.Error(fmt.Sprintf("request resulted in an unexpected status '%s' for feed", rsp.Status))
+		return nil, fmt.Errorf("unexpected status: %s", rsp.Status)
+	}
+
+	feeds := &feedResponse{}
+	if err = json.NewDecoder(rsp.Body).Decode(feeds); err != nil {
+		ri.log.Error(fmt.Sprintf("failed to decode feed response: %s", err))
+		return nil, err
+	}
+
+	return feeds, nil
+}
+
+func (ri *reIndexer) processBacklogInChunks(ctx context.Context, fromTime time.Time, toTime *time.Time) error {
+	esb, err := ri.es.BulkIndexer()
+	if err != nil {
+		return err
+	}
+	defer esb.Close(ctx)
+
+	cursor := ""
+	totalIndexed := 0
+
+	for {
+		feeds, err := ri.fetchSinglePage(ctx, fromTime, toTime, cursor)
+		if err != nil {
+			return err
+		}
+
+		if feeds != nil && feeds.Response != nil && len(feeds.Response.ActivityLogs) > 0 {
+			ri.log.Info(fmt.Sprintf("indexing %d records (page)", len(feeds.Response.ActivityLogs)))
+			if err := ri.feedReindexChanges(ctx, esb, "private", feeds.Response.ActivityLogs); err != nil {
+				return fmt.Errorf("failed to index records: %w", err)
+			}
+			totalIndexed += len(feeds.Response.ActivityLogs)
+		}
+
+		if feeds == nil || feeds.Response == nil || feeds.Response.Filter.NextPage == "" {
+			break
+		}
+
+		cursor = feeds.Response.Filter.NextPage
+		ri.log.Debug(fmt.Sprintf("fetching next page with cursor: %s", cursor))
+	}
+
+	if totalIndexed > 0 {
+		ri.log.Info(fmt.Sprintf("completed indexing %d total records for time chunk", totalIndexed))
+	} else {
+		ri.log.Debug(fmt.Sprintf("no feed changes since %s; current time: %s", fromTime.UTC().String(), time.Now().UTC().String()))
 	}
 
 	return nil

@@ -31,7 +31,7 @@ func ES() (o *EsOpt, err error) {
 		o.EnableRetryOnTimeout = options.EnvBool("ES_ENABLE_RETRY_ON_TIMEOUT", true)
 		o.MaxRetries = options.EnvInt("ES_MAX_RETRIES", 5)
 		o.IndexInterval = options.EnvInt("ES_INDEX_INTERVAL", 30)
-		o.IndexBackFillMonths = options.EnvInt("ES_INDEX_BACKFILL_MONTHS", 6)
+		o.IndexBackFillMonths = options.EnvInt("ES_INDEX_BACKFILL_MONTHS", 0)
 
 		for _, a := range strings.Split(options.EnvString("ES_ADDRESS", "http://es:9200"), " ") {
 			if a = strings.TrimSpace(a); a != "" {
