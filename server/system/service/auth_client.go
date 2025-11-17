@@ -145,7 +145,7 @@ func (svc *authClient) Search(ctx context.Context, af types.AuthClientFilter) (a
 		if len(af.Labels) > 0 {
 			labelStrings := make(map[string]string, len(af.Labels))
 			for k,v := range af.Labels {
-				labelStrings[k] = v.Value
+				labelStrings[k] = v.Val
 			}
 			af.LabeledIDs, err = label.Search(
 				ctx,

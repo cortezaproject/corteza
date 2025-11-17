@@ -15,6 +15,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/automation/types
     - github.com/cortezaproject/corteza/server/pkg/label
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -27,7 +28,7 @@ endpoints:
       - { name: deleted,     type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted workflows" }
       - { name: disabled,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled workflows" }
       - { name: subWorkflow, type: "uint",              title: "Exclude (0, default), include (1) or return only (2) sub workflows" }
-      - { name: labels,      type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: labels,      type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,       type: "uint",              title: "Limit" }
       - { name: incTotal,    type: "bool",              title: "Include total rows counter" }
       - { name: pageCursor,  type: "string",            title: "Page cursor" }
@@ -39,7 +40,7 @@ endpoints:
     parameters:
       post:
       - { name: handle,       type: string,                     title: "Workflow name" }
-      - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: labels,       type: "map[string]labelTypes.LabelValue",        title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
       - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
       - { name: trace,        type: bool,                       title: "Trace workflow execution" }
@@ -57,7 +58,7 @@ endpoints:
       path: [ { name: workflowID, type: uint64, required: true, title: "Workflow ID" } ]
       post:
       - { name: handle,       type: string,                     title: "Workflow name" }
-      - { name: labels,       type: "map[string]string",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: labels,       type: "map[string]labelTypes.LabelValue",        title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,         type: "*types.WorkflowMeta",      title: "Workflow meta data",             parser: "types.ParseWorkflowMeta" }
       - { name: enabled,      type: bool,                       title: "Is workflow enabled" }
       - { name: trace,        type: bool,                       title: "Trace workflow execution" }
@@ -115,6 +116,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/expr
     - github.com/cortezaproject/corteza/server/pkg/label
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -129,7 +131,7 @@ endpoints:
       - { name: eventType,    type: "string",            title: "Filter triggers by event type" }
       - { name: resourceType, type: "string",            title: "Filter triggers by resource type" }
       - { name: query,        type: "string",            title: "Filter workflows," }
-      - { name: labels,       type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: labels,       type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,        type: "uint",              title: "Limit" }
       - { name: pageCursor,   type: "string",            title: "Page cursor" }
       - { name: sort,         type: "string",            title: "Sort items" }
@@ -145,7 +147,7 @@ endpoints:
       - { name: workflowID,     type: uint64, required: true,       title: "Workflow to be triggered" }
       - { name: workflowStepID, type: uint64, required: true,       title: "Start workflow in a specific step" }
       - { name: input,          type: "*expr.Vars",                 title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
-      - { name: labels,         type: "map[string]string",          title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: labels,         type: "map[string]labelTypes.LabelValue",          title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",              parser: "types.ParseTriggerMeta" }
       - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
       - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }
@@ -162,7 +164,7 @@ endpoints:
       - { name: workflowID,     type: uint64, required: true,       title: "Workflow to be triggered" }
       - { name: workflowStepID, type: uint64, required: true,       title: "Start workflow in a specific step" }
       - { name: input,          type: "*expr.Vars",                 title: "Workflow meta data",             parser: "types.ParseWorkflowVariables" }
-      - { name: labels,         type: "map[string]string",          title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: labels,         type: "map[string]labelTypes.LabelValue",          title: "Labels",                         parser: "label.ParseStrings" }
       - { name: meta,           type: "*types.TriggerMeta",         title: "Trigger meta data",               parser: "types.ParseTriggerMeta" }
       - { name: constraints,    type: "types.TriggerConstraintSet", title: "Workflow steps definition",      parser: "types.ParseTriggerConstraintSet" }
       - { name: ownedBy,        type: uint64, required: true,       title: "Owner of the trigger" }

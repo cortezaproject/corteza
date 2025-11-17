@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -76,7 +77,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -128,7 +129,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Meta POST parameter
 		//
@@ -185,7 +186,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Meta POST parameter
 		//
@@ -288,7 +289,7 @@ func (r TriggerList) GetQuery() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TriggerList) GetLabels() map[string]string {
+func (r TriggerList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -452,7 +453,7 @@ func (r TriggerCreate) GetInput() *expr.Vars {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TriggerCreate) GetLabels() map[string]string {
+func (r TriggerCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -744,7 +745,7 @@ func (r TriggerUpdate) GetInput() *expr.Vars {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TriggerUpdate) GetLabels() map[string]string {
+func (r TriggerUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

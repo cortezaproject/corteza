@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 	"time"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -134,5 +135,5 @@ func Watchers(ctx context.Context) {
 }
 
 func AddFederationLabel(entity label.LabeledResource, key string, value string) {
-	entity.SetLabel(key, value)
+	entity.SetLabel(key, labelTypes.LabelValue{Val: value})
 }

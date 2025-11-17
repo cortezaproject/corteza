@@ -7,6 +7,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 	"io"
 	"strconv"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 const (
@@ -60,7 +61,7 @@ func newUserResourceResponse(u *types.User) *userResourceResponse {
 		Schemas:    []string{urnUser},
 		Meta:       newUserMetaResponse(u),
 		ID:         strconv.FormatUint(u.ID, 10),
-		ExternalId: u.Labels[userLabel_SCIM_externalId],
+		ExternalId: u.Labels[userLabel_SCIM_externalId].Val,
 		UserName:   u.Username,
 		NickName:   u.Handle,
 		Emails:     emailsResponse{{u.Email, true}},
@@ -116,6 +117,6 @@ func (req *userResourceRequest) applyTo(u *types.User) {
 	}
 
 	if req.ExternalId != nil {
-		u.SetLabel("SCIM_externalId", *req.ExternalId)
+		u.SetLabel("SCIM_externalId", labelTypes.LabelValue{Val: *req.ExternalId})
 	}
 }

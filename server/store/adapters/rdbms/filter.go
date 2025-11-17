@@ -153,7 +153,24 @@ func DefaultFilters() (f *extendedFilters) {
 			values := make([]goqu.Expression, 0, len(f.Filter))
 
 			for k, v := range f.Filter {
-				values = append(values, exp.Ex{"name": k, "value": v})
+				valueCol := goqu.C("value")
+
+				valExpr, err := s.Dialect.JsonExtractUnquote(valueCol, "value")
+				if err != nil {
+					return ee, f, err
+				}
+				valuesExpr, err := s.Dialect.JsonExtractUnquote(valueCol, "values")
+				if err != nil {
+					return ee, f, err
+				}
+				values = append (values, goqu.And(
+					goqu.C("name").Eq(k),
+					goqu.Or(
+						exp.NewBooleanExpression(exp.EqOp, valExpr, v),
+						exp.NewLiteralExpression("? @> ?::jsonb", valuesExpr, `"`+v+`"`),
+					),
+				))
+
 			}
 
 			ee = append(ee, goqu.Or(values...))

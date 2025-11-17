@@ -610,7 +610,7 @@ func assignToLabelValue(t *LabelValue, key string, val TypedValue) error{
 		if err != nil {
 			return  err
 		}
-		t.value[key] = labelTypes.LabelValue{Value: str}
+		t.value[key] = labelTypes.LabelValue{Val: str}
 	}
 	return nil
 }
@@ -621,7 +621,7 @@ func CastToLabelValue(val interface{}) (out map[string]labelTypes.LabelValue, er
 	case map[string]string:
 		out = make(map[string]labelTypes.LabelValue,len(val))
 		for k, v:= range val {
-			out[k] = labelTypes.LabelValue{Value: v}
+			out[k] = labelTypes.LabelValue{Val: v}
 		}
 		return out,nil
 	case map[string][]string:

@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
@@ -56,7 +57,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -103,7 +104,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	ChartRead struct {
@@ -147,7 +148,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -232,7 +233,7 @@ func (r ChartList) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ChartList) GetLabels() map[string]string {
+func (r ChartList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -364,7 +365,7 @@ func (r ChartCreate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ChartCreate) GetLabels() map[string]string {
+func (r ChartCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -571,7 +572,7 @@ func (r ChartUpdate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ChartUpdate) GetLabels() map[string]string {
+func (r ChartUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

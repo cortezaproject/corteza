@@ -11,7 +11,7 @@ import (
 )
 
 type (
-	Labels map[string]string
+	Labels map[string]types.LabelValue
 
 	LabeledResource interface {
 		GetLabels() map[string]types.LabelValue
@@ -43,9 +43,19 @@ func Changed(old, new map[string]types.LabelValue) bool {
 }
 
 // ParseStrings converts slice of strings with "key=val" format into
-func ParseStrings(ss []string) (m map[string]string, err error) {
-	return str.ParseStrings(ss)
+func ParseStrings(ss []string) (m map[string]types.LabelValue, err error) {
+	h, err := str.ParseStrings(ss)
+	if err != nil {
+		return nil, err
+	}
+
+	m = make(map[string]types.LabelValue, len(h))
+	for k, v := range h {
+		m[k] = types.LabelValue{Val: v}
+	}
+	return m, nil
 }
+
 
 // Search queries all matching (by kind and key-value filter) labels
 //

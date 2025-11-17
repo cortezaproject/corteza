@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/compose/rest/request"
 	"github.com/cortezaproject/corteza/server/compose/service"
@@ -254,7 +255,18 @@ func (ctrl *Page) UpdateIcon(ctx context.Context, r *request.PageUpdateIcon) (in
 		icon = &types.PageConfigIcon{
 			Type:  r.Type,
 			Src:   r.Source,
-			Style: r.Style,
+			Style: func() map[string]string {
+				style := make(map[string]string, len(r.Style))
+				for k, v := range r.Style {
+					if v.Val != "" {
+						style[k] = v.Val
+					} else if len(v.Values) > 0 {
+						style[k] = strings.Join(v.Values, ",")
+					}
+				}
+				return style
+			}(),
+
 		}
 	)
 

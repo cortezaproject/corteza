@@ -6,6 +6,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 	"io"
 	"strconv"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 const (
@@ -35,7 +36,7 @@ func newGroupResourceResponse(u *types.Role) *groupResourceResponse {
 		Schemas:    []string{urnGroup},
 		Meta:       newGroupMetaResponse(u),
 		ID:         strconv.FormatUint(u.ID, 10),
-		ExternalId: u.Labels[groupLabel_SCIM_externalId],
+		ExternalId: u.Labels[groupLabel_SCIM_externalId].Val,
 		Name:       u.Name,
 	}
 
@@ -56,6 +57,6 @@ func (req *groupResourceRequest) applyTo(u *types.Role) {
 	}
 
 	if req.ExternalId != nil {
-		u.SetLabel("SCIM_externalId", *req.ExternalId)
+		u.SetLabel("SCIM_externalId", labelTypes.LabelValue{Val : *req.ExternalId})
 	}
 }

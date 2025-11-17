@@ -1,8 +1,15 @@
 package types
 
+import (
+	"github.com/cortezaproject/corteza/server/pkg/sql"
+	"database/sql/driver"
+
+	"encoding/json"
+	
+)
 type (
 	LabelValue struct{
-			Value string	`json:"value,omitempty"`
+			Val string	`json:"value,omitempty"`
 			Values []string `json:"values,omitempty"`
 		}
 	Label struct {
@@ -49,3 +56,5 @@ func (set LabelSet) FilterByResource(kind string, ID uint64) map[string]LabelVal
 
 	return kv
 }
+  func (lv *LabelValue) Scan(src any) error { return sql.ParseJSON(src, lv) }
+  func (lv LabelValue) Value() (driver.Value, error) { return json.Marshal(lv) }

@@ -82,7 +82,7 @@ func (svc chart) Find(ctx context.Context, filter types.ChartFilter) (set types.
 		if len(filter.Labels) > 0 {
 			labelStrings := make(map[string]string,len(filter.Labels))
 			for k, v := range filter.Labels {
-				labelStrings[k] = v.Value
+				labelStrings[k] = v.Val
 			}
 			filter.LabeledIDs, err = label.Search(
 				ctx,

@@ -15,6 +15,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/locale
     - sqlxTypes github.com/jmoiron/sqlx/types
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -36,7 +37,7 @@ endpoints:
       - type: bool
         name: incTotal
         title: Include total counter
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -56,7 +57,7 @@ endpoints:
         name: name
         required: true
         title: Name
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -109,7 +110,7 @@ endpoints:
         name: meta
         required: true
         title: Meta data
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -255,9 +256,10 @@ endpoints:
     - sqlxTypes github.com/jmoiron/sqlx/types
     - github.com/cortezaproject/corteza/server/pkg/locale
     - github.com/cortezaproject/corteza/server/pkg/label
-    - github.com/cortezaproject/corteza/server/pkg/str
     - github.com/cortezaproject/corteza/server/compose/types
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+
   parameters:
     path:
     - type: uint64
@@ -287,7 +289,7 @@ endpoints:
         name: handle
         required: false
         title: Search by handle
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -330,7 +332,7 @@ endpoints:
         name: weight
         required: false
         title: Page tree weight
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -401,7 +403,7 @@ endpoints:
         name: weight
         required: false
         title: Page tree weight
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -526,9 +528,9 @@ endpoints:
           type: string
           title: Icon source/library
         - name: style
-          type: map[string]string
+          type: map[string]labelTypes.LabelValue
           title: Icon style
-          parser: str.ParseStrings
+          parser: label.ParseStrings
 
 - title: icons
   description: Compose icons
@@ -584,6 +586,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/compose/types
     - github.com/cortezaproject/corteza/server/pkg/label
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   parameters:
     path:
     - type: uint64
@@ -617,7 +620,7 @@ endpoints:
         name: handle
         required: false
         title: Search by handle
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -657,7 +660,7 @@ endpoints:
         name: handle
         required: false
         title: Search by handle
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -710,7 +713,7 @@ endpoints:
         name: blocks
         required: false
         title: Blocks
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -777,7 +780,7 @@ endpoints:
         name: blocks
         required: false
         title: Blocks
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -876,6 +879,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/locale
     - github.com/cortezaproject/corteza/server/pkg/label
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -904,7 +908,7 @@ endpoints:
       - type: string
         name: pageCursor
         title: Page cursor
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -922,7 +926,7 @@ endpoints:
       - { type: "types.ModuleConfig",   name: config, title: Configuration, parser: types.ParseModuleConfig }
       - { type: "sqlxTypes.JSONText",   name: meta,   title: Meta data,     required: true }
       - { type: "types.ModuleFieldSet", name: fields, title: Fields,        required: true }
-      - { type: "map[string]string",    name: labels, title: Labels,        parser: label.ParseStrings }
+      - { type: "map[string]labelTypes.LabelValue",    name: labels, title: Labels,        parser: label.ParseStrings }
   - name: read
     method: GET
     title: Read module
@@ -949,7 +953,7 @@ endpoints:
       - { type: "types.ModuleConfig",   name: config,    title: Configuration, parser: types.ParseModuleConfig }
       - { type: "sqlxTypes.JSONText",   name: meta,      title: Meta data,     required: true }
       - { type: "types.ModuleFieldSet", name: fields,    title: Fields,        required: true }
-      - { type: "map[string]string",    name: labels,    title: Labels,        parser: label.ParseStrings }
+      - { type: "map[string]labelTypes.LabelValue",    name: labels,    title: Labels,        parser: label.ParseStrings }
       - { type: "*time.Time",           name: updatedAt, title: Last update (or creation) date }
   - name: delete
     method: DELETE
@@ -1326,6 +1330,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/label
     - github.com/cortezaproject/corteza/server/pkg/locale
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   parameters:
     path:
     - type: uint64
@@ -1347,7 +1352,7 @@ endpoints:
         required: false
         title: Search charts by handle
         type: string
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1381,7 +1386,7 @@ endpoints:
         title: Chart handle
         type: string
         required: false
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1418,7 +1423,7 @@ endpoints:
         title: Chart handle
         type: string
         required: false
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1743,3 +1748,4 @@ endpoints:
         type: map[string]interface{}
         parser: parseMapStringInterface
         title: Arguments to pass to the script
+

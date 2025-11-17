@@ -11,6 +11,8 @@ import (
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -214,7 +216,7 @@ func lookupUserByExternalId(ctx context.Context, svc service.UserService, v *reg
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
-	rr, _, err := svc.Find(ctx, types.UserFilter{Labels: map[string]string{userLabel_SCIM_externalId: id}})
+	rr, _, err := svc.Find(ctx, types.UserFilter{Labels: map[string]labelTypes.LabelValue{userLabel_SCIM_externalId: labelTypes.LabelValue{Val: id}}})
 	if err != nil {
 		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}

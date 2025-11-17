@@ -499,10 +499,10 @@ type (
 
 	// auxLabel is an auxiliary structure used for transporting to/from RDBMS store
 	auxLabel struct {
-		Kind       string `db:"kind"`
-		ResourceID uint64 `db:"resource_id"`
-		Name       string `db:"name"`
-		Value      string `db:"value"`
+		Kind       string                `db:"kind"`
+		ResourceID uint64                `db:"resource_id"`
+		Name       string                `db:"name"`
+		Value      labelsType.LabelValue `db:"value"`
 	}
 
 	// auxNotification is an auxiliary structure used for transporting to/from RDBMS store
