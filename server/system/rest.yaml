@@ -1461,7 +1461,7 @@ endpoints:
   - name: list
     method: Get
     title: List labels
-    path: "/label"
+    path: "/label/"
     parameters:
       get: 
       - name: kind
