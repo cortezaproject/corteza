@@ -159,15 +159,16 @@ func DefaultFilters() (f *extendedFilters) {
 				if err != nil {
 					return ee, f, err
 				}
-				valuesExpr, err := s.Dialect.JsonExtractUnquote(valueCol, "values")
+				valuesExpr, err := s.Dialect.JsonExtract(valueCol, "values")
 				if err != nil {
 					return ee, f, err
 				}
+				jsonbArray := goqu.L("jsonb_build_array(to_jsonb(?))",v)
 				values = append (values, goqu.And(
 					goqu.C("name").Eq(k),
 					goqu.Or(
 						exp.NewBooleanExpression(exp.EqOp, valExpr, v),
-						exp.NewLiteralExpression("? @> ?::jsonb", valuesExpr, `"`+v+`"`),
+						exp.NewLiteralExpression("? @> ?::jsonb", valuesExpr, jsonbArray),
 					),
 				))
 
