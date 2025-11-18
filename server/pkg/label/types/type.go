@@ -56,5 +56,31 @@ func (set LabelSet) FilterByResource(kind string, ID uint64) map[string]LabelVal
 
 	return kv
 }
-  func (lv *LabelValue) Scan(src any) error { return sql.ParseJSON(src, lv) }
-  func (lv LabelValue) Value() (driver.Value, error) { return json.Marshal(lv) }
+func (lv *LabelValue) Scan(src any) error { return sql.ParseJSON(src, lv) }
+func (lv LabelValue) Value() (driver.Value, error) { return json.Marshal(lv) }
+
+func (lv *LabelValue) UnmarshalJSON(data []byte) error {
+	var strVal string
+	if err := json.Unmarshal(data, &strVal); err == nil {
+		lv.Val = strVal
+		lv.Values = nil
+		return nil
+	}
+	var arrVal []string
+	if err := json.Unmarshal(data, &arrVal); err == nil {
+		lv.Values = arrVal
+		lv.Val = ""
+		return nil
+	}
+	var obj struct {
+		Val    string   `json:"value,omitempty"`
+		Values []string `json:"values,omitempty"`
+	}
+	if err := json.Unmarshal(data, &obj); err == nil {
+		lv.Val = obj.Val
+		lv.Values = obj.Values
+		return nil
+	}
+
+	return nil
+}

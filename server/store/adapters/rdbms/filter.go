@@ -163,18 +163,17 @@ func DefaultFilters() (f *extendedFilters) {
 				if err != nil {
 					return ee, f, err
 				}
-				jsonbArray := goqu.L("jsonb_build_array(to_jsonb(?))",v)
-				values = append (values, goqu.And(
-					goqu.C("name").Eq(k),
-					goqu.Or(
-						exp.NewBooleanExpression(exp.EqOp, valExpr, v),
-						exp.NewLiteralExpression("? @> ?::jsonb", valuesExpr, jsonbArray),
-					),
-				))
+				values = append(values, goqu.And(
+				goqu.C("name").Eq(k),
+				goqu.Or(
+					exp.NewBooleanExpression(exp.EqOp, valExpr, v),
+					exp.NewLiteralExpression("? LIKE ?", valuesExpr, "%\""+v+"\"%"),
+				),
+			))
 
 			}
 
-			ee = append(ee, goqu.Or(values...))
+			ee = append(ee, goqu.And(values...))
 		}
 
 		return ee, f, nil
