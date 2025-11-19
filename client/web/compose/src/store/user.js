@@ -77,7 +77,7 @@ export default function (SystemAPI) {
           return
         }
 
-        return SystemAPI.userList({ userID: list }).then(({ set }) => {
+        return SystemAPI.userList({ userID: list, suspended: 1, deleted: 1 }).then(({ set }) => {
           commit(types.updateSet, set)
         }).finally(() => {
           commit(types.completed)
