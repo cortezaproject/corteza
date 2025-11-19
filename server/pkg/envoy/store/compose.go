@@ -14,7 +14,6 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/store"
 	stypes "github.com/cortezaproject/corteza/server/system/types"
-	"github.com/davecgh/go-spew/spew"
 )
 
 type (
@@ -228,8 +227,6 @@ func (d *composeDecoder) decodeComposeRecord(ctx context.Context, s store.Storer
 
 	mapValues := func(r *types.Record) map[string]resource.ComposeRecordRawValue {
 		mod := r.GetModule()
-
-		spew.Dump("hasMod", mod != nil)
 		out := make(map[string]resource.ComposeRecordRawValue, len(r.Values))
 
 		for _, v := range r.Values {
