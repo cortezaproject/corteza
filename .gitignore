@@ -9,3 +9,4 @@
 *.sw*
 .run
 node_modules
+ignore
