@@ -259,10 +259,13 @@ type (
 	}
 
 	DiscoveryOpt struct {
-		Enabled       bool   `env:"DISCOVERY_ENABLED"`
-		Debug         bool   `env:"DISCOVERY_DEBUG"`
-		CortezaDomain string `env:"DISCOVERY_CORTEZA_DOMAIN"`
-		BaseUrl       string `env:"DISCOVERY_BASE_URL"`
+		Enabled             bool   `env:"DISCOVERY_ENABLED"`
+		Debug               bool   `env:"DISCOVERY_DEBUG"`
+		CortezaDomain       string `env:"DISCOVERY_CORTEZA_DOMAIN"`
+		BaseUrl             string `env:"DISCOVERY_BASE_URL"`
+		EmbeddingsDimension int    `env:"DISCOVERY_EMBEDDINGS_DIMENSION"`
+		HnswEfConstruction  int    `env:"DISCOVERY_HNSW_EF_CONSTRUCTION"`
+		HnswM               int    `env:"DISCOVERY_HNSW_M"`
 	}
 
 	AttachmentOpt struct {
@@ -1057,8 +1060,11 @@ func Workflow() (o *WorkflowOpt) {
 // This function is auto-generated
 func Discovery() (o *DiscoveryOpt) {
 	o = &DiscoveryOpt{
-		Enabled: false,
-		Debug:   false,
+		Enabled:             false,
+		Debug:               false,
+		EmbeddingsDimension: 384,
+		HnswEfConstruction:  128,
+		HnswM:               16,
 	}
 
 	// Custom defaults

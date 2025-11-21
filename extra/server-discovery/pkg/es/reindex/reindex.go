@@ -122,7 +122,14 @@ type (
 
 	TimestampInfo struct {
 		At time.Time `json:"at,omitempty"`
-		By any       `json:"by,omitempty"`
+		By *User     `json:"by,omitempty"`
+	}
+
+	User struct {
+		UserID string `json:"userID,omitempty"`
+		Email  string `json:"email,omitempty"`
+		Name   string `json:"name,omitempty"`
+		Handle string `json:"handle,omitempty"`
 	}
 
 	SecurityRule struct {

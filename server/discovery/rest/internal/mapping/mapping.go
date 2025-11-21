@@ -1,5 +1,7 @@
 package mapping
 
+import "github.com/cortezaproject/corteza/server/pkg/options"
+
 type (
 	Mapping struct {
 		Index   string               `json:"index"`
@@ -52,17 +54,16 @@ func security() *property {
 	}
 }
 
-// TODO:: all the configurations should be configurable by the USER on the admin.
-func vector() *property {
+func vector(opts options.DiscoveryOpt) *property {
 	return &property{
 		Type:      "knn_vector",
-		Dimension: 1024,
+		Dimension: opts.EmbeddingsDimension,
 		Method: map[string]any{
 			"name":   "hnsw",
 			"engine": "lucene",
 			"parameters": map[string]any{
-				"ef_construction": 128,
-				"m":               16,
+				"ef_construction": opts.HnswEfConstruction,
+				"m":               opts.HnswM,
 			},
 		},
 	}
