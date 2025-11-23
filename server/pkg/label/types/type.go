@@ -26,7 +26,7 @@ type (
 	LabelFilter struct {
 		Kind       string
 		ResourceID []uint64
-		Filter     map[string]string
+		Filter     map[string][]string
 		Limit      uint
 		Name      string
 		Value 	  []string //use a slice of string

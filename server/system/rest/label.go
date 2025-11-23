@@ -34,10 +34,8 @@ func (ctrl Label) List(ctx context.Context, r *request.LabelList) (interface{}, 
 		}
 	)
 
-	if r.Name != ""{
-		f.Filter = map[string]string{
-			r.Name: "",
-		}
+	if r.Name != "" {
+		f.Name = r.Name
 	}
 
 	set, f, err = ctrl.label.List(ctx, f)

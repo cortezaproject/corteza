@@ -92,15 +92,11 @@ func (svc *application) Search(ctx context.Context, af types.ApplicationFilter) 
 		}
 
 		if len(af.Labels) > 0 {
-			labelStrings := make(map[string]string, len(af.Labels))
-			for k,v := range af.Labels {
-				labelStrings[k] = v.Val
-			}
 			af.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
 				types.Application{}.LabelResourceKind(),
-				labelStrings,
+				af.Labels,
 			)
 
 			if err != nil {

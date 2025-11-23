@@ -137,15 +137,11 @@ func (svc *workflow) Search(ctx context.Context, filter types.WorkflowFilter) (r
 		}
 
 		if len(filter.Labels) > 0 {
-			labelStrings := make(map[string]string,len(filter.Labels))
-			for k, v := range filter.Labels {
-				labelStrings[k]= v.Val
-			}
 			filter.LabeledIDs, err = label.Search(
 				ctx,
 				svc.store,
 				types.Workflow{}.LabelResourceKind(),
-				labelStrings,
+				filter.Labels,
 			)
 
 			if err != nil {
