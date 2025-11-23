@@ -3,13 +3,15 @@ package label
 import (
 	"reflect"
 	"testing"
+
+	"github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 func TestChanged(t *testing.T) {
 	tests := []struct {
 		name string
-		old  map[string]string
-		new  map[string]string
+		old  map[string]types.LabelValue
+		new  map[string]types.LabelValue
 		want bool
 	}{
 		{
@@ -20,32 +22,44 @@ func TestChanged(t *testing.T) {
 		},
 		{
 			"2x empty",
-			map[string]string{},
-			map[string]string{},
+			map[string]types.LabelValue{},
+			map[string]types.LabelValue{},
 			false,
 		},
 		{
 			"nil & empty",
 			nil,
-			map[string]string{},
+			map[string]types.LabelValue{},
 			false,
 		},
 		{
-			"same",
-			map[string]string{"a": "a"},
-			map[string]string{"a": "a"},
+			"same single value",
+			map[string]types.LabelValue{"a": {Val: "a"}},
+			map[string]types.LabelValue{"a": {Val: "a"}},
 			false,
 		},
 		{
-			"diff1",
-			map[string]string{"a": "a"},
-			map[string]string{"a": "b"},
+			"same multi value",
+			map[string]types.LabelValue{"a": {Values: []string{"1", "2"}}},
+			map[string]types.LabelValue{"a": {Values: []string{"1", "2"}}},
+			false,
+		},
+		{
+			"diff single value",
+			map[string]types.LabelValue{"a": {Val: "a"}},
+			map[string]types.LabelValue{"a": {Val: "b"}},
 			true,
 		},
 		{
-			"diff2",
-			map[string]string{"a": "b"},
-			map[string]string{},
+			"diff multi value",
+			map[string]types.LabelValue{"a": {Values: []string{"1", "2"}}},
+			map[string]types.LabelValue{"a": {Values: []string{"1", "3"}}},
+			true,
+		},
+		{
+			"diff key removed",
+			map[string]types.LabelValue{"a": {Val: "b"}},
+			map[string]types.LabelValue{},
 			true,
 		},
 	}
@@ -62,25 +76,25 @@ func TestParseStrings(t *testing.T) {
 	tests := []struct {
 		name    string
 		labels  []string
-		want    map[string]string
+		want    map[string]types.LabelValue
 		wantErr bool
 	}{
 		{
 			"set of pairs",
 			[]string{"aa=b"},
-			map[string]string{"aa": "b"},
+			map[string]types.LabelValue{"aa": {Val: "b"}},
 			false,
 		},
 		{
 			"empty json",
 			[]string{`{}`},
-			map[string]string{},
+			map[string]types.LabelValue{},
 			false,
 		},
 		{
 			"json",
 			[]string{`{"aa":"b"}`},
-			map[string]string{"aa": "b"},
+			map[string]types.LabelValue{"aa": {Val: "b"}},
 			false,
 		},
 	}

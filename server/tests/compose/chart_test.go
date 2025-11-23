@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/tests/helpers"
 	jsonpath "github.com/steinfletcher/apitest-jsonpath"
@@ -253,16 +254,16 @@ func TestChartLabels(t *testing.T) {
 
 		helpers.SetLabelsViaAPI(h.apiInit(), t,
 			fmt.Sprintf("/namespace/%d/chart/", ns.ID),
-			types.Chart{Labels: map[string]string{"foo": "bar", "bar": "42"}},
+			types.Chart{Labels: map[string]labelTypes.LabelValue{"foo": {Val: "bar"}, "bar": {Val: "42"}}},
 			payload,
 		)
 		req.NotZero(payload.ID)
 
-		h.a.Equal(payload.Labels["foo"], "bar",
+		h.a.Equal(payload.Labels["foo"].Val, "bar",
 			"labels must contain foo with value bar")
-		h.a.Equal(payload.Labels["bar"], "42",
+		h.a.Equal(payload.Labels["bar"].Val, "42",
 			"labels must contain bar with value 42")
-		req.Equal(payload.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID),
+		req.Equal(helpers.LabelsToStrings(payload.Labels), helpers.LabelsToStrings(helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID)),
 			"response must match stored labels")
 
 		ID = payload.ID
@@ -280,19 +281,19 @@ func TestChartLabels(t *testing.T) {
 
 		helpers.SetLabelsViaAPI(h.apiInit(), t,
 			fmt.Sprintf("/namespace/%d/chart/%d", ns.ID, ID),
-			types.Chart{Labels: map[string]string{"foo": "baz", "baz": "123"}},
+			types.Chart{Labels: map[string]labelTypes.LabelValue{"foo": {Val: "baz"}, "baz": {Val: "123"}}},
 			payload,
 		)
 		req.NotZero(payload.ID)
 		req.Nil(payload.UpdatedAt, "updatedAt must not change after changing labels")
 
-		req.Equal(payload.Labels["foo"], "baz",
+		req.Equal(payload.Labels["foo"].Val, "baz",
 			"labels must contain foo with value baz")
 		req.NotContains(payload.Labels, "bar",
 			"labels must not contain bar")
-		req.Equal(payload.Labels["baz"], "123",
+		req.Equal(payload.Labels["baz"].Val, "123",
 			"labels must contain baz with value 123")
-		req.Equal(payload.Labels, helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID),
+		req.Equal(helpers.LabelsToStrings(payload.Labels), helpers.LabelsToStrings(helpers.LoadLabelsFromStore(t, service.DefaultStore, payload.LabelResourceKind(), payload.ID)),
 			"response must match stored labels")
 	})
 

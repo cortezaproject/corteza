@@ -192,7 +192,7 @@ func (h helper) setLabel(res label.LabeledResource, name, value string) {
 		Kind:       res.LabelResourceKind(),
 		ResourceID: res.LabelResourceID(),
 		Name:       name,
-		Value:      value,
+		Value:      ltype.LabelValue{Val: value},
 	}))
 }
 

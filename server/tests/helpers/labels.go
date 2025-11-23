@@ -54,7 +54,7 @@ func SearchWithLabelsViaAPI(api *apitest.APITest, t *testing.T, endpoint string,
 		JSON(&payload)
 }
 
-func LoadLabelsFromStore(t *testing.T, s store.Storer, resKind string, id uint64) (sl map[string]string) {
+func LoadLabelsFromStore(t *testing.T, s store.Storer, resKind string, id uint64) map[string]types.LabelValue {
 	ll, _, err := s.SearchLabels(context.Background(), types.LabelFilter{Kind: resKind})
 	require.NoError(t, err)
 	if len(ll) == 0 {
@@ -63,4 +63,15 @@ func LoadLabelsFromStore(t *testing.T, s store.Storer, resKind string, id uint64
 	}
 
 	return ll.FilterByResource(resKind, id)
+}
+
+func LabelsToStrings(labels map[string]types.LabelValue) map[string]string {
+	if labels == nil {
+		return nil
+	}
+	result := make(map[string]string, len(labels))
+	for k, v := range labels {
+		result[k] = v.Val
+	}
+	return result
 }
