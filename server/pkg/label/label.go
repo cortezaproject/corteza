@@ -2,8 +2,10 @@ package label
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/str"
@@ -51,6 +53,13 @@ func ParseStrings(ss []string) (m map[string]types.LabelValue, err error) {
 
 	m = make(map[string]types.LabelValue, len(h))
 	for k, v := range h {
+		if strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]") {
+			var arr []string
+			if err := json.Unmarshal([]byte(v), &arr); err == nil {
+				m[k] = types.LabelValue{Values: arr}
+				continue
+			}
+		}
 		m[k] = types.LabelValue{Val: v}
 	}
 	return m, nil

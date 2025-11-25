@@ -167,11 +167,18 @@ func DefaultFilters() (f *extendedFilters) {
 					return ee, f, err
 				}
 				valueOrConditions := make([]goqu.Expression, 0, len(v))
-				
+
 				for _, val := range v {
+					singleValueMatch := exp.NewBooleanExpression(exp.EqOp, valExpr, val)
+					jsonVal := exp.NewLiteralExpression("?", "\""+val+"\"")
+					multiValueMatch, err := s.Dialect.JsonArrayContains(jsonVal, valuesExpr)
+					if err != nil {
+						return ee, f, err
+					}
+
 					valueOrConditions = append(valueOrConditions, goqu.Or(
-						exp.NewBooleanExpression(exp.EqOp, valExpr, val),
-						exp.NewLiteralExpression("? LIKE ?", valuesExpr, "%\""+val+"\"%"),
+						singleValueMatch,
+						multiValueMatch,
 					))
 				}
 				keyConditions = append(keyConditions, goqu.And(

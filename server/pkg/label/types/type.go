@@ -57,7 +57,27 @@ func (set LabelSet) FilterByResource(kind string, ID uint64) map[string]LabelVal
 	return kv
 }
 func (lv *LabelValue) Scan(src any) error { return sql.ParseJSON(src, lv) }
-func (lv LabelValue) Value() (driver.Value, error) { return json.Marshal(lv) }
+
+// Value implements driver.Value for database storage
+// Uses explicit object format {"value":...} or {"values":...} for DB storage
+// (different from MarshalJSON which outputs simplified format for API)
+func (lv LabelValue) Value() (driver.Value, error) {
+	if len(lv.Values) > 0 {
+		return json.Marshal(struct {
+			Values []string `json:"values"`
+		}{Values: lv.Values})
+	}
+	return json.Marshal(struct {
+		Val string `json:"value"`
+	}{Val: lv.Val})
+}
+
+func (lv LabelValue) MarshalJSON() ([]byte, error) {
+	if len(lv.Values) > 0 {
+		return json.Marshal(lv.Values)
+	}
+	return json.Marshal(lv.Val)
+}
 
 func (lv *LabelValue) UnmarshalJSON(data []byte) error {
 	var strVal string
