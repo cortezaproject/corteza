@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/label/types"
@@ -28,7 +27,7 @@ func Changed(old, new map[string]types.LabelValue) bool {
 	for k := range old {
 		if _, has := new[k]; !has {
 			return true
-		} else if !reflect.DeepEqual(new[k],old[k]) {
+		} else if !new[k].Equal(old[k]) {
 			return true
 		}
 	}
@@ -36,7 +35,7 @@ func Changed(old, new map[string]types.LabelValue) bool {
 	for k := range new {
 		if _, has := old[k]; !has {
 			return true
-		} else if !reflect.DeepEqual(new[k],old[k]) {
+		} else if !new[k].Equal(old[k]) {
 			return true
 		}
 	}
@@ -65,7 +64,6 @@ func ParseStrings(ss []string) (m map[string]types.LabelValue, err error) {
 	return m, nil
 }
 
-
 // Search queries all matching (by kind and key-value filter) labels
 //
 // In case when list of (base) resources is given, labels are also filtered by resource IDs
@@ -83,7 +81,7 @@ func Search(ctx context.Context, s store.Labels, kind string, f map[string]types
 	}
 	var result []uint64 = base
 	// search for filters
-	for k,v := range f {
+	for k, v := range f {
 		var values []string
 		if v.Val != "" {
 			values = []string{v.Val}
@@ -107,7 +105,7 @@ func Search(ctx context.Context, s store.Labels, kind string, f map[string]types
 		}
 	}
 
-	return result,nil
+	return result, nil
 }
 
 // Load searches labels for all labeled resources

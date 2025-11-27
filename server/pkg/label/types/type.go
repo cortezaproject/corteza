@@ -1,17 +1,18 @@
 package types
 
 import (
-	"github.com/cortezaproject/corteza/server/pkg/sql"
 	"database/sql/driver"
 
+	"github.com/cortezaproject/corteza/server/pkg/sql"
+
 	"encoding/json"
-	
 )
+
 type (
-	LabelValue struct{
-			Val string	`json:"value,omitempty"`
-			Values []string `json:"values,omitempty"`
-		}
+	LabelValue struct {
+		Val    string   `json:"value,omitempty"`
+		Values []string `json:"values,omitempty"`
+	}
 	Label struct {
 		// Kind of the labeled resource
 		Kind string
@@ -20,7 +21,7 @@ type (
 		ResourceID uint64
 
 		Name  string
-		Value LabelValue	
+		Value LabelValue
 	}
 
 	LabelFilter struct {
@@ -28,8 +29,8 @@ type (
 		ResourceID []uint64
 		Filter     map[string][]string
 		Limit      uint
-		Name      string
-		Value 	  []string //use a slice of string
+		Name       string
+		Value      []string
 	}
 )
 
@@ -50,7 +51,7 @@ func (set LabelSet) FilterByResource(kind string, ID uint64) map[string]LabelVal
 	var kv = make(map[string]LabelValue)
 	for _, label := range set {
 		if kind == label.Kind && ID == label.ResourceID {
-					kv[label.Name] = label.Value
+			kv[label.Name] = label.Value
 		}
 	}
 
@@ -103,4 +104,24 @@ func (lv *LabelValue) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+func (lv LabelValue) Equal(other LabelValue) bool {
+	if lv.Val != "" && other.Val != "" {
+		return lv.Val == other.Val
+	}
+
+	if len(lv.Values) > 0 && len(other.Values) > 0 {
+		if len(lv.Values) != len(other.Values) {
+			return false
+		}
+		for i := range lv.Values {
+			if lv.Values[i] != other.Values[i] {
+				return false
+			}
+		}
+		return true
+	}
+
+	return lv.Val == "" && len(lv.Values) == 0 && other.Val == "" && len(other.Values) == 0
 }
