@@ -36,7 +36,7 @@ import (
 //
 // OA2 server internals first run user check (see SetUserAuthorizationHandler lambda)
 // to ensure user is authenticated;
-func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	if form := request.GetOAuth2AuthParams(req.Session); form != nil {
 		req.Request.Form = form
 		h.Log.Debug("restarting oauth2 authorization flow", zap.Any("params", req.Request.Form))
@@ -77,7 +77,7 @@ func (h AuthHandlers) oauth2Authorize(req *request.AuthReq) (err error) {
 	return nil
 }
 
-func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 	var (
 		client = request.GetOauth2Client(req.Session)
 	)
@@ -123,7 +123,7 @@ func (h AuthHandlers) oauth2AuthorizeClient(req *request.AuthReq) (err error) {
 	return nil
 }
 
-func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error) {
 	// permissions are already check ed in the  oauth2AuthorizeClient fn,
 	// just making sure
 	if h.canAuthorizeClient(req.Context(), req.Client) {
@@ -151,11 +151,11 @@ func (h AuthHandlers) oauth2AuthorizeClientProc(req *request.AuthReq) (err error
 }
 
 // Verifies weather current user can authorize this client or not
-func (h AuthHandlers) canAuthorizeClient(ctx context.Context, c *types.AuthClient) bool {
+func (h *AuthHandlers) canAuthorizeClient(ctx context.Context, c *types.AuthClient) bool {
 	return systemService.DefaultAccessControl.CanAuthorizeAuthClient(ctx, c)
 }
 
-func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 	// Cleanup
 	request.SetOauth2ClientAuthorized(req.Session, false)
 
@@ -170,7 +170,7 @@ func (h AuthHandlers) oauth2Token(req *request.AuthReq) (err error) {
 }
 
 // oauth2Info handler validates token and responds with decoded claims
-func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 	var (
 		jt     jwt.Token
 		claims map[string]interface{}
@@ -230,7 +230,7 @@ func (h AuthHandlers) oauth2Info(w http.ResponseWriter, r *http.Request) {
 //   - accepts redirect_uri via query string that's used to build the oauth2 authorization URL
 //
 // (for the rest of the flow, see oauth2authorizeDefaultClientProc)
-func (h AuthHandlers) oauth2authorizeDefaultClient(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) oauth2authorizeDefaultClient(req *request.AuthReq) (err error) {
 	if err = h.verifyDefaultClient(); err != nil {
 		return
 	}
@@ -266,7 +266,7 @@ func (h AuthHandlers) oauth2authorizeDefaultClient(req *request.AuthReq) (err er
 //   - handles issuing of new access token requests
 //
 // (for the first part of the flow, see oauth2authorizeDefaultClient)
-func (h AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (err error) {
 	if err = h.verifyDefaultClient(); err != nil {
 		return
 	}
@@ -298,7 +298,7 @@ func (h AuthHandlers) oauth2authorizeDefaultClientProc(req *request.AuthReq) (er
 	return h.handleTokenRequest(req, h.DefaultClient)
 }
 
-func (h AuthHandlers) verifyDefaultClient() error {
+func (h *AuthHandlers) verifyDefaultClient() error {
 	if h.DefaultClient == nil {
 		return fmt.Errorf("no default client configured")
 	}
@@ -311,7 +311,7 @@ func (h AuthHandlers) verifyDefaultClient() error {
 }
 
 // loads client from the request params and verifies other request params against client settings
-func (h AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.AuthClient, err error) {
+func (h *AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.AuthClient, err error) {
 	return client, func() (err error) {
 		var (
 			id    string
@@ -336,7 +336,7 @@ func (h AuthHandlers) loadRequestedClient(req *request.AuthReq) (client *types.A
 	}()
 }
 
-func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.AuthClient) error {
+func (h *AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.AuthClient) error {
 	var (
 		r   = req.Request
 		w   = req.Response
@@ -488,12 +488,12 @@ func (h AuthHandlers) handleTokenRequest(req *request.AuthReq, client *types.Aut
 	return writeResponse(w, response, nil)
 }
 
-func (h AuthHandlers) tokenError(w http.ResponseWriter, err error) error {
+func (h *AuthHandlers) tokenError(w http.ResponseWriter, err error) error {
 	data, statusCode, header := h.OAuth2.GetErrorData(err)
 	return writeResponse(w, data, header, statusCode)
 }
 
-func (h AuthHandlers) oauth2PublicKeys(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandlers) oauth2PublicKeys(w http.ResponseWriter, r *http.Request) {
 	// handle error
 	handleErr := func(code int, err error) {
 		var (

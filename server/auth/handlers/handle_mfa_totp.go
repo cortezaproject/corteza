@@ -22,7 +22,7 @@ const (
 // Handles MFA TOTP configuration form
 //
 // Where the TOTP QR & code are displayed and where
-func (h AuthHandlers) mfaTotpConfigForm(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaTotpConfigForm(req *request.AuthReq) (err error) {
 	var (
 		rawSecret [10]byte
 		secret    string
@@ -50,7 +50,7 @@ func (h AuthHandlers) mfaTotpConfigForm(req *request.AuthReq) (err error) {
 }
 
 // Handles MFA OTP form processing
-func (h AuthHandlers) mfaTotpConfigProc(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaTotpConfigProc(req *request.AuthReq) (err error) {
 	req.RedirectTo = GetLinks().MfaTotpNewSecret
 	req.SetKV(nil)
 
@@ -109,7 +109,7 @@ func (h AuthHandlers) mfaTotpConfigProc(req *request.AuthReq) (err error) {
 }
 
 // Displays the QR PNG image
-func (h AuthHandlers) mfaTotpConfigQR(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaTotpConfigQR(req *request.AuthReq) (err error) {
 	var (
 		issuer      = h.Settings.MultiFactor.TOTP.Issuer
 		secret, has = req.Session.Values[totpSecretKey]
@@ -155,14 +155,14 @@ func (h AuthHandlers) mfaTotpConfigQR(req *request.AuthReq) (err error) {
 // Handles MFA TOTP configuration form
 //
 // Where the TOTP QR & code are displayed and where
-func (h AuthHandlers) mfaTotpDisableForm(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaTotpDisableForm(req *request.AuthReq) (err error) {
 	req.Data["form"] = req.PopKV()
 	req.Template = TmplMfaTotpDisable
 	return nil
 }
 
 // Handles MFA OTP form processing
-func (h AuthHandlers) mfaTotpDisableProc(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaTotpDisableProc(req *request.AuthReq) (err error) {
 	req.RedirectTo = GetLinks().MfaTotpDisable
 	req.SetKV(nil)
 

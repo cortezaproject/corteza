@@ -8,7 +8,7 @@ import (
 // Handles MFA TOTP configuration form
 //
 // Where the TOTP QR & code are displayed and where
-func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 	req.Template = TmplMfa
 
 	if !req.AuthUser.PendingMFA() {
@@ -42,7 +42,7 @@ func (h AuthHandlers) mfaForm(req *request.AuthReq) (err error) {
 }
 
 // Handles MFA OTP form processing
-func (h AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
+func (h *AuthHandlers) mfaProc(req *request.AuthReq) (err error) {
 	req.RedirectTo = GetLinks().Mfa
 	req.SetKV(nil)
 
