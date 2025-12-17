@@ -9,6 +9,7 @@ export { Report } from './types/report'
 export { DalConnection } from './types/dalConnection'
 export { AuthClient } from './types/authClient'
 export { Notification } from './types/notification'
+export { Revision } from './types/revision'
 export {
   SystemEvent,
   RoleEvent,

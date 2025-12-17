@@ -175,13 +175,13 @@
 
 <script>
 import axios from 'axios'
-import { isEqual } from 'lodash'
+import { isEqual, debounce } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
 import page from 'corteza-webapp-compose/src/mixins/page'
-import { compose, NoID } from '@cortezaproject/corteza-js'
+import { compose, system, NoID } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
@@ -268,6 +268,11 @@ export default {
       abortableRequests: [],
 
       loadingRecord: false,
+
+      // Draft revision management
+      // Tracks the current draft key for this editing session
+      // Used to identify, load, and delete the correct draft
+      activeDraftKey: null,
     }
   },
 
@@ -362,6 +367,13 @@ export default {
     uniqueID () {
       return [(this.page || {}).pageID, this.$route.query.layoutID, this.$route.query.modalLayoutID, this.recordID, this.edit]
     },
+
+    /**
+     * Returns the active draft key (alias for backwards compatibility)
+     */
+    draftKey () {
+      return this.activeDraftKey
+    },
   },
 
   watch: {
@@ -442,11 +454,13 @@ export default {
 
   mounted () {
     this.createEvents()
+    this.initDraftSync()
   },
 
   beforeDestroy () {
     this.abortRequests()
     this.destroyEvents()
+    this.cleanupDraftSync()
     this.setDefaultValues()
   },
 
@@ -462,6 +476,7 @@ export default {
     createEvents () {
       this.$root.$on('refetch-records', this.refetchRecords)
       this.$root.$on('record-field-change', this.evaluateLayoutConditions)
+      this.$root.$on('record-field-change', this.saveDraftRevision)
 
       if (this.inModal) {
         this.$root.$on('bv::modal::hide', this.checkUnsavedChanges)
@@ -740,6 +755,7 @@ export default {
     destroyEvents () {
       this.$root.$off('refetch-records', this.refetchRecords)
       this.$root.$off('record-field-change', this.evaluateLayoutConditions)
+      this.$root.$off('record-field-change', this.saveDraftRevision)
 
       if (this.inModal) {
         this.$root.$off('bv::modal::hide', this.checkUnsavedChanges)
@@ -769,6 +785,77 @@ export default {
       }
 
       return recordStateChange
+    },
+
+    initDraftSync () {
+      this.activeDraftKey = null
+    },
+
+    cleanupDraftSync () {},
+
+    saveDraftRevision: debounce(function () {
+      if (!this.record || !this.inEditing) return
+
+      const changes = this.computeChanges()
+      if (changes.length === 0) return
+
+      if (!this.activeDraftKey) {
+        this.activeDraftKey = this.generateChangeID()
+      }
+
+      const revision = new system.Revision({
+        changeID: this.activeDraftKey,
+        timestamp: new Date().toISOString(),
+        resourceID: this.isNew ? '0' : String(this.record.recordID),
+        resourceType: 'compose:record',
+        revision: this.record.revision || 0,
+        operation: this.isNew ? 'created' : 'updated',
+        status: 'draft',
+        userID: String(this.$auth.user?.userID || '0'),
+        changes,
+        comment: '',
+      })
+
+      const context = {
+        namespaceID: String(this.namespace.namespaceID),
+        moduleID: String(this.module.moduleID),
+        recordID: this.isNew ? undefined : String(this.record.recordID),
+        isNew: this.isNew,
+      }
+
+      this.$store.dispatch('drafts/saveDraft', { revision, context })
+    }, 5000),
+
+    computeChanges () {
+      const changes = []
+      const current = this.record?.values || {}
+      const initial = this.initialRecordState?.values || {}
+      const allKeys = new Set([...Object.keys(current), ...Object.keys(initial)])
+
+      for (const key of allKeys) {
+        const oldVal = initial[key]
+        const newVal = current[key]
+
+        if (JSON.stringify(oldVal) === JSON.stringify(newVal)) continue
+
+        changes.push({
+          key,
+          old: this.valueToArray(oldVal),
+          new: this.valueToArray(newVal),
+        })
+      }
+
+      return changes
+    },
+
+    valueToArray (value) {
+      if (value === undefined || value === null) return []
+      if (Array.isArray(value)) return value.map(v => v ?? '')
+      return [value]
+    },
+
+    generateChangeID () {
+      return `local-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     },
   },
 }

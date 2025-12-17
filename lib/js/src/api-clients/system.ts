@@ -5920,6 +5920,55 @@ export default class System {
     return '/revisions/'
   }
 
+  // Create a revision (draft)
+  async revisionCreate (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      resourceType,
+      resourceID,
+      status,
+      changes,
+      comment,
+    } = (a as KV) || {}
+    if (!resourceType) {
+      throw Error('field resourceType is empty')
+    }
+    if (!resourceID) {
+      throw Error('field resourceID is empty')
+    }
+    if (!changes) {
+      throw Error('field changes is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.revisionCreateEndpoint(),
+    }
+    cfg.data = {
+      resourceType,
+      resourceID,
+      status,
+      changes,
+      comment,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  revisionCreateCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.revisionCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  revisionCreateEndpoint (): string {
+    return '/revisions/'
+  }
+
   // Soft-delete a revision (draft)
   async revisionDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

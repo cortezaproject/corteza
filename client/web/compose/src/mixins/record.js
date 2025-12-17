@@ -167,6 +167,11 @@ export default {
           record = new compose.Record(this.module, r)
         }).then(() => this.dispatchUiEvent('afterFormSubmit', record, { $records: records }))
         .then(() => {
+          // Clear draft revision on successful save
+          if (this.activeDraftKey && this.$store) {
+            this.$store.dispatch('drafts/removeDraft', this.activeDraftKey)
+          }
+
           if (record.valueErrors.set) {
             this.record = record.clone()
             this.initialRecordState = record.clone()
@@ -243,6 +248,11 @@ export default {
           record = new compose.Record(this.module, r)
         }).then(() => this.dispatchUiEvent('afterFormSubmit', record))
         .then(() => {
+          // Clear draft revision on successful save
+          if (this.activeDraftKey && this.$store) {
+            this.$store.dispatch('drafts/removeDraft', this.activeDraftKey)
+          }
+
           if (record.valueErrors.set) {
             this.record = record.clone()
             this.initialRecordState = record.clone()

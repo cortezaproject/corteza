@@ -103,6 +103,13 @@ export default (options = {}) => {
         // Initialize notifications
         this.$store.dispatch('notifications/fetchNotifications')
 
+        // Initialize drafts store (loads from localStorage + backend, starts background sync)
+        this.$store.dispatch('drafts/init', {
+          composeAPI: this.$ComposeAPI,
+          systemAPI: this.$SystemAPI,
+          resourceType: 'compose:record',
+        })
+
         this.loadBundle(bundleLoaderOpt)
           .then(() => this.$ComposeAPI.automationList({ excludeInvalid: true }))
           .then(this.makeAutomationScriptsRegistrator(
