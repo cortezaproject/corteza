@@ -17,11 +17,17 @@ record_revision: {
 				goType: "uint64",
 				dal: { type: "ID" }
 			}
+			resource_type: {
+				dal: {}
+			}
 			revision: {
 				goType: "uint"
 				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
 			}
 			operation: {
+				dal: {}
+			}
+			status: {
 				dal: {}
 			}
 			rel_user:   schema.AttributeUserRef
@@ -31,6 +37,11 @@ record_revision: {
 			}
 			comment: {
 				dal: {}
+			}
+			deleted_at: schema.SortableTimestampNilField
+			deleted_by: {
+				goType: "uint64"
+				dal: { type: "ID" }
 			}
 		}
 

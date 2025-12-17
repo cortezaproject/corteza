@@ -24,11 +24,15 @@ func Model() *dal.Model {
 			&dal.Attribute{Ident: "id", PrimaryKey: true, Store: &dal.CodecPlain{}, Type: &dal.TypeID{}},
 			&dal.Attribute{Ident: "ts", Store: &dal.CodecPlain{}, Type: &dal.TypeTimestamp{}},
 			&dal.Attribute{Ident: "rel_resource", Store: &dal.CodecPlain{}, Type: &dal.TypeID{}},
+			&dal.Attribute{Ident: "resource_type", Store: &dal.CodecPlain{}, Type: &dal.TypeText{}},
 			&dal.Attribute{Ident: "revision", Store: &dal.CodecPlain{}, Type: &dal.TypeNumber{}},
 			&dal.Attribute{Ident: "operation", Store: &dal.CodecPlain{}, Type: &dal.TypeText{}},
+			&dal.Attribute{Ident: "status", Store: &dal.CodecPlain{}, Type: &dal.TypeText{}},
 			&dal.Attribute{Ident: "rel_user", Store: &dal.CodecPlain{}, Type: &dal.TypeID{}},
 			&dal.Attribute{Ident: "delta", Store: &dal.CodecPlain{}, Type: &dal.TypeJSON{}},
 			&dal.Attribute{Ident: "comment", Store: &dal.CodecPlain{}, Type: &dal.TypeText{}},
+			&dal.Attribute{Ident: "deleted_at", Store: &dal.CodecPlain{}, Type: &dal.TypeTimestamp{Nullable: true}},
+			&dal.Attribute{Ident: "deleted_by", Store: &dal.CodecPlain{}, Type: &dal.TypeID{}},
 		},
 	}
 }

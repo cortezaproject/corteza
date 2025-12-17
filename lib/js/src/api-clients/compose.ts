@@ -3297,6 +3297,7 @@ export default class Compose {
       moduleID,
       recordID,
       sort,
+      status,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -3316,6 +3317,7 @@ export default class Compose {
     }
     cfg.params = {
       sort,
+      status,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
@@ -3334,6 +3336,64 @@ export default class Compose {
   }
 
   recordRevisionsEndpoint (a: KV): string {
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+    } = a || {}
+    return `/namespace/${namespaceID}/module/${moduleID}/record/${recordID}/revisions`
+  }
+
+  // Create a revision for this record
+  async recordCreateRevision (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      namespaceID,
+      moduleID,
+      recordID,
+      status,
+      values,
+      comment,
+    } = (a as KV) || {}
+    if (!namespaceID) {
+      throw Error('field namespaceID is empty')
+    }
+    if (!moduleID) {
+      throw Error('field moduleID is empty')
+    }
+    if (!recordID) {
+      throw Error('field recordID is empty')
+    }
+    if (!values) {
+      throw Error('field values is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.recordCreateRevisionEndpoint({
+        namespaceID, moduleID, recordID,
+      }),
+    }
+    cfg.data = {
+      status,
+      values,
+      comment,
+    }
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  recordCreateRevisionCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.recordCreateRevision(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  recordCreateRevisionEndpoint (a: KV): string {
     const {
       namespaceID,
       moduleID,

@@ -142,6 +142,8 @@ type (
 		Iterator(ctx context.Context, f types.RecordFilter, fn eventbus.HandlerFn, action string) (err error)
 
 		TriggerScript(ctx context.Context, namespaceID, moduleID, recordID uint64, rvs types.RecordValueSet, script string) (*types.Module, *types.Record, error)
+
+		CreateRevision(ctx context.Context, namespaceID, moduleID, recordID uint64, status string, values types.RecordValueSet, comment string) error
 	}
 
 	synteticRecordDataGen interface {
@@ -585,6 +587,42 @@ func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, re
 	}()
 
 	return iter, svc.recordAction(ctx, aProps, RecordActionSearchRevisions, err)
+}
+
+// CreateRevision creates a draft revision for a record
+func (svc record) CreateRevision(ctx context.Context, namespaceID, moduleID, recordID uint64, status string, values types.RecordValueSet, comment string) error {
+	var (
+		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID, ModuleID: moduleID, ID: recordID}}
+
+		rec *types.Record
+		mod *types.Module
+		ns  *types.Namespace
+	)
+
+	err := func() (err error) {
+		ns, mod, rec, err = loadRecordCombo(ctx, svc.store, svc.dal, namespaceID, moduleID, recordID)
+		if err != nil {
+			return
+		}
+
+		aProps.setModule(mod)
+		aProps.setNamespace(ns)
+		aProps.setRecord(rec)
+
+		if !mod.Config.RecordRevisions.Enabled {
+			return RecordErrRevisionsDisabledOnModule()
+		}
+
+		// Use same permission as searching revisions for now
+		if !svc.ac.CanSearchRevisionsOnRecord(ctx, rec) {
+			return RecordErrNotAllowedToSearchRevisions()
+		}
+
+		// Create draft revision
+		return svc.revisions.createDraft(ctx, rec, values, comment)
+	}()
+
+	return svc.recordAction(ctx, aProps, RecordActionSearchRevisions, err)
 }
 
 func (svc record) RecordImport(ctx context.Context, err error) error {
@@ -1246,6 +1284,11 @@ func (svc record) update(ctx context.Context, upd *types.Record) (rec *types.Rec
 		}
 
 		if m.Config.RecordRevisions.Enabled {
+			// Purge any draft revisions before creating the real revision
+			if err = svc.revisions.purgeDrafts(ctx, upd); err != nil {
+				return err
+			}
+
 			// Prepare record revision for update
 			if err = svc.revisions.updated(ctx, upd, old); err != nil {
 				return err

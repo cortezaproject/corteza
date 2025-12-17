@@ -54,6 +54,7 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncNodeID,
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
+		fix_2024_12_00_addRevisionDraftColumns,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
@@ -1019,6 +1020,65 @@ func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Sto
 	}
 
 	return s.DataDefiner.IndexCreate(ctx, "federation_nodes_sync", &nodeIDIndx)
+}
+
+func fix_2024_12_00_addRevisionDraftColumns(ctx context.Context, s *Store) (err error) {
+	revisionColumns := []*dal.Attribute{
+		{Ident: "resource_type", Type: &dal.TypeText{Nullable: true}},
+		{Ident: "status", Type: &dal.TypeText{Nullable: true}},
+		{Ident: "deleted_at", Type: &dal.TypeTimestamp{Nullable: true}},
+		{Ident: "deleted_by", Type: &dal.TypeID{Nullable: true}},
+	}
+
+	tables := []string{"compose_record_revisions", "system_revisions"}
+
+	for _, tableName := range tables {
+		_, err = s.DataDefiner.TableLookup(ctx, tableName)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				if tableName == "system_revisions" {
+					if err = fix_2024_12_00_createSystemRevisionsTable(ctx, s); err != nil {
+						return err
+					}
+				}
+				continue
+			}
+			return err
+		}
+
+		for _, col := range revisionColumns {
+			if err = addColumn(ctx, s, tableName, col); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func fix_2024_12_00_createSystemRevisionsTable(ctx context.Context, s *Store) error {
+	t := &ddl.Table{
+		Ident: "system_revisions",
+		Columns: []*ddl.Column{
+			{Ident: "id", Type: &ddl.ColumnType{Name: "BIGINT"}},
+			{Ident: "ts", Type: &ddl.ColumnType{Name: "TIMESTAMP"}},
+			{Ident: "rel_resource", Type: &ddl.ColumnType{Name: "BIGINT"}},
+			{Ident: "resource_type", Type: &ddl.ColumnType{Name: "TEXT", Null: true}},
+			{Ident: "revision", Type: &ddl.ColumnType{Name: "INTEGER"}},
+			{Ident: "operation", Type: &ddl.ColumnType{Name: "TEXT"}},
+			{Ident: "status", Type: &ddl.ColumnType{Name: "TEXT", Null: true}},
+			{Ident: "rel_user", Type: &ddl.ColumnType{Name: "BIGINT"}},
+			{Ident: "delta", Type: &ddl.ColumnType{Name: "JSON"}},
+			{Ident: "comment", Type: &ddl.ColumnType{Name: "TEXT"}},
+			{Ident: "deleted_at", Type: &ddl.ColumnType{Name: "TIMESTAMP", Null: true}},
+			{Ident: "deleted_by", Type: &ddl.ColumnType{Name: "BIGINT", Null: true}},
+		},
+		Indexes: []*ddl.Index{
+			{Ident: "PRIMARY", Type: "BTREE", Fields: []*ddl.IndexField{{Column: "id"}}},
+		},
+	}
+
+	return s.DataDefiner.TableCreate(ctx, t)
 }
 
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {

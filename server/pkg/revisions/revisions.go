@@ -17,28 +17,37 @@ type (
 		ID        uint64    `json:"changeID,string"`
 		Timestamp time.Time `json:"timestamp"`
 
-		ResourceID uint64 `json:"resourceID,string"`
+		ResourceID   uint64 `json:"resourceID,string"`
+		ResourceType string `json:"resourceType"`
 
 		Revision  int       `json:"revision"`
 		Operation Operation `json:"operation"`
+		Status    Status    `json:"status"`
 
 		UserID uint64 `json:"userID,string"`
 
 		Changes []*Change `json:"changes"`
 
 		Comment string `json:"comment"`
+
+		DeletedAt *time.Time `json:"deletedAt,omitempty"`
+		DeletedBy uint64     `json:"deletedBy,string,omitempty"`
 	}
 
 	Change struct {
-		// changed field
 		Key string `json:"key"`
-
-		Old []any `json:"old,omitempty"`
-		New []any `json:"new,omitempty"`
+		Old []any  `json:"old,omitempty"`
+		New []any  `json:"new,omitempty"`
 	}
 
+	ChangeSet []*Change
+
 	Filter struct {
-		ResourceID uint64 `json:"resourceID,string"`
+		ResourceID   uint64     `json:"resourceID,string"`
+		ResourceType string     `json:"resourceType"`
+		Status       string     `json:"status"`
+		DeletedOnly  bool       `json:"deletedOnly"`
+		Since        *time.Time `json:"since"`
 	}
 )
 
@@ -159,11 +168,17 @@ func (r *Revision) GetValue(ident string, _ uint) (any, error) {
 	case "rel_resource":
 		return r.ResourceID, nil
 
+	case "resource_type":
+		return r.ResourceType, nil
+
 	case "revision":
 		return r.Revision, nil
 
 	case "operation":
 		return r.Operation, nil
+
+	case "status":
+		return r.Status, nil
 
 	case "rel_user":
 		return r.UserID, nil
@@ -174,6 +189,11 @@ func (r *Revision) GetValue(ident string, _ uint) (any, error) {
 	case "comment":
 		return r.Comment, nil
 
+	case "deleted_at":
+		return r.DeletedAt, nil
+
+	case "deleted_by":
+		return r.DeletedBy, nil
 	}
 
 	return nil, nil
@@ -190,11 +210,17 @@ func (r *Revision) SetValue(name string, _ uint, value any) error {
 	case "rel_resource":
 		return cast2.Uint64(value, &r.ResourceID)
 
+	case "resource_type":
+		return cast2.String(value, &r.ResourceType)
+
 	case "revision":
 		return cast2.Int(value, &r.Revision)
 
 	case "operation":
 		return cast2.String(value, &r.Operation)
+
+	case "status":
+		return cast2.String(value, &r.Status)
 
 	case "rel_user":
 		return cast2.Uint64(value, &r.UserID)
@@ -208,19 +234,53 @@ func (r *Revision) SetValue(name string, _ uint, value any) error {
 
 	case "comment":
 		return cast2.String(value, &r.Comment)
+
+	case "deleted_at":
+		return cast2.TimePtr(value, &r.DeletedAt)
+
+	case "deleted_by":
+		return cast2.Uint64(value, &r.DeletedBy)
 	}
 
 	return nil
 }
 
 func (f Filter) Constraints() map[string][]any {
-	return map[string][]any{
-		"rel_resource": {f.ResourceID},
+	cc := make(map[string][]any)
+
+	if f.ResourceID != 0 {
+		cc["ResourceID"] = []any{f.ResourceID}
 	}
+
+	if f.ResourceType != "" {
+		cc["ResourceType"] = []any{f.ResourceType}
+	}
+
+	if f.Status != "" {
+		cc["Status"] = []any{f.Status}
+	}
+
+	return cc
 }
 
-func (f Filter) Expression() string                        { return "" }
-func (f Filter) OrderBy() filter.SortExprSet               { return nil }
-func (f Filter) Limit() uint                               { return 0 }
-func (f Filter) Cursor() *filter.PagingCursor              { return nil }
-func (f Filter) StateConstraints() map[string]filter.State { return nil }
+func (f Filter) Expression() string {
+	if f.Since != nil {
+		return fmt.Sprintf("Timestamp > '%s'", f.Since.Format(time.RFC3339))
+	}
+	return ""
+}
+
+func (f Filter) OrderBy() filter.SortExprSet     { return nil }
+func (f Filter) Limit() uint                     { return 0 }
+func (f Filter) Cursor() *filter.PagingCursor    { return nil }
+func (f Filter) MetaConstraints() map[string]any { return nil }
+func (f Filter) StateConstraints() map[string]filter.State {
+	if f.DeletedOnly {
+		return map[string]filter.State{
+			"DeletedAt": filter.StateExclusive,
+		}
+	}
+	return map[string]filter.State{
+		"DeletedAt": filter.StateExcluded,
+	}
+}

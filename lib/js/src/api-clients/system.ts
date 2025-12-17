@@ -5873,6 +5873,91 @@ export default class System {
     return '/actionlog/'
   }
 
+  // List revisions
+  async revisionList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      resourceType,
+      status,
+      resourceID,
+      deletedOnly,
+      since,
+      limit,
+      pageCursor,
+      sort,
+    } = (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.revisionListEndpoint(),
+    }
+    cfg.params = {
+      resourceType,
+      status,
+      resourceID,
+      deletedOnly,
+      since,
+      limit,
+      pageCursor,
+      sort,
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  revisionListCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.revisionList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  revisionListEndpoint (): string {
+    return '/revisions/'
+  }
+
+  // Soft-delete a revision (draft)
+  async revisionDelete (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      revisionID,
+    } = (a as KV) || {}
+    if (!revisionID) {
+      throw Error('field revisionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.revisionDeleteEndpoint({
+        revisionID,
+      }),
+    }
+
+    return this.api().request(cfg).then(result => stdResolve(result))
+  }
+
+  revisionDeleteCancellable (a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+    const cancelTokenSource = axios.CancelToken.source();
+    const options = {...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.revisionDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel();
+      },
+    }
+  }
+
+  revisionDeleteEndpoint (a: KV): string {
+    const {
+      revisionID,
+    } = a || {}
+    return `/revisions/${revisionID}`
+  }
+
   // Messaging queues
   async queuesList (a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const {

@@ -38,6 +38,7 @@ type (
 		TriggerScript(context.Context, *request.RecordTriggerScript) (interface{}, error)
 		TriggerScriptOnList(context.Context, *request.RecordTriggerScriptOnList) (interface{}, error)
 		Revisions(context.Context, *request.RecordRevisions) (interface{}, error)
+		CreateRevision(context.Context, *request.RecordCreateRevision) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -61,6 +62,7 @@ type (
 		TriggerScript       func(http.ResponseWriter, *http.Request)
 		TriggerScriptOnList func(http.ResponseWriter, *http.Request)
 		Revisions           func(http.ResponseWriter, *http.Request)
+		CreateRevision      func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -370,6 +372,22 @@ func NewRecord(h RecordAPI) *Record {
 
 			api.Send(w, r, value)
 		},
+		CreateRevision: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewRecordCreateRevision()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.CreateRevision(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -395,5 +413,6 @@ func (h Record) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/trigger", h.TriggerScript)
 		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/trigger", h.TriggerScriptOnList)
 		r.Get("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/revisions", h.Revisions)
+		r.Post("/namespace/{namespaceID}/module/{moduleID}/record/{recordID}/revisions", h.CreateRevision)
 	})
 }

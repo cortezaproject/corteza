@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/bep/godartsass/v2"
@@ -23,6 +24,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/automation"
+	"github.com/cortezaproject/corteza/server/system/model"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
@@ -101,6 +103,7 @@ var (
 	DefaultDataPrivacy         *dataPrivacy
 	DefaultSMTPChecker         *smtpConfigurationChecker
 	DefaultExpression          *expression
+	DefaultRevision            *revision
 
 	DefaultStatistics *statistics
 
@@ -233,6 +236,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultDataPrivacy = DataPrivacy(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
 	DefaultExpression = Expression()
+	DefaultRevision = Revision(dal.Service())
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
@@ -336,6 +340,11 @@ func Activate(ctx context.Context) (err error) {
 	err = DefaultUserGroup.Activate(ctx)
 	if err != nil {
 		return
+	}
+
+	// Register system revision model with DAL
+	if _, err = dal.Service().ReplaceModel(ctx, nil, model.Revision); err != nil {
+		return fmt.Errorf("could not register system revision model: %w", err)
 	}
 
 	return

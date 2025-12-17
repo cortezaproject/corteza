@@ -536,6 +536,43 @@ type (
 		//
 		// Sort order
 		Sort string
+
+		// Status GET parameter
+		//
+		// Filter by status (draft or empty)
+		Status string
+	}
+
+	RecordCreateRevision struct {
+		// NamespaceID PATH parameter
+		//
+		// Namespace ID
+		NamespaceID uint64 `json:",string"`
+
+		// ModuleID PATH parameter
+		//
+		// Module ID
+		ModuleID uint64 `json:",string"`
+
+		// RecordID PATH parameter
+		//
+		// Record ID
+		RecordID uint64 `json:",string"`
+
+		// Status POST parameter
+		//
+		// Revision status (draft or empty)
+		Status string
+
+		// Values POST parameter
+		//
+		// Record values
+		Values types.RecordValueSet
+
+		// Comment POST parameter
+		//
+		// Optional comment
+		Comment string
 	}
 )
 
@@ -2546,6 +2583,7 @@ func (r RecordRevisions) Auditable() map[string]interface{} {
 		"moduleID":    r.ModuleID,
 		"recordID":    r.RecordID,
 		"sort":        r.Sort,
+		"status":      r.Status,
 	}
 }
 
@@ -2569,6 +2607,11 @@ func (r RecordRevisions) GetSort() string {
 	return r.Sort
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r RecordRevisions) GetStatus() string {
+	return r.Status
+}
+
 // Fill processes request and fills internal variables
 func (r *RecordRevisions) Fill(req *http.Request) (err error) {
 
@@ -2578,6 +2621,152 @@ func (r *RecordRevisions) Fill(req *http.Request) (err error) {
 
 		if val, ok := tmp["sort"]; ok && len(val) > 0 {
 			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["status"]; ok && len(val) > 0 {
+			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "namespaceID")
+		r.NamespaceID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "moduleID")
+		r.ModuleID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "recordID")
+		r.RecordID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewRecordCreateRevision request
+func NewRecordCreateRevision() *RecordCreateRevision {
+	return &RecordCreateRevision{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"namespaceID": r.NamespaceID,
+		"moduleID":    r.ModuleID,
+		"recordID":    r.RecordID,
+		"status":      r.Status,
+		"values":      r.Values,
+		"comment":     r.Comment,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) GetNamespaceID() uint64 {
+	return r.NamespaceID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) GetModuleID() uint64 {
+	return r.ModuleID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) GetRecordID() uint64 {
+	return r.RecordID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) GetStatus() string {
+	return r.Status
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) GetValues() types.RecordValueSet {
+	return r.Values
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r RecordCreateRevision) GetComment() string {
+	return r.Comment
+}
+
+// Fill processes request and fills internal variables
+func (r *RecordCreateRevision) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["status"]; ok && len(val) > 0 {
+				r.Status, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["comment"]; ok && len(val) > 0 {
+				r.Comment, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["status"]; ok && len(val) > 0 {
+			r.Status, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		//if val, ok := req.Form["values[]"]; ok && len(val) > 0  {
+		//    r.Values, err = types.RecordValueSet(val), nil
+		//    if err != nil {
+		//        return err
+		//    }
+		//}
+
+		if val, ok := req.Form["comment"]; ok && len(val) > 0 {
+			r.Comment, err = val[0], nil
 			if err != nil {
 				return err
 			}

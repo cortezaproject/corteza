@@ -2,12 +2,18 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
+)
+
+const (
+	// ResourceType for compose records in revisions
+	ComposeRecordResourceType = "compose:record"
 )
 
 type (
@@ -18,6 +24,7 @@ type (
 		r interface {
 			Search(ctx context.Context, mf dal.ModelRef, f filter.Filter) (_ dal.Iterator, err error)
 			Create(ctx context.Context, mf dal.ModelRef, revision *revisions.Revision) error
+			Update(ctx context.Context, mf dal.ModelRef, revision *revisions.Revision) error
 		}
 	}
 )
@@ -65,6 +72,7 @@ func (svc *recordRevisions) created(ctx context.Context, new *types.Record) (err
 	)
 
 	rev = revisions.Make(revisions.Created, new.Revision, new.ID, invokerID)
+	rev.ResourceType = ComposeRecordResourceType
 	err = rev.CollectChanges(new, nil, skipList...)
 	if err != nil {
 		return
@@ -81,6 +89,7 @@ func (svc *recordRevisions) updated(ctx context.Context, upd, old *types.Record)
 	)
 
 	rev = revisions.Make(revisions.Updated, upd.Revision, upd.ID, invokerID)
+	rev.ResourceType = ComposeRecordResourceType
 	err = rev.CollectChanges(upd, old, skipList...)
 	if err != nil {
 		return
@@ -96,6 +105,7 @@ func (svc *recordRevisions) softDeleted(ctx context.Context, del *types.Record) 
 	)
 
 	rev = revisions.Make(revisions.SoftDeleted, del.Revision, del.ID, invokerID)
+	rev.ResourceType = ComposeRecordResourceType
 	if err != nil {
 		return
 	}
@@ -110,6 +120,7 @@ func (svc *recordRevisions) undeleted(ctx context.Context, undel *types.Record) 
 	)
 
 	rev = revisions.Make(revisions.Undeleted, undel.Revision, undel.ID, invokerID)
+	rev.ResourceType = ComposeRecordResourceType
 	if err != nil {
 		return
 	}
@@ -139,6 +150,76 @@ func (svc *recordRevisions) skippedField(mod *types.Module) []string {
 	}
 
 	return list
+}
+
+// createDraft creates a draft revision with the given values
+func (svc *recordRevisions) createDraft(ctx context.Context, rec *types.Record, values types.RecordValueSet, comment string) (err error) {
+	var (
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
+		rev       *revisions.Revision
+	)
+
+	// Create revision with draft status - we use "updated" operation as draft represents pending changes
+	rev = revisions.Make(revisions.Updated, rec.Revision, rec.ID, invokerID)
+	rev.ResourceType = ComposeRecordResourceType
+	rev.Status = revisions.StatusDraft
+	rev.Comment = comment
+
+	// Build changes from the draft values
+	draftRec := &types.Record{
+		ID:          rec.ID,
+		ModuleID:    rec.ModuleID,
+		NamespaceID: rec.NamespaceID,
+		Values:      values,
+	}
+	draftRec.SetModule(rec.GetModule())
+
+	skipList := svc.skippedField(rec.GetModule())
+	if err = rev.CollectChanges(draftRec, rec, skipList...); err != nil {
+		return
+	}
+
+	return svc.r.Create(ctx, svc.modelRef(rec.GetModule()), rev)
+}
+
+// purgeDrafts soft-deletes all draft revisions for a given record
+func (svc *recordRevisions) purgeDrafts(ctx context.Context, rec *types.Record) (err error) {
+	var (
+		invokerID = auth.GetIdentityFromContext(ctx).Identity()
+		revModRef = svc.modelRef(rec.GetModule())
+		now       = time.Now().Round(time.Second)
+	)
+
+	// Find all draft revisions for this record
+	revFilter := filter.Generic(
+		filter.WithConstraint("rel_resource", rec.ID),
+		filter.WithConstraint("status", revisions.StatusDraft),
+		filter.WithStateConstraint("deleted_at", filter.StateExcluded),
+	)
+
+	iter, err := svc.r.Search(ctx, revModRef, revFilter)
+	if err != nil {
+		return
+	}
+
+	defer iter.Close()
+
+	// Soft-delete each draft revision
+	for iter.Next(ctx) {
+		rev := &revisions.Revision{}
+		if err = iter.Scan(rev); err != nil {
+			return
+		}
+
+		rev.DeletedAt = &now
+		rev.DeletedBy = invokerID
+
+		if err = svc.r.Update(ctx, revModRef, rev); err != nil {
+			return
+		}
+	}
+
+	return iter.Err()
 }
 
 // @todo uncomment when supported

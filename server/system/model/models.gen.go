@@ -2898,6 +2898,7 @@ func init() {
 		Reminder,
 		Report,
 		ResourceTranslation,
+		Revision,
 		Role,
 		RoleMember,
 		SettingValue,

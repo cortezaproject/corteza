@@ -1134,6 +1134,12 @@ var RecordRevision = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "ResourceType",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "resource_type"},
+		},
+
+		&dal.Attribute{
 			Ident: "Revision",
 			Type:  &dal.TypeNumber{Precision: -1, Scale: -1, Meta: map[string]interface{}{"rdbms:type": "integer"}},
 			Store: &dal.CodecAlias{Ident: "revision"},
@@ -1143,6 +1149,12 @@ var RecordRevision = &dal.Model{
 			Ident: "Operation",
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "operation"},
+		},
+
+		&dal.Attribute{
+			Ident: "Status",
+			Type:  &dal.TypeText{},
+			Store: &dal.CodecAlias{Ident: "status"},
 		},
 
 		&dal.Attribute{
@@ -1170,6 +1182,18 @@ var RecordRevision = &dal.Model{
 			Ident: "Comment",
 			Type:  &dal.TypeText{},
 			Store: &dal.CodecAlias{Ident: "comment"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedAt", Sortable: true,
+			Type:  &dal.TypeTimestamp{Nullable: true, Timezone: true, Precision: -1},
+			Store: &dal.CodecAlias{Ident: "deleted_at"},
+		},
+
+		&dal.Attribute{
+			Ident: "DeletedBy",
+			Type:  &dal.TypeID{},
+			Store: &dal.CodecAlias{Ident: "deleted_by"},
 		},
 	},
 

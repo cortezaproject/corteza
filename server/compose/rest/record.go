@@ -916,6 +916,10 @@ func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (
 	}, err
 }
 
+func (ctrl *Record) CreateRevision(ctx context.Context, r *request.RecordCreateRevision) (interface{}, error) {
+	return api.OK(), ctrl.record.CreateRevision(ctx, r.NamespaceID, r.ModuleID, r.RecordID, r.Status, r.Values, r.Comment)
+}
+
 func (ctrl Record) makeBulkPayload(ctx context.Context, m *types.Module, dd *types.RecordValueErrorSet, err error, rr ...*types.Record) (*recordPayload, error) {
 	if err != nil || rr == nil {
 		return nil, err
