@@ -109,7 +109,11 @@ func (sqliteDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expressio
 }
 
 func (sqliteDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Expression, error) {
-	return DeepIdentJSON(false, ident, pp...), nil
+	path, err := jsonPath(pp...)
+	if err != nil {
+		return nil, err
+	}
+	return exp.NewSQLFunctionExpression("json_extract", ident, path), nil
 }
 
 // JsonArrayContains prepares SQLite compatible comparison of value and JSON array
