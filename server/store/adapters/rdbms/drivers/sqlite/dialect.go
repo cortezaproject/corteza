@@ -105,7 +105,11 @@ func (d sqliteDialect) JsonQuote(expr exp.Expression) exp.Expression {
 }
 
 func (sqliteDialect) JsonExtract(ident exp.Expression, pp ...any) (exp.Expression, error) {
-	return DeepIdentJSON(true, ident, pp...), nil
+	path, err := jsonPath(pp...)
+	if err != nil {
+		return nil, err
+	}
+	return exp.NewSQLFunctionExpression("json_extract", ident, path), nil
 }
 
 func (sqliteDialect) JsonExtractUnquote(ident exp.Expression, pp ...any) (exp.Expression, error) {
