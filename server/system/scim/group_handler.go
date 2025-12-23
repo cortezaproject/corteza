@@ -94,7 +94,11 @@ func (h groupsHandler) replace(w http.ResponseWriter, r *http.Request) {
 		payload  = &groupResourceRequest{}
 	)
 
-	if err := payload.decodeJSON(r.Body); err != nil {
+	if existing == nil {
+		return
+	}
+
+	if err := payload.decodeJSON(r.Body); err != nil{
 		sendError(w, newErrorResponse(http.StatusBadRequest, err))
 		return
 	}
