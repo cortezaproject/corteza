@@ -291,6 +291,7 @@ func (h groupsHandler) lookup(ctx context.Context, id string, w http.ResponseWri
 
 		if res == nil {
 			sendError(w, newErrorResponse(http.StatusNotFound, fmt.Errorf("group not found")))
+			return nil
 		}
 
 		return res

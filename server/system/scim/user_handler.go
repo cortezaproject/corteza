@@ -187,6 +187,7 @@ func (h usersHandler) lookup(ctx context.Context, id string, w http.ResponseWrit
 
 		if res == nil {
 			sendError(w, newErrorResponse(http.StatusNotFound, fmt.Errorf("user not found")))
+			return nil
 		}
 
 		return res
