@@ -70,10 +70,6 @@ type (
 		Filter []interface{} `json:"filter,omitempty"`
 	}
 
-	KNNQuery struct {
-		Query map[string]interface{} `json:"query"`
-	}
-
 	esSearchParams struct {
 		Query struct {
 			Bool *struct {
@@ -90,6 +86,7 @@ type (
 		} `json:"query"`
 
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
+		Source       SourceFilter            `json:"_source,omitempty"`
 	}
 
 	esSearchAggrTerm struct {
@@ -100,6 +97,10 @@ type (
 	esSearchAggrComposite struct {
 		Sources interface{} `json:"sources"` // it can be esSearchAggrTerm,.. (Histogram, Date histogram, GeoTile grid)
 		Size    int         `json:"size,omitempty"`
+	}
+
+	SourceFilter struct {
+		Excludes []string `json:"excludes"` //columns to exclude on the query response
 	}
 
 	esSearchNestedAggs struct {
@@ -414,6 +415,10 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				},
 			},
 		},
+	}
+
+	query.Source = SourceFilter{
+		Excludes: []string{"vectorsValue"},
 	}
 
 	if !noQ || !noNSFilter {
