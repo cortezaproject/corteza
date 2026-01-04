@@ -539,35 +539,224 @@ func SubSplit(ti oauth2def.TokenInfo, data map[string]interface{}) {
 	}
 }
 
-// Generates ID token that is part of OIDC flow for doing corteza-to-corteza auth
+// Generates ID token that is part of OIDC flow (OIDC Core 1.0 Section 2)
+// Returns a JWT with standard OIDC claims
 func generateIdToken(user *types.User, client *types.AuthClient, ti oauth2def.TokenInfo, baseURL string) (_ []byte, err error) {
 	token := jwt.New()
+
+	// Required claims (OIDC Core 1.0 Section 2)
 	if err = token.Set(jwt.IssuerKey, baseURL); err != nil {
 		return
 	}
 
-	// we do not know what the admin used for client key value
-	// on the receiving end, so we'll encode both,
-	// client's ID, and it's handle
+	// 'sub' - Subject Identifier (REQUIRED)
+	// Using user ID as the subject - this is stable and unique
+	if err = token.Set(jwt.SubjectKey, strconv.FormatUint(user.ID, 10)); err != nil {
+		return
+	}
+
+	// 'aud' - Audience (REQUIRED)
+	// Include both client ID and handle so receiving end can match either
 	aud := []string{strconv.FormatUint(client.ID, 10)}
 	if len(client.Handle) > 0 {
 		aud = append(aud, client.Handle)
 	}
+	if err = token.Set(jwt.AudienceKey, aud); err != nil {
+		return
+	}
 
-	if err = token.Set("aud", aud); err != nil {
-		return
-	}
-	if err = token.Set("user_id", strconv.FormatUint(user.ID, 10)); err != nil {
-		return
-	}
-	if err = token.Set("email", user.Email); err != nil {
-		return
-	}
+	// 'exp' - Expiration time (REQUIRED)
 	if err = token.Set(jwt.ExpirationKey, now().Add(ti.GetAccessExpiresIn()).Unix()); err != nil {
 		return
 	}
 
+	// 'iat' - Issued at (REQUIRED)
+	if err = token.Set(jwt.IssuedAtKey, now().Unix()); err != nil {
+		return
+	}
+
+	// Standard claims based on scope
+	scope := ti.GetScope()
+
+	// Profile claims
+	if strings.Contains(scope, "profile") || strings.Contains(scope, "openid") {
+		if user.Name != "" {
+			if err = token.Set("name", user.Name); err != nil {
+				return
+			}
+			// Try to extract given_name and family_name
+			nameParts := strings.SplitN(user.Name, " ", 2)
+			if len(nameParts) >= 1 {
+				_ = token.Set("given_name", nameParts[0])
+			}
+			if len(nameParts) >= 2 {
+				_ = token.Set("family_name", nameParts[1])
+			}
+		}
+
+		if user.Handle != "" {
+			if err = token.Set("preferred_username", user.Handle); err != nil {
+				return
+			}
+		}
+
+		// Picture claim
+		if user.Meta != nil && user.Meta.AvatarID != 0 {
+			pictureURL := fmt.Sprintf("%s/api/system/attachment/avatar/%d/original/avatar.png",
+				strings.TrimSuffix(baseURL, "/"),
+				user.Meta.AvatarID)
+			_ = token.Set("picture", pictureURL)
+		}
+
+		// updated_at claim
+		if user.UpdatedAt != nil {
+			_ = token.Set("updated_at", user.UpdatedAt.Unix())
+		}
+
+		// locale claim (Corteza's preferred language)
+		if user.Meta != nil && user.Meta.PreferredLanguage != "" {
+			_ = token.Set("locale", user.Meta.PreferredLanguage)
+		}
+	}
+
+	// Email claims
+	if strings.Contains(scope, "email") || strings.Contains(scope, "openid") {
+		if user.Email != "" {
+			if err = token.Set("email", user.Email); err != nil {
+				return
+			}
+			if err = token.Set("email_verified", user.EmailConfirmed); err != nil {
+				return
+			}
+		}
+	}
+
 	return jwt.Sign(token, jwa.HS512, []byte(client.Secret))
+}
+
+// oauth2Userinfo implements the OIDC UserInfo endpoint (OIDC Core 1.0 Section 5.3)
+// Returns claims about the authenticated user based on the granted scopes
+func (h AuthHandlers) oauth2Userinfo(w http.ResponseWriter, r *http.Request) {
+	var (
+		ctx = r.Context()
+		jt  jwt.Token
+	)
+
+	err := func() (err error) {
+		// Extract token from context (set by HttpTokenVerifier middleware)
+		if jt, _, err = jwtauth.FromContext(ctx); err != nil {
+			return
+		}
+
+		if jt == nil {
+			return fmt.Errorf("no token found")
+		}
+
+		// Validate the token
+		if err = auth.TokenIssuer.Validate(ctx, jt); err != nil {
+			return
+		}
+
+		return nil
+	}()
+
+	if err != nil {
+		h.userinfoError(w, err)
+		return
+	}
+
+	// Extract user ID from the subject claim
+	subClaim, ok := jt.Get("sub")
+	if !ok {
+		h.userinfoError(w, fmt.Errorf("missing sub claim"))
+		return
+	}
+
+	userID, _ := auth.ExtractFromSubClaim(cast.ToString(subClaim))
+	if userID == 0 {
+		h.userinfoError(w, fmt.Errorf("invalid user ID in sub claim"))
+		return
+	}
+
+	// Get scope from token
+	scopeClaim, _ := jt.Get("scope")
+	scope := cast.ToString(scopeClaim)
+
+	// Load user
+	suCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+	user, err := h.UserService.FindByAny(suCtx, userID)
+	if err != nil {
+		h.userinfoError(w, fmt.Errorf("user not found: %w", err))
+		return
+	}
+
+	// Build response with OIDC standard claims
+	response := make(map[string]interface{})
+
+	// 'sub' claim is always required (OIDC Core 1.0 Section 5.1)
+	response["sub"] = strconv.FormatUint(user.ID, 10)
+
+	// 'profile' scope claims (OIDC Core 1.0 Section 5.4)
+	if auth.CheckScope(scope, "profile", "openid") {
+		if user.Name != "" {
+			response["name"] = user.Name
+			// Try to split name into given_name and family_name
+			nameParts := strings.SplitN(user.Name, " ", 2)
+			if len(nameParts) >= 1 {
+				response["given_name"] = nameParts[0]
+			}
+			if len(nameParts) >= 2 {
+				response["family_name"] = nameParts[1]
+			}
+		}
+
+		if user.Handle != "" {
+			response["preferred_username"] = user.Handle
+		}
+
+		// Picture claim - construct URL to avatar if available
+		if user.Meta != nil && user.Meta.AvatarID != 0 {
+			response["picture"] = fmt.Sprintf("%s/api/system/attachment/avatar/%d/original/avatar.png",
+				strings.TrimSuffix(h.Opt.BaseURL, "/"),
+				user.Meta.AvatarID)
+		}
+
+		// updated_at claim (seconds since Unix epoch)
+		if user.UpdatedAt != nil {
+			response["updated_at"] = user.UpdatedAt.Unix()
+		} else {
+			response["updated_at"] = user.CreatedAt.Unix()
+		}
+
+		// Corteza-specific: preferred language
+		if user.Meta != nil && user.Meta.PreferredLanguage != "" {
+			response["locale"] = user.Meta.PreferredLanguage
+		}
+	}
+
+	// 'email' scope claims (OIDC Core 1.0 Section 5.4)
+	if auth.CheckScope(scope, "email", "openid") {
+		if user.Email != "" {
+			response["email"] = user.Email
+			response["email_verified"] = user.EmailConfirmed
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	_ = json.NewEncoder(w).Encode(response)
+}
+
+// userinfoError returns an error response for the userinfo endpoint
+func (h AuthHandlers) userinfoError(w http.ResponseWriter, err error) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Cache-Control", "no-store")
+	w.Header().Set("WWW-Authenticate", `Bearer error="invalid_token"`)
+	w.WriteHeader(http.StatusUnauthorized)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"error":             "invalid_token",
+		"error_description": err.Error(),
+	})
 }
 
 func writeResponse(w http.ResponseWriter, data map[string]interface{}, header http.Header, statusCode ...int) error {

@@ -436,19 +436,94 @@ func dirCheck(path string) (err error) {
 	return
 }
 
+// WellKnownOpenIDConfiguration returns the OIDC Discovery document
+// per OpenID Connect Discovery 1.0 specification
 func (svc service) WellKnownOpenIDConfiguration() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		_ = json.NewEncoder(w).Encode(map[string]interface{}{
-			"issuer":                                svc.opt.BaseURL,
-			"authorization_endpoint":                svc.opt.BaseURL + "/oauth2/authorize",
-			"token_endpoint":                        svc.opt.BaseURL + "/oauth2/token",
-			"jwks_uri":                              svc.opt.BaseURL + "/oauth2/public-keys",
-			"scope_supported":                       []string{"profile", "api"},
-			"id_token_signing_alg_values_supported": []string{"RS256", "HS512"},
-			"response_types_supported":              []string{"code", "token"},
-		})
+		// AUTH_BASE_URL defaults to FullURL("/auth"), which includes the /auth suffix
+		// We need to strip this suffix because the endpoint paths already include /auth prefix
+		baseURL := strings.TrimSuffix(svc.opt.BaseURL, "/")
+		baseURL = strings.TrimSuffix(baseURL, "/auth")
+
+		// OIDC Discovery spec requires issuer URL to match the path where discovery was accessed
+		// minus the /.well-known/openid-configuration suffix.
+		// If accessed at /auth/.well-known/openid-configuration, issuer should include /auth
+		issuer := baseURL
+		if strings.HasPrefix(r.URL.Path, "/auth/") {
+			issuer = baseURL + "/auth"
+		}
+
+		config := map[string]interface{}{
+			// Required fields (OIDC Discovery 1.0 Section 3)
+			"issuer":                 issuer,
+			"authorization_endpoint": baseURL + "/auth/oauth2/authorize",
+			"token_endpoint":         baseURL + "/auth/oauth2/token",
+			"jwks_uri":               baseURL + "/auth/oauth2/public-keys",
+
+			// UserInfo endpoint (critical for OIDC clients)
+			"userinfo_endpoint": baseURL + "/auth/oauth2/userinfo",
+
+			// Response types supported
+			"response_types_supported": []string{"code"},
+
+			// Subject types
+			"subject_types_supported": []string{"public"},
+
+			// ID Token signing algorithms
+			"id_token_signing_alg_values_supported": []string{"HS512"},
+
+			// Token endpoint authentication methods
+			"token_endpoint_auth_methods_supported": []string{
+				"client_secret_basic",
+				"client_secret_post",
+			},
+
+			// Scopes supported (note: correct field name is scopes_supported, not scope_supported)
+			"scopes_supported": []string{
+				"openid",
+				"profile",
+				"email",
+				"api",
+			},
+
+			// Claims supported
+			"claims_supported": []string{
+				"sub",
+				"iss",
+				"aud",
+				"exp",
+				"iat",
+				"name",
+				"given_name",
+				"family_name",
+				"preferred_username",
+				"email",
+				"email_verified",
+				"picture",
+				"locale",
+				"updated_at",
+			},
+
+			// Code challenge methods (PKCE)
+			"code_challenge_methods_supported": []string{"plain", "S256"},
+
+			// Grant types supported
+			"grant_types_supported": []string{
+				"authorization_code",
+				"refresh_token",
+				"client_credentials",
+			},
+
+			// Prompt values supported (OIDC Core 1.0 Section 3.1.2.1)
+			// "none" enables silent authentication checks without UI
+			// "login" forces re-authentication
+			// "consent" forces consent screen display
+			"prompt_values_supported": []string{"none", "login", "consent"},
+		}
 
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Cache-Control", "public, max-age=3600")
+		_ = json.NewEncoder(w).Encode(config)
 	}
 }
 

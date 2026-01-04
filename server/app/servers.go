@@ -155,6 +155,12 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 	}()
 
 	func() {
+		// Mount OIDC Discovery document at root level for backward compatibility
 		r.Handle("/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
+
+		// Also mount at /auth/.well-known/openid-configuration for OIDC compliance
+		// Per OIDC Discovery 1.0, the well-known endpoint must be at {issuer}/.well-known/openid-configuration
+		// Since our issuer URL is {baseURL}/auth, clients need to discover at /auth/.well-known/...
+		r.Handle("/auth/.well-known/openid-configuration", app.AuthService.WellKnownOpenIDConfiguration())
 	}()
 }

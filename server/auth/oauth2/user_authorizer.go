@@ -3,6 +3,7 @@ package oauth2
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/cortezaproject/corteza/server/auth/request"
 	internalAuth "github.com/cortezaproject/corteza/server/pkg/auth"
@@ -16,7 +17,40 @@ func NewUserAuthorizer(sm *request.SessionManager, loginURL, clientAuthURL strin
 			ses    = sm.Get(r)
 			au     = request.GetAuthUser(ses)
 			client = request.GetOauth2Client(ses)
+			prompt = r.Form.Get("prompt")
 		)
+
+		// Handle prompt=none (OIDC silent authentication)
+		// Per OIDC Core 1.0 Section 3.1.2.1, when prompt=none the Authorization Server
+		// MUST NOT display any authentication or consent UI. If the user is not already
+		// authenticated or consent is required, an error must be returned.
+		if prompt == "none" {
+			redirectURI := r.Form.Get("redirect_uri")
+			state := r.Form.Get("state")
+
+			if au == nil {
+				// User not logged in - return login_required error
+				redirectWithOIDCError(w, r, redirectURI, state, "login_required", "User is not authenticated")
+				return "", nil
+			}
+
+			// Check if client authorization is needed
+			// Trusted clients don't require explicit consent
+			if client != nil && !client.Trusted && !request.IsOauth2ClientAuthorized(ses) {
+				// User logged in but consent is required for non-trusted client
+				redirectWithOIDCError(w, r, redirectURI, state, "interaction_required", "User consent is required")
+				return "", nil
+			}
+
+			// User is authenticated and either:
+			// - Client is trusted (no consent needed)
+			// - Client was previously authorized in this session
+			// Mark client as authorized and continue with the flow
+			if client != nil {
+				request.SetOauth2ClientAuthorized(ses, true)
+				sm.Save(w, r)
+			}
+		}
 
 		// temporary break oauth2 flow by redirecting to
 		// login form and ask user to authenticate
@@ -75,4 +109,25 @@ func UserIDSerializer(userID uint64, rr ...uint64) string {
 	}
 
 	return identity
+}
+
+// redirectWithOIDCError redirects to the client's redirect_uri with an OIDC error response
+// Per OIDC Core 1.0 Section 3.1.2.6, errors are returned as query parameters
+func redirectWithOIDCError(w http.ResponseWriter, r *http.Request, redirectURI, state, errorCode, errorDesc string) {
+	u, err := url.Parse(redirectURI)
+	if err != nil {
+		// If redirect_uri is invalid, we can't redirect - return a simple error page
+		http.Error(w, "Invalid redirect_uri", http.StatusBadRequest)
+		return
+	}
+
+	q := u.Query()
+	q.Set("error", errorCode)
+	q.Set("error_description", errorDesc)
+	if state != "" {
+		q.Set("state", state)
+	}
+	u.RawQuery = q.Encode()
+
+	http.Redirect(w, r, u.String(), http.StatusFound)
 }

@@ -102,8 +102,13 @@ func (h *AuthHandlers) MountHttpRoutes(r chi.Router) {
 			r.Post(tbp(l.OAuth2AuthorizeClient), h.handle(authOnly(h.oauth2AuthorizeClientProc)))
 			r.Get(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClient))
 			r.Post(tbp(l.OAuth2DefaultClient), h.handle(h.oauth2authorizeDefaultClientProc))
-			r.Get(tbp(l.OAuth2UserInfo), h.handle(h.oauth2authorizeDefaultClientProc))
 		})
+
+		// OIDC UserInfo endpoint (OIDC Core 1.0 Section 5.3)
+		// Mounted outside CSRF group as it uses Bearer token authentication
+		// Supports both GET and POST per OIDC spec
+		r.Get(tbp(l.OAuth2UserInfo), h.oauth2Userinfo)
+		r.Post(tbp(l.OAuth2UserInfo), h.oauth2Userinfo)
 
 		// Wrapping SAML structs so we assure that fresh ones are always used in case
 		// of settings changes.
