@@ -36,7 +36,7 @@ func (crc *ConversationalRAGChain) Query(ctx context.Context, question string, t
 
 	results, err := crc.searchAPI.SearchResources(ctx, searchReq)
 	if err != nil {
-		return "", nil
+		return "", err
 	}
 
 	prompt, err := crc.buildRAGPrompt(results, question)

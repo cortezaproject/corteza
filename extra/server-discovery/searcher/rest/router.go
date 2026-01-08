@@ -23,8 +23,9 @@ func MountRoutes(log *zap.Logger, opt options.VectorSearchOpt) func(r chi.Router
 			r.Use(auth.HttpTokenValidator("discovery"))
 
 			llm, err := openai.New(
-				openai.WithBaseURL(opt.OpenAIBaseURL),
-				openai.WithToken(opt.OpenAIAPIKey),
+				openai.WithBaseURL(opt.LLMBaseURL),
+				openai.WithToken(opt.LLMAPIKey),
+				openai.WithModel(opt.LLMModel),
 			)
 
 			if err != nil {

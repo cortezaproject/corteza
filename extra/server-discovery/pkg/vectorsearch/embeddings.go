@@ -35,7 +35,8 @@ func Embedder(log *zap.Logger, opt options.VectorSearchOpt) (out *embedder, err 
 	return
 }
 
-// consolidate this it should be on both
+// GenerateEmbeddings generates embeddings for the given input text
+// by calling the external embedding API service.
 func (embedder *embedder) GenerateEmbeddings(input string) ([]float32, error) {
 	requestBody := EmbeddingRequest{
 		Input: []string{input},
@@ -46,8 +47,6 @@ func (embedder *embedder) GenerateEmbeddings(input string) ([]float32, error) {
 		return nil, fmt.Errorf("failed to marshal request: %v", err)
 	}
 
-	// TODO: replace this with the env configurable option
-	// Add the API KEY section
 	url := embedder.vectorSearchOpt.EmbeddingsAPIUrl
 	req, err := http.NewRequest("POST", url, bytes.NewReader(body))
 	if err != nil {
@@ -55,6 +54,7 @@ func (embedder *embedder) GenerateEmbeddings(input string) ([]float32, error) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", embedder.vectorSearchOpt.EmbeddingsAPIKey))
 
 	client := &http.Client{
 		Timeout: 30 * time.Second,

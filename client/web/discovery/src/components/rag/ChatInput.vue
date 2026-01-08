@@ -4,7 +4,7 @@
       <textarea
         ref="textarea"
         v-model="input"
-        placeholder="ask a question... (Shift+Enter for new line)"
+        :placeholder="inputPlaceholder"
         :disabled="isLoading"
         class="form-control"
         rows="1"
@@ -17,25 +17,9 @@
         :disabled="!input.trim() || isLoading"
         class="btn btn-primary"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line
-            x1="22"
-            y1="2"
-            x2="11"
-            y2="13"
-          />
-          <polygon points="22 2 15 22 11 13 2 9 22 2" />
-        </svg>
+        <font-awesome-icon
+          :icon="['fas', 'paper-plane']"
+        />
       </button>
     </div>
   </form>
@@ -53,12 +37,18 @@ export default {
       type: Boolean,
       default: false,
     },
+    inputPlaceholder: {
+      type: String,
+      default: '',
+    },
   },
+
   data () {
     return {
       input: '',
     }
   },
+
   methods: {
     autoResize () {
       this.$nextTick(() => {
@@ -69,6 +59,7 @@ export default {
         }
       })
     },
+
     handleSubmit () {
       if (this.input.trim() && !this.isLoading) {
         this.onSendMessage(this.input)
@@ -80,6 +71,7 @@ export default {
         })
       }
     },
+
     handleKeyDown (e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault()

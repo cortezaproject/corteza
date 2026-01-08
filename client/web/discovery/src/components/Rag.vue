@@ -1,106 +1,116 @@
 <template>
-  <div class="b-sidebar-outer">
-    <div
-      class="b-sidebar shadow-sm b-sidebar-right bg-light text-dark"
-      style="width: 500px;"
-    >
-      <div class="border-bottom bg-white px-4 py-3 shadow-sm">
-        <div class="d-flex align-items-center justify-content-between">
-          <div>
-            <h1 class="h3 mb-1 text-primary">
-              Corteza AI Assistant
-            </h1>
-            <p class="small text-muted mb-0">
-              Ask anything about your Corteza Base records
-            </p>
-          </div>
-          <button
-            v-if="messages.length > 0"
-            class="btn btn-outline-secondary btn-sm"
-            @click="handleClearChat"
-          >
-            Clear Chat
-          </button>
+  <b-sidebar
+    v-model="showRag"
+    header-class="d-flex align-items-center justify-content-between notification-sidebar-header bg-white pl-3 pr-2"
+    body-class="d-flex flex-column overflow-hidden bg-white"
+    :backdrop="isMobile"
+    no-footer
+    right
+    shadow="sm"
+    no-close-on-route-change
+    no-close-on-esc
+    width="500px"
+  >
+    <template #header>
+      <div>
+        <h5 class="text-primary mb-0">
+          <b>{{ $t("title") }}</b>
+        </h5>
+        <p class="small text-muted mb-0">
+          <small> {{ $t("description") }} </small>
+        </p>
+      </div>
+
+      <b-button
+        variant="outline-light"
+        class="d-flex align-items-center justify-content-center p-2 border-0 text-secondary"
+        @click="showRag = false"
+      >
+        <font-awesome-icon :icon="['fas', 'times']" class="h6 mb-0" />
+      </b-button>
+    </template>
+
+    <div class="border-bottom bg-white px-4 py-3 shadow-sm">
+      <div class="d-flex align-items-center justify-content-between">
+        <button
+          v-if="messages.length > 0"
+          class="btn btn-outline-secondary btn-sm"
+          @click="handleClearChat"
+        >
+          {{ $t("clear-chat") }}
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-fill overflow-auto bg-light">
+      <div
+        v-if="messages.length === 0"
+        class="h-100 d-flex align-items-center justify-content-center"
+      >
+        <div class="text-center">
+          <h2 class="h4 mb-2">{{ $t("welcome-title") }}</h2>
+          <p class="text-muted">
+            {{ $t("welcome-message") }}
+          </p>
         </div>
       </div>
 
-      <div class="flex-fill overflow-auto bg-light">
-        <div
-          v-if="messages.length === 0"
-          class="h-100 d-flex align-items-center justify-content-center"
-        >
-          <div class="text-center">
-            <h2 class="h4 mb-2">
-              Welcome to Corteza AI Assistant
-            </h2>
-            <p class="text-muted">
-              Start by asking a question about your records
-            </p>
-          </div>
-        </div>
+      <div v-else class="container py-4">
+        <div class="row">
+          <div class="col-12">
+            <chat-message
+              v-for="message in messages"
+              :key="message.id"
+              :message="message"
+              class="mb-3"
+            />
 
-        <div
-          v-else
-          class="container py-4"
-        >
-          <div class="row">
-            <div class="col-12">
-              <chat-message
-                v-for="message in messages"
-                :key="message.id"
-                :message="message"
-                class="mb-3"
-              />
-
-              <!-- Loading indicator -->
-              <div
-                v-if="isLoading"
-                class="d-flex justify-content-center py-4"
-              >
-                <div class="d-flex align-items-center gap-2">
-                  <div
-                    class="spinner-grow spinner-grow-sm text-primary"
-                    role="status"
-                  >
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <div
-                    class="spinner-grow spinner-grow-sm text-primary"
-                    role="status"
-                    style="animation-delay: 0.1s"
-                  >
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
-                  <div
-                    class="spinner-grow spinner-grow-sm text-primary"
-                    role="status"
-                    style="animation-delay: 0.2s"
-                  >
-                    <span class="visually-hidden">Loading...</span>
-                  </div>
+            <!-- Loading indicator -->
+            <div v-if="isLoading" class="d-flex justify-content-center py-4">
+              <div class="d-flex align-items-center gap-2">
+                <div
+                  class="spinner-grow spinner-grow-sm text-primary"
+                  role="status"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div
+                  class="spinner-grow spinner-grow-sm text-primary"
+                  role="status"
+                  style="animation-delay: 0.1s"
+                >
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div
+                  class="spinner-grow spinner-grow-sm text-primary"
+                  role="status"
+                  style="animation-delay: 0.2s"
+                >
+                  <span class="visually-hidden">Loading...</span>
                 </div>
               </div>
-
-              <div ref="messagesEnd" />
             </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="border-top bg-white px-4 py-3 shadow-sm">
-        <div class="container">
-          <div class="row">
-            <div class="col-12">
-              <chat-input
-                :on-send-message="handleSendMessage"
-                :is-loading="isLoading"
-              />
-            </div>
+            <div ref="messagesEnd" />
           </div>
         </div>
       </div>
     </div>
-  </div>
+
+    <div class="border-top bg-white px-4 py-3 shadow-sm">
+      <div class="container">
+        <div class="row">
+          <div class="col-12">
+            <chat-input
+              :on-send-message="handleSendMessage"
+              :is-loading="isLoading"
+              :input-placeholder="$t('input-placeholder')"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </b-sidebar>
 </template>
 
 <script>
@@ -109,16 +119,37 @@ import ChatInput from './rag/ChatInput.vue'
 
 export default {
   name: 'Rag',
+
+  i18nOptions: {
+    namespaces: 'rag',
+  },
+
   components: {
     ChatMessage,
     ChatInput,
   },
+
+  props: {
+    showRag: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
+  },
+
   data () {
     return {
       messages: [],
       isLoading: false,
     }
   },
+
+  computed: {
+    isMobile () {
+      return window.innerWidth < 576
+    },
+  },
+
   watch: {
     messages: {
       handler () {
@@ -129,14 +160,15 @@ export default {
       deep: true,
     },
   },
+
   methods: {
     scrollToBottom () {
       if (this.$refs.messagesEnd) {
         this.$refs.messagesEnd.scrollIntoView({ behavior: 'smooth' })
       }
     },
+
     async handleSendMessage (content) {
-      console.log('kakitu', content, this.$DiscoveryAPI)
       const userMessage = {
         id: Date.now().toString(),
         role: 'user',
@@ -172,6 +204,7 @@ export default {
         this.isLoading = false
       }
     },
+
     handleClearChat () {
       this.messages = []
     },

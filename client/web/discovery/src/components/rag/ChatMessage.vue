@@ -61,17 +61,20 @@
 <script>
 export default {
   name: 'ChatMessage',
+
   props: {
     message: {
       type: Object,
       required: true,
     },
   },
+
   computed: {
     isUser () {
       return this.message.role === 'user'
     },
   },
+
   methods: {
     formatTime (timestamp) {
       return new Date(timestamp).toLocaleTimeString([], {

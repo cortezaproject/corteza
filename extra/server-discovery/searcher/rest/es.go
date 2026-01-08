@@ -325,7 +325,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				},
 			})
 		} else {
-			// Hybrid search: combine vector and text in should clause
+			// KNN search with vector embeddings
 			query.Query.Bool = nil
 			query.Query.KNN = map[string]interface{}{
 				"vectorsValue": map[string]interface{}{
