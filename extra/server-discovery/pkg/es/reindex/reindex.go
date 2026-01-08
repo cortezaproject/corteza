@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
@@ -811,7 +812,9 @@ func (ri *reIndexer) processResource(source []byte) (*bytes.Reader, error) {
 		return nil, fmt.Errorf("records catch_all not found or empty")
 	}
 
-	embeddings, err := ri.embedder.GenerateEmbeddings(cast.ToString(record.CatchAll))
+	catchAllValues := cast.ToStringSlice(record.CatchAll)
+
+	embeddings, err := ri.embedder.GenerateEmbeddings(strings.Join(catchAllValues, ", "))
 	if err != nil {
 		return nil, err
 	}

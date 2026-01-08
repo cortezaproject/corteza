@@ -81,12 +81,11 @@ type (
 				Filter  []interface{} `json:"filter,omitempty"`
 				MustNot []interface{} `json:"must_not,omitempty"`
 			} `json:"bool,omitempty"`
-
-			KNN map[string]interface{} `json:"knn,omitempty"`
 		} `json:"query"`
 
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
 		Source       SourceFilter            `json:"_source,omitempty"`
+		MinScore     float32                 `json:"min_score,omitempty"`
 	}
 
 	esSearchAggrTerm struct {
@@ -327,13 +326,17 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 			})
 		} else {
 			// KNN search with vector embeddings
-			query.Query.Bool = nil
-			query.Query.KNN = map[string]interface{}{
-				"vectorsValue": map[string]interface{}{
-					"vector": vector,
-					"k":      10,
+			query.Query.Bool.Must = append(query.Query.Bool.Must, map[string]interface{}{
+				"knn": map[string]interface{}{
+					"vectorsValue": map[string]interface{}{
+						"vector": vector,
+						"k":      10,
+					},
 				},
-			}
+			})
+
+			// TODO: implement a minimum score as an enviroment variable
+			query.MinScore = 1.6
 		}
 	}
 
