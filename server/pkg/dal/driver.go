@@ -2,6 +2,7 @@ package dal
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/ql"
+	"github.com/spf13/cast"
 	"go.uber.org/zap"
 )
 
@@ -164,12 +166,23 @@ func RegisterDriver(d Driver) {
 
 // connect opens a new StoreConnection for the given CRS
 func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (Connection, error) {
-	if cp.Type != "corteza::dal:connection:dsn" {
-		return nil, fmt.Errorf("cannot open connection: only DSN connections supported (got: %q)", cp.Type)
-	}
 	if cp.Params == nil {
 		return nil, fmt.Errorf("cannot open connection: connection parameters not defined")
 	}
+
+	switch cp.Type {
+	case "corteza::dal:connection:dsn":
+		return connectRDBMS(ctx, log, isDevelopment, cp)
+
+	case "corteza::dal:connection:rest":
+		return connectREST(ctx, log, isDevelopment, cp)
+
+	default:
+		return nil, fmt.Errorf("cannot open connection: unsupported connection (got: %q)", cp.Type)
+	}
+}
+
+func connectRDBMS(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (Connection, error) {
 	if _, ok := cp.Params["dsn"]; !ok {
 		return nil, fmt.Errorf("cannot open connection: DSN not provided")
 	}
@@ -200,9 +213,98 @@ func connect(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Connec
 	}
 }
 
+func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, cp ConnectionParams) (c Connection, err error) {
+	if _, ok := cp.Params["url"]; !ok {
+		return nil, fmt.Errorf("cannot connect to the REST API: missing parameter: url")
+	}
+
+	// For now, the only store type is REST API so this is fine
+	storeType := "restapi"
+	url := cast.ToString(cp.Params["url"])
+	if len(url) == 0 {
+		return nil, fmt.Errorf("cannot connect to the REST API: invalid parameter: url")
+	}
+
+	d, err := ParseDSN(url)
+	if err != nil {
+		return
+	}
+
+	d, err = expandDSN(d, cp)
+	if err != nil {
+		return
+	}
+
+	if conn, ok := registeredConnectors[storeType]; ok {
+		return conn(ctx, d.ToDSN())
+	} else {
+		return nil, fmt.Errorf("unknown store type used: %q (check your database configuration)", storeType)
+	}
+}
+
+func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
+	out = base
+
+	if auth, ok := cp.Params["auth"]; ok {
+
+		// @todo improve this
+		bb, err := json.Marshal(auth)
+		if err != nil {
+			return out, err
+		}
+
+		aux := struct {
+			Method string
+			Params map[string]any
+		}{}
+
+		err = json.Unmarshal(bb, &aux)
+		if err != nil {
+			return out, err
+		}
+
+		// @todo validation and all that :)
+		out.AuthType = aux.Method
+		out.Token = aux.Params["token"].(string)
+		out.APIKey = aux.Params["APIKey"].(string)
+		out.APIKeyHeader = aux.Params["APIKeyHeader"].(string)
+		out.ClientID = aux.Params["clientID"].(string)
+		out.ClientSecret = aux.Params["clientSecret"].(string)
+		out.TokenURL = aux.Params["tokenURL"].(string)
+	}
+
+	if dops, ok := cp.Params["defaultOps"]; ok {
+		aux := map[string]any{}
+
+		bb, err := json.Marshal(dops)
+		if err != nil {
+			return out, err
+		}
+
+		err = json.Unmarshal(bb, &aux)
+		if err != nil {
+			return out, err
+		}
+
+		out.Arbitrary = aux
+	}
+
+	return
+}
+
 func NewDSNDriverConnectionConfig() DriverConnectionConfig {
 	return DriverConnectionConfig{
 		Type: "corteza::dal:connection:dsn",
+		Params: []DriverConnectionParam{{
+			Key:       "dsn",
+			ValueType: "string",
+		}},
+	}
+}
+
+func NewRESTriverConnectionConfig() DriverConnectionConfig {
+	return DriverConnectionConfig{
+		Type: "corteza::dal:connection:rest",
 		Params: []DriverConnectionParam{{
 			Key:       "dsn",
 			ValueType: "string",

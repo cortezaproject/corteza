@@ -3,6 +3,7 @@ package j7s
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/pkg/envoy/resource"
 )
@@ -121,9 +122,43 @@ func AddMap(n mapNode, pp ...interface{}) (mapNode, error) {
 			}
 		}
 
-		n[k] = vRaw
+		if err := setNestedValue(n, k, vRaw); err != nil {
+			return nil, err
+		}
+
 	}
 	return n, nil
+}
+
+// GetByPath retrieves a value from a nested map using a simplified JSONPath.
+// Example path: "a.b.c"
+func GetByPath(root mapNode, path string) (any, bool, error) {
+	if path == "" {
+		return nil, false, fmt.Errorf("empty path")
+	}
+
+	parts := strings.Split(path, ".")
+	var current any = root
+
+	for _, part := range parts {
+		if part == "" {
+			return nil, false, fmt.Errorf("invalid path %q", path)
+		}
+
+		m, ok := current.(map[string]any)
+		if !ok {
+			return nil, false, nil
+		}
+
+		val, exists := m[part]
+		if !exists {
+			return nil, false, nil
+		}
+
+		current = val
+	}
+
+	return current, true, nil
 }
 
 // MakeSeq creates a new sequence node based on the provided items
@@ -140,4 +175,45 @@ func AddSeq(n seqNode, vv ...interface{}) (seqNode, error) {
 	}
 
 	return n, nil
+}
+
+func setNestedValue(root mapNode, key string, value interface{}) error {
+	parts := strings.Split(key, ".")
+	current := root
+
+	for i, part := range parts {
+		if part == "" {
+			return fmt.Errorf("invalid key %q", key)
+		}
+
+		isLast := i == len(parts)-1
+
+		if isLast {
+			current[part] = value
+			return nil
+		}
+
+		// Walk or create next level
+		next, exists := current[part]
+		if !exists {
+			child, _ := MakeMap()
+			current[part] = child
+			current = child
+			continue
+		}
+
+		// Ensure existing value is a map
+		child, ok := next.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf(
+				"key conflict at %q: expected map, found %T",
+				part,
+				next,
+			)
+		}
+
+		current = child
+	}
+
+	return nil
 }
