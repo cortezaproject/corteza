@@ -68,10 +68,6 @@ func ParseDSN(dsn string) (out DSN, err error) {
 		return out, fmt.Errorf("invalid DSN: %w", err)
 	}
 
-	if u.Scheme != "rest" && u.Scheme != "rests" && u.Scheme != "http" && u.Scheme != "https" {
-		return out, fmt.Errorf("invalid scheme: %s (expected rest, rests, http, or https)", u.Scheme)
-	}
-
 	d := DSN{
 		Scheme:      u.Scheme,
 		Host:        u.Hostname(),
@@ -342,28 +338,6 @@ func (d *DSN) String() string {
 	return fmt.Sprintf("%s://%s%s%s%s", scheme, auth, d.Host, port, d.Path)
 }
 
-// Validate checks if the DSN configuration is valid
-func (d *DSN) Validate() error {
-	if d.Host == "" {
-		return fmt.Errorf("host is required")
-	}
-
-	if d.AuthType != "" && d.AuthType != "bearer" && d.AuthType != "basic" &&
-		d.AuthType != "apikey" && d.AuthType != "oauth2" && d.AuthType != "none" {
-		return fmt.Errorf("invalid auth type: %s", d.AuthType)
-	}
-
-	if d.Timeout < 0 {
-		return fmt.Errorf("timeout cannot be negative")
-	}
-
-	if d.MaxIdleConns < 0 || d.MaxIdleConnsPerHost < 0 {
-		return fmt.Errorf("connection pool sizes cannot be negative")
-	}
-
-	return nil
-}
-
 func (d *DSN) ToDSN() string {
 	var sb strings.Builder
 
@@ -489,82 +463,6 @@ func (d *DSN) ToDSN() string {
 	}
 
 	// Append query string
-	if len(params) > 0 {
-		sb.WriteString("?")
-		sb.WriteString(params.Encode())
-	}
-
-	return sb.String()
-}
-
-// ToSafeDSN converts the DSN to a safe string with sensitive data masked
-// Useful for logging and display purposes
-func (d *DSN) ToSafeDSN() string {
-	var sb strings.Builder
-
-	// Scheme
-	sb.WriteString(d.Scheme)
-	sb.WriteString("://")
-
-	// Basic auth in URL (masked)
-	if d.Username != "" {
-		sb.WriteString(d.Username)
-		sb.WriteString(":***@")
-	}
-
-	// Host and port
-	sb.WriteString(d.Host)
-	if d.Port != "" {
-		sb.WriteString(":")
-		sb.WriteString(d.Port)
-	}
-
-	// Path
-	if d.Path != "" {
-		if !strings.HasPrefix(d.Path, "/") {
-			sb.WriteString("/")
-		}
-		sb.WriteString(d.Path)
-	}
-
-	// Query parameters (with sensitive data masked)
-	params := url.Values{}
-
-	if d.AuthType != "" && d.AuthType != "none" {
-		params.Set("auth", d.AuthType)
-	}
-	if d.Token != "" {
-		params.Set("token", "***")
-	}
-	if d.APIKey != "" {
-		params.Set("apikey", "***")
-	}
-	if d.APIKeyHeader != "" && d.APIKeyHeader != "X-API-Key" {
-		params.Set("apikey_header", d.APIKeyHeader)
-	}
-	if d.ClientID != "" {
-		params.Set("client_id", d.ClientID)
-	}
-	if d.ClientSecret != "" {
-		params.Set("client_secret", "***")
-	}
-	if d.TokenURL != "" {
-		params.Set("token_url", d.TokenURL)
-	}
-
-	// Non-sensitive parameters
-	if d.Timeout != 0 && d.Timeout != 30*time.Second {
-		params.Set("timeout", d.Timeout.String())
-	}
-	if d.MaxRetries != 0 && d.MaxRetries != 3 {
-		params.Set("max_retries", strconv.Itoa(d.MaxRetries))
-	}
-
-	// Custom headers (masked values)
-	for key := range d.Headers {
-		params.Set("header."+key, "***")
-	}
-
 	if len(params) > 0 {
 		sb.WriteString("?")
 		sb.WriteString(params.Encode())

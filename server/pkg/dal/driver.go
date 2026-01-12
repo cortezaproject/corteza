@@ -218,8 +218,6 @@ func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Co
 		return nil, fmt.Errorf("cannot connect to the REST API: missing parameter: url")
 	}
 
-	// For now, the only store type is REST API so this is fine
-	storeType := "restapi"
 	url := cast.ToString(cp.Params["url"])
 	if len(url) == 0 {
 		return nil, fmt.Errorf("cannot connect to the REST API: invalid parameter: url")
@@ -235,10 +233,32 @@ func connectREST(ctx context.Context, log *zap.Logger, isDevelopment bool, cp Co
 		return
 	}
 
+	err = validateDSN(d)
+	if err != nil {
+		err = fmt.Errorf("invalid DSN: %v", err)
+		return
+	}
+
+	storeType, err := determineStoreType(d)
+	if err != nil {
+		return
+	}
+
 	if conn, ok := registeredConnectors[storeType]; ok {
 		return conn(ctx, d.ToDSN())
 	} else {
 		return nil, fmt.Errorf("unknown store type used: %q (check your database configuration)", storeType)
+	}
+}
+
+func determineStoreType(d DSN) (out string, err error) {
+	switch d.Scheme {
+	case "http", "https":
+		return "restapi", nil
+
+	default:
+		err = fmt.Errorf("unknown schema: %v", d.Scheme)
+		return
 	}
 }
 
@@ -292,6 +312,49 @@ func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
 	}
 
 	return
+}
+
+func validateDSN(dsn DSN) (err error) {
+	// @todo add when needed
+	err = validateDSNAuth(dsn)
+	if err != nil {
+		return fmt.Errorf("invalid authentication: %v", err)
+	}
+
+	return
+}
+
+func validateDSNAuth(dsn DSN) (err error) {
+	switch dsn.AuthType {
+	// no authentication
+	case "":
+		return nil
+
+	case "bearer":
+		if dsn.Token == "" {
+			return fmt.Errorf("bearer token not provided")
+		}
+
+	case "basic":
+		// @note basic auth can function with just the username
+		if dsn.Username == "" {
+			return fmt.Errorf("basic auth username not specified")
+		}
+
+	case "apikey":
+		if dsn.APIKey == "" {
+			return fmt.Errorf("api key parameter not specified")
+		}
+
+	default:
+		return fmt.Errorf("unknown auth type: %s", dsn.AuthType)
+	}
+
+	if dsn.AuthType == "" {
+		return fmt.Errorf("auth parameters provided but type not specified")
+	}
+
+	return nil
 }
 
 func NewDSNDriverConnectionConfig() DriverConnectionConfig {

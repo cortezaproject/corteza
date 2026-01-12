@@ -11,6 +11,10 @@ type (
 	Nuances struct {
 	}
 
+	BodyMetaPath struct {
+		TotalCount string
+	}
+
 	XRequest struct {
 		Query map[string][]string
 	}
@@ -26,7 +30,7 @@ type (
 		EncrichEndpoint(endpoint string, xr XRequest) (out string)
 
 		SearchDataPath() string
-		SearchMetaPath() string
+		SearchMetaPath() BodyMetaPath
 	}
 )
 
