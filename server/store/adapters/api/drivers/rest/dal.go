@@ -32,12 +32,13 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 	u := url.URL{
 		Scheme: parsed.Scheme,
 		Host:   h,
-		User:   url.UserPassword(parsed.Username, parsed.Password),
 		Path:   parsed.Path,
 	}
 
 	c := newClient(ClientConfig{
-		BaseURL:             u.String(),
+		BaseURL: u,
+		DSN:     parsed,
+
 		Timeout:             parsed.Timeout,
 		MaxIdleConns:        parsed.MaxIdleConns,
 		MaxIdleConnsPerHost: parsed.MaxIdleConnsPerHost,
@@ -59,6 +60,7 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 	return apidal.Connection(
 		&restAPIWrapper{
 			client: c,
+			dsn:    parsed,
 		},
 		dl,
 	), nil

@@ -8,7 +8,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
+
+	"github.com/cortezaproject/corteza/server/pkg/dal"
 )
 
 // httpClient wraps http.httpClient with context support and convenience methods
@@ -20,12 +23,14 @@ type httpClient struct {
 
 // ClientConfig holds configuration for creating a new Client
 type ClientConfig struct {
-	BaseURL             string
+	BaseURL             url.URL
 	Timeout             time.Duration
 	MaxIdleConns        int
 	MaxIdleConnsPerHost int
 	IdleConnTimeout     time.Duration
 	Headers             map[string][]string
+
+	DSN dal.DSN
 }
 
 // newClient creates a new HTTP client wrapper with the given configuration
@@ -52,11 +57,16 @@ func newClient(config ClientConfig) *httpClient {
 		ExpectContinueTimeout: 1 * time.Second,
 	}
 
+	// @todo should this be moved down tho where auth headers are handled?
+	if strings.ToLower(config.DSN.AuthType) == "basic" {
+		config.BaseURL.User = url.UserPassword(config.DSN.Username, config.DSN.Password)
+	}
+
 	return &httpClient{
 		httpClient: &http.Client{
 			Transport: transport,
 		},
-		baseURL: config.BaseURL,
+		baseURL: config.BaseURL.String(),
 		headers: config.Headers,
 	}
 }
@@ -96,7 +106,7 @@ func (c *httpClient) Do(ctx context.Context, req *http.Request) (*http.Response,
 	}
 
 	if _, ok := c.headers["Content-Type"]; !ok {
-		c.headers["Content-Type"] = []string{"application/json"}
+		req.Header.Set("Content-Type", "application/json")
 	}
 
 	// Ensure context is attached

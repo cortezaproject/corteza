@@ -254,8 +254,8 @@ func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
 		}
 
 		aux := struct {
-			Method string
-			Params map[string]any
+			Method string         `json:"method"`
+			Params map[string]any `json:"params"`
 		}{}
 
 		err = json.Unmarshal(bb, &aux)
@@ -264,13 +264,15 @@ func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
 		}
 
 		// @todo validation and all that :)
-		out.AuthType = aux.Method
-		out.Token = aux.Params["token"].(string)
-		out.APIKey = aux.Params["APIKey"].(string)
-		out.APIKeyHeader = aux.Params["APIKeyHeader"].(string)
-		out.ClientID = aux.Params["clientID"].(string)
-		out.ClientSecret = aux.Params["clientSecret"].(string)
-		out.TokenURL = aux.Params["tokenURL"].(string)
+		out.AuthType = strings.ToLower(aux.Method)
+		out.Username, _ = aux.Params["username"].(string)
+		out.Password, _ = aux.Params["password"].(string)
+		out.Token, _ = aux.Params["token"].(string)
+		out.APIKey, _ = aux.Params["APIKey"].(string)
+		out.APIKeyHeader, _ = aux.Params["APIKeyHeader"].(string)
+		out.ClientID, _ = aux.Params["clientID"].(string)
+		out.ClientSecret, _ = aux.Params["clientSecret"].(string)
+		out.TokenURL, _ = aux.Params["tokenURL"].(string)
 	}
 
 	if dops, ok := cp.Params["defaultOps"]; ok {
