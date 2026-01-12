@@ -40,7 +40,10 @@ type (
 			// ...
 			Payload struct {
 				DataPath string `json:"dataPath"`
-				MetaPath string `json:"metaPath"`
+
+				Meta struct {
+					TotalCountPath string `json:"totalCountPath"`
+				} `json:"meta"`
 			} `json:"payload"`
 
 			Sorting struct {
@@ -257,8 +260,10 @@ func (d apiDialect) SearchDataPath() string {
 	return d.defaultOps.Search.Payload.DataPath
 }
 
-func (d apiDialect) SearchMetaPath() string {
-	return d.defaultOps.Search.Payload.MetaPath
+func (d apiDialect) SearchMetaPath() drivers.BodyMetaPath {
+	return drivers.BodyMetaPath{
+		TotalCount: d.defaultOps.Search.Payload.Meta.TotalCountPath,
+	}
 }
 
 func (d apiDialect) EncrichEndpoint(endpoint string, xr drivers.XRequest) (out string) {

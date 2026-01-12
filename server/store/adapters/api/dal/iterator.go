@@ -106,68 +106,84 @@ func (i *iterator) fetch(ctx context.Context) (rows [][]byte, err error) {
 
 func (i *iterator) unpackResponse(data []byte) (rows [][]byte, meta []byte, err error) {
 	// @todo should we push this down to the dialect?
-	rows, meta, _ = UnpackRowsWithPaths(
+	rows, meta, _ = unpackRowsWithPaths(
 		data,
-		strings.Split(i.dst.dialect.SearchDataPath(), "."),
-		strings.Split(i.dst.dialect.SearchMetaPath(), "."),
+		i.dst.dialect.SearchDataPath(),
+		i.dst.dialect.SearchMetaPath(),
 	)
 
 	return
 }
 
-func UnpackRowsWithPaths(
-	b []byte,
-	dataPath []string,
-	metaPath []string,
-) (rows [][]byte, meta []byte, err error) {
+// unpackRowsWithPaths processes the raw response into:
+// - data (raw records)
+// - meta (counts, limits, paging, ...)
+func unpackRowsWithPaths(b []byte, dataPath string, metaPath drivers.BodyMetaPath) (rows [][]byte, meta []byte, err error) {
+	rows, err = unpackPayloadData(b, strings.Split(dataPath, "."))
+	if err != nil {
+		return
+	}
 
+	meta, err = unpackPayloadMeta(b, metaPath)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// unpackPayloadData processes just the data bit
+//
+// Currently supported scenarios
+// 1. JSON array encoded payload directly on the root
+// 2. JSON array encoded payload nested in the root object
+func unpackPayloadData(b []byte, pp []string) (rows [][]byte, err error) {
 	// 1. Root array case
-	if len(b) > 0 && b[0] == '[' {
+	{
+		if len(b) > 0 && b[0] == '[' {
+			var rawRows []json.RawMessage
+			if err = json.Unmarshal(b, &rawRows); err != nil {
+				return nil, err
+			}
+
+			for _, r := range rawRows {
+				rows = append(rows, []byte(r))
+			}
+			return rows, nil
+		}
+	}
+
+	// 2. Nested
+	{
+		var root map[string]json.RawMessage
+		if err = json.Unmarshal(b, &root); err != nil {
+			return nil, err
+		}
+
+		dataRaw, ok := getRawAtPath(root, pp)
+		if !ok {
+			return nil, fmt.Errorf("data path not found: %v", pp)
+		}
+
 		var rawRows []json.RawMessage
-		if err = json.Unmarshal(b, &rawRows); err != nil {
-			return nil, nil, err
+		if err = json.Unmarshal(dataRaw, &rawRows); err != nil {
+			return nil, fmt.Errorf("data is not an array")
 		}
 
 		for _, r := range rawRows {
 			rows = append(rows, []byte(r))
 		}
-		return rows, nil, nil
 	}
 
-	// 2. Root object
-	var root map[string]json.RawMessage
-	if err = json.Unmarshal(b, &root); err != nil {
-		return nil, nil, err
-	}
-
-	// 3. Extract data array
-	dataRaw, ok := getRawAtPath(root, dataPath)
-	if !ok {
-		return nil, nil, fmt.Errorf("data path not found: %v", dataPath)
-	}
-
-	var rawRows []json.RawMessage
-	if err = json.Unmarshal(dataRaw, &rawRows); err != nil {
-		return nil, nil, fmt.Errorf("data is not an array")
-	}
-
-	for _, r := range rawRows {
-		rows = append(rows, []byte(r))
-	}
-
-	// 4. Extract meta (optional)
-	if metaPath != nil {
-		meta, _ = getRawAtPath(root, metaPath)
-	}
-
-	return rows, meta, nil
+	return rows, nil
 }
 
-func getRawAtPath(
-	root map[string]json.RawMessage,
-	path []string,
-) (json.RawMessage, bool) {
+func unpackPayloadMeta(b []byte, metaPath drivers.BodyMetaPath) (meta []byte, err error) {
+	// @todo
+	return
+}
 
+func getRawAtPath(root map[string]json.RawMessage, path []string) (json.RawMessage, bool) {
 	current, ok := root[path[0]]
 	if !ok {
 		return nil, false
