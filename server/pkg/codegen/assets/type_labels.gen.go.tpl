@@ -7,21 +7,24 @@ package {{ .Package }}
 //
 // Definitions file that controls how this file is generated:
 // {{ .Source }}
+ import (
+  	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+  )
 
 
 {{ range $name, $set := .Types }}
 {{ if $set.LabelResourceType }}
 // SetLabel adds new label to label map
-func (m *{{ $name }}) SetLabel(key string, value string) {
+func (m *{{ $name }}) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
-		m.Labels = make(map[string]string)
+		m.Labels = make(map[string]labelTypes.LabelValue)
 	}
 
 	m.Labels[key] = value
 }
 
 // GetLabels adds new label to label map
-func (m {{ $name }}) GetLabels() map[string]string {
+func (m {{ $name }}) GetLabels() map[string]labelTypes.LabelValue {
 	return m.Labels
 }
 

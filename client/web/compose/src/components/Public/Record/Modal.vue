@@ -6,8 +6,9 @@
     :dialog-class="dialogClass"
     content-class="position-initial"
     body-class="p-0"
-    footer-class="p-0 overflow-hidden"
+    footer-class="overflow-hidden"
     size="xl"
+    no-fade
     @hidden="onHidden"
   >
     <template #modal-title>
@@ -96,7 +97,7 @@ export default {
     },
 
     dialogClass () {
-      const classes = ['h-100', 'mw-90']
+      const classes = ['h-100', 'modal-max-width']
 
       if (this.modalPageHandle) {
         classes.push(`page-${this.modalPageHandle}-modal`)
@@ -179,15 +180,14 @@ export default {
         this.pushModalPreviousPage({ recordID, recordPageID, edit })
       }
 
-      setTimeout(() => {
-        this.$router.push({
-          query: {
-            ...this.$route.query,
-            recordID,
-            recordPageID,
-            edit,
-          },
-        })
+      this.$router.push({
+        params: this.$route.params,
+        query: {
+          ...this.$route.query,
+          recordID,
+          recordPageID,
+          edit,
+        },
       })
     },
 
@@ -197,7 +197,9 @@ export default {
 
         if (!this.page || this.page.pageID !== recordPageID) {
           this.page = this.getPageByID(recordPageID)
-          this.setModalPageHandle(this.page.handle)
+          if (this.page) {
+            this.setModalPageHandle(this.page.handle)
+          }
         }
 
         if (this.page && (!this.module || this.module.moduleID !== this.page.moduleID)) {
@@ -211,25 +213,25 @@ export default {
     },
 
     onHidden () {
+      const { recordID, recordPageID } = this.$route.query
       this.setDefaultValues()
 
-      setTimeout(() => {
-        if (this.recordID === undefined && this.page === undefined) {
-          this.$router.replace({
-            query: {
-              ...this.$route.query,
-              recordID: undefined,
-              moduleID: undefined,
-              recordPageID: undefined,
-              edit: undefined,
-              modalLayoutID: undefined,
-            },
-          })
-        }
+      if (recordID !== undefined || recordPageID !== undefined) {
+        this.$router.push({
+          params: this.$route.params,
+          query: {
+            ...this.$route.query,
+            recordID: undefined,
+            moduleID: undefined,
+            recordPageID: undefined,
+            edit: undefined,
+            modalLayoutID: undefined,
+          },
+        })
+      }
 
-        this.setModalPageHandle(undefined)
-        this.setModalLayoutHandle(undefined)
-      })
+      this.setModalPageHandle(undefined)
+      this.setModalLayoutHandle(undefined)
     },
 
     setDefaultValues () {
@@ -252,8 +254,8 @@ export default {
 </script>
 
 <style lang="scss">
-.mw-90 {
-  max-width: 90vw;
+.modal-max-width {
+  max-width: 97vw;
 }
 
 .position-initial {

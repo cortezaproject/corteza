@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
@@ -61,7 +62,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// PageCursor GET parameter
 		//
@@ -83,7 +84,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Slug POST parameter
 		//
@@ -137,7 +138,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -293,7 +294,7 @@ func (r NamespaceList) GetIncTotal() bool {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceList) GetLabels() map[string]string {
+func (r NamespaceList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -388,7 +389,7 @@ func (r NamespaceCreate) GetName() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceCreate) GetLabels() map[string]string {
+func (r NamespaceCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -600,7 +601,7 @@ func (r NamespaceUpdate) GetMeta() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r NamespaceUpdate) GetLabels() map[string]string {
+func (r NamespaceUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

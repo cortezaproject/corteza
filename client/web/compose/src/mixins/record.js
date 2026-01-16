@@ -167,6 +167,12 @@ export default {
           record = new compose.Record(this.module, r)
         }).then(() => this.dispatchUiEvent('afterFormSubmit', record, { $records: records }))
         .then(() => {
+          // Clear draft revision on successful save
+          if (this.activeDraftKey && this.$store) {
+            this.$store.dispatch('drafts/removeDraft', { changeID: this.activeDraftKey })
+            this.activeDraftKey = null
+          }
+
           if (record.valueErrors.set) {
             this.record = record.clone()
             this.initialRecordState = record.clone()
@@ -243,6 +249,12 @@ export default {
           record = new compose.Record(this.module, r)
         }).then(() => this.dispatchUiEvent('afterFormSubmit', record))
         .then(() => {
+          // Clear draft revision on successful save
+          if (this.activeDraftKey && this.$store) {
+            this.$store.dispatch('drafts/removeDraft', { changeID: this.activeDraftKey })
+            this.activeDraftKey = null
+          }
+
           if (record.valueErrors.set) {
             this.record = record.clone()
             this.initialRecordState = record.clone()
@@ -269,6 +281,12 @@ export default {
         .then(() => this.$ComposeAPI.recordDelete(this.record))
         .then(this.dispatchUiEvent('afterDelete'))
         .then(() => {
+          // Clear draft revision on successful delete
+          if (this.activeDraftKey && this.$store) {
+            this.$store.dispatch('drafts/removeDraft', { changeID: this.activeDraftKey })
+            this.activeDraftKey = null
+          }
+
           this.$root.$emit('refetch-records')
           this.toastSuccess(this.$t('notification:record.deleteSuccess'))
         }).catch(e => {
@@ -348,7 +366,7 @@ export default {
           this.showModal = false
           this.$emit('save')
 
-          this.$root.$emit('refetch-records')
+          this.$root.$emit('refetch-records', { stayOnPage: true })
         }).catch(this.toastErrorHandler(this.$t('notification:record.deleteBulkRecordUpdateFailed')))
         .finally(() => {
           this.processing = false

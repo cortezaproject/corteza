@@ -1,6 +1,6 @@
 <template>
   <div class="lightbox">
-    <div class="header">
+    <div class="header shadow-sm">
       <div class="left">
         <slot name="header.left" />
       </div>
@@ -31,19 +31,21 @@
   right: 0;
   bottom: 0;
 
-  background-color: #EEF1F3;
+  background-color: var(--body-bg);
+  color: var(--body-color);
   z-index: 2000;
 }
 
 .lightbox .header {
   display: flex;
   justify-content: space-between;
-  background-color: #FFFFFF;
+  background-color: var(--white);
+  color: var(--body-color);
   position: absolute;
   left: 0;
   top: 0;
   right: 0;
-  box-shadow: 0 0 3px #1E1E1E41;
+
   z-index: 1000;
   height: 50px;
 }
@@ -79,6 +81,7 @@
   margin: 10px;
   cursor: pointer;
   box-sizing: border-box;
+  color: var(--body-color);
 }
 
 .lightbox .header button:last-of-type {

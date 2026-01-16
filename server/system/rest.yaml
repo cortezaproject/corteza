@@ -29,6 +29,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/label
     - github.com/cortezaproject/corteza/server/system/types
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -44,7 +45,7 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted clients
         type: uint
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -76,7 +77,7 @@ endpoints:
       - { name: validFrom,    type: '*time.Time',                 title: Date and time from when client becomes valid }
       - { name: expiresAt,    type: '*time.Time',                 title: Date and time from client is no logner valid }
       - { name: security,     type: '*types.AuthClientSecurity',  title: Security settings, allowed, denied, forced roles, parser: "types.ParseAuthClientSecurity" }
-      - { name: labels,       type: 'map[string]string',          title: Labels, parser: label.ParseStrings }
+      - { name: labels,       type: 'map[string]labelTypes.LabelValue',          title: Labels, parser: label.ParseStrings }
   - name: update
     method: PUT
     title: Update user details
@@ -98,7 +99,7 @@ endpoints:
       - { name: validFrom,    type: '*time.Time',                 title: Date and time from when client becomes valid }
       - { name: expiresAt,    type: '*time.Time',                 title: Date and time from client is no logner valid }
       - { name: security,     type: '*types.AuthClientSecurity',  title: Security settings, allowed, denied, forced roles, parser: "types.ParseAuthClientSecurity" }
-      - { name: labels,       type: 'map[string]string',          title: Labels, parser: label.ParseStrings }
+      - { name: labels,       type: 'map[string]labelTypes.LabelValue',          title: Labels, parser: label.ParseStrings }
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: read
     method: GET
@@ -156,6 +157,9 @@ endpoints:
   entrypoint: expression
   endpoint: expressions
   authentication: []
+  imports:
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: evaluate
     method: POST
@@ -168,8 +172,8 @@ endpoints:
           parser: parseMapStringInterface
           title: variables
         - name: expressions
-          type: map[string]string
-          parser: parseMapStringString
+          type: map[string]labelTypes.LabelValue
+          parser: label.ParseStrings
           title: expressions
 
 - title: Settings
@@ -246,6 +250,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/label
     - github.com/cortezaproject/corteza/server/system/types
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -259,7 +264,7 @@ endpoints:
       - { type: "[]string",          name: "roleID",     title: "Search roles by ID" }
       - { type: "uint",              name: "deleted",    title: "Exclude (0, default), include (1) or return only (2) deleted roles" }
       - { type: "uint",              name: "archived",   title: "Exclude (0, default), include (1) or return only (2) archived roles" }
-      - { type: "map[string]string", name: "labels",     title: "Labels", parser: "label.ParseStrings" }
+      - { type: "map[string]labelTypes.LabelValue", name: "labels",     title: "Labels", parser: "label.ParseStrings" }
       - { type: "uint",              name: "limit",      title: "Limit" }
       - { name: "incTotal",          type: "bool",       title: "Include total counter" }
       - { type: "string",            name: "pageCursor", title: "Page cursor" }
@@ -274,7 +279,7 @@ endpoints:
       - { type: "string",             name: "handle",                      title: "Handle for role" }
       - { type: "[]string",           name: "members",                     title: "role member IDs" }
       - { type: "*types.RoleMeta",    name: "meta",                        title: "Meta",           parser: "types.ParseRoleMeta" }
-      - { type: "map[string]string",  name: "labels",                      title: "Labels",         parser: "label.ParseStrings" }
+      - { type: "map[string]labelTypes.LabelValue",  name: "labels",                      title: "Labels",         parser: "label.ParseStrings" }
   - name: update
     method: PUT
     title: Update role details
@@ -287,7 +292,7 @@ endpoints:
       - { type: "string",             name: "handle",     required: false, title: "Handle for role" }
       - { type: "[]string",           name: "members",    required: false, title: "role member IDs" }
       - { type: "*types.RoleMeta",    name: "meta",                        title: "Meta",            parser: "types.ParseRoleMeta" }
-      - { type: "map[string]string",  name: "labels",                      title: "Labels",          parser: "label.ParseStrings" }
+      - { type: "map[string]labelTypes.LabelValue",  name: "labels",                      title: "Labels",          parser: "label.ParseStrings" }
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: read
     method: GET
@@ -481,6 +486,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/system/types
     - github.com/cortezaproject/corteza/server/pkg/id
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -493,7 +499,7 @@ endpoints:
       - { type: "[]id.ID",           name: "userGroupID", title: "Search roles by ID", parser: "id.ParseIDs" }
       - { type: "uint",              name: "deleted",     title: "Exclude (0, default), include (1) or return only (2) deleted user groups" }
       - { type: "uint",              name: "archived",    title: "Exclude (0, default), include (1) or return only (2) archived user groups" }
-      - { type: "map[string]string", name: "labels",      title: "Labels", parser: "label.ParseStrings" }
+      - { type: "map[string]labelTypes.LabelValue", name: "labels",      title: "Labels", parser: "label.ParseStrings" }
       - { type: "uint",              name: "limit",       title: "Limit" }
       - { name: "incTotal",          type: "bool",        title: "Include total counter" }
       - { type: "string",            name: "pageCursor",  title: "Page cursor" }
@@ -508,7 +514,7 @@ endpoints:
       - { type: "[]string",               name: "members",                     title: "user group member IDs" }
       - { type: "*types.UserGroupConfig",  name: "config",                      title: "Config",           parser: "types.ParseUserGroupConfig" }
       - { type: "*types.UserGroupMeta",   name: "meta",                        title: "Meta",             parser: "types.ParseUserGroupMeta" }
-      - { type: "map[string]string",      name: "labels",                      title: "Labels",           parser: "label.ParseStrings" }
+      - { type: "map[string]labelTypes.LabelValue",      name: "labels",                      title: "Labels",           parser: "label.ParseStrings" }
   - name: update
     method: PUT
     title: Update user group details
@@ -521,7 +527,7 @@ endpoints:
       - { type: "[]string",           name: "members",    required: false, title: "user group member IDs" }
       - { type: "*types.UserGroupConfig", name: "config",                   title: "Config",           parser: "types.ParseUserGroupConfig" }
       - { type: "*types.UserGroupMeta",name: "meta",                       title: "Meta",            parser: "types.ParseUserGroupMeta" }
-      - { type: "map[string]string",  name: "labels",                      title: "Labels",          parser: "label.ParseStrings" }
+      - { type: "map[string]labelTypes.LabelValue",  name: "labels",                      title: "Labels",          parser: "label.ParseStrings" }
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: read
     method: GET
@@ -592,6 +598,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/label
     - github.com/cortezaproject/corteza/server/system/types
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -643,7 +650,7 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) suspended users
         type: uint
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -685,7 +692,7 @@ endpoints:
         type: types.UserKind
         required: false
         title: Kind (normal, bot)
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -723,7 +730,7 @@ endpoints:
         type: types.UserKind
         required: false
         title: Kind (normal, bot)
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1224,6 +1231,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/pkg/label
     - sqlxTypes github.com/jmoiron/sqlx/types
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -1243,7 +1251,7 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted roles
         type: uint
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1292,7 +1300,7 @@ endpoints:
         type: sqlxTypes.JSONText
         required: false
         title: Arbitrary JSON holding application configuration
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1327,7 +1335,7 @@ endpoints:
         type: sqlxTypes.JSONText
         required: false
         title: Arbitrary JSON holding application configuration
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -1446,7 +1454,32 @@ endpoints:
         type: "[]string"
         required: true
         title: Application order
-
+- title: Labels
+  entrypoint: label
+  authentication: []
+  apis:
+  - name: list
+    method: Get
+    title: List labels
+    path: "/label/"
+    parameters:
+      get: 
+      - name: kind
+        type: string
+        required: false
+        title: Filter by resource kind (namespace, module, etc)
+      - name: name
+        type: string
+        required: false
+        title: Filter by label key/name
+      - name: value
+        type: "[]string"
+        required: false
+        title: Filter by value 
+      - name: limit
+        type: uint
+        required: false
+        title: Limit
 - title: Permissions
   parameters: {}
   entrypoint: permissions
@@ -1800,10 +1833,24 @@ endpoints:
         name: notificationID
         required: true
         title: Notification ID
+  - name: markAsUnread
+    method: PATCH
+    title: Mark notification as unread
+    path: "/{notificationID}/unread"
+    parameters:
+      path:
+      - type: uint64
+        name: notificationID
+        required: true
+        title: Notification ID
   - name: markAllAsRead
     method: PATCH
     title: Mark all notifications as read for current user
     path: "/all/read"
+  - name: markAllAsUnread
+    method: PATCH
+    title: Mark all notifications as unread for current user
+    path: "/all/unread"
 - title: Attachments
   path: "/attachment/{kind}"
   entrypoint: attachment
@@ -1886,6 +1933,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/system/types
     - github.com/cortezaproject/corteza/server/pkg/label
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   authentication:
   - Client ID
   - SessionID
@@ -1917,7 +1965,7 @@ endpoints:
         title: Exclude (0, default), include (1) or return only (2) deleted templates
         type: uint
       - name: labels
-        type: map[string]string
+        type: map[string]labelTypes.LabelValue
         title: Labels
         parser: label.ParseStrings
       - name: limit
@@ -1961,7 +2009,7 @@ endpoints:
         type: uint64
         title: OwnerID
       - name: labels
-        type: map[string]string
+        type: map[string]labelTypes.LabelValue
         title: Labels
         parser: label.ParseStrings
   - name: read
@@ -2008,7 +2056,7 @@ endpoints:
         type: uint64
         title: OwnerID
       - name: labels
-        type: map[string]string
+        type: map[string]labelTypes.LabelValue
         title: Labels
         parser: label.ParseStrings
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
@@ -2073,6 +2121,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/system/types
     - github.com/cortezaproject/corteza/server/system/reporting
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -2092,7 +2141,7 @@ endpoints:
         required: false
         title: Exclude (0, default), include (1) or return only (2) deleted reports
         type: uint
-      - type: map[string]string
+      - type: map[string]labelTypes.LabelValue
         name: labels
         title: Labels
         parser: label.ParseStrings
@@ -2119,7 +2168,7 @@ endpoints:
       - { name: scenarios,    type: "types.ReportScenarioSet",    title: Report scenarios }
       - { name: sources,      type: "types.ReportDataSourceSet",  title: Report source definitions }
       - { name: blocks,       type: "types.ReportBlockSet",       title: Report blocks definition }
-      - { name: labels,       type: 'map[string]string',          title: Labels,                  parser: label.ParseStrings }
+      - { name: labels,       type: 'map[string]labelTypes.LabelValue',          title: Labels,                  parser: label.ParseStrings }
   - name: update
     method: PUT
     title: Update report
@@ -2136,7 +2185,7 @@ endpoints:
       - { name: scenarios,    type: "types.ReportScenarioSet",    title: Report scenarios }
       - { name: sources,      type: "types.ReportDataSourceSet",  title: Report sources definition }
       - { name: blocks,       type: "types.ReportBlockSet",       title: Report blocks definition }
-      - { name: labels,       type: 'map[string]string',          title: Labels,                  parser: label.ParseStrings }
+      - { name: labels,       type: 'map[string]labelTypes.LabelValue',          title: Labels,                  parser: label.ParseStrings }
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
   - name: read
     method: GET
@@ -2369,6 +2418,7 @@ endpoints:
     - github.com/cortezaproject/corteza/server/system/types
     - github.com/cortezaproject/corteza/server/pkg/label
     - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
   apis:
   - name: list
     method: GET
@@ -2380,7 +2430,7 @@ endpoints:
       - { name: query,      type: "string",            title: "Filter routes" }
       - { name: deleted,    type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) deleted routes" }
       - { name: disabled,   type: "uint64",            title: "Exclude (0, default), include (1) or return only (2) disabled routes" }
-      - { name: labels,     type: "map[string]string", title: "Labels", parser: "label.ParseStrings" }
+      - { name: labels,     type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings" }
       - { name: limit,      type: "uint",              title: "Limit" }
       - { name: incTotal,   type: "bool",              title: "Include total counter" }
       - { name: pageCursor, type: "string",            title: "Page cursor" }

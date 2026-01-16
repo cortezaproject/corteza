@@ -146,9 +146,6 @@ export default {
         options: {
           moduleID,
           fields: [],
-          perPage: 14,
-          fullPageNavigation: false,
-          showTotalCount: false,
         },
       })]
 

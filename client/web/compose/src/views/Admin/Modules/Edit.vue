@@ -425,10 +425,14 @@
 
               <b-tab
                 v-if="module.issues.length > 0"
-                :title="$t('edit.issues.label', { count: module.issues.length })"
-                title-link-class="text-danger"
                 @click="checkAlterations"
               >
+                <template #title>
+                  <span class="text-danger">
+                    {{ $t('edit.issues.label', { count: module.issues.length }) }}
+                  </span>
+                </template>
+
                 <b-alert
                   v-for="(issue, index) in module.issues"
                   :key="index"

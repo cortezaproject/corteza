@@ -53,6 +53,18 @@
 
         <export size="lg" />
 
+        <b-button
+          variant="light"
+          size="lg"
+          @click="$bvModal.show('workflow-filter')"
+        >
+          <font-awesome-icon
+            :icon="['fas', 'filter']"
+            :class="['mr-1', { 'text-primary': labelFilterCount > 0 }]"
+          />
+          {{ $t('general:filter.label') }}
+        </b-button>
+
         <c-permissions-button
           v-if="canGrant"
           resource="corteza::automation:workflow/*"
@@ -113,15 +125,41 @@
       </template>
 
       <template #name="{ item: w }">
-        {{ w.meta.name || w.handle }}
-        <h5 class="d-inline-block ml-2">
+        <div>
+          {{ w.meta.name || w.handle }}
           <b-badge
             v-if="w.meta.subWorkflow"
             variant="info"
+            class="ml-2"
           >
             {{ $t('general:subworkflow') }}
           </b-badge>
-        </h5>
+        </div>
+        <div
+          v-for="group in getWorkflowLabels(w)"
+          :key="'group-' + group.namespaceID"
+          class="d-flex align-items-center flex-wrap gap-1 mt-2"
+        >
+          <b-badge
+            v-b-tooltip.hover.d200
+            :title="$t('general:filter.namespace.label')"
+            variant="primary"
+            style="font-size: 90%;"
+          >
+            {{ group.namespaceName }}
+          </b-badge>
+
+          <b-badge
+            v-for="mod in group.modules"
+            :key="'mod-' + group.namespaceID + '-' + mod.id"
+            v-b-tooltip.hover.d200
+            :title="$t('general:filter.module.label')"
+            variant="extra-light"
+            style="font-size: 90%;"
+          >
+            {{ mod.name }}
+          </b-badge>
+        </div>
       </template>
 
       <template #enabled="{ item: w }">
@@ -208,6 +246,12 @@
         </b-dropdown>
       </template>
     </c-resource-list>
+
+    <workflow-filter-modal
+      :namespace-labels="selectedNamespaceLabels"
+      :module-labels="selectedModuleLabels"
+      @apply="handleFilterApply"
+    />
   </b-container>
 </template>
 
@@ -215,6 +259,7 @@
 import { mapGetters } from 'vuex'
 import Import from '../../components/Import'
 import Export from '../../components/Export'
+import WorkflowFilterModal from '../../components/WorkflowFilterModal'
 import listHelpers from '../../mixins/listHelpers'
 import { components } from '@cortezaproject/corteza-vue'
 const { CResourceList } = components
@@ -230,6 +275,7 @@ export default {
     Import,
     Export,
     CResourceList,
+    WorkflowFilterModal,
   },
 
   mixins: [
@@ -245,6 +291,7 @@ export default {
         deleted: 0,
         subWorkflow: 1,
         disabled: 0,
+        labels: [],
       },
 
       sorting: {
@@ -255,12 +302,18 @@ export default {
       newWorkflow: {},
 
       importProcessing: false,
+
+      // Label filter selections (resource paths)
+      selectedNamespaceLabels: [],
+      selectedModuleLabels: [],
     }
   },
 
   computed: {
     ...mapGetters({
       can: 'rbac/can',
+      labelCache: 'labels/getNamespace',
+      getModule: 'labels/getModule',
     }),
 
     canGrant () {
@@ -269,6 +322,10 @@ export default {
 
     canCreate () {
       return this.can('automation/', 'workflow.create')
+    },
+
+    labelFilterCount () {
+      return this.selectedNamespaceLabels.length + this.selectedModuleLabels.length
     },
 
     tableFields () {
@@ -288,7 +345,6 @@ export default {
         {
           key: 'steps',
           label: this.$t('general:columns.steps'),
-          tdClass: 'align-middle',
           class: 'text-center',
           formatter: steps => {
             return (steps || []).length
@@ -321,6 +377,28 @@ export default {
   },
 
   methods: {
+    handleFilterApply ({ namespaceLabels, moduleLabels }) {
+      this.selectedNamespaceLabels = namespaceLabels || []
+      this.selectedModuleLabels = moduleLabels || []
+      this.updateLabelsFilter()
+    },
+
+    updateLabelsFilter () {
+      const labels = []
+
+      // Send labels directly - no transformation needed
+      if (this.selectedNamespaceLabels.length > 0) {
+        labels.push(`ref_namespace=${JSON.stringify(this.selectedNamespaceLabels)}`)
+      }
+
+      if (this.selectedModuleLabels.length > 0) {
+        labels.push(`ref_module=${JSON.stringify(this.selectedModuleLabels)}`)
+      }
+
+      this.filter.labels = labels
+      this.filterList()
+    },
+
     async importJSON (workflows = []) {
       this.importProcessing = true
 
@@ -363,7 +441,58 @@ export default {
     },
 
     workflowList () {
-      return this.procListResults(this.$AutomationAPI.workflowListCancellable(this.encodeListParams()))
+      return this.procListResults(
+        this.$AutomationAPI.workflowListCancellable(this.encodeListParams()),
+      ).then(workflows => {
+        // Pre-resolve all namespace and module names
+        if (workflows && workflows.length > 0) {
+          return this.resolveLabelsForWorkflows(workflows).then(() => workflows)
+        }
+        return workflows
+      })
+    },
+
+    async resolveLabelsForWorkflows (workflows) {
+      const namespaceIDs = new Set()
+      const modules = []
+
+      // Collect all unique IDs
+      workflows.forEach(workflow => {
+        if (workflow.labels?.ref_namespace) {
+          const nsValues = Array.isArray(workflow.labels.ref_namespace)
+            ? workflow.labels.ref_namespace
+            : [workflow.labels.ref_namespace]
+          nsValues.forEach(label => {
+            const nsID = label.split('/')[1]
+            if (nsID) namespaceIDs.add(nsID)
+          })
+        }
+
+        if (workflow.labels?.ref_module) {
+          const modValues = Array.isArray(workflow.labels.ref_module)
+            ? workflow.labels.ref_module
+            : [workflow.labels.ref_module]
+          modValues.forEach(label => {
+            const parts = label.split('/')
+            const nsID = parts[1]
+            const modID = parts[2]
+            if (nsID) namespaceIDs.add(nsID)
+            if (modID) modules.push({ moduleID: modID, namespaceID: nsID })
+          })
+        }
+      })
+
+      // Resolve using store
+      await Promise.all([
+        this.$store.dispatch('labels/resolveMultipleNamespaces', {
+          namespaceIDs: Array.from(namespaceIDs),
+          api: this.$ComposeAPI,
+        }),
+        this.$store.dispatch('labels/resolveMultipleModules', {
+          modules,
+          api: this.$ComposeAPI,
+        }),
+      ])
     },
 
     handleRowClicked (workflow) {
@@ -385,6 +514,81 @@ export default {
 
     statusText (w) {
       return w.enabled ? this.$t('general:disable') : this.$t('general:enable')
+    },
+
+    /**
+     * Get resolved label names for a workflow, grouped by namespace
+     * Returns array of { namespaceID, namespaceName, modules: [{ id, name }] }
+     *
+     * Labels are stored as:
+     * - ref_namespace: ["corteza::compose:namespace/id1", ...]
+     * - ref_module: ["corteza::compose:module/nsID/modID", ...]
+     */
+    getWorkflowLabels (workflow) {
+      if (!workflow.labels) {
+        return []
+      }
+
+      const namespaceIDs = []
+      const modulesByNamespace = {}
+
+      // Parse namespace labels - extract IDs for display
+      if (workflow.labels.ref_namespace) {
+        const nsValues = Array.isArray(workflow.labels.ref_namespace)
+          ? workflow.labels.ref_namespace
+          : [workflow.labels.ref_namespace]
+
+        nsValues.forEach(label => {
+          const nsID = label.split('/')[1] // Extract ID from corteza::compose:namespace/ID
+          if (nsID && !namespaceIDs.includes(nsID)) {
+            namespaceIDs.push(nsID)
+          }
+        })
+      }
+
+      // Parse module labels - extract IDs for display
+      if (workflow.labels.ref_module) {
+        const modValues = Array.isArray(workflow.labels.ref_module)
+          ? workflow.labels.ref_module
+          : [workflow.labels.ref_module]
+
+        modValues.forEach(label => {
+          const parts = label.split('/') // Split corteza::compose:module/nsID/modID
+          const nsID = parts[1]
+          const modID = parts[2]
+
+          if (!nsID || !modID) return
+
+          // Ensure namespace is in the list
+          if (!namespaceIDs.includes(nsID)) {
+            namespaceIDs.push(nsID)
+          }
+
+          if (!modulesByNamespace[nsID]) {
+            modulesByNamespace[nsID] = []
+          }
+
+          const name = this.$store.getters['labels/getModule'](modID)
+          modulesByNamespace[nsID].push({
+            id: modID,
+            name: name || modID,
+          })
+        })
+      }
+
+      if (namespaceIDs.length === 0) {
+        return []
+      }
+
+      // Build the grouped result - names are already resolved from store
+      return namespaceIDs.map(nsID => {
+        const name = this.$store.getters['labels/getNamespace'](nsID)
+        return {
+          namespaceID: nsID,
+          namespaceName: name || nsID,
+          modules: modulesByNamespace[nsID] || [],
+        }
+      })
     },
 
     handleStatusChange ({ workflowID, enabled }) {

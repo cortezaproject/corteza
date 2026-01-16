@@ -49,6 +49,7 @@ import {
   faMapMarkedAlt,
   faOutdent,
   faParagraph,
+  faPaperclip,
   faPen,
   faPlus,
   faQuestion,
@@ -62,6 +63,8 @@ import {
   faSort,
   faSortDown,
   faSortUp,
+  faSortAmountDown,
+  faSortAmountUp,
   faStrikethrough,
   faSync,
   faTable,
@@ -97,12 +100,15 @@ import {
   faSquare,
   faTrashAlt,
   faUser,
+  faEnvelopeOpen,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
   faSort,
   faSortUp,
   faSortDown,
+  faSortAmountDown,
+  faSortAmountUp,
   faWrench,
   faGripVertical,
   faDownload,
@@ -155,6 +161,7 @@ library.add(
   faChevronRight,
   faShareAlt,
   faEnvelope,
+  faEnvelopeOpen,
   faAngleUp,
   faAngleDown,
   faAngleLeft,
@@ -194,5 +201,6 @@ library.add(
   faBellSolid,
   faBellSlash,
   faLocationCrosshairs,
+  faPaperclip,
   faReply,
 )

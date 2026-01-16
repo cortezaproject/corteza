@@ -4,7 +4,7 @@
   >
     <b-form
       v-if="reminder"
-      class="flex-fill overflow-auto text-primary"
+      class="flex-fill overflow-auto"
       @submit.prevent
     >
       <b-form-group
@@ -114,7 +114,7 @@
       </b-form-group>
     </b-form>
 
-    <div class="d-flex align-items-center justify-content-around py-3">
+    <div class="d-flex align-items-center justify-content-around">
       <b-button
         data-test-id="button-back"
         variant="outline-light"

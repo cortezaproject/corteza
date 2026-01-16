@@ -6,7 +6,7 @@
       :icon="['far', `file-${icon}`]"
       :style="previewStyle"
       class="inline-icon d-block text-secondary"
-      @click="$emit('openPreview')"
+      @click.stop="$emit('openPreview')"
     />
 
     <p

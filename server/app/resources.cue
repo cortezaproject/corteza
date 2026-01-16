@@ -97,7 +97,10 @@ resources: { [key=_]: {"handle": key, "component": "system", "platform": "cortez
 			 		dal: { length: 512 }
 				}
 				value: {
-			 		dal: {}
+					goType: "types.LabelValue"
+			 		dal: { type: "JSON"}
+					omitSetter: true
+					omitGetter: true
 				}
 			}
 

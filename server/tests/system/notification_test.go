@@ -386,6 +386,51 @@ func TestNotificationMarkAsReadForbidden(t *testing.T) {
 		End()
 }
 
+func TestNotificationMarkAsUnread(t *testing.T) {
+	h := newHelper(t)
+	h.clearNotifications()
+
+	ntf := h.makeNotification()
+
+	// Mark as read first so we can verify unread transition
+	h.apiInit().
+		Patch(fmt.Sprintf("/notification/%d/read", ntf.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/notification/%d/unread", ntf.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// Verify notification is marked as unread
+	unreadNtf := h.lookupNotificationByID(ntf.ID)
+	if unreadNtf.ReadAt != nil {
+		t.Error("notification should be marked as unread")
+	}
+}
+
+func TestNotificationMarkAsUnreadForbidden(t *testing.T) {
+	h := newHelper(t)
+	h.clearNotifications()
+
+	ntf := h.makeNotificationByUserID(id.Next())
+
+	h.apiInit().
+		Patch(fmt.Sprintf("/notification/%d/unread", ntf.ID)).
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertError("notification.errors.notAllowedToRead")).
+		End()
+}
+
 func TestNotificationMarkAllAsRead(t *testing.T) {
 	h := newHelper(t)
 	h.clearNotifications()
@@ -412,6 +457,41 @@ func TestNotificationMarkAllAsRead(t *testing.T) {
 		Assert(helpers.AssertNoErrors).
 		Assert(jsonpath.Len("$.response.set", 3)).
 		End()
+}
+
+func TestNotificationMarkAllAsUnread(t *testing.T) {
+	h := newHelper(t)
+	h.clearNotifications()
+
+	// Create multiple notifications and mark them as read
+	n1 := h.makeNotification()
+	n2 := h.makeNotification()
+	n3 := h.makeNotification()
+
+	h.apiInit().
+		Patch("/notification/all/read").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// Now mark all as unread
+	h.apiInit().
+		Patch("/notification/all/unread").
+		Header("Accept", "application/json").
+		Expect(t).
+		Status(http.StatusOK).
+		Assert(helpers.AssertNoErrors).
+		End()
+
+	// Verify notifications are marked as unread
+	for _, n := range []uint64{n1.ID, n2.ID, n3.ID} {
+		ntf := h.lookupNotificationByID(n)
+		if ntf.ReadAt != nil {
+			t.Errorf("notification %d should be marked as unread", n)
+		}
+	}
 }
 
 func TestNotificationAssign_forbidden(t *testing.T) {

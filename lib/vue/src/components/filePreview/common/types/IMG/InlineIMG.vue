@@ -10,7 +10,7 @@
       :style="previewStyle"
       :width="getWidth"
       :height="getHeight"
-      @click="$emit('openPreview', {})"
+      @click.stop="$emit('openPreview', {})"
       @error.once="reloadBrokenImage"
       @load="loaded=true"
     >

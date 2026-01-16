@@ -156,7 +156,7 @@ export default {
   methods: {
     appendAttachment ({ attachmentID } = {}) {
       if (this.field.isMulti) {
-        this.value.push(attachmentID)
+        this.value = [attachmentID, ...this.value]
       } else {
         this.value = attachmentID
       }

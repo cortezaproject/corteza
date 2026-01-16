@@ -230,6 +230,11 @@ type (
 		//
 		// Wrap multi value fields in brachets
 		WrapMultiValue string
+
+		// ResolveRefs GET parameter
+		//
+		//
+		ResolveRefs bool
 	}
 
 	RecordExec struct {
@@ -531,6 +536,11 @@ type (
 		//
 		// ID
 		RecordID uint64 `json:",string"`
+
+		// Sort GET parameter
+		//
+		// Sort order
+		Sort string
 	}
 )
 
@@ -1100,6 +1110,7 @@ func (r RecordExport) Auditable() map[string]interface{} {
 		"timezone":            r.Timezone,
 		"multiValueDelimiter": r.MultiValueDelimiter,
 		"wrapMultiValue":      r.WrapMultiValue,
+		"resolveRefs":         r.ResolveRefs,
 	}
 }
 
@@ -1148,6 +1159,11 @@ func (r RecordExport) GetWrapMultiValue() string {
 	return r.WrapMultiValue
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r RecordExport) GetResolveRefs() bool {
+	return r.ResolveRefs
+}
+
 // Fill processes request and fills internal variables
 func (r *RecordExport) Fill(req *http.Request) (err error) {
 
@@ -1186,6 +1202,12 @@ func (r *RecordExport) Fill(req *http.Request) (err error) {
 		}
 		if val, ok := tmp["wrapMultiValue"]; ok && len(val) > 0 {
 			r.WrapMultiValue, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+		if val, ok := tmp["resolveRefs"]; ok && len(val) > 0 {
+			r.ResolveRefs, err = payload.ParseBool(val[0]), nil
 			if err != nil {
 				return err
 			}
@@ -2540,6 +2562,7 @@ func (r RecordRevisions) Auditable() map[string]interface{} {
 		"namespaceID": r.NamespaceID,
 		"moduleID":    r.ModuleID,
 		"recordID":    r.RecordID,
+		"sort":        r.Sort,
 	}
 }
 
@@ -2558,8 +2581,25 @@ func (r RecordRevisions) GetRecordID() uint64 {
 	return r.RecordID
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r RecordRevisions) GetSort() string {
+	return r.Sort
+}
+
 // Fill processes request and fills internal variables
 func (r *RecordRevisions) Fill(req *http.Request) (err error) {
+
+	{
+		// GET params
+		tmp := req.URL.Query()
+
+		if val, ok := tmp["sort"]; ok && len(val) > 0 {
+			r.Sort, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

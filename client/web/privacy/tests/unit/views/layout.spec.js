@@ -71,7 +71,7 @@ describe('Layout.vue', () => {
       'd-flex',
       'flex-column',
       'w-100',
-      'vh-100',
+      'h-viewport',
     ])
   })
 })

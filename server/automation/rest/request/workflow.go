@@ -14,6 +14,7 @@ import (
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -66,7 +67,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -98,7 +99,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Meta POST parameter
 		//
@@ -160,7 +161,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Meta POST parameter
 		//
@@ -331,7 +332,7 @@ func (r WorkflowList) GetSubWorkflow() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowList) GetLabels() map[string]string {
+func (r WorkflowList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -465,7 +466,7 @@ func (r WorkflowCreate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowCreate) GetLabels() map[string]string {
+func (r WorkflowCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -787,7 +788,7 @@ func (r WorkflowUpdate) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r WorkflowUpdate) GetLabels() map[string]string {
+func (r WorkflowUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

@@ -31,15 +31,6 @@
           />
         </b-button>
 
-        <page-translator
-          v-if="trPage"
-          data-test-id="button-page-translations"
-          :page.sync="trPage"
-          :page-layout.sync="layout"
-          button-variant="primary"
-          style="margin-left:2px;"
-        />
-
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), boundary: 'body' }"
           data-test-id="button-page-edit"
@@ -52,6 +43,15 @@
             :icon="['far', 'edit']"
           />
         </b-button>
+
+        <page-translator
+          v-if="trPage"
+          data-test-id="button-page-translations"
+          :page.sync="trPage"
+          :page-layout.sync="layout"
+          button-variant="primary"
+          style="margin-left:2px;"
+        />
       </b-button-group>
     </portal>
 

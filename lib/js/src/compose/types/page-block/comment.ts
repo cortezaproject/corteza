@@ -13,6 +13,7 @@ interface Options {
   refreshRate: number;
   showRefresh: boolean;
   magnifyOption: string;
+  attachmentField: string;
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -26,6 +27,7 @@ const defaults: Readonly<Options> = Object.freeze({
   refreshRate: 0,
   showRefresh: false,
   magnifyOption: '',
+  attachmentField: '',
 })
 
 export class PageBlockComment extends PageBlock {
@@ -41,7 +43,7 @@ export class PageBlockComment extends PageBlock {
   applyOptions (o?: Partial<Options>): void {
     if (!o) return
     Apply(this.options, o, CortezaID, 'moduleID')
-    Apply(this.options, o, String, 'titleField', 'contentField', 'replyField', 'referenceField', 'filter', 'sortDirection', 'magnifyOption')
+    Apply(this.options, o, String, 'titleField', 'contentField', 'replyField', 'referenceField', 'attachmentField', 'filter', 'sortDirection', 'magnifyOption')
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
   }

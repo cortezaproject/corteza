@@ -19,6 +19,7 @@
 <script>
 import { NoID } from '@cortezaproject/corteza-js'
 import { debounce } from 'lodash'
+import axios from 'axios'
 
 export default {
   name: 'CInputUser',
@@ -48,6 +49,7 @@ export default {
   data () {
     return {
       processing: false,
+      cancelRequest: null,
 
       user: {
         options: [],
@@ -71,7 +73,6 @@ export default {
     search: debounce(function (query) {
       if (query !== this.user.filter.query) {
         this.user.filter.query = query
-        this.user.filter.page = 1
       }
 
       this.fetchUsers()
@@ -80,13 +81,24 @@ export default {
     fetchUsers () {
       this.processing = true
 
-      return this.$SystemAPI.userList(this.user.filter).then(({ set }) => {
-        this.user.options = set.map(m => Object.freeze(m))
-      }).finally(() => {
-        setTimeout(() => {
+      if (this.cancelRequest) {
+        this.cancelRequest()
+        this.cancelRequest = null
+      }
+
+      const { response, cancel } = this.$SystemAPI.userListCancellable(this.user.filter)
+      this.cancelRequest = cancel
+
+      return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(([{ set }]) => {
+          this.user.options = set.map(m => Object.freeze(m))
           this.processing = false
-        }, 500)
-      })
+        })
+        .catch((e) => {
+          if (axios.isCancel(e)) return
+          this.processing = false
+          throw e
+        })
     },
 
     getUserByID (userID) {
@@ -110,6 +122,8 @@ export default {
     onUserUpdate (user) {
       if (this.clearOnSelect && this.$refs.userSelect) {
         this.$refs.userSelect._data._value = undefined
+      } else {
+        this.user.value = user
       }
 
       this.$emit('input', user.userID)

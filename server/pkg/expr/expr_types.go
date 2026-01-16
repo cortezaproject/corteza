@@ -20,6 +20,8 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	h "github.com/cortezaproject/corteza/server/pkg/http"
 	"github.com/spf13/cast"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
+
 )
 
 type (
@@ -593,6 +595,48 @@ func CastToKV(val interface{}) (out map[string]string, err error) {
 	}
 }
 
+func assignToLabelValue(t *LabelValue, key string, val TypedValue) error{
+	if t.value == nil {
+		t.value = make(map[string]labelTypes.LabelValue)
+	}
+
+	untypedVal := UntypedValue(val)
+
+	switch v := untypedVal.(type) {
+	case []string:
+		t.value[key] = labelTypes.LabelValue{Values: v}
+	default:
+		str, err := cast.ToStringE(untypedVal)
+		if err != nil {
+			return  err
+		}
+		t.value[key] = labelTypes.LabelValue{Val: str}
+	}
+	return nil
+}
+func CastToLabelValue(val interface{}) (out map[string]labelTypes.LabelValue, err error) {
+	switch val := UntypedValue(val).(type) {
+	case map[string]labelTypes.LabelValue:
+		return val,nil
+	case map[string]string:
+		out = make(map[string]labelTypes.LabelValue,len(val))
+		for k, v:= range val {
+			out[k] = labelTypes.LabelValue{Val: v}
+		}
+		return out,nil
+	case map[string][]string:
+		out = make(map[string]labelTypes.LabelValue,len(val))
+		for k,v := range val {
+			out[k] = labelTypes.LabelValue{Values: v}
+		}
+		return out,nil
+	case nil:
+		return make(map[string]labelTypes.LabelValue),nil
+	default:
+		return nil,fmt.Errorf("unable to cast type %T to map[string]labelTypes.LabelValue", val)
+	}
+}
+
 func (t *KV) SelectGVal(_ context.Context, k string) (interface{}, error) {
 	t.mux.RLock()
 	defer t.mux.RUnlock()
@@ -1088,6 +1132,17 @@ func (v *KV) Clone() (out TypedValue, err error) {
 	}
 	return aux, nil
 }
+ func (v *LabelValue) Clone() (out TypedValue, err error) {
+  	aux := &LabelValue{
+  		value: make(map[string]labelTypes.LabelValue, len(v.value)),
+  	}
+
+  	for k, v := range v.value {
+  		aux.value[k] = v
+  	}
+  	return aux, nil
+  }
+
 
 func (v *KVV) Clone() (out TypedValue, err error) {
 	aux := &KVV{

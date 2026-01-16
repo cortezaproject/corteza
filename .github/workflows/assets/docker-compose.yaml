@@ -36,7 +36,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: corteza_cy_test
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -48,7 +48,7 @@ services:
       - "${PWD}:/corteza"
     working_dir: /corteza
     environment:
-      BUILD_VERSION: 2024.9.6
+      BUILD_VERSION: 2024.9.7
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
       interval: 30s

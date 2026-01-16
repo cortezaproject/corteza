@@ -13,9 +13,9 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
-	"github.com/cortezaproject/corteza/server/pkg/str"
 	"github.com/go-chi/chi/v5"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
 	"io"
@@ -68,7 +68,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -125,7 +125,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Visible POST parameter
 		//
@@ -211,7 +211,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Visible POST parameter
 		//
@@ -365,7 +365,7 @@ type (
 		// Style POST parameter
 		//
 		// Icon style
-		Style map[string]string
+		Style map[string]labelTypes.LabelValue
 	}
 )
 
@@ -415,7 +415,7 @@ func (r PageList) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageList) GetLabels() map[string]string {
+func (r PageList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -570,7 +570,7 @@ func (r PageCreate) GetWeight() int {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageCreate) GetLabels() map[string]string {
+func (r PageCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -962,7 +962,7 @@ func (r PageUpdate) GetWeight() int {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdate) GetLabels() map[string]string {
+func (r PageUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -1771,7 +1771,7 @@ func (r PageUpdateIcon) GetSource() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageUpdateIcon) GetStyle() map[string]string {
+func (r PageUpdateIcon) GetStyle() map[string]labelTypes.LabelValue {
 	return r.Style
 }
 
@@ -1811,12 +1811,12 @@ func (r *PageUpdateIcon) Fill(req *http.Request) (err error) {
 			}
 
 			if val, ok := req.MultipartForm.Value["style[]"]; ok {
-				r.Style, err = str.ParseStrings(val)
+				r.Style, err = label.ParseStrings(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["style"]; ok {
-				r.Style, err = str.ParseStrings(val)
+				r.Style, err = label.ParseStrings(val)
 				if err != nil {
 					return err
 				}
@@ -1846,12 +1846,12 @@ func (r *PageUpdateIcon) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["style[]"]; ok {
-			r.Style, err = str.ParseStrings(val)
+			r.Style, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["style"]; ok {
-			r.Style, err = str.ParseStrings(val)
+			r.Style, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

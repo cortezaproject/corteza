@@ -9,17 +9,29 @@
       data-test-id="input-search"
       :type="inputType"
       name="search"
-      :value="value"
+      :value="localValue"
       :debounce="debounce"
       :disabled="disabled"
       :placeholder="placeholder"
       :autocomplete="autocomplete"
       :size="size"
-      class="pr-0 text-truncate"
+      class="text-truncate"
       @input="onInput"
       @update="search"
       @keyup.enter="submitQuery"
     />
+
+    <b-button
+      v-if="clearable && localValue && !disabled"
+      variant="link"
+      class="close-button d-inline-flex align-items-center rounded-0 p-3"
+      @click="onClear"
+    >
+      <font-awesome-icon
+        :icon="['fas', 'times']"
+        class="text-primary"
+      />
+    </b-button>
 
     <b-button
       v-if="showSubmittable"
@@ -128,6 +140,16 @@ export default {
         this.$emit('search', this.$refs.searchInput.localValue)
       }
     },
+
+    onClear () {
+      this.localValue = ''
+      if (!this.submittable) {
+        this.$emit('input', '')
+      }
+      this.$nextTick(() => {
+        this.$refs.searchInput.focus()
+      })
+    },
   },
 }
 </script>
@@ -147,22 +169,35 @@ input:focus::placeholder {
     border-left-width: 2px;
   }
 
-  ::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-    height: 1em;
-    width: 1em;
-    background: var(--primary);
-    -webkit-mask-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
-    mask-image: url("data:image/svg+xml;charset=UTF-8,%3csvg viewPort='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg'%3e%3cline x1='1' y1='11' x2='11' y2='1' stroke='black' stroke-width='2'/%3e%3cline x1='1' y1='1' x2='11' y2='11' stroke='black' stroke-width='2'/%3e%3c/svg%3e");
-    cursor: pointer;
-    margin-right: 13px;
-    margin-left: 5px;
+  .close-button {
+    position: absolute;
+    right: 1px;
+    top: 1px;
+    bottom: 1px;
+    z-index: 5;
+    border: none;
+    background: none;
+
+    &:hover {
+      text-decoration: none;
+    }
   }
 
-  &.submittable {
-    ::-webkit-search-cancel-button {
-      margin-right: 56px;
-    }
+  &.submittable .close-button {
+    right: 48px;
+  }
+
+  .form-control {
+    padding-right: 40px;
+  }
+
+  &.submittable .form-control {
+    padding-right: 85px;
+  }
+
+  ::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    display: none;
   }
 }
 

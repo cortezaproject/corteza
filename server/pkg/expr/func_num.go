@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"strconv"
 
 	"github.com/PaesslerAG/gval"
 	"github.com/cortezaproject/corteza/server/pkg/gvalfnc"
@@ -148,5 +149,14 @@ func random(v ...float64) (out float64, err error) {
 }
 
 func toInt64(aa interface{}) (i int64) {
+	// Parse strings as base-10 to avoid cast.ToInt64's octal interpretation of leading zeros
+	if str, ok := aa.(string); ok {
+		parsed, err := strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			return 0
+		}
+		return parsed
+	}
+
 	return cast.ToInt64(aa)
 }

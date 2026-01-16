@@ -201,7 +201,7 @@ func (d StoreDecoder) decode(ctx context.Context, s store.Storer, dl dal.FullSer
 				out = append(out, aux...)
 
 			default:
-				aux, err = d.extendDecoder(ctx, s, dl, wf.rt, refNodes[i], wf.f)
+				aux, err = d.extendDecoder(ctx, s, dl, p, wf.rt, refNodes[i], wf.f)
 				if err != nil {
 					return
 				}

@@ -1,5 +1,9 @@
 configuration: Configuration
 edge: Edge
+general:
+  label: General
+labels:
+  label: Labels
 name:
   label: Name *
   placeholder: Workflow name

@@ -103,6 +103,13 @@ export default (options = {}) => {
         // Initialize notifications
         this.$store.dispatch('notifications/fetchNotifications')
 
+        // Initialize drafts store (loads from localStorage + backend, starts background sync)
+        this.$store.dispatch('drafts/init', {
+          composeAPI: this.$ComposeAPI,
+          systemAPI: this.$SystemAPI,
+          resourceType: 'compose:record',
+        })
+
         this.loadBundle(bundleLoaderOpt)
           .then(() => this.$ComposeAPI.automationList({ excludeInvalid: true }))
           .then(this.makeAutomationScriptsRegistrator(
@@ -170,8 +177,16 @@ export default (options = {}) => {
               this.$store.dispatch('notifications/updateReadNotification', msg['@value'])
               break
 
+            case 'notification.unread':
+              this.$store.dispatch('notifications/updateUnreadNotification', msg['@value'])
+              break
+
             case 'notification.read.all':
               this.$store.dispatch('notifications/updateAllReadNotifications', msg['@value'])
+              break
+
+            case 'notification.unread.all':
+              this.$store.dispatch('notifications/updateAllUnreadNotifications', msg['@value'])
               break
 
             case 'notification.delete':
@@ -191,6 +206,7 @@ export default (options = {}) => {
       { app: 'corteza-webapp-compose' },
       'block',
       'chart',
+      'drafts',
       'field',
       'general',
       'module',

@@ -48,6 +48,7 @@
           autocomplete="off"
           type="number"
           number
+          :step="field.options.step"
           @input="setMultiValue($event, ctx.index)"
         />
       </b-input-group>
@@ -63,6 +64,7 @@
           autocomplete="off"
           type="number"
           number
+          :step="field.options.step"
         />
       </b-input-group>
       <errors :errors="errors" />

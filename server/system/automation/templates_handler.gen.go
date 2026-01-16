@@ -12,6 +12,7 @@ import (
 	"context"
 	atypes "github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
@@ -152,7 +153,7 @@ type (
 		Partial    bool
 
 		hasLabels bool
-		Labels    map[string]string
+		Labels    map[string]labelTypes.LabelValue
 
 		hasSort bool
 		Sort    string
@@ -211,7 +212,7 @@ func (h templatesHandler) Search() *atypes.Function {
 			},
 			{
 				Name:  "labels",
-				Types: []string{"KV"},
+				Types: []string{"LabelValue"},
 			},
 			{
 				Name:  "sort",
@@ -329,7 +330,7 @@ type (
 		Partial    bool
 
 		hasLabels bool
-		Labels    map[string]string
+		Labels    map[string]labelTypes.LabelValue
 
 		hasSort bool
 		Sort    string
@@ -388,7 +389,7 @@ func (h templatesHandler) Each() *atypes.Function {
 			},
 			{
 				Name:  "labels",
-				Types: []string{"KV"},
+				Types: []string{"LabelValue"},
 			},
 			{
 				Name:  "sort",

@@ -114,8 +114,16 @@ export default (options = {}) => {
               this.$store.dispatch('notifications/updateReadNotification', msg['@value'])
               break
 
+            case 'notification.unread':
+              this.$store.dispatch('notifications/updateUnreadNotification', msg['@value'])
+              break
+
             case 'notification.read.all':
               this.$store.dispatch('notifications/updateAllReadNotifications', msg['@value'])
+              break
+
+            case 'notification.unread.all':
+              this.$store.dispatch('notifications/updateAllUnreadNotifications', msg['@value'])
               break
 
             case 'notification.delete':

@@ -58,8 +58,8 @@ export default {
         { action: this.$t('help:basic-controls.action.select'), shortcut: this.$t('help:basic-controls.shortcut.left-click.label') },
         { action: this.$t('help:basic-controls.action.select-multiple'), shortcut: this.$t('help:basic-controls.shortcut.left-click.drag') },
         { action: this.$t('help:basic-controls.action.deselect'), shortcut: this.$t('help:basic-controls.shortcut.left-click.background') },
-        { action: this.$t('help:basic-controls.action.pan'), shortcut: this.$t('help:basic-controls.shortcut.right-click-drag') },
-        { action: this.$t('help:basic-controls.action.zoom-in/out'), shortcut: this.$t('help:basic-controls.shortcut.mouse-wheel') },
+        { action: this.$t('help:basic-controls.action.pan'), shortcut: this.$t('help:basic-controls.shortcut.pan') },
+        { action: this.$t('help:basic-controls.action.zoom-in/out'), shortcut: this.$t('help:basic-controls.shortcut.zoom') },
       ],
 
       keyboardShortcuts: [

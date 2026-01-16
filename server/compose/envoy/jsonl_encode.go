@@ -77,29 +77,36 @@ func (e JsonlEncoder) encodeRecordDatasource(ctx context.Context, writer *json.E
 
 		row, _ := j7s.MakeMap()
 		for _, h := range header {
-			v := out[h]
-			if len(v.Values) == 0 {
-				continue
-			}
-
-			if !rds.multivalues[h] {
-				row, err = j7s.AddMap(row, h, v.Values[0])
-				if err != nil {
+			proc := func(h string) {
+				v := out[h]
+				if len(v.Values) == 0 {
 					return
 				}
-			} else {
-				auxv, _ := j7s.MakeSeq()
-				for _, vv := range v.Values {
-					auxv, err = j7s.AddSeq(auxv, vv)
+
+				if !rds.multivalues[h] {
+					row, err = j7s.AddMap(row, h, v.Values[0])
+					if err != nil {
+						return
+					}
+				} else {
+					auxv, _ := j7s.MakeSeq()
+					for _, vv := range v.Values {
+						auxv, err = j7s.AddSeq(auxv, vv)
+						if err != nil {
+							return
+						}
+					}
+
+					row, err = j7s.AddMap(row, h, auxv)
 					if err != nil {
 						return
 					}
 				}
+			}
 
-				row, err = j7s.AddMap(row, h, auxv)
-				if err != nil {
-					return
-				}
+			proc(h)
+			if _, ok := out[fmt.Sprintf("%s value", h)]; ok {
+				proc(fmt.Sprintf("%s value", h))
 			}
 		}
 

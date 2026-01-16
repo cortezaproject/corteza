@@ -131,7 +131,17 @@ type (
 		NotificationID uint64 `json:",string"`
 	}
 
+	NotificationMarkAsUnread struct {
+		// NotificationID PATH parameter
+		//
+		// Notification ID
+		NotificationID uint64 `json:",string"`
+	}
+
 	NotificationMarkAllAsRead struct {
+	}
+
+	NotificationMarkAllAsUnread struct {
 	}
 )
 
@@ -580,9 +590,60 @@ func (r *NotificationMarkAsRead) Fill(req *http.Request) (err error) {
 	return err
 }
 
+// NewNotificationMarkAsUnread request
+func NewNotificationMarkAsUnread() *NotificationMarkAsUnread {
+	return &NotificationMarkAsUnread{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NotificationMarkAsUnread) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"notificationID": r.NotificationID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NotificationMarkAsUnread) GetNotificationID() uint64 {
+	return r.NotificationID
+}
+
+// Fill processes request and fills internal variables
+func (r *NotificationMarkAsUnread) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "notificationID")
+		r.NotificationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
 // NewNotificationMarkAllAsRead request
 func NewNotificationMarkAllAsRead() *NotificationMarkAllAsRead {
 	return &NotificationMarkAllAsRead{}
+}
+
+// NewNotificationMarkAllAsUnread request
+func NewNotificationMarkAllAsUnread() *NotificationMarkAllAsUnread {
+	return &NotificationMarkAllAsUnread{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NotificationMarkAllAsUnread) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *NotificationMarkAllAsUnread) Fill(req *http.Request) (err error) {
+
+	return err
 }
 
 // Auditable returns all auditable/loggable parameters

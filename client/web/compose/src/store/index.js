@@ -48,5 +48,9 @@ export default new Vuex.Store({
         api: Vue.prototype.$SystemAPI,
       }),
     },
+    drafts: {
+      namespaced: true,
+      ...cvStore.drafts(),
+    },
   },
 })

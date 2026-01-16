@@ -2,13 +2,13 @@
   <div
     :style="previewStyle"
     :class="[...previewClass, 'pdf-preview', inline ? 'inline' : '', $listeners.click ? 'clickable' : '']"
-    @click="onPreviewClick"
+    @click.stop="onPreviewClick"
   >
     <!-- Container for pdf's pages -->
     <div
       v-show="show"
       ref="pages"
-      class="pages"
+      class="pages shadow-sm"
     />
 
     <div
@@ -343,7 +343,6 @@ export default {
 
   canvas {
     margin-bottom: 10px;
-    box-shadow: 0 0 3px #1E1E1E41;
     width: 80%;
     height: auto;
 

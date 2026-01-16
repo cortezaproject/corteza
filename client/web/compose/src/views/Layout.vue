@@ -1,7 +1,7 @@
 <template>
   <div
     :id="namespaceID"
-    class="d-flex flex-column w-100 vh-100 overflow-hidden"
+    class="d-flex flex-column w-100 h-viewport overflow-hidden"
   >
     <header>
       <c-topbar
@@ -32,6 +32,12 @@
 
         <template #avatar-dropdown>
           <portal-target name="topbar-avatar-dropdown" />
+        </template>
+
+        <template #right-tools>
+          <c-draft-button
+            v-if="$Settings.get('ui.topbar.showDrafts', false)"
+          />
         </template>
       </c-topbar>
     </header>
@@ -120,16 +126,25 @@
       }"
     />
 
-    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
+    <c-notification-sidebar v-if="!$Settings.get('ui.topbar.hideNotifications', false)" />
+
+    <c-draft-sidebar v-if="$Settings.get('ui.topbar.showDrafts', false)" />
   </div>
 </template>
 
 <script>
 import { components } from '@cortezaproject/corteza-vue'
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faFile } from '@fortawesome/free-regular-svg-icons'
 import { debounce } from 'lodash'
 import moment from 'moment'
 import { mapActions, mapGetters } from 'vuex'
 import CTranslationModal from '../components/Translator/CTranslatorModal'
+import CDraftSidebar from '../components/Drafts/CDraftSidebar'
+import CDraftButton from '../components/Drafts/CDraftButton'
+
+library.add(faFile)
+
 const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
 
 export default {
@@ -146,6 +161,8 @@ export default {
     CToaster, // Only used for reminders
     CExtendSession,
     CNotificationSidebar,
+    CDraftSidebar,
+    CDraftButton,
   },
 
   data () {
@@ -361,12 +378,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.sidebar-spacer {
-  width: 0;
-  transition: width 0.2s ease-in-out;
-
-  &.expanded {
-    width: 240px;
-  }
+.h-viewport {
+  height: 100vh;
+  height: 100dvh;
 }
 </style>

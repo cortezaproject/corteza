@@ -22,6 +22,7 @@
 
       <b-button
         v-else-if="!preloadRevisions && !loadedRevisions"
+        variant="light"
         class="my-auto"
         @click="refresh()"
       >
@@ -51,7 +52,7 @@
           <template #cell(user)="row">
             <field-viewer
               value-only
-              :field="getField('userID')"
+              :field="mockRevisionModule.findField('userID')"
               :record="row.item"
               :module="mockRevisionModule"
               :namespace="namespace"
@@ -61,7 +62,7 @@
           <template #cell(timestamp)="row">
             <field-viewer
               value-only
-              :field="getField('timestamp')"
+              :field="mockRevisionModule.findField('timestamp')"
               :record="row.item"
               :module="mockRevisionModule"
               :namespace="namespace"
@@ -89,7 +90,6 @@
             <div class="overflow-hidden">
               <b-table-simple
                 table-variant="light"
-                hover
                 class="mb-0"
               >
                 <b-thead>
@@ -106,16 +106,16 @@
                     :key="change.key"
                   >
                     <b-td>
-                      {{ change.key }}
+                      {{ change.label }}
                     </b-td>
 
                     <b-td>
                       <field-viewer
-                        v-if="change.old"
+                        v-if="row.item.meta.oldRecord"
                         value-only
-                        :field="getField(`${change.key}_old`)"
-                        :record="row.item"
-                        :module="mockRevisionModule"
+                        :field="module.findField(change.key)"
+                        :record="row.item.meta.oldRecord"
+                        :module="module"
                         :namespace="namespace"
                       />
 
@@ -126,11 +126,11 @@
 
                     <b-td>
                       <field-viewer
-                        v-if="change.new"
+                        v-if="row.item.meta.newRecord"
                         value-only
-                        :field="getField(`${change.key}_new`)"
-                        :record="row.item"
-                        :module="mockRevisionModule"
+                        :field="module.findField(change.key)"
+                        :record="row.item.meta.newRecord"
+                        :module="module"
                         :namespace="namespace"
                       />
 
@@ -266,7 +266,9 @@ export default {
     'record.recordID': {
       immediate: true,
       handler () {
-        this.refresh()
+        if (this.preloadRevisions) {
+          this.refresh()
+        }
       },
     },
 
@@ -324,39 +326,64 @@ export default {
         { name: 'operation', kind: 'String' },
       ]
 
-      this.module.fields.forEach(f => {
-        fields.push({
-          ...f,
-          name: `${f.name}_old`,
-        })
-
-        fields.push({
-          ...f,
-          name: `${f.name}_new`,
-        })
-      })
-
       this.mockRevisionModule = new compose.Module({
         ...this.module,
         fields,
       })
 
-      return this.block.fetch(this.$ComposeAPI, this.record).then(set => {
+      return this.block.fetch(this.$ComposeAPI, this.record, this.options.sortDirection).then(set => {
         this.revisions = set.map(r => {
-          const changes = r.changes.reduce((acc, c) => {
-            if (c.old) {
-              acc[`${c.key}_old`] = c.old
+          // Build old and new record values from all changes
+          let oldOwnedBy = NoID
+          let newOwnedBy = NoID
+          const oldValues = {}
+          const newValues = {}
+
+          r.changes.forEach(c => {
+            if (c.old !== undefined) {
+              if (c.key === 'ownedBy') {
+                oldOwnedBy = c.old[0]
+              } else {
+                oldValues[c.key] = c.old
+              }
             }
 
-            if (c.new) {
-              acc[`${c.key}_new`] = c.new
+            if (c.new !== undefined) {
+              if (c.key === 'ownedBy') {
+                newOwnedBy = c.new[0]
+              } else {
+                newValues[c.key] = c.new
+              }
             }
+          })
 
-            return acc
-          }, {})
+          // Create old and new records for this revision
+          // Start with the current record's system fields, then apply changes
+          const oldRecord = Object.keys(oldValues).length > 0
+            ? new compose.Record(this.module, {
+              ownedBy: oldOwnedBy,
+              values: oldValues,
+            })
+            : null
+
+          const newRecord = Object.keys(newValues).length > 0
+            ? new compose.Record(this.module, {
+              ownedBy: newOwnedBy,
+              values: newValues,
+            })
+            : null
+
+          // Changes now contain the key and label
+          const changes = r.changes.map(c => {
+            const field = this.module.findField(c.key)
+            return {
+              key: c.key,
+              label: field ? field.label || field.name : c.key,
+            }
+          })
 
           return new compose.Record(this.mockRevisionModule, {
-            recordID: r.resourceID,
+            recordID: r.resource,
             values: {
               revision: r.revision,
               changeID: r.changeID,
@@ -364,17 +391,25 @@ export default {
               timestamp: r.timestamp,
               userID: r.userID,
               recordID: r.recordID,
-              ...changes,
             },
             meta: {
-              changes: r.changes,
+              changes,
+              oldRecord,
+              newRecord,
             },
           })
         })
 
+        // Collect all old/new records for fetching users and related records
+        const allRecords = []
+        this.revisions.forEach(rev => {
+          if (rev.meta.oldRecord) allRecords.push(rev.meta.oldRecord)
+          if (rev.meta.newRecord) allRecords.push(rev.meta.newRecord)
+        })
+
         return Promise.all([
-          this.fetchUsers(fields, this.revisions),
-          this.fetchRecords(this.namespace.namespaceID, fields, this.revisions),
+          this.fetchUsers(this.module.fields, this.revisions),
+          this.fetchRecords(this.namespace.namespaceID, this.module.fields, allRecords),
         ])
       })
         .finally(() => {
@@ -382,10 +417,6 @@ export default {
             this.processing = false
           }, 300)
         })
-    },
-
-    getField (name) {
-      return this.mockRevisionModule.fields.find(f => f.name === name)
     },
 
     refresh () {

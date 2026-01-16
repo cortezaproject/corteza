@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	sqlxTypes "github.com/jmoiron/sqlx/types"
@@ -55,7 +56,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Flags GET parameter
 		//
@@ -117,7 +118,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	ApplicationUpdate struct {
@@ -154,7 +155,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -291,7 +292,7 @@ func (r ApplicationList) GetDeleted() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApplicationList) GetLabels() map[string]string {
+func (r ApplicationList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -450,7 +451,7 @@ func (r ApplicationCreate) GetConfig() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApplicationCreate) GetLabels() map[string]string {
+func (r ApplicationCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -632,7 +633,7 @@ func (r ApplicationUpdate) GetConfig() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApplicationUpdate) GetLabels() map[string]string {
+func (r ApplicationUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

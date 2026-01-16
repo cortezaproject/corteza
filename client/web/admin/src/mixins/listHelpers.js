@@ -181,40 +181,37 @@ export default {
         this.$router.replace(this.encodeRouteParams())
       }
 
-      return response().then(async ({ set, filter } = {}) => {
-        if (filter.incTotal) {
-          this.pagination.total = filter.total
-        }
+      return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(async ([{ set, filter }]) => {
+          if (filter.incTotal) {
+            this.pagination.total = filter.total
+          }
 
-        // This was a fetch of total number of items
-        if (this.tempQuery) {
-          const query = this.tempQuery
-          this.tempQuery = undefined
+          // This was a fetch of total number of items
+          if (this.tempQuery) {
+            const query = this.tempQuery
+            this.tempQuery = undefined
 
-          this.$router.replace({ query })
-          return []
-        }
+            this.$router.replace({ query })
+            return []
+          }
 
-        this.pagination.pageCursor = undefined
-        this.pagination.nextPage = filter.nextPage
-        this.pagination.prevPage = filter.prevPage
+          this.pagination.pageCursor = undefined
+          this.pagination.nextPage = filter.nextPage
+          this.pagination.prevPage = filter.prevPage
 
-        return set
-      }).catch(error => {
-        if (!axios.isCancel(error)) {
-          this.toastErrorHandler(this.$t('notification:list.load.error'))(error)
-        } else {
-          this.cancelled = true
-        }
-      }).finally(async () => {
-        if (!this.cancelled) {
-          await new Promise(resolve => setTimeout(resolve, 300))
-        } else {
+          this.decLoader()
+          return set
+        }).catch(error => {
+          if (!axios.isCancel(error)) {
+            this.toastErrorHandler(this.$t('notification:list.load.error'))(error)
+          } else {
+            this.cancelled = true
+          }
+          this.decLoader()
+        }).finally(() => {
           this.cancelled = false
-        }
-
-        this.decLoader()
-      })
+        })
     },
 
     genericRowClass (item) {

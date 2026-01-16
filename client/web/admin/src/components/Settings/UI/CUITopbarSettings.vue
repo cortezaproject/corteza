@@ -22,6 +22,18 @@
         </b-form-checkbox>
 
         <b-form-checkbox
+          v-model="hideDrafts"
+        >
+          {{ $t('drafts.hide') }}
+          <b-badge
+            variant="warning"
+            class="ml-1"
+          >
+            {{ $t('general:label.experimental') }}
+          </b-badge>
+        </b-form-checkbox>
+
+        <b-form-checkbox
           v-model="topbarSettings.hideNotifications"
         >
           {{ $t('notifications.hide') }}
@@ -281,6 +293,18 @@ export default {
         ],
       },
     }
+  },
+
+  computed: {
+    hideDrafts: {
+      get () {
+        return this.topbarSettings.showDrafts !== true
+      },
+
+      set (value) {
+        this.$set(this.topbarSettings, 'showDrafts', !value)
+      },
+    },
   },
 
   watch: {

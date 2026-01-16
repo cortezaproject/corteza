@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -50,7 +51,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -127,7 +128,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	AuthClientUpdate struct {
@@ -189,7 +190,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -262,7 +263,7 @@ func (r AuthClientList) GetDeleted() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r AuthClientList) GetLabels() map[string]string {
+func (r AuthClientList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -418,7 +419,7 @@ func (r AuthClientCreate) GetSecurity() *types.AuthClientSecurity {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r AuthClientCreate) GetLabels() map[string]string {
+func (r AuthClientCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -720,7 +721,7 @@ func (r AuthClientUpdate) GetSecurity() *types.AuthClientSecurity {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r AuthClientUpdate) GetLabels() map[string]string {
+func (r AuthClientUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

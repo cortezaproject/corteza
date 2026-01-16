@@ -1,6 +1,7 @@
 package revisions
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -9,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/cortezaproject/corteza/server/pkg/j7s"
 )
 
 type (
@@ -201,7 +203,9 @@ func (r *Revision) SetValue(name string, _ uint, value any) error {
 
 	case "delta":
 		if bb, is := value.([]byte); is {
-			return json.Unmarshal(bb, &r.Changes)
+			decoder := json.NewDecoder(bytes.NewReader(bb))
+			decoder.UseNumber()
+			return decoder.Decode(&r.Changes)
 		}
 
 		return fmt.Errorf("unexpected type for delta: %T", value)
@@ -224,3 +228,43 @@ func (f Filter) OrderBy() filter.SortExprSet               { return nil }
 func (f Filter) Limit() uint                               { return 0 }
 func (f Filter) Cursor() *filter.PagingCursor              { return nil }
 func (f Filter) StateConstraints() map[string]filter.State { return nil }
+
+func (c *Change) MarshalJSON() ([]byte, error) {
+	row, err := j7s.MakeMap("key", c.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	if old := normalizeChangeValues(c.Old); len(old) > 0 {
+		row, err = j7s.AddMap(row, "old", old)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if newVals := normalizeChangeValues(c.New); len(newVals) > 0 {
+		row, err = j7s.AddMap(row, "new", newVals)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return json.Marshal(row)
+}
+
+func normalizeChangeValues(values []any) []any {
+	if len(values) == 0 {
+		return nil
+	}
+
+	out := make([]any, 0, len(values))
+	for _, v := range values {
+		if jn, ok := v.(json.Number); ok {
+			out = append(out, jn.String())
+		} else {
+			out = append(out, v)
+		}
+	}
+
+	return out
+}

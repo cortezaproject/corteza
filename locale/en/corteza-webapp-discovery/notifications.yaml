@@ -2,13 +2,16 @@ title: Notifications
 empty: No notifications
 emptyDescription: You will see notifications here when they arrive
 markAllAsRead: Mark all as read
+markAllAsUnread: Mark all as unread
 markAsRead: Mark as read
+markAsUnread: Mark as unread
 delete: Delete
 all: All
 unread: Unread
 read: Read
 success: Success
 allMarkedAsRead: All notifications have been marked as read
+allMarkedAsUnread: All notifications have been marked as unread
 notificationDeleted: Notification has been deleted
 loadMore: Load More
 recordRedirectError: Error navigating to record
@@ -17,6 +20,7 @@ unmute: Unmute notifications
 muted: Notifications muted
 unmuted: Notifications unmuted
 markAllAsReadError: Error marking all notifications as read
+markAllAsUnreadError: Error marking all notifications as unread
 notificationDeletedError: Error deleting notification
 namespaceNotFound: Namespace not found
 pageNotFound: Page not found

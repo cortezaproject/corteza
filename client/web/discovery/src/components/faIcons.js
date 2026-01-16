@@ -22,6 +22,8 @@ import {
   faUser,
   faBell,
   faTrashAlt,
+  faEnvelope,
+  faEnvelopeOpen,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -45,4 +47,6 @@ library.add(
   faGripLines,
   faCheck,
   faLocationCrosshairs,
+  faEnvelope,
+  faEnvelopeOpen,
 )

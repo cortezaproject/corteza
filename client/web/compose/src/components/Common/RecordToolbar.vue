@@ -1,7 +1,7 @@
 <template>
   <c-toolbar
     :class="{ 'shadow border-top': !inModal }"
-    style="min-height: 73px;"
+    :style="{ padding: inModal ? '0 !important' : '' }"
   >
     <template #start>
       <b-button
@@ -67,13 +67,14 @@
       <slot name="end-actions" />
 
       <c-input-confirm
-        v-if="(processingAction === 'delete' || isCreated) && !(isDeleted || hideDelete || settings.hideDelete) && canDeleteRecord"
+        v-if="(processingAction === 'delete' || isCreated || isDraft) && !(isDeleted || hideDelete || settings.hideDelete) && canDeleteRecord"
         :disabled="!record || isProcessing"
         :processing="processingAction === 'delete'"
         :text="labels.delete || $t('label.delete')"
         size="lg"
         size-confirm="lg"
         variant="danger"
+        class="text-nowrap"
         @confirmed="$emit('delete')"
       />
 
@@ -86,11 +87,12 @@
         size-confirm="lg"
         variant="warning"
         variant-ok="warning"
+        class="text-nowrap"
         @confirmed="$emit('undelete')"
       />
 
       <b-button
-        v-if="isCreated && module.canCreateRecord && !(hideClone || settings.hideClone)"
+        v-if="(isCreated || isDraft) && module.canCreateRecord && !(hideClone || settings.hideClone)"
         data-test-id="button-clone"
         variant="light"
         size="lg"
@@ -98,26 +100,28 @@
         class="text-nowrap"
         @click.prevent="$emit('clone')"
       >
-        {{ labels.clone || $t('label.saveAsCopy') }}
+        {{ labels.clone || (isDraft ? $t('label.saveAsNewDraft') : $t('label.saveAsCopy')) }}
       </b-button>
 
       <b-button
-        v-if="!inEditing && isCreated && !(hideEdit || settings.hideEdit) && canManageRecord"
+        v-if="!inEditing && (isCreated || isDraft) && !(hideEdit || settings.hideEdit) && canManageRecord"
         data-test-id="button-edit"
         :disabled="!record || isProcessing"
         variant="light"
         size="lg"
+        class="text-nowrap"
         @click.prevent="$emit('edit')"
       >
         {{ labels.edit || $t('label.edit') }}
       </b-button>
 
       <b-button
-        v-else-if="inEditing && isCreated && !(hideEdit || settings.hideEdit)"
+        v-else-if="inEditing && (isCreated || (isDraft && !isNew)) && !(hideEdit || settings.hideEdit)"
         data-test-id="button-view"
         :disabled="!record || isProcessing"
         variant="light"
         size="lg"
+        class="text-nowrap"
         @click.prevent="$emit('view')"
       >
         {{ labels.edit || $t('label.view') }}
@@ -142,6 +146,7 @@
         :processing="processingAction === 'submit'"
         :text="labels.submit || $t('label.save')"
         size="lg"
+        class="text-nowrap"
         @submit="$emit('submit')"
       />
     </template>
@@ -246,6 +251,16 @@ export default {
       type: Boolean,
       default: true,
     },
+
+    isDraft: {
+      type: Boolean,
+      default: false,
+    },
+
+    isNew: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   computed: {
@@ -276,7 +291,7 @@ export default {
         return false
       }
 
-      return !this.isDeleted && this.record.canDeleteRecord && this.record.recordID !== NoID
+      return !this.isDeleted && (this.isDraft || (this.record.canDeleteRecord && this.record.recordID !== NoID))
     },
 
     canUndeleteRecord () {

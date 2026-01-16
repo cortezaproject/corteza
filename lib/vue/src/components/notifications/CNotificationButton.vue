@@ -1,17 +1,18 @@
 <template>
   <b-button
+    v-b-tooltip.hover="{ title: $t('notifications:title'), delay: { show: 500, hide: 0 } }"
     variant="outline-extra-light"
     size="lg"
     class="nav-icon rounded-circle text-center border-0 d-flex align-items-center justify-content-center position-relative"
     @click="toggleNotifications"
   >
     <font-awesome-icon
-      :icon="notificationsIcon.icon"
-      :class="notificationsIcon.class"
+      :icon="['far', 'bell']"
+      class="text-dark"
     />
     <b-badge
       v-if="unreadCount > 0 && !muted"
-      variant="danger"
+      variant="primary"
       pill
       class="position-absolute notification-badge"
     >
@@ -31,20 +32,6 @@ export default {
       unreadCount: 'notifications/unreadCount',
       muted: 'notifications/muted',
     }),
-
-    notificationsIcon () {
-      if (this.unreadCount > 0 && !this.muted) {
-        return {
-          icon: ['fas', 'bell'],
-          class: 'text-primary',
-        }
-      }
-
-      return {
-        icon: ['far', 'bell'],
-        class: 'text-dark',
-      }
-    },
   },
 
   methods: {

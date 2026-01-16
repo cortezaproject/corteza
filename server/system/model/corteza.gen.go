@@ -280,7 +280,7 @@ var Label = &dal.Model{
 
 		&dal.Attribute{
 			Ident: "Value",
-			Type:  &dal.TypeText{},
+			Type:  &dal.TypeJSON{},
 			Store: &dal.CodecAlias{Ident: "value"},
 		},
 	},

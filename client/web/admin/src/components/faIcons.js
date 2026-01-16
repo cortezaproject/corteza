@@ -42,7 +42,6 @@ import {
   faFlag,
   faCog,
   faArchway,
-  faEnvelopeOpen,
   faWrench,
   faSearch,
   faMapMarkedAlt,
@@ -60,6 +59,7 @@ import {
   faUserGroup,
   faMapMarkerAlt,
   faPalette,
+  faEnvelopeOpen as faEnvelopeOpenSolid,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -70,6 +70,8 @@ import {
   faTrashAlt,
   faEdit,
   faBell,
+  faEnvelope,
+  faEnvelopeOpen as faEnvelopeOpenRegular,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -119,7 +121,9 @@ library.add(
   faCog,
   faArchway,
   faEye,
-  faEnvelopeOpen,
+  faEnvelopeOpenRegular,
+  faEnvelopeOpenSolid,
+  faEnvelope,
   faWrench,
   faSearch,
   faMapMarkedAlt,

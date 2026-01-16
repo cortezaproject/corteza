@@ -114,6 +114,11 @@ export default {
       default: 'upload',
     },
 
+    maxFiles: {
+      type: Number,
+      default: 1000,
+    },
+
     showUploadedFileName: {
       type: Boolean,
       default: false,
@@ -143,7 +148,7 @@ export default {
         thumbnailMethod: 'contain',
         thumbnailWidth: 320,
         thumbnailHeight: 180,
-        maxFiles: 1000,
+        maxFiles: this.maxFiles,
         withCredentials: true,
         autoProcessQueue: true,
         disablePreviews: true,
@@ -207,6 +212,7 @@ export default {
       this.processing = null
       this.error = null
       this.$emit('upload', response, file)
+      this.$refs.dropzone.removeFile(file)
     },
 
     onFileAdded (file) {

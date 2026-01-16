@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
@@ -77,7 +78,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Sort GET parameter
 		//
@@ -119,7 +120,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	ModuleRead struct {
@@ -173,7 +174,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -301,7 +302,7 @@ func (r ModuleList) GetPageCursor() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleList) GetLabels() map[string]string {
+func (r ModuleList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -436,7 +437,7 @@ func (r ModuleCreate) GetFields() types.ModuleFieldSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleCreate) GetLabels() map[string]string {
+func (r ModuleCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -686,7 +687,7 @@ func (r ModuleUpdate) GetFields() types.ModuleFieldSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ModuleUpdate) GetLabels() map[string]string {
+func (r ModuleUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

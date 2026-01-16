@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
@@ -36,10 +37,21 @@ func (svc *recordRevisions) modelRef(mod *types.Module) (mf dal.ModelRef) {
 	return
 }
 
-func (svc *recordRevisions) search(ctx context.Context, rec *types.Record) (_ dal.Iterator, err error) {
+func (svc *recordRevisions) search(ctx context.Context, rec *types.Record, sorting filter.Sorting) (_ dal.Iterator, err error) {
 	var (
 		revModRef = svc.modelRef(rec.GetModule())
-		revFilter = filter.Generic(filter.WithConstraint("rel_resource", rec.ID))
+		sortExpr  = sorting.OrderBy()
+	)
+
+	if len(sortExpr) == 0 {
+		sortExpr = filter.SortExprSet{
+			&filter.SortExpr{Column: "revision", Descending: true},
+		}
+	}
+
+	revFilter := filter.Generic(
+		filter.WithConstraint("rel_resource", rec.ID),
+		filter.WithOrderBy(sortExpr),
 	)
 
 	return svc.r.Search(ctx, revModRef, revFilter)

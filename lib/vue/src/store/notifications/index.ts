@@ -7,13 +7,17 @@ const types = {
   appendNotifications: 'appendNotifications',
   setVisible: 'setVisible',
   markAsRead: 'markAsRead',
+  markAsUnread: 'markAsUnread',
   markAllAsRead: 'markAllAsRead',
+  markAllAsUnread: 'markAllAsUnread',
   addNotification: 'addNotification',
   deleteNotification: 'deleteNotification',
   setPageCursor: 'setPageCursor',
   setMuted: 'setMuted',
   updateReadNotification: 'updateReadNotification',
+  updateUnreadNotification: 'updateUnreadNotification',
   updateAllReadNotifications: 'updateAllReadNotifications',
+  updateAllUnreadNotifications: 'updateAllUnreadNotifications',
 }
 
 interface Options {
@@ -53,6 +57,7 @@ export default function ({ api }: Options): StoreOptions<State> {
       muted: (state) => state.muted,
 
       hasUnread: (state) => state.notifications.some(notification => !notification.readAt),
+      hasRead: (state) => state.notifications.some(notification => !!notification.readAt),
       unreadCount: (state) => state.notifications.filter(notification => !notification.readAt).length,
     },
 
@@ -94,6 +99,13 @@ export default function ({ api }: Options): StoreOptions<State> {
           })
       },
 
+      markAsUnread ({ commit }, notificationID) {
+        return (api as any).notificationMarkAsUnread({ notificationID })
+          .then(() => {
+            commit(types.markAsUnread, notificationID)
+          })
+      },
+
       markAllAsRead ({ commit, state }) {
         if (!state.notifications.length) {
           return Promise.resolve()
@@ -102,6 +114,17 @@ export default function ({ api }: Options): StoreOptions<State> {
         return api.notificationMarkAllAsRead()
           .then(() => {
             commit(types.markAllAsRead)
+          })
+      },
+
+      markAllAsUnread ({ commit, state }) {
+        if (!state.notifications.length) {
+          return Promise.resolve()
+        }
+
+        return (api as any).notificationMarkAllAsUnread()
+          .then(() => {
+            commit(types.markAllAsUnread)
           })
       },
 
@@ -128,8 +151,16 @@ export default function ({ api }: Options): StoreOptions<State> {
         commit(types.updateReadNotification, notification)
       },
 
+      updateUnreadNotification ({ commit }, notification) {
+        commit(types.updateReadNotification, { ...notification, readAt: undefined })
+      },
+
       updateAllReadNotifications ({ commit }, notifications) {
         commit(types.updateAllReadNotifications, notifications)
+      },
+
+      updateAllUnreadNotifications ({ commit }, notifications) {
+        commit(types.updateAllUnreadNotifications, notifications)
       },
 
       removeNotification ({ commit }, notification) {
@@ -174,9 +205,27 @@ export default function ({ api }: Options): StoreOptions<State> {
         })
       },
 
+      [types.markAllAsUnread] (state) {
+        state.notifications.forEach(notification => {
+          if (notification.readAt) {
+            notification.readAt = undefined
+          }
+        })
+      },
+
       [types.addNotification] (state, notification) {
         // Add to the beginning of the array
         state.notifications.unshift(new system.Notification(notification))
+      },
+
+      [types.markAsUnread] (state, notificationID) {
+        const notification = state.notifications.find(n =>
+          String(n.notificationID) === String(notificationID),
+        )
+
+        if (notification) {
+          notification.readAt = undefined
+        }
       },
 
       [types.deleteNotification] (state, notificationID) {
@@ -196,7 +245,12 @@ export default function ({ api }: Options): StoreOptions<State> {
         )
 
         if (existingNotification) {
-          existingNotification.readAt = notification.readAt || new Date()
+          const hasReadAt = Object.prototype.hasOwnProperty.call(notification, 'readAt')
+          if (hasReadAt) {
+            existingNotification.readAt = notification.readAt ? new Date(notification.readAt) : undefined
+          } else {
+            existingNotification.readAt = new Date()
+          }
         }
       },
 
@@ -218,6 +272,24 @@ export default function ({ api }: Options): StoreOptions<State> {
             if (!notification.readAt) {
               notification.readAt = now
             }
+          })
+        }
+      },
+
+      [types.updateAllUnreadNotifications] (state, notifications) {
+        // If notifications array is provided, update only those specific ones
+        if (Array.isArray(notifications) && notifications.length > 0) {
+          const notificationIds = notifications.map(n => String(n.notificationID))
+
+          state.notifications.forEach(notification => {
+            if (notificationIds.includes(String(notification.notificationID))) {
+              notification.readAt = undefined
+            }
+          })
+        } else {
+          // Otherwise mark all as unread
+          state.notifications.forEach(notification => {
+            notification.readAt = undefined
           })
         }
       },

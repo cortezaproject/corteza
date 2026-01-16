@@ -9,7 +9,7 @@ export interface RevisionChange {
 export interface Revision {
   changeID: string;
   timestamp: Date;
-  resourceID: string;
+  resource: string;
   revision: number;
   operation: string;
   userID: string;
@@ -22,7 +22,7 @@ export interface RawRevisionPayload {
   set: Array<{
     changeID: string;
     timestamp: string;
-    resourceID: string;
+    resource: string;
     revision: number;
     operation: string;
     userID: string;
@@ -65,7 +65,7 @@ export function convertRevisionPayloadToRevision (payload: unknown, validChangeK
   return payload.set.map(raw => ({
     changeID: raw.changeID,
     timestamp: new Date(raw.timestamp),
-    resourceID: raw.resourceID,
+    resource: raw.resource,
     revision: raw.revision,
     operation: raw.operation,
     userID: raw.userID,

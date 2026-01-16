@@ -1,5 +1,7 @@
 imports:
   - github.com/cortezaproject/corteza/server/system/types
+  - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+
 
 snippets:
   lookup: &lookup
@@ -40,7 +42,7 @@ snippets:
         - { wf: Boolean }
     labels:
       types:
-        - { wf: KV }
+        - { wf: LabelValue }
     sort:
       types:
         - { wf: String }

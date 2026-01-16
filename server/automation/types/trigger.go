@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/sql"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -32,7 +33,7 @@ type (
 		// will be merged merged with workflow variables
 		Input *expr.Vars `json:"input"`
 
-		Labels map[string]string `json:"labels,omitempty"`
+		Labels map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 		Meta   *TriggerMeta      `json:"meta,omitempty"`
 
 		OwnedBy   uint64     `json:"ownedBy,string"`
@@ -66,7 +67,7 @@ type (
 		Disabled filter.State `json:"disabled"`
 
 		LabeledIDs []uint64          `json:"-"`
-		Labels     map[string]string `json:"labels,omitempty"`
+		Labels     map[string]labelTypes.LabelValue `json:"labels,omitempty"`
 
 		// Check fn is called by store backend for each resource found function can
 		// modify the resource and return false if store should not return it

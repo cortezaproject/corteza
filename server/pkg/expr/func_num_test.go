@@ -111,3 +111,38 @@ func Example_castFloatToInt() {
 	// output:
 	// 0
 }
+
+func Example_castStringWithLeadingZero08() {
+	eval(`int("08")`, nil)
+
+	// output:
+	// 8
+}
+
+func Example_castStringWithLeadingZero09() {
+	eval(`int("09")`, nil)
+
+	// output:
+	// 9
+}
+
+func Example_castStringWithLeadingZero010() {
+	eval(`int("010")`, nil)
+
+	// output:
+	// 10
+}
+
+func Example_castStringWithLeadingZero011() {
+	eval(`int("011")`, nil)
+
+	// output:
+	// 11
+}
+
+func Example_castStringWithLeadingZero012() {
+	eval(`int("012")`, nil)
+
+	// output:
+	// 12
+}

@@ -6,9 +6,10 @@
     <template #start>
       <b-button
         data-test-id="button-back-without-save"
-        variant="link"
+        variant="outline-light"
         :disabled="processing"
-        class="d-flex align-items-center text-dark back gap-1 text-decoration-none"
+        size="lg"
+        class="border-0 text-dark back"
         @click="$emit('back')"
       >
         <font-awesome-icon

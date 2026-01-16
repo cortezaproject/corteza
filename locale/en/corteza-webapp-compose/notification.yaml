@@ -112,7 +112,7 @@ page:
   cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page
   iconFetchFailed: Could not fetch list of icons
-  iconDeleteFailed:  Could not delete selected icon
+  iconDeleteFailed: Could not delete selected icon
   iconDeleteSuccess: Icon deleted
   loadFailed: Could not load page
   listFailed: Could not load page list
@@ -143,6 +143,7 @@ page:
       failed: Failed to delete layout
     listFailed: Could not load page layouts
 record:
+  uploadFailed: Could not upload file
   createFailed: Could not create record
   createSuccess: Record created
   updateFailed: Could not update record
@@ -164,11 +165,11 @@ record:
   countFailed: Failed to fetch number of avaiable records
   moduleMismatch: Module incompatible, module mismatch
   moduleNotDefined: Record module not defined
-  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
+  moduleOrPageNotSet: "RecordList block error: module or page option not set"
   unexpectedInput: Unexpected input for values property, should be an array with name-value object pairs
   unexpectedValue: Unexpected value for record module ({{type}})
-  validationErrors: 'check error messages on field(s): {{fields}}'
-  validationWarnings: 'Check warning messages on field(s): {{fields}}'
+  validationErrors: "check error messages on field(s): {{fields}}"
+  validationWarnings: "Check warning messages on field(s): {{fields}}"
   staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?
   fieldConditions:
     failed: Failed to evaluate record block conditional fields

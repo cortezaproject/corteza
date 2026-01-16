@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-column w-100 vh-100 overflow-hidden">
+  <div class="d-flex flex-column w-100 h-viewport overflow-hidden">
     <header
       v-show="loaded"
     >
@@ -113,3 +113,9 @@ export default {
   },
 }
 </script>
+<style scoped>
+.h-viewport {
+  height: 100vh;
+  height: 100dvh;
+}
+</style>

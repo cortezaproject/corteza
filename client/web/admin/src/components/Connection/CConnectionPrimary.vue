@@ -36,7 +36,7 @@
             label-class="text-primary"
             class="mb-3"
           >
-            {{ connection.meta.name }}
+            {{ (connection.meta || {}).name }}
           </b-form-group>
         </b-col>
         <b-col
@@ -74,7 +74,7 @@
             label-class="text-primary"
             class="mb-0"
           >
-            {{ connection.meta.ownership }}
+            {{ (connection.meta || {}).ownership }}
           </b-form-group>
         </b-col>
       </b-row>
@@ -121,17 +121,17 @@ export default {
 
   computed: {
     locationCoordinates () {
-      const { coordinates = [] } = this.connection.meta.location.geometry || {}
+      const { coordinates = [] } = (this.connection.meta || {}).location?.geometry || {}
 
-      return coordinates
+      return coordinates || []
     },
 
     locationCoordinatesLabel () {
-      return this.locationCoordinates.map(c => c.toFixed(7)).join(', ')
+      return (this.locationCoordinates || []).map(c => c?.toFixed?.(7) || c).join(', ')
     },
 
     locationName () {
-      return this.connection.meta.location.properties.name
+      return (this.connection.meta || {}).location?.properties?.name
     },
 
     sensitivityLevelName () {
@@ -150,7 +150,12 @@ export default {
 
       return this.$SystemAPI.dalConnectionList({ type: 'corteza::system:primary-dal-connection' }).then(({ set = [] }) => {
         this.connection = set.find(({ type }) => type === 'corteza::system:primary-dal-connection')
-        const { sensitivityLevelID } = this.connection.config.privacy || {}
+
+        if (!this.connection) {
+          return
+        }
+
+        const { sensitivityLevelID } = (this.connection.config || {}).privacy || {}
 
         if (sensitivityLevelID && sensitivityLevelID !== NoID) {
           return this.$SystemAPI.dalSensitivityLevelRead({ sensitivityLevelID })

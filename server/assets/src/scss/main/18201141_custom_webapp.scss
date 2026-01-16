@@ -16,6 +16,14 @@ body {
   cursor: grab;
 }
 
+.gap {
+  gap: 0.25rem;
+}
+
+.gap-0 {
+  gap: 0;
+}
+
 .gap-1 {
   gap: 0.5rem;
 }
@@ -138,6 +146,10 @@ fieldset.required {
   overflow: initial;
 }
 
+.modal-content {
+  border-radius: 1rem;
+}
+
 .dropdown-menu * {
   font-family: var(--font-regular) !important;
 
@@ -192,9 +204,11 @@ fieldset.required {
   min-width: 0px;
   transition: min-width 0.15s ease-in-out;
 
-  &.expanded {
-    min-width: calc(var(--sidebar-width));
-    transition: min-width 0.15s ease-in-out;
+  @media (min-width: 1024px) {
+    &.expanded {
+      min-width: calc(var(--sidebar-width));
+      transition: min-width 0.15s ease-in-out;
+    }
   }
 }
 

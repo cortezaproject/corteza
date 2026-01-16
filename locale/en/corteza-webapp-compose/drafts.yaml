@@ -1,0 +1,19 @@
+title: Drafts
+single: Draft
+plural: Drafts
+empty: No drafts found
+saved: Draft has been saved
+deleted: Draft has been deleted
+allDeleted: All drafts have been deleted
+deleteError: Error deleting draft
+activeDraft: This is a draft - record has not yet been saved
+openRecord: Open Record
+deleteDraft: Delete Draft
+saveAsNewDraft: Duplicate Draft
+applyDraft: Apply Draft to Record
+viewRecord: View Record
+deleteAllDrafts: Delete all drafts
+newestFirst: Newest first
+oldestFirst: Oldest first
+count_one: "{{count}} draft"
+count_other: "{{count}} drafts"

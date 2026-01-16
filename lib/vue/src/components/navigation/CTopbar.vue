@@ -1,5 +1,5 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center py-2 px-3 gap-2">
+  <div class="header-navigation d-flex flex-wrap align-items-center py-2 pl-3 pr-2 gap-2">
     <div
       class="sidebar-spacer"
       :class="{ 'expanded': expanded }"
@@ -377,8 +377,10 @@ $nav-user-icon-size: calc(var(--topbar-height) - 16px);
     display: none;
     min-width: calc(var(--sidebar-width) - 60px);
 
-    &.expanded {
-      display: block;
+    @media (min-width: 1024px) {
+      &.expanded {
+        display: block;
+      }
     }
   }
 }
@@ -429,7 +431,7 @@ $nav-user-icon-size: calc(var(--topbar-height) - 16px);
 
 <style lang="scss">
 .topbar-dropdown-menu {
-  z-index: 1100;
+  z-index: 1051;
 }
 
 #theme-dropleft {
@@ -437,4 +439,5 @@ $nav-user-icon-size: calc(var(--topbar-height) - 16px);
     font-family: var(--font-regular);
   }
 }
+
 </style>

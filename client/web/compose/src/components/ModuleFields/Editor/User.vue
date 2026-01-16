@@ -145,6 +145,7 @@
 </template>
 <script>
 import { debounce } from 'lodash'
+import axios from 'axios'
 import { mapActions, mapGetters } from 'vuex'
 import { NoID } from '@cortezaproject/corteza-js'
 import base from './base'
@@ -164,6 +165,7 @@ export default {
   data () {
     return {
       processing: false,
+      cancelRequest: null,
 
       users: [],
 
@@ -348,16 +350,27 @@ export default {
 
       const roleID = this.field.options.roles || []
 
-      this.$SystemAPI.userList({ ...this.filter, roleID })
-        .then(({ filter, set }) => {
+      if (this.cancelRequest) {
+        this.cancelRequest()
+        this.cancelRequest = null
+      }
+
+      const { response, cancel } = this.$SystemAPI.userListCancellable({ ...this.filter, roleID })
+      this.cancelRequest = cancel
+
+      return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(([{ filter, set }]) => {
           this.filter = { ...this.filter, ...filter }
           this.filter.nextPage = filter.nextPage
           this.filter.prevPage = filter.prevPage
           this.users = set.map(m => Object.freeze(m))
+          this.processing = false
           return { filter, set }
         })
-        .finally(() => {
+        .catch((e) => {
+          if (axios.isCancel(e)) return
           this.processing = false
+          throw e
         })
     },
 

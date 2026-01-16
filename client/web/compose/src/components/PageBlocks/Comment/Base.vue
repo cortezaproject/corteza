@@ -67,12 +67,15 @@
                 :comment="comment"
                 :title-field="titleField"
                 :content-field="contentField"
+                :attachment-field="attachmentField"
                 :namespace="namespace"
                 :show-header="ci === 0"
                 :show-title="showTitle(comment)"
                 :show-content="showContent(comment)"
                 :highlighted="highlightedCommentId === comment.recordID"
+                class="mb-1"
                 @reply="replyToComment(comment)"
+                @edit="onEditComment(comment, $event)"
                 @reply-click="handleReplyClick"
                 @mouseleave="resetHighlightedComment(comment.recordID)"
               />
@@ -144,6 +147,7 @@
           />
 
           <c-rich-text-input
+            ref="richTextInput"
             v-model="newRecord.content"
             :placeholder="$t('comment.content.placeholder')"
             :labels="{
@@ -154,15 +158,52 @@
             max-body-height="10rem"
             body-class="overflow-auto"
             style="border: none !important;"
+            @upload="handleFileUpload"
           />
 
-          <c-button-submit
-            :text="$t('comment.submit')"
-            :disabled="!isValid || isProcessing"
-            :processing="submitting"
-            class="ml-auto m-3"
-            @submit="submitComment()"
+          <c-uploader
+            v-if="attachmentField"
+            ref="uploader"
+            :endpoint="fileUploadEndpoint"
+            :form-data="uploaderFormData"
+            :accepted-files="mimetypes"
+            :max-filesize="maxSize"
+            :max-files="attachmentField.isMulti ? undefined : 1"
+            class="d-none"
+            @upload="appendAttachment"
           />
+
+          <list-loader
+            v-if="attachmentField && newRecord.attachmentIDs.length"
+            kind="record"
+            :set.sync="newRecord.attachmentIDs"
+            :namespace="namespace"
+            :enable-order="attachmentField.isMulti"
+            enable-delete
+            mode="list"
+            :hide-file-name="attachmentField.options.hideFileName"
+            :preview-options="attachmentField.options"
+            class="px-2"
+          />
+
+          <div class="d-flex align-items-center justify-content-end m-2 gap-1">
+            <b-button
+              v-if="attachmentField"
+              v-b-tooltip.hover="{ title: $t('comment.tooltip.attach'), delay: { show: 300, hide: 0 } }"
+              variant="outline-light"
+              class="text-secondary border-0"
+              @click="openFileUpload"
+            >
+              <font-awesome-icon :icon="['fas', 'paperclip']" />
+            </b-button>
+
+            <c-button-submit
+              :text="$t('comment.submit')"
+              :disabled="!isValid || isProcessing"
+              :processing="submitting"
+              @submit="submitComment()"
+            />
+          </div>
         </section>
 
         <b-modal
@@ -193,6 +234,7 @@
               :comment="replyModal.comment"
               :title-field="titleField"
               :content-field="contentField"
+              :attachment-field="attachmentField"
               :namespace="namespace"
               :show-time-always="true"
               :show-title="showTitle(replyModal.comment)"
@@ -220,7 +262,8 @@ import { mapGetters } from 'vuex'
 import base from '../base'
 import CommentItem from './Item.vue'
 import CommentReply from './Reply.vue'
-const { CRichTextInput } = components
+import ListLoader from 'corteza-webapp-compose/src/components/Public/Page/Attachment/ListLoader'
+const { CRichTextInput, CUploader } = components
 
 export default {
   i18nOptions: {
@@ -231,6 +274,8 @@ export default {
     CRichTextInput,
     CommentReply,
     CommentItem,
+    ListLoader,
+    CUploader,
   },
 
   extends: base,
@@ -256,6 +301,7 @@ export default {
         title: '',
         content: '',
         replyTo: null,
+        attachmentIDs: [],
       },
 
       submitting: false,
@@ -347,6 +393,71 @@ export default {
       return this.roModule.fields.find(f => f.name === referenceField) || {}
     },
 
+    attachmentField () {
+      const { attachmentField } = this.options
+
+      if (!attachmentField) {
+        return undefined
+      }
+
+      const f = this.roModule.fields.find(f => f.name === attachmentField)
+      if (!f) {
+        return undefined
+      }
+
+      const af = compose.ModuleFieldMaker(f)
+      af.options.mode = 'list'
+      return af
+    },
+
+    fileUploadEndpoint () {
+      if (!this.attachmentField) {
+        return undefined
+      }
+
+      const moduleID = this.moduleID
+      const recordID = NoID
+      const { namespaceID } = this.namespace
+
+      return this.$ComposeAPI.baseURL + this.$ComposeAPI.recordUploadEndpoint({
+        namespaceID,
+        moduleID,
+        recordID,
+        fieldName: this.attachmentField.name,
+      })
+    },
+
+    uploaderFormData () {
+      if (!this.attachmentField) {
+        return {}
+      }
+
+      return {
+        fieldName: this.attachmentField.name,
+      }
+    },
+
+    mimetypes () {
+      if (!this.attachmentField) {
+        return []
+      }
+
+      const a = (this.attachmentField.options.mimetypes || '').trim()
+      if (!a) {
+        return []
+      }
+
+      return a.split(',').map(p => p.trim())
+    },
+
+    maxSize () {
+      if (!this.attachmentField) {
+        return 100
+      }
+
+      return this.attachmentField.options.maxSize || 100
+    },
+
     replyField () {
       const { replyField } = this.options
 
@@ -362,7 +473,7 @@ export default {
     },
 
     isValid () {
-      return !!this.newRecord.content && !this.isNewRecord
+      return (!!this.newRecord.title || !!this.newRecord.content || this.newRecord.attachmentIDs.length) && !this.isNewRecord
     },
 
     isNewRecord () {
@@ -661,7 +772,41 @@ export default {
       return container.scrollTop + container.clientHeight >= container.scrollHeight - threshold
     },
 
+    handleFileUpload (files) {
+      if (!this.attachmentField) {
+        return
+      }
+
+      const uploader = this.$refs.uploader
+      if (uploader && uploader.$refs.dropzone) {
+        Array.from(files).forEach(file => {
+          uploader.$refs.dropzone.addFile(file)
+        })
+      }
+    },
+
+    openFileUpload () {
+      const uploader = this.$refs.uploader
+      if (uploader && uploader.$refs.dropzone) {
+        uploader.$refs.dropzone.dropzone.hiddenFileInput.click()
+      }
+    },
+
+    appendAttachment ({ attachmentID } = {}) {
+      if (attachmentID) {
+        if (this.attachmentField && this.attachmentField.isMulti) {
+          this.newRecord.attachmentIDs = [...this.newRecord.attachmentIDs, attachmentID]
+        } else {
+          this.newRecord.attachmentIDs = [attachmentID]
+        }
+      }
+    },
+
     submitComment () {
+      if (!this.isValid) {
+        return
+      }
+
       this.submitting = true
 
       const record = new compose.Record(this.roModule)
@@ -682,12 +827,17 @@ export default {
         record.values[this.replyField.name] = this.newRecord.replyTo.recordID
       }
 
+      if (this.attachmentField && this.newRecord.attachmentIDs.length) {
+        record.values[this.attachmentField.name] = this.attachmentField.isMulti ? this.newRecord.attachmentIDs : this.newRecord.attachmentIDs[0]
+      }
+
       return this.$ComposeAPI.recordCreate(record).then(rec => {
         rec = new compose.Record(this.roModule, rec)
 
         this.newRecord.title = ''
         this.newRecord.content = ''
         this.newRecord.replyTo = null
+        this.newRecord.attachmentIDs = []
 
         if (this.showNewestFirst) {
           return this.loadNewComments()
@@ -707,6 +857,34 @@ export default {
             this.scrollToLatest()
           })
         })
+    },
+
+    onEditComment (comment, { title, content }) {
+      const record = new compose.Record(this.roModule, { ...comment })
+
+      if (this.titleField) {
+        record.values[this.titleField.name] = title
+      }
+
+      if (this.contentField) {
+        record.values[this.contentField.name] = content
+      }
+
+      return this.$ComposeAPI.recordUpdate(record).then(rec => {
+        const updatedRecord = new compose.Record(this.roModule, rec)
+        updatedRecord.author = comment.author
+        updatedRecord.reply = comment.reply
+
+        this.comments.forEach(dateGroup => {
+          dateGroup.messages.forEach(messageGroup => {
+            const index = messageGroup.comments.findIndex(c => c.recordID === updatedRecord.recordID)
+            if (index > -1) {
+              messageGroup.comments.splice(index, 1, updatedRecord)
+            }
+          })
+        })
+      })
+        .catch(this.toastErrorHandler(this.$t('notification:record.updateFailed')))
     },
 
     expandFilter () {
@@ -838,6 +1016,17 @@ export default {
       this.newRecord.replyTo = comment
 
       this.replyModal.show = false
+
+      this.$nextTick(() => {
+        const rti = this.$refs.richTextInput
+        if (rti) {
+          if (typeof rti.focus === 'function') {
+            rti.focus()
+          } else if (rti.editor && typeof rti.editor.focus === 'function') {
+            rti.editor.focus()
+          }
+        }
+      })
     },
 
     handleReplyClick (recordID) {
@@ -932,6 +1121,7 @@ export default {
         title: '',
         content: '',
         replyTo: null,
+        attachmentIDs: [],
       }
       this.abortableRequests = []
       this.submitting = false

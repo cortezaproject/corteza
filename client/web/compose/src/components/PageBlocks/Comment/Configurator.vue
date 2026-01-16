@@ -17,30 +17,6 @@
 
     <div v-if="selectedModule">
       <b-form-group
-        :label="$t('field.selector.available')"
-      >
-        <div class="d-flex">
-          <div class="border fields w-100 p-2">
-            <div
-              v-for="field in allFields"
-              :key="field.name"
-              class="field"
-            >
-              <span v-if="field.label">{{ field.label }} ({{ field.name }})</span>
-
-              <span v-else>{{ field.name }}</span>
-
-              <span class="small float-right">
-                <span v-if="field.isSystem">{{ $t('field.selector.systemField') }}</span>
-
-                <span v-else>{{ field.kind }}</span>
-              </span>
-            </div>
-          </div>
-        </div>
-      </b-form-group>
-
-      <b-form-group
         :label="$t('recordList.record.prefilterLabel')"
         label-class="text-primary"
       >
@@ -133,6 +109,25 @@
             <c-input-select
               v-model="options.referenceField"
               :options="selectedModuleFieldsByType('Record')"
+              :get-option-label="f => `${f.label || f.name} (${f.kind})`"
+              :reduce="f => f.name"
+              :placeholder="$t('general.label.none')"
+            />
+          </b-form-group>
+        </b-col>
+
+        <b-col
+          cols="12"
+          lg="6"
+        >
+          <b-form-group
+            :label="$t('comment.attachmentField.label')"
+            label-class="text-primary"
+            :description="$t('comment.attachmentField.footnote')"
+          >
+            <c-input-select
+              v-model="options.attachmentField"
+              :options="selectedModuleFieldsByType('File', { includeMulti: true })"
               :get-option-label="f => `${f.label || f.name} (${f.kind})`"
               :reduce="f => f.name"
               :placeholder="$t('general.label.none')"
@@ -255,12 +250,16 @@ export default {
         this.options.titleField = ''
         this.options.contentField = ''
         this.options.referenceField = ''
+        this.options.attachmentField = ''
         this.selectedModuleFields.forEach(f => {
           if (f.name === 'Reference') {
             this.options.referenceField = 'Reference'
           }
           if (f.name === 'Content') {
             this.options.contentField = 'Content'
+          }
+          if (f.name === 'Attachments') {
+            this.options.attachmentField = 'Attachments'
           }
         })
       },
@@ -279,9 +278,11 @@ export default {
   },
 
   methods: {
-    selectedModuleFieldsByType (type) {
+    selectedModuleFieldsByType (type, { includeMulti = false } = {}) {
       return (this.selectedModuleFields || []).filter((f) => {
-        return f.kind === type
+        if (f.kind !== type) return false
+        if (!includeMulti && f.isMulti) return false
+        return true
       })
     },
   },

@@ -39,6 +39,7 @@ func (h helper) scimApiInit(ffn ...func(*scim.Config)) *apitest.APITest {
 }
 
 func TestScimUserGet(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -54,6 +55,7 @@ func TestScimUserGet(t *testing.T) {
 }
 
 func TestScimUserCreate(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -86,6 +88,7 @@ func TestScimUserCreate(t *testing.T) {
 }
 
 func TestScimUserCreateNoEmail(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -98,6 +101,7 @@ func TestScimUserCreateNoEmail(t *testing.T) {
 }
 
 func TestScimUserCreateOverwrite(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -116,6 +120,7 @@ func TestScimUserCreateOverwrite(t *testing.T) {
 }
 
 func TestScimUserExternalID(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -144,6 +149,7 @@ func TestScimUserExternalID(t *testing.T) {
 }
 
 func TestScimUserReplace(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -173,6 +179,7 @@ func TestScimUserReplace(t *testing.T) {
 }
 
 func TestScimUserPassword(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -192,6 +199,7 @@ func TestScimUserPassword(t *testing.T) {
 }
 
 func TestScimUserDelete(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -205,6 +213,7 @@ func TestScimUserDelete(t *testing.T) {
 }
 
 func TestScimGroupGet(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearRoles()
 
@@ -220,6 +229,7 @@ func TestScimGroupGet(t *testing.T) {
 }
 
 func TestScimGroupCreate(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearRoles()
 
@@ -236,6 +246,7 @@ func TestScimGroupCreate(t *testing.T) {
 }
 
 func TestScimGroupExternalId(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearRoles()
 
@@ -281,6 +292,7 @@ func TestScimGroupReplace(t *testing.T) {
 }
 
 func TestScimGroupDelete(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearRoles()
 
@@ -294,6 +306,7 @@ func TestScimGroupDelete(t *testing.T) {
 }
 
 func TestScimUserReplaceOnExternalId(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 
@@ -316,6 +329,7 @@ func TestScimUserReplaceOnExternalId(t *testing.T) {
 }
 
 func TestScimPatchingGroupMembership(t *testing.T) {
+
 	h := newHelper(t)
 	h.clearUsers()
 	h.clearRoles()

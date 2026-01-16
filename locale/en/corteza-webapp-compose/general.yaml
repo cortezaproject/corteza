@@ -3,20 +3,20 @@ label:
     namespace:
       list: Namespaces
       create: Create Namespace
-      edit: 'Edit Namespace - {{label}}'
+      edit: "Edit Namespace - {{label}}"
       view: Namespace
     module:
-      list: 'Modules - {{label}}'
+      list: "Modules - {{label}}"
       create: Create Module
-      edit: 'Edit Module - {{label}}'
+      edit: "Edit Module - {{label}}"
     page:
-      list: 'Pages - {{label}}'
-      builder: 'PageBuilder - {{label}}'
-      edit: 'Edit Page - {{label}}'
-      record: 'Record - {{label}}'
+      list: "Pages - {{label}}"
+      builder: "PageBuilder - {{label}}"
+      edit: "Edit Page - {{label}}"
+      record: "Record - {{label}}"
     chart:
-      list: 'Charts - {{label}}'
-      edit: 'Edit Chart - {{label}}'
+      list: "Charts - {{label}}"
+      edit: "Edit Chart - {{label}}"
       create: Create Chart
   actions: Actions
   active: Active
@@ -25,7 +25,7 @@ label:
   addNew: Add new
   addValue: Add new value
   ascending: Ascending
-  attachmentFileInfo: '(File size: {{0}}, uploaded {{1}})'
+  attachmentFileInfo: "(File size: {{0}}, uploaded {{1}})"
   attributes: Attributes
   back: Back
   backWithoutSave: Back (without saving changes)
@@ -37,9 +37,11 @@ label:
   clone: Clone
   close: Close
   create: Create
+  createRecordFromDraft: Create Record from Draft
   delete: Delete
   default: Default
   restore: Restore
+  discard: Discard
   descending: Descending
   description: Description
   download: Download
@@ -60,6 +62,7 @@ label:
   moduleName: Module name
   multi: Multi
   name: Name
+  newRecord: New Record
   next: Next
   no: No
   noHandle: No handle
@@ -84,10 +87,12 @@ label:
   sensitive: Sensitive
   save: Save
   saveAndClose: Save and close
+  saveAs: Save as
   saveAsCopy: Save as copy
+  search: Search
   status: Status
-  timeHour: '{{t}}h'
-  timeMinute: '{{t}}min'
+  timeHour: "{{t}}h"
+  timeMinute: "{{t}}min"
   today: Today
   title: Title
   type: Type
@@ -138,7 +143,7 @@ reminder:
   routesTo: Label for page link
   snooze:
     label: Snooze
-    count: Snooze count {{count}}
+    count: Snooze count
 tooltip:
   dragAndDrop: Drag and drop to change order
 fieldKinds:
@@ -178,9 +183,9 @@ resourceList:
   pagination:
     next: Next
     prev: Previous
-    showing: '{{from}} - {{to}} of {{count}} {{data}}'
-    single_one: 'One {{data}}'
-    single_other: '{{count}} {{data}}'
+    showing: "{{from}} - {{to}} of {{count}} {{data}}"
+    single_one: "One {{data}}"
+    single_other: "{{count}} {{data}}"
     recordsPerPage: Per Page
 recordNavigation:
   next: Next record
@@ -195,7 +200,7 @@ variants:
   danger: Danger
   warning: Warning
 editor:
-  unsavedChanges:  Unsaved changes will be lost. Do you wish to leave the page?
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave the page?
 webcam:
   title: Webcam
   tooltip: Open webcam to capture photo
@@ -207,7 +212,8 @@ webcam:
     camera: Unable to access the camera. Please make sure you have granted camera permissions.
 
 record:
-  unsavedChanges:  Unsaved changes will be lost. Do you wish to close the record?
+  unsavedChanges: Unsaved changes will be lost. Do you wish to leave?
+  unsavedChangesDraft: Unsaved changes will be discarded, but can still be found in Drafts. Do you wish to leave?
 
 themes:
   labels:
@@ -218,3 +224,6 @@ extendSession:
   labels:
     extend: Extend Session
     warning: You will be logged out in {{ countdownTime }} seconds
+
+changes_one: "{{count}} change"
+changes_other: "{{count}} changes"

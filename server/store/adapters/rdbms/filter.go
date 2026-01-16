@@ -150,13 +150,47 @@ func DefaultFilters() (f *extendedFilters) {
 		}
 
 		if len(f.Filter) > 0 {
-			values := make([]goqu.Expression, 0, len(f.Filter))
+			keyConditions := make([]goqu.Expression, 0, len(f.Filter))
 
 			for k, v := range f.Filter {
-				values = append(values, exp.Ex{"name": k, "value": v})
-			}
+				if len(v) == 0 {
+					continue
+				}
+				valueCol := goqu.C("value")
 
-			ee = append(ee, goqu.Or(values...))
+				valExpr, err := s.Dialect.JsonExtractUnquote(valueCol, "value")
+				if err != nil {
+					return ee, f, err
+				}
+				valuesExpr, err := s.Dialect.JsonExtract(valueCol, "values")
+				if err != nil {
+					return ee, f, err
+				}
+				valueOrConditions := make([]goqu.Expression, 0, len(v))
+
+				for _, val := range v {
+					singleValueMatch := exp.NewBooleanExpression(exp.EqOp, valExpr, val)
+					escapedVal := strings.Replace(val, "'", "''", -1)
+					jsonVal := exp.NewLiteralExpression("'" + "\"" + escapedVal + "\"" + "'")
+					multiValueMatch, err := s.Dialect.JsonArrayContains(jsonVal, valuesExpr)
+					if err != nil {
+						return ee, f, err
+					}
+
+					valueOrConditions = append(valueOrConditions, goqu.Or(
+						singleValueMatch,
+						multiValueMatch,
+					))
+				}
+				keyConditions = append(keyConditions, goqu.And(
+					goqu.C("name").Eq(k),
+					goqu.Or(valueOrConditions...),
+				))
+
+			}
+			if len(keyConditions) > 0 {
+				ee = append(ee, goqu.Or(keyConditions...))
+			}
 		}
 
 		return ee, f, nil

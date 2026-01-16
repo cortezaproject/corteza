@@ -2,6 +2,7 @@ package rest
 
 import (
 	"context"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -24,5 +25,14 @@ func (Expression) New() *Expression {
 }
 
 func (ctrl *Expression) Evaluate(ctx context.Context, r *request.ExpressionEvaluate) (interface{}, error) {
-	return ctrl.svc.Evaluate(ctx, r.Expressions, r.Variables)
+	expressions := make(map[string]string, len(r.Expressions))
+	for k, v := range r.Expressions {
+		if v.Val != "" {
+			expressions[k] = v.Val
+		} else if len(v.Values) > 0 {
+			expressions[k] = strings.Join(v.Values, ",")
+		}
+	}
+
+	return ctrl.svc.Evaluate(ctx, expressions, r.Variables)
 }

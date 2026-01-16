@@ -40,15 +40,6 @@
           />
         </b-button>
 
-        <page-translator
-          v-if="trPage"
-          data-test-id="button-page-translations"
-          :page.sync="trPage"
-          :page-layout.sync="layout"
-          button-variant="primary"
-          style="margin-left:2px;"
-        />
-
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), boundary: 'body' }"
           data-test-id="button-page-edit"
@@ -61,6 +52,15 @@
             :icon="['far', 'edit']"
           />
         </b-button>
+
+        <page-translator
+          v-if="trPage"
+          data-test-id="button-page-translations"
+          :page.sync="trPage"
+          :page-layout.sync="layout"
+          button-variant="primary"
+          style="margin-left:2px;"
+        />
       </b-button-group>
     </portal>
 
@@ -68,9 +68,18 @@
       v-if="isDeleted"
       show
       variant="warning"
-      class="m-2"
+      class="mx-1 my-2"
     >
       {{ $t('block:record.recordDeleted') }}
+    </b-alert>
+
+    <b-alert
+      v-if="isDraft"
+      show
+      variant="light"
+      class="d-flex align-items-center mx-1 my-2"
+    >
+      {{ $t('drafts:activeDraft') }}
     </b-alert>
 
     <div
@@ -104,6 +113,8 @@
         :in-modal="inModal"
         :is-created="!isNew"
         :record-navigation="recordNavigation"
+        :is-draft="isDraft"
+        :is-new="isNew"
         :hide-back="!layoutButtons.has('back')"
         :hide-delete="!layoutButtons.has('delete')"
         :hide-new="!layoutButtons.has('new')"
@@ -175,13 +186,13 @@
 
 <script>
 import axios from 'axios'
-import { isEqual } from 'lodash'
+import { isEqual, throttle } from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import Grid from 'corteza-webapp-compose/src/components/Public/Page/Grid'
 import RecordToolbar from 'corteza-webapp-compose/src/components/Common/RecordToolbar'
 import record from 'corteza-webapp-compose/src/mixins/record'
 import page from 'corteza-webapp-compose/src/mixins/page'
-import { compose, NoID } from '@cortezaproject/corteza-js'
+import { compose, system, NoID } from '@cortezaproject/corteza-js'
 import { evaluatePrefilter } from 'corteza-webapp-compose/src/lib/record-filter'
 
 export default {
@@ -268,6 +279,9 @@ export default {
       abortableRequests: [],
 
       loadingRecord: false,
+
+      // Used to identify, load, and delete the correct draft
+      activeDraftKey: null,
     }
   },
 
@@ -307,6 +321,15 @@ export default {
       Object.entries(buttons).forEach(([key, { label = '' }]) => {
         aux[key] = label
       })
+
+      if (this.isDraft) {
+        aux.delete = this.$t('drafts:deleteDraft')
+        aux.clone = this.$t('drafts:saveAsNewDraft')
+        aux.new = this.$t('drafts:saveAsNewDraft')
+        aux.submit = this.isNew ? this.$t('general:label.createRecordFromDraft') : this.$t('drafts:applyDraft')
+        aux.edit = this.$t('drafts:viewRecord')
+      }
+
       return aux
     },
 
@@ -360,7 +383,15 @@ export default {
     },
 
     uniqueID () {
-      return [(this.page || {}).pageID, this.$route.query.layoutID, this.$route.query.modalLayoutID, this.recordID, this.edit]
+      return [(this.page || {}).pageID, this.$route.query.layoutID, this.$route.query.modalLayoutID, this.recordID, this.edit, this.$route.query.draftID]
+    },
+
+    showDrafts () {
+      return this.$Settings.get('ui.topbar.showDrafts', false)
+    },
+
+    isDraft () {
+      return !!this.$route.query.draftID
     },
   },
 
@@ -368,8 +399,8 @@ export default {
     uniqueID: {
       immediate: true,
       handler (value = [], oldValue = []) {
-        const [pageID = '', pageLayoutID = '', modalPageLayoutID = '', recordID = '', edit = ''] = value
-        const [oldPageID = '', oldPageLayoutID = '', oldModalPageLayoutID = '', oldRecordID = '', oldEdit = ''] = oldValue
+        const [pageID = '', pageLayoutID = '', modalPageLayoutID = '', recordID = '', edit = '', draftID = ''] = value
+        const [oldPageID = '', oldPageLayoutID = '', oldModalPageLayoutID = '', oldRecordID = '', oldEdit = '', oldDraftID = ''] = oldValue
 
         if (!pageID || pageID === NoID) return
 
@@ -380,7 +411,7 @@ export default {
         }
 
         // Only refresh if the record ID has changed or the edit state has changed
-        if ((recordID === NoID && recordID !== oldRecordID) || recordID !== oldRecordID || edit !== oldEdit) {
+        if ((recordID === NoID && recordID !== oldRecordID) || recordID !== oldRecordID || edit !== oldEdit || pageID !== oldPageID || draftID !== oldDraftID) {
           this.refresh()
           return
         }
@@ -447,6 +478,7 @@ export default {
   beforeDestroy () {
     this.abortRequests()
     this.destroyEvents()
+    this.cleanupDraftSync()
     this.setDefaultValues()
   },
 
@@ -462,6 +494,7 @@ export default {
     createEvents () {
       this.$root.$on('refetch-records', this.refetchRecords)
       this.$root.$on('record-field-change', this.evaluateLayoutConditions)
+      this.$root.$on('record-field-change', this.saveDraftRevision)
 
       if (this.inModal) {
         this.$root.$on('bv::modal::hide', this.checkUnsavedChanges)
@@ -504,14 +537,18 @@ export default {
               }
             })
         } else {
-          if (this.refRecord) {
+          if (this.refRecord && this.refRecord.recordID && this.refRecord.recordID !== NoID) {
             this.updateRecordSet(this.refRecord)
 
             // Record create form called from a related records block,
             // we'll try to find an appropriate fields and cross-link this new record to ref
 
             this.module.fields.filter(f => f.kind === 'Record' && f.options.moduleID === this.refRecord.moduleID).forEach(f => {
-              this.values[f.name] = this.refRecord.recordID
+              if (f.isMulti) {
+                this.values[f.name] = [this.refRecord.recordID]
+              } else {
+                this.values[f.name] = this.refRecord.recordID
+              }
             })
           }
 
@@ -550,6 +587,16 @@ export default {
     handleAdd () {
       this.processing = true
 
+      if (this.isDraft) {
+        const currentDraftID = this.activeDraftKey
+        this.activeDraftKey = this.generateChangeID()
+        this.saveDraft()
+        this.activeDraftKey = currentDraftID
+        this.toastSuccess(this.$t('drafts:saved'))
+        this.processing = false
+        return
+      }
+
       if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: NoID, recordPageID: this.page.pageID, edit: true })
@@ -561,6 +608,16 @@ export default {
 
     handleClone () {
       this.processing = true
+
+      if (this.isDraft) {
+        const currentDraftID = this.activeDraftKey
+        this.activeDraftKey = this.generateChangeID()
+        this.saveDraft()
+        this.activeDraftKey = currentDraftID
+        this.toastSuccess(this.$t('drafts:saved'))
+        this.processing = false
+        return
+      }
 
       if (this.inModal) {
         if (this.checkUnsavedChanges()) {
@@ -584,6 +641,12 @@ export default {
     handleView () {
       this.processing = true
 
+      if (this.isDraft) {
+        this.openDraftRecord()
+        this.processing = false
+        return
+      }
+
       if (this.inModal) {
         if (this.checkUnsavedChanges()) {
           this.$emit('handle-record-redirect', { recordID: this.recordID, recordPageID: this.page.pageID, edit: false })
@@ -592,6 +655,37 @@ export default {
         this.$router.push({ name: 'page.record', params: { recordID: this.recordID, pageID: this.page.pageID, edit: false } })
       }
     },
+
+    handleDelete: throttle(function () {
+      this.processing = true
+      this.processingAction = 'delete'
+
+      if (this.isDraft) {
+        this.$store.dispatch('drafts/removeDraft', { changeID: this.activeDraftKey })
+        this.activeDraftKey = null
+        this.toastSuccess(this.$t('drafts:deleted'))
+        this.openDraftRecord()
+        this.processing = false
+        return
+      }
+
+      return this.dispatchUiEvent('beforeDelete')
+        .then(() => this.$ComposeAPI.recordDelete(this.record))
+        .then(this.dispatchUiEvent('afterDelete'))
+        .then(() => {
+          // Clear draft revision on successful delete
+          if (this.activeDraftKey && this.$store) {
+            this.$store.dispatch('drafts/removeDraft', { changeID: this.activeDraftKey })
+            this.activeDraftKey = null
+          }
+
+          this.$root.$emit('refetch-records')
+          this.toastSuccess(this.$t('notification:record.deleteSuccess'))
+        }).catch(e => {
+          this.processing = false
+          this.toastErrorHandler(this.$t('notification:record.deleteFailed'))(e)
+        })
+    }, 500),
 
     handleRedirectToPrevOrNext (recordID) {
       if (!recordID) return
@@ -607,6 +701,19 @@ export default {
           params: { ...this.$route.params, recordID },
         })
         this.popPreviousPages()
+      }
+    },
+
+    openDraftRecord () {
+      const { draftID, ...query } = this.$route.query
+      this.activeDraftKey = null
+
+      if (this.inModal) {
+        this.$emit('handle-record-redirect', { recordID: this.recordID, recordPageID: this.page.pageID, edit: false })
+      } else if (!this.isNew) {
+        this.$router.push({ name: 'page.record', params: { ...this.$route.params, recordID: this.recordID }, query })
+      } else {
+        this.$router.push({ name: 'page.record.create', params: { pageID: this.page.pageID, edit: true } })
       }
     },
 
@@ -655,6 +762,8 @@ export default {
 
           this.record = this.tempRecord
           this.initialRecordState = this.record.clone()
+
+          this.getRecordDraft()
         })
       }).finally(() => {
         this.tempRecord = undefined
@@ -736,6 +845,7 @@ export default {
     destroyEvents () {
       this.$root.$off('refetch-records', this.refetchRecords)
       this.$root.$off('record-field-change', this.evaluateLayoutConditions)
+      this.$root.$off('record-field-change', this.saveDraftRevision)
 
       if (this.inModal) {
         this.$root.$off('bv::modal::hide', this.checkUnsavedChanges)
@@ -750,9 +860,14 @@ export default {
     },
 
     checkUnsavedChanges (bvEvent, modalId) {
-      if ((bvEvent && modalId !== 'record-modal') || !this.edit) return true
+      if ((bvEvent && modalId !== 'record-modal') || !this.edit || this.isDraft) return true
 
-      const recordStateChange = this.compareRecordValues() ? window.confirm(this.$t('general:record.unsavedChanges')) : true
+      let recordStateChange = true
+
+      if (this.compareRecordValues()) {
+        const message = this.showDrafts ? this.$t('general:record.unsavedChangesDraft') : this.$t('general:record.unsavedChanges')
+        recordStateChange = window.confirm(message)
+      }
 
       if (!recordStateChange) {
         this.processing = false
@@ -765,6 +880,102 @@ export default {
       }
 
       return recordStateChange
+    },
+
+    getRecordDraft () {
+      this.activeDraftKey = null
+
+      if (!this.record || !this.inEditing) return
+
+      const { draftID } = this.$route.query
+      if (!draftID) return
+
+      const draft = this.$store.getters['drafts/getDraft'](draftID)
+      if (!draft) return
+
+      const { revision } = draft
+      if (revision.record) {
+        const revRecord = new compose.Record(this.module, revision.record)
+        this.record.values = revRecord.values
+      } else {
+        // Fallback to changes
+        revision.changes.forEach(({ key, new: values }) => {
+          if (this.module.fields.find(f => f.name === key)) {
+            this.record.values[key] = this.module.makeValue(key, values)
+          }
+        })
+      }
+
+      this.activeDraftKey = revision.changeID
+    },
+
+    cleanupDraftSync () {
+      this.activeDraftKey = null
+    },
+
+    saveDraftRevision: throttle(function () {
+      this.saveDraft()
+    }, 2000),
+
+    saveDraft () {
+      if (!this.record || !this.inEditing || !this.showDrafts) return
+
+      const changes = this.computeChanges()
+      if (changes.length === 0) return
+
+      if (!this.activeDraftKey) {
+        this.activeDraftKey = this.generateChangeID()
+      }
+
+      const resourceID = this.isNew ? '0' : String(this.record.recordID)
+      const resource = `compose:record/${this.namespace.namespaceID}/${this.module.moduleID}/${resourceID}`
+
+      const revision = new system.Revision({
+        changeID: this.activeDraftKey,
+        timestamp: new Date().toISOString(),
+        resource,
+        revision: this.record.revision || 0,
+        operation: this.isNew ? 'created' : 'updated',
+        status: 'draft',
+        userID: String(this.$auth.user?.userID || '0'),
+        changes,
+        comment: '',
+        record: this.record.clone(),
+      })
+
+      this.$store.dispatch('drafts/saveDraft', { revision })
+    },
+
+    computeChanges () {
+      const changes = []
+      const current = this.record?.values || {}
+      const initial = this.initialRecordState?.values || {}
+      const allKeys = new Set([...Object.keys(current), ...Object.keys(initial)])
+
+      for (const key of allKeys) {
+        const oldVal = initial[key]
+        const newVal = current[key]
+
+        if (JSON.stringify(oldVal) === JSON.stringify(newVal)) continue
+
+        changes.push({
+          key,
+          old: this.valueToArray(oldVal),
+          new: this.valueToArray(newVal),
+        })
+      }
+
+      return changes
+    },
+
+    valueToArray (value) {
+      if (value === undefined || value === null) return []
+      if (Array.isArray(value)) return value.map(v => v ?? '')
+      return [value]
+    },
+
+    generateChangeID () {
+      return `local-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
     },
   },
 }

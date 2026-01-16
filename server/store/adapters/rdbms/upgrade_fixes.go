@@ -54,6 +54,7 @@ var (
 		fix_2024_09_03_renameFederationNodeSyncNodeID,
 		fix_2024_09_03_renameFederationNodeSyncComposeID,
 		fix_2024_09_03_addFederationNodeSyncNodeIDIndex,
+		fix_2024_9_7_migrateLabelsValueToJsonb,
 	}
 
 	fixesPost = []func(context.Context, *Store) error{
@@ -1020,7 +1021,297 @@ func fix_2024_09_03_addFederationNodeSyncNodeIDIndex(ctx context.Context, s *Sto
 
 	return s.DataDefiner.IndexCreate(ctx, "federation_nodes_sync", &nodeIDIndx)
 }
+func fix_2024_9_7_migrateLabelsValueToJsonbPostgres(ctx context.Context, s *Store) (err error) {
+	var (
+		log        = s.log(ctx)
+		columnType string
+		rows       *sql.Rows
+	)
+	checkQuery := `
+  			SELECT data_type 
+  			FROM information_schema.columns 
+  			WHERE table_name = 'labels' AND column_name = 'value'`
 
+	exists, err := func() (bool, error) {
+		rows, err = s.DB.QueryContext(ctx, checkQuery)
+		if err != nil {
+			return false, err
+		}
+		defer rows.Close()
+
+		if rows.Next() {
+			if err = rows.Scan(&columnType); err != nil {
+				return false, err
+			}
+		}
+
+		if len(columnType) == 0 {
+			log.Debug("labels table not found, skipping migration")
+			return true, nil
+		}
+
+		if columnType == "jsonb" {
+			log.Debug("labels.value column already jsonb, skipping migration")
+			return true, nil
+		}
+
+		return false, nil
+	}()
+
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	log.Info("migrating labels.value column from text to jsonb")
+
+	updateQuery := `
+  			UPDATE labels 
+  			SET value = jsonb_build_object('value', value::text)
+  			WHERE value IS NOT NULL 
+  			  AND value::text NOT LIKE '{%'`
+
+	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
+		return err
+	}
+
+	alterQuery := `ALTER TABLE labels ALTER COLUMN value TYPE jsonb USING value::jsonb`
+	if _, err = s.DB.ExecContext(ctx, alterQuery); err != nil {
+		return err
+	}
+
+	log.Info("successfully migrated labels.value column to jsonb")
+	return nil
+
+}
+func fix_2024_9_7_migrateLabelsValueToJsonbMySql(ctx context.Context, s *Store) (err error) {
+	var (
+		log        = s.log(ctx)
+		columnType string
+		rows       *sql.Rows
+	)
+	checkQuery := `
+  			SELECT data_type
+  			FROM information_schema.columns
+  			WHERE table_name = 'labels' AND column_name = 'value'`
+
+	exists, err := func() (bool, error) {
+		rows, err = s.DB.QueryContext(ctx, checkQuery)
+		if err != nil {
+			return false, err
+		}
+		defer rows.Close()
+
+		if rows.Next() {
+			if err = rows.Scan(&columnType); err != nil {
+				return false, err
+			}
+		}
+
+		if len(columnType) == 0 {
+			log.Debug("labels table not found, skipping migration")
+			return true, nil
+		}
+
+		if columnType == "json" {
+			log.Debug("labels.value column already json, skipping migration")
+			return true, nil
+		}
+
+		return false, nil
+	}()
+
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	log.Info("migrating labels.value column from text to json")
+
+	updateQuery := `
+  			UPDATE labels 
+  			SET value = JSON_OBJECT('value', value)
+  			WHERE value IS NOT NULL 
+  			  AND value NOT LIKE '{%'`
+
+	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
+		return err
+	}
+
+	alterQuery := `ALTER TABLE labels MODIFY COLUMN value JSON`
+	if _, err = s.DB.ExecContext(ctx, alterQuery); err != nil {
+		return err
+	}
+
+	log.Info("successfully migrated labels.value column to json")
+	return nil
+}
+func fix_2024_9_7_migrateLabelsValueToJsonbSqlite(ctx context.Context, s *Store) (err error) {
+	var (
+		log        = s.log(ctx)
+		columnType string
+		rows       *sql.Rows
+	)
+
+	checkQuery := `
+  			SELECT type
+  			FROM pragma_table_info('labels')
+  			WHERE name = 'value'`
+
+	exists, err := func() (bool, error) {
+		rows, err = s.DB.QueryContext(ctx, checkQuery)
+		if err != nil {
+			return false, err
+		}
+		defer rows.Close()
+
+		if rows.Next() {
+			if err = rows.Scan(&columnType); err != nil {
+				return false, err
+			}
+		}
+
+		if len(columnType) == 0 {
+			log.Debug("labels table not found, skipping migration")
+			return true, nil
+		}
+
+		if strings.ToUpper(columnType) == "JSON" {
+			log.Debug("labels.value column already json, skipping migration")
+			return true, nil
+		}
+
+		return false, nil
+	}()
+
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	log.Info("migrating labels.value data format for sqlite")
+
+	updateQuery := `
+  			UPDATE labels
+  			SET value = json_object('value', value)
+  			WHERE value IS NOT NULL
+  			  AND value NOT LIKE '{%'`
+
+	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
+		return err
+	}
+
+	tempTable := "labels_temp"
+	sqlStatements := []string{
+		fmt.Sprintf("CREATE TABLE %s (kind TEXT, rel_resource NUMERIC, name TEXT, value JSON, PRIMARY KEY (kind, rel_resource, name))", tempTable),
+		fmt.Sprintf("INSERT INTO %s SELECT * FROM labels", tempTable),
+		"DROP TABLE labels",
+		fmt.Sprintf("ALTER TABLE %s RENAME TO labels", tempTable),
+	}
+
+	if err = s.Tx(ctx, func(ctx context.Context, s store.Storer) (err error) {
+		for _, sql := range sqlStatements {
+			if _, err = s.(*Store).DB.ExecContext(ctx, sql); err != nil {
+				return err
+			}
+		}
+		return
+	}); err != nil {
+		return err
+	}
+
+	log.Info("successfully migrated labels.value data format")
+	return nil
+}
+func fix_2024_9_7_migrateLabelsValueToJsonbSqlserver(ctx context.Context, s *Store) (err error) {
+	var (
+		log        = s.log(ctx)
+		columnType string
+		rows       *sql.Rows
+	)
+	checkQuery := `
+  			SELECT DATA_TYPE
+  			FROM INFORMATION_SCHEMA.COLUMNS
+  			WHERE TABLE_NAME = 'labels' AND COLUMN_NAME = 'value'`
+
+	exists, err := func() (bool, error) {
+		rows, err = s.DB.QueryContext(ctx, checkQuery)
+		if err != nil {
+			return false, err
+		}
+		defer rows.Close()
+
+		if rows.Next() {
+			if err = rows.Scan(&columnType); err != nil {
+				return false, err
+			}
+		}
+
+		if len(columnType) == 0 {
+			log.Debug("labels table not found, skipping migration")
+			return true, nil
+		}
+
+		if columnType == "nvarchar" {
+			log.Debug("labels.value column already nvarchar, skipping migration")
+			return true, nil
+		}
+
+		return false, nil
+	}()
+
+	if err != nil {
+		return err
+	}
+	if exists {
+		return nil
+	}
+
+	log.Info("migrating labels.value data format for sqlserver")
+
+	updateQuery := `
+  			UPDATE labels
+  			SET value = JSON_OBJECT('value', value)
+  			WHERE value IS NOT NULL
+  			  AND value NOT LIKE '{%'`
+
+	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
+		return err
+	}
+
+	alterQuery := `ALTER TABLE labels ALTER COLUMN value NVARCHAR(MAX)`
+	if _, err = s.DB.ExecContext(ctx, alterQuery); err != nil {
+		return err
+	}
+
+	log.Info("successfully migrated labels.value data format")
+	return nil
+}
+func fix_2024_9_7_migrateLabelsValueToJsonb(ctx context.Context, s *Store) (err error) {
+	var driverName = s.DB.DriverName()
+
+	switch {
+	case strings.HasPrefix(driverName, "postgres"):
+		return fix_2024_9_7_migrateLabelsValueToJsonbPostgres(ctx, s)
+
+	case strings.HasPrefix(driverName, "mysql"):
+		return fix_2024_9_7_migrateLabelsValueToJsonbMySql(ctx, s)
+
+	case strings.HasPrefix(driverName, "sqlite"):
+		return fix_2024_9_7_migrateLabelsValueToJsonbSqlite(ctx, s)
+
+	case strings.HasPrefix(driverName, "sqlserver"):
+		return fix_2024_9_7_migrateLabelsValueToJsonbSqlserver(ctx, s)
+	}
+	return nil
+
+}
 func count(ctx context.Context, s *Store, table string, ee ...goqu.Expression) (count int) {
 	db := s.DB.(goqu.SQLDatabase)
 

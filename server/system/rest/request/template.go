@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -70,7 +71,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -132,7 +133,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	TemplateRead struct {
@@ -186,7 +187,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -292,7 +293,7 @@ func (r TemplateList) GetDeleted() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TemplateList) GetLabels() map[string]string {
+func (r TemplateList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -454,7 +455,7 @@ func (r TemplateCreate) GetOwnerID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TemplateCreate) GetLabels() map[string]string {
+func (r TemplateCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -721,7 +722,7 @@ func (r TemplateUpdate) GetOwnerID() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r TemplateUpdate) GetLabels() map[string]string {
+func (r TemplateUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

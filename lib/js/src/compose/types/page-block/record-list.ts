@@ -50,6 +50,7 @@ export interface Options {
   hideRecordEditButton: boolean;
   hideRecordViewButton: boolean;
   hideRecordPermissionsButton: boolean;
+  hideRecordDeleteButton: boolean;
   enableRecordPageNavigation: boolean;
   allowExport: boolean;
   perPage: number;
@@ -57,6 +58,7 @@ export interface Options {
   recordSelectorDisplayOption: string;
   addRecordDisplayOption: string;
   magnifyOption: string;
+  searchableFields: string[];
 
   fullPageNavigation: boolean;
   showTotalCount: boolean;
@@ -120,16 +122,18 @@ const defaults: Readonly<Options> = Object.freeze({
   hideRecordEditButton: false,
   hideRecordViewButton: false,
   hideRecordPermissionsButton: false,
-  enableRecordPageNavigation: false,
-  allowExport: false,
+  hideRecordDeleteButton: false,
+  enableRecordPageNavigation: true,
+  allowExport: true,
   perPage: 20,
   recordDisplayOption: 'sameTab',
   recordSelectorDisplayOption: 'sameTab',
   addRecordDisplayOption: 'sameTab',
   magnifyOption: '',
+  searchableFields: [],
 
   fullPageNavigation: false,
-  showTotalCount: false,
+  showTotalCount: true,
   showDeletedRecordsOption: false,
   customFilterPresets: false,
 
@@ -199,6 +203,10 @@ export class PageBlockRecordList extends PageBlock {
       this.options.fields = o.fields
     }
 
+    if (o.searchableFields) {
+      this.options.searchableFields = o.searchableFields
+    }
+
     if (o.inlineEditFields) {
       this.options.inlineEditFields = o.inlineEditFields
     }
@@ -235,6 +243,7 @@ export class PageBlockRecordList extends PageBlock {
       'hideRecordEditButton',
       'hideRecordViewButton',
       'hideRecordPermissionsButton',
+      'hideRecordDeleteButton',
       'enableRecordPageNavigation',
       'editable',
       'draggable',

@@ -27,7 +27,6 @@
 
     <router-view
       v-if="loaded"
-      class="pb-safari"
     />
   </div>
 </template>
@@ -41,7 +40,7 @@ const { CReminderSidebar } = components
 
 export default {
   i18nOptions: {
-    namespaces: 'general',
+    namespaces: ['general', 'drafts'],
   },
 
   components: {
@@ -64,6 +63,10 @@ export default {
     ...mapGetters({
       namespaces: 'namespace/set',
     }),
+
+    showDrafts () {
+      return this.$Settings.get('ui.topbar.showDrafts', false)
+    },
   },
 
   created () {
@@ -87,6 +90,7 @@ export default {
     ...mapActions({
       loadUsers: 'user/load',
       loadNamespaces: 'namespace/load',
+      toggleDrafts: 'drafts/toggleVisibility',
     }),
 
     setDefaultValues () {
@@ -99,12 +103,4 @@ export default {
 </script>
 
 <style scoped>
-/* fixes bottom part of page being cut off */
-
-/* CSS specific to iOS devices */
-@supports (-webkit-touch-callout: none) {
-  .pb-safari {
-    padding-bottom: 5.5em;
-  }
-}
 </style>

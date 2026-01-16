@@ -193,10 +193,18 @@ export default {
         // Handle event fetching when view/date-range changes
         datesRender: this.renderDate,
         eventRender: ({ event, el }) => {
-          if (event.title) {
-            el.querySelector('.fc-title').classList.add('rt-content')
-            el.querySelector('.fc-title').innerHTML = event.title
+          if (!event.title) {
+            return
           }
+
+          // Support grid (.fc-title) and list (.fc-list-item-title) views
+          const titleEl = el && el.querySelector('.fc-title, .fc-list-item-title')
+          if (!titleEl) {
+            return
+          }
+
+          titleEl.classList.add('rt-content')
+          titleEl.innerHTML = event.title
         },
       }
     },

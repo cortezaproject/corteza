@@ -82,6 +82,9 @@ kind:
     prefixPlaceholder: Prefix
     suffixLabel: Suffix
     suffixPlaceholder: Suffix
+    step:
+      label: Step
+      description: Set the step size for the number field
     displayType:
       label: Display type
       number: Number

@@ -420,7 +420,7 @@
             <b-tr
               v-for="(item, index) in items"
               :key="`${index}${item.r.recordID}`"
-              :class="{ 'pointer': !(options.editable && editing), }"
+              :class="{ 'pointer': isRowClickable }"
               :variant="inlineEditing && item.r.deletedAt ? 'warning' : ''"
               @click="handleRowClick(item)"
             >
@@ -512,7 +512,7 @@
                     </b-button>
 
                     <b-button
-                      v-if="showInlineFilter()"
+                      v-if="showInlineFilter(field)"
                       v-b-tooltip.noninteractive.hover="{ title: $t('recordList.filterByValue'), boundary: 'body' }"
                       variant="outline-extra-light"
                       size="sm"
@@ -813,7 +813,6 @@
             aria-controls="record-list"
             class="m-0 d-print-none"
             pills
-            :disabled="isProcessing"
             :value="getPagination.page"
             :per-page="getPagination.perPage"
             :total-rows="getPagination.count"
@@ -939,7 +938,7 @@ import BulkEditModal from 'corteza-webapp-compose/src/components/Public/Record/B
 import ExporterModal from 'corteza-webapp-compose/src/components/Public/Record/Exporter'
 import ImporterModal from 'corteza-webapp-compose/src/components/Public/Record/Importer'
 import { getItem, removeItem, setItem } from 'corteza-webapp-compose/src/lib/local-storage'
-import { evaluatePrefilter, formatActiveFilterOperator, isBetweenOperator, isFieldInFilter, queryToFilter, convertRecordListFilter } from 'corteza-webapp-compose/src/lib/record-filter'
+import { evaluatePrefilter, formatActiveFilterOperator, isBetweenOperator, isFieldInFilter, queryToFilter, convertRecordListFilter, getFieldFilter } from 'corteza-webapp-compose/src/lib/record-filter'
 import records from 'corteza-webapp-compose/src/mixins/records'
 import users from 'corteza-webapp-compose/src/mixins/users'
 import draggable from 'vuedraggable'
@@ -1042,6 +1041,8 @@ export default {
 
       processingTimeout: undefined,
       cancelled: false,
+
+      stayOnPage: undefined,
     }
   },
 
@@ -1104,6 +1105,10 @@ export default {
 
     showPageNavigation () {
       return !this.options.hidePaging
+    },
+
+    isRowClickable () {
+      return !(this.options.editable && this.editing) && this.options.recordDisplayOption !== 'doNothing'
     },
 
     showPerPageSelector () {
@@ -1519,8 +1524,13 @@ export default {
       const r = new compose.Record(this.recordListModule, {})
 
       // Set record values that should be prefilled
-      if ((this.record || {}).recordID && this.options.refField) {
-        r.values[this.options.refField] = (this.record || {}).recordID
+      if (this.options.refField) {
+        const refField = this.recordListModule.fields.find(f => f.name === this.options.refField)
+        if (refField && refField.isMulti) {
+          r.values[this.options.refField] = [(this.record || {}).recordID]
+        } else {
+          r.values[this.options.refField] = (this.record || {}).recordID
+        }
       }
 
       this.items.unshift(this.wrapRecord(r))
@@ -1646,7 +1656,12 @@ export default {
           throw Error(this.$t('record.invalidRecordVar'))
         }
 
-        filter.push(`(${refField} = ${this.record.recordID})`)
+        const refFieldObj = this.recordListModule.fields.find(f => f.name === refField)
+        if (refFieldObj && refFieldObj.isMulti) {
+          filter.push(getFieldFilter(refField, 'Record', this.record.recordID, 'IN'))
+        } else {
+          filter.push(getFieldFilter(refField, 'Record', this.record.recordID, '='))
+        }
       }
 
       this.prefilter = filter.join(' AND ')
@@ -1685,7 +1700,7 @@ export default {
       this.processing = true
 
       const { namespaceID, moduleID } = this.filter || {}
-      const { filter, filterRaw, timezone } = e
+      const { filter, filterRaw, timezone, resolveRefs } = e
       e = {
         ...e,
         namespaceID,
@@ -1715,6 +1730,7 @@ export default {
           filter: this.selectedAllRecords ? this.bulkQuery : filter,
           jwt: this.$auth.accessToken,
           timezone: timezone ? timezone.tzCode : undefined,
+          resolveRefs,
         },
       })
 
@@ -1723,6 +1739,10 @@ export default {
     },
 
     handleRowClick ({ r: { recordID } }) {
+      if (this.options.recordDisplayOption === 'doNothing') {
+        return
+      }
+
       if ((this.options.editable && this.editing) || (!this.recordPageID && !this.options.rowViewUrl)) {
         return
       }
@@ -1784,7 +1804,7 @@ export default {
       this.refresh(true)
     },
 
-    goToPage (page) {
+    async goToPage (page) {
       if (page >= 1) {
         this.filter.pageCursor = (this.pagination.pages[page - 1] || {}).cursor
         this.pagination.page = page
@@ -1796,7 +1816,8 @@ export default {
           this.pagination.page = 1
         }
       }
-      this.refresh()
+
+      return this.refresh()
     },
 
     handleSelectAllOnPage ({ isChecked }) {
@@ -1903,7 +1924,15 @@ export default {
       this.selected = []
 
       // Compute query based on query, prefilter and recordListFilter
-      const query = queryToFilter(this.query, this.prefilter, this.fields.map(({ moduleField }) => moduleField), this.groupRecordListFilter)
+      let searchFields = []
+      if (this.options.searchableFields.length > 0) {
+        searchFields = this.recordListModule.filterFields(this.options.searchableFields)
+      } else {
+        // Default to visible fields if no searchable fields are configured
+        searchFields = this.fields.map(({ moduleField }) => moduleField)
+      }
+
+      const query = queryToFilter(this.query, this.prefilter, searchFields, this.groupRecordListFilter)
 
       const { moduleID, namespaceID } = this.recordListModule
 
@@ -1932,69 +1961,72 @@ export default {
       const { response, cancel } = this.$ComposeAPI.recordListCancellable({ ...this.filter, moduleID, namespaceID, query, ...paginationOptions, summaries })
       this.abortableRequests.push(cancel)
 
-      return response().then(({ set, filter, summaries = {} }) => {
-        const records = set.map(r => new compose.Record(r, this.recordListModule))
+      return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(([{ set, filter, summaries = {} }]) => {
+          const records = set.map(r => new compose.Record(r, this.recordListModule))
 
-        this.updateRecordSet(records)
+          this.updateRecordSet(records)
 
-        this.filter = { ...this.filter, ...filter }
-        this.filter.nextPage = filter.nextPage
-        this.filter.prevPage = filter.prevPage
+          this.filter = { ...this.filter, ...filter }
+          this.filter.nextPage = filter.nextPage
+          this.filter.prevPage = filter.prevPage
 
-        if (resetPagination) {
-          this.summaries = summaries
+          if (resetPagination) {
+            this.summaries = summaries
 
-          let count = this.pagination.count || 0
+            let count = this.pagination.count || 0
 
-          if (paginationOptions.incTotal) {
-            count = filter.total || 0
-            this.filter.incTotal = false
-          }
-
-          if (paginationOptions.incPageNavigation) {
-            const pages = filter.pageNavigation || []
-            this.pagination.pages = pages
-
-            if (!paginationOptions.incTotal) {
-              if (pages.length > 1) {
-                const lastPageCount = pages[pages.length - 1].items
-                count = ((pages.length - 1) * this.recordsPerPage) + lastPageCount
-              } else {
-                count = records.length
-              }
+            if (paginationOptions.incTotal) {
+              count = filter.total || 0
+              this.filter.incTotal = false
             }
 
-            this.filter.incPageNavigation = false
+            if (paginationOptions.incPageNavigation) {
+              const pages = filter.pageNavigation || []
+              this.pagination.pages = pages
+
+              if (!paginationOptions.incTotal) {
+                if (pages.length > 1) {
+                  const lastPageCount = pages[pages.length - 1].items
+                  count = ((pages.length - 1) * this.recordsPerPage) + lastPageCount
+                } else {
+                  count = records.length
+                }
+              }
+
+              this.filter.incPageNavigation = false
+            }
+
+            this.pagination.count = count
+            this.pagination.page = 1
           }
 
-          this.pagination.count = count
-          this.pagination.page = 1
-        }
+          if (this.stayOnPage) {
+            const goToPageNumber = this.stayOnPage
+            this.stayOnPage = undefined
+            return this.goToPage(goToPageNumber)
+          }
 
-        // Extract user IDs from record values and load all users
-        const fields = this.fields.filter(f => f.moduleField).map(f => f.moduleField)
+          // Extract user IDs from record values and load all users
+          const fields = this.fields.filter(f => f.moduleField).map(f => f.moduleField)
 
-        return Promise.all([
-          this.fetchUsers(fields, records),
-          this.fetchRecords(namespaceID, fields, records),
-        ]).then(() => {
-          this.items = records.map(r => this.wrapRecord(r))
-        })
-      }).catch((e) => {
-        if (!axios.isCancel(e)) {
-          this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
-        } else {
-          this.cancelled = true
-        }
-      }).finally(() => {
-        if (!this.cancelled) {
-          this.processingTimeout = setTimeout(() => {
+          return Promise.all([
+            this.fetchUsers(fields, records),
+            this.fetchRecords(namespaceID, fields, records),
+          ]).then(() => {
+            this.items = records.map(r => this.wrapRecord(r))
             this.processing = false
-          }, 300)
-        } else {
+          })
+        }).catch((e) => {
+          if (!axios.isCancel(e)) {
+            this.toastErrorHandler(this.$t('notification:record.listLoadFailed'))(e)
+          } else {
+            this.cancelled = true
+          }
+          this.processing = false
+        }).finally(() => {
           this.cancelled = false
-        }
-      })
+        })
     },
 
     getStorageRecordListFilter () {
@@ -2166,11 +2198,11 @@ export default {
     },
 
     isInlineRestoreActionVisible ({ deletedAt }) {
-      return !!deletedAt
+      return !this.options.hideRecordDeleteButton && !!deletedAt
     },
 
     isInlineDeleteActionVisible ({ recordID, canDeleteRecord, deletedAt }) {
-      return !deletedAt && (canDeleteRecord || recordID === NoID)
+      return !this.options.hideRecordDeleteButton && !deletedAt && (canDeleteRecord || recordID === NoID)
     },
 
     isViewRecordActionVisible ({ canReadRecord }) {
@@ -2186,11 +2218,11 @@ export default {
     },
 
     isDeleteActionVisible ({ deletedAt, canDeleteRecord }) {
-      return !deletedAt && canDeleteRecord
+      return !this.options.hideRecordDeleteButton && !deletedAt && canDeleteRecord
     },
 
     isRestoreActionVisible ({ canUndeleteRecord }) {
-      return canUndeleteRecord
+      return !this.options.hideRecordDeleteButton && canUndeleteRecord
     },
 
     areActionsVisible (record) {
@@ -2271,8 +2303,8 @@ export default {
       return this.options.inlineRecordEditEnabled && field.canEdit && !this.showingDeletedRecords && isfieldInlineEditable()
     },
 
-    showInlineFilter () {
-      return this.options.filterPresets.length > 0
+    showInlineFilter (field) {
+      return this.options.inlineValueFiltering && !this.options.hideFiltering && field.filterable
     },
 
     onInlineEditClose () {
@@ -2416,6 +2448,7 @@ export default {
       this.showCustomSummariesModal = false
       this.processingTimeout = undefined
       this.cancelled = false
+      this.stayOnPage = undefined
     },
 
     abortRequests () {
@@ -2428,7 +2461,11 @@ export default {
       })
     },
 
-    refreshAndResetPagination () {
+    refreshAndResetPagination ({ stayOnPage = true } = {}) {
+      if (stayOnPage) {
+        this.stayOnPage = this.pagination.page
+      }
+
       this.refresh(true)
     },
 

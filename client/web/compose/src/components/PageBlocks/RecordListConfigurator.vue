@@ -236,6 +236,23 @@
               lg="6"
             >
               <b-form-group
+                :label="$t('recordList.record.prefilterHideSearch')"
+                label-class="text-primary"
+              >
+                <c-input-checkbox
+                  v-model="options.hideSearch"
+                  switch
+                  invert
+                  :labels="checkboxLabel"
+                />
+              </b-form-group>
+            </b-col>
+
+            <b-col
+              cols="12"
+              lg="6"
+            >
+              <b-form-group
                 :label="$t('recordList.record.filterHide')"
                 label-class="text-primary"
               >
@@ -249,19 +266,28 @@
             </b-col>
 
             <b-col
-              cols="12"
+              v-if="!options.hideSearch"
               lg="6"
+              cols="12"
             >
               <b-form-group
-                :label="$t('recordList.record.prefilterHideSearch')"
+                :label="$t('recordList.record.searchableFields')"
                 label-class="text-primary"
               >
-                <c-input-checkbox
-                  v-model="options.hideSearch"
-                  switch
-                  invert
-                  :labels="checkboxLabel"
-                />
+                <column-picker
+                  size="sm"
+                  variant="light"
+                  :module="recordListModule"
+                  :fields="options.searchableFields"
+                  :field-subset="queryableFields"
+                  @updateFields="onUpdateSearchableFields"
+                >
+                  {{ $t('recordList.record.configureSearchableFields') }}
+                </column-picker>
+
+                <b-form-text class="text-secondary small">
+                  {{ $t('recordList.record.searchableFieldsFootnote') }}
+                </b-form-text>
               </b-form-group>
             </b-col>
           </b-row>
@@ -932,14 +958,18 @@
                   {{ $t('recordList.hideRecordCloneButton') }}
                 </b-form-checkbox>
 
+                <b-form-checkbox v-model="options.hideRecordReminderButton">
+                  {{ $t('recordList.hideRecordReminderButton') }}
+                </b-form-checkbox>
+
                 <b-form-checkbox
                   v-model="options.hideRecordPermissionsButton"
                 >
                   {{ $t('recordList.hideRecordPermissionsButton') }}
                 </b-form-checkbox>
 
-                <b-form-checkbox v-model="options.hideRecordReminderButton">
-                  {{ $t('recordList.hideRecordReminderButton') }}
+                <b-form-checkbox v-model="options.hideRecordDeleteButton">
+                  {{ $t('recordList.hideRecordDeleteButton') }}
                 </b-form-checkbox>
               </b-form-group>
             </b-col>
@@ -1013,6 +1043,7 @@ export default {
         { value: 'sameTab', text: this.$t('recordList.record.openInSameTab') },
         { value: 'newTab', text: this.$t('recordList.record.openInNewTab') },
         { value: 'modal', text: this.$t('recordList.record.openInModal') },
+        { value: 'doNothing', text: this.$t('recordList.record.doNothing') },
       ]
     },
 
@@ -1063,8 +1094,8 @@ export default {
 
     parentFields () {
       if (this.recordListModule) {
-        return this.recordListModule.fields.filter(({ kind, isMulti, options }) => {
-          if (kind === 'Record' && !isMulti && this.record) {
+        return this.recordListModule.fields.filter(({ kind, options }) => {
+          if (kind === 'Record' && this.record) {
             return options.moduleID === this.record.moduleID
           }
 
@@ -1095,6 +1126,17 @@ export default {
         { value: 'notEmptyCount', label: this.$t('recordList.summaries.metrics.notEmptyCount.label') },
         { value: 'uniqueCount', label: this.$t('recordList.summaries.metrics.uniqueCount.label') },
       ]
+    },
+
+    queryableFields () {
+      if (!this.recordListModule) {
+        return []
+      }
+
+      return [
+        ...this.recordListModule.fields,
+        ...this.recordListModule.systemFields(),
+      ].filter(f => f.isQueryable)
     },
   },
 
@@ -1229,6 +1271,10 @@ export default {
 
     onUpdateInlineEditableFields (fields = []) {
       this.options.inlineEditFields = fields.map(f => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
+    },
+
+    onUpdateSearchableFields (fields = []) {
+      this.options.searchableFields = fields.map(f => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter(f => !!f)
     },
 
     onUpdateTextWrapOption (fields = []) {

@@ -17,7 +17,9 @@
           />
         </b-form-group>
       </b-col>
+    </b-row>
 
+    <b-row>
       <b-col
         cols="12"
         lg="6"
@@ -33,6 +35,22 @@
             type="range"
             min="0"
             max="6"
+          />
+        </b-form-group>
+      </b-col>
+      <b-col
+        cols="12"
+        lg="6"
+      >
+        <b-form-group
+          :label="$t('kind.number.step.label')"
+          :description="$t('kind.number.step.description')"
+          label-class="text-primary"
+        >
+          <b-form-input
+            v-model="f.options.step"
+            type="number"
+            number
           />
         </b-form-group>
       </b-col>
@@ -339,6 +357,7 @@
             v-model="liveExample"
             type="number"
             number
+            :step="f.options.step"
           />
         </b-col>
 

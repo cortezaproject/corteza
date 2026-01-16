@@ -1,11 +1,11 @@
 <template>
   <b-card
-    header-class="p-0 border-bottom"
+    :header-class="!hideToolbar ? 'p-0 border-bottom' : 'd-none'"
     body-class="p-0"
     class="border border-light rounded"
   >
     <template
-      v-if="editor"
+      v-if="editor && !hideToolbar"
       #header
     >
       <r-toolbar
@@ -21,6 +21,9 @@
       :class="bodyClass"
       class="rt-editor-content rt-content p-2"
       :style="{ minHeight: minBodyHeight, maxHeight: maxBodyHeight }"
+      @drop.native="onDrop"
+      @paste.native="onPaste"
+      @dragover.native.prevent
     />
   </b-card>
 </template>
@@ -68,6 +71,11 @@ export default {
     placeholder: {
       type: String,
       default: '',
+    },
+
+    hideToolbar: {
+      type: Boolean,
+      default: false,
     },
   },
 
@@ -128,10 +136,33 @@ export default {
      * Because of this, we are using `view.dom.innerHTML`. This should be improved at a later point
      */
     onUpdate () {
-      this.currentValue = this.editor.getHTML()
+      // Add <br> tags to empty paragraphs
+      const editorValue = this.editor.getHTML().replace(/<p><\/p>/g, '<p><br></p>')
+
+      this.currentValue = editorValue === '<p><br></p>' ? '' : editorValue
 
       this.emittedContent = true
       this.$emit('input', this.currentValue)
+    },
+
+    focus () {
+      if (this.editor) {
+        this.editor.commands.focus()
+      }
+    },
+
+    onDrop (event) {
+      if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+        event.preventDefault()
+        this.$emit('upload', event.dataTransfer.files)
+      }
+    },
+
+    onPaste (event) {
+      if (event.clipboardData && event.clipboardData.files && event.clipboardData.files.length > 0) {
+        event.preventDefault()
+        this.$emit('upload', event.clipboardData.files)
+      }
     },
   },
 }

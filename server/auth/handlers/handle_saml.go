@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (h AuthHandlers) samlInit(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandlers) samlInit(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
 	h.Log.Info("starting SAML authentication flow")
 

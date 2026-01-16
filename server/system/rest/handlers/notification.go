@@ -10,10 +10,11 @@ package handlers
 
 import (
 	"context"
+	"net/http"
+
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/go-chi/chi/v5"
-	"net/http"
 )
 
 type (
@@ -25,18 +26,22 @@ type (
 		Read(context.Context, *request.NotificationRead) (interface{}, error)
 		Delete(context.Context, *request.NotificationDelete) (interface{}, error)
 		MarkAsRead(context.Context, *request.NotificationMarkAsRead) (interface{}, error)
+		MarkAsUnread(context.Context, *request.NotificationMarkAsUnread) (interface{}, error)
 		MarkAllAsRead(context.Context, *request.NotificationMarkAllAsRead) (interface{}, error)
+		MarkAllAsUnread(context.Context, *request.NotificationMarkAllAsUnread) (interface{}, error)
 	}
 
 	// HTTP API interface
 	Notification struct {
-		List          func(http.ResponseWriter, *http.Request)
-		Create        func(http.ResponseWriter, *http.Request)
-		Update        func(http.ResponseWriter, *http.Request)
-		Read          func(http.ResponseWriter, *http.Request)
-		Delete        func(http.ResponseWriter, *http.Request)
-		MarkAsRead    func(http.ResponseWriter, *http.Request)
-		MarkAllAsRead func(http.ResponseWriter, *http.Request)
+		List            func(http.ResponseWriter, *http.Request)
+		Create          func(http.ResponseWriter, *http.Request)
+		Update          func(http.ResponseWriter, *http.Request)
+		Read            func(http.ResponseWriter, *http.Request)
+		Delete          func(http.ResponseWriter, *http.Request)
+		MarkAsRead      func(http.ResponseWriter, *http.Request)
+		MarkAsUnread    func(http.ResponseWriter, *http.Request)
+		MarkAllAsRead   func(http.ResponseWriter, *http.Request)
+		MarkAllAsUnread func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -138,6 +143,22 @@ func NewNotification(h NotificationAPI) *Notification {
 
 			api.Send(w, r, value)
 		},
+		MarkAsUnread: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNotificationMarkAsUnread()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.MarkAsUnread(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		MarkAllAsRead: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNotificationMarkAllAsRead()
@@ -147,6 +168,22 @@ func NewNotification(h NotificationAPI) *Notification {
 			}
 
 			value, err := h.MarkAllAsRead(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
+		MarkAllAsUnread: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNotificationMarkAllAsUnread()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.MarkAllAsUnread(r.Context(), params)
 			if err != nil {
 				api.Send(w, r, err)
 				return
@@ -166,6 +203,8 @@ func (h Notification) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 		r.Get("/notification/{notificationID}", h.Read)
 		r.Delete("/notification/{notificationID}", h.Delete)
 		r.Patch("/notification/{notificationID}/read", h.MarkAsRead)
+		r.Patch("/notification/{notificationID}/unread", h.MarkAsUnread)
 		r.Patch("/notification/all/read", h.MarkAllAsRead)
+		r.Patch("/notification/all/unread", h.MarkAllAsUnread)
 	})
 }

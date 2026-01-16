@@ -129,7 +129,7 @@ export default {
 
   methods: {
     onItemClick () {
-      if (window.innerWidth < 576) {
+      if (window.innerWidth < 1024) {
         this.$root.$emit('close-sidebar')
       }
     },

@@ -47,8 +47,14 @@ actions:
   - action: markAsRead
     log: "marked {{notification}} as read"
 
+  - action: markAsUnread
+    log: "marked {{notification}} as unread"
+
   - action: markAllAsRead
     log: "marked all notifications as read for current user"
+
+  - action: markAllAsUnread
+    log: "marked all notifications as unread for current user"
 
 errors:
   - error: notFound

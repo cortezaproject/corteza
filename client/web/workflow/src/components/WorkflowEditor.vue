@@ -79,6 +79,38 @@
           <b>{{ $t('editor:run-as') }}</b> <samp>{{ getRunAs }}</samp>
         </p>
 
+        <!-- Namespace/Module Labels -->
+        <div
+          v-if="workflowLabelsDisplay.length > 0"
+          class="mb-2"
+        >
+          <div
+            v-for="group in workflowLabelsDisplay"
+            :key="'group-' + group.namespaceID"
+            class="d-flex align-items-center flex-wrap gap-1 mb-1"
+          >
+            <b-badge
+              v-b-tooltip.hover.d200
+              :title="$t('general:filter.namespace.label')"
+              variant="primary"
+              style="font-size: 90%;"
+            >
+              {{ group.namespaceName }}
+            </b-badge>
+
+            <b-badge
+              v-for="mod in group.modules"
+              :key="'mod-' + group.namespaceID + '-' + mod.id"
+              v-b-tooltip.hover.d200
+              :title="$t('general:filter.module.label')"
+              variant="extra-light"
+              style="font-size: 90%;"
+            >
+              {{ mod.name }}
+            </b-badge>
+          </div>
+        </div>
+
         <div
           class="d-flex align-items-center mb-1"
         >
@@ -288,96 +320,18 @@
       </template>
     </b-sidebar>
 
-    <b-modal
-      id="workflow"
-      :title="$t('editor:workflow-configuration')"
-      size="lg"
-      :hide-header-close="workflow.workflowID === '0'"
-      :no-close-on-backdrop="workflow.workflowID === '0'"
-      :no-close-on-esc="workflow.workflowID === '0'"
-      no-fade
-    >
-      <template #modal-title>
-        {{ $t('editor:workflow-configuration') }}
-      </template>
-
-      <div
-        v-if="workflow.workflowID && workflow.workflowID !== '0'"
-        class="d-flex mb-3"
-      >
-        <import
-          data-test-id="button-import-workflow"
-          :disabled="importProcessing"
-          @import="importJSON"
-        />
-
-        <export
-          data-test-id="button-export-workflow"
-          :workflows="[workflow.workflowID]"
-          :file-name="workflow.meta.name || workflow.handle"
-          size="lg"
-          class="ml-1"
-        />
-
-        <c-permissions-button
-          v-if="workflow.canGrant"
-          :title="workflow.meta.name || workflow.handle || workflow.workflowID"
-          :target="workflow.meta.name || workflow.handle || workflow.workflowID"
-          :resource="`corteza::automation:workflow/${workflow.workflowID}`"
-          :button-label="$t('general:permissions')"
-          class="btn-lg ml-1"
-        />
-      </div>
-
-      <workflow-configurator
-        v-if="workflow.workflowID"
-        :workflow="workflow"
-        @delete="$emit('delete')"
-      />
-
-      <template #modal-footer>
-        <div
-          class="d-flex w-100"
-        >
-          <c-input-confirm
-            v-if="workflow.canDeleteWorkflow && !isDeleted"
-            size="md"
-            size-confirm="md"
-            :processing="processingDelete"
-            :text="$t('editor:delete')"
-            :borderless="false"
-            @confirmed="$emit('delete')"
-          />
-
-          <c-input-confirm
-            v-else-if="isDeleted"
-            size="md"
-            size-confirm="md"
-            :processing="processingDelete"
-            :text="$t('editor:undelete')"
-            :borderless="false"
-            @confirmed="$emit('undelete')"
-          />
-
-          <b-button
-            v-if="workflow.workflowID === '0'"
-            variant="light"
-            @click="$router.back()"
-          >
-            {{ $t('editor:back') }}
-          </b-button>
-
-          <c-button-submit
-            data-test-id="button-save-workflow"
-            :disabled="canSave"
-            :processing="processingSave"
-            :text="$t('editor:save')"
-            class="ml-auto"
-            @submit="saveWorkflow()"
-          />
-        </div>
-      </template>
-    </b-modal>
+    <workflow-configurator
+      v-if="workflow.workflowID"
+      :workflow="workflow"
+      :can-create="canCreate"
+      :processing-save="processingSave"
+      :processing-delete="processingDelete"
+      :import-processing="importProcessing"
+      @save="handleWorkflowSave"
+      @import="importJSON"
+      @delete="$emit('delete')"
+      @undelete="$emit('undelete')"
+    />
 
     <b-modal
       id="help"
@@ -480,10 +434,8 @@ import Tooltip from '../components/Tooltip.vue'
 import WorkflowConfigurator from '../components/Configurator/Workflow'
 import Help from '../components/Help'
 import VueJsonEditor from 'v-jsoneditor'
-import Import from '../components/Import'
-import Export from '../components/Export'
 import { NoID } from '@cortezaproject/corteza-js'
-import { handle, components } from '@cortezaproject/corteza-vue'
+import { components } from '@cortezaproject/corteza-vue'
 
 const {
   mxClient,
@@ -529,8 +481,6 @@ export default {
     WorkflowConfigurator,
     Help,
     VueJsonEditor,
-    Import,
-    Export,
   },
 
   props: {
@@ -626,6 +576,84 @@ export default {
   },
 
   computed: {
+    workflowLabelsDisplay () {
+      const namespaceIDs = []
+      const modulesByNamespace = {}
+
+      if (!this.workflow.labels) {
+        return []
+      }
+
+      // Parse namespace labels
+      if (this.workflow.labels.ref_namespace) {
+        const nsValues = Array.isArray(this.workflow.labels.ref_namespace)
+          ? this.workflow.labels.ref_namespace
+          : [this.workflow.labels.ref_namespace]
+
+        nsValues.forEach(label => {
+          const nsID = label.split('/')[1]
+          if (nsID && !namespaceIDs.includes(nsID)) {
+            namespaceIDs.push(nsID)
+            // Resolve via store
+            this.$store.dispatch('labels/resolveNamespace', {
+              namespaceID: nsID,
+              api: this.$ComposeAPI,
+            })
+          }
+        })
+      }
+
+      // Parse module labels
+      if (this.workflow.labels.ref_module) {
+        const modValues = Array.isArray(this.workflow.labels.ref_module)
+          ? this.workflow.labels.ref_module
+          : [this.workflow.labels.ref_module]
+
+        modValues.forEach(label => {
+          const parts = label.split('/')
+          const nsID = parts[1]
+          const modID = parts[2]
+
+          if (!nsID || !modID) return
+
+          if (!namespaceIDs.includes(nsID)) {
+            namespaceIDs.push(nsID)
+            this.$store.dispatch('labels/resolveNamespace', {
+              namespaceID: nsID,
+              api: this.$ComposeAPI,
+            })
+          }
+
+          if (!modulesByNamespace[nsID]) {
+            modulesByNamespace[nsID] = []
+          }
+
+          // Resolve via store
+          this.$store.dispatch('labels/resolveModule', {
+            moduleID: modID,
+            namespaceID: nsID,
+            api: this.$ComposeAPI,
+          })
+
+          const name = this.$store.getters['labels/getModule'](modID)
+          modulesByNamespace[nsID].push({
+            id: modID,
+            name: name || modID,
+          })
+        })
+      }
+
+      // Build grouped result
+      return namespaceIDs.map(nsID => {
+        const name = this.$store.getters['labels/getNamespace'](nsID)
+        return {
+          namespaceID: nsID,
+          namespaceName: name || nsID,
+          modules: modulesByNamespace[nsID] || [],
+        }
+      })
+    },
+
     getSidebarItemType () {
       const { item = {} } = this.sidebar || {}
       const { style, edge } = item.node || {}
@@ -657,22 +685,6 @@ export default {
 
     canUpdateWorkflow () {
       return this.workflow.workflowID === '0' ? this.canCreate : this.workflow.canUpdateWorkflow
-    },
-
-    nameState () {
-      return this.workflow.meta.name ? null : false
-    },
-
-    handleState () {
-      return handle.handleState(this.workflow.handle)
-    },
-
-    canSave () {
-      return !this.canUpdateWorkflow || [this.nameState, this.handleState].includes(false)
-    },
-
-    isDeleted () {
-      return this.workflow.deletedAt
     },
 
     hasIssues () {
@@ -853,6 +865,48 @@ export default {
       this.graph.setConnectable(true)
       this.graph.setAllowDanglingEdges(false)
       this.graph.setTooltips(true)
+
+      this.graph.container.style.overflow = 'hidden'
+
+      // Panning: middle mouse button and right-click; left-click for selection
+      this.graph.setPanning(true)
+      this.graph.panningHandler.useLeftButtonForPanning = false
+      this.graph.panningHandler.usePopupTrigger = true
+      this.graph.panningHandler.ignoreCell = true
+      this.graph.panningHandler.isForcePanningEvent = (me) => {
+        const evt = me.getEvent()
+        return mxEvent.isMiddleMouseButton(evt) || mxEvent.isRightMouseButton(evt)
+      }
+
+      const panningHandler = this.graph.panningHandler
+      const originalMouseDown = panningHandler.mouseDown
+      panningHandler.mouseDown = function (sender, me) {
+        const evt = me.getEvent()
+        const isPanButton = mxEvent.isMiddleMouseButton(evt) || mxEvent.isRightMouseButton(evt)
+        if (isPanButton) {
+          sender.container.style.cursor = 'grabbing'
+        }
+        if (originalMouseDown) {
+          originalMouseDown.apply(this, arguments)
+        }
+      }
+
+      const originalMouseUp = panningHandler.mouseUp
+      panningHandler.mouseUp = function (sender, me) {
+        sender.container.style.cursor = 'default'
+        if (originalMouseUp) {
+          originalMouseUp.apply(this, arguments)
+        }
+      }
+
+      mxEvent.addListener(this.graph.container, 'mousedown', (evt) => {
+        if (mxEvent.isMiddleMouseButton(evt) || mxEvent.isRightMouseButton(evt)) {
+          this.graph.container.style.cursor = 'grabbing'
+          this.graph.panningHandler.start(evt)
+          mxEvent.consume(evt)
+        }
+      })
+      mxEvent.disableContextMenu(this.graph.container)
 
       /* eslint-disable no-new */
       new mxRubberband(this.graph) // Enables multiple selection
@@ -1673,19 +1727,21 @@ export default {
         })
       })
 
-      // Zoom event
-      mxEvent.addMouseWheelListener((event, up) => {
-        if (mxEvent.isConsumed(event)) {
-          return
+      // Scroll to pan, Ctrl+scroll to zoom
+      this.graph.container.addEventListener('wheel', (event) => {
+        if (event.ctrlKey || (mxClient.IS_MAC && event.metaKey)) {
+          this.zoom(event.deltaY < 0)
+          event.preventDefault()
+          event.stopPropagation()
+        } else {
+          const view = this.graph.getView()
+          view.setTranslate(
+            view.translate.x - (event.deltaX || 0) / view.scale,
+            view.translate.y - (event.deltaY || 0) / view.scale,
+          )
+          event.preventDefault()
         }
-
-        if (mxEvent.isControlDown(event) || (mxClient.IS_MAC && mxEvent.isMetaDown(event))) {
-          return
-        }
-
-        this.zoom(up)
-        mxEvent.consume(event)
-      }, this.graph.container)
+      }, { passive: false })
 
       // On hover, bring cell to foreground
       this.graph.addMouseListener({
@@ -2610,6 +2666,14 @@ export default {
       } catch (e) {
         this.toastErrorHandler(this.$t('notification:import-failed'))(e)
       }
+    },
+
+    handleWorkflowSave (workflow) {
+      // Update the internal workflow object with changes from configurator
+      this.workflow = workflow
+
+      // Save workflow with graph model
+      this.saveWorkflow()
     },
 
     saveWorkflow () {

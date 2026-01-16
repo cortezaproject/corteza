@@ -1,12 +1,10 @@
 <template>
-  <div class="d-flex flex-column gap-1">
+  <div class="d-flex flex-column">
     <h5 class="font-weight-bold text-break">
       {{ title }}
     </h5>
 
-    <div
-      class="text-secondary mb-1 text-break"
-    >
+    <div class="text-secondary mb-1 text-break">
       {{ description }}
     </div>
   </div>
@@ -40,6 +38,3 @@ export default {
   },
 }
 </script>
-
-<style lang="scss" scoped>
-</style>

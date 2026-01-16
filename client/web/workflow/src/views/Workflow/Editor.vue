@@ -107,7 +107,7 @@ export default {
     async fetchWorkflow () {
       return this.$AutomationAPI.workflowRead({ workflowID: this.workflowID })
         .then(wf => {
-          this.workflow = wf
+          this.workflow = new automation.Workflow(wf)
         })
         .catch(this.toastErrorHandler(this.$t('notification:failed-fetch-workflow')))
     },
@@ -126,9 +126,7 @@ export default {
 
         const isNew = wf.workflowID === '0'
 
-        const { steps = [], paths = [], triggers = [] } = wf
-        this.workflow.steps = steps
-        this.workflow.paths = paths
+        const { triggers = [] } = wf
 
         // Firstly handle trigger updates
         // Delete triggers of steps that were deleted
@@ -161,9 +159,9 @@ export default {
 
         // Secondly handle workflow updates
         if (isNew) {
-          wf = await this.$AutomationAPI.workflowCreate(this.workflow)
+          wf = await this.$AutomationAPI.workflowCreate(wf)
         } else {
-          wf = await this.$AutomationAPI.workflowUpdate(this.workflow)
+          wf = await this.$AutomationAPI.workflowUpdate(wf)
         }
 
         // Lastly update all of the bits
@@ -172,7 +170,7 @@ export default {
         this.changeDetected = false
         window.onbeforeunload = null
 
-        this.workflow = wf
+        this.workflow = new automation.Workflow(wf)
         this.toastSuccess(this.$t('notification:update.success'))
 
         if (isNew) {

@@ -1,5 +1,7 @@
 imports:
   - github.com/cortezaproject/corteza/server/system/types
+  - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+
 
 snippets:
   lookup: &lookup
@@ -48,7 +50,7 @@ snippets:
         - { wf: String }
     labels:
       types:
-        - { wf: KV }
+        - { wf: LabelValue }
     deleted:
       types:
         - { wf: UnsignedInteger }

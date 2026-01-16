@@ -1,6 +1,13 @@
 /* global jest */
 
-jest.mock('@cortezaproject/corteza-js', () => ({}), { virtual: true })
+jest.mock('@cortezaproject/corteza-js', () => ({
+  compose: {
+    Namespace: class {},
+    Module: class {},
+    ModuleField: class {},
+    Record: class {},
+  },
+}), { virtual: true })
 jest.mock('@cortezaproject/corteza-vue', () => ({
   components: {
     CToaster: jest.fn(),
@@ -18,6 +25,26 @@ jest.mock('@cortezaproject/corteza-vue', () => ({
     },
     CSidebar: {
       name: 'c-sidebar',
+      render: () => {},
+    },
+    CExtendSession: {
+      name: 'c-extend-session',
+      render: () => {},
+    },
+    CTranslationModal: {
+      name: 'c-translation-modal',
+      render: () => {},
+    },
+    CNamespaceSidebar: {
+      name: 'c-namespace-sidebar',
+      render: () => {},
+    },
+    CNotificationSidebar: {
+      name: 'c-notification-sidebar',
+      render: () => {},
+    },
+    CDraftSidebar: {
+      name: 'c-draft-sidebar',
       render: () => {},
     },
   },

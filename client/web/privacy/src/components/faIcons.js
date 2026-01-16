@@ -26,6 +26,8 @@ import {
   faQuestionCircle,
   faBell,
   faTrashAlt,
+  faEnvelope,
+  faEnvelopeOpen,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -52,4 +54,6 @@ library.add(
   faBellSlash,
   faEllipsisV,
   faTrashAlt,
+  faEnvelope,
+  faEnvelopeOpen,
 )

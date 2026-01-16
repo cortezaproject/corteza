@@ -26,6 +26,7 @@ now: Now
 offset: Offset
 offset-expression: Offset (expression)
 permissions: Permissions
+reset: Reset
 searchPlaceholder: Search workflows
 subworkflow: Subworkflow
 subworkflows: Subworkflows
@@ -34,6 +35,17 @@ disabled: Disabled
 without: Without
 only: Only
 including: Including
+filter:
+  label: Filter
+  title: Filter Workflows
+  apply: Apply Filter
+  namespace:
+    label: Namespace
+    placeholder: Select namespace(s)
+  module:
+    label: Module
+    placeholder: Select module(s)
+    template: "{{namespace}} - Modules"
 workflow-list: List of Workflows
 workflow:
   single: Workflow

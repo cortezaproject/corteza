@@ -273,6 +273,7 @@ type (
 				HideProfileLink        bool `json:"hideProfileLink"`
 				HideThemeSelector      bool `json:"hideThemeSelector"`
 				HideNotifications      bool `json:"hideNotifications"`
+				ShowDrafts             bool `json:"showDrafts"`
 
 				HelpLinks []struct {
 					Handle string `json:"handle"`

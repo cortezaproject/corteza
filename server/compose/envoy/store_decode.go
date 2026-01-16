@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/spf13/cast"
 )
 
 func (d StoreDecoder) extendNamespaceFilter(scope *envoyx.Node, refs map[string]*envoyx.Node, auxf envoyx.ResourceFilter, base types.NamespaceFilter) (out types.NamespaceFilter) {
@@ -191,17 +192,17 @@ func decodePageRefs(p *types.Page) (refs map[string]envoyx.Ref) {
 	return
 }
 
-func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, rt string, refs map[string]*envoyx.Node, rf envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
+func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, p envoyx.DecodeParams, rt string, refs map[string]*envoyx.Node, rf envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
 	switch rt {
 	// @todo consider hooking into the regular record resource type as well
 	case ComposeRecordDatasourceAuxType:
-		return d.decodeRecordDatasource(ctx, s, dl, refs, rf)
+		return d.decodeRecordDatasource(ctx, s, dl, p, refs, rf)
 	}
 
 	return
 }
 
-func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer, dl dal.FullService, refs map[string]*envoyx.Node, rf envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
+func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer, dl dal.FullService, p envoyx.DecodeParams, refs map[string]*envoyx.Node, rf envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
 	var (
 		ok bool
 
@@ -249,7 +250,7 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 		mv[f.Name] = true
 	}
 
-	ou := &RecordDatasource{
+	rds := &RecordDatasource{
 		Provider:    &iteratorProvider{iter: iter},
 		multivalues: mv,
 
@@ -262,13 +263,18 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 		},
 	}
 
+	rds.Provider, err = mkIteratorProvider(ctx, s, dl, iter, module, cast.ToBool(p.Params["resolveRefs"]))
+	if err != nil {
+		return
+	}
+
 	rr := map[string]envoyx.Ref{
 		"NamespaceID": namespaceNode.ToRef(),
 		"ModuleID":    moduleNode.ToRef(),
 	}
 
 	out = append(out, &envoyx.Node{
-		Datasource:   ou,
+		Datasource:   rds,
 		ResourceType: ComposeRecordDatasourceAuxType,
 
 		Identifiers: envoyx.MakeIdentifiers(module.ID, module.Handle),

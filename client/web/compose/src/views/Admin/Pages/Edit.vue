@@ -40,13 +40,6 @@
           />
         </b-button>
 
-        <page-translator
-          :page.sync="page"
-          :page-layouts.sync="layouts"
-          button-variant="primary"
-          style="margin-left:2px;"
-        />
-
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.view'), boundary: 'body' }"
           variant="primary"
@@ -58,6 +51,13 @@
             :icon="['far', 'eye']"
           />
         </b-button>
+
+        <page-translator
+          :page.sync="page"
+          :page-layouts.sync="layouts"
+          button-variant="primary"
+          style="margin-left:2px;"
+        />
       </b-button-group>
     </portal>
 

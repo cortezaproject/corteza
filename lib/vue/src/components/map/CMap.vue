@@ -285,7 +285,7 @@ export default {
         this.geoSearch.results = results.map(result => {
           // Different providers return coordinates in different formats
           let lat, lng
-          
+
           if (result.y !== undefined && result.x !== undefined) {
             // ESRI and some others use x, y
             lat = result.y
@@ -295,7 +295,7 @@ export default {
             lat = result.raw.lat || result.raw.latitude
             lng = result.raw.lon || result.raw.lng || result.raw.longitude
           }
-          
+
           return {
             ...result,
             latlng: {
@@ -432,7 +432,7 @@ export default {
   width: 50%;
   max-width: 50%;
   cursor: auto;
-  z-index: 10000;
+  z-index: 1030;
   left: 50%;
   transform: translateX(-50%);
   top: 10px;

@@ -375,6 +375,25 @@ func NotificationActionMarkAsRead(props ...*notificationActionProps) *notificati
 	return a
 }
 
+// NotificationActionMarkAsUnread returns "system:notification.markAsUnread" action
+//
+// This function is auto-generated.
+func NotificationActionMarkAsUnread(props ...*notificationActionProps) *notificationAction {
+	a := &notificationAction{
+		timestamp: time.Now(),
+		resource:  "system:notification",
+		action:    "markAsUnread",
+		log:       "marked {{notification}} as unread",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
 // NotificationActionMarkAllAsRead returns "system:notification.markAllAsRead" action
 //
 // This function is auto-generated.
@@ -384,6 +403,25 @@ func NotificationActionMarkAllAsRead(props ...*notificationActionProps) *notific
 		resource:  "system:notification",
 		action:    "markAllAsRead",
 		log:       "marked all notifications as read for current user",
+		severity:  actionlog.Notice,
+	}
+
+	if len(props) > 0 {
+		a.props = props[0]
+	}
+
+	return a
+}
+
+// NotificationActionMarkAllAsUnread returns "system:notification.markAllAsUnread" action
+//
+// This function is auto-generated.
+func NotificationActionMarkAllAsUnread(props ...*notificationActionProps) *notificationAction {
+	a := &notificationAction{
+		timestamp: time.Now(),
+		resource:  "system:notification",
+		action:    "markAllAsUnread",
+		log:       "marked all notifications as unread for current user",
 		severity:  actionlog.Notice,
 	}
 

@@ -63,6 +63,8 @@ import {
   faQuestionCircle,
   faUser,
   faBell,
+  faEnvelope,
+  faEnvelopeOpen,
 } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
@@ -126,4 +128,6 @@ library.add(
   faBell,
   faBellSolid,
   faBellSlash,
+  faEnvelope,
+  faEnvelopeOpen,
 )

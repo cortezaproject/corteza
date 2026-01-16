@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/reporting"
 	"github.com/cortezaproject/corteza/server/system/types"
@@ -56,7 +57,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -108,7 +109,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	ReportUpdate struct {
@@ -145,7 +146,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -239,7 +240,7 @@ func (r ReportList) GetDeleted() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportList) GetLabels() map[string]string {
+func (r ReportList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -371,7 +372,7 @@ func (r ReportCreate) GetBlocks() types.ReportBlockSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportCreate) GetLabels() map[string]string {
+func (r ReportCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -542,7 +543,7 @@ func (r ReportUpdate) GetBlocks() types.ReportBlockSet {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ReportUpdate) GetLabels() map[string]string {
+func (r ReportUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="d-flex gap-2">
     <b-button
       v-for="(b, i) in buttons"
       :key="i"

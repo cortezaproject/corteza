@@ -1,15 +1,13 @@
 <template>
   <div
-    class="d-flex flex-column gap-1"
+    class="d-flex flex-column"
     @click="handleRecordNavigation"
   >
     <h5 class="font-weight-bold text-break">
       {{ title }}
     </h5>
 
-    <div
-      class="text-secondary mb-1 text-break"
-    >
+    <div class="text-secondary mb-1 text-break">
       {{ description }}
     </div>
   </div>
@@ -108,19 +106,13 @@ export default {
           },
         }
 
-        // If name and params match, make sure to refresh page instead of pushing
-        const sameRoute = routeName === this.$route.name &&
-                        slug === this.$route.params.slug &&
-                        pageID === this.$route.params.pageID &&
-                        recordID === this.$route.params.recordID
-
         if (openMode === 'newTab') {
           window.open(this.$router.resolve(routeParams).href, '_blank')
-        } else if (this.isOnPagesRouteOrChild && !sameRoute && openMode === 'modal') {
+        } else if (this.isOnPagesRouteOrChild && openMode === 'modal' && slug === this.$route.params.slug) {
           this.$root.$emit('show-record-modal', {
             recordID: !recordID || recordID === '0' ? '0' : recordID,
-              recordPageID: pageID,
-              edit,
+            recordPageID: pageID,
+            edit,
           })
 
           return

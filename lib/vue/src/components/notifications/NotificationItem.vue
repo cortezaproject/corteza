@@ -28,13 +28,24 @@
             @click.stop="$emit('mark-read', notification)"
           >
             <font-awesome-icon
-              :icon="['fas', 'check']"
+              :icon="['far', 'envelope-open']"
               class="text-primary"
             />
             {{ $t('markAsRead') }}
           </b-dropdown-item>
 
-          <b-dropdown-divider v-if="!notification.readAt" />
+          <b-dropdown-item
+            v-else
+            @click.stop="$emit('mark-unread', notification)"
+          >
+            <font-awesome-icon
+              :icon="['far', 'envelope']"
+              class="text-primary"
+            />
+            {{ $t('markAsUnread') }}
+          </b-dropdown-item>
+
+          <b-dropdown-divider />
 
           <c-input-confirm
             :text="$t('delete')"

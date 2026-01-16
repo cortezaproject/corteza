@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
@@ -254,7 +255,18 @@ func (d composeResources) Modules(ctx context.Context, namespaceID uint64, limit
 					}
 					return out
 				}(),
-				Labels:  mod.Labels,
+				 Labels: func() map[string]string {
+					labels := make(map[string]string, len(mod.Labels))
+					for k, v := range mod.Labels {
+						if v.Val != "" {
+							labels[k] = v.Val
+						} else if len(v.Values) > 0 {
+							labels[k] = strings.Join(v.Values, ",")
+						}
+					}
+					return labels
+				}(),
+
 				Created: makePartialChange(&mod.CreatedAt),
 				Updated: makePartialChange(mod.UpdatedAt),
 				Deleted: makePartialChange(mod.DeletedAt),

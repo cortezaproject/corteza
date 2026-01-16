@@ -19,7 +19,7 @@
           v-for="(a, index) in attachments"
           :key="a.attachmentID"
           no-gutters
-          class="flex-nowrap item mb-2 rounded"
+          class="list-item flex-nowrap mb-1 rounded"
         >
           <b-col cols="auto">
             <font-awesome-icon
@@ -31,46 +31,51 @@
           </b-col>
 
           <b-col>
-            <div class="d-flex flex-wrap align-items-start gap-1">
-              <attachment-link
-                :attachment="a"
+            <div class="d-flex flex-column flex-wrap align-items-start">
+              <div
+                class="d-flex align-items-start gap-1"
                 style="word-break: break-all;"
               >
-                {{ a.name }}
-                <b-button
-                  v-if="a.download"
-                  :href="a.download"
-                  variant="outline-extra-light"
-                  size="sm"
-                  class="download-button text-secondary border-0"
-                  @click.stop
-                >
-                  <font-awesome-icon :icon="['fas', 'download']" />
-                </b-button>
-              </attachment-link>
+                <div style="margin-top: 0.1rem;">
+                  <attachment-link :attachment="a">
+                    {{ a.name }}
+                  </attachment-link>
+                </div>
+
+                <div class="d-flex align-items-center gap">
+                  <b-button
+                    v-if="a.download"
+                    :href="a.download"
+                    variant="outline-extra-light"
+                    size="sm"
+                    class="download-button border-0"
+                    @click.stop
+                  >
+                    <font-awesome-icon
+                      :icon="['fas', 'download']"
+                      class="text-secondary"
+                    />
+                  </b-button>
+
+                  <c-input-confirm
+                    v-if="enableDelete"
+                    show-icon
+                    class="delete-button"
+                    @confirmed="deleteAttachment(index)"
+                  />
+                </div>
+              </div>
+
+              <i18next
+                path="general.label.attachmentFileInfo"
+                tag="small"
+                class="d-block text-muted"
+              >
+                <span>{{ size(a) }}</span>
+
+                <span>{{ uploadedAt(a) }}</span>
+              </i18next>
             </div>
-
-            <i18next
-              path="general.label.attachmentFileInfo"
-              tag="small"
-              class="d-block text-muted"
-            >
-              <span>{{ size(a) }}</span>
-
-              <span>{{ uploadedAt(a) }}</span>
-            </i18next>
-          </b-col>
-
-          <b-col
-            cols="auto"
-            class="d-flex align-items-start"
-          >
-            <c-input-confirm
-              v-if="enableDelete"
-              show-icon
-              class="ml-2"
-              @confirmed="deleteAttachment(index)"
-            />
           </b-col>
         </b-row>
       </draggable>
@@ -83,7 +88,6 @@
       <div
         v-for="a in attachments"
         :key="a.attachmentID"
-        :class="{ 'h-100': attachments.length === 1 }"
         class="item-preview"
       >
         <c-preview-inline
@@ -100,26 +104,29 @@
 
         <div
           class="d-flex align-items-start justify-content-center"
-          :style="{ width: `calc(${inlineCustomStyles(a).width} + 4rem)` }"
+          :style="{ width: `calc(${inlineCustomStyles(a).width})` }"
         >
           <div
             v-if="!hideFileName"
-            :class="{ 'text-center': canPreview(a) }"
-            class="text-wrap filename-container"
+            class="text-wrap filename-container text-center"
+            :style="{ marginTop: '0.1rem' }"
           >
             <attachment-link :attachment="a" />
           </div>
-
-          <b-button
-            v-if="a.download"
-            :href="a.download"
-            variant="outline-extra-light"
-            size="sm"
-            class="download-button text-secondary border-0 ml-1"
-          >
-            <font-awesome-icon :icon="['fas', 'download']" />
-          </b-button>
         </div>
+        <b-button
+          v-if="a.download"
+          :href="a.download"
+          variant="extra-light"
+          size="sm"
+          class="preview-download-button border-0"
+          @click.stop
+        >
+          <font-awesome-icon
+            :icon="['fas', 'download']"
+            class="text-secondary"
+          />
+        </b-button>
       </div>
     </div>
   </div>
@@ -316,8 +323,8 @@ export default {
       margin = margin || 'auto'
 
       if (this.ext(a) !== 'image') {
-        width = '100px'
-        height = '100px'
+        width = width || '200px'
+        height = height || 'auto'
       }
 
       return {
@@ -344,36 +351,59 @@ export default {
   cursor: grab;
 }
 
-.download-button {
-  visibility: visible;
-
-  &:hover {
-    color: var(--primary) !important;
-  }
-}
-
-.item:hover {
-  background-color: var(--light);
-
+.list-item {
   .download-button {
-    visibility: visible;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .download-button {
+    opacity: 1;
+  }
+
+  .delete-button {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  &:hover .delete-button {
+    opacity: 1;
+  }
+
+  &:hover {
+    background-color: var(--light);
   }
 }
 
-.filename-container {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: break-word;
-  max-width: 100%;
+.item-preview {
+  position: relative;
+  .preview-download-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 
-  &:hover {
-    -webkit-line-clamp: unset;
-    line-clamp: unset;
-    overflow: visible;
+  &:hover .preview-download-button {
+    opacity: 1;
+  }
+
+  .filename-container {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+    max-width: 100%;
+
+    &:hover {
+      -webkit-line-clamp: unset;
+      line-clamp: unset;
+      overflow: visible;
+    }
   }
 }
 </style>

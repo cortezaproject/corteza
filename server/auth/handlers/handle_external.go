@@ -20,7 +20,7 @@ func copyProviderToContext(r *http.Request) *http.Request {
 	return r.WithContext(context.WithValue(r.Context(), "provider", chi.URLParam(r, "provider")))
 }
 
-func (h AuthHandlers) externalInit(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandlers) externalInit(w http.ResponseWriter, r *http.Request) {
 	r = copyProviderToContext(r)
 	h.Log.Info("starting external authentication flow")
 
@@ -201,7 +201,7 @@ func (h *AuthHandlers) handleSuccessfulExternalGenericAuth(w http.ResponseWriter
 	})(w, r)
 }
 
-func (h AuthHandlers) getProviderConfig(handle string, set []settings.Provider) *settings.Provider {
+func (h *AuthHandlers) getProviderConfig(handle string, set []settings.Provider) *settings.Provider {
 	for _, s := range set {
 		if s.Handle == handle {
 			return &s
@@ -211,7 +211,7 @@ func (h AuthHandlers) getProviderConfig(handle string, set []settings.Provider) 
 	return nil
 }
 
-func (h AuthHandlers) handleFailedExternalAuth(w http.ResponseWriter, _ *http.Request, err error) {
+func (h *AuthHandlers) handleFailedExternalAuth(w http.ResponseWriter, _ *http.Request, err error) {
 	if strings.Contains(err.Error(), "Error processing your OAuth request: Invalid oauth_verifier parameter") {
 		// Just take user through the same loop again
 		w.Header().Set("Location", GetLinks().Profile)

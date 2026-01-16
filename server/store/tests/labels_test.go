@@ -25,7 +25,7 @@ func testLabels(t *testing.T, s store.Labels) {
 			Kind:       "kind",
 			ResourceID: 1,
 			Name:       "lname",
-			Value:      "lvalue",
+			Value:      types.LabelValue{Val: "lvalue"},
 		}))
 	})
 
@@ -36,7 +36,7 @@ func testLabels(t *testing.T, s store.Labels) {
 			Kind:       "kind",
 			ResourceID: 1,
 			Name:       "lname",
-			Value:      "lvalue",
+			Value:      types.LabelValue{Val: "lvalue"},
 		}))
 	})
 
@@ -47,7 +47,7 @@ func testLabels(t *testing.T, s store.Labels) {
 			Kind:       "kind",
 			ResourceID: 1,
 			Name:       "lname",
-			Value:      "lvalue",
+			Value:      types.LabelValue{Val: "lvalue"},
 		}))
 	})
 }

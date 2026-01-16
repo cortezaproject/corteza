@@ -10,7 +10,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
-func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, rt string, nodes map[string]*envoyx.Node, f envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
+func (d StoreDecoder) extendDecoder(ctx context.Context, s store.Storer, dl dal.FullService, _ envoyx.DecodeParams, rt string, nodes map[string]*envoyx.Node, f envoyx.ResourceFilter) (out envoyx.NodeSet, err error) {
 	switch rt {
 	case types.SettingValueResourceType:
 		return d.decodeSettingValue(ctx, s, dl, types.SettingsFilter{})

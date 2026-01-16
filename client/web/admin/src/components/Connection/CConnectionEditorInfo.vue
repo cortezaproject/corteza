@@ -222,17 +222,25 @@ export default {
 
     locationCoordinates: {
       get () {
-        const { coordinates = [] } = this.connection.meta.location.geometry || {}
-        return coordinates
+        const { coordinates = [] } = (this.connection.meta.location || {}).geometry || {}
+        return coordinates || []
       },
 
       set (value) {
+        if (!this.connection.meta.location) {
+          this.$set(this.connection.meta, 'location', { type: 'Feature', geometry: { type: 'Point', coordinates: [] }, properties: { name: '' } })
+        }
+
+        if (!this.connection.meta.location.geometry) {
+          this.$set(this.connection.meta.location, 'geometry', { type: 'Point', coordinates: [] })
+        }
+
         this.connection.meta.location.geometry.coordinates = value
       },
     },
 
     locationCoordinatesLabel () {
-      return this.locationCoordinates.map(c => c.toFixed(7)).join(', ')
+      return (this.locationCoordinates || []).map(c => c?.toFixed?.(7) || c).join(', ')
     },
   },
 }

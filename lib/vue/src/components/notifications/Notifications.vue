@@ -13,13 +13,27 @@
           class="d-flex align-items-center justify-content-end"
           style="min-width: 6rem;"
         >
-          <b-button
-            v-if="hasUnread"
+          <!-- <b-button
+            v-if="activeTab === 1 && hasRead"
             v-b-tooltip.hover
             variant="outline-light"
             class="p-2 border-0 d-flex align-items-center justify-content-center"
             style="width: 2rem; height: 2rem;"
-            :title="$t('markAllAsRead')"
+            :title="$t('markAllAsUnread')"
+            @click="handleMarkAllAsUnread"
+          >
+            <font-awesome-icon
+              :icon="['far', 'envelope']"
+              class="h6 mb-0 text-primary"
+            />
+          </b-button> -->
+
+          <b-button
+            v-if="hasUnread"
+            v-b-tooltip.hover="{ title: $t('markAllAsRead'), delay: { show: 500, hide: 0 } }"
+            variant="outline-light"
+            class="p-2 border-0 d-flex align-items-center justify-content-center"
+            style="width: 2rem; height: 2rem;"
             @click="handleMarkAllAsRead"
           >
             <font-awesome-icon
@@ -29,11 +43,10 @@
           </b-button>
 
           <b-button
-            v-b-tooltip.hover
+            v-b-tooltip.hover="{ title: $t(muted ? 'unmute' : 'mute'), delay: { show: 500, hide: 0 } }"
             variant="outline-light"
             class="p-2 border-0 d-flex align-items-center justify-content-center"
             style="width: 2rem; height: 2rem;"
-            :title="$t(muted ? 'unmute' : 'mute')"
             @click="toggleMuted"
           >
             <font-awesome-icon
@@ -65,6 +78,7 @@
               :notification="notification"
               @click="onNotificationClick(notification)"
               @mark-read="onMarkAsRead"
+              @mark-unread="onMarkAsUnread"
               @delete="onDeleteNotification"
             />
 
@@ -196,6 +210,7 @@ export default {
     ...mapGetters({
       notifications: 'notifications/notifications',
       hasUnread: 'notifications/hasUnread',
+      hasRead: 'notifications/hasRead',
       hasMorePages: 'notifications/hasMorePages',
       muted: 'notifications/muted',
     }),
@@ -222,7 +237,9 @@ export default {
     ...mapActions({
       fetchNotifications: 'notifications/fetchNotifications',
       markAsRead: 'notifications/markAsRead',
+      markAsUnread: 'notifications/markAsUnread',
       markAllAsRead: 'notifications/markAllAsRead',
+      markAllAsUnread: 'notifications/markAllAsUnread',
       deleteNotification: 'notifications/deleteNotification',
       setPageCursor: 'notifications/setPageCursor',
       toggleMuted: 'notifications/toggleMuted',
@@ -236,6 +253,10 @@ export default {
 
     onMarkAsRead ({ notificationID }) {
       this.markAsRead(notificationID)
+    },
+
+    onMarkAsUnread ({ notificationID }) {
+      this.markAsUnread(notificationID)
     },
 
     onDeleteNotification ({ notificationID }) {
@@ -257,6 +278,16 @@ export default {
           this.toastError(this.$t('markAllAsReadError'))
         })
     },
+
+    // handleMarkAllAsUnread () {
+    //   this.markAllAsUnread()
+    //     .then(() => {
+    //       this.toastSuccess(this.$t('allMarkedAsUnread'))
+    //     })
+    //     .catch(() => {
+    //       this.toastError(this.$t('markAllAsUnreadError'))
+    //     })
+    // },
 
     loadNotifications () {
       return this.fetchNotifications({ unreadOnly: this.activeTab === 0 })

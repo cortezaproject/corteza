@@ -961,10 +961,10 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cortezaproject/corteza-js@^2024.9.6":
-  version "2024.9.6"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.6.tgz#0ff2cfc2f7bce83476b6f8d6bb3fcbdf716b289a"
-  integrity sha512-8cLpBC1ZcFQu1GcDziIJ7T6r12f4I4q20hWXQ/mWAqxcmvRvkUGV9VyGKSiKiPZn7CpqS5nXapC8xcrGi+0NYw==
+"@cortezaproject/corteza-js@^2024.9.7":
+  version "2024.9.7"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.7.tgz#4eb73c98bba1db6f983412c332c4a2d05c434c64"
+  integrity sha512-DBo+dQa0sGzeSoPjrPXS6zMSVS01JRO5UQGCfr3Fvx3EMnWvzpEL2bHVFvd/mJ8Gm2rfVjw7Dr1HWItVnk8Q7w==
   dependencies:
     axios "^1.8.3"
     hex-rgb "^5.0.0"
@@ -975,14 +975,15 @@
     numeral "^2.0.6"
     pino "^9.6.0"
 
-"@cortezaproject/corteza-vue@2024.9.6-fix.1":
-  version "2024.9.6-fix.1"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.6-fix.1.tgz#b8cb6eaeb8d79c524b37b9edd4815645cebab29d"
-  integrity sha512-iIRKoIK8+voq3XeZZebyVtFTC5lYJlYzH3TwJ9uQhULu0MGqv8nn6qaiLhph3RGd2+rl30Fmr4tYmsK3k4qPAg==
+"@cortezaproject/corteza-vue@2024.9.7":
+  version "2024.9.7"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.7.tgz#191409c73f04eee327708f7007365e22c281dedb"
+  integrity sha512-YWbeknQBHbvGsbf2hh+GpZsmWVmd+DYAtuA2ToQ2YatgHa14pYcKqEUULdy3JEEr0YQXPf24ylDLr9jlOuNo1Q==
   dependencies:
-    "@cortezaproject/corteza-js" "^2024.9.6"
+    "@cortezaproject/corteza-js" "^2024.9.7"
     "@floating-ui/dom" "^1.7.4"
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
+    "@fortawesome/free-regular-svg-icons" "^6.7.2"
     "@fortawesome/free-solid-svg-icons" "^6.7.2"
     "@fortawesome/vue-fontawesome" "^2.0.10"
     "@panter/vue-i18next" "^0.15.0"
@@ -4872,7 +4873,7 @@ escodegen@^2.0.0:
     source-map "~0.6.1"
 
 "eslint-config-corteza-client@file:../../../lib/eslint-client":
-  version "2024.9.6"
+  version "2024.9.7"
 
 eslint-config-standard@^17.0.0:
   version "17.1.0"

@@ -36,8 +36,8 @@
           :min-w="6"
           :min-h="5"
           :class="{ 'h-100': isStretchable }"
+          :style="{ 'touch-action': editable ? 'none' : 'auto' }"
           class="grid-item"
-          style="touch-action: none;"
           @move="onGridAction"
           @resize="onGridAction"
         >

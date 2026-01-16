@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -66,7 +67,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -113,7 +114,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 	}
 
 	UserGroupUpdate struct {
@@ -145,7 +146,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// UpdatedAt POST parameter
 		//
@@ -241,7 +242,7 @@ func (r UserGroupList) GetArchived() uint {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r UserGroupList) GetLabels() map[string]string {
+func (r UserGroupList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -384,7 +385,7 @@ func (r UserGroupCreate) GetMeta() *types.UserGroupMeta {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r UserGroupCreate) GetLabels() map[string]string {
+func (r UserGroupCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -559,7 +560,7 @@ func (r UserGroupUpdate) GetMeta() *types.UserGroupMeta {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r UserGroupUpdate) GetLabels() map[string]string {
+func (r UserGroupUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

@@ -15,6 +15,7 @@
       :right="right"
       no-close-on-route-change
       no-close-on-esc
+      z-index="1037"
     >
       <template #header>
         <div

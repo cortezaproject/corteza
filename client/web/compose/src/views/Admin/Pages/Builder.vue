@@ -56,13 +56,6 @@
           />
         </b-button>
 
-        <page-translator
-          :page.sync="trPage"
-          :page-layout.sync="layout"
-          button-variant="primary"
-          style="margin-left:2px;"
-        />
-
         <b-button
           v-b-tooltip.noninteractive.hover="{ title: $t('tooltip.edit.page'), boundary: 'body' }"
           variant="primary"
@@ -74,6 +67,13 @@
             :icon="['far', 'edit']"
           />
         </b-button>
+
+        <page-translator
+          :page.sync="trPage"
+          :page-layout.sync="layout"
+          button-variant="primary"
+          style="margin-left:2px;"
+        />
       </b-button-group>
     </portal>
 

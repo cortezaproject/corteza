@@ -761,8 +761,9 @@ func (ctrl *Record) Export(ctx context.Context, r *request.RecordExport) (interf
 		nodes, _, err = envoySvc.Decode(ctx, envoyx.DecodeParams{
 			Type: envoyx.DecodeTypeStore,
 			Params: map[string]any{
-				"storer": service.DefaultStore,
-				"dal":    dal.Service(),
+				"storer":      service.DefaultStore,
+				"dal":         dal.Service(),
+				"resolveRefs": r.GetResolveRefs(),
 			},
 			Filter: map[string]envoyx.ResourceFilter{
 				composeEnvoy.ComposeRecordDatasourceAuxType: {
@@ -883,9 +884,15 @@ func (ctrl *Record) TriggerScriptOnList(ctx context.Context, r *request.RecordTr
 func (ctrl *Record) Revisions(ctx context.Context, r *request.RecordRevisions) (interface{}, error) {
 	var (
 		makeRev = func() dal.ValueSetter { return &revisions.Revision{} }
+		sorting filter.Sorting
+		err     error
 	)
 
-	iter, err := ctrl.record.SearchRevisions(ctx, r.NamespaceID, r.ModuleID, r.RecordID)
+	if sorting, err = filter.NewSorting(r.Sort); err != nil {
+		return nil, err
+	}
+
+	iter, err := ctrl.record.SearchRevisions(ctx, r.NamespaceID, r.ModuleID, r.RecordID, sorting)
 	if err != nil {
 		return nil, err
 	}

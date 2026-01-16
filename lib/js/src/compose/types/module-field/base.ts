@@ -9,6 +9,8 @@ const unsortableFieldKinds = ['File', 'Geometry']
 const unsortableSysFields = ['recordID']
 
 const unfilterableFieldKinds = ['File', 'Geometry']
+const nonQueryableFieldKinds = ['Number', 'Record', 'User', 'Bool', 'DateTime', 'File', 'Geometry']
+const nonQueryableFieldNames = ['recordID']
 
 type fieldEncoding = null | { omit: true } | { ident: string }
 
@@ -94,6 +96,7 @@ export class ModuleField {
   public isSystem = false
   public isSortable = true
   public isFilterable = true
+  public isQueryable = true
   public options: Options = { ...defaultOptions() }
   public expressions: Expressions = {}
 
@@ -164,6 +167,14 @@ export class ModuleField {
 
     if (unfilterableFieldKinds.includes(this.kind)) {
       this.isFilterable = false
+    }
+
+    if (nonQueryableFieldKinds.includes(this.kind)) {
+      this.isQueryable = false
+    }
+
+    if (nonQueryableFieldNames.includes(this.name)) {
+      this.isQueryable = false
     }
 
     if (f.defaultValue && Array.isArray(f.defaultValue)) {

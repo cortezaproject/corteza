@@ -17,6 +17,7 @@
 <script>
 import { NoID, system } from '@cortezaproject/corteza-js'
 import { debounce } from 'lodash'
+import axios from 'axios'
 
 export default {
   name: 'CInputUserGroup',
@@ -36,6 +37,7 @@ export default {
   data () {
     return {
       processing: false,
+      cancelRequest: null,
 
       userGroup: {
         options: [],
@@ -68,15 +70,23 @@ export default {
     fetchUserGroups() {
       this.processing = true
 
-      return this.$SystemAPI
-        .userGroupList(this.userGroup.filter)
-        .then(({ set }) => {
+      if (this.cancelRequest) {
+        this.cancelRequest()
+        this.cancelRequest = null
+      }
+
+      const { response, cancel } = this.$SystemAPI.userGroupListCancellable(this.userGroup.filter)
+      this.cancelRequest = cancel
+
+      return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(([{ set }]) => {
           this.userGroup.options = set.map((m) => new system.UserGroup(m))
+          this.processing = false
         })
-        .finally(() => {
-          setTimeout(() => {
-            this.processing = false
-          }, 500)
+        .catch((e) => {
+          if (axios.isCancel(e)) return
+          this.processing = false
+          throw e
         })
     },
 

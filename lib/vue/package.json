@@ -1,7 +1,7 @@
 {
   "name": "@cortezaproject/corteza-vue",
   "description": "Corteza Vue.js JavaScript/TypeScript libs",
-  "version": "2024.9.6-fix.1",
+  "version": "2024.9.7",
   "license": "Apache-2.0",
   "author": "Denis Arh <denis.arh@crust.tech>",
   "type": "module",
@@ -34,14 +34,14 @@
     "prosemirror-model": "^1.25.0"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js": "^2024.9.6",
+    "@cortezaproject/corteza-js": "^2024.9.7",
     "@floating-ui/dom": "^1.7.4",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
+    "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/vue-fontawesome": "^2.0.10",
     "@panter/vue-i18next": "^0.15.0",
     "@popperjs/core": "^2.11.8",
-    "vue2-dropzone": "^3.6.0",
     "@tiptap/extension-mention": "^3.4.2",
     "@tiptap/extension-placeholder": "^3.4.2",
     "@tiptap/extension-table": "^3.4.2",
@@ -74,6 +74,7 @@
     "vue-echarts": "7.0.3",
     "vue-select": "3.20.3",
     "vue2-ace-editor": "^0.0.15",
+    "vue2-dropzone": "^3.6.0",
     "vue2-leaflet": "^2.7.1",
     "vuedraggable": "^2.24.3",
     "vuex": "^3.6.2",

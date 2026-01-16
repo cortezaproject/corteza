@@ -110,8 +110,16 @@ func (ctrl *Notification) MarkAsRead(ctx context.Context, r *request.Notificatio
 	return api.OK(), ctrl.notification.MarkAsRead(ctx, r.NotificationID)
 }
 
+func (ctrl *Notification) MarkAsUnread(ctx context.Context, r *request.NotificationMarkAsUnread) (interface{}, error) {
+	return api.OK(), ctrl.notification.MarkAsUnread(ctx, r.NotificationID)
+}
+
 func (ctrl *Notification) MarkAllAsRead(ctx context.Context, r *request.NotificationMarkAllAsRead) (interface{}, error) {
 	return api.OK(), ctrl.notification.MarkAllAsRead(ctx)
+}
+
+func (ctrl *Notification) MarkAllAsUnread(ctx context.Context, r *request.NotificationMarkAllAsUnread) (interface{}, error) {
+	return api.OK(), ctrl.notification.MarkAllAsUnread(ctx)
 }
 
 func (ctrl *Notification) makeFilterPayload(ctx context.Context, nn types.NotificationSet, f types.NotificationFilter, err error) (*notificationSetPayload, error) {

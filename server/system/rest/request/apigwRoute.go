@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -60,7 +61,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -210,7 +211,7 @@ func (r ApigwRouteList) GetDisabled() uint64 {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ApigwRouteList) GetLabels() map[string]string {
+func (r ApigwRouteList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

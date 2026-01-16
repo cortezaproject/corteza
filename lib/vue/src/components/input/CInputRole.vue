@@ -18,6 +18,7 @@
 
 <script>
 import { debounce } from 'lodash'
+import axios from 'axios'
 
 export default {
   props: {
@@ -65,6 +66,7 @@ export default {
   data () {
     return {
       loading: false,
+      cancelRequest: null,
 
       roles: [],
       filter: '',
@@ -79,19 +81,27 @@ export default {
     fetchRoles (preselect = false) {
       this.loading = true
 
-      return this.$SystemAPI.roleList({ query: this.filter, limit: 20 })
-        .then(({ set }) => {
+      if (this.cancelRequest) {
+        this.cancelRequest()
+        this.cancelRequest = null
+      }
+
+      const { response, cancel } = this.$SystemAPI.roleListCancellable({ query: this.filter, limit: 20 })
+      this.cancelRequest = cancel
+
+      return Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(([{ set }]) => {
           this.roles = set.filter(this.visible)
 
           if (preselect && (!this.value || !this.value.length)) {
             this.updateValue(this.roles[0])
           }
-        }).finally(() => {
-          const timeout = this.filter ? 300 : 0
-
-          setTimeout(() => {
-            this.loading = false
-          }, timeout)
+          this.loading = false
+        })
+        .catch((e) => {
+          if (axios.isCancel(e)) return
+          this.loading = false
+          throw e
         })
     },
 

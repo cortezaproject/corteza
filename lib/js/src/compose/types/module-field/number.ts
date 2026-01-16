@@ -20,6 +20,7 @@ interface NumberOptions extends Options {
   display: string;
   min: number;
   max: number;
+  step: number;
   showValue: boolean;
   showRelative: boolean;
   showProgress: boolean;
@@ -41,6 +42,7 @@ const defaults = (): Readonly<NumberOptions> => Object.freeze({
   // Progress bar display options
   min: 0,
   max: 100,
+  step: 1,
   showValue: true,
   showRelative: true,
   showProgress: false,
@@ -64,7 +66,7 @@ export class ModuleFieldNumber extends ModuleField {
     super.applyOptions(o)
 
     Apply(this.options, o, String, 'format', 'prefix', 'suffix', 'multiDelimiter', 'display', 'variant', 'presetFormat')
-    Apply(this.options, o, Number, 'precision', 'min', 'max')
+    Apply(this.options, o, Number, 'precision', 'min', 'max', 'step')
     Apply(this.options, o, Boolean, 'showValue', 'showRelative', 'showProgress', 'animated')
 
     if (o.thresholds) {

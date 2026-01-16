@@ -11,6 +11,8 @@ package request
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -42,7 +44,7 @@ type (
 		// Expressions POST parameter
 		//
 		// expressions
-		Expressions map[string]string
+		Expressions map[string]labelTypes.LabelValue
 	}
 )
 
@@ -65,7 +67,7 @@ func (r ExpressionEvaluate) GetVariables() map[string]interface{} {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r ExpressionEvaluate) GetExpressions() map[string]string {
+func (r ExpressionEvaluate) GetExpressions() map[string]labelTypes.LabelValue {
 	return r.Expressions
 }
 
@@ -103,12 +105,12 @@ func (r *ExpressionEvaluate) Fill(req *http.Request) (err error) {
 			}
 
 			if val, ok := req.MultipartForm.Value["expressions[]"]; ok {
-				r.Expressions, err = parseMapStringString(val)
+				r.Expressions, err = label.ParseStrings(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["expressions"]; ok {
-				r.Expressions, err = parseMapStringString(val)
+				r.Expressions, err = label.ParseStrings(val)
 				if err != nil {
 					return err
 				}
@@ -136,12 +138,12 @@ func (r *ExpressionEvaluate) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["expressions[]"]; ok {
-			r.Expressions, err = parseMapStringString(val)
+			r.Expressions, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["expressions"]; ok {
-			r.Expressions, err = parseMapStringString(val)
+			r.Expressions, err = label.ParseStrings(val)
 			if err != nil {
 				return err
 			}

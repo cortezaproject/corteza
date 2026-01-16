@@ -122,7 +122,7 @@ type (
 		Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error)
 		FindN(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, stats map[string]types.RecordSummary, f types.RecordFilter, err error)
 		SearchSensitive(ctx context.Context) (set []types.SensitiveRecordSet, err error)
-		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error)
+		SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64, sorting filter.Sorting) (dal.Iterator, error)
 		RecordExport(context.Context, types.RecordFilter) error
 		RecordImport(context.Context, error) error
 
@@ -552,7 +552,7 @@ func (svc record) searchSensitive(ctx context.Context, userID uint64, namespace 
 }
 
 // SearchRevisions returns iterator for revisions of a record
-func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64) (dal.Iterator, error) {
+func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, recordID uint64, sorting filter.Sorting) (dal.Iterator, error) {
 	var (
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID, ModuleID: moduleID, ID: recordID}}
 
@@ -580,7 +580,7 @@ func (svc record) SearchRevisions(ctx context.Context, namespaceID, moduleID, re
 			return RecordErrNotAllowedToSearchRevisions()
 		}
 
-		iter, err = svc.revisions.search(ctx, rec)
+		iter, err = svc.revisions.search(ctx, rec, sorting)
 		return
 	}()
 

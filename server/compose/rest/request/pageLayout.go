@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/locale"
 	"github.com/cortezaproject/corteza/server/pkg/payload"
 	"github.com/go-chi/chi/v5"
@@ -72,7 +73,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -124,7 +125,7 @@ type (
 		// Labels GET parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// Limit GET parameter
 		//
@@ -191,7 +192,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// OwnedBy POST parameter
 		//
@@ -270,7 +271,7 @@ type (
 		// Labels POST parameter
 		//
 		// Labels
-		Labels map[string]string
+		Labels map[string]labelTypes.LabelValue
 
 		// OwnedBy POST parameter
 		//
@@ -431,7 +432,7 @@ func (r PageLayoutListNamespace) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutListNamespace) GetLabels() map[string]string {
+func (r PageLayoutListNamespace) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -585,7 +586,7 @@ func (r PageLayoutList) GetHandle() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutList) GetLabels() map[string]string {
+func (r PageLayoutList) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -755,7 +756,7 @@ func (r PageLayoutCreate) GetBlocks() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutCreate) GetLabels() map[string]string {
+func (r PageLayoutCreate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 
@@ -1096,7 +1097,7 @@ func (r PageLayoutUpdate) GetBlocks() sqlxTypes.JSONText {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r PageLayoutUpdate) GetLabels() map[string]string {
+func (r PageLayoutUpdate) GetLabels() map[string]labelTypes.LabelValue {
 	return r.Labels
 }
 

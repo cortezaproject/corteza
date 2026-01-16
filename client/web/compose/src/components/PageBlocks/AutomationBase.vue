@@ -12,8 +12,8 @@
 
     <automation-buttons
       v-else
-      class="d-flex flex-wrap my-2"
-      button-class="my-1 mx-3 flex-fill"
+      class="d-flex flex-wrap p-3"
+      button-class="flex-fill"
       :buttons="options.buttons"
       :automation-scripts="automationScripts"
       v-bind="$props"

@@ -52,6 +52,7 @@ import CPagination from '../common/CPagination.vue'
 import CInputSelect from '../../input/CInputSelect.vue'
 import { compose, NoID } from '@cortezaproject/corteza-js'
 import { debounce } from 'lodash'
+import axios from 'axios'
 
 export default {
   name: 'CPromptComposeRecordPicker',
@@ -66,6 +67,7 @@ export default {
   data () {
     return {
       processing: false,
+      cancelRequest: null,
       query: '',
       filter: {
         query: '',
@@ -232,8 +234,16 @@ export default {
         }
       }
 
-      this.$ComposeAPI.recordList({ ...q, query })
-        .then(({ filter, set }) => {
+      if (this.cancelRequest) {
+        this.cancelRequest()
+        this.cancelRequest = null
+      }
+
+      const { response, cancel } = this.$ComposeAPI.recordListCancellable({ ...q, query })
+      this.cancelRequest = cancel
+
+      Promise.all([response(), new Promise(resolve => setTimeout(resolve, 300))])
+        .then(([{ filter, set }]) => {
           this.filter = { ...this.filter, ...filter }
           this.filter.nextPage = filter.nextPage
           this.filter.prevPage = filter.prevPage
@@ -252,11 +262,13 @@ export default {
               record,
             }
           })
-
+          this.processing = false
           return { filter, set }
         })
-        .finally(() => {
+        .catch((e) => {
+          if (axios.isCancel(e)) return
           this.processing = false
+          throw e
         })
     },
 

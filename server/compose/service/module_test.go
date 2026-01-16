@@ -10,6 +10,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 
 	"github.com/cortezaproject/corteza/server/compose/types"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/store"
@@ -177,11 +178,11 @@ func TestModule_LabelSearch(t *testing.T) {
 			mod := &types.Module{
 				NamespaceID: ns.ID,
 				Name:        n[0],
-				Labels:      map[string]string{},
+				Labels:      map[string]labelTypes.LabelValue{},
 			}
 
 			for i := 1; i < len(n); i += 2 {
-				mod.Labels[n[i]] = n[i+1]
+				mod.Labels[n[i]] = labelTypes.LabelValue{Val: n[i+1]}
 			}
 
 			out, err := svc.Create(ctx, mod)
@@ -190,7 +191,7 @@ func TestModule_LabelSearch(t *testing.T) {
 			return out
 		}
 
-		findModules = func(labels map[string]string, IDs []string) types.ModuleSet {
+		findModules = func(labels map[string]labelTypes.LabelValue, IDs []string) types.ModuleSet {
 			f := types.ModuleFilter{NamespaceID: ns.ID, Labels: labels, ModuleID: IDs}
 			set, _, err := svc.Find(ctx, f)
 			req.NoError(err)
@@ -207,25 +208,25 @@ func TestModule_LabelSearch(t *testing.T) {
 	req.Len(findModules(nil, nil), 3)
 
 	// return 2 - both that have label1=valu1
-	req.Len(findModules(map[string]string{"label1": "value1"}, nil), 2)
+	req.Len(findModules(map[string]labelTypes.LabelValue{"label1": {Val: "value1"}}, nil), 2)
 
 	// return 0 - none have foo=foo
-	req.Len(findModules(map[string]string{"missing": "missing"}, nil), 0)
+	req.Len(findModules(map[string]labelTypes.LabelValue{"missing": {Val: "missing"}}, nil), 0)
 
 	// one has label2=value2
-	req.Len(findModules(map[string]string{"label2": "value2"}, nil), 1)
+	req.Len(findModules(map[string]labelTypes.LabelValue{"label2": {Val: "value2"}}, nil), 1)
 
 	// explicit by ID and label
-	req.Len(findModules(map[string]string{"label1": "value1"}, id.Strings(m2.ID)), 1)
+	req.Len(findModules(map[string]labelTypes.LabelValue{"label1": {Val: "value1"}}, id.Strings(m2.ID)), 1)
 
 	// none with this combo
-	req.Len(findModules(map[string]string{"foo": "foo"}, id.Strings(m3.ID)), 0)
+	req.Len(findModules(map[string]labelTypes.LabelValue{"foo": {Val: "foo"}}, id.Strings(m3.ID)), 0)
 
 	// one with explicit ID (regression) and nil for label filter
 	req.Len(findModules(nil, id.Strings(m3.ID)), 1)
 
 	// one with explicit ID (regression) and empty map for label filter
-	req.Len(findModules(map[string]string{}, id.Strings(m3.ID)), 1)
+	req.Len(findModules(map[string]labelTypes.LabelValue{}, id.Strings(m3.ID)), 1)
 
 }
 
@@ -242,7 +243,7 @@ func TestModule_LabelCRUD(t *testing.T) {
 			&rbac.ServiceAllowAll{},
 		)
 
-		findAndReturnLabel = func(id uint64) map[string]string {
+		findAndReturnLabel = func(id uint64) map[string]labelTypes.LabelValue {
 			res, err := svc.FindByID(ctx, ns.ID, id)
 			req.NoError(err)
 			req.NotNil(res)
@@ -260,7 +261,7 @@ func TestModule_LabelCRUD(t *testing.T) {
 	req.Nil(findAndReturnLabel(res.ID))
 
 	// update the module with labels
-	res.Labels = map[string]string{"label1": "1st"}
+	res.Labels = map[string]labelTypes.LabelValue{"label1": {Val: "1st"}}
 	res, err = svc.Update(ctx, res)
 	req.NoError(err)
 	req.NotNil(res)
@@ -269,7 +270,7 @@ func TestModule_LabelCRUD(t *testing.T) {
 	// must contain the added label
 	req.Contains(findAndReturnLabel(res.ID), "label1")
 
-	res, err = svc.Create(ctx, &types.Module{Name: "LabeledIDs", NamespaceID: ns.ID, Labels: map[string]string{"label2": "2nd"}})
+	res, err = svc.Create(ctx, &types.Module{Name: "LabeledIDs", NamespaceID: ns.ID, Labels: map[string]labelTypes.LabelValue{"label2": {Val: "2nd"}}})
 	req.NoError(err)
 	req.NotNil(res)
 	req.Contains(res.Labels, "label2")
@@ -285,7 +286,7 @@ func TestModule_LabelCRUD(t *testing.T) {
 	req.Contains(findAndReturnLabel(res.ID), "label2")
 
 	// update with Meta:empty-map (should remove all labels)
-	res.Labels = map[string]string{}
+	res.Labels = map[string]labelTypes.LabelValue{}
 	res, err = svc.Update(ctx, res)
 	req.NoError(err)
 

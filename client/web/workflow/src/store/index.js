@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 
 import { store as cvStore } from '@cortezaproject/corteza-vue'
+import labels from './labels'
 
 Vue.use(Vuex)
 
@@ -17,6 +18,7 @@ const store = new Vuex.Store({
         api: Vue.prototype.$SystemAPI,
       }),
     },
+    labels,
   },
 })
 

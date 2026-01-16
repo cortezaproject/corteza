@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza/server/system/service"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
+	labelTypes "github.com/cortezaproject/corteza/server/pkg/label/types"
 )
 
 type (
@@ -92,6 +93,10 @@ func (h groupsHandler) replace(w http.ResponseWriter, r *http.Request) {
 		existing = h.lookup(ctx, chi.URLParam(r, "id"), w)
 		payload  = &groupResourceRequest{}
 	)
+
+	if existing == nil {
+		return
+	}
 
 	if err := payload.decodeJSON(r.Body); err != nil {
 		sendError(w, newErrorResponse(http.StatusBadRequest, err))
@@ -315,7 +320,7 @@ func (h groupsHandler) lookupByExternalId(ctx context.Context, id string) (r *ty
 		return nil, newErrorfResponse(http.StatusBadRequest, "invalid external ID")
 	}
 
-	rr, _, err := h.svc.Find(ctx, types.RoleFilter{Labels: map[string]string{groupLabel_SCIM_externalId: id}})
+	rr, _, err := h.svc.Find(ctx, types.RoleFilter{Labels: map[string]labelTypes.LabelValue{groupLabel_SCIM_externalId: labelTypes.LabelValue{Val: id}}})
 	if err != nil {
 		return nil, newErrorResponse(http.StatusInternalServerError, err)
 	}

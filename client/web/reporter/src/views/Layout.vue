@@ -1,5 +1,5 @@
 <template>
-  <div class="d-flex flex-column w-100 vh-100 overflow-hidden">
+  <div class="d-flex flex-column w-100 h-viewport overflow-hidden">
     <header>
       <c-topbar
         :expanded="expanded"
@@ -71,7 +71,7 @@
       </template>
 
       <div
-        class="d-flex flex-column w-100 pb-safari"
+        class="d-flex flex-column w-100"
       >
         <router-view
           class="flex-grow-1 overflow-auto"
@@ -190,11 +190,8 @@ export default {
 </script>
 
 <style scoped>
-/* fixes bottom part of page being cut off */
-/* CSS specific to iOS devices */
-@supports (-webkit-touch-callout: none) {
-  .pb-safari {
-    padding-bottom: 5.5em;
-  }
+.h-viewport {
+  height: 100vh;
+  height: 100dvh;
 }
 </style>

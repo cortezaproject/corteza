@@ -10,8 +10,8 @@
       background: Left click on background
       drag: Left click & drag
       label: Left click
-    'mouse-wheel': Mouse wheel
-    'right-click-drag': Right click & drag
+    pan: Scroll, Middle click & drag, or Right click & drag
+    zoom: Ctrl + Scroll
 'basic-controls-label': Basic controls
 'keyboard-shortcuts':
   action:

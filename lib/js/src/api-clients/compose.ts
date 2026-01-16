@@ -2623,6 +2623,7 @@ export default class Compose {
       timezone,
       multiValueDelimiter,
       wrapMultiValue,
+      resolveRefs,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -2649,6 +2650,7 @@ export default class Compose {
       timezone,
       multiValueDelimiter,
       wrapMultiValue,
+      resolveRefs,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
@@ -3296,6 +3298,7 @@ export default class Compose {
       namespaceID,
       moduleID,
       recordID,
+      sort,
     } = (a as KV) || {}
     if (!namespaceID) {
       throw Error('field namespaceID is empty')
@@ -3312,6 +3315,9 @@ export default class Compose {
       url: this.recordRevisionsEndpoint({
         namespaceID, moduleID, recordID,
       }),
+    }
+    cfg.params = {
+      sort,
     }
 
     return this.api().request(cfg).then(result => stdResolve(result))
