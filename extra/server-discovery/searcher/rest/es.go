@@ -219,6 +219,7 @@ type (
 
 		allowedRoles map[interface{}]bool
 		embedder     embedderService
+		searchMode   string
 	}
 )
 
@@ -265,7 +266,7 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 	sqs := esSimpleQueryString{}
 	sqs.Wrap.Query = strings.TrimSpace(strings.ToLower(p.query))
 
-	query := esSearchParams{}
+	query := &esSearchParams{}
 	index := esSearchParamsIndex{}
 
 	if query.Query.Bool == nil {
@@ -298,9 +299,6 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 		}
 	}
 
-	// Query MUST filter
-	query.Query.Bool.Must = []interface{}{index}
-
 	// Aggregations V1.0
 	// if len(p.aggregations) > 0 {
 	//	query.Aggregations = make(map[string]esSearchAggr)
@@ -312,31 +310,28 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 
 	// Search string filter
 	if !noQ {
-		vector, err := p.embedder.GenerateEmbeddings(sqs.Wrap.Query)
-		if err != nil {
-			log.Error("failed to generate embeddings", zap.Error(err))
 
-			// Only text search
-			query.Query.Bool.Must = append(query.Query.Bool.Must, map[string]interface{}{
-				"wildcard": map[string]interface{}{
-					"catch_all": map[string]interface{}{
-						"value": fmt.Sprintf("*%s*", sqs.Wrap.Query),
-					},
-				},
-			})
-		} else {
-			// KNN search with vector embeddings
-			query.Query.Bool.Must = append(query.Query.Bool.Must, map[string]interface{}{
-				"knn": map[string]interface{}{
-					"vectorsValue": map[string]interface{}{
-						"vector": vector,
-						"k":      10,
-					},
-				},
-			})
+		switch p.searchMode {
+		case "traditional":
+			applyTraditionalSearch(query, index, sqs.Wrap.Query)
 
-			// TODO: implement a minimum score as an enviroment variable
-			query.MinScore = 1.6
+		case "semantic":
+			vector, err := p.embedder.GenerateEmbeddings(sqs.Wrap.Query)
+			if err != nil {
+				log.Error("failed to generate embeddings", zap.Error(err))
+				applyTraditionalSearch(query, index, sqs.Wrap.Query)
+			} else {
+				applySemanticSearch(query, index, vector)
+			}
+
+		case "hybrid":
+			vector, err := p.embedder.GenerateEmbeddings(sqs.Wrap.Query)
+			if err != nil {
+				log.Error("failed to generate embeddings", zap.Error(err))
+				applyTraditionalSearch(query, index, sqs.Wrap.Query)
+			} else {
+				applyHybridSearch(query, index, vector, sqs.Wrap.Query)
+			}
 		}
 	}
 
@@ -609,4 +604,57 @@ func extractFromSubClaim(sub string) (userID uint64, rr []uint64) {
 	}
 
 	return
+}
+
+func applyTraditionalSearch(query *esSearchParams, index interface{}, searchQuery string) {
+	query.Query.Bool.Must = []interface{}{index}
+	query.Query.Bool.Must = append(query.Query.Bool.Must, buildWildcardQuery(searchQuery))
+}
+
+func applySemanticSearch(query *esSearchParams, index interface{}, vector interface{}) {
+	query.Query.Bool.Should = []interface{}{index}
+	query.Query.Bool.Should = append(query.Query.Bool.Should, buildKNNQuery(vector))
+
+	// add the minimum score for the vector search results
+	query.MinScore = 1.6
+}
+
+func applyHybridSearch(query *esSearchParams, index interface{}, vector interface{}, searchQuery string) {
+	query.Query.Bool.Should = []interface{}{index}
+	query.Query.Bool.Should = append(query.Query.Bool.Should, buildKNNQuery(vector))
+	query.Query.Bool.Should = append(query.Query.Bool.Should, buildMultiMatchQuery(searchQuery))
+
+	// add the minimum score for hybrid search results
+	query.MinScore = 1.6
+}
+
+func buildWildcardQuery(searchQuery string) map[string]interface{} {
+	return map[string]interface{}{
+		"wildcard": map[string]interface{}{
+			"catch_all": map[string]interface{}{
+				"value": fmt.Sprintf("*%s*", searchQuery),
+			},
+		},
+	}
+}
+
+func buildKNNQuery(vector interface{}) map[string]interface{} {
+	return map[string]interface{}{
+		"knn": map[string]interface{}{
+			"vectorsValue": map[string]interface{}{
+				"vector": vector,
+				"k":      10,
+			},
+		},
+	}
+}
+
+func buildMultiMatchQuery(searchQuery string) map[string]interface{} {
+	return map[string]interface{}{
+		"multi_match": map[string]interface{}{
+			"query":  searchQuery,
+			"fields": []string{"catch_all"},
+			"boost":  1.0,
+		},
+	}
 }

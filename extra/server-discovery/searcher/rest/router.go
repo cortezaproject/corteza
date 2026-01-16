@@ -18,7 +18,7 @@ func MountRoutes(log *zap.Logger, opt options.VectorSearchOpt) func(r chi.Router
 				log.Error(err.Error())
 			}
 
-			search := Search(embeddingSvc)
+			search := Search(embeddingSvc, opt.SearchMode)
 
 			r.Use(auth.HttpTokenValidator("discovery"))
 

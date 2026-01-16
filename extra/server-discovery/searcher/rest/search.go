@@ -13,7 +13,8 @@ import (
 
 type (
 	search struct {
-		embedder embedderService
+		embedder   embedderService
+		searchMode string
 	}
 
 	embedderService interface {
@@ -66,9 +67,10 @@ type (
 	}
 )
 
-func Search(embedderSvc embedderService) *search {
+func Search(embedderSvc embedderService, searchMode string) *search {
 	return &search{
-		embedder: embedderSvc,
+		embedder:   embedderSvc,
+		searchMode: searchMode,
 	}
 }
 
@@ -115,6 +117,7 @@ func (s search) SearchResources(ctx context.Context, r *request.SearchResources)
 		dumpRaw:       validDumpRaw,
 		allowedRoles:  allowedRoles,
 		embedder:      s.embedder,
+		searchMode:    s.searchMode,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("could not execute search: %w", err)
