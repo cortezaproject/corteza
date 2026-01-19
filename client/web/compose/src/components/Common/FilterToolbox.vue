@@ -141,12 +141,14 @@
                 />
               </b-button>
 
-              <div
+              <b-form-select
                 v-else
-                class="d-flex align-items-center p-2 bg-white text-secondary"
-              >
-                {{ $t('recordList.filter.conditions.or') }}
-              </div>
+                v-model="internalFilter[groupIndex + 1].groupCondition"
+                :options="groupConditionOptions"
+                size="sm"
+                class="group-condition-select"
+                @change="onGroupConditionChange"
+              />
             </div>
           </b-td>
         </b-tr>
@@ -243,6 +245,13 @@ export default {
     showAddCondition () {
       return this.internalFilter.length >= 1 && this.internalFilter[0].filter[0].name
     },
+
+    groupConditionOptions () {
+      return [
+        { value: 'OR', text: this.$t('recordList.filter.conditions.or') },
+        { value: 'AND', text: this.$t('recordList.filter.conditions.and') },
+      ]
+    },
   },
 
   watch: {
@@ -307,7 +316,7 @@ export default {
         return []
       }
 
-      return recordListFilter.map(({ filter = [], name }) => {
+      return recordListFilter.map(({ filter = [], name, groupCondition = 'OR' }) => {
         filter = filter.map(({ value, ...f } = {}) => {
           f.record = new compose.Record(this.mockModule, {})
 
@@ -330,7 +339,7 @@ export default {
           return f
         })
 
-        return { filter, name }
+        return { filter, name, groupCondition }
       })
     },
 
@@ -343,7 +352,7 @@ export default {
         return []
       }
 
-      return filter.map(({ filter = [], name }) => {
+      return filter.map(({ filter = [], name, groupCondition }) => {
         filter = filter.map(({ record, ...f }) => {
           if (!f.name || !record) {
             return undefined
@@ -367,7 +376,7 @@ export default {
           return f
         })
 
-        return { filter, name }
+        return { filter, name, groupCondition }
       })
     },
 
@@ -554,10 +563,15 @@ export default {
       }
     },
 
-    createDefaultFilterGroup (field) {
+    createDefaultFilterGroup (field, groupCondition = 'OR') {
       return {
         filter: [this.createDefaultFilter(field)],
+        groupCondition,
       }
+    },
+
+    onGroupConditionChange () {
+      this.$emit('value-change')
     },
 
     addGroup () {
@@ -594,5 +608,11 @@ td {
     background-color: var(--primary) !important;
     color: var(--white) !important;
   }
+}
+
+.group-condition-select {
+  width: auto;
+  min-width: 80px;
+  border: 1px solid var(--light);
 }
 </style>

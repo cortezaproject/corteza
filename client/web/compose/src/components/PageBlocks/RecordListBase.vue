@@ -130,104 +130,123 @@
           class="d-flex align-items-start flex-wrap gap-1"
         >
           <div
-            v-if="groupRecordListFilter.length"
+            v-if="groupedByConnector.length"
             class="d-flex align-items-center flex-wrap gap-2"
           >
             <div
-              v-for="(filterGroup, groupIdx) in groupRecordListFilter"
-              :key="groupIdx"
+              v-for="(segment, segmentIdx) in groupedByConnector"
+              :key="`segment-${segmentIdx}`"
               class="d-flex align-items-center gap-2"
             >
-              <div class="d-flex flex-wrap align-items-center border rounded p-1 gap-1 flex-wrap">
-                <div
-                  v-for="(f, filterIndex) in filterGroup.filter"
-                  :key="filterIndex"
-                  class="active-filter d-flex align-items-center rounded gap-1 pl-2 pr-1 py-1 bg-light"
+              <div
+                class="d-flex flex-wrap align-items-center gap-1 border rounded p-1"
+              >
+                <template
+                  v-for="(filterGroup, groupIdx) in segment.groups"
                 >
-                  <span class="field-label">
-                    {{ f.label || f.name }}
-                  </span>
+                  <div
+                    :key="`group-${filterGroup.originalIndex}`"
+                    class="d-flex flex-wrap align-items-center gap-1"
+                  >
+                    <div
+                      v-for="(f, filterIndex) in filterGroup.filter"
+                      :key="filterIndex"
+                      class="active-filter d-flex align-items-center rounded gap-1 pl-2 pr-1 py-1 bg-light"
+                    >
+                      <span class="field-label">
+                        {{ f.label || f.name }}
+                      </span>
 
-                  <span>
-                    {{ $t(`recordList.filter.operatorLabels.${formatActiveFilterOperator(f.operator)}`) }}
-                  </span>
+                      <span>
+                        {{ $t(`recordList.filter.operatorLabels.${formatActiveFilterOperator(f.operator)}`) }}
+                      </span>
 
-                  <template v-if="f.value">
-                    <template v-if="isBetweenOperator(f.operator)">
-                      <field-viewer
-                        v-if="f.value.start"
-                        value-only
-                        :field="f.field"
-                        :record="f.record[0]"
-                        :module="recordListModule"
-                        :namespace="namespace"
-                        class="font-weight-bold text-primary"
-                      />
+                      <template v-if="f.value">
+                        <template v-if="isBetweenOperator(f.operator)">
+                          <field-viewer
+                            v-if="f.value.start"
+                            value-only
+                            :field="f.field"
+                            :record="f.record[0]"
+                            :module="recordListModule"
+                            :namespace="namespace"
+                            class="font-weight-bold text-primary"
+                          />
+
+                          <span
+                            v-else
+                            class="text-primary font-weight-bold"
+                          >
+                            {{ !f.value.start ? $t('recordList.filter.nil') : '' }}
+                          </span>
+
+                          <span class="text-lowercase">
+                            {{ $t('recordList.filter.conditions.and') }}
+                          </span>
+
+                          <field-viewer
+                            v-if="f.value.end"
+                            value-only
+                            :field="f.field"
+                            :record="f.record[1]"
+                            :module="recordListModule"
+                            :namespace="namespace"
+                            class="font-weight-bold text-primary"
+                          />
+
+                          <span
+                            v-else
+                            class="text-primary font-weight-bold"
+                          >
+                            {{ !f.value.end ? $t('recordList.filter.nil') : '' }}
+                          </span>
+                        </template>
+
+                        <field-viewer
+                          v-else
+                          value-only
+                          :field="f.field"
+                          :record="f.record"
+                          :module="recordListModule"
+                          :namespace="namespace"
+                          class="font-weight-bold text-primary"
+                        />
+                      </template>
 
                       <span
                         v-else
                         class="text-primary font-weight-bold"
                       >
-                        {{ !f.value.start ? $t('recordList.filter.nil') : '' }}
+                        {{ $t('recordList.filter.nil') }}
                       </span>
 
-                      <span
-                        class="text-lowercase"
+                      <b-button
+                        variant="light"
+                        class="d-flex align-items-center p-1 active-filter-close-btn bg-transparent border-0"
+                        @click="removeFilter(filterGroup.originalIndex, filterIndex)"
                       >
-                        {{ $t('recordList.filter.conditions.and') }}
-                      </span>
+                        <font-awesome-icon
+                          :icon="['fas', 'times']"
+                        />
+                      </b-button>
+                    </div>
+                  </div>
 
-                      <field-viewer
-                        v-if="f.value.end"
-                        value-only
-                        :field="f.field"
-                        :record="f.record[1]"
-                        :module="recordListModule"
-                        :namespace="namespace"
-                        class="font-weight-bold text-primary"
-                      />
-
-                      <span
-                        v-else
-                        class="text-primary font-weight-bold"
-                      >
-                        {{ !f.value.end ? $t('recordList.filter.nil') : '' }}
-                      </span>
-                    </template>
-
-                    <field-viewer
-                      v-else
-                      value-only
-                      :field="f.field"
-                      :record="f.record"
-                      :module="recordListModule"
-                      :namespace="namespace"
-                      class="font-weight-bold text-primary"
-                    />
-                  </template>
-
+                  <!-- AND connector between groups in same segment -->
                   <span
-                    v-else
-                    class="text-primary font-weight-bold"
+                    v-if="groupIdx < segment.groups.length - 1"
+                    :key="`and-${filterGroup.originalIndex}`"
+                    class="text-secondary text-uppercase"
                   >
-                    {{ $t('recordList.filter.nil') }}
+                    {{ $t('recordList.filter.conditions.and') }}
                   </span>
-
-                  <b-button
-                    variant="light"
-                    class="d-flex align-items-center p-1 active-filter-close-btn bg-transparent border-0"
-                    @click="removeFilter(groupIdx, filterIndex) "
-                  >
-                    <font-awesome-icon
-                      :icon="['fas', 'times']"
-                    />
-                  </b-button>
-                </div>
+                </template>
               </div>
 
+              <!-- OR connector between segments -->
               <span
-                v-if="groupIdx < groupRecordListFilter.length - 1"
-                class="text-secondary"
+                v-if="segment.connector"
+                class="text-secondary text-uppercase"
               >
                 {{ $t('recordList.filter.conditions.or') }}
               </span>
@@ -1271,6 +1290,32 @@ export default {
 
         return group
       }).filter(({ filter }) => filter.length)
+    },
+
+    // Groups consecutive AND-connected filter groups together for visual display
+    // Result: [ { groups: [G1, G2], connector: 'OR' }, { groups: [G3], connector: null } ]
+    groupedByConnector () {
+      const result = []
+      let currentAndGroup = []
+
+      this.groupRecordListFilter.forEach((group, idx) => {
+        const condition = group.groupCondition || 'OR'
+
+        if (idx === 0 || condition === 'AND') {
+          currentAndGroup.push({ ...group, originalIndex: idx })
+        } else {
+          if (currentAndGroup.length) {
+            result.push({ groups: currentAndGroup, connector: 'OR' })
+          }
+          currentAndGroup = [{ ...group, originalIndex: idx }]
+        }
+      })
+
+      if (currentAndGroup.length) {
+        result.push({ groups: currentAndGroup, connector: null })
+      }
+
+      return result
     },
 
     listSummaries () {
@@ -2352,10 +2397,21 @@ export default {
     },
 
     removeFilter (groupIndex, filterIndex) {
-      this.recordListFilter = this.groupRecordListFilter
-      this.recordListFilter[groupIndex].filter = (this.recordListFilter[groupIndex].filter || []).filter((_, index) => index !== filterIndex)
+      // Remove the filter from the group
+      if (this.recordListFilter[groupIndex]) {
+        this.recordListFilter[groupIndex].filter = (this.recordListFilter[groupIndex].filter || []).filter((_, index) => index !== filterIndex)
 
-      // If this was the last filter, reset to empty (same as resetFilter)
+        // If the group is now empty, remove the entire group
+        if (!this.recordListFilter[groupIndex].filter.length) {
+          // If this was the first group and there's a next group, clear its groupCondition
+          if (groupIndex === 0 && this.recordListFilter[1]) {
+            this.recordListFilter[1].groupCondition = 'OR'
+          }
+          this.recordListFilter.splice(groupIndex, 1)
+        }
+      }
+
+      // If no filters left, reset completely
       const hasAnyFilters = this.recordListFilter.some(group => group.filter && group.filter.length > 0)
       if (!hasAnyFilters) {
         this.onFilter()
