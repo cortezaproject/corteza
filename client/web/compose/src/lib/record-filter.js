@@ -237,7 +237,34 @@ export function queryToFilter (searchQuery = '', prefilter = '', fields = [], re
     searchQuery = searchQuery ? `(${searchQuery})` : ''
   }
 
-  const recordListFilterSql = recordListFilter.map(({ filter = [] }) => getRecordListFilterSql(filter)).filter(filter => filter).join(' OR ')
+  // Build query with proper parenthesization for mixed AND/OR
+  // Groups connected by AND have higher precedence, so we wrap consecutive ANDs
+  const groups = recordListFilter
+    .map(({ filter = [], groupCondition }) => ({
+      sql: getRecordListFilterSql(filter),
+      condition: groupCondition || 'OR',
+    }))
+    .filter(({ sql }) => sql)
+
+  // Group consecutive ANDs together, then join with ORs for proper precedence
+  let recordListFilterSql = ''
+  let andGroup = []
+
+  for (let i = 0; i < groups.length; i++) {
+    const { sql, condition } = groups[i]
+
+    if (i === 0 || condition === 'AND') {
+      andGroup.push(sql)
+    } else {
+      // OR encountered - flush AND group
+      recordListFilterSql += (recordListFilterSql ? ' OR ' : '') + (andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0])
+      andGroup = [sql]
+    }
+  }
+  // Flush remaining
+  if (andGroup.length) {
+    recordListFilterSql += (recordListFilterSql ? ' OR ' : '') + (andGroup.length > 1 ? `(${andGroup.join(' AND ')})` : andGroup[0])
+  }
 
   return [prefilter, recordListFilterSql, searchQuery].filter(f => f).join(' AND ')
 }
