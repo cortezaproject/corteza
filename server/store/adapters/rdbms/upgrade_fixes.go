@@ -905,7 +905,7 @@ func fix_2024_09_03_renameFederationNodeSyncNodeID(ctx context.Context, s *Store
 }
 
 func fix_2024_09_03_renameFederationNodeSyncComposeID(ctx context.Context, s *Store) (err error) {
-	return renameColumn(ctx, s, "federation_nodes_sync", "module_id", "rel_module")
+	return renameColumn(ctx, s, "federation_nodes_sync", "module_id", "rel_compose_module")
 }
 
 func fix_2024_09_05_addUserGroupReferenceToUser(ctx context.Context, s *Store) (err error) {
@@ -1028,8 +1028,8 @@ func fix_2024_9_7_migrateLabelsValueToJsonbPostgres(ctx context.Context, s *Stor
 		rows       *sql.Rows
 	)
 	checkQuery := `
-  			SELECT data_type 
-  			FROM information_schema.columns 
+  			SELECT data_type
+  			FROM information_schema.columns
   			WHERE table_name = 'labels' AND column_name = 'value'`
 
 	exists, err := func() (bool, error) {
@@ -1068,9 +1068,9 @@ func fix_2024_9_7_migrateLabelsValueToJsonbPostgres(ctx context.Context, s *Stor
 	log.Info("migrating labels.value column from text to jsonb")
 
 	updateQuery := `
-  			UPDATE labels 
+  			UPDATE labels
   			SET value = jsonb_build_object('value', value::text)
-  			WHERE value IS NOT NULL 
+  			WHERE value IS NOT NULL
   			  AND value::text NOT LIKE '{%'`
 
 	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
@@ -1133,9 +1133,9 @@ func fix_2024_9_7_migrateLabelsValueToJsonbMySql(ctx context.Context, s *Store) 
 	log.Info("migrating labels.value column from text to json")
 
 	updateQuery := `
-  			UPDATE labels 
+  			UPDATE labels
   			SET value = JSON_OBJECT('value', value)
-  			WHERE value IS NOT NULL 
+  			WHERE value IS NOT NULL
   			  AND value NOT LIKE '{%'`
 
 	if _, err = s.DB.ExecContext(ctx, updateQuery); err != nil {
