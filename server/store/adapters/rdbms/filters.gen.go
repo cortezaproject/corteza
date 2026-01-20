@@ -998,7 +998,7 @@ func FederationNodeSyncFilter(d drivers.Dialect, f federationType.NodeSyncFilter
 	}
 
 	if f.ModuleID > 0 {
-		ee = append(ee, goqu.C("rel_module").Eq(f.ModuleID))
+		ee = append(ee, goqu.C("rel_compose_module").Eq(f.ModuleID))
 	}
 
 	if val := strings.TrimSpace(f.SyncStatus); len(val) > 0 {
