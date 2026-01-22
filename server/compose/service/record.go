@@ -1101,7 +1101,11 @@ func RecordValueUpdateOpCheck(ctx context.Context, ac recordValueAccessControlle
 		}
 
 		if v.IsUpdated() && !ac.CanUpdateRecordValueOnModuleField(ctx, f) {
-			rve.Push(types.RecordValueError{Kind: "updateDenied", Meta: map[string]interface{}{"field": v.Name, "value": v.Value}})
+			rve.Push(types.RecordValueError{
+				Kind:    "updateDenied",
+				Meta:    map[string]interface{}{"field": v.Name},
+				Message: locale.Global().T(ctx, "compose", "record-field.errors.updateDenied"),
+			})
 		}
 
 		return nil
