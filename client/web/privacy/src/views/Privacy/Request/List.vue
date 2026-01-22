@@ -256,7 +256,7 @@ export default {
 
     fetchUsers (userID = []) {
       userID = [...new Set(userID)]
-      return this.$SystemAPI.userList({ userID })
+      return this.$SystemAPI.userList({ userID, suspended: 1, deleted: 1 })
         .then(({ set }) => {
           set.forEach(user => {
             this.users[user.userID] = user
