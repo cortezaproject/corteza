@@ -160,7 +160,7 @@ export default {
       if (userID.length) {
         this.formatting = true
 
-        this.$SystemAPI.userList({ userID })
+        this.$SystemAPI.userList({ userID, suspended: 1, deleted: 1 })
           .then(({ set }) => {
             set.forEach(({ userID, name, username, email, handle }) => {
               this.$set(this.formattedUsers, userID, name || username || email || handle || userID || '')
