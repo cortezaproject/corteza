@@ -112,7 +112,7 @@ export default {
 
       this.preloading = true
 
-      return this.$SystemAPI.userList({ userID: this.value })
+      return this.$SystemAPI.userList({ userID: this.value, suspended: 1, deleted: 1 })
         .then(({ set }) => {
           this.selectedUsers = set || []
         })
