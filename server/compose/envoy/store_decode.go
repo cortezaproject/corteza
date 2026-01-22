@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/cortezaproject/corteza/server/compose/dalutils"
+	"github.com/cortezaproject/corteza/server/compose/service"
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
@@ -263,7 +264,10 @@ func (d StoreDecoder) decodeRecordDatasource(ctx context.Context, s store.Storer
 		},
 	}
 
-	rds.Provider, err = mkIteratorProvider(ctx, s, dl, iter, module, cast.ToBool(p.Params["resolveRefs"]))
+	// Get access controller to enforce field-level read permissions
+	ac := service.AccessControl(s)
+
+	rds.Provider, err = mkIteratorProvider(ctx, s, dl, iter, module, cast.ToBool(p.Params["resolveRefs"]), ac)
 	if err != nil {
 		return
 	}

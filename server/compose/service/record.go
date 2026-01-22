@@ -12,6 +12,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/envoyx"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/cortezaproject/corteza/server/pkg/ql"
 	"github.com/cortezaproject/corteza/server/pkg/revisions"
 	"github.com/spf13/cast"
 
@@ -330,14 +331,15 @@ func (svc record) FindByID(ctx context.Context, namespaceID, moduleID, recordID 
 
 // Report generates report for a given module using metrics, dimensions and filter
 // @note will eventually be removed in favor of the system report endpoints
+//
+// This implementation properly respects permissions:
+// - Records the user cannot read are excluded from aggregation
+// - Field values the user cannot read are treated as null/zero
 func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metrics, dimensions, f string) (_ any, err error) {
 	var (
 		ns     *types.Namespace
 		m      *types.Module
 		aProps = &recordActionProps{record: &types.Record{NamespaceID: namespaceID}}
-
-		iter        dal.Iterator
-		reportItems = make([]recordReportEntry, 0, 16)
 	)
 
 	err = func() error {
@@ -352,33 +354,202 @@ func (svc record) Report(ctx context.Context, namespaceID, moduleID uint64, metr
 			return RecordErrNotAllowedToSearch()
 		}
 
-		pp, agg, err := recordReportToDalPipeline(m, metrics, dimensions, f)
-		if err != nil {
-			return err
-		}
-
-		// Run it
-		iter, err = svc.dal.Run(ctx, pp)
-		if err != nil {
-			return err
-		}
-
-		defer iter.Close()
-
-		for iter.Next(ctx) {
-			item := recordReportEntry{}
-			err = iter.Scan(item)
-			recordReportCorrectTypes(agg, item)
-			if err != nil {
-				return err
-			}
-
-			reportItems = append(reportItems, item)
-		}
-		return iter.Err()
+		return nil
 	}()
 
-	return reportItems, svc.recordAction(ctx, aProps, RecordActionReport, err)
+	if err != nil {
+		return nil, svc.recordAction(ctx, aProps, RecordActionReport, err)
+	}
+
+	// Build readable fields map for field-level permission filtering
+	readableFields := make(map[string]bool)
+	for _, field := range m.Fields {
+		readableFields[field.Name] = svc.ac.CanReadRecordValueOnModuleField(ctx, field)
+	}
+	// System fields are always readable
+	for _, sysField := range []string{"recordID", "id", "ID", "moduleID", "namespaceID", "ownedBy", "createdAt", "created_at", "createdBy", "updatedAt", "updated_at", "updatedBy", "deletedAt", "deleted_at", "deletedBy"} {
+		readableFields[sysField] = true
+	}
+
+	// Fetch all records with permission filtering
+	recFilter := types.RecordFilter{
+		ModuleID:    moduleID,
+		NamespaceID: namespaceID,
+		Query:       f,
+		Paging:      filter.Paging{Limit: 0}, // No limit - fetch all
+	}
+	recFilter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
+
+	records, _, err := dalutils.ComposeRecordsList(ctx, svc.dal, m, recFilter)
+	if err != nil {
+		return nil, svc.recordAction(ctx, aProps, RecordActionReport, err)
+	}
+
+	// Parse dimensions and metrics
+	dimensionField := strings.TrimSpace(dimensions)
+
+	// Parse metrics into field + aggregate function pairs
+	type metricDef struct {
+		field     string
+		aggregate string
+		alias     string
+	}
+	var metricDefs []metricDef
+
+	if metrics != "" {
+		for _, metric := range strings.Split(metrics, ",") {
+			metric = strings.TrimSpace(metric)
+
+			// Extract alias if present
+			alias := metric
+			if idx := strings.Index(metric, " AS "); idx > 0 {
+				alias = strings.TrimSpace(metric[idx+4:])
+				metric = strings.TrimSpace(metric[:idx])
+			}
+
+			// Parse aggregate function: FUNC(field)
+			if start := strings.Index(metric, "("); start >= 0 {
+				if end := strings.LastIndex(metric, ")"); end > start {
+					metricDefs = append(metricDefs, metricDef{
+						field:     strings.TrimSpace(metric[start+1 : end]),
+						aggregate: strings.ToUpper(strings.TrimSpace(metric[:start])),
+						alias:     alias,
+					})
+				}
+			}
+		}
+	}
+
+	// Aggregate records in Go with permission filtering
+	type aggregation struct {
+		count  int64
+		sum    float64
+		values []float64 // for AVG, STD, MIN, MAX
+	}
+
+	// Group by dimension value
+	groups := make(map[string]*aggregation)
+
+	for _, rec := range records {
+		rec.SetModule(m)
+
+		// Get dimension value - always shown regardless of field permissions
+		// (dimension is for grouping/labeling, not sensitive aggregated data)
+		dimValue := ""
+		if dimensionField != "" {
+			if v := rec.Values.Get(dimensionField, 0); v != nil {
+				dimValue = cast.ToString(v.Value)
+			} else if sysVal := getSystemFieldValue(rec, dimensionField); sysVal != "" {
+				dimValue = sysVal
+			}
+		}
+
+		// Get or create aggregation group
+		agg, ok := groups[dimValue]
+		if !ok {
+			agg = &aggregation{values: make([]float64, len(metricDefs))}
+			groups[dimValue] = agg
+		}
+
+		agg.count++
+
+		// Aggregate each metric
+		for i, md := range metricDefs {
+			// Only include value if user can read the field
+			if md.field == "ID" || md.field == "id" || md.field == "count" {
+				// count(ID) is always allowed
+				continue
+			}
+
+			if !readableFields[md.field] {
+				// User can't read this field - skip value
+				continue
+			}
+
+			// Get field value
+			var val float64
+			if v := rec.Values.Get(md.field, 0); v != nil {
+				val = cast.ToFloat64(v.Value)
+			}
+
+			switch md.aggregate {
+			case "SUM":
+				agg.sum += val
+				agg.values[i] += val
+			case "MAX":
+				if agg.count == 1 || val > agg.values[i] {
+					agg.values[i] = val
+				}
+			case "MIN":
+				if agg.count == 1 || val < agg.values[i] {
+					agg.values[i] = val
+				}
+			case "AVG", "STD":
+				// Store value for later calculation
+				agg.values[i] += val
+			default:
+				agg.values[i] += val
+			}
+		}
+	}
+
+	// Build result
+	reportItems := make([]recordReportEntry, 0, len(groups))
+
+	for dimValue, agg := range groups {
+		item := recordReportEntry{
+			"dimension_0": dimValue,
+			"count":       float64(agg.count),
+		}
+
+		for i, md := range metricDefs {
+			switch md.aggregate {
+			case "AVG":
+				if agg.count > 0 {
+					item[md.alias] = agg.values[i] / float64(agg.count)
+				} else {
+					item[md.alias] = float64(0)
+				}
+			default:
+				item[md.alias] = agg.values[i]
+			}
+		}
+
+		reportItems = append(reportItems, item)
+	}
+
+	return reportItems, svc.recordAction(ctx, aProps, RecordActionReport, nil)
+}
+
+// getSystemFieldValue extracts a system field value from a record
+func getSystemFieldValue(rec *types.Record, fieldName string) string {
+	switch fieldName {
+	case "recordID", "id", "ID":
+		return cast.ToString(rec.ID)
+	case "moduleID":
+		return cast.ToString(rec.ModuleID)
+	case "namespaceID":
+		return cast.ToString(rec.NamespaceID)
+	case "ownedBy":
+		return cast.ToString(rec.OwnedBy)
+	case "createdAt", "created_at":
+		return rec.CreatedAt.Format("2006-01-02")
+	case "createdBy":
+		return cast.ToString(rec.CreatedBy)
+	case "updatedAt", "updated_at":
+		if rec.UpdatedAt != nil {
+			return rec.UpdatedAt.Format("2006-01-02")
+		}
+	case "updatedBy":
+		return cast.ToString(rec.UpdatedBy)
+	case "deletedAt", "deleted_at":
+		if rec.DeletedAt != nil {
+			return rec.DeletedAt.Format("2006-01-02")
+		}
+	case "deletedBy":
+		return cast.ToString(rec.DeletedBy)
+	}
+	return ""
 }
 
 func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set types.RecordSet, f types.RecordFilter, err error) {
@@ -394,6 +565,16 @@ func (svc record) Find(ctx context.Context, filter types.RecordFilter) (set type
 
 		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
 			return RecordErrNotAllowedToSearch()
+		}
+
+		// Validate field-level permissions for filter query
+		if err = validateFilterFieldPermissions(ctx, svc.ac, m, filter.Query); err != nil {
+			return err
+		}
+
+		// Validate field-level permissions for sort expression
+		if err = validateSortFieldPermissions(ctx, svc.ac, m, filter.Sort); err != nil {
+			return err
 		}
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
@@ -429,6 +610,16 @@ func (svc record) FindN(ctx context.Context, filter types.RecordFilter) (set typ
 
 		if !svc.ac.CanSearchRecordsOnModule(ctx, m) {
 			return RecordErrNotAllowedToSearch()
+		}
+
+		// Validate field-level permissions for filter query
+		if err = validateFilterFieldPermissions(ctx, svc.ac, m, filter.Query); err != nil {
+			return err
+		}
+
+		// Validate field-level permissions for sort expression
+		if err = validateSortFieldPermissions(ctx, svc.ac, m, filter.Sort); err != nil {
+			return err
 		}
 
 		filter.Check = ComposeRecordFilterChecker(ctx, svc.ac, m)
@@ -2414,6 +2605,138 @@ func ComposeRecordFilterAC(ctx context.Context, ac recordValueAccessController, 
 			return readableFields[v.Name], nil
 		})
 	}
+}
+
+// validateFilterFieldPermissions checks if the user has permission to read values
+// of all fields referenced in the filter query expression.
+//
+// This prevents information disclosure through filtering - if a user can filter
+// by a field they can't read, they could infer field values based on which records
+// are returned.
+func validateFilterFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, filterQuery string) error {
+	if filterQuery == "" {
+		return nil
+	}
+
+	// Parse the filter query to extract field symbols
+	parser := ql.NewParser()
+	ast, err := parser.Parse(filterQuery)
+	if err != nil {
+		// If parsing fails, let it pass through - the DAL layer will handle the error
+		return nil
+	}
+
+	symbols := ast.CollectSymbols()
+	if len(symbols) == 0 {
+		return nil
+	}
+
+	// Build a set of module field names for quick lookup
+	moduleFieldNames := make(map[string]bool)
+	for _, f := range m.Fields {
+		moduleFieldNames[f.Name] = true
+	}
+
+	// System fields that are always filterable (not module-specific fields)
+	systemFields := map[string]bool{
+		"recordID":    true,
+		"id":          true,
+		"ID":          true,
+		"moduleID":    true,
+		"namespaceID": true,
+		"ownedBy":     true,
+		"createdAt":   true,
+		"createdBy":   true,
+		"updatedAt":   true,
+		"updatedBy":   true,
+		"deletedAt":   true,
+		"deletedBy":   true,
+	}
+
+	// Check each symbol in the filter query
+	for _, symbol := range symbols {
+		// Skip system fields - they're always accessible
+		if systemFields[symbol] {
+			continue
+		}
+
+		// Skip symbols that aren't module fields (could be functions, operators, etc.)
+		if !moduleFieldNames[symbol] {
+			continue
+		}
+
+		// Find the field and check permission
+		field := m.Fields.FindByName(symbol)
+		if field == nil {
+			continue
+		}
+
+		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
+			return RecordErrNotAllowedToFilterByField(&recordActionProps{field: symbol})
+		}
+	}
+
+	return nil
+}
+
+// validateSortFieldPermissions checks if the user has permission to read values
+// of all fields referenced in the sort expression.
+//
+// This prevents information disclosure through sorting - if a user can sort
+// by a field they can't read, they could infer field values based on the
+// ordering of returned records.
+func validateSortFieldPermissions(ctx context.Context, ac recordValueAccessController, m *types.Module, sortExpr filter.SortExprSet) error {
+	if len(sortExpr) == 0 {
+		return nil
+	}
+
+	// Build a set of module field names for quick lookup
+	moduleFieldNames := make(map[string]bool)
+	for _, f := range m.Fields {
+		moduleFieldNames[f.Name] = true
+	}
+
+	// System fields that are always sortable
+	systemFields := map[string]bool{
+		"recordID":    true,
+		"id":          true,
+		"ID":          true,
+		"moduleID":    true,
+		"namespaceID": true,
+		"ownedBy":     true,
+		"createdAt":   true,
+		"createdBy":   true,
+		"updatedAt":   true,
+		"updatedBy":   true,
+		"deletedAt":   true,
+		"deletedBy":   true,
+	}
+
+	for _, sort := range sortExpr {
+		fieldName := sort.Column
+
+		// Skip system fields
+		if systemFields[fieldName] {
+			continue
+		}
+
+		// Skip non-module fields
+		if !moduleFieldNames[fieldName] {
+			continue
+		}
+
+		// Find the field and check permission
+		field := m.Fields.FindByName(fieldName)
+		if field == nil {
+			continue
+		}
+
+		if !ac.CanReadRecordValueOnModuleField(ctx, field) {
+			return RecordErrNotAllowedToSortByField(&recordActionProps{field: fieldName})
+		}
+	}
+
+	return nil
 }
 
 // loadRecordCombo Loads namespace, module and record

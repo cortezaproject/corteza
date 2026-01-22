@@ -183,6 +183,14 @@ errors:
     message: "not allowed to change value of field {{field}}"
     log: "failed to change value of field {{field}}; insufficient permissions"
 
+  - error: notAllowedToFilterByField
+    message: "not allowed to filter by field {{field}}; you do not have permission to read its values"
+    log: "failed to filter by field {{field}}; insufficient permissions to read field values"
+
+  - error: notAllowedToSortByField
+    message: "not allowed to sort by field {{field}}; you do not have permission to read its values"
+    log: "failed to sort by field {{field}}; insufficient permissions to read field values"
+
   - error: maxRecordsReached
     message: "maximum number of records per namespace reached"
     log: "maximum number of records per namespace reached"

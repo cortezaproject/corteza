@@ -1210,8 +1210,10 @@ export default {
         key: mf.name,
         label: mf.isSystem ? this.$t(`field:system.${mf.name}`) : mf.label || mf.name,
         moduleField: mf,
-        sortable: !this.options.hideSorting && !(this.options.editable && this.editing) && !mf.isMulti && mf.isSortable,
-        filterable: mf.isFilterable,
+        // Restrict sorting to fields user can read (canReadRecordValue allows system fields)
+        sortable: !this.options.hideSorting && !(this.options.editable && this.editing) && !mf.isMulti && mf.isSortable && !!mf.canReadRecordValue,
+        // Restrict filtering to fields user can read
+        filterable: mf.isFilterable && mf.canReadRecordValue,
         tdClass: 'record-value',
         editable: !!editable.find(f => mf.name === f),
         canEdit: this.isFieldEditable(mf),
@@ -1976,6 +1978,10 @@ export default {
         // Default to visible fields if no searchable fields are configured
         searchFields = this.fields.map(({ moduleField }) => moduleField)
       }
+
+      // Filter out fields user doesn't have permission to read
+      // Using !== false allows fields where permission is not explicitly denied
+      searchFields = searchFields.filter(f => f.canReadRecordValue !== false)
 
       const query = queryToFilter(this.query, this.prefilter, searchFields, this.groupRecordListFilter)
 

@@ -17,6 +17,11 @@ import (
 )
 
 type (
+	// recordValueAccessController interface for checking field-level read permissions
+	recordValueAccessController interface {
+		CanReadRecordValueOnModuleField(context.Context, *types.ModuleField) bool
+	}
+
 	// RecordDatasource provides a mechanism for you to access large
 	// record datasets optimally
 	RecordDatasource struct {
@@ -47,6 +52,11 @@ type (
 		relMods     map[string]refModWrap
 		dal         dal.FullService
 
+		// Access control for field-level permissions
+		ac             recordValueAccessController
+		mod            *types.Module
+		readableFields map[string]bool
+
 		rows      []datasource.RawRecord
 		buffIndex int
 		done      bool
@@ -65,11 +75,27 @@ const (
 	bufferPullChunkSize = int(100)
 )
 
-func mkIteratorProvider(ctx context.Context, s store.Storer, dl dal.FullService, iter dal.Iterator, mod *types.Module, resolveRefs bool) (out *iteratorProvider, err error) {
+func mkIteratorProvider(ctx context.Context, s store.Storer, dl dal.FullService, iter dal.Iterator, mod *types.Module, resolveRefs bool, ac recordValueAccessController) (out *iteratorProvider, err error) {
 	out = &iteratorProvider{
 		iter:        iter,
 		dal:         dl,
 		resolveRefs: resolveRefs,
+		ac:          ac,
+		mod:         mod,
+	}
+
+	// Pre-compute readable fields based on access control permissions
+	// This avoids checking permissions on every record iteration
+	if ac != nil {
+		out.readableFields = make(map[string]bool)
+		for _, f := range mod.Fields {
+			// Ensure NamespaceID is set on the field (it may not be loaded from store)
+			// RBAC checks require the full resource path including namespace
+			if f.NamespaceID == 0 {
+				f.NamespaceID = mod.NamespaceID
+			}
+			out.readableFields[f.Name] = ac.CanReadRecordValueOnModuleField(ctx, f)
+		}
 	}
 
 	// Get ref record fields and stuff
@@ -256,6 +282,9 @@ func (ip *iteratorProvider) next(ctx context.Context, out datasource.RawRecord) 
 		return
 	}
 
+	// Apply field-level access control filtering
+	ip.filterUnreadableFields(rowCache)
+
 	for k, v := range rowCache {
 		out[k] = v
 	}
@@ -303,6 +332,9 @@ func (ip *iteratorProvider) nextResolved(ctx context.Context, out datasource.Raw
 
 	rowCache := ip.rows[ip.buffIndex]
 	ip.buffIndex++
+
+	// Apply field-level access control filtering
+	ip.filterUnreadableFields(rowCache)
 
 	for k, v := range rowCache {
 		out[k] = v
@@ -399,4 +431,28 @@ func (ip *iteratorProvider) Ident() (out string) {
 
 // @todo consider omitting these from the interface since they're not always needed
 func (ip *iteratorProvider) SetIdent(string) {
+}
+
+// filterUnreadableFields removes field values from the record cache that the user
+// doesn't have permission to read. This ensures exported records only contain
+// field values the user is allowed to access.
+func (ip *iteratorProvider) filterUnreadableFields(rowCache datasource.RawRecord) {
+	if ip.readableFields == nil {
+		// No access control configured, allow all fields
+		return
+	}
+
+	for fieldName := range rowCache {
+		// Skip system fields (ID, createdAt, etc.) - these are always readable
+		// System fields are lowercase and don't have associated module field definitions
+		if _, hasField := ip.readableFields[fieldName]; !hasField {
+			// Field not in module definition, likely a system field - keep it
+			continue
+		}
+
+		// Check if user can read this field
+		if !ip.readableFields[fieldName] {
+			delete(rowCache, fieldName)
+		}
+	}
 }

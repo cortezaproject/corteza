@@ -154,19 +154,19 @@ resources:
     module-field:
       all: all module fields
       specific: field "{{target}}"
-      all-specific: all module fields of module "{{ target }}"
+      all-specific: all fields of module "{{ target }}"
       tooltip: Module field permissions
       operations:
         record.value.read:
           description: 'Default: deny'
-          specific: 'Read "{{target}}" record fields '
-          title: Read record fields of any module
-          all-specific: Read record fields of module "{{ target }}"
+          specific: 'Read values for field "{{target}}"'
+          title: Read field values across all modules
+          all-specific: Read values for all fields of module "{{ target }}"
         record.value.update:
           description: 'Default: deny'
-          specific: 'Update "{{target}}" record field values'
-          title: Update record field values of any module
-          all-specific: Update record field values of module "{{ target }}"
+          specific: 'Update values for field "{{target}}"'
+          title: Update field values across all modules
+          all-specific: Update values for all fields of module "{{ target }}"
 
     page:
       all: all pages

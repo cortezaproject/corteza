@@ -552,7 +552,11 @@ export default {
         }
 
         if (query.length > 0) {
-          const fields = qf.map(f => this.module.fields.find(({ name }) => name === f))
+          const fields = qf
+            .map(f => this.module.fields.find(({ name }) => name === f))
+            // Filter out fields user doesn't have permission to read
+            // Using !== false allows fields where permission is not explicitly denied
+            .filter(f => f && f.canReadRecordValue !== false)
           query = queryToFilter(query, '', fields)
         }
 

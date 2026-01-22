@@ -229,7 +229,11 @@ export default {
           sf.label = this.$t(`field:system.${sf.name}`)
           return sf
         }),
-      ].filter(({ isFilterable }) => isFilterable)
+      ].filter(({ isFilterable, canReadRecordValue }) => {
+        // Field must be filterable AND user must have permission to read its values
+        // Using !== false allows system fields (undefined) and explicitly allowed fields
+        return isFilterable && canReadRecordValue !== false
+      })
     },
 
     resolvedSelectedField () {
