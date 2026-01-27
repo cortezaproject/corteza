@@ -21,6 +21,10 @@ var (
 	isNumberRegex = regexp.MustCompile(`^(0|[1-9][0-9]{0,19})$`)
 )
 
+func Zero() ID {
+	return ID{}
+}
+
 func MustNumID(n uint64) ID {
 	id, err := NumID(n)
 	if err != nil {
