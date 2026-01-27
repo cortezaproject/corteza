@@ -7,11 +7,11 @@ export class Prompt {
   public createdAt?: Date = undefined
   public payload: any = undefined
 
-  constructor (u?: Partial<Prompt>) {
+  constructor(u?: Partial<Prompt>) {
     this.apply(u)
   }
 
-  apply (u?: Partial<Prompt>): void {
+  apply(u?: Partial<Prompt>): void {
     Apply(this, u, CortezaID, 'sessionID', 'stateID')
     Apply(this, u, String, 'ref')
     Apply(this, u, ISO8601Date, 'createdAt')

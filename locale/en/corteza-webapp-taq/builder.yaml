@@ -1,0 +1,117 @@
+title: TAQ Builder
+welcome: Welcome to the TAQ workflow automation builder.
+newTaq: New TAQ
+save: Save
+selectTrigger: Select Trigger
+addStep: Add Step
+emptyState: Start by adding a trigger
+addTrigger: Add Trigger
+
+cards:
+  connectors:
+    title: Connectors
+    description: Browse and install connectors
+  connections:
+    title: Connections
+    description: Configure service connections
+  workflows:
+    title: Workflows
+    description: Build automation workflows
+
+palette:
+  triggers: Triggers
+  actions: Actions
+  logic: Logic
+
+properties:
+  title: Properties
+  noSelection: Select a node to configure
+
+toast:
+  saved:
+    summary: Saved
+    detail: TAQ saved successfully
+  error:
+    summary: Error
+    detail: Failed to save TAQ
+  loadError:
+    summary: Load Error
+    detail: Failed to load TAQ
+
+nodePicker:
+  searchTriggers: Search triggers...
+  searchSteps: Search steps...
+  noResults: No nodes found matching "{query}"
+  categories:
+    triggers: Triggers
+    actions: Actions
+    logic: Logic
+  nodes:
+    triggers:
+      manual:
+        label: Manual
+        description: Trigger manually
+      interval:
+        label: Interval
+        description: Trigger on interval
+      timestamp:
+        label: Timestamp
+        description: Trigger at timestamp
+      recordCreate:
+        label: Record Create
+        description: After record is created
+      recordUpdate:
+        label: Record Update
+        description: After record is updated
+      recordDelete:
+        label: Record Delete
+        description: After record is deleted
+    actions:
+      usersLookup:
+        label: User Lookup
+        description: Find specific user by ID, handle or string
+      httpRequest:
+        label: HTTP Request
+        description: Make HTTP API call
+      sendEmail:
+        label: Send Email
+        description: Send an email
+      setVariable:
+        label: Set Variable
+        description: Store a value
+      delay:
+        label: Delay
+        description: Wait for duration
+      log:
+        label: Log
+        description: Write to log
+      javascript:
+        label: JavaScript
+        description: Execute JavaScript code
+      createUser:
+        label: Create User
+        description: Create a new user
+    logic:
+      branch:
+        label: Branch
+        description: Split flow
+
+configSidebar:
+  node: Node
+  branches: Branches
+  addElseIf: Add Else If Branch
+  deleteNode: Delete Node
+  end: End
+
+branch:
+  if: If
+  elseIf: Else If
+  else: Else
+
+nodes:
+  trigger: Trigger
+  step: Step
+  branch: Branch
+  end: End
+  startAutomation: Start automation
+  splitFlow: Split flow

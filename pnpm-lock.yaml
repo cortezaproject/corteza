@@ -140,13 +140,13 @@ importers:
         version: link:../../../lib/vue
       '@vue-flow/background':
         specifier: ^1.3.2
-        version: 1.3.2(@vue-flow/core@1.48.1(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
+        version: 1.3.2(@vue-flow/core@1.48.2(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
       '@vue-flow/controls':
         specifier: ^1.1.2
-        version: 1.1.3(@vue-flow/core@1.48.1(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
+        version: 1.1.3(@vue-flow/core@1.48.2(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))
       '@vue-flow/core':
-        specifier: ^1.41.3
-        version: 1.48.1(vue@3.5.26(typescript@5.9.3))
+        specifier: ^1.48.2
+        version: 1.48.2(vue@3.5.26(typescript@5.9.3))
       dagre:
         specifier: ^0.8.5
         version: 0.8.5
@@ -1265,8 +1265,8 @@ packages:
       '@vue-flow/core': ^1.23.0
       vue: ^3.3.0
 
-  '@vue-flow/core@1.48.1':
-    resolution: {integrity: sha512-3IxaMBLvWRbznZ4CuK0kVhp4Y4lCDQx9nhi48Swp6PwPw29KNhmiKd2kaBogYeWjGLb/tLjlE9V0s3jEmKCYWw==}
+  '@vue-flow/core@1.48.2':
+    resolution: {integrity: sha512-raxhgKWE+G/mcEvXJjGFUDYW9rAI3GOtiHR3ZkNpwBWuIaCC1EYiBmKGwJOoNzVFgwO7COgErnK7i08i287AFA==}
     peerDependencies:
       vue: ^3.3.0
 
@@ -4551,17 +4551,17 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 2.0.0
 
-  '@vue-flow/background@1.3.2(@vue-flow/core@1.48.1(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
+  '@vue-flow/background@1.3.2(@vue-flow/core@1.48.2(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@vue-flow/core': 1.48.1(vue@3.5.26(typescript@5.9.3))
+      '@vue-flow/core': 1.48.2(vue@3.5.26(typescript@5.9.3))
       vue: 3.5.26(typescript@5.9.3)
 
-  '@vue-flow/controls@1.1.3(@vue-flow/core@1.48.1(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
+  '@vue-flow/controls@1.1.3(@vue-flow/core@1.48.2(vue@3.5.26(typescript@5.9.3)))(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@vue-flow/core': 1.48.1(vue@3.5.26(typescript@5.9.3))
+      '@vue-flow/core': 1.48.2(vue@3.5.26(typescript@5.9.3))
       vue: 3.5.26(typescript@5.9.3)
 
-  '@vue-flow/core@1.48.1(vue@3.5.26(typescript@5.9.3))':
+  '@vue-flow/core@1.48.2(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       '@vueuse/core': 10.11.1(vue@3.5.26(typescript@5.9.3))
       d3-drag: 3.0.0

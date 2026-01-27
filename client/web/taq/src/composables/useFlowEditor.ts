@@ -1,0 +1,741 @@
+import { automation } from '@cortezaproject/corteza-js-next'
+import type { Edge, Node } from '@vue-flow/core'
+import { computed, inject, nextTick, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+
+import { applyDagreLayout, automationToVueFlow, type FlowNodeData } from '@/utils/taq-parser'
+
+const { NgAutomation } = automation
+type NgAutomationInstance = InstanceType<typeof NgAutomation>
+
+interface InsertionPoint {
+  first?: boolean
+  edgeId?: string
+  source?: string
+  target?: string
+}
+
+interface NodeType {
+  id: string
+  type: string
+  label: string
+  description?: string
+  icon?: string
+  ref?: string
+  kind?: string
+  eventType?: string
+  resourceType?: string
+}
+
+/**
+ * Composable for managing the flow editor state and operations.
+ * Handles automation loading/saving, node manipulation, and undo/redo.
+ */
+export function useFlowEditor() {
+  const $AutomationAPI = inject<any>('$AutomationAPI')
+  const $toast = inject<any>('$toast')
+  const { t } = useI18n()
+  const router = useRouter()
+
+  // Core automation state
+  const automation = ref<NgAutomationInstance>(new NgAutomation())
+  const loading = ref(false)
+  const saving = ref(false)
+
+  // VueFlow state
+  const nodes = ref<Node<FlowNodeData>[]>([])
+  const edges = ref<Edge[]>([])
+
+  // History for undo/redo
+  const history = ref<string[]>([])
+  const historyIndex = ref(-1)
+
+  // Computed
+  const canUndo = computed(() => historyIndex.value > 0)
+  const canRedo = computed(() => historyIndex.value < history.value.length - 1)
+  const automationId = computed(() => automation.value.automationID)
+  const isEmpty = computed(() => nodes.value.length === 0)
+
+  const name = computed({
+    get: () => automation.value.meta?.short || t('builder.newTaq'),
+    set: (val: string) => {
+      automation.value.meta = { ...automation.value.meta, short: val }
+    },
+  })
+
+  // History management
+  function saveToHistory() {
+    const state = JSON.stringify({ nodes: nodes.value, edges: edges.value })
+    history.value = history.value.slice(0, historyIndex.value + 1)
+    history.value.push(state)
+    historyIndex.value = history.value.length - 1
+  }
+
+  function undo() {
+    if (!canUndo.value) return
+    historyIndex.value--
+    const state = JSON.parse(history.value[historyIndex.value])
+    nodes.value = state.nodes
+    edges.value = state.edges
+  }
+
+  function redo() {
+    if (!canRedo.value) return
+    historyIndex.value++
+    const state = JSON.parse(history.value[historyIndex.value])
+    nodes.value = state.nodes
+    edges.value = state.edges
+  }
+
+  // Load automation from API
+  async function load(id: string) {
+    loading.value = true
+    try {
+      const response = await $AutomationAPI.ngAutomationRead({ automationID: id })
+      automation.value = new NgAutomation(response)
+
+      // Convert to VueFlow format
+      const state = automationToVueFlow(automation.value)
+      nodes.value = state.nodes
+      edges.value = state.edges
+
+      nextTick(() => saveToHistory())
+    } catch (e) {
+      console.error('Failed to load automation:', e)
+      $toast?.toastDanger(t('builder.toast.loadError.detail'), t('builder.toast.loadError.summary'))
+      throw e
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Save automation to API
+  async function save() {
+    saving.value = true
+    try {
+      // Build triggers and steps from nodes while preserving existing data
+      const triggers: any[] = []
+      const steps: any[] = []
+
+      // Use a SINGLE counter for all IDs to avoid collisions in paths
+      // Triggers and steps share the ID space for path parentID/childID
+      // Start at 0, increment before use so IDs are 1, 2, 3, ...
+      let globalIndex = 0
+
+      // Map to track VueFlow node ID -> backend ID for path generation
+      const nodeIdToBackendId = new Map<string, string>()
+
+      // Helper to process a node into trigger or step
+      const processNode = (node: Node<FlowNodeData>) => {
+        const data = node.data as FlowNodeData
+        globalIndex++
+        const newID = String(globalIndex)
+        nodeIdToBackendId.set(node.id, newID)
+
+        if (node.type === 'trigger') {
+          const existing = automation.value.triggers?.find(
+            (t: any) => t.triggerID === data.triggerID,
+          )
+          triggers.push({
+            triggerID: newID,
+            handle: `trigger_${newID}`,
+            enabled: existing?.enabled ?? true,
+            resourceType: existing?.resourceType || '',
+            eventType: data.nodeType || existing?.eventType || '',
+            meta: {
+              short: data.label,
+              description: data.description || '',
+            },
+            input: data.config || existing?.input || {},
+          })
+        } else {
+          const existing = automation.value.steps?.find((s: any) => s.stepID === data.stepID)
+
+          let kind = 'function'
+          if (node.type === 'end') {
+            kind = 'termination'
+          } else if (node.type === 'branch') {
+            kind = 'gateway'
+          }
+
+          steps.push({
+            stepID: newID,
+            handle: `step_${newID}`,
+            kind,
+            ref: node.type === 'end' ? 'termination' : data.nodeType || existing?.ref || '',
+            meta: {
+              short: node.type === 'end' ? t('builder.nodes.end') : data.label,
+              description: data.description || '',
+            },
+            arguments: existing?.arguments || [],
+          })
+        }
+      }
+
+      // Process in order: 1) triggers, 2) terminations, 3) other steps
+      nodes.value.filter(n => n.type === 'trigger').forEach(processNode)
+      nodes.value.filter(n => n.type === 'end').forEach(processNode)
+      nodes.value.filter(n => n.type !== 'trigger' && n.type !== 'end').forEach(processNode)
+
+      // Derive paths from edges (including paths to termination steps)
+      // Filter out any invalid or duplicate edges
+      const seenEdges = new Set<string>()
+      const paths = edges.value
+        .map(edge => {
+          const sourceId = nodeIdToBackendId.get(edge.source)
+          const targetId = nodeIdToBackendId.get(edge.target)
+
+          if (!sourceId || !targetId) return null
+
+          // Skip duplicates
+          const edgeKey = `${sourceId}_${targetId}_${edge.sourceHandle || ''}`
+          if (seenEdges.has(edgeKey)) return null
+          seenEdges.add(edgeKey)
+
+          return {
+            parentID: sourceId,
+            childID: targetId,
+            handle: `path_${sourceId}_${targetId}`,
+            meta: {},
+          }
+        })
+        .filter(Boolean)
+
+      const dataToSave = {
+        automationID: automation.value.automationID,
+        handle: automation.value.handle,
+        meta: automation.value.meta,
+        enabled: automation.value.enabled,
+        triggers,
+        steps,
+        paths,
+        runAs: automation.value.runAs,
+        ownedBy: automation.value.ownedBy,
+      }
+
+      let response
+      if (automation.value.automationID && automation.value.automationID !== '0') {
+        response = await $AutomationAPI.ngAutomationUpdate(dataToSave)
+      } else {
+        response = await $AutomationAPI.ngAutomationCreate(dataToSave)
+      }
+
+      automation.value = new NgAutomation(response)
+
+      // Reload the flow to get proper IDs from backend
+      const state = automationToVueFlow(automation.value)
+      nodes.value = state.nodes
+      edges.value = state.edges
+
+      // Update URL if this was a new automation
+      if (router.currentRoute.value.params.id !== automation.value.automationID) {
+        router.replace(`/builder/${automation.value.automationID}`)
+      }
+
+      $toast?.toastSuccess(t('builder.toast.saved.detail'), t('builder.toast.saved.summary'))
+      return automation.value
+    } catch (e) {
+      console.error('Failed to save automation:', e)
+      $toast?.toastDanger(t('builder.toast.error.detail'), t('builder.toast.error.summary'))
+      throw e
+    } finally {
+      saving.value = false
+    }
+  }
+
+  // Reset to empty state
+  function reset() {
+    automation.value = new NgAutomation()
+    nodes.value = []
+    edges.value = []
+    history.value = []
+    historyIndex.value = -1
+    nextTick(() => saveToHistory())
+  }
+
+  // Add a new node to the flow
+  function addNode(
+    nodeType: NodeType,
+    insertionPoint: InsertionPoint | null,
+  ): Node<FlowNodeData> | null {
+    const isBranch =
+      nodeType.id === 'branch' || nodeType.type === 'condition' || nodeType.ref === 'gateway'
+    const isEnd = nodeType.type === 'end'
+    const isTrigger = nodeType.type === 'trigger'
+
+    // Find max ID from BOTH triggers and steps (single shared counter)
+    const maxTriggerID =
+      automation.value.triggers?.reduce((max: number, t: any) => {
+        const num = parseInt(t.triggerID, 10)
+        return isNaN(num) ? max : Math.max(max, num)
+      }, 0) || 0
+    const maxStepID =
+      automation.value.steps?.reduce((max: number, s: any) => {
+        const num = parseInt(s.stepID, 10)
+        return isNaN(num) ? max : Math.max(max, num)
+      }, 0) || 0
+    const newId = String(Math.max(maxTriggerID, maxStepID) + 1)
+
+    let newHandle: string
+
+    if (isTrigger) {
+      newHandle = `trigger_${newId}`
+      automation.value.triggers = automation.value.triggers || []
+      automation.value.triggers.push({
+        triggerID: newId,
+        handle: newHandle,
+        enabled: true,
+        resourceType: nodeType.resourceType || '',
+        eventType: nodeType.eventType || nodeType.ref || '',
+        meta: {
+          short: nodeType.label,
+          description: nodeType.description || '',
+        },
+        input: {},
+      })
+    } else if (!isEnd) {
+      newHandle = `step_${newId}`
+      automation.value.steps = automation.value.steps || []
+      automation.value.steps.push({
+        stepID: newId,
+        handle: newHandle,
+        kind: isBranch ? 'gateway' : 'function',
+        ref: nodeType.ref || '',
+        meta: {
+          short: nodeType.label,
+          description: nodeType.description || '',
+        },
+        arguments: [],
+      })
+    } else {
+      newHandle = `end_${newId}`
+    }
+
+    // VueFlow node ID must be unique - prefix with type
+    const vueFlowNodeId = isTrigger ? `trigger_${newId}` : isEnd ? `end_${newId}` : `step_${newId}`
+
+    // Create VueFlow node
+    const newNode: Node<FlowNodeData> = {
+      id: vueFlowNodeId,
+      type: isBranch ? 'branch' : isTrigger ? 'trigger' : isEnd ? 'end' : 'step',
+      position: { x: 0, y: 0 },
+      selectable: !isEnd,
+      data: {
+        label: nodeType.label,
+        description: nodeType.description,
+        icon: nodeType.icon,
+        nodeType: nodeType.ref || (isEnd ? 'end' : ''),
+        config: {},
+        ref: newHandle,
+        stepID: isTrigger ? undefined : newId,
+        triggerID: isTrigger ? newId : undefined,
+      },
+    }
+
+    if (insertionPoint?.first) {
+      // First node (trigger)
+      nodes.value = [newNode]
+
+      // Add end node (will be saved as termination step)
+      const endId = String(parseInt(newId) + 1)
+      const endVueId = `end_${endId}`
+
+      nodes.value.push({
+        id: endVueId,
+        type: 'end',
+        position: { x: 0, y: 0 },
+        selectable: false,
+        data: {
+          label: t('builder.nodes.end'),
+          nodeType: 'termination',
+          icon: 'pi pi-stop-circle',
+          config: {},
+          ref: endVueId,
+        },
+      })
+      edges.value = [
+        {
+          id: `${vueFlowNodeId}_${endVueId}`,
+          source: vueFlowNodeId,
+          target: endVueId,
+          type: 'addable',
+        },
+      ]
+    } else if (insertionPoint?.edgeId) {
+      // Insert on an edge
+      const edgeIndex = edges.value.findIndex(e => e.id === insertionPoint.edgeId)
+      const edge = edges.value[edgeIndex]
+      if (edge && edgeIndex !== -1) {
+        // Collect new nodes and edges first, then apply in batch
+        const newNodes: typeof nodes.value = [newNode]
+        const newEdges: typeof edges.value = []
+        let insertEdge: (typeof edges.value)[0] | null = null
+
+        if (isBranch) {
+          // Edge from source to branch (will be inserted at original position)
+          insertEdge = {
+            id: `${edge.source}_${vueFlowNodeId}`,
+            source: edge.source,
+            target: vueFlowNodeId,
+            type: 'addable',
+          }
+
+          // First branch output: connect to original target (leftmost)
+          newEdges.push({
+            id: `${vueFlowNodeId}_0_${edge.target}`,
+            source: vueFlowNodeId,
+            target: edge.target,
+            type: 'addable',
+          })
+
+          // Second branch output: new end node (rightmost)
+          const noEndId = String(parseInt(newId) + 1)
+          const noEndVueId = `end_${noEndId}`
+
+          newNodes.push({
+            id: noEndVueId,
+            type: 'end',
+            position: { x: 0, y: 0 },
+            selectable: false,
+            data: {
+              label: t('builder.nodes.end'),
+              nodeType: 'termination',
+              icon: 'pi pi-stop-circle',
+              config: {},
+              ref: noEndVueId,
+            },
+          })
+          newEdges.push({
+            id: `${vueFlowNodeId}_1_${noEndVueId}`,
+            source: vueFlowNodeId,
+            target: noEndVueId,
+            type: 'addable',
+          })
+        } else {
+          // Regular node: source -> new -> target
+          insertEdge = {
+            id: `${edge.source}_${vueFlowNodeId}`,
+            source: edge.source,
+            target: vueFlowNodeId,
+            type: 'addable',
+          }
+          newEdges.push({
+            id: `${vueFlowNodeId}_${edge.target}`,
+            source: vueFlowNodeId,
+            target: edge.target,
+            type: 'addable',
+          })
+        }
+
+        // Apply changes: NODES FIRST, then edges
+        nodes.value.push(...newNodes)
+
+        // Remove old edge and insert replacement at same position, then add rest
+        const filteredEdges = edges.value.filter(e => e.id !== insertionPoint.edgeId)
+        if (insertEdge) {
+          filteredEdges.splice(edgeIndex, 0, insertEdge)
+        }
+        edges.value = [...filteredEdges, ...newEdges]
+      }
+    }
+
+    // Re-layout nodes
+    const layouted = applyDagreLayout({ nodes: nodes.value, edges: edges.value })
+    nodes.value = layouted.nodes
+    edges.value = layouted.edges
+
+    saveToHistory()
+
+    // Return the layouted node for centering
+    return layouted.nodes.find(n => n.id === vueFlowNodeId) || null
+  }
+
+  // Delete a node and reconnect edges
+  // Termination nodes stay at leaves - when deleting a node, its termination children
+  // are reconnected to the parent (not orphaned or duplicated)
+  // Orphaned nodes (no incoming edges, except triggers) are cleaned up
+  function deleteNode(nodeToDelete: Node<FlowNodeData>) {
+    const nodeId = nodeToDelete.id
+
+    // Remove from automation model
+    if (nodeToDelete.data?.stepID) {
+      automation.value.steps =
+        automation.value.steps?.filter((s: any) => s.stepID !== nodeToDelete.data.stepID) || []
+    }
+    if (nodeToDelete.data?.triggerID) {
+      automation.value.triggers =
+        automation.value.triggers?.filter(
+          (t: any) => t.triggerID !== nodeToDelete.data.triggerID,
+        ) || []
+    }
+
+    // Handle reconnection & dynamic End nodes
+    const incomingEdges = edges.value.filter(e => e.target === nodeId)
+    const outgoingEdges = edges.value.filter(e => e.source === nodeId)
+
+    // Remove node and its incident edges
+    nodes.value = nodes.value.filter(n => n.id !== nodeId)
+    edges.value = edges.value.filter(e => e.source !== nodeId && e.target !== nodeId)
+
+    // If this was an End node, the parent becomes a leaf - add new termination
+    if (nodeToDelete.type === 'end') {
+      incomingEdges.forEach(incoming => {
+        const parentNode = nodes.value.find(n => n.id === incoming.source)
+        // Check if parent still has other outgoing edges
+        const parentHasOtherChildren = edges.value.some(e => e.source === incoming.source)
+        if (parentNode && !parentHasOtherChildren) {
+          // Parent is now a leaf, add termination
+          const newEndId = `end_${incoming.source}_${incoming.sourceHandle || 'default'}`
+          nodes.value.push({
+            id: newEndId,
+            type: 'end',
+            position: { x: 0, y: 0 },
+            selectable: false,
+            data: {
+              label: t('builder.nodes.end'),
+              nodeType: 'termination',
+              icon: 'pi pi-stop-circle',
+              config: {},
+              ref: newEndId,
+            },
+          })
+          edges.value.push({
+            id: `${incoming.source}_${newEndId}`,
+            source: incoming.source,
+            sourceHandle: incoming.sourceHandle,
+            target: newEndId,
+            type: 'addable',
+          })
+        }
+      })
+      cleanupOrphanedNodes()
+      relayout()
+      return
+    }
+
+    // For non-end nodes: reconnect parent to ALL children (including terminations)
+    // EXCEPT for branches, where we want to delete the subtrees instead
+    incomingEdges.forEach(incoming => {
+      if (outgoingEdges.length > 0 && nodeToDelete.type !== 'branch') {
+        // Reconnect parent to all children of deleted node
+        outgoingEdges.forEach(outgoing => {
+          if (incoming.source !== outgoing.target) {
+            edges.value.push({
+              id: `${incoming.source}_${outgoing.target}`,
+              source: incoming.source,
+              sourceHandle: incoming.sourceHandle,
+              target: outgoing.target,
+              type: 'addable',
+            })
+          }
+        })
+      } else {
+        // Deleted node had no children OR was a branch: parent needs termination
+        const parentNode = nodes.value.find(n => n.id === incoming.source)
+        if (parentNode) {
+          const newEndId = `end_${incoming.source}_${incoming.sourceHandle || 'default'}`
+          nodes.value.push({
+            id: newEndId,
+            type: 'end',
+            position: { x: 0, y: 0 },
+            selectable: false,
+            data: {
+              label: t('builder.nodes.end'),
+              nodeType: 'termination',
+              icon: 'pi pi-stop-circle',
+              config: {},
+              ref: newEndId,
+            },
+          })
+          edges.value.push({
+            id: `${incoming.source}_${newEndId}`,
+            source: incoming.source,
+            sourceHandle: incoming.sourceHandle,
+            target: newEndId,
+            type: 'addable',
+          })
+        }
+      }
+    })
+
+    // Clean up any orphaned nodes (nodes with no incoming edges, except triggers)
+    cleanupOrphanedNodes()
+    relayout()
+  }
+
+  // Remove orphaned nodes - nodes with no incoming edges (except triggers which are roots)
+  function cleanupOrphanedNodes() {
+    let changed = true
+    while (changed) {
+      changed = false
+      const orphanedNodes = nodes.value.filter(node => {
+        // Triggers are roots, they don't need incoming edges
+        if (node.type === 'trigger') return false
+        // Check if this node has any incoming edges
+        const hasIncoming = edges.value.some(e => e.target === node.id)
+        return !hasIncoming
+      })
+
+      if (orphanedNodes.length > 0) {
+        changed = true
+        orphanedNodes.forEach(orphan => {
+          // Remove orphan's outgoing edges
+          edges.value = edges.value.filter(e => e.source !== orphan.id)
+          // Remove orphan node
+          nodes.value = nodes.value.filter(n => n.id !== orphan.id)
+          // Remove from automation model if it has an ID
+          if (orphan.data?.stepID) {
+            automation.value.steps =
+              automation.value.steps?.filter((s: any) => s.stepID !== orphan.data.stepID) || []
+          }
+        })
+      }
+    }
+  }
+
+  // Update node data and save to history
+  function updateNodeData(nodeId: string, dataUpdate: Partial<FlowNodeData>) {
+    const nodeIndex = nodes.value.findIndex(n => n.id === nodeId)
+    if (nodeIndex === -1) return
+
+    const node = nodes.value[nodeIndex]
+    node.data = { ...node.data, ...dataUpdate }
+
+    // Also update the automation model if this is a step with config
+    if (dataUpdate.config && node.data.stepID) {
+      const step = automation.value.steps?.find((s: any) => s.stepID === node.data.stepID)
+      if (step) {
+        step.arguments = Object.entries(dataUpdate.config).map(([name, value]) => ({
+          target: name,
+          type: 'Literal',
+          value,
+        }))
+      }
+    }
+
+    saveToHistory()
+  }
+
+  // Re-layout nodes after changes
+  function relayout() {
+    if (nodes.value.length > 0) {
+      const layouted = applyDagreLayout({ nodes: nodes.value, edges: edges.value })
+      nodes.value = layouted.nodes
+      edges.value = layouted.edges
+    }
+    saveToHistory()
+  }
+
+  // Add a new output branch to an existing branch node (for Else If)
+  function addBranchOutput(branchNode: Node<FlowNodeData>) {
+    if (branchNode.type !== 'branch') return
+
+    // Generate new end node ID
+    const newEndId = `end_${branchNode.id}_${Date.now()}`
+
+    // Add new end node
+    nodes.value.push({
+      id: newEndId,
+      type: 'end',
+      position: { x: 0, y: 0 },
+      selectable: false,
+      data: {
+        label: t('builder.nodes.end'),
+        nodeType: 'termination',
+        icon: 'pi pi-stop-circle',
+        config: {},
+        ref: newEndId,
+      },
+    })
+
+    // Find existing edges from this branch to determine insertion position
+    // Insert new edge BEFORE the last edge (the "Else" branch)
+    const branchEdges = edges.value.filter(e => e.source === branchNode.id)
+    const lastBranchEdgeIndex = edges.value.findIndex(
+      e => e.id === branchEdges[branchEdges.length - 1]?.id,
+    )
+
+    const newEdge = {
+      id: `${branchNode.id}_${newEndId}`,
+      source: branchNode.id,
+      target: newEndId,
+      type: 'addable',
+    }
+
+    // Insert before the last branch edge (Else stays last)
+    if (lastBranchEdgeIndex !== -1) {
+      edges.value.splice(lastBranchEdgeIndex, 0, newEdge)
+    } else {
+      edges.value.push(newEdge)
+    }
+
+    // Re-layout
+    const layouted = applyDagreLayout({ nodes: nodes.value, edges: edges.value })
+    nodes.value = layouted.nodes
+    edges.value = layouted.edges
+
+    saveToHistory()
+  }
+
+  // Reorder edges for a branch node based on new order
+  function reorderBranchEdges(branchNodeId: string, newEdgeOrder: string[]) {
+    // Get all edges from this branch
+    const branchEdgeIds = new Set(edges.value.filter(e => e.source === branchNodeId).map(e => e.id))
+
+    // Get branch edges
+    const branchEdges = edges.value.filter(e => branchEdgeIds.has(e.id))
+
+    // Reorder branch edges according to newEdgeOrder
+    const reorderedBranchEdges = newEdgeOrder
+      .map(id => branchEdges.find(e => e.id === id))
+      .filter(Boolean) as typeof edges.value
+
+    // Find where the first branch edge was in the original array
+    const firstBranchIndex = edges.value.findIndex(e => branchEdgeIds.has(e.id))
+
+    // Reconstruct edges array: non-branch edges with reordered branch edges inserted at original position
+    const beforeBranch = edges.value
+      .slice(0, firstBranchIndex)
+      .filter(e => !branchEdgeIds.has(e.id))
+    const afterBranch = edges.value.slice(firstBranchIndex).filter(e => !branchEdgeIds.has(e.id))
+
+    edges.value = [...beforeBranch, ...reorderedBranchEdges, ...afterBranch]
+
+    // Re-layout
+    const layouted = applyDagreLayout({ nodes: nodes.value, edges: edges.value })
+    nodes.value = layouted.nodes
+    edges.value = layouted.edges
+
+    saveToHistory()
+  }
+
+  return {
+    // State
+    automation,
+    nodes,
+    edges,
+    loading,
+    saving,
+
+    // Computed
+    name,
+    automationId,
+    isEmpty,
+    canUndo,
+    canRedo,
+
+    // Actions
+    load,
+    save,
+    reset,
+    undo,
+    redo,
+    addNode,
+    addBranchOutput,
+    reorderBranchEdges,
+    deleteNode,
+    updateNodeData,
+    saveToHistory,
+  }
+}

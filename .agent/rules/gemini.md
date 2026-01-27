@@ -2,10 +2,6 @@
 trigger: always_on
 ---
 
-# CLAUDE.md
-
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
 ## Project Overview
 
 Corteza is a low-code platform for building CRM, business process, and structured data applications. This repository contains the Vue 3 monorepo with web applications and shared libraries.
@@ -128,3 +124,16 @@ Dark mode uses class selector `[class~="dark"]` on root element.
 ## Authentication
 
 Uses OAuth 2.0 with PKCE flow via `AuthPlugin`. Access tokens are kept in memory only; refresh tokens in sessionStorage.
+
+## Internationalization (i18n)
+
+- **No hardcoded UI strings** - All user-facing text must use translations
+- **Locale files**: `locale/en/corteza-webapp-{appname}/` - organized per view (e.g., `dashboard.yaml`, `builder.yaml`)
+- **In templates**: Use `$t('view.key')` - e.g., `{{ $t('dashboard.title') }}`
+- **In script setup**: Import `useI18n` and use `t()`:
+  ```vue
+  import { useI18n } from 'vue-i18n'
+  const { t } = useI18n()
+  toast.add({ summary: t('builder.toast.saved.summary') })
+  ```
+- **Interpolation**: `$t('key', { name: value })` with `{name}` placeholders in YAML

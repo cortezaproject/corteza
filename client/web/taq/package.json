@@ -1,0 +1,25 @@
+{
+  "name": "corteza-webapp-taq",
+  "version": "2026.3.0-dev.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "lint": "eslint . --fix",
+    "format": "prettier --write src/"
+  },
+  "dependencies": {
+    "@cortezaproject/corteza-js-next": "workspace:*",
+    "@cortezaproject/corteza-vue-next": "workspace:*",
+    "@vue-flow/background": "^1.3.2",
+    "@vue-flow/controls": "^1.1.2",
+    "@vue-flow/core": "^1.48.2",
+    "dagre": "^0.8.5"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.53"
+  }
+}

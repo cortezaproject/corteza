@@ -1,8 +1,16 @@
 export { Function } from './types/function'
 export { Param } from './types/param'
 export { Prompt } from './types/prompt'
-export { TAQ } from './types/taq'
-export type { Path, Step, StepValue, TAQIssue, TAQIssueSet, Trigger } from './types/taq'
+export { NgAutomation, TAQ } from './types/taq'
+export type {
+  Expr,
+  NgAutomationPath,
+  NgAutomationStep,
+  NgAutomationTrigger,
+  TAQIssue,
+  TAQIssueSet,
+  TriggerConstraint,
+} from './types/taq'
 export { Encode, IsTyped } from './types/values'
 export type { Typed, Vars } from './types/values'
 export { Workflow } from './types/workflow'

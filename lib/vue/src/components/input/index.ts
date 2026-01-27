@@ -1,2 +1,5 @@
-export { default as CInputSearch } from './CInputSearch.vue';
-
+export { default as CInputSearch } from './CInputSearch.vue'
+export { default as CInputText } from './CInputText.vue'
+export { default as CInputSelect } from './CInputSelect.vue'
+export { default as CInputUser } from './CInputUser.vue'
+export { INPUT_REGISTRY, resolveInputComponent } from './registry'

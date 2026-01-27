@@ -29,11 +29,11 @@ export class Revision {
   public deletedBy = NoID
   public record?: unknown = undefined
 
-  constructor (r?: PartialRevision) {
+  constructor(r?: PartialRevision) {
     this.apply(r)
   }
 
-  apply (r?: PartialRevision): void {
+  apply(r?: PartialRevision): void {
     if (!r) return
 
     Apply(this, r, String, 'changeID', 'resource')
@@ -52,15 +52,15 @@ export class Revision {
     }
   }
 
-  get resourceIdentifier (): string {
+  get resourceIdentifier(): string {
     return this.resource || `system:revision:${this.changeID}`
   }
 
-  get isDraft (): boolean {
+  get isDraft(): boolean {
     return this.status === 'draft'
   }
 
-  clone (): Revision {
+  clone(): Revision {
     return new Revision(JSON.parse(JSON.stringify(this)))
   }
 }

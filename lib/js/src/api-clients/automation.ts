@@ -1,34 +1,32 @@
- 
-
 // This is a generated file.
 // See README.md file for update instructions
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 interface KV {
-  [header: string]: unknown;
+  [header: string]: unknown
 }
 
 interface Headers {
-  [header: string]: string;
+  [header: string]: string
 }
 
 interface Ctor {
-  baseURL?: string;
-  accessTokenFn?: () => string | undefined;
-  headers?: Headers;
+  baseURL?: string
+  accessTokenFn?: () => string | undefined
+  headers?: Headers
 }
 
 interface CortezaResponse {
-  error?: string;
-  response?: unknown;
+  error?: string
+  response?: unknown
 }
 
 interface ExtraConfig {
-  headers?: Headers;
+  headers?: Headers
 }
 
-function stdResolve(response: AxiosResponse<CortezaResponse>): KV|Promise<never> {
+function stdResolve(response: AxiosResponse<CortezaResponse>): KV | Promise<never> {
   if (response.data.error) {
     return Promise.reject(response.data.error)
   } else if (response.data.response) {
@@ -40,7 +38,7 @@ function stdResolve(response: AxiosResponse<CortezaResponse>): KV|Promise<never>
 
 export default class Automation {
   protected baseURL?: string
-  protected accessTokenFn?: () => (string | undefined)
+  protected accessTokenFn?: () => string | undefined
   protected headers: Headers = {}
 
   constructor({ baseURL, headers, accessTokenFn }: Ctor) {
@@ -125,10 +123,15 @@ export default class Automation {
       sort,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowListCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -183,10 +186,15 @@ export default class Automation {
       runAs,
       ownedBy,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowCreateCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -249,10 +257,15 @@ export default class Automation {
       ownedBy,
       updatedAt,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowUpdateCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -265,17 +278,13 @@ export default class Automation {
   }
 
   workflowUpdateEndpoint(a: KV): string {
-    const {
-      workflowID,
-    } = a || {}
+    const { workflowID } = a || {}
     return `/workflows/${workflowID}`
   }
 
   // Read workflow details
   async workflowRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      workflowID,
-    } = (a as KV) || {}
+    const { workflowID } = (a as KV) || {}
     if (!workflowID) {
       throw Error('field workflowID is empty')
     }
@@ -287,10 +296,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowReadCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -303,17 +317,13 @@ export default class Automation {
   }
 
   workflowReadEndpoint(a: KV): string {
-    const {
-      workflowID,
-    } = a || {}
+    const { workflowID } = a || {}
     return `/workflows/${workflowID}`
   }
 
   // Remove workflow
   async workflowDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      workflowID,
-    } = (a as KV) || {}
+    const { workflowID } = (a as KV) || {}
     if (!workflowID) {
       throw Error('field workflowID is empty')
     }
@@ -325,10 +335,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowDeleteCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -341,17 +356,13 @@ export default class Automation {
   }
 
   workflowDeleteEndpoint(a: KV): string {
-    const {
-      workflowID,
-    } = a || {}
+    const { workflowID } = a || {}
     return `/workflows/${workflowID}`
   }
 
   // Undelete workflow
   async workflowUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      workflowID,
-    } = (a as KV) || {}
+    const { workflowID } = (a as KV) || {}
     if (!workflowID) {
       throw Error('field workflowID is empty')
     }
@@ -363,10 +374,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowUndeleteCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -379,19 +395,13 @@ export default class Automation {
   }
 
   workflowUndeleteEndpoint(a: KV): string {
-    const {
-      workflowID,
-    } = a || {}
+    const { workflowID } = a || {}
     return `/workflows/${workflowID}/undelete`
   }
 
   // Test workflow details
   async workflowTest(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      workflowID,
-      scope,
-      runAs,
-    } = (a as KV) || {}
+    const { workflowID, scope, runAs } = (a as KV) || {}
     if (!workflowID) {
       throw Error('field workflowID is empty')
     }
@@ -409,10 +419,15 @@ export default class Automation {
       scope,
       runAs,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowTestCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowTestCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -425,22 +440,13 @@ export default class Automation {
   }
 
   workflowTestEndpoint(a: KV): string {
-    const {
-      workflowID,
-    } = a || {}
+    const { workflowID } = a || {}
     return `/workflows/${workflowID}/test`
   }
 
   // Executes workflow on a specific step (must be orphan step and connected to &#x27;onManual&#x27; trigger)
   async workflowExec(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      workflowID,
-      stepID,
-      input,
-      trace,
-      wait,
-      async,
-    } = (a as KV) || {}
+    const { workflowID, stepID, input, trace, wait, async } = (a as KV) || {}
     if (!workflowID) {
       throw Error('field workflowID is empty')
     }
@@ -461,10 +467,15 @@ export default class Automation {
       wait,
       async,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  workflowExecCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  workflowExecCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -477,9 +488,7 @@ export default class Automation {
   }
 
   workflowExecEndpoint(a: KV): string {
-    const {
-      workflowID,
-    } = a || {}
+    const { workflowID } = a || {}
     return `/workflows/${workflowID}/exec`
   }
 
@@ -517,10 +526,15 @@ export default class Automation {
       sort,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  triggerListCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  triggerListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -582,10 +596,15 @@ export default class Automation {
       constraints,
       ownedBy,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  triggerCreateCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  triggerCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -655,10 +674,15 @@ export default class Automation {
       ownedBy,
       updatedAt,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  triggerUpdateCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  triggerUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -671,17 +695,13 @@ export default class Automation {
   }
 
   triggerUpdateEndpoint(a: KV): string {
-    const {
-      triggerID,
-    } = a || {}
+    const { triggerID } = a || {}
     return `/triggers/${triggerID}`
   }
 
   // Read trigger details
   async triggerRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      triggerID,
-    } = (a as KV) || {}
+    const { triggerID } = (a as KV) || {}
     if (!triggerID) {
       throw Error('field triggerID is empty')
     }
@@ -693,10 +713,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  triggerReadCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  triggerReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -709,17 +734,13 @@ export default class Automation {
   }
 
   triggerReadEndpoint(a: KV): string {
-    const {
-      triggerID,
-    } = a || {}
+    const { triggerID } = a || {}
     return `/triggers/${triggerID}`
   }
 
   // Remove trigger
   async triggerDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      triggerID,
-    } = (a as KV) || {}
+    const { triggerID } = (a as KV) || {}
     if (!triggerID) {
       throw Error('field triggerID is empty')
     }
@@ -731,10 +752,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  triggerDeleteCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  triggerDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -747,17 +773,13 @@ export default class Automation {
   }
 
   triggerDeleteEndpoint(a: KV): string {
-    const {
-      triggerID,
-    } = a || {}
+    const { triggerID } = a || {}
     return `/triggers/${triggerID}`
   }
 
   // Undelete trigger
   async triggerUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      triggerID,
-    } = (a as KV) || {}
+    const { triggerID } = (a as KV) || {}
     if (!triggerID) {
       throw Error('field triggerID is empty')
     }
@@ -769,10 +791,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  triggerUndeleteCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  triggerUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -785,9 +812,7 @@ export default class Automation {
   }
 
   triggerUndeleteEndpoint(a: KV): string {
-    const {
-      triggerID,
-    } = a || {}
+    const { triggerID } = a || {}
     return `/triggers/${triggerID}/undelete`
   }
 
@@ -825,10 +850,15 @@ export default class Automation {
       sort,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  sessionListCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  sessionListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -846,9 +876,7 @@ export default class Automation {
 
   // Read session details
   async sessionRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -860,10 +888,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  sessionReadCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  sessionReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -876,17 +909,13 @@ export default class Automation {
   }
 
   sessionReadEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/sessions/${sessionID}`
   }
 
   // Cancel session
   async sessionCancel(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-    } = (a as KV) || {}
+    const { sessionID } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -898,10 +927,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  sessionCancelCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  sessionCancelCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -914,25 +948,27 @@ export default class Automation {
   }
 
   sessionCancelEndpoint(a: KV): string {
-    const {
-      sessionID,
-    } = a || {}
+    const { sessionID } = a || {}
     return `/sessions/${sessionID}/cancel`
   }
 
   // Returns pending prompts from all sessions
   async sessionListPrompts(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.sessionListPromptsEndpoint(),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  sessionListPromptsCancellable(extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  sessionListPromptsCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -950,11 +986,7 @@ export default class Automation {
 
   // Resume session
   async sessionResumeState(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      sessionID,
-      stateID,
-      input,
-    } = (a as KV) || {}
+    const { sessionID, stateID, input } = (a as KV) || {}
     if (!sessionID) {
       throw Error('field sessionID is empty')
     }
@@ -965,16 +997,22 @@ export default class Automation {
       ...extra,
       method: 'post',
       url: this.sessionResumeStateEndpoint({
-        sessionID, stateID,
+        sessionID,
+        stateID,
       }),
     }
     cfg.data = {
       input,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  sessionResumeStateCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  sessionResumeStateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -987,26 +1025,27 @@ export default class Automation {
   }
 
   sessionResumeStateEndpoint(a: KV): string {
-    const {
-      sessionID,
-      stateID,
-    } = a || {}
+    const { sessionID, stateID } = a || {}
     return `/sessions/${sessionID}/state/${stateID}`
   }
 
   // Available workflow functions
   async functionList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.functionListEndpoint(),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  functionListCancellable(extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  functionListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1024,17 +1063,21 @@ export default class Automation {
 
   // Available workflow types
   async typeList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.typeListEndpoint(),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  typeListCancellable(extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  typeListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1052,17 +1095,21 @@ export default class Automation {
 
   // Available workflow types
   async eventTypesList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.eventTypesListEndpoint(),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  eventTypesListCancellable(extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  eventTypesListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1080,17 +1127,21 @@ export default class Automation {
 
   // Retrieve defined permissions
   async permissionsList(extra: AxiosRequestConfig = {}): Promise<KV> {
-
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
       url: this.permissionsListEndpoint(),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  permissionsListCancellable(extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  permissionsListCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1108,9 +1159,7 @@ export default class Automation {
 
   // Effective rules for current user
   async permissionsEffective(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      resource,
-    } = (a as KV) || {}
+    const { resource } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1120,10 +1169,15 @@ export default class Automation {
       resource,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  permissionsEffectiveCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  permissionsEffectiveCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1141,11 +1195,7 @@ export default class Automation {
 
   // Evaluate rules for given user/role combo
   async permissionsTrace(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      resource,
-      userID,
-      roleID,
-    } = (a as KV) || {}
+    const { resource, userID, roleID } = (a as KV) || {}
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'get',
@@ -1157,10 +1207,15 @@ export default class Automation {
       roleID,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  permissionsTraceCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  permissionsTraceCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1178,10 +1233,7 @@ export default class Automation {
 
   // Retrieve role permissions
   async permissionsRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      resource,
-    } = (a as KV) || {}
+    const { roleID, resource } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1196,10 +1248,15 @@ export default class Automation {
       resource,
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  permissionsReadCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  permissionsReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1212,17 +1269,13 @@ export default class Automation {
   }
 
   permissionsReadEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Remove all defined role permissions
   async permissionsDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-    } = (a as KV) || {}
+    const { roleID } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1234,10 +1287,15 @@ export default class Automation {
       }),
     }
 
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  permissionsDeleteCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  permissionsDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1250,18 +1308,13 @@ export default class Automation {
   }
 
   permissionsDeleteEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
   // Update permission settings
   async permissionsUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
-    const {
-      roleID,
-      rules,
-    } = (a as KV) || {}
+    const { roleID, rules } = (a as KV) || {}
     if (!roleID) {
       throw Error('field roleID is empty')
     }
@@ -1278,10 +1331,15 @@ export default class Automation {
     cfg.data = {
       rules,
     }
-    return this.api().request(cfg).then(result => stdResolve(result))
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
   }
 
-  permissionsUpdateCancellable(a: KV, extra: AxiosRequestConfig = {}): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void; } {
+  permissionsUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
     const cancelTokenSource = axios.CancelToken.source()
     const options = { ...extra, cancelToken: cancelTokenSource.token }
 
@@ -1294,10 +1352,483 @@ export default class Automation {
   }
 
   permissionsUpdateEndpoint(a: KV): string {
-    const {
-      roleID,
-    } = a || {}
+    const { roleID } = a || {}
     return `/permissions/${roleID}/rules`
   }
 
+  // List functions
+  async constructLibraryFunctions(extra: AxiosRequestConfig = {}): Promise<KV> {
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.constructLibraryFunctionsEndpoint(),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  constructLibraryFunctionsCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.constructLibraryFunctions(options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  constructLibraryFunctionsEndpoint(): string {
+    return '/construct-library/functions'
+  }
+
+  // List triggers
+  async constructLibraryTriggers(extra: AxiosRequestConfig = {}): Promise<KV> {
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.constructLibraryTriggersEndpoint(),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  constructLibraryTriggersCancellable(extra: AxiosRequestConfig = {}): {
+    response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>
+    cancel: () => void
+  } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.constructLibraryTriggers(options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  constructLibraryTriggersEndpoint(): string {
+    return '/construct-library/triggers'
+  }
+
+  // List automations
+  async ngAutomationList(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID, query, deleted, disabled, labels, limit, incTotal, pageCursor, sort } =
+      (a as KV) || {}
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.ngAutomationListEndpoint(),
+    }
+    cfg.params = {
+      automationID,
+      query,
+      deleted,
+      disabled,
+      labels,
+      limit,
+      incTotal,
+      pageCursor,
+      sort,
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationListCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationList(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationListEndpoint(): string {
+    return '/ng-automation/'
+  }
+
+  // Create automation
+  async ngAutomationCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { handle, labels, meta, enabled, scope, triggers, steps, paths, runAs, ownedBy } =
+      (a as KV) || {}
+    if (!ownedBy) {
+      throw Error('field ownedBy is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.ngAutomationCreateEndpoint(),
+    }
+    cfg.data = {
+      handle,
+      labels,
+      meta,
+      enabled,
+      scope,
+      triggers,
+      steps,
+      paths,
+      runAs,
+      ownedBy,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationCreateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationCreate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationCreateEndpoint(): string {
+    return '/ng-automation/'
+  }
+
+  // Update triger details
+  async ngAutomationUpdate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const {
+      automationID,
+      handle,
+      labels,
+      meta,
+      enabled,
+      scope,
+      triggers,
+      steps,
+      paths,
+      runAs,
+      ownedBy,
+      updatedAt,
+    } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    if (!runAs) {
+      throw Error('field runAs is empty')
+    }
+    if (!ownedBy) {
+      throw Error('field ownedBy is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'put',
+      url: this.ngAutomationUpdateEndpoint({
+        automationID,
+      }),
+    }
+    cfg.data = {
+      handle,
+      labels,
+      meta,
+      enabled,
+      scope,
+      triggers,
+      steps,
+      paths,
+      runAs,
+      ownedBy,
+      updatedAt,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationUpdateCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationUpdate(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationUpdateEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}`
+  }
+
+  // Read automation details
+  async ngAutomationRead(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.ngAutomationReadEndpoint({
+        automationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationReadCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationRead(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationReadEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}`
+  }
+
+  // Remove automation
+  async ngAutomationDelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'delete',
+      url: this.ngAutomationDeleteEndpoint({
+        automationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationDeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationDelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationDeleteEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}`
+  }
+
+  // Undelete automation
+  async ngAutomationUndelete(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.ngAutomationUndeleteEndpoint({
+        automationID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationUndeleteCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationUndelete(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationUndeleteEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}/undelete`
+  }
+
+  // Test automation details
+  async ngAutomationTest(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID, scope, runAs } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    if (!runAs) {
+      throw Error('field runAs is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.ngAutomationTestEndpoint({
+        automationID,
+      }),
+    }
+    cfg.data = {
+      scope,
+      runAs,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationTestCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationTest(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationTestEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}/test`
+  }
+
+  // Executes automation on a specific step (must be orphan step and connected to &#x27;onManual&#x27; trigger)
+  async ngAutomationExec(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID, input, trace, wait, async } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'post',
+      url: this.ngAutomationExecEndpoint({
+        automationID,
+      }),
+    }
+    cfg.data = {
+      input,
+      trace,
+      wait,
+      async,
+    }
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationExecCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationExec(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationExecEndpoint(a: KV): string {
+    const { automationID } = a || {}
+    return `/ng-automation/${automationID}/exec`
+  }
+
+  // Get automation execution trace
+  async ngAutomationExecutionTrace(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
+    const { automationID, executionID } = (a as KV) || {}
+    if (!automationID) {
+      throw Error('field automationID is empty')
+    }
+    if (!executionID) {
+      throw Error('field executionID is empty')
+    }
+    const cfg: AxiosRequestConfig = {
+      ...extra,
+      method: 'get',
+      url: this.ngAutomationExecutionTraceEndpoint({
+        automationID,
+        executionID,
+      }),
+    }
+
+    return this.api()
+      .request(cfg)
+      .then(result => stdResolve(result))
+  }
+
+  ngAutomationExecutionTraceCancellable(
+    a: KV,
+    extra: AxiosRequestConfig = {},
+  ): { response: (a: KV, extra?: AxiosRequestConfig) => Promise<KV>; cancel: () => void } {
+    const cancelTokenSource = axios.CancelToken.source()
+    const options = { ...extra, cancelToken: cancelTokenSource.token }
+
+    return {
+      response: () => this.ngAutomationExecutionTrace(a, options),
+      cancel: () => {
+        cancelTokenSource.cancel()
+      },
+    }
+  }
+
+  ngAutomationExecutionTraceEndpoint(a: KV): string {
+    const { automationID, executionID } = a || {}
+    return `/ng-automation/${automationID}/execution/${executionID}/trace`
+  }
 }

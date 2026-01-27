@@ -1,0 +1,30 @@
+title: TAQ
+welcome: Welcome to the TAQ automation builder.
+createTaq: Create TAQ
+createNew: Build a new TAQ automation
+untitled: Untitled TAQ
+active: Active
+triggers: '{count} trigger(s)'
+steps: '{count} step(s)'
+updated: 'Updated {date}'
+unknown: Unknown
+noSaved: No saved TAQs yet. Create your first one!
+
+dialog:
+  create:
+    header: Create New TAQ
+    name: TAQ Name
+    description: Description
+    namePlaceholder: Enter TAQ name...
+    descriptionPlaceholder: What does this automation do? (optional)
+    nameRequired: Name is required
+    createError: Failed to create TAQ. Please try again.
+  delete:
+    header: Delete TAQ
+    confirm: Are you sure you want to delete "{name}"?
+
+button:
+  create: Create
+  cancel: Cancel
+  retry: Retry
+  delete: Delete

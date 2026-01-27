@@ -31,7 +31,8 @@
       :pt="{
         root: {
           style: {
-            top: 'var(--topbar-height)',
+            top: 'calc(var(--topbar-height) + 20px)',
+            right: '17px',
           },
         },
         messageIcon: {

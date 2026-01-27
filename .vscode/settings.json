@@ -5,7 +5,7 @@
     "source.organizeImports": "explicit"
   },
 
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
 
   // Tab and indentation settings (2 spaces)

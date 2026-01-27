@@ -321,7 +321,7 @@ export class BaseChart {
     const copy = new BaseChart(this)
     if (copy.config?.reports) {
       await Promise.all(
-        copy.config.reports.map(async (r: any) => {
+        copy.config.reports.map(async(r: any) => {
           const { moduleID } = r
           if (moduleID) {
             const module = await findModuleByID({ namespaceID, moduleID })

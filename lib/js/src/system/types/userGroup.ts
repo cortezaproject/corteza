@@ -41,7 +41,7 @@ export class UserGroup {
   public canGrant = false
   public canUpdateUserGroup = false
   public canDeleteUserGroup = false
-  public canManageMembersOnUserGroup = false;
+  public canManageMembersOnUserGroup = false
 
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
@@ -49,11 +49,11 @@ export class UserGroup {
   public suspendedAt?: Date = undefined
   public roles?: Array<string>
 
-  constructor (u?: PartialUserGroup) {
+  constructor(u?: PartialUserGroup) {
     this.apply(u)
   }
 
-  apply (u?: PartialUserGroup): void {
+  apply(u?: PartialUserGroup): void {
     Apply(this, u, CortezaID, 'userGroupID')
     Apply(this, u, String, 'handle')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
@@ -90,18 +90,18 @@ export class UserGroup {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.userGroupID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'system:user-group'
   }
 
-  get fts (): string {
+  get fts(): string {
     return [
       this.meta.short,
       this.handle,
@@ -109,11 +109,11 @@ export class UserGroup {
     ].join(' ').toLocaleLowerCase()
   }
 
-  clone (): UserGroup {
+  clone(): UserGroup {
     return new UserGroup(JSON.parse(JSON.stringify(this)))
   }
 
-  properties (): string[] {
+  properties(): string[] {
     return [
       'userGroupID',
       'handle',

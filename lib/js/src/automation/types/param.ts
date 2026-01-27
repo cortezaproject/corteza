@@ -1,9 +1,9 @@
 import { Apply } from '../../cast'
 
 export interface ParamMeta {
-  label: string;
-  description: string;
-  visual: { [_: string]: any };
+  label: string
+  description: string
+  visual: { [_: string]: any }
 }
 
 export class Param {
