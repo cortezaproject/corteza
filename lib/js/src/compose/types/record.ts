@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+ 
 import { AreObjectsOf, IsOf } from '../../guards'
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { Module } from './module'
@@ -48,11 +48,11 @@ type RecordCtorCombo = Record | Module | PartialRecord | ValueCombo
 /**
  * For something to be useful module (for a Record), it needs to contain fields
  */
-function isModule (m?: unknown): m is Module {
+function isModule(m?: unknown): m is Module {
   return !!m && IsOf<Module>(m, 'fields') && Array.isArray(m.fields) && m.fields.length > 0
 }
 
-function isRawValue (v: unknown): v is RawValue {
+function isRawValue(v: unknown): v is RawValue {
   return IsOf<RawValue>(v, 'name')
 }
 
@@ -63,38 +63,38 @@ function isRawValue (v: unknown): v is RawValue {
  * different use-cases.
  */
 export class Record {
-  public recordID = NoID;
-  public moduleID = NoID;
-  public namespaceID = NoID;
-  public revision = 0;
+  public recordID = NoID
+  public moduleID = NoID
+  public namespaceID = NoID
+  public revision = 0
 
   public values: Values = {}
   public valueErrors: object = {}
-  public meta: object = {};
+  public meta: object = {}
 
-  public createdAt?: Date = undefined;
-  public updatedAt?: Date = undefined;
-  public deletedAt?: Date = undefined;
+  public createdAt?: Date = undefined
+  public updatedAt?: Date = undefined
+  public deletedAt?: Date = undefined
 
-  public ownedBy = undefined;
-  public createdBy = undefined;
-  public updatedBy = undefined;
-  public deletedBy = undefined;
+  public ownedBy = undefined
+  public createdBy = undefined
+  public updatedBy = undefined
+  public deletedBy = undefined
 
-  public canUpdateRecord = false;
-  public canReadRecord = false;
-  public canDeleteRecord = false;
-  public canUndeleteRecord = false;
-  public canManageOwnerOnRecord = false;
-  public canSearchRevision = false;
-  public canGrant = false;
+  public canUpdateRecord = false
+  public canReadRecord = false
+  public canDeleteRecord = false
+  public canUndeleteRecord = false
+  public canManageOwnerOnRecord = false
+  public canSearchRevision = false
+  public canGrant = false
 
   // @ts-ignore
   private [fieldIndex]: Map<string, FieldIndex>
   private [propModule]?: Module
   private [cleanValues]: Values = {}
 
-  constructor (recModVal1: RecordCtorCombo, recModVal2?: RecordCtorCombo) {
+  constructor(recModVal1: RecordCtorCombo, recModVal2?: RecordCtorCombo) {
     if (recModVal1 instanceof Record) {
       this.module = recModVal1.module
       this.apply(recModVal1)
@@ -116,7 +116,7 @@ export class Record {
     throw new Error('invalid module used to initialize a record')
   }
 
-  clone (): Record {
+  clone(): Record {
     return new Record(this.module, JSON.parse(JSON.stringify(this)))
   }
 
@@ -125,7 +125,7 @@ export class Record {
    *
    * @param p
    */
-  apply (p?: unknown): void {
+  apply(p?: unknown): void {
     if (p === undefined) {
       // This is a brand new record; set default values
       this.defaultValues()
@@ -205,11 +205,11 @@ export class Record {
     }
   }
 
-  public get cleanValues (): Values {
+  public get cleanValues(): Values {
     return this[cleanValues]
   }
 
-  public get module (): Module {
+  public get module(): Module {
     if (this[propModule] === undefined) {
       throw new Error('module not set')
     }
@@ -217,7 +217,7 @@ export class Record {
     return this[propModule] as Module
   }
 
-  public set module (m: Module) {
+  public set module(m: Module) {
     if (this[propModule]) {
       if ((this[propModule] as Module).moduleID !== m.moduleID) {
         throw new Error('module for this record already set')
@@ -260,14 +260,14 @@ export class Record {
     this.initValues()
   }
 
-  public get namespace (): Namespace {
+  public get namespace(): Namespace {
     return this.module.namespace
   }
 
   /**
    * Converts internal representation of values into array of RawValue objects
    */
-  serializeValues (): RawValue[] {
+  serializeValues(): RawValue[] {
     const vv: RawValue[] = []
 
     this[fieldIndex].forEach(({ isMulti }, name) => {
@@ -296,7 +296,7 @@ export class Record {
   /**
    * Removes existing, resets default values and updates it with new ones
    */
-  public setValues (...i: ValueCombo[]): void {
+  public setValues(...i: ValueCombo[]): void {
     this.initValues()
     this.defaultValues()
     this.updateValues(...i)
@@ -305,7 +305,7 @@ export class Record {
   /**
    * Removes existing and resets default values
    */
-  protected initValues (): void {
+  protected initValues(): void {
     const dst: Values = {}
 
     this[fieldIndex].forEach(({ isMulti }, name) => {
@@ -324,7 +324,7 @@ export class Record {
     this.values = dst
   }
 
-  protected defaultValues (): void {
+  protected defaultValues(): void {
     this[fieldIndex].forEach(({ isMulti, defaultValue }, name) => {
       if (defaultValue && Array.isArray(defaultValue) && defaultValue.length > 0) {
         if (isMulti) {
@@ -346,7 +346,7 @@ export class Record {
    * 2. One or more Value object:
    *    updateValues({ foo: ..., bar: ... }, ...)
    */
-  protected updateValues (...combo: ValueCombo[]): void {
+  protected updateValues(...combo: ValueCombo[]): void {
     // If all values are formatted as raw value
     if (combo.length === 1 && AreObjectsOf<RawValue>(combo[0], 'name')) {
       (combo[0] as Array<RawValue>).forEach(({ name, value }) => this.setValue(name, value))
@@ -376,7 +376,7 @@ export class Record {
    * @param name
    * @param value
    */
-  public setValue (name: string, value: undefined|string|string[], index = -1): void {
+  public setValue(name: string, value: undefined|string|string[], index = -1): void {
     // Skip reserved names
     if (reservedFieldNames.includes(name)) {
       return
@@ -422,7 +422,7 @@ export class Record {
     this.values[name] = value
   }
 
-  public serialize (): Partial<Record> {
+  public serialize(): Partial<Record> {
     const { toJSON, ...values } = this.values
     return { ...this, values }
   }
@@ -430,25 +430,25 @@ export class Record {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.recordID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'compose:record'
   }
 
   /**
    * Proxy to Record's meta to maintain BC
    */
-  get labels (): object {
+  get labels(): object {
     return this.meta
   }
 
-  get properties (): string[] {
+  get properties(): string[] {
     return [
       'recordID',
       'moduleID',

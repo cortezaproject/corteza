@@ -56,12 +56,12 @@ export class ModuleFieldNumber extends ModuleField {
 
   options: NumberOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldNumber>) {
+  constructor(i?: Partial<ModuleFieldNumber>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<NumberOptions>): void {
+  applyOptions(o?: Partial<NumberOptions>): void {
     if (!o) return
     super.applyOptions(o)
 
@@ -74,7 +74,7 @@ export class ModuleFieldNumber extends ModuleField {
     }
   }
 
-  formatValue (value: string, format: string): string {
+  formatValue(value: string, format: string): string {
     const o = this.options
     let n: number
 

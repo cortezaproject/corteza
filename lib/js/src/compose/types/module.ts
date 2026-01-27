@@ -1,123 +1,128 @@
-import lodash from 'lodash'
+import lodash from 'lodash-es'
 const { merge } = lodash
 
-import { ModuleField, ModuleFieldMaker } from './module-field'
-import { CortezaID, NoID, ISO8601Date, Apply } from '../../cast'
+import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { AreObjects, AreStrings, IsOf } from '../../guards'
+import { ModuleField, ModuleFieldMaker } from './module-field'
 import { Namespace } from './namespace'
 
 const propNamespace = Symbol('namespace')
 
 interface MetaAdmin {
-  fields: string[];
+  fields: string[]
 }
 
 interface MetaUi {
-  admin: MetaAdmin;
+  admin: MetaAdmin
 }
 
 interface Meta {
-  ui: MetaUi;
+  ui: MetaUi
 }
 
 type systemFieldEncoding = null | { omit: true } | { ident: string }
 
 interface Config {
   dal: {
-    connectionID: string;
+    connectionID: string
     // operations
     // constraints
-    ident: string;
+    ident: string
     systemFieldEncoding: {
-      id: systemFieldEncoding;
-      revision: systemFieldEncoding;
-      moduleID: systemFieldEncoding;
-      namespaceID: systemFieldEncoding;
-      ownedBy: systemFieldEncoding;
-      createdBy: systemFieldEncoding;
-      createdAt: systemFieldEncoding;
-      updatedBy: systemFieldEncoding;
-      updatedAt: systemFieldEncoding;
-      deletedBy: systemFieldEncoding;
-      deletedAt: systemFieldEncoding;
-    };
-  };
+      id: systemFieldEncoding
+      revision: systemFieldEncoding
+      moduleID: systemFieldEncoding
+      namespaceID: systemFieldEncoding
+      ownedBy: systemFieldEncoding
+      createdBy: systemFieldEncoding
+      createdAt: systemFieldEncoding
+      updatedBy: systemFieldEncoding
+      updatedAt: systemFieldEncoding
+      deletedBy: systemFieldEncoding
+      deletedAt: systemFieldEncoding
+    }
+  }
 
   privacy: {
-    sensitivityLevelID: string;
-    usageDisclosure: string;
-  };
+    sensitivityLevelID: string
+    usageDisclosure: string
+  }
 
   discovery: {
-    public: ConfigDiscoveryAccess;
-    private: ConfigDiscoveryAccess;
-    protected: ConfigDiscoveryAccess;
-  };
+    public: ConfigDiscoveryAccess
+    private: ConfigDiscoveryAccess
+    protected: ConfigDiscoveryAccess
+  }
 
   recordRevisions: {
-    enabled: boolean;
-    ident: string;
-  };
+    enabled: boolean
+    ident: string
+  }
 
   recordDeDup: {
-    rules: RecordDeDupRule[];
-  };
+    rules: RecordDeDupRule[]
+  }
 }
 
 interface ConfigDiscoveryAccess {
   result: {
-    lang: string;
-    fields: string[];
+    lang: string
+    fields: string[]
   }[]
 }
 
 interface Constraint {
-    attribute: string;
-    modifier: string;
-    multiValue: string;
-    type: string;
+  attribute: string
+  modifier: string
+  multiValue: string
+  type: string
 }
 
 interface RecordDeDupRule {
-  name?: string;
-  strict: boolean;
-  constraints: Constraint[];
+  name?: string
+  strict: boolean
+  constraints: Constraint[]
 }
 
 /**
  * System fields that are present in every record.
  */
-export const systemFields = Object.freeze([
-  { isSystem: true, name: 'recordID', label: 'Record ID', kind: 'String' },
-  { isSystem: true, name: 'ownedBy', label: 'Owned by', kind: 'User' },
-  { isSystem: true, name: 'createdBy', label: 'Created by', kind: 'User' },
-  { isSystem: true, name: 'createdAt', label: 'Created at', kind: 'DateTime' },
-  { isSystem: true, name: 'updatedBy', label: 'Updated by', kind: 'User' },
-  { isSystem: true, name: 'updatedAt', label: 'Updated at', kind: 'DateTime' },
-  { isSystem: true, name: 'revision', label: 'Revision', kind: 'Number' },
-  { isSystem: true, name: 'deletedBy', label: 'Deleted by', kind: 'User' },
-  { isSystem: true, name: 'deletedAt', label: 'Deleted at', kind: 'DateTime' },
-].map(f => ModuleFieldMaker(f)))
+export const systemFields = Object.freeze(
+  [
+    { isSystem: true, name: 'recordID', label: 'Record ID', kind: 'String' },
+    { isSystem: true, name: 'ownedBy', label: 'Owned by', kind: 'User' },
+    { isSystem: true, name: 'createdBy', label: 'Created by', kind: 'User' },
+    { isSystem: true, name: 'createdAt', label: 'Created at', kind: 'DateTime' },
+    { isSystem: true, name: 'updatedBy', label: 'Updated by', kind: 'User' },
+    { isSystem: true, name: 'updatedAt', label: 'Updated at', kind: 'DateTime' },
+    { isSystem: true, name: 'revision', label: 'Revision', kind: 'Number' },
+    { isSystem: true, name: 'deletedBy', label: 'Deleted by', kind: 'User' },
+    { isSystem: true, name: 'deletedAt', label: 'Deleted at', kind: 'DateTime' },
+  ].map(f => ModuleFieldMaker(f)),
+)
 
-interface PartialModule extends Partial<Omit<Module, 'fields' | 'meta' | 'labels' | 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-  fields?: Array<Partial<ModuleField>> | Array<ModuleField>;
-  meta?: Partial<Meta>;
-  config?: Partial<Config>;
-  issues?: Array<string>;
-  labels?: Partial<object>;
+interface PartialModule
+  extends Partial<
+    Omit<Module, 'fields' | 'meta' | 'labels' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+  > {
+  fields?: Array<Partial<ModuleField>> | Array<ModuleField>
+  meta?: Partial<Meta>
+  config?: Partial<Config>
+  issues?: Array<string>
+  labels?: Partial<object>
 
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class Module {
-  public moduleID = NoID;
-  public namespaceID = NoID;
-  public name = '';
-  public handle = '';
-  public fields: Array<ModuleField> = [];
-  public issues: Array<string> = [];
+  public moduleID = NoID
+  public namespaceID = NoID
+  public name = ''
+  public handle = ''
+  public fields: Array<ModuleField> = []
+  public issues: Array<string> = []
 
   public config: Partial<Config> = {
     dal: {
@@ -186,23 +191,23 @@ export class Module {
         fields: [],
       },
     },
-  };
+  }
 
-  public labels: object = {};
+  public labels: object = {}
 
-  public createdAt?: Date = undefined;
-  public updatedAt?: Date = undefined;
-  public deletedAt?: Date = undefined;
+  public createdAt?: Date = undefined
+  public updatedAt?: Date = undefined
+  public deletedAt?: Date = undefined
 
-  public canUpdateModule = false;
-  public canDeleteModule = false;
-  public canCreateRecord = false;
-  public canCreateOwnedRecord = false;
-  public canGrant = false;
+  public canUpdateModule = false
+  public canDeleteModule = false
+  public canCreateRecord = false
+  public canCreateOwnedRecord = false
+  public canGrant = false
 
   private [propNamespace]?: Namespace
 
-  constructor (i?: PartialModule, ns?: Namespace) {
+  constructor(i?: PartialModule, ns?: Namespace) {
     if (ns) {
       this.namespace = ns
     }
@@ -210,11 +215,11 @@ export class Module {
     this.apply(i)
   }
 
-  clone (): Module {
+  clone(): Module {
     return new Module(JSON.parse(JSON.stringify(this)), this.namespace)
   }
 
-  apply (m?: PartialModule): void {
+  apply(m?: PartialModule): void {
     if (!m) return
 
     if (this.namespace && m.namespaceID && m.namespaceID !== this.namespace.namespaceID) {
@@ -237,7 +242,9 @@ export class Module {
       if (m.meta.ui && m.meta.ui.admin && m.meta.ui.admin.fields) {
         if (!AreStrings(m.meta.ui.admin.fields)) {
           const fields = m.meta.ui.admin.fields || []
-          m.meta.ui.admin.fields = fields.map((f: any) => f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name).filter((f: any) => !!f)
+          m.meta.ui.admin.fields = fields
+            .map((f: any) => (f.fieldID && f.fieldID !== NoID ? f.fieldID : f.name))
+            .filter((f: any) => !!f)
         }
       }
 
@@ -257,7 +264,10 @@ export class Module {
     }
 
     Apply(this, m, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, m, Boolean,
+    Apply(
+      this,
+      m,
+      Boolean,
       'canUpdateModule',
       'canDeleteModule',
       'canCreateRecord',
@@ -269,22 +279,22 @@ export class Module {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.moduleID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'compose:module'
   }
 
-  public get namespace (): Namespace {
+  public get namespace(): Namespace {
     return this[propNamespace] as Namespace
   }
 
-  public set namespace (ns: Namespace) {
+  public set namespace(ns: Namespace) {
     if (this[propNamespace]) {
       if ((this[propNamespace] as Namespace).namespaceID !== ns.namespaceID) {
         throw new Error('namespace for this module already set')
@@ -306,7 +316,7 @@ export class Module {
   /**
    * Returns fields from module, filtered and order as requested
    */
-  filterFields (requested?: string[] | Array<ModuleField>): Array<ModuleField> {
+  filterFields(requested?: string[] | Array<ModuleField>): Array<ModuleField> {
     if (!requested || requested.length === 0) {
       return []
     }
@@ -333,24 +343,24 @@ export class Module {
     return out
   }
 
-  public findField (name: string): ModuleField|undefined {
+  public findField(name: string): ModuleField | undefined {
     const r = this.filterFields([name])
     return r && r.length > 0 ? r[0] : undefined
   }
 
-  fieldNames (): readonly string[] {
+  fieldNames(): readonly string[] {
     return this.fields.map(f => f.name)
   }
 
-  systemFields (): readonly ModuleField[] {
+  systemFields(): readonly ModuleField[] {
     return systemFields
   }
 
-  export (): Module {
+  export(): Module {
     return this
   }
 
-  import (): Module {
+  import(): Module {
     return this
   }
 }

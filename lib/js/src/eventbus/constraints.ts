@@ -1,4 +1,4 @@
-import { minimatch } from 'minimatch'
+import { Minimatch } from 'minimatch'
 import { IsOf } from '../guards'
 
 interface Constraint {
@@ -21,21 +21,21 @@ export class Equal {
   readonly values: string[]
   protected not: boolean
 
-  constructor (name: string|undefined, vv: string[], not = false) {
+  constructor(name: string|undefined, vv: string[], not = false) {
     this.name = name
     this.values = vv
     this.not = not
   }
 
-  Name (): string|undefined {
+  Name(): string|undefined {
     return this.name
   }
 
-  Values (): string[] {
+  Values(): string[] {
     return this.values
   }
 
-  Match (value: string): boolean {
+  Match(value: string): boolean {
     for (const v of this.values) {
       if (value === v) {
         return !this.not
@@ -52,7 +52,7 @@ export class Equal {
  * See: https://github.com/isaacs/minimatch
  */
 export class Like extends Equal {
-  constructor (name: string|undefined, vv: string[], not = false) {
+  constructor(name: string|undefined, vv: string[], not = false) {
     super(
       name,
       vv.map(v => v.replace('%', '*').replace('_', '?')),
@@ -60,9 +60,10 @@ export class Like extends Equal {
     )
   }
 
-  Match (value: string): boolean {
+  Match(value: string): boolean {
     for (const v of this.values) {
-      if (minimatch(value, v)) {
+      const matcher = new Minimatch(v)
+      if (matcher.match(value)) {
         return !this.not
       }
     }
@@ -76,12 +77,12 @@ export class Like extends Equal {
  */
 export class Match extends Equal {
   protected re: RegExp[]
-  constructor (name: string|undefined, vv: string[], not = false) {
+  constructor(name: string|undefined, vv: string[], not = false) {
     super(name, vv, not)
     this.re = vv.map(v => new RegExp(v))
   }
 
-  Match (value: string): boolean {
+  Match(value: string): boolean {
     for (const re of this.re) {
       if (re.test(value)) {
         return !this.not
@@ -92,7 +93,7 @@ export class Match extends Equal {
   }
 }
 
-export function ConstraintMaker (c: Constraint|unknown): ConstraintMatcher {
+export function ConstraintMaker(c: Constraint|unknown): ConstraintMatcher {
   if (!IsOf<Constraint>(c, 'value')) {
     throw new Error('invalid constraint input')
   }

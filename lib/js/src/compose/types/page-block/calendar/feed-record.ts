@@ -22,7 +22,7 @@ interface Range {
   start: Date;
 }
 
-function getRecordValue (record: Readonly<Record>, field: string): (string|undefined)[] {
+function getRecordValue(record: Readonly<Record>, field: string): (string|undefined)[] {
   const ef = record.module.fields.find(({ name }) => name === field)
   if (ef) {
     return ef.isMulti ? record.values[field] as string[] : [(record.values[field] as string) || undefined]
@@ -52,7 +52,7 @@ function getRecordValue (record: Readonly<Record>, field: string): (string|undef
  * @param {Feed} feed Feed, this record belongs to
  * @returns {Array} A set of expanded events
  */
-function expandRecord (record: Readonly<Record>, feed: Feed): Event[] {
+function expandRecord(record: Readonly<Record>, feed: Feed): Event[] {
   const events: Event[] = []
 
   const starts = getRecordValue(record, feed.startField)
@@ -96,7 +96,7 @@ function expandRecord (record: Readonly<Record>, feed: Feed): Event[] {
  * @param r The record to check
  * @param field The field we wish to use
  */
-function recordFeedFilter (r: Readonly<Record>, field: string): boolean {
+function recordFeedFilter(r: Readonly<Record>, field: string): boolean {
   if (r.values[field]) {
     return true
   }
@@ -113,7 +113,7 @@ function recordFeedFilter (r: Readonly<Record>, field: string): boolean {
  * @param {Object} range Current date range
  * @returns {Promise<Array>} Resolves to a set of FC events to display
  */
-export async function RecordFeed ($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, range: Range, options = {}): Promise<Event[]> {
+export async function RecordFeed($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, range: Range, options = {}): Promise<Event[]> {
   // Params for record fetching
   const params = {
     namespaceID: namespace.namespaceID,
@@ -141,7 +141,7 @@ export async function RecordFeed ($ComposeAPI: ComposeAPI, module: Module, names
 
       // drop record w/o proper values
       .filter(r => recordFeedFilter(r, feed.startField))
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+       
       .forEach(r => events.push(...expandRecord(r, feed)))
     return events
   })

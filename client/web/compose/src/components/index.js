@@ -1,64 +1,38 @@
-import Vue from 'vue'
-import { FontAwesomeIcon, FontAwesomeLayers } from '@fortawesome/vue-fontawesome'
-import PortalVue from 'portal-vue'
-import './faIcons'
-import { components } from '@cortezaproject/corteza-vue'
+import '@/assets/styles.css'
+import { ToastPlugin } from '@cortezaproject/corteza-vue-next'
 
-// import ECharts modules manually to reduce bundle size
-import ECharts from 'vue-echarts'
-import { use } from 'echarts/core'
-import {
-  CanvasRenderer,
-} from 'echarts/renderers'
-import {
-  LineChart,
-  BarChart,
-  PieChart,
-  GaugeChart,
-  RadarChart,
-  FunnelChart,
-  ScatterChart,
-} from 'echarts/charts'
-import {
-  TitleComponent,
-  GridComponent,
-  LegendComponent,
-  TooltipComponent,
-  VisualMapComponent,
-  ToolboxComponent,
-  DataZoomComponent,
-} from 'echarts/components'
+import 'primeicons/primeicons.css'
+import PrimeVue from 'primevue/config'
+import Ripple from 'primevue/ripple'
 
-use([
-  BarChart,
-  LineChart,
-  PieChart,
-  GaugeChart,
-  RadarChart,
-  FunnelChart,
-  ScatterChart,
-  CanvasRenderer,
-  TitleComponent,
-  GridComponent,
-  TooltipComponent,
-  LegendComponent,
-  VisualMapComponent,
-  ToolboxComponent,
-  DataZoomComponent,
-])
+import ConfirmationService from 'primevue/confirmationservice'
+import DialogService from 'primevue/dialogservice'
+import ToastService from 'primevue/toastservice'
 
-Vue.component('e-charts', ECharts)
+import { getTheme } from '@cortezaproject/corteza-vue-next'
 
-Vue.use(PortalVue)
-Vue.component('font-awesome-icon', FontAwesomeIcon)
-Vue.component('font-awesome-layers', FontAwesomeLayers)
-Vue.component('c-permissions-button', components.CPermissionsButton)
-Vue.component('c-input-confirm', components.CInputConfirm)
-Vue.component('c-input-processing', components.CInputProcessing)
-Vue.component('c-resource-list', components.CResourceList)
-Vue.component('c-input-checkbox', components.CInputCheckbox)
-Vue.component('c-button-submit', components.CButtonSubmit)
-Vue.component('c-hint', components.CHint)
-Vue.component('c-input-select', components.CInputSelect)
-Vue.component('c-form-table-wrapper', components.CFormTableWrapper)
-Vue.component('c-webcam', components.CWebcam)
+export const UIPlugin = {
+  install(app, options = {}) {
+    app.use(PrimeVue, {
+      theme: {
+        preset: getTheme(options.theme),
+        options: {
+          darkModeSelector: '.dark',
+          cssLayer: {
+            name: 'primevue',
+            order: 'tailwind-base, primevue, tailwind-utilities',
+          },
+        },
+      },
+      ripple: true,
+    })
+
+    app.directive('ripple', Ripple)
+
+    app.use(ConfirmationService)
+    app.use(ToastService)
+    app.use(DialogService)
+
+    app.use(ToastPlugin)
+  },
+}

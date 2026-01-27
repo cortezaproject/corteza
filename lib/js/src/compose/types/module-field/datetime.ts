@@ -34,12 +34,12 @@ export class ModuleFieldDateTime extends ModuleField {
 
   options: DateTimeOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldDateTime>) {
+  constructor(i?: Partial<ModuleFieldDateTime>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<DateTimeOptions>): void {
+  applyOptions(o?: Partial<DateTimeOptions>): void {
     if (!o) return
     super.applyOptions(o)
 
@@ -47,7 +47,7 @@ export class ModuleFieldDateTime extends ModuleField {
     Apply(this.options, o, Boolean, 'onlyDate', 'onlyTime', 'onlyPastValues', 'onlyFutureValues', 'outputRelative')
   }
 
-  formatValue (value: string|Moment|Date): string|null {
+  formatValue(value: string|Moment|Date): string|null {
     if (value === 'Invalid date') {
       return null
     }
@@ -74,7 +74,7 @@ export class ModuleFieldDateTime extends ModuleField {
    * @param {Moment} now Time reference
    * @returns {undefined|String} undefined if valid, Error string if invalid
    */
-  checkFuture (v: string|string[], now = moment()): undefined|string {
+  checkFuture(v: string|string[], now = moment()): undefined|string {
     if (!this.options.onlyFutureValues) {
       return undefined
     }
@@ -94,7 +94,7 @@ export class ModuleFieldDateTime extends ModuleField {
    * @param {Moment} now Time reference
    * @returns {undefined|String} undefined if valid, Error string if invalid
    */
-  checkPast (v: string|string[], now = moment()): undefined|string {
+  checkPast(v: string|string[], now = moment()): undefined|string {
     if (!this.options.onlyPastValues) {
       return undefined
     }
@@ -113,7 +113,7 @@ export class ModuleFieldDateTime extends ModuleField {
    * @param {Moment} now Reference time used to compare
    * @returns {Array<>} Array of issues; empty if none
    */
-  validate (v: string|string[], now = moment()): string[] {
+  validate(v: string|string[], now = moment()): string[] {
     let err = this.checkFuture(v, now)
     err = err || this.checkPast(v, now)
 

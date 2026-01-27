@@ -1,43 +1,19 @@
 <template>
-  <b-container
-    fluid
-    class="d-flex justify-content-center vh-100 logo"
-  >
-    <img
-      v-if="logo"
-      :src="logo"
-      class="w-25 my-auto"
-    >
-  </b-container>
+  <div v-if="show" class="fixed body-bg inset-0 flex items-center justify-center z-[9999]">
+    <img v-if="logoUrl" :src="logoUrl" class="max-h-lg max-w-xl w-auto animate-pulse" />
+  </div>
 </template>
 
-<script>
-export default {
-  props: {
-    logo: {
-      type: String,
-      default: () => '',
-    },
+<script setup>
+defineProps({
+  show: {
+    type: Boolean,
+    default: true,
   },
-}
+
+  logoUrl: {
+    type: String,
+    default: '',
+  },
+})
 </script>
-
-<style lang="scss" scoped>
-.logo {
-  img {
-    animation: pulse 4.2s infinite;
-  }
-
-  @keyframes pulse {
-    0% {
-      opacity: 0;
-    }
-    65% {
-      opacity: 1;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-}
-</style>

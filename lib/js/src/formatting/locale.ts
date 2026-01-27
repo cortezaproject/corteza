@@ -4,6 +4,6 @@
  * This temporary solution returns an empty array;
  * this will cause Intl functions to format strings and numbers in the current (by-browser) language
  */
-export function currentLanguage (): string|string[] {
+export function currentLanguage(): string|string[] {
   return navigator.language || navigator.languages?.[0] || 'en-US'
 }

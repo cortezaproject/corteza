@@ -48,7 +48,7 @@ export interface Step {
   link?: StepLink;
 }
 
-export function StepFactory (step: Partial<Step>): Step {
+export function StepFactory(step: Partial<Step>): Step {
   const k = Object.keys(step)[0]
   switch (k) {
     case 'load':

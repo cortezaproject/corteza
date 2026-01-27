@@ -10,3 +10,8 @@ window.CortezaAPI = 'https://api.cortezaproject.your-domain.tld';
 // Configure CortezaWebapp when your web applications are not placed on the root.
 // This is autoconfigured from the value of <base> tag href attribute in most cases.
 // window.CortezaWebapp = 'https://cortezaproject.your-domain.tld';
+
+// Set to true to enable i18next-pseudo
+// Used to test translation string in a development environment
+// Even if set to true, it will be disabled in production
+window.i18nPseudoModeEnabled = false 

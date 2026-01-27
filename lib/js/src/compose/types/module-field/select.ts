@@ -37,12 +37,12 @@ export class ModuleFieldSelect extends ModuleField {
 
   options: SelectOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldSelect>) {
+  constructor(i?: Partial<ModuleFieldSelect>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<SelectOptions>): void {
+  applyOptions(o?: Partial<SelectOptions>): void {
     if (!o) return
     super.applyOptions(o)
 
@@ -62,7 +62,7 @@ export class ModuleFieldSelect extends ModuleField {
     }
   }
 
-  createSelectOption ({ value = '', text = '', style = {} }: Partial<SelectOption> = {}): SelectOption {
+  createSelectOption({ value = '', text = '', style = {} }: Partial<SelectOption> = {}): SelectOption {
     const { textColor = '', backgroundColor = '' } = style || {}
     return {
       value,

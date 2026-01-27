@@ -27,7 +27,7 @@ interface SortableScript {
   weight: number;
 }
 
-export function scriptSorter (a: SortableScript, b: SortableScript): number {
+export function scriptSorter(a: SortableScript, b: SortableScript): number {
   return a.weight - b.weight
 }
 
@@ -46,7 +46,7 @@ export interface Event {
 
 interface ResourceTypeGetter { resourceType: string }
 
-export function GenericEventMaker<T extends ResourceTypeGetter> (t: T, eventType: string, match: EventMatcher, args: EventArgs): Event {
+export function GenericEventMaker<T extends ResourceTypeGetter>(t: T, eventType: string, match: EventMatcher, args: EventArgs): Event {
   return {
     resourceType: t.resourceType,
     eventType,

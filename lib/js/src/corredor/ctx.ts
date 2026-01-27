@@ -45,18 +45,18 @@ interface CtxInitArgs {
  *  - $authUser is the only one prefixed with the dollar sign for historical reasons
  */
 export class Ctx {
-  protected args: BaseArgs;
-  protected config?: Config;
+  protected args: BaseArgs
+  protected config?: Config
 
-  protected logger: Logger;
+  protected logger: Logger
 
   protected systemAPI?:
-    apiClients.System;
+    apiClients.System
 
   protected composeAPI?:
-    apiClients.Compose;
+    apiClients.Compose
 
-  constructor (args: BaseArgs, logger: Logger, a?: CtxInitArgs) {
+  constructor(args: BaseArgs, logger: Logger, a?: CtxInitArgs) {
     this.args = args
     this.logger = logger
 
@@ -68,14 +68,14 @@ export class Ctx {
   /**
    * Alias for log, to make developer's life easier <3
    */
-  get console (): Logger {
+  get console(): Logger {
     return this.logger
   }
 
   /**
    * Alias for log, to make developer's life easier <3
    */
-  get log (): Logger {
+  get log(): Logger {
     return this.logger
   }
 
@@ -87,7 +87,7 @@ export class Ctx {
    *
    * @returns {Promise<User>}
    */
-  get $authUser (): Promise<User> {
+  get $authUser(): Promise<User> {
     const [, payload] = this.args.authToken.split('.')
     const buf = new Buffer(payload, 'base64')
     const { sub: userID } = JSON.parse(buf.toString('ascii'))
@@ -98,7 +98,7 @@ export class Ctx {
   /**
    * Configures and returns system API client
    */
-  get SystemAPI (): apiClients.System {
+  get SystemAPI(): apiClients.System {
     if (!this.systemAPI) {
       if (!this.config?.cServers?.system) {
         throw new Error('configuration for corteza system server missing')
@@ -116,7 +116,7 @@ export class Ctx {
   /**
    * Configures and returns compose API client
    */
-  get ComposeAPI (): apiClients.Compose {
+  get ComposeAPI(): apiClients.Compose {
     if (!this.composeAPI) {
       if (!this.config?.cServers?.compose) {
         throw new Error('configuration for corteza compose server missing')
@@ -134,21 +134,21 @@ export class Ctx {
   /**
    * Configures and returns system helper
    */
-  get System (): SystemHelper {
+  get System(): SystemHelper {
     return new SystemHelper({ SystemAPI: this.SystemAPI, ...this.args })
   }
 
   /**
    * Configures and returns compose helper
    */
-  get Compose (): ComposeHelper {
+  get Compose(): ComposeHelper {
     return new ComposeHelper({ ComposeAPI: this.ComposeAPI, ...this.args })
   }
 
   /**
    *
    */
-  get frontendBaseURL (): string|undefined {
+  get frontendBaseURL(): string|undefined {
     return this.config?.frontend?.baseURL
   }
 }

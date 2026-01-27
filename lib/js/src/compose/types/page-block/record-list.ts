@@ -1,7 +1,7 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
-import { Apply, CortezaID, NoID } from '../../../cast'
 import { Compose as ComposeAPI } from '../../../api-clients'
+import { Apply, CortezaID, NoID } from '../../../cast'
 import { Module } from '../module'
+import { PageBlock, PageBlockInput, Registry } from './base'
 import { Button } from './types'
 
 const kind = 'RecordList'
@@ -175,12 +175,12 @@ export class PageBlockRecordList extends PageBlock {
 
   options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, CortezaID, 'moduleID')
@@ -274,7 +274,7 @@ export class PageBlockRecordList extends PageBlock {
     }
   }
 
-  async fetch (api: ComposeAPI, recordListModule: Module, filter: {[_: string]: unknown}): Promise<object> {
+  async fetch(api: ComposeAPI, recordListModule: Module, filter: {[_: string]: unknown}): Promise<object> {
     if (recordListModule.moduleID !== this.options.moduleID) {
       throw Error('Module incompatible, module mismatch')
     }

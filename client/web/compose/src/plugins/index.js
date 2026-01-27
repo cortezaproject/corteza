@@ -1,47 +1,58 @@
-import Vue from 'vue'
-import BootstrapVue from 'bootstrap-vue'
-import Router from 'vue-router'
-import VueNativeSock from 'vue-native-websocket'
+import {
+  AuthPlugin,
+  AutomationAPIPlugin,
+  ComposeAPIPlugin,
+  I18nPlugin,
+  SettingsPlugin,
+  SystemAPIPlugin,
+  setThemes,
+} from '@cortezaproject/corteza-vue-next'
+import { createPinia } from 'pinia'
+import { UIPlugin } from '../components'
+import router from '../router'
 
-import { plugins, websocket } from '@cortezaproject/corteza-vue'
+export function setupAndAuthenticate(app) {
+  app.use(AuthPlugin, { app: import.meta.env.VITE_APP_ID, rootApp: true })
 
-import pairs from './eventbus-pairs'
+  const $Auth = app.config.globalProperties.$Auth
 
-const notProduction = (process.env.NODE_ENV !== 'production')
-const verboseUIHooks = window.location.search.includes('verboseUIHooks')
-const verboseEventbus = window.location.search.includes('verboseEventbus')
+  return $Auth
+    .handle()
+    .then(async () => {
+      app.use(SystemAPIPlugin)
+      app.use(ComposeAPIPlugin)
+      app.use(AutomationAPIPlugin)
 
-Vue.use(BootstrapVue, {
-  BToast: {
-    // see https://bootstrap-vue.org/docs/components/toast#comp-ref-b-toast-props
-    autoHideDelay: 7000,
-    toaster: 'b-toaster-bottom-right',
-  },
-  BModal: {
-    noEnforceFocus: true,
-  },
-})
-Vue.use(Router)
+      app.use(SettingsPlugin, {
+        api: app.config.globalProperties.$SystemAPI,
+      })
 
-Vue.use(plugins.Auth(), { app: 'compose' })
+      app.use(createPinia())
+      app.use(router)
 
-Vue.use(plugins.CortezaAPI('compose'))
-Vue.use(plugins.CortezaAPI('system'))
-Vue.use(plugins.CortezaAPI('federation'))
-Vue.use(plugins.CortezaAPI('automation'))
+      const locale = $Auth.user.meta.preferredLanguage || 'en'
+      const translations = await app.config.globalProperties.$SystemAPI.localeGet({
+        lang: locale,
+        application: import.meta.env.VITE_APP_NAME,
+      })
 
-Vue.use(plugins.EventBus(), {
-  strict: notProduction,
-  verbose: verboseEventbus,
-  pairs,
-})
+      app.use(I18nPlugin, {
+        locale: locale,
+        translations: translations,
+      })
 
-Vue.use(plugins.UIHooks(), {
-  app: 'compose',
-  verbose: verboseUIHooks,
-})
+      const $Settings = app.config.globalProperties.$Settings
 
-Vue.use(plugins.Settings, { api: Vue.prototype.$SystemAPI })
-Vue.use(plugins.Reminder, { api: Vue.prototype.$SystemAPI })
-
-Vue.use(VueNativeSock, websocket.endpoint(), websocket.config)
+      return $Settings.init().then(() => {
+        setThemes($Settings.get('ui.studio.themes'))
+        app.use(UIPlugin, { theme: $Auth.user.meta.theme })
+      })
+    })
+    .catch(err => {
+      if (err instanceof Error && err.message === 'Unauthenticated') {
+        $Auth.startAuthenticationFlow()
+        return
+      }
+      throw err
+    })
+}

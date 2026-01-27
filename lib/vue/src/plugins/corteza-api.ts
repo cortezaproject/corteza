@@ -1,43 +1,68 @@
-import { apiClients } from '@cortezaproject/corteza-js'
-import { PluginFunction } from 'vue'
+import { apiClients } from '@cortezaproject/corteza-js-next'
+import type { App } from 'vue'
 
 interface Options {
-  baseURL?: string;
-  accessTokenFn?: () => string | undefined;
+  baseURL?: string
+  accessTokenFn?: () => string | undefined
 }
 
-/**
- * Generic Corteza API plugin
- *
- * Install a specific plugin:
- * Vue.use(plugins.CortezaAPI('compose'))
- *
- * @constructor
- */
-export default function (service: string, opt: Options = {}): PluginFunction<Options> {
-  if (!opt.baseURL) {
+const getBaseURL = (service: string, opt: Options = {}) => {
+  if (opt.baseURL) {
+    return opt.baseURL
+  } else {
     // @ts-ignore
     if (!window.CortezaAPI) {
       throw new Error('config.js missing or window.CortezaAPI not set')
     }
 
     // @ts-ignore
-    opt.baseURL = `${window.CortezaAPI}/${service}`
+    return `${window.CortezaAPI}/${service}`
+  }
+}
+
+const getAccessTokenFn = (app: App, opt: Options = {}) => {
+  if (opt.accessTokenFn) {
+    return opt.accessTokenFn
   }
 
-  return function (Vue): void {
-    service = service.substring(0, 1).toUpperCase() + service.substring(1)
+  return app.config.globalProperties.$Auth.accessTokenFn
+}
 
-    if (!opt.accessTokenFn) {
-      /**
-       * Checking if auth plugin was initialized before and
-       * hooking on to it's accessTokenFn
-       */
-      opt.accessTokenFn = Vue.prototype.$auth.accessTokenFn
-    }
-
-    // @ts-ignore
-    // makes Vue.$<service>API (Vue.$SystemAPI, Vue.$ComposeAPI, Vue.$FederationAPI, Vue.$AutomationAPI) available
-    Vue.prototype[`$${service}API`] = new apiClients[service](opt)
+const getOptions = (service: string, app: App, opt: Options = {}) => {
+  return {
+    baseURL: getBaseURL(service, opt),
+    accessTokenFn: getAccessTokenFn(app, opt),
   }
+}
+
+export const SystemAPIPlugin = {
+  install(app: App, opt: Options) {
+    const SystemAPI = new apiClients.System(getOptions('system', app, opt))
+    app.config.globalProperties.$SystemAPI = SystemAPI
+    app.provide('$SystemAPI', SystemAPI)
+  },
+}
+
+export const ComposeAPIPlugin = {
+  install(app: App, opt: Options) {
+    const ComposeAPI = new apiClients.Compose(getOptions('compose', app, opt))
+    app.config.globalProperties.$ComposeAPI = ComposeAPI
+    app.provide('$ComposeAPI', ComposeAPI)
+  },
+}
+
+export const AutomationAPIPlugin = {
+  install(app: App, opt: Options) {
+    const AutomationAPI = new apiClients.Automation(getOptions('automation', app, opt))
+    app.config.globalProperties.$AutomationAPI = AutomationAPI
+    app.provide('$AutomationAPI', AutomationAPI)
+  },
+}
+
+export const FederationAPIPlugin = {
+  install(app: App, opt: Options) {
+    const FederationAPI = new apiClients.Federation(getOptions('federation', app, opt))
+    app.config.globalProperties.$FederationAPI = FederationAPI
+    app.provide('$FederationAPI', FederationAPI)
+  },
 }

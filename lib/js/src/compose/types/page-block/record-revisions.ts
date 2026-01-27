@@ -1,9 +1,8 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
+import { Record } from '../../'
+import { Compose as ComposeAPI } from '../../../api-clients'
 import { Apply } from '../../../cast'
-import { Compose as ComposeAPI, System as SystemAPI } from '../../../api-clients'
-import { Record, Module } from '../../'
-import { User } from '../../../system'
-import { convertRevisionPayloadToRevision, RawRevisionPayload, Revision } from '../revision'
+import { RawRevisionPayload, Revision, convertRevisionPayloadToRevision } from '../revision'
+import { PageBlock, PageBlockInput, Registry } from './base'
 
 const kind = 'RecordRevisions'
 interface Options {
@@ -35,12 +34,12 @@ export class PageBlockRecordRevisions extends PageBlock {
 
   options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, Boolean, 'preload', 'showRefresh')
@@ -64,7 +63,7 @@ export class PageBlockRecordRevisions extends PageBlock {
    * @param record Record to fetch revisions for
    * @param sortDirection Sort direction ('asc' for oldest first, 'desc' for newest first)
    */
-  async fetch (api: ComposeAPI, record: Record, sortDirection?: string): Promise<Array<Revision>> {
+  async fetch(api: ComposeAPI, record: Record, sortDirection?: string): Promise<Array<Revision>> {
     const { namespaceID, moduleID, recordID } = record
 
     // Build sort parameter based on sortDirection

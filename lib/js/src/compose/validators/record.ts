@@ -14,9 +14,9 @@ interface FieldValidatorPayload {
   oldValue: unknown | string | string[];
 }
 
-function genericFieldValidator (field: ModuleField): ValidatorFn<Record> {
+function genericFieldValidator(field: ModuleField): ValidatorFn<Record> {
   // newValue is of type unknown to satisfy ValidatorFn interface
-  return function (this: Record, arg0: unknown): ValidatorResult {
+  return function(this: Record, arg0: unknown): ValidatorResult {
     if (!IsOf<FieldValidatorPayload>(arg0, 'field', 'value', 'oldValue')) {
       throw Error('invalid field validator argument type')
     }
@@ -42,7 +42,7 @@ export class RecordValidator extends Validator<Record> {
    *
    * @param m
    */
-  constructor (m: Module|Record) {
+  constructor(m: Module|Record) {
     super()
 
     this.rfv = {}
@@ -62,7 +62,7 @@ export class RecordValidator extends Validator<Record> {
    * @param name
    * @param vfn
    */
-  public push (...vfn: ValidatorFn<Record>[]): void {
+  public push(...vfn: ValidatorFn<Record>[]): void {
     this.registered.push(...vfn)
   }
 
@@ -72,7 +72,7 @@ export class RecordValidator extends Validator<Record> {
    * @param name
    * @param vfn
    */
-  public pushToField (name: string, ...vfn: ValidatorFn<Record>[]): void {
+  public pushToField(name: string, ...vfn: ValidatorFn<Record>[]): void {
     if (!this.rfv[name]) {
       throw new Error('can not push validators to unknown field')
     }
@@ -83,7 +83,7 @@ export class RecordValidator extends Validator<Record> {
   /**
    * Runs validators on record and all (or whitelisted) fields
    */
-  public run (r: Record, ...fields: string[]): Validated {
+  public run(r: Record, ...fields: string[]): Validated {
     const out = new Validated()
 
     if (fields.length === 0) {

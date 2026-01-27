@@ -1,10 +1,7 @@
-export {
-  ConstraintMaker,
-  ConstraintMatcher,
-} from './constraints'
+export { ConstraintMaker } from './constraints'
 
-export {
-  EventBus,
-  Options,
-  WellKnownPairs,
-} from './eventbus'
+export type { ConstraintMatcher } from './constraints'
+
+export { EventBus } from './eventbus'
+
+export type { Options, WellKnownPairs } from './eventbus'

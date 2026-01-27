@@ -1,0 +1,26 @@
+{
+  "recommendations": [
+    // Essential formatters and linters
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+
+    // Vue.js development
+    "vue.volar",
+    "vue.vscode-typescript-vue-plugin",
+
+    // Tailwind CSS
+    "bradlc.vscode-tailwindcss",
+
+    // JavaScript/TypeScript enhancement
+    "ms-vscode.vscode-typescript-next",
+    "christian-kohler.path-intellisense",
+    "christian-kohler.npm-intellisense",
+
+    // Git and version control
+    "eamodio.gitlens",
+
+    // Utility extensions
+    "ms-vscode.vscode-json",
+    "formulahendry.auto-rename-tag"
+  ]
+}

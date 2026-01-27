@@ -33,12 +33,12 @@ export class ModuleFieldRecord extends ModuleField {
 
   options: RecordOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldRecord>) {
+  constructor(i?: Partial<ModuleFieldRecord>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<RecordOptions>): void {
+  applyOptions(o?: Partial<RecordOptions>): void {
     if (!o) return
     super.applyOptions(o)
 

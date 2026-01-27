@@ -27,12 +27,12 @@ export class ModuleFieldGeometry extends ModuleField {
 
   options: GeometryOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldGeometry>) {
+  constructor(i?: Partial<ModuleFieldGeometry>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<GeometryOptions>): void {
+  applyOptions(o?: Partial<GeometryOptions>): void {
     if (!o) return
     super.applyOptions(o)
 
@@ -48,7 +48,7 @@ export class ModuleFieldGeometry extends ModuleField {
   /**
    * Per module field type capabilities
    */
-  public get cap (): Readonly<Capabilities> {
+  public get cap(): Readonly<Capabilities> {
     return {
       ...super.cap,
       multi: true,

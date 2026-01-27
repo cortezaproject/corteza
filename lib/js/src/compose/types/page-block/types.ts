@@ -11,17 +11,17 @@ export class Button {
   public stepID?: string = undefined
 
   // resource type (copied from ui hook or from trigger)
-  public resourceType?: string = undefined;
+  public resourceType?: string = undefined
 
   // Can override hook's label
-  public label?: string = undefined;
+  public label?: string = undefined
 
   // can override hook's variant
-  public variant?: string = 'primary';
+  public variant?: string = 'primary'
 
-  public enabled = true;
+  public enabled = true
 
-  constructor (b: Partial<Button>) {
+  constructor(b: Partial<Button>) {
     Apply(this, b, Boolean, 'enabled')
     Apply(this, b, String, 'label', 'variant', 'script', 'resourceType')
     Apply(this, b, CortezaID, 'workflowID', 'stepID')

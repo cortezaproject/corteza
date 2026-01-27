@@ -11,7 +11,7 @@ import { Caster } from './shared'
  * All these variables are casted (if passed as an argument) to proper types ($record => Record, $module => Module, ...)
  */
 export class Args {
-  constructor (args: {[_: string]: unknown}, caster: Caster = CortezaTypes) {
+  constructor(args: {[_: string]: unknown}, caster: Caster = CortezaTypes) {
     const cachedArgs: { [_: string]: any } = {}
 
     for (const arg in args) {
@@ -61,7 +61,7 @@ export class Args {
  * already be in the correct type.
  */
 export class ArgsProxy {
-  constructor (args: {[_: string]: unknown}, caster: Caster = CortezaTypes) {
+  constructor(args: {[_: string]: unknown}, caster: Caster = CortezaTypes) {
     for (const arg in args) {
       // For consistency only prefix args with & and raw that have a defined caster
       if (caster && caster.has(arg)) {

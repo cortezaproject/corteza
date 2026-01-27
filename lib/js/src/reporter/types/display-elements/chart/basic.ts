@@ -7,7 +7,7 @@ export class BasicChartOptions extends ChartOptions {
   public labelColumn = ''
   public dataColumns: Array<{ name: string; label?: string; stack?: string }> = []
 
-  constructor (o?: BasicChartOptions | Partial<BasicChartOptions>) {
+  constructor(o?: BasicChartOptions | Partial<BasicChartOptions>) {
     super(o)
 
     if (!o) return
@@ -19,7 +19,7 @@ export class BasicChartOptions extends ChartOptions {
     }
   }
 
-  getChartConfiguration (dataframes: Array<FrameDefinition>, meta: any) {
+  getChartConfiguration(dataframes: Array<FrameDefinition>, meta: any) {
     const { themeVariables = {} } = meta
     const { labels, datasets = [] } = this.getData(dataframes[0], dataframes)
 
@@ -229,13 +229,13 @@ export class BasicChartOptions extends ChartOptions {
     }
   }
 
-  getColIndex (dataframe: FrameDefinition, col: string) {
+  getColIndex(dataframe: FrameDefinition, col: string) {
     if (!dataframe || !dataframe.columns) return -1
 
     return dataframe.columns.findIndex(({ name }) => name === col)
   }
 
-  getData (localDataframe: FrameDefinition, dataframes: Array<FrameDefinition>) {
+  getData(localDataframe: FrameDefinition, dataframes: Array<FrameDefinition>) {
     const datasets: any[] = []
     let labels: string[] = []
 

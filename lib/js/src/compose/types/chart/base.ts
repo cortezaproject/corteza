@@ -1,21 +1,16 @@
-import _ from 'lodash'
+import _ from 'lodash-es'
 import {
   ChartConfig,
   Dimension,
   Metric,
   Report,
-  dimensionFunctions,
-  makeAlias,
   TemporalDataPoint,
   defFormatData,
+  dimensionFunctions,
+  makeAlias,
 } from './util'
 
-import {
-  CortezaID,
-  NoID,
-  ISO8601Date,
-  Apply,
-} from '../../../cast'
+import { Apply, CortezaID, ISO8601Date, NoID } from '../../../cast'
 
 export type PartialChart = Partial<BaseChart>
 
@@ -43,7 +38,7 @@ export class BaseChart {
 
   public config: ChartConfig = {}
 
-  constructor (def: PartialChart = {}) {
+  constructor(def: PartialChart = {}) {
     this.merge(def)
   }
 
@@ -58,13 +53,16 @@ export class BaseChart {
    * @param data Array of values in the given data set
    * @param m Metric for the given dataset
    */
-  datasetPostProc (data: Array<number|TemporalDataPoint>, m: Metric): Array<number|TemporalDataPoint> {
+  datasetPostProc(
+    data: Array<number | TemporalDataPoint>,
+    m: Metric,
+  ): Array<number | TemporalDataPoint> {
     // Define a valid function to evaluate
     let fxRaw = (m.fx || defaultFx).trim()
     if (!fxRaw.startsWith('return')) {
       fxRaw = 'return ' + fxRaw
     }
-    // eslint-disable-next-line no-new-func
+
     const fx = new Function('n', 'm', 'r', fxRaw)
 
     // Define a new array, so we don't alter the original one.
@@ -76,10 +74,10 @@ export class BaseChart {
       // Temporal
       for (let i = 0; i < data.length; i++) {
         const a = data[i] as TemporalDataPoint
-        const b = data[i - 1] as TemporalDataPoint|undefined
+        const b = data[i - 1] as TemporalDataPoint | undefined
 
         const n = a.y
-        let m: number|undefined
+        let m: number | undefined
         if (i > 0) {
           m = b?.y
         }
@@ -90,7 +88,7 @@ export class BaseChart {
       // Categorical
       for (let i = 0; i < data.length; i++) {
         const n = data[i] as number
-        let m: number|undefined
+        let m: number | undefined
         if (i > 0) {
           m = data[i - 1] as number
         }
@@ -101,7 +99,7 @@ export class BaseChart {
     return data
   }
 
-  merge (c: PartialChart) {
+  merge(c: PartialChart) {
     let conf = { ...(c.config || {}) }
     Apply(this, c, CortezaID, 'chartID', 'namespaceID')
     Apply(this, c, String, 'name', 'handle')
@@ -116,7 +114,8 @@ export class BaseChart {
       conf = { reports: reports || [], ...rest }
     }
 
-    this.config = (conf ? _.merge(this.defConfig(), conf) : false) || this.config || this.defConfig()
+    this.config =
+      (conf ? _.merge(this.defConfig(), conf) : false) || this.config || this.defConfig()
 
     this.config.reports?.forEach(report => {
       const { dimensions = [], metrics = [] } = report || {}
@@ -144,7 +143,7 @@ export class BaseChart {
    * Validates dimensions and metrics.
    * If invalid it throws an error.
    */
-  isValid () {
+  isValid() {
     if (!this.config.reports || !this.config.reports.length) {
       throw new Error('notification.chart.invalidConfig.missingReports')
     }
@@ -168,7 +167,7 @@ export class BaseChart {
    * Checks validity of dimensions.
    * If invalid it throws an error
    */
-  dimCheck ({ field, modifier }: Dimension) {
+  dimCheck({ field, modifier }: Dimension) {
     if (!field) {
       throw new Error('notification.chart.invalidConfig.missingDimensionsField')
     }
@@ -181,7 +180,7 @@ export class BaseChart {
    * Checks validity of metrics.
    * If invalid it throws an error
    */
-  mtrCheck ({ field, aggregate, type }: Metric) {
+  mtrCheck({ field, aggregate, type }: Metric) {
     if (!field) {
       throw new Error('notification.chart.invalidConfig.missingMetricsField')
     }
@@ -196,16 +195,21 @@ export class BaseChart {
   /**
    * Prepares params that the reporter can use for querying.
    */
-  formatReporterParams ({ moduleID, metrics, dimensions, filter }: Report) {
+  formatReporterParams({ moduleID, metrics, dimensions, filter }: Report) {
     return {
       moduleID,
       filter,
 
       // Remove count (we'll get it anyway) and construct FUNC(ARG) params
-      metrics: metrics?.filter((m: Metric) => m.field !== 'count').map((m: Metric) => `${m.aggregate}(${m.field}) AS ${makeAlias(m)}`).join(','),
+      metrics: metrics
+        ?.filter((m: Metric) => m.field !== 'count')
+        .map((m: Metric) => `${m.aggregate}(${m.field}) AS ${makeAlias(m)}`)
+        .join(','),
 
       // Construct dimensions \w modifiers...
-      dimensions: dimensions?.map(d => ({ field: 'createdAt', ...d })).map((d: Dimension) => dimensionFunctions.convert(d))[0],
+      dimensions: dimensions
+        ?.map(d => ({ field: 'createdAt', ...d }))
+        .map((d: Dimension) => dimensionFunctions.convert(d))[0],
     }
   }
 
@@ -213,23 +217,29 @@ export class BaseChart {
    * Fetcher reports defined in the given configuration with the help of the provided
    * reporter.
    */
-  async fetchReports ({ reporter }: { reporter(p: any): Promise<any> }) {
+  async fetchReports({ reporter }: { reporter(p: any): Promise<any> }) {
     const out: Array<any> = []
 
     // Prepare params & filter out invalid combos (formatReporterParams will return null on invalid params)
-    const reports: any = this.config.reports?.map(this.formatReporterParams)
+    const reports: any = this.config.reports
+      ?.map(this.formatReporterParams)
       // Send requests to reporter (API caller)
       .map(params => reporter(params))
       // Process each result
-      .map((p: any, index: number) => p.then((results: any) => {
-        results = results || []
-        out[index] = this.processReporterResults(results, (this.config.reports || [])[index])
-      }))
+      .map((p: any, index: number) =>
+        p.then((results: any) => {
+          results = results || []
+          out[index] = this.processReporterResults(results, (this.config.reports || [])[index])
+        }),
+      )
 
     // Wait for all requests to finish and return new promise, with results
-    return Promise.all(reports).then(() => new Promise(resolve => {
-      resolve(out)
-    }))
+    return Promise.all(reports).then(
+      () =>
+        new Promise(resolve => {
+          resolve(out)
+        }),
+    )
   }
 
   /**
@@ -238,7 +248,7 @@ export class BaseChart {
    * * generate labels,
    * * creates dataset for the chart.
    */
-  private processReporterResults (results: Array<object> = [], report: Report): object {
+  private processReporterResults(results: Array<object> = [], report: Report): object {
     const dLabel = 'dimension_0'
     const { dimensions: [dimension] = [] } = report
     let labels: Array<string> = []
@@ -275,43 +285,53 @@ export class BaseChart {
     }
   }
 
-  processLabels (ll: Array<string>, d: Dimension) {
+  processLabels(ll: Array<string>, d: Dimension) {
     return ll
   }
 
-  makeDataset (m: Metric, d: Dimension, data: Array<number|any>, alias: string) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number | any>, alias: string) {
     throw new Error('method.makeDataset.notImplemented')
   }
 
-  makeOptions (data?: any) {
+  makeOptions(data?: any) {
     throw new Error('method.makeOptions.notImplemented')
   }
 
-  plugins (mm: Array<Metric>) {
+  plugins(mm: Array<Metric>) {
     throw new Error('method.plugins.notImplemented')
   }
 
-  baseChartType (datasets: Array<any>) {
+  baseChartType(datasets: Array<any>) {
     throw new Error('method.baseChartType.notImplemented')
   }
 
   /**
    * Performs chart export; used by exporter feature.
    */
-  async export (findModuleByID: ({ namespaceID, moduleID }: { namespaceID: string; moduleID: string }) => Promise<any>) {
+  async export(
+    findModuleByID: ({
+      namespaceID,
+      moduleID,
+    }: {
+      namespaceID: string
+      moduleID: string
+    }) => Promise<any>,
+  ) {
     const { namespaceID } = this
     const copy = new BaseChart(this)
     if (copy.config?.reports) {
-      await Promise.all(copy.config.reports.map(async (r: any) => {
-        const { moduleID } = r
-        if (moduleID) {
-          const module = await findModuleByID({ namespaceID, moduleID })
-          r.moduleID = module.name
-          return r
-        } else {
-          return null
-        }
-      })).then((a: any) => {
+      await Promise.all(
+        copy.config.reports.map(async (r: any) => {
+          const { moduleID } = r
+          if (moduleID) {
+            const module = await findModuleByID({ namespaceID, moduleID })
+            r.moduleID = module.name
+            return r
+          } else {
+            return null
+          }
+        }),
+      ).then((a: any) => {
         return a
       })
     }
@@ -321,7 +341,7 @@ export class BaseChart {
   /**
    * Performs import; used by importer feature
    */
-  import (getModuleID: (moduleID: string) => string) {
+  import(getModuleID: (moduleID: string) => string) {
     const copy = new BaseChart(this)
     copy.config.reports = copy.config?.reports?.map(r => {
       const { moduleID } = r
@@ -333,76 +353,88 @@ export class BaseChart {
     return copy
   }
 
-  defDimension (): Dimension {
-    return Object.assign({}, {
-      conditions: {},
-      meta: {},
-      rotateLabel: 0,
-    })
-  }
-
-  defMetric (): Metric {
-    return Object.assign({}, {
-      formatting: defFormatData(),
-    })
-  }
-
-  defReport (): Report {
-    return Object.assign({}, {
-      moduleID: undefined,
-      filter: '',
-      dimensions: [this.defDimension()],
-      metrics: [this.defMetric()],
-      yAxis: {
-        axisType: 'linear',
-        axisPosition: 'left',
-        labelPosition: 'end',
+  defDimension(): Dimension {
+    return Object.assign(
+      {},
+      {
+        conditions: {},
+        meta: {},
         rotateLabel: 0,
+      },
+    )
+  }
+
+  defMetric(): Metric {
+    return Object.assign(
+      {},
+      {
         formatting: defFormatData(),
       },
-      tooltip: {},
-      legend: {
-        isScrollable: true,
-        orientation: 'horizontal',
-        align: 'center',
-        position: {
-          top: undefined,
-          right: undefined,
-          bottom: undefined,
-          left: undefined,
+    )
+  }
+
+  defReport(): Report {
+    return Object.assign(
+      {},
+      {
+        moduleID: undefined,
+        filter: '',
+        dimensions: [this.defDimension()],
+        metrics: [this.defMetric()],
+        yAxis: {
+          axisType: 'linear',
+          axisPosition: 'left',
+          labelPosition: 'end',
+          rotateLabel: 0,
+          formatting: defFormatData(),
+        },
+        tooltip: {},
+        legend: {
+          isScrollable: true,
+          orientation: 'horizontal',
+          align: 'center',
+          position: {
+            top: undefined,
+            right: undefined,
+            bottom: undefined,
+            left: undefined,
+            isDefault: true,
+          },
+        },
+        offset: {
+          top: '50',
+          right: '30',
+          bottom: '20',
+          left: '30',
           isDefault: true,
         },
       },
-      offset: {
-        top: '50',
-        right: '30',
-        bottom: '20',
-        left: '30',
-        isDefault: true,
-      },
-    })
+    )
   }
 
-  defConfig (): ChartConfig {
-    return Object.assign({}, {
-      colorScheme: '',
-      reports: [this.defReport()],
-      noAnimation: false,
-      toolbox: {
-        saveAsImage: false,
-        timeline: '',
+  defConfig(): ChartConfig {
+    return Object.assign(
+      {},
+      {
+        colorScheme: '',
+        reports: [this.defReport()],
+        noAnimation: false,
+        toolbox: {
+          saveAsImage: false,
+          timeline: '',
+        },
       },
-    })
+    )
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'compose:chart'
   }
 
-  clone (): BaseChart {
+  clone(): BaseChart {
     return new BaseChart(JSON.parse(JSON.stringify(this)))
   }
 }

@@ -58,12 +58,12 @@ export class ModuleFieldFile extends ModuleField {
 
   options: FileOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldFile>) {
+  constructor(i?: Partial<ModuleFieldFile>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<FileOptions>): void {
+  applyOptions(o?: Partial<FileOptions>): void {
     if (!o) return
     super.applyOptions(o)
 

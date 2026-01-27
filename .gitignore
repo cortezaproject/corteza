@@ -1,6 +1,5 @@
 .DS_Store
 .idea
-.vscode
 *.iml
 *.suo
 *.ntvs*
@@ -10,3 +9,4 @@
 .run
 node_modules
 ignore
+dist

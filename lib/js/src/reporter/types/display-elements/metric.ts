@@ -37,12 +37,12 @@ export class DisplayElementMetric extends DisplayElement {
 
   options: Options = { ...defaults }
 
-  constructor (i?: DisplayElementInput) {
+  constructor(i?: DisplayElementInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, String, 'source', 'valueColumn', 'format', 'prefix', 'suffix', 'color', 'backgroundColor')
@@ -52,7 +52,7 @@ export class DisplayElementMetric extends DisplayElement {
     }
   }
 
-  reportDefinitions (definition: DefinitionOptions = {}): { dataframes: Array<FrameDefinition> } {
+  reportDefinitions(definition: DefinitionOptions = {}): { dataframes: Array<FrameDefinition> } {
     if (typeof this.options.source === 'object') {
       // @todo allow implicit sources
       throw new Error('metric source must be provided as a reference')

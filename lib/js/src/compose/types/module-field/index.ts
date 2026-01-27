@@ -11,7 +11,7 @@ export { ModuleFieldUrl } from './url'
 export { ModuleFieldUser } from './user'
 export { ModuleFieldGeometry } from './geometry'
 
-export function ModuleFieldMaker (i: { kind?: string }): ModuleField {
+export function ModuleFieldMaker(i: { kind?: string }): ModuleField {
   if (!i.kind) {
     return new ModuleField(i)
   }

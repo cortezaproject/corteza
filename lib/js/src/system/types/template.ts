@@ -33,11 +33,11 @@ export class Template {
   public lastUsedAt?: Date = undefined
   public canDeleteTemplate = false
 
-  constructor (r?: PartialTemplate) {
+  constructor(r?: PartialTemplate) {
     this.apply(r)
   }
 
-  apply (r?: PartialTemplate): void {
+  apply(r?: PartialTemplate): void {
     Apply(this, r, CortezaID, 'templateID', 'ownerID')
 
     Apply(this, r, String, 'handle', 'language', 'type', 'template')
@@ -57,18 +57,18 @@ export class Template {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.templateID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'system:template'
   }
 
-  clone (): Template {
+  clone(): Template {
     return new Template(JSON.parse(JSON.stringify(this)))
   }
 }

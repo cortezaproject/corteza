@@ -95,7 +95,7 @@ export class ChartOptions {
     left: undefined,
   }
 
-  constructor (o: PartialChartOptions = {}) {
+  constructor(o: PartialChartOptions = {}) {
     if (!o) return
 
     Apply(this, o, String, 'title', 'type', 'colorScheme', 'source')
@@ -129,7 +129,7 @@ export class ChartOptions {
 
 export const ChartOptionsRegistry = new Map<string, typeof ChartOptions>()
 
-export function ChartOptionsMaker<T extends ChartOptions> (options: Partial<ChartOptions>): T {
+export function ChartOptionsMaker<T extends ChartOptions>(options: Partial<ChartOptions>): T {
   const { type } = options
 
   if (type) {
@@ -154,18 +154,18 @@ export class DisplayElementChart extends DisplayElement {
 
   options: ChartOptions = ChartOptionsMaker({ type: 'bar' })
 
-  constructor (i?: DisplayElementInput) {
+  constructor(i?: DisplayElementInput) {
     super(i)
     this.applyOptions(i?.options as Partial<ChartOptions>)
   }
 
-  applyOptions (o?: PartialChartOptions): void {
+  applyOptions(o?: PartialChartOptions): void {
     if (!o) return
 
     this.options = ChartOptionsMaker(o)
   }
 
-  reportDefinitions (definition: DefinitionOptions = {}): { dataframes: Array<FrameDefinition> } {
+  reportDefinitions(definition: DefinitionOptions = {}): { dataframes: Array<FrameDefinition> } {
     if (typeof this.options.source === 'object') {
       // @todo allow implicit sources
       throw new Error('chart source must be provided as a reference')

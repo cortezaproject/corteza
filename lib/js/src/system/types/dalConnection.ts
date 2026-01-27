@@ -1,47 +1,48 @@
-import lodash from 'lodash'
-const { merge } = lodash
+import lodash from 'lodash-es'
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
+const { merge } = lodash
 
-interface PartialDalConnection extends Partial<Omit<DalConnection, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+interface PartialDalConnection
+  extends Partial<Omit<DalConnection, 'createdAt' | 'updatedAt' | 'deletedAt'>> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 interface ConnectionMetaProperty {
-  enabled: boolean;
-  notes: string;
+  enabled: boolean
+  notes: string
 }
 
 interface ConnectionMetaProperties {
-  dataAtRestEncryption?: ConnectionMetaProperty;
-  dataAtRestProtection?: ConnectionMetaProperty;
-  dataAtTransitEncryption?: ConnectionMetaProperty;
-  dataRestoration?: ConnectionMetaProperty;
+  dataAtRestEncryption?: ConnectionMetaProperty
+  dataAtRestProtection?: ConnectionMetaProperty
+  dataAtTransitEncryption?: ConnectionMetaProperty
+  dataRestoration?: ConnectionMetaProperty
 }
 
 interface ConnectionMeta {
-  name: string;
-  ownership: string;
-  location?: object;
-  properties?: ConnectionMetaProperties;
+  name: string
+  ownership: string
+  location?: object
+  properties?: ConnectionMetaProperties
 }
 
 interface ConnectionConfigDAL {
-  type?: string;
-  params?: object;
-  modelIdent?: string;
-  modelIdentCheck?: Array<string>;
+  type?: string
+  params?: object
+  modelIdent?: string
+  modelIdentCheck?: Array<string>
 }
 
 interface ConnectionConfigPrivacy {
-  sensitivityLevelID: string;
+  sensitivityLevelID: string
 }
 
 interface ConnectionConfig {
-  privacy: ConnectionConfigPrivacy;
-  dal?: ConnectionConfigDAL;
+  privacy: ConnectionConfigPrivacy
+  dal?: ConnectionConfigDAL
 }
 
 export class DalConnection {
@@ -97,11 +98,11 @@ export class DalConnection {
   public canDeleteConnection = false
   public canManageDalConfig = false
 
-  constructor (dc?: PartialDalConnection) {
+  constructor(dc?: PartialDalConnection) {
     this.apply(dc)
   }
 
-  apply (dc?: PartialDalConnection): void {
+  apply(dc?: PartialDalConnection): void {
     Apply(this, dc, CortezaID, 'connectionID')
     Apply(this, dc, String, 'handle', 'type')
     Apply(this, dc, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
@@ -149,7 +150,7 @@ export class DalConnection {
     }
   }
 
-  clone (): DalConnection {
+  clone(): DalConnection {
     return new DalConnection(JSON.parse(JSON.stringify(this)))
   }
 }

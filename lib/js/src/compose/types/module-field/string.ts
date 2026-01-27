@@ -21,13 +21,13 @@ export class ModuleFieldString extends ModuleField {
 
   options: StringOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldString>) {
+  constructor(i?: Partial<ModuleFieldString>) {
     super(i)
 
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<StringOptions>): void {
+  applyOptions(o?: Partial<StringOptions>): void {
     if (!o) return
     super.applyOptions(o)
 

@@ -39,19 +39,19 @@ export class Role {
   public deletedAt?: Date = undefined
   public archivedAt?: Date = undefined
 
-  public isSystem = false;
-  public isClosed = false;
-  public isBypass = false;
-  public canGrant = false;
-  public canUpdateRole = false;
-  public canDeleteRole = false;
-  public canManageMembersOnRole = false;
+  public isSystem = false
+  public isClosed = false
+  public isBypass = false
+  public canGrant = false
+  public canUpdateRole = false
+  public canDeleteRole = false
+  public canManageMembersOnRole = false
 
-  constructor (r?: PartialRole) {
+  constructor(r?: PartialRole) {
     this.apply(r)
   }
 
-  apply (r?: PartialRole): void {
+  apply(r?: PartialRole): void {
     Apply(this, r, CortezaID, 'roleID')
 
     Apply(this, r, String, 'name', 'handle')
@@ -86,22 +86,22 @@ export class Role {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.roleID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'system:role'
   }
 
-  get isContext (): boolean {
+  get isContext(): boolean {
     return this.meta?.context?.expr?.length > 0 || this.meta?.context?.resourceTypes?.length > 0
   }
 
-  clone (): Role {
+  clone(): Role {
     return new Role(JSON.parse(JSON.stringify(this)))
   }
 }

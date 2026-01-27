@@ -16,12 +16,12 @@ export class DisplayElementText extends DisplayElement {
 
   options: Options = { ...defaults }
 
-  constructor (i?: DisplayElementInput) {
+  constructor(i?: DisplayElementInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, String, 'value')

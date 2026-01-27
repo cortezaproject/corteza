@@ -14,10 +14,10 @@ describe('eventbus', () => {
       eb.Dispatch({ resourceType: 'res1', eventType: 'ev1' })
     })
 
-    it('should trigger registered handler', async () => {
+    it('should trigger registered handler', async() => {
       let guineapig = 0
       const t = { eventTypes: ['e1'], resourceTypes: ['r1'] }
-      const h = async (): Promise<undefined> => {
+      const h = async(): Promise<undefined> => {
         guineapig = 42
         return undefined
       }
@@ -28,10 +28,10 @@ describe('eventbus', () => {
       expect(guineapig).to.equal(42)
     })
 
-    it('should exec registered handler (on Manual)', async () => {
+    it('should exec registered handler (on Manual)', async() => {
       let guineapig = 0
       const t = { eventTypes: [onManual], resourceTypes: ['r1'], scriptName: 'sn1' }
-      const h = async (): Promise<undefined> => {
+      const h = async(): Promise<undefined> => {
         guineapig = 42
         return undefined
       }
@@ -42,10 +42,10 @@ describe('eventbus', () => {
       expect(guineapig).to.equal(42)
     })
 
-    it('should not exec registered handler (on Manual) on non-matching script', async () => {
+    it('should not exec registered handler (on Manual) on non-matching script', async() => {
       let guineapig = 0
       const t = { eventTypes: [onManual], resourceTypes: ['r1'], scriptName: 'sn-foo' }
-      const h = async (): Promise<undefined> => {
+      const h = async(): Promise<undefined> => {
         guineapig = 42
         return undefined
       }

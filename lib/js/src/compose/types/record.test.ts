@@ -1,21 +1,23 @@
-/* eslint-disable @typescript-eslint/ban-ts-ignore */
+ 
 import { expect } from 'chai'
-import { Record, Values } from './record'
 import { Module } from './module'
+import { Record, Values } from './record'
 
-const m = Object.freeze(new Module({
-  fields: [
-    { name: 'bool', kind: 'Bool' },
-    { name: 'simple', kind: 'String' },
-    { name: 'required', isRequired: true },
-    { name: 'multi', isMulti: true },
-    { name: 'multiRequired', isRequired: true, isMulti: true },
-  ],
-}))
+const m = Object.freeze(
+  new Module({
+    fields: [
+      { name: 'bool', kind: 'Bool' },
+      { name: 'simple', kind: 'String' },
+      { name: 'required', isRequired: true },
+      { name: 'multi', isMulti: true },
+      { name: 'multiRequired', isRequired: true, isMulti: true },
+    ],
+  }),
+)
 
 describe('record', () => {
   describe('record creation', () => {
-    const assertAllUndefined = function (r: Record): void {
+    const assertAllUndefined = function(r: Record): void {
       expect(r.module).to.eq(m)
       /**
        * It's extremely important that properties are set
@@ -29,7 +31,7 @@ describe('record', () => {
       expect(r.values).to.have.property('multiRequired').to.be.deep.eq([])
     }
 
-    const assertSimpleSet = function (r: Record): void {
+    const assertSimpleSet = function(r: Record): void {
       expect(r.module).to.eq(m)
       expect(r.values.bool).to.eq('0')
       expect(r.values.simple).to.eq('foo')
@@ -72,7 +74,9 @@ describe('record', () => {
     })
 
     it('should not corrupt recordID when there are no values', () => {
-      expect(new Record({ recordID: '42' }, m)).to.have.property('recordID').equal('42')
+      expect(new Record({ recordID: '42' }, m))
+        .to.have.property('recordID')
+        .equal('42')
     })
 
     it('should handle garbage input', () => {
@@ -176,7 +180,10 @@ describe('record', () => {
     })
 
     it('should properly set multiple values via raw-values to a non-multi-value field', () => {
-      r.setValues([{ name: 'simple', value: 'foo' }, { name: 'simple', value: 'foo' }])
+      r.setValues([
+        { name: 'simple', value: 'foo' },
+        { name: 'simple', value: 'foo' },
+      ])
       expect(r.values.simple).to.eq('foo')
     })
 
@@ -194,7 +201,9 @@ describe('record', () => {
 
     it('should properly serialize whole record', () => {
       r.setValues([{ simple: 'foo', multi: ['bar', 'baz'] }])
-      expect(JSON.stringify(r)).to.equal('{"recordID":"0","moduleID":"0","namespaceID":"0","revision":0,"values":[{"name":"simple","value":"foo"},{"name":"multi","value":"bar"},{"name":"multi","value":"baz"}],"valueErrors":{},"meta":{},"canUpdateRecord":false,"canReadRecord":false,"canDeleteRecord":false,"canUndeleteRecord":false,"canManageOwnerOnRecord":false,"canSearchRevision":false,"canGrant":false}')
+      expect(JSON.stringify(r)).to.equal(
+        '{"recordID":"0","moduleID":"0","namespaceID":"0","revision":0,"values":[{"name":"simple","value":"foo"},{"name":"multi","value":"bar"},{"name":"multi","value":"baz"}],"valueErrors":{},"meta":{},"canUpdateRecord":false,"canReadRecord":false,"canDeleteRecord":false,"canUndeleteRecord":false,"canManageOwnerOnRecord":false,"canSearchRevision":false,"canGrant":false}',
+      )
     })
 
     it('serialization magic should sustain object manipulation', () => {
@@ -202,17 +211,17 @@ describe('record', () => {
       const { values } = r
 
       expect(JSON.stringify(values)).to.equal(
-        '[{"name":"simple","value":"foo"},{"name":"multi","value":"bar"},{"name":"multi","value":"baz"}]')
+        '[{"name":"simple","value":"foo"},{"name":"multi","value":"bar"},{"name":"multi","value":"baz"}]',
+      )
     })
   })
 
   describe('prevent value corruption when when value prop is missing on rawValue and one of the fields is named "name"', () => {
-    const m = Object.freeze(new Module({
-      fields: [
-        { name: 'name' },
-        { name: 'alt' },
-      ],
-    }))
+    const m = Object.freeze(
+      new Module({
+        fields: [{ name: 'name' }, { name: 'alt' }],
+      }),
+    )
 
     it('it should not set value for name when constructing an object', () => {
       const r = new Record(m, [{ name: 'alt' }])

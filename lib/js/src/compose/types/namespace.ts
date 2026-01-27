@@ -54,15 +54,15 @@ export class Namespace {
   public canExportCharts = false
   public canExportModules = false
 
-  constructor (i?: PartialNamespace) {
+  constructor(i?: PartialNamespace) {
     this.apply(i)
   }
 
-  clone (): Namespace {
+  clone(): Namespace {
     return new Namespace(JSON.parse(JSON.stringify(this)))
   }
 
-  apply (n?: PartialNamespace | Namespace): void {
+  apply(n?: PartialNamespace | Namespace): void {
     if (!n) return
 
     Apply(this, n, CortezaID, 'namespaceID')
@@ -97,21 +97,21 @@ export class Namespace {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.namespaceID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'compose:namespace'
   }
 
   /**
    * Calculate namespace initials
    */
-  get initials (): string {
+  get initials(): string {
     let base = this.name || this.slug
 
     // if length is shorter than 3 letters, use that

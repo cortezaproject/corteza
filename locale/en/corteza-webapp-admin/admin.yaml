@@ -44,7 +44,7 @@ automation:
     settingsTabLabel: Settings
     timeoutHelp: How much time do we wait before aborting the script? Value in milliseconds (1000ms = 1s). It defaults (when 0) to 2s with 30s as maximum. Consult with your administrator for exact numbers and limitations.
     timeoutLabel: Script execution timeout
-    timeoutPlaceholder: "1500"
+    timeoutPlaceholder: '1500'
     title: Automation script
     userPickerPlaceholder: Select user
   import: Import automation script(s)
@@ -68,7 +68,7 @@ automation:
     resultsHeadline: 'Results:'
     testInBrowser: Test in Browser
     testInCorredor: Test in Corredor
-    warning: ""
+    warning: ''
   title: List of automation script
 general:
   resource-list:
@@ -76,10 +76,10 @@ general:
   notFound: 'Not found'
   loading: Loading
   label:
-    "no": "No"
+    'no': 'No'
     submit: Submit
-    "yes": "Yes"
-    selectOption: "Please select an option"
+    'yes': 'Yes'
+    selectOption: 'Please select an option'
   logout: Logout
   noAccess: You do not have permissions to access Admin panel
   pagination:
@@ -107,7 +107,6 @@ navigation:
   publicPages: Public pages
   userSettings:
     changePassword: Change password
-    loggedInAs: Logged in as {{user}}
     logout: Logout
     profile: Profile
     theme: Theme

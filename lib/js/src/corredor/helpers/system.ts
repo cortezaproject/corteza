@@ -44,10 +44,10 @@ interface RoleListFilter {
  * Helpers to determine if specific object looks like the type we are interested in.
  * It does not rely on instanceof, because of bundling issues.
  */
-function isUser (o: any) {
+function isUser(o: any) {
   return o && !!o.userID
 }
-function isRole (o: any) {
+function isRole(o: any) {
   return o && !!o.roleID
 }
 
@@ -55,12 +55,12 @@ function isRole (o: any) {
  * SystemHelper provides layer over System API and utilities that simplify automation script writing
  */
 export default class SystemHelper {
-  readonly SystemAPI: SystemAPI;
-  readonly $user?: User;
-  readonly $role?: Role;
-  readonly $application?: Application;
+  readonly SystemAPI: SystemAPI
+  readonly $user?: User
+  readonly $role?: Role
+  readonly $application?: Application
 
-  constructor (ctx: SystemContext) {
+  constructor(ctx: SystemContext) {
     this.SystemAPI = ctx.SystemAPI
 
     this.$user = ctx.$user
@@ -88,7 +88,7 @@ export default class SystemHelper {
    * @property filter.perPage - max returned records per page
    * @property filter.page - page to return (1-based)
    */
-  async findUsers (filter?: string|UserListFilter): Promise<ListResponse<User[], UserListFilter>> {
+  async findUsers(filter?: string|UserListFilter): Promise<ListResponse<User[], UserListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
@@ -109,7 +109,7 @@ export default class SystemHelper {
    *
    * @param user
    */
-  async findUserByID (user: string|User): Promise<User> {
+  async findUserByID(user: string|User): Promise<User> {
     const userID = extractID(user, 'userID')
     return this.SystemAPI.userRead({ userID }).then(u => new User(u))
   }
@@ -124,7 +124,7 @@ export default class SystemHelper {
    *
    * @param email
    */
-  async findUserByEmail (email: string): Promise<User> {
+  async findUserByEmail(email: string): Promise<User> {
     return this.findUsers({ email }).then(res => {
       if (!Array.isArray(res.set) || res.set.length === 0) {
         throw new Error('user not found')
@@ -144,7 +144,7 @@ export default class SystemHelper {
    *
    * @param handle
    */
-  async findUserByHandle (handle: string): Promise<User> {
+  async findUserByHandle(handle: string): Promise<User> {
     return this.findUsers({ handle }).then(res => {
       if (!Array.isArray(res.set) || res.set.length === 0 || !res.set) {
         throw new Error('user not found')
@@ -165,7 +165,7 @@ export default class SystemHelper {
    *
    * @param user
    */
-  async saveUser (user: User): Promise<User> {
+  async saveUser(user: User): Promise<User> {
     return Promise.resolve(user).then(user => {
       if (isFresh(user.userID)) {
         return this.SystemAPI.userCreate(kv(user)).then(user => new User(user))
@@ -187,7 +187,7 @@ export default class SystemHelper {
    * @param password
    * @param user
    */
-  async setPassword (password: string, user: User|undefined = this.$user): Promise<User> {
+  async setPassword(password: string, user: User|undefined = this.$user): Promise<User> {
     return this.resolveUser(user).then(user => {
       const { userID } = user
       if (isFresh(userID)) {
@@ -208,7 +208,7 @@ export default class SystemHelper {
    *
    * @param user
    */
-  async deleteUser (user: string|User): Promise<unknown> {
+  async deleteUser(user: string|User): Promise<unknown> {
     return Promise.resolve(user).then(user => {
       const userID = extractID(user, 'userID')
 
@@ -223,7 +223,7 @@ export default class SystemHelper {
    *
    * @param filter
    */
-  async findRoles (filter?: string|RoleListFilter): Promise<ListResponse<Role[], RoleListFilter>> {
+  async findRoles(filter?: string|RoleListFilter): Promise<ListResponse<Role[], RoleListFilter>> {
     if (typeof filter === 'string') {
       filter = { query: filter }
     }
@@ -241,7 +241,7 @@ export default class SystemHelper {
    *
    * @param role
    */
-  async findRoleByID (role: string|Role): Promise<Role> {
+  async findRoleByID(role: string|Role): Promise<Role> {
     const roleID = extractID(role, 'roleID')
     return this.SystemAPI.roleRead({ roleID }).then(r => new Role(r))
   }
@@ -256,7 +256,7 @@ export default class SystemHelper {
    *
    * @param handle
    */
-  async findRoleByHandle (handle: string): Promise<Role> {
+  async findRoleByHandle(handle: string): Promise<Role> {
     return this.findRoles(handle).then(res => {
       if (!Array.isArray(res.set) || res.set.length === 0 || !res.set) {
         throw new Error('role not found')
@@ -270,7 +270,7 @@ export default class SystemHelper {
    *
    * @param role
    */
-  async saveRole (role: Role): Promise<Role> {
+  async saveRole(role: Role): Promise<Role> {
     return Promise.resolve(role).then(role => {
       if (isFresh(role.roleID)) {
         return this.SystemAPI.roleCreate(kv(role)).then(role => new Role(role))
@@ -290,7 +290,7 @@ export default class SystemHelper {
    *
    * @param role
    */
-  async deleteRole (role: Role): Promise<unknown> {
+  async deleteRole(role: Role): Promise<unknown> {
     return Promise.resolve(role).then(role => {
       const roleID = extractID(role, 'roleID')
 
@@ -309,7 +309,7 @@ export default class SystemHelper {
    * @param user resolvable user input
    * @param role resolvable role input
    */
-  async addUserToRole (user: User|string, role: Role|string): Promise<unknown> {
+  async addUserToRole(user: User|string, role: Role|string): Promise<unknown> {
     let userID: string
     let roleID: string
 
@@ -330,7 +330,7 @@ export default class SystemHelper {
    * @param user - resolvable user input
    * @param role - resolvable role input
    */
-  async removeUserFromRole (user: User|string, role: Role|string): Promise<unknown> {
+  async removeUserFromRole(user: User|string, role: Role|string): Promise<unknown> {
     let userID: string
     let roleID: string
 
@@ -353,7 +353,7 @@ export default class SystemHelper {
    *  - User object
    *  - object with userID or ownerID properties
    */
-  async resolveUser (...args: unknown[]): Promise<User> {
+  async resolveUser(...args: unknown[]): Promise<User> {
     for (let u of args) {
       // Resolve pending promises if any...
       u = await u
@@ -407,7 +407,7 @@ export default class SystemHelper {
    *  - Role object
    *  - object with roleID property
    */
-  async resolveRole (...args: unknown[]): Promise<Role> {
+  async resolveRole(...args: unknown[]): Promise<Role> {
     for (let r of args) {
       // Resolve pending promises if any...
       r = await r
@@ -455,7 +455,7 @@ export default class SystemHelper {
    *    operation: 'read',
    * })
    */
-  async allow (...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
+  async allow(...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
     const rr = pr.map(p => ({
       role: p.role,
       resource: p.resource,
@@ -476,7 +476,7 @@ export default class SystemHelper {
    *    operation: 'read',
    * })
    */
-  async deny (...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
+  async deny(...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
     const rr = pr.map(p => ({
       role: p.role,
       resource: p.resource,
@@ -497,7 +497,7 @@ export default class SystemHelper {
    *    operation: 'read',
    * })
    */
-  async inherit (...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
+  async inherit(...pr: { role: PermissionRole; resource: PermissionResource; operation: string }[]) {
     const rr = pr.map(p => ({
       role: p.role,
       resource: p.resource,

@@ -21,12 +21,12 @@ export class ModuleFieldBool extends ModuleField {
 
   options: BoolOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldBool>) {
+  constructor(i?: Partial<ModuleFieldBool>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<BoolOptions>): void {
+  applyOptions(o?: Partial<BoolOptions>): void {
     if (!o) return
     super.applyOptions(o)
 
@@ -37,7 +37,7 @@ export class ModuleFieldBool extends ModuleField {
   /**
    * Per module field type capabilities
    */
-  public get cap (): Readonly<Capabilities> {
+  public get cap(): Readonly<Capabilities> {
     return {
       ...super.cap,
       multi: false,

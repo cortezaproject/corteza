@@ -2,17 +2,19 @@ import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
 
 interface Meta {
-  name?: string;
-  description?: string;
-  visual?: Record<string, unknown>;
-  subWorkflow?: boolean;
+  name?: string
+  description?: string
+  visual?: Record<string, unknown>
+  subWorkflow?: boolean
 }
 
-interface PartialWorkflow extends Partial<Omit<Workflow, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
-  meta?: Partial<Meta>;
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+interface PartialWorkflow extends Partial<
+  Omit<Workflow, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>
+> {
+  meta?: Partial<Meta>
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 export class Workflow {
@@ -27,7 +29,7 @@ export class Workflow {
     description: '',
     visual: {},
     subWorkflow: false,
-  };
+  }
 
   public scope?: Record<string, unknown> = undefined
   public steps?: unknown[] = undefined
@@ -35,10 +37,10 @@ export class Workflow {
   public issues?: unknown[] = undefined
 
   public runAs = NoID
-  public ownedBy = NoID;
-  public createdBy = NoID;
-  public updatedBy = NoID;
-  public deletedBy = NoID;
+  public ownedBy = NoID
+  public createdBy = NoID
+  public updatedBy = NoID
+  public deletedBy = NoID
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
@@ -48,11 +50,11 @@ export class Workflow {
   public canDeleteWorkflow = false
   public canExecuteWorkflow = false
 
-  constructor (w?: PartialWorkflow) {
+  constructor(w?: PartialWorkflow) {
     this.apply(w)
   }
 
-  apply (w?: PartialWorkflow): void {
+  apply(w?: PartialWorkflow): void {
     Apply(this, w, CortezaID, 'workflowID')
     Apply(this, w, String, 'handle')
 
@@ -62,7 +64,15 @@ export class Workflow {
     Apply(this, w, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, w, CortezaID, 'runAs', 'ownedBy', 'createdBy', 'updatedBy', 'deletedBy')
 
-    Apply(this, w, Boolean, 'canGrant', 'canUpdateWorkflow', 'canDeleteWorkflow', 'canExecuteWorkflow')
+    Apply(
+      this,
+      w,
+      Boolean,
+      'canGrant',
+      'canUpdateWorkflow',
+      'canDeleteWorkflow',
+      'canExecuteWorkflow',
+    )
 
     if (IsOf(w, 'meta')) {
       this.meta = { ...w.meta }
@@ -92,14 +102,14 @@ export class Workflow {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.workflowID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'automation:workflow'
   }
 }

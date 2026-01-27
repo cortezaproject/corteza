@@ -13,11 +13,11 @@ declare type DateTimeFormatOptions = Intl.DateTimeFormatOptions & {
  *
  * @param input
  */
-function parse (input: DateTimeInput): Date {
+function parse(input: DateTimeInput): Date {
   return moment(input as MomentInput).toDate()
 }
 
-function format (input: DateTimeInput, options: DateTimeFormatOptions): string {
+function format(input: DateTimeInput, options: DateTimeFormatOptions): string {
   return (new Intl.DateTimeFormat(currentLanguage(), options)).format(parse(input))
 }
 
@@ -32,7 +32,7 @@ function format (input: DateTimeInput, options: DateTimeFormatOptions): string {
  * @param input
  * @param options
  */
-export function fullDateTime (input: DateTimeInput, options: DateTimeFormatOptions = { dateStyle: 'full', timeStyle: 'short' }): string {
+export function fullDateTime(input: DateTimeInput, options: DateTimeFormatOptions = { dateStyle: 'full', timeStyle: 'short' }): string {
   return format(input, options)
 }
 
@@ -45,7 +45,7 @@ export function fullDateTime (input: DateTimeInput, options: DateTimeFormatOptio
  * @param input
  * @param options
  */
-export function date (input: DateTimeInput, options: DateTimeFormatOptions = { dateStyle: 'short' }): string {
+export function date(input: DateTimeInput, options: DateTimeFormatOptions = { dateStyle: 'short' }): string {
   return format(input, options)
 }
 
@@ -58,6 +58,6 @@ export function date (input: DateTimeInput, options: DateTimeFormatOptions = { d
  * @param input
  * @param options
  */
-export function time (input: DateTimeInput, options: DateTimeFormatOptions = { timeStyle: 'short' }): string {
+export function time(input: DateTimeInput, options: DateTimeFormatOptions = { timeStyle: 'short' }): string {
   return format(input, options)
 }

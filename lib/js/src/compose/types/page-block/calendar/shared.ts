@@ -20,7 +20,7 @@ interface Colors {
  * @param {String} hex Base color in HEX format
  * @returns {Object} { backgroundColor: String, borderColor: String, isLight: Boolean }
  */
-export function makeColors (hex: string): Colors {
+export function makeColors(hex: string): Colors {
   const bg = hr(hex, { format: 'array' })
   const br = [...bg]
   const isLight = (bg.slice(0, 3).reduce((acc, cur) => acc + cur, 0) / (bg.length - 1)) > isLightThreshold

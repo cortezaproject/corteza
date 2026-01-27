@@ -33,7 +33,7 @@ export interface Permissions {
   }[];
 }
 
-export function kv (a: unknown): KV { return a as KV }
+export function kv(a: unknown): KV { return a as KV }
 
 export interface ListResponse<S, F> {
   set: S;
@@ -46,7 +46,7 @@ export interface ListResponse<S, F> {
  * @param value - that stores ID in some way
  * @param prop - possible key lookup
  */
-export function extractID (value?: unknown, prop?: string): string {
+export function extractID(value?: unknown, prop?: string): string {
   if (value && typeof value === 'object') {
     if (!prop || !Object.prototype.hasOwnProperty.call(value, prop)) {
       return NoID
@@ -58,11 +58,11 @@ export function extractID (value?: unknown, prop?: string): string {
   return CortezaID(value)
 }
 
-export function isFresh (ID: string): boolean {
+export function isFresh(ID: string): boolean {
   return !ID || ID === NoID
 }
 
-export function genericPermissionUpdater (API: PermissionUpdater, rules: PermissionRule[]): void {
+export function genericPermissionUpdater(API: PermissionUpdater, rules: PermissionRule[]): void {
   const g: Permissions = rules.reduce((acc: Permissions, p: PermissionRule) => {
     if (!acc[p.role.roleID]) {
       acc[p.role.roleID] = []

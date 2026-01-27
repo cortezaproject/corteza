@@ -1,4 +1,4 @@
-.PHONY: pack build help qa critic vet codegen provision docs build auth webapp
+.PHONY: dev pack build help qa critic vet codegen provision docs build auth webapp
 
 include Makefile.inc
 
@@ -110,6 +110,8 @@ $(RELEASE_PKEY):
 
 watch: $(GIN)
 	$(GIN) $(GIN_ARGS) -- $(GIN_CORTEZA_BIN_ARGS) serve
+
+dev: watch # Alias for watch
 
 realize: watch # BC
 

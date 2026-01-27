@@ -9,13 +9,13 @@ interface TriggerEndpoints {
 }
 
 // @todo refactor this into more compose-like event structure (see compose/events.ts
-export function SystemEvent (eventType = onManual): Event {
+export function SystemEvent(eventType = onManual): Event {
   return GenericEventMaker({ resourceType: 'system' }, eventType, () => true, {})
 }
 
 // @todo refactor this into more compose-like event structure (see compose/events.ts
-export function UserEvent (user: User, eventType: string = onManual): Event {
-  return GenericEventMaker(user, eventType, function (c) {
+export function UserEvent(user: User, eventType: string = onManual): Event {
+  return GenericEventMaker(user, eventType, function(c) {
     switch (c.Name()) {
       case 'user':
       case 'user.handle':
@@ -29,8 +29,8 @@ export function UserEvent (user: User, eventType: string = onManual): Event {
 }
 
 // @todo refactor this into more compose-like event structure (see compose/events.ts
-export function RoleEvent (role: Role, eventType = onManual): Event {
-  return GenericEventMaker(role, eventType, function (c) {
+export function RoleEvent(role: Role, eventType = onManual): Event {
+  return GenericEventMaker(role, eventType, function(c) {
     switch (c.Name()) {
       case 'role':
       case 'role.handle':
@@ -51,7 +51,7 @@ export function RoleEvent (role: Role, eventType = onManual): Event {
  * @param api
  * @return function
  */
-export function TriggerSystemServerScriptOnManual (api: TriggerEndpoints) {
+export function TriggerSystemServerScriptOnManual(api: TriggerEndpoints) {
   return (ev: Event, script: string): Promise<unknown> => {
     const params = { script, args: ev.args }
     const { userID } = ev.args?.user as User

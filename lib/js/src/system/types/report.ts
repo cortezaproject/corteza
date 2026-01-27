@@ -52,17 +52,17 @@ export class Report {
   public deletedAt?: Date = undefined
   public deletedBy?: string = undefined
 
-  public canReadReport = false;
-  public canUpdateReport = false;
-  public canDeleteReport = false;
-  public canGrant = false;
-  public canRunReport = false;
+  public canReadReport = false
+  public canUpdateReport = false
+  public canDeleteReport = false
+  public canGrant = false
+  public canRunReport = false
 
-  constructor (r?: PartialReport) {
+  constructor(r?: PartialReport) {
     this.apply(r)
   }
 
-  apply (r?: PartialReport): void {
+  apply(r?: PartialReport): void {
     Apply(this, r, CortezaID, 'reportID')
 
     Apply(this, r, String, 'handle')
@@ -107,7 +107,7 @@ export class Report {
     )
   }
 
-  clone (): Report {
+  clone(): Report {
     return new Report(JSON.parse(JSON.stringify(this)))
   }
 }

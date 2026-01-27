@@ -1,16 +1,17 @@
-import lodash from 'lodash'
-const { merge } = lodash
+import lodash from 'lodash-es'
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
+const { merge } = lodash
 
 interface KV {
-  [_: string]: unknown;
+  [_: string]: unknown
 }
 
-interface PartialReminder extends Partial<Omit<Reminder, 'assignedAt' | 'dismissedAt' | 'remindAt' | 'createdAt'>> {
-  assignedAt?: string|number|Date;
-  dismissedAt?: string|number|Date;
-  remindAt?: string|number|Date;
-  createdAt?: string|number|Date;
+interface PartialReminder
+  extends Partial<Omit<Reminder, 'assignedAt' | 'dismissedAt' | 'remindAt' | 'createdAt'>> {
+  assignedAt?: string | number | Date
+  dismissedAt?: string | number | Date
+  remindAt?: string | number | Date
+  createdAt?: string | number | Date
 }
 
 export class Reminder {
@@ -29,11 +30,11 @@ export class Reminder {
   public actions: KV = {}
   public options: KV = {}
 
-  constructor (r?: PartialReminder) {
+  constructor(r?: PartialReminder) {
     this.apply(r)
   }
 
-  apply (r?: PartialReminder): void {
+  apply(r?: PartialReminder): void {
     if (!r) return
 
     Apply(this, r, CortezaID, 'reminderID')

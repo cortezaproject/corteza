@@ -4,7 +4,7 @@ export { DisplayElementTable } from './table'
 export { DisplayElementText } from './text'
 export { DisplayElementMetric } from './metric'
 
-export function DisplayElementMaker<T extends DisplayElement> (i: { kind: string }): T {
+export function DisplayElementMaker<T extends DisplayElement>(i: { kind: string }): T {
   const DisplayElementTemp = Registry.get(i.kind)
   if (DisplayElementTemp === undefined) {
     throw new Error(`unknown display element kind '${i.kind}'`)

@@ -16,7 +16,6 @@ publicPages: Public pages
 appMenu: Menu
 userSettings:
   changePassword: Change password
-  loggedInAs: Logged in as {{user}}
   logout: Logout
   profile: Profile
   theme: Theme
@@ -28,4 +27,4 @@ themes:
 extendSession:
   labels:
     extend: Extend Session
-    warning: You will be logged out in {{ countdownTime }} seconds
+    warning: You will be logged out in { countdownTime } seconds

@@ -30,12 +30,12 @@ export class ModuleFieldUrl extends ModuleField {
 
   options: UrlOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldUrl>) {
+  constructor(i?: Partial<ModuleFieldUrl>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<UrlOptions>): void {
+  applyOptions(o?: Partial<UrlOptions>): void {
     if (!o) return
     super.applyOptions(o)
 

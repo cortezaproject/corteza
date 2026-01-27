@@ -22,12 +22,12 @@ export class ModuleFieldEmail extends ModuleField {
 
   options: EmailOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldEmail>) {
+  constructor(i?: Partial<ModuleFieldEmail>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<EmailOptions>): void {
+  applyOptions(o?: Partial<EmailOptions>): void {
     if (!o) return
     super.applyOptions(o)
 

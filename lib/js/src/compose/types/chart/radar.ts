@@ -1,15 +1,14 @@
+import { getColorschemeColors } from '../../../shared'
 import { BaseChart } from './base'
 import {
+  ChartType,
   Dimension,
   Metric,
-  ChartType,
   formatChartValue,
-  TooltipParams,
 } from './util'
-import { getColorschemeColors } from '../../../shared'
 
 export default class RadarChart extends BaseChart {
-  mtrCheck ({ field, aggregate }: Metric) {
+  mtrCheck({ field, aggregate }: Metric) {
     if (!field) {
       throw new Error('notification.chart.invalidConfig.missingMetricsField')
     }
@@ -18,7 +17,7 @@ export default class RadarChart extends BaseChart {
     }
   }
 
-  makeDataset (m: Metric, d: Dimension, data: Array<number|any>) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number|any>) {
     return {
       type: m.type,
       label: m.label || m.field,
@@ -27,7 +26,7 @@ export default class RadarChart extends BaseChart {
     }
   }
 
-  makeOptions (data: any) {
+  makeOptions(data: any) {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
     const { labels, datasets = [], dimension = {}, themeVariables = {} } = data
@@ -112,23 +111,23 @@ export default class RadarChart extends BaseChart {
     }
   }
 
-  baseChartType (): string {
+  baseChartType(): string {
     return 'radar'
   }
 
-  async fetchReports (a: any) {
+  async fetchReports(a: any) {
     return super.fetchReports(a).then((rr: any) => {
       return rr[0]
     })
   }
 
-  defMetric (): Metric {
+  defMetric(): Metric {
     return Object.assign(super.defMetric(), {
       type: ChartType.radar,
     })
   }
 
-  defDimension (): Dimension {
+  defDimension(): Dimension {
     return Object.assign({}, {
       shape: 'polygon',
       fixTooltips: false,

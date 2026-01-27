@@ -1,26 +1,26 @@
+import { getColorschemeColors } from '../../../shared'
 import { BaseChart } from './base'
 import {
   Dimension,
   Metric,
   TemporalDataPoint,
-  formatChartValue,
-  formatChartTooltip,
   TooltipParams,
+  formatChartTooltip,
+  formatChartValue,
 } from './util'
-import { getColorschemeColors } from '../../../shared'
 
 /**
  * Chart represents a generic chart, such as a bar chart, line chart, ...
  */
 export default class Chart extends BaseChart {
   // Generic charts (at the moment) support only 1 report per chart
-  async fetchReports (a: any) {
+  async fetchReports(a: any) {
     return super.fetchReports(a).then((rr: any) => {
       return rr[0]
     })
   }
 
-  makeDataset (m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number | TemporalDataPoint>, alias: string) {
     data = this.datasetPostProc(data, m)
 
     return {
@@ -41,7 +41,7 @@ export default class Chart extends BaseChart {
     }
   }
 
-  makeOptions (data: any): any {
+  makeOptions(data: any): any {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage, timeline = '' } = toolbox || {}
 
@@ -58,13 +58,7 @@ export default class Chart extends BaseChart {
     }
 
     const { labels, datasets = [], themeVariables = {} } = data
-    const {
-      dimensions: [dimension] = [],
-      yAxis,
-      offset,
-      tooltip: t,
-      legend: l,
-    } = reports[0] || {}
+    const { dimensions: [dimension] = [], yAxis, offset, tooltip: t, legend: l } = reports[0] || {}
 
     const hasAxis = datasets.some(({ type }: any) => ['bar', 'line', 'scatter'].includes(type))
     let horizontal = false
@@ -112,7 +106,8 @@ export default class Chart extends BaseChart {
             overflow: 'break',
             hideOverlap: true,
             rotate: yAxis.rotateLabel,
-            formatter: (value: string | number): string => formatChartValue(value, yAxis.formatting),
+            formatter: (value: string | number): string =>
+              formatChartValue(value, yAxis.formatting),
           },
           axisLine: {
             show: false,
@@ -144,182 +139,214 @@ export default class Chart extends BaseChart {
       }
     }
 
-    options.series = datasets.map(({ formatting, type, label, data, stack, tooltip, fill, smooth, step, roseType, symbol }: any, index: number) => {
-      const { fixed, relative } = tooltip
-
-      // We should render the first metric in the dataset as the last
-      const z = (datasets.length - 1) - index
-
-      if (['pie', 'doughnut'].includes(type)) {
-        const startRadius = type === 'doughnut' ? 40 : 0
-        const endRadius = 80
-        const radiusLength = (endRadius - startRadius) / (datasets.length || 1)
-
-        const sr = startRadius + (index * radiusLength)
-        const er = startRadius + ((index + 1) * radiusLength)
-
-        options.tooltip.trigger = 'item'
-
-        let lbl :any = {
-          rotate: dimension.rotateLabel ? +dimension.rotateLabel : 0,
-        }
-
-        if (t?.labelsNextToPartition) {
-          lbl = {
-            ...lbl,
-            show: true,
-            overflow: 'truncate',
-          }
-        } else {
-          lbl = {
-            ...lbl,
-            show: fixed,
-            position: 'inside',
-            align: 'center',
-            verticalAlign: 'middle',
-          }
-        }
-
-        return {
-          z,
+    options.series = datasets.map(
+      (
+        {
+          formatting,
+          type,
+          label,
+          data,
           stack,
-          name: label,
-          type: 'pie',
-          roseType,
-          radius: [`${sr}%`, `${er}%`],
-          center: ['50%', '55%'],
-          tooltip: {
-            trigger: 'item',
-            appendToBody: true,
-            formatter: (params: TooltipParams): string => {
-              const v = formatChartValue(params.value || '', formatting)
-
-              if (t?.formatting) {
-                return formatChartTooltip(t?.formatting, params)
-              }
-
-              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${v}${relative ? ' (' + params.percent + '%)' : ''}</span>`
-            },
-          },
-          label: {
-            ...lbl,
-            formatter: (params: TooltipParams): string => formatChartValue(params.value || '', formatting),
-          },
-          itemStyle: {
-            borderRadius: 5,
-            borderColor: themeVariables.white,
-            borderWidth: 1,
-          },
-          emphasis: {
-            itemStyle: {
-              shadowBlur: 10,
-              shadowOffsetX: 0,
-              shadowColor: 'rgba(0, 0, 0, 0.5)',
-            },
-          },
-          data: labels.map((name: string, i: number) => {
-            return { name, value: data[i] }
-          }),
-          top: offset?.isDefault ? undefined : offset?.top,
-          right: offset?.isDefault ? undefined : offset?.right,
-          bottom: offset?.isDefault ? undefined : offset?.bottom,
-          left: offset?.isDefault ? undefined : offset?.left,
-        }
-      } else if (['bar', 'line', 'scatter'].includes(type)) {
-        options.tooltip.trigger = 'axis'
-
-        const defaultOffset = {
-          top: 65,
-          right: timeline.includes('x') ? 40 : 30,
-          bottom: timeline.includes('x') ? 60 : 20,
-          left: 30,
-        }
-
-        options.grid = {
-          top: offset?.isDefault ? defaultOffset.top : offset?.top,
-          right: offset?.isDefault ? defaultOffset.right : offset?.right,
-          bottom: offset?.isDefault ? defaultOffset.bottom : offset?.bottom,
-          left: offset?.isDefault ? defaultOffset.left : offset?.left,
-          containLabel: true,
-        }
-
-        if (horizontal) {
-          data = labels.map((name: string, i: number) => {
-            return [data[i], name]
-          })
-        } else {
-          data = labels.map((name: string, i: number) => {
-            return [name, data[i]]
-          })
-        }
-
-        return {
-          z,
-          stack,
-          name: label,
-          type: type,
+          tooltip,
+          fill,
           smooth,
           step,
-          areaStyle: {
-            opacity: fill ? 0.7 : 0,
-          },
+          roseType,
           symbol,
-          symbolSize: type === 'scatter' ? 16 : 10,
-          tooltip: {
-            appendToBody: true,
-            // pass trigger type to determine if valueFormatter or formatter will be used
-            trigger: t?.formatting ? 'item' : 'axis',
-            // we can either
-            // add formatting to the value and apply tooltip if trigger: 'item'
-            // display the same tooltip format name <br/> seriesName value if trigger: 'axis'
+        }: any,
+        index: number,
+      ) => {
+        const { fixed, relative } = tooltip
 
-            // works when trigger is set to axis
-            valueFormatter: (value: string | number): string => formatChartValue(value, formatting),
-            // works when trigger is set to item
-            formatter: (params: { seriesName?: string; name?: string;value: Array<any>, percent: string | number, marker: string;}): string => {
-              const { value = [], percent = '' } = params
+        // We should render the first metric in the dataset as the last
+        const z = datasets.length - 1 - index
 
-              const formattedValue = formatChartValue(value[1], formatting)
+        if (['pie', 'doughnut'].includes(type)) {
+          const startRadius = type === 'doughnut' ? 40 : 0
+          const endRadius = 80
+          const radiusLength = (endRadius - startRadius) / (datasets.length || 1)
 
-              if (t?.formatting) {
-                return formatChartTooltip(t?.formatting, { ...params, value: value[1], percent })
-              }
+          const sr = startRadius + index * radiusLength
+          const er = startRadius + (index + 1) * radiusLength
 
-              return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${formattedValue}${relative ? ' (' + params.percent + '%)' : ''}</span>`
-            },
-          },
-          label: {
-            show: fixed,
-            position: 'inside',
-            align: 'center',
-            verticalAlign: 'middle',
+          options.tooltip.trigger = 'item'
+
+          let lbl: any = {
+            rotate: dimension.rotateLabel ? +dimension.rotateLabel : 0,
+          }
+
+          if (t?.labelsNextToPartition) {
+            lbl = {
+              ...lbl,
+              show: true,
+              overflow: 'truncate',
+            }
+          } else {
+            lbl = {
+              ...lbl,
+              show: fixed,
+              position: 'inside',
+              align: 'center',
+              verticalAlign: 'middle',
+            }
+          }
+
+          return {
+            z,
+            stack,
+            name: label,
+            type: 'pie',
+            roseType,
+            radius: [`${sr}%`, `${er}%`],
+            center: ['50%', '55%'],
             tooltip: {
-              trigger: 'axis',
-            },
-            formatter: (params: { seriesName: string, name: string, value: Array<any>, percent: string | number }): string => {
-              const { value = [], percent = '' } = params
+              trigger: 'item',
+              appendToBody: true,
+              formatter: (params: TooltipParams): string => {
+                const v = formatChartValue(params.value || '', formatting)
 
-              return `${formatChartValue(value[1], formatting)}${relative ? ` (${percent}%)` : ''}`
+                if (t?.formatting) {
+                  return formatChartTooltip(t?.formatting, params)
+                }
+
+                return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${v}${relative ? ' (' + params.percent + '%)' : ''}</span>`
+              },
             },
-          },
-          data,
+            label: {
+              ...lbl,
+              formatter: (params: TooltipParams): string =>
+                formatChartValue(params.value || '', formatting),
+            },
+            itemStyle: {
+              borderRadius: 5,
+              borderColor: themeVariables.white,
+              borderWidth: 1,
+            },
+            emphasis: {
+              itemStyle: {
+                shadowBlur: 10,
+                shadowOffsetX: 0,
+                shadowColor: 'rgba(0, 0, 0, 0.5)',
+              },
+            },
+            data: labels.map((name: string, i: number) => {
+              return { name, value: data[i] }
+            }),
+            top: offset?.isDefault ? undefined : offset?.top,
+            right: offset?.isDefault ? undefined : offset?.right,
+            bottom: offset?.isDefault ? undefined : offset?.bottom,
+            left: offset?.isDefault ? undefined : offset?.left,
+          }
+        } else if (['bar', 'line', 'scatter'].includes(type)) {
+          options.tooltip.trigger = 'axis'
+
+          const defaultOffset = {
+            top: 65,
+            right: timeline.includes('x') ? 40 : 30,
+            bottom: timeline.includes('x') ? 60 : 20,
+            left: 30,
+          }
+
+          options.grid = {
+            top: offset?.isDefault ? defaultOffset.top : offset?.top,
+            right: offset?.isDefault ? defaultOffset.right : offset?.right,
+            bottom: offset?.isDefault ? defaultOffset.bottom : offset?.bottom,
+            left: offset?.isDefault ? defaultOffset.left : offset?.left,
+            containLabel: true,
+          }
+
+          if (horizontal) {
+            data = labels.map((name: string, i: number) => {
+              return [data[i], name]
+            })
+          } else {
+            data = labels.map((name: string, i: number) => {
+              return [name, data[i]]
+            })
+          }
+
+          return {
+            z,
+            stack,
+            name: label,
+            type: type,
+            smooth,
+            step,
+            areaStyle: {
+              opacity: fill ? 0.7 : 0,
+            },
+            symbol,
+            symbolSize: type === 'scatter' ? 16 : 10,
+            tooltip: {
+              appendToBody: true,
+              // pass trigger type to determine if valueFormatter or formatter will be used
+              trigger: t?.formatting ? 'item' : 'axis',
+              // we can either
+              // add formatting to the value and apply tooltip if trigger: 'item'
+              // display the same tooltip format name <br/> seriesName value if trigger: 'axis'
+
+              // works when trigger is set to axis
+              valueFormatter: (value: string | number): string =>
+                formatChartValue(value, formatting),
+              // works when trigger is set to item
+              formatter: (params: {
+                seriesName?: string
+                name?: string
+                value: Array<any>
+                percent: string | number
+                marker: string
+              }): string => {
+                const { value = [], percent = '' } = params
+
+                const formattedValue = formatChartValue(value[1], formatting)
+
+                if (t?.formatting) {
+                  return formatChartTooltip(t?.formatting, { ...params, value: value[1], percent })
+                }
+
+                return `${params.seriesName}<br>${params.marker}${params.name}<span style="float: right; margin-left: 20px">${formattedValue}${relative ? ' (' + params.percent + '%)' : ''}</span>`
+              },
+            },
+            label: {
+              show: fixed,
+              position: 'inside',
+              align: 'center',
+              verticalAlign: 'middle',
+              tooltip: {
+                trigger: 'axis',
+              },
+              formatter: (params: {
+                seriesName: string
+                name: string
+                value: Array<any>
+                percent: string | number
+              }): string => {
+                const { value = [], percent = '' } = params
+
+                return `${formatChartValue(value[1], formatting)}${relative ? ` (${percent}%)` : ''}`
+              },
+            },
+            data,
+          }
         }
-      }
-    })
+      },
+    )
 
-    const dataZoom = timeline ? [
-      {
-        show: timeline.includes('x'),
-        type: 'slider',
-        height: 30,
-      },
-      {
-        show: timeline.includes('y'),
-        type: 'slider',
-        width: 15,
-        yAxisIndex: 0,
-      },
-    ] : undefined
+    const dataZoom = timeline
+      ? [
+        {
+          show: timeline.includes('x'),
+          type: 'slider',
+          height: 30,
+        },
+        {
+          show: timeline.includes('y'),
+          type: 'slider',
+          width: 15,
+          yAxisIndex: 0,
+        },
+      ]
+      : undefined
 
     return {
       color: getColorschemeColors(colorScheme, data.customColorSchemes),
@@ -330,9 +357,11 @@ export default class Chart extends BaseChart {
       },
       toolbox: {
         feature: {
-          saveAsImage: saveAsImage ? {
-            name: this.name,
-          } : undefined,
+          saveAsImage: saveAsImage
+            ? {
+              name: this.name,
+            }
+            : undefined,
         },
         top: 23,
         right: 2,
@@ -359,7 +388,7 @@ export default class Chart extends BaseChart {
     }
   }
 
-  defMetric (): Metric {
+  defMetric(): Metric {
     return Object.assign(super.defMetric(), {
       smooth: true,
       fill: false,
@@ -368,7 +397,7 @@ export default class Chart extends BaseChart {
     })
   }
 
-  baseChartType (datasets: Array<any>): string {
+  baseChartType(datasets: Array<any>): string {
     return datasets[0].type
   }
 }

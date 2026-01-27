@@ -1,16 +1,16 @@
+import { getColorschemeColors } from '../../../shared'
 import { BaseChart, PartialChart } from './base'
 import {
+  ChartType,
+  Dimension,
   Metric,
   Report,
-  Dimension,
-  ChartType,
   TemporalDataPoint,
   formatChartValue,
 } from './util'
-import { getColorschemeColors } from '../../../shared'
 
 export default class GaugeChart extends BaseChart {
-  constructor (def: PartialChart = {}) {
+  constructor(def: PartialChart = {}) {
     super(def)
 
     // Assure required fields
@@ -31,17 +31,17 @@ export default class GaugeChart extends BaseChart {
   }
 
   // Gauge charts (at the moment) support only 1 report per chart
-  async fetchReports (a: any) {
+  async fetchReports(a: any) {
     return super.fetchReports(a).then((rr: any) => {
       return rr[0]
     })
   }
 
-  processLabels (ll: Array<string>, d: Dimension) {
+  processLabels(ll: Array<string>, d: Dimension) {
     return (d.meta?.steps || []).map(({ label }: any) => label)
   }
 
-  makeDataset (m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number|TemporalDataPoint>, alias: string) {
     const steps = (d.meta?.steps || [])
 
     data = this.datasetPostProc(data, m)
@@ -75,7 +75,7 @@ export default class GaugeChart extends BaseChart {
     }
   }
 
-  makeOptions (data: any) {
+  makeOptions(data: any) {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
     const { datasets = [], themeVariables = {} } = data
@@ -177,11 +177,11 @@ export default class GaugeChart extends BaseChart {
     }
   }
 
-  baseChartType (): string {
+  baseChartType(): string {
     return 'gauge'
   }
 
-  defMetric (): Metric {
+  defMetric(): Metric {
     return Object.assign(super.defMetric(), {
       type: ChartType.gauge,
       fixTooltips: true,
@@ -194,7 +194,7 @@ export default class GaugeChart extends BaseChart {
    * Checks validity of dimensions.
    * If invalid it throws an error
    */
-  dimCheck ({ meta }: Dimension): void | Error {
+  dimCheck({ meta }: Dimension): void | Error {
     if ((meta?.steps || []).length === 0) {
       throw new Error('notification.chart.invalidConfig.missingDimensionsSteps')
     }
@@ -203,7 +203,7 @@ export default class GaugeChart extends BaseChart {
   /**
    * Since gauge charts always define one type, this check can be simplified
    */
-  mtrCheck ({ field, aggregate }: Metric): void | Error {
+  mtrCheck({ field, aggregate }: Metric): void | Error {
     if (!field) {
       throw new Error('notification.chart.invalidConfig.missingMetricsField')
     }

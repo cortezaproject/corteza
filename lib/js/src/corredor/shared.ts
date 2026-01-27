@@ -1,7 +1,7 @@
 import { User } from '../system'
 
 interface GenericCtor<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   new (...args: any[]): T;
 }
 
@@ -10,8 +10,8 @@ interface GenericCtor<T> {
  *
  * Takes argument (ref to class) and returns a function that will initialize class of that type
  */
-export function GenericCaster<T> (C: GenericCtor<T>): GenericGetterFn<T|undefined> {
-  return function (val: unknown): T|undefined {
+export function GenericCaster<T>(C: GenericCtor<T>): GenericGetterFn<T|undefined> {
+  return function(val: unknown): T|undefined {
     if (!val || typeof val !== 'object') {
       return undefined
     }
@@ -25,8 +25,8 @@ export function GenericCaster<T> (C: GenericCtor<T>): GenericGetterFn<T|undefine
  *
  * Takes argument (ref to class) and returns a function that will initialize class of that type
  */
-export function GenericCasterFreezer<T> (C: GenericCtor<T>): GenericGetterFn<Readonly<T>|undefined> {
-  return function (val: unknown): Readonly<T>|undefined {
+export function GenericCasterFreezer<T>(C: GenericCtor<T>): GenericGetterFn<Readonly<T>|undefined> {
+  return function(val: unknown): Readonly<T>|undefined {
     if (!val || typeof val !== 'object') {
       return undefined
     }

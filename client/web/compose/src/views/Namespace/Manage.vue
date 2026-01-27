@@ -1,290 +1,181 @@
 <template>
-  <b-container
-    fluid="xl"
-    class="d-flex flex-column py-3"
-  >
-    <portal to="topbar-title">
-      {{ $t('title') }}
-    </portal>
+  <Teleport to="#topbar-title" defer>
+    <span>{{ $t('namespace.manage.title') }}</span>
+  </Teleport>
 
-    <portal to="topbar-tools">
-      <b-btn
-        data-test-id="button-namespace-list"
-        variant="primary"
-        size="sm"
-        :to="{ name: 'namespace.list' }"
-      >
-        {{ $t('list-view') }}
-        <font-awesome-icon
-          :icon="['fas', 'columns']"
-          class="ml-2"
-        />
-      </b-btn>
-    </portal>
+  <Teleport to="#topbar-tools" defer>
+    <Button asChild v-slot="slotProps" size="small">
+      <RouterLink :to="{ name: 'namespace.list' }" :class="slotProps.class">
+        {{ $t('namespace.manage.list-view') }}
+      </RouterLink>
+    </Button>
+  </Teleport>
 
-    <c-resource-list
-      data-test-id="table-namespaces-list"
-      :primary-key="primaryKey"
+  <div class="container mx-auto p-3 h-full">
+    <CResourceList
+      primary-key="namespaceID"
+      :fields="namespaceFields"
+      :items="namespaceList"
       :filter="filter"
       :sorting="sorting"
       :pagination="pagination"
-      :fields="namespacesFields"
-      :items="namespaceList"
-      :translations="{
-        searchPlaceholder: $t('namespace:searchPlaceholder'),
-        notFound: $t('general:resourceList.notFound'),
-        noItems: $t('general:resourceList.noItems'),
-        loading: $t('general:label.loading'),
-        showingPagination: 'general:resourceList.pagination.showing',
-        singlePluralPagination: 'general:resourceList.pagination.single',
-        prevPagination: $t('general:resourceList.pagination.prev'),
-        nextPagination: $t('general:resourceList.pagination.next'),
-        resourceSingle: $t('general:label.namespace.single'),
-        resourcePlural: $t('general:label.namespace.plural'),
-      }"
+      :loading="loading"
       clickable
-      sticky-header
-      class="h-100 flex-fill"
+      class="h-full"
+      @sort="handleSort"
       @search="filterList"
-      @row-clicked="handleRowClicked"
+      @row-click="handleRowClick"
     >
       <template #header>
-        <b-btn
-          v-if="canCreate"
-          data-test-id="button-create"
-          :to="{ name: 'namespace.create' }"
-          variant="primary"
-          size="lg"
-        >
-          {{ $t('toolbar.buttons.create') }}
-        </b-btn>
+        <Button asChild v-slot="slotProps" size="large">
+          <RouterLink :to="{ name: 'namespace.create' }" :class="slotProps.class">
+            {{ $t('namespace.manage.toolbar.buttons.create') }}
+          </RouterLink>
+        </Button>
+      </template>
 
-        <importer-modal
-          v-if="canImport"
-          @imported="onImported"
-          @failed="onFailed"
-        />
+      <template #body-changedAt="{ data }">
+        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
+      </template>
 
-        <c-permissions-button
-          v-if="canGrant"
-          resource="corteza::compose:namespace/*"
-          :button-label="$t('toolbar.buttons.permissions')"
-          size="lg"
+      <template #body-actions="{ data }">
+        <Button
+          icon="pi pi-ellipsis-v"
+          text
+          rounded
+          severity="secondary"
+          @click="toggleActionsMenu($event, data)"
         />
       </template>
+    </CResourceList>
 
-      <template #enabled="{ item }">
-        <font-awesome-icon
-          :icon="['fas', item.enabled ? 'check' : 'times']"
-        />
-      </template>
-
-      <template #changedAt="{ item }">
-        {{ (item.deletedAt || item.updatedAt || item.createdAt) | locFullDateTime }}
-      </template>
-
-      <template #actions="{ item: n }">
-        <b-dropdown
-          v-if="n.canDeleteNamespace || n.canGrant"
-          variant="outline-extra-light"
-          toggle-class="d-flex align-items-center justify-content-center text-primary border-0 py-2"
-          no-caret
-          dropleft
-          lazy
-          menu-class="m-0"
-        >
-          <template #button-content>
-            <font-awesome-icon
-              :icon="['fas', 'ellipsis-v']"
-            />
-          </template>
-
-          <c-permissions-button
-            v-if="n.canGrant"
-            :title="n.name || n.slug || n.namespaceID"
-            :target="n.name || n.slug || n.namespaceID"
-            :resource="`corteza::compose:namespace/${n.namespaceID}`"
-            :tooltip="$t('permissions:resources.compose.namespace.tooltip')"
-            :button-label="$t('permissions:ui.label')"
-            class="dropdown-item"
-          />
-
-          <c-input-confirm
-            v-if="n.canDeleteNamespace"
-            :text="$t('delete')"
-            show-icon
-            borderless
-            variant="link"
-            size="md"
-            button-class="dropdown-item"
-            icon-class="text-danger"
-            class="w-100"
-            @confirmed="handleDelete(n)"
-          />
-        </b-dropdown>
-      </template>
-    </c-resource-list>
-  </b-container>
+    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup />
+    <ConfirmDialog />
+  </div>
 </template>
-<script>
-import { mapGetters, mapActions } from 'vuex'
-import ImporterModal from 'corteza-webapp-compose/src/components/Namespaces/Importer'
-import listHelpers from 'corteza-webapp-compose/src/mixins/listHelpers'
 
-export default {
-  i18nOptions: {
-    namespaces: 'namespace',
-    keyPrefix: 'manage',
+<script setup>
+import { components, filters, useResourceList } from '@cortezaproject/corteza-vue-next'
+import { useConfirm } from 'primevue/useconfirm'
+import { useToast } from 'primevue/usetoast'
+import { inject, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+const { CResourceList } = components
+const { locFullDateTime } = filters
+
+const { t } = useI18n()
+const $ComposeAPI = inject('$ComposeAPI')
+const confirm = useConfirm()
+const toast = useToast()
+
+// Actions menu
+const actionsMenu = ref()
+const actionsMenuItems = ref([])
+const currentNamespace = ref(null)
+
+const namespaceFields = [
+  {
+    key: 'name',
+    sortable: true,
+    header: t('namespace.manage.table.columns.name'),
   },
-
-  components: {
-    ImporterModal,
+  {
+    key: 'slug',
+    sortable: true,
+    header: t('namespace.manage.table.columns.slug'),
   },
-
-  mixins: [
-    listHelpers,
-  ],
-
-  data () {
-    return {
-      primaryKey: 'namespaceID',
-      application: undefined,
-      isApplication: false,
-
-      filter: {
-        query: '',
-      },
-
-      sorting: {
-        sortBy: 'name',
-        sortDesc: false,
-      },
-    }
+  {
+    key: 'enabled',
+    header: t('namespace.manage.table.columns.enabled'),
   },
-
-  computed: {
-    ...mapGetters({
-      namespaces: 'namespace/set',
-      can: 'rbac/can',
-    }),
-
-    canGrant () {
-      return this.can('compose/', 'grant')
-    },
-
-    canCreate () {
-      return this.can('compose/', 'namespace.create')
-    },
-
-    canImport () {
-      // If a user is allowed to create a namespace, they are considered to be allowed
-      // to create any underlying resource when it comes to importing.
-      //
-      // This was agreed upon internally and may change in the future.
-
-      return this.can('compose/', 'namespace.create')
-    },
-
-    importNamespaceEndpoint () {
-      return this.$ComposeAPI.namespaceImportEndpoint({})
-    },
-
-    namespacesFields () {
-      return [
-        {
-          key: 'name',
-          sortable: true,
-          label: this.$t('table.columns.name'),
-        },
-        {
-          key: 'slug',
-          sortable: true,
-          label: this.$t('table.columns.slug'),
-          class: 'text-nowrap',
-        },
-        {
-          key: 'enabled',
-          label: this.$t('table.columns.enabled'),
-          class: 'text-center',
-        },
-        {
-          key: 'changedAt',
-          sortable: true,
-          label: this.$t('table.columns.changedAt'),
-          class: 'text-right text-nowrap',
-        },
-        {
-          key: 'actions',
-          label: '',
-          tdClass: 'text-right text-nowrap actions',
-        },
-      ]
+  {
+    key: 'changedAt',
+    sortable: true,
+    header: t('namespace.manage.table.columns.changedAt'),
+    class: 'text-right',
+    pt: {
+      columnHeaderContent: 'justify-end',
     },
   },
-
-  mounted () {
-    document.title = this.$t('general:label.app-name.namespace.list')
+  {
+    key: 'actions',
+    class: 'text-right',
+    header: '',
   },
+]
 
-  methods: {
-    ...mapActions({
-      load: 'namespace/load',
-      deleteNamespace: 'namespace/delete',
-    }),
+const {
+  items: namespaceList,
+  loading,
+  filter,
+  sorting,
+  pagination,
+  handleSort,
+  filterList,
+  handleRowClick,
+} = useResourceList(params => $ComposeAPI.namespaceListCancellable(params), {
+  filter: { query: '' },
+  sorting: { sortBy: 'name', sortDesc: false },
+  pagination: { limit: 50 },
+})
 
-    onImported () {
-      this.load({ force: true })
-        .then(() => {
-          this.filterList()
-          this.toastSuccess(this.$t('notification:namespace.imported'))
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:namespace.importFailed')))
-    },
-
-    onFailed (err) {
-      this.toastErrorHandler(this.$t('notification:namespace.importFailed'))(err)
-    },
-
-    handleRowClicked ({ namespaceID }) {
-      this.$router.push({
-        name: 'namespace.edit',
-        params: { namespaceID },
-      })
-    },
-
-    namespaceList () {
-      return this.procListResults(this.$ComposeAPI.namespaceListCancellable(this.encodeListParams()))
-    },
-
-    fetchApplication (namespace) {
-      const { namespaceID, slug } = namespace
-      return this.$SystemAPI.applicationList({ name: slug || namespaceID })
-        .then(({ set = [] }) => {
-          if (set.length) {
-            this.application = set[0]
-            this.isApplication = this.application.enabled
-          }
-        })
-        .catch(this.toastErrorHandler(this.$t('notification:namespace.deleteFailed')))
-    },
-
-    async handleDelete (namespace) {
-      this.fetchApplication(namespace).then(() => {
-        const { namespaceID } = namespace
-        const { applicationID } = this.application || {}
-        this.deleteNamespace({ namespaceID })
-          .catch(this.toastErrorHandler(this.$t('notification:namespace.deleteFailed')))
-          .then(() => {
-            if (applicationID) {
-              return this.$SystemAPI.applicationDelete({ applicationID })
-            }
-          })
-          .then(() => {
-            this.toastSuccess(this.$t('notification:namespace.deleted'))
-            this.filterList()
-          })
-      })
-    },
-  },
+// Actions menu methods
+const toggleActionsMenu = (event, namespace) => {
+  currentNamespace.value = namespace
+  actionsMenuItems.value = getActionsMenuItems(namespace)
+  actionsMenu.value.toggle(event)
 }
+
+const getActionsMenuItems = namespace => {
+  const items = []
+
+  if (namespace.canDeleteNamespace) {
+    items.push({
+      label: t('general.label.delete'),
+      icon: 'pi pi-trash',
+      command: () => handleDelete(namespace),
+    })
+  }
+
+  return items
+}
+
+const handleDelete = namespace => {
+  confirm.require({
+    message: t('namespace.manage.delete.confirm', {
+      name: namespace.name || namespace.slug || namespace.namespaceID,
+    }),
+    header: t('general.label.delete'),
+    icon: 'pi pi-exclamation-triangle',
+    acceptLabel: t('general.label.delete'),
+    rejectLabel: t('general.label.cancel'),
+    accept: () => {
+      $ComposeAPI
+        .namespaceDelete({ namespaceID: namespace.namespaceID })
+        .then(() => {
+          toast.add({
+            severity: 'success',
+            summary: t('general.notification.success'),
+            detail: t('namespace.manage.delete.success'),
+            life: 3000,
+          })
+          // Refresh the list
+          filterList()
+        })
+        .catch(error => {
+          toast.add({
+            severity: 'error',
+            summary: t('general.notification.error'),
+            detail: error.message || t('namespace.manage.delete.error'),
+            life: 5000,
+          })
+        })
+    },
+  })
+}
+
+// Lifecycle
+onMounted(() => {
+  document.title = t('general.label.app-name.namespace.list')
+})
 </script>

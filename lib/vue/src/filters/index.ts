@@ -1,2 +1,2 @@
-export * from './date'
-export * from './url'
+export { locFullDateTime, locDate } from './date'
+

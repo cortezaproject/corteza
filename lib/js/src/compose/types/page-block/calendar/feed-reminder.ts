@@ -24,7 +24,7 @@ interface Range {
  * @param {Object} range Current date range
  * @returns {Promise<Array>} Resolves to a set of FC events to display
  */
-export async function ReminderFeed ($SystemAPI: SystemAPI, user: User, feed: Feed, range: Range, options = {}): Promise<Event[]> {
+export async function ReminderFeed($SystemAPI: SystemAPI, user: User, feed: Feed, range: Range, options = {}): Promise<Event[]> {
   return $SystemAPI.reminderList({
     scheduledFrom: range.start.toISOString(),
     scheduledUntil: range.end.toISOString(),

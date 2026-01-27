@@ -1,10 +1,8 @@
 .PHONY: dev test lint fresh audit
 
 dev:
-	@echo "---Processing libs---"
-	@(cd $(CURDIR)/lib && make dev) || (echo "Failed to build libs"; exit 1)
-	@echo "---Processing clients---"
-	@(cd $(CURDIR)/client && make dev) || (echo "Failed to yarn clients"; exit 1)
+	@echo "---Installing dependencies---"
+	@pnpm install || (echo "Failed to install dependencies"; exit 1)
 
 test:
 	@echo "---Testing libs---"
@@ -21,16 +19,12 @@ lint:
 	@(cd $(CURDIR)/client && make lint) || (echo "Failed to lint clients"; exit 1)
 
 fresh:
-	@echo "---Fresh---"
-	@(cd $(CURDIR)/lib && make fresh) || (echo "Failed to fresh libs"; exit 1)
-	@echo "---Fresh clients---"
-	@(cd $(CURDIR)/client && make fresh) || (echo "Failed to fresh clients"; exit 1)
-
+	@echo "---Fresh install---"
+	@rm -rf node_modules lib/*/node_modules client/web/*/node_modules
+	@pnpm install
 
 audit:
-	@echo "---Audit---"
-	@(cd $(CURDIR)/lib && make audit) || true
-	@echo "---Audit clients---"
-	@(cd $(CURDIR)/client && make audit) || true
+	@echo "---Audit dependencies---"
+	@pnpm audit
 
 .DEFAULT_GOAL := dev

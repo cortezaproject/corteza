@@ -19,9 +19,9 @@ interface Unify {
 export class Application {
   public applicationID = undefined
   public name = ''
-  public ownerID?: number = 0;
+  public ownerID?: number = 0
   public enabled = false
-  public weight?: number = 0;
+  public weight?: number = 0
 
   public unify?: Unify = {
     name: '',
@@ -30,20 +30,20 @@ export class Application {
     config: '',
     iconID: NoID,
     logoID: NoID,
-  };
+  }
 
-  public canGrant: boolean = true;
-  public canUpdateApplication: boolean = true;
-  public canDeleteApplication: boolean = true;
+  public canGrant: boolean = true
+  public canUpdateApplication: boolean = true
+  public canDeleteApplication: boolean = true
   public createdAt?: Date = undefined
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
 
-  constructor (r?: PartialApplication) {
+  constructor(r?: PartialApplication) {
     this.apply(r)
   }
 
-  apply (r?: PartialApplication): void {
+  apply(r?: PartialApplication): void {
     Apply(this, r, CortezaID, 'applicationID')
     Apply(this, r, String, 'name')
     Apply(this, r, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
@@ -58,18 +58,18 @@ export class Application {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.applicationID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'system:application'
   }
 
-  clone (): Application {
+  clone(): Application {
     return new Application(JSON.parse(JSON.stringify(this)))
   }
 }

@@ -23,7 +23,7 @@ describe('system', () => {
         )
       })
 
-      it('should return first valid user without invoking the API', async () => {
+      it('should return first valid user without invoking the API', async() => {
         const u = new User({ userID: '444' })
         expect(await h.resolveUser(undefined, null, false, 0, '', u)).to.deep.equal(u)
         expect(h.findUserByID.notCalled, 'findUserByID call not expected').true
@@ -31,7 +31,7 @@ describe('system', () => {
         expect(h.findUserByHandle.notCalled, 'findUserByHandle call not expected').true
       })
 
-      it('should resolve user ID and invoke the API', async () => {
+      it('should resolve user ID and invoke the API', async() => {
         const u = new User({ userID: '444' })
         h.findUserByID.resolves(u)
         expect(await h.resolveUser(u.userID)).to.deep.equal(u)
@@ -40,7 +40,7 @@ describe('system', () => {
         expect(h.findUserByHandle.notCalled, 'findUserByHandle call not expected').true
       })
 
-      it('should resolve handle', async () => {
+      it('should resolve handle', async() => {
         const u = new User({ handle: 'user-handle' })
 
         h.findUserByHandle.resolves(u)
@@ -50,7 +50,7 @@ describe('system', () => {
         expect(h.findUserByEmail.notCalled, 'findUserByEmail call not expected').true
       })
 
-      it('should resolve numeric handle (first by ID then fallback to handle)', async () => {
+      it('should resolve numeric handle (first by ID then fallback to handle)', async() => {
         const u = new User({ handle: '42' })
 
         h.findUserByID.rejects()
@@ -61,7 +61,7 @@ describe('system', () => {
         expect(h.findUserByEmail.notCalled, 'findUserByEmail call not expected').true
       })
 
-      it('should resolve numeric handle (first by ID then fallback to handle)', async () => {
+      it('should resolve numeric handle (first by ID then fallback to handle)', async() => {
         const u = new User({ email: 'foo@bar.baz' })
 
         h.findUserByEmail.resolves(u)
@@ -88,27 +88,27 @@ describe('system', () => {
     })
 
     describe('user finding', () => {
-      it('handles string filter', async () => {
+      it('handles string filter', async() => {
         systemApiStub.userList.resolves({ set: [new User()] })
         await h.findUsers('filter')
         expect(systemApiStub.userList.calledOnceWith({ query: 'filter' }))
       })
 
-      it('returns valid object', async () => {
+      it('returns valid object', async() => {
         systemApiStub.userList.resolves({ set: [new User()] })
         expect((await h.findUsers()).set[0]).is.instanceOf(User)
       })
     })
 
     describe('user finding by ID', () => {
-      it('returns valid object', async () => {
+      it('returns valid object', async() => {
         systemApiStub.userRead.resolves(kv(new User()))
         expect(await h.findUserByID('1234')).is.instanceOf(User)
       })
     })
 
     describe('user saving', () => {
-      it('should create new', async () => {
+      it('should create new', async() => {
         const u = new User()
 
         systemApiStub.userCreate.resolves(kv(u))
@@ -118,7 +118,7 @@ describe('system', () => {
         expect(systemApiStub.userCreate.calledOnceWith(kv(u)))
       })
 
-      it('should update existing', async () => {
+      it('should update existing', async() => {
         const u = new User({ userID: '555' })
 
         systemApiStub.userUpdate.resolves(kv(u))
@@ -130,7 +130,7 @@ describe('system', () => {
     })
 
     describe('user deleting', () => {
-      it('should delete existing user', async () => {
+      it('should delete existing user', async() => {
         const u = new User({ userID: '222' })
 
         systemApiStub.userDelete.resolves(kv(u))
@@ -140,7 +140,7 @@ describe('system', () => {
         expect(systemApiStub.userDelete.calledOnceWith({ userID: u.userID })).true
       })
 
-      it('should not delete fresh user', async () => {
+      it('should not delete fresh user', async() => {
         const user = new User()
 
         systemApiStub.userDelete.resolves()
@@ -152,20 +152,20 @@ describe('system', () => {
     })
 
     describe('roles finding', () => {
-      it('handles string filter', async () => {
+      it('handles string filter', async() => {
         systemApiStub.roleList.resolves({ set: [new Role()] })
         await h.findRoles('filter')
         expect(systemApiStub.roleList.calledOnceWith({ query: 'filter' }))
       })
 
-      it('returns valid object', async () => {
+      it('returns valid object', async() => {
         systemApiStub.roleList.resolves({ set: [new Role()] })
         expect((await h.findRoles()).set[0]).is.instanceOf(Role)
       })
     })
 
     describe('roles finding by id', () => {
-      it('returns valid object', async () => {
+      it('returns valid object', async() => {
         systemApiStub.roleRead.resolves(kv(new Role()))
 
         expect(await h.findRoleByID('1234')).is.instanceOf(Role)
@@ -174,7 +174,7 @@ describe('system', () => {
     })
 
     describe('role saving', () => {
-      it('should create new', async () => {
+      it('should create new', async() => {
         const role = new Role()
 
         systemApiStub.roleCreate.resolves(kv(role))
@@ -184,7 +184,7 @@ describe('system', () => {
         expect(systemApiStub.roleCreate.calledOnceWith(kv(role))).true
       })
 
-      it('should update existing', async () => {
+      it('should update existing', async() => {
         const role = new Role({ roleID: '555' })
 
         systemApiStub.roleUpdate.resolves(kv(role))
@@ -196,7 +196,7 @@ describe('system', () => {
     })
 
     describe('role deleting', () => {
-      it('should delete existing role', async () => {
+      it('should delete existing role', async() => {
         const role = new Role({ roleID: '222' })
 
         systemApiStub.roleDelete.resolves()
@@ -206,7 +206,7 @@ describe('system', () => {
         expect(systemApiStub.roleDelete.calledOnceWith({ roleID: '222' })).true
       })
 
-      it('should not delete fresh role', async () => {
+      it('should not delete fresh role', async() => {
         const role = new Role()
 
         systemApiStub.roleDelete.resolves()
@@ -218,7 +218,7 @@ describe('system', () => {
     })
 
     describe('role membership ', () => {
-      it('should add user to given role', async () => {
+      it('should add user to given role', async() => {
         const role = new Role({ roleID: '222' })
         const user = new User({ userID: '444' })
 
@@ -228,7 +228,7 @@ describe('system', () => {
         expect(systemApiStub.roleMemberAdd.calledOnceWith({ roleID: '222', userID: '444' })).true
       })
 
-      it('should remove user from given role', async () => {
+      it('should remove user from given role', async() => {
         const role = new Role({ roleID: '222' })
         const user = new User({ userID: '444' })
 

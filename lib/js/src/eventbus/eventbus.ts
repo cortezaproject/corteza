@@ -50,7 +50,7 @@ export class EventBus {
 
   private handlers: Handler[] = []
 
-  constructor (opt?: Partial<Options>) {
+  constructor(opt?: Partial<Options>) {
     this.pairs = opt?.pairs || {}
     this.strict = !!opt?.strict
     this.verbose = !!opt?.verbose
@@ -65,7 +65,7 @@ export class EventBus {
    *
    * @param {Event} ev Event to dispatch
    */
-  async Dispatch (ev: Event, script?: string): Promise<null> {
+  async Dispatch(ev: Event, script?: string): Promise<null> {
     if (this.verbose) console.debug('EventBus: event dispatched', { ev, script })
 
     if (script) {
@@ -113,7 +113,7 @@ export class EventBus {
   /**
    * Filters and sorts all handlers by event & constraints
    */
-  private find (ev: Event, script?: string): Handler[] {
+  private find(ev: Event, script?: string): Handler[] {
     return this.handlers
       .filter(t => t.Match(ev, script))
       .sort(scriptSorter)
@@ -125,7 +125,7 @@ export class EventBus {
    * @param handler Handler function
    * @param trigger Trigger definition
    */
-  Register (handler: HandlerFn, trigger: Trigger): EventBus {
+  Register(handler: HandlerFn, trigger: Trigger): EventBus {
     if (this.verbose) console.debug('EventBus: event handler registration for', trigger.scriptName, { trigger })
 
     this.handlers.push(new Handler(handler, trigger))
@@ -135,12 +135,12 @@ export class EventBus {
   /**
    * Unregisters all handlers
    */
-  UnregisterAll (): EventBus {
+  UnregisterAll(): EventBus {
     this.handlers = []
     return this
   }
 
-  protected checkPairs (resourceTypes: string[], eventTypes: string[]): void {
+  protected checkPairs(resourceTypes: string[], eventTypes: string[]): void {
     if (this.pairs === undefined || !this.strict) {
       return
     }

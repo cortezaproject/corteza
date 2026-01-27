@@ -25,16 +25,16 @@ interface DefSecurity {
 }
 
 export class AuthClient {
-  public authClientID = NoID;
-  public handle = '';
-  public scope = 'profile api';
-  public redirectURI = '';
-  public validGrant = 'authorization_code';
+  public authClientID = NoID
+  public handle = ''
+  public scope = 'profile api'
+  public redirectURI = ''
+  public validGrant = 'authorization_code'
 
   public meta: AuthClientMeta = {
     name: '',
     description: '',
-  };
+  }
 
   public security: DefSecurity = {
     userGroup: NoID,
@@ -42,30 +42,30 @@ export class AuthClient {
     permittedRoles: [],
     prohibitedRoles: [],
     forcedRoles: [],
-  };
+  }
 
-  public enabled = true;
-  public trusted = false;
+  public enabled = true
+  public trusted = false
 
-  public validFrom?: Date = undefined;
-  public expiresAt?: Date = undefined;
-  public createdAt?: Date = undefined;
-  public updatedAt?: Date = undefined;
-  public deletedAt?: Date = undefined;
+  public validFrom?: Date = undefined
+  public expiresAt?: Date = undefined
+  public createdAt?: Date = undefined
+  public updatedAt?: Date = undefined
+  public deletedAt?: Date = undefined
 
-  public createdBy = NoID;
-  public updatedBy = NoID;
-  public deletedBy = NoID;
+  public createdBy = NoID
+  public updatedBy = NoID
+  public deletedBy = NoID
 
-  public canDeleteAuthClient = false;
-  public canGrant = false;
-  public canUpdateAuthClient = false;
+  public canDeleteAuthClient = false
+  public canGrant = false
+  public canUpdateAuthClient = false
 
-  constructor (o?: PartialAuthClient) {
+  constructor(o?: PartialAuthClient) {
     this.apply(o)
   }
 
-  apply (o?: PartialAuthClient): void {
+  apply(o?: PartialAuthClient): void {
     Apply(this, o, CortezaID, 'authClientID')
     Apply(this, o, ISO8601Date, 'validFrom', 'expiresAt', 'createdAt', 'updatedAt', 'deletedAt')
     Apply(this, o, String, 'handle', 'scope', 'redirectURI', 'validGrant')
@@ -85,7 +85,7 @@ export class AuthClient {
     Apply(this, o, CortezaID, 'createdBy', 'updatedBy', 'deletedBy')
   }
 
-  clone (): AuthClient {
+  clone(): AuthClient {
     return new AuthClient(JSON.parse(JSON.stringify(this)))
   }
 }

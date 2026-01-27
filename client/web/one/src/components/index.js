@@ -1,8 +1,36 @@
-import Vue from 'vue'
-import { FontAwesomeIcon, FontAwesomeLayers } from '@fortawesome/vue-fontawesome'
-import PortalVue from 'portal-vue'
-import './faIcons'
+import '@/assets/styles.css'
+import { ToastPlugin } from '@cortezaproject/corteza-vue-next'
 
-Vue.use(PortalVue)
-Vue.component('font-awesome-icon', FontAwesomeIcon)
-Vue.component('font-awesome-layers', FontAwesomeLayers)
+import 'primeicons/primeicons.css'
+import PrimeVue from 'primevue/config'
+import Ripple from 'primevue/ripple'
+
+import DialogService from 'primevue/dialogservice'
+import ToastService from 'primevue/toastservice'
+
+import { getTheme } from '@cortezaproject/corteza-vue-next'
+
+export const UIPlugin = {
+  install(app, options = {}) {
+    app.use(PrimeVue, {
+      theme: {
+        preset: getTheme(options.theme),
+        options: {
+          darkModeSelector: '.dark',
+          cssLayer: {
+            name: 'primevue',
+            order: 'tailwind-base, primevue, tailwind-utilities',
+          },
+        },
+      },
+      ripple: true,
+    })
+
+    app.directive('ripple', Ripple)
+
+    app.use(ToastService)
+    app.use(DialogService)
+
+    app.use(ToastPlugin)
+  },
+}

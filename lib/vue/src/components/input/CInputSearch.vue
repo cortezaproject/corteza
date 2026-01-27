@@ -1,204 +1,64 @@
 <template>
-  <div
-    style="min-width: 150px;"
-    :class="{ 'submittable': isSubmittable }"
-    class="c-input-search d-flex position-relative"
-  >
-    <b-input
-      ref="searchInput"
-      data-test-id="input-search"
-      :type="inputType"
-      name="search"
-      :value="localValue"
-      :debounce="debounce"
-      :disabled="disabled"
-      :placeholder="placeholder"
-      :autocomplete="autocomplete"
-      :size="size"
-      class="text-truncate"
-      @input="onInput"
-      @keyup.enter="submitQuery"
-    />
-
-    <b-button
-      v-if="clearable && localValue && !disabled"
-      variant="link"
-      class="close-button d-inline-flex align-items-center rounded-0 p-3"
-      @click="onClear"
-    >
-      <font-awesome-icon
-        :icon="['fas', 'times']"
-        class="text-primary"
+  <InputGroup>
+    <IconField>
+      <InputText
+        :model-value="modelValue"
+        @update:model-value="$emit('update:modelValue', $event)"
+        :placeholder="placeholder"
+        class="w-full"
       />
-    </b-button>
-
-    <b-button
-      v-if="showSubmittable"
-      :variant="isSubmittable ? 'outline-light' : 'link'"
-      :disabled="disabled"
-      :class="{ 'border-0 cursor-default': !isSubmittable }"
-      class="search-button d-inline-flex align-items-center rounded-0 border-light"
-      @[isSubmittable]="submitQuery"
-    >
-      <font-awesome-icon
-        :icon="['fas', 'search']"
-        class="align-middle text-primary"
+      <InputIcon
+        v-show="submittable ? modelValue : true"
+        :class="getSearchIconClass()"
+        @click="clearSearch"
       />
-    </b-button>
-  </div>
+    </IconField>
+
+    <InputGroupAddon v-if="submittable">
+      <Button
+        icon="pi pi-search"
+        severity="secondary"
+        variant="text"
+        class="text-primary w-14"
+        @click="$emit('search')"
+      />
+    </InputGroupAddon>
+  </InputGroup>
 </template>
 
-<script>
-export default {
-  name: 'CInputSearch',
+<script setup>
+import IconField from 'primevue/iconfield'
+import InputGroup from 'primevue/inputgroup'
+import InputGroupAddon from 'primevue/inputgroupaddon'
+import InputIcon from 'primevue/inputicon'
+import InputText from 'primevue/inputtext'
 
-  props: {
-    value: {
-      type: String,
-      default: '',
-    },
-
-    placeholder: {
-      type: String,
-      default: '',
-    },
-
-    size: {
-      type: String,
-      default: 'md',
-    },
-
-    disabled: {
-      type: Boolean,
-    },
-
-    clearable: {
-      type: Boolean,
-      default: true,
-    },
-
-    submittable: {
-      type: Boolean,
-      default: false,
-    },
-
-    autocomplete: {
-      type: String,
-      default: 'on',
-    },
-
-    debounce: {
-      type: Number,
-      default: 0,
-    },
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: '',
   },
-
-  data () {
-    return {
-      localValue: this.value,
-    }
+  placeholder: {
+    type: String,
+    default: 'Search...',
   },
-
-  computed: {
-    inputType () {
-      return this.clearable ? 'search' : 'text'
-    },
-
-    showSubmittable () {
-      return !this.localValue || this.showSubmittableAndClearable
-    },
-
-    isSubmittable () {
-      return this.submittable && !this.disabled ? 'click' : null
-    },
-
-    showSubmittableAndClearable () {
-      return this.clearable && this.submittable
-    },
+  submittable: {
+    type: Boolean,
+    default: false,
   },
+})
 
-  watch: {
-    value (value) {
-      this.localValue = value
-    },
-  },
+const emit = defineEmits(['update:modelValue', 'search'])
 
-  methods: {
-    onInput (value) {
-      this.localValue = value
+const getSearchIconClass = () => {
+  return !props.modelValue
+    ? 'pi pi-search text-primary'
+    : 'pi pi-times cursor-pointer hover:text-primary'
+}
 
-      if (!this.submittable) {
-        this.$emit('input', value)
-      }
-    },
-
-    submitQuery () {
-      if (this.submittable) {
-        this.$emit('search', this.$refs.searchInput.localValue)
-      }
-    },
-
-    onClear () {
-      this.localValue = ''
-      if (!this.submittable) {
-        this.$emit('input', '')
-      }
-      this.$nextTick(() => {
-        this.$refs.searchInput.focus()
-      })
-    },
-  },
+const clearSearch = () => {
+  if (props.modelValue) {
+    emit('update:modelValue', '')
+  }
 }
 </script>
-
-<style lang="scss" scoped>
-input:focus::placeholder {
-  color: transparent;
-}
-
-.c-input-search {
-  .search-button {
-    position: absolute;
-    right: 2px;
-    top: 2px;
-    bottom: 2px;
-    z-index: 4;
-    border-left-width: 2px;
-  }
-
-  .close-button {
-    position: absolute;
-    right: 1px;
-    top: 1px;
-    bottom: 1px;
-    z-index: 5;
-    border: none;
-    background: none;
-
-    &:hover {
-      text-decoration: none;
-    }
-  }
-
-  &.submittable .close-button {
-    right: 48px;
-  }
-
-  .form-control {
-    padding-right: 40px;
-  }
-
-  &.submittable .form-control {
-    padding-right: 85px;
-  }
-
-  ::-webkit-search-cancel-button {
-    -webkit-appearance: none;
-    display: none;
-  }
-}
-
-.cursor-default {
-  cursor: default !important;
-}
-</style>

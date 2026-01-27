@@ -27,12 +27,12 @@ export class PageBlockAutomation extends PageBlock {
 
   options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, String, 'magnifyOption')
@@ -43,7 +43,7 @@ export class PageBlockAutomation extends PageBlock {
   }
 
   // Validates Page Block configuration
-  validate (): Array<string> {
+  validate(): Array<string> {
     const ee = super.validate()
 
     this.options.buttons.forEach(b => {

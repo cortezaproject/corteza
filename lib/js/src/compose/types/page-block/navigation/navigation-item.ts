@@ -61,11 +61,11 @@ export default class NavigationItem {
 
   public options: NavigationItemOptions = { ...defOptions }
 
-  constructor (i?: NavigationItemInput) {
+  constructor(i?: NavigationItemInput) {
     this.apply(i)
   }
 
-  apply (i?: NavigationItemInput): void {
+  apply(i?: NavigationItemInput): void {
     if (!i) return
 
     Apply(this, i, String, 'type')

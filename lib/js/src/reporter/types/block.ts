@@ -13,7 +13,7 @@ export class Block {
 
   xywh: number[] = defaultXYWH()
 
-  constructor (p: Partial<Block>) {
+  constructor(p: Partial<Block>) {
     if (!p) return
 
     Apply(this, p, String, 'title', 'description', 'layout')

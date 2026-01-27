@@ -36,11 +36,11 @@ export default class Feed {
 
   public allDay = false
 
-  constructor (i?: FeedInput) {
+  constructor(i?: FeedInput) {
     this.apply(i)
   }
 
-  apply (i?: FeedInput): void {
+  apply(i?: FeedInput): void {
     if (!i) return
 
     if (!IsOf<Feed>(i, 'resource') && IsOf<LegacyFeed>(i, 'moduleID')) {
@@ -57,7 +57,7 @@ export default class Feed {
     }
   }
 
-  static fromLegacy (legacy: LegacyFeed): Partial<Feed> {
+  static fromLegacy(legacy: LegacyFeed): Partial<Feed> {
     const p: Partial<Feed> = {
       // legacy does not have resource,
       // we've used it with records only

@@ -1,41 +1,40 @@
-import _ from 'lodash'
-import { PageBlock, PageBlockInput, Registry } from './base'
-import { dimensionFunctions } from '../chart/util'
 import { Compose as ComposeAPI } from '../../../api-clients'
 import { Apply } from '../../../cast'
+import { dimensionFunctions } from '../chart/util'
+import { PageBlock, PageBlockInput, Registry } from './base'
 
 const kind = 'Progress'
 
 interface ValueOptions {
-  default: number;
-  moduleID: string;
-  filter: string;
-  field: string;
-  operation: string;
+  default: number
+  moduleID: string
+  filter: string
+  field: string
+  operation: string
 }
 
 interface Threshold {
-  value: number;
-  variant: string;
+  value: number
+  variant: string
 }
 
 interface DisplayOptions {
-  showValue: boolean;
-  showRelative: boolean;
-  showProgress: boolean;
-  animated: boolean;
-  variant: string;
-  thresholds: Threshold[];
+  showValue: boolean
+  showRelative: boolean
+  showProgress: boolean
+  animated: boolean
+  variant: string
+  thresholds: Threshold[]
 }
 
 interface Options {
-  value: ValueOptions;
-  minValue: ValueOptions;
-  maxValue: ValueOptions;
-  display: DisplayOptions;
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
+  value: ValueOptions
+  minValue: ValueOptions
+  maxValue: ValueOptions
+  display: DisplayOptions
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -81,12 +80,12 @@ export class PageBlockProgress extends PageBlock {
 
   options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, Number, 'refreshRate')
@@ -113,7 +112,7 @@ export class PageBlockProgress extends PageBlock {
   /**
    * Helper function to fetch and parse reporter's reports.
    */
-  fetch (additionalOptions: Options, api: ComposeAPI, namespaceID: string): Promise<object> {
+  fetch(additionalOptions: Options, api: ComposeAPI, namespaceID: string): Promise<object> {
     const reports = []
     const dimensions = dimensionFunctions.convert({ modifier: 'YEAR', field: 'createdAt' })
 
@@ -127,7 +126,15 @@ export class PageBlockProgress extends PageBlock {
         metrics = `${valueOperation}(${valueField}) AS rp`
       }
 
-      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...this.options.value, ...additionalOptions.value }))
+      reports.push(
+        api.recordReport({
+          namespaceID,
+          metrics,
+          dimensions,
+          ...this.options.value,
+          ...additionalOptions.value,
+        }),
+      )
     } else {
       reports.push(new Promise(resolve => resolve(this.options.value.default)))
     }
@@ -141,7 +148,15 @@ export class PageBlockProgress extends PageBlock {
         metrics = `${minValueOperation}(${minValueField}) AS rp`
       }
 
-      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...this.options.minValue, ...additionalOptions.minValue }))
+      reports.push(
+        api.recordReport({
+          namespaceID,
+          metrics,
+          dimensions,
+          ...this.options.minValue,
+          ...additionalOptions.minValue,
+        }),
+      )
     } else {
       reports.push(new Promise(resolve => resolve(this.options.minValue.default)))
     }
@@ -155,14 +170,22 @@ export class PageBlockProgress extends PageBlock {
         metrics = `${maxValueOperation}(${maxValueField}) AS rp`
       }
 
-      reports.push(api.recordReport({ namespaceID, metrics, dimensions, ...this.options.maxValue, ...additionalOptions.maxValue }))
+      reports.push(
+        api.recordReport({
+          namespaceID,
+          metrics,
+          dimensions,
+          ...this.options.maxValue,
+          ...additionalOptions.maxValue,
+        }),
+      )
     } else {
       reports.push(new Promise(resolve => resolve(this.options.maxValue.default)))
     }
 
     return Promise.all(reports).then(([value, min, max]: Array<any>) => {
       if (Array.isArray(value)) {
-        const datasets = value.map((r: any) => r.rp !== undefined ? r.rp : r.count)
+        const datasets = value.map((r: any) => (r.rp !== undefined ? r.rp : r.count))
         if (valueOperation === 'max') {
           value = datasets.sort((a: number, b: number) => b - a)[0]
         } else if (valueOperation === 'min') {
@@ -175,7 +198,7 @@ export class PageBlockProgress extends PageBlock {
       }
 
       if (Array.isArray(min)) {
-        const datasets = min.map((r: any) => r.rp !== undefined ? r.rp : r.count)
+        const datasets = min.map((r: any) => (r.rp !== undefined ? r.rp : r.count))
         if (minValueOperation === 'max') {
           min = datasets.sort((a: number, b: number) => b - a)[0]
         } else if (minValueOperation === 'min') {
@@ -188,7 +211,7 @@ export class PageBlockProgress extends PageBlock {
       }
 
       if (Array.isArray(max)) {
-        const datasets = max.map((r: any) => r.rp !== undefined ? r.rp : r.count)
+        const datasets = max.map((r: any) => (r.rp !== undefined ? r.rp : r.count))
         if (maxValueOperation === 'max') {
           max = datasets.sort((a: number, b: number) => b - a)[0]
         } else if (maxValueOperation === 'min') {

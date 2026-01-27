@@ -1,43 +1,29 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "lib": [
-      "es2017",
-      "es2015",
-      "DOM",
-      "ESNext"
-    ],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ],
-    "module": "esnext",
-    "moduleResolution": "node",
-    "allowJs": true,
-    "noEmit": false,
-    "allowSyntheticDefaultImports": true,
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "declaration": true,
-    "sourceMap": true,
+    "outDir": "./dist",
     "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "experimentalDecorators": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": false,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "outDir": "dist",
-    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
-    },
-    "types": ["node"]
+      "@/*": ["./src/*"]
+    }
   },
-
-  "include": [
-    "./src/**/*"
-  ],
-
-  "exclude": [
-    "./src/**/*.test.ts",
-    "node_modules"
-  ]
+  "include": ["**/*.ts", "**/*.vue"],
+  "exclude": ["node_modules", "dist"]
 }

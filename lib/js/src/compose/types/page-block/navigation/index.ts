@@ -27,16 +27,16 @@ const defaults: Readonly<Options> = Object.freeze({
 })
 
 export class PageBlockNavigation extends PageBlock {
-  readonly kind = kind;
+  readonly kind = kind
 
-  options: Options = { ...defaults };
+  options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, String, 'magnifyOption')
@@ -46,7 +46,7 @@ export class PageBlockNavigation extends PageBlock {
     this.options.display = { ...this.options.display, ...o.display }
   }
 
-  static makeNavigationItem (item?: NavigationItemInput): NavigationItem {
+  static makeNavigationItem(item?: NavigationItemInput): NavigationItem {
     return new NavigationItem(item)
   }
 }

@@ -20,7 +20,7 @@ interface Results {
  * @param args - Arguments for the script
  * @param ctx - Exec context (exec function's 2nd param)
  */
-export async function Exec (script: ExecutableScript, args: BaseArgs, ctx: Ctx): Promise<Results> {
+export async function Exec(script: ExecutableScript, args: BaseArgs, ctx: Ctx): Promise<Results> {
   try {
     // Wrap exec() with Promise.resolve - we do not know if function is async or not.
     return Promise.resolve(script.exec(args, ctx)).then((rval: unknown): object => {

@@ -1,7 +1,7 @@
-import lodash from 'lodash'
-const { merge } = lodash
-import { IsOf } from '../../../guards'
+import lodash from 'lodash-es'
 import { Apply, CortezaID, NoID } from '../../../cast'
+import { IsOf } from '../../../guards'
+const { merge } = lodash
 
 export const FieldNameValidator = /^[A-Za-z][0-9A-Za-z_-]*[A-Za-z0-9]$/
 
@@ -15,71 +15,72 @@ const nonQueryableFieldNames = ['recordID']
 type fieldEncoding = null | { omit: true } | { ident: string }
 
 export interface Capabilities {
-  configurable: true;
-  multi: boolean;
-  writable: boolean;
-  required: boolean;
-  private: boolean;
+  configurable: true
+  multi: boolean
+  writable: boolean
+  required: boolean
+  private: boolean
 }
 
 export interface Options {
   description: {
-    view: string;
-    edit: string | undefined;
-  };
+    view: string
+    edit: string | undefined
+  }
   hint: {
-    view: string;
-    edit: string | undefined;
-  };
+    view: string
+    edit: string | undefined
+  }
 }
 
-export const defaultOptions = (): Readonly<Options> => Object.freeze({
-  description: {
-    view: '',
-    edit: undefined,
-  },
-  hint: {
-    view: '',
-    edit: undefined,
-  },
-})
+export const defaultOptions = (): Readonly<Options> =>
+  Object.freeze({
+    description: {
+      view: '',
+      edit: undefined,
+    },
+    hint: {
+      view: '',
+      edit: undefined,
+    },
+  })
 
 interface Config {
   dal: {
-    encodingStrategy: fieldEncoding;
-  };
+    encodingStrategy: fieldEncoding
+  }
 
   privacy: {
-    sensitivityLevelID: string;
-    usageDisclosure: string;
-  };
+    sensitivityLevelID: string
+    usageDisclosure: string
+  }
 
   recordRevisions: {
-    enabled: boolean;
-  };
+    enabled: boolean
+  }
 }
 
 export interface Expressions {
-  value?: string;
+  value?: string
 
-  sanitizers?: Array<string>;
+  sanitizers?: Array<string>
 
-  validators?: Array<Validator>;
-  disableDefaultValidators?: boolean;
+  validators?: Array<Validator>
+  disableDefaultValidators?: boolean
 
-  formatters?: Array<string>;
-  disableDefaultFormatters?: boolean;
+  formatters?: Array<string>
+  disableDefaultFormatters?: boolean
 }
 
 interface Validator {
-  validatorID: string;
-  test: string;
-  error: string;
+  validatorID: string
+  test: string
+  error: string
 }
 
 interface DefaultValue {
-  name?: string;
-  value: string;
+  name?: string
+  value: string
 }
 
 export class ModuleField {
@@ -118,11 +119,11 @@ export class ModuleField {
   public canUpdateRecordValue = false
   public canReadRecordValue = false
 
-  constructor (f?: Partial<ModuleField>) {
+  constructor(f?: Partial<ModuleField>) {
     this.apply(f)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     if (o.description) {
@@ -144,11 +145,11 @@ export class ModuleField {
     }
   }
 
-  clone (): ModuleField {
+  clone(): ModuleField {
     return new ModuleField(JSON.parse(JSON.stringify(this)))
   }
 
-  public apply (f?: Partial<ModuleField>): void {
+  public apply(f?: Partial<ModuleField>): void {
     if (!f) return
 
     Apply(this, f, CortezaID, 'fieldID')
@@ -183,7 +184,9 @@ export class ModuleField {
        * so we can use it without conversion
        * false boolean values are represented only by the name, in all other cases the value is also present
        */
-      this.defaultValue = f.defaultValue.filter(({ name, value }) => name !== undefined || (value !== undefined && value !== null))
+      this.defaultValue = f.defaultValue.filter(
+        ({ name, value }) => name !== undefined || (value !== undefined && value !== null),
+      )
     }
 
     if (this.isSystem) {
@@ -215,14 +218,14 @@ export class ModuleField {
    *
    * Expecting valid name
    */
-  public get isValid (): boolean {
+  public get isValid(): boolean {
     return this.name.length > 0 && FieldNameValidator.test(this.name)
   }
 
   /**
    * Per module field type capabilities
    */
-  public get cap (): Readonly<Capabilities> {
+  public get cap(): Readonly<Capabilities> {
     return {
       configurable: true,
       multi: true,
@@ -235,14 +238,14 @@ export class ModuleField {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.fieldID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'compose:module-field'
   }
 }

@@ -22,11 +22,11 @@ export class Function {
   public results: Array<Param> = []
   public labels: { [_: string]: string } = {}
 
-  constructor (u?: FunctionCtr) {
+  constructor(u?: FunctionCtr) {
     this.apply(u)
   }
 
-  apply (u?: FunctionCtr): void {
+  apply(u?: FunctionCtr): void {
     Apply(this, u, String, 'ref', 'kind')
 
     if (u?.parameters) {

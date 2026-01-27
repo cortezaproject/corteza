@@ -13,7 +13,7 @@ interface TriggerEndpoints {
   recordTriggerScript (params: { namespaceID: string; moduleID: string; recordID: string; values: Values; script: string }): Promise<object>;
 }
 
-function namespaceMatcher (r: Namespace, c: ConstraintMatcher, def: boolean): boolean {
+function namespaceMatcher(r: Namespace, c: ConstraintMatcher, def: boolean): boolean {
   if (!r) {
     throw new Error('can not run namespace matcher on undefined/null namespace')
   }
@@ -30,7 +30,7 @@ function namespaceMatcher (r: Namespace, c: ConstraintMatcher, def: boolean): bo
   return def
 }
 
-function moduleMatcher (r: Module, c: ConstraintMatcher, def: boolean): boolean {
+function moduleMatcher(r: Module, c: ConstraintMatcher, def: boolean): boolean {
   if (!r) {
     throw new Error('can not run module matcher on undefined/null module')
   }
@@ -50,7 +50,7 @@ function moduleMatcher (r: Module, c: ConstraintMatcher, def: boolean): boolean 
 /**
  * Creates event for compose resource with ready-to-go-defaults
  */
-export function ComposeEvent (event?: Partial<Event>): Event {
+export function ComposeEvent(event?: Partial<Event>): Event {
   return {
     eventType: onManual,
     resourceType: 'compose',
@@ -62,7 +62,7 @@ export function ComposeEvent (event?: Partial<Event>): Event {
 /**
  * Creates namespace event with ready-to-go-defaults
  */
-export function NamespaceEvent (res: Namespace, event?: Partial<Event>): Event {
+export function NamespaceEvent(res: Namespace, event?: Partial<Event>): Event {
   return {
     eventType: onManual,
     resourceType: res.resourceType,
@@ -77,7 +77,7 @@ export function NamespaceEvent (res: Namespace, event?: Partial<Event>): Event {
 /**
  * Creates module event with ready-to-go-defaults
  */
-export function ModuleEvent (res: Module, event?: Partial<Event>): Event {
+export function ModuleEvent(res: Module, event?: Partial<Event>): Event {
   return {
     eventType: onManual,
     resourceType: res.resourceType,
@@ -92,7 +92,7 @@ export function ModuleEvent (res: Module, event?: Partial<Event>): Event {
 /**
  * Creates record event with ready-to-go-defaults
  */
-export function RecordEvent (res: Record, event?: Partial<Event>): Event {
+export function RecordEvent(res: Record, event?: Partial<Event>): Event {
   return {
     eventType: onManual,
     resourceType: res.resourceType,
@@ -107,7 +107,7 @@ export function RecordEvent (res: Record, event?: Partial<Event>): Event {
 /**
  * Creates record event with ready-to-go-defaults
  */
-export function PageEvent (res: Page, event?: Partial<Event>): Event {
+export function PageEvent(res: Page, event?: Partial<Event>): Event {
   return {
     eventType: onManual,
     resourceType: 'compose:page',
@@ -127,7 +127,7 @@ export function PageEvent (res: Page, event?: Partial<Event>): Event {
  * @param api
  * @return function
  */
-export function TriggerComposeServerScriptOnManual (api: TriggerEndpoints) {
+export function TriggerComposeServerScriptOnManual(api: TriggerEndpoints) {
   return (ev: Event, script: string): Promise<unknown> => {
     const params = { script, args: ev.args }
 

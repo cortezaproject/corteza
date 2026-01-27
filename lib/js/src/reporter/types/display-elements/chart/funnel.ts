@@ -7,7 +7,7 @@ export class FunnelChartOptions extends ChartOptions {
   public labelColumn = ''
   public dataColumns: Array<{ name: string; label?: string }> = []
 
-  constructor (o?: FunnelChartOptions | Partial<FunnelChartOptions>) {
+  constructor(o?: FunnelChartOptions | Partial<FunnelChartOptions>) {
     super(o)
 
     if (!o) return
@@ -19,7 +19,7 @@ export class FunnelChartOptions extends ChartOptions {
     }
   }
 
-  getChartConfiguration (dataframes: Array<FrameDefinition>, meta: any) {
+  getChartConfiguration(dataframes: Array<FrameDefinition>, meta: any) {
     const { themeVariables = {} } = meta
     const labels = this.getLabels(dataframes[0])
     const { data = [] } = this.getDatasets(dataframes[0], dataframes) || {}
@@ -89,13 +89,13 @@ export class FunnelChartOptions extends ChartOptions {
     }
   }
 
-  getColIndex (dataframe: FrameDefinition, col: string) {
+  getColIndex(dataframe: FrameDefinition, col: string) {
     if (!dataframe || !dataframe.columns) return -1
 
     return dataframe.columns.findIndex(({ name }) => name === col)
   }
 
-  getLabels (localDataframe: FrameDefinition) {
+  getLabels(localDataframe: FrameDefinition) {
     const labels = []
 
     if (this.labelColumn && localDataframe) {
@@ -114,7 +114,7 @@ export class FunnelChartOptions extends ChartOptions {
     return labels
   }
 
-  getDatasets (localDataframe: FrameDefinition, dataframes: Array<FrameDefinition>): any {
+  getDatasets(localDataframe: FrameDefinition, dataframes: Array<FrameDefinition>): any {
     const chartDataset = []
 
     if (localDataframe && dataframes) {

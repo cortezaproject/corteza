@@ -26,11 +26,11 @@ export default class Feed {
   public displayPolygon = false
   public options: FeedOptions = { ...defOptions }
 
-  constructor (i?: FeedInput) {
+  constructor(i?: FeedInput) {
     this.apply(i)
   }
 
-  apply (i?: FeedInput): void {
+  apply(i?: FeedInput): void {
     if (!i) return
 
     if (IsOf<Feed>(i, 'resource')) {
@@ -43,7 +43,7 @@ export default class Feed {
     }
   }
 
-  isValid (): boolean {
+  isValid(): boolean {
     return this.options.moduleID !== NoID && !!this.geometryField
   }
 }

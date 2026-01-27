@@ -1,25 +1,23 @@
-import * as plugins from './plugins'
-import * as mixins from './mixins'
-import * as components from './components'
-import * as corredor from './corredor'
-import * as filters from './filters'
-import * as store from './store'
-import * as url from './libs/url'
-import * as filter from './libs/filter'
-import * as handle from './libs/handle'
-import * as websocket from './libs/websocket'
-import i18n from './i18n'
+// No CSS imports - client's Tailwind handles all styling
 
+// Export Vue plugins
+export { default as AuthPlugin } from './plugins/auth'
 export {
-  plugins,
-  mixins,
-  components,
-  corredor,
-  filters,
-  store,
-  url,
-  filter,
-  handle,
-  websocket,
-  i18n,
-}
+  AutomationAPIPlugin,
+  ComposeAPIPlugin,
+  FederationAPIPlugin,
+  SystemAPIPlugin,
+} from './plugins/corteza-api'
+export { I18nPlugin } from './plugins/i18n'
+export { SettingsPlugin } from './plugins/settings'
+export { ToastPlugin } from './plugins/toast'
+
+// Export utility composables
+export { useResourceList } from './composables/useResourceList'
+export { getTheme, setThemes, useTheme } from './composables/useTheme'
+
+// Export filters
+export * as filters from './filters'
+
+// Export components
+export * as components from './components'

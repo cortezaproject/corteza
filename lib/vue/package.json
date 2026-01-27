@@ -1,156 +1,31 @@
 {
-  "name": "@cortezaproject/corteza-vue",
-  "description": "Corteza Vue.js JavaScript/TypeScript libs",
-  "version": "2024.9.7-hotfix.1",
+  "name": "@cortezaproject/corteza-vue-next",
+  "version": "2026.3.0-dev.1",
   "license": "Apache-2.0",
-  "author": "Denis Arh <denis.arh@crust.tech>",
+  "private": true,
   "type": "module",
-  "types": "dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
-  },
+  "main": "src/index.ts",
+  "module": "src/index.ts",
+  "types": "src/index.ts",
   "files": [
-    "dist/"
+    "src/"
   ],
   "scripts": {
-    "build": "rollup -c --environment BUILD:production",
-    "build:dev": "rollup -c",
-    "lint": "eslint src --ext .js,.ts,.vue",
-    "test:unit": "mocha",
-    "test": "yarn test:unit",
-    "cdeps": "yarn link @cortezaproject/corteza-js"
-  },
-  "gitHooks": {
-    "pre-commit": "yarn lint"
-  },
-  "resolutions": {
-    "postcss": "^8.5.3",
-    "json5": "^2.2.3",
-    "loader-utils": "^3.2.0",
-    "prosemirror-model": "^1.25.0"
+    "lint": "eslint . --fix",
+    "lint:check": "eslint .",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "cdeps": "yarn link @cortezaproject/corteza-js-next"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js": "^2024.9.7-hotfix.1",
-    "@floating-ui/dom": "^1.7.4",
-    "@fortawesome/fontawesome-svg-core": "^6.7.2",
-    "@fortawesome/free-regular-svg-icons": "^6.7.2",
-    "@fortawesome/free-solid-svg-icons": "^6.7.2",
-    "@fortawesome/vue-fontawesome": "^2.0.10",
-    "@panter/vue-i18next": "^0.15.0",
-    "@popperjs/core": "^2.11.8",
-    "@tiptap/extension-mention": "^3.4.2",
-    "@tiptap/extension-placeholder": "^3.4.2",
-    "@tiptap/extension-table": "^3.4.2",
-    "@tiptap/extension-text-align": "^3.4.2",
-    "@tiptap/extension-text-style": "^3.4.2",
-    "@tiptap/starter-kit": "^3.4.2",
-    "@tiptap/suggestion": "^3.4.2",
-    "@tiptap/vue-2": "^3.4.2",
-    "bootstrap-vue": "2.23.1",
-    "echarts": "5.6.0",
-    "fuzzysort": "^3.1.0",
-    "html-parse-stringify": "^3.0.1",
-    "i18next": "^23.16.8",
-    "i18next-browser-languagedetector": "^8.0.4",
-    "i18next-http-backend": "^3.0.2",
-    "i18next-multiload-backend-adapter": "^2.3.0",
-    "leaflet": "^1.9.4",
-    "leaflet-geosearch": "^4.1.0",
-    "lodash": "^4.17.21",
-    "mime": "^4.0.6",
-    "moment": "2.30.1",
-    "numeral": "^2.0.6",
-    "pdfjs-dist": "^4.10.38",
-    "pino": "^9.6.0",
-    "portal-vue": "^3.0.0",
-    "qs": "^6.14.0",
-    "v-photoswipe": "^1.0.3-1",
-    "vue": "2.7.16",
-    "vue-color": "^2.8.1",
-    "vue-echarts": "7.0.3",
-    "vue-select": "3.20.3",
-    "vue2-ace-editor": "^0.0.15",
-    "vue2-dropzone": "^3.6.0",
-    "vue2-leaflet": "^2.7.1",
-    "vuedraggable": "^2.24.3",
-    "vuex": "^3.6.2",
-    "websocket-extensions": "^0.1.4"
+    "@cortezaproject/corteza-js-next": "workspace:*"
   },
-  "devDependencies": {
-    "@babel/core": "^7.26.7",
-    "@babel/eslint-parser": "^7.26.5",
-    "@babel/plugin-transform-class-properties": "^7.25.9",
-    "@babel/plugin-transform-private-methods": "^7.25.9",
-    "@babel/plugin-transform-private-property-in-object": "^7.25.9",
-    "@babel/preset-env": "^7.26.7",
-    "@rollup/plugin-babel": "^6.0.4",
-    "@rollup/plugin-commonjs": "^25.0.0",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.0",
-    "@types/chai": "^5.0.1",
-    "@types/chai-as-promised": "^8.0.1",
-    "@types/leaflet": "^1.9.16",
-    "@types/lodash": "^4.17.15",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^22.13.10",
-    "@types/qs": "^6.9.0",
-    "@typescript-eslint/eslint-plugin": "^8.22.0",
-    "@typescript-eslint/parser": "^8.22.0",
-    "@vue/eslint-config-standard": "^8.0.1",
-    "chai": "^5.1.2",
-    "chai-as-promised": "^8.0.1",
-    "eslint": "^8.7.2",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-import-resolver-typescript": "^3.7.0",
-    "eslint-plugin-import": "^2.31.0",
-    "eslint-plugin-json": "^4.0.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^7.2.1",
-    "eslint-plugin-standard": "^5.0.0",
-    "eslint-plugin-vue": "^9.32.0",
-    "esm": "^3.2.25",
-    "i18next-pseudo": "^2.2.1",
-    "mocha": "^11.1.0",
-    "node-watch": "^0.7.4",
-    "nodemon": "^3.1.9",
-    "rollup": "^4.32.1",
-    "rollup-plugin-import-css": "^3.0.0",
-    "rollup-plugin-styles": "^4.0.0",
-    "rollup-plugin-typescript2": "^0.36.0",
-    "rollup-plugin-vue": "^5.1.9",
-    "sass": "^1.85.1",
-    "sinon": "^9.2.4",
-    "source-map-support": "^0.5.21",
-    "tsx": "^4.19.2",
-    "typescript": "^5.0.0",
-    "vue-eslint-parser": "^9.4.3",
-    "vue-property-decorator": "^8.3.0",
-    "vue-template-compiler": "2.7.16"
-  },
-  "stylelint": {
-    "plugins": [
-      "stylelint-scss"
-    ],
-    "extends": "stylelint-config-standard",
-    "rules": {
-      "color-hex-length": null,
-      "no-empty-source": null
-    }
-  },
-  "engines": {
-    "node": ">=20.18.2"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ],
-  "browser": {
-    "fs": false,
-    "path": false
+  "peerDependencies": {
+    "lodash-es": "^4.17.0",
+    "vue": "^3.5.0",
+    "vue-i18n": "^11.0.0",
+    "axios": "^1.0.0",
+    "qs": "^6.0.0",
+    "@primeuix/themes": ">=1.0.0"
   }
 }

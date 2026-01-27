@@ -31,7 +31,7 @@ export interface RawRevisionPayload {
   }>;
 }
 
-function isRawRevisionPayload (raw: unknown): raw is RawRevisionPayload {
+function isRawRevisionPayload(raw: unknown): raw is RawRevisionPayload {
   if (!raw || typeof raw !== 'object') {
     console.warn('not an object', raw)
     return false
@@ -50,7 +50,7 @@ function isRawRevisionPayload (raw: unknown): raw is RawRevisionPayload {
   return true
 }
 
-export function convertRevisionPayloadToRevision (payload: unknown, validChangeKeys: string[]): Array<Revision> {
+export function convertRevisionPayloadToRevision(payload: unknown, validChangeKeys: string[]): Array<Revision> {
   if (!isRawRevisionPayload(payload)) {
     throw new Error('Invalid revision payload')
   }

@@ -18,7 +18,7 @@ interface Range {
   start: Date;
 }
 
-export async function RecordFeed ($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, options = {}): Promise<any[]> {
+export async function RecordFeed($ComposeAPI: ComposeAPI, module: Module, namespace: Namespace, feed: Feed, options = {}): Promise<any[]> {
   // Params for record fetching
   const params = {
     namespaceID: namespace.namespaceID,

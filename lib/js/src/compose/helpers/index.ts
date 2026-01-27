@@ -2,7 +2,7 @@ import yaml from 'js-yaml'
 import fs from 'fs'
 import { Module } from '../types/module'
 
-export function getModuleFromYaml (moduleName: string, yamlPath: string): Module|undefined {
+export function getModuleFromYaml(moduleName: string, yamlPath: string): Module|undefined {
   const data = yaml.loadAll(fs.readFileSync(yamlPath, 'utf8')) as Array<{ modules: { [key: string]: any } }>
   const mod = data[0].modules[moduleName]
   if (mod) {

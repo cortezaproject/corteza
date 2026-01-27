@@ -28,12 +28,12 @@ export class ModuleFieldUser extends ModuleField {
 
   options: UserOptions = { ...defaults() }
 
-  constructor (i?: Partial<ModuleFieldUser>) {
+  constructor(i?: Partial<ModuleFieldUser>) {
     super(i)
     this.applyOptions(i?.options)
   }
 
-  applyOptions (o?: Partial<UserOptions>): void {
+  applyOptions(o?: Partial<UserOptions>): void {
     if (!o) return
     super.applyOptions(o)
 
@@ -50,7 +50,7 @@ export class ModuleFieldUser extends ModuleField {
     }, 'roles')
   }
 
-  formatter ({ userID, name, username, email, handle }: Partial<User> = {}): string {
+  formatter({ userID, name, username, email, handle }: Partial<User> = {}): string {
     return name || username || email || handle || userID || ''
   }
 }

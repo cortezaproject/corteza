@@ -28,7 +28,7 @@ describe('shared', () => {
   })
 
   describe('generic permission updater', () => {
-    it('should do group by role and make multiple calls to the API (one per role', async () => {
+    it('should do group by role and make multiple calls to the API (one per role', async() => {
       const API = stubObject<SystemAPI>(new SystemAPI({}))
 
       await genericPermissionUpdater(API, [

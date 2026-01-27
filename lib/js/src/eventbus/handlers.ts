@@ -2,17 +2,17 @@ import { ConstraintMaker, ConstraintMatcher } from './constraints'
 import { Event, HandlerFn, onManual, Trigger } from './shared'
 
 // Dummy handler, can be used for tests
-export async function DummyHandler (): Promise<undefined> { return undefined }
+export async function DummyHandler(): Promise<undefined> { return undefined }
 
 export class Handler {
-  readonly resourceTypes: string[];
-  readonly eventTypes: string[];
-  readonly constraints: ConstraintMatcher[];
-  readonly weight: number;
-  readonly handle: HandlerFn;
+  readonly resourceTypes: string[]
+  readonly eventTypes: string[]
+  readonly constraints: ConstraintMatcher[]
+  readonly weight: number
+  readonly handle: HandlerFn
   readonly scriptName?: string
 
-  constructor (h: HandlerFn, t: Trigger) {
+  constructor(h: HandlerFn, t: Trigger) {
     this.handle = h
     this.eventTypes = t.eventTypes
     this.resourceTypes = t.resourceTypes
@@ -28,7 +28,7 @@ export class Handler {
    * @param {Event} ev
    * @return bool
    */
-  Match (ev: Event, script?: string): boolean {
+  Match(ev: Event, script?: string): boolean {
     if (!this.eventTypes.includes(ev.eventType)) {
       return false
     }
@@ -53,7 +53,7 @@ export class Handler {
     return true
   }
 
-  Handle (ev: Event): Promise<unknown> {
+  Handle(ev: Event): Promise<unknown> {
     return this.handle(ev)
   }
 }

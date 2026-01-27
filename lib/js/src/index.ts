@@ -1,28 +1,39 @@
 /**
- * Exporting compose-related symbols, events...
+ * @cortezaproject/corteza-js-next
+ *
+ * Core JavaScript/TypeScript library for Corteza
+ * Provides API clients, type definitions, utilities, and models
  */
-import { NoID } from './cast'
-import * as eventbus from './eventbus'
-import * as corredor from './corredor'
-import * as validator from './validator/validator'
-import * as compose from './compose'
-import * as system from './system'
-import * as reporter from './reporter'
-import * as automation from './automation'
-import * as shared from './shared'
-import * as apiClients from './api-clients'
-import * as fmt from './formatting'
 
-export {
-  eventbus,
-  corredor,
-  validator,
-  compose,
-  system,
-  reporter,
-  automation,
-  shared,
-  apiClients,
-  NoID,
-  fmt,
-}
+// Core utilities
+export { NoID } from './cast'
+
+// Event bus for client-side event handling
+export * as eventbus from './eventbus'
+
+// Corredor automation scripting support
+export * as corredor from './corredor'
+
+// Validation utilities
+export * as validator from './validator/validator'
+
+// Compose module (records, modules, namespaces, pages, charts, etc.)
+export * as compose from './compose'
+
+// System module (users, roles, applications, settings, etc.)
+export * as system from './system'
+
+// Reporter module (reports, data sources, etc.)
+export * as reporter from './reporter'
+
+// Automation module (workflows, triggers, etc.)
+export * as automation from './automation'
+
+// Shared utilities and types
+export * as shared from './shared'
+
+// API Clients for backend communication
+export * as apiClients from './api-clients'
+
+// Formatting utilities (dates, numbers, etc.)
+export * as fmt from './formatting'

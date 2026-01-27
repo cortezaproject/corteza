@@ -1,55 +1,58 @@
+import lodash from 'lodash-es'
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
-import { IsOf, AreObjectsOf } from '../../guards'
+import { AreObjectsOf, IsOf } from '../../guards'
 import { PageBlock, PageBlockMaker } from './page-block'
-import lodash from 'lodash'
 const { merge } = lodash
 
-interface PartialPage extends Partial<Omit<Page, 'children' | 'meta' | 'blocks' |'createdAt' | 'updatedAt' | 'deletedAt'>> {
-  children?: Array<PartialPage>;
+interface PartialPage
+  extends Partial<
+    Omit<Page, 'children' | 'meta' | 'blocks' | 'createdAt' | 'updatedAt' | 'deletedAt'>
+  > {
+  children?: Array<PartialPage>
 
-  blocks?: PageBlock[];
+  blocks?: PageBlock[]
 
-  meta?: PageMeta;
+  meta?: PageMeta
 
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
 }
 
 interface PageMeta {
   notifications: {
-    enabled: boolean;
-  };
+    enabled: boolean
+  }
 }
 
 interface PageConfig {
   navItem: {
     icon: {
-      type: string;
-      src: string;
-    };
-    expanded: false;
-  };
+      type: string
+      src: string
+    }
+    expanded: false
+  }
 }
 
 export class Page {
-  public pageID = NoID;
-  public selfID = NoID;
-  public moduleID = NoID;
-  public namespaceID = NoID;
+  public pageID = NoID
+  public selfID = NoID
+  public moduleID = NoID
+  public namespaceID = NoID
 
-  public title = '';
-  public handle = '';
-  public description = '';
-  public weight = 0;
+  public title = ''
+  public handle = ''
+  public description = ''
+  public weight = 0
 
   public labels: object = {}
 
-  public visible = false;
+  public visible = false
 
-  public children?: Page[];
+  public children?: Page[]
 
-  public blocks: PageBlock[] = [];
+  public blocks: PageBlock[] = []
 
   public config: PageConfig = {
     navItem: {
@@ -65,25 +68,25 @@ export class Page {
     notifications: {
       enabled: true,
     },
-  };
+  }
 
-  public createdAt?: Date = undefined;
-  public updatedAt?: Date = undefined;
-  public deletedAt?: Date = undefined;
+  public createdAt?: Date = undefined
+  public updatedAt?: Date = undefined
+  public deletedAt?: Date = undefined
 
-  public canUpdatePage = false;
-  public canDeletePage = false;
-  public canGrant = false;
+  public canUpdatePage = false
+  public canDeletePage = false
+  public canGrant = false
 
-  constructor (i?: PartialPage) {
+  constructor(i?: PartialPage) {
     this.apply(i)
   }
 
-  clone (): Page {
+  clone(): Page {
     return new Page(JSON.parse(JSON.stringify(this)))
   }
 
-  apply (i?: PartialPage): void {
+  apply(i?: PartialPage): void {
     if (!i) return
 
     Apply(this, i, CortezaID, 'pageID', 'selfID', 'moduleID', 'namespaceID')
@@ -115,39 +118,35 @@ export class Page {
     }
 
     Apply(this, i, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt')
-    Apply(this, i, Boolean,
-      'canUpdatePage',
-      'canDeletePage',
-      'canGrant',
-    )
+    Apply(this, i, Boolean, 'canUpdatePage', 'canDeletePage', 'canGrant')
   }
 
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.pageID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'compose:page'
   }
 
-  get isRecordPage (): boolean {
+  get isRecordPage(): boolean {
     return this.moduleID !== NoID
   }
 
-  get firstLevel (): boolean {
+  get firstLevel(): boolean {
     return this.selfID === NoID
   }
 
   /**
    * Validates page & it's blocks
    */
-  validate (): Array<string> {
+  validate(): Array<string> {
     const ee: Array<string> = []
 
     if (this.blocks.length === 0) {
@@ -161,7 +160,7 @@ export class Page {
     return ee
   }
 
-  export (): PartialPage {
+  export(): PartialPage {
     return {
       title: this.title,
       handle: this.handle,

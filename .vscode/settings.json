@@ -1,0 +1,65 @@
+{
+  // Linting and formatting on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // Tab and indentation settings (2 spaces)
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+
+  // Vue.js specific settings
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "typescript.suggest.paths": false,
+  "javascript.suggest.paths": false,
+
+  // Disable TypeScript auto-formatting that might conflict with Prettier
+  "typescript.format.enable": false,
+  "javascript.format.enable": false,
+  "typescript.preferences.quoteStyle": "single",
+  "javascript.preferences.quoteStyle": "single",
+
+  // Tailwind CSS IntelliSense
+  "tailwindCSS.includeLanguages": {
+    "vue": "html",
+    "javascript": "javascript",
+    "typescript": "typescript"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    ["class:\\s*?[\"'`]([^\"'`]*).*?[\"'`]", "[\"'`]([^\"'`]*)[\"'`]"],
+    ["classList\\.add\\(([^)]*)\\)", "['|\"`]([^'\"]*)[\"'`]"]
+  ],
+
+  // File associations
+  "files.associations": {
+    "*.vue": "vue"
+  },
+
+  // Auto-save and other editor improvements
+  "editor.minimap.enabled": false,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+  "editor.suggestSelection": "first",
+
+  // Performance optimizations
+  "typescript.preferences.includePackageJsonAutoImports": "auto"
+}

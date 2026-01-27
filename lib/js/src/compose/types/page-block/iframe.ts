@@ -26,12 +26,12 @@ export class PageBlockIFrame extends PageBlock {
 
   options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     Apply(this.options, o, String, 'srcField', 'src', 'wrap', 'magnifyOption')

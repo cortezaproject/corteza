@@ -1,17 +1,9 @@
-import { BaseChart, PartialChart } from './base'
-import {
-  Dimension,
-  Metric,
-  Report,
-  ChartType,
-  formatChartValue,
-  formatChartTooltip,
-  TooltipParams,
-} from './util'
 import { getColorschemeColors } from '../../../shared'
+import { BaseChart, PartialChart } from './base'
+import { ChartType, Dimension, Metric, Report, TooltipParams, formatChartValue } from './util'
 
 export default class FunnelChart extends BaseChart {
-  constructor (def: PartialChart = {}) {
+  constructor(def: PartialChart = {}) {
     super(def)
 
     // Assure required fields; this helps with backwards compatibility
@@ -37,7 +29,7 @@ export default class FunnelChart extends BaseChart {
   /**
    * Since funnel charts always define one type, this check can be simplified
    */
-  mtrCheck ({ field, aggregate }: Metric) {
+  mtrCheck({ field, aggregate }: Metric) {
     if (!field) {
       throw new Error('notification.chart.invalidConfig.missingMetricsField')
     }
@@ -51,7 +43,7 @@ export default class FunnelChart extends BaseChart {
    * For example:
    * We wish to show only new and converted leads.
    */
-  formatReporterParams (r: Report) {
+  formatReporterParams(r: Report) {
     const base = super.formatReporterParams(r)
     const ff = base.filter
 
@@ -60,8 +52,7 @@ export default class FunnelChart extends BaseChart {
       const rd = r.dimensions[0]
       if (r.dimensions[0].meta) {
         const fields = r.dimensions[0].meta.fields || []
-        df = fields.map(({ value }: any) => `${rd.field || ''}='${value}'`)
-          .join(' OR ')
+        df = fields.map(({ value }: any) => `${rd.field || ''}='${value}'`).join(' OR ')
       }
     }
 
@@ -75,7 +66,7 @@ export default class FunnelChart extends BaseChart {
   }
 
   // Funnel chart creates a metric including all reports, so this step is deferred to there
-  makeDataset (m: Metric, d: Dimension, data: Array<number|any>, alias: string) {
+  makeDataset(m: Metric, d: Dimension, data: Array<number | any>, alias: string) {
     return {
       type: m.type,
       label: m.label || m.field,
@@ -88,7 +79,7 @@ export default class FunnelChart extends BaseChart {
     }
   }
 
-  makeOptions (data: any) {
+  makeOptions(data: any) {
     const { reports = [], colorScheme, noAnimation = false, toolbox } = this.config
     const { saveAsImage } = toolbox || {}
 
@@ -179,7 +170,7 @@ export default class FunnelChart extends BaseChart {
     }
   }
 
-  baseChartType (): string {
+  baseChartType(): string {
     return 'funnel'
   }
 
@@ -188,8 +179,8 @@ export default class FunnelChart extends BaseChart {
    * * generate a set of labels based on all reports, all data sets,
    * * generates a set of data based on all reports, all data sets,
    */
-  async fetchReports (a: any) {
-    const rr = await super.fetchReports(a) as any
+  async fetchReports(a: any) {
+    const rr = (await super.fetchReports(a)) as any
     const values = []
 
     let tooltip = {}
@@ -233,10 +224,12 @@ export default class FunnelChart extends BaseChart {
     const labels: any[] = []
     const data: any[] = []
 
-    values.sort((a, b) => a.data - b.data).forEach(v => {
-      labels.push(v.label)
-      data.push(v.data)
-    })
+    values
+      .sort((a, b) => a.data - b.data)
+      .forEach(v => {
+        labels.push(v.label)
+        data.push(v.data)
+      })
 
     // Determine color to render for specific value
     const colorMap: { [_: string]: string } = {}
@@ -258,16 +251,18 @@ export default class FunnelChart extends BaseChart {
 
     return {
       labels,
-      datasets: [{
-        label,
-        data,
-        formatting,
-      }],
+      datasets: [
+        {
+          label,
+          data,
+          formatting,
+        },
+      ],
       tooltip,
     }
   }
 
-  isCumulative (): boolean {
+  isCumulative(): boolean {
     // Cumulative true by default
     // Find false value
     let cumulative = true
@@ -282,7 +277,7 @@ export default class FunnelChart extends BaseChart {
     return cumulative
   }
 
-  defMetric (): Metric {
+  defMetric(): Metric {
     return Object.assign(super.defMetric(), {
       type: ChartType.funnel,
       fixTooltips: false,
@@ -290,10 +285,13 @@ export default class FunnelChart extends BaseChart {
     })
   }
 
-  defDimension (): Dimension {
-    return Object.assign({}, {
-      conditions: {},
-      meta: { fields: [] },
-    })
+  defDimension(): Dimension {
+    return Object.assign(
+      {},
+      {
+        conditions: {},
+        meta: { fields: [] },
+      },
+    )
   }
 }

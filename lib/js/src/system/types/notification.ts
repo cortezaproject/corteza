@@ -44,11 +44,11 @@ export class Notification {
   public updatedAt?: Date = undefined
   public deletedAt?: Date = undefined
 
-  constructor (n?: PartialNotification) {
+  constructor(n?: PartialNotification) {
     this.apply(n)
   }
 
-  apply (n?: PartialNotification): void {
+  apply(n?: PartialNotification): void {
     if (!n) return
 
     Apply(this, n, CortezaID, 'notificationID', 'recipient', 'createdBy')
@@ -63,18 +63,18 @@ export class Notification {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.notificationID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'system:notification'
   }
 
-  clone (): Notification {
+  clone(): Notification {
     return new Notification(JSON.parse(JSON.stringify(this)))
   }
 }

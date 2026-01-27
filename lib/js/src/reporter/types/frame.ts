@@ -14,20 +14,20 @@ export interface FramePaging {
 }
 
 export class FrameDefinition {
-  name?: string;
-  source?: string;
-  ref?: string;
+  name?: string
+  source?: string
+  ref?: string
 
-  sort?: string;
-  filter?: FilterDefinition;
+  sort?: string
+  filter?: FilterDefinition
   paging?: FramePaging
 
-  refValue?: string;
-  relColumn?: string;
-  relSource?: string;
+  refValue?: string
+  relColumn?: string
+  relSource?: string
 
-  columns?: Array<FrameColumn>;
-  rows?: Array<string>;
+  columns?: Array<FrameColumn>
+  rows?: Array<string>
 }
 
 export interface DefinitionOptions {

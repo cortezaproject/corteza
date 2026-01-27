@@ -13,11 +13,11 @@ export class Param {
   public isArray = false
   public meta: Partial<ParamMeta> = {}
 
-  constructor (u?: Partial<Param>) {
+  constructor(u?: Partial<Param>) {
     this.apply(u)
   }
 
-  apply (u?: Partial<Param>): void {
+  apply(u?: Partial<Param>): void {
     Apply(this, u, String, 'name')
     Apply(this, u, Boolean, 'required', 'isArray')
 

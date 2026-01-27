@@ -1,8 +1,10 @@
+import lodash from 'lodash-es'
 import { IsOf } from '../guards'
-import lodash from 'lodash'
 const { merge } = lodash
 
-interface Meta { [key: string]: unknown }
+interface Meta {
+  [key: string]: unknown
+}
 
 export class ValidatorError {
   /**
@@ -21,7 +23,7 @@ export class ValidatorError {
    */
   readonly meta: Meta = {}
 
-  constructor (i: string | { kind: string; message?: string; meta?: Meta }) {
+  constructor(i: string | { kind: string; message?: string; meta?: Meta }) {
     if (typeof i === 'string') {
       this.kind = i
       this.message = i
@@ -35,40 +37,45 @@ export class ValidatorError {
   }
 }
 
-const ValidatorFalseDefaultError = Object.freeze(new ValidatorError({
-  message: 'Internal error',
-  kind: 'internal',
-}))
+const ValidatorFalseDefaultError = Object.freeze(
+  new ValidatorError({
+    message: 'Internal error',
+    kind: 'internal',
+  }),
+)
 
 interface ValidatorRawResult {
-  kind: string;
-  message?: string;
-  meta?: Meta;
+  kind: string
+  message?: string
+  meta?: Meta
 }
 
 interface ValidatorResultGetter {
-  get (): ValidatorError[];
+  get(): ValidatorError[]
 }
 
 /**
  * Supporting as much as we can so that we can make script-developer's life as easy as possible
  */
 export type ValidatorResult =
-  ValidatorResultGetter |
+  | ValidatorResultGetter
 
   // raw pojo results { err: 'error' }
-  ValidatorRawResult |
+  | ValidatorRawResult
 
   // error(s)
-  ValidatorError[] | ValidatorError |
+  | ValidatorError[]
+  | ValidatorError
 
   // when true its converted to ValidatorFalseDefaultError by Validated class
-  boolean |
+  | boolean
 
   // boolean false or any of the rest will result in no error
-  null | undefined | void
+  | null
+  | undefined
+  | void
 
-export function NormalizeValidatorResults (...r: ValidatorResult[]): ValidatorError[] {
+export function NormalizeValidatorResults(...r: ValidatorResult[]): ValidatorError[] {
   const out: ValidatorError[] = []
 
   r.forEach(r => {
@@ -79,11 +86,10 @@ export function NormalizeValidatorResults (...r: ValidatorResult[]): ValidatorEr
 
     if (Array.isArray(r)) {
       // Expand & normalize each item...
-      out.push(...(NormalizeValidatorResults(...(r as ValidatorError[]))))
+      out.push(...NormalizeValidatorResults(...(r as ValidatorError[])))
       return
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-use-before-define
     if (r instanceof Validated) {
       out.push(...r.get())
       return
@@ -107,7 +113,7 @@ export function NormalizeValidatorResults (...r: ValidatorResult[]): ValidatorEr
 }
 
 interface FilterValidatedFn {
-  (w: ValidatorError): boolean;
+  (w: ValidatorError): boolean
 }
 
 /**
@@ -116,27 +122,27 @@ interface FilterValidatedFn {
 export class Validated {
   protected set: ValidatorError[] = []
 
-  constructor (...r: ValidatorResult[]) {
+  constructor(...r: ValidatorResult[]) {
     this.push(...r)
   }
 
-  public get (): ValidatorError[] {
+  public get(): ValidatorError[] {
     return this.set
   }
 
-  public get length (): number {
+  public get length(): number {
     return this.set.length
   }
 
-  public valid (): boolean {
+  public valid(): boolean {
     return this.length === 0
   }
 
-  public push (...r: ValidatorResult[]): void {
+  public push(...r: ValidatorResult[]): void {
     this.set.push(...NormalizeValidatorResults(...r))
   }
 
-  public applyMeta (meta: Meta): void {
+  public applyMeta(meta: Meta): void {
     this.set = this.set.map(r => {
       const appliedMeta = { ...r, meta: { ...r.meta, ...meta } }
 
@@ -148,7 +154,7 @@ export class Validated {
     })
   }
 
-  public filter (fn: FilterValidatedFn): Validated {
+  public filter(fn: FilterValidatedFn): Validated {
     return new Validated(this.set.filter(fn))
   }
 
@@ -160,18 +166,18 @@ export class Validated {
    * @param {string} key
    * @param {unknown} value
    */
-  public filterByMeta (key: string, value?: unknown): Validated {
-    return this.filter(
-      (err) => (value === undefined ? err.meta[key] !== undefined : err.meta[key] === value),
+  public filterByMeta(key: string, value?: unknown): Validated {
+    return this.filter(err =>
+      value === undefined ? err.meta[key] !== undefined : err.meta[key] === value,
     )
   }
 }
 
 export interface ValidatorFn<T> {
-  (this: T, ...args: unknown[]): ValidatorResult;
+  (this: T, ...args: unknown[]): ValidatorResult
 }
 
-export function IsEmpty (v: unknown): boolean {
+export function IsEmpty(v: unknown): boolean {
   if (!v || (IsOf(v, 'length') && v.length && v.length === 0)) {
     return true
   }
@@ -189,7 +195,7 @@ export function IsEmpty (v: unknown): boolean {
  * @param {string|string[]} v2 Value to compare to
  * @returns {boolean}
  */
-export function AreEqual (v1: string|string[], v2: string|string[]): boolean {
+export function AreEqual(v1: string | string[], v2: string | string[]): boolean {
   if (Array.isArray(v1)) {
     if (!Array.isArray(v2) || v1.length !== v2.length) {
       return false
@@ -212,17 +218,17 @@ export class Validator<T> {
    */
   protected registered: ValidatorFn<T>[] = []
 
-  constructor (...vfn: ValidatorFn<T>[]) {
+  constructor(...vfn: ValidatorFn<T>[]) {
     if (vfn) {
       this.registered.push(...vfn)
     }
   }
 
-  public push (...vfn: ValidatorFn<T>[]): void {
+  public push(...vfn: ValidatorFn<T>[]): void {
     this.registered.push(...vfn)
   }
 
-  public run (target: T, ...args: unknown[]): Validated {
+  public run(target: T, ...args: unknown[]): Validated {
     return new Validated(...this.registered.map(vfn => vfn.call(target, ...args)))
   }
 }

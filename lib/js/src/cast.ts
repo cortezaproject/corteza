@@ -13,7 +13,7 @@ const uint64zeropad = '00000000000000000000'
  */
 export const NoID = '0'
 
-export function ISO8601Date (ts?: unknown): Date|undefined {
+export function ISO8601Date(ts?: unknown): Date|undefined {
   if (ts instanceof Date) {
     return ts
   }
@@ -44,7 +44,7 @@ interface Caster<T> {
 /**
  * Casts value to <type> or returns default
  */
-export function PropCast<T> (type: Caster<T>, o: {[_: string]: unknown}|undefined, prop: string): T|undefined {
+export function PropCast<T>(type: Caster<T>, o: {[_: string]: unknown}|undefined, prop: string): T|undefined {
   if (o === undefined || Object.prototype.hasOwnProperty.call(o, prop)) {
     return undefined
   }
@@ -57,7 +57,7 @@ export function PropCast<T> (type: Caster<T>, o: {[_: string]: unknown}|undefine
  * @param ID
  * @constructor
  */
-export function IsCortezaID (ID: unknown): boolean {
+export function IsCortezaID(ID: unknown): boolean {
   if (typeof ID !== 'string') {
     return false
   }
@@ -72,7 +72,7 @@ export function IsCortezaID (ID: unknown): boolean {
 /**
  * @return {string}
  */
-export function CortezaID (value: unknown): string {
+export function CortezaID(value: unknown): string {
   if (!value) {
     return NoID
   }
@@ -100,7 +100,7 @@ interface ApplyCaster {
  *
  * A casting function can be used (see ApplyCaster) to modify the values before assigning them
  */
-export function Apply<DST, SRC, T extends keyof DST> (dst: DST, src: SRC, cast: ApplyCaster|keyof DST, ...props: (keyof DST)[]): void {
+export function Apply<DST, SRC, T extends keyof DST>(dst: DST, src: SRC, cast: ApplyCaster|keyof DST, ...props: (keyof DST)[]): void {
   if (typeof cast !== 'function') {
     // Handle case where we do not use caster
     props.unshift(cast)
@@ -147,7 +147,7 @@ export function Apply<DST, SRC, T extends keyof DST> (dst: DST, src: SRC, cast: 
   })
 }
 
-export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST> (dst: DST, src: SRC, whitelist: (DST[T])[], ...props: (keyof DST)[]): void {
+export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST>(dst: DST, src: SRC, whitelist: (DST[T])[], ...props: (keyof DST)[]): void {
   if (typeof src !== 'object') {
     return
   }
@@ -180,7 +180,7 @@ export function ApplyWhitelisted<DST, SRC, WL, T extends keyof DST> (dst: DST, s
   })
 }
 
-export function makeIDSortable (ID?: string): string {
+export function makeIDSortable(ID?: string): string {
   // We're using uint64 for CortezaID and JavaScript does not know how to handle this type
   // natively. We get the value from backend as string anyway and we need to prefix
   // it with '0' to ensure string sorting does what we need it to.

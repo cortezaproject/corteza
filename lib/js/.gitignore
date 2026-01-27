@@ -7,6 +7,9 @@ coverage
 .nyc_output
 package-lock.json
 
+# Prevent rollup output artifacts in src/
+src/*.map
+
 # Editor directories and files
 .idea
 .vscode

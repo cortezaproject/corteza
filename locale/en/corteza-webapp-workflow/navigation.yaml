@@ -6,7 +6,6 @@ help:
   version: 'Version:'
 userSettings:
   changePassword: Change password
-  loggedInAs: Logged in as {{user}}
   logout: Logout
   profile: Profile
   theme: Theme

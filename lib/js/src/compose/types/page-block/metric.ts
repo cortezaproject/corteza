@@ -1,48 +1,48 @@
-import { PageBlock, PageBlockInput, Registry } from './base'
-import lodash from 'lodash'
-const { merge } = lodash
+import lodash from 'lodash-es'
 import { Apply } from '../../../cast'
+import { PageBlock, PageBlockInput, Registry } from './base'
 import { Options as PageBlockRecordListOptions } from './record-list'
+const { merge } = lodash
 const kind = 'Metric'
 
 type Reporter = (p: ReporterParams) => Promise<any>
 
 interface DrillDown {
-  enabled: boolean;
-  blockID: string;
-  recordListOptions: Partial<PageBlockRecordListOptions>;
+  enabled: boolean
+  blockID: string
+  recordListOptions: Partial<PageBlockRecordListOptions>
 }
 
 interface ReporterParams {
-  moduleID: string;
-  filter?: string;
-  metrics?: string;
-  dimensions: string;
+  moduleID: string
+  filter?: string
+  metrics?: string
+  dimensions: string
 }
 
 interface Style {
-  color: string;
-  backgroundColor: string;
-  fontSize?: string;
+  color: string
+  backgroundColor: string
+  fontSize?: string
 }
 
 interface Metric {
-  label: string;
-  moduleID: string;
-  dimensionField: string;
-  dateFormat?: string;
-  filter?: string;
-  bucketSize?: string;
-  metricField: string;
-  operation: string;
-  numberFormat?: string;
-  prefix?: string;
-  suffix?: string;
-  transformFx?: string;
+  label: string
+  moduleID: string
+  dimensionField: string
+  dateFormat?: string
+  filter?: string
+  bucketSize?: string
+  metricField: string
+  operation: string
+  numberFormat?: string
+  prefix?: string
+  suffix?: string
+  transformFx?: string
 
   // @todo allow conditional styles; eg. if value is < 10 render with bold red text
-  valueStyle?: Style;
-  drillDown: DrillDown;
+  valueStyle?: Style
+  drillDown: DrillDown
 }
 
 const defaultMetric: Readonly<Metric> = Object.freeze({
@@ -75,10 +75,10 @@ const defaultMetric: Readonly<Metric> = Object.freeze({
 })
 
 interface Options {
-  metrics: Array<Metric>;
-  refreshRate: number;
-  showRefresh: boolean;
-  magnifyOption: string;
+  metrics: Array<Metric>
+  refreshRate: number
+  showRefresh: boolean
+  magnifyOption: string
 }
 
 const defaults: Readonly<Options> = Object.freeze({
@@ -93,27 +93,27 @@ export class PageBlockMetric extends PageBlock {
 
   options: Options = { ...defaults }
 
-  constructor (i?: PageBlockInput) {
+  constructor(i?: PageBlockInput) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
     Apply(this.options, o, Number, 'refreshRate')
     Apply(this.options, o, Boolean, 'showRefresh')
     Apply(this.options, o, String, 'magnifyOption')
     if (o.metrics) {
-      this.options.metrics = o.metrics.map((m) => merge({}, defaultMetric, m))
+      this.options.metrics = o.metrics.map(m => merge({}, defaultMetric, m))
     }
   }
 
   /**
    * Helper function to fetch and parse reporter's reports.
    */
-  async fetch ({ m }: { m: Metric }, reporter: Reporter): Promise<object> {
+  async fetch({ m }: { m: Metric }, reporter: Reporter): Promise<object> {
     const w = await reporter(this.formatParams(m))
-    const datasets = w.map((r: any) => r.rp !== undefined ? r.rp : r.count)
+    const datasets = w.map((r: any) => (r.rp !== undefined ? r.rp : r.count))
 
     let rtr: number
     if (m.operation === 'max') {
@@ -127,8 +127,7 @@ export class PageBlockMetric extends PageBlock {
     }
 
     if (m.transformFx) {
-      // eslint-disable-next-line no-new-func
-      rtr = (new Function('v', `return ${m.transformFx}`))(rtr)
+      rtr = new Function('v', `return ${m.transformFx}`)(rtr)
     }
 
     return [{ value: rtr }]
@@ -137,7 +136,7 @@ export class PageBlockMetric extends PageBlock {
   /**
    * Helper to construct reporter's params
    */
-  private formatParams ({ moduleID, filter, metricField, operation = '' }: Metric): ReporterParams {
+  private formatParams({ moduleID, filter, metricField, operation = '' }: Metric): ReporterParams {
     let metrics = ''
 
     if (operation && metricField && metricField !== 'count') {
@@ -153,7 +152,7 @@ export class PageBlockMetric extends PageBlock {
     }
   }
 
-  makeMetric () {
+  makeMetric() {
     return merge({}, defaultMetric)
   }
 }

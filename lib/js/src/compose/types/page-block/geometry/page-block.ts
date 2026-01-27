@@ -47,12 +47,12 @@ export class PageBlockGeometry extends PageBlock {
     record: 'compose:record',
   })
 
-  constructor (i?: PageBlock | Partial<PageBlock>) {
+  constructor(i?: PageBlock | Partial<PageBlock>) {
     super(i)
     this.applyOptions(i?.options as Partial<Options>)
   }
 
-  applyOptions (o?: Partial<Options>): void {
+  applyOptions(o?: Partial<Options>): void {
     if (!o) return
 
     this.options.feeds = (o.feeds || []).map(f => new Feed(f))
@@ -64,7 +64,7 @@ export class PageBlockGeometry extends PageBlock {
     Apply(this.options, o, Boolean, 'lockBounds', 'showRefresh', 'hideGeoSearch')
   }
 
-  static makeFeed (f?: FeedInput): Feed {
+  static makeFeed(f?: FeedInput): Feed {
     return new Feed(f)
   }
 

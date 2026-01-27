@@ -1,30 +1,31 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
-import { IsOf, AreStrings } from '../../guards'
+import { AreStrings, IsOf } from '../../guards'
 
-interface PartialUser extends Partial<Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
-  createdAt?: string|number|Date;
-  updatedAt?: string|number|Date;
-  deletedAt?: string|number|Date;
-  suspendedAt?: string|number|Date;
+interface PartialUser
+  extends Partial<Omit<User, 'createdAt' | 'updatedAt' | 'deletedAt' | 'suspendedAt'>> {
+  createdAt?: string | number | Date
+  updatedAt?: string | number | Date
+  deletedAt?: string | number | Date
+  suspendedAt?: string | number | Date
 }
 
 interface UserMeta {
-  preferredLanguage?: string;
-  securityPolicy?: SecurityPolicy;
-  avatarID?: string;
-  avatarKind?: string;
-  avatarColor?: string;
-  avatarBgColor?: string;
-  theme?: string;
+  preferredLanguage?: string
+  securityPolicy?: SecurityPolicy
+  avatarID?: string
+  avatarKind?: string
+  avatarColor?: string
+  avatarBgColor?: string
+  theme?: string
 }
 
 interface SecurityPolicy {
-  mfa: MFA;
+  mfa: MFA
 }
 
 interface MFA {
-  enforcedEmailOTP: boolean;
-  enforcedTOTP: boolean;
+  enforcedEmailOTP: boolean
+  enforcedTOTP: boolean
 }
 
 export class User {
@@ -60,11 +61,11 @@ export class User {
   public suspendedAt?: Date = undefined
   public roles?: Array<string>
 
-  constructor (u?: PartialUser) {
+  constructor(u?: PartialUser) {
     this.apply(u)
   }
 
-  apply (u?: PartialUser): void {
+  apply(u?: PartialUser): void {
     Apply(this, u, CortezaID, 'userID', 'userGroupID')
     Apply(this, u, String, 'handle', 'username', 'email', 'name')
     Apply(this, u, ISO8601Date, 'createdAt', 'updatedAt', 'deletedAt', 'suspendedAt')
@@ -89,32 +90,28 @@ export class User {
   /**
    * Returns resource ID
    */
-  get resourceID (): string {
+  get resourceID(): string {
     return `${this.resourceType}:${this.userID}`
   }
 
   /**
    * Resource type
    */
-  get resourceType (): string {
+  get resourceType(): string {
     return 'system:user'
   }
 
-  get fts (): string {
-    return [
-      this.name,
-      this.username,
-      this.handle,
-      this.email,
-      this.userID,
-    ].join(' ').toLocaleLowerCase()
+  get fts(): string {
+    return [this.name, this.username, this.handle, this.email, this.userID]
+      .join(' ')
+      .toLocaleLowerCase()
   }
 
-  clone (): User {
+  clone(): User {
     return new User(JSON.parse(JSON.stringify(this)))
   }
 
-  properties (): string[] {
+  properties(): string[] {
     return [
       'userID',
       'handle',

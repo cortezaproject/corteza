@@ -1,443 +1,324 @@
 <template>
-  <div class="header-navigation d-flex flex-wrap align-items-center py-2 pl-3 pr-2 gap-2">
+  <div
+    class="header-navigation flex flex-wrap items-center py-2 px-3 gap-2 border-b border-surface"
+  >
+    <div class="sidebar-spacer" :class="{ block: sidebarExpanded, hidden: !sidebarExpanded }" />
+
     <div
-      class="sidebar-spacer"
-      :class="{ 'expanded': expanded }"
+      id="topbar-title"
+      class="title flex text-truncate items-center text-2xl font-medium mb-0"
     />
 
-    <h2 class="title mb-0">
-      <slot name="title" />
-    </h2>
-
-    <div class="tools-wrapper ml-auto">
+    <div id="topbar-tools" class="tools-wrapper ml-auto flex items-center gap-2">
       <slot name="tools" />
     </div>
 
-    <div class="d-flex align-items-center ml-auto gap-1">
-      <b-button
-        v-if="!hideAppSelector && !settings.hideAppSelector"
+    <div class="flex items-center gap-1">
+      <Button
+        v-if="!hideAppSelector && !settings?.hideAppSelector"
         data-test-id="app-selector"
-        variant="outline-extra-light"
         :href="appSelectorURL"
-        class="text-dark border-0 px-1"
+        severity="secondary"
+        variant="text"
+        size="small"
+        class="mr-[-0.5rem]"
       >
         {{ labels.appMenu }}
-      </b-button>
+      </Button>
 
       <slot name="right-tools" />
 
-      <c-notification-button
-        v-if="!settings.hideNotifications"
-      />
-
-      <b-dropdown
-        v-if="!settings.hideHelp"
-        data-test-id="dropdown-helper"
-        size="lg"
-        variant="outline-extra-light"
-        toggle-class="text-decoration-none text-dark rounded-circle border-0 w-100"
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
-        right
-        no-caret
-        class="nav-icon text-sm-nowrap"
-      >
-        <template #button-content>
-          <div
-            class="d-flex align-items-center justify-content-center"
-          >
-            <font-awesome-icon
-              class="m-0 h5"
-              :icon="['far', 'question-circle']"
-            />
-            <span class="sr-only">
-              {{ labels.helpForum }}
-            </span>
-          </div>
-        </template>
-
-        <div>
-          <slot name="help-dropdown" />
-        </div>
-
-        <b-dropdown-item
-          v-for="(helpLink, index) in helpLinks"
-          :key="index"
-          :href="helpLink.url | checkValidURL"
-          :target="helpLink.newTab ? '_blank' : ''"
-        >
-          {{ helpLink.handle }}
-        </b-dropdown-item>
-
-        <b-dropdown-item
-          v-if="!settings.hideForumLink"
-          data-test-id="dropdown-helper-forum"
-          href="https://forum.cortezaproject.org/"
-          target="_blank"
-        >
-          {{ labels.helpForum }}
-        </b-dropdown-item>
-
-        <b-dropdown-item
-          v-if="!settings.hideDocumentationLink"
-          data-test-id="dropdown-helper-docs"
-          :href="documentationURL"
-          target="_blank"
-        >
-          {{ labels.helpDocumentation }}
-        </b-dropdown-item>
-
-        <b-dropdown-item
-          v-if="!settings.hideFeedbackLink"
-          data-test-id="dropdown-helper-feedback"
-          href="mailto:info@cortezaproject.org"
-          target="_blank"
-        >
-          {{ labels.helpFeedback }}
-        </b-dropdown-item>
-
-        <b-dropdown-divider
-          v-if="!onlyVersion"
+      <div v-if="!settings?.hideHelp" class="help-dropdown">
+        <Button
+          ref="helpMenuRef"
+          data-test-id="dropdown-helper"
+          icon="pi pi-question-circle"
+          size="large"
+          severity="secondary"
+          variant="text"
+          rounded
+          @click="toggleHelpMenu"
         />
-        <b-dropdown-item
-          disabled
-          class="small"
+
+        <Menu ref="helpMenu" :model="helpMenuItems" :popup="true" class="mt-2" />
+      </div>
+
+      <div v-if="!settings?.hideProfile" class="profile-dropdown">
+        <Button
+          ref="profileMenuRef"
+          data-test-id="dropdown-profile"
+          rounded
+          variant="outlined"
+          icon="pi pi-user"
+          severity="secondary"
+          size="large"
+          class="text-color"
+          :class="{ 'p-0': avatar }"
+          @click="toggleProfileMenu"
         >
-          {{ labels.helpVersion }}
-          <br>
-          {{ frontendVersion }}
-        </b-dropdown-item>
-      </b-dropdown>
+          <template v-if="avatar" #default>
+            <Avatar :image="avatar" shape="circle" class="w-full h-full" />
+          </template>
+        </Button>
 
-      <b-dropdown
-        v-if="!settings.hideProfile"
-        data-test-id="dropdown-profile"
-        :variant="avatarExists ? 'link' : 'outline-extra-light'"
-        :toggle-class="`nav-icon text-decoration-none text-dark rounded-circle border ${avatarExists ? 'p-0' : ''}`"
-        size="lg"
-        right
-        menu-class="topbar-dropdown-menu border-0 shadow-sm text-dark mt-2"
-        no-caret
-        class="nav-user-icon"
-        @hide="preventDropdownClose"
-      >
-        <template #button-content>
-          <div
-            v-if="avatarExists"
-            class="avatar d-flex h-100"
-            :style="{
-              'background-image': avatarExists ? `url(${profileAvatarUrl})` : 'none',
-            }"
-          />
-
-          <div
-            v-else
-            class="d-flex align-items-center justify-content-center"
-          >
-            <font-awesome-icon
-              class="m-0 h5"
-              :icon="['far', 'user']"
-            />
-            <span class="sr-only">
-              {{ labels.helpForum }}
-            </span>
-          </div>
-        </template>
-
-        <b-dropdown-text
-          data-test-id="dropdown-item-username"
-          class="text-muted mb-2"
-        >
-          {{ labels.userSettingsLoggedInAs }}
-        </b-dropdown-text>
-
-        <div>
-          <slot name="avatar-dropdown" />
-        </div>
-
-        <b-dropdown-item
-          v-for="(profileLink, index) in profileLinks"
-          :key="index"
-          :href="profileLink.url | checkValidURL"
-          :target="profileLink.newTab ? '_blank' : ''"
-        >
-          {{ profileLink.handle }}
-        </b-dropdown-item>
-
-        <b-dropdown-item
-          v-if="!settings.hideProfileLink"
-          data-test-id="dropdown-profile-user"
-          :href="userProfileURL"
-          target="_blank"
-        >
-          {{ labels.userSettingsProfile }}
-        </b-dropdown-item>
-
-        <b-dropdown-item
-          v-if="!settings.hideChangePasswordLink"
-          data-test-id="dropdown-profile-change-password"
-          :href="changePasswordURL"
-          target="_blank"
-        >
-          {{ labels.userSettingsChangePassword }}
-        </b-dropdown-item>
-
-        <b-dropdown
-          v-if="!settings.hideThemeSelector"
-          id="theme-dropleft"
-          variant="link"
-          :text="labels.userSettingsTheme"
-          dropleft
-          no-caret
-          toggle-class="text-decoration-none text-left dropdown-item rounded-0"
-          class="d-flex"
-          @show="isThemeDropdownVisible = true"
-          @hide="isThemeDropdownVisible = false"
-          @click.prevent.stop
-        >
-          <b-dropdown-item-button
-            v-for="theme in themes"
-            :key="theme.id"
-            :disabled="currentTheme === theme.id"
-            @click="saveThemeMode(theme.id)"
-          >
-            {{ theme.label }}
-          </b-dropdown-item-button>
-        </b-dropdown>
-
-        <b-dropdown-divider />
-
-        <b-dropdown-item-button
-          data-test-id="dropdown-profile-logout"
-          class="mt-2"
-          @click="$auth.logout()"
-        >
-          {{ labels.userSettingsLogout }}
-        </b-dropdown-item-button>
-      </b-dropdown>
+        <TieredMenu ref="profileMenu" :model="profileMenuItems" popup />
+      </div>
     </div>
   </div>
 </template>
 
-<script>
-import { library } from '@fortawesome/fontawesome-svg-core'
-import { faMoon, faSun } from '@fortawesome/free-solid-svg-icons'
-import CNotificationButton from '../notifications/CNotificationButton.vue'
+<script setup>
+import Avatar from 'primevue/avatar'
+import Button from 'primevue/button'
+import Menu from 'primevue/menu'
+import TieredMenu from 'primevue/tieredmenu'
+import { computed, inject, ref, watch } from 'vue'
 
-library.add(faMoon, faSun)
-
-export default {
-  components: {
-    CNotificationButton,
+const props = defineProps({
+  sidebarExpanded: {
+    type: Boolean,
+    default: false,
   },
-
-  props: {
-    expanded: {
-      type: Boolean,
-      default: false,
-    },
-
-    hideAppSelector: {
-      type: Boolean,
-      required: false,
-      default: false,
-    },
-
-    appSelectorURL: {
-      type: String,
-      default: '../',
-    },
-
-    settings: {
-      type: Object,
-      required: true,
-    },
-
-    labels: {
-      type: Object,
-      required: true,
-    },
+  hideAppSelector: {
+    type: Boolean,
+    default: false,
   },
-  data () {
-    return {
-      currentTheme: 'light',
-      isThemeDropdownVisible: false,
-    }
+  appSelectorURL: {
+    type: String,
+    default: '../',
   },
-
-  computed: {
-    userProfileURL () {
-      return this.$auth.cortezaAuthURL
-    },
-
-    changePasswordURL () {
-      return `${this.$auth.cortezaAuthURL}/change-password`
-    },
-
-    documentationURL () {
-      /* eslint-disable no-undef */
-      const [year, month] = VERSION.split('.')
-      return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/index.html`
-    },
-
-    helpLinks () {
-      const { helpLinks = [] } = this.settings || {}
-      return (helpLinks || []).filter(({ handle, url }) => handle && url)
-    },
-
-    profileLinks () {
-      const { profileLinks = [] } = this.settings || {}
-      return (profileLinks || []).filter(({ handle, url }) => handle && url)
-    },
-
-    onlyVersion () {
-      const {
-        hideForumLink,
-        hideDocumentationLink,
-        hideFeedbackLink,
-      } = this.settings || {}
-
-      return !this.helpLinks.length && hideForumLink && hideDocumentationLink && hideFeedbackLink
-    },
-
-    frontendVersion () {
-      /* eslint-disable no-undef */
-      return VERSION
-    },
-
-    profileAvatarUrl () {
-      return `${this.$SystemAPI.baseURL}/attachment/avatar/${this.$auth.user.meta.avatarID}/original/profile-photo-avatar`
-    },
-
-    avatarExists () {
-      return this.$auth.user.meta.avatarID !== '0' && this.$auth.user.meta.avatarID
-    },
-
-    themes () {
-      return [
-        {
-          id: 'light',
-          label: this.labels.lightTheme,
-        },
-        {
-          id: 'dark',
-          label: this.labels.darkTheme,
-        },
-      ]
-    },
+  labels: {
+    type: Object,
+    required: true,
   },
+})
 
-  watch: {
-    '$auth.user.meta.theme': {
-      immediate: true,
-      handler (theme) {
-        this.currentTheme = theme
-      },
-    },
+const $Auth = inject('$Auth')
+const $Settings = inject('$Settings')
+
+const settings = computed(() => {
+  return $Settings.get('ui.topbar', {})
+})
+
+const helpMenuRef = ref()
+const helpMenu = ref()
+const profileMenuRef = ref()
+const profileMenu = ref()
+
+// Make theme reactive by using a ref
+const currentTheme = ref($Auth.user?.meta?.theme || '')
+
+// Watch for changes in the auth user's theme
+watch(
+  () => $Auth.user?.meta?.theme,
+  newTheme => {
+    currentTheme.value = newTheme || ''
   },
+  { immediate: true },
+)
 
-  methods: {
-    async saveThemeMode (theme) {
-      this.currentTheme = theme
-      this.$set(this.$auth.user.meta, 'theme', theme)
+const documentationURL = computed(() => {
+  // eslint-disable-next-line no-undef
+  const [year, month] = VERSION.split('.')
+  return `https://docs.cortezaproject.org/corteza-docs/${year}.${month}/index.html`
+})
 
-      this.$SystemAPI.userUpdate(this.$auth.user).then(() => {
-        document.getElementsByTagName('html')[0].setAttribute('data-color-mode', theme)
-      }).catch(console.error)
-    },
+const helpLinks = computed(() => {
+  const { helpLinks = [] } = props.settings || {}
+  return (helpLinks || []).filter(({ handle, url }) => handle && url)
+})
 
-    preventDropdownClose (e) {
-      if (this.isThemeDropdownVisible) {
-        e.preventDefault()
-      }
-    },
+const profileLinks = computed(() => {
+  const { profileLinks = [] } = props.settings || {}
+  return (profileLinks || []).filter(({ handle, url }) => handle && url)
+})
+
+const buildVersion = computed(() => {
+  // eslint-disable-next-line no-undef
+  return VERSION
+})
+
+const themes = computed(() => [
+  {
+    id: 'light',
+    label: props.labels.lightTheme,
   },
+  {
+    id: 'dark',
+    label: props.labels.darkTheme,
+  },
+])
+
+const helpMenuItems = computed(() => {
+  const items = []
+
+  helpLinks.value.forEach(helpLink => {
+    items.push({
+      label: helpLink.handle,
+      url: helpLink.url,
+      target: helpLink.newTab ? '_blank' : '',
+    })
+  })
+
+  if (!props.settings?.hideForumLink) {
+    items.push({
+      label: props.labels.helpForum,
+      url: 'https://forum.cortezaproject.org/',
+      target: '_blank',
+    })
+  }
+
+  if (!props.settings?.hideDocumentationLink) {
+    items.push({
+      label: props.labels.helpDocumentation,
+      url: documentationURL.value,
+      target: '_blank',
+    })
+  }
+
+  if (!props.settings?.hideFeedbackLink) {
+    items.push({
+      label: props.labels.helpFeedback,
+      url: 'mailto:info@cortezaproject.org',
+      target: '_blank',
+    })
+  }
+
+  if (items.length > 0) {
+    items.push({ separator: true })
+  }
+
+  items.push({
+    label: buildVersion.value,
+    disabled: true,
+    class: 'text-sm',
+  })
+
+  return items
+})
+
+const profileMenuItems = computed(() => {
+  const items = []
+
+  if ($Auth.user.name) {
+    items.push({
+      label: $Auth.user.name,
+      disabled: true,
+      class: 'font-bold',
+    })
+  }
+
+  if ($Auth.user.email) {
+    items.push({
+      label: $Auth.user.email,
+      disabled: true,
+      class: 'text-sm text-muted-color mb-2 -mt-2',
+    })
+  }
+
+  profileLinks.value.forEach(profileLink => {
+    items.push({
+      label: profileLink.handle,
+      url: profileLink.url,
+      target: profileLink.newTab ? '_blank' : '',
+    })
+  })
+
+  if (!props.settings?.hideProfileLink) {
+    items.push({
+      label: props.labels.userSettingsProfile,
+      url: $Auth.cortezaAuthURL,
+      target: '_blank',
+      icon: 'pi pi-user',
+    })
+  }
+
+  if (!props.settings?.hideChangePasswordLink) {
+    items.push({
+      label: props.labels.userSettingsChangePassword,
+      url: `${$Auth.cortezaAuthURL}/change-password`,
+      target: '_blank',
+      icon: 'pi pi-key',
+    })
+  }
+
+  if (!props.settings?.hideThemeSelector) {
+    items.push({
+      label: props.labels.userSettingsTheme,
+      items: themes.value.map(theme => ({
+        label: theme.label,
+        disabled: currentTheme.value === theme.id,
+        icon: `pi pi-${theme.id === 'light' ? 'sun' : 'moon'}`,
+        command: () => changeTheme(theme.id),
+      })),
+      icon: 'pi pi-palette',
+    })
+  }
+
+  items.push({ separator: true })
+
+  items.push({
+    label: props.labels.userSettingsLogout,
+    icon: 'pi pi-sign-out',
+    command: () => logout(),
+  })
+
+  return items
+})
+
+const avatar = computed(() => {
+  return `${$SystemAPI.baseURL}/attachment/avatar/${$Auth.user.meta.avatarID}/original/profile-photo-avatar`
+})
+
+const toggleHelpMenu = event => {
+  helpMenu.value.toggle(event)
+}
+
+const toggleProfileMenu = event => {
+  profileMenu.value.toggle(event)
+}
+
+const $SystemAPI = inject('$SystemAPI')
+
+import { useTheme } from '../../composables/useTheme'
+
+const changeTheme = theme => {
+  $Auth.user.meta.theme = theme
+  currentTheme.value = theme
+  useTheme(theme)
+  $SystemAPI.userUpdate($Auth.user)
+}
+
+const logout = () => {
+  $Auth.logout()
 }
 </script>
 
-<style lang="scss" scoped>
-$nav-icon-size: calc(var(--topbar-height) - 24px);
-$nav-user-icon-size: calc(var(--topbar-height) - 16px);
-
-.nav-icon {
-  width: $nav-icon-size;
-  height: $nav-icon-size;
-}
-
-.nav-user-icon {
-  min-width: $nav-user-icon-size;
-  min-height: $nav-user-icon-size;
-}
-
+<style scoped>
 .header-navigation {
   width: 100vw;
   min-height: var(--topbar-height);
   background-color: var(--topbar-bg);
-
-  .sidebar-spacer {
-    display: none;
-    min-width: calc(var(--sidebar-width) - 60px);
-
-    @media (min-width: 1024px) {
-      &.expanded {
-        display: block;
-      }
-    }
-  }
 }
 
-.avatar {
-  border-radius: 50%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
+.sidebar-spacer {
+  min-width: calc(var(--sidebar-width) - 92px);
+}
 
-  &:hover {
-    opacity: 0.8;
-    transition: opacity .25s ease-in-out;
-    -moz-transition: opacity .25s ease-in-out;
-    -webkit-transition: opacity .25s ease-in-out;
-  }
+.nav-icon {
+  width: calc(var(--topbar-height) - 24px);
+  height: calc(var(--topbar-height) - 24px);
 }
 
 .title {
+  min-height: calc(var(--topbar-height) - 15px);
+}
+
+.tools-wrapper > :deep(*) {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  min-height: $nav-user-icon-size;
-  padding-left: 47px;
-
-  > * {
-    padding: 0.25rem 0;
-    display: -webkit-box; /* For Safari and old versions of Chrome */
-    display: -ms-flexbox; /* For old versions of IE */
-    -webkit-box-orient: vertical; /* For Safari and old versions of Chrome */
-    -webkit-line-clamp: 3; /* Maximum number of lines to display */
-    line-clamp: 3; /* Maximum number of lines to display */
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-}
-
-.tools-wrapper {
-  flex-grow: 1;
-
-  > * {
-    display: flex;
-    justify-content: end;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-}
-</style>
-
-<style lang="scss">
-.topbar-dropdown-menu {
-  z-index: 1051;
-}
-
-#theme-dropleft {
-  .btn {
-    font-family: var(--font-regular);
-  }
+  flex-wrap: wrap;
 }
 
 </style>
