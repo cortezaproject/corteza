@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 )
 
@@ -31,4 +32,24 @@ func parseStringsInput(ss []string, p interface{}) (err error) {
 	}
 
 	return json.Unmarshal([]byte(ss[0]), &p)
+}
+
+func ParseNgAutomationMeta(ss []string) (p *NgAutomationMeta, err error) {
+	p = &NgAutomationMeta{}
+	return p, parseStringsInput(ss, p)
+}
+
+func ParseNgAutomationTriggerSet(ss []string) (p NgAutomationTriggerSet, err error) {
+	p = NgAutomationTriggerSet{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseNgAutomationStepSet(ss []string) (p NgAutomationStepSet, err error) {
+	p = NgAutomationStepSet{}
+	return p, parseStringsInput(ss, &p)
+}
+
+func ParseNgAutomationPathSet(ss []string) (p NgAutomationPathSet, err error) {
+	p = NgAutomationPathSet{}
+	return p, parseStringsInput(ss, &p)
 }

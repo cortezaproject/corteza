@@ -10,6 +10,26 @@ package types
 
 type (
 
+	// NgAutomationSet slice of NgAutomation
+	//
+	// This type is auto-generated.
+	NgAutomationSet []*NgAutomation
+
+	// NgAutomationPathSet slice of NgAutomationPath
+	//
+	// This type is auto-generated.
+	NgAutomationPathSet []*NgAutomationPath
+
+	// NgAutomationStepSet slice of NgAutomationStep
+	//
+	// This type is auto-generated.
+	NgAutomationStepSet []*NgAutomationStep
+
+	// NgAutomationTriggerSet slice of NgAutomationTrigger
+	//
+	// This type is auto-generated.
+	NgAutomationTriggerSet []*NgAutomationTrigger
+
 	// SessionSet slice of Session
 	//
 	// This type is auto-generated.
@@ -50,6 +70,204 @@ type (
 	// This type is auto-generated.
 	WorkflowStepSet []*WorkflowStep
 )
+
+// Walk iterates through every slice item and calls w(NgAutomation) err
+//
+// This function is auto-generated.
+func (set NgAutomationSet) Walk(w func(*NgAutomation) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(NgAutomation) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set NgAutomationSet) Filter(f func(*NgAutomation) (bool, error)) (out NgAutomationSet, err error) {
+	var ok bool
+	out = NgAutomationSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set NgAutomationSet) FindByID(ID uint64) *NgAutomation {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set NgAutomationSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(NgAutomationPath) err
+//
+// This function is auto-generated.
+func (set NgAutomationPathSet) Walk(w func(*NgAutomationPath) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(NgAutomationPath) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set NgAutomationPathSet) Filter(f func(*NgAutomationPath) (bool, error)) (out NgAutomationPathSet, err error) {
+	var ok bool
+	out = NgAutomationPathSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(NgAutomationStep) err
+//
+// This function is auto-generated.
+func (set NgAutomationStepSet) Walk(w func(*NgAutomationStep) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(NgAutomationStep) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set NgAutomationStepSet) Filter(f func(*NgAutomationStep) (bool, error)) (out NgAutomationStepSet, err error) {
+	var ok bool
+	out = NgAutomationStepSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set NgAutomationStepSet) FindByID(ID uint64) *NgAutomationStep {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set NgAutomationStepSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(NgAutomationTrigger) err
+//
+// This function is auto-generated.
+func (set NgAutomationTriggerSet) Walk(w func(*NgAutomationTrigger) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(NgAutomationTrigger) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set NgAutomationTriggerSet) Filter(f func(*NgAutomationTrigger) (bool, error)) (out NgAutomationTriggerSet, err error) {
+	var ok bool
+	out = NgAutomationTriggerSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set NgAutomationTriggerSet) FindByID(ID uint64) *NgAutomationTrigger {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set NgAutomationTriggerSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
 
 // Walk iterates through every slice item and calls w(Session) err
 //

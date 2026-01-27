@@ -22,3 +22,16 @@ func AutomationWorkflowRbacReferences(workflow string) (res *Ref, pp []*Ref, err
 
 	return
 }
+
+// AutomationNgAutomationRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func AutomationNgAutomationRbacReferences(ngAutomation string) (res *Ref, pp []*Ref, err error) {
+	if ngAutomation != "*" {
+		res = &Ref{ResourceType: types.NgAutomationResourceType, Identifiers: MakeIdentifiers(ngAutomation)}
+	}
+
+	return
+}

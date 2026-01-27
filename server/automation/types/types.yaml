@@ -13,3 +13,12 @@ types:
   WorkflowStep: {}
   Session: {}
   State: {}
+
+  NgAutomation:
+    pkgID: true
+  NgAutomationTrigger:
+    pkgID: true
+  NgAutomationStep:
+    pkgID: true
+  NgAutomationPath:
+    noIdField: true

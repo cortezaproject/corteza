@@ -53,6 +53,36 @@ func WorkflowRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for NgAutomation by calling NgAutomationRbacResource fn
+//
+// RBAC resource is in the corteza::automation:ng-automation/... format
+//
+// This function is auto-generated
+func (r NgAutomation) RbacResource() string {
+	return NgAutomationRbacResource(r.ID)
+}
+
+// NgAutomationRbacResource returns string representation of RBAC resource for NgAutomation
+//
+// RBAC resource is in the corteza::automation:ng-automation/... format
+//
+// This function is auto-generated
+func NgAutomationRbacResource(id uint64) string {
+	cpts := []interface{}{NgAutomationResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(NgAutomationRbacResourceTpl(), cpts...)
+
+}
+
+func NgAutomationRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::automation/... format

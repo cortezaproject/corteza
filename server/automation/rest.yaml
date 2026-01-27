@@ -363,3 +363,104 @@ endpoints:
         type: rbac.RuleSet
         required: true
         title: List of permission rules to set
+
+###########################################################################
+# NG ENDPOINTS
+###########################################################################
+
+- title: NgAutomations
+  path: "/ng-automation"
+  entrypoint: ngAutomation
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza/server/pkg/expr
+    - github.com/cortezaproject/corteza/server/automation/types
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+  apis:
+  - name: list
+    method: GET
+    title: List automations
+    path: "/"
+    parameters:
+      get:
+      - { name: automationID,  type: "[]string",          title: "Filter by automation ID" }
+      - { name: query,       type: "string",            title: "Filter automation" }
+      - { name: deleted,     type: "uint",              title: "Exclude (0, default), include (1) or return only (2) deleted automation" }
+      - { name: disabled,    type: "uint",              title: "Exclude (0, default), include (1) or return only (2) disabled automation" }
+      - { name: labels,      type: "map[string]labelTypes.LabelValue", title: "Labels", parser: "label.ParseStrings" }
+      - { name: limit,       type: "uint",              title: "Limit" }
+      - { name: incTotal,    type: "bool",              title: "Include total rows counter" }
+      - { name: pageCursor,  type: "string",            title: "Page cursor" }
+      - { name: sort,        type: "string",            title: "Sort items" }
+  - name: create
+    method: POST
+    title: Create automation
+    path: "/"
+    parameters:
+      post:
+      - { name: handle,       type: string,                     title: "NgAutomation name" }
+      - { name: labels,       type: "map[string]labelTypes.LabelValue",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,         type: "*types.NgAutomationMeta",      title: "NgAutomation meta data",             parser: "types.ParseNgAutomationMeta" }
+      - { name: enabled,      type: bool,                       title: "Is automation enabled" }
+      - { name: scope,        type: "*expr.Vars",               title: "NgAutomation meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: triggers,     type: "types.NgAutomationTriggerSet",    title: "NgAutomation steps definition",      parser: "types.ParseNgAutomationTriggerSet" }
+      - { name: steps,        type: "types.NgAutomationStepSet",    title: "NgAutomation steps definition",      parser: "types.ParseNgAutomationStepSet" }
+      - { name: paths,        type: "types.NgAutomationPathSet",    title: "NgAutomation step paths definition", parser: "types.ParseNgAutomationPathSet" }
+      - { name: runAs,        type: uint64, required: true,     title: "Is automation enabled" }
+      - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the automation" }
+  - name: update
+    method: PUT
+    title: Update triger details
+    path: "/{automationID}"
+    parameters:
+      path: [ { name: automationID, type: uint64, required: true, title: "NgAutomation ID" } ]
+      post:
+      - { name: handle,       type: string,                     title: "NgAutomation name" }
+      - { name: labels,       type: "map[string]labelTypes.LabelValue",        title: "Labels",                         parser: "label.ParseStrings" }
+      - { name: meta,         type: "*types.NgAutomationMeta",      title: "NgAutomation meta data",             parser: "types.ParseNgAutomationMeta" }
+      - { name: enabled,      type: bool,                       title: "Is automation enabled" }
+      - { name: scope,        type: "*expr.Vars",               title: "NgAutomation meta data",             parser: "types.ParseWorkflowVariables" }
+      - { name: triggers,     type: "types.NgAutomationTriggerSet",    title: "NgAutomation steps definition",      parser: "types.ParseNgAutomationTriggerSet" }
+      - { name: steps,        type: "types.NgAutomationStepSet",    title: "NgAutomation steps definition",      parser: "types.ParseNgAutomationStepSet" }
+      - { name: paths,        type: "types.NgAutomationPathSet",    title: "NgAutomation step paths definition", parser: "types.ParseNgAutomationPathSet" }
+      - { name: runAs,        type: uint64, required: true,     title: "Is automation enabled" }
+      - { name: ownedBy,      type: uint64, required: true,     title: "Owner of the automation" }
+      - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
+  - name: read
+    method: GET
+    title: Read automation details
+    path: "/{automationID}"
+    parameters: { path: [ { name: automationID, type: uint64, required: true, title: "NgAutomation ID" } ] }
+  - name: delete
+    method: DELETE
+    title: Remove automation
+    path: "/{automationID}"
+    parameters: { path: [ { name: automationID, type: uint64, required: true, title: "NgAutomation ID" } ] }
+  - name: undelete
+    method: POST
+    title: Undelete automation
+    path: "/{automationID}/undelete"
+    parameters: { path: [ { name: automationID, type: uint64, required: true, title: "NgAutomation ID" } ] }
+  - name: test
+    method: POST
+    title: Test automation details
+    path: "/{automationID}/test"
+    parameters:
+      path: [ { name: automationID, type: uint64, required: true, title: "NgAutomation ID" } ]
+      post:
+      - { name: scope,    type: "*expr.Vars",           title: "NgAutomation meta data",              parser: "types.ParseWorkflowVariables" }
+      - { name: runAs,    type: bool,   required: true, title: "Is automation enabled" }
+  - name: exec
+    method: POST
+    title: Executes automation on a specific step (must be orphan step and connected to 'onManual' trigger)
+    path: "/{automationID}/exec"
+    parameters:
+      path: [ { name: automationID, type: uint64, required: true, title: "NgAutomation ID" } ]
+      post:
+       - { name: stepID,     type: uint64, required: true, title: "Step ID" }
+       - { name: input,      type: "*expr.Vars",           title: "Input", parser: "types.ParseWorkflowVariables" }
+       - { name: trace,      type: bool,                   title: "Trace ngAutomation execution" }
+       - { name: wait,       type: bool,                   title: "Wait for ngAutomation to complete" }
+       - { name: async,      type: bool,                   title: "Execute step and return immediately" }

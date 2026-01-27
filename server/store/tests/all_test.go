@@ -41,6 +41,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("authSession", func(t *testing.T) {
 		testAuthSessions(t, s)
 	})
+	t.Run("automationNgAutomation", func(t *testing.T) {
+		testAutomationNgAutomations(t, s)
+	})
 	t.Run("automationSession", func(t *testing.T) {
 		testAutomationSessions(t, s)
 	})

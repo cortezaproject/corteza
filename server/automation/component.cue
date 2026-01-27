@@ -11,6 +11,8 @@ component: schema.#component & {
 		"workflow": workflow
 		"session":  session
 		"trigger":  trigger
+
+		"ng-automation": ng_automation
 	}
 
 	rbac: operations: {
@@ -19,6 +21,8 @@ component: schema.#component & {
 		"triggers.search": description:              "List, search or filter triggers"
 		"sessions.search": description:              "List, search or filter sessions"
 		"workflows.search": description:             "List, search or filter workflows"
+		"ng-automation.create": description:         "Create workflows"
+		"ng-automations.search": description:        "List, search or filter workflows"
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
 	}
 }

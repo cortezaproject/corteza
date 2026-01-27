@@ -53,6 +53,7 @@ type (
 		AuthConfirmedClients
 		AuthOa2tokens
 		AuthSessions
+		AutomationNgAutomations
 		AutomationSessions
 		AutomationTriggers
 		AutomationWorkflows
@@ -213,6 +214,19 @@ type (
 		LookupAuthSessionByID(ctx context.Context, id string) (*systemType.AuthSession, error)
 		DeleteExpiredAuthSessions(ctx context.Context) error
 		DeleteAuthSessionsByUserID(ctx context.Context, userID uint64) error
+	}
+
+	AutomationNgAutomations interface {
+		SearchAutomationNgAutomations(ctx context.Context, f automationType.NgAutomationFilter) (automationType.NgAutomationSet, automationType.NgAutomationFilter, error)
+		CreateAutomationNgAutomation(ctx context.Context, rr ...*automationType.NgAutomation) error
+		UpdateAutomationNgAutomation(ctx context.Context, rr ...*automationType.NgAutomation) error
+		UpsertAutomationNgAutomation(ctx context.Context, rr ...*automationType.NgAutomation) error
+		DeleteAutomationNgAutomation(ctx context.Context, rr ...*automationType.NgAutomation) error
+
+		DeleteAutomationNgAutomationByID(ctx context.Context, id uint64) error
+		TruncateAutomationNgAutomations(ctx context.Context) error
+		LookupAutomationNgAutomationByID(ctx context.Context, id uint64) (*automationType.NgAutomation, error)
+		LookupAutomationNgAutomationByHandle(ctx context.Context, handle string) (*automationType.NgAutomation, error)
 	}
 
 	AutomationSessions interface {
@@ -1303,6 +1317,73 @@ func DeleteExpiredAuthSessions(ctx context.Context, s AuthSessions) error {
 // This function is auto-generated
 func DeleteAuthSessionsByUserID(ctx context.Context, s AuthSessions, userID uint64) error {
 	return s.DeleteAuthSessionsByUserID(ctx, userID)
+}
+
+// SearchAutomationNgAutomations returns all matching AutomationNgAutomations from store
+//
+// This function is auto-generated
+func SearchAutomationNgAutomations(ctx context.Context, s AutomationNgAutomations, f automationType.NgAutomationFilter) (automationType.NgAutomationSet, automationType.NgAutomationFilter, error) {
+	return s.SearchAutomationNgAutomations(ctx, f)
+}
+
+// CreateAutomationNgAutomation creates one or more AutomationNgAutomations in store
+//
+// This function is auto-generated
+func CreateAutomationNgAutomation(ctx context.Context, s AutomationNgAutomations, rr ...*automationType.NgAutomation) error {
+	return s.CreateAutomationNgAutomation(ctx, rr...)
+}
+
+// UpdateAutomationNgAutomation updates one or more (existing) AutomationNgAutomations in store
+//
+// This function is auto-generated
+func UpdateAutomationNgAutomation(ctx context.Context, s AutomationNgAutomations, rr ...*automationType.NgAutomation) error {
+	return s.UpdateAutomationNgAutomation(ctx, rr...)
+}
+
+// UpsertAutomationNgAutomation creates new or updates existing one or more AutomationNgAutomations in store
+//
+// This function is auto-generated
+func UpsertAutomationNgAutomation(ctx context.Context, s AutomationNgAutomations, rr ...*automationType.NgAutomation) error {
+	return s.UpsertAutomationNgAutomation(ctx, rr...)
+}
+
+// DeleteAutomationNgAutomation deletes one or more AutomationNgAutomations from store
+//
+// This function is auto-generated
+func DeleteAutomationNgAutomation(ctx context.Context, s AutomationNgAutomations, rr ...*automationType.NgAutomation) error {
+	return s.DeleteAutomationNgAutomation(ctx, rr...)
+}
+
+// DeleteAutomationNgAutomationByID deletes one or more AutomationNgAutomations from store
+//
+// This function is auto-generated
+func DeleteAutomationNgAutomationByID(ctx context.Context, s AutomationNgAutomations, id uint64) error {
+	return s.DeleteAutomationNgAutomationByID(ctx, id)
+}
+
+// TruncateAutomationNgAutomations Deletes all AutomationNgAutomations from store
+//
+// This function is auto-generated
+func TruncateAutomationNgAutomations(ctx context.Context, s AutomationNgAutomations) error {
+	return s.TruncateAutomationNgAutomations(ctx)
+}
+
+// LookupAutomationNgAutomationByID searches for automation by ID
+//
+// It returns automation even if deleted
+//
+// This function is auto-generated
+func LookupAutomationNgAutomationByID(ctx context.Context, s AutomationNgAutomations, id uint64) (*automationType.NgAutomation, error) {
+	return s.LookupAutomationNgAutomationByID(ctx, id)
+}
+
+// LookupAutomationNgAutomationByHandle searches for automation by their handle
+//
+// It returns only valid automations
+//
+// This function is auto-generated
+func LookupAutomationNgAutomationByHandle(ctx context.Context, s AutomationNgAutomations, handle string) (*automationType.NgAutomation, error) {
+	return s.LookupAutomationNgAutomationByHandle(ctx, handle)
 }
 
 // SearchAutomationSessions returns all matching AutomationSessions from store

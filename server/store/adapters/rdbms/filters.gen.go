@@ -57,6 +57,9 @@ type (
 		// optional authSession filter function called after the generated function
 		AuthSession func(*Store, systemType.AuthSessionFilter) ([]goqu.Expression, systemType.AuthSessionFilter, error)
 
+		// optional automationNgAutomation filter function called after the generated function
+		AutomationNgAutomation func(*Store, automationType.NgAutomationFilter) ([]goqu.Expression, automationType.NgAutomationFilter, error)
+
 		// optional automationSession filter function called after the generated function
 		AutomationSession func(*Store, automationType.SessionFilter) ([]goqu.Expression, automationType.SessionFilter, error)
 
@@ -375,6 +378,44 @@ func AuthSessionFilter(d drivers.Dialect, f systemType.AuthSessionFilter) (ee []
 
 	if f.UserID > 0 {
 		ee = append(ee, goqu.C("rel_user").Eq(f.UserID))
+	}
+
+	return ee, f, err
+}
+
+// AutomationNgAutomationFilter returns logical expressions
+//
+// This function is called from Store.QueryAutomationNgAutomations() and can be extended
+// by setting Store.Filters.AutomationNgAutomation. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func AutomationNgAutomationFilter(d drivers.Dialect, f automationType.NgAutomationFilter) (ee []goqu.Expression, _ automationType.NgAutomationFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if expr := stateFalseComparison(d, "enabled", f.Disabled); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if ss := trimStringSlice(f.AutomationID); len(ss) > 0 {
+		ee = append(ee, goqu.C("id").In(ss))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err

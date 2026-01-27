@@ -137,6 +137,7 @@ func (svc accessControl) Trace(ctx context.Context, userID uint64, roles []uint6
 func (svc accessControl) Resources() []rbac.Resource {
 	return []rbac.Resource{
 		rbac.NewResource(types.WorkflowRbacResource(0)),
+		rbac.NewResource(types.NgAutomationRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -182,6 +183,31 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "sessions.manage",
 		},
 		{
+			"type": types.NgAutomationResourceType,
+			"any":  types.NgAutomationRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.NgAutomationResourceType,
+			"any":  types.NgAutomationRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.NgAutomationResourceType,
+			"any":  types.NgAutomationRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.NgAutomationResourceType,
+			"any":  types.NgAutomationRbacResource(0),
+			"op":   "undelete",
+		},
+		{
+			"type": types.NgAutomationResourceType,
+			"any":  types.NgAutomationRbacResource(0),
+			"op":   "execute",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -205,6 +231,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "workflows.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "ng-automation.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "ng-automations.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -352,6 +388,41 @@ func (svc accessControl) CanManageSessionsOnWorkflow(ctx context.Context, r *typ
 	return svc.can(ctx, "sessions.manage", r)
 }
 
+// CanReadNgAutomation checks if current user can read automation
+//
+// This function is auto-generated
+func (svc accessControl) CanReadNgAutomation(ctx context.Context, r *types.NgAutomation) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateNgAutomation checks if current user can update automation
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateNgAutomation(ctx context.Context, r *types.NgAutomation) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteNgAutomation checks if current user can delete automation
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteNgAutomation(ctx context.Context, r *types.NgAutomation) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanUndeleteNgAutomation checks if current user can undelete automation
+//
+// This function is auto-generated
+func (svc accessControl) CanUndeleteNgAutomation(ctx context.Context, r *types.NgAutomation) bool {
+	return svc.can(ctx, "undelete", r)
+}
+
+// CanExecuteNgAutomation checks if current user can execute automation
+//
+// This function is auto-generated
+func (svc accessControl) CanExecuteNgAutomation(ctx context.Context, r *types.NgAutomation) bool {
+	return svc.can(ctx, "execute", r)
+}
+
 // CanGrant checks if current user can manage automation permissions
 //
 // This function is auto-generated
@@ -392,6 +463,22 @@ func (svc accessControl) CanSearchWorkflows(ctx context.Context) bool {
 	return svc.can(ctx, "workflows.search", r)
 }
 
+// CanCreateNgAutomation checks if current user can create workflows
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateNgAutomation(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "ng-automation.create", r)
+}
+
+// CanSearchNgAutomations checks if current user can list, search or filter workflows
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchNgAutomations(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "ng-automations.search", r)
+}
+
 // CanManageResourceTranslations checks if current user can list, search, create, or update resource translations
 //
 // This function is auto-generated
@@ -407,6 +494,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 	switch rbac.ResourceType(r) {
 	case types.WorkflowResourceType:
 		return rbacWorkflowResourceValidator(r, oo...)
+	case types.NgAutomationResourceType:
+		return rbacNgAutomationResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -440,6 +529,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadWorkflow(ctx, svc.store, ids[0])
+	case types.NgAutomationResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.NgAutomationRbacResource(ids[0])), nil
+		}
+
+		return loadNgAutomation(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -463,6 +558,14 @@ func rbacResourceOperations(r string) map[string]bool {
 			"triggers.manage": true,
 			"sessions.manage": true,
 		}
+	case types.NgAutomationResourceType:
+		return map[string]bool{
+			"read":     true,
+			"update":   true,
+			"delete":   true,
+			"undelete": true,
+			"execute":  true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                        true,
@@ -470,6 +573,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"triggers.search":              true,
 			"sessions.search":              true,
 			"workflows.search":             true,
+			"ng-automation.create":         true,
+			"ng-automations.search":        true,
 			"resource-translations.manage": true,
 		}
 	}
@@ -512,6 +617,51 @@ func rbacWorkflowResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for workflow resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacNgAutomationResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacNgAutomationResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.NgAutomationResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for ngAutomation resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.NgAutomationResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for ngAutomation resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

@@ -1015,6 +1015,138 @@ var (
 		}
 	}
 
+	// automationNgAutomationTable represents automationNgAutomations store table
+	//
+	// This value is auto-generated
+	automationNgAutomationTable = goqu.T("ng_automations")
+
+	// automationNgAutomationSelectQuery assembles select query for fetching automationNgAutomations
+	//
+	// This function is auto-generated
+	automationNgAutomationSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"meta",
+			"enabled",
+			"scope",
+			"triggers",
+			"steps",
+			"paths",
+			"run_as",
+			"owned_by",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(automationNgAutomationTable)
+	}
+
+	// automationNgAutomationInsertQuery assembles query inserting automationNgAutomations
+	//
+	// This function is auto-generated
+	automationNgAutomationInsertQuery = func(d goqu.DialectWrapper, res *automationType.NgAutomation) *goqu.InsertDataset {
+		return d.Insert(automationNgAutomationTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"handle":     res.Handle,
+				"meta":       res.Meta,
+				"enabled":    res.Enabled,
+				"scope":      res.Scope,
+				"triggers":   res.Triggers,
+				"steps":      res.Steps,
+				"paths":      res.Paths,
+				"run_as":     res.RunAs,
+				"owned_by":   res.OwnedBy,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			})
+	}
+
+	// automationNgAutomationUpsertQuery assembles (insert+on-conflict) query for replacing automationNgAutomations
+	//
+	// This function is auto-generated
+	automationNgAutomationUpsertQuery = func(d goqu.DialectWrapper, res *automationType.NgAutomation) *goqu.InsertDataset {
+		var target = `,id`
+
+		return automationNgAutomationInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":     res.Handle,
+						"meta":       res.Meta,
+						"enabled":    res.Enabled,
+						"scope":      res.Scope,
+						"triggers":   res.Triggers,
+						"steps":      res.Steps,
+						"paths":      res.Paths,
+						"run_as":     res.RunAs,
+						"owned_by":   res.OwnedBy,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+						"created_by": res.CreatedBy,
+						"updated_by": res.UpdatedBy,
+						"deleted_by": res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// automationNgAutomationUpdateQuery assembles query for updating automationNgAutomations
+	//
+	// This function is auto-generated
+	automationNgAutomationUpdateQuery = func(d goqu.DialectWrapper, res *automationType.NgAutomation) *goqu.UpdateDataset {
+		return d.Update(automationNgAutomationTable).
+			Set(goqu.Record{
+				"handle":     res.Handle,
+				"meta":       res.Meta,
+				"enabled":    res.Enabled,
+				"scope":      res.Scope,
+				"triggers":   res.Triggers,
+				"steps":      res.Steps,
+				"paths":      res.Paths,
+				"run_as":     res.RunAs,
+				"owned_by":   res.OwnedBy,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			}).
+			Where(automationNgAutomationPrimaryKeys(res))
+	}
+
+	// automationNgAutomationDeleteQuery assembles delete query for removing automationNgAutomations
+	//
+	// This function is auto-generated
+	automationNgAutomationDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(automationNgAutomationTable).Where(ee...)
+	}
+
+	// automationNgAutomationDeleteQuery assembles delete query for removing automationNgAutomations
+	//
+	// This function is auto-generated
+	automationNgAutomationTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(automationNgAutomationTable)
+	}
+
+	// automationNgAutomationPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	automationNgAutomationPrimaryKeys = func(res *automationType.NgAutomation) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// automationSessionTable represents automationSessions store table
 	//
 	// This value is auto-generated

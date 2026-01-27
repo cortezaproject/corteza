@@ -154,6 +154,26 @@ type (
 		CreatedAt  time.Time `db:"created_at"`
 	}
 
+	// auxAutomationNgAutomation is an auxiliary structure used for transporting to/from RDBMS store
+	auxAutomationNgAutomation struct {
+		ID        uint64                                `db:"id"`
+		Handle    string                                `db:"handle"`
+		Meta      *automationType.NgAutomationMeta      `db:"meta"`
+		Enabled   bool                                  `db:"enabled"`
+		Scope     *expr.Vars                            `db:"scope"`
+		Triggers  automationType.NgAutomationTriggerSet `db:"triggers"`
+		Steps     automationType.NgAutomationStepSet    `db:"steps"`
+		Paths     automationType.NgAutomationPathSet    `db:"paths"`
+		RunAs     uint64                                `db:"run_as"`
+		OwnedBy   uint64                                `db:"owned_by"`
+		CreatedAt time.Time                             `db:"created_at"`
+		UpdatedAt *time.Time                            `db:"updated_at"`
+		DeletedAt *time.Time                            `db:"deleted_at"`
+		CreatedBy uint64                                `db:"created_by"`
+		UpdatedBy uint64                                `db:"updated_by"`
+		DeletedBy uint64                                `db:"deleted_by"`
+	}
+
 	// auxAutomationSession is an auxiliary structure used for transporting to/from RDBMS store
 	auxAutomationSession struct {
 		ID           uint64                       `db:"id"`
@@ -1174,6 +1194,77 @@ func (aux *auxAuthSession) scan(row scanner) error {
 		&aux.UserAgent,
 		&aux.ExpiresAt,
 		&aux.CreatedAt,
+	)
+}
+
+// encodes AutomationNgAutomation to auxAutomationNgAutomation
+//
+// This function is auto-generated
+func (aux *auxAutomationNgAutomation) encode(res *automationType.NgAutomation) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Meta = res.Meta
+	aux.Enabled = res.Enabled
+	aux.Scope = res.Scope
+	aux.Triggers = res.Triggers
+	aux.Steps = res.Steps
+	aux.Paths = res.Paths
+	aux.RunAs = res.RunAs
+	aux.OwnedBy = res.OwnedBy
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes AutomationNgAutomation from auxAutomationNgAutomation
+//
+// This function is auto-generated
+func (aux auxAutomationNgAutomation) decode() (res *automationType.NgAutomation, _ error) {
+	res = new(automationType.NgAutomation)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Meta = aux.Meta
+	res.Enabled = aux.Enabled
+	res.Scope = aux.Scope
+	res.Triggers = aux.Triggers
+	res.Steps = aux.Steps
+	res.Paths = aux.Paths
+	res.RunAs = aux.RunAs
+	res.OwnedBy = aux.OwnedBy
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxAutomationNgAutomation fields
+//
+// This function is auto-generated
+func (aux *auxAutomationNgAutomation) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Meta,
+		&aux.Enabled,
+		&aux.Scope,
+		&aux.Triggers,
+		&aux.Steps,
+		&aux.Paths,
+		&aux.RunAs,
+		&aux.OwnedBy,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

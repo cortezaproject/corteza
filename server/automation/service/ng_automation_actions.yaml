@@ -1,0 +1,120 @@
+# List of loggable service actions
+
+resource: automation:ng-automation
+service: ngAutomation
+
+import:
+  - github.com/cortezaproject/corteza/server/automation/types
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+
+props:
+  - name: ngAutomation
+    type: "*types.NgAutomation"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.NgAutomation"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.NgAutomation"
+    fields: [ handle, ID ]
+  - name: trigger
+    type: "*types.Trigger"
+    fields: [ eventType, resourceType, ID, stepID,  ]
+  - name: filter
+    type: "*types.NgAutomationFilter"
+
+
+actions:
+  - action: search
+    log: "searched for matching ngAutomations"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{ngAutomation}}"
+    severity: info
+
+  - action: create
+    log: "created {{ngAutomation}}"
+
+  - action: update
+    log: "updated {{ngAutomation}}"
+
+  - action: delete
+    log: "deleted {{ngAutomation}}"
+
+  - action: undelete
+    log: "undeleted {{ngAutomation}}"
+
+  - action: execute
+    # NOTE: only explicitly triggered ngAutomation execution is logged
+    log: "{{ngAutomation}} executed"
+
+errors:
+  - error: notFound
+    message: "ngAutomation not found"
+
+  - error: invalidID
+    message: "invalid ID"
+
+  - error: disabled
+    message: "disabled ngAutomation or trigger"
+
+  - error: invalidHandle
+    message: "invalid handle"
+
+  - error: missingName
+    message: "missing name"
+
+  - error: staleData
+    message: "ngAutomation was modified by someone else or by a ngAutomation after you've opened it. Please refresh to see the latest updated version"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this ngAutomation"
+    log: "failed to read {{ngAutomation.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list ngAutomations"
+    log: "failed to search or list ngAutomation; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create ngAutomations"
+    log: "failed to create ngAutomation; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this ngAutomation"
+    log: "failed to update {{ngAutomation}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this ngAutomation"
+    log: "failed to delete {{ngAutomation}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this ngAutomation"
+    log: "failed to undelete {{ngAutomation}}; insufficient permissions"
+
+  - error: notAllowedToExecute
+    message: "not allowed to execute this ngAutomation"
+    log: "failed to execute {{ngAutomation}}; insufficient permissions"
+
+  - error: unknownNgAutomationStep
+    message: "unknown ngAutomation step"
+    log: "failed to execute {{ngAutomation}}; unknown ngAutomation step"
+
+  - error: handleNotUnique
+    message: "ngAutomation handle not unique"
+    log: "duplicate handle used for ngAutomation ({{ngAutomation}})"
+
+  - error: notAllowedToExecuteCorredorStep
+    message: "not allowed to run corredorExec function, corredor is disabled"
+    log: "failed to execute {{ngAutomation}} with corredorExec function step; corredor is disabled"
+
+  - error: maximumCallStackSizeExceeded
+    message: "maximum call stack size exceeded"
+    log: "maximum call stack size exceeded"

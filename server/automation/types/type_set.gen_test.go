@@ -14,6 +14,332 @@ import (
 	"testing"
 )
 
+func TestNgAutomationSetWalk(t *testing.T) {
+	var (
+		value = make(NgAutomationSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*NgAutomation) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*NgAutomation) error { return fmt.Errorf("walk error") }))
+}
+
+func TestNgAutomationSetFilter(t *testing.T) {
+	var (
+		value = make(NgAutomationSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*NgAutomation) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*NgAutomation) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*NgAutomation) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestNgAutomationSetIDs(t *testing.T) {
+	var (
+		value = make(NgAutomationSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(NgAutomation)
+	value[1] = new(NgAutomation)
+	value[2] = new(NgAutomation)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestNgAutomationPathSetWalk(t *testing.T) {
+	var (
+		value = make(NgAutomationPathSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*NgAutomationPath) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*NgAutomationPath) error { return fmt.Errorf("walk error") }))
+}
+
+func TestNgAutomationPathSetFilter(t *testing.T) {
+	var (
+		value = make(NgAutomationPathSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*NgAutomationPath) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*NgAutomationPath) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*NgAutomationPath) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestNgAutomationStepSetWalk(t *testing.T) {
+	var (
+		value = make(NgAutomationStepSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*NgAutomationStep) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*NgAutomationStep) error { return fmt.Errorf("walk error") }))
+}
+
+func TestNgAutomationStepSetFilter(t *testing.T) {
+	var (
+		value = make(NgAutomationStepSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*NgAutomationStep) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*NgAutomationStep) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*NgAutomationStep) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestNgAutomationStepSetIDs(t *testing.T) {
+	var (
+		value = make(NgAutomationStepSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(NgAutomationStep)
+	value[1] = new(NgAutomationStep)
+	value[2] = new(NgAutomationStep)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
+func TestNgAutomationTriggerSetWalk(t *testing.T) {
+	var (
+		value = make(NgAutomationTriggerSet, 3)
+		req   = require.New(t)
+	)
+
+	// check walk with no errors
+	{
+		err := value.Walk(func(*NgAutomationTrigger) error {
+			return nil
+		})
+		req.NoError(err)
+	}
+
+	// check walk with error
+	req.Error(value.Walk(func(*NgAutomationTrigger) error { return fmt.Errorf("walk error") }))
+}
+
+func TestNgAutomationTriggerSetFilter(t *testing.T) {
+	var (
+		value = make(NgAutomationTriggerSet, 3)
+		req   = require.New(t)
+	)
+
+	// filter nothing
+	{
+		set, err := value.Filter(func(*NgAutomationTrigger) (bool, error) {
+			return true, nil
+		})
+		req.NoError(err)
+		req.Equal(len(set), len(value))
+	}
+
+	// filter one item
+	{
+		found := false
+		set, err := value.Filter(func(*NgAutomationTrigger) (bool, error) {
+			if !found {
+				found = true
+				return found, nil
+			}
+			return false, nil
+		})
+		req.NoError(err)
+		req.Len(set, 1)
+	}
+
+	// filter error
+	{
+		_, err := value.Filter(func(*NgAutomationTrigger) (bool, error) {
+			return false, fmt.Errorf("filter error")
+		})
+		req.Error(err)
+	}
+}
+
+func TestNgAutomationTriggerSetIDs(t *testing.T) {
+	var (
+		value = make(NgAutomationTriggerSet, 3)
+		req   = require.New(t)
+	)
+
+	// construct objects
+	value[0] = new(NgAutomationTrigger)
+	value[1] = new(NgAutomationTrigger)
+	value[2] = new(NgAutomationTrigger)
+	// set ids
+	value[0].ID = 1
+	value[1].ID = 2
+	value[2].ID = 3
+
+	// Find existing
+	{
+		val := value.FindByID(2)
+		req.Equal(uint64(2), val.ID)
+	}
+
+	// Find non-existing
+	{
+		val := value.FindByID(4)
+		req.Nil(val)
+	}
+
+	// List IDs from set
+	{
+		val := value.IDs()
+		req.Equal(len(val), len(value))
+	}
+}
+
 func TestSessionSetWalk(t *testing.T) {
 	var (
 		value = make(SessionSet, 3)
