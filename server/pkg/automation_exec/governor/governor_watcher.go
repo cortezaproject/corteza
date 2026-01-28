@@ -7,9 +7,9 @@ import (
 
 func (g *governor) watch(ctx context.Context) {
 	for {
-		g.mu.Lock()
+		g.mux.Lock()
 		next := g.nextResetLocked()
-		g.mu.Unlock()
+		g.mux.Unlock()
 
 		if next.IsZero() {
 			select {
@@ -30,11 +30,11 @@ func (g *governor) watch(ctx context.Context) {
 			return
 		case <-time.After(wait):
 			now := g.now()
-			g.mu.Lock()
+			g.mux.Lock()
 			for execID, ep := range g.exec {
 				g.refreshLocked(now, ep, execID)
 			}
-			g.mu.Unlock()
+			g.mux.Unlock()
 		}
 	}
 }

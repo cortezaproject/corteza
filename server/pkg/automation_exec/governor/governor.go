@@ -6,21 +6,25 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 )
 
 type (
 	governor struct {
 		paused atomic.Bool
-		mu     sync.Mutex
+		mux    sync.Mutex
 
 		gates   gates
 		global  globalPolicy
 		exec    map[id.ID]*execPolicy
 		metrics Metrics
 		config  Config
-		now     func() time.Time
+
+		now func() time.Time
 	}
+
+	GovernorOption func(*governor)
 )
 
 var (
@@ -37,6 +41,8 @@ var (
 // Applies global and per-execution constraints
 // Can pause the entire system
 // Hands out permission gates for operations
+//
+// @todo configs
 func Governor(ctx context.Context) (svc *governor) {
 	svc = &governor{
 		gates: gates{
@@ -58,11 +64,11 @@ func Governor(ctx context.Context) (svc *governor) {
 // AddExecution prepares the state for the given execution
 //
 // The function must be called before any other function regarding the execution.
-func (g *governor) AddExecution(execID id.ID, maxOpPerRequest int, budget Budget, rate RateLimit) error {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+func (g *governor) AddExecution(executionID id.ID, maxOpPerRequest int, budget types.Budget, rate types.RateLimit) error {
+	g.mux.Lock()
+	defer g.mux.Unlock()
 
-	if _, ok := g.exec[execID]; ok {
+	if _, ok := g.exec[executionID]; ok {
 		return ErrExecutionExists
 	}
 
@@ -79,7 +85,7 @@ func (g *governor) AddExecution(execID id.ID, maxOpPerRequest int, budget Budget
 		return ErrExecutableTooExpensive
 	}
 
-	g.exec[execID] = &execPolicy{
+	g.exec[executionID] = &execPolicy{
 		budget: execBudgetWindow,
 		rate:   execRateWindow,
 	}
@@ -90,20 +96,20 @@ func (g *governor) AddExecution(execID id.ID, maxOpPerRequest int, budget Budget
 // RemoveExecution removes the execution from the state
 //
 // It is up to the parent services to assure the execution is terminated.
-func (g *governor) RemoveExecution(execID id.ID) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+func (g *governor) RemoveExecution(executionID id.ID) {
+	g.mux.Lock()
+	defer g.mux.Unlock()
 
-	delete(g.exec, execID)
+	delete(g.exec, executionID)
 
-	if eg := g.gates.exec[execID]; eg != nil {
+	if eg := g.gates.exec[executionID]; eg != nil {
 		if eg.budget != nil {
 			eg.budget.open()
 		}
 		if eg.rate != nil {
 			eg.rate.open()
 		}
-		delete(g.gates.exec, execID)
+		delete(g.gates.exec, executionID)
 	}
 }
 
@@ -113,7 +119,7 @@ func (g *governor) RemoveExecution(execID id.ID) {
 // This function intentionally does NOT validate execution existence.
 // Violating this contract is a programmer error and will panic via nil dereference.
 // This keeps the hot path branch-free and fast.
-func (g *governor) Request(execID id.ID, ops int) (<-chan struct{}, error) {
+func (g *governor) Request(executionID id.ID, ops int) (<-chan struct{}, error) {
 	g.metrics.TotalRequests.Add(1)
 
 	if ops <= 0 {
@@ -122,25 +128,25 @@ func (g *governor) Request(execID id.ID, ops int) (<-chan struct{}, error) {
 
 	now := g.now()
 
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	g.mux.Lock()
+	defer g.mux.Unlock()
 
 	if g.paused.Load() {
 		g.metrics.BlockedByPause.Add(1)
 		return g.gates.globalPause.ch, nil
 	}
 
-	ep := g.exec[execID]
+	ep := g.exec[executionID]
 
-	g.refreshLocked(now, ep, execID)
+	g.refreshLocked(now, ep, executionID)
 
 	if wouldExceed(ep.budget, ops) {
 		g.metrics.BlockedByExecBudget.Add(1)
-		return g.execBudgetGate(execID), nil
+		return g.execBudgetGate(executionID), nil
 	}
 	if wouldExceed(ep.rate, ops) {
 		g.metrics.BlockedByExecRate.Add(1)
-		return g.execRateGate(execID), nil
+		return g.execRateGate(executionID), nil
 	}
 
 	if wouldExceed(g.global.budget, ops) {
@@ -175,11 +181,11 @@ func reserve(w *windowCounter, ops int) {
 	}
 }
 
-func (g *governor) execBudgetGate(execID id.ID) <-chan struct{} {
-	eg := g.gates.exec[execID]
+func (g *governor) execBudgetGate(executionID id.ID) <-chan struct{} {
+	eg := g.gates.exec[executionID]
 	if eg == nil {
 		eg = &execGates{}
-		g.gates.exec[execID] = eg
+		g.gates.exec[executionID] = eg
 	}
 	if eg.budget == nil {
 		eg.budget = newGate()
@@ -187,11 +193,11 @@ func (g *governor) execBudgetGate(execID id.ID) <-chan struct{} {
 	return eg.budget.ch
 }
 
-func (g *governor) execRateGate(execID id.ID) <-chan struct{} {
-	eg := g.gates.exec[execID]
+func (g *governor) execRateGate(executionID id.ID) <-chan struct{} {
+	eg := g.gates.exec[executionID]
 	if eg == nil {
 		eg = &execGates{}
-		g.gates.exec[execID] = eg
+		g.gates.exec[executionID] = eg
 	}
 	if eg.rate == nil {
 		eg.rate = newGate()

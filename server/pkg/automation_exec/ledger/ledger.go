@@ -7,74 +7,75 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 )
 
-type (
-	ledger struct {
-		mu    sync.RWMutex
-		store map[id.ID]*types.Execution
-	}
-)
+type ledger struct {
+	mu sync.RWMutex
+	// ExecutableID -> ExecutionID -> Revision -> Execution
+	store map[id.ID]map[id.ID]map[int]*types.Execution
+}
 
-// The Ledger is the source of truth for what happened.
-//
-// Records executions
-// Records step events
-// Tracks current and terminal state
-// Answers inspection questions (“what’s running?”, “what finished?”, “what step failed?”)
 func Ledger() *ledger {
 	return &ledger{
-		store: make(map[id.ID]*types.Execution),
+		store: make(map[id.ID]map[id.ID]map[int]*types.Execution),
 	}
 }
 
-func (l *ledger) Init(
-	ctx context.Context,
-	execID, exeID id.ID,
-	rev uint32,
-	params map[string]any,
-) error {
+func (l *ledger) RegisterExecution(ctx context.Context, executionID, executableID id.ID, revision int, params *expr.Vars) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	if _, exists := l.store[execID]; exists {
-		return fmt.Errorf("execution %d already exists", execID)
+	execs := l.store[executableID]
+	if execs == nil {
+		execs = make(map[id.ID]map[int]*types.Execution)
+		l.store[executableID] = execs
 	}
 
-	l.store[execID] = &types.Execution{
-		ID:           execID,
-		ExecutableID: exeID,
-		Revision:     rev,
+	revs := execs[executionID]
+	if revs == nil {
+		revs = make(map[int]*types.Execution)
+		execs[executionID] = revs
+	}
+
+	if _, exists := revs[revision]; exists {
+		return fmt.Errorf("execution %d revision %d already exists", executionID, revision)
+	}
+
+	now := time.Now()
+	revs[revision] = &types.Execution{
+		ID:           executionID,
+		ExecutableID: executableID,
+		Revision:     revision,
 		Status:       types.StatusCreated,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-		Variables:    params,
+		CreatedAt:    now,
+		UpdatedAt:    now,
 		Events:       make([]types.StepEvent, 0),
 	}
 
 	return nil
 }
 
-func (l *ledger) ExecutionCompleted(ctx context.Context, execID id.ID) error {
-	return l.transition(execID, types.StatusCompleted)
+func (l *ledger) ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, revision int) error {
+	return l.transition(executableID, executionID, revision, types.StatusCompleted)
 }
 
-func (l *ledger) ExecutionFailed(ctx context.Context, execID id.ID, err error) error {
-	return l.transition(execID, types.StatusFailed)
+func (l *ledger) ExecutionFailed(ctx context.Context, executableID, executionID id.ID, revision int, err error) error {
+	return l.transition(executableID, executionID, revision, types.StatusFailed)
 }
 
-func (l *ledger) transition(execID id.ID, status types.Status) error {
+func (l *ledger) transition(executableID, executionID id.ID, revision int, status types.Status) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	ex, ok := l.store[execID]
+	ex, ok := l.store[executableID][executionID][revision]
 	if !ok {
-		return fmt.Errorf("execution %d not found", execID)
+		return fmt.Errorf("execution not found")
 	}
 
-	ex.Status = status
 	now := time.Now()
+	ex.Status = status
 	ex.UpdatedAt = now
 
 	if isTerminal(status) {
@@ -84,43 +85,36 @@ func (l *ledger) transition(execID id.ID, status types.Status) error {
 	return nil
 }
 
-func (l *ledger) StepStarted(ctx context.Context, execID, stepID id.ID) error {
-	return l.logStep(execID, types.StepEvent{
+func (l *ledger) StepStarted(ctx context.Context, executableID, executionID, stepID id.ID, revision int) error {
+	return l.logStep(executableID, executionID, revision, types.StepEvent{
 		Type:   types.EventStepStarted,
 		StepID: stepID,
 	})
 }
 
-func (l *ledger) StepCompleted(
-	ctx context.Context,
-	execID, stepID id.ID,
-	result map[string]any,
-) error {
-	return l.logStep(execID, types.StepEvent{
-		Type:   types.EventStepCompleted,
-		StepID: stepID,
+func (l *ledger) StepCompleted(ctx context.Context, executableID, executionID, stepID id.ID, revision int, payload any) error {
+	return l.logStep(executableID, executionID, revision, types.StepEvent{
+		Type:    types.EventStepCompleted,
+		StepID:  stepID,
+		Payload: payload,
 	})
 }
 
-func (l *ledger) StepFailed(
-	ctx context.Context,
-	execID, stepID id.ID,
-	err error,
-) error {
-	return l.logStep(execID, types.StepEvent{
+func (l *ledger) StepFailed(ctx context.Context, executableID, executionID, stepID id.ID, revision int, err error) error {
+	return l.logStep(executableID, executionID, revision, types.StepEvent{
 		Type:   types.EventStepFailed,
 		StepID: stepID,
 		Error:  err,
 	})
 }
 
-func (l *ledger) logStep(execID id.ID, event types.StepEvent) error {
+func (l *ledger) logStep(executableID, executionID id.ID, revision int, event types.StepEvent) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	ex, ok := l.store[execID]
+	ex, ok := l.store[executableID][executionID][revision]
 	if !ok {
-		return fmt.Errorf("execution %d not found", execID)
+		return fmt.Errorf("execution not found")
 	}
 
 	event.Timestamp = time.Now()
@@ -130,45 +124,36 @@ func (l *ledger) logStep(execID id.ID, event types.StepEvent) error {
 	return nil
 }
 
-func (l *ledger) IsExecutableInUse(ctx context.Context, exeID id.ID) (bool, error) {
+func (l *ledger) IsExecutableInUse(ctx context.Context, executableID id.ID, revision int) (bool, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	for _, ex := range l.store {
-		if ex.ExecutableID.Equal(exeID) && !isTerminal(ex.Status) {
-			return true, nil
-		}
+	execs, ok := l.store[executableID]
+	if !ok {
+		return false, nil
 	}
-	return false, nil
-}
 
-func (l *ledger) IsStepInUse(ctx context.Context, exeID, stepID id.ID) (bool, error) {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-
-	for _, ex := range l.store {
-		if !ex.ExecutableID.Equal(exeID) || isTerminal(ex.Status) {
+	for _, revs := range execs {
+		ex, ok := revs[revision]
+		if !ok {
 			continue
 		}
 
-		for i := len(ex.Events) - 1; i >= 0; i-- {
-			ev := ex.Events[i]
-			if ev.StepID.Equal(stepID) {
-				return ev.Type == types.EventStepStarted, nil
-			}
+		if !isTerminal(ex.Status) {
+			return true, nil
 		}
 	}
 
 	return false, nil
 }
 
-func (l *ledger) GetExecution(ctx context.Context, execID id.ID) (*types.Execution, error) {
+func (l *ledger) GetExecution(ctx context.Context, executableID, executionID id.ID, revision int) (*types.Execution, error) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	ex, ok := l.store[execID]
+	ex, ok := l.store[executableID][executionID][revision]
 	if !ok {
-		return nil, fmt.Errorf("execution %d not found", execID)
+		return nil, fmt.Errorf("execution not found")
 	}
 
 	return ex, nil
@@ -178,9 +163,13 @@ func (l *ledger) ListExecutions(ctx context.Context) ([]*types.Execution, error)
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	out := make([]*types.Execution, 0, len(l.store))
-	for _, ex := range l.store {
-		out = append(out, ex)
+	out := make([]*types.Execution, 0)
+	for _, execs := range l.store {
+		for _, revs := range execs {
+			for _, ex := range revs {
+				out = append(out, ex)
+			}
+		}
 	}
 
 	return out, nil

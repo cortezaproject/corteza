@@ -41,15 +41,15 @@ type (
 )
 
 func (g *governor) SetGlobalBudget(max int, window time.Duration) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	g.mux.Lock()
+	defer g.mux.Unlock()
 
 	g.global.budget = newWindow(max, window, g.now())
 }
 
 func (g *governor) SetGlobalRate(max int, window time.Duration) {
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	g.mux.Lock()
+	defer g.mux.Unlock()
 
 	g.global.rate = newWindow(max, window, g.now())
 }

@@ -11,7 +11,7 @@ import (
 type (
 	Ledger interface {
 		ListExecutions(ctx context.Context) ([]*types.Execution, error)
-		GetExecution(ctx context.Context, execID id.ID) (*types.Execution, error)
+		GetExecution(ctx context.Context, executableID, executionID id.ID, rev int) (*types.Execution, error)
 	}
 
 	RuntimeManager interface {
@@ -47,8 +47,8 @@ func (s *supervisor) ListExecutions(ctx context.Context) ([]*types.Execution, er
 	return s.ledger.ListExecutions(ctx)
 }
 
-func (s *supervisor) GetExecution(ctx context.Context, execID id.ID) (*types.Execution, error) {
-	return s.ledger.GetExecution(ctx, execID)
+func (s *supervisor) GetExecution(ctx context.Context, executableID id.ID, executionID id.ID, rev int) (*types.Execution, error) {
+	return s.ledger.GetExecution(ctx, executableID, executionID, rev)
 }
 
 // control side

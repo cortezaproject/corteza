@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 )
 
@@ -17,42 +18,44 @@ var (
 	ErrStepFailed       = errors.New("runtime: step failed")
 )
 
-type ExecutionGate interface {
-	Request(ops int) (<-chan struct{}, error)
+type executionGate interface {
+	Request(execID id.ID, ops int) (<-chan struct{}, error)
 }
 
-type StateReporter interface {
-	ReportStepStart(stepID id.ID) error
-	ReportStepComplete(stepID id.ID, result StepResult) error
-	ReportStepFailed(stepID id.ID, err error) error
-	ReportExecutionComplete() error
-	ReportExecutionFailed(err error) error
+type stateReporter interface {
+	StepStarted(ctx context.Context, executableID, executionID, stepID id.ID, rev int) error
+	StepCompleted(ctx context.Context, executableID, executionID, stepID id.ID, rev int, out any) error
+	StepFailed(ctx context.Context, executableID, executionID, stepID id.ID, rev int, err error) error
+
+	ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, rev int) error
+	ExecutionFailed(ctx context.Context, executableID, executionID id.ID, rev int, err error) error
 }
 
 type StepResult struct {
 	StepID      id.ID
 	StartedAt   time.Time
 	CompletedAt time.Time
-	Output      map[string]any
-	Error       *string
+	Output      types.ExecResponse
+	Error       error
 }
 
-type ExecutionState struct {
+type executionState struct {
 	CurrentStep     *id.ID
-	Variables       map[string]any
+	Variables       *expr.Vars
 	CompletedSteps  map[id.ID]StepResult
 	InProgressSteps map[id.ID]bool
-	mu              sync.RWMutex
+	mux             sync.RWMutex
 }
 
 type runtime struct {
+	execID    id.ID
 	exec      types.Executable
 	scheduler *scheduler
 
-	gate     ExecutionGate
-	reporter StateReporter
+	gate     executionGate
+	reporter stateReporter
 
-	state *ExecutionState
+	state *executionState
 
 	stopped atomic.Bool
 	blocked atomic.Bool
@@ -61,15 +64,19 @@ type runtime struct {
 	resumeCh chan struct{}
 }
 
-// Runtime runs the executable
-func Runtime(exec types.Executable, gate ExecutionGate, reporter StateReporter) *runtime {
-	state := &ExecutionState{
-		Variables:       make(map[string]any),
+func Runtime(
+	executionID id.ID,
+	exec types.Executable,
+	gate executionGate,
+	reporter stateReporter,
+) *runtime {
+	state := &executionState{
 		CompletedSteps:  make(map[id.ID]StepResult),
 		InProgressSteps: make(map[id.ID]bool),
 	}
 
 	return &runtime{
+		execID:    executionID,
 		exec:      exec,
 		gate:      gate,
 		reporter:  reporter,
@@ -80,10 +87,10 @@ func Runtime(exec types.Executable, gate ExecutionGate, reporter StateReporter) 
 	}
 }
 
-func (r *runtime) Start(ctx context.Context, scope map[string]any) error {
-	r.state.mu.Lock()
+func (r *runtime) Start(ctx context.Context, scope *expr.Vars) error {
+	r.state.mux.Lock()
 	r.state.Variables = scope
-	r.state.mu.Unlock()
+	r.state.mux.Unlock()
 
 	for {
 		select {
@@ -109,16 +116,15 @@ func (r *runtime) Start(ctx context.Context, scope map[string]any) error {
 			return err
 		}
 		if !more {
-			return r.complete()
+			return r.complete(ctx)
 		}
 
-		ops := r.getStepOps(step)
-		if err := r.waitForPermission(ctx, ops); err != nil {
+		if err := r.waitForPermission(ctx, r.getStepOps(step)); err != nil {
 			return err
 		}
 
 		if err := r.executeStep(ctx, step); err != nil {
-			return r.fail(err)
+			return r.fail(ctx, err)
 		}
 
 		r.scheduler.OnStepComplete(step.ID)
@@ -131,10 +137,7 @@ func (r *runtime) Stop() {
 	}
 }
 
-func (r *runtime) Block() {
-	r.blocked.Store(true)
-}
-
+func (r *runtime) Block() { r.blocked.Store(true) }
 func (r *runtime) Resume() {
 	if r.blocked.CompareAndSwap(true, false) {
 		select {
@@ -148,71 +151,67 @@ func (r *runtime) IsBlocked() bool { return r.blocked.Load() }
 func (r *runtime) IsStopped() bool { return r.stopped.Load() }
 
 func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
-	r.state.mu.Lock()
+	r.state.mux.Lock()
 	r.state.CurrentStep = &step.ID
 	r.state.InProgressSteps[step.ID] = true
-	r.state.mu.Unlock()
+	r.state.mux.Unlock()
 
-	if err := r.reporter.ReportStepStart(step.ID); err != nil {
-		return fmt.Errorf("report step start: %w", err)
+	if err := r.reporter.StepStarted(ctx, r.exec.ID, r.execID, step.ID, r.exec.Revision); err != nil {
+		return fmt.Errorf("step started: %w", err)
 	}
 
-	r.state.mu.RLock()
-	scope := r.copyVariablesLocked()
-	r.state.mu.RUnlock()
+	r.state.mux.RLock()
+	scope := (&expr.Vars{}).MustMerge(r.state.Variables)
+	r.state.mux.RUnlock()
 
 	result := StepResult{
-		StepID: step.ID,
-		Output: make(map[string]any),
+		StepID:    step.ID,
+		StartedAt: time.Now(),
 	}
 
-	result.StartedAt = time.Now()
-	output, err := step.Handler.Execute(ctx, scope)
+	output, err := step.Handler.Exec(ctx, &types.ExecRequest{
+		Scope: scope,
+	})
 	result.CompletedAt = time.Now()
 
 	if err != nil {
-		errMsg := err.Error()
-		result.Error = &errMsg
+		result.Error = err
 
-		r.state.mu.Lock()
+		r.state.mux.Lock()
 		delete(r.state.InProgressSteps, step.ID)
 		r.state.CompletedSteps[step.ID] = result
 		r.state.CurrentStep = nil
-		r.state.mu.Unlock()
+		r.state.mux.Unlock()
 
-		_ = r.reporter.ReportStepFailed(step.ID, err)
+		_ = r.reporter.StepFailed(ctx, r.exec.ID, r.execID, step.ID, r.exec.Revision, err)
 		return fmt.Errorf("%w: %s", ErrStepFailed, step.ID)
+	}
+
+	var newScope *expr.Vars
+	if rs, ok := output.(*expr.Vars); ok {
+		newScope = rs
 	}
 
 	result.Output = output
 
-	r.state.mu.Lock()
-	r.state.Variables = r.mergeScope(r.state.Variables, output)
+	r.state.mux.Lock()
+	if newScope != nil {
+		r.state.Variables = r.state.Variables.MustMerge(newScope)
+	}
 	delete(r.state.InProgressSteps, step.ID)
 	r.state.CompletedSteps[step.ID] = result
 	r.state.CurrentStep = nil
-	r.state.mu.Unlock()
+	r.state.mux.Unlock()
 
-	if err := r.reporter.ReportStepComplete(step.ID, result); err != nil {
-		return fmt.Errorf("report step complete: %w", err)
+	if err := r.reporter.StepCompleted(ctx, r.exec.ID, r.execID, step.ID, r.exec.Revision, output); err != nil {
+		return fmt.Errorf("step completed: %w", err)
 	}
 
 	return nil
 }
 
-func (r *runtime) mergeScope(a, b map[string]any) map[string]any {
-	out := make(map[string]any, len(a)+len(b))
-	for k, v := range a {
-		out[k] = v
-	}
-	for k, v := range b {
-		out[k] = v
-	}
-	return out
-}
-
 func (r *runtime) waitForPermission(ctx context.Context, ops int) error {
-	permCh, err := r.gate.Request(ops)
+	permCh, err := r.gate.Request(r.execID, ops)
 	if err != nil {
 		return err
 	}
@@ -227,38 +226,20 @@ func (r *runtime) waitForPermission(ctx context.Context, ops int) error {
 	}
 }
 
-func (r *runtime) complete() error {
-	if err := r.reporter.ReportExecutionComplete(); err != nil {
-		return fmt.Errorf("report execution complete: %w", err)
+func (r *runtime) complete(ctx context.Context) error {
+	if err := r.reporter.ExecutionCompleted(ctx, r.exec.ID, r.execID, r.exec.Revision); err != nil {
+		return fmt.Errorf("execution complete: %w", err)
 	}
 	return nil
 }
 
-func (r *runtime) fail(err error) error {
-	if repErr := r.reporter.ReportExecutionFailed(err); repErr != nil {
+func (r *runtime) fail(ctx context.Context, err error) error {
+	if repErr := r.reporter.ExecutionFailed(ctx, r.exec.ID, r.execID, r.exec.Revision, err); repErr != nil {
 		return fmt.Errorf("execution failed: %w (report error: %v)", err, repErr)
 	}
 	return err
 }
 
 func (r *runtime) getStepOps(step *types.Step) int {
-	if v, ok := step.Config["ops"].(int); ok && v > 0 {
-		return v
-	}
 	return 1
-}
-
-func (r *runtime) copyVariablesLocked() map[string]any {
-	vars := make(map[string]any, len(r.state.Variables))
-	for k, v := range r.state.Variables {
-		vars[k] = v
-	}
-	return vars
-}
-
-func (r *runtime) readOnlyStateLocked() map[string]any {
-	return map[string]any{
-		"current_step":    r.state.CurrentStep,
-		"completed_steps": len(r.state.CompletedSteps),
-	}
 }

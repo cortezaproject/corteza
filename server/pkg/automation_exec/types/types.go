@@ -4,70 +4,53 @@ import (
 	"context"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 )
 
 type (
-	// ExecutableID uniquely identifies an executable (workflow/automation)
-	ExecutableID = id.ID
-	Status       string
+	Executable struct {
+		ID       id.ID
+		Revision int
+		Handle   string
 
-	ExecutableStatus int
+		Steps []Step
 
-	ExecutableLimits struct {
-		// Max operations allowed per single request/step
-		MaxOpsPerRequest int
-
-		// Hard cap for total operations during the entire execution
-		TotalOps int
-
-		// Rate limit for operations (ops per window)
-		RateOps    int
-		RateWindow time.Duration
+		// @todo
+		// Limits        ExecutableLimits
 	}
 
 	// Step represents a single step in an executable workflow
 	Step struct {
-		ID       id.ID
-		Kind     string
-		Config   map[string]any
-		Children []id.ID
-		Handler  stepHandler
+		ID   id.ID
+		Kind string
+
+		Children []Step
+		Parents  []Step
+
+		Handler stepHandler
 	}
 
-	stepHandler interface {
-		Execute(ctx context.Context, scope map[string]any) (outScope map[string]any, err error)
+	ExecRequest struct {
+		// Current scope
+		Scope *expr.Vars
 	}
 
-	// Relationship defines a connection between steps in a workflow
-	Relationship struct {
-		From      id.ID // Empty string indicates entry point
-		To        id.ID
-		Condition string // Optional condition for conditional branching
-	}
+	ExecResponse any
+
+	ExecutableLimits struct{}
 
 	// Executable represents a complete workflow definition
-	Executable struct {
-		ID            ExecutableID
-		Revision      int
-		Label         string
-		Description   string
-		Limits        ExecutableLimits
-		Steps         []Step
-		Relationships []Relationship
-		Metadata      map[string]any
-	}
 
 	Execution struct {
 		ID           id.ID
 		ExecutableID id.ID
-		Revision     uint32
+		Revision     int
 		Status       Status
 		CreatedAt    time.Time
 		UpdatedAt    time.Time
 		EndedAt      *time.Time
 		Events       []StepEvent
-		Variables    map[string]any
 	}
 
 	StepEvent struct {
@@ -75,10 +58,26 @@ type (
 		StepID    id.ID
 		Timestamp time.Time
 		Payload   any
-		Error error
+		Error     error
 	}
 
-	EventType string
+	stepHandler interface {
+		Exec(context.Context, *ExecRequest) (ExecResponse, error)
+	}
+
+	Budget struct {
+		MaxOps int
+		Window time.Duration // 0 = hard cap
+	}
+
+	RateLimit struct {
+		MaxOps int
+		Window time.Duration
+	}
+
+	EventType        string
+	Status           string
+	ExecutableStatus int
 )
 
 const (

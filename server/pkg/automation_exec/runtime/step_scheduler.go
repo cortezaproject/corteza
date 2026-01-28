@@ -15,13 +15,10 @@ var (
 type scheduler struct {
 	executable types.Executable
 
-	// step index
 	steps map[id.ID]*types.Step
 
-	// remaining unmet dependencies per step
 	remainingDeps map[id.ID]int
 
-	// runnable queue
 	nextSteps []id.ID
 	queued    map[id.ID]bool
 }
@@ -42,8 +39,6 @@ func (ss *scheduler) Next() (*types.Step, bool, error) {
 		return nil, false, nil
 	}
 
-	// @todo this isn't the most efficient way to do it
-	// we can use a ring buffer or something
 	stepID := ss.nextSteps[0]
 	ss.nextSteps = ss.nextSteps[1:]
 	delete(ss.queued, stepID)
@@ -63,9 +58,10 @@ func (ss *scheduler) OnStepComplete(stepID id.ID) {
 	}
 
 	for _, child := range step.Children {
-		ss.remainingDeps[child]--
-		if ss.remainingDeps[child] == 0 {
-			ss.enqueue(child)
+		cid := child.ID
+		ss.remainingDeps[cid]--
+		if ss.remainingDeps[cid] == 0 {
+			ss.enqueue(cid)
 		}
 	}
 }
@@ -88,11 +84,11 @@ func (ss *scheduler) init(exe types.Executable) *scheduler {
 	// compute dependency counts
 	for _, step := range exe.Steps {
 		for _, child := range step.Children {
-			ss.remainingDeps[child]++
+			ss.remainingDeps[child.ID]++
 		}
 	}
 
-	// enqueue entry steps (zero dependencies)
+	// enqueue entry steps
 	for stepID := range ss.steps {
 		if ss.remainingDeps[stepID] == 0 {
 			ss.enqueue(stepID)

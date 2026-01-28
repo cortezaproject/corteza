@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 )
 
 type (
@@ -17,35 +18,29 @@ type (
 		DeprecatedAt *time.Time
 	}
 
-	UsageChecker interface {
-		IsInUse(ctx context.Context, executableID types.ExecutableID, revision int) (bool, error)
+	usageChecker interface {
+		IsExecutableInUse(ctx context.Context, executableID id.ID, revision int) (bool, error)
 	}
 
 	registry struct {
 		// map[ExecutableID]map[Revision]*ExecutableEntry
-		entries map[types.ExecutableID]map[int]*ExecutableEntry
+		entries map[id.ID]map[int]*ExecutableEntry
 
-		usageChecker UsageChecker
+		usageChecker usageChecker
 		stats        stats
 		mux          sync.RWMutex
 	}
 )
 
-// The Registry is the catalog of executable definitions
-//
-// * Stores versioned executables
-// * Tracks active vs deprecated revisions
-// * Answers what can be executed
-// * Prevents removal of in-use definitions
-func Registry(usageChecker UsageChecker) *registry {
+// Registry holds all of the executables
+func Registry(usageChecker usageChecker) *registry {
 	return &registry{
-		entries:      make(map[types.ExecutableID]map[int]*ExecutableEntry),
+		entries:      make(map[id.ID]map[int]*ExecutableEntry),
 		usageChecker: usageChecker,
 	}
 }
 
-// Add registers an executable revision.
-// exec.Revision is treated as authoritative.
+// Add registers an executable revision
 func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
@@ -73,11 +68,11 @@ func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 	return nil
 }
 
-func (r *registry) Deprecate(ctx context.Context, executableID types.ExecutableID, revision int) error {
+func (r *registry) Deprecate(ctx context.Context, executableID id.ID, revision int) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	entry, err := r.getEntryLocked(executableID, revision)
+	entry, err := r.getEntry(executableID, revision)
 	if err != nil {
 		return err
 	}
@@ -94,11 +89,11 @@ func (r *registry) Deprecate(ctx context.Context, executableID types.ExecutableI
 	return nil
 }
 
-func (r *registry) Remove(ctx context.Context, executableID types.ExecutableID, revision int) error {
+func (r *registry) Remove(ctx context.Context, executableID id.ID, revision int) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	entry, err := r.getEntryLocked(executableID, revision)
+	entry, err := r.getEntry(executableID, revision)
 	if err != nil {
 		return err
 	}
@@ -111,7 +106,7 @@ func (r *registry) Remove(ctx context.Context, executableID types.ExecutableID, 
 		return ErrUsageCheckerRequired
 	}
 
-	inUse, err := r.usageChecker.IsInUse(ctx, executableID, revision)
+	inUse, err := r.usageChecker.IsExecutableInUse(ctx, executableID, revision)
 	if err != nil {
 		return fmt.Errorf("failed to check usage: %w", err)
 	}
@@ -130,11 +125,11 @@ func (r *registry) Remove(ctx context.Context, executableID types.ExecutableID, 
 	return nil
 }
 
-func (r *registry) Get(ctx context.Context, executableID types.ExecutableID, revision int) (ExecutableEntry, error) {
+func (r *registry) Get(ctx context.Context, executableID id.ID, revision int) (ExecutableEntry, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
-	entry, err := r.getEntryLocked(executableID, revision)
+	entry, err := r.getEntry(executableID, revision)
 	if err != nil {
 		return ExecutableEntry{}, err
 	}
@@ -142,7 +137,16 @@ func (r *registry) Get(ctx context.Context, executableID types.ExecutableID, rev
 	return *entry, nil
 }
 
-func (r *registry) GetLatest(ctx context.Context, executableID types.ExecutableID) (ExecutableEntry, error) {
+func (r *registry) GetExecutable(ctx context.Context, executableID id.ID, revision int) (types.Executable, error) {
+	e, err := r.Get(ctx, executableID, revision)
+	if err != nil {
+		return types.Executable{}, err
+	}
+
+	return e.Executable, nil
+}
+
+func (r *registry) GetLatest(ctx context.Context, executableID id.ID) (ExecutableEntry, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
@@ -180,7 +184,7 @@ func (r *registry) Stats(ctx context.Context) stats {
 	return r.stats
 }
 
-func (r *registry) getEntryLocked(executableID types.ExecutableID, revision int) (*ExecutableEntry, error) {
+func (r *registry) getEntry(executableID id.ID, revision int) (*ExecutableEntry, error) {
 	revisions, ok := r.entries[executableID]
 	if !ok {
 		return nil, ErrExecutableNotFound

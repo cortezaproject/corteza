@@ -7,7 +7,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/automation_exec/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 )
 
@@ -42,22 +44,35 @@ type Config struct {
 //
 
 type Registry interface {
-	GetExecutable(ctx context.Context, id types.ExecutableID, revision int) (types.Executable, error)
-	IsActive(ctx context.Context, id types.ExecutableID, revision int) (bool, error)
+	GetExecutable(ctx context.Context, id id.ID, revision int) (types.Executable, error)
 }
 
+// type Ledger interface {
+// 	RegisterExecution(ctx context.Context, exec types.Execution) error
+// 	UpdateExecution(ctx context.Context, execID id.ID, status types.Status, endedAt *time.Time) error
+// }
+
 type Ledger interface {
-	RegisterExecution(ctx context.Context, exec types.Execution) error
-	UpdateExecution(ctx context.Context, execID id.ID, status types.Status, endedAt *time.Time) error
+	StepStarted(ctx context.Context, executableID, executionID, stepID id.ID, rev int) error
+	StepCompleted(ctx context.Context, executableID, executionID, stepID id.ID, rev int, out any) error
+	StepFailed(ctx context.Context, executableID, executionID, stepID id.ID, rev int, err error) error
+
+	ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, rev int) error
+	ExecutionFailed(ctx context.Context, executableID, executionID id.ID, rev int, err error) error
+
+	IsExecutableInUse(ctx context.Context, executableID id.ID, rev int) (bool, error)
+
+	RegisterExecution(ctx context.Context, executionID, executableID id.ID, rev int, params *expr.Vars) error
 }
 
 type Governor interface {
-	InitExecution(execID id.ID, limits types.ExecutableLimits) error
-	CleanupExecution(execID id.ID)
+	AddExecution(execID id.ID, maxOpPerRequest int, budget types.Budget, rate types.RateLimit) error
+	RemoveExecution(execID id.ID)
+	Request(execID id.ID, ops int) (<-chan struct{}, error)
 }
 
 type Runtime interface {
-	Execute(ctx context.Context) error
+	Start(ctx context.Context, scope *expr.Vars) error
 	Stop()
 	Block()
 	Resume()
@@ -71,12 +86,12 @@ type Runtime interface {
 type queuedStart struct {
 	execID     id.ID
 	executable types.Executable
-	params     map[string]any
+	params     *expr.Vars
 }
 
 type runtimeEntry struct {
 	execID       id.ID
-	executableID types.ExecutableID
+	executableID id.ID
 	revision     int
 
 	runtime Runtime
@@ -99,9 +114,9 @@ type runtimeManager struct {
 	runtimes map[id.ID]*runtimeEntry
 	mu       sync.RWMutex
 
-	queue   []queuedStart
-	queueMu sync.Mutex
-	qSignal chan struct{}
+	queue    []queuedStart
+	queueMux sync.Mutex
+	qSignal  chan struct{}
 
 	slots chan struct{}
 
@@ -155,40 +170,34 @@ func RuntimeManager(
 
 func (rm *runtimeManager) Start(
 	ctx context.Context,
-	execID types.ExecutableID,
+	executableID id.ID,
 	revision int,
-	params map[string]any,
+	params *expr.Vars,
 ) (id.ID, error) {
 	if rm.draining.Load() {
 		return id.Zero(), ErrSystemDraining
 	}
 
-	exe, err := rm.registry.GetExecutable(ctx, execID, revision)
+	executable, err := rm.registry.GetExecutable(ctx, executableID, revision)
 	if err != nil {
 		return id.Zero(), ErrExecutableNotFound
 	}
 
-	active, err := rm.registry.IsActive(ctx, execID, revision)
+	active, err := rm.ledger.IsExecutableInUse(ctx, executableID, revision)
 	if err != nil || !active {
 		return id.Zero(), ErrExecutableInactive
 	}
 
 	eid := id.MustNumID(id.Next())
 
-	if err := rm.ledger.RegisterExecution(ctx, types.Execution{
-		ID:           eid,
-		ExecutableID: execID,
-		Revision:     uint32(revision),
-		Status:       types.StatusCreated,
-		CreatedAt:    time.Now(),
-		Variables:    params,
-	}); err != nil {
+	err = rm.ledger.RegisterExecution(ctx, eid, executableID, revision, params)
+	if err != nil {
 		return id.Zero(), err
 	}
 
 	if err := rm.enqueue(queuedStart{
 		execID:     eid,
-		executable: exe,
+		executable: executable,
 		params:     params,
 	}); err != nil {
 		return id.Zero(), err
@@ -198,13 +207,42 @@ func (rm *runtimeManager) Start(
 	return eid, nil
 }
 
+func (rm *runtimeManager) Stop(execID id.ID) error {
+	// 1) If running, stop runtime + cancel its context.
+	rm.mu.RLock()
+	e, ok := rm.runtimes[execID]
+	rm.mu.RUnlock()
+
+	if ok {
+		// Cancel context first to unblock waits, then hard-stop the runtime.
+		if e.cancel != nil {
+			e.cancel()
+		}
+		e.runtime.Stop()
+		return nil
+	}
+
+	// 2) If queued (not started yet), drop from queue.
+	rm.queueMux.Lock()
+	defer rm.queueMux.Unlock()
+
+	for i := range rm.queue {
+		if rm.queue[i].execID.Equal(execID) {
+			rm.queue = append(rm.queue[:i], rm.queue[i+1:]...)
+			return nil
+		}
+	}
+
+	return ErrExecutionNotFound
+}
+
 //
 // ===== queue =====
 //
 
 func (rm *runtimeManager) enqueue(q queuedStart) error {
-	rm.queueMu.Lock()
-	defer rm.queueMu.Unlock()
+	rm.queueMux.Lock()
+	defer rm.queueMux.Unlock()
 
 	if rm.config.MaxQueued > 0 && len(rm.queue) >= rm.config.MaxQueued {
 		return ErrQueueFull
@@ -215,8 +253,8 @@ func (rm *runtimeManager) enqueue(q queuedStart) error {
 }
 
 func (rm *runtimeManager) dequeue() (queuedStart, bool) {
-	rm.queueMu.Lock()
-	defer rm.queueMu.Unlock()
+	rm.queueMux.Lock()
+	defer rm.queueMux.Unlock()
 
 	if len(rm.queue) == 0 {
 		return queuedStart{}, false
@@ -252,10 +290,10 @@ func (rm *runtimeManager) processQueue(ctx context.Context) {
 			return
 		}
 
-		if err := rm.startQueued(ctx, item); err != nil {
-			_ = rm.enqueue(item)
-			rm.signalQueue()
-			return
+		err := rm.startQueued(ctx, item)
+		if err != nil {
+			// @todo consider re-enqueuing on fail
+			panic(err)
 		}
 	}
 }
@@ -273,7 +311,8 @@ func (rm *runtimeManager) startQueued(ctx context.Context, q queuedStart) error 
 		return ctx.Err()
 	}
 
-	if err := rm.governor.InitExecution(q.execID, q.executable.Limits); err != nil {
+	// @todo limits
+	if err := rm.governor.AddExecution(q.execID, 0, types.Budget{}, types.RateLimit{}); err != nil {
 		rm.releaseSlot()
 		return err
 	}
@@ -295,26 +334,34 @@ func (rm *runtimeManager) startQueued(ctx context.Context, q queuedStart) error 
 	rm.mu.Unlock()
 
 	rm.running.Add(1)
-	go rm.runRuntime(rctx, entry)
+	go rm.runRuntime(rctx, entry, q.params)
 	return nil
 }
 
-func (rm *runtimeManager) runRuntime(ctx context.Context, e *runtimeEntry) {
-	err := e.runtime.Execute(ctx)
+func (rm *runtimeManager) runRuntime(ctx context.Context, e *runtimeEntry, scope *expr.Vars) {
+	err := e.runtime.Start(ctx, scope)
 	rm.onExit(ctx, e, err)
 }
 
 func (rm *runtimeManager) onExit(ctx context.Context, e *runtimeEntry, err error) {
-	now := time.Now()
 	status := types.StatusCompleted
 
 	if err != nil {
 		status = types.StatusFailed
 	}
 
-	_ = rm.ledger.UpdateExecution(ctx, e.execID, status, &now)
+	switch status {
+	case types.StatusCompleted:
+		// @todo error handling?
+		_ = rm.ledger.ExecutionCompleted(ctx, e.executableID, e.execID, e.revision)
+	case types.StatusFailed:
+		_ = rm.ledger.ExecutionFailed(ctx, e.executableID, e.execID, e.revision, err)
 
-	rm.governor.CleanupExecution(e.execID)
+	default:
+		// @todo
+	}
+
+	rm.governor.RemoveExecution(e.execID)
 	rm.releaseSlot()
 
 	rm.mu.Lock()
@@ -332,42 +379,12 @@ func (rm *runtimeManager) releaseSlot() {
 	}
 }
 
-//
-// ===== debug =====
-//
-
-func (rm *runtimeManager) EnableDebug(execID id.ID) error {
-	e, err := rm.get(execID)
-	if err != nil {
-		return err
-	}
-
-	e.runtime.Block()
-	if !e.runtime.IsBlocked() {
-		return ErrStepInProgress
-	}
-
-	e.debug.Store(true)
-	rm.running.Add(-1)
-	return nil
+func (rm *runtimeManager) SetDraining(draining bool) {
+	rm.draining.Store(draining)
 }
 
-func (rm *runtimeManager) Step(execID id.ID) error {
-	e, err := rm.get(execID)
-	if err != nil {
-		return err
-	}
-
-	if !e.debug.Load() {
-		return ErrNotInDebugMode
-	}
-
-	select {
-	case e.stepGate <- struct{}{}:
-		return nil
-	default:
-		return ErrStepInProgress
-	}
+func (rm *runtimeManager) IsDraining() bool {
+	return rm.draining.Load()
 }
 
 //
@@ -388,7 +405,14 @@ func (rm *runtimeManager) get(execID id.ID) (*runtimeEntry, error) {
 func (rm *runtimeManager) createRuntime(
 	execID id.ID,
 	exe types.Executable,
-	params map[string]any,
+	params *expr.Vars,
 ) Runtime {
+	return runtime.Runtime(
+		exe.ID,
+		exe,
+		rm.governor,
+		rm.ledger,
+	)
+
 	panic("runtime factory not implemented")
 }
