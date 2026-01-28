@@ -8,6 +8,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 type (
@@ -23,6 +24,8 @@ type (
 	}
 
 	registry struct {
+		log *zap.Logger
+
 		// map[ExecutableID]map[Revision]*ExecutableEntry
 		entries map[id.ID]map[int]*ExecutableEntry
 
@@ -33,8 +36,9 @@ type (
 )
 
 // Registry holds all of the executables
-func Registry(usageChecker usageChecker) *registry {
+func Registry(log *zap.Logger, usageChecker usageChecker) *registry {
 	return &registry{
+		log:          log,
 		entries:      make(map[id.ID]map[int]*ExecutableEntry),
 		usageChecker: usageChecker,
 	}
@@ -45,6 +49,8 @@ func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
+	r.log.Debug("adding executable to registry", zap.String("id", exec.ID.Value()), zap.Int("revision", exec.Revision))
+
 	revisions := r.entries[exec.ID]
 	if revisions == nil {
 		revisions = make(map[int]*ExecutableEntry)
@@ -53,7 +59,9 @@ func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 	}
 
 	if _, exists := revisions[exec.Revision]; exists {
-		return ErrRevisionAlreadyExists
+		// @todo
+		r.log.Info("overwriting revision", zap.Int("revision", exec.Revision))
+		// 	return ErrRevisionAlreadyExists
 	}
 
 	entry := &ExecutableEntry{
@@ -71,6 +79,8 @@ func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 func (r *registry) Deprecate(ctx context.Context, executableID id.ID, revision int) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
+
+	r.log.Debug("deprecating executable from registry", zap.String("id", executableID.Value()), zap.Int("revision", revision))
 
 	entry, err := r.getEntry(executableID, revision)
 	if err != nil {
@@ -92,6 +102,8 @@ func (r *registry) Deprecate(ctx context.Context, executableID id.ID, revision i
 func (r *registry) Remove(ctx context.Context, executableID id.ID, revision int) error {
 	r.mux.Lock()
 	defer r.mux.Unlock()
+
+	r.log.Debug("removing executable from registry", zap.String("id", executableID.Value()), zap.Int("revision", revision))
 
 	entry, err := r.getEntry(executableID, revision)
 	if err != nil {

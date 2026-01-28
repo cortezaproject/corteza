@@ -23,6 +23,8 @@ type (
 			Update(ctx context.Context, upd *types.NgAutomation) (*types.NgAutomation, error)
 			DeleteByID(ctx context.Context, automationID uint64) error
 			UndeleteByID(ctx context.Context, automationID uint64) error
+
+			Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *expr.Vars, err error)
 		}
 
 		// cross-link with compose service to load module on resolved records
@@ -157,7 +159,9 @@ func (ctrl NgAutomation) Undelete(ctx context.Context, r *request.NgAutomationUn
 }
 
 func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) (interface{}, error) {
-	return nil, fmt.Errorf("not implemented")
+	return ctrl.svc.Exec(ctx, r.AutomationID, types.NgAutomationExecParams{
+		Input: r.Input,
+	})
 }
 
 func (ctrl NgAutomation) makeFilterPayload(ctx context.Context, set types.NgAutomationSet, f types.NgAutomationFilter, err error) (*ngAutomationSetPayload, error) {

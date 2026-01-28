@@ -6,6 +6,8 @@ import (
 
 	"github.com/cortezaproject/corteza/server/automation/automation"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	runnerSvc "github.com/cortezaproject/corteza/server/pkg/automation_exec"
+	manager "github.com/cortezaproject/corteza/server/pkg/automation_exec/runtime_manager"
 	"github.com/cortezaproject/corteza/server/pkg/corredor"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
@@ -99,7 +101,13 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultWorkflow.triggers = DefaultTrigger
 
-	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor)
+	engine, err := runnerSvc.AutomationService(ctx, DefaultLogger.Named("automation-execution"), manager.Config{
+		MaxConcurrent: 1,
+	})
+	if err != nil {
+		return err
+	}
+	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor, engine)
 
 	Registry().AddTypes(
 		&expr.Any{},

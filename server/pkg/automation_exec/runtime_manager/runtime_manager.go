@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 //
@@ -21,7 +22,6 @@ var (
 	ErrSystemDraining     = errors.New("manager: system is draining")
 	ErrSlotTimeout        = errors.New("manager: concurrency slot timeout")
 	ErrExecutableNotFound = errors.New("manager: executable not found")
-	ErrExecutableInactive = errors.New("manager: executable not active")
 	ErrExecutionNotFound  = errors.New("manager: execution not found")
 	ErrQueueFull          = errors.New("manager: start queue full")
 	ErrInvalidConfig      = errors.New("manager: invalid configuration")
@@ -89,7 +89,7 @@ type queuedStart struct {
 	params     *expr.Vars
 }
 
-type runtimeEntry struct {
+type RuntimeEntry struct {
 	execID       id.ID
 	executableID id.ID
 	revision     int
@@ -97,8 +97,8 @@ type runtimeEntry struct {
 	runtime Runtime
 	cancel  context.CancelFunc
 
-	debug    atomic.Bool
-	stepGate chan struct{}
+	Done chan struct{}
+	Err  error
 }
 
 //
@@ -106,12 +106,14 @@ type runtimeEntry struct {
 //
 
 type runtimeManager struct {
+	log *zap.Logger
+
 	registry Registry
 	ledger   Ledger
 	governor Governor
 	config   Config
 
-	runtimes map[id.ID]*runtimeEntry
+	runtimes map[id.ID]*RuntimeEntry
 	mu       sync.RWMutex
 
 	queue    []queuedStart
@@ -137,6 +139,7 @@ type runtimeManager struct {
 // * Cleans up when executions finish
 func RuntimeManager(
 	ctx context.Context,
+	log *zap.Logger,
 	reg Registry,
 	led Ledger,
 	gov Governor,
@@ -150,11 +153,12 @@ func RuntimeManager(
 	}
 
 	rm := &runtimeManager{
+		log:      log,
 		registry: reg,
 		ledger:   led,
 		governor: gov,
 		config:   cfg,
-		runtimes: make(map[id.ID]*runtimeEntry),
+		runtimes: make(map[id.ID]*RuntimeEntry),
 		queue:    make([]queuedStart, 0),
 		qSignal:  make(chan struct{}, 1),
 		slots:    make(chan struct{}, cfg.MaxConcurrent),
@@ -168,12 +172,7 @@ func RuntimeManager(
 // ===== admission =====
 //
 
-func (rm *runtimeManager) Start(
-	ctx context.Context,
-	executableID id.ID,
-	revision int,
-	params *expr.Vars,
-) (id.ID, error) {
+func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revision int, params *expr.Vars) (id.ID, error) {
 	if rm.draining.Load() {
 		return id.Zero(), ErrSystemDraining
 	}
@@ -183,10 +182,10 @@ func (rm *runtimeManager) Start(
 		return id.Zero(), ErrExecutableNotFound
 	}
 
-	active, err := rm.ledger.IsExecutableInUse(ctx, executableID, revision)
-	if err != nil || !active {
-		return id.Zero(), ErrExecutableInactive
-	}
+	// active, err := rm.ledger.IsExecutableInUse(ctx, executableID, revision)
+	// if err != nil || !active {
+	// 	return id.Zero(), ErrExecutableInactive
+	// }
 
 	eid := id.MustNumID(id.Next())
 
@@ -320,13 +319,13 @@ func (rm *runtimeManager) startQueued(ctx context.Context, q queuedStart) error 
 	rctx, cancel := context.WithCancel(ctx)
 	rt := rm.createRuntime(q.execID, q.executable, q.params)
 
-	entry := &runtimeEntry{
+	entry := &RuntimeEntry{
 		execID:       q.execID,
 		executableID: q.executable.ID,
 		revision:     q.executable.Revision,
 		runtime:      rt,
 		cancel:       cancel,
-		stepGate:     make(chan struct{}, 1),
+		Done:         make(chan struct{}),
 	}
 
 	rm.mu.Lock()
@@ -338,12 +337,12 @@ func (rm *runtimeManager) startQueued(ctx context.Context, q queuedStart) error 
 	return nil
 }
 
-func (rm *runtimeManager) runRuntime(ctx context.Context, e *runtimeEntry, scope *expr.Vars) {
+func (rm *runtimeManager) runRuntime(ctx context.Context, e *RuntimeEntry, scope *expr.Vars) {
 	err := e.runtime.Start(ctx, scope)
 	rm.onExit(ctx, e, err)
 }
 
-func (rm *runtimeManager) onExit(ctx context.Context, e *runtimeEntry, err error) {
+func (rm *runtimeManager) onExit(ctx context.Context, e *RuntimeEntry, err error) {
 	status := types.StatusCompleted
 
 	if err != nil {
@@ -365,6 +364,7 @@ func (rm *runtimeManager) onExit(ctx context.Context, e *runtimeEntry, err error
 	rm.releaseSlot()
 
 	rm.mu.Lock()
+	close(rm.runtimes[e.execID].Done)
 	delete(rm.runtimes, e.execID)
 	rm.mu.Unlock()
 
@@ -391,7 +391,7 @@ func (rm *runtimeManager) IsDraining() bool {
 // ===== helpers =====
 //
 
-func (rm *runtimeManager) get(execID id.ID) (*runtimeEntry, error) {
+func (rm *runtimeManager) Get(execID id.ID) (*RuntimeEntry, error) {
 	rm.mu.RLock()
 	defer rm.mu.RUnlock()
 
@@ -403,12 +403,12 @@ func (rm *runtimeManager) get(execID id.ID) (*runtimeEntry, error) {
 }
 
 func (rm *runtimeManager) createRuntime(
-	execID id.ID,
+	executionID id.ID,
 	exe types.Executable,
 	params *expr.Vars,
 ) Runtime {
 	return runtime.Runtime(
-		exe.ID,
+		executionID,
 		exe,
 		rm.governor,
 		rm.ledger,

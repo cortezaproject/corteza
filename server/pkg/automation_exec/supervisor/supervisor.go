@@ -6,6 +6,7 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 type (
@@ -21,6 +22,7 @@ type (
 	}
 
 	supervisor struct {
+		log     *zap.Logger
 		ledger  Ledger
 		manager RuntimeManager
 
@@ -34,8 +36,9 @@ type (
 // * Issues operational commands (stop, drain)
 // * Exposes admin / ops views
 // * Never touches execution logic
-func Supervisor(ledger Ledger, manager RuntimeManager) *supervisor {
+func Supervisor(log *zap.Logger, ledger Ledger, manager RuntimeManager) *supervisor {
 	return &supervisor{
+		log:     log,
 		ledger:  ledger,
 		manager: manager,
 	}

@@ -22,7 +22,7 @@ type executionGate interface {
 	Request(execID id.ID, ops int) (<-chan struct{}, error)
 }
 
-type stateReporter interface {
+type stateLedger interface {
 	StepStarted(ctx context.Context, executableID, executionID, stepID id.ID, rev int) error
 	StepCompleted(ctx context.Context, executableID, executionID, stepID id.ID, rev int, out any) error
 	StepFailed(ctx context.Context, executableID, executionID, stepID id.ID, rev int, err error) error
@@ -48,12 +48,12 @@ type executionState struct {
 }
 
 type runtime struct {
-	execID    id.ID
-	exec      types.Executable
-	scheduler *scheduler
+	executionID id.ID
+	exec        types.Executable
+	scheduler   *scheduler
 
-	gate     executionGate
-	reporter stateReporter
+	gate   executionGate
+	ledger stateLedger
 
 	state *executionState
 
@@ -68,7 +68,7 @@ func Runtime(
 	executionID id.ID,
 	exec types.Executable,
 	gate executionGate,
-	reporter stateReporter,
+	ledger stateLedger,
 ) *runtime {
 	state := &executionState{
 		CompletedSteps:  make(map[id.ID]StepResult),
@@ -76,14 +76,14 @@ func Runtime(
 	}
 
 	return &runtime{
-		execID:    executionID,
-		exec:      exec,
-		gate:      gate,
-		reporter:  reporter,
-		state:     state,
-		scheduler: newScheduler(exec),
-		stopCh:    make(chan struct{}),
-		resumeCh:  make(chan struct{}, 1),
+		executionID: executionID,
+		exec:        exec,
+		gate:        gate,
+		ledger:      ledger,
+		state:       state,
+		scheduler:   newScheduler(exec),
+		stopCh:      make(chan struct{}),
+		resumeCh:    make(chan struct{}, 1),
 	}
 }
 
@@ -156,7 +156,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 	r.state.InProgressSteps[step.ID] = true
 	r.state.mux.Unlock()
 
-	if err := r.reporter.StepStarted(ctx, r.exec.ID, r.execID, step.ID, r.exec.Revision); err != nil {
+	if err := r.ledger.StepStarted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision); err != nil {
 		return fmt.Errorf("step started: %w", err)
 	}
 
@@ -172,6 +172,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 	output, err := step.Handler.Exec(ctx, &types.ExecRequest{
 		Scope: scope,
 	})
+
 	result.CompletedAt = time.Now()
 
 	if err != nil {
@@ -183,7 +184,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		r.state.CurrentStep = nil
 		r.state.mux.Unlock()
 
-		_ = r.reporter.StepFailed(ctx, r.exec.ID, r.execID, step.ID, r.exec.Revision, err)
+		_ = r.ledger.StepFailed(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, err)
 		return fmt.Errorf("%w: %s", ErrStepFailed, step.ID)
 	}
 
@@ -203,7 +204,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 	r.state.CurrentStep = nil
 	r.state.mux.Unlock()
 
-	if err := r.reporter.StepCompleted(ctx, r.exec.ID, r.execID, step.ID, r.exec.Revision, output); err != nil {
+	if err := r.ledger.StepCompleted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, output); err != nil {
 		return fmt.Errorf("step completed: %w", err)
 	}
 
@@ -211,7 +212,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 }
 
 func (r *runtime) waitForPermission(ctx context.Context, ops int) error {
-	permCh, err := r.gate.Request(r.execID, ops)
+	permCh, err := r.gate.Request(r.executionID, ops)
 	if err != nil {
 		return err
 	}
@@ -227,14 +228,14 @@ func (r *runtime) waitForPermission(ctx context.Context, ops int) error {
 }
 
 func (r *runtime) complete(ctx context.Context) error {
-	if err := r.reporter.ExecutionCompleted(ctx, r.exec.ID, r.execID, r.exec.Revision); err != nil {
+	if err := r.ledger.ExecutionCompleted(ctx, r.exec.ID, r.executionID, r.exec.Revision); err != nil {
 		return fmt.Errorf("execution complete: %w", err)
 	}
 	return nil
 }
 
 func (r *runtime) fail(ctx context.Context, err error) error {
-	if repErr := r.reporter.ExecutionFailed(ctx, r.exec.ID, r.execID, r.exec.Revision, err); repErr != nil {
+	if repErr := r.ledger.ExecutionFailed(ctx, r.exec.ID, r.executionID, r.exec.Revision, err); repErr != nil {
 		return fmt.Errorf("execution failed: %w (report error: %v)", err, repErr)
 	}
 	return err

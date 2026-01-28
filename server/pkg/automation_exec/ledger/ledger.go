@@ -9,17 +9,20 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 type ledger struct {
 	mu sync.RWMutex
 	// ExecutableID -> ExecutionID -> Revision -> Execution
 	store map[id.ID]map[id.ID]map[int]*types.Execution
+	log   *zap.Logger
 }
 
-func Ledger() *ledger {
+func Ledger(log *zap.Logger) *ledger {
 	return &ledger{
 		store: make(map[id.ID]map[id.ID]map[int]*types.Execution),
+		log:   log,
 	}
 }
 

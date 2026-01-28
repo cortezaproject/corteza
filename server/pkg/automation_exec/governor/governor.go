@@ -8,12 +8,14 @@ import (
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 type (
 	governor struct {
 		paused atomic.Bool
 		mux    sync.Mutex
+		log    *zap.Logger
 
 		gates   gates
 		global  globalPolicy
@@ -43,8 +45,9 @@ var (
 // Hands out permission gates for operations
 //
 // @todo configs
-func Governor(ctx context.Context) (svc *governor) {
+func Governor(ctx context.Context, log *zap.Logger) (svc *governor) {
 	svc = &governor{
+		log: log,
 		gates: gates{
 			globalPause: newGate(),
 			exec:        make(map[id.ID]*execGates),
@@ -56,7 +59,7 @@ func Governor(ctx context.Context) (svc *governor) {
 		now: time.Now,
 	}
 
-	svc.watch(ctx)
+	go svc.watch(ctx)
 
 	return
 }
@@ -136,7 +139,11 @@ func (g *governor) Request(executionID id.ID, ops int) (<-chan struct{}, error) 
 		return g.gates.globalPause.ch, nil
 	}
 
+	// @todo do we wanna do this?
 	ep := g.exec[executionID]
+	if ep == nil {
+		ep = (*execPolicy)(&g.global)
+	}
 
 	g.refreshLocked(now, ep, executionID)
 
