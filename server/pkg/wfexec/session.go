@@ -102,6 +102,9 @@ type (
 		// Current scope
 		Scope *expr.Vars
 
+		// Step execution results from parent
+		Results *expr.Vars
+
 		// Helps with gateway join/merge steps
 		// that needs info about the step it's currently merging
 		Parent Step
@@ -881,7 +884,15 @@ func (s *Session) exec(ctx context.Context, log *zap.Logger, st *State) (nxt []*
 
 	nxt = make([]*State, len(st.next))
 	for i, step := range st.next {
-		nn := st.Next(step, scope)
+		// for parallel execution, clone scope for each path
+		var stepScope *expr.Vars
+		if len(st.next) > 1 {
+			stepScope = scope.MustMerge()
+		} else {
+			stepScope = scope
+		}
+
+		nn := st.Next(step, stepScope)
 		if err = s.canEnqueue(nn); err != nil {
 			log.Error("unable to queue", zap.Error(err))
 			return

@@ -102,6 +102,7 @@ func (s State) MakeRequest() *ExecRequest {
 		StateID:   s.stateId,
 		Scope:     s.scope,
 		Input:     s.input,
+		Results:   s.results,
 		Parent:    s.parent,
 	}
 }
