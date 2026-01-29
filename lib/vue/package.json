@@ -1,7 +1,7 @@
 {
   "name": "@cortezaproject/corteza-vue",
   "description": "Corteza Vue.js JavaScript/TypeScript libs",
-  "version": "2024.9.7",
+  "version": "2024.9.7-hotfix.1",
   "license": "Apache-2.0",
   "author": "Denis Arh <denis.arh@crust.tech>",
   "type": "module",
@@ -34,7 +34,7 @@
     "prosemirror-model": "^1.25.0"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js": "^2024.9.7",
+    "@cortezaproject/corteza-js": "^2024.9.7-hotfix.1",
     "@floating-ui/dom": "^1.7.4",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",

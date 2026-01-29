@@ -17,7 +17,6 @@
       :size="size"
       class="text-truncate"
       @input="onInput"
-      @update="search"
       @keyup.enter="submitQuery"
     />
 
@@ -127,11 +126,9 @@ export default {
   methods: {
     onInput (value) {
       this.localValue = value
-    },
 
-    search (e) {
       if (!this.submittable) {
-        this.$emit('input', e)
+        this.$emit('input', value)
       }
     },
 

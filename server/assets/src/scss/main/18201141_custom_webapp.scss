@@ -37,12 +37,13 @@ body {
 }
 
 @media (max-width: 576px) {
-  .flex-fill-child > * {
+  .flex-fill-child>* {
     flex: 1 1 auto !important;
   }
 }
 
-:disabled, .disabled {
+:disabled,
+.disabled {
   cursor: not-allowed !important;
   pointer-events: auto !important;
 }
@@ -63,7 +64,7 @@ a.btn:not(.btn-link) {
   text-decoration: none;
 }
 
-.tabs > .card-header {
+.tabs>.card-header {
   border-bottom: 1px solid var(--extra-light) !important;
   padding-top: 0 !important;
   padding-left: 0.8rem !important;
@@ -130,7 +131,7 @@ a.btn:not(.btn-link) {
 }
 
 fieldset.required {
-  legend > div:first-child > span:first-child::after {
+  legend>div:first-child>span:first-child::after {
     content: "*";
     color: var(--danger);
   }
@@ -222,7 +223,10 @@ fieldset.required {
     margin: 0;
   }
 
-  header, footer, aside, nav {
+  header,
+  footer,
+  aside,
+  nav {
     display: none;
   }
 
@@ -248,13 +252,19 @@ fieldset.required {
   }
 
   /* Headings */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     line-height: 1.1;
     margin-top: 2.5rem;
     text-wrap: pretty;
   }
 
-  h1, h2 {
+  h1,
+  h2 {
     margin-top: 3.5rem;
     margin-bottom: 1.5rem;
   }
@@ -271,12 +281,15 @@ fieldset.required {
     font-size: 1.1rem;
   }
 
-  h4, h5, h6 {
+  h4,
+  h5,
+  h6 {
     font-size: 1rem;
   }
 
   /* Lists */
-  ul, ol {
+  ul,
+  ol {
     padding: 0 1rem;
     margin: 1.25rem 1rem 1.25rem 0.4rem;
 
@@ -336,13 +349,13 @@ fieldset.required {
       display: flex;
       margin-bottom: 0.25rem;
 
-      > label {
+      >label {
         flex: 0 0 auto;
         margin-bottom: 0 !important;
         user-select: none;
       }
 
-      > div {
+      >div {
         flex: 1 1 auto;
       }
     }
@@ -386,21 +399,25 @@ fieldset.required {
   }
 
   /* Emphasis */
-  strong, b {
+  strong,
+  b {
     font-weight: 600;
   }
 
-  em, i {
+  em,
+  i {
     font-style: italic;
   }
 
   /* Strikethrough */
-  s, del {
+  s,
+  del {
     text-decoration: line-through;
   }
 
   /* Subscript and superscript */
-  sub, sup {
+  sub,
+  sup {
     font-size: 0.75em;
     line-height: 0;
   }
@@ -437,7 +454,7 @@ fieldset.required {
       position: relative;
       vertical-align: top;
 
-      > * {
+      >* {
         margin-bottom: 0;
       }
     }

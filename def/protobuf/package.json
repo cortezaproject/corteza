@@ -1,6 +1,6 @@
 {
   "name": "@cortezaproject/corteza-protobuf",
-  "version": "2024.9.7",
+  "version": "2024.9.7-hotfix.1",
   "private": true,
   "description": "Corteza Protobuf dummy package"
 }

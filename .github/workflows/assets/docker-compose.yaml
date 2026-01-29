@@ -48,7 +48,7 @@ services:
       - "${PWD}:/corteza"
     working_dir: /corteza
     environment:
-      BUILD_VERSION: 2024.9.7
+      BUILD_VERSION: 2024.9.7-hotfix.1
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:8080 || exit 1
       interval: 30s

@@ -961,7 +961,7 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cortezaproject/corteza-js@^2024.9.7":
+"@cortezaproject/corteza-js@^2024.9.7-hotfix.1":
   version "2024.9.7"
   resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-js/-/corteza-js-2024.9.7.tgz#4eb73c98bba1db6f983412c332c4a2d05c434c64"
   integrity sha512-DBo+dQa0sGzeSoPjrPXS6zMSVS01JRO5UQGCfr3Fvx3EMnWvzpEL2bHVFvd/mJ8Gm2rfVjw7Dr1HWItVnk8Q7w==
@@ -975,12 +975,12 @@
     numeral "^2.0.6"
     pino "^9.6.0"
 
-"@cortezaproject/corteza-vue@2024.9.7":
-  version "2024.9.7"
-  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.7.tgz#191409c73f04eee327708f7007365e22c281dedb"
-  integrity sha512-YWbeknQBHbvGsbf2hh+GpZsmWVmd+DYAtuA2ToQ2YatgHa14pYcKqEUULdy3JEEr0YQXPf24ylDLr9jlOuNo1Q==
+"@cortezaproject/corteza-vue@2024.9.7-hotfix.1":
+  version "2024.9.7-hotfix.1"
+  resolved "https://registry.yarnpkg.com/@cortezaproject/corteza-vue/-/corteza-vue-2024.9.7-hotfix.1.tgz#2343287b391abbfcc518b47d540053b5f08c7b2f"
+  integrity sha512-QsTltW+lmKz0eiC7ORTxlnWDuC6gRdwySnEVWCXYpmEEdxP1Emee3QmzBgs7R/AcXKYmOLDvADZeVri4ShhmKA==
   dependencies:
-    "@cortezaproject/corteza-js" "^2024.9.7"
+    "@cortezaproject/corteza-js" "^2024.9.7-hotfix.1"
     "@floating-ui/dom" "^1.7.4"
     "@fortawesome/fontawesome-svg-core" "^6.7.2"
     "@fortawesome/free-regular-svg-icons" "^6.7.2"
@@ -4873,7 +4873,7 @@ escodegen@^2.0.0:
     source-map "~0.6.1"
 
 "eslint-config-corteza-client@file:../../../lib/eslint-client":
-  version "2024.9.7"
+  version "2024.9.7-hotfix.1"
 
 eslint-config-standard@^17.0.0:
   version "17.1.0"

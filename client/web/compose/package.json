@@ -1,7 +1,7 @@
 {
   "name": "corteza-webapp-compose",
   "description": "Corteza Compose WebApp",
-  "version": "2024.9.7",
+  "version": "2024.9.7-hotfix.1",
   "license": "Apache-2.0",
   "contributors": [
     "Denis Arh <denis.arh@gmail.com>"
@@ -34,8 +34,8 @@
     "postcss": "^8.5.3"
   },
   "dependencies": {
-    "@cortezaproject/corteza-js": "^2024.9.7",
-    "@cortezaproject/corteza-vue": "2024.9.7",
+    "@cortezaproject/corteza-js": "^2024.9.7-hotfix.1",
+    "@cortezaproject/corteza-vue": "2024.9.7-hotfix.1",
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
