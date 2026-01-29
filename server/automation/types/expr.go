@@ -12,6 +12,11 @@ import (
 type (
 	// Used for expression steps, arguments/results mapping and for input validation
 	Expr struct {
+		// Context defines where evaluation context of this expression
+		//
+		// Leave empty for global context
+		Context string `json:"context,omitempty"`
+
 		// Variable name to set results of the expression to
 		Target string `json:"target"`
 
@@ -204,6 +209,142 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 			if !knownType(typedValue) {
 				// Expression has fixed type but value does not
 				// cast the value of evaluation to type of the expressicason
+				if typedValue, err = typ.Cast(value); err != nil {
+					return nil, err
+				}
+			} else if typ.Type() != typedValue.Type() && typ.Type() != (expr.Any{}).Type() {
+				//
+				if typedValue, err = typ.Cast(value); err != nil {
+					return nil, err
+				}
+			}
+		}
+
+		// Set result of the expression to scope
+		//
+		// Set() fn handles multi-level path (eg "base.level1.level2")
+		// that can set result of the expression deep into scope's value
+		if err = expr.Assign(scope, e.Target, typedValue); err != nil {
+			return nil, err
+		}
+
+		// Take base of the path (1st part) and
+		// copy value of it to output scope
+		//
+		// This ensures us that the entire variable
+		// from the original scope will be present in the output
+		scope.Copy(out, expr.PathBase(e.Target))
+	}
+
+	return out, nil
+}
+
+func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*expr.Vars, error) {
+	var (
+		err error
+
+		// Working scope for building results
+		scope = &expr.Vars{}
+
+		// Prepare output scope
+		out, _ = expr.NewVars(nil)
+
+		// Untyped evaluation result
+		value interface{}
+
+		knownType = func(p expr.Type) bool {
+			return p != nil && p.Type() != expr.Any{}.Type() && p.Type() != expr.Unresolved{}.Type()
+		}
+	)
+
+	for _, e := range set {
+		value = e.Value
+
+		if e.typ == nil {
+			return nil, errors.Internal("type for target %q not initialized", e.Target)
+		}
+
+		err = func() (err error) {
+			// Get the context to evaluate against
+			if len(e.Context) == 0 {
+				return errors.Internal("expression %q must specify a context", e.Target)
+			}
+
+			evalScope, exists := contexts[e.Context]
+			if !exists {
+				return errors.NotFound("context %q does not exist", e.Context)
+			}
+
+			if len(e.Source) > 0 {
+				// Copy from existing variable in the specified context
+				if !evalScope.Has(e.Source) {
+					return errors.NotFound("variable %q does not exist in context %q", e.Source, e.Context)
+				}
+
+				value, err = expr.Select(evalScope, e.Source)
+				return
+			}
+
+			if len(e.Expr) > 0 {
+				if e.eval == nil {
+					// no expression set, fallback to default value
+					return errors.Internal("expression language for target %q not initialized", e.Target)
+				} else if value, err = e.eval.Eval(ctx, evalScope); err != nil {
+					return errors.Internal("expression %q failed: %s", e.Expr, err.Error()).Wrap(err)
+				}
+			}
+
+			return
+		}()
+
+		if err != nil && e.Value == nil {
+			return nil, err
+		}
+
+		typedValue, is := value.(expr.TypedValue)
+		if !is {
+			// value to be assigned (evaled, copied..) is not typed!
+			// try to figure out what we can do
+			if !knownType(e.typ) {
+				// Expression does not have type set
+				if out.Has(e.Target) {
+					t, _ := out.Select(e.Target)
+					typedValue, err = t.Cast(value)
+					if err != nil {
+						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
+					}
+				} else {
+					typedValue, err = expr.Typify(value)
+					if err != nil {
+						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
+					}
+				}
+			} else if typedValue, err = e.typ.Cast(value); err != nil {
+				return nil, fmt.Errorf("cannot cast value %T to %s (target %s): %w", value, e.typ.Type(), e.Target, err)
+			}
+		}
+
+		if !knownType(e.typ) && !knownType(typedValue) && typedValue.Type() != e.typ.Type() {
+			// Both, expression & value have type set;
+			// check if it's the same type or return an error
+			return nil, fmt.Errorf("cannot set to %q (type %s) value of type %s", e.Target, e.typ.Type(), typedValue.Type())
+		}
+
+		if e.typ != nil {
+
+			// @note handling special case for when we're dealing with arrays but in reality
+			//       we're expecting specific types (function results).
+			//       If we're dealing with an array but the expression doesn't want an array,
+			//       make it want an array.
+			typ := e.typ
+			array := &expr.Array{}
+			if typedValue.Type() == array.Type() && typ.Type() != array.Type() {
+				typ = array
+			}
+
+			if !knownType(typedValue) {
+				// Expression has fixed type but value does not
+				// cast the value of evaluation to type of the expression
 				if typedValue, err = typ.Cast(value); err != nil {
 					return nil, err
 				}

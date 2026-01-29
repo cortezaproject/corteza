@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	nx "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/wfexec"
@@ -65,6 +66,57 @@ func FunctionStep(def *Function, arguments, results ExprSet) (*functionStep, err
 	}
 
 	return &functionStep{def: def, arguments: arguments, results: results}, nil
+}
+
+func (f functionStep) ExecN(ctx context.Context, r *nx.ExecRequest) (nx.ExecResponse, error) {
+	var (
+		started       = time.Now()
+		args, results *expr.Vars
+		err           error
+
+		log = logger.ContextValue(ctx, zap.NewNop()).With(
+			zap.String("functionRef", f.def.Ref),
+			zap.String("functionKind", "function"),
+		)
+	)
+
+	defer func() {
+		log := log.With(zap.Duration("execTime", time.Now().Sub(started)))
+
+		if err == nil {
+			log.Debug("executed")
+		} else {
+			log.Warn("executed with errors", zap.Error(err))
+		}
+	}()
+
+	ctx = logger.ContextWithValue(ctx, log)
+
+	if len(f.arguments) > 0 {
+		// Arguments defined, get values from scope and use them when calling
+		// function/handler
+		args, err = f.arguments.EvalN(ctx, r.Scope)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	results, err = f.def.Handler(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(f.results) == 0 {
+		// No results defined, nothing to return
+		return expr.NewVars(nil)
+	}
+
+	results, err = f.results.Eval(ctx, results)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // Exec executes function step

@@ -23,20 +23,33 @@ type (
 		// Limits        ExecutableLimits
 	}
 
+	StepArg struct {
+		Name    string
+		Context string
+	}
+
+	StepRst struct {
+		Name string
+	}
+
 	// Step represents a single step in an executable workflow
 	Step struct {
-		ID   id.ID
-		Kind string
+		ID     id.ID
+		Handle string
+		Kind   string
 
 		Children []Step
 		Parents  []Step
 
-		Handler stepHandler
+		Arguments []StepArg
+		Results   []StepRst
+
+		Handler StepHandler
 	}
 
 	ExecRequest struct {
 		// Current scope
-		Scope *expr.Vars
+		Scope map[string]*expr.Vars
 	}
 
 	ExecResponse any
@@ -64,8 +77,8 @@ type (
 		Error     error
 	}
 
-	stepHandler interface {
-		Exec(context.Context, *ExecRequest) (ExecResponse, error)
+	StepHandler interface {
+		ExecN(context.Context, *ExecRequest) (ExecResponse, error)
 	}
 
 	Budget struct {

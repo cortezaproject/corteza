@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/cortezaproject/corteza/server/automation/types"
 	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
 	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
+	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/davecgh/go-spew/spew"
 )
@@ -15,6 +17,7 @@ import (
 // @todo report issues so we don't brick the system in case of semantic errors
 func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (execTypes.Executable, automationTypes.NgAutomationIssueSet) {
 	var issues automationTypes.NgAutomationIssueSet
+	var err error
 
 	if a == nil {
 		return execTypes.Executable{}, automationTypes.NgAutomationIssueSet{
@@ -62,11 +65,34 @@ func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (
 		sid := id.MustNumID(uiID)
 		idMap[uiID] = sid
 
-		exSteps = append(exSteps, execTypes.Step{
-			ID:      sid,
-			Kind:    ui.Kind,
-			Handler: noopHandler{},
-		})
+		aux := execTypes.Step{
+			ID:     sid,
+			Kind:   ui.Kind,
+			Handle: ui.Handle,
+		}
+
+		for _, e := range ui.Arguments {
+			aux.Arguments = append(aux.Arguments, execTypes.StepArg{
+				Name:    e.Target,
+				Context: e.Context,
+			})
+		}
+
+		for _, e := range ui.Results {
+			aux.Results = append(aux.Results, execTypes.StepRst{
+				Name: e.Target,
+			})
+		}
+
+		aux.Handler, err = stepConv(ui)
+		// @todo err handling...
+		if err != nil {
+			spew.Dump(err)
+			err = nil
+			continue
+		}
+
+		exSteps = append(exSteps, aux)
 	}
 
 	exByID := make(map[id.ID]*execTypes.Step, len(exSteps))
@@ -150,19 +176,6 @@ func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (
 	}, issues
 }
 
-// noopHandler is the temporary handler used for all steps.
-// It returns the scope unchanged and never errors.
-type noopHandler struct{}
-
-func (noopHandler) Exec(ctx context.Context, r *execTypes.ExecRequest) (execTypes.ExecResponse, error) {
-	spew.Dump("noop exec")
-
-	if r == nil {
-		return nil, nil
-	}
-	return r.Scope, nil
-}
-
 func hasEntry(exByID map[id.ID]*execTypes.Step) bool {
 	if len(exByID) == 0 {
 		return true
@@ -227,5 +240,85 @@ func issue(desc string, culprit map[string]int) *automationTypes.NgAutomationIss
 	return &automationTypes.NgAutomationIssue{
 		Description: desc,
 		Culprit:     culprit,
+	}
+}
+
+func stepConv(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
+	// @todo expressions
+	out, err = func() (out execTypes.StepHandler, err error) {
+		switch step.Kind {
+		case "function":
+			return stepConvFunction(step)
+
+		default:
+			return nil, errors.Internal("unsupported step kind %q", step.Kind)
+		}
+	}()
+
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo skip visual stuff
+	if out == nil {
+		panic("not supported")
+	}
+
+	return out, nil
+}
+
+func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
+	reg := Registry()
+
+	if def := reg.Function(step.Ref); def == nil {
+		return nil, errors.Internal("unknown function %q", step.Ref)
+	} else {
+		if def.Kind != string(step.Kind) {
+			return nil, fmt.Errorf("unexpected %s on %s step", def.Kind, step.Kind)
+		}
+
+		var (
+			err        error
+			isIterator = def.Kind == types.FunctionKindIterator
+		)
+
+		if isIterator {
+			if def.Iterator == nil {
+				return nil, errors.Internal("iterator handler for %q not set", step.Ref)
+			}
+		} else {
+			if def.Handler == nil {
+				return nil, errors.Internal("function handler for %q not set", step.Ref)
+			}
+		}
+
+		if err = def.Parameters.VerifyArguments(step.Arguments); err != nil {
+			return nil, errors.Internal("failed to verify argument expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
+		}
+
+		if err = def.Results.VerifyResults(step.Results); err != nil {
+			return nil, errors.Internal("failed to verify result expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
+		}
+
+		// if isIterator {
+		// 	if len(out) != 2 {
+		// 		return nil, fmt.Errorf("expecting exactly 2 outbound paths for iterator")
+		// 	}
+
+		// 	var (
+		// 		next = g.StepByID(out[0].ChildID)
+		// 		exit = g.StepByID(out[1].ChildID)
+		// 	)
+
+		// 	if next == nil || exit == nil {
+		// 		// wait for steps to be resolved
+		// 		return nil, nil
+		// 	}
+
+		// 	return types.IteratorStep(def, step.Arguments, step.Results, next, exit)
+
+		// } else {
+		// }
+		return types.FunctionStep(def, step.Arguments, step.Results)
 	}
 }

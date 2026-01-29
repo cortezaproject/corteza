@@ -35,13 +35,12 @@ type StepResult struct {
 	StepID      id.ID
 	StartedAt   time.Time
 	CompletedAt time.Time
-	Output      types.ExecResponse
+	Output      map[string]*expr.Vars
 	Error       error
 }
 
 type executionState struct {
 	CurrentStep     *id.ID
-	Variables       *expr.Vars
 	CompletedSteps  map[id.ID]StepResult
 	InProgressSteps map[id.ID]bool
 	mux             sync.RWMutex
@@ -88,10 +87,6 @@ func Runtime(
 }
 
 func (r *runtime) Start(ctx context.Context, scope *expr.Vars) error {
-	r.state.mux.Lock()
-	r.state.Variables = scope
-	r.state.mux.Unlock()
-
 	for {
 		select {
 		case <-r.stopCh:
@@ -111,7 +106,7 @@ func (r *runtime) Start(ctx context.Context, scope *expr.Vars) error {
 			}
 		}
 
-		step, more, err := r.scheduler.Next()
+		step, more, err := r.scheduler.Next(ctx)
 		if err != nil {
 			return err
 		}
@@ -127,7 +122,9 @@ func (r *runtime) Start(ctx context.Context, scope *expr.Vars) error {
 			return r.fail(ctx, err)
 		}
 
-		r.scheduler.OnStepComplete(step.ID)
+		if err := r.scheduler.OnStepComplete(ctx, step.ID); err != nil {
+			return err
+		}
 	}
 }
 
@@ -160,17 +157,19 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		return fmt.Errorf("step started: %w", err)
 	}
 
-	r.state.mux.RLock()
-	scope := (&expr.Vars{}).MustMerge(r.state.Variables)
-	r.state.mux.RUnlock()
+	// Resolve inputs from scheduler stack
+	inputVars, err := r.resolveInputs(step)
+	if err != nil {
+		return fmt.Errorf("resolve inputs: %w", err)
+	}
 
 	result := StepResult{
 		StepID:    step.ID,
 		StartedAt: time.Now(),
 	}
 
-	output, err := step.Handler.Exec(ctx, &types.ExecRequest{
-		Scope: scope,
+	output, err := step.Handler.ExecN(ctx, &types.ExecRequest{
+		Scope: inputVars,
 	})
 
 	result.CompletedAt = time.Now()
@@ -188,29 +187,65 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		return fmt.Errorf("%w: %s", ErrStepFailed, step.ID)
 	}
 
-	var newScope *expr.Vars
-	if rs, ok := output.(*expr.Vars); ok {
-		newScope = rs
+	// Extract results based on step definition
+	outputMap := make(map[string]*expr.Vars)
+	if output != nil {
+		if vars, ok := output.(*expr.Vars); ok {
+			// Map each defined result to a Vars containing that value
+			for _, rst := range step.Results {
+				val, err := expr.NewVars(vars.GetValue()[rst.Name])
+				if err != nil {
+					return err
+				}
+
+				if val != nil {
+					resultVars := &expr.Vars{}
+					resultVars.Set(rst.Name, val)
+					outputMap[rst.Name] = resultVars
+				}
+			}
+		}
 	}
 
-	result.Output = output
+	result.Output = outputMap
 
 	r.state.mux.Lock()
-	if newScope != nil {
-		r.state.Variables = r.state.Variables.MustMerge(newScope)
-	}
 	delete(r.state.InProgressSteps, step.ID)
 	r.state.CompletedSteps[step.ID] = result
 	r.state.CurrentStep = nil
 	r.state.mux.Unlock()
 
-	if err := r.ledger.StepCompleted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, output); err != nil {
+	// Store outputs in scheduler for future step resolution
+	if err := r.scheduler.StoreOutputs(step.ID, outputMap); err != nil {
+		return fmt.Errorf("store outputs: %w", err)
+	}
+
+	if err := r.ledger.StepCompleted(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, outputMap); err != nil {
 		return fmt.Errorf("step completed: %w", err)
 	}
 
 	return nil
 }
 
+func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error) {
+	out := make(map[string]*expr.Vars, 2)
+
+	if len(step.Arguments) == 0 {
+		return out, nil
+	}
+
+	for _, arg := range step.Arguments {
+		// Get entire output map from the context handle
+		outputs, err := r.scheduler.FindOutput(arg.Context)
+		if err != nil {
+			return nil, fmt.Errorf("resolve %s from context %s: %w", arg.Name, arg.Context, err)
+		}
+
+		out[arg.Context] = outputs
+	}
+
+	return out, nil
+}
 func (r *runtime) waitForPermission(ctx context.Context, ops int) error {
 	permCh, err := r.gate.Request(r.executionID, ops)
 	if err != nil {

@@ -3,6 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -125,8 +126,9 @@ type (
 	}
 
 	NgAutomationStep struct {
-		ID   uint64               `json:"stepID"`
-		Meta NgAutomationStepMeta `json:"meta"`
+		ID     uint64               `json:"stepID"`
+		Handle string               `json:"handle"`
+		Meta   NgAutomationStepMeta `json:"meta"`
 
 		Kind string `json:"kind"`
 		Ref  string
@@ -166,3 +168,17 @@ func (set NgAutomationStepSet) Value() (driver.Value, error) { return json.Marsh
 
 func (set *NgAutomationPathSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
 func (set NgAutomationPathSet) Value() (driver.Value, error) { return json.Marshal(set) }
+
+func (set *NgAutomationIssueSet) Scan(src any) error          { return sql.ParseJSON(src, set) }
+func (set NgAutomationIssueSet) Value() (driver.Value, error) { return json.Marshal(set) }
+
+func (set NgAutomationIssueSet) Error() string {
+	switch len(set) {
+	case 0:
+		return fmt.Sprintf("no automation issue found")
+	case 1:
+		return fmt.Sprintf("1 automation issue found")
+	default:
+		return fmt.Sprintf("%d automation issues found", len(set))
+	}
+}
