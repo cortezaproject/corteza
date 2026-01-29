@@ -24,7 +24,6 @@ new-workflow: New Workflow
 none: None
 now: Now
 offset: Offset
-offset-expression: Offset (expression)
 permissions: Permissions
 reset: Reset
 searchPlaceholder: Search workflows
