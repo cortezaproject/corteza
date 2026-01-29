@@ -164,6 +164,7 @@ type (
 		Triggers  automationType.NgAutomationTriggerSet `db:"triggers"`
 		Steps     automationType.NgAutomationStepSet    `db:"steps"`
 		Paths     automationType.NgAutomationPathSet    `db:"paths"`
+		Issues    automationType.NgAutomationIssueSet   `db:"issues"`
 		RunAs     uint64                                `db:"run_as"`
 		OwnedBy   uint64                                `db:"owned_by"`
 		CreatedAt time.Time                             `db:"created_at"`
@@ -1209,6 +1210,7 @@ func (aux *auxAutomationNgAutomation) encode(res *automationType.NgAutomation) (
 	aux.Triggers = res.Triggers
 	aux.Steps = res.Steps
 	aux.Paths = res.Paths
+	aux.Issues = res.Issues
 	aux.RunAs = res.RunAs
 	aux.OwnedBy = res.OwnedBy
 	aux.CreatedAt = res.CreatedAt
@@ -1233,6 +1235,7 @@ func (aux auxAutomationNgAutomation) decode() (res *automationType.NgAutomation,
 	res.Triggers = aux.Triggers
 	res.Steps = aux.Steps
 	res.Paths = aux.Paths
+	res.Issues = aux.Issues
 	res.RunAs = aux.RunAs
 	res.OwnedBy = aux.OwnedBy
 	res.CreatedAt = aux.CreatedAt
@@ -1257,6 +1260,7 @@ func (aux *auxAutomationNgAutomation) scan(row scanner) error {
 		&aux.Triggers,
 		&aux.Steps,
 		&aux.Paths,
+		&aux.Issues,
 		&aux.RunAs,
 		&aux.OwnedBy,
 		&aux.CreatedAt,

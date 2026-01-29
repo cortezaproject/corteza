@@ -149,6 +149,10 @@ func Activate(ctx context.Context) (err error) {
 		return
 	}
 
+	if err = DefaultNgAutomation.Load(ctx); err != nil {
+		return
+	}
+
 	return
 }
 

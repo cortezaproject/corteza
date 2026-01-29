@@ -2,14 +2,19 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
+	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
+	"github.com/cortezaproject/corteza/server/pkg/expr"
+	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/pkg/handle"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
@@ -24,6 +29,8 @@ type (
 		store     store.Storer
 		actionlog actionlog.Recorder
 		ac        ngAutomationAccessController
+
+		execEngine executionEngine
 
 		log *zap.Logger
 	}
@@ -50,10 +57,16 @@ type (
 		Unregister(ptrs ...uintptr)
 	}
 
+	executionEngine interface {
+		DeprecateExecutable(ctx context.Context, exeID id.ID, rev int) error
+		Execute(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (id.ID, error)
+		ExecuteAndWait(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (*expr.Vars, error)
+		RegisterExecutable(ctx context.Context, exe execTypes.Executable) error
+		RemoveExecutable(ctx context.Context, exeID id.ID, rev int) error
+	}
+
 	ngAutomationUpdateHandler func(ctx context.Context, ns *types.NgAutomation) (ngAutomationChanges, error)
 	ngAutomationChanges       uint8
-
-	ngAutomationInvokerCtxKey struct{}
 )
 
 const (
@@ -63,10 +76,12 @@ const (
 	ngAutomationDefChanged    ngAutomationChanges = 4
 )
 
-func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt) *ngAutomation {
+func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, engine executionEngine) *ngAutomation {
 	return &ngAutomation{
 		log: log,
-		// opt:         opt,
+
+		execEngine: engine,
+
 		actionlog: DefaultActionlog,
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
@@ -115,9 +130,9 @@ func (svc *ngAutomation) Search(ctx context.Context, filter types.NgAutomationFi
 			return err
 		}
 
-		// if err = label.Load(ctx, svc.store, toLabeledNgAutomations(rr)...); err != nil {
-		// 	return err
-		// }
+		if err = label.Load(ctx, svc.store, toLabeledNgAutomations(rr)...); err != nil {
+			return err
+		}
 
 		return nil
 	}()
@@ -139,9 +154,9 @@ func (svc *ngAutomation) LookupByID(ctx context.Context, ngAutomationID uint64) 
 			return NgAutomationErrNotAllowedToRead()
 		}
 
-		// if err = label.Load(ctx, svc.store, ngAtuomation); err != nil {
-		// 	return err
-		// }
+		if err = label.Load(ctx, svc.store, ngAtuomation); err != nil {
+			return err
+		}
 
 		return nil
 	})
@@ -155,8 +170,6 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (n
 	var (
 		wap   = &ngAutomationActionProps{ngAutomation: new}
 		cUser = intAuth.GetIdentityFromContext(ctx).Identity()
-		// g     *ngAtuomationexec.Graph
-		// runAs intAuth.Identifiable
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -197,25 +210,25 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (n
 
 		wap.ngAutomation = ngAtuomation
 
-		// if g, runAs, err = svc.validateNgAutomation(ctx, ngAtuomation); err != nil {
-		// 	return
-		// }
+		res, exec, err := svc.procAutomation(ctx, ngAtuomation)
+		if err != nil {
+			return
+		}
 
-		// svc.updateCache(ngAtuomation, runAs, g)
-
-		// if len(ngAtuomation.Issues) == 0 {
-		// 	if err = svc.triggers.registerNgAutomations(ctx, ngAtuomation); err != nil {
-		// 		return err
-		// 	}
-		// }
+		if len(res.Issues) == 0 {
+			err = svc.execEngine.RegisterExecutable(ctx, exec)
+			if err != nil {
+				return
+			}
+		}
 
 		if err = store.CreateAutomationNgAutomation(ctx, s, ngAtuomation); err != nil {
 			return
 		}
 
-		// if err = label.Create(ctx, s, ngAtuomation); err != nil {
-		// 	return
-		// }
+		if err = label.Create(ctx, s, ngAtuomation); err != nil {
+			return
+		}
 
 		wap.setNew(ngAtuomation)
 
@@ -267,6 +280,15 @@ func (svc *ngAutomation) UndeleteByID(ctx context.Context, ngAutomationID uint64
 	}))
 }
 
+func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *expr.Vars, err error) {
+	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, p.Input)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (svc ngAutomation) uniqueCheck(ctx context.Context, res *types.NgAutomation) (err error) {
 	if res.Handle != "" {
 		if e, _ := store.LookupAutomationNgAutomationByHandle(ctx, svc.store, res.Handle); e != nil && e.ID != res.ID {
@@ -283,8 +305,6 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 		res     *types.NgAutomation
 		aProps  = &ngAutomationActionProps{ngAutomation: &types.NgAutomation{ID: ngAutomationID}}
 		err     error
-		// g       *ngAtuomationexec.Graph
-		// runAs   intAuth.Identifiable
 	)
 
 	err = store.Tx(ctx, svc.store, func(ctx context.Context, s store.Storer) (err error) {
@@ -294,9 +314,9 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 			return
 		}
 
-		// if err = label.Load(ctx, svc.store, res); err != nil {
-		// 	return err
-		// }
+		if err = label.Load(ctx, svc.store, res); err != nil {
+			return err
+		}
 
 		aProps.setNgAutomation(res)
 		aProps.setUpdate(res)
@@ -305,29 +325,29 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 			return err
 		}
 
-		// if g, runAs, err = svc.validateNgAutomation(ctx, res); err != nil {
-		// 	return
-		// }
+		res, exec, err := svc.procAutomation(ctx, res)
+		if err != nil {
+			return
+		}
 
-		// svc.updateCache(res, runAs, g)
+		if len(res.Issues) == 0 {
+			err = svc.execEngine.RegisterExecutable(ctx, exec)
+			if err != nil {
+				return
+			}
+		}
 
-		// if len(res.Issues) == 0 {
-		// 	if err = svc.triggers.registerNgAutomations(ctx, res); err != nil {
-		// 		return err
-		// 	}
-		// }
-
-		if changes&ngAutomationChanged > 0 {
+		if changes&ngAutomationChanged > 0 || len(res.Issues) > 0 {
 			if err = store.UpdateAutomationNgAutomation(ctx, svc.store, res); err != nil {
 				return err
 			}
 		}
 
-		// if changes&ngAutomationLabelsChanged > 0 {
-		// 	if err = label.Update(ctx, s, res); err != nil {
-		// 		return
-		// 	}
-		// }
+		if changes&ngAutomationLabelsChanged > 0 {
+			if err = label.Update(ctx, s, res); err != nil {
+				return
+			}
+		}
 
 		return
 	})
@@ -453,6 +473,36 @@ func (svc ngAutomation) handleUndelete(ctx context.Context, res *types.NgAutomat
 	return ngAutomationChanged, nil
 }
 
+func (svc *ngAutomation) Load(ctx context.Context) error {
+	var (
+		set, _, err = store.SearchAutomationNgAutomations(ctx, svc.store, types.NgAutomationFilter{
+			Deleted:  filter.StateExcluded,
+			Disabled: filter.StateExcluded,
+		})
+	)
+	if err != nil {
+		return err
+	}
+
+	for _, atn := range set {
+		atn, exe, err := svc.procAutomation(ctx, atn)
+		if err != nil {
+			// @todo?
+			return err
+		}
+
+		if len(atn.Issues) == 0 {
+			err = svc.execEngine.RegisterExecutable(ctx, exe)
+			if err != nil {
+				// @todo?
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func loadNgAutomation(ctx context.Context, s store.Storer, ngAutomationID uint64) (res *types.NgAutomation, err error) {
 	if ngAutomationID == 0 {
 		return nil, NgAutomationErrInvalidID()
@@ -464,4 +514,53 @@ func loadNgAutomation(ctx context.Context, s store.Storer, ngAutomationID uint64
 	}
 
 	return
+}
+
+func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutomation) (out *types.NgAutomation, exe execTypes.Executable, err error) {
+	out = atm
+
+	exe, issues := ConvertNgAutomation(ctx, out)
+	if len(issues) > 0 {
+		out.Issues = types.NgAutomationIssueSet(issues)
+	}
+
+	// Returns context with identity set to service user
+	//
+	// Current user (identity in the context) might not have
+	// sufficient privileges to load info about invoker and runner
+	sysUserCtx := func() context.Context {
+		return intAuth.SetIdentityToContext(ctx, intAuth.ServiceUser())
+	}
+
+	// @todo this might not be the smartest thing, users might get invalidated after
+	//       we add cache them as workflow runners
+	if out.RunAs > 0 {
+		if exe.RunAs, err = DefaultUser.FindByAny(sysUserCtx(), out.RunAs); err != nil {
+			out.Issues = append(out.Issues, &types.NgAutomationIssue{
+				Culprit:     nil,
+				Description: fmt.Sprintf("failed to load run-as user %d: %w", out.RunAs, err),
+			})
+		} else if !exe.RunAs.Valid() {
+			out.Issues = append(out.Issues, &types.NgAutomationIssue{
+				Culprit:     nil,
+				Description: fmt.Sprintf("invalid user %d used for workflow run-as", out.RunAs),
+			})
+		}
+	}
+
+	return
+}
+
+// toLabeledWorkflows converts to []label.LabeledResource
+func toLabeledNgAutomations(set []*types.NgAutomation) []label.LabeledResource {
+	if len(set) == 0 {
+		return nil
+	}
+
+	ll := make([]label.LabeledResource, len(set))
+	for i := range set {
+		ll[i] = set[i]
+	}
+
+	return ll
 }

@@ -11,10 +11,12 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"go.uber.org/zap"
 )
 
 type (
 	automationService struct {
+		log *zap.Logger
 		reg registrySvc
 		// @todo when needed
 		sup interface{}
@@ -30,22 +32,37 @@ type (
 
 	runtimeManagerAPI interface {
 		Start(ctx context.Context, executionID id.ID, revision int, params *expr.Vars) (id.ID, error)
+		Get(execID id.ID) (*manager.RuntimeEntry, error)
 	}
 )
 
-func AutomationService(ctx context.Context, cfg manager.Config) (*automationService, error) {
-	led := ledger.Ledger()
-	gov := governor.Governor(ctx)
-	reg := registry.Registry(led)
+func AutomationService(ctx context.Context, log *zap.Logger, cfg manager.Config) (*automationService, error) {
+	log.Debug("initializing ledger")
+	led := ledger.Ledger(log.Named("ledger"))
+	log.Debug("initialized ledger")
 
-	rm, err := manager.RuntimeManager(ctx, reg, led, gov, cfg)
+	log.Debug("initializing governor")
+	gov := governor.Governor(ctx, log.Named("governor"))
+	log.Debug("initialized governor")
+
+	log.Debug("initializing registry")
+	reg := registry.Registry(log.Named("registry"), led)
+	log.Debug("initialized registry")
+
+	log.Debug("initializing runtime-manager")
+	rm, err := manager.RuntimeManager(ctx, log.Named("runtime-manager"), reg, led, gov, cfg)
+	log.Debug("initialized runtime-manager")
+
 	if err != nil {
 		return nil, err
 	}
 
-	sup := supervisor.Supervisor(led, rm)
+	log.Debug("initializing supervisor")
+	sup := supervisor.Supervisor(log.Named("supervisor"), led, rm)
+	log.Debug("initialized supervisor")
 
 	return &automationService{
+		log: log,
 		reg: reg,
 		rm:  rm,
 		sup: sup,
@@ -73,4 +90,30 @@ func (s *automationService) Execute(
 	params *expr.Vars,
 ) (id.ID, error) {
 	return s.rm.Start(ctx, exeID, rev, params)
+}
+
+func (s *automationService) ExecuteAndWait(
+	ctx context.Context,
+	exeID id.ID,
+	rev int,
+	params *expr.Vars,
+) (*expr.Vars, error) {
+	executionID, err := s.rm.Start(ctx, exeID, rev, params)
+	if err != nil {
+		return nil, err
+	}
+
+	entry, err := s.rm.Get(executionID)
+	if err != nil {
+		return nil, err
+	}
+
+	select {
+	case <-entry.Done:
+		// @todo
+		return nil, entry.Err
+
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }

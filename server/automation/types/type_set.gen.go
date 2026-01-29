@@ -15,6 +15,11 @@ type (
 	// This type is auto-generated.
 	NgAutomationSet []*NgAutomation
 
+	// NgAutomationIssueSet slice of NgAutomationIssue
+	//
+	// This type is auto-generated.
+	NgAutomationIssueSet []*NgAutomationIssue
+
 	// NgAutomationPathSet slice of NgAutomationPath
 	//
 	// This type is auto-generated.
@@ -122,6 +127,36 @@ func (set NgAutomationSet) IDs() (IDs []uint64) {
 
 	for i := range set {
 		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(NgAutomationIssue) err
+//
+// This function is auto-generated.
+func (set NgAutomationIssueSet) Walk(w func(*NgAutomationIssue) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(NgAutomationIssue) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set NgAutomationIssueSet) Filter(f func(*NgAutomationIssue) (bool, error)) (out NgAutomationIssueSet, err error) {
+	var ok bool
+	out = NgAutomationIssueSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
 	}
 
 	return

@@ -58,11 +58,7 @@ func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 		r.statsOnNewExecutable()
 	}
 
-	if _, exists := revisions[exec.Revision]; exists {
-		// @todo
-		r.log.Info("overwriting revision", zap.Int("revision", exec.Revision))
-		// 	return ErrRevisionAlreadyExists
-	}
+	_, exists := revisions[exec.Revision]
 
 	entry := &ExecutableEntry{
 		Executable:   exec,
@@ -71,7 +67,12 @@ func (r *registry) Add(ctx context.Context, exec types.Executable) error {
 	}
 
 	revisions[exec.Revision] = entry
-	r.statsOnRegisterRevision()
+
+	if exists {
+		r.log.Info("replaced existing revision", zap.Int("revision", exec.Revision))
+	} else {
+		r.statsOnRegisterRevision()
+	}
 
 	return nil
 }

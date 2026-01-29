@@ -12,6 +12,30 @@ import (
 )
 
 // SetLabel adds new label to label map
+func (m *NgAutomation) SetLabel(key string, value labelTypes.LabelValue) {
+	if m.Labels == nil {
+		m.Labels = make(map[string]labelTypes.LabelValue)
+	}
+
+	m.Labels[key] = value
+}
+
+// GetLabels adds new label to label map
+func (m NgAutomation) GetLabels() map[string]labelTypes.LabelValue {
+	return m.Labels
+}
+
+// GetLabels adds new label to label map
+func (NgAutomation) LabelResourceKind() string {
+	return "executable"
+}
+
+// GetLabels adds new label to label map
+func (m NgAutomation) LabelResourceID() uint64 {
+	return m.ID
+}
+
+// SetLabel adds new label to label map
 func (m *Trigger) SetLabel(key string, value labelTypes.LabelValue) {
 	if m.Labels == nil {
 		m.Labels = make(map[string]labelTypes.LabelValue)

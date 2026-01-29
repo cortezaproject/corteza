@@ -13,95 +13,141 @@ import (
 // ConvertNgAutomation converts service lvl structs into pkg/automation_exec
 //
 // @todo report issues so we don't brick the system in case of semantic errors
-func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (execTypes.Executable, error) {
+func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (execTypes.Executable, automationTypes.NgAutomationIssueSet) {
+	var issues automationTypes.NgAutomationIssueSet
+
 	if a == nil {
-		return execTypes.Executable{}, fmt.Errorf("nil automation")
+		return execTypes.Executable{}, automationTypes.NgAutomationIssueSet{
+			issue("nil automation", nil),
+		}
 	}
 
-	// @todo when we do revisions
 	revision := 0
 
-	// Basic validation
+	// --- Phase 1: validate & index steps ---
 	stepIdx := make(map[uint64]*automationTypes.NgAutomationStep, len(a.Steps))
 	for i := range a.Steps {
 		s := a.Steps[i]
+
 		if s.ID == 0 {
-			return execTypes.Executable{}, fmt.Errorf("step at index %d has empty ID", i)
+			issues = append(issues, issue(
+				"step has empty ID",
+				map[string]int{"step": i},
+			))
+			continue
 		}
+
 		if _, exists := stepIdx[s.ID]; exists {
-			return execTypes.Executable{}, fmt.Errorf("duplicate step ID %d", s.ID)
+			issues = append(issues, issue(
+				fmt.Sprintf("duplicate step ID %d", s.ID),
+				map[string]int{"step": i},
+			))
+			continue
 		}
+
 		stepIdx[s.ID] = s
 	}
 
-	// Build up steps
-	exSteps := make([]execTypes.Step, 0, len(a.Steps))
-	idMap := make(map[uint64]id.ID, len(a.Steps)) // uiStepID -> execStepID
+	if len(stepIdx) == 0 {
+		return execTypes.Executable{}, append(issues,
+			issue("no valid steps defined", nil),
+		)
+	}
 
-	for _, ui := range stepIdx {
-		sid := id.MustNumID(ui.ID)
-		idMap[ui.ID] = sid
+	// --- Phase 2: build execution steps ---
+	exSteps := make([]execTypes.Step, 0, len(stepIdx))
+	idMap := make(map[uint64]id.ID, len(stepIdx))
+
+	for uiID, ui := range stepIdx {
+		sid := id.MustNumID(uiID)
+		idMap[uiID] = sid
 
 		exSteps = append(exSteps, execTypes.Step{
 			ID:      sid,
 			Kind:    ui.Kind,
 			Handler: noopHandler{},
-			// Parents/Children wired in Phase 3
 		})
 	}
 
-	// Index execution steps by id.ID for wiring
 	exByID := make(map[id.ID]*execTypes.Step, len(exSteps))
 	for i := range exSteps {
 		exByID[exSteps[i].ID] = &exSteps[i]
 	}
 
-	// Connect bits
+	// --- Phase 3: wire paths ---
 	for i := range a.Paths {
 		p := a.Paths[i]
 
 		if p.ParentID == 0 || p.ChildID == 0 {
-			return execTypes.Executable{}, fmt.Errorf("path at index %d has empty parent/child", i)
+			issues = append(issues, issue(
+				"path has empty parent or child",
+				map[string]int{"path": i},
+			))
+			continue
 		}
+
 		if p.ParentID == p.ChildID {
-			return execTypes.Executable{}, fmt.Errorf("path at index %d is a self-loop (%d)", i, p.ParentID)
+			issues = append(issues, issue(
+				"path is a self-loop",
+				map[string]int{"path": i},
+			))
+			continue
 		}
 
 		parentExecID, ok := idMap[p.ParentID]
 		if !ok {
-			return execTypes.Executable{}, fmt.Errorf("path at index %d references unknown parent step %d", i, p.ParentID)
+			issues = append(issues, issue(
+				fmt.Sprintf("unknown parent step %d", p.ParentID),
+				map[string]int{"path": i},
+			))
+			continue
 		}
+
 		childExecID, ok := idMap[p.ChildID]
 		if !ok {
-			return execTypes.Executable{}, fmt.Errorf("path at index %d references unknown child step %d", i, p.ChildID)
+			issues = append(issues, issue(
+				fmt.Sprintf("unknown child step %d", p.ChildID),
+				map[string]int{"path": i},
+			))
+			continue
 		}
 
 		parent := exByID[parentExecID]
 		child := exByID[childExecID]
 		if parent == nil || child == nil {
-			return execTypes.Executable{}, fmt.Errorf("internal step index missing for path at index %d", i)
+			issues = append(issues, issue(
+				"internal step index missing",
+				map[string]int{"path": i},
+			))
+			continue
 		}
 
-		// NOTE: types.Step uses value slices for Parents/Children, so this copies the structs.
-		// This is fine for now (scheduler only needs IDs), but it is structurally lossy.
 		parent.Children = append(parent.Children, *child)
 		child.Parents = append(child.Parents, *parent)
 	}
 
-	// Graph validation
+	// --- Phase 4: graph validation ---
 	if !hasEntry(exByID) {
-		return execTypes.Executable{}, fmt.Errorf("no entry steps (every step has at least one parent)")
-	}
-	if err := detectCycle(exByID); err != nil {
-		return execTypes.Executable{}, err
+		issues = append(issues, issue(
+			"no entry steps (every step has at least one parent)",
+			nil,
+		))
 	}
 
+	if err := detectCycle(exByID); err != nil {
+		issues = append(issues, issue(
+			err.Error(),
+			nil,
+		))
+	}
+
+	// Return executable even if issues exist
 	return execTypes.Executable{
 		ID:       id.MustNumID(a.ID),
 		Revision: revision,
 		Handle:   a.Handle,
 		Steps:    exSteps,
-	}, nil
+	}, issues
 }
 
 // noopHandler is the temporary handler used for all steps.
@@ -175,4 +221,11 @@ func detectCycle(exByID map[id.ID]*execTypes.Step) error {
 	}
 
 	return nil
+}
+
+func issue(desc string, culprit map[string]int) *automationTypes.NgAutomationIssue {
+	return &automationTypes.NgAutomationIssue{
+		Description: desc,
+		Culprit:     culprit,
+	}
 }

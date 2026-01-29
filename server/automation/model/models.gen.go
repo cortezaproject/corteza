@@ -77,6 +77,14 @@ var NgAutomation = &dal.Model{
 		},
 
 		&dal.Attribute{
+			Ident: "Issues",
+			Type: &dal.TypeJSON{
+				DefaultValue: "{}",
+			},
+			Store: &dal.CodecAlias{Ident: "issues"},
+		},
+
+		&dal.Attribute{
 			Ident: "RunAs",
 			Type: &dal.TypeRef{HasDefault: true,
 				DefaultValue: 0,

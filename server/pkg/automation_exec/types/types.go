@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 )
@@ -13,6 +14,8 @@ type (
 		ID       id.ID
 		Revision int
 		Handle   string
+
+		RunAs auth.Identifiable
 
 		Steps []Step
 

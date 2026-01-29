@@ -15,7 +15,10 @@ types:
   State: {}
 
   NgAutomation:
+    labelResourceType: executable
     pkgID: true
+  NgAutomationIssue:
+    noIdField: true
   NgAutomationTrigger:
     pkgID: true
   NgAutomationStep:

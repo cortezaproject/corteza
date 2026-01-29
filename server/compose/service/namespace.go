@@ -856,10 +856,18 @@ func (svc namespace) reloadServices(ctx context.Context, ns *types.Namespace) (e
 		return
 	}
 
-	// Reload workflow-triggers (in case import brought in something new)
-	if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
+	{
+		// Reload workflow-triggers (in case import brought in something new)
+		if err = automationService.DefaultWorkflow.Load(ctx); err != nil {
+			// should not be a fatal error
+			err = nil
+		}
+
+		// Reload workflow-triggers (in case import brought in something new)
+	if err = automationService.DefaultNgAutomation.Load(ctx); err != nil {
 		// should not be a fatal error
 		err = nil
+	}
 	}
 
 	return

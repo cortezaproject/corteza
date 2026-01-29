@@ -26,6 +26,9 @@ type (
 		Steps    NgAutomationStepSet    `json:"steps"`
 		Paths    NgAutomationPathSet    `json:"paths"`
 
+		// Collection of issues from the last parse
+		Issues NgAutomationIssueSet `json:"issues,omitempty"`
+
 		RunAs     uint64     `json:"runAs,string"`
 		OwnedBy   uint64     `json:"ownedBy,string"`
 		CreatedAt time.Time  `json:"createdAt,omitempty"`
@@ -58,6 +61,12 @@ type (
 		// Standard helpers for paging and sorting
 		filter.Sorting
 		filter.Paging
+	}
+
+	NgAutomationIssue struct {
+		// url encoded location of the error:
+		Culprit     map[string]int `json:"culprit"`
+		Description string         `json:"description"`
 	}
 
 	NgAutomationTrigger struct {

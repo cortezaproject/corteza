@@ -47,6 +47,17 @@ ng_automation: {
 				omitSetter: true
 				omitGetter: true
 			}
+			issues: {
+				goType: "types.NgAutomationIssueSet"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+				envoy: {
+					yaml: {
+						omitEncoder: true
+					}
+				}
+			}
 
 			run_as: schema.AttributeUserRef
 

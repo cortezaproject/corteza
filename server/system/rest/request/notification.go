@@ -630,6 +630,17 @@ func NewNotificationMarkAllAsRead() *NotificationMarkAllAsRead {
 	return &NotificationMarkAllAsRead{}
 }
 
+// Auditable returns all auditable/loggable parameters
+func (r NotificationMarkAllAsRead) Auditable() map[string]interface{} {
+	return map[string]interface{}{}
+}
+
+// Fill processes request and fills internal variables
+func (r *NotificationMarkAllAsRead) Fill(req *http.Request) (err error) {
+
+	return err
+}
+
 // NewNotificationMarkAllAsUnread request
 func NewNotificationMarkAllAsUnread() *NotificationMarkAllAsUnread {
 	return &NotificationMarkAllAsUnread{}
@@ -642,17 +653,6 @@ func (r NotificationMarkAllAsUnread) Auditable() map[string]interface{} {
 
 // Fill processes request and fills internal variables
 func (r *NotificationMarkAllAsUnread) Fill(req *http.Request) (err error) {
-
-	return err
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NotificationMarkAllAsRead) Auditable() map[string]interface{} {
-	return map[string]interface{}{}
-}
-
-// Fill processes request and fills internal variables
-func (r *NotificationMarkAllAsRead) Fill(req *http.Request) (err error) {
 
 	return err
 }
