@@ -17,7 +17,8 @@
         class="p-0"
       >
         <b-form-group
-          :label="$t('general:offset-expression')"
+          :label="$t('configurator:delay.duration.label')"
+          :description="$t('configurator:delay.duration.description')"
           label-class="text-primary"
           class="mb-0"
         >

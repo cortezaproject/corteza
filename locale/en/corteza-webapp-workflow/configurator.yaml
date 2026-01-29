@@ -25,3 +25,7 @@ run-as:
 sub-workflow:
   label: Subworkflow
   description: Subworkflows can't have enabled triggers
+delay:
+  duration:
+    label: Duration
+    description: 'Enter duration format (e.g., "5s", "10m", "1h30m") or an expression'
