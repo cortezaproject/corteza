@@ -109,6 +109,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	}
 	DefaultNgAutomation = NgAutomation(DefaultLogger.Named("ng-automation"), c.Corredor, engine)
 
+	populateConstructLibrary()
+
 	Registry().AddTypes(
 		&expr.Any{},
 		&expr.Array{},

@@ -222,14 +222,6 @@ endpoints:
     path: "/{sessionID}/cancel"
     parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
 
-# not yet implemented
-#
-#  - name: delete
-#    method: DELETE
-#    title: Remove session
-#    path: "/{sessionID}"
-#    parameters: { path: [ { name: sessionID, type: uint64, required: true, title: "Session ID" } ] }
-
   - name: listPrompts
     method: GET
     title: Returns pending prompts from all sessions
@@ -246,16 +238,6 @@ endpoints:
       post:
       - { name: input,        type: "*expr.Vars",           title: "Prompt variables", parser: "types.ParseWorkflowVariables" }
 
-# not yet implemented
-#
-#  - name: deleteState
-#    method: DELETE
-#    title: Cancel session's state
-#    path: "/{sessionID}/state/{stateID}"
-#    parameters:
-#      path:
-#      - { name: sessionID,    type: uint64, required: true, title: "Session ID" }
-#      - { name: stateID,      type: uint64, required: true, title: "State ID" }
 
 - title: Functions
   path: "/functions"
@@ -367,6 +349,21 @@ endpoints:
 ###########################################################################
 # NG ENDPOINTS
 ###########################################################################
+
+- title: Construct Registry
+  path: /construct-library
+  entrypoint: constructLibrary
+  authentication: []
+  # imports:
+  apis:
+  - name: functions
+    method: GET
+    title: List functions
+    path: "/functions"
+  - name: triggers
+    method: GET
+    title: List triggers
+    path: "/triggers"
 
 - title: NgAutomations
   path: "/ng-automation"

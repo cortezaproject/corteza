@@ -22,6 +22,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewEventTypes(EventTypes{}.New()).MountRoutes(r)
 
 			handlers.NewNgAutomation(NgAutomation{}.New()).MountRoutes(r)
+			handlers.NewConstructLibrary(ConstructLibrary{}.New()).MountRoutes(r)
 		})
 	}
 }
