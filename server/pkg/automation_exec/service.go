@@ -108,9 +108,9 @@ func (s *automationService) ExecuteAndWait(
 		return nil, err
 	}
 
+	// @todo
 	select {
 	case <-entry.Done:
-		// @todo
 		return nil, entry.Err
 
 	case <-ctx.Done():

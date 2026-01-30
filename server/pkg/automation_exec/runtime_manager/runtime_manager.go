@@ -47,11 +47,6 @@ type Registry interface {
 	GetExecutable(ctx context.Context, id id.ID, revision int) (types.Executable, error)
 }
 
-// type Ledger interface {
-// 	RegisterExecution(ctx context.Context, exec types.Execution) error
-// 	UpdateExecution(ctx context.Context, execID id.ID, status types.Status, endedAt *time.Time) error
-// }
-
 type Ledger interface {
 	StepStarted(ctx context.Context, executableID, executionID, stepID id.ID, rev int) error
 	StepCompleted(ctx context.Context, executableID, executionID, stepID id.ID, rev int, out any) error
@@ -83,22 +78,20 @@ type Runtime interface {
 // ===== internal types =====
 //
 
-type queuedStart struct {
-	execID     id.ID
-	executable types.Executable
-	params     *expr.Vars
-}
-
 type RuntimeEntry struct {
 	execID       id.ID
 	executableID id.ID
 	revision     int
 
+	executable types.Executable
+	params     *expr.Vars
+
 	runtime Runtime
 	cancel  context.CancelFunc
 
-	Done chan struct{}
-	Err  error
+	Done    chan struct{}
+	Started chan struct{}
+	Err     error
 }
 
 //
@@ -113,10 +106,10 @@ type runtimeManager struct {
 	governor Governor
 	config   Config
 
-	runtimes map[id.ID]*RuntimeEntry
-	mu       sync.RWMutex
+	executions map[id.ID]*RuntimeEntry
+	mu         sync.RWMutex
 
-	queue    []queuedStart
+	queue    []*RuntimeEntry
 	queueMux sync.Mutex
 	qSignal  chan struct{}
 
@@ -153,15 +146,15 @@ func RuntimeManager(
 	}
 
 	rm := &runtimeManager{
-		log:      log,
-		registry: reg,
-		ledger:   led,
-		governor: gov,
-		config:   cfg,
-		runtimes: make(map[id.ID]*RuntimeEntry),
-		queue:    make([]queuedStart, 0),
-		qSignal:  make(chan struct{}, 1),
-		slots:    make(chan struct{}, cfg.MaxConcurrent),
+		log:        log,
+		registry:   reg,
+		ledger:     led,
+		governor:   gov,
+		config:     cfg,
+		executions: make(map[id.ID]*RuntimeEntry),
+		queue:      make([]*RuntimeEntry, 0),
+		qSignal:    make(chan struct{}, 1),
+		slots:      make(chan struct{}, cfg.MaxConcurrent),
 	}
 
 	go rm.watchQueue(ctx)
@@ -182,11 +175,6 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		return id.Zero(), ErrExecutableNotFound
 	}
 
-	// active, err := rm.ledger.IsExecutableInUse(ctx, executableID, revision)
-	// if err != nil || !active {
-	// 	return id.Zero(), ErrExecutableInactive
-	// }
-
 	eid := id.MustNumID(id.Next())
 
 	err = rm.ledger.RegisterExecution(ctx, eid, executableID, revision, params)
@@ -194,11 +182,24 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		return id.Zero(), err
 	}
 
-	if err := rm.enqueue(queuedStart{
-		execID:     eid,
-		executable: executable,
-		params:     params,
-	}); err != nil {
+	entry := &RuntimeEntry{
+		execID:       eid,
+		executableID: executableID,
+		revision:     revision,
+		executable:   executable,
+		params:       params,
+		Done:         make(chan struct{}),
+		Started:      make(chan struct{}),
+	}
+
+	rm.mu.Lock()
+	rm.executions[eid] = entry
+	rm.mu.Unlock()
+
+	if err := rm.enqueue(entry); err != nil {
+		rm.mu.Lock()
+		delete(rm.executions, eid)
+		rm.mu.Unlock()
 		return id.Zero(), err
 	}
 
@@ -207,21 +208,20 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 }
 
 func (rm *runtimeManager) Stop(execID id.ID) error {
-	// 1) If running, stop runtime + cancel its context.
 	rm.mu.RLock()
-	e, ok := rm.runtimes[execID]
+	e, ok := rm.executions[execID]
 	rm.mu.RUnlock()
 
 	if ok {
-		// Cancel context first to unblock waits, then hard-stop the runtime.
 		if e.cancel != nil {
 			e.cancel()
 		}
-		e.runtime.Stop()
+		if e.runtime != nil {
+			e.runtime.Stop()
+		}
 		return nil
 	}
 
-	// 2) If queued (not started yet), drop from queue.
 	rm.queueMux.Lock()
 	defer rm.queueMux.Unlock()
 
@@ -239,7 +239,7 @@ func (rm *runtimeManager) Stop(execID id.ID) error {
 // ===== queue =====
 //
 
-func (rm *runtimeManager) enqueue(q queuedStart) error {
+func (rm *runtimeManager) enqueue(entry *RuntimeEntry) error {
 	rm.queueMux.Lock()
 	defer rm.queueMux.Unlock()
 
@@ -247,21 +247,21 @@ func (rm *runtimeManager) enqueue(q queuedStart) error {
 		return ErrQueueFull
 	}
 
-	rm.queue = append(rm.queue, q)
+	rm.queue = append(rm.queue, entry)
 	return nil
 }
 
-func (rm *runtimeManager) dequeue() (queuedStart, bool) {
+func (rm *runtimeManager) dequeue() (*RuntimeEntry, bool) {
 	rm.queueMux.Lock()
 	defer rm.queueMux.Unlock()
 
 	if len(rm.queue) == 0 {
-		return queuedStart{}, false
+		return nil, false
 	}
 
-	q := rm.queue[0]
+	entry := rm.queue[0]
 	rm.queue = rm.queue[1:]
-	return q, true
+	return entry, true
 }
 
 func (rm *runtimeManager) signalQueue() {
@@ -284,14 +284,13 @@ func (rm *runtimeManager) watchQueue(ctx context.Context) {
 
 func (rm *runtimeManager) processQueue(ctx context.Context) {
 	for {
-		item, ok := rm.dequeue()
+		entry, ok := rm.dequeue()
 		if !ok {
 			return
 		}
 
-		err := rm.startQueued(ctx, item)
+		err := rm.startQueued(ctx, entry)
 		if err != nil {
-			// @todo consider re-enqueuing on fail
 			panic(err)
 		}
 	}
@@ -301,7 +300,7 @@ func (rm *runtimeManager) processQueue(ctx context.Context) {
 // ===== runtime start =====
 //
 
-func (rm *runtimeManager) startQueued(ctx context.Context, q queuedStart) error {
+func (rm *runtimeManager) startQueued(ctx context.Context, entry *RuntimeEntry) error {
 	select {
 	case rm.slots <- struct{}{}:
 	case <-time.After(rm.config.SlotTimeout):
@@ -310,30 +309,23 @@ func (rm *runtimeManager) startQueued(ctx context.Context, q queuedStart) error 
 		return ctx.Err()
 	}
 
-	// @todo limits
-	if err := rm.governor.AddExecution(q.execID, 0, types.Budget{}, types.RateLimit{}); err != nil {
+	if err := rm.governor.AddExecution(entry.execID, 0, types.Budget{}, types.RateLimit{}); err != nil {
 		rm.releaseSlot()
 		return err
 	}
 
 	rctx, cancel := context.WithCancel(ctx)
-	rt := rm.createRuntime(q.execID, q.executable, q.params)
-
-	entry := &RuntimeEntry{
-		execID:       q.execID,
-		executableID: q.executable.ID,
-		revision:     q.executable.Revision,
-		runtime:      rt,
-		cancel:       cancel,
-		Done:         make(chan struct{}),
-	}
+	rt := rm.createRuntime(entry.execID, entry.executable, entry.params)
 
 	rm.mu.Lock()
-	rm.runtimes[q.execID] = entry
+	entry.runtime = rt
+	entry.cancel = cancel
 	rm.mu.Unlock()
 
+	close(entry.Started)
+
 	rm.running.Add(1)
-	go rm.runRuntime(rctx, entry, q.params)
+	go rm.runRuntime(rctx, entry, entry.params)
 	return nil
 }
 
@@ -343,29 +335,26 @@ func (rm *runtimeManager) runRuntime(ctx context.Context, e *RuntimeEntry, scope
 }
 
 func (rm *runtimeManager) onExit(ctx context.Context, e *RuntimeEntry, err error) {
-	status := types.StatusCompleted
+	e.Err = err
 
+	status := types.StatusCompleted
 	if err != nil {
 		status = types.StatusFailed
 	}
 
 	switch status {
 	case types.StatusCompleted:
-		// @todo error handling?
 		_ = rm.ledger.ExecutionCompleted(ctx, e.executableID, e.execID, e.revision)
 	case types.StatusFailed:
 		_ = rm.ledger.ExecutionFailed(ctx, e.executableID, e.execID, e.revision, err)
-
-	default:
-		// @todo
 	}
 
 	rm.governor.RemoveExecution(e.execID)
 	rm.releaseSlot()
 
 	rm.mu.Lock()
-	close(rm.runtimes[e.execID].Done)
-	delete(rm.runtimes, e.execID)
+	close(e.Done)
+	delete(rm.executions, e.execID)
 	rm.mu.Unlock()
 
 	rm.running.Add(-1)
@@ -395,7 +384,7 @@ func (rm *runtimeManager) Get(execID id.ID) (*RuntimeEntry, error) {
 	rm.mu.RLock()
 	defer rm.mu.RUnlock()
 
-	e, ok := rm.runtimes[execID]
+	e, ok := rm.executions[execID]
 	if !ok {
 		return nil, ErrExecutionNotFound
 	}
@@ -413,6 +402,4 @@ func (rm *runtimeManager) createRuntime(
 		rm.governor,
 		rm.ledger,
 	)
-
-	panic("runtime factory not implemented")
 }
