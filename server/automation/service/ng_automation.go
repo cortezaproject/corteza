@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"sync"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	intAuth "github.com/cortezaproject/corteza/server/pkg/auth"
 	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/errors"
@@ -16,6 +18,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/handle"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/pkg/label"
+	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 
@@ -25,10 +28,14 @@ import (
 
 type (
 	ngAutomation struct {
+		mux *sync.RWMutex
+
 		eventbus  ngAutomationEventTriggerHandler
 		store     store.Storer
 		actionlog actionlog.Recorder
 		ac        ngAutomationAccessController
+
+		reg map[uint64]map[uint64]uintptr
 
 		execEngine executionEngine
 
@@ -79,6 +86,12 @@ const (
 func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, engine executionEngine) *ngAutomation {
 	return &ngAutomation{
 		log: log,
+
+		// registry for event bus triggers
+		// @todo can we get rid of this and keep track of event bus entries via
+		// some reference/identifier?
+		mux: &sync.RWMutex{},
+		reg: map[uint64]map[uint64]uintptr{},
 
 		execEngine: engine,
 
@@ -166,7 +179,7 @@ func (svc *ngAutomation) LookupByID(ctx context.Context, ngAutomationID uint64) 
 
 // Create adds new ngAutomation resource and saves it into store
 // It updates service's cache
-func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (ngAtuomation *types.NgAutomation, err error) {
+func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (automation *types.NgAutomation, err error) {
 	var (
 		wap   = &ngAutomationActionProps{ngAutomation: new}
 		cUser = intAuth.GetIdentityFromContext(ctx).Identity()
@@ -189,7 +202,15 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (n
 			return err
 		}
 
-		ngAtuomation = &types.NgAutomation{
+		// @note triggers have an ID to simplify referencing
+		triggers := make(types.NgAutomationTriggerSet, len(new.Triggers))
+		for i := range triggers {
+			t := new.Triggers[i]
+			t.ID = nextID()
+			triggers[i] = t
+		}
+
+		automation = &types.NgAutomation{
 			ID:      nextID(),
 			Handle:  new.Handle,
 			Labels:  new.Labels,
@@ -197,7 +218,7 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (n
 			Enabled: new.Enabled,
 
 			Scope:    new.Scope,
-			Triggers: new.Triggers,
+			Triggers: triggers,
 			Steps:    new.Steps,
 			Paths:    new.Paths,
 
@@ -208,9 +229,9 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (n
 			CreatedBy: cUser,
 		}
 
-		wap.ngAutomation = ngAtuomation
+		wap.ngAutomation = automation
 
-		res, exec, err := svc.procAutomation(ctx, ngAtuomation)
+		res, exec, err := svc.procAutomation(ctx, automation)
 		if err != nil {
 			return
 		}
@@ -220,22 +241,27 @@ func (svc *ngAutomation) Create(ctx context.Context, new *types.NgAutomation) (n
 			if err != nil {
 				return
 			}
+
+			err = svc.registerAutomation(ctx, automation)
+			if err != nil {
+				return
+			}
 		}
 
-		if err = store.CreateAutomationNgAutomation(ctx, s, ngAtuomation); err != nil {
+		if err = store.CreateAutomationNgAutomation(ctx, s, automation); err != nil {
 			return
 		}
 
-		if err = label.Create(ctx, s, ngAtuomation); err != nil {
+		if err = label.Create(ctx, s, automation); err != nil {
 			return
 		}
 
-		wap.setNew(ngAtuomation)
+		wap.setNew(automation)
 
 		return
 	})
 
-	return ngAtuomation, svc.recordAction(ctx, wap, NgAutomationActionCreate, err)
+	return automation, svc.recordAction(ctx, wap, NgAutomationActionCreate, err)
 }
 
 // Update modifies existing ngAutomation resource in the store
@@ -280,7 +306,16 @@ func (svc *ngAutomation) UndeleteByID(ctx context.Context, ngAutomationID uint64
 	}))
 }
 
-func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *expr.Vars, err error) {
+func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
+	executionID, err = svc.execEngine.Execute(ctx, id.MustNumID(automationID), 0, p.Input)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *expr.Vars, err error) {
 	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, p.Input)
 	if err != nil {
 		return
@@ -324,6 +359,20 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 		if changes, err = fn(ctx, res); err != nil {
 			return err
 		}
+
+		// Triggers
+		triggers := make(types.NgAutomationTriggerSet, len(res.Triggers))
+		for i := range triggers {
+			t := res.Triggers[i]
+
+			if t.ID == 0 {
+				t.ID = nextID()
+			}
+
+			triggers[i] = t
+		}
+
+		res.Triggers = triggers
 
 		res, exec, err := svc.procAutomation(ctx, res)
 		if err != nil {
@@ -485,14 +534,20 @@ func (svc *ngAutomation) Load(ctx context.Context) error {
 	}
 
 	for _, atn := range set {
-		atn, exe, err := svc.procAutomation(ctx, atn)
+		atm, exe, err := svc.procAutomation(ctx, atn)
 		if err != nil {
 			// @todo?
 			return err
 		}
 
-		if len(atn.Issues) == 0 {
+		if len(atm.Issues) == 0 {
 			err = svc.execEngine.RegisterExecutable(ctx, exe)
+			if err != nil {
+				// @todo?
+				return err
+			}
+
+			err = svc.registerAutomation(ctx, atm)
 			if err != nil {
 				// @todo?
 				return err
@@ -549,6 +604,102 @@ func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutoma
 	}
 
 	return
+}
+
+func (svc *ngAutomation) registerAutomation(ctx context.Context, a *types.NgAutomation) error {
+	if !a.Enabled || len(a.Issues) > 0 || len(a.Triggers) == 0 {
+		return nil
+	}
+
+	var runAs auth.Identifiable
+	if a.RunAs > 0 {
+		sysCtx := auth.SetIdentityToContext(ctx, auth.ServiceUser())
+		var err error
+		if runAs, err = DefaultUser.FindByAny(sysCtx, a.RunAs); err != nil {
+			return fmt.Errorf("failed to load run-as user %d: %w", a.RunAs, err)
+		}
+		if !runAs.Valid() {
+			return fmt.Errorf("invalid user %d used for automation run-as", a.RunAs)
+		}
+	}
+
+	log := svc.log.With(logger.Uint64("automationID", a.ID))
+	canRegister := a.Enabled && a.DeletedAt == nil
+
+	if !canRegister {
+		return nil
+	}
+
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
+	if svc.reg[a.ID] == nil {
+		svc.reg[a.ID] = make(map[uint64]uintptr)
+	}
+
+	for _, t := range a.Triggers {
+		if !t.Enabled {
+			continue
+		}
+
+		svc.registerTrigger(log, a, t)
+	}
+
+	return nil
+}
+
+func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation, t *types.NgAutomationTrigger) {
+	log = log.With(logger.Uint64("triggerID", t.ID))
+
+	// Always unregister existing handler
+	if ptr := svc.reg[a.ID][t.ID]; ptr != 0 {
+		svc.eventbus.Unregister(ptr)
+	}
+
+	ops := []eventbus.HandlerRegOp{
+		eventbus.On(t.EventType),
+		eventbus.For(t.ResourceType),
+	}
+
+	for _, c := range t.Constraints {
+		cnstr, err := eventbus.ConstraintMaker(c.Name, c.Op, c.Values...)
+		if err != nil {
+			log.Debug("failed to make constraint for automation trigger",
+				zap.Any("constraint", c),
+				zap.Error(err),
+			)
+			continue
+		}
+		ops = append(ops, eventbus.Constraint(cnstr))
+	}
+
+	handlerFn := makeAutomationHandler(svc, a, t)
+	svc.reg[a.ID][t.ID] = svc.eventbus.Register(handlerFn, ops...)
+
+	log.Debug("trigger registered",
+		zap.String("eventType", t.EventType),
+		zap.String("resourceType", t.ResourceType),
+		zap.Any("constraints", t.Constraints),
+	)
+}
+
+func makeAutomationHandler(svc *ngAutomation, a *types.NgAutomation, t *types.NgAutomationTrigger) eventbus.HandlerFn {
+	return func(ctx context.Context, ev eventbus.Event) error {
+		var scope *expr.Vars
+		if dec, ok := ev.(varsEncoder); ok {
+			var err error
+			if scope, err = dec.EncodeVars(); err != nil {
+				return err
+			}
+		}
+
+		_, err := svc.ExecAndWait(ctx, a.ID, types.NgAutomationExecParams{
+			EventType:    t.EventType,
+			ResourceType: t.ResourceType,
+			Input:        t.Input.MustMerge(scope),
+		})
+		return err
+	}
 }
 
 // toLabeledWorkflows converts to []label.LabeledResource
