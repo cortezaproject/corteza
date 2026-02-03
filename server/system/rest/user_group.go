@@ -50,7 +50,7 @@ func (UserGroup) New() *UserGroup {
 }
 
 func (ctrl UserGroup) Read(ctx context.Context, r *request.UserGroupRead) (interface{}, error) {
-	userGroup, err := ctrl.userGroup.FindByID(ctx, r.UserGroupID.Number())
+	userGroup, err := ctrl.userGroup.FindByID(ctx, r.UserGroupID.Num())
 	return ctrl.makePayload(ctx, userGroup, err)
 }
 
@@ -111,7 +111,7 @@ func (ctrl UserGroup) Update(ctx context.Context, r *request.UserGroupUpdate) (i
 	var (
 		err       error
 		userGroup = &types.UserGroup{
-			ID:        r.UserGroupID.Number(),
+			ID:        r.UserGroupID.Num(),
 			Handle:    r.Handle,
 			Labels:    r.Labels,
 			UpdatedAt: r.UpdatedAt,
@@ -138,15 +138,15 @@ func (ctrl UserGroup) Update(ctx context.Context, r *request.UserGroupUpdate) (i
 }
 
 func (ctrl UserGroup) Delete(ctx context.Context, r *request.UserGroupDelete) (interface{}, error) {
-	return api.OK(), ctrl.userGroup.Delete(ctx, r.UserGroupID.Number())
+	return api.OK(), ctrl.userGroup.Delete(ctx, r.UserGroupID.Num())
 }
 
 func (ctrl UserGroup) Undelete(ctx context.Context, r *request.UserGroupUndelete) (interface{}, error) {
-	return api.OK(), ctrl.userGroup.Undelete(ctx, r.UserGroupID.Number())
+	return api.OK(), ctrl.userGroup.Undelete(ctx, r.UserGroupID.Num())
 }
 
 func (ctrl UserGroup) MemberList(ctx context.Context, r *request.UserGroupMemberList) (interface{}, error) {
-	if mm, err := ctrl.userGroup.MemberList(ctx, r.UserGroupID.Number()); err != nil {
+	if mm, err := ctrl.userGroup.MemberList(ctx, r.UserGroupID.Num()); err != nil {
 		return nil, err
 	} else {
 		rval := make([]string, len(mm))
@@ -158,7 +158,7 @@ func (ctrl UserGroup) MemberList(ctx context.Context, r *request.UserGroupMember
 }
 
 func (ctrl UserGroup) MemberAdd(ctx context.Context, r *request.UserGroupMemberAdd) (interface{}, error) {
-	return api.OK(), ctrl.userGroup.MemberAdd(ctx, r.UserGroupID.Number(), r.UserID)
+	return api.OK(), ctrl.userGroup.MemberAdd(ctx, r.UserGroupID.Num(), r.UserID)
 }
 
 func (ctrl UserGroup) makePayload(ctx context.Context, r *types.UserGroup, err error) (*userGroupPayload, error) {

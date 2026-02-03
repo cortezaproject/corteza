@@ -40,6 +40,8 @@ type (
 		execEngine executionEngine
 
 		log *zap.Logger
+
+		parser expr.Parsable
 	}
 
 	ngAutomationAccessController interface {
@@ -99,6 +101,8 @@ func NgAutomation(log *zap.Logger, corredorOpt options.CorredorOpt, engine execu
 		store:     DefaultStore,
 		ac:        DefaultAccessControl,
 		eventbus:  eventbus.Service(),
+
+		parser: expr.NewParser(),
 	}
 }
 
@@ -574,7 +578,7 @@ func loadNgAutomation(ctx context.Context, s store.Storer, ngAutomationID uint64
 func (svc *ngAutomation) procAutomation(ctx context.Context, atm *types.NgAutomation) (out *types.NgAutomation, exe execTypes.Executable, err error) {
 	out = atm
 
-	exe, issues := ConvertNgAutomation(ctx, out)
+	exe, issues := ConvertNgAutomation(ctx, svc, out)
 	if len(issues) > 0 {
 		out.Issues = types.NgAutomationIssueSet(issues)
 	}

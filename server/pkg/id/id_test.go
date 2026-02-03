@@ -27,7 +27,7 @@ func TestNumericIdentifiers(t *testing.T) {
 	for _, i := range ints {
 		id, err := NumID(i)
 		require.NoError(t, err)
-		require.Equal(t, i, id.Number())
+		require.Equal(t, i, id.Num())
 		require.True(t, id.isNum())
 		require.False(t, id.isStr())
 
@@ -35,7 +35,7 @@ func TestNumericIdentifiers(t *testing.T) {
 		var tr TestRes
 		err = json.Unmarshal([]byte(tmpRes), &tr)
 		require.NoError(t, err)
-		require.Equal(t, i, tr.Id.Number())
+		require.Equal(t, i, tr.Id.Num())
 		require.True(t, tr.Id.isNum())
 		require.False(t, tr.Id.isStr())
 
@@ -58,7 +58,7 @@ func TestStringIdentifiers(t *testing.T) {
 	for _, s := range strs {
 		id, err := StrID(s)
 		require.NoError(t, err)
-		require.Equal(t, s, id.String())
+		require.Equal(t, s, id.Str())
 		require.False(t, id.isNum())
 		require.True(t, id.isStr())
 
@@ -66,7 +66,7 @@ func TestStringIdentifiers(t *testing.T) {
 		var tr TestRes
 		err = json.Unmarshal([]byte(tmpRes), &tr)
 		require.NoError(t, err)
-		require.Equal(t, s, tr.Id.String())
+		require.Equal(t, s, tr.Id.Str())
 		require.False(t, tr.Id.isNum())
 		require.True(t, tr.Id.isStr())
 
@@ -103,8 +103,8 @@ func TestByteIdentifiers(t *testing.T) {
 			id, err := ByteID(tc.in)
 			require.NoError(t, err)
 
-			require.Equal(t, tc.outNum, id.Number())
-			require.Equal(t, tc.outStr, id.String())
+			require.Equal(t, tc.outNum, id.Num())
+			require.Equal(t, tc.outStr, id.Str())
 		})
 	}
 }

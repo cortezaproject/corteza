@@ -23,9 +23,33 @@ type (
 		// Limits        ExecutableLimits
 	}
 
+	// Expr represents an expression mapping for arguments/results
+	// Cloned from automation/types.Expr to avoid circular dependencies
+	Expr struct {
+		// Context defines the evaluation context of this expression
+		// Leave empty for global context
+		Context string `json:"context,omitempty"`
+
+		// Variable name to set results of the expression to
+		Target string `json:"target"`
+
+		// Source of the value / name of the variable from scope
+		// Takes precedence over Value
+		Source string `json:"source,omitempty"`
+
+		// Expression to evaluate over the input variables
+		Expression string `json:"expr,omitempty"`
+
+		// Raw value to be set to target
+		// If expression is set and fails, evaluation defaults to value
+		Value interface{} `json:"value,omitempty"`
+
+		// Expected type of the input value
+		Type string `json:"type,omitempty"`
+	}
+
 	StepArg struct {
-		Name    string
-		Context string
+		*Expr
 	}
 
 	StepRst struct {

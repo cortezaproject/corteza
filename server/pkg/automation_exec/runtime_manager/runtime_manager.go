@@ -7,10 +7,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/cortezaproject/corteza/server/pkg/auth"
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/modern-go/reflect2"
 	"go.uber.org/zap"
 )
 
@@ -92,6 +94,9 @@ type RuntimeEntry struct {
 	Done    chan struct{}
 	Started chan struct{}
 	Err     error
+
+	invoker auth.Identifiable
+	runner  auth.Identifiable
 }
 
 //
@@ -182,6 +187,13 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		return id.Zero(), err
 	}
 
+	invoker := auth.GetIdentityFromContext(ctx)
+	runner := executable.RunAs
+
+	if reflect2.IsNil(runner) {
+		runner = invoker
+	}
+
 	entry := &RuntimeEntry{
 		execID:       eid,
 		executableID: executableID,
@@ -190,6 +202,9 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		params:       params,
 		Done:         make(chan struct{}),
 		Started:      make(chan struct{}),
+
+		runner:  runner,
+		invoker: invoker,
 	}
 
 	rm.mu.Lock()
@@ -289,7 +304,19 @@ func (rm *runtimeManager) processQueue(ctx context.Context) {
 			return
 		}
 
-		err := rm.startQueued(ctx, entry)
+		// @todo do we want to do something more with the context
+		execCtx := context.Background()
+
+		// Encode runner into execution context
+		// runner is used as identity and for access control
+		execCtx = auth.SetIdentityToContext(execCtx, entry.runner)
+
+		// Encode invoker into execution context
+		// invoker is used
+		// @todo :)
+		// execCtx = context.WithValue(execCtx, workflowInvokerCtxKey{}, ent)
+
+		err := rm.startQueued(execCtx, entry)
 		if err != nil {
 			panic(err)
 		}

@@ -28,6 +28,9 @@ type (
 
 		// Execution stack
 		stack []*frame
+
+		// Completed step outputs indexed by handle
+		completedOutputs map[string]map[string]*expr.Vars
 	}
 
 	IteratorHandler interface {
@@ -63,9 +66,10 @@ type (
 
 func newScheduler(exe types.Executable) *scheduler {
 	ss := &scheduler{
-		executable: exe,
-		steps:      make(map[id.ID]*types.Step, len(exe.Steps)),
-		stack:      make([]*frame, 0, 16),
+		executable:       exe,
+		steps:            make(map[id.ID]*types.Step, len(exe.Steps)),
+		stack:            make([]*frame, 0, 16),
+		completedOutputs: make(map[string]map[string]*expr.Vars),
 	}
 
 	return ss.init(exe)
@@ -73,6 +77,8 @@ func newScheduler(exe types.Executable) *scheduler {
 
 // Next returns the next step to execute
 // Returns (step, hasNext, error)
+// Note: For frameTypeStep, the frame is NOT popped here - it remains on stack
+// until PopFrame() is called after StoreOutputs
 func (ss *scheduler) Next(ctx context.Context) (*types.Step, bool, error) {
 	for len(ss.stack) > 0 {
 		current := ss.stack[len(ss.stack)-1]
@@ -85,7 +91,7 @@ func (ss *scheduler) Next(ctx context.Context) (*types.Step, bool, error) {
 			return ss.handleBranch(ctx, current)
 
 		case frameTypeStep:
-			ss.stack = ss.stack[:len(ss.stack)-1]
+			// Don't pop yet - wait for StoreOutputs to be called first
 			return current.step, true, nil
 		}
 	}
@@ -94,6 +100,12 @@ func (ss *scheduler) Next(ctx context.Context) (*types.Step, bool, error) {
 }
 
 func (ss *scheduler) FindOutput(handle string) (*expr.Vars, error) {
+	// First check completed outputs
+	if outputs, ok := ss.completedOutputs[handle]; ok {
+		return expr.NewVars(outputs)
+	}
+
+	// Then check stack for in-progress frames
 	for i := len(ss.stack) - 1; i >= 0; i-- {
 		f := ss.stack[i]
 
@@ -102,15 +114,21 @@ func (ss *scheduler) FindOutput(handle string) (*expr.Vars, error) {
 		}
 	}
 
-	return nil, fmt.Errorf("%w: %s.%s", ErrOutputNotFound, handle)
+	return nil, fmt.Errorf("%w: %s", ErrOutputNotFound, handle)
 }
 
-// StoreOutputs saves step execution results in the current frame
+// StoreOutputs saves step execution results and moves them to completedOutputs
 func (ss *scheduler) StoreOutputs(stepID id.ID, outputs map[string]*expr.Vars) error {
-	// Find the frame for this step (should be recent)
+	// Find the frame for this step (should be the top of the stack for frameTypeStep)
 	for i := len(ss.stack) - 1; i >= 0; i-- {
-		if ss.stack[i].stepID == stepID {
-			ss.stack[i].outputs = outputs
+		if ss.stack[i].stepID.Equal(stepID) {
+			handle := ss.stack[i].handle
+			// Store outputs in completed map for future lookups
+			if handle != "" {
+				ss.completedOutputs[handle] = outputs
+			}
+			// Pop the frame now that outputs are stored
+			ss.stack = append(ss.stack[:i], ss.stack[i+1:]...)
 			return nil
 		}
 	}

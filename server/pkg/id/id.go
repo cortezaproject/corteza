@@ -8,8 +8,8 @@ import (
 
 type (
 	ID struct {
-		Num uint64
-		Str [maxStrIdentifierLength]rune
+		num uint64
+		str [maxStrIdentifierLength]rune
 	}
 )
 
@@ -34,7 +34,7 @@ func MustNumID(n uint64) ID {
 }
 
 func NumID(n uint64) (ID, error) {
-	return ID{Num: n}, nil
+	return ID{num: n}, nil
 }
 
 func MustStrID(s string) ID {
@@ -56,7 +56,7 @@ func StrID(s string) (ID, error) {
 			str[i] = r
 		}
 	}
-	return ID{Str: str}, nil
+	return ID{str: str}, nil
 }
 
 func MustByteID(data []byte) (id ID) {
@@ -97,11 +97,11 @@ func (id ID) IsZero() bool {
 }
 
 func (id ID) isNum() bool {
-	return id.Num != 0
+	return id.num != 0
 }
 
 func (id ID) isStr() bool {
-	return id.Str != [maxStrIdentifierLength]rune{}
+	return id.str != [maxStrIdentifierLength]rune{}
 }
 
 func InSlice(needle ID, slice ...ID) bool {
@@ -133,11 +133,11 @@ func RemoveFromSlice(needle ID, slice ...ID) (out []ID) {
 
 func (id ID) Value() string {
 	if id.isStr() {
-		return `"` + string(id.String()) + `"`
+		return `"` + string(id.Str()) + `"`
 	}
 
 	if id.isNum() {
-		return `"` + String(id.Number()) + `"`
+		return `"` + String(id.Num()) + `"`
 	}
 
 	// Backward compatibility for empty ID
@@ -145,17 +145,21 @@ func (id ID) Value() string {
 }
 
 func (id ID) String() string {
+	return id.Value()
+}
+
+func (id ID) Str() string {
 	hasValid := false
 	i := 0
 
-	for _, r := range id.Str {
+	for _, r := range id.str {
 		if !hasValid && r != 0 {
 			hasValid = true
 			continue
 		}
 
 		if hasValid && r == 0 {
-			return string(id.Str[:i+1])
+			return string(id.str[:i+1])
 		}
 
 		i++
@@ -165,11 +169,11 @@ func (id ID) String() string {
 		return ""
 	}
 
-	return string(id.Str[:])
+	return string(id.str[:])
 }
 
-func (id ID) Number() uint64 {
-	return id.Num
+func (id ID) Num() uint64 {
+	return id.num
 }
 
 // marshal/unmarshal JSON

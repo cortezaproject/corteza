@@ -197,7 +197,7 @@ func (svc *service) evalSubBranch(nn []*groupNode, op, res string) (a Access) {
 func (svc *service) evalNode(n *groupNode, op, res string) (a Access) {
 	thingy := make(map[uint64]bool, len(n.roles))
 	for _, r := range n.roles {
-		thingy[r.Number()] = true
+		thingy[r.Num()] = true
 	}
 
 	return check(svc.indexed, partRoles{

@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/modern-go/reflect2"
 )
 
 var (
@@ -193,14 +194,11 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		if vars, ok := output.(*expr.Vars); ok {
 			// Map each defined result to a Vars containing that value
 			for _, rst := range step.Results {
-				val, err := expr.NewVars(vars.GetValue()[rst.Name])
-				if err != nil {
-					return err
-				}
+				v := vars.GetValue()[rst.Name]
 
-				if val != nil {
+				if !reflect2.IsNil(v) {
 					resultVars := &expr.Vars{}
-					resultVars.Set(rst.Name, val)
+					resultVars.Set(rst.Name, v)
 					outputMap[rst.Name] = resultVars
 				}
 			}
@@ -235,10 +233,15 @@ func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error)
 	}
 
 	for _, arg := range step.Arguments {
+		// If no context, we're using the global one
+		if arg.Context == "" {
+			continue
+		}
+
 		// Get entire output map from the context handle
 		outputs, err := r.scheduler.FindOutput(arg.Context)
 		if err != nil {
-			return nil, fmt.Errorf("resolve %s from context %s: %w", arg.Name, arg.Context, err)
+			return nil, fmt.Errorf("resolve %s from context %s: %w", arg.Target, arg.Context, err)
 		}
 
 		out[arg.Context] = outputs

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/cortezaproject/corteza/server/automation/types"
 	automationTypes "github.com/cortezaproject/corteza/server/automation/types"
@@ -15,7 +16,7 @@ import (
 // ConvertNgAutomation converts service lvl structs into pkg/automation_exec
 //
 // @todo report issues so we don't brick the system in case of semantic errors
-func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (execTypes.Executable, automationTypes.NgAutomationIssueSet) {
+func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTypes.NgAutomation) (execTypes.Executable, automationTypes.NgAutomationIssueSet) {
 	var issues automationTypes.NgAutomationIssueSet
 	var err error
 
@@ -73,9 +74,34 @@ func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (
 
 		for _, e := range ui.Arguments {
 			aux.Arguments = append(aux.Arguments, execTypes.StepArg{
-				Name:    e.Target,
-				Context: e.Context,
+				Expr: &execTypes.Expr{
+					Context:    e.Context,
+					Target:     e.Target,
+					Source:     e.Source,
+					Expression: e.Expr,
+					Value:      e.Value,
+					Type:       e.Type,
+				},
 			})
+		}
+
+		// @todo fugly
+		if ui.Kind == "function" {
+			reg := Registry()
+			def := reg.Function(ui.Ref)
+			if def == nil {
+				err = errors.Internal("unknown function %q", ui.Ref)
+				panic(err)
+			}
+
+			ui.Results = []*automationTypes.Expr{}
+			for _, r := range def.Results {
+				ui.Results = append(ui.Results, &automationTypes.Expr{
+					Target: r.Name,
+					Type:   r.Types[0],
+					Source: r.Name,
+				})
+			}
 		}
 
 		for _, e := range ui.Results {
@@ -84,7 +110,7 @@ func ConvertNgAutomation(ctx context.Context, a *automationTypes.NgAutomation) (
 			})
 		}
 
-		aux.Handler, err = stepConv(ui)
+		aux.Handler, err = stepConv(svc, ui)
 		// @todo err handling...
 		if err != nil {
 			spew.Dump(err)
@@ -243,8 +269,15 @@ func issue(desc string, culprit map[string]int) *automationTypes.NgAutomationIss
 	}
 }
 
-func stepConv(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
-	// @todo expressions
+func stepConv(svc *ngAutomation, step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
+	if err := parseExpressions(svc, step.Arguments...); err != nil {
+		return nil, errors.Internal("failed to parse step arguments expressions for %s: %s", step.Kind, err).Wrap(err)
+	}
+
+	if err := parseExpressions(svc, step.Results...); err != nil {
+		return nil, errors.Internal("failed to parse step results expressions for %s: %s", step.Kind, err).Wrap(err)
+	}
+
 	out, err = func() (out execTypes.StepHandler, err error) {
 		switch step.Kind {
 		case "function":
@@ -265,6 +298,29 @@ func stepConv(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler
 	}
 
 	return out, nil
+}
+
+func parseExpressions(svc *ngAutomation, ee ...*types.Expr) (err error) {
+	for _, e := range ee {
+
+		if len(strings.TrimSpace(e.Expr)) > 0 {
+			if err = svc.parser.ParseEvaluators(e); err != nil {
+				return
+			}
+		}
+
+		if err = e.SetType(exprTypeSetter(Registry(), e)); err != nil {
+			return err
+		}
+
+		for _, t := range e.Tests {
+			if err = svc.parser.ParseEvaluators(t); err != nil {
+				return
+			}
+		}
+	}
+
+	return nil
 }
 
 func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
