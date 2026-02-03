@@ -3,7 +3,7 @@ package types
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/expr"
@@ -165,12 +165,10 @@ func (set *NgAutomationIssueSet) Scan(src any) error          { return sql.Parse
 func (set NgAutomationIssueSet) Value() (driver.Value, error) { return json.Marshal(set) }
 
 func (set NgAutomationIssueSet) Error() string {
-	switch len(set) {
-	case 0:
-		return fmt.Sprintf("no automation issue found")
-	case 1:
-		return fmt.Sprintf("1 automation issue found")
-	default:
-		return fmt.Sprintf("%d automation issues found", len(set))
+	out := make([]string, 0, 4)
+	for _, s := range set {
+		out = append(out, s.Description)
 	}
+
+	return strings.Join(out, ", ")
 }
