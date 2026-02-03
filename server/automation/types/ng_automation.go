@@ -108,44 +108,44 @@ type (
 	NgAutomationExecParams struct {
 		// @todo
 
-		EventType    string
-		ResourceType string
+		EventType    string `json:"eventType"`
+		ResourceType string `json:"resourceType"`
 
 		// Wait for workflow to be executed even if it's deferred
-		Wait bool
+		Wait bool `json:"wait"`
 
-		Input *expr.Vars
+		Input *expr.Vars `json:"input"`
 	}
 
 	NgAutomationStep struct {
-		ID     uint64               `json:"stepID"`
+		ID     uint64               `json:"stepID,string"`
 		Handle string               `json:"handle"`
 		Meta   NgAutomationStepMeta `json:"meta"`
 
 		Kind string `json:"kind"`
-		Ref  string
+		Ref  string `json:"ref"`
 
-		Arguments []*Expr
-		Results   []*Expr
+		Arguments []*Expr `json:"arguments"`
+		Results   []*Expr `json:"results"`
 	}
 
 	NgAutomationPath struct {
-		ParentID uint64
-		ChildID  uint64
+		ParentID uint64 `json:"parentID,string"`
+		ChildID  uint64 `json:"childID,string"`
 
-		Meta NgAutomationPathMeta
+		Meta NgAutomationPathMeta `json:"meta"`
 	}
 
 	NgAutomationStepMeta struct {
-		Name        string
-		Description string
-		Visual      NgAutomationVisual
+		Name        string             `json:"name"`
+		Description string             `json:"description"`
+		Visual      NgAutomationVisual `json:"visual"`
 	}
 
 	NgAutomationPathMeta struct {
-		Name        string
-		Description string
-		Visual      NgAutomationVisual
+		Name        string             `json:"name"`
+		Description string             `json:"description"`
+		Visual      NgAutomationVisual `json:"visual"`
 	}
 )
 

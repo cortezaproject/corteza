@@ -90,8 +90,11 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 			reg := Registry()
 			def := reg.Function(ui.Ref)
 			if def == nil {
-				err = errors.Internal("unknown function %q", ui.Ref)
-				panic(err)
+				issues = append(issues, issue(
+					fmt.Sprintf("unknown function %q", ui.Ref),
+					map[string]int{},
+				))
+				continue
 			}
 
 			ui.Results = []*automationTypes.Expr{}
