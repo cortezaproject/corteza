@@ -52,6 +52,8 @@ type runtime struct {
 	exec        types.Executable
 	scheduler   *scheduler
 
+	globalState *expr.Vars
+
 	gate   executionGate
 	ledger stateLedger
 
@@ -87,7 +89,9 @@ func Runtime(
 	}
 }
 
-func (r *runtime) Start(ctx context.Context, scope *expr.Vars) error {
+func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
+	r.globalState = global
+
 	for {
 		select {
 		case <-r.stopCh:
@@ -185,7 +189,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		r.state.mux.Unlock()
 
 		_ = r.ledger.StepFailed(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, err)
-		return fmt.Errorf("%w: %s", ErrStepFailed, step.ID)
+		return fmt.Errorf("%w: %s: %v", ErrStepFailed, step.ID, err)
 	}
 
 	// Extract results based on step definition
@@ -226,7 +230,10 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 }
 
 func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error) {
-	out := make(map[string]*expr.Vars, 2)
+	out := make(map[string]*expr.Vars, 4)
+
+	out[""] = r.globalState
+	out["global"] = r.globalState
 
 	if len(step.Arguments) == 0 {
 		return out, nil
@@ -249,6 +256,7 @@ func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error)
 
 	return out, nil
 }
+
 func (r *runtime) waitForPermission(ctx context.Context, ops int) error {
 	permCh, err := r.gate.Request(r.executionID, ops)
 	if err != nil {

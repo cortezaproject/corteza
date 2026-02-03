@@ -265,11 +265,6 @@ func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*
 		}
 
 		err = func() (err error) {
-			// Get the context to evaluate against
-			if len(e.Context) == 0 {
-				return errors.Internal("expression %q must specify a context", e.Target)
-			}
-
 			evalScope, exists := contexts[e.Context]
 			if !exists {
 				return errors.NotFound("context %q does not exist", e.Context)

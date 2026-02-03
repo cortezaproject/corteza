@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"go.uber.org/zap"
 )
@@ -26,7 +25,7 @@ func Ledger(log *zap.Logger) *ledger {
 	}
 }
 
-func (l *ledger) RegisterExecution(ctx context.Context, executionID, executableID id.ID, revision int, params *expr.Vars) error {
+func (l *ledger) RegisterExecution(ctx context.Context, executionID, executableID id.ID, revision int) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 

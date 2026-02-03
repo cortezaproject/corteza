@@ -3,6 +3,7 @@ package manager
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -59,7 +60,7 @@ type Ledger interface {
 
 	IsExecutableInUse(ctx context.Context, executableID id.ID, rev int) (bool, error)
 
-	RegisterExecution(ctx context.Context, executionID, executableID id.ID, rev int, params *expr.Vars) error
+	RegisterExecution(ctx context.Context, executionID, executableID id.ID, rev int) error
 }
 
 type Governor interface {
@@ -69,7 +70,7 @@ type Governor interface {
 }
 
 type Runtime interface {
-	Start(ctx context.Context, scope *expr.Vars) error
+	Start(ctx context.Context, global *expr.Vars) error
 	Stop()
 	Block()
 	Resume()
@@ -85,8 +86,8 @@ type RuntimeEntry struct {
 	executableID id.ID
 	revision     int
 
-	executable types.Executable
-	params     *expr.Vars
+	executable  types.Executable
+	globalState *expr.Vars
 
 	runtime Runtime
 	cancel  context.CancelFunc
@@ -170,9 +171,14 @@ func RuntimeManager(
 // ===== admission =====
 //
 
-func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revision int, params *expr.Vars) (id.ID, error) {
+func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revision int, global *expr.Vars) (id.ID, error) {
 	if rm.draining.Load() {
 		return id.Zero(), ErrSystemDraining
+	}
+
+	global, err := rm.validateGlobalState(global)
+	if err != nil {
+		return id.Zero(), err
 	}
 
 	executable, err := rm.registry.GetExecutable(ctx, executableID, revision)
@@ -182,7 +188,7 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 
 	eid := id.MustNumID(id.Next())
 
-	err = rm.ledger.RegisterExecution(ctx, eid, executableID, revision, params)
+	err = rm.ledger.RegisterExecution(ctx, eid, executableID, revision)
 	if err != nil {
 		return id.Zero(), err
 	}
@@ -199,7 +205,7 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		executableID: executableID,
 		revision:     revision,
 		executable:   executable,
-		params:       params,
+		globalState:  global,
 		Done:         make(chan struct{}),
 		Started:      make(chan struct{}),
 
@@ -342,7 +348,7 @@ func (rm *runtimeManager) startQueued(ctx context.Context, entry *RuntimeEntry) 
 	}
 
 	rctx, cancel := context.WithCancel(ctx)
-	rt := rm.createRuntime(entry.execID, entry.executable, entry.params)
+	rt := rm.createRuntime(entry.execID, entry.executable)
 
 	rm.mu.Lock()
 	entry.runtime = rt
@@ -352,12 +358,12 @@ func (rm *runtimeManager) startQueued(ctx context.Context, entry *RuntimeEntry) 
 	close(entry.Started)
 
 	rm.running.Add(1)
-	go rm.runRuntime(rctx, entry, entry.params)
+	go rm.runRuntime(rctx, entry, entry.globalState)
 	return nil
 }
 
-func (rm *runtimeManager) runRuntime(ctx context.Context, e *RuntimeEntry, scope *expr.Vars) {
-	err := e.runtime.Start(ctx, scope)
+func (rm *runtimeManager) runRuntime(ctx context.Context, e *RuntimeEntry, global *expr.Vars) {
+	err := e.runtime.Start(ctx, global)
 	rm.onExit(ctx, e, err)
 }
 
@@ -418,15 +424,25 @@ func (rm *runtimeManager) Get(execID id.ID) (*RuntimeEntry, error) {
 	return e, nil
 }
 
-func (rm *runtimeManager) createRuntime(
-	executionID id.ID,
-	exe types.Executable,
-	params *expr.Vars,
-) Runtime {
+func (rm *runtimeManager) createRuntime(executionID id.ID, exe types.Executable) Runtime {
 	return runtime.Runtime(
 		executionID,
 		exe,
 		rm.governor,
 		rm.ledger,
 	)
+}
+
+func (rm *runtimeManager) validateGlobalState(global *expr.Vars) (out *expr.Vars, err error) {
+	out = global
+
+	if global == nil {
+		return expr.EmptyVars(), nil
+	}
+
+	if out.Type() == (expr.Unresolved{}).Type() {
+		return nil, fmt.Errorf("global state is not resolved")
+	}
+
+	return
 }

@@ -12,6 +12,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/api"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
+	"github.com/modern-go/reflect2"
 )
 
 type (
@@ -159,8 +160,17 @@ func (ctrl NgAutomation) Undelete(ctx context.Context, r *request.NgAutomationUn
 }
 
 func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) (interface{}, error) {
+	input := r.Input
+
+	if !reflect2.IsNil(input) {
+		err := input.ResolveTypes(service.Registry().Type)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return ctrl.svc.ExecAndWait(ctx, r.AutomationID, types.NgAutomationExecParams{
-		Input: r.Input,
+		Input: input,
 	})
 }
 
