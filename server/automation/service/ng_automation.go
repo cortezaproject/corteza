@@ -353,6 +353,8 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 			return
 		}
 
+		res.Issues = nil
+
 		if err = label.Load(ctx, svc.store, res); err != nil {
 			return err
 		}
