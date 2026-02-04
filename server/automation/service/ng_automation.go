@@ -69,7 +69,7 @@ type (
 	executionEngine interface {
 		DeprecateExecutable(ctx context.Context, exeID id.ID, rev int) error
 		Execute(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (id.ID, error)
-		ExecuteAndWait(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (*expr.Vars, error)
+		ExecuteAndWait(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (*execTypes.ExecutionResult, error)
 		RegisterExecutable(ctx context.Context, exe execTypes.Executable) error
 		RemoveExecutable(ctx context.Context, exeID id.ID, rev int) error
 	}
@@ -319,7 +319,7 @@ func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.
 	return
 }
 
-func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *expr.Vars, err error) {
+func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
 	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, p.Input)
 	if err != nil {
 		return

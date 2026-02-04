@@ -205,6 +205,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, c Config) 
 		automation.Attachment{},
 	)
 
+	automation.NgRecordsHandler(
+		automationService.ConstructLibrary(),
+		automationService.Registry(),
+		DefaultNamespace,
+		DefaultModule,
+		DefaultRecord,
+	)
+
 	automation.RecordsHandler(
 		automationService.Registry(),
 		DefaultNamespace,

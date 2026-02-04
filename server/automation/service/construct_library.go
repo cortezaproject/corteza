@@ -30,10 +30,44 @@ func initConstructRegistry() *constructRegistry {
 	}
 }
 
+func (r *constructRegistry) AddFunctions(ff ...types.ConstructFunction) {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	r.functions = append(r.functions, ff...)
+}
+
+func (r *constructRegistry) AddTriggers() []types.ConstructTrigger {
+	r.mux.Lock()
+	defer r.mux.Unlock()
+
+	return r.triggers
+}
+
+func (r *constructRegistry) Function(ref string) (out types.ConstructFunction, ok bool) {
+	r.mux.RLock()
+	defer r.mux.RUnlock()
+
+	for _, fn := range r.functions {
+		if fn.Ref == ref {
+			return fn, true
+		}
+	}
+
+	ok = false
+	return
+}
+
 func (r *constructRegistry) Functions() []types.ConstructFunction {
+	r.mux.RLock()
+	defer r.mux.RUnlock()
+
 	return r.functions
 }
 
 func (r *constructRegistry) Triggers() []types.ConstructTrigger {
+	r.mux.RLock()
+	defer r.mux.RUnlock()
+
 	return r.triggers
 }

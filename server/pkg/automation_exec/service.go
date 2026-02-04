@@ -2,6 +2,8 @@ package automation_exec
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/governor"
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/ledger"
@@ -21,7 +23,8 @@ type (
 		// @todo when needed
 		sup interface{}
 
-		rm runtimeManagerAPI
+		rm  runtimeManagerAPI
+		led ledgerAPI
 	}
 
 	registrySvc interface {
@@ -30,8 +33,12 @@ type (
 		Remove(ctx context.Context, executableID id.ID, revision int) error
 	}
 
+	ledgerAPI interface {
+		GetExecution(ctx context.Context, executableID, executionID id.ID, revision int) (*types.Execution, error)
+	}
+
 	runtimeManagerAPI interface {
-		Start(ctx context.Context, executionID id.ID, revision int, params *expr.Vars) (id.ID, error)
+		Start(ctx context.Context, executableID id.ID, revision int, params *expr.Vars) (id.ID, error)
 		Get(execID id.ID) (*manager.RuntimeEntry, error)
 	}
 )
@@ -65,6 +72,7 @@ func AutomationService(ctx context.Context, log *zap.Logger, cfg manager.Config)
 		log: log,
 		reg: reg,
 		rm:  rm,
+		led: led,
 		sup: sup,
 	}, nil
 }
@@ -97,7 +105,7 @@ func (s *automationService) ExecuteAndWait(
 	exeID id.ID,
 	rev int,
 	params *expr.Vars,
-) (*expr.Vars, error) {
+) (*types.ExecutionResult, error) {
 	executionID, err := s.rm.Start(ctx, exeID, rev, params)
 	if err != nil {
 		return nil, err
@@ -108,12 +116,58 @@ func (s *automationService) ExecuteAndWait(
 		return nil, err
 	}
 
-	// @todo
 	select {
 	case <-entry.Done:
-		return nil, entry.Err
+		// Fetch execution details from ledger
+		exec, err := s.led.GetExecution(ctx, exeID, executionID, rev)
+		if err != nil {
+			return nil, err
+		}
+
+		return s.prepMetaResponse(exec), nil
 
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+func (s *automationService) prepMetaResponse(exec *types.Execution) *types.ExecutionResult {
+	out := &types.ExecutionResult{
+		ExecutionID:  exec.ID,
+		ExecutableID: exec.ExecutableID,
+		Revision:     exec.Revision,
+		Status:       exec.Status,
+		StartedAt:    exec.CreatedAt,
+		EndedAt:      exec.EndedAt,
+	}
+
+	if exec.EndedAt != nil {
+		out.Duration = formatDuration(exec.EndedAt.Sub(exec.CreatedAt))
+	}
+
+	if exec.Error != nil {
+		out.Error = exec.Error
+	}
+
+	return out
+}
+
+func formatDuration(d time.Duration) string {
+	ms := float64(d.Nanoseconds()) / 1e6
+
+	if ms < 100000 {
+		return fmt.Sprintf("%.3fms", ms)
+	}
+
+	seconds := d.Seconds()
+	if seconds < 1000 {
+		return fmt.Sprintf("%.3fs", seconds)
+	}
+
+	minutes := d.Minutes()
+	if minutes < 1000 {
+		return fmt.Sprintf("%.3fmin", minutes)
+	}
+
+	return fmt.Sprintf("%.3fh", d.Hours())
 }

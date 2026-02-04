@@ -10,7 +10,7 @@ import (
 	cmpService "github.com/cortezaproject/corteza/server/compose/service"
 	cmpTypes "github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/api"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
+	execTypes "github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/modern-go/reflect2"
 )
@@ -25,7 +25,7 @@ type (
 			DeleteByID(ctx context.Context, automationID uint64) error
 			UndeleteByID(ctx context.Context, automationID uint64) error
 
-			ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *expr.Vars, err error)
+			ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error)
 		}
 
 		// cross-link with compose service to load module on resolved records
@@ -60,13 +60,6 @@ type (
 	ngAutomationSetPayload struct {
 		Filter types.NgAutomationFilter `json:"filter"`
 		Set    []*ngAutomationPayload   `json:"set"`
-	}
-
-	ngAutomationExecPayload struct {
-		Results   *expr.Vars       `json:"results"`
-		Trace     types.Stacktrace `json:"trace,omitempty"`
-		SessionID uint64           `json:"sessionID,string,omitempty"`
-		Error     string           `json:"error,omitempty"`
 	}
 )
 

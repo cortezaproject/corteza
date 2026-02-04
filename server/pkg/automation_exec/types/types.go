@@ -90,7 +90,10 @@ type (
 		CreatedAt    time.Time
 		UpdatedAt    time.Time
 		EndedAt      *time.Time
-		Events       []StepEvent
+
+		Error error
+
+		Events []StepEvent
 	}
 
 	StepEvent struct {
@@ -118,6 +121,17 @@ type (
 	EventType        string
 	Status           string
 	ExecutableStatus int
+
+	ExecutionResult struct {
+		ExecutionID  id.ID      `json:"executionID"`
+		ExecutableID id.ID      `json:"executableID"`
+		Revision     int        `json:"revision"`
+		Status       Status     `json:"status"`
+		Error        error      `json:"error,omitempty"`
+		StartedAt    time.Time  `json:"startedAt"`
+		EndedAt      *time.Time `json:"endedAt,omitempty"`
+		Duration     string     `json:"duration"`
+	}
 )
 
 const (

@@ -28,7 +28,33 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 
 	revision := 0
 
-	// --- Phase 1: validate & index steps ---
+	// --- Phase 1a: validate & index triggers ---
+	triggerIdx := make(map[uint64]*automationTypes.NgAutomationTrigger, len(a.Triggers))
+	triggerPathCount := make(map[uint64]int, len(a.Triggers))
+	for i := range a.Triggers {
+		t := a.Triggers[i]
+
+		if t.ID == 0 {
+			issues = append(issues, issue(
+				"trigger has empty ID",
+				map[string]int{"trigger": i},
+			))
+			continue
+		}
+
+		if _, exists := triggerIdx[t.ID]; exists {
+			issues = append(issues, issue(
+				fmt.Sprintf("duplicate trigger ID %d", t.ID),
+				map[string]int{"trigger": i},
+			))
+			continue
+		}
+
+		triggerIdx[t.ID] = t
+		triggerPathCount[t.ID] = 0
+	}
+
+	// --- Phase 1b: validate & index steps ---
 	stepIdx := make(map[uint64]*automationTypes.NgAutomationStep, len(a.Steps))
 	for i := range a.Steps {
 		s := a.Steps[i]
@@ -44,6 +70,15 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 		if _, exists := stepIdx[s.ID]; exists {
 			issues = append(issues, issue(
 				fmt.Sprintf("duplicate step ID %d", s.ID),
+				map[string]int{"step": i},
+			))
+			continue
+		}
+
+		// Check for ID collision with triggers
+		if _, exists := triggerIdx[s.ID]; exists {
+			issues = append(issues, issue(
+				fmt.Sprintf("step ID %d collides with trigger ID", s.ID),
 				map[string]int{"step": i},
 			))
 			continue
@@ -87,9 +122,9 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 
 		// @todo fugly
 		if ui.Kind == "function" {
-			reg := Registry()
-			def := reg.Function(ui.Ref)
-			if def == nil {
+			reg := ConstructLibrary()
+			def, ok := reg.Function(ui.Ref)
+			if !ok {
 				issues = append(issues, issue(
 					fmt.Sprintf("unknown function %q", ui.Ref),
 					map[string]int{},
@@ -129,6 +164,9 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 		exByID[exSteps[i].ID] = &exSteps[i]
 	}
 
+	// Track which steps have parents (for trigger path inference)
+	stepsWithParents := make(map[uint64]bool, len(stepIdx))
+
 	// --- Phase 3: wire paths ---
 	for i := range a.Paths {
 		p := a.Paths[i]
@@ -149,6 +187,38 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 			continue
 		}
 
+		// Check if parent is a trigger
+		if _, isTrigger := triggerIdx[p.ParentID]; isTrigger {
+			// Trigger → Step path
+			childExecID, ok := idMap[p.ChildID]
+			if !ok {
+				issues = append(issues, issue(
+					fmt.Sprintf("unknown child step %d for trigger path", p.ChildID),
+					map[string]int{"path": i},
+				))
+				continue
+			}
+
+			// Validate one trigger can only have a single path
+			triggerPathCount[p.ParentID]++
+			if triggerPathCount[p.ParentID] > 1 {
+				issues = append(issues, issue(
+					fmt.Sprintf("trigger %d has multiple outbound paths (only one allowed)", p.ParentID),
+					map[string]int{"path": i},
+				))
+				continue
+			}
+
+			// Mark step as having a parent (from trigger)
+			stepsWithParents[p.ChildID] = true
+
+			// For trigger paths, the child becomes an entry point
+			// (no parent Step added, but we track it has a trigger parent)
+			_ = childExecID
+			continue
+		}
+
+		// Step → Step path
 		parentExecID, ok := idMap[p.ParentID]
 		if !ok {
 			issues = append(issues, issue(
@@ -177,8 +247,45 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 			continue
 		}
 
+		// Mark step as having a parent
+		stepsWithParents[p.ChildID] = true
+
 		parent.Children = append(parent.Children, *child)
 		child.Parents = append(child.Parents, *parent)
+	}
+
+	// --- Phase 3b: infer trigger-to-step paths if needed ---
+	// Find steps without parents (entry steps)
+	var orphanSteps []uint64
+	for stepID := range stepIdx {
+		if !stepsWithParents[stepID] {
+			orphanSteps = append(orphanSteps, stepID)
+		}
+	}
+
+	// Find triggers without paths
+	var orphanTriggers []uint64
+	for triggerID := range triggerIdx {
+		if triggerPathCount[triggerID] == 0 {
+			orphanTriggers = append(orphanTriggers, triggerID)
+		}
+	}
+
+	// Infer path: exactly one orphan trigger and exactly one orphan step
+	if len(orphanTriggers) > 0 && len(orphanSteps) > 0 {
+		if len(orphanTriggers) == 1 && len(orphanSteps) == 1 {
+			// Auto-infer the path
+			stepsWithParents[orphanSteps[0]] = true
+			triggerPathCount[orphanTriggers[0]] = 1
+			// The step becomes an entry point (triggered by the single trigger)
+		} else if len(orphanTriggers) > 1 || len(orphanSteps) > 1 {
+			// Cannot infer - ambiguous
+			issues = append(issues, issue(
+				fmt.Sprintf("cannot infer trigger-to-step paths: %d triggers and %d entry steps without explicit paths",
+					len(orphanTriggers), len(orphanSteps)),
+				nil,
+			))
+		}
 	}
 
 	// --- Phase 4: graph validation ---
@@ -327,57 +434,73 @@ func parseExpressions(svc *ngAutomation, ee ...*types.Expr) (err error) {
 }
 
 func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
-	reg := Registry()
+	reg := ConstructLibrary()
 
-	if def := reg.Function(step.Ref); def == nil {
+	def, ok := reg.Function(step.Ref)
+	if !ok {
 		return nil, errors.Internal("unknown function %q", step.Ref)
-	} else {
-		if def.Kind != string(step.Kind) {
-			return nil, fmt.Errorf("unexpected %s on %s step", def.Kind, step.Kind)
-		}
-
-		var (
-			err        error
-			isIterator = def.Kind == types.FunctionKindIterator
-		)
-
-		if isIterator {
-			if def.Iterator == nil {
-				return nil, errors.Internal("iterator handler for %q not set", step.Ref)
-			}
-		} else {
-			if def.Handler == nil {
-				return nil, errors.Internal("function handler for %q not set", step.Ref)
-			}
-		}
-
-		if err = def.Parameters.VerifyArguments(step.Arguments); err != nil {
-			return nil, errors.Internal("failed to verify argument expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
-		}
-
-		if err = def.Results.VerifyResults(step.Results); err != nil {
-			return nil, errors.Internal("failed to verify result expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
-		}
-
-		// if isIterator {
-		// 	if len(out) != 2 {
-		// 		return nil, fmt.Errorf("expecting exactly 2 outbound paths for iterator")
-		// 	}
-
-		// 	var (
-		// 		next = g.StepByID(out[0].ChildID)
-		// 		exit = g.StepByID(out[1].ChildID)
-		// 	)
-
-		// 	if next == nil || exit == nil {
-		// 		// wait for steps to be resolved
-		// 		return nil, nil
-		// 	}
-
-		// 	return types.IteratorStep(def, step.Arguments, step.Results, next, exit)
-
-		// } else {
-		// }
-		return types.FunctionStep(def, step.Arguments, step.Results)
 	}
+
+	if def.Kind != string(step.Kind) {
+		return nil, fmt.Errorf("unexpected %s on %s step", def.Kind, step.Kind)
+	}
+
+	var (
+		isIterator = def.Kind == types.FunctionKindIterator
+	)
+
+	if isIterator {
+		if def.Iterator == nil {
+			return nil, errors.Internal("iterator handler for %q not set", step.Ref)
+		}
+	} else {
+		if def.Handler == nil {
+			return nil, errors.Internal("function handler for %q not set", step.Ref)
+		}
+	}
+
+	if err = def.Parameters.VerifyArguments(step.Arguments); err != nil {
+		return nil, errors.Internal("failed to verify argument expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
+	}
+
+	if err = def.Results.VerifyResults(step.Results); err != nil {
+		return nil, errors.Internal("failed to verify result expressions for %s %s: %s", step.Kind, step.Ref, err).Wrap(err)
+	}
+
+	// if isIterator {
+	// 	if len(out) != 2 {
+	// 		return nil, fmt.Errorf("expecting exactly 2 outbound paths for iterator")
+	// 	}
+
+	// 	var (
+	// 		next = g.StepByID(out[0].ChildID)
+	// 		exit = g.StepByID(out[1].ChildID)
+	// 	)
+
+	// 	if next == nil || exit == nil {
+	// 		// wait for steps to be resolved
+	// 		return nil, nil
+	// 	}
+
+	// 	return types.IteratorStep(def, step.Arguments, step.Results, next, exit)
+
+	// } else {
+	// }
+
+	return types.FunctionStep(&automationTypes.Function{
+		Ref:  def.Ref,
+		Kind: def.Kind,
+		Meta: &automationTypes.FunctionMeta{
+			Short:       def.Meta.Short,
+			Description: def.Meta.Description,
+		},
+		Parameters: def.Parameters,
+		Results:    def.Results,
+
+		Handler:  def.Handler,
+		Iterator: def.Iterator,
+
+		Labels:   def.Labels,
+		Disabled: def.Disabled,
+	}, step.Arguments, step.Results)
 }

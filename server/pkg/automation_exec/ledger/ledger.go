@@ -25,28 +25,19 @@ func Ledger(log *zap.Logger) *ledger {
 	}
 }
 
-func (l *ledger) RegisterExecution(ctx context.Context, executionID, executableID id.ID, revision int) error {
+func (l *ledger) RegisterExecution(ctx context.Context, executableID, executionID id.ID, revision int) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
-	execs := l.store[executableID]
-	if execs == nil {
-		execs = make(map[id.ID]map[int]*types.Execution)
-		l.store[executableID] = execs
+	if _, ok := l.store[executableID]; !ok {
+		l.store[executableID] = make(map[id.ID]map[int]*types.Execution)
 	}
-
-	revs := execs[executionID]
-	if revs == nil {
-		revs = make(map[int]*types.Execution)
-		execs[executionID] = revs
-	}
-
-	if _, exists := revs[revision]; exists {
-		return fmt.Errorf("execution %d revision %d already exists", executionID, revision)
+	if _, ok := l.store[executableID][executionID]; !ok {
+		l.store[executableID][executionID] = make(map[int]*types.Execution)
 	}
 
 	now := time.Now()
-	revs[revision] = &types.Execution{
+	l.store[executableID][executionID][revision] = &types.Execution{
 		ID:           executionID,
 		ExecutableID: executableID,
 		Revision:     revision,
@@ -60,14 +51,14 @@ func (l *ledger) RegisterExecution(ctx context.Context, executionID, executableI
 }
 
 func (l *ledger) ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, revision int) error {
-	return l.transition(executableID, executionID, revision, types.StatusCompleted)
+	return l.transition(executableID, executionID, revision, types.StatusCompleted, nil)
 }
 
 func (l *ledger) ExecutionFailed(ctx context.Context, executableID, executionID id.ID, revision int, err error) error {
-	return l.transition(executableID, executionID, revision, types.StatusFailed)
+	return l.transition(executableID, executionID, revision, types.StatusFailed, err)
 }
 
-func (l *ledger) transition(executableID, executionID id.ID, revision int, status types.Status) error {
+func (l *ledger) transition(executableID, executionID id.ID, revision int, status types.Status, err error) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 
@@ -79,6 +70,7 @@ func (l *ledger) transition(executableID, executionID id.ID, revision int, statu
 	now := time.Now()
 	ex.Status = status
 	ex.UpdatedAt = now
+	ex.Error = err
 
 	if isTerminal(status) {
 		ex.EndedAt = &now
