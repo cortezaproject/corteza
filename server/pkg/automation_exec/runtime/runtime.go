@@ -179,6 +179,9 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		Scope: inputVars,
 	})
 
+	// remove "" from inputVars as it's already outlined by "global"
+	delete(inputVars, "")
+
 	result.CompletedAt = time.Now()
 
 	if err != nil {
