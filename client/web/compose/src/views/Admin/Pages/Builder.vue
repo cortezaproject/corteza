@@ -527,12 +527,12 @@ export default {
 
       // If tab is not on layout include it
       this.blocks.forEach(block => {
-        if (block.kind !== 'Tabs') return
+        if (!['Tabs', 'Group'].includes(block.kind)) return
 
-        const { tabs = [] } = block.options
-        tabs.forEach(tab => {
-          if (this.blocks.some(({ blockID }) => blockID === tab.blockID)) return
-          const { blockID } = this.page.blocks.find(({ blockID }) => blockID === tab.blockID) || {}
+        const blocks = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+        blocks.forEach(b => {
+          if (this.blocks.some(({ blockID }) => blockID === b.blockID)) return
+          const { blockID } = this.page.blocks.find(({ blockID }) => blockID === b.blockID) || {}
           if (blockID) {
             tabbedIDs.add(blockID)
           }
@@ -712,8 +712,14 @@ export default {
       // If the deleted block is hidden, we need to remove it from the related tabs blocks if it is tabbed.
       if (this.blocks[index].meta.hidden) {
         this.blocks.forEach((block) => {
-          if (block.kind !== 'Tabs' || !block.options.tabs.some(({ blockID }) => blockID === fetchID(this.blocks[index]))) return
-          block.options.tabs = block.options.tabs.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
+          if (!['Tabs', 'Group'].includes(block.kind)) return
+          const blocks = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+          if (!blocks.some(({ blockID }) => blockID === fetchID(this.blocks[index]))) return
+          if (block.kind === 'Tabs') {
+            block.options.tabs = block.options.tabs.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
+          } else {
+            block.options.blocks = block.options.blocks.filter(({ blockID }) => blockID !== fetchID(this.blocks[index]))
+          }
         })
       }
 
@@ -727,7 +733,7 @@ export default {
         this.unsavedBlocks.delete(block.meta.tempID)
       }
 
-      if (block.kind === 'Tabs') {
+      if (['Tabs', 'Group'].includes(block.kind)) {
         this.showUntabbedHiddenBlocks()
       }
 
@@ -798,17 +804,18 @@ export default {
         this.scrollToBottom()
       }
 
-      if (block.kind === 'Tabs') {
-        block.options.tabs.forEach((tab) => {
-          if (!tab.blockID) return
-          let tabbedBlock = this.blocks.find(b => fetchID(b) === tab.blockID)
+      if (['Tabs', 'Group'].includes(block.kind)) {
+        const blocks = block.kind === 'Tabs' ? block.options.tabs : block.options.blocks
+        blocks.forEach((b) => {
+          if (!b.blockID) return
+          let nestedBlock = this.blocks.find(nb => fetchID(nb) === b.blockID)
 
-          if (!tabbedBlock) {
-            tabbedBlock = this.page.blocks.find(({ blockID }) => blockID === tab.blockID)
-            this.blocks.push(tabbedBlock)
+          if (!nestedBlock) {
+            nestedBlock = this.page.blocks.find(({ blockID }) => blockID === b.blockID)
+            this.blocks.push(nestedBlock)
           }
 
-          tabbedBlock.meta.hidden = true
+          nestedBlock.meta.hidden = true
         })
 
         this.showUntabbedHiddenBlocks()
