@@ -110,7 +110,7 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 		for _, e := range ui.Arguments {
 			aux.Arguments = append(aux.Arguments, execTypes.StepArg{
 				Expr: &execTypes.Expr{
-					Context:    e.Context,
+					Scope:      e.Scope,
 					Target:     e.Target,
 					Source:     e.Source,
 					Expression: e.Expr,

@@ -12,10 +12,10 @@ import (
 type (
 	// Used for expression steps, arguments/results mapping and for input validation
 	Expr struct {
-		// Context defines where evaluation context of this expression
+		// Scope defines where evaluation context of this expression
 		//
 		// Leave empty for global context
-		Context string `json:"context,omitempty"`
+		Scope string `json:"context,omitempty"`
 
 		// Variable name to set results of the expression to
 		Target string `json:"target"`
@@ -265,15 +265,15 @@ func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*
 		}
 
 		err = func() (err error) {
-			evalScope, exists := contexts[e.Context]
+			evalScope, exists := contexts[e.Scope]
 			if !exists {
-				return errors.NotFound("context %q does not exist", e.Context)
+				return errors.NotFound("scope %q does not exist", e.Scope)
 			}
 
 			if len(e.Source) > 0 {
 				// Copy from existing variable in the specified context
 				if !evalScope.Has(e.Source) {
-					return errors.NotFound("variable %q does not exist in context %q", e.Source, e.Context)
+					return errors.NotFound("variable %q does not exist in scope %q", e.Source, e.Scope)
 				}
 
 				value, err = expr.Select(evalScope, e.Source)

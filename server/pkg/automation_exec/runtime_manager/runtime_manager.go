@@ -58,6 +58,8 @@ type Ledger interface {
 	ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, rev int) error
 	ExecutionFailed(ctx context.Context, executableID, executionID id.ID, rev int, err error) error
 
+	RecordFrame(ctx context.Context, executableID, executionID id.ID, rev int, frame types.StackFrame) error
+
 	IsExecutableInUse(ctx context.Context, executableID id.ID, rev int) (bool, error)
 
 	RegisterExecution(ctx context.Context, executableID, executionID id.ID, rev int) error

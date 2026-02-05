@@ -719,3 +719,11 @@ endpoints:
             - { name: trace, type: bool, title: 'Trace ngAutomation execution' }
             - { name: wait, type: bool, title: 'Wait for ngAutomation to complete' }
             - { name: async, type: bool, title: 'Execute step and return immediately' }
+      - name: executionTrace
+        method: GET
+        title: Get automation execution trace
+        path: '/{automationID}/execution/{executionID}/trace'
+        parameters:
+          path: 
+            - { name: automationID, type: uint64, required: true, title: 'NgAutomation ID' }
+            - { name: executionID, type: uint64, required: true, title: 'Execution ID' }

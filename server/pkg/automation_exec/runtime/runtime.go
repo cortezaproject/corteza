@@ -30,6 +30,8 @@ type stateLedger interface {
 
 	ExecutionCompleted(ctx context.Context, executableID, executionID id.ID, rev int) error
 	ExecutionFailed(ctx context.Context, executableID, executionID id.ID, rev int, err error) error
+
+	RecordFrame(ctx context.Context, executableID, executionID id.ID, rev int, frame types.StackFrame) error
 }
 
 type StepResult struct {
@@ -111,7 +113,7 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 			}
 		}
 
-		step, more, err := r.scheduler.Next(ctx)
+		step, frameID, parentID, more, err := r.scheduler.Next(ctx)
 		if err != nil {
 			return err
 		}
@@ -123,7 +125,7 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 			return err
 		}
 
-		if err := r.executeStep(ctx, step); err != nil {
+		if err := r.executeStep(ctx, step, frameID, parentID); err != nil {
 			return r.fail(ctx, err)
 		}
 
@@ -152,7 +154,7 @@ func (r *runtime) Resume() {
 func (r *runtime) IsBlocked() bool { return r.blocked.Load() }
 func (r *runtime) IsStopped() bool { return r.stopped.Load() }
 
-func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
+func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, parentID id.ID) error {
 	r.state.mux.Lock()
 	r.state.CurrentStep = &step.ID
 	r.state.InProgressSteps[step.ID] = true
@@ -189,6 +191,21 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		r.state.mux.Unlock()
 
 		_ = r.ledger.StepFailed(ctx, r.exec.ID, r.executionID, step.ID, r.exec.Revision, err)
+
+		// Record frame in ledger even on failure
+		_ = r.ledger.RecordFrame(ctx, r.exec.ID, r.executionID, r.exec.Revision, types.StackFrame{
+			ID:        frameID,
+			StepID:    step.ID,
+			ParentID:  parentID,
+			Handle:    step.Handle,
+			Kind:      step.Kind,
+			Input:     inputVars,
+			Output:    nil,
+			StartedAt: result.StartedAt,
+			EndedAt:   &result.CompletedAt,
+			Error:     err,
+		})
+
 		return fmt.Errorf("%w: %s: %v", ErrStepFailed, step.ID, err)
 	}
 
@@ -226,6 +243,19 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step) error {
 		return fmt.Errorf("step completed: %w", err)
 	}
 
+	// Record frame in ledger
+	_ = r.ledger.RecordFrame(ctx, r.exec.ID, r.executionID, r.exec.Revision, types.StackFrame{
+		ID:        frameID,
+		StepID:    step.ID,
+		ParentID:  parentID,
+		Handle:    step.Handle,
+		Kind:      step.Kind,
+		Input:     inputVars,
+		Output:    outputMap,
+		StartedAt: result.StartedAt,
+		EndedAt:   &result.CompletedAt,
+	})
+
 	return nil
 }
 
@@ -240,18 +270,18 @@ func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error)
 	}
 
 	for _, arg := range step.Arguments {
-		// If no context, we're using the global one
-		if arg.Context == "" {
+		// If no scope, we're using the global one
+		if arg.Scope == "" {
 			continue
 		}
 
-		// Get entire output map from the context handle
-		outputs, err := r.scheduler.FindOutput(arg.Context)
+		// Get entire output map from the scope handle
+		outputs, err := r.scheduler.FindOutput(arg.Scope)
 		if err != nil {
-			return nil, fmt.Errorf("resolve %s from context %s: %w", arg.Target, arg.Context, err)
+			return nil, fmt.Errorf("resolve %s from scope %s: %w", arg.Target, arg.Scope, err)
 		}
 
-		out[arg.Context] = outputs
+		out[arg.Scope] = outputs
 	}
 
 	return out, nil

@@ -26,6 +26,7 @@ type (
 			UndeleteByID(ctx context.Context, automationID uint64) error
 
 			ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error)
+			GetExecutionTrace(ctx context.Context, exeID, executionID uint64, rev int) ([]execTypes.StackFrame, error)
 		}
 
 		// cross-link with compose service to load module on resolved records
@@ -165,6 +166,16 @@ func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) 
 	return ctrl.svc.ExecAndWait(ctx, r.AutomationID, types.NgAutomationExecParams{
 		Input: input,
 	})
+}
+
+func (ctrl NgAutomation) ExecutionTrace(ctx context.Context, r *request.NgAutomationExecutionTrace) (interface{}, error) {
+	return ctrl.svc.GetExecutionTrace(
+		ctx,
+		r.AutomationID,
+		r.ExecutionID,
+		// @todo revisions
+		0,
+	)
 }
 
 func (ctrl NgAutomation) makeFilterPayload(ctx context.Context, set types.NgAutomationSet, f types.NgAutomationFilter, err error) (*ngAutomationSetPayload, error) {

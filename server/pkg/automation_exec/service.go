@@ -35,6 +35,7 @@ type (
 
 	ledgerAPI interface {
 		GetExecution(ctx context.Context, executableID, executionID id.ID, revision int) (*types.Execution, error)
+		GetTrace(ctx context.Context, executableID, executionID id.ID, revision int) ([]types.StackFrame, error)
 	}
 
 	runtimeManagerAPI interface {
@@ -129,6 +130,10 @@ func (s *automationService) ExecuteAndWait(
 	case <-ctx.Done():
 		return nil, ctx.Err()
 	}
+}
+
+func (s *automationService) GetExecutionTrace(ctx context.Context, exeID id.ID, rev int, executionID id.ID) ([]types.StackFrame, error) {
+	return s.led.GetTrace(ctx, exeID, executionID, rev)
 }
 
 func (s *automationService) prepMetaResponse(exec *types.Execution) *types.ExecutionResult {

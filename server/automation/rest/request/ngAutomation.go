@@ -243,11 +243,6 @@ type (
 		// NgAutomation ID
 		AutomationID uint64 `json:",string"`
 
-		// StepID POST parameter
-		//
-		// Step ID
-		StepID uint64 `json:",string"`
-
 		// Input POST parameter
 		//
 		// Input
@@ -267,6 +262,18 @@ type (
 		//
 		// Execute step and return immediately
 		Async bool
+	}
+
+	NgAutomationExecutionTrace struct {
+		// AutomationID PATH parameter
+		//
+		// NgAutomation ID
+		AutomationID uint64 `json:",string"`
+
+		// ExecutionID PATH parameter
+		//
+		// Execution ID
+		ExecutionID uint64 `json:",string"`
 	}
 )
 
@@ -1286,7 +1293,6 @@ func NewNgAutomationExec() *NgAutomationExec {
 func (r NgAutomationExec) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"automationID": r.AutomationID,
-		"stepID":       r.StepID,
 		"input":        r.Input,
 		"trace":        r.Trace,
 		"wait":         r.Wait,
@@ -1297,11 +1303,6 @@ func (r NgAutomationExec) Auditable() map[string]interface{} {
 // Auditable returns all auditable/loggable parameters
 func (r NgAutomationExec) GetAutomationID() uint64 {
 	return r.AutomationID
-}
-
-// Auditable returns all auditable/loggable parameters
-func (r NgAutomationExec) GetStepID() uint64 {
-	return r.StepID
 }
 
 // Auditable returns all auditable/loggable parameters
@@ -1345,13 +1346,6 @@ func (r *NgAutomationExec) Fill(req *http.Request) (err error) {
 		} else if err == nil {
 			// Multipart params
 
-			if val, ok := req.MultipartForm.Value["stepID"]; ok && len(val) > 0 {
-				r.StepID, err = payload.ParseUint64(val[0]), nil
-				if err != nil {
-					return err
-				}
-			}
-
 			if val, ok := req.MultipartForm.Value["input[]"]; ok {
 				r.Input, err = types.ParseWorkflowVariables(val)
 				if err != nil {
@@ -1394,13 +1388,6 @@ func (r *NgAutomationExec) Fill(req *http.Request) (err error) {
 
 		// POST params
 
-		if val, ok := req.Form["stepID"]; ok && len(val) > 0 {
-			r.StepID, err = payload.ParseUint64(val[0]), nil
-			if err != nil {
-				return err
-			}
-		}
-
 		if val, ok := req.Form["input[]"]; ok {
 			r.Input, err = types.ParseWorkflowVariables(val)
 			if err != nil {
@@ -1441,6 +1428,53 @@ func (r *NgAutomationExec) Fill(req *http.Request) (err error) {
 
 		val = chi.URLParam(req, "automationID")
 		r.AutomationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNgAutomationExecutionTrace request
+func NewNgAutomationExecutionTrace() *NgAutomationExecutionTrace {
+	return &NgAutomationExecutionTrace{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationExecutionTrace) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"automationID": r.AutomationID,
+		"executionID":  r.ExecutionID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationExecutionTrace) GetAutomationID() uint64 {
+	return r.AutomationID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationExecutionTrace) GetExecutionID() uint64 {
+	return r.ExecutionID
+}
+
+// Fill processes request and fills internal variables
+func (r *NgAutomationExecutionTrace) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "automationID")
+		r.AutomationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+		val = chi.URLParam(req, "executionID")
+		r.ExecutionID, err = payload.ParseUint64(val), nil
 		if err != nil {
 			return err
 		}

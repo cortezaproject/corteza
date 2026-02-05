@@ -102,6 +102,50 @@ func (l *ledger) StepFailed(ctx context.Context, executableID, executionID, step
 	})
 }
 
+func (l *ledger) RecordFrame(ctx context.Context, executableID, executionID id.ID, revision int, frame types.StackFrame) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	ex, ok := l.store[executableID][executionID][revision]
+	if !ok {
+		return fmt.Errorf("execution not found")
+	}
+
+	// Truncation logic: Per-iterator truncation
+	if !frame.ParentID.IsZero() {
+		siblingIndices := make([]int, 0)
+		for i, f := range ex.Trace {
+			if f.ParentID == frame.ParentID {
+				siblingIndices = append(siblingIndices, i)
+			}
+		}
+
+		if len(siblingIndices) >= types.MaxIteratorFrames {
+			// Keep first 100 iterations, truncate from the 101st
+			// removeIndex is the index in the global Trace slice
+			removeIndex := siblingIndices[100]
+			ex.Trace = append(ex.Trace[:removeIndex], ex.Trace[removeIndex+1:]...)
+		}
+	}
+
+	ex.Trace = append(ex.Trace, frame)
+	ex.UpdatedAt = time.Now()
+
+	return nil
+}
+
+func (l *ledger) GetTrace(ctx context.Context, executableID, executionID id.ID, revision int) ([]types.StackFrame, error) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	ex, ok := l.store[executableID][executionID][revision]
+	if !ok {
+		return nil, fmt.Errorf("execution not found")
+	}
+
+	return ex.Trace, nil
+}
+
 func (l *ledger) logStep(executableID, executionID id.ID, revision int, event types.StepEvent) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()

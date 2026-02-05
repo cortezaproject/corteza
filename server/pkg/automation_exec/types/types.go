@@ -26,9 +26,10 @@ type (
 	// Expr represents an expression mapping for arguments/results
 	// Cloned from automation/types.Expr to avoid circular dependencies
 	Expr struct {
-		// Context defines the evaluation context of this expression
+		// Scope defines where evaluation context of this expression
+		//
 		// Leave empty for global context
-		Context string `json:"context,omitempty"`
+		Scope string `json:"scope,omitempty"`
 
 		// Variable name to set results of the expression to
 		Target string `json:"target"`
@@ -93,6 +94,8 @@ type (
 
 		Error error
 
+		Trace []StackFrame
+
 		Events []StepEvent
 	}
 
@@ -122,6 +125,19 @@ type (
 	Status           string
 	ExecutableStatus int
 
+	StackFrame struct {
+		ID        id.ID      `json:"id"`
+		StepID    id.ID      `json:"stepID"`
+		ParentID  id.ID      `json:"parentID,omitempty"`
+		Handle    string     `json:"handle,omitempty"`
+		Kind      string     `json:"kind,omitempty"`
+		Input     any        `json:"input,omitempty"`
+		Output    any        `json:"output,omitempty"`
+		StartedAt time.Time  `json:"startedAt"`
+		EndedAt   *time.Time `json:"endedAt,omitempty"`
+		Error     error      `json:"error,omitempty"`
+	}
+
 	ExecutionResult struct {
 		ExecutionID  id.ID      `json:"executionID"`
 		ExecutableID id.ID      `json:"executableID"`
@@ -137,6 +153,10 @@ type (
 const (
 	StatusActive ExecutableStatus = iota
 	StatusDeprecated
+)
+
+const (
+	MaxIteratorFrames = 1000
 )
 
 const (

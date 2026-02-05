@@ -46,6 +46,9 @@ type (
 	frame struct {
 		typ frameType
 
+		id       id.ID
+		parentID id.ID
+
 		stepID id.ID
 		step   *types.Step
 
@@ -79,9 +82,13 @@ func newScheduler(exe types.Executable) *scheduler {
 // Returns (step, hasNext, error)
 // Note: For frameTypeStep, the frame is NOT popped here - it remains on stack
 // until PopFrame() is called after StoreOutputs
-func (ss *scheduler) Next(ctx context.Context) (*types.Step, bool, error) {
+func (ss *scheduler) Next(ctx context.Context) (*types.Step, id.ID, id.ID, bool, error) {
 	for len(ss.stack) > 0 {
 		current := ss.stack[len(ss.stack)-1]
+
+		if current.id.IsZero() {
+			current.id = id.MustNumID(id.Next())
+		}
 
 		switch current.typ {
 		case frameTypeIterator:
@@ -92,11 +99,11 @@ func (ss *scheduler) Next(ctx context.Context) (*types.Step, bool, error) {
 
 		case frameTypeStep:
 			// Don't pop yet - wait for StoreOutputs to be called first
-			return current.step, true, nil
+			return current.step, current.id, current.parentID, true, nil
 		}
 	}
 
-	return nil, false, nil
+	return nil, id.Zero(), id.Zero(), false, nil
 }
 
 func (ss *scheduler) FindOutput(handle string) (*expr.Vars, error) {
@@ -119,21 +126,21 @@ func (ss *scheduler) FindOutput(handle string) (*expr.Vars, error) {
 
 // StoreOutputs saves step execution results and moves them to completedOutputs
 func (ss *scheduler) StoreOutputs(stepID id.ID, outputs map[string]*expr.Vars) error {
-	// Find the frame for this step (should be the top of the stack for frameTypeStep)
+	// Find the frame for this step
 	for i := len(ss.stack) - 1; i >= 0; i-- {
-		if ss.stack[i].stepID.Equal(stepID) {
-			handle := ss.stack[i].handle
+		f := ss.stack[i]
+		if f.stepID.Equal(stepID) {
+			handle := f.handle
 			// Store outputs in completed map for future lookups
 			if handle != "" {
 				ss.completedOutputs[handle] = outputs
 			}
-			// Pop the frame now that outputs are stored
-			ss.stack = append(ss.stack[:i], ss.stack[i+1:]...)
+			f.outputs = outputs
 			return nil
 		}
 	}
 
-	return fmt.Errorf("%w: %v", ErrStepNotFound, stepID)
+	return fmt.Errorf("step %v not found on stack", stepID)
 }
 
 // OnStepComplete notifies scheduler that a step finished
@@ -144,13 +151,37 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 		return ErrStepNotFound
 	}
 
-	// Check if we're completing a step inside an iterator
+	// We finished a step, so the top of the stack should be this step's frame.
+	// We pop it now.
+	var currentFrame *frame
 	if len(ss.stack) > 0 {
 		top := ss.stack[len(ss.stack)-1]
-		if top.typ == frameTypeIterator && top.stepID == stepID {
-			// Iterator frame handles its own continuation
-			return nil
+		if top.stepID.Equal(stepID) && top.typ == frameTypeStep {
+			currentFrame = top
+			ss.stack = ss.stack[:len(ss.stack)-1]
 		}
+	}
+
+	// If the stack is now empty, we've finished a root sequence.
+	// That's fine, no error needed.
+	var top *frame
+	if len(ss.stack) > 0 {
+		top = ss.stack[len(ss.stack)-1]
+	}
+
+	// Check if the current frame was inside an iterator loop
+	// (Note: frameTypeIterator doesn't represent the step itself, but the loop management)
+	if top != nil && top.typ == frameTypeIterator && top.stepID == stepID {
+		// Iterator frame handles its own continuation
+		return nil
+	}
+
+	// If we don't have a current frame (already popped or somehow missing),
+	// we can't reliably push children with correct parent ID.
+	// But we should at least try to push them if they exist.
+	var currentFrameID id.ID
+	if currentFrame != nil {
+		currentFrameID = currentFrame.id
 	}
 
 	switch step.Kind {
@@ -160,8 +191,15 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 			return fmt.Errorf("step %v: handler is not IteratorHandler", stepID)
 		}
 
+		var parentID id.ID
+		if top != nil {
+			parentID = top.id
+		}
+
 		ss.stack = append(ss.stack, &frame{
 			typ:         frameTypeIterator,
+			id:          id.MustNumID(id.Next()),
+			parentID:    parentID,
 			stepID:      stepID,
 			step:        step,
 			handle:      step.Handle,
@@ -169,22 +207,30 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 		})
 
 	case "branch":
+		var parentID id.ID
+		if top != nil {
+			parentID = top.id
+		}
+
 		ss.stack = append(ss.stack, &frame{
-			typ:    frameTypeBranch,
-			stepID: stepID,
-			step:   step,
-			handle: step.Handle,
+			typ:      frameTypeBranch,
+			id:       id.MustNumID(id.Next()),
+			parentID: parentID,
+			stepID:   stepID,
+			step:     step,
+			handle:   step.Handle,
 		})
 
 	default:
 		// Expression/Function: push children
-		ss.pushChildren(step)
+		// Children of this step should have this frame as parent
+		ss.pushChildren(step, currentFrameID)
 	}
 
 	return nil
 }
 
-func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step, bool, error) {
+func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step, id.ID, id.ID, bool, error) {
 	if !f.iterStarted {
 		// Get initial vars from frame outputs (set by runtime after step exec)
 		initialVars := &expr.Vars{}
@@ -195,7 +241,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 		}
 
 		if err := f.iterHandler.Start(ctx, initialVars); err != nil {
-			return nil, false, fmt.Errorf("iterator start failed: %w", err)
+			return nil, id.Zero(), id.Zero(), false, fmt.Errorf("iterator start failed: %w", err)
 		}
 		f.iterStarted = true
 	}
@@ -209,7 +255,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 
 	more, err := f.iterHandler.More(ctx, currentVars)
 	if err != nil {
-		return nil, false, fmt.Errorf("iterator more check failed: %w", err)
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("iterator more check failed: %w", err)
 	}
 
 	if !more {
@@ -220,10 +266,12 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 		if len(f.step.Children) > 1 {
 			exitStep := &f.step.Children[1]
 			ss.stack = append(ss.stack, &frame{
-				typ:    frameTypeStep,
-				stepID: exitStep.ID,
-				step:   exitStep,
-				handle: exitStep.Handle,
+				typ:      frameTypeStep,
+				id:       id.MustNumID(id.Next()),
+				parentID: f.parentID, // sibling of iterator
+				stepID:   exitStep.ID,
+				step:     exitStep,
+				handle:   exitStep.Handle,
 			})
 		}
 
@@ -233,7 +281,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 	// Get next iteration vars
 	iterVars, err := f.iterHandler.Next(ctx, currentVars)
 	if err != nil {
-		return nil, false, fmt.Errorf("iterator next failed: %w", err)
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("iterator next failed: %w", err)
 	}
 
 	// Convert expr.Vars to map for frame outputs
@@ -244,23 +292,25 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 
 	// First child is the body path
 	if len(f.step.Children) == 0 {
-		return nil, false, fmt.Errorf("iterator missing body edge")
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("iterator missing body edge")
 	}
 
 	bodyStep := &f.step.Children[0]
 
 	ss.stack = append(ss.stack, &frame{
-		typ:     frameTypeStep,
-		stepID:  bodyStep.ID,
-		step:    bodyStep,
-		handle:  bodyStep.Handle,
-		outputs: iterOutputs,
+		typ:      frameTypeStep,
+		id:       id.MustNumID(id.Next()),
+		parentID: f.id,
+		stepID:   bodyStep.ID,
+		step:     bodyStep,
+		handle:   bodyStep.Handle,
+		outputs:  iterOutputs,
 	})
 
 	return ss.Next(ctx)
 }
 
-func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, bool, error) {
+func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, id.ID, id.ID, bool, error) {
 	if f.branchTaken {
 		ss.stack = ss.stack[:len(ss.stack)-1]
 		return ss.Next(ctx)
@@ -268,7 +318,7 @@ func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, b
 
 	handler, ok := f.step.Handler.(BranchHandler)
 	if !ok {
-		return nil, false, fmt.Errorf("step %v: handler is not BranchHandler", f.stepID)
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("step %v: handler is not BranchHandler", f.stepID)
 	}
 
 	// Build vars from frame outputs
@@ -281,7 +331,7 @@ func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, b
 
 	condition, err := handler.Evaluate(ctx, condVars)
 	if err != nil {
-		return nil, false, fmt.Errorf("branch evaluation failed: %w", err)
+		return nil, id.Zero(), id.Zero(), false, fmt.Errorf("branch evaluation failed: %w", err)
 	}
 
 	f.branchTaken = true
@@ -295,25 +345,29 @@ func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, b
 	if len(f.step.Children) > childIndex {
 		nextStep := &f.step.Children[childIndex]
 		ss.stack = append(ss.stack, &frame{
-			typ:    frameTypeStep,
-			stepID: nextStep.ID,
-			step:   nextStep,
-			handle: nextStep.Handle,
+			typ:      frameTypeStep,
+			id:       id.MustNumID(id.Next()),
+			parentID: f.id,
+			stepID:   nextStep.ID,
+			step:     nextStep,
+			handle:   nextStep.Handle,
 		})
 	}
 
 	return ss.Next(ctx)
 }
 
-func (ss *scheduler) pushChildren(step *types.Step) {
+func (ss *scheduler) pushChildren(step *types.Step, parentID id.ID) {
 	// Push children in reverse order so first child executes first
 	for i := len(step.Children) - 1; i >= 0; i-- {
 		child := &step.Children[i]
 		ss.stack = append(ss.stack, &frame{
-			typ:    frameTypeStep,
-			stepID: child.ID,
-			step:   child,
-			handle: child.Handle,
+			typ:      frameTypeStep,
+			id:       id.MustNumID(id.Next()),
+			parentID: parentID,
+			stepID:   child.ID,
+			step:     child,
+			handle:   child.Handle,
 		})
 	}
 }
@@ -331,6 +385,7 @@ func (ss *scheduler) init(exe types.Executable) *scheduler {
 		if len(step.Parents) == 0 {
 			ss.stack = append(ss.stack, &frame{
 				typ:    frameTypeStep,
+				id:     id.MustNumID(id.Next()),
 				stepID: step.ID,
 				step:   step,
 				handle: step.Handle,

@@ -27,18 +27,20 @@ type (
 		Undelete(context.Context, *request.NgAutomationUndelete) (interface{}, error)
 		Test(context.Context, *request.NgAutomationTest) (interface{}, error)
 		Exec(context.Context, *request.NgAutomationExec) (interface{}, error)
+		ExecutionTrace(context.Context, *request.NgAutomationExecutionTrace) (interface{}, error)
 	}
 
 	// HTTP API interface
 	NgAutomation struct {
-		List     func(http.ResponseWriter, *http.Request)
-		Create   func(http.ResponseWriter, *http.Request)
-		Update   func(http.ResponseWriter, *http.Request)
-		Read     func(http.ResponseWriter, *http.Request)
-		Delete   func(http.ResponseWriter, *http.Request)
-		Undelete func(http.ResponseWriter, *http.Request)
-		Test     func(http.ResponseWriter, *http.Request)
-		Exec     func(http.ResponseWriter, *http.Request)
+		List           func(http.ResponseWriter, *http.Request)
+		Create         func(http.ResponseWriter, *http.Request)
+		Update         func(http.ResponseWriter, *http.Request)
+		Read           func(http.ResponseWriter, *http.Request)
+		Delete         func(http.ResponseWriter, *http.Request)
+		Undelete       func(http.ResponseWriter, *http.Request)
+		Test           func(http.ResponseWriter, *http.Request)
+		Exec           func(http.ResponseWriter, *http.Request)
+		ExecutionTrace func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -172,6 +174,22 @@ func NewNgAutomation(h NgAutomationAPI) *NgAutomation {
 
 			api.Send(w, r, value)
 		},
+		ExecutionTrace: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNgAutomationExecutionTrace()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.ExecutionTrace(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -186,5 +204,6 @@ func (h NgAutomation) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 		r.Post("/ng-automation/{automationID}/undelete", h.Undelete)
 		r.Post("/ng-automation/{automationID}/test", h.Test)
 		r.Post("/ng-automation/{automationID}/exec", h.Exec)
+		r.Get("/ng-automation/{automationID}/execution/{executionID}/trace", h.ExecutionTrace)
 	})
 }
