@@ -51,6 +51,7 @@ func (h ngRecordsHandler) register() {
 
 	h.reg.AddFunctions(
 		h.Lookup(),
+		h.Create(),
 	)
 }
 
@@ -191,6 +192,176 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 			return
 		},
 	}
+}
+
+type (
+	ngRecordsCreateArgs struct {
+		hasNamespace    bool
+		Namespace       interface{}
+		namespaceID     uint64
+		namespaceHandle string
+		namespaceRes    *types.Namespace
+
+		hasModule    bool
+		Module       interface{}
+		moduleID     uint64
+		moduleHandle string
+		moduleRes    *types.Module
+
+		hasValues  bool
+		Values     interface{}
+		ValuesKV   map[string]string
+		ValuesKVV  map[string][]string
+		ValuesVars *expr.Vars
+	}
+)
+
+func (a ngRecordsCreateArgs) GetNamespace() (bool, uint64, string, *types.Namespace) {
+	return a.hasNamespace, a.namespaceID, a.namespaceHandle, a.namespaceRes
+}
+
+func (a ngRecordsCreateArgs) GetModule() (bool, uint64, string, *types.Module) {
+	return a.hasModule, a.moduleID, a.moduleHandle, a.moduleRes
+}
+
+func (h ngRecordsHandler) Create() atypes.ConstructFunction {
+	return atypes.ConstructFunction{
+		Ref:    "composeRecordsCreate",
+		Kind:   "function",
+		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
+		Meta: &atypes.ConstructFunctionMeta{
+			Short: "Compose record create",
+		},
+
+		Parameters: []*atypes.Param{
+			{
+				Name:  "namespace",
+				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+			},
+			{
+				Name:  "module",
+				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				Meta: &atypes.ParamMeta{
+					Label:       "Module to set record type",
+					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
+				},
+			},
+
+			{
+				Name:  "values",
+				Types: []string{"KV", "KVV"}, Required: true,
+			},
+		},
+
+		Results: []*atypes.Param{
+
+			{
+				Name:  "record",
+				Types: []string{"ComposeRecord"},
+			},
+		},
+
+		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
+			var (
+				args = &ngRecordsCreateArgs{
+					hasNamespace: in.Has("namespace"),
+					hasModule:    in.Has("module"),
+					hasValues:    in.Has("values"),
+				}
+			)
+
+			if err = in.Decode(args); err != nil {
+				return
+			}
+
+			// Converting Namespace argument
+			if args.hasNamespace {
+				aux := expr.Must(expr.Select(in, "namespace"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.namespaceID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.namespaceHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeNamespace").Type():
+					args.namespaceRes = aux.Get().(*types.Namespace)
+				}
+			}
+
+			// Converting Module argument
+			if args.hasModule {
+				aux := expr.Must(expr.Select(in, "module"))
+				switch aux.Type() {
+				case h.tReg.Type("ID").Type():
+					args.moduleID = aux.Get().(uint64)
+				case h.tReg.Type("Handle").Type():
+					args.moduleHandle = aux.Get().(string)
+				case h.tReg.Type("ComposeModule").Type():
+					args.moduleRes = aux.Get().(*types.Module)
+				}
+			}
+
+			// Converting Values argument
+			if args.hasValues {
+				aux := expr.Must(expr.Select(in, "values"))
+				switch aux.Type() {
+				case h.tReg.Type("KV").Type():
+					args.ValuesKV = aux.Get().(map[string]string)
+				case h.tReg.Type("KVV").Type():
+					args.ValuesKVV = aux.Get().(map[string][]string)
+				}
+			}
+
+			var results *recordsCreateResults
+			if results, err = h.create(ctx, args); err != nil {
+				return
+			}
+
+			out = &expr.Vars{}
+
+			{
+				// converting results.Record (*types.Record) to ComposeRecord
+				var (
+					tval expr.TypedValue
+				)
+
+				if tval, err = h.tReg.Type("ComposeRecord").Cast(results.Record); err != nil {
+					return
+				} else if err = expr.Assign(out, "record", tval); err != nil {
+					return
+				}
+			}
+
+			return
+		},
+	}
+}
+
+func (h ngRecordsHandler) create(ctx context.Context, args *ngRecordsCreateArgs) (results *recordsCreateResults, err error) {
+	results = &recordsCreateResults{}
+
+	namespace, module, err := h.loadCombo(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	// @todo kvv
+	values := make(types.RecordValueSet, 0, len(args.ValuesKV))
+	for k, v := range args.ValuesKV {
+		values = append(values, &types.RecordValue{
+			Name:  k,
+			Value: v,
+		})
+	}
+
+	record := &types.Record{
+		NamespaceID: namespace.ID,
+		ModuleID:    module.ID,
+		Values:      values,
+	}
+
+	results.Record, err = wrapRecordValueErrorSet(h.rec.Create(ctx, record))
+
+	return
 }
 
 func (h ngRecordsHandler) lookup(ctx context.Context, args *recordsLookupArgs) (results *recordsLookupResults, err error) {
