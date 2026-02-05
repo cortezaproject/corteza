@@ -84,8 +84,8 @@ func CastToReminder(val interface{}) (out *types.Reminder, err error) {
 		out = &types.Reminder{}
 		// m, _ := json.Marshal(val)
 		// _ = json.Unmarshal(m, out)
-		for k,v := range val {
-			if err = assignToReminder(out, k,v);err != nil{
+		for k, v := range val {
+			if err = assignToReminder(out, k, v); err != nil {
 				return nil, err
 			}
 		}

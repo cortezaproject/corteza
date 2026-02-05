@@ -546,6 +546,17 @@ func CastToVars(val interface{}) (out map[string]TypedValue, err error) {
 		return c.value, nil
 	case map[string]TypedValue:
 		return c, nil
+
+	case map[string]*Vars:
+		out = make(map[string]TypedValue)
+		for k, v := range c {
+			v.mux.RLock()
+			defer v.mux.RUnlock()
+
+			out[k] = v
+		}
+
+		return
 	case map[string]interface{}:
 		out = make(map[string]TypedValue)
 		for k, v := range c {

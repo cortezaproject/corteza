@@ -38,7 +38,7 @@ type StepResult struct {
 	StepID      id.ID
 	StartedAt   time.Time
 	CompletedAt time.Time
-	Output      map[string]*expr.Vars
+	Output      map[string]expr.TypedValue
 	Error       error
 }
 
@@ -210,7 +210,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 	}
 
 	// Extract results based on step definition
-	outputMap := make(map[string]*expr.Vars)
+	outputMap := make(map[string]expr.TypedValue)
 	if output != nil {
 		if vars, ok := output.(*expr.Vars); ok {
 			// Map each defined result to a Vars containing that value
@@ -218,9 +218,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 				v := vars.GetValue()[rst.Name]
 
 				if !reflect2.IsNil(v) {
-					resultVars := &expr.Vars{}
-					resultVars.Set(rst.Name, v)
-					outputMap[rst.Name] = resultVars
+					outputMap[rst.Name] = v
 				}
 			}
 		}
@@ -251,7 +249,7 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		Handle:    step.Handle,
 		Kind:      step.Kind,
 		Input:     inputVars,
-		Output:    outputMap,
+		Output:    expr.Must(expr.NewVars(outputMap)),
 		StartedAt: result.StartedAt,
 		EndedAt:   &result.CompletedAt,
 	})

@@ -30,7 +30,7 @@ type (
 		stack []*frame
 
 		// Completed step outputs indexed by handle
-		completedOutputs map[string]map[string]*expr.Vars
+		completedOutputs map[string]map[string]expr.TypedValue
 	}
 
 	IteratorHandler interface {
@@ -54,7 +54,7 @@ type (
 
 		// Output tracking
 		handle  string
-		outputs map[string]*expr.Vars
+		outputs map[string]expr.TypedValue
 
 		// For iterators
 		iterHandler IteratorHandler
@@ -72,7 +72,7 @@ func newScheduler(exe types.Executable) *scheduler {
 		executable:       exe,
 		steps:            make(map[id.ID]*types.Step, len(exe.Steps)),
 		stack:            make([]*frame, 0, 16),
-		completedOutputs: make(map[string]map[string]*expr.Vars),
+		completedOutputs: make(map[string]map[string]expr.TypedValue),
 	}
 
 	return ss.init(exe)
@@ -125,7 +125,7 @@ func (ss *scheduler) FindOutput(handle string) (*expr.Vars, error) {
 }
 
 // StoreOutputs saves step execution results and moves them to completedOutputs
-func (ss *scheduler) StoreOutputs(stepID id.ID, outputs map[string]*expr.Vars) error {
+func (ss *scheduler) StoreOutputs(stepID id.ID, outputs map[string]expr.TypedValue) error {
 	// Find the frame for this step
 	for i := len(ss.stack) - 1; i >= 0; i-- {
 		f := ss.stack[i]
@@ -285,7 +285,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 	}
 
 	// Convert expr.Vars to map for frame outputs
-	iterOutputs := make(map[string]*expr.Vars)
+	iterOutputs := make(map[string]expr.TypedValue)
 	if iterVars != nil {
 		// TODO: implement vars to map conversion based on expr.Vars API
 	}
