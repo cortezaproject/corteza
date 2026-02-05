@@ -73,6 +73,7 @@ type (
 	NgAutomationTrigger struct {
 		ID      uint64                           `json:"triggerID,string"`
 		Labels  map[string]labelTypes.LabelValue `json:"labels,omitempty"`
+		Handle  string                           `json:"handle"`
 		Meta    *NgTriggerMeta                   `json:"meta,omitempty"`
 		Enabled bool                             `json:"enabled"`
 
@@ -91,12 +92,13 @@ type (
 	}
 
 	NgTriggerMeta struct {
+		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
 	}
 
 	NgAutomationMeta struct {
-		Name        string             `json:"name"`
+		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
 	}
@@ -132,18 +134,19 @@ type (
 	NgAutomationPath struct {
 		ParentID uint64 `json:"parentID,string"`
 		ChildID  uint64 `json:"childID,string"`
+		Expr     *Expr  `json:"expr"`
 
 		Meta NgAutomationPathMeta `json:"meta"`
 	}
 
 	NgAutomationStepMeta struct {
-		Name        string             `json:"name"`
+		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
 	}
 
 	NgAutomationPathMeta struct {
-		Name        string             `json:"name"`
+		Short       string             `json:"short"`
 		Description string             `json:"description"`
 		Visual      NgAutomationVisual `json:"visual"`
 	}
