@@ -13,7 +13,7 @@ import (
 type (
 	constructSvc interface {
 		AddFunctions(ff ...atypes.ConstructFunction)
-		AddTriggers() []atypes.ConstructTrigger
+		AddTriggers(tt ...atypes.ConstructTrigger)
 	}
 
 	typeRegistry interface {
@@ -43,6 +43,12 @@ func NgRecordsHandler(reg constructSvc, tReg typeRegistry, ns namespaceService, 
 }
 
 func (h ngRecordsHandler) register() {
+	// @todo right place
+	h.reg.AddTriggers(atypes.ConstructTrigger{
+		ResourceType: "system",
+		EventType:    "onManual",
+	})
+
 	h.reg.AddFunctions(
 		h.Lookup(),
 	)

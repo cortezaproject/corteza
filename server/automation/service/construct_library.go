@@ -25,8 +25,8 @@ func ConstructLibrary() *constructRegistry {
 func initConstructRegistry() *constructRegistry {
 	return &constructRegistry{
 		mux:       &sync.RWMutex{},
-		functions: make([]types.ConstructFunction, 2),
-		triggers:  make([]types.ConstructTrigger, 2),
+		functions: make([]types.ConstructFunction, 0, 2),
+		triggers:  make([]types.ConstructTrigger, 0, 2),
 	}
 }
 
@@ -37,11 +37,11 @@ func (r *constructRegistry) AddFunctions(ff ...types.ConstructFunction) {
 	r.functions = append(r.functions, ff...)
 }
 
-func (r *constructRegistry) AddTriggers() []types.ConstructTrigger {
+func (r *constructRegistry) AddTriggers(tt ...types.ConstructTrigger) {
 	r.mux.Lock()
 	defer r.mux.Unlock()
 
-	return r.triggers
+	r.triggers = append(r.triggers, tt...)
 }
 
 func (r *constructRegistry) Function(ref string) (out types.ConstructFunction, ok bool) {
