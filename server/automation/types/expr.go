@@ -15,7 +15,7 @@ type (
 		// Scope defines where evaluation context of this expression
 		//
 		// Leave empty for global context
-		Scope string `json:"context,omitempty"`
+		Scope string `json:"scope,omitempty"`
 
 		// Variable name to set results of the expression to
 		Target string `json:"target"`
