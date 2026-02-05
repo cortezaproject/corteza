@@ -151,7 +151,7 @@ func (s *automationService) prepMetaResponse(exec *types.Execution) *types.Execu
 	}
 
 	if exec.Error != nil {
-		out.Error = exec.Error
+		out.Error = exec.Error.Error()
 	}
 
 	return out

@@ -143,7 +143,7 @@ type (
 		ExecutableID id.ID      `json:"executableID"`
 		Revision     int        `json:"revision"`
 		Status       Status     `json:"status"`
-		Error        error      `json:"error,omitempty"`
+		Error        string      `json:"error,omitempty"`
 		StartedAt    time.Time  `json:"startedAt"`
 		EndedAt      *time.Time `json:"endedAt,omitempty"`
 		Duration     string     `json:"duration"`
