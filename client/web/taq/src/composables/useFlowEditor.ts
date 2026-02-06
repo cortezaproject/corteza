@@ -600,11 +600,14 @@ export function useFlowEditor() {
     if (nodeIndex === -1) return
 
     const node = nodes.value[nodeIndex]
-    node.data = { ...node.data, ...dataUpdate }
+    const newData = { ...node.data, ...dataUpdate }
+
+    // Replace node in array to trigger Vue reactivity
+    nodes.value[nodeIndex] = { ...node, data: newData }
 
     // Also update the automation model if this is a step with config
-    if (dataUpdate.config && node.data.stepID) {
-      const step = automation.value.steps?.find((s: any) => s.stepID === node.data.stepID)
+    if (dataUpdate.config && newData.stepID) {
+      const step = automation.value.steps?.find((s: any) => s.stepID === newData.stepID)
       if (step) {
         step.arguments = Object.entries(dataUpdate.config).map(([name, value]) => ({
           target: name,

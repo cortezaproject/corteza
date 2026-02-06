@@ -1,6 +1,9 @@
 import type { Component } from 'vue'
-import CInputText from './CInputText.vue'
+import CInputModule from './CInputModule.vue'
+import CInputNamespace from './CInputNamespace.vue'
+import CInputRecord from './CInputRecord.vue'
 import CInputSelect from './CInputSelect.vue'
+import CInputText from './CInputText.vue'
 import CInputUser from './CInputUser.vue'
 
 /**
@@ -11,6 +14,18 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   // User selectors
   UserSelector: CInputUser,
   User: CInputUser,
+
+  // Namespace selectors
+  NamespaceSelector: CInputNamespace,
+  Namespace: CInputNamespace,
+
+  // Module selectors
+  ModuleSelector: CInputModule,
+  Module: CInputModule,
+
+  // Record selectors
+  RecordSelector: CInputRecord,
+  Record: CInputRecord,
 
   // Text inputs
   Text: CInputText,

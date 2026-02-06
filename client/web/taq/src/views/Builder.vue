@@ -223,13 +223,14 @@ const showNodePicker = ref(false)
 const nodePickerCategory = ref(null)
 const insertionPoint = ref(null)
 
-// Get selected node from VueFlow's internal selection state
+// Get selected node - look up from nodes array to get latest version after updates
 const selectedNode = computed(() => {
   const selected = getSelectedNodes.value
   if (!selected || selected.length === 0) return null
-  const node = selected[0]
+  // VueFlow's selection state may hold stale reference, look up fresh node by ID
+  const node = editor.nodes.value.find(n => n.id === selected[0].id)
   // Don't open sidebar for end nodes
-  if (node.type && node.type !== 'end') return node
+  if (node && node.type !== 'end') return node
   return null
 })
 

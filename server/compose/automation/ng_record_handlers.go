@@ -108,12 +108,23 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 						Type:     "ModuleSelector",
 						Label:    "Module",
 						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
 					},
 				}, {
 					Input: atypes.SectionElementInput{
 						Type:     "RecordSelector",
 						Label:    "Record",
 						Argument: "record",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
 					},
 				}},
 			}},

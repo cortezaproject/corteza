@@ -86,7 +86,16 @@ type (
 		Placeholder string `json:"placeholder,omitempty"`
 		Argument    string `json:"argument,omitempty"`
 
-		// @todo
+		// Context defines data dependencies between inputs
+		Context SectionElementInputContext `json:"context,omitempty"`
+		// Visual is for styling/display options
 		Visual struct{} `json:"visual,omitempty"`
+	}
+
+	SectionElementInputContext struct {
+		// DependsOn maps prop names to source argument names
+		// e.g., {"namespaceID": "namespace"} means this input needs
+		// the value of "namespace" argument passed as "namespaceID" prop
+		DependsOn map[string]string `json:"dependsOn,omitempty"`
 	}
 )

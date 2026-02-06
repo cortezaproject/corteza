@@ -1,21 +1,30 @@
 <template>
-  <Select
+  <AutoComplete
     :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
-    :options="options"
+    @update:model-value="onSelect"
+    :suggestions="filteredOptions"
     :option-label="optionLabel"
-    :option-value="optionValue"
     :placeholder="placeholder"
     :disabled="disabled"
     :loading="loading"
     class="w-full"
-  />
+    dropdown
+    :showClear="showClear"
+    @complete="onComplete"
+  >
+    <template #option="slotProps">
+      <slot name="option" :option="slotProps.option">
+        {{ getLabel(slotProps.option) }}
+      </slot>
+    </template>
+  </AutoComplete>
 </template>
 
 <script setup>
-import Select from 'primevue/select'
+import AutoComplete from 'primevue/autocomplete'
+import { ref, watch } from 'vue'
 
-defineProps({
+const props = defineProps({
   modelValue: {
     type: [String, Number, Object],
     default: null,
@@ -25,12 +34,8 @@ defineProps({
     default: () => [],
   },
   optionLabel: {
-    type: String,
+    type: [String, Function],
     default: 'label',
-  },
-  optionValue: {
-    type: String,
-    default: 'value',
   },
   placeholder: {
     type: String,
@@ -44,7 +49,44 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  showClear: {
+    type: Boolean,
+    default: true,
+  },
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'search'])
+
+// Internal filtered options that AutoComplete uses
+const filteredOptions = ref([])
+
+// Sync with parent options
+watch(() => props.options, (newOptions) => {
+  filteredOptions.value = [...newOptions]
+}, { immediate: true })
+
+function getLabel(option) {
+  if (!option) return ''
+  if (typeof props.optionLabel === 'function') {
+    return props.optionLabel(option)
+  }
+  return option[props.optionLabel] || ''
+}
+
+function onSelect(value) {
+  emit('update:modelValue', value)
+}
+
+function onComplete(event) {
+  const query = event.query || ''
+
+  if (!query) {
+    // Dropdown click - show all current options
+    filteredOptions.value = [...props.options]
+  } else {
+    // User is typing - emit search for parent to handle
+    emit('search', query)
+  }
+}
 </script>
+

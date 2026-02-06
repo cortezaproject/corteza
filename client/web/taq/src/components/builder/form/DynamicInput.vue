@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-1">
-    <label v-if="label" class="text-sm font-medium text-color">
+    <label v-if="label" class="text-sm font-medium text-primary">
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
     </label>
@@ -10,14 +10,14 @@
       @update:model-value="$emit('update:modelValue', $event)"
       :placeholder="placeholder"
       :disabled="disabled"
-      v-bind="visual"
+      v-bind="$attrs"
     />
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { resolveInputComponent } from '@cortezaproject/corteza-vue-next/src/components/input/registry'
+import { computed } from 'vue'
 
 const props = defineProps({
   modelValue: {
@@ -43,10 +43,6 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false,
-  },
-  visual: {
-    type: Object,
-    default: () => ({}),
   },
 })
 
