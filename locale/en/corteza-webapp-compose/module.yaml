@@ -72,6 +72,7 @@ edit:
   moduleFieldSettings: Module field settings
   moduleInfo: Module info
   newField: Add new field
+  createRecord: Create record
   recordPermissions: Record permissions
   reorderFields: Reorder fields
   specificFieldSettings: Field settings ({{name}})
@@ -121,11 +122,10 @@ edit:
       ident:
         label: Collection or database table name
         placeholder: compose_record
-        description: "Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle"
+        description: 'Name of the database table or collection where records can be accessed and stored. Supports partitioning placeholders: {{module}} for module handle and {{namespace}} for namespace handle'
 
       connections:
         fetch-failed: Could not fetch available connections
-
 
       module-fields:
         label: Module field mapping and encoding
@@ -148,7 +148,6 @@ edit:
           timestamps: Timestamps
           extras: Extras
 
-
       encoding-strategy:
         unavailable: unavailable
         ident:
@@ -161,7 +160,6 @@ edit:
             label: Alias
           json:
             label: JSON
-
 
     privacy:
       title: Privacy
@@ -215,7 +213,7 @@ edit:
       type: Type
       none: None
       addNewConstraint: Add new constraint
-      uniqueValueConstraint: "Unique value constraint #{{index}}"
+      uniqueValueConstraint: 'Unique value constraint #{{index}}'
       tooltip:
         performance: Using duplication detection will impact performance
 

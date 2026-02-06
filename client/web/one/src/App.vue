@@ -47,7 +47,6 @@
 <script setup>
 import { useApplicationsStore } from '@/stores/applications'
 import { components } from '@cortezaproject/corteza-vue-next'
-import Toast from 'primevue/toast'
 import { computed, inject, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 const { CTopbar, CLoaderLogo } = components

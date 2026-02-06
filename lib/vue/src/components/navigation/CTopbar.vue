@@ -2,7 +2,23 @@
   <div
     class="header-navigation flex flex-wrap items-center py-2 px-3 gap-2 border-b border-surface"
   >
-    <div class="sidebar-spacer" :class="{ block: sidebarExpanded, hidden: !sidebarExpanded }" />
+    <!-- Sidebar toggle + small logo -->
+    <div class="flex items-center gap-1">
+      <!-- When sidebar is disabled on this route, show only icon logo -->
+      <img v-if="sidebarDisabled" :src="iconLogo" class="h-8 w-auto object-contain p-2" />
+
+      <!-- Normal mode: hamburger toggle only when collapsed -->
+      <template v-else>
+        <Button
+          v-if="!sidebarExpanded"
+          data-test-id="button-sidebar-toggle"
+          icon="pi pi-bars"
+          variant="text"
+          size="large"
+          @click="sidebarExpanded = true"
+        />
+      </template>
+    </div>
 
     <div
       id="topbar-title"
@@ -74,8 +90,13 @@ import Menu from 'primevue/menu'
 import TieredMenu from 'primevue/tieredmenu'
 import { computed, inject, ref, watch } from 'vue'
 
+const sidebarExpanded = defineModel('sidebarExpanded', {
+  type: Boolean,
+  default: false,
+})
+
 const props = defineProps({
-  sidebarExpanded: {
+  sidebarDisabled: {
     type: Boolean,
     default: false,
   },
@@ -98,6 +119,10 @@ const $Settings = inject('$Settings')
 
 const settings = computed(() => {
   return $Settings.get('ui.topbar', {})
+})
+
+const iconLogo = computed(() => {
+  return $Settings.attachment('ui.iconLogo')
 })
 
 const helpMenuRef = ref()
@@ -296,13 +321,9 @@ const logout = () => {
 
 <style scoped>
 .header-navigation {
-  width: 100vw;
+  width: 100%;
   min-height: var(--topbar-height);
   background-color: var(--topbar-bg);
-}
-
-.sidebar-spacer {
-  min-width: calc(var(--sidebar-width) - 92px);
 }
 
 .nav-icon {
@@ -320,5 +341,4 @@ const logout = () => {
   align-items: center;
   flex-wrap: wrap;
 }
-
 </style>

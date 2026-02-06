@@ -11,7 +11,7 @@
     </Button>
   </Teleport>
 
-  <div class="container mx-auto p-3 h-full">
+  <div class="container mx-auto p-3 h-full overflow-hidden">
     <CResourceList
       primary-key="namespaceID"
       :fields="namespaceFields"
@@ -44,13 +44,13 @@
           text
           rounded
           severity="secondary"
+          size="small"
           @click="toggleActionsMenu($event, data)"
         />
       </template>
     </CResourceList>
 
     <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup />
-    <ConfirmDialog />
   </div>
 </template>
 
@@ -99,8 +99,10 @@ const namespaceFields = [
   },
   {
     key: 'actions',
-    class: 'text-right',
+    class: 'text-right w-12',
     header: '',
+    frozen: true,
+    alignFrozen: 'right',
   },
 ]
 

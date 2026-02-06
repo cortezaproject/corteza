@@ -1,3 +1,4 @@
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
@@ -79,42 +80,20 @@ export default [
     },
   },
 
-  // Shared rules for all projects
+  // Shared rules for all projects (code quality only - Prettier handles formatting)
   {
     name: 'shared/rules',
     rules: {
-      // Indentation and formatting
-      indent: ['error', 2, { SwitchCase: 1 }],
-      'vue/html-indent': ['error', 2],
-      'vue/script-indent': ['error', 2, { baseIndent: 0 }],
-
-      // Quote enforcement
-      quotes: ['error', 'single', { avoidEscape: true }],
-      'vue/html-quotes': ['error', 'double', { avoidEscape: false }],
-
-      // Vue specific rules
-      'vue/max-attributes-per-line': [
-        'error',
-        {
-          singleline: { max: 3 },
-          multiline: { max: 1 },
-        },
-      ],
-      'vue/multiline-html-element-content-newline': 'error',
-      'vue/singleline-html-element-content-newline': 'off',
+      // Vue specific rules (structural, not formatting)
       'vue/multi-word-component-names': 'off',
       'vue/no-reserved-component-names': 'off',
 
-      // General JavaScript rules
+      // Code quality rules
       'no-unused-vars': 'warn',
       'no-console': 'off',
-      semi: ['error', 'never'],
-      'comma-dangle': ['error', 'always-multiline'],
-      'object-curly-spacing': ['error', 'always'],
-      'array-bracket-spacing': ['error', 'never'],
-      'computed-property-spacing': ['error', 'never'],
-      'key-spacing': ['error', { beforeColon: false, afterColon: true }],
-      'space-before-function-paren': ['error', 'never'],
     },
   },
+
+  // Disable all formatting rules - Prettier handles formatting
+  skipFormatting,
 ]

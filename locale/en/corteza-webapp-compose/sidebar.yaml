@@ -1,9 +1,12 @@
 adminPanel: Admin panel
-chart: Charts
-manageNamespaces: Manage namespaces
+modules: Modules
+pages: Pages
+charts: Charts
 module: Modules
-noResults: No results
+chart: Charts
 page: Pages
+manageNamespaces: Manage namespaces
+noResults: No results
 pickNamespace: Select a namespace
 publicPages: Public pages
 editNamespace: Edit namespace

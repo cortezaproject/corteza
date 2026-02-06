@@ -119,7 +119,6 @@
 
 <script setup>
 import { useAutomationStore } from '@/stores/automation'
-import Textarea from 'primevue/textarea'
 import { useConfirm } from 'primevue/useconfirm'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

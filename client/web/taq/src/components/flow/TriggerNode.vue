@@ -29,8 +29,6 @@
 <script setup>
 import { NODE_DIMENSIONS } from '@/utils/flow-constants';
 import { Handle, Position } from '@vue-flow/core';
-import Card from 'primevue/card';
-
 defineProps({
   id: { type: String, required: true },
   data: { type: Object, required: true },

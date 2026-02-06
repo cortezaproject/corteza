@@ -1,7 +1,7 @@
 .PHONY: dev build preview test lint format
 
 dev:
-	@pnpm dev
+	@pnpm install && pnpm dev
 
 build:
 	@pnpm build

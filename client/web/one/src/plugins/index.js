@@ -6,6 +6,7 @@ import {
     AutomationAPIPlugin,
     ComposeAPIPlugin,
     I18nPlugin,
+    PrimeVueComponentsPlugin,
     SettingsPlugin,
     SystemAPIPlugin,
     ToastPlugin,
@@ -47,6 +48,9 @@ function setupPrimeVue(app, theme) {
 
   // Corteza toast wrapper
   app.use(ToastPlugin)
+
+  // Register common PrimeVue components globally
+  app.use(PrimeVueComponentsPlugin)
 }
 
 /**

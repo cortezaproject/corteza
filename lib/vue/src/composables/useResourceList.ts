@@ -57,8 +57,8 @@ export function useResourceList<T = any>(
     ...options.pagination,
   })
 
-  // Loading and error states
-  const loading = ref(false)
+  // Loading and error states - start with loading true to prevent flash of empty state
+  const loading = ref(true)
   const error = ref<Error | null>(null)
 
   // Items state

@@ -108,6 +108,7 @@ page:
     calendar:
       eventFetchFailed: Could not fetch  list of events
   notFound: Page not found
+  created: Page created
   createFailed: Could not create a page
   cloneFailed: Could not clone this page
   deleteFailed: Could not delete this page
@@ -165,11 +166,11 @@ record:
   countFailed: Failed to fetch number of avaiable records
   moduleMismatch: Module incompatible, module mismatch
   moduleNotDefined: Record module not defined
-  moduleOrPageNotSet: "RecordList block error: module or page option not set"
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   unexpectedInput: Unexpected input for values property, should be an array with name-value object pairs
   unexpectedValue: Unexpected value for record module ({{type}})
-  validationErrors: "check error messages on field(s): {{fields}}"
-  validationWarnings: "Check warning messages on field(s): {{fields}}"
+  validationErrors: 'check error messages on field(s): {{fields}}'
+  validationWarnings: 'Check warning messages on field(s): {{fields}}'
   staleDataRefresh: Stale record data, all unsaved changes will be lost. Do you wish to refresh the data now?
   fieldConditions:
     failed: Failed to evaluate record block conditional fields

@@ -1,60 +1,72 @@
 <template>
   <CLoaderLogo :show="loading" :logo-url="logoUrl" />
 
-  <div class="h-screen flex flex-col">
-    <header>
-      <CTopbar
-        :sidebar-expanded="expanded"
-        :labels="{
-          appMenu: $t('navigation.appMenu'),
-          helpForum: $t('navigation.help.forum'),
-          helpDocumentation: $t('navigation.help.documentation'),
-          helpFeedback: $t('navigation.help.feedback'),
-          helpVersion: $t('navigation.help.version'),
-          userSettingsProfile: $t('navigation.userSettings.profile'),
-          userSettingsChangePassword: $t('navigation.userSettings.changePassword'),
-          userSettingsLogout: $t('navigation.userSettings.logout'),
-          userSettingsTheme: $t('navigation.userSettings.theme'),
-          lightTheme: $t('general.themes.labels.light'),
-          darkTheme: $t('general.themes.labels.dark'),
+  <div class="h-screen flex">
+    <!-- Sidebar: fixed position via Drawer -->
+    <!-- Content is teleported from CNamespaceSidebar in namespace routes -->
+    <CSidebar v-model="expanded" />
+
+    <!-- Main content area: pushed by sidebar margin on desktop -->
+    <div
+      class="flex-1 flex flex-col transition-[margin] duration-300"
+      :style="{ marginLeft: contentMargin }"
+    >
+      <header>
+        <CTopbar
+          v-model:sidebar-expanded="expanded"
+          :sidebar-disabled="sidebarDisabled"
+          :labels="{
+            appMenu: $t('navigation.appMenu'),
+            helpForum: $t('navigation.help.forum'),
+            helpDocumentation: $t('navigation.help.documentation'),
+            helpFeedback: $t('navigation.help.feedback'),
+            helpVersion: $t('navigation.help.version'),
+            userSettingsProfile: $t('navigation.userSettings.profile'),
+            userSettingsChangePassword: $t('navigation.userSettings.changePassword'),
+            userSettingsLogout: $t('navigation.userSettings.logout'),
+            userSettingsTheme: $t('navigation.userSettings.theme'),
+            lightTheme: $t('general.themes.labels.light'),
+            darkTheme: $t('general.themes.labels.dark'),
+          }"
+        />
+      </header>
+
+      <main class="flex-1 overflow-hidden">
+        <RouterView />
+      </main>
+
+      <Toast
+        :pt="{
+          root: {
+            style: {
+              top: 'calc(var(--topbar-height) + 20px)',
+              right: '17px',
+            },
+          },
+          messageIcon: {
+            style: {
+              display: 'none',
+            },
+          },
         }"
       />
-    </header>
 
-    <CSidebar v-model="expanded" :expand-on-click="true" :disabled-routes="disabledRoutes" />
-
-    <main class="flex-1 overflow-hidden">
-      <RouterView />
-    </main>
-
-    <Toast
-      :pt="{
-        root: {
-          style: {
-            top: 'calc(var(--topbar-height) + 20px)',
-            right: '17px',
-          },
-        },
-        messageIcon: {
-          style: {
-            display: 'none',
-          },
-        },
-      }"
-    />
+      <ConfirmDialog />
+    </div>
   </div>
 </template>
 
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
 import { useUserStore } from '@/stores/user'
-import { components } from '@cortezaproject/corteza-vue-next'
-import Toast from 'primevue/toast'
-import { computed, inject, onMounted, ref } from 'vue'
-import { RouterView } from 'vue-router'
+import { components, useRBACStore } from '@cortezaproject/corteza-vue-next'
+import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 const { CTopbar, CLoaderLogo, CSidebar } = components
 
 const $Settings = inject('$Settings')
+const $ComposeAPI = inject('$ComposeAPI')
+const $SystemAPI = inject('$SystemAPI')
 
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')
@@ -64,9 +76,14 @@ const loading = ref(true)
 
 const namespaceStore = useNamespaceStore()
 const usersStore = useUserStore()
+const rbacStore = useRBACStore()
 
 onMounted(() => {
-  const fetchPromises = [namespaceStore.load({ force: true }), usersStore.load({ limit: 500 })]
+  const fetchPromises = [
+    namespaceStore.load({ force: true }),
+    usersStore.load({ limit: 500 }),
+    rbacStore.load([$ComposeAPI, $SystemAPI]),
+  ]
   const delayPromise = new Promise(resolve => setTimeout(resolve, 2000))
 
   Promise.all([...fetchPromises, delayPromise]).finally(() => {
@@ -75,7 +92,30 @@ onMounted(() => {
 })
 
 const expanded = ref(false)
+const isMobile = ref(window.innerWidth < 1024)
 
+const contentMargin = computed(() => {
+  // Push on desktop only when sidebar is expanded and not on a disabled route
+  return !isMobile.value && expanded.value && !sidebarDisabled.value ? 'var(--sidebar-width)' : '0'
+})
+
+// Handle resize to detect mobile
+const handleResize = () => {
+  isMobile.value = window.innerWidth < 1024
+}
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+})
+
+// Route-based sidebar control
+const route = useRoute()
+
+// Routes where sidebar should be disabled
 const disabledRoutes = [
   'namespaces',
   'namespace.list',
@@ -84,4 +124,24 @@ const disabledRoutes = [
   'namespace.clone',
   'namespace.manage',
 ]
+
+const sidebarDisabled = computed(() => {
+  return disabledRoutes.includes(route.name?.toString() || '')
+})
+
+// Control sidebar state based on route
+watch(
+  sidebarDisabled,
+  disabled => {
+    if (disabled) {
+      // Close sidebar on disabled routes
+      expanded.value = false
+    } else if (!isMobile.value) {
+      // Auto-expand on desktop for enabled routes
+      expanded.value = true
+    }
+  },
+  { immediate: true },
+)
 </script>
+

@@ -1,11 +1,11 @@
 {
-  // Linting and formatting on save
+  // Code quality fixes on save (ESLint for quality, not formatting)
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit",
-    "source.organizeImports": "explicit"
+    "source.fixAll.eslint": "explicit"
   },
 
-  "editor.formatOnSave": false,
+  // Prettier handles all formatting on save
+  "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
 
   // Tab and indentation settings (2 spaces)
@@ -13,7 +13,7 @@
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
 
-  // Vue.js specific settings
+  // Language-specific formatters (all use Prettier)
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -21,8 +21,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -31,7 +30,7 @@
   "typescript.suggest.paths": false,
   "javascript.suggest.paths": false,
 
-  // Disable TypeScript auto-formatting that might conflict with Prettier
+  // Disable built-in TypeScript/JS formatting (Prettier handles it)
   "typescript.format.enable": false,
   "javascript.format.enable": false,
   "typescript.preferences.quoteStyle": "single",

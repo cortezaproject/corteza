@@ -10,9 +10,11 @@ export {
 } from './plugins/corteza-api'
 export { I18nPlugin } from './plugins/i18n'
 export { SettingsPlugin } from './plugins/settings'
+export { PrimeVueComponentsPlugin } from './plugins/primevue-components'
 export { ToastPlugin } from './plugins/toast'
 
 // Export utility composables
+export { useRBACStore } from './composables/useRBAC'
 export { useResourceList } from './composables/useResourceList'
 export { getTheme, setThemes, useTheme } from './composables/useTheme'
 

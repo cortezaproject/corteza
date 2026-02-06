@@ -248,9 +248,18 @@ edit:
         accounting: Negative numbers are transformed into positive and added in brackets and the value 0 is substituted by a dash
 import: 'Import chart(s):'
 newLabel: 'Create a new chart:'
+createLabel: New Chart
 name: Chart name *
 handle: Handle
 generalSettings: General settings
+navigation:
+  chart: Charts
+list:
+  columns:
+    name: Name
+    handle: Handle
+    changedAt: Last change
+  delete: Delete this chart?
 notification:
   loadFailed: Could not load chart
   saveFailed: Could not save this chart

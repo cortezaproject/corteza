@@ -24,6 +24,7 @@ corteza-vue3/
 ## Commands
 
 ### Installation
+
 ```bash
 pnpm install              # Install all dependencies
 make dev                  # Alternative: install via make
@@ -31,6 +32,7 @@ make fresh                # Clean install (removes node_modules first)
 ```
 
 ### Development
+
 ```bash
 # Run individual web apps (from their directories)
 cd client/web/one && pnpm dev
@@ -42,6 +44,7 @@ cd client/web/one && make dev
 ```
 
 ### Testing
+
 ```bash
 make test                 # Test all (libs, clients, server)
 pnpm --filter corteza-webapp-one test:unit    # Test specific app
@@ -49,6 +52,7 @@ cd lib/js && yarn test    # Test js library
 ```
 
 ### Linting
+
 ```bash
 make lint                 # Lint all libs and clients
 pnpm --filter corteza-webapp-one lint         # Lint specific app
@@ -56,6 +60,7 @@ cd lib/js && yarn lint    # Lint js library
 ```
 
 ### Building
+
 ```bash
 cd client/web/one && pnpm build   # Build specific app (outputs to dist/)
 ```
@@ -63,17 +68,23 @@ cd client/web/one && pnpm build   # Build specific app (outputs to dist/)
 ## Architecture
 
 ### Package Hierarchy
+
 Web apps depend on `@cortezaproject/corteza-vue-next`, which depends on `@cortezaproject/corteza-js-next`. Workspace dependencies use `workspace:*` protocol.
 
 ### Source-Level Imports
+
 Lib packages export TypeScript source directly (`main: "src/index.ts"`). No build step is required for libs during development - Vite compiles TypeScript on-the-fly.
 
-### Component Auto-Import
-- **Web apps**: PrimeVue components are auto-imported via `unplugin-vue-components` - use directly in templates without imports
-- **lib/vue**: Must have explicit imports for PrimeVue components (not processed by unplugin)
+### Component Imports
+
+- **PrimeVue components are globally registered** via `PrimeVueComponentsPlugin` from `lib/vue` — no per-file imports needed. Use `Button`, `Card`, `DataTable`, etc. directly in templates. To add a new global component, edit `lib/vue/src/plugins/primevue-components.ts`.
+- **PrimeVue composables** (`useConfirm`, `useToast`) still need explicit imports: `import { useConfirm } from 'primevue/useconfirm'`
+- **lib/vue shared components** are imported via the `components` export: `import { components } from '@cortezaproject/corteza-vue-next'`
 
 ### Configuration
+
 Each app requires `public/config.js` (copy from `config.example.js`):
+
 ```javascript
 window.CortezaAPI = 'https://your-corteza-instance/api'
 ```
@@ -88,15 +99,21 @@ window.CortezaAPI = 'https://your-corteza-instance/api'
 
 ## Code Style
 
+**Formatting**: Prettier handles all code formatting on save (see `.prettierrc.json`)
+**Linting**: ESLint handles code quality only, not formatting (see `eslint.config.shared.js`)
+
+Key style rules (enforced by Prettier):
+
 - 2-space indentation
 - Single quotes (JS/TS), double quotes (HTML attributes)
 - No semicolons
 - Trailing commas in multiline
-- See `eslint.config.shared.js` and `.prettierrc.json` for full config
+- 100 character line width
 
 ## Styling
 
 PrimeVue and Tailwind are configured to work together with CSS layer order:
+
 ```
 tailwind-base, primevue, tailwind-utilities
 ```
@@ -104,6 +121,7 @@ tailwind-base, primevue, tailwind-utilities
 Dark mode uses class selector `[class~="dark"]` on root element.
 
 ### Tailwind First
+
 - **Always prefer Tailwind utility classes** over custom CSS in `<style>` blocks
 - Use Tailwind's arbitrary value syntax when needed: `w-[240px]`, `h-[32px]`
 - Only use `<style>` blocks for complex selectors, pseudo-elements, or CSS that can't be expressed with Tailwind
@@ -120,8 +138,7 @@ Uses OAuth 2.0 with PKCE flow via `AuthPlugin`. Access tokens are kept in memory
 - **In templates**: Use `$t('view.key')` - e.g., `{{ $t('dashboard.title') }}`
 - **In script setup**: Import `useI18n` and use `t()`:
   ```vue
-  import { useI18n } from 'vue-i18n'
-  const { t } = useI18n()
-  toast.add({ summary: t('builder.toast.saved.summary') })
+  import { useI18n } from 'vue-i18n' const { t } = useI18n() toast.add({ summary:
+  t('builder.toast.saved.summary') })
   ```
 - **Interpolation**: `$t('key', { name: value })` with `{name}` placeholders in YAML

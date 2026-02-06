@@ -48,8 +48,6 @@
 
 <script setup>
 import { components } from '@cortezaproject/corteza-vue-next'
-import ConfirmDialog from 'primevue/confirmdialog'
-import Toast from 'primevue/toast'
 import { computed, inject, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
 const { CTopbar, CLoaderLogo } = components

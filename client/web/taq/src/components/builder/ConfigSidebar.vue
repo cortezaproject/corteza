@@ -91,8 +91,6 @@
 </template>
 
 <script setup>
-import Column from 'primevue/column'
-import DataTable from 'primevue/datatable'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DynamicForm from './form/DynamicForm.vue'

@@ -1,8 +1,6 @@
 import vue from '@vitejs/plugin-vue'
 import { execSync } from 'child_process'
 import { fileURLToPath, URL } from 'node:url'
-import { PrimeVueResolver } from 'unplugin-vue-components/resolvers'
-import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
@@ -33,13 +31,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       vueDevTools(),
-      Components({
-        resolvers: [PrimeVueResolver()],
-        // Auto-import components from these directories
-        dirs: ['src/components'],
-        // Generate TypeScript declaration file
-        dts: true,
-      }),
     ],
     resolve: {
       alias: {

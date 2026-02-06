@@ -38,11 +38,13 @@
         :sortField="sorting.sortBy"
         scrollable
         scrollHeight="flex"
-        :paginator="!hidePagination"
+        :paginator="!hidePagination && items.length > 0"
         row-hover
         lazy
         resizableColumns
         columnResizeMode="fit"
+        showGridlines
+        tableStyle="min-width: 50rem"
         :row-class="rowClass"
         :rows="pagination.limit"
         :rowsPerPageOptions="[5, 10, 20, 50]"
@@ -57,7 +59,10 @@
           :header="field.header || field.label"
           :sortable="field.sortable"
           :class="field.class"
+          :style="field.style"
           :pt="field.pt"
+          :frozen="field.frozen"
+          :alignFrozen="field.alignFrozen"
         >
           <template #body="slotProps">
             <slot :name="`body-${field.key}`" :data="slotProps.data" :field="field">
@@ -65,6 +70,16 @@
             </slot>
           </template>
         </Column>
+
+        <!-- Empty template disabled for now
+        <template #empty>
+          <template v-if="!loading">
+            <div class="p-4 text-center text-muted-color">
+              {{ translations.emptyMessage || 'No records found' }}
+            </div>
+          </template>
+        </template>
+        -->
 
         <!-- Custom paginator template (uncomment when ready to implement)
         <template #paginatorcontainer="{ first, last, page, pageCount, prevPageCallback, nextPageCallback, totalRecords }">
@@ -90,7 +105,7 @@ import DataTable from 'primevue/datatable'
 import { ref } from 'vue'
 import CInputSearch from '../input/CInputSearch.vue'
 
-const emit = defineEmits(['search', 'sort', 'row-click'])
+const emit = defineEmits(['search', 'sort', 'row-click', 'update:filter'])
 
 const props = defineProps({
   primaryKey: {
