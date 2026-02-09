@@ -2,18 +2,21 @@ package types
 
 import (
 	"fmt"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"strings"
+
+	"github.com/cortezaproject/corteza/server/pkg/expr"
 )
 
 type (
 	ParamSet []*Param
 	Param    struct {
-		Name     string     `json:"name,omitempty"`
-		Types    []string   `json:"types,omitempty"`
-		Required bool       `json:"required,omitempty"`
-		IsArray  bool       `json:"isArray,omitempty"`
-		Meta     *ParamMeta `json:"meta,omitempty"`
+		ArgumentName string     `json:"argumentName,omitempty"`
+		Name         string     `json:"name,omitempty"`
+		Types        []string   `json:"types,omitempty"`
+		Required     bool       `json:"required,omitempty"`
+		IsArray      bool       `json:"isArray,omitempty"`
+		Aggregate    bool       `json:"aggregate,omitempty"`
+		Meta         *ParamMeta `json:"meta,omitempty"`
 	}
 
 	ParamMeta struct {
@@ -25,7 +28,6 @@ type (
 	paramOpt func(p *Param)
 )
 
-//const
 func NewParam(name string, opts ...paramOpt) *Param {
 	p := &Param{Name: name}
 	for _, opt := range opts {
@@ -64,21 +66,30 @@ func (set ParamSet) GetByName(name string) *Param {
 	return nil
 }
 
+func (set ParamSet) GetByArgumentName(name string) *Param {
+	for _, p := range set {
+		if p.ArgumentName == name {
+			return p
+		}
+	}
+	return nil
+}
+
 // CheckArguments validates (at compile-time) input data (arguments)
 func (set ParamSet) VerifyArguments(ee ExprSet) error {
 	for _, e := range ee {
-		if set.GetByName(e.Target) == nil {
-			return fmt.Errorf("unknown parameter %s is used", e.Target)
+		if set.GetByArgumentName(e.ArgumentName) == nil {
+			return fmt.Errorf("unknown parameter %s is used", e.ArgumentName)
 
 		}
 	}
 
 	for _, p := range set {
-		e := ee.GetByTarget(p.Name)
+		e := ee.GetByArgumentName(p.ArgumentName)
 
 		if e == nil {
 			if p.Required {
-				return fmt.Errorf("parameter %s is required", p.Name)
+				return fmt.Errorf("parameter %s is required", p.ArgumentName)
 			}
 
 			continue
@@ -92,7 +103,7 @@ func (set ParamSet) VerifyArguments(ee ExprSet) error {
 
 			return fmt.Errorf(
 				msg,
-				e.Type, p.Name,
+				e.Type, p.ArgumentName,
 				strings.Join(p.Types, ", "),
 			)
 		}

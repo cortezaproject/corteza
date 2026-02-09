@@ -68,28 +68,32 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 
 		Parameters: []*atypes.Param{
 			{
-				Name:  "namespace",
-				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
 			},
 			{
-				Name:  "module",
-				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
 					Label:       "Module to set record type",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
 				},
 			},
 			{
-				Name:  "record",
-				Types: []string{"ID", "ComposeRecord"}, Required: true,
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ID", "ComposeRecord"}, Required: true,
 			},
 		},
 
 		Results: []*atypes.Param{
 
 			{
-				Name:  "record",
-				Types: []string{"ComposeRecord"},
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"},
 			},
 		},
 
@@ -246,12 +250,14 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 
 		Parameters: []*atypes.Param{
 			{
-				Name:  "namespace",
-				Types: []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
+				ArgumentName: "namespace",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeNamespace"}, Required: true,
 			},
 			{
-				Name:  "module",
-				Types: []string{"ID", "Handle", "ComposeModule"}, Required: true,
+				ArgumentName: "module",
+				Name:         "",
+				Types:        []string{"ID", "Handle", "ComposeModule"}, Required: true,
 				Meta: &atypes.ParamMeta{
 					Label:       "Module to set record type",
 					Description: "Even with unique record ID across all modules, module needs to be known\nbefore doing any record operations. Mainly because records of different\nmodules can be located in different stores.",
@@ -259,17 +265,57 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 			},
 
 			{
-				Name:  "values",
-				Types: []string{"KV", "KVV"}, Required: true,
+				ArgumentName: "values",
+				Name:         "",
+				Types:        []string{"KV", "KVV", "Any"}, Required: true,
+				Aggregate: true,
 			},
 		},
 
 		Results: []*atypes.Param{
 
 			{
-				Name:  "record",
-				Types: []string{"ComposeRecord"},
+				ArgumentName: "record",
+				Name:         "",
+				Types:        []string{"ComposeRecord"},
 			},
+		},
+
+		ArgsMerger: func(ctx context.Context, args atypes.ExprSet, raw []expr.TypedValue) (out *expr.Vars, err error) {
+			aux := make(map[string]any, 2)
+			aux[args[0].ArgumentName] = raw[0]
+			aux[args[1].ArgumentName] = raw[1]
+
+			auxVals := make(map[string][]string, 4)
+			for i := 2; i < len(raw); i++ {
+				rv := raw[i]
+				switch rv.Type() {
+				case h.tReg.Type("KV").Type():
+					for k, v := range rv.Get().(map[string]string) {
+						auxVals[k] = append(auxVals[k], v)
+					}
+				case h.tReg.Type("KVV").Type():
+					for k, v := range rv.Get().(map[string][]string) {
+						auxVals[k] = append(auxVals[k], v...)
+					}
+
+				default:
+					var s string
+					s, err = expr.CastToString(rv.Get())
+					if err != nil {
+						return
+					}
+
+					auxVals[args[i].Target] = append(auxVals[args[i].Target], s)
+				}
+			}
+
+			aux[args[2].ArgumentName], err = expr.NewKVV(auxVals)
+			if err != nil {
+				return
+			}
+
+			return expr.NewVars(aux)
 		},
 
 		Handler: func(ctx context.Context, in *expr.Vars) (out *expr.Vars, err error) {
@@ -281,7 +327,7 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 				}
 			)
 
-			if err = in.Decode(args); err != nil {
+			if err = in.Decode(in); err != nil {
 				return
 			}
 
@@ -362,6 +408,16 @@ func (h ngRecordsHandler) create(ctx context.Context, args *ngRecordsCreateArgs)
 			Name:  k,
 			Value: v,
 		})
+	}
+
+	for k, vv := range args.ValuesKVV {
+		for i, v := range vv {
+			values = append(values, &types.RecordValue{
+				Name:  k,
+				Place: uint(i),
+				Value: v,
+			})
+		}
 	}
 
 	record := &types.Record{

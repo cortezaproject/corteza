@@ -15,6 +15,7 @@ import (
 type (
 	FunctionHandler func(ctx context.Context, in *expr.Vars) (*expr.Vars, error)
 	IteratorHandler func(ctx context.Context, in *expr.Vars) (wfexec.IteratorHandler, error)
+	FunctionMerger  func(ctx context.Context, args ExprSet, raw []expr.TypedValue) (*expr.Vars, error)
 
 	// workflow functions are defined in the core code
 	Function struct {
@@ -24,6 +25,7 @@ type (
 		Parameters ParamSet      `json:"parameters,omitempty"`
 		Results    ParamSet      `json:"results,omitempty"`
 
+		ArgsMerger   FunctionMerger  `json:"-"`
 		Handler  FunctionHandler `json:"-"`
 		Iterator IteratorHandler `json:"-"`
 
@@ -95,10 +97,52 @@ func (f functionStep) ExecN(ctx context.Context, r *nx.ExecRequest) (nx.ExecResp
 	if len(f.arguments) > 0 {
 		// Arguments defined, get values from scope and use them when calling
 		// function/handler
-		args, err = f.arguments.EvalN(ctx, r.Scope)
+
+		var evaled []expr.TypedValue
+		evaled, err = f.arguments.EvalN(ctx, r.Scope)
 		if err != nil {
 			return nil, err
 		}
+
+		if f.def.ArgsMerger == nil {
+			// Group evaluated values by their ArgumentName
+			grouped := make(map[string][]expr.TypedValue)
+			for i, e := range f.arguments {
+				grouped[e.ArgumentName] = append(grouped[e.ArgumentName], evaled[i])
+			}
+
+			// Prepare a map of TypedValues for NewVars
+			final := make(map[string]expr.TypedValue)
+			for _, p := range f.def.Parameters {
+				vals, exists := grouped[p.ArgumentName]
+				if !exists {
+					continue
+				}
+
+				if p.Aggregate {
+					// Multiple values for an aggregate parameter are wrapped in an Array
+					final[p.ArgumentName], err = expr.NewArray(vals)
+					if err != nil {
+						return nil, err
+					}
+				} else {
+					// For non-aggregate parameters, take the first value
+					final[p.ArgumentName] = vals[0]
+				}
+			}
+
+			// Construct a new Vars container for the handler
+			args, err = expr.NewVars(final)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			args, err = f.def.ArgsMerger(ctx, f.arguments, evaled)
+			if err != nil {
+				return nil, err
+			}
+		}
+
 	}
 
 	results, err = f.def.Handler(ctx, args)
@@ -109,11 +153,6 @@ func (f functionStep) ExecN(ctx context.Context, r *nx.ExecRequest) (nx.ExecResp
 	if len(f.results) == 0 {
 		// No results defined, nothing to return
 		return expr.NewVars(nil)
-	}
-
-	results, err = f.results.Eval(ctx, results)
-	if err != nil {
-		return nil, err
 	}
 
 	return results, nil

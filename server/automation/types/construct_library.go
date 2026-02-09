@@ -42,6 +42,7 @@ type (
 
 		Segments []ConstructSegment `json:"segments"`
 
+		ArgsMerger   FunctionMerger  `json:"-"`
 		Handler  FunctionHandler `json:"-"`
 		Iterator IteratorHandler `json:"-"`
 

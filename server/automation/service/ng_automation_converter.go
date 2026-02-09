@@ -97,58 +97,60 @@ func ConvertNgAutomation(ctx context.Context, svc *ngAutomation, a *automationTy
 	exSteps := make([]execTypes.Step, 0, len(stepIdx))
 	idMap := make(map[uint64]id.ID, len(stepIdx))
 
-	for uiID, ui := range stepIdx {
-		sid := id.MustNumID(uiID)
-		idMap[uiID] = sid
+	for uiID, step := range stepIdx {
+		stepID := id.MustNumID(uiID)
+		idMap[uiID] = stepID
 
 		aux := execTypes.Step{
-			ID:     sid,
-			Kind:   ui.Kind,
-			Handle: ui.Handle,
+			ID:     stepID,
+			Kind:   step.Kind,
+			Handle: step.Handle,
 		}
 
-		for _, e := range ui.Arguments {
+		for _, e := range step.Arguments {
 			aux.Arguments = append(aux.Arguments, execTypes.StepArg{
 				Expr: &execTypes.Expr{
-					Scope:      e.Scope,
-					Target:     e.Target,
-					Source:     e.Source,
-					Expression: e.Expr,
-					Value:      e.Value,
-					Type:       e.Type,
+					ArgumentName: e.ArgumentName,
+					Scope:        e.Scope,
+					Target:       e.Target,
+					Source:       e.Source,
+					Expression:   e.Expr,
+					Value:        e.Value,
+					Type:         e.Type,
 				},
 			})
 		}
 
 		// @todo fugly
-		if ui.Kind == "function" {
+		if step.Kind == "function" {
 			reg := ConstructLibrary()
-			def, ok := reg.Function(ui.Ref)
+			def, ok := reg.Function(step.Ref)
 			if !ok {
 				issues = append(issues, issue(
-					fmt.Sprintf("unknown function %q", ui.Ref),
+					fmt.Sprintf("unknown function %q", step.Ref),
 					map[string]int{},
 				))
 				continue
 			}
 
-			ui.Results = []*automationTypes.Expr{}
+			step.Results = []*automationTypes.Expr{}
 			for _, r := range def.Results {
-				ui.Results = append(ui.Results, &automationTypes.Expr{
-					Target: r.Name,
-					Type:   r.Types[0],
-					Source: r.Name,
+				step.Results = append(step.Results, &automationTypes.Expr{
+					ArgumentName: r.ArgumentName,
+					Target:       r.Name,
+					Type:         r.Types[0],
+					Source:       r.Name,
 				})
 			}
 		}
 
-		for _, e := range ui.Results {
+		for _, e := range step.Results {
 			aux.Results = append(aux.Results, execTypes.StepRst{
-				Name: e.Target,
+				ArgumentName: e.ArgumentName,
 			})
 		}
 
-		aux.Handler, err = stepConv(svc, ui)
+		aux.Handler, err = stepConv(svc, step)
 		// @todo err handling...
 		if err != nil {
 			spew.Dump(err)
@@ -497,8 +499,9 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		Parameters: def.Parameters,
 		Results:    def.Results,
 
-		Handler:  def.Handler,
-		Iterator: def.Iterator,
+		ArgsMerger: def.ArgsMerger,
+		Handler:    def.Handler,
+		Iterator:   def.Iterator,
 
 		Labels:   def.Labels,
 		Disabled: def.Disabled,

@@ -218,10 +218,10 @@ func (r *runtime) executeStep(ctx context.Context, step *types.Step, frameID, pa
 		if vars, ok := output.(*expr.Vars); ok {
 			// Map each defined result to a Vars containing that value
 			for _, rst := range step.Results {
-				v := vars.GetValue()[rst.Name]
+				v := vars.GetValue()[rst.ArgumentName]
 
 				if !reflect2.IsNil(v) {
-					outputMap[rst.Name] = v
+					outputMap[rst.ArgumentName] = v
 				}
 			}
 		}

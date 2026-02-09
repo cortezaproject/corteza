@@ -12,6 +12,8 @@ import (
 type (
 	// Used for expression steps, arguments/results mapping and for input validation
 	Expr struct {
+		ArgumentName string `json:"argumentName"`
+
 		// Scope defines where evaluation context of this expression
 		//
 		// Leave empty for global context
@@ -84,6 +86,15 @@ func (e Expr) Test(ctx context.Context, scope *expr.Vars) (bool, error) {
 func (set ExprSet) GetByTarget(t string) *Expr {
 	for _, e := range set {
 		if e.Target == t {
+			return e
+		}
+	}
+	return nil
+}
+
+func (set ExprSet) GetByArgumentName(arg string) *Expr {
+	for _, e := range set {
+		if e.ArgumentName == arg {
 			return e
 		}
 	}
@@ -239,15 +250,11 @@ func (set ExprSet) Eval(ctx context.Context, in *expr.Vars) (*expr.Vars, error) 
 	return out, nil
 }
 
-func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*expr.Vars, error) {
+func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) ([]expr.TypedValue, error) {
 	var (
 		err error
 
-		// Working scope for building results
-		scope = &expr.Vars{}
-
-		// Prepare output scope
-		out, _ = expr.NewVars(nil)
+		out = make([]expr.TypedValue, len(set))
 
 		// Untyped evaluation result
 		value interface{}
@@ -257,7 +264,7 @@ func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*
 		}
 	)
 
-	for _, e := range set {
+	for i, e := range set {
 		value = e.Value
 
 		if e.typ == nil {
@@ -302,17 +309,9 @@ func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*
 			// try to figure out what we can do
 			if !knownType(e.typ) {
 				// Expression does not have type set
-				if out.Has(e.Target) {
-					t, _ := out.Select(e.Target)
-					typedValue, err = t.Cast(value)
-					if err != nil {
-						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
-					}
-				} else {
-					typedValue, err = expr.Typify(value)
-					if err != nil {
-						return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
-					}
+				typedValue, err = expr.Typify(value)
+				if err != nil {
+					return nil, fmt.Errorf("cannot cast value %T to %s: %w", value, e.typ.Type(), err)
 				}
 			} else if typedValue, err = e.typ.Cast(value); err != nil {
 				return nil, fmt.Errorf("cannot cast value %T to %s (target %s): %w", value, e.typ.Type(), e.Target, err)
@@ -351,20 +350,7 @@ func (set ExprSet) EvalN(ctx context.Context, contexts map[string]*expr.Vars) (*
 			}
 		}
 
-		// Set result of the expression to scope
-		//
-		// Set() fn handles multi-level path (eg "base.level1.level2")
-		// that can set result of the expression deep into scope's value
-		if err = expr.Assign(scope, e.Target, typedValue); err != nil {
-			return nil, err
-		}
-
-		// Take base of the path (1st part) and
-		// copy value of it to output scope
-		//
-		// This ensures us that the entire variable
-		// from the original scope will be present in the output
-		scope.Copy(out, expr.PathBase(e.Target))
+		out[i] = typedValue
 	}
 
 	return out, nil

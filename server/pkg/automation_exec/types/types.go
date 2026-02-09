@@ -26,6 +26,8 @@ type (
 	// Expr represents an expression mapping for arguments/results
 	// Cloned from automation/types.Expr to avoid circular dependencies
 	Expr struct {
+		ArgumentName string `json:"argumentName"`
+
 		// Scope defines where evaluation context of this expression
 		//
 		// Leave empty for global context
@@ -54,7 +56,7 @@ type (
 	}
 
 	StepRst struct {
-		Name string
+		ArgumentName string
 	}
 
 	// Step represents a single step in an executable workflow
@@ -143,7 +145,7 @@ type (
 		ExecutableID id.ID      `json:"executableID"`
 		Revision     int        `json:"revision"`
 		Status       Status     `json:"status"`
-		Error        string      `json:"error,omitempty"`
+		Error        string     `json:"error,omitempty"`
 		StartedAt    time.Time  `json:"startedAt"`
 		EndedAt      *time.Time `json:"endedAt,omitempty"`
 		Duration     string     `json:"duration"`
