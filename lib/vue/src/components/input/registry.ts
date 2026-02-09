@@ -1,4 +1,5 @@
 import type { Component } from 'vue'
+import CInputFieldValueMap from './CInputFieldValueMap.vue'
 import CInputModule from './CInputModule.vue'
 import CInputNamespace from './CInputNamespace.vue'
 import CInputRecord from './CInputRecord.vue'
@@ -35,6 +36,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   // Select/dropdown
   Select: CInputSelect,
   Dropdown: CInputSelect,
+
+  // Field-value map (for aggregate record values)
+  FieldValueMap: CInputFieldValueMap,
 }
 
 /**

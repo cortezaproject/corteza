@@ -281,6 +281,43 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 			},
 		},
 
+		Segments: []atypes.ConstructSegment{{
+			Meta: atypes.ConstructSegmentMeta{},
+			Sections: []atypes.ConstructSection{{
+				Meta: atypes.ConstructSectionMeta{},
+				Elements: []atypes.SectionElement{{
+					Input: atypes.SectionElementInput{
+						Type:     "NamespaceSelector",
+						Label:    "Namespace",
+						Argument: "namespace",
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "ModuleSelector",
+						Label:    "Module",
+						Argument: "module",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+							},
+						},
+					},
+				}, {
+					Input: atypes.SectionElementInput{
+						Type:     "FieldValueMap",
+						Label:    "Values",
+						Argument: "__fieldValues",
+						Context: atypes.SectionElementInputContext{
+							DependsOn: map[string]string{
+								"namespaceID": "namespace",
+								"moduleID":    "module",
+							},
+						},
+					},
+				}},
+			}},
+		}},
+
 		ArgsMerger: func(ctx context.Context, args atypes.ExprSet, raw []expr.TypedValue) (out *expr.Vars, err error) {
 			aux := make(map[string]any, 2)
 			aux[args[0].ArgumentName] = raw[0]

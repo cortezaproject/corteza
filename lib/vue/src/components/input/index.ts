@@ -1,3 +1,4 @@
+export { default as CInputFieldValueMap } from './CInputFieldValueMap.vue'
 export { default as CInputSearch } from './CInputSearch.vue'
 export { default as CInputText } from './CInputText.vue'
 export { default as CInputSelect } from './CInputSelect.vue'

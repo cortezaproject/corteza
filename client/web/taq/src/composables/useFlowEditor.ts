@@ -4,7 +4,11 @@ import { computed, inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import { applyDagreLayout, automationToVueFlow, type FlowNodeData } from '@/utils/taq-parser'
+import {
+  applyDagreLayout,
+  automationToVueFlow,
+  type FlowNodeData,
+} from '@/utils/taq-parser'
 
 const { NgAutomation } = automation
 type NgAutomationInstance = InstanceType<typeof NgAutomation>
@@ -42,6 +46,7 @@ export function useFlowEditor() {
   const automation = ref<NgAutomationInstance>(new NgAutomation())
   const loading = ref(false)
   const saving = ref(false)
+  const running = ref(false)
 
   // VueFlow state
   const nodes = ref<Node<FlowNodeData>[]>([])
@@ -168,7 +173,7 @@ export function useFlowEditor() {
               short: node.type === 'end' ? t('builder.nodes.end') : data.label,
               description: data.description || '',
             },
-            arguments: existing?.arguments || [],
+            arguments: data.arguments || existing?.arguments || [],
           })
         }
       }
@@ -327,6 +332,7 @@ export function useFlowEditor() {
         icon: nodeType.icon,
         nodeType: nodeType.ref || (isEnd ? 'end' : ''),
         config: {},
+        arguments: [],
         ref: newHandle,
         stepID: isTrigger ? undefined : newId,
         triggerID: isTrigger ? newId : undefined,
@@ -351,6 +357,7 @@ export function useFlowEditor() {
           nodeType: 'termination',
           icon: 'pi pi-stop-circle',
           config: {},
+          arguments: [],
           ref: endVueId,
         },
       })
@@ -403,6 +410,7 @@ export function useFlowEditor() {
               nodeType: 'termination',
               icon: 'pi pi-stop-circle',
               config: {},
+              arguments: [],
               ref: noEndVueId,
             },
           })
@@ -497,6 +505,7 @@ export function useFlowEditor() {
               nodeType: 'termination',
               icon: 'pi pi-stop-circle',
               config: {},
+              arguments: [],
               ref: newEndId,
             },
           })
@@ -545,6 +554,7 @@ export function useFlowEditor() {
               nodeType: 'termination',
               icon: 'pi pi-stop-circle',
               config: {},
+              arguments: [],
               ref: newEndId,
             },
           })
@@ -605,15 +615,11 @@ export function useFlowEditor() {
     // Replace node in array to trigger Vue reactivity
     nodes.value[nodeIndex] = { ...node, data: newData }
 
-    // Also update the automation model if this is a step with config
-    if (dataUpdate.config && newData.stepID) {
+    // Also update the automation model if this is a step with arguments
+    if (dataUpdate.arguments && newData.stepID) {
       const step = automation.value.steps?.find((s: any) => s.stepID === newData.stepID)
       if (step) {
-        step.arguments = Object.entries(dataUpdate.config).map(([name, value]) => ({
-          target: name,
-          type: 'Literal',
-          value,
-        }))
+        step.arguments = dataUpdate.arguments
       }
     }
 
@@ -648,6 +654,7 @@ export function useFlowEditor() {
         nodeType: 'termination',
         icon: 'pi pi-stop-circle',
         config: {},
+        arguments: [],
         ref: newEndId,
       },
     })
@@ -713,6 +720,27 @@ export function useFlowEditor() {
     saveToHistory()
   }
 
+  async function exec() {
+    const id = automation.value.automationID
+    if (!id || id === '0') return
+
+    running.value = true
+    try {
+      await $AutomationAPI.ngAutomationExec({
+        automationID: id,
+        trace: true,
+        wait: false,
+        async: true,
+      })
+      $toast?.toastSuccess(t('builder.toast.run.detail'), t('builder.toast.run.summary'))
+    } catch (e) {
+      console.error('Failed to execute automation:', e)
+      $toast?.toastDanger(t('builder.toast.runError.detail'), t('builder.toast.runError.summary'))
+    } finally {
+      running.value = false
+    }
+  }
+
   return {
     // State
     automation,
@@ -720,6 +748,7 @@ export function useFlowEditor() {
     edges,
     loading,
     saving,
+    running,
 
     // Computed
     name,
@@ -731,6 +760,7 @@ export function useFlowEditor() {
     // Actions
     load,
     save,
+    exec,
     reset,
     undo,
     redo,

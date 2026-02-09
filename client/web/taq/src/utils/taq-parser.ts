@@ -6,6 +6,7 @@ type NgAutomation = automation.NgAutomation
 type NgAutomationTrigger = automation.NgAutomationTrigger
 type NgAutomationStep = automation.NgAutomationStep
 type NgAutomationPath = automation.NgAutomationPath
+type Expr = automation.Expr
 
 /**
  * Node data structure for VueFlow nodes
@@ -15,7 +16,8 @@ export interface FlowNodeData {
   description?: string
   icon?: string
   nodeType: string // The step/trigger type ID (e.g., 'webhook', 'http-request')
-  config: Record<string, unknown>
+  config: Record<string, unknown> // Used by triggers (maps to trigger.input)
+  arguments: Expr[] // Used by steps (maps to step.arguments)
   ref: string // Reference back to automation step/trigger ref
   stepID?: string // Backend step ID
   triggerID?: string // Backend trigger ID
@@ -69,6 +71,7 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
         icon: getTriggerIcon(trigger.eventType),
         nodeType: trigger.eventType || 'trigger',
         config: trigger.input || {},
+        arguments: [],
         ref: trigger.handle || '',
         triggerID: trigger.triggerID,
       },
@@ -94,7 +97,8 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
         description: step.meta?.description || '',
         icon: isTermination ? 'pi pi-stop-circle' : getStepIcon(step.ref, isCondition),
         nodeType: isTermination ? 'termination' : step.ref,
-        config: argumentsToConfig(step.arguments),
+        config: {},
+        arguments: step.arguments || [],
         ref: step.handle || '',
         stepID: step.stepID,
       },
@@ -139,6 +143,7 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
             nodeType: 'termination',
             icon: 'pi pi-stop-circle',
             config: {},
+            arguments: [],
             ref: endId,
           },
         })
@@ -239,7 +244,7 @@ export function vueFlowToAutomation(
           short: data.label,
           description: data.description || '',
         },
-        arguments: configToArguments(data.config || {}) as any,
+        arguments: data.arguments || [],
       })
     }
   })
@@ -410,42 +415,6 @@ export function generateRef(_nodeType: string, existingRefs: string[]): string {
  */
 export function getAllRefs(state: VueFlowState): string[] {
   return state.nodes.filter(n => n.type !== 'end').map(n => (n.data as FlowNodeData).ref || n.id)
-}
-
-// Helper: Convert config object to arguments array
-function configToArguments(
-  config: Record<string, unknown>,
-): Array<{ target: string; type: string; value?: unknown }> {
-  return Object.entries(config).map(([target, value]) => ({
-    target,
-    type: inferValueType(value),
-    value,
-  }))
-}
-
-// Helper: Convert arguments array to config object
-function argumentsToConfig(
-  args?: Array<{ target?: string; value?: unknown }>,
-): Record<string, unknown> {
-  if (!args) return {}
-  const config: Record<string, unknown> = {}
-  args.forEach(arg => {
-    if (arg.target) {
-      config[arg.target] = arg.value
-    }
-  })
-  return config
-}
-
-// Helper: Infer value type from JavaScript value
-function inferValueType(value: unknown): string {
-  if (value === null || value === undefined) return 'Any'
-  if (typeof value === 'string') return 'String'
-  if (typeof value === 'number') return 'Number'
-  if (typeof value === 'boolean') return 'Boolean'
-  if (Array.isArray(value)) return 'Array'
-  if (typeof value === 'object') return 'KV'
-  return 'Any'
 }
 
 // Helper: Get icon for trigger type

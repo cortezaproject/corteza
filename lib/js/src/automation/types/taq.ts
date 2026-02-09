@@ -14,10 +14,12 @@ interface NgAutomationMeta {
  * Expression for step arguments/results (matches backend Expr type)
  */
 export interface Expr {
-  target: string
+  argumentName?: string
+  target?: string
   type: string
   value?: string | number | boolean | object | null
   expr?: string // Expression string for dynamic values
+  scope?: string
 }
 
 /**

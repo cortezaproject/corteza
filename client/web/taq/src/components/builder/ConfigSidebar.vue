@@ -15,8 +15,8 @@
     <DynamicForm
       v-if="functionDefinition?.segments?.length"
       :function-def="functionDefinition"
-      :config="node.data?.config || {}"
-      @update:config="onConfigUpdate"
+      :arguments="node.data?.arguments || []"
+      @update:arguments="onArgumentsUpdate"
       class="mb-4"
     />
 
@@ -104,7 +104,7 @@ const props = defineProps({
   functions: { type: Array, default: () => [] },
 })
 
-const emit = defineEmits(['close', 'delete', 'addBranch', 'reorderBranches', 'updateConfig'])
+const emit = defineEmits(['close', 'delete', 'addBranch', 'reorderBranches', 'updateArguments'])
 
 // Look up function definition from store.functions by node.data.nodeType (which holds the function ref)
 const functionDefinition = computed(() => {
@@ -113,9 +113,9 @@ const functionDefinition = computed(() => {
   return props.functions.find(f => f.ref === nodeType) || null
 })
 
-// Handle config updates from DynamicForm
-function onConfigUpdate({ key, value }) {
-  emit('updateConfig', { key, value })
+// Handle argument updates from DynamicForm
+function onArgumentsUpdate(args) {
+  emit('updateArguments', args)
 }
 
 // Get branch outputs from edges

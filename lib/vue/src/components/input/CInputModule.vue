@@ -4,23 +4,20 @@
     @update:model-value="onSelect"
     :options="options"
     :option-label="getOptionLabel"
-    :placeholder="effectivePlaceholder"
+    :placeholder="placeholder"
     :disabled="disabled || !namespaceID"
     :loading="loading"
     @search="onSearch"
   >
     <template #option="{ option }">
-      <div class="flex items-center gap-2">
-        <span>{{ option.name }}</span>
-        <span v-if="option.handle" class="text-muted-color text-xs">{{ option.handle }}</span>
-      </div>
+      <span>{{ option.name }}</span>
     </template>
   </CInputSelect>
 </template>
 
 <script setup>
 import { debounce } from 'lodash-es'
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CInputSelect from './CInputSelect.vue'
 
 const props = defineProps({
@@ -52,13 +49,6 @@ const loading = ref(false)
 
 // Store cancel function for current request
 let cancelCurrentRequest = null
-
-const effectivePlaceholder = computed(() => {
-  if (!props.namespaceID) {
-    return 'Select a namespace first'
-  }
-  return props.placeholder
-})
 
 function getOptionLabel(module) {
   if (!module) return ''
@@ -99,7 +89,7 @@ async function fetchModules(query = '') {
   }
 }
 
-const debouncedFetch = debounce((query) => {
+const debouncedFetch = debounce(query => {
   fetchModules(query)
 }, 200)
 
@@ -147,25 +137,32 @@ async function loadModuleById(moduleID) {
 }
 
 // Watch for namespace changes - clear selection and reload modules
-watch(() => props.namespaceID, (newVal, oldVal) => {
-  if (oldVal && newVal !== oldVal) {
-    selectedModule.value = null
-    emit('update:modelValue', null)
-  }
-  if (newVal) {
-    fetchModules()
-  } else {
-    options.value = []
-  }
-})
+watch(
+  () => props.namespaceID,
+  (newVal, oldVal) => {
+    if (oldVal && newVal !== oldVal) {
+      selectedModule.value = null
+      emit('update:modelValue', null)
+    }
+    if (newVal) {
+      fetchModules()
+    } else {
+      options.value = []
+    }
+  },
+)
 
-watch(() => props.modelValue, (newVal) => {
-  if (newVal && (!selectedModule.value || selectedModule.value.moduleID !== newVal)) {
-    loadModuleById(newVal)
-  } else if (!newVal) {
-    selectedModule.value = null
-  }
-}, { immediate: true })
+watch(
+  () => props.modelValue,
+  newVal => {
+    if (newVal && (!selectedModule.value || selectedModule.value.moduleID !== newVal)) {
+      loadModuleById(newVal)
+    } else if (!newVal) {
+      selectedModule.value = null
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   if (props.namespaceID) {

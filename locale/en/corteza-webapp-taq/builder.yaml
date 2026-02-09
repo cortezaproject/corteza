@@ -2,6 +2,7 @@ title: TAQ Builder
 welcome: Welcome to the TAQ workflow automation builder.
 newTaq: New TAQ
 save: Save
+run: Run
 selectTrigger: Select Trigger
 addStep: Add Step
 emptyState: Start by adding a trigger
@@ -37,6 +38,12 @@ toast:
   loadError:
     summary: Load Error
     detail: Failed to load TAQ
+  run:
+    summary: Running
+    detail: Automation started
+  runError:
+    summary: Error
+    detail: Failed to run automation
 
 nodePicker:
   searchTriggers: Search triggers...
@@ -91,10 +98,23 @@ nodePicker:
       createUser:
         label: Create User
         description: Create a new user
+      composeRecordsCreate:
+        label: Create new record
+        description: Records
     logic:
       branch:
         label: Branch
         description: Split flow
+
+form:
+  selectPlaceholder: Select {field}
+  selectFirst: Select {field} first
+
+fieldValueMap:
+  selectField: Select field
+  enterValue: Enter value
+  addRow: Add field value
+  selectModuleFirst: Select a module first
 
 configSidebar:
   node: Node

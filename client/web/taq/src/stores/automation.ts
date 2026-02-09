@@ -37,12 +37,13 @@ export interface AutomationFunction {
   kind?: string
   meta?: { short?: string; description?: string }
   parameters?: Array<{
-    name: string
+    argumentName: string
     types?: string[]
     required?: boolean
+    aggregate?: boolean
   }>
   results?: Array<{
-    name: string
+    argumentName: string
     types?: string[]
   }>
   segments?: Segment[]

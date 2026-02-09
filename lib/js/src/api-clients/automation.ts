@@ -1469,9 +1469,6 @@ export default class Automation {
   async ngAutomationCreate(a: KV, extra: AxiosRequestConfig = {}): Promise<KV> {
     const { handle, labels, meta, enabled, scope, triggers, steps, paths, runAs, ownedBy } =
       (a as KV) || {}
-    if (!ownedBy) {
-      throw Error('field ownedBy is empty')
-    }
     const cfg: AxiosRequestConfig = {
       ...extra,
       method: 'post',
@@ -1531,12 +1528,6 @@ export default class Automation {
     } = (a as KV) || {}
     if (!automationID) {
       throw Error('field automationID is empty')
-    }
-    if (!runAs) {
-      throw Error('field runAs is empty')
-    }
-    if (!ownedBy) {
-      throw Error('field ownedBy is empty')
     }
     const cfg: AxiosRequestConfig = {
       ...extra,

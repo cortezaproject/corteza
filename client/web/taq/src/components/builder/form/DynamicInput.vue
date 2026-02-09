@@ -8,7 +8,7 @@
       :is="inputComponent"
       :model-value="modelValue"
       @update:model-value="$emit('update:modelValue', $event)"
-      :placeholder="placeholder"
+      :placeholder="effectivePlaceholder"
       :disabled="disabled"
       v-bind="$attrs"
     />
@@ -18,6 +18,9 @@
 <script setup>
 import { resolveInputComponent } from '@cortezaproject/corteza-vue-next/src/components/input/registry'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   modelValue: {
@@ -36,6 +39,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  disabledPlaceholder: {
+    type: String,
+    default: '',
+  },
   required: {
     type: Boolean,
     default: false,
@@ -49,4 +56,11 @@ const props = defineProps({
 defineEmits(['update:modelValue'])
 
 const inputComponent = computed(() => resolveInputComponent(props.type))
+
+const effectivePlaceholder = computed(() => {
+  if (props.disabled && props.disabledPlaceholder) {
+    return props.disabledPlaceholder
+  }
+  return props.placeholder || (props.label ? t('builder.form.selectPlaceholder', { field: props.label.toLowerCase() }) : '')
+})
 </script>

@@ -85,6 +85,15 @@
             </div>
             <Divider layout="vertical" class="!m-0" />
             <Button
+              :label="$t('builder.run')"
+              icon="pi pi-play"
+              severity="success"
+              outlined
+              :loading="editor.running.value"
+              :disabled="editor.running.value || !editor.automationId.value"
+              @click="editor.exec"
+            />
+            <Button
               :label="$t('builder.save')"
               icon="pi pi-save"
               :loading="editor.saving.value"
@@ -142,7 +151,7 @@
             @delete="handleDeleteSelected"
             @add-branch="handleAddBranch"
             @reorder-branches="handleReorderBranches"
-            @update-config="handleUpdateConfig"
+            @update-arguments="handleUpdateArguments"
           />
         </div>
       </div>
@@ -407,19 +416,14 @@ function handleReorderBranches(edgeIds) {
   }
 }
 
-// Handle config updates from ConfigSidebar
-function handleUpdateConfig({ key, value }) {
+// Handle argument updates from ConfigSidebar
+function handleUpdateArguments(args) {
   const selected = getSelectedNodes.value?.[0]
   if (!selected) return
 
-  // Update node.data.config with the new key/value
   const node = editor.nodes.value.find(n => n.id === selected.id)
   if (node) {
-    if (!node.data) node.data = {}
-    if (!node.data.config) node.data.config = {}
-    node.data.config[key] = value
-    // Trigger reactivity and save to history
-    editor.updateNodeData(node.id, { config: { ...node.data.config } })
+    editor.updateNodeData(node.id, { arguments: args })
   }
 }
 
