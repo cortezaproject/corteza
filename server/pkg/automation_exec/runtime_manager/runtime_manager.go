@@ -90,6 +90,7 @@ type RuntimeEntry struct {
 
 	executable  types.Executable
 	globalState *expr.Vars
+	entryPoint  string
 
 	runtime Runtime
 	cancel  context.CancelFunc
@@ -173,12 +174,12 @@ func RuntimeManager(
 // ===== admission =====
 //
 
-func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revision int, global *expr.Vars) (id.ID, error) {
+func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revision int, params types.ExecutionParams) (id.ID, error) {
 	if rm.draining.Load() {
 		return id.Zero(), ErrSystemDraining
 	}
 
-	global, err := rm.validateGlobalState(global)
+	global, err := rm.validateGlobalState(params.Input)
 	if err != nil {
 		return id.Zero(), err
 	}
@@ -208,8 +209,10 @@ func (rm *runtimeManager) Start(ctx context.Context, executableID id.ID, revisio
 		revision:     revision,
 		executable:   executable,
 		globalState:  global,
-		Done:         make(chan struct{}),
-		Started:      make(chan struct{}),
+		entryPoint:   params.EntryPoint,
+
+		Done:    make(chan struct{}),
+		Started: make(chan struct{}),
 
 		runner:  runner,
 		invoker: invoker,
@@ -350,7 +353,7 @@ func (rm *runtimeManager) startQueued(ctx context.Context, entry *RuntimeEntry) 
 	}
 
 	rctx, cancel := context.WithCancel(ctx)
-	rt := rm.createRuntime(entry.execID, entry.executable)
+	rt := rm.createRuntime(entry.execID, entry.executable, entry.entryPoint)
 
 	rm.mu.Lock()
 	entry.runtime = rt
@@ -426,12 +429,13 @@ func (rm *runtimeManager) Get(execID id.ID) (*RuntimeEntry, error) {
 	return e, nil
 }
 
-func (rm *runtimeManager) createRuntime(executionID id.ID, exe types.Executable) Runtime {
+func (rm *runtimeManager) createRuntime(executionID id.ID, exe types.Executable, entryPoint string) Runtime {
 	return runtime.Runtime(
 		executionID,
 		exe,
 		rm.governor,
 		rm.ledger,
+		entryPoint,
 	)
 }
 

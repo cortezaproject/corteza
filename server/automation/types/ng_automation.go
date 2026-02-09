@@ -108,6 +108,7 @@ type (
 	}
 
 	NgAutomationExecParams struct {
+		EntryPoint string `json:"entryPoint"`
 		// @todo
 
 		EventType    string `json:"eventType"`

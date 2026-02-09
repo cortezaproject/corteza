@@ -11,7 +11,6 @@ import (
 	manager "github.com/cortezaproject/corteza/server/pkg/automation_exec/runtime_manager"
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/supervisor"
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
-	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"go.uber.org/zap"
 )
@@ -39,7 +38,7 @@ type (
 	}
 
 	runtimeManagerAPI interface {
-		Start(ctx context.Context, executableID id.ID, revision int, params *expr.Vars) (id.ID, error)
+		Start(ctx context.Context, executableID id.ID, revision int, params types.ExecutionParams) (id.ID, error)
 		Get(execID id.ID) (*manager.RuntimeEntry, error)
 	}
 )
@@ -96,7 +95,7 @@ func (s *automationService) Execute(
 	ctx context.Context,
 	exeID id.ID,
 	rev int,
-	params *expr.Vars,
+	params types.ExecutionParams,
 ) (id.ID, error) {
 	return s.rm.Start(ctx, exeID, rev, params)
 }
@@ -105,7 +104,7 @@ func (s *automationService) ExecuteAndWait(
 	ctx context.Context,
 	exeID id.ID,
 	rev int,
-	params *expr.Vars,
+	params types.ExecutionParams,
 ) (*types.ExecutionResult, error) {
 	executionID, err := s.rm.Start(ctx, exeID, rev, params)
 	if err != nil {

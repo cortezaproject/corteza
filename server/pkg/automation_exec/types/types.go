@@ -140,6 +140,11 @@ type (
 		Error     error      `json:"error,omitempty"`
 	}
 
+	ExecutionParams struct {
+		EntryPoint string
+		Input      *expr.Vars
+	}
+
 	ExecutionResult struct {
 		ExecutionID  id.ID      `json:"executionID"`
 		ExecutableID id.ID      `json:"executableID"`

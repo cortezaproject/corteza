@@ -68,8 +68,8 @@ type (
 
 	executionEngine interface {
 		DeprecateExecutable(ctx context.Context, exeID id.ID, rev int) error
-		Execute(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (id.ID, error)
-		ExecuteAndWait(ctx context.Context, exeID id.ID, rev int, params *expr.Vars) (*execTypes.ExecutionResult, error)
+		Execute(ctx context.Context, exeID id.ID, rev int, params execTypes.ExecutionParams) (id.ID, error)
+		ExecuteAndWait(ctx context.Context, exeID id.ID, rev int, params execTypes.ExecutionParams) (*execTypes.ExecutionResult, error)
 		RegisterExecutable(ctx context.Context, exe execTypes.Executable) error
 		RemoveExecutable(ctx context.Context, exeID id.ID, rev int) error
 
@@ -313,7 +313,10 @@ func (svc *ngAutomation) UndeleteByID(ctx context.Context, ngAutomationID uint64
 }
 
 func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (executionID id.ID, err error) {
-	executionID, err = svc.execEngine.Execute(ctx, id.MustNumID(automationID), 0, p.Input)
+	executionID, err = svc.execEngine.Execute(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
+		EntryPoint: p.EntryPoint,
+		Input:      p.Input,
+	})
 	if err != nil {
 		return
 	}
@@ -322,7 +325,10 @@ func (svc *ngAutomation) Exec(ctx context.Context, automationID uint64, p types.
 }
 
 func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error) {
-	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, p.Input)
+	out, err = svc.execEngine.ExecuteAndWait(ctx, id.MustNumID(automationID), 0, execTypes.ExecutionParams{
+		EntryPoint: p.EntryPoint,
+		Input:      p.Input,
+	})
 	if err != nil {
 		return
 	}
@@ -716,6 +722,7 @@ func makeAutomationHandler(svc *ngAutomation, a *types.NgAutomation, t *types.Ng
 		}
 
 		_, err := svc.ExecAndWait(ctx, a.ID, types.NgAutomationExecParams{
+			EntryPoint:   t.Handle,
 			EventType:    t.EventType,
 			ResourceType: t.ResourceType,
 			Input:        t.Input.MustMerge(scope),

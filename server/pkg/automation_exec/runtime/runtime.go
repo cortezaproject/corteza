@@ -55,6 +55,7 @@ type runtime struct {
 	scheduler   *scheduler
 
 	globalState *expr.Vars
+	entryPoint  string
 
 	gate   executionGate
 	ledger stateLedger
@@ -73,6 +74,7 @@ func Runtime(
 	exec types.Executable,
 	gate executionGate,
 	ledger stateLedger,
+	entryPoint string,
 ) *runtime {
 	state := &executionState{
 		CompletedSteps:  make(map[id.ID]StepResult),
@@ -85,6 +87,7 @@ func Runtime(
 		gate:        gate,
 		ledger:      ledger,
 		state:       state,
+		entryPoint:  entryPoint,
 		scheduler:   newScheduler(exec),
 		stopCh:      make(chan struct{}),
 		resumeCh:    make(chan struct{}, 1),
@@ -265,6 +268,7 @@ func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error)
 
 	out[""] = r.globalState
 	out["global"] = r.globalState
+	out[r.entryPoint] = r.globalState
 
 	if len(step.Arguments) == 0 {
 		return out, nil
