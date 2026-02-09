@@ -278,6 +278,15 @@ export default {
                 ['system/', 'settings.manage'],
               ],
             },
+            {
+              label: 'ui.items.notifications',
+              route: 'notifications.settings',
+              icon: 'bell',
+              can: [
+                ['system/', 'settings.read'],
+                ['system/', 'settings.manage'],
+              ],
+            },
           ],
         },
       ],

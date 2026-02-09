@@ -226,10 +226,22 @@ export default {
 // }
 
 .b-toaster {
+  // Offset top toasters by topbar height
   &.b-toaster-top-right,
   &.b-toaster-top-left,
+  &.b-toaster-top-center,
+  &.b-toaster-top-full {
+    top: calc(var(--topbar-height, 64px) + 1rem) !important;
+  }
+
+  &.b-toaster-top-right,
+  &.b-toaster-top-left,
+  &.b-toaster-top-center,
+  &.b-toaster-top-full,
   &.b-toaster-bottom-right,
-  &.b-toaster-bottom-left {
+  &.b-toaster-bottom-left,
+  &.b-toaster-bottom-center,
+  &.b-toaster-bottom-full {
     .b-toast {
       &.b-toaster-enter-active,
       &.b-toaster-leave-active,
@@ -262,3 +274,4 @@ export default {
   }
 }
 </style>
+

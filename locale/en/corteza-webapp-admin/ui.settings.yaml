@@ -110,3 +110,18 @@ editor:
       apiKey:
         label: API Key
         placeholder: Enter your API key
+
+  notifications:
+    title: Notifications
+    toastPosition:
+      label: Toast notification position
+      description: Select where toast notifications appear on the screen
+      options:
+        top-right: Top right
+        top-left: Top left
+        top-center: Top center
+        top-full: Top full width
+        bottom-right: Bottom right
+        bottom-left: Bottom left
+        bottom-center: Bottom center
+        bottom-full: Bottom full width

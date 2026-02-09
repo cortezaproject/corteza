@@ -47,3 +47,4 @@ ui:
     theming: Theming
     navigation: Navigation
     location: Location
+    notifications: Notifications

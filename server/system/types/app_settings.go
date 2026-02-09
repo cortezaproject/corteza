@@ -300,6 +300,10 @@ type (
 				GeoSearchProvider string `json:"geoSearchProvider"`
 				GeoSearchApiKey   string `json:"geoSearchApiKey"`
 			} `kv:"location,final" json:"location"`
+
+			Notifications struct {
+				ToastPosition string `json:"toastPosition"`
+			} `kv:"notifications,final" json:"notifications"`
 		} `kv:"ui" json:"ui"`
 
 		ResourceTranslations struct {

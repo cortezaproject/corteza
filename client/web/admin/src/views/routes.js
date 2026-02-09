@@ -149,6 +149,7 @@ export default [
           r('theming.settings', 'theming', 'UI/Theming/Index'),
           r('navigation.settings', 'navigation', 'UI/Navigation/Index'),
           r('location.settings', 'location', 'UI/Location/Index'),
+          r('notifications.settings', 'notifications', 'UI/Notifications/Index'),
         ],
       },
     ],

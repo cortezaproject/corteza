@@ -308,6 +308,12 @@ settings:
     update:
       success: Location settings updated
       error: Location settings update failed
+  notifications:
+    fetch:
+      error: Notification settings fetch failed
+    update:
+      success: Notification settings updated
+      error: Notification settings update failed
   code-snippet:
     fetch:
       error: Code snippets fetch failed
