@@ -276,7 +276,7 @@ func (r *runtime) resolveInputs(step *types.Step) (map[string]*expr.Vars, error)
 
 	for _, arg := range step.Arguments {
 		// If no scope, we're using the global one
-		if arg.Scope == "" {
+		if arg.Scope == "" || arg.Scope == r.entryPoint {
 			continue
 		}
 
