@@ -616,8 +616,8 @@ endpoints:
                 title: 'NgAutomation step paths definition',
                 parser: 'types.ParseNgAutomationPathSet',
               }
-            - { name: runAs, type: uint64, required: true, title: 'Is automation enabled' }
-            - { name: ownedBy, type: uint64, required: true, title: 'Owner of the automation' }
+            - { name: runAs, type: uint64, title: 'Is automation enabled' }
+            - { name: ownedBy, type: uint64, title: 'Owner of the automation' }
       - name: update
         method: PUT
         title: Update triger details
@@ -663,8 +663,8 @@ endpoints:
                 title: 'NgAutomation step paths definition',
                 parser: 'types.ParseNgAutomationPathSet',
               }
-            - { name: runAs, type: uint64, required: true, title: 'Is automation enabled' }
-            - { name: ownedBy, type: uint64, required: true, title: 'Owner of the automation' }
+            - { name: runAs, type: uint64, title: 'Is automation enabled' }
+            - { name: ownedBy, type: uint64, title: 'Owner of the automation' }
             - {
                 type: '*time.Time',
                 name: updatedAt,
