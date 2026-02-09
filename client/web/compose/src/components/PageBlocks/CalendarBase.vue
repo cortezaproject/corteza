@@ -109,10 +109,11 @@ import FullCalendar from '@fullcalendar/vue'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import listPlugin from '@fullcalendar/list'
-import { compose, NoID } from '@cortezaproject/corteza-js'
+import { compose, NoID, shared } from '@cortezaproject/corteza-js'
 import { BootstrapTheme } from '@fullcalendar/bootstrap'
 import { createPlugin } from '@fullcalendar/core'
 import { evaluatePrefilter, isFieldInFilter } from 'corteza-webapp-compose/src/lib/record-filter'
+const { getWeekStartDay } = shared
 
 /**
  * FullCalendar Corteza theme definition.
@@ -226,13 +227,7 @@ export default {
     },
 
     weekStartDay () {
-      const locale = new Intl.Locale(this.browserLocale)
-
-      if (locale.weekInfo && locale.weekInfo.firstDay !== undefined) {
-        return (locale.weekInfo.firstDay % 7)
-      }
-
-      return 0
+      return getWeekStartDay(this.browserLocale)
     },
   },
 
