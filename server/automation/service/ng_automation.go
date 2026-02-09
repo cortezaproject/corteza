@@ -401,6 +401,11 @@ func (svc *ngAutomation) updater(ctx context.Context, ngAutomationID uint64, act
 			if err != nil {
 				return
 			}
+
+			err = svc.registerAutomation(ctx, res)
+			if err != nil {
+				return
+			}
 		}
 
 		if changes&ngAutomationChanged > 0 || len(res.Issues) > 0 {
