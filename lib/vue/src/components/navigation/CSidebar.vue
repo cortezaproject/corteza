@@ -244,6 +244,7 @@ $header-height: 64px;
 
 <style lang="scss">
 $nav-width: 320px;
+$nav-width-mobile: 400px;
 
 .b-sidebar {
   background-color: var(--white) !important;
@@ -264,6 +265,14 @@ $nav-width: 320px;
   }
 }
 
+// Mobile sidebar should be 400px wide to match notifications and drafts
+@media (max-width: 1023px) {
+  .sidebar {
+    width: $nav-width-mobile !important;
+    left: calc(-#{$nav-width-mobile}) !important;
+  }
+}
+
 [dir="rtl"] {
   .sidebar {
     right: calc(-#{$nav-width}) !important;
@@ -273,6 +282,13 @@ $nav-width: 320px;
     &.expanded {
       right: 0 !important;
       transition: right 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .sidebar {
+      width: $nav-width-mobile !important;
+      right: calc(-#{$nav-width-mobile}) !important;
     }
   }
 }
