@@ -59,20 +59,21 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 		json.Unmarshal(bb, &dl.defaultOps)
 	}
 
-	// Load credentials into registry if OAuth2
-	if parsed.ConnectionID > 0 && parsed.AuthType == "oauth2_client_credentials" {
+	// Load credentials into registry for all auth types
+	if parsed.ConnectionID > 0 && parsed.AuthType != "" {
 		cred := &cred_registry.Credential{
 			ConnectionID: parsed.ConnectionID,
-			AuthType:     "oauth2_client_credentials",
+			AuthType:     parsed.AuthType,
+			Token:        parsed.Token,
+			APIKey:       parsed.APIKey,
 			ClientID:     parsed.ClientID,
 			ClientSecret: parsed.ClientSecret,
 			TokenURL:     parsed.TokenURL,
 		}
 
-		// Initial token fetch
-		if cred.AccessToken == "" {
-			// Will be fetched on first use
-			cred.ExpiresAt = time.Now().Add(-1 * time.Hour) // Force immediate refresh
+		// force immediate refresh on first use for oauth2
+		if parsed.AuthType == "oauth2_client_credentials" {
+			cred.ExpiresAt = time.Now().Add(-1 * time.Hour)
 		}
 
 		if err := cred_registry.Default().Store(cred); err != nil {
