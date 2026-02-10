@@ -265,12 +265,23 @@ func determineStoreType(d DSN) (out string, err error) {
 func expandDSN(base DSN, cp ConnectionParams) (out DSN, err error) {
 	out = base
 
+	// Extract connection ID
+	if connID, ok := cp.Params["connectionID"]; ok {
+		switch v := connID.(type) {
+		case uint64:
+			out.ConnectionID = v
+		case int:
+			out.ConnectionID = uint64(v)
+		case float64:
+			out.ConnectionID = uint64(v)
+		}
+	}
+
 	if auth, ok := cp.Params["auth"]; ok {
 
-		// @todo improve this
 		bb, err := json.Marshal(auth)
 		if err != nil {
-			return out, err
+			return out, fmt.Errorf("failed to serialize auth configuration: %w", err)
 		}
 
 		aux := struct {
@@ -344,6 +355,17 @@ func validateDSNAuth(dsn DSN) (err error) {
 	case "apikey":
 		if dsn.APIKey == "" {
 			return fmt.Errorf("api key parameter not specified")
+		}
+
+	case "oauth2_client_credentials":
+		if dsn.ClientID == "" {
+			return fmt.Errorf("OAuth2 authentication requires 'clientID' parameter")
+		}
+		if dsn.ClientSecret == "" {
+			return fmt.Errorf("OAuth2 authentication requires 'clientSecret' parameter")
+		}
+		if dsn.TokenURL == "" {
+			return fmt.Errorf("OAuth2 authentication requires 'tokenURL' parameter")
 		}
 
 	default:

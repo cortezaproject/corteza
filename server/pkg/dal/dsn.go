@@ -19,6 +19,9 @@ type DSN struct {
 	Username string
 	Password string
 
+	// Connection metadata
+	ConnectionID uint64 // DAL connection ID
+
 	// Authentication
 	AuthType     string // bearer, basic, apikey, oauth2, none
 	Token        string // For bearer tokens
