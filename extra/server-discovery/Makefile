@@ -53,4 +53,4 @@ $(RELEASE_PKEY):
 # Development
 
 watch: $(GIN)
-	$(GIN) $(GIN_ARGS) run -- serve
+	$(GIN) $(GIN_ARGS) -- serve

@@ -46,6 +46,12 @@
         </b-form-checkbox>
 
         <b-form-checkbox
+          v-model="topbarSettings.hideSearch"
+        >
+          {{ $t('search.hide') }}
+        </b-form-checkbox>
+
+        <b-form-checkbox
           v-model="topbarSettings.hideProfile"
         >
           {{ $t('profile.hide') }}

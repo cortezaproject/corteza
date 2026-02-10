@@ -6,7 +6,7 @@ help:
   documentation: Documentation
   feedback: Send feedback
   forum: Help
-  version: 'Version:'
+  version: "Version:"
 module: Modules
 more: More
 namespace: Namespaces
@@ -20,3 +20,20 @@ userSettings:
   profile: Profile
   theme: Theme
 viewPage: View Page
+search:
+  label: Search
+  placeholder: Search for records
+  noResults: No results found
+  navigate: navigate
+  select: select
+  close: close
+  notFoundNamespace: Namespace not found
+  notFoundPage: Page not found
+  recordRedirectError: Error navigating to record
+  untitledRecord: Untitled Record
+  recentSearches: Recent Searches
+  clearHistory: Clear
+
+  openInNewTab: Open in new tab
+  numberOfResults_one: "{{count}} record"
+  numberOfResults_other: "{{count}} records"

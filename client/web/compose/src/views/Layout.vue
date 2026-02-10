@@ -35,6 +35,12 @@
         </template>
 
         <template #right-tools>
+          <c-search-button
+            v-if="!$Settings.get('ui.topbar.hideSearch', false)"
+            :labels="{
+              search: $t('general:label.search'),
+            }"
+          />
           <c-draft-button
             v-if="$Settings.get('ui.topbar.showDrafts', false)"
           />
@@ -129,6 +135,20 @@
     <c-notification-sidebar v-if="!$Settings.get('ui.topbar.hideNotifications', false)" />
 
     <c-draft-sidebar v-if="$Settings.get('ui.topbar.showDrafts', false)" />
+
+    <c-topbar-search
+      :labels="{
+        placeholder: $t('search.placeholder'),
+        noResults: () => $t('search.noResults'),
+        notFoundNamespace: $t('search.notFoundNamespace'),
+        notFoundPage: $t('search.notFoundPage'),
+        recordRedirectError: $t('search.recordRedirectError'),
+        recentSearches: $t('search.recentSearches'),
+        clearHistory: $t('search.clearHistory'),
+        openInNewTab: $t('search.openInNewTab'),
+        numberOfResults: (count) => $t('search.numberOfResults', { count }),
+      }"
+    />
   </div>
 </template>
 
@@ -145,7 +165,7 @@ import CDraftButton from '../components/Drafts/CDraftButton'
 
 library.add(faFile)
 
-const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
+const { CToaster, CPrompts, CPermissionsModal, CTopbar, CSidebar, CExtendSession, CNotificationSidebar, CTopbarSearch } = components
 
 export default {
   i18nOptions: {
@@ -163,6 +183,8 @@ export default {
     CNotificationSidebar,
     CDraftSidebar,
     CDraftButton,
+    CSearchButton: () => import('../components/CSearchButton.vue'),
+    CTopbarSearch,
   },
 
   data () {
