@@ -22,6 +22,11 @@ type (
 	EsSearchAggrTerms       map[string]esSearchAggr
 	EsSearchNestedAggrTerms map[string]esSearchNestedAggr
 
+	EsSearchHighlight struct {
+		RequireFieldMatch bool                        `json:"require_field_match"`
+		Fields            map[string]highlightSetting `json:"fields"`
+	}
+
 	esSearchParamsIndex struct {
 		Prefix struct {
 			Index struct {
@@ -86,6 +91,7 @@ type (
 		Aggregations EsSearchNestedAggrTerms `json:"aggs,omitempty"`
 		Source       SourceFilter            `json:"_source,omitempty"`
 		MinScore     float32                 `json:"min_score,omitempty"`
+		Highlight    EsSearchHighlight       `json:"highlight,omitempty"`
 	}
 
 	esSearchAggrTerm struct {
@@ -140,9 +146,10 @@ type (
 	}
 
 	esSearchHit struct {
-		Index  string          `json:"_index"`
-		ID     string          `json:"_id"`
-		Source json.RawMessage `json:"_source"`
+		Index     string          `json:"_index"`
+		ID        string          `json:"_id"`
+		Source    json.RawMessage `json:"_source"`
+		Highlight map[string]any  `json:"highlight,omitempty"`
 	}
 
 	esSearchAggregations struct {
@@ -220,6 +227,12 @@ type (
 		allowedRoles map[interface{}]bool
 		embedder     embedderService
 		searchMode   string
+	}
+
+	highlightSetting struct {
+		PreTags           []string `json:"pre_tags"`
+		PostTags          []string `json:"post_tags"`
+		NumberOfFragments int      `json:"number_of_fragments"`
 	}
 )
 
@@ -333,6 +346,18 @@ func esSearch(ctx context.Context, log *zap.Logger, esc *elasticsearch.Client, p
 				applyHybridSearch(query, index, vector, sqs.Wrap.Query)
 			}
 		}
+	}
+
+	// add the highlight for the matched fields.
+	query.Highlight = EsSearchHighlight{
+		RequireFieldMatch: false,
+		Fields: map[string]highlightSetting{
+			"values.*": {
+				PreTags:           []string{"*"},
+				PostTags:          []string{"*"},
+				NumberOfFragments: 0,
+			},
+		},
 	}
 
 	var (

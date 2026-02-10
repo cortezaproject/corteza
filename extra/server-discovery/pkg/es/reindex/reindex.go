@@ -836,6 +836,10 @@ func (ri *reIndexer) IsFirstRunWithMarker(ctx context.Context) (bool, error) {
 		ri.esClient.Get.WithContext(ctx),
 	)
 
+	// create the index and the fields.
+
+	spew.Dump("Zubi >>2", res, err)
+
 	if err != nil {
 		return false, err
 	}
@@ -932,6 +936,7 @@ func (ri *reIndexer) fetchSinglePage(ctx context.Context, fromTime time.Time, to
 	defer rsp.Body.Close()
 
 	if rsp.StatusCode != http.StatusOK {
+		spew.Dump("Zubi >>1", rsp.StatusCode, rsp.Body)
 		ri.log.Error(fmt.Sprintf("request resulted in an unexpected status '%s' for feed", rsp.Status))
 		return nil, fmt.Errorf("unexpected status: %s", rsp.Status)
 	}
