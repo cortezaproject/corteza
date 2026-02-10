@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/bep/godartsass/v2"
@@ -22,6 +23,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/rbac"
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
 	"github.com/cortezaproject/corteza/server/system/automation"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
@@ -164,6 +166,11 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 	DefaultSettings = Settings(ctx, DefaultStore, DefaultLogger, DefaultAccessControl, DefaultActionlog, CurrentSettings, c.Webapps)
 	DefaultStylesheet = Stylesheet(sassTranspiler, log)
+
+	// Initialize credential registry for DAL API connections
+	if err = initializeCredentialRegistry(DefaultStore, DefaultLogger); err != nil {
+		return fmt.Errorf("failed to initialize credential registry: %w", err)
+	}
 
 	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
 
@@ -386,4 +393,15 @@ func dartSassTranspiler(log *zap.Logger) *godartsass.Transpiler {
 	}
 
 	return transpiler
+}
+
+func initializeCredentialRegistry(s store.Storer, log *zap.Logger) error {
+	reg, err := cred_registry.New(s, log)
+	if err != nil {
+		return err
+	}
+
+	cred_registry.SetDefault(reg)
+	log.Info("credential registry initialized")
+	return nil
 }

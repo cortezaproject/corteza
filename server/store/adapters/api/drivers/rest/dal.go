@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"time"
 
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	apidal "github.com/cortezaproject/corteza/server/store/adapters/api/dal"
+	"github.com/cortezaproject/corteza/server/store/adapters/api/cred_registry"
 )
 
 const (
@@ -57,10 +59,32 @@ func dalConnector(ctx context.Context, dsn string) (_ dal.Connection, err error)
 		json.Unmarshal(bb, &dl.defaultOps)
 	}
 
+	// Load credentials into registry if OAuth2
+	if parsed.ConnectionID > 0 && parsed.AuthType == "oauth2_client_credentials" {
+		cred := &cred_registry.Credential{
+			ConnectionID: parsed.ConnectionID,
+			AuthType:     "oauth2_client_credentials",
+			ClientID:     parsed.ClientID,
+			ClientSecret: parsed.ClientSecret,
+			TokenURL:     parsed.TokenURL,
+		}
+
+		// Initial token fetch
+		if cred.AccessToken == "" {
+			// Will be fetched on first use
+			cred.ExpiresAt = time.Now().Add(-1 * time.Hour) // Force immediate refresh
+		}
+
+		if err := cred_registry.Default().Store(cred); err != nil {
+			return nil, fmt.Errorf("failed to store credentials: %w", err)
+		}
+	}
+
 	return apidal.Connection(
 		&restAPIWrapper{
-			client: c,
-			dsn:    parsed,
+			client:       c,
+			dsn:          parsed,
+			connectionID: parsed.ConnectionID,
 		},
 		dl,
 	), nil

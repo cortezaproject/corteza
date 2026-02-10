@@ -378,9 +378,16 @@ func MakeDalConnection(c *types.DalConnection, existing dal.Connection) (cw *dal
 	if c.Config.DAL != nil {
 		connConfig.ModelIdent = c.Config.DAL.ModelIdent
 
+		// Copy params and add connection ID
+		params := make(map[string]any)
+		for k, v := range c.Config.DAL.Params {
+			params[k] = v
+		}
+		params["connectionID"] = c.ID
+
 		connParams = dal.ConnectionParams{
 			Type:   c.Config.DAL.Type,
-			Params: c.Config.DAL.Params,
+			Params: params,
 		}
 
 		if checks := len(c.Config.DAL.ModelIdentCheck); checks > 0 {
