@@ -31,6 +31,9 @@ type (
 
 		// Completed step outputs indexed by handle
 		completedOutputs map[string]map[string]expr.TypedValue
+
+		// Branch tracking for termination
+		activeBranches map[id.ID]bool
 	}
 
 	IteratorHandler interface {
@@ -51,6 +54,8 @@ type (
 
 		stepID id.ID
 		step   *types.Step
+
+		branchID id.ID
 
 		// Output tracking
 		handle  string
@@ -73,6 +78,7 @@ func newScheduler(exe types.Executable) *scheduler {
 		steps:            make(map[id.ID]*types.Step, len(exe.Steps)),
 		stack:            make([]*frame, 0, 16),
 		completedOutputs: make(map[string]map[string]expr.TypedValue),
+		activeBranches:   make(map[id.ID]bool),
 	}
 
 	return ss.init(exe)
@@ -204,6 +210,7 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 			step:        step,
 			handle:      step.Handle,
 			iterHandler: handler,
+			branchID:    top.branchID,
 		})
 
 	case "branch":
@@ -219,12 +226,20 @@ func (ss *scheduler) OnStepComplete(ctx context.Context, stepID id.ID) error {
 			stepID:   stepID,
 			step:     step,
 			handle:   step.Handle,
+			branchID: top.branchID,
 		})
 
 	default:
 		// Expression/Function: push children
 		// Children of this step should have this frame as parent
-		ss.pushChildren(step, currentFrameID)
+		var bid id.ID
+		if currentFrame != nil {
+			bid = currentFrame.branchID
+		} else if top != nil {
+			bid = top.branchID
+		}
+
+		ss.pushChildren(step, currentFrameID, bid)
 	}
 
 	return nil
@@ -272,6 +287,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 				stepID:   exitStep.ID,
 				step:     exitStep,
 				handle:   exitStep.Handle,
+				branchID: f.branchID,
 			})
 		}
 
@@ -305,6 +321,7 @@ func (ss *scheduler) handleIterator(ctx context.Context, f *frame) (*types.Step,
 		step:     bodyStep,
 		handle:   bodyStep.Handle,
 		outputs:  iterOutputs,
+		branchID: f.branchID,
 	})
 
 	return ss.Next(ctx)
@@ -351,16 +368,18 @@ func (ss *scheduler) handleBranch(ctx context.Context, f *frame) (*types.Step, i
 			stepID:   nextStep.ID,
 			step:     nextStep,
 			handle:   nextStep.Handle,
+			branchID: f.branchID,
 		})
 	}
 
 	return ss.Next(ctx)
 }
 
-func (ss *scheduler) pushChildren(step *types.Step, parentID id.ID) {
+func (ss *scheduler) pushChildren(step *types.Step, parentID, branchID id.ID) {
 	// Push children in reverse order so first child executes first
-	for i := len(step.Children) - 1; i >= 0; i-- {
-		child := &step.Children[i]
+
+	if len(step.Children) == 1 {
+		child := &step.Children[0]
 		ss.stack = append(ss.stack, &frame{
 			typ:      frameTypeStep,
 			id:       id.MustNumID(id.Next()),
@@ -368,8 +387,62 @@ func (ss *scheduler) pushChildren(step *types.Step, parentID id.ID) {
 			stepID:   child.ID,
 			step:     child,
 			handle:   child.Handle,
+			branchID: branchID,
+		})
+		return
+	}
+
+	// Multiple children spawn new branches
+	delete(ss.activeBranches, branchID)
+
+	for i := len(step.Children) - 1; i >= 0; i-- {
+		child := &step.Children[i]
+		bid := id.MustNumID(id.Next())
+		ss.activeBranches[bid] = true
+
+		ss.stack = append(ss.stack, &frame{
+			typ:      frameTypeStep,
+			id:       id.MustNumID(id.Next()),
+			parentID: parentID,
+			stepID:   child.ID,
+			step:     child,
+			handle:   child.Handle,
+			branchID: bid,
 		})
 	}
+}
+
+// TerminateBranch marks the current branch as terminated
+// Returns true if all branches are terminated (automation should end)
+func (ss *scheduler) TerminateBranch(stepID id.ID) (bool, error) {
+	// Find the current branch ID from the frame associated with this stepID
+	var branchID id.ID
+	for i := len(ss.stack) - 1; i >= 0; i-- {
+		if ss.stack[i].stepID.Equal(stepID) {
+			branchID = ss.stack[i].branchID
+			break
+		}
+	}
+
+	if branchID.IsZero() {
+		// Should not happen if step is on stack
+		return len(ss.activeBranches) == 0, nil
+	}
+
+	delete(ss.activeBranches, branchID)
+	ss.clearBranchFrames(branchID)
+
+	return len(ss.activeBranches) == 0, nil
+}
+
+func (ss *scheduler) clearBranchFrames(branchID id.ID) {
+	newStack := make([]*frame, 0, len(ss.stack))
+	for _, f := range ss.stack {
+		if !f.branchID.Equal(branchID) {
+			newStack = append(newStack, f)
+		}
+	}
+	ss.stack = newStack
 }
 
 func (ss *scheduler) init(exe types.Executable) *scheduler {
@@ -383,12 +456,16 @@ func (ss *scheduler) init(exe types.Executable) *scheduler {
 	for i := range exe.Steps {
 		step := &exe.Steps[i]
 		if len(step.Parents) == 0 {
+			bid := id.MustNumID(id.Next())
+			ss.activeBranches[bid] = true
+
 			ss.stack = append(ss.stack, &frame{
-				typ:    frameTypeStep,
-				id:     id.MustNumID(id.Next()),
-				stepID: step.ID,
-				step:   step,
-				handle: step.Handle,
+				typ:      frameTypeStep,
+				id:       id.MustNumID(id.Next()),
+				stepID:   step.ID,
+				step:     step,
+				handle:   step.Handle,
+				branchID: bid,
 			})
 		}
 	}

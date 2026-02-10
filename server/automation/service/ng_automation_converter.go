@@ -395,6 +395,9 @@ func stepConv(svc *ngAutomation, step *automationTypes.NgAutomationStep) (out ex
 		case "function":
 			return stepConvFunction(step)
 
+		case "termination":
+			return stepConvTermination(step)
+
 		default:
 			return nil, errors.Internal("unsupported step kind %q", step.Kind)
 		}
@@ -506,4 +509,8 @@ func stepConvFunction(step *automationTypes.NgAutomationStep) (out execTypes.Ste
 		Labels:   def.Labels,
 		Disabled: def.Disabled,
 	}, step.Arguments, step.Results)
+}
+
+func stepConvTermination(step *automationTypes.NgAutomationStep) (out execTypes.StepHandler, err error) {
+	return automationTypes.TerminationStep()
 }

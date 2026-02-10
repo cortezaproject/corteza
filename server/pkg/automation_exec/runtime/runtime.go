@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/automation_exec/types"
 	"github.com/cortezaproject/corteza/server/pkg/expr"
 	"github.com/cortezaproject/corteza/server/pkg/id"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/modern-go/reflect2"
 )
 
@@ -129,7 +130,24 @@ func (r *runtime) Start(ctx context.Context, global *expr.Vars) error {
 		}
 
 		if err := r.executeStep(ctx, step, frameID, parentID); err != nil {
+			// @todo logging
+			spew.Dump("err", err)
 			return r.fail(ctx, err)
+		}
+
+		// Check if this was a termination step
+		if step.Kind == "termination" {
+			allTerminated, err := r.scheduler.TerminateBranch(step.ID)
+			if err != nil {
+				return r.fail(ctx, err)
+			}
+
+			if allTerminated {
+				return r.complete(ctx)
+			}
+
+			// Continue with next step (from remaining branches if any)
+			continue
 		}
 
 		if err := r.scheduler.OnStepComplete(ctx, step.ID); err != nil {
