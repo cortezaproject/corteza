@@ -47,7 +47,217 @@ func (h ngRecordsHandler) register() {
 	h.reg.AddTriggers(atypes.ConstructTrigger{
 		ResourceType: "system",
 		EventType:    "onManual",
-	})
+	}, atypes.ConstructTrigger{
+		ResourceType: "compose",
+		EventType:    "onInterval",
+		Properties:   []atypes.ConstructTriggerProperty{},
+		Constraints:  []atypes.ConstructTriggerConstraint{},
+	}, atypes.ConstructTrigger{
+		ResourceType: "compose",
+		EventType:    "onTimestamp",
+		Properties:   []atypes.ConstructTriggerProperty{},
+		Constraints:  []atypes.ConstructTriggerConstraint{},
+	}, atypes.ConstructTrigger{
+		ResourceType: "compose:record",
+		EventType:    "afterCreate",
+		Properties: []atypes.ConstructTriggerProperty{
+
+			{
+				Name: "record",
+				Type: "ComposeRecord",
+			},
+
+			{
+				Name: "oldRecord",
+				Type: "ComposeRecord",
+			},
+
+			{
+				Name: "module",
+				Type: "ComposeModule",
+			},
+
+			{
+				Name: "namespace",
+				Type: "ComposeNamespace",
+			},
+
+			{
+				Name: "recordValueErrors",
+				Type: "ComposeRecordValueErrorSet",
+			},
+
+			{
+				Name: "selected",
+				Type: "",
+			},
+		},
+		Constraints: []atypes.ConstructTriggerConstraint{
+
+			{
+				Name: "namespace.handle",
+			},
+
+			{
+				Name: "namespace.name",
+			},
+
+			{
+				Name: "module.handle",
+			},
+
+			{
+				Name: "module.name",
+			},
+
+			{
+				Name: "record.created-at",
+			},
+
+			{
+				Name: "record.updated-at",
+			},
+
+			{
+				Name: "record.deleted-at",
+			},
+
+			{
+				Name: "record.values.*",
+			},
+		},
+	}, atypes.ConstructTrigger{
+		ResourceType: "compose:record",
+		EventType:    "afterUpdate",
+		Properties: []atypes.ConstructTriggerProperty{
+			{
+				Name: "record",
+				Type: "ComposeRecord",
+			},
+
+			{
+				Name: "oldRecord",
+				Type: "ComposeRecord",
+			},
+
+			{
+				Name: "module",
+				Type: "ComposeModule",
+			},
+
+			{
+				Name: "namespace",
+				Type: "ComposeNamespace",
+			},
+
+			{
+				Name: "recordValueErrors",
+				Type: "ComposeRecordValueErrorSet",
+			},
+
+			{
+				Name: "selected",
+				Type: "",
+			},
+		},
+		Constraints: []atypes.ConstructTriggerConstraint{
+
+			{
+				Name: "namespace.handle",
+			},
+
+			{
+				Name: "namespace.name",
+			},
+
+			{
+				Name: "module.handle",
+			},
+
+			{
+				Name: "module.name",
+			},
+
+			{
+				Name: "record.created-at",
+			},
+
+			{
+				Name: "record.updated-at",
+			},
+
+			{
+				Name: "record.deleted-at",
+			},
+
+			{
+				Name: "record.values.*",
+			},
+		},
+	},
+
+		atypes.ConstructTrigger{
+			ResourceType: "compose:record",
+			EventType:    "afterDelete",
+			Properties: []atypes.ConstructTriggerProperty{
+
+				{
+					Name: "record",
+					Type: "ComposeRecord",
+				},
+
+				{
+					Name: "oldRecord",
+					Type: "ComposeRecord",
+				},
+
+				{
+					Name: "module",
+					Type: "ComposeModule",
+				},
+
+				{
+					Name: "namespace",
+					Type: "ComposeNamespace",
+				},
+
+				{
+					Name: "recordValueErrors",
+					Type: "ComposeRecordValueErrorSet",
+				},
+
+				{
+					Name: "selected",
+					Type: "",
+				},
+			},
+			Constraints: []atypes.ConstructTriggerConstraint{
+				{
+					Name: "namespace.handle",
+				},
+				{
+					Name: "namespace.name",
+				},
+				{
+					Name: "module.handle",
+				},
+				{
+					Name: "module.name",
+				},
+				{
+					Name: "record.created-at",
+				},
+				{
+					Name: "record.updated-at",
+				},
+				{
+					Name: "record.deleted-at",
+				},
+				{
+					Name: "record.values.*",
+				},
+			},
+		})
 
 	h.reg.AddFunctions(
 		h.Lookup(),
