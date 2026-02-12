@@ -353,6 +353,36 @@ func DalConnectionRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for Agent by calling AgentRbacResource fn
+//
+// RBAC resource is in the corteza::system:agent/... format
+//
+// This function is auto-generated
+func (r Agent) RbacResource() string {
+	return AgentRbacResource(r.ID)
+}
+
+// AgentRbacResource returns string representation of RBAC resource for Agent
+//
+// RBAC resource is in the corteza::system:agent/... format
+//
+// This function is auto-generated
+func AgentRbacResource(id uint64) string {
+	cpts := []interface{}{AgentResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(AgentRbacResourceTpl(), cpts...)
+
+}
+
+func AgentRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

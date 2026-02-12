@@ -45,6 +45,7 @@ type (
 
 		Healthcheck(context.Context) error
 		Actionlogs
+		Agents
 		ApigwFilters
 		ApigwRoutes
 		Applications
@@ -102,6 +103,19 @@ type (
 		DeleteActionlogByID(ctx context.Context, id uint64) error
 		TruncateActionlogs(ctx context.Context) error
 		LookupActionlogByID(ctx context.Context, id uint64) (*actionlogType.Action, error)
+	}
+
+	Agents interface {
+		SearchAgents(ctx context.Context, f systemType.AgentFilter) (systemType.AgentSet, systemType.AgentFilter, error)
+		CreateAgent(ctx context.Context, rr ...*systemType.Agent) error
+		UpdateAgent(ctx context.Context, rr ...*systemType.Agent) error
+		UpsertAgent(ctx context.Context, rr ...*systemType.Agent) error
+		DeleteAgent(ctx context.Context, rr ...*systemType.Agent) error
+
+		DeleteAgentByID(ctx context.Context, id uint64) error
+		TruncateAgents(ctx context.Context) error
+		LookupAgentByID(ctx context.Context, id uint64) (*systemType.Agent, error)
+		LookupAgentByHandle(ctx context.Context, handle string) (*systemType.Agent, error)
 	}
 
 	ApigwFilters interface {
@@ -740,6 +754,73 @@ func TruncateActionlogs(ctx context.Context, s Actionlogs) error {
 // This function is auto-generated
 func LookupActionlogByID(ctx context.Context, s Actionlogs, id uint64) (*actionlogType.Action, error) {
 	return s.LookupActionlogByID(ctx, id)
+}
+
+// SearchAgents returns all matching Agents from store
+//
+// This function is auto-generated
+func SearchAgents(ctx context.Context, s Agents, f systemType.AgentFilter) (systemType.AgentSet, systemType.AgentFilter, error) {
+	return s.SearchAgents(ctx, f)
+}
+
+// CreateAgent creates one or more Agents in store
+//
+// This function is auto-generated
+func CreateAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.CreateAgent(ctx, rr...)
+}
+
+// UpdateAgent updates one or more (existing) Agents in store
+//
+// This function is auto-generated
+func UpdateAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.UpdateAgent(ctx, rr...)
+}
+
+// UpsertAgent creates new or updates existing one or more Agents in store
+//
+// This function is auto-generated
+func UpsertAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.UpsertAgent(ctx, rr...)
+}
+
+// DeleteAgent deletes one or more Agents from store
+//
+// This function is auto-generated
+func DeleteAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.DeleteAgent(ctx, rr...)
+}
+
+// DeleteAgentByID deletes one or more Agents from store
+//
+// This function is auto-generated
+func DeleteAgentByID(ctx context.Context, s Agents, id uint64) error {
+	return s.DeleteAgentByID(ctx, id)
+}
+
+// TruncateAgents Deletes all Agents from store
+//
+// This function is auto-generated
+func TruncateAgents(ctx context.Context, s Agents) error {
+	return s.TruncateAgents(ctx)
+}
+
+// LookupAgentByID searches for agent by ID
+//
+// It also returns deleted agents.
+//
+// This function is auto-generated
+func LookupAgentByID(ctx context.Context, s Agents, id uint64) (*systemType.Agent, error) {
+	return s.LookupAgentByID(ctx, id)
+}
+
+// LookupAgentByHandle searches for agent by handle
+//
+// It returns only valid agents (not deleted)
+//
+// This function is auto-generated
+func LookupAgentByHandle(ctx context.Context, s Agents, handle string) (*systemType.Agent, error) {
+	return s.LookupAgentByHandle(ctx, handle)
 }
 
 // SearchApigwFilters returns all matching ApigwFilters from store

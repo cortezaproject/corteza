@@ -33,6 +33,9 @@ type (
 		// optional actionlog filter function called after the generated function
 		Actionlog func(*Store, actionlogType.Filter) ([]goqu.Expression, actionlogType.Filter, error)
 
+		// optional agent filter function called after the generated function
+		Agent func(*Store, systemType.AgentFilter) ([]goqu.Expression, systemType.AgentFilter, error)
+
 		// optional apigwFilter filter function called after the generated function
 		ApigwFilter func(*Store, systemType.ApigwFilterFilter) ([]goqu.Expression, systemType.ApigwFilterFilter, error)
 
@@ -193,6 +196,41 @@ func ActionlogFilter(d drivers.Dialect, f actionlogType.Filter) (ee []goqu.Expre
 
 	if len(f.ActorID) > 0 {
 		ee = append(ee, goqu.C("actor_id").In(f.ActorID))
+	}
+
+	return ee, f, err
+}
+
+// AgentFilter returns logical expressions
+//
+// This function is called from Store.QueryAgents() and can be extended
+// by setting Store.Filters.Agent. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func AgentFilter(d drivers.Dialect, f systemType.AgentFilter) (ee []goqu.Expression, _ systemType.AgentFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.AgentID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.AgentID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if f.Query != "" {
+		ee = append(ee, goqu.Or(
+			goqu.C("handle").ILike("%"+f.Query+"%"),
+			goqu.C("status").ILike("%"+f.Query+"%"),
+		))
 	}
 
 	return ee, f, err

@@ -42,3 +42,4 @@ types:
   DataPrivacyRequest: {}
   DataPrivacyRequestComment: {}
   PrivacyDalConnection:
+  Agent: {}

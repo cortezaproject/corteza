@@ -38,6 +38,25 @@ type (
 		Meta          actionlogType.Meta     `db:"meta"`
 	}
 
+	// auxAgent is an auxiliary structure used for transporting to/from RDBMS store
+	auxAgent struct {
+		ID         uint64                     `db:"id"`
+		Handle     string                     `db:"handle"`
+		Status     string                     `db:"status"`
+		Revision   int                        `db:"revision"`
+		Meta       systemType.AgentMeta       `db:"meta"`
+		Behavior   systemType.AgentBehavior   `db:"behavior"`
+		Execution  systemType.AgentExecution  `db:"execution"`
+		Access     systemType.AgentAccess     `db:"access"`
+		Invocation systemType.AgentInvocation `db:"invocation"`
+		CreatedAt  time.Time                  `db:"created_at"`
+		UpdatedAt  *time.Time                 `db:"updated_at"`
+		DeletedAt  *time.Time                 `db:"deleted_at"`
+		CreatedBy  uint64                     `db:"created_by"`
+		UpdatedBy  uint64                     `db:"updated_by"`
+		DeletedBy  uint64                     `db:"deleted_by"`
+	}
+
 	// auxApigwFilter is an auxiliary structure used for transporting to/from RDBMS store
 	auxApigwFilter struct {
 		ID        uint64                       `db:"id"`
@@ -738,6 +757,74 @@ func (aux *auxActionlog) scan(row scanner) error {
 		&aux.Severity,
 		&aux.Description,
 		&aux.Meta,
+	)
+}
+
+// encodes Agent to auxAgent
+//
+// This function is auto-generated
+func (aux *auxAgent) encode(res *systemType.Agent) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Status = res.Status
+	aux.Revision = res.Revision
+	aux.Meta = res.Meta
+	aux.Behavior = res.Behavior
+	aux.Execution = res.Execution
+	aux.Access = res.Access
+	aux.Invocation = res.Invocation
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes Agent from auxAgent
+//
+// This function is auto-generated
+func (aux auxAgent) decode() (res *systemType.Agent, _ error) {
+	res = new(systemType.Agent)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Status = aux.Status
+	res.Revision = aux.Revision
+	res.Meta = aux.Meta
+	res.Behavior = aux.Behavior
+	res.Execution = aux.Execution
+	res.Access = aux.Access
+	res.Invocation = aux.Invocation
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxAgent fields
+//
+// This function is auto-generated
+func (aux *auxAgent) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Status,
+		&aux.Revision,
+		&aux.Meta,
+		&aux.Behavior,
+		&aux.Execution,
+		&aux.Access,
+		&aux.Invocation,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

@@ -147,6 +147,7 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.TemplateRbacResource(0)),
 		rbac.NewResource(types.UserRbacResource(0)),
 		rbac.NewResource(types.DalConnectionRbacResource(0)),
+		rbac.NewResource(types.AgentRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -387,6 +388,21 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "dal-config.manage",
 		},
 		{
+			"type": types.AgentResourceType,
+			"any":  types.AgentRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.AgentResourceType,
+			"any":  types.AgentRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.AgentResourceType,
+			"any":  types.AgentRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -550,6 +566,16 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "notification.assign",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "agent.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "agents.search",
 		},
 	}
 
@@ -965,6 +991,27 @@ func (svc accessControl) CanManageDalConfigOnDalConnection(ctx context.Context, 
 	return svc.can(ctx, "dal-config.manage", r)
 }
 
+// CanReadAgent checks if current user can read agent
+//
+// This function is auto-generated
+func (svc accessControl) CanReadAgent(ctx context.Context, r *types.Agent) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateAgent checks if current user can update agent
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateAgent(ctx context.Context, r *types.Agent) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteAgent checks if current user can delete agent
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteAgent(ctx context.Context, r *types.Agent) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -1229,6 +1276,22 @@ func (svc accessControl) CanAssignNotification(ctx context.Context) bool {
 	return svc.can(ctx, "notification.assign", r)
 }
 
+// CanCreateAgent checks if current user can create agents
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateAgent(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "agent.create", r)
+}
+
+// CanSearchAgents checks if current user can list, search or filter agents
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchAgents(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "agents.search", r)
+}
+
 // rbacResourceValidator validates known component's resource by routing it to the appropriate validator
 //
 // This function is auto-generated
@@ -1256,6 +1319,8 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacUserResourceValidator(r, oo...)
 	case types.DalConnectionResourceType:
 		return rbacDalConnectionResourceValidator(r, oo...)
+	case types.AgentResourceType:
+		return rbacAgentResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -1349,6 +1414,12 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadDalConnection(ctx, svc.store, ids[0])
+	case types.AgentResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.AgentRbacResource(ids[0])), nil
+		}
+
+		return loadAgent(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -1441,6 +1512,12 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete":            true,
 			"dal-config.manage": true,
 		}
+	case types.AgentResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                         true,
@@ -1476,6 +1553,8 @@ func rbacResourceOperations(r string) map[string]bool {
 			"data-privacy-request.create":   true,
 			"data-privacy-requests.search":  true,
 			"notification.assign":           true,
+			"agent.create":                  true,
+			"agents.search":                 true,
 		}
 	}
 
@@ -1967,6 +2046,51 @@ func rbacDalConnectionResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for dalConnection resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacAgentResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacAgentResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.AgentResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for agent resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.AgentResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for agent resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

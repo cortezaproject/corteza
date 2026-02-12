@@ -152,3 +152,16 @@ func SystemDalConnectionRbacReferences(dalConnection string) (res *Ref, pp []*Re
 
 	return
 }
+
+// SystemAgentRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemAgentRbacReferences(agent string) (res *Ref, pp []*Ref, err error) {
+	if agent != "*" {
+		res = &Ref{ResourceType: types.AgentResourceType, Identifiers: MakeIdentifiers(agent)}
+	}
+
+	return
+}

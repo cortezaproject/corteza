@@ -34,6 +34,7 @@ component: schema.#component & {
     "dal-connection":        				dal_connection
     "dal-sensitivity-level": 				dal_sensitivity_level
     "dal-schema-alteration": 				dal_schema_alteration
+    "agent":                 				agent
 	}
 
 	rbac: operations: {
@@ -85,5 +86,8 @@ component: schema.#component & {
 		"data-privacy-requests.search": description: "List, search or filter data privacy requests"
 
 		"notification.assign": description: "Assign notifications to other users"
+
+		"agent.create": description:  "Create agents"
+		"agents.search": description: "List, search or filter agents"
 	}
 }

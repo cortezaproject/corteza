@@ -94,6 +94,7 @@ var (
 	DefaultRenderer            TemplateService
 	DefaultResourceTranslation ResourceTranslationService
 	DefaultQueue               *queue
+	DefaultAgent               *agent
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
@@ -227,6 +228,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultQueue = Queue()
+	DefaultAgent = Agent()
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
