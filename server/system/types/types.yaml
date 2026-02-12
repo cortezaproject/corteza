@@ -47,3 +47,4 @@ types:
   DataPrivacyRequestComment: {}
   LlmProvider: {}
   PrivacyDalConnection:
+  Agent: {}

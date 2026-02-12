@@ -36,5 +36,6 @@ const (
 	ConnectionResourceType                = "corteza::system:connection"
 	ConfiguredConnectionResourceType      = "corteza::system:configured-connection"
 	LlmProviderResourceType               = "corteza::system:llm-provider"
+	AgentResourceType                     = "corteza::system:agent"
 	ComponentResourceType                 = "corteza::system"
 )

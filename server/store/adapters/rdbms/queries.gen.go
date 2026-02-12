@@ -136,6 +136,134 @@ var (
 		}
 	}
 
+	// agentTable represents agents store table
+	//
+	// This value is auto-generated
+	agentTable = goqu.T("agents")
+
+	// agentSelectQuery assembles select query for fetching agents
+	//
+	// This function is auto-generated
+	agentSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"status",
+			"revision",
+			"meta",
+			"behavior",
+			"execution",
+			"access",
+			"invocation",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(agentTable)
+	}
+
+	// agentInsertQuery assembles query inserting agents
+	//
+	// This function is auto-generated
+	agentInsertQuery = func(d goqu.DialectWrapper, res *systemType.Agent) *goqu.InsertDataset {
+		return d.Insert(agentTable).
+			Rows(goqu.Record{
+				"id":         res.ID,
+				"handle":     res.Handle,
+				"status":     res.Status,
+				"revision":   res.Revision,
+				"meta":       res.Meta,
+				"behavior":   res.Behavior,
+				"execution":  res.Execution,
+				"access":     res.Access,
+				"invocation": res.Invocation,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			})
+	}
+
+	// agentUpsertQuery assembles (insert+on-conflict) query for replacing agents
+	//
+	// This function is auto-generated
+	agentUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Agent) *goqu.InsertDataset {
+		var target = `,id`
+
+		return agentInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":     res.Handle,
+						"status":     res.Status,
+						"revision":   res.Revision,
+						"meta":       res.Meta,
+						"behavior":   res.Behavior,
+						"execution":  res.Execution,
+						"access":     res.Access,
+						"invocation": res.Invocation,
+						"created_at": res.CreatedAt,
+						"updated_at": res.UpdatedAt,
+						"deleted_at": res.DeletedAt,
+						"created_by": res.CreatedBy,
+						"updated_by": res.UpdatedBy,
+						"deleted_by": res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// agentUpdateQuery assembles query for updating agents
+	//
+	// This function is auto-generated
+	agentUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Agent) *goqu.UpdateDataset {
+		return d.Update(agentTable).
+			Set(goqu.Record{
+				"handle":     res.Handle,
+				"status":     res.Status,
+				"revision":   res.Revision,
+				"meta":       res.Meta,
+				"behavior":   res.Behavior,
+				"execution":  res.Execution,
+				"access":     res.Access,
+				"invocation": res.Invocation,
+				"created_at": res.CreatedAt,
+				"updated_at": res.UpdatedAt,
+				"deleted_at": res.DeletedAt,
+				"created_by": res.CreatedBy,
+				"updated_by": res.UpdatedBy,
+				"deleted_by": res.DeletedBy,
+			}).
+			Where(agentPrimaryKeys(res))
+	}
+
+	// agentDeleteQuery assembles delete query for removing agents
+	//
+	// This function is auto-generated
+	agentDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(agentTable).Where(ee...)
+	}
+
+	// agentDeleteQuery assembles delete query for removing agents
+	//
+	// This function is auto-generated
+	agentTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(agentTable)
+	}
+
+	// agentPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	agentPrimaryKeys = func(res *systemType.Agent) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// apigwFilterTable represents apigwFilters store table
 	//
 	// This value is auto-generated
