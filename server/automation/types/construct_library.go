@@ -5,8 +5,10 @@ type (
 	ConstructTrigger struct {
 		ResourceType string                       `json:"resourceType"`
 		EventType    string                       `json:"eventType"`
-		Properties   []ConstructTriggerProperty   `json:"properties"`
 		Constraints  []ConstructTriggerConstraint `json:"constraints"`
+		Properties   []ConstructTriggerProperty   `json:"properties"`
+
+		Segments []ConstructSegment `json:"segments"`
 	}
 
 	ConstructTriggerProperty struct {
@@ -42,9 +44,9 @@ type (
 
 		Segments []ConstructSegment `json:"segments"`
 
-		ArgsMerger   FunctionMerger  `json:"-"`
-		Handler  FunctionHandler `json:"-"`
-		Iterator IteratorHandler `json:"-"`
+		ArgsMerger FunctionMerger  `json:"-"`
+		Handler    FunctionHandler `json:"-"`
+		Iterator   IteratorHandler `json:"-"`
 
 		Labels   map[string]string `json:"labels,omitempty"`
 		Disabled bool              `json:"disabled,omitempty"`

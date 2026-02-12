@@ -50,18 +50,40 @@ func (h ngRecordsHandler) register() {
 	}, atypes.ConstructTrigger{
 		ResourceType: "compose",
 		EventType:    "onInterval",
-		Properties:   []atypes.ConstructTriggerProperty{},
 		Constraints:  []atypes.ConstructTriggerConstraint{},
+		Properties:   []atypes.ConstructTriggerProperty{},
 	}, atypes.ConstructTrigger{
 		ResourceType: "compose",
 		EventType:    "onTimestamp",
-		Properties:   []atypes.ConstructTriggerProperty{},
 		Constraints:  []atypes.ConstructTriggerConstraint{},
+		Properties:   []atypes.ConstructTriggerProperty{},
 	}, atypes.ConstructTrigger{
 		ResourceType: "compose:record",
 		EventType:    "afterCreate",
-		Properties: []atypes.ConstructTriggerProperty{
-
+		Segments: []atypes.ConstructSegment{
+			{
+				Sections: []atypes.ConstructSection{
+					{
+						Elements: []atypes.SectionElement{
+							{
+								Input: atypes.SectionElementInput{
+									Type:     "NamespaceSelector",
+									Label:    "Namespace",
+									Argument: "namespace",
+								},
+							}, {
+								Input: atypes.SectionElementInput{
+									Type:     "ModuleSelector",
+									Label:    "Module",
+									Argument: "module",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Constraints: []atypes.ConstructTriggerConstraint{
 			{
 				Name: "record",
 				Type: "ComposeRecord",
@@ -92,7 +114,7 @@ func (h ngRecordsHandler) register() {
 				Type: "",
 			},
 		},
-		Constraints: []atypes.ConstructTriggerConstraint{
+		Properties: []atypes.ConstructTriggerProperty{
 
 			{
 				Name: "namespace.handle",
@@ -129,7 +151,7 @@ func (h ngRecordsHandler) register() {
 	}, atypes.ConstructTrigger{
 		ResourceType: "compose:record",
 		EventType:    "afterUpdate",
-		Properties: []atypes.ConstructTriggerProperty{
+		Constraints: []atypes.ConstructTriggerConstraint{
 			{
 				Name: "record",
 				Type: "ComposeRecord",
@@ -160,7 +182,30 @@ func (h ngRecordsHandler) register() {
 				Type: "",
 			},
 		},
-		Constraints: []atypes.ConstructTriggerConstraint{
+		Segments: []atypes.ConstructSegment{
+			{
+				Sections: []atypes.ConstructSection{
+					{
+						Elements: []atypes.SectionElement{
+							{
+								Input: atypes.SectionElementInput{
+									Type:     "NamespaceSelector",
+									Label:    "Namespace",
+									Argument: "namespace",
+								},
+							}, {
+								Input: atypes.SectionElementInput{
+									Type:     "ModuleSelector",
+									Label:    "Module",
+									Argument: "module",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		Properties: []atypes.ConstructTriggerProperty{
 
 			{
 				Name: "namespace.handle",
@@ -199,7 +244,7 @@ func (h ngRecordsHandler) register() {
 		atypes.ConstructTrigger{
 			ResourceType: "compose:record",
 			EventType:    "afterDelete",
-			Properties: []atypes.ConstructTriggerProperty{
+			Constraints: []atypes.ConstructTriggerConstraint{
 
 				{
 					Name: "record",
@@ -231,7 +276,30 @@ func (h ngRecordsHandler) register() {
 					Type: "",
 				},
 			},
-			Constraints: []atypes.ConstructTriggerConstraint{
+			Segments: []atypes.ConstructSegment{
+				{
+					Sections: []atypes.ConstructSection{
+						{
+							Elements: []atypes.SectionElement{
+								{
+									Input: atypes.SectionElementInput{
+										Type:     "NamespaceSelector",
+										Label:    "Namespace",
+										Argument: "namespace",
+									},
+								}, {
+									Input: atypes.SectionElementInput{
+										Type:     "ModuleSelector",
+										Label:    "Module",
+										Argument: "module",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			Properties: []atypes.ConstructTriggerProperty{
 				{
 					Name: "namespace.handle",
 				},
