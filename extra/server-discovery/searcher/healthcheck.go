@@ -2,20 +2,16 @@ package searcher
 
 import (
 	"context"
-	"fmt"
 	"io"
 )
 
 // Healthcheck for searcher
 func Healthcheck(ctx context.Context) error {
-	if DefaultEs == nil {
+	if DefaultApiClient == nil {
 		return nil
 	}
 
-	esc, err := DefaultEs.Client()
-	if esc == nil || err != nil {
-		return fmt.Errorf("stopped")
-	}
+	esc := DefaultEsClient
 
 	res, err := esc.Ping(esc.Ping.WithContext(ctx))
 	if err = validElasticResponse(res, err); err != nil {

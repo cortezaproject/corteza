@@ -16,6 +16,8 @@ import {
   faEllipsisV,
   faCheck,
   faLocationCrosshairs,
+  faPaperPlane,
+  faRobot,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   faQuestionCircle,
@@ -49,4 +51,6 @@ library.add(
   faLocationCrosshairs,
   faEnvelope,
   faEnvelopeOpen,
+  faPaperPlane,
+  faRobot,
 )

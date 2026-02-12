@@ -20,7 +20,7 @@
         }"
       >
         <template #title>
-          {{ $t('discovery') }}
+          {{ $t("discovery") }}
         </template>
       </c-topbar>
     </header>
@@ -47,7 +47,7 @@
         <div
           class="sidebar-spacer d-print-none"
           :class="{
-            'expanded': expanded,
+            expanded: expanded,
           }"
         />
       </template>
@@ -62,16 +62,41 @@
       :timeout="$Settings.get('auth.autoLogout.timeout')"
       :labels="{
         extend: $t('general:extendSession.labels.extend'),
-        warning: (countdownTime) => $t('general:extendSession.labels.warning', { countdownTime }),
+        warning: (countdownTime) =>
+          $t('general:extendSession.labels.warning', { countdownTime }),
       }"
     />
-    <c-notification-sidebar v-if="!$Settings.get('ui.topbar', {}).hideNotifications" />
+    <c-notification-sidebar
+      v-if="!$Settings.get('ui.topbar', {}).hideNotifications"
+    />
+
+    <rag :show-rag="showRag" />
+    <b-button
+      variant="primary"
+      pill
+      class="shadow position-fixed chat-trigger-btn"
+      style="
+        bottom: 1.5rem;
+        right: 1.5rem;
+        width: 3.5rem;
+        height: 3.5rem;
+        z-index: 1000;
+      "
+      aria-label="Toggle chat"
+      @click="showRag = !showRag"
+    >
+      <font-awesome-icon
+        :icon="['fas', 'robot']"
+        class="h4 mb-0"
+      />
+    </b-button>
   </div>
 </template>
 
 <script>
 import Search from '../components/Search.vue'
 import Filters from '../components/Filters.vue'
+import Rag from '../components/Rag.vue'
 import { components } from '@cortezaproject/corteza-vue'
 const { CTopbar, CSidebar, CExtendSession, CNotificationSidebar } = components
 
@@ -85,6 +110,7 @@ export default {
     CSidebar,
     Search,
     Filters,
+    Rag,
     CExtendSession,
     CNotificationSidebar,
   },
@@ -92,6 +118,7 @@ export default {
   data () {
     return {
       expanded: false,
+      showRag: false,
     }
   },
 

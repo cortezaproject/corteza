@@ -1,0 +1,8 @@
+title: Corteza AI assistant
+description: Ask anything about your Corteza Base records
+clear-chat: Clear chat
+
+welcome-title: Welcome to Corteza AI assistant
+welcome-message: Start by asking a question about your records
+
+input-placeholder: Ask a question... (Shift+Enter for new line)

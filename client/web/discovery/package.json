@@ -36,6 +36,7 @@
     "vue": "2.7.16",
     "vue-native-websocket": "^2.0.15",
     "vue-router": "^3.4.9",
+    "vue-simple-markdown": "^1.1.5",
     "vue-split-panel": "^1.0.4",
     "vuex": "^3.6.2"
   },

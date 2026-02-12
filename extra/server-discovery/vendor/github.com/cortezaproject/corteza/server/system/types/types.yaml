@@ -19,6 +19,7 @@ types:
     noIdField: true
   Credential: {}
   Reminder: {}
+  Notification: {}
   Attachment: {}
   SettingValue:
     noIdField: true

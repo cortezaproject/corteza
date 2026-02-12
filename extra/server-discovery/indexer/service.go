@@ -11,6 +11,7 @@ import (
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/mapping"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/es/reindex"
 	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/options"
+	"github.com/cortezaproject/corteza/extra/server-discovery/pkg/vectorsearch"
 	"github.com/elastic/go-elasticsearch/v7"
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 	"go.uber.org/zap"
@@ -18,14 +19,19 @@ import (
 
 type (
 	Config struct {
-		Corteza options.CortezaOpt
-		ES      options.EsOpt
-		Indexer options.IndexerOpt
+		Corteza      options.CortezaOpt
+		ES           options.EsOpt
+		Indexer      options.IndexerOpt
+		VectorSearch options.VectorSearchOpt
 	}
 
 	esService interface {
-		Client() (*elasticsearch.Client, error)
 		BulkIndexer() (esutil.BulkIndexer, error)
+	}
+
+	embedderService interface {
+		GenerateEmbeddings(input string) ([]float64, error)
+		ValidateEmbeddingDimensions(dimension int) (bool, error)
 	}
 
 	apiClientService interface {
@@ -53,10 +59,16 @@ var (
 	DefaultApiClient apiClientService
 	DefaultMapper    mappingService
 	DefaultReIndexer reIndexService
+	DefaultEmbedder  embedderService
 )
 
-func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
-	DefaultEs, err = es.ES(log, c.ES)
+func Initialize(ctx context.Context, log *zap.Logger, c Config, esClient *elasticsearch.Client) (err error) {
+	DefaultEs, err = es.ES(log, esClient)
+	if err != nil {
+		return
+	}
+
+	DefaultEmbedder, err = vectorsearch.Embedder(log, c.VectorSearch)
 	if err != nil {
 		return
 	}
@@ -71,27 +83,22 @@ func Initialize(ctx context.Context, log *zap.Logger, c Config) (err error) {
 	}
 
 	// Map indexing for resources
-	DefaultMapper = mapping.Mapper(log, DefaultEs, DefaultApiClient)
+	DefaultMapper = mapping.Mapper(log, esClient, DefaultApiClient)
 
 	err = DefaultMapper.ConfigurationMapping(ctx)
 	if err != nil {
 		return err
 	}
 
-	esc, err := DefaultEs.Client()
-	if err != nil {
-		return fmt.Errorf("failed to prepare es client: %w", err)
-	}
-
 	// @todo: private/public/protected indexing
-	err = DefaultMapper.Mappings(ctx, esc, "private")
+	err = DefaultMapper.Mappings(ctx, esClient, "private")
 	if err != nil {
 		return err
 	}
 
 	// Reindexing existing mapping if needed
-	DefaultReIndexer = reindex.ReIndexer(log, DefaultEs, DefaultApiClient, c.ES, func(ctx context.Context) (err error) {
-		err = DefaultMapper.Mappings(ctx, esc, "private")
+	DefaultReIndexer = reindex.ReIndexer(log, DefaultEs, esClient, DefaultApiClient, DefaultEmbedder, c.ES, func(ctx context.Context) (err error) {
+		err = DefaultMapper.Mappings(ctx, esClient, "private")
 		if err != nil {
 			return err
 		}
