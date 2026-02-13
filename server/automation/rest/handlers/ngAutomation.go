@@ -27,6 +27,7 @@ type (
 		Undelete(context.Context, *request.NgAutomationUndelete) (interface{}, error)
 		Test(context.Context, *request.NgAutomationTest) (interface{}, error)
 		Exec(context.Context, *request.NgAutomationExec) (interface{}, error)
+		Executions(context.Context, *request.NgAutomationExecutions) (interface{}, error)
 		ExecutionTrace(context.Context, *request.NgAutomationExecutionTrace) (interface{}, error)
 	}
 
@@ -40,6 +41,7 @@ type (
 		Undelete       func(http.ResponseWriter, *http.Request)
 		Test           func(http.ResponseWriter, *http.Request)
 		Exec           func(http.ResponseWriter, *http.Request)
+		Executions     func(http.ResponseWriter, *http.Request)
 		ExecutionTrace func(http.ResponseWriter, *http.Request)
 	}
 )
@@ -174,6 +176,22 @@ func NewNgAutomation(h NgAutomationAPI) *NgAutomation {
 
 			api.Send(w, r, value)
 		},
+		Executions: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewNgAutomationExecutions()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Executions(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 		ExecutionTrace: func(w http.ResponseWriter, r *http.Request) {
 			defer r.Body.Close()
 			params := request.NewNgAutomationExecutionTrace()
@@ -204,6 +222,7 @@ func (h NgAutomation) MountRoutes(r chi.Router, middlewares ...func(http.Handler
 		r.Post("/ng-automation/{automationID}/undelete", h.Undelete)
 		r.Post("/ng-automation/{automationID}/test", h.Test)
 		r.Post("/ng-automation/{automationID}/exec", h.Exec)
+		r.Get("/ng-automation/{automationID}/executions", h.Executions)
 		r.Get("/ng-automation/{automationID}/execution/{executionID}/trace", h.ExecutionTrace)
 	})
 }

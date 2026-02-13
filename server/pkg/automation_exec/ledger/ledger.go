@@ -213,6 +213,25 @@ func (l *ledger) ListExecutions(ctx context.Context) ([]*types.Execution, error)
 	return out, nil
 }
 
+func (l *ledger) ListExecutionsByExecutable(ctx context.Context, executableID id.ID) ([]*types.Execution, error) {
+	l.mu.RLock()
+	defer l.mu.RUnlock()
+
+	out := make([]*types.Execution, 0)
+	execs, ok := l.store[executableID]
+	if !ok {
+		return out, nil
+	}
+
+	for _, revs := range execs {
+		for _, ex := range revs {
+			out = append(out, ex)
+		}
+	}
+
+	return out, nil
+}
+
 func isTerminal(s types.Status) bool {
 	return s == types.StatusCompleted ||
 		s == types.StatusFailed ||

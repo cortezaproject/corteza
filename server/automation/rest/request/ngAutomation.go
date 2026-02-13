@@ -264,6 +264,13 @@ type (
 		Async bool
 	}
 
+	NgAutomationExecutions struct {
+		// AutomationID PATH parameter
+		//
+		// NgAutomation ID
+		AutomationID uint64 `json:",string"`
+	}
+
 	NgAutomationExecutionTrace struct {
 		// AutomationID PATH parameter
 		//
@@ -1421,6 +1428,41 @@ func (r *NgAutomationExec) Fill(req *http.Request) (err error) {
 			}
 		}
 	}
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "automationID")
+		r.AutomationID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewNgAutomationExecutions request
+func NewNgAutomationExecutions() *NgAutomationExecutions {
+	return &NgAutomationExecutions{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationExecutions) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"automationID": r.AutomationID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r NgAutomationExecutions) GetAutomationID() uint64 {
+	return r.AutomationID
+}
+
+// Fill processes request and fills internal variables
+func (r *NgAutomationExecutions) Fill(req *http.Request) (err error) {
 
 	{
 		var val string

@@ -74,6 +74,7 @@ type (
 		RemoveExecutable(ctx context.Context, exeID id.ID, rev int) error
 
 		GetExecutionTrace(ctx context.Context, exeID id.ID, rev int, execID id.ID) ([]execTypes.StackFrame, error)
+		ListExecutions(ctx context.Context, exeID id.ID, rev int) ([]*execTypes.ExecutionResult, error)
 	}
 
 	ngAutomationUpdateHandler func(ctx context.Context, ns *types.NgAutomation) (ngAutomationChanges, error)
@@ -334,6 +335,15 @@ func (svc *ngAutomation) ExecAndWait(ctx context.Context, automationID uint64, p
 	}
 
 	return
+}
+
+func (svc *ngAutomation) GetExecutions(ctx context.Context, automationID uint64) ([]*execTypes.ExecutionResult, error) {
+	out, err := svc.execEngine.ListExecutions(ctx, id.MustNumID(automationID), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func (svc *ngAutomation) GetExecutionTrace(ctx context.Context, exeID, executionID uint64, rev int) (out []execTypes.StackFrame, err error) {

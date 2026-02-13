@@ -26,6 +26,7 @@ type (
 			UndeleteByID(ctx context.Context, automationID uint64) error
 
 			ExecAndWait(ctx context.Context, automationID uint64, p types.NgAutomationExecParams) (out *execTypes.ExecutionResult, err error)
+			GetExecutions(ctx context.Context, automationID uint64) ([]*execTypes.ExecutionResult, error)
 			GetExecutionTrace(ctx context.Context, exeID, executionID uint64, rev int) ([]execTypes.StackFrame, error)
 		}
 
@@ -166,6 +167,10 @@ func (ctrl NgAutomation) Exec(ctx context.Context, r *request.NgAutomationExec) 
 	return ctrl.svc.ExecAndWait(ctx, r.AutomationID, types.NgAutomationExecParams{
 		Input: input,
 	})
+}
+
+func (ctrl NgAutomation) Executions(ctx context.Context, r *request.NgAutomationExecutions) (interface{}, error) {
+	return ctrl.svc.GetExecutions(ctx, r.AutomationID)
 }
 
 func (ctrl NgAutomation) ExecutionTrace(ctx context.Context, r *request.NgAutomationExecutionTrace) (interface{}, error) {
