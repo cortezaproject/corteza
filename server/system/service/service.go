@@ -80,32 +80,33 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth                 *auth
-	DefaultAuthClient           *authClient
-	DefaultUser                 *user
-	DefaultCredentials          *credentials
-	DefaultDalConnection        *dalConnection
-	DefaultDalSensitivityLevel  *dalSensitivityLevel
-	DefaultDalSchemaAlteration  *dalSchemaAlteration
-	DefaultRole                 *role
-	DefaultUserGroup            *userGroup
-	DefaultApplication          *application
-	DefaultReminder             ReminderService
-	DefaultNotification         NotificationService
-	DefaultAttachment           AttachmentService
-	DefaultRenderer             TemplateService
-	DefaultResourceTranslation  ResourceTranslationService
-	DefaultQueue                *queue
-	DefaultApigwRoute           *apigwRoute
-	DefaultApigwFilter          *apigwFilter
-	DefaultApigwProfiler        *apigwProfiler
-	DefaultReport               *report
-	DefaultDataPrivacy          *dataPrivacy
-	DefaultSMTPChecker          *smtpConfigurationChecker
+	DefaultAuth                *auth
+	DefaultAuthClient          *authClient
+	DefaultUser                *user
+	DefaultCredentials         *credentials
+	DefaultDalConnection       *dalConnection
+	DefaultDalSensitivityLevel *dalSensitivityLevel
+	DefaultDalSchemaAlteration *dalSchemaAlteration
+	DefaultRole                *role
+	DefaultUserGroup           *userGroup
+	DefaultApplication         *application
+	DefaultReminder            ReminderService
+	DefaultNotification        NotificationService
+	DefaultAttachment          AttachmentService
+	DefaultRenderer            TemplateService
+	DefaultResourceTranslation ResourceTranslationService
+	DefaultQueue               *queue
+	DefaultAgent               *agent
+	DefaultAiConversation      *aiConversation
+	DefaultApigwRoute          *apigwRoute
+	DefaultApigwFilter         *apigwFilter
+	DefaultApigwProfiler       *apigwProfiler
+	DefaultReport              *report
+	DefaultDataPrivacy         *dataPrivacy
+	DefaultSMTPChecker         *smtpConfigurationChecker
 	DefaultExpression           *expression
 	DefaultConnection           *connection
 	DefaultConfiguredConnection *configuredConnection
-	DefaultAgent                *agent 
 
 	DefaultStatistics *statistics
 
@@ -238,6 +239,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultStatistics = Statistics()
 	DefaultQueue = Queue()
 	DefaultAgent = Agent()
+	DefaultAiConversation = AiConversation()
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()

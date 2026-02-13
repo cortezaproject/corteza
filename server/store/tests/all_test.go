@@ -20,6 +20,9 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("agent", func(t *testing.T) {
 		testAgents(t, s)
 	})
+	t.Run("aiConversation", func(t *testing.T) {
+		testAiConversations(t, s)
+	})
 	t.Run("apigwFilter", func(t *testing.T) {
 		testApigwFilters(t, s)
 	})

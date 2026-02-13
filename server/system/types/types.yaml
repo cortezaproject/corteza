@@ -48,3 +48,4 @@ types:
   LlmProvider: {}
   PrivacyDalConnection:
   Agent: {}
+  AiConversation: {}
