@@ -1,0 +1,81 @@
+# List of loggable service actions
+
+resource: system:ai-conversation
+service: aiConversation
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: error
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: aiConversation
+    type: "*types.AiConversation"
+    fields: [ agentID, ID ]
+  - name: new
+    type: "*types.AiConversation"
+    fields: [ agentID, ID ]
+  - name: update
+    type: "*types.AiConversation"
+    fields: [ agentID, ID ]
+  - name: filter
+    type: "*types.AiConversationFilter"
+    fields: [ aiConversationID, agentID, deleted, sort ]
+
+actions:
+  - action: search
+    log: "searched for AI conversations"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{aiConversation}}"
+    severity: info
+
+  - action: create
+    log: "created {{aiConversation}}"
+
+  - action: update
+    log: "updated {{aiConversation}}"
+
+  - action: delete
+    log: "deleted {{aiConversation}}"
+
+  - action: undelete
+    log: "undeleted {{aiConversation}}"
+
+errors:
+  - error: notFound
+    message: "AI conversation not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: staleData
+    message: "stale data"
+    severity: warning
+
+  - error: notAllowedToCreate
+    message: "not allowed to create AI conversations"
+    log: "could not create AI conversations; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search or list AI conversations"
+    log: "could not search or list AI conversations; insufficient permissions"
+
+  - error: notAllowedToRead
+    message: "not allowed to read this AI conversation"
+    log: "could not read {{aiConversation}}; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this AI conversation"
+    log: "could not update {{aiConversation}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this AI conversation"
+    log: "could not delete {{aiConversation}}; insufficient permissions"

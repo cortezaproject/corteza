@@ -57,6 +57,20 @@ type (
 		DeletedBy  uint64                     `db:"deleted_by"`
 	}
 
+	// auxAiConversation is an auxiliary structure used for transporting to/from RDBMS store
+	auxAiConversation struct {
+		ID         uint64                            `db:"id"`
+		AgentID    uint64                            `db:"agentID"`
+		Messages   systemType.AiConversationMessages `db:"messages"`
+		TokenCount int                               `db:"tokenCount"`
+		CreatedAt  time.Time                         `db:"created_at"`
+		UpdatedAt  *time.Time                        `db:"updated_at"`
+		DeletedAt  *time.Time                        `db:"deleted_at"`
+		CreatedBy  uint64                            `db:"created_by"`
+		UpdatedBy  uint64                            `db:"updated_by"`
+		DeletedBy  uint64                            `db:"deleted_by"`
+	}
+
 	// auxApigwFilter is an auxiliary structure used for transporting to/from RDBMS store
 	auxApigwFilter struct {
 		ID        uint64                       `db:"id"`
@@ -819,6 +833,59 @@ func (aux *auxAgent) scan(row scanner) error {
 		&aux.Execution,
 		&aux.Access,
 		&aux.Invocation,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes AiConversation to auxAiConversation
+//
+// This function is auto-generated
+func (aux *auxAiConversation) encode(res *systemType.AiConversation) (_ error) {
+	aux.ID = res.ID
+	aux.AgentID = res.AgentID
+	aux.Messages = res.Messages
+	aux.TokenCount = res.TokenCount
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes AiConversation from auxAiConversation
+//
+// This function is auto-generated
+func (aux auxAiConversation) decode() (res *systemType.AiConversation, _ error) {
+	res = new(systemType.AiConversation)
+	res.ID = aux.ID
+	res.AgentID = aux.AgentID
+	res.Messages = aux.Messages
+	res.TokenCount = aux.TokenCount
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxAiConversation fields
+//
+// This function is auto-generated
+func (aux *auxAiConversation) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.AgentID,
+		&aux.Messages,
+		&aux.TokenCount,
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,

@@ -383,6 +383,36 @@ func AgentRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for AiConversation by calling AiConversationRbacResource fn
+//
+// RBAC resource is in the corteza::system:ai-conversation/... format
+//
+// This function is auto-generated
+func (r AiConversation) RbacResource() string {
+	return AiConversationRbacResource(r.ID)
+}
+
+// AiConversationRbacResource returns string representation of RBAC resource for AiConversation
+//
+// RBAC resource is in the corteza::system:ai-conversation/... format
+//
+// This function is auto-generated
+func AiConversationRbacResource(id uint64) string {
+	cpts := []interface{}{AiConversationResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(AiConversationRbacResourceTpl(), cpts...)
+
+}
+
+func AiConversationRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

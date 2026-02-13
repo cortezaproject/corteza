@@ -165,3 +165,16 @@ func SystemAgentRbacReferences(agent string) (res *Ref, pp []*Ref, err error) {
 
 	return
 }
+
+// SystemAiConversationRbacReferences generates RBAC references
+//
+// Resources with "envoy: false" are skipped
+//
+// This function is auto-generated
+func SystemAiConversationRbacReferences(aiConversation string) (res *Ref, pp []*Ref, err error) {
+	if aiConversation != "*" {
+		res = &Ref{ResourceType: types.AiConversationResourceType, Identifiers: MakeIdentifiers(aiConversation)}
+	}
+
+	return
+}

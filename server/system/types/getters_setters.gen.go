@@ -1155,3 +1155,63 @@ func (r *Agent) SetValue(name string, pos uint, value any) (err error) {
 	}
 	return nil
 }
+
+func (r AiConversation) GetID() uint64 { return r.ID }
+
+func (r *AiConversation) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "agentID", "AgentID":
+		return r.AgentID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "tokenCount", "TokenCount":
+		return r.TokenCount, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *AiConversation) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &AiConversation{}
+	}
+
+	switch name {
+	case "agentID", "AgentID":
+		return cast2.Uint64(value, &r.AgentID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "tokenCount", "TokenCount":
+		return cast2.Int(value, &r.TokenCount)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}

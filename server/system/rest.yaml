@@ -2846,3 +2846,46 @@ endpoints:
     parameters:
       path:
       - { type: uint64, name: agentID, required: true, title: Agent ID }
+
+- title: AI Conversations
+  path: "/ai-conversations"
+  entrypoint: aiConversation
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza/server/system/types
+    - time
+  apis:
+  - name: list
+    method: GET
+    title: List AI conversations
+    path: "/"
+    parameters:
+      get:
+      - { type: "uint64", name: agentID, title: Filter by agent ID }
+      - { type: uint,       name: deleted,    title: "Exclude (0, default), include (1) or return only (2) deleted conversations" }
+      - { type: uint,       name: limit,      title: Limit }
+      - { type: bool,       name: incTotal,   title: Include total counter }
+      - { type: string,     name: pageCursor, title: Page cursor }
+      - { type: string,     name: sort,       title: Sort items }
+  - name: read
+    method: GET
+    title: Read AI conversation details
+    path: "/{aiConversationID}"
+    parameters:
+      path:
+      - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+  - name: delete
+    method: DELETE
+    title: Delete AI conversation
+    path: "/{aiConversationID}"
+    parameters:
+      path:
+      - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+  - name: undelete
+    method: POST
+    title: Undelete AI conversation
+    path: "/{aiConversationID}/undelete"
+    parameters:
+      path:
+      - { type: uint64, name: aiConversationID, required: true, title: AI Conversation ID }
+

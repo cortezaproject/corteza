@@ -35,6 +35,7 @@ component: schema.#component & {
     "dal-sensitivity-level": 				dal_sensitivity_level
     "dal-schema-alteration": 				dal_schema_alteration
     "agent":                 				agent
+    "ai-conversation":                ai_conversation
 	}
 
 	rbac: operations: {
@@ -89,5 +90,8 @@ component: schema.#component & {
 
 		"agent.create": description:  "Create agents"
 		"agents.search": description: "List, search or filter agents"
+
+		"ai-conversation.create": description:  "Create AI conversations"
+		"ai-conversations.search": description: "List, search or filter AI conversations"
 	}
 }

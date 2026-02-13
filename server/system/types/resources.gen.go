@@ -34,5 +34,6 @@ const (
 	DalSensitivityLevelResourceType       = "corteza::system:dal-sensitivity-level"
 	DalSchemaAlterationResourceType       = "corteza::system:dal-schema-alteration"
 	AgentResourceType                     = "corteza::system:agent"
+	AiConversationResourceType            = "corteza::system:ai-conversation"
 	ComponentResourceType                 = "corteza::system"
 )

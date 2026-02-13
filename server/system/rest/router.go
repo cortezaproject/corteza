@@ -55,6 +55,7 @@ func MountRoutes() func(r chi.Router) {
 			handlers.NewSmtpConfigurationChecker(SmtpConfigurationChecker{}.New()).MountRoutes(r)
 			handlers.NewExpression(Expression{}.New()).MountRoutes(r)
 			handlers.NewAgent(Agent{}.New()).MountRoutes(r)
+			handlers.NewAiConversation(AiConversation{}.New()).MountRoutes(r)
 		})
 	}
 }

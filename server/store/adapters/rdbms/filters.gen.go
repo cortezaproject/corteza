@@ -36,6 +36,9 @@ type (
 		// optional agent filter function called after the generated function
 		Agent func(*Store, systemType.AgentFilter) ([]goqu.Expression, systemType.AgentFilter, error)
 
+		// optional aiConversation filter function called after the generated function
+		AiConversation func(*Store, systemType.AiConversationFilter) ([]goqu.Expression, systemType.AiConversationFilter, error)
+
 		// optional apigwFilter filter function called after the generated function
 		ApigwFilter func(*Store, systemType.ApigwFilterFilter) ([]goqu.Expression, systemType.ApigwFilterFilter, error)
 
@@ -231,6 +234,30 @@ func AgentFilter(d drivers.Dialect, f systemType.AgentFilter) (ee []goqu.Express
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 			goqu.C("status").ILike("%"+f.Query+"%"),
 		))
+	}
+
+	return ee, f, err
+}
+
+// AiConversationFilter returns logical expressions
+//
+// This function is called from Store.QueryAiConversations() and can be extended
+// by setting Store.Filters.AiConversation. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func AiConversationFilter(d drivers.Dialect, f systemType.AiConversationFilter) (ee []goqu.Expression, _ systemType.AiConversationFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.AiConversationID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.AiConversationID))
+	}
+
+	if f.AgentID > 0 {
+		ee = append(ee, goqu.C("rel_agent").Eq(f.AgentID))
 	}
 
 	return ee, f, err

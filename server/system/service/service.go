@@ -95,6 +95,7 @@ var (
 	DefaultResourceTranslation ResourceTranslationService
 	DefaultQueue               *queue
 	DefaultAgent               *agent
+	DefaultAiConversation      *aiConversation
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
@@ -229,6 +230,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultStatistics = Statistics()
 	DefaultQueue = Queue()
 	DefaultAgent = Agent()
+	DefaultAiConversation = AiConversation()
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
