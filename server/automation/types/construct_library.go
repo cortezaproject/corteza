@@ -23,9 +23,9 @@ type (
 	}
 
 	ConstructTriggerConstraint struct {
-		Name string                         `json:"name"`
-		Type string                         `json:"type"`
-		Meta ConstructTriggerConstraintMeta `json:"meta,omitempty"`
+		Name  string                         `json:"name"`
+		Types []string                       `json:"types"`
+		Meta  ConstructTriggerConstraintMeta `json:"meta,omitempty"`
 	}
 
 	ConstructTriggerConstraintMeta struct {

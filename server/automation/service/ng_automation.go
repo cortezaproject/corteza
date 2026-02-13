@@ -690,7 +690,16 @@ func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation,
 	}
 
 	for _, c := range t.Constraints {
-		cnstr, err := eventbus.ConstraintMaker(c.Name, c.Op, c.Values...)
+		name, op, values, err := svc.prepConstraintBits(c)
+		if err != nil {
+			log.Debug("failed to prepare constraint for automation trigger",
+				zap.Any("constraint", c),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		cnstr, err := eventbus.ConstraintMaker(name, op, values...)
 		if err != nil {
 			log.Debug("failed to make constraint for automation trigger",
 				zap.Any("constraint", c),
@@ -709,6 +718,37 @@ func (svc *ngAutomation) registerTrigger(log *zap.Logger, a *types.NgAutomation,
 		zap.String("resourceType", t.ResourceType),
 		zap.Any("constraints", t.Constraints),
 	)
+}
+
+// @todo expand when needed; will probably need some custom handler on the trigger
+func (svc *ngAutomation) prepConstraintBits(c types.NgTriggerConstraint) (name string, _ string, values []string, err error) {
+	if len(c.Values) == 0 {
+		return c.Name, c.Op, nil, nil
+	}
+
+	typ := c.Values[0].Type
+	for _, v := range c.Values {
+		if v.Type != typ {
+			err = fmt.Errorf("constraint values must be of the same type")
+			return
+		}
+
+		values = append(values, v.Value)
+	}
+
+	switch typ {
+	case "String":
+		name = fmt.Sprintf("%s.%s", c.Name, "name")
+	case "Handle":
+		name = fmt.Sprintf("%s.%s", c.Name, "handle")
+	case "ID":
+		name = fmt.Sprintf("%s.%s", c.Name, "id")
+	default:
+		err = fmt.Errorf("unknown constraint type %s", typ)
+		return
+	}
+
+	return name, c.Op, values, nil
 }
 
 func makeAutomationHandler(svc *ngAutomation, a *types.NgAutomation, t *types.NgAutomationTrigger) eventbus.HandlerFn {

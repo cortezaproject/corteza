@@ -47,204 +47,172 @@ func (h ngRecordsHandler) register() {
 	h.reg.AddTriggers(atypes.ConstructTrigger{
 		ResourceType: "system",
 		EventType:    "onManual",
-	}, atypes.ConstructTrigger{
-		ResourceType: "compose",
-		EventType:    "onInterval",
-		Constraints:  []atypes.ConstructTriggerConstraint{},
-		Properties:   []atypes.ConstructTriggerProperty{},
-	}, atypes.ConstructTrigger{
-		ResourceType: "compose",
-		EventType:    "onTimestamp",
-		Constraints:  []atypes.ConstructTriggerConstraint{},
-		Properties:   []atypes.ConstructTriggerProperty{},
-	}, atypes.ConstructTrigger{
-		ResourceType: "compose:record",
-		EventType:    "afterCreate",
-		Segments: []atypes.ConstructSegment{
-			{
-				Sections: []atypes.ConstructSection{
-					{
-						Elements: []atypes.SectionElement{
-							{
-								Input: atypes.SectionElementInput{
-									Type:     "NamespaceSelector",
-									Label:    "Namespace",
-									Argument: "namespace",
-								},
-							}, {
-								Input: atypes.SectionElementInput{
-									Type:     "ModuleSelector",
-									Label:    "Module",
-									Argument: "module",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Constraints: []atypes.ConstructTriggerConstraint{
-			{
-				Name: "record",
-				Type: "ComposeRecord",
-			},
-
-			{
-				Name: "oldRecord",
-				Type: "ComposeRecord",
-			},
-
-			{
-				Name: "module",
-				Type: "ComposeModule",
-			},
-
-			{
-				Name: "namespace",
-				Type: "ComposeNamespace",
-			},
-
-			{
-				Name: "recordValueErrors",
-				Type: "ComposeRecordValueErrorSet",
-			},
-
-			{
-				Name: "selected",
-				Type: "",
-			},
-		},
-		Properties: []atypes.ConstructTriggerProperty{
-
-			{
-				Name: "namespace.handle",
-			},
-
-			{
-				Name: "namespace.name",
-			},
-
-			{
-				Name: "module.handle",
-			},
-
-			{
-				Name: "module.name",
-			},
-
-			{
-				Name: "record.created-at",
-			},
-
-			{
-				Name: "record.updated-at",
-			},
-
-			{
-				Name: "record.deleted-at",
-			},
-
-			{
-				Name: "record.values.*",
-			},
-		},
-	}, atypes.ConstructTrigger{
-		ResourceType: "compose:record",
-		EventType:    "afterUpdate",
-		Constraints: []atypes.ConstructTriggerConstraint{
-			{
-				Name: "record",
-				Type: "ComposeRecord",
-			},
-
-			{
-				Name: "oldRecord",
-				Type: "ComposeRecord",
-			},
-
-			{
-				Name: "module",
-				Type: "ComposeModule",
-			},
-
-			{
-				Name: "namespace",
-				Type: "ComposeNamespace",
-			},
-
-			{
-				Name: "recordValueErrors",
-				Type: "ComposeRecordValueErrorSet",
-			},
-
-			{
-				Name: "selected",
-				Type: "",
-			},
-		},
-		Segments: []atypes.ConstructSegment{
-			{
-				Sections: []atypes.ConstructSection{
-					{
-						Elements: []atypes.SectionElement{
-							{
-								Input: atypes.SectionElementInput{
-									Type:     "NamespaceSelector",
-									Label:    "Namespace",
-									Argument: "namespace",
-								},
-							}, {
-								Input: atypes.SectionElementInput{
-									Type:     "ModuleSelector",
-									Label:    "Module",
-									Argument: "module",
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-		Properties: []atypes.ConstructTriggerProperty{
-
-			{
-				Name: "namespace.handle",
-			},
-
-			{
-				Name: "namespace.name",
-			},
-
-			{
-				Name: "module.handle",
-			},
-
-			{
-				Name: "module.name",
-			},
-
-			{
-				Name: "record.created-at",
-			},
-
-			{
-				Name: "record.updated-at",
-			},
-
-			{
-				Name: "record.deleted-at",
-			},
-
-			{
-				Name: "record.values.*",
-			},
-		},
 	},
+
+		atypes.ConstructTrigger{
+			ResourceType: "compose",
+			EventType:    "onInterval",
+			Constraints: []atypes.ConstructTriggerConstraint{{
+				Name:  "interval",
+				Types: []string{"String"},
+				Meta:  atypes.ConstructTriggerConstraintMeta{},
+			}},
+			Properties: []atypes.ConstructTriggerProperty{},
+		},
+
+		atypes.ConstructTrigger{
+			ResourceType: "compose",
+			EventType:    "onTimestamp",
+			Constraints: []atypes.ConstructTriggerConstraint{{
+				Name:  "timestamp",
+				Types: []string{"String"},
+				Meta:  atypes.ConstructTriggerConstraintMeta{},
+			}},
+			Properties: []atypes.ConstructTriggerProperty{},
+		},
+
+		atypes.ConstructTrigger{
+			ResourceType: "compose:record",
+			EventType:    "afterCreate",
+			Segments: []atypes.ConstructSegment{
+				{
+					Sections: []atypes.ConstructSection{
+						{
+							Elements: []atypes.SectionElement{
+								{
+									Input: atypes.SectionElementInput{
+										Type:     "NamespaceSelector",
+										Label:    "Namespace",
+										Argument: "namespace",
+									},
+								}, {
+									Input: atypes.SectionElementInput{
+										Type:     "ModuleSelector",
+										Label:    "Module",
+										Argument: "module",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			Properties: []atypes.ConstructTriggerProperty{
+				{
+					Name: "record",
+					Type: "ComposeRecord",
+				},
+
+				{
+					Name: "oldRecord",
+					Type: "ComposeRecord",
+				},
+
+				{
+					Name: "module",
+					Type: "ComposeModule",
+				},
+
+				{
+					Name: "namespace",
+					Type: "ComposeNamespace",
+				},
+
+				{
+					Name: "recordValueErrors",
+					Type: "ComposeRecordValueErrorSet",
+				},
+
+				{
+					Name: "selected",
+					Type: "",
+				},
+			},
+			Constraints: []atypes.ConstructTriggerConstraint{
+				{
+					Name:  "namespace",
+					Types: []string{"Handle", "String"},
+				},
+				{
+					Name:  "module",
+					Types: []string{"Handle", "String"},
+				},
+			},
+		},
+
+		atypes.ConstructTrigger{
+			ResourceType: "compose:record",
+			EventType:    "afterUpdate",
+			Properties: []atypes.ConstructTriggerProperty{
+				{
+					Name: "record",
+					Type: "ComposeRecord",
+				},
+
+				{
+					Name: "oldRecord",
+					Type: "ComposeRecord",
+				},
+
+				{
+					Name: "module",
+					Type: "ComposeModule",
+				},
+
+				{
+					Name: "namespace",
+					Type: "ComposeNamespace",
+				},
+
+				{
+					Name: "recordValueErrors",
+					Type: "ComposeRecordValueErrorSet",
+				},
+
+				{
+					Name: "selected",
+					Type: "",
+				},
+			},
+			Segments: []atypes.ConstructSegment{
+				{
+					Sections: []atypes.ConstructSection{
+						{
+							Elements: []atypes.SectionElement{
+								{
+									Input: atypes.SectionElementInput{
+										Type:     "NamespaceSelector",
+										Label:    "Namespace",
+										Argument: "namespace",
+									},
+								}, {
+									Input: atypes.SectionElementInput{
+										Type:     "ModuleSelector",
+										Label:    "Module",
+										Argument: "module",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			Constraints: []atypes.ConstructTriggerConstraint{
+				{
+					Name:  "namespace",
+					Types: []string{"Handle", "String"},
+				},
+				{
+					Name:  "module",
+					Types: []string{"Handle", "String"},
+				},
+			},
+		},
 
 		atypes.ConstructTrigger{
 			ResourceType: "compose:record",
 			EventType:    "afterDelete",
-			Constraints: []atypes.ConstructTriggerConstraint{
+			Properties: []atypes.ConstructTriggerProperty{
 
 				{
 					Name: "record",
@@ -299,30 +267,14 @@ func (h ngRecordsHandler) register() {
 					},
 				},
 			},
-			Properties: []atypes.ConstructTriggerProperty{
+			Constraints: []atypes.ConstructTriggerConstraint{
 				{
-					Name: "namespace.handle",
+					Name:  "namespace",
+					Types: []string{"Handle", "String"},
 				},
 				{
-					Name: "namespace.name",
-				},
-				{
-					Name: "module.handle",
-				},
-				{
-					Name: "module.name",
-				},
-				{
-					Name: "record.created-at",
-				},
-				{
-					Name: "record.updated-at",
-				},
-				{
-					Name: "record.deleted-at",
-				},
-				{
-					Name: "record.values.*",
+					Name:  "module",
+					Types: []string{"Handle", "String"},
 				},
 			},
 		})

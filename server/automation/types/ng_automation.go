@@ -84,11 +84,22 @@ type (
 		EventType string `json:"eventType"`
 
 		// Trigger constraints
-		Constraints TriggerConstraintSet `json:"constraints"`
+		Constraints []NgTriggerConstraint `json:"constraints"`
 
 		// Initial input scope,
 		// will be merged merged with automation variables
 		Input *expr.Vars `json:"input"`
+	}
+
+	NgTriggerConstraint struct {
+		Name   string                     `json:"name"`
+		Op     string                     `json:"op,omitempty"`
+		Values []NgTriggerConstraintValue `json:"values,omitempty"`
+	}
+
+	NgTriggerConstraintValue struct {
+		Type  string `json:"@type"`
+		Value string `json:"@value"`
 	}
 
 	NgTriggerMeta struct {
