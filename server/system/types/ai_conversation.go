@@ -33,12 +33,14 @@ type (
 
 	AiConversationToolCall struct {
 		CallID string `json:"callID"`
+		Name   string `json:"name"`
 		Data   string `json:"data"`
 	}
 
 	AiConversationToolResult struct {
 		CallID string `json:"callID"`
 		Data   string `json:"data"`
+		Error  string `json:"error,omitempty"`
 	}
 
 	AiConversationMessages []AiConversationMessage
