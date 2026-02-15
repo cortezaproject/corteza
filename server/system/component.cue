@@ -36,6 +36,7 @@ component: schema.#component & {
     "dal-schema-alteration": 				dal_schema_alteration
     "connection":             				connection
     "configured-connection":  				configured_connection
+    "llm-provider":          				llm_provider
 	}
 
 	rbac: operations: {

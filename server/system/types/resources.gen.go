@@ -35,5 +35,6 @@ const (
 	DalSchemaAlterationResourceType       = "corteza::system:dal-schema-alteration"
 	ConnectionResourceType                = "corteza::system:connection"
 	ConfiguredConnectionResourceType      = "corteza::system:configured-connection"
+	LlmProviderResourceType               = "corteza::system:llm-provider"
 	ComponentResourceType                 = "corteza::system"
 )

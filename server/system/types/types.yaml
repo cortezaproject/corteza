@@ -45,4 +45,5 @@ types:
     labelResourceType: configuredConnection
   DataPrivacyRequest: {}
   DataPrivacyRequestComment: {}
+  LlmProvider: {}
   PrivacyDalConnection:
