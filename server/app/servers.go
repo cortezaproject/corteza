@@ -88,6 +88,9 @@ func (app *CortezaApp) mountHttpRoutes(r chi.Router) {
 			r.Route("/automation", automationRest.MountRoutes())
 			r.Route("/compose", composeRest.MountRoutes())
 			r.Route("/websocket", app.WsServer.MountRoutes)
+			if app.McpServer != nil {
+				r.Route("/mcp", app.McpServer.MountRoutes)
+			}
 
 			if app.Opt.Discovery.Enabled {
 				r.Route("/discovery", discoveryRest.MountRoutes())

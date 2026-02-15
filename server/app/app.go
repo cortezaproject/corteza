@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
+	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-oauth2/oauth2/v4"
@@ -69,6 +70,7 @@ type (
 		HttpServer httpApiServer
 		GrpcServer grpcServer
 		WsServer   wsServer
+		McpServer  *mcpkg.MCPServer
 
 		AuthService  authServicer
 		ApigwService apigwServicer

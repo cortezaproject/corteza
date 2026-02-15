@@ -45,6 +45,7 @@ import (
 	sysService "github.com/cortezaproject/corteza/server/system/service"
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
+	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
 	gomail "gopkg.in/mail.v2"
@@ -387,6 +388,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	})
 	if err != nil {
 		return
+	}
+	if true { //hardcoded for now untill we add mcp options
+		reg:=           mcpkg.NewRegistry()
+		mcpkg.RecordHandler(reg)
+		app.McpServer = mcpkg.NewMCPServer(reg)
 	}
 
 	if app.Opt.Messagebus.Enabled {

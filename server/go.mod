@@ -62,7 +62,7 @@ require (
 	github.com/prometheus/client_golang v1.12.1
 	github.com/sony/sonyflake v1.0.0
 	github.com/spf13/afero v1.8.2
-	github.com/spf13/cast v1.4.1
+	github.com/spf13/cast v1.7.1
 	github.com/spf13/cobra v1.4.0
 	github.com/steinfletcher/apitest v1.5.11
 	github.com/steinfletcher/apitest-jsonpath v1.7.1
@@ -82,6 +82,15 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	moul.io/zapfilter v1.7.0
 	rsc.io/qr v0.2.0
+)
+
+require (
+	github.com/bahlo/generic-list-go v0.2.0 // indirect
+	github.com/buger/jsonparser v1.1.1 // indirect
+	github.com/invopop/jsonschema v0.13.0 // indirect
+	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
+	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 )
 
 require (
@@ -117,6 +126,7 @@ require (
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
+	github.com/mark3labs/mcp-go v0.43.2
 	github.com/mattermost/xml-roundtrip-validator v0.1.0 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.1 // indirect
 	github.com/minio/md5-simd v1.1.0 // indirect
