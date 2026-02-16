@@ -5,12 +5,12 @@
 
   <Teleport to="#topbar-tools" defer>
     <div v-if="isEdit" class="flex gap-2">
-      <Button
+      <CRouterLinkButton
+        :to="{ name: 'admin.modules.record.list', params: { moduleID: module?.moduleID } }"
         :label="$t('module.allRecords.label')"
         icon="pi pi-table"
         size="small"
         severity="secondary"
-        @click="goToRecords"
       />
     </div>
   </Teleport>
@@ -26,14 +26,14 @@
       <!-- Related Pages Actions -->
       <div v-if="isEdit && namespace?.canManageNamespace" class="flex justify-end gap-2 mb-3">
         <!-- Record Page Button -->
-        <Button
+        <CRouterLinkButton
           v-if="recordPage"
+          :to="{ name: 'admin.pages.builder', params: { pageID: recordPage.pageID } }"
           :label="$t('module.recordPage.edit')"
           icon="pi pi-file-edit"
           size="small"
           severity="secondary"
           outlined
-          @click="goToRecordPageBuilder"
         />
         <Button
           v-else
@@ -47,14 +47,14 @@
         />
 
         <!-- Record List Page Button -->
-        <Button
+        <CRouterLinkButton
           v-if="recordListPage"
+          :to="{ name: 'admin.pages.builder', params: { pageID: recordListPage.pageID } }"
           :label="$t('module.recordListPage.edit')"
           icon="pi pi-list"
           size="small"
           severity="secondary"
           outlined
-          @click="goToRecordListPageBuilder"
         />
         <Button
           v-else
@@ -88,12 +88,7 @@
                     <label for="name" class="font-medium text-primary">
                       {{ $t('module.general.label.name') }}
                     </label>
-                    <InputText
-                      id="name"
-                      v-model="module.name"
-                      :placeholder="$t('module.general.placeholder.name')"
-                      :invalid="!nameValid"
-                    />
+                    <InputText id="name" v-model="module.name" :invalid="!nameValid" />
                   </div>
 
                   <div class="flex flex-col gap-2">
@@ -103,7 +98,6 @@
                     <InputText
                       id="handle"
                       v-model="module.handle"
-                      :placeholder="$t('module.general.placeholder.handle')"
                       :invalid="handleState === false"
                     />
                     <small v-if="handleState === false" class="text-red-500">
@@ -170,14 +164,17 @@
 
                   <Column header-style="width: 6rem">
                     <template #body="{ index }">
-                      <div class="flex gap-1">
-                        <Button
-                          icon="pi pi-trash"
-                          severity="danger"
+                      <div class="flex justify-end gap-1">
+                        <CInputDelete
                           text
-                          rounded
                           size="small"
-                          @click="removeField(index)"
+                          :message="$t('module.edit.fields.deleteConfirm')"
+                          :header="
+                            module.fields[index]?.label ||
+                            module.fields[index]?.name ||
+                            $t('module.edit.fields.columns.name.label')
+                          "
+                          @confirm="removeField(index)"
                         />
                       </div>
                     </template>
@@ -206,13 +203,13 @@
           @click="$router.back()"
         />
         <div class="flex gap-2">
-          <Button
+          <CInputDelete
             v-if="isEdit && module.canDeleteModule"
             :label="$t('general.label.delete')"
-            icon="pi pi-trash"
-            severity="danger"
-            :loading="deleting"
-            @click="handleDelete"
+            :message="$t('module.edit.deleteConfirm')"
+            :header="module.name"
+            :disabled="deleting"
+            @confirm="handleDelete"
           />
           <Button
             :label="$t('general.label.save')"
@@ -231,7 +228,10 @@
 import { useModuleStore } from '@/stores/module'
 import { usePageStore } from '@/stores/page'
 import { compose } from '@cortezaproject/corteza-js-next'
+import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref, watch } from 'vue'
+
+const { CInputDelete, CRouterLinkButton } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -291,6 +291,7 @@ const handleState = computed(() => {
 })
 
 const canSave = computed(() => {
+  if (isEdit.value && !module.value?.canUpdateModule) return false
   return nameValid.value && handleState.value !== false
 })
 
@@ -396,32 +397,6 @@ async function handleDelete() {
     $toast.toastDanger(t('notification.module.deleteFailed'))
   } finally {
     deleting.value = false
-  }
-}
-
-function goToRecords() {
-  router.push({
-    name: 'admin.modules.record.list',
-    params: { moduleID: module.value.moduleID },
-  })
-}
-
-// Related Pages methods
-function goToRecordPageBuilder() {
-  if (recordPage.value) {
-    router.push({
-      name: 'admin.pages.builder',
-      params: { pageID: recordPage.value.pageID },
-    })
-  }
-}
-
-function goToRecordListPageBuilder() {
-  if (recordListPage.value) {
-    router.push({
-      name: 'admin.pages.builder',
-      params: { pageID: recordListPage.value.pageID },
-    })
   }
 }
 

@@ -1,4 +1,5 @@
 import { automation } from '@cortezaproject/corteza-js-next'
+import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
@@ -35,7 +36,7 @@ export interface Segment {
 export interface AutomationFunction {
   ref: string
   kind?: string
-  meta?: { short?: string; description?: string }
+  meta?: { short?: string; description?: string; icon?: IconDef | string }
   parameters?: Array<{
     argumentName: string
     types?: string[]
@@ -49,12 +50,25 @@ export interface AutomationFunction {
   segments?: Segment[]
 }
 
+// Constraint definition from construct library (allowed names + types)
+export interface CatalogConstraint {
+  name: string
+  types: string[]
+  meta?: Record<string, unknown>
+}
+
 // Trigger type from construct library catalog
 export interface AutomationTrigger {
   resourceType: string
   eventType: string
-  properties?: unknown
-  constraints?: unknown
+  meta?: { short?: string; description?: string; icon?: IconDef | string }
+  constraints?: CatalogConstraint[]
+  properties?: Array<{
+    name: string
+    type: string
+    meta?: { short?: string; description?: string }
+  }>
+  segments?: Segment[]
 }
 
 // API interface for type safety
@@ -89,6 +103,7 @@ export const useAutomationStore = defineStore('automation', () => {
   // Catalogs from backend (shared across app)
   const functions = ref<AutomationFunction[]>([])
   const triggers = ref<AutomationTrigger[]>([])
+  const catalogReady = ref(false)
 
   /**
    * Fetch list of automations from API
@@ -175,6 +190,7 @@ export const useAutomationStore = defineStore('automation', () => {
    */
   async function loadCatalog(api: AutomationAPI) {
     await Promise.all([loadFunctions(api), loadTriggers(api)])
+    catalogReady.value = true
   }
 
   /**
@@ -193,6 +209,7 @@ export const useAutomationStore = defineStore('automation', () => {
     error,
     functions,
     triggers,
+    catalogReady,
 
     // Actions
     fetchList,

@@ -3,6 +3,7 @@ welcome: Welcome to the TAQ workflow automation builder.
 newTaq: New TAQ
 save: Save
 run: Run
+enabled: Enabled
 selectTrigger: Select Trigger
 addStep: Add Step
 emptyState: Start by adding a trigger
@@ -51,6 +52,8 @@ nodePicker:
   noResults: No nodes found matching "{query}"
   categories:
     triggers: Triggers
+    triggersGeneral: General
+    triggersRecord: Record
     actions: Actions
     logic: Logic
   nodes:
@@ -99,21 +102,27 @@ nodePicker:
         label: Create User
         description: Create a new user
       composeRecordsCreate:
-        label: Create new record
+        label: Create record
         description: Records
     logic:
       branch:
         label: Branch
         description: Split flow
 
+referencePanel:
+  title: Step Results
+  noResults: No upstream steps with results
+
 form:
   selectPlaceholder: Select {field}
   selectFirst: Select {field} first
 
 fieldValueMap:
+  deleteConfirm: Are you sure you want to remove this field value?
   selectField: Select field
   enterValue: Enter value
   addRow: Add field value
+  addValue: Add value
   selectModuleFirst: Select a module first
 
 configSidebar:
@@ -128,6 +137,12 @@ branch:
   elseIf: Else If
   else: Else
 
+confirmDelete:
+  header: Delete Node
+  message: Are you sure you want to delete this node?
+  confirm: Delete
+  cancel: Cancel
+
 nodes:
   trigger: Trigger
   step: Step
@@ -135,3 +150,5 @@ nodes:
   end: End
   startAutomation: Start automation
   splitFlow: Split flow
+  menu:
+    delete: Delete

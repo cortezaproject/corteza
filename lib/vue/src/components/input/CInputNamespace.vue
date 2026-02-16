@@ -17,8 +17,9 @@
 
 <script setup>
 import { debounce } from 'lodash-es'
-import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CInputSelect from './CInputSelect.vue'
+import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
 
 const props = defineProps({
   modelValue: {
@@ -37,7 +38,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const $ComposeAPI = inject('$ComposeAPI')
+const store = useComposeResourceStore()
 
 const options = ref([])
 const selectedNamespace = ref(null)
@@ -52,8 +53,6 @@ function getOptionLabel(namespace) {
 }
 
 async function fetchNamespaces(query = '') {
-  if (!$ComposeAPI) return
-
   // Cancel previous request if pending
   if (cancelCurrentRequest) {
     cancelCurrentRequest()
@@ -62,7 +61,7 @@ async function fetchNamespaces(query = '') {
 
   loading.value = true
   try {
-    const { response, cancel } = $ComposeAPI.namespaceListCancellable({
+    const { response, cancel } = store.searchNamespaces({
       query,
       limit: 100,
     })
@@ -86,12 +85,11 @@ const debouncedFetch = debounce((query) => {
 }, 200)
 
 function onSearch(query) {
-  // If empty query (dropdown click) and we already have options, don't refetch
-  // This uses the preloaded data instead
-  if (!query && options.value.length > 0) {
-    return
+  if (!query) {
+    fetchNamespaces()
+  } else {
+    debouncedFetch(query)
   }
-  debouncedFetch(query)
 }
 
 function onSelect(value) {
@@ -100,7 +98,7 @@ function onSelect(value) {
 }
 
 async function loadNamespaceById(namespaceID) {
-  if (!namespaceID || !$ComposeAPI) return
+  if (!namespaceID) return
 
   // First check if already in options
   const existing = options.value.find(ns => ns.namespaceID === namespaceID)
@@ -109,14 +107,16 @@ async function loadNamespaceById(namespaceID) {
     return
   }
 
-  // Otherwise fetch it
+  // Resolve through store (cache-first)
   loading.value = true
   try {
-    const namespace = await $ComposeAPI.namespaceRead({ namespaceID })
-    selectedNamespace.value = namespace
-    // Add to options if not present
-    if (!options.value.find(ns => ns.namespaceID === namespaceID)) {
-      options.value = [...options.value, namespace]
+    const namespace = await store.resolveNamespace(namespaceID)
+    if (namespace) {
+      selectedNamespace.value = namespace
+      // Add to options if not present
+      if (!options.value.find(ns => ns.namespaceID === namespaceID)) {
+        options.value = [...options.value, namespace]
+      }
     }
   } catch (_e) {
     // Namespace not found or API error
@@ -134,7 +134,6 @@ watch(() => props.modelValue, (newVal) => {
 }, { immediate: true })
 
 onMounted(() => {
-  fetchNamespaces()
   if (props.modelValue) {
     loadNamespaceById(props.modelValue)
   }

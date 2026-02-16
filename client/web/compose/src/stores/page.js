@@ -55,7 +55,7 @@ export const usePageStore = defineStore('page', () => {
     try {
       const { set: pageSet } = await $ComposeAPI.pageList({
         namespaceID: nsID,
-        sort: 'title ASC',
+        sort: 'weight ASC',
       })
 
       if (pageSet && pageSet.length > 0) {
@@ -200,6 +200,69 @@ export const usePageStore = defineStore('page', () => {
     })
   }
 
+  async function loadTree({ namespaceID } = {}) {
+    const nsID = namespaceID || state.namespaceID
+    if (!nsID) {
+      return Promise.reject(new Error('namespaceID required'))
+    }
+
+    if (!$ComposeAPI) {
+      return Promise.reject(new Error('ComposeAPI not available via inject'))
+    }
+
+    state.loading = true
+
+    try {
+      const pages = await $ComposeAPI.pageTree({ namespaceID: nsID })
+      return pages || []
+    } catch (error) {
+      console.error('Failed to load page tree:', error)
+      throw error
+    } finally {
+      state.loading = false
+    }
+  }
+
+  async function reorder({ namespaceID, selfID, pageIDs } = {}) {
+    if (!$ComposeAPI) {
+      return Promise.reject(new Error('ComposeAPI not available via inject'))
+    }
+
+    try {
+      await $ComposeAPI.pageReorder({ namespaceID, selfID, pageIDs })
+    } catch (error) {
+      console.error('Failed to reorder pages:', error)
+      throw error
+    }
+  }
+
+  async function reparent({ namespaceID, pageID, newParentID, siblingPageIDs } = {}) {
+    if (!$ComposeAPI) {
+      return Promise.reject(new Error('ComposeAPI not available via inject'))
+    }
+
+    try {
+      // First, find the page to get current data for update
+      const page = getByID.value(pageID)
+      if (page) {
+        await $ComposeAPI.pageUpdate({
+          ...page,
+          namespaceID,
+          pageID,
+          selfID: newParentID,
+        })
+      }
+
+      // Then reorder children under the new parent
+      if (siblingPageIDs && siblingPageIDs.length > 0) {
+        await reorder({ namespaceID, selfID: newParentID, pageIDs: siblingPageIDs })
+      }
+    } catch (error) {
+      console.error('Failed to reparent page:', error)
+      throw error
+    }
+  }
+
   return {
     // state
     loading: toRef(state, 'loading'),
@@ -213,10 +276,13 @@ export const usePageStore = defineStore('page', () => {
 
     // actions
     load,
+    loadTree,
     findByID,
     create,
     update,
     delete: deletePage,
+    reorder,
+    reparent,
     clearSet,
     updateSet,
   }

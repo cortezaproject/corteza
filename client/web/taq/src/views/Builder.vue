@@ -9,6 +9,33 @@
   </div>
 
   <div v-else class="builder-layout h-full flex flex-col relative overflow-hidden">
+    <!-- Enabled toggle -->
+    <div
+      class="absolute top-3 left-3 z-20 flex items-center gap-3 bg-surface rounded-lg border border-surface px-3 py-2 shadow-sm"
+    >
+      <div class="flex items-center gap-2">
+        <ToggleSwitch
+          :model-value="editor.enabled.value"
+          @update:model-value="editor.enabled.value = $event"
+          input-id="taq-enabled"
+        />
+        <label for="taq-enabled" class="text-sm">{{ $t('builder.enabled') }}</label>
+      </div>
+      <template v-if="editor.automationId.value && !editor.isEmpty.value">
+        <Divider layout="vertical" class="!m-0" />
+        <Button
+          :label="$t('builder.run')"
+          icon="pi pi-play"
+          severity="success"
+          outlined
+          size="small"
+          :loading="editor.running.value"
+          :disabled="!editor.enabled.value || editor.running.value"
+          @click="editor.exec"
+        />
+      </template>
+    </div>
+
     <!-- VueFlow Canvas -->
     <div class="flex-1 min-h-0" @auxclick="onMiddleMouseClick">
       <VueFlow
@@ -33,13 +60,13 @@
 
         <!-- Custom node types -->
         <template #node-trigger="props">
-          <TriggerNode v-bind="props" />
+          <TriggerNode v-bind="props" @delete="confirmDeleteNode" />
         </template>
         <template #node-step="props">
-          <StepNode v-bind="props" />
+          <StepNode v-bind="props" @delete="confirmDeleteNode" />
         </template>
         <template #node-branch="props">
-          <BranchNode v-bind="props" />
+          <BranchNode v-bind="props" @delete="confirmDeleteNode" />
         </template>
         <template #node-end="props">
           <EndNode v-bind="props" />
@@ -53,14 +80,14 @@
     </div>
 
     <!-- Bottom Toolbar -->
-    <div v-if="!editor.isEmpty.value" class="shrink-0 z-10 body-bg">
+    <div class="shrink-0 z-10 body-bg">
       <CToolbar>
         <template #start>
-          <Button icon="pi pi-arrow-left" severity="secondary" @click="$router.push('/')" />
+          <CRouterLinkButton to="/" icon="pi pi-arrow-left" severity="secondary" />
         </template>
         <template #center>
           <!-- Zoom -->
-          <div class="flex items-center gap-1">
+          <div v-if="!editor.isEmpty.value" class="flex items-center gap-1">
             <Button icon="pi pi-minus" severity="secondary" @click="zoomOut" />
             <Button icon="pi pi-arrows-alt" severity="secondary" @click="fitToScreen" />
             <Button icon="pi pi-plus" severity="secondary" @click="zoomIn" />
@@ -84,15 +111,6 @@
               />
             </div>
             <Divider layout="vertical" class="!m-0" />
-            <Button
-              :label="$t('builder.run')"
-              icon="pi pi-play"
-              severity="success"
-              outlined
-              :loading="editor.running.value"
-              :disabled="editor.running.value || !editor.automationId.value"
-              @click="editor.exec"
-            />
             <Button
               :label="$t('builder.save')"
               icon="pi pi-save"
@@ -121,6 +139,27 @@
       />
     </Dialog>
 
+    <!-- Reference Panel (opens on input click, closes via button or sidebar close) -->
+    <Transition
+      enter-active-class="transition-transform duration-200 ease-out"
+      enter-from-class="translate-x-[280px]"
+      enter-to-class="translate-x-0"
+    >
+      <div
+        v-if="selectedNode && showReferencePanel"
+        class="absolute top-0 bottom-[63px] my-7 bg-surface border-l border-surface shadow z-30 rounded-xl"
+        :style="{ right: `calc(${drawerWidth}px + 1rem)`, width: '280px' }"
+      >
+        <ReferencePanel
+          :upstream-results="upstreamResults"
+          :active-argument="activeReferenceArgument"
+          :current-reference="currentReference"
+          @select="handleReferenceSelect"
+          @close="closeReferencePanel"
+        />
+      </div>
+    </Transition>
+
     <!-- Config Sidebar (resizable drawer) -->
     <Transition
       enter-active-class="transition-transform duration-300 ease-in-out"
@@ -132,7 +171,7 @@
     >
       <div
         v-if="selectedNode"
-        class="config-drawer absolute top-0 right-0 bottom-[63px] bg-surface border-l border-surface z-30 flex"
+        class="config-drawer flex absolute top-0 right-0 bottom-[63px] m-3 bg-surface border-l border-surface shadow z-30 rounded-xl"
         :style="{ width: `${drawerWidth}px` }"
       >
         <!-- Resize handle -->
@@ -143,15 +182,20 @@
         <!-- Drawer content -->
         <div class="flex-1 overflow-auto p-4">
           <ConfigSidebar
+            ref="configSidebarRef"
             :node="selectedNode"
             :edges="editor.edges.value"
             :nodes="editor.nodes.value"
             :functions="store.functions"
+            :triggers="store.triggers"
+            :upstream-results="upstreamResults"
             @close="clearSelection"
             @delete="handleDeleteSelected"
             @add-branch="handleAddBranch"
             @reorder-branches="handleReorderBranches"
             @update-arguments="handleUpdateArguments"
+            @update-constraints="handleUpdateConstraints"
+            @toggle-reference="handleToggleReference"
           />
         </div>
       </div>
@@ -181,13 +225,16 @@ import { useFlowEditor } from '@/composables/useFlowEditor'
 import { useAutomationStore } from '@/stores/automation'
 import { components } from '@cortezaproject/corteza-vue-next'
 
-const { CToolbar } = components
+const { CToolbar, CRouterLinkButton } = components
 
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useConfirmDelete } from '@cortezaproject/corteza-vue-next'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 
 import ConfigSidebar from '@/components/builder/ConfigSidebar.vue'
 import NodePicker from '@/components/builder/NodePicker.vue'
+import ReferencePanel from '@/components/builder/ReferencePanel.vue'
 import AddableEdge from '@/components/flow/AddableEdge.vue'
 import BranchNode from '@/components/flow/BranchNode.vue'
 import EndNode from '@/components/flow/EndNode.vue'
@@ -197,9 +244,8 @@ import TriggerNode from '@/components/flow/TriggerNode.vue'
 const route = useRoute()
 const store = useAutomationStore()
 const editor = useFlowEditor()
-
-// Inject API for catalog loading
-const $AutomationAPI = inject('$AutomationAPI')
+const { confirmDelete } = useConfirmDelete()
+const { t } = useI18n()
 
 // VueFlow instance for viewport control and selection
 const {
@@ -232,6 +278,11 @@ const showNodePicker = ref(false)
 const nodePickerCategory = ref(null)
 const insertionPoint = ref(null)
 
+// Reference panel state
+const showReferencePanel = ref(false)
+const activeReferenceArgument = ref(null)
+const configSidebarRef = ref(null)
+
 // Get selected node - look up from nodes array to get latest version after updates
 const selectedNode = computed(() => {
   const selected = getSelectedNodes.value
@@ -243,32 +294,51 @@ const selectedNode = computed(() => {
   return null
 })
 
+// Compute upstream results for the selected node
+const upstreamResults = computed(() => {
+  if (!selectedNode.value) return []
+  return editor.getUpstreamResults(selectedNode.value.id)
+})
+
+// Close reference panel when selected node changes (not on data updates)
+watch(
+  () => selectedNode.value?.id,
+  () => {
+    showReferencePanel.value = false
+    activeReferenceArgument.value = null
+  },
+)
+
 // Update edge highlighting when selection changes
-watch(() => getSelectedNodes.value, (selected) => {
-  const targetNode = selected?.[0]
-  
-  // First, clear all highlights
-  editor.edges.value.forEach(edge => {
-    edge.data = { ...edge.data, highlighted: false }
-  })
-  
-  if (!targetNode) return
-  
-  // Walk backwards from selected node to find all ancestor edges
-  const visited = new Set()
-  function walkBackwards(nodeId) {
-    if (visited.has(nodeId)) return
-    visited.add(nodeId)
-    
-    const incomingEdges = editor.edges.value.filter(e => e.target === nodeId)
-    incomingEdges.forEach(edge => {
-      edge.data = { ...edge.data, highlighted: true }
-      walkBackwards(edge.source)
+watch(
+  () => getSelectedNodes.value,
+  selected => {
+    const targetNode = selected?.[0]
+
+    // First, clear all highlights
+    editor.edges.value.forEach(edge => {
+      edge.data = { ...edge.data, highlighted: false }
     })
-  }
-  
-  walkBackwards(targetNode.id)
-}, { immediate: true, deep: true })
+
+    if (!targetNode) return
+
+    // Walk backwards from selected node to find all ancestor edges
+    const visited = new Set()
+    function walkBackwards(nodeId) {
+      if (visited.has(nodeId)) return
+      visited.add(nodeId)
+
+      const incomingEdges = editor.edges.value.filter(e => e.target === nodeId)
+      incomingEdges.forEach(edge => {
+        edge.data = { ...edge.data, highlighted: true }
+        walkBackwards(edge.source)
+      })
+    }
+
+    walkBackwards(targetNode.id)
+  },
+  { immediate: true, deep: true },
+)
 
 // Trigger VueFlow resize when sidebar opens/closes
 watch(selectedNode, () => {
@@ -339,6 +409,8 @@ function onPaneClick() {
 
 function clearSelection() {
   removeSelectedNodes(getSelectedNodes.value)
+  showReferencePanel.value = false
+  activeReferenceArgument.value = null
 }
 
 // Track middle mouse click timing for double-click detection
@@ -385,6 +457,22 @@ function handleNodeSelect(nodeType) {
   showNodePicker.value = false
 }
 
+// Handle delete from node context menu (with confirmation)
+function confirmDeleteNode(nodeId) {
+  const node = editor.nodes.value.find(n => n.id === nodeId)
+  if (!node) return
+
+  confirmDelete({
+    message: t('builder.confirmDelete.message'),
+    header: t('builder.confirmDelete.header'),
+    icon: 'pi pi-trash',
+    onConfirm: () => {
+      editor.deleteNode(node)
+      clearSelection()
+    },
+  })
+}
+
 // Handle delete from sidebar or keyboard
 function handleDeleteSelected() {
   const selectedNodes = getSelectedNodes.value
@@ -427,6 +515,51 @@ function handleUpdateArguments(args) {
   }
 }
 
+// Handle constraint updates from ConfigSidebar (trigger nodes)
+function handleUpdateConstraints(constraints) {
+  const selected = getSelectedNodes.value?.[0]
+  if (!selected) return
+
+  const node = editor.nodes.value.find(n => n.id === selected.id)
+  if (node) {
+    editor.updateNodeData(node.id, { constraints })
+  }
+}
+
+// Compute current reference (scope + source) for the active argument
+const currentReference = computed(() => {
+  if (!activeReferenceArgument.value || !selectedNode.value) return null
+  const args = selectedNode.value.data?.arguments || []
+  const { name, target } = activeReferenceArgument.value
+
+  const match = target
+    ? args.find(a => a.argumentName === name && a.target === target)
+    : args.find(a => a.argumentName === name)
+
+  if (match?.scope && (match?.source || match?.expr)) {
+    return { scope: match.scope, source: match.source || match.expr }
+  }
+  return null
+})
+
+// Reference panel handlers
+function handleToggleReference(argumentInfo) {
+  // argumentInfo is { name: string, types: string[] } from FunctionForm
+  activeReferenceArgument.value = argumentInfo
+  showReferencePanel.value = true
+}
+
+function handleReferenceSelect({ scope, source }) {
+  if (!activeReferenceArgument.value) return
+  const { name, target } = activeReferenceArgument.value
+  configSidebarRef.value?.applyReference(name, { scope, source }, target)
+}
+
+function closeReferencePanel() {
+  showReferencePanel.value = false
+  activeReferenceArgument.value = null
+}
+
 // Handle keyboard deletion
 function onKeyDown(event) {
   if (event.key === 'Delete' || event.key === 'Backspace') {
@@ -436,9 +569,8 @@ function onKeyDown(event) {
   }
 }
 
-// Load catalog on mount
-onMounted(async () => {
-  await store.loadCatalog($AutomationAPI)
+// Catalog is pre-loaded by App.vue; just register keyboard listener
+onMounted(() => {
   window.addEventListener('keydown', onKeyDown)
 })
 
@@ -446,17 +578,18 @@ onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
 })
 
-// Watch route for changes
+// Watch route for changes (waits for catalog to be ready)
 watch(
-  () => route.params.id,
-  async id => {
+  [() => route.params.id, () => store.catalogReady],
+  async ([id, ready]) => {
+    if (!ready) return
     if (id && id !== 'new') {
       await editor.load(id)
     } else {
       editor.reset()
     }
   },
-  { immediate: true }
+  { immediate: true },
 )
 </script>
 

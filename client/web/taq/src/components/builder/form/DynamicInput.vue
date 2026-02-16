@@ -4,19 +4,33 @@
       {{ label }}
       <span v-if="required" class="text-red-500">*</span>
     </label>
-    <component
-      :is="inputComponent"
-      :model-value="modelValue"
-      @update:model-value="$emit('update:modelValue', $event)"
-      :placeholder="effectivePlaceholder"
-      :disabled="disabled"
-      v-bind="$attrs"
+
+    <!-- Reference chip mode (only for non-aggregate inputs) -->
+    <CReferenceChip
+      v-if="isReference && !isAggregate"
+      :label="referenceLabel"
+      @click="$emit('toggleReference', argument)"
+      @clear="$emit('clearReference', argument)"
     />
+
+    <!-- Normal input mode — click opens reference panel (skip for aggregate types) -->
+    <div v-else @click="!isAggregate && onInputClick()">
+      <component
+        :is="inputComponent"
+        :model-value="modelValue"
+        @update:model-value="$emit('update:modelValue', $event)"
+        @toggle-row-reference="onRowReferenceToggle"
+        :placeholder="effectivePlaceholder"
+        :disabled="disabled"
+        v-bind="$attrs"
+      />
+    </div>
   </div>
 </template>
 
 <script setup>
-import { resolveInputComponent } from '@cortezaproject/corteza-vue-next/src/components/input/registry'
+import { resolveInputComponent } from './inputs/registry'
+import CReferenceChip from './CReferenceChip.vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -51,16 +65,48 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  argument: {
+    type: String,
+    default: '',
+  },
+  isReference: {
+    type: Boolean,
+    default: false,
+  },
+  referenceLabel: {
+    type: String,
+    default: '',
+  },
+  showReferenceToggle: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'toggleReference', 'clearReference'])
 
 const inputComponent = computed(() => resolveInputComponent(props.type))
+
+// Aggregate types handle their own per-row references (no whole-argument reference)
+const AGGREGATE_TYPES = ['FieldValueMap']
+const isAggregate = computed(() => AGGREGATE_TYPES.includes(props.type))
 
 const effectivePlaceholder = computed(() => {
   if (props.disabled && props.disabledPlaceholder) {
     return props.disabledPlaceholder
   }
-  return props.placeholder || (props.label ? t('builder.form.selectPlaceholder', { field: props.label.toLowerCase() }) : '')
+  return (
+    props.placeholder ||
+    (props.label ? t('builder.form.selectPlaceholder', { field: props.label.toLowerCase() }) : '')
+  )
 })
+
+function onInputClick() {
+  emit('toggleReference', props.argument)
+}
+
+// Handle per-row reference toggle from aggregate inputs (e.g. FieldValueMap)
+function onRowReferenceToggle(targetField) {
+  emit('toggleReference', { argument: props.argument, target: targetField })
+}
 </script>

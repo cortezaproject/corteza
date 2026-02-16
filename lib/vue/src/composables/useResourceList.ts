@@ -212,13 +212,13 @@ export function useResourceList<T = any>(
       await new Promise(resolve => setTimeout(resolve, 300))
 
       items.value = result.set || []
+      loading.value = false
     } catch (err) {
       if (!axios.isCancel(err)) {
         error.value = err as Error
         console.error('Failed to fetch items:', err)
+        loading.value = false
       }
-    } finally {
-      loading.value = false
     }
   }
 
@@ -250,6 +250,22 @@ export function useResourceList<T = any>(
     }
   }
 
+  // Navigate to a specific page using cursor
+  const handlePageChange = ({
+    pageCursor,
+    page,
+    limit,
+  }: {
+    pageCursor: string
+    page: number
+    limit?: number
+  }) => {
+    pagination.pageCursor = pageCursor
+    pagination.page = page
+    if (limit) pagination.limit = limit
+    fetchItems()
+  }
+
   // Abort all pending requests
   const abortRequests = () => {
     abortableRequests.forEach(cancel => cancel())
@@ -260,6 +276,25 @@ export function useResourceList<T = any>(
     const { namespaceID, slug } = data as { namespaceID?: string; slug?: string }
     router.push({ name: 'namespace.edit', params: { slug: slug || namespaceID } })
   }
+
+  // Debounced watcher on filter changes — auto-search as user types
+  let filterDebounceTimer: ReturnType<typeof setTimeout> | null = null
+  watch(
+    () => ({ ...filter }),
+    () => {
+      if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
+      filterDebounceTimer = setTimeout(() => {
+        filterList()
+      }, 300)
+    },
+    { deep: true },
+  )
+
+  // Cleanup debounce timer and pending requests
+  onBeforeUnmount(() => {
+    if (filterDebounceTimer) clearTimeout(filterDebounceTimer)
+    abortRequests()
+  })
 
   // Watch for route changes
   watch(
@@ -275,11 +310,6 @@ export function useResourceList<T = any>(
     fetchItems()
   })
 
-  // Cleanup on unmount
-  onBeforeUnmount(() => {
-    abortRequests()
-  })
-
   return {
     // State
     items: computed(() => items.value),
@@ -293,6 +323,7 @@ export function useResourceList<T = any>(
     fetchItems,
     filterList,
     handleSort,
+    handlePageChange,
     abortRequests,
     handleRowClick,
   }

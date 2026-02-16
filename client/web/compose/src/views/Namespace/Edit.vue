@@ -72,11 +72,7 @@
 
               <!-- Logo -->
               <div class="flex items-center gap-2">
-                <Checkbox
-                  id="logoEnabled"
-                  v-model="namespace.meta.logoEnabled"
-                  binary
-                />
+                <Checkbox id="logoEnabled" v-model="namespace.meta.logoEnabled" binary />
                 <label for="logoEnabled">{{ $t('namespace.logo.show') }}</label>
               </div>
 
@@ -110,11 +106,7 @@
 
               <!-- Sidebar -->
               <div class="flex items-center gap-2">
-                <Checkbox
-                  id="hideSidebar"
-                  v-model="namespace.meta.hideSidebar"
-                  binary
-                />
+                <Checkbox id="hideSidebar" v-model="namespace.meta.hideSidebar" binary />
                 <label for="hideSidebar">{{ $t('namespace.sidebar.hide') }}</label>
               </div>
             </form>
@@ -133,13 +125,13 @@
           @click="$router.back()"
         />
         <div class="flex gap-2">
-          <Button
+          <CInputDelete
             v-if="isEdit && namespace.canDeleteNamespace"
             :label="$t('general.label.delete')"
-            icon="pi pi-trash"
-            severity="danger"
-            :loading="deleting"
-            @click="handleDelete"
+            :message="$t('namespace.deleteConfirm')"
+            :header="namespace.name"
+            :disabled="deleting"
+            @confirm="handleDelete"
           />
           <Button
             :label="$t('general.label.save')"
@@ -157,7 +149,10 @@
 <script setup>
 import { useNamespaceStore } from '@/stores/namespace'
 import { compose } from '@cortezaproject/corteza-js-next'
+import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref, watch } from 'vue'
+
+const { CInputDelete } = components
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -192,6 +187,7 @@ const slugState = computed(() => {
 })
 
 const canSave = computed(() => {
+  if (isEdit.value && !namespace.value?.canUpdateNamespace) return false
   return nameValid.value && slugState.value !== false
 })
 
@@ -300,6 +296,6 @@ watch(
   () => route.params.slug,
   () => {
     loadNamespace()
-  }
+  },
 )
 </script>

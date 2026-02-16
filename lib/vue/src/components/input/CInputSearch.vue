@@ -1,35 +1,18 @@
 <template>
-  <InputGroup>
-    <IconField>
-      <InputText
-        :model-value="modelValue"
-        @update:model-value="$emit('update:modelValue', $event)"
-        :placeholder="placeholder"
-        class="w-full"
-      />
-      <InputIcon
-        v-show="submittable ? modelValue : true"
-        :class="getSearchIconClass()"
-        @click="clearSearch"
-      />
-    </IconField>
-
-    <InputGroupAddon v-if="submittable">
-      <Button
-        icon="pi pi-search"
-        severity="secondary"
-        variant="text"
-        class="text-primary w-14"
-        @click="$emit('search')"
-      />
-    </InputGroupAddon>
-  </InputGroup>
+  <IconField>
+    <InputText
+      :model-value="modelValue"
+      @update:model-value="$emit('update:modelValue', $event)"
+      :placeholder="placeholder"
+      :size="size"
+      class="w-full"
+    />
+    <InputIcon :class="getSearchIconClass()" @click="clearSearch" />
+  </IconField>
 </template>
 
 <script setup>
 import IconField from 'primevue/iconfield'
-import InputGroup from 'primevue/inputgroup'
-import InputGroupAddon from 'primevue/inputgroupaddon'
 import InputIcon from 'primevue/inputicon'
 import InputText from 'primevue/inputtext'
 
@@ -42,13 +25,13 @@ const props = defineProps({
     type: String,
     default: 'Search...',
   },
-  submittable: {
-    type: Boolean,
-    default: false,
+  size: {
+    type: String,
+    default: undefined,
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'search'])
+const emit = defineEmits(['update:modelValue'])
 
 const getSearchIconClass = () => {
   return !props.modelValue

@@ -36,11 +36,11 @@
       </main>
 
       <Toast
+        position="top-center"
         :pt="{
           root: {
             style: {
-              top: 'calc(var(--topbar-height) + 20px)',
-              right: '17px',
+              top: 'var(--topbar-height)',
             },
           },
           messageIcon: {
@@ -144,4 +144,3 @@ watch(
   { immediate: true },
 )
 </script>
-

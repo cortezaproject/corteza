@@ -3,20 +3,20 @@ label:
     namespace:
       list: Namespaces
       create: Create Namespace
-      edit: "Edit Namespace - {{label}}"
+      edit: 'Edit Namespace - {{label}}'
       view: Namespace
     module:
-      list: "Modules - {{label}}"
+      list: 'Modules - {{label}}'
       create: Create Module
-      edit: "Edit Module - {{label}}"
+      edit: 'Edit Module - {{label}}'
     page:
-      list: "Pages - {{label}}"
-      builder: "PageBuilder - {{label}}"
-      edit: "Edit Page - {{label}}"
-      record: "Record - {{label}}"
+      list: 'Pages - {{label}}'
+      builder: 'PageBuilder - {{label}}'
+      edit: 'Edit Page - {{label}}'
+      record: 'Record - {{label}}'
     chart:
-      list: "Charts - {{label}}"
-      edit: "Edit Chart - {{label}}"
+      list: 'Charts - {{label}}'
+      edit: 'Edit Chart - {{label}}'
       create: Create Chart
   actions: Actions
   active: Active
@@ -25,7 +25,7 @@ label:
   addNew: Add new
   addValue: Add new value
   ascending: Ascending
-  attachmentFileInfo: "(File size: {{0}}, uploaded {{1}})"
+  attachmentFileInfo: '(File size: {{0}}, uploaded {{1}})'
   attributes: Attributes
   back: Back
   backWithoutSave: Back (without saving changes)
@@ -69,7 +69,6 @@ label:
   none: None
   now: Now
   ok: Ok
-  page: Page
   pageLayout: Page layout
   pageBuilder: Page builder
   permissions: Permissions
@@ -91,8 +90,8 @@ label:
   saveAsCopy: Save as copy
   search: Search
   status: Status
-  timeHour: "{{t}}h"
-  timeMinute: "{{t}}min"
+  timeHour: '{{t}}h'
+  timeMinute: '{{t}}min'
   today: Today
   title: Title
   type: Type
@@ -112,6 +111,9 @@ label:
   module:
     single: Module
     plural: Modules
+  page:
+    single: Page
+    plural: Pages
 navigation:
   chart: Charts
   namespace: Namespaces
@@ -183,9 +185,8 @@ resourceList:
   pagination:
     next: Next
     prev: Previous
-    showing: "{{from}} - {{to}} of {{count}} {{data}}"
-    single_one: "One {{data}}"
-    single_other: "{{count}} {{data}}"
+    showing: '{from} - {to} of {count} {data}'
+    single: 'No {data} | One {data} | {count} {data}'
     recordsPerPage: Per Page
 recordNavigation:
   next: Next record
@@ -225,5 +226,5 @@ extendSession:
     extend: Extend Session
     warning: You will be logged out in {{ countdownTime }} seconds
 
-changes_one: "{{count}} change"
-changes_other: "{{count}} changes"
+changes_one: '{{count}} change'
+changes_other: '{{count}} changes'

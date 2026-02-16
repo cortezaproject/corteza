@@ -1,14 +1,14 @@
 import { automation } from '@cortezaproject/corteza-js-next'
+import { withMinDuration } from '@cortezaproject/corteza-vue-next'
+import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import type { Edge, Node } from '@vue-flow/core'
 import { computed, inject, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-import {
-  applyDagreLayout,
-  automationToVueFlow,
-  type FlowNodeData,
-} from '@/utils/taq-parser'
+import { useAutomationStore } from '@/stores/automation'
+import { applyDagreLayout, automationToVueFlow, type FlowNodeData } from '@/utils/taq-parser'
 
 const { NgAutomation } = automation
 type NgAutomationInstance = InstanceType<typeof NgAutomation>
@@ -25,7 +25,7 @@ interface NodeType {
   type: string
   label: string
   description?: string
-  icon?: string
+  icon?: IconDef
   ref?: string
   kind?: string
   eventType?: string
@@ -69,6 +69,13 @@ export function useFlowEditor() {
     },
   })
 
+  const enabled = computed({
+    get: () => automation.value.enabled ?? false,
+    set: (val: boolean) => {
+      automation.value.enabled = val
+    },
+  })
+
   // History management
   function saveToHistory() {
     const state = JSON.stringify({ nodes: nodes.value, edges: edges.value })
@@ -97,11 +104,15 @@ export function useFlowEditor() {
   async function load(id: string) {
     loading.value = true
     try {
-      const response = await $AutomationAPI.ngAutomationRead({ automationID: id })
+      const response = await withMinDuration($AutomationAPI.ngAutomationRead({ automationID: id }))
       automation.value = new NgAutomation(response)
 
-      // Convert to VueFlow format
-      const state = automationToVueFlow(automation.value)
+      // Convert to VueFlow format (catalog resolves icons inline)
+      const store = useAutomationStore()
+      const state = automationToVueFlow(automation.value, {
+        functions: store.functions,
+        triggers: store.triggers,
+      })
       nodes.value = state.nodes
       edges.value = state.edges
 
@@ -146,8 +157,9 @@ export function useFlowEditor() {
             triggerID: newID,
             handle: `trigger_${newID}`,
             enabled: existing?.enabled ?? true,
-            resourceType: existing?.resourceType || '',
+            resourceType: data.resourceType || existing?.resourceType || '',
             eventType: data.nodeType || existing?.eventType || '',
+            constraints: data.constraints || existing?.constraints || [],
             meta: {
               short: data.label,
               description: data.description || '',
@@ -229,7 +241,11 @@ export function useFlowEditor() {
       automation.value = new NgAutomation(response)
 
       // Reload the flow to get proper IDs from backend
-      const state = automationToVueFlow(automation.value)
+      const store = useAutomationStore()
+      const state = automationToVueFlow(automation.value, {
+        functions: store.functions,
+        triggers: store.triggers,
+      })
       nodes.value = state.nodes
       edges.value = state.edges
 
@@ -293,6 +309,7 @@ export function useFlowEditor() {
         enabled: true,
         resourceType: nodeType.resourceType || '',
         eventType: nodeType.eventType || nodeType.ref || '',
+        constraints: [],
         meta: {
           short: nodeType.label,
           description: nodeType.description || '',
@@ -330,9 +347,13 @@ export function useFlowEditor() {
         label: nodeType.label,
         description: nodeType.description,
         icon: nodeType.icon,
-        nodeType: nodeType.ref || (isEnd ? 'end' : ''),
+        nodeType: isTrigger
+          ? nodeType.eventType || nodeType.ref || ''
+          : nodeType.ref || (isEnd ? 'end' : ''),
         config: {},
         arguments: [],
+        constraints: isTrigger ? [] : undefined,
+        resourceType: isTrigger ? nodeType.resourceType || '' : undefined,
         ref: newHandle,
         stepID: isTrigger ? undefined : newId,
         triggerID: isTrigger ? newId : undefined,
@@ -355,7 +376,7 @@ export function useFlowEditor() {
         data: {
           label: t('builder.nodes.end'),
           nodeType: 'termination',
-          icon: 'pi pi-stop-circle',
+          icon: DEFAULT_ICONS.END,
           config: {},
           arguments: [],
           ref: endVueId,
@@ -408,7 +429,7 @@ export function useFlowEditor() {
             data: {
               label: t('builder.nodes.end'),
               nodeType: 'termination',
-              icon: 'pi pi-stop-circle',
+              icon: DEFAULT_ICONS.END,
               config: {},
               arguments: [],
               ref: noEndVueId,
@@ -503,7 +524,7 @@ export function useFlowEditor() {
             data: {
               label: t('builder.nodes.end'),
               nodeType: 'termination',
-              icon: 'pi pi-stop-circle',
+              icon: DEFAULT_ICONS.END,
               config: {},
               arguments: [],
               ref: newEndId,
@@ -552,7 +573,7 @@ export function useFlowEditor() {
             data: {
               label: t('builder.nodes.end'),
               nodeType: 'termination',
-              icon: 'pi pi-stop-circle',
+              icon: DEFAULT_ICONS.END,
               config: {},
               arguments: [],
               ref: newEndId,
@@ -623,6 +644,14 @@ export function useFlowEditor() {
       }
     }
 
+    // Update trigger constraints in automation model
+    if (dataUpdate.constraints && newData.triggerID) {
+      const trigger = automation.value.triggers?.find((t: any) => t.triggerID === newData.triggerID)
+      if (trigger) {
+        trigger.constraints = dataUpdate.constraints
+      }
+    }
+
     saveToHistory()
   }
 
@@ -652,7 +681,7 @@ export function useFlowEditor() {
       data: {
         label: t('builder.nodes.end'),
         nodeType: 'termination',
-        icon: 'pi pi-stop-circle',
+        icon: DEFAULT_ICONS.END,
         config: {},
         arguments: [],
         ref: newEndId,
@@ -741,6 +770,107 @@ export function useFlowEditor() {
     }
   }
 
+  /**
+   * Walk edges backward from a node to find all upstream step nodes,
+   * then look up each step's function definition to get its results.
+   */
+  function getUpstreamResults(nodeId: string) {
+    const store = useAutomationStore()
+    const upstream: Array<{
+      handle: string
+      label: string
+      icon?: IconDef
+      results: Array<{
+        name: string
+        sourceName: string
+        types: string[]
+        expandable?: boolean
+        namespaceID?: string
+        moduleID?: string
+      }>
+    }> = []
+
+    // Walk backward through edges to find all ancestor nodes
+    const visited = new Set<string>()
+    const queue = [nodeId]
+
+    while (queue.length > 0) {
+      const currentId = queue.shift()!
+      if (visited.has(currentId)) continue
+      visited.add(currentId)
+
+      const incomingEdges = edges.value.filter(e => e.target === currentId)
+      for (const edge of incomingEdges) {
+        queue.push(edge.source)
+      }
+    }
+
+    // Remove the node itself from visited
+    visited.delete(nodeId)
+
+    // Helper: resolve a trigger constraint value by property name
+    function getTriggerConstraintValue(nodeData: any, propName: string): string | null {
+      const constraints = nodeData?.constraints || []
+      const c = constraints.find((cc: any) => cc.name === propName)
+      return c?.values?.[0]?.['@value'] ?? null
+    }
+
+    // For each ancestor node, look up results (functions) or properties (triggers)
+    for (const ancestorId of visited) {
+      const node = nodes.value.find(n => n.id === ancestorId)
+      if (!node || node.type === 'end') continue
+
+      if (node.type === 'trigger') {
+        // Look up trigger definition for properties
+        const eventType = node.data?.nodeType
+        const resourceType = node.data?.resourceType
+        const triggerDef = store.triggers.find(
+          t => t.eventType === eventType && (!resourceType || t.resourceType === resourceType),
+        )
+        if (!triggerDef?.properties?.length) continue
+
+        upstream.push({
+          handle: node.data?.ref || ancestorId,
+          label: node.data?.label || triggerDef.meta?.short || triggerDef.eventType,
+          icon: (triggerDef.meta?.icon || node.data?.icon) as IconDef | undefined,
+          results: triggerDef.properties.map(p => {
+            const result: any = {
+              name: p.meta?.short || p.name,
+              sourceName: p.name,
+              types: p.type ? [p.type] : [],
+            }
+
+            // Mark record-type properties as expandable and attach constraint IDs
+            if (p.type === 'ComposeRecord') {
+              result.expandable = true
+              result.namespaceID = getTriggerConstraintValue(node.data, 'namespace')
+              result.moduleID = getTriggerConstraintValue(node.data, 'module')
+            }
+
+            return result
+          }),
+        })
+      } else {
+        // Look up function definition for results
+        const funcDef = store.functions.find(f => f.ref === node.data?.nodeType)
+        if (!funcDef?.results?.length) continue
+
+        upstream.push({
+          handle: node.data?.ref || ancestorId,
+          label: node.data?.label || funcDef.meta?.short || funcDef.ref,
+          icon: (funcDef.meta?.icon || node.data?.icon) as IconDef | undefined,
+          results: funcDef.results.map(r => ({
+            name: r.argumentName,
+            sourceName: r.argumentName,
+            types: r.types || [],
+          })),
+        })
+      }
+    }
+
+    return upstream
+  }
+
   return {
     // State
     automation,
@@ -752,6 +882,7 @@ export function useFlowEditor() {
 
     // Computed
     name,
+    enabled,
     automationId,
     isEmpty,
     canUndo,
@@ -770,5 +901,6 @@ export function useFlowEditor() {
     deleteNode,
     updateNodeData,
     saveToHistory,
+    getUpstreamResults,
   }
 }

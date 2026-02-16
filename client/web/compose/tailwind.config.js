@@ -8,5 +8,12 @@ export default {
     '../../../lib/vue/src/**/*.{vue,js,ts}',
   ],
   darkMode: ['selector', '[class~="dark"]'],
+  theme: {
+    extend: {
+      borderColor: {
+        DEFAULT: 'var(--p-content-border-color)',
+      },
+    },
+  },
   plugins: [PrimeUI],
 }

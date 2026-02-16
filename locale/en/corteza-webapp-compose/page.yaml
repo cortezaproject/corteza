@@ -18,8 +18,8 @@ page-layout:
     label: Condition
     placeholder: When will the layout be shown
     description:
-      record-page: "You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}"
-      non-record-page: "You can use {{0}}, {{1}} inside  the expression, for example: {{2}} or {{3}}"
+      record-page: 'You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}'
+      non-record-page: 'You can use {{0}}, {{1}} inside  the expression, for example: {{2}} or {{3}}'
   roles:
     label: Roles
     placeholder: Pick roles that the layout will be shown to
@@ -65,7 +65,7 @@ page-layout:
     condition: Condition
     selectPlaceholder: Select a field
     conditionPlaceholder: If no condition is set, the field will be required
-    help: "You can use {{0}}, {{1}}, {{2}} inside the expression to define when a field should be required"
+    help: 'You can use {{0}}, {{1}}, {{2}} inside the expression to define when a field should be required'
 
 block:
   general:
@@ -81,7 +81,7 @@ block:
     invalid-handle-characters: Should be at least 2 characters long. Can contain only letters, numbers, underscores and dots. Must end with letter or number
 changeBlock: Change existing block
 referencedBlock: This block is used in other layouts
-copyOf: "Copy of {{title}}"
+copyOf: 'Copy of {{title}}'
 build:
   addBlock: Add block
   selectBlockTitle: Select type of the new block
@@ -93,7 +93,14 @@ edit:
   edit: Edit page
   otherOptions: Other options
   pageDescription: Page description
+  pageInfo: Page information
+  settings: Settings
   visible: Is page visible
+  deleteConfirm: Are you sure you want to delete this page?
+  parentPage: Parent page
+  noParent: No parent (top-level)
+  viewPage: View page
+  pageBuilder: Page builder
   notifications:
     enabled: Show record save notifications
 icon:
@@ -128,6 +135,8 @@ navigation:
   editModule: Edit module
 noBlock: No block added yet
 noPages: No pages
+createLabel: New Page
+searchPlaceholder: Search pages...
 notVisible: Hidden
 pageMoveFailed: Could not move this page
 reordered: Page reordered
@@ -160,3 +169,5 @@ public:
       title: '{{name}} - Editing Record'
     view:
       title: '{{name}} - Viewing Record'
+    toolbar:
+      deleteConfirm: Are you sure you want to delete this record? This action cannot be undone.

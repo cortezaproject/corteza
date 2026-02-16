@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@cortezaproject/corteza-js-next": "workspace:*",
-    "@cortezaproject/corteza-vue-next": "workspace:*"
+    "@cortezaproject/corteza-vue-next": "workspace:*",
+    "grid-layout-plus": "^1.1.1"
   }
 }

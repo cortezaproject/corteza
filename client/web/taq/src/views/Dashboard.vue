@@ -46,14 +46,14 @@
             {{ $t('dashboard.updated', { date: formatDate(automation.updatedAt) }) }}
           </p>
           <!-- Delete button -->
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
+          <CInputDelete
             text
-            rounded
             size="small"
             class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-            @click.stop="confirmDelete(automation)"
+            :message="$t('dashboard.dialog.delete.confirm', { name: automation.meta?.short || $t('dashboard.untitled') })"
+            :header="$t('dashboard.dialog.delete.header')"
+            @confirm="handleDelete(automation)"
+            @click.stop
           />
         </template>
       </Card>
@@ -119,14 +119,15 @@
 
 <script setup>
 import { useAutomationStore } from '@/stores/automation'
-import { useConfirm } from 'primevue/useconfirm'
+import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
+const { CInputDelete } = components
+
 const { t } = useI18n()
 const router = useRouter()
-const confirm = useConfirm()
 const automationStore = useAutomationStore()
 
 // Inject API client and auth
@@ -204,29 +205,12 @@ function openAutomation(id) {
   router.push(`/builder/${id}`)
 }
 
-function confirmDelete(automation) {
-  const name = automation.meta?.short || t('dashboard.untitled')
-  confirm.require({
-    message: t('dashboard.dialog.delete.confirm', { name }),
-    header: t('dashboard.dialog.delete.header'),
-    icon: 'pi pi-exclamation-triangle',
-    rejectProps: {
-      label: t('dashboard.button.cancel'),
-      severity: 'secondary',
-      outlined: true,
-    },
-    acceptProps: {
-      label: t('dashboard.button.delete'),
-      severity: 'danger',
-    },
-    accept: async () => {
-      try {
-        await automationStore.remove($AutomationAPI, automation.automationID)
-      } catch (e) {
-        console.error('Failed to delete automation:', e)
-      }
-    },
-  })
+async function handleDelete(automation) {
+  try {
+    await automationStore.remove($AutomationAPI, automation.automationID)
+  } catch (e) {
+    console.error('Failed to delete automation:', e)
+  }
 }
 
 function formatDate(dateStr) {

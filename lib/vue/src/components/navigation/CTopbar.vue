@@ -3,9 +3,9 @@
     class="header-navigation flex flex-wrap items-center py-2 px-3 gap-2 border-b border-surface"
   >
     <!-- Sidebar toggle + small logo -->
-    <div class="flex items-center gap-1">
+    <div>
       <!-- When sidebar is disabled on this route, show only icon logo -->
-      <img v-if="sidebarDisabled" :src="iconLogo" class="h-8 w-auto object-contain p-2" />
+      <img v-if="sidebarDisabled" :src="iconLogo" class="h-8 w-8 object-contain" />
 
       <!-- Normal mode: hamburger toggle only when collapsed -->
       <template v-else>
@@ -86,7 +86,6 @@
 <script setup>
 import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
-import Menu from 'primevue/menu'
 import TieredMenu from 'primevue/tieredmenu'
 import { computed, inject, ref, watch } from 'vue'
 

@@ -26,7 +26,7 @@ automation:
   noScripts: There are no manual scripts compatible with this page block
   removeAll: Remove all
   searchPlaceholder: Filter available scripts by label, script name and description
-  stepID: "Starting step ID: {{stepID}}"
+  stepID: 'Starting step ID: {{stepID}}'
   variants:
     primary: Primary
     secondary: Secondary
@@ -168,8 +168,8 @@ general:
       label: Condition
       placeholder: When will the block be shown
       description:
-        record-page: "You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}"
-        non-record-page: "You can use {{0}}, {{1}} inside  the expression, for example: {{2}} or {{3}}"
+        record-page: 'You can use {{0}}, {{1}}, {{2}}, {{3}} inside  the expression, for example: {{4}} or {{5}}'
+        non-record-page: 'You can use {{0}}, {{1}} inside  the expression, for example: {{2}} or {{3}}'
     tooltip:
       performance:
         condition: Using visibility conditions will impact performance
@@ -286,7 +286,7 @@ record:
   invalidRecordVar: Can not use ${record...} variable in non-record pages
   label: Record
   listLoadFailed: Could not load record list
-  moduleOrPageNotSet: "RecordList block error: module or page option not set"
+  moduleOrPageNotSet: 'RecordList block error: module or page option not set'
   moduleMismatch: Module incompatible, module mismatch
   horizontalFormLayout: Horizontal form layout
   inlineEdit:
@@ -327,7 +327,7 @@ record:
   recordSelectorAddRecordDisplayOption: When adding a record via record selector
 recordList:
   noModule: No module selected
-  addRecord: Add
+  addRecord: New Record
   cancelSelection: Cancel
   customFilter: Custom filter
   prefilter:
@@ -381,11 +381,11 @@ recordList:
       pipe:
         label: value 1|value 2|...|value n
       semicolonArray:
-        label: "[value 1;value 2;...;value n]"
+        label: '[value 1;value 2;...;value n]'
       commaArray:
-        label: "[value 1,value 2,...,value n]"
+        label: '[value 1,value 2,...,value n]'
       pipeArray:
-        label: "[value 1|value 2|...|value n]"
+        label: '[value 1|value 2|...|value n]'
     query:
       label: Search query
       placeholder: Search...
@@ -406,10 +406,10 @@ recordList:
     inRange: Date range
     includeQuery: Filter by search query
     json: JSON Export
-    limitations: "CSV export limitation: only the first value in the multi value fields will be exported"
+    limitations: 'CSV export limitation: only the first value in the multi value fields will be exported'
     rangeBy: Set range by
-    recordCount: "{{count}} records ready for export"
-    selectFields: "Select fields you want to export:"
+    recordCount: '{{count}} records ready for export'
+    selectFields: 'Select fields you want to export:'
     selection: Selected records
     specifyTimezone: Export to timezone
     timezonePlaceholder: Select timezone
@@ -422,7 +422,7 @@ recordList:
     addField: Add new filter field
     byValue: Filter records based on field value
     addFilterToPreset: Save as preset
-    nil: "NULL"
+    nil: 'NULL'
     conditions:
       and: AND
       or: OR
@@ -445,7 +445,7 @@ recordList:
     fieldValuePlaceholder: Input field filter
     including: Including
     label: Filter
-    note: "Note: If Field value is undefined, the filter will look for records where that field value is undefined."
+    note: 'Note: If Field value is undefined, the filter will look for records where that field value is undefined.'
     only: Only
     operators:
       like: Like
@@ -466,7 +466,7 @@ recordList:
     reset: Reset Filter
     filters:
       label: Filters
-      active: "Active filters:"
+      active: 'Active filters:'
     name:
       label: Name
       placeholder: Filter name
@@ -482,13 +482,13 @@ recordList:
   hideConfigureFieldsButton: Users will be able to configure which fields to display
   enableRecordPageNavigation: Users will be able to navigate to previous/next record
   import:
-    dropzoneFileAdded: "{{name}} was uploaded and is ready for import ({{count}} record)"
-    dropzoneFileAdded_plural: "{{name}} was uploaded and is ready for import ({{count}} records)"
+    dropzoneFileAdded: '{{name}} was uploaded and is ready for import ({{count}} record)'
+    dropzoneFileAdded_plural: '{{name}} was uploaded and is ready for import ({{count}} records)'
     dropzoneLabel: Click or drop file here to upload (.csv or JSON)
-    failed: "Something went wrong during the import. Please try again: {{failReason}}"
+    failed: 'Something went wrong during the import. Please try again: {{failReason}}'
     fileColumns: File columns
-    hasRequiredFileFields: "This module has required file upload fields"
-    matchFields: "Match imported columns with existing ones"
+    hasRequiredFileFields: 'This module has required file upload fields'
+    matchFields: 'Match imported columns with existing ones'
     moduleFields: Module fields
     onError: If any record fails to import
     onErrorFail: Cancel import
@@ -509,11 +509,11 @@ recordList:
       pipe:
         label: value 1|value 2|...|value n
       semicolonArray:
-        label: "[value 1;value 2;...;value n]"
+        label: '[value 1;value 2;...;value n]'
       commaArray:
-        label: "[value 1,value 2,...,value n]"
+        label: '[value 1,value 2,...,value n]'
       pipeArray:
-        label: "[value 1|value 2|...|value n]"
+        label: '[value 1|value 2|...|value n]'
     report:
       count: Number of records
       detectedErrors: Detected errors
@@ -535,9 +535,9 @@ recordList:
   pagination:
     next: Next
     prev: Previous
-    showing: "{{from}} - {{to}} of {{count}} records"
+    showing: '{{from}} - {{to}} of {{count}} records'
     single_one: One record
-    single_other: "{{count}} records"
+    single_other: '{{count}} records'
     recordsPerPage: Per page
     selectLabel: Select an option
   positionField:
@@ -546,17 +546,17 @@ recordList:
     label: Record sort field
   preview:
     addRecordButton: Add record button
-    bePaged: "{{0}} be paged."
-    isDisabled: "{{0}} is disabled."
-    isEnabled: "{{0}} is enabled."
-    isHidden: "{{0}} is hidden."
-    isShown: "{{0}} is shown"
+    bePaged: '{{0}} be paged.'
+    isDisabled: '{{0}} is disabled.'
+    isEnabled: '{{0}} is enabled.'
+    isHidden: '{{0}} is hidden.'
+    isShown: '{{0}} is shown'
     moduleNotSelected: Block with table of records, module not selected.
-    recordFromModule: "Showing records from {{0}} module with columns: {{1}}"
-    recordsPerPage: "{{0}} records are shown per page."
+    recordFromModule: 'Showing records from {{0}} module with columns: {{1}}'
+    recordsPerPage: '{{0}} records are shown per page.'
     resultsCan: Results can
     resultsCant: Results can not
-    resultsPrefiltered: "Results are prefiltered:"
+    resultsPrefiltered: 'Results are prefiltered:'
     searchInput: Search inputbox
     sorting: Sorting
     tableHeader: Table header
@@ -625,8 +625,8 @@ recordList:
     footnote: Field that links records with the parent record
     label: Parent field
   selectable: Users will be able to select records
-  selected: "{{count}} of {{total}} records selected"
-  selectedFromAllPages: "All {{count}} records from all pages selected"
+  selected: '{{count}} of {{total}} records selected'
+  selectedFromAllPages: 'All {{count}} records from all pages selected'
   selectAllRecords: Select all records on all pages
   unselectAllRecords: Clear selection
   sort:
@@ -697,7 +697,7 @@ recordOrganizer:
     placeholder: Field that will hold the record position
     label: Record sort field
   preview:
-    label: "Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}."
+    label: 'Record Organizer block for module {{0}}. Label field {{1}}, Description field {{2}}. Value setting field: {{3}}, Sorted by position field: {{4}}.'
     moduleNotSelected: Record Organizer module not selected
   addNewRecord: + Add
 
@@ -711,7 +711,7 @@ recordRevisions:
       disabled-on-module: Record revisions are disabled on this module
 
     show-revisions: Show record revisions ({{ revision }})
-    show-changes: "{{ count }} change(s)"
+    show-changes: '{{ count }} change(s)'
 
     operations:
       created: Created
@@ -995,6 +995,10 @@ tabs:
         label: Title
       block:
         label: Block
+      lazy:
+        label: Lazy load
+        tooltip: When enabled, the tab content will only be rendered when the tab is first activated
+
   tooltip:
     edit: Edit block
     clone: Clone block & tab

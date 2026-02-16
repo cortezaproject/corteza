@@ -3,15 +3,7 @@
     <span>{{ $t('namespace.manage.title') }}</span>
   </Teleport>
 
-  <Teleport to="#topbar-tools" defer>
-    <Button asChild v-slot="slotProps" size="small">
-      <RouterLink :to="{ name: 'namespace.list' }" :class="slotProps.class">
-        {{ $t('namespace.manage.list-view') }}
-      </RouterLink>
-    </Button>
-  </Teleport>
-
-  <div class="container mx-auto p-3 h-full overflow-hidden">
+  <div class="container mx-auto p-4 h-full overflow-hidden">
     <CResourceList
       primary-key="namespaceID"
       :fields="namespaceFields"
@@ -20,18 +12,37 @@
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
+      :translations="{
+        showingPagination: 'general.resourceList.pagination.showing',
+        singlePluralPagination: 'general.resourceList.pagination.single',
+        prevPagination: $t('general.resourceList.pagination.prev'),
+        nextPagination: $t('general.resourceList.pagination.next'),
+        recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+        resourceSingle: $t('general.label.namespace.single'),
+        resourcePlural: $t('general.label.namespace.plural'),
+      }"
       clickable
       class="h-full"
       @sort="handleSort"
       @search="filterList"
       @row-click="handleRowClick"
+      @page-change="handlePageChange"
     >
       <template #header>
-        <Button asChild v-slot="slotProps" size="large">
-          <RouterLink :to="{ name: 'namespace.create' }" :class="slotProps.class">
-            {{ $t('namespace.manage.toolbar.buttons.create') }}
-          </RouterLink>
-        </Button>
+        <div class="flex items-center gap-2">
+          <CRouterLinkButton
+            :to="{ name: 'namespace.create' }"
+            :label="$t('namespace.manage.toolbar.buttons.create')"
+            icon="pi pi-plus"
+            size="small"
+          />
+          <CRouterLinkButton
+            :to="{ name: 'namespace.list' }"
+            :label="$t('namespace.manage.list-view')"
+            size="small"
+            severity="secondary"
+          />
+        </div>
       </template>
 
       <template #body-changedAt="{ data }">
@@ -42,31 +53,49 @@
         <Button
           icon="pi pi-ellipsis-v"
           text
-          rounded
           severity="secondary"
           size="small"
+          class="row-action-btn w-full mr-2"
           @click="toggleActionsMenu($event, data)"
         />
       </template>
     </CResourceList>
 
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup />
+    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
+      <template #item="{ item, props }">
+        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+            <span :class="item.icon" />
+            <span class="ml-2">{{ item.label }}</span>
+          </a>
+        </router-link>
+        <a v-else v-ripple v-bind="props.action" :class="item.class">
+          <span :class="item.icon" />
+          <span class="ml-2">{{ item.label }}</span>
+        </a>
+      </template>
+    </TieredMenu>
   </div>
 </template>
 
 <script setup>
-import { components, filters, useResourceList } from '@cortezaproject/corteza-vue-next'
-import { useConfirm } from 'primevue/useconfirm'
-import { useToast } from 'primevue/usetoast'
+import {
+  components,
+  filters,
+  useConfirmDelete,
+  useResourceList,
+} from '@cortezaproject/corteza-vue-next'
 import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-const { CResourceList } = components
+import { useRouter } from 'vue-router'
+const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters
 
 const { t } = useI18n()
+const router = useRouter()
 const $ComposeAPI = inject('$ComposeAPI')
-const confirm = useConfirm()
-const toast = useToast()
+const $toast = inject('$toast')
+const { confirmDelete } = useConfirmDelete()
 
 // Actions menu
 const actionsMenu = ref()
@@ -113,13 +142,21 @@ const {
   sorting,
   pagination,
   handleSort,
+  handlePageChange,
   filterList,
-  handleRowClick,
 } = useResourceList(params => $ComposeAPI.namespaceListCancellable(params), {
   filter: { query: '' },
   sorting: { sortBy: 'name', sortDesc: false },
   pagination: { limit: 50 },
 })
+
+function handleRowClick({ data }) {
+  if (!(data.canUpdateNamespace || data.canDeleteNamespace)) return
+  router.push({
+    name: 'namespace.edit',
+    params: { slug: data.slug || data.namespaceID },
+  })
+}
 
 // Actions menu methods
 const toggleActionsMenu = (event, namespace) => {
@@ -130,6 +167,17 @@ const toggleActionsMenu = (event, namespace) => {
 
 const getActionsMenuItems = namespace => {
   const items = []
+
+  if (namespace.canUpdateNamespace) {
+    items.push({
+      label: t('general.label.edit'),
+      icon: 'pi pi-pencil',
+      route: {
+        name: 'namespace.edit',
+        params: { slug: namespace.slug || namespace.namespaceID },
+      },
+    })
+  }
 
   if (namespace.canDeleteNamespace) {
     items.push({
@@ -143,34 +191,20 @@ const getActionsMenuItems = namespace => {
 }
 
 const handleDelete = namespace => {
-  confirm.require({
+  confirmDelete({
     message: t('namespace.manage.delete.confirm', {
       name: namespace.name || namespace.slug || namespace.namespaceID,
     }),
     header: t('general.label.delete'),
-    icon: 'pi pi-exclamation-triangle',
-    acceptLabel: t('general.label.delete'),
-    rejectLabel: t('general.label.cancel'),
-    accept: () => {
+    onConfirm: () => {
       $ComposeAPI
         .namespaceDelete({ namespaceID: namespace.namespaceID })
         .then(() => {
-          toast.add({
-            severity: 'success',
-            summary: t('general.notification.success'),
-            detail: t('namespace.manage.delete.success'),
-            life: 3000,
-          })
-          // Refresh the list
+          $toast.toastSuccess(t('namespace.manage.delete.success'))
           filterList()
         })
         .catch(error => {
-          toast.add({
-            severity: 'error',
-            summary: t('general.notification.error'),
-            detail: error.message || t('namespace.manage.delete.error'),
-            life: 5000,
-          })
+          $toast.toastDanger(error.message || t('namespace.manage.delete.error'))
         })
     },
   })

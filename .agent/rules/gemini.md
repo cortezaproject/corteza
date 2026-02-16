@@ -119,7 +119,7 @@ Dark mode uses class selector `[class~="dark"]` on root element.
 - **Always prefer Tailwind utility classes** over custom CSS in `<style>` blocks
 - Use Tailwind's arbitrary value syntax when needed: `w-[240px]`, `h-[32px]`
 - Only use `<style>` blocks for complex selectors, pseudo-elements, or CSS that can't be expressed with Tailwind
-- For colors, use PrimeVue CSS variables with Tailwind arbitrary values: `text-[--p-text-muted-color]`, `bg-[--p-primary-color]`
+- For colors, use PrimeVue CSS variables with Tailwind arbitrary values: `text-muted-color`, `bg-emphasis`
 
 ## Authentication
 
@@ -132,8 +132,7 @@ Uses OAuth 2.0 with PKCE flow via `AuthPlugin`. Access tokens are kept in memory
 - **In templates**: Use `$t('view.key')` - e.g., `{{ $t('dashboard.title') }}`
 - **In script setup**: Import `useI18n` and use `t()`:
   ```vue
-  import { useI18n } from 'vue-i18n'
-  const { t } = useI18n()
-  toast.add({ summary: t('builder.toast.saved.summary') })
+  import { useI18n } from 'vue-i18n' const { t } = useI18n() toast.add({ summary:
+  t('builder.toast.saved.summary') })
   ```
 - **Interpolation**: `$t('key', { name: value })` with `{name}` placeholders in YAML

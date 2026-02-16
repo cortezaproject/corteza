@@ -16,6 +16,7 @@ description:
   label: Namespace description
   placeholder: Enter namespace description
 disabled: Namespace is disabled
+deleteConfirm: Are you sure you want to delete this namespace? This action cannot be undone.
 edit: Edit namespace
 clone: Clone namespace
 cloneSuffix: copy

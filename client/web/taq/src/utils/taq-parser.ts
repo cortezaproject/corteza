@@ -1,12 +1,26 @@
 import type { automation } from '@cortezaproject/corteza-js-next'
+import type { IconDef } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { DEFAULT_ICONS, normalizeIcon } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import type { Edge, Node } from '@vue-flow/core'
 import dagre from 'dagre'
+
+import type { AutomationFunction, AutomationTrigger } from '@/stores/automation'
+import { TRIGGER_META, DEFAULT_TRIGGER_ICON } from '@/utils/flow-constants'
 
 type NgAutomation = automation.NgAutomation
 type NgAutomationTrigger = automation.NgAutomationTrigger
 type NgAutomationStep = automation.NgAutomationStep
 type NgAutomationPath = automation.NgAutomationPath
 type Expr = automation.Expr
+type TriggerConstraint = automation.TriggerConstraint
+
+/**
+ * Optional catalog data for resolving icons during conversion
+ */
+export interface ConversionCatalog {
+  functions?: AutomationFunction[]
+  triggers?: AutomationTrigger[]
+}
 
 /**
  * Node data structure for VueFlow nodes
@@ -14,10 +28,12 @@ type Expr = automation.Expr
 export interface FlowNodeData {
   label: string
   description?: string
-  icon?: string
+  icon?: IconDef
   nodeType: string // The step/trigger type ID (e.g., 'webhook', 'http-request')
   config: Record<string, unknown> // Used by triggers (maps to trigger.input)
   arguments: Expr[] // Used by steps (maps to step.arguments)
+  constraints?: TriggerConstraint[] // Used by triggers (maps to trigger.constraints)
+  resourceType?: string // Trigger resource type (e.g., 'compose:record')
   ref: string // Reference back to automation step/trigger ref
   stepID?: string // Backend step ID
   triggerID?: string // Backend trigger ID
@@ -47,8 +63,9 @@ const RANK_SEP = NODE_DIMENSIONS.VERTICAL_SEP
 
 /**
  * Convert NgAutomation (API format) to VueFlow state (frontend format)
+ * Pass catalog to resolve icons from the construct library inline.
  */
-export function automationToVueFlow(automation: NgAutomation): VueFlowState {
+export function automationToVueFlow(automation: NgAutomation, catalog?: ConversionCatalog): VueFlowState {
   const nodes: Node<FlowNodeData>[] = []
   const edges: Edge[] = []
 
@@ -68,10 +85,12 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
       data: {
         label: trigger.meta?.short || trigger.eventType || 'Trigger',
         description: trigger.meta?.description || '',
-        icon: getTriggerIcon(trigger.eventType),
+        icon: getTriggerIcon(trigger.eventType, catalog),
         nodeType: trigger.eventType || 'trigger',
         config: trigger.input || {},
         arguments: [],
+        constraints: trigger.constraints || [],
+        resourceType: trigger.resourceType || '',
         ref: trigger.handle || '',
         triggerID: trigger.triggerID,
       },
@@ -95,7 +114,7 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
         // Termination steps always display as "End" to user
         label: isTermination ? 'End' : step.meta?.short || step.ref || 'Step',
         description: step.meta?.description || '',
-        icon: isTermination ? 'pi pi-stop-circle' : getStepIcon(step.ref, isCondition),
+        icon: isTermination ? DEFAULT_ICONS.END : getStepIcon(step.ref, isCondition, catalog),
         nodeType: isTermination ? 'termination' : step.ref,
         config: {},
         arguments: step.arguments || [],
@@ -141,7 +160,7 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
           data: {
             label: 'End',
             nodeType: 'termination',
-            icon: 'pi pi-stop-circle',
+            icon: DEFAULT_ICONS.END,
             config: {},
             arguments: [],
             ref: endId,
@@ -165,7 +184,7 @@ export function automationToVueFlow(automation: NgAutomation): VueFlowState {
         data: {
           label: 'End',
           nodeType: 'termination',
-          icon: 'pi pi-stop-circle',
+          icon: DEFAULT_ICONS.END,
           config: {},
           ref: endId,
         },
@@ -212,8 +231,9 @@ export function vueFlowToAutomation(
         triggerID: newTriggerID,
         handle: `trigger_${triggerIndex}`,
         enabled: true,
-        resourceType: '',
+        resourceType: data.resourceType || '',
         eventType: data.nodeType,
+        constraints: data.constraints || [],
         meta: {
           short: data.label,
           description: data.description || '',
@@ -417,26 +437,24 @@ export function getAllRefs(state: VueFlowState): string[] {
   return state.nodes.filter(n => n.type !== 'end').map(n => (n.data as FlowNodeData).ref || n.id)
 }
 
-// Helper: Get icon for trigger type
-function getTriggerIcon(eventType?: string): string {
-  const icons: Record<string, string> = {
-    webhook: 'pi pi-globe',
-    schedule: 'pi pi-clock',
-    manual: 'pi pi-play',
-    onRecord: 'pi pi-database',
+// Helper: Resolve trigger icon from catalog, TRIGGER_META, or fallback
+function getTriggerIcon(eventType?: string, catalog?: ConversionCatalog): IconDef {
+  if (catalog?.triggers && eventType) {
+    const catalogTrigger = catalog.triggers.find(t => t.eventType === eventType)
+    const catalogIcon = normalizeIcon(catalogTrigger?.meta?.icon)
+    if (catalogIcon) return catalogIcon
   }
-  return icons[eventType || ''] || 'pi pi-bolt'
+  if (eventType && TRIGGER_META[eventType]?.icon) return TRIGGER_META[eventType].icon
+  return DEFAULT_TRIGGER_ICON
 }
 
-// Helper: Get icon for step type
-function getStepIcon(ref?: string, isCondition?: boolean): string {
-  if (isCondition) return 'pi pi-sitemap'
-  const icons: Record<string, string> = {
-    'http-request': 'pi pi-globe',
-    'send-email': 'pi pi-envelope',
-    delay: 'pi pi-clock',
-    log: 'pi pi-file',
-    javascript: 'pi pi-code',
+// Helper: Resolve step icon from catalog or fallback
+function getStepIcon(ref?: string, isCondition?: boolean, catalog?: ConversionCatalog): IconDef {
+  if (isCondition) return DEFAULT_ICONS.BRANCH
+  if (catalog?.functions && ref) {
+    const catalogFn = catalog.functions.find(f => f.ref === ref)
+    const catalogIcon = normalizeIcon(catalogFn?.meta?.icon)
+    if (catalogIcon) return catalogIcon
   }
-  return icons[ref || ''] || 'pi pi-cog'
+  return DEFAULT_ICONS.ACTION
 }

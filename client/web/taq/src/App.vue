@@ -27,13 +27,8 @@
     </main>
 
     <Toast
+      position="top-center"
       :pt="{
-        root: {
-          style: {
-            top: 'calc(var(--topbar-height) + 20px)',
-            right: '17px',
-          },
-        },
         messageIcon: {
           style: {
             display: 'none',
@@ -47,12 +42,15 @@
 </template>
 
 <script setup>
-import { components } from '@cortezaproject/corteza-vue-next'
+import { components, withMinDuration } from '@cortezaproject/corteza-vue-next'
 import { computed, inject, onMounted, ref } from 'vue'
 import { RouterView } from 'vue-router'
+import { useAutomationStore } from '@/stores/automation'
 const { CTopbar, CLoaderLogo } = components
 
 const $Settings = inject('$Settings')
+const $AutomationAPI = inject('$AutomationAPI')
+const store = useAutomationStore()
 
 const logoUrl = computed(() => {
   return $Settings.attachment('ui.mainLogo')
@@ -60,10 +58,13 @@ const logoUrl = computed(() => {
 
 const loading = ref(true)
 
-onMounted(() => {
-  // Simple loading delay - no store fetching needed yet
-  setTimeout(() => {
+onMounted(async () => {
+  try {
+    await withMinDuration(store.loadCatalog($AutomationAPI))
+  } catch (e) {
+    console.error('Failed to load catalog:', e)
+  } finally {
     loading.value = false
-  }, 1000)
+  }
 })
 </script>

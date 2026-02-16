@@ -5,10 +5,17 @@ type (
 	ConstructTrigger struct {
 		ResourceType string                       `json:"resourceType"`
 		EventType    string                       `json:"eventType"`
+		Meta         *ConstructTriggerMeta        `json:"meta,omitempty"`
 		Constraints  []ConstructTriggerConstraint `json:"constraints"`
 		Properties   []ConstructTriggerProperty   `json:"properties"`
 
 		Segments []ConstructSegment `json:"segments"`
+	}
+
+	ConstructTriggerMeta struct {
+		Short       string `json:"short,omitempty"`
+		Description string `json:"description,omitempty"`
+		Icon        string `json:"icon,omitempty"`
 	}
 
 	ConstructTriggerProperty struct {
@@ -55,6 +62,7 @@ type (
 	ConstructFunctionMeta struct {
 		Short       string `json:"short,omitempty"`
 		Description string `json:"description,omitempty"`
+		Icon        string `json:"icon,omitempty"`
 	}
 
 	// UI structure

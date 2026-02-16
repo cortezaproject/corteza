@@ -79,14 +79,7 @@ function onSelect(value) {
 
 function onComplete(event) {
   const query = event.query || ''
-
-  if (!query) {
-    // Dropdown click - show all current options
-    filteredOptions.value = [...props.options]
-  } else {
-    // User is typing - emit search for parent to handle
-    emit('search', query)
-  }
+  emit('search', query)
 }
 </script>
 

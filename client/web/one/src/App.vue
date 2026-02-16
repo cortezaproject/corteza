@@ -27,11 +27,12 @@
     </main>
 
     <Toast
+      position="bottom-left"
       :pt="{
         root: {
           style: {
-            top: 'calc(var(--topbar-height) + 20px)',
-            right: '17px',
+            bottom: 'var(--topbar-height)',
+            left: '17px',
           },
         },
         messageIcon: {

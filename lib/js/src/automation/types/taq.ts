@@ -1,5 +1,6 @@
 import { Apply, CortezaID, ISO8601Date, NoID } from '../../cast'
 import { IsOf } from '../../guards'
+import type { IconDef } from './icon'
 import type { Typed } from './values'
 
 /**
@@ -8,6 +9,7 @@ import type { Typed } from './values'
 interface NgAutomationMeta {
   short: string
   description?: string
+  icon?: IconDef | string
 }
 
 /**
@@ -19,16 +21,26 @@ export interface Expr {
   type: string
   value?: string | number | boolean | object | null
   expr?: string // Expression string for dynamic values
-  scope?: string
+  scope?: string // Handle of the step whose output to reference (e.g., "step_1")
+  source?: string // Result name from that step (e.g., "response")
+}
+
+/**
+ * Typed constraint value matching backend NgTriggerConstraintValue
+ */
+export interface ConstraintValue {
+  '@type': string
+  '@value': string
 }
 
 /**
  * Trigger constraint for filtering events
+ * Matches backend NgTriggerConstraint
  */
 export interface TriggerConstraint {
   name: string
-  op: string // Operator: eq, ne, like, etc.
-  value: string | string[]
+  op: string
+  values: ConstraintValue[]
 }
 
 /**
@@ -43,7 +55,7 @@ export interface NgAutomationTrigger {
   eventType: string
   constraints?: TriggerConstraint[]
   input?: Record<string, unknown>
-  meta?: { short?: string; description?: string }
+  meta?: { short?: string; description?: string; icon?: IconDef | string }
   createdAt?: string
   updatedAt?: string
   deletedAt?: string
@@ -58,7 +70,7 @@ export interface NgAutomationStep {
   handle?: string // Human-readable identifier (e.g., step_1)
   kind: string // Function kind: 'function', 'iterator', 'gateway', etc.
   ref: string // Function reference
-  meta?: { short?: string; description?: string }
+  meta?: { short?: string; description?: string; icon?: IconDef | string }
   arguments?: Expr[]
   results?: Expr[]
 }
@@ -111,7 +123,7 @@ export class NgAutomation {
   public handle = ''
   public labels: Record<string, string> = {}
   public meta: NgAutomationMeta = { short: '' }
-  public enabled = false
+  public enabled = true
 
   public trace = false
 

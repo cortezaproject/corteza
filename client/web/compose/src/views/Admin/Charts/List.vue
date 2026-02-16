@@ -9,24 +9,33 @@
       :fields="chartFields"
       :items="chartList"
       :filter="filter"
+      @update:filter="Object.assign(filter, $event)"
       :sorting="sorting"
       :pagination="pagination"
       :loading="loading"
       :translations="{
         searchPlaceholder: $t('chart.searchPlaceholder'),
+        showingPagination: 'general.resourceList.pagination.showing',
+        singlePluralPagination: 'general.resourceList.pagination.single',
+        prevPagination: $t('general.resourceList.pagination.prev'),
+        nextPagination: $t('general.resourceList.pagination.next'),
+        recordsPerPage: $t('general.resourceList.pagination.recordsPerPage'),
+        resourceSingle: $t('general.label.chart.single'),
+        resourcePlural: $t('general.label.chart.plural'),
       }"
       clickable
       class="h-full"
       @sort="handleSort"
-      @search="filterList"
       @row-click="handleRowClick"
+      @page-change="handlePageChange"
     >
       <template #header>
-        <Button
+        <CRouterLinkButton
           v-if="namespace?.canCreateChart"
+          :to="{ name: 'admin.charts.create' }"
           :label="$t('chart.createLabel')"
           icon="pi pi-plus"
-          @click="$router.push({ name: 'admin.charts.create' })"
+          size="small"
         />
       </template>
 
@@ -48,23 +57,41 @@
           text
           severity="secondary"
           size="small"
+          class="row-action-btn w-full mr-2"
           @click.stop="toggleActionsMenu($event, data)"
         />
       </template>
     </CResourceList>
 
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup />
+    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup>
+      <template #item="{ item, props }">
+        <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+          <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+            <span :class="item.icon" />
+            <span class="ml-2">{{ item.label }}</span>
+          </a>
+        </router-link>
+        <a v-else v-ripple v-bind="props.action" :class="item.class">
+          <span :class="item.icon" />
+          <span class="ml-2">{{ item.label }}</span>
+        </a>
+      </template>
+    </TieredMenu>
   </div>
 </template>
 
 <script setup>
-import { components, filters, useResourceList } from '@cortezaproject/corteza-vue-next'
-import { useConfirm } from 'primevue/useconfirm'
+import {
+  components,
+  filters,
+  useConfirmDelete,
+  useResourceList,
+} from '@cortezaproject/corteza-vue-next'
 import { inject, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 
-const { CResourceList } = components
+const { CResourceList, CRouterLinkButton } = components
 const { locFullDateTime } = filters
 
 const props = defineProps({
@@ -76,7 +103,7 @@ const props = defineProps({
 
 const router = useRouter()
 const { t } = useI18n()
-const confirm = useConfirm()
+const { confirmDelete } = useConfirmDelete()
 const $toast = inject('$toast')
 const $ComposeAPI = inject('$ComposeAPI')
 
@@ -111,6 +138,10 @@ const chartFields = [
     header: '',
     frozen: true,
     alignFrozen: 'right',
+    pt: {
+      headerCell: { class: 'border-l-0' },
+      bodyCell: { class: 'p-0 border-l-0' },
+    },
   },
 ]
 
@@ -122,6 +153,7 @@ const {
   sorting,
   pagination,
   handleSort,
+  handlePageChange,
   filterList,
 } = useResourceList(
   params =>
@@ -160,11 +192,10 @@ function getActionsMenuItems(chart) {
     items.push({
       label: t('general.label.edit'),
       icon: 'pi pi-pencil',
-      command: () =>
-        router.push({
-          name: 'admin.charts.edit',
-          params: { chartID: chart.chartID },
-        }),
+      route: {
+        name: 'admin.charts.edit',
+        params: { chartID: chart.chartID },
+      },
     })
   }
 
@@ -172,20 +203,18 @@ function getActionsMenuItems(chart) {
     items.push({
       label: t('general.label.delete'),
       icon: 'pi pi-trash',
-      command: () => confirmDelete(chart),
+      command: () => onConfirmDelete(chart),
     })
   }
 
   return items
 }
 
-function confirmDelete(chart) {
-  confirm.require({
+function onConfirmDelete(chart) {
+  confirmDelete({
     message: t('chart.list.delete'),
     header: chart.name,
-    icon: 'pi pi-exclamation-triangle',
-    acceptClass: 'p-button-danger',
-    accept: () => handleDelete(chart),
+    onConfirm: () => handleDelete(chart),
   })
 }
 

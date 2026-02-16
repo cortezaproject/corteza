@@ -40,6 +40,11 @@ const router = createRouter({
               name: 'pages',
               component: () => import('../views/Pages/Index.vue'),
             },
+            {
+              path: 'pages/:pageID',
+              name: 'page',
+              component: () => import('../views/Pages/View.vue'),
+            },
 
             // Admin - Modules
             {
@@ -107,6 +112,13 @@ const router = createRouter({
               path: 'admin/modules/:moduleID/records/create',
               name: 'admin.modules.record.create',
               component: () => import('../views/Admin/Modules/Records/Create.vue'),
+            },
+
+            // Public - Record View
+            {
+              path: 'pages/:pageID/records/:recordID',
+              name: 'page.record',
+              component: () => import('../views/Pages/RecordView.vue'),
             },
           ],
         },

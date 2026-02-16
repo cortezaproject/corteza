@@ -50,7 +50,7 @@ func (h ngRecordsHandler) register() {
 	},
 
 		atypes.ConstructTrigger{
-			ResourceType: "compose",
+			ResourceType: "system",
 			EventType:    "onInterval",
 			Constraints: []atypes.ConstructTriggerConstraint{{
 				Name:  "interval",
@@ -61,7 +61,7 @@ func (h ngRecordsHandler) register() {
 		},
 
 		atypes.ConstructTrigger{
-			ResourceType: "compose",
+			ResourceType: "system",
 			EventType:    "onTimestamp",
 			Constraints: []atypes.ConstructTriggerConstraint{{
 				Name:  "timestamp",
@@ -90,6 +90,11 @@ func (h ngRecordsHandler) register() {
 										Type:     "ModuleSelector",
 										Label:    "Module",
 										Argument: "module",
+										Context: atypes.SectionElementInputContext{
+											DependsOn: map[string]string{
+												"namespaceID": "namespace",
+											},
+										},
 									},
 								},
 							},
@@ -131,11 +136,11 @@ func (h ngRecordsHandler) register() {
 			Constraints: []atypes.ConstructTriggerConstraint{
 				{
 					Name:  "namespace",
-					Types: []string{"Handle", "String"},
+					Types: []string{"ID", "Handle", "String"},
 				},
 				{
 					Name:  "module",
-					Types: []string{"Handle", "String"},
+					Types: []string{"ID", "Handle", "String"},
 				},
 			},
 		},
@@ -190,6 +195,11 @@ func (h ngRecordsHandler) register() {
 										Type:     "ModuleSelector",
 										Label:    "Module",
 										Argument: "module",
+										Context: atypes.SectionElementInputContext{
+											DependsOn: map[string]string{
+												"namespaceID": "namespace",
+											},
+										},
 									},
 								},
 							},
@@ -200,11 +210,11 @@ func (h ngRecordsHandler) register() {
 			Constraints: []atypes.ConstructTriggerConstraint{
 				{
 					Name:  "namespace",
-					Types: []string{"Handle", "String"},
+					Types: []string{"ID", "Handle", "String"},
 				},
 				{
 					Name:  "module",
-					Types: []string{"Handle", "String"},
+					Types: []string{"ID", "Handle", "String"},
 				},
 			},
 		},
@@ -260,6 +270,11 @@ func (h ngRecordsHandler) register() {
 										Type:     "ModuleSelector",
 										Label:    "Module",
 										Argument: "module",
+										Context: atypes.SectionElementInputContext{
+											DependsOn: map[string]string{
+												"namespaceID": "namespace",
+											},
+										},
 									},
 								},
 							},
@@ -270,11 +285,11 @@ func (h ngRecordsHandler) register() {
 			Constraints: []atypes.ConstructTriggerConstraint{
 				{
 					Name:  "namespace",
-					Types: []string{"Handle", "String"},
+					Types: []string{"ID", "Handle", "String"},
 				},
 				{
 					Name:  "module",
-					Types: []string{"Handle", "String"},
+					Types: []string{"ID", "Handle", "String"},
 				},
 			},
 		})
@@ -290,8 +305,9 @@ func (h ngRecordsHandler) Lookup() atypes.ConstructFunction {
 		Ref:  "composeRecordsLookup",
 		Kind: "function",
 		Meta: &atypes.ConstructFunctionMeta{
-			Short:       "Compose record lookup",
-			Description: "Find specific record by ID",
+			Short:       "Find Record",
+			Description: "Lookup record by ID",
+			Icon:        "database",
 		},
 
 		Labels: map[string]string{"compose": "step,workflow", "record": "step,workflow"},
@@ -475,7 +491,9 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 		Kind:   "function",
 		Labels: map[string]string{"compose": "step,workflow", "create": "step", "record": "step,workflow"},
 		Meta: &atypes.ConstructFunctionMeta{
-			Short: "Compose record create",
+			Short: "Create Record",
+			Description: "Add new record to module",
+			Icon:  "database",
 		},
 
 		Parameters: []*atypes.Param{
@@ -536,7 +554,7 @@ func (h ngRecordsHandler) Create() atypes.ConstructFunction {
 					Input: atypes.SectionElementInput{
 						Type:     "FieldValueMap",
 						Label:    "Values",
-						Argument: "__fieldValues",
+						Argument: "values",
 						Context: atypes.SectionElementInputContext{
 							DependsOn: map[string]string{
 								"namespaceID": "namespace",

@@ -1,15 +1,17 @@
 import type { Component } from 'vue'
+import InputText from 'primevue/inputtext'
+import {
+  CInputSelect,
+  CInputUser,
+  CInputNamespace,
+  CInputModule,
+  CInputRecord,
+} from '@cortezaproject/corteza-vue-next/src/components/input'
 import CInputFieldValueMap from './CInputFieldValueMap.vue'
-import CInputModule from './CInputModule.vue'
-import CInputNamespace from './CInputNamespace.vue'
-import CInputRecord from './CInputRecord.vue'
-import CInputSelect from './CInputSelect.vue'
-import CInputText from './CInputText.vue'
-import CInputUser from './CInputUser.vue'
 
 /**
- * Maps input.type (from API segments) to Vue component.
- * Extend this registry as new input types are needed.
+ * Maps input.type (from API function definition segments) to Vue component.
+ * Used by DynamicInput to resolve automation step config inputs.
  */
 export const INPUT_REGISTRY: Record<string, Component> = {
   // User selectors
@@ -29,9 +31,9 @@ export const INPUT_REGISTRY: Record<string, Component> = {
   Record: CInputRecord,
 
   // Text inputs
-  Text: CInputText,
-  String: CInputText,
-  Number: CInputText,
+  Text: InputText,
+  String: InputText,
+  Number: InputText,
 
   // Select/dropdown
   Select: CInputSelect,
@@ -43,8 +45,8 @@ export const INPUT_REGISTRY: Record<string, Component> = {
 
 /**
  * Resolves an input type string to its corresponding Vue component.
- * Falls back to CInputText if type is not found.
+ * Falls back to InputText if type is not found.
  */
 export function resolveInputComponent(type: string): Component {
-  return INPUT_REGISTRY[type] || CInputText
+  return INPUT_REGISTRY[type] || InputText
 }

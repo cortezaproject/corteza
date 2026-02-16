@@ -2,21 +2,20 @@
   <Teleport to="#topbar-title" defer>
     <span>{{ $t('namespace.title') }}</span>
   </Teleport>
-
   <Teleport to="#topbar-tools" defer>
-    <Button asChild v-slot="slotProps" size="small">
-      <RouterLink :to="{ name: 'namespace.manage' }" :class="slotProps.class">
-        {{ $t('namespace.manage-view.label') }}
-      </RouterLink>
-    </Button>
+    <CRouterLinkButton
+      :to="{ name: 'namespace.manage' }"
+      :label="$t('namespace.manage-view.label')"
+      size="small"
+    />
   </Teleport>
 
   <div class="flex flex-col h-full py-4 gap-7 my-3">
-    <div class="flex flex-col justify-center items-center mx-4">
+    <div class="flex items-center justify-center gap-3 mx-4">
       <CInputSearch
         v-model="query"
         :placeholder="$t('namespace.searchPlaceholder')"
-        class="w-full max-w-2xl mx-auto"
+        class="w-full max-w-2xl"
       />
     </div>
 
@@ -56,6 +55,9 @@
                         ? namespace.meta.logo || $Settings.attachment('ui.mainLogo')
                         : null
                     "
+                    :pt="{
+                      image: { class: 'object-contain' },
+                    }"
                     shape="circle"
                     size="xlarge"
                     :class="{ 'text-muted-color bg-emphasis': !namespace.meta.logoEnabled }"
@@ -83,7 +85,7 @@
 import { useNamespaceStore } from '@/stores/namespace'
 import { components } from '@cortezaproject/corteza-vue-next'
 import { computed, ref } from 'vue'
-const { CInputSearch } = components
+const { CInputSearch, CRouterLinkButton } = components
 
 const namespaceStore = useNamespaceStore()
 

@@ -3,69 +3,75 @@
     <span>{{ $t('page.navigation.page') }}</span>
   </Teleport>
 
-  <div class="container mx-auto p-3 h-full overflow-hidden">
-    <CResourceList
-      primary-key="pageID"
-      :fields="pageFields"
-      :items="pageList"
-      :filter="filter"
-      :sorting="sorting"
-      :pagination="pagination"
-      :loading="loading"
-      :translations="{
-        searchPlaceholder: $t('page.searchPlaceholder'),
-      }"
-      clickable
-      class="h-full"
-      @sort="handleSort"
-      @search="filterList"
-      @row-click="handleRowClick"
-    >
+  <div class="container mx-auto p-4 h-full flex flex-col overflow-hidden">
+    <Card class="flex-1 overflow-auto" :pt="{ body: { class: 'p-0' } }">
       <template #header>
-        <Button
-          v-if="namespace?.canCreatePage"
-          :label="$t('page.createLabel')"
-          icon="pi pi-plus"
-          @click="$router.push({ name: 'admin.pages.create' })"
-        />
+        <!-- Header: Create button + Search -->
+        <div class="flex items-center justify-between gap-3 p-3 border-b">
+          <CRouterLinkButton
+            v-if="namespace?.canCreatePage"
+            :to="{ name: 'admin.pages.create' }"
+            :label="$t('page.createLabel')"
+            icon="pi pi-plus"
+            size="small"
+          />
+          <div v-else />
+
+          <CInputSearch
+            v-model="filterValue"
+            :placeholder="$t('page.searchPlaceholder')"
+            size="small"
+            class="w-80"
+          />
+        </div>
       </template>
 
-      <template #body-title="{ data }">
-        <span class="font-medium">{{ data.title }}</span>
-      </template>
+      <template #content>
+        <Tree
+          v-if="treeNodes.length"
+          v-model:value="treeNodes"
+          v-model:expanded-keys="expandedKeys"
+          :filter="!!filterValue"
+          :filter-value="filterValue"
+          filter-mode="lenient"
+          filter-by="label"
+          draggable-nodes
+          droppable-nodes
+          :pt="treePT"
+          selection-mode="single"
+          @node-select="onNodeSelect"
+          @node-drop="onNodeDrop"
+        >
+          <template #default="{ node }">
+            <div class="flex items-center gap-3">
+              <span :class="{ 'text-muted-color font-medium': node.data.selfID === '0' }">
+                {{ node.label }}
+              </span>
+            </div>
+          </template>
+        </Tree>
 
-      <template #body-handle="{ data }">
-        <code class="text-sm">{{ data.handle || '-' }}</code>
+        <div v-else-if="!loading" class="flex items-center justify-center h-32 text-muted-color">
+          {{ $t('page.noPages') }}
+        </div>
       </template>
-
-      <template #body-updatedAt="{ data }">
-        {{ locFullDateTime(data.deletedAt || data.updatedAt || data.createdAt) }}
-      </template>
-
-      <template #body-actions="{ data }">
-        <Button
-          icon="pi pi-ellipsis-v"
-          text
-          severity="secondary"
-          size="small"
-          @click.stop="toggleActionsMenu($event, data)"
-        />
-      </template>
-    </CResourceList>
-
-    <TieredMenu ref="actionsMenu" :model="actionsMenuItems" popup />
+    </Card>
   </div>
 </template>
 
 <script setup>
-import { components, filters, useResourceList } from '@cortezaproject/corteza-vue-next'
-import { useConfirm } from 'primevue/useconfirm'
-import { inject, ref } from 'vue'
+import { compose } from '@cortezaproject/corteza-js-next'
+import { components } from '@cortezaproject/corteza-vue-next'
+import { inject, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { usePageStore } from '@/stores/page'
 
-const { CResourceList } = components
-const { locFullDateTime } = filters
+const { CInputSearch, CRouterLinkButton } = components
+const { t } = useI18n()
+const router = useRouter()
+const $toast = inject('$toast')
+const pageStore = usePageStore()
 
 const props = defineProps({
   namespace: {
@@ -74,132 +80,130 @@ const props = defineProps({
   },
 })
 
-const router = useRouter()
-const { t } = useI18n()
-const confirm = useConfirm()
-const $toast = inject('$toast')
-const $ComposeAPI = inject('$ComposeAPI')
+const treeNodes = ref([])
+const expandedKeys = ref({})
+const filterValue = ref('')
+const loading = ref(false)
 
-// Actions menu
-const actionsMenu = ref()
-const actionsMenuItems = ref([])
-
-// Column definitions
-const pageFields = [
-  {
-    key: 'title',
-    sortable: true,
-    header: t('page.list.columns.title'),
+const treePT = {
+  rootChildren: { class: 'flex flex-col gap-3' },
+  nodeChildren: { class: 'flex flex-col gap-2 py-2 ml-5 border-l' },
+  wrapper: { class: 'p-2' },
+  nodeContent: {
+    class:
+      'flex flex-row shadow border rounded-lg transition-colors hover:bg-emphasis cursor-pointer px-3 py-2',
   },
-  {
-    key: 'handle',
-    sortable: true,
-    header: t('page.list.columns.handle'),
-  },
-  {
-    key: 'updatedAt',
-    sortable: true,
-    header: t('page.list.columns.changedAt'),
-    class: 'text-right',
-    pt: {
-      columnHeaderContent: 'justify-end',
-    },
-  },
-  {
-    key: 'actions',
-    class: 'text-right w-12',
-    header: '',
-    frozen: true,
-    alignFrozen: 'right',
-  },
-]
-
-// Resource list composable
-const {
-  items: pageList,
-  loading,
-  filter,
-  sorting,
-  pagination,
-  handleSort,
-  filterList,
-} = useResourceList(
-  params =>
-    $ComposeAPI.pageListCancellable({
-      namespaceID: props.namespace.namespaceID,
-      ...params,
-    }),
-  {
-    filter: { query: '' },
-    sorting: { sortBy: 'title', sortDesc: false },
-    pagination: { limit: 50 },
-  },
-)
-
-// Methods
-function handleRowClick({ data }) {
-  if (!(data.canUpdatePage || data.canDeletePage)) {
-    return
-  }
-  router.push({
-    name: 'admin.pages.edit',
-    params: { pageID: data.pageID },
-  })
+  nodeToggleButton: { class: 'order-1 ml-auto' },
+  nodeLabel: { class: 'flex-1' },
 }
 
-// Actions menu methods
-function toggleActionsMenu(event, page) {
-  actionsMenuItems.value = getActionsMenuItems(page)
-  actionsMenu.value.toggle(event)
-}
+// Convert API page tree (recursive children) to PrimeVue TreeNode format
+function toTreeNodes(pages) {
+  if (!pages || !Array.isArray(pages)) return []
 
-function getActionsMenuItems(page) {
-  const items = []
-
-  if (page.canUpdatePage) {
-    items.push({
-      label: t('general.label.edit'),
-      icon: 'pi pi-pencil',
-      command: () =>
-        router.push({
-          name: 'admin.pages.edit',
-          params: { pageID: page.pageID },
-        }),
+  return pages
+    .sort((a, b) => (a.weight || 0) - (b.weight || 0))
+    .map(p => {
+      const page = new compose.Page(p)
+      return {
+        key: page.pageID,
+        label: page.title || page.handle || page.pageID,
+        data: page,
+        children: toTreeNodes(p.children),
+      }
     })
-  }
-
-  if (page.canDeletePage) {
-    items.push({
-      label: t('general.label.delete'),
-      icon: 'pi pi-trash',
-      command: () => confirmDelete(page),
-    })
-  }
-
-  return items
 }
 
-function confirmDelete(page) {
-  confirm.require({
-    message: t('page.list.delete'),
-    header: page.title,
-    icon: 'pi pi-exclamation-triangle',
-    acceptClass: 'p-button-danger',
-    accept: () => handleDelete(page),
-  })
+// Collect keys of all parent nodes so they start expanded
+function collectParentKeys(nodes, keys = {}) {
+  for (const node of nodes) {
+    if (node.children?.length) {
+      keys[node.key] = true
+      collectParentKeys(node.children, keys)
+    }
+  }
+  return keys
 }
 
-async function handleDelete(page) {
+// Load page tree on mount
+onMounted(async () => {
+  loading.value = true
   try {
-    await $ComposeAPI.pageDelete({
+    const pages = await pageStore.loadTree({
       namespaceID: props.namespace.namespaceID,
-      pageID: page.pageID,
     })
-    $toast.toastSuccess(t('notification.page.deleted'))
-    filterList()
+    treeNodes.value = toTreeNodes(pages)
+    expandedKeys.value = collectParentKeys(treeNodes.value)
   } catch (e) {
-    console.error('Failed to delete page:', e)
-    $toast.toastDanger(t('notification.page.deleteFailed'))
+    console.error('Failed to load page tree:', e)
+    $toast.toastDanger(t('notification.page.listFailed'))
+  } finally {
+    loading.value = false
+  }
+})
+
+// Handle node click — navigate to page edit
+function onNodeSelect(node) {
+  if (node?.key) {
+    router.push({
+      name: 'admin.pages.edit',
+      params: { pageID: node.key },
+    })
+  }
+}
+
+// Handle drag-and-drop
+async function onNodeDrop(event) {
+  // event.value contains the new tree state after the drop
+  const newTree = event.value
+  treeNodes.value = newTree
+
+  try {
+    await reorderTree(newTree, '0')
+
+    // Refetch tree to stay in sync with server
+    const pages = await pageStore.loadTree({
+      namespaceID: props.namespace.namespaceID,
+    })
+    treeNodes.value = toTreeNodes(pages)
+    expandedKeys.value = collectParentKeys(treeNodes.value)
+
+    // Reload the flat page list so the sidebar reflects the new order
+    await pageStore.load({ namespaceID: props.namespace.namespaceID, force: true })
+  } catch (e) {
+    console.error('Failed to reorder pages:', e)
+    $toast.toastDanger(t('page.pageMoveFailed'))
+  }
+}
+
+// Walk tree and persist order + reparenting for each level
+async function reorderTree(nodes, parentID) {
+  if (!nodes?.length) return
+
+  const namespaceID = props.namespace.namespaceID
+  const pageIDs = nodes.map(n => n.key)
+
+  // First: update selfID on any reparented nodes (matching old Corteza approach)
+  for (const node of nodes) {
+    if (node.data?.selfID !== parentID) {
+      node.data.selfID = parentID
+      node.data.namespaceID = namespaceID
+      await pageStore.update(node.data)
+    }
+  }
+
+  // Then: reorder children under this parent
+  await pageStore.reorder({
+    namespaceID,
+    selfID: parentID,
+    pageIDs,
+  })
+
+  // Recurse into children
+  for (const node of nodes) {
+    if (node.children?.length) {
+      await reorderTree(node.children, node.key)
+    }
   }
 }
 </script>

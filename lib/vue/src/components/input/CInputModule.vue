@@ -17,8 +17,9 @@
 
 <script setup>
 import { debounce } from 'lodash-es'
-import { inject, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import CInputSelect from './CInputSelect.vue'
+import { useComposeResourceStore } from '../../stores/useComposeResourceStore'
 
 const props = defineProps({
   modelValue: {
@@ -41,7 +42,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const $ComposeAPI = inject('$ComposeAPI')
+const store = useComposeResourceStore()
 
 const options = ref([])
 const selectedModule = ref(null)
@@ -56,7 +57,7 @@ function getOptionLabel(module) {
 }
 
 async function fetchModules(query = '') {
-  if (!props.namespaceID || !$ComposeAPI) {
+  if (!props.namespaceID) {
     options.value = []
     return
   }
@@ -69,8 +70,7 @@ async function fetchModules(query = '') {
 
   loading.value = true
   try {
-    const { response, cancel } = $ComposeAPI.moduleListCancellable({
-      namespaceID: props.namespaceID,
+    const { response, cancel } = store.searchModules(props.namespaceID, {
       query,
       limit: 100,
     })
@@ -94,12 +94,11 @@ const debouncedFetch = debounce(query => {
 }, 200)
 
 function onSearch(query) {
-  // If empty query (dropdown click) and we already have options, don't refetch
-  // This uses the preloaded data instead
-  if (!query && options.value.length > 0) {
-    return
+  if (!query) {
+    fetchModules()
+  } else {
+    debouncedFetch(query)
   }
-  debouncedFetch(query)
 }
 
 function onSelect(value) {
@@ -108,7 +107,7 @@ function onSelect(value) {
 }
 
 async function loadModuleById(moduleID) {
-  if (!moduleID || !props.namespaceID || !$ComposeAPI) return
+  if (!moduleID || !props.namespaceID) return
 
   // First check if already in options
   const existing = options.value.find(m => m.moduleID === moduleID)
@@ -117,17 +116,16 @@ async function loadModuleById(moduleID) {
     return
   }
 
-  // Otherwise fetch it
+  // Resolve through store (cache-first)
   loading.value = true
   try {
-    const module = await $ComposeAPI.moduleRead({
-      namespaceID: props.namespaceID,
-      moduleID,
-    })
-    selectedModule.value = module
-    // Add to options if not present
-    if (!options.value.find(m => m.moduleID === moduleID)) {
-      options.value = [...options.value, module]
+    const module = await store.resolveModule(props.namespaceID, moduleID)
+    if (module) {
+      selectedModule.value = module
+      // Add to options if not present
+      if (!options.value.find(m => m.moduleID === moduleID)) {
+        options.value = [...options.value, module]
+      }
     }
   } catch (_e) {
     // Module not found or API error
@@ -136,18 +134,14 @@ async function loadModuleById(moduleID) {
   }
 }
 
-// Watch for namespace changes - clear selection and reload modules
+// Watch for namespace changes - clear selection and options
 watch(
   () => props.namespaceID,
   (newVal, oldVal) => {
     if (oldVal && newVal !== oldVal) {
       selectedModule.value = null
-      emit('update:modelValue', null)
-    }
-    if (newVal) {
-      fetchModules()
-    } else {
       options.value = []
+      emit('update:modelValue', null)
     }
   },
 )
@@ -165,9 +159,6 @@ watch(
 )
 
 onMounted(() => {
-  if (props.namespaceID) {
-    fetchModules()
-  }
   if (props.modelValue && props.namespaceID) {
     loadModuleById(props.modelValue)
   }

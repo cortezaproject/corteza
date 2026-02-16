@@ -62,7 +62,6 @@ export const ToastPlugin = {
 
     app.provide('$toast', toastService)
 
-     
     console.log('Toast plugin installed')
   },
 }

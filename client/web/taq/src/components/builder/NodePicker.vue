@@ -18,7 +18,7 @@
     </div>
 
     <!-- Categories -->
-    <div class="space-y-4">
+    <div class="space-y-6">
       <div v-for="category in filteredCategories" :key="category.id">
         <h4 class="text-sm font-semibold text-muted-color uppercase mb-2 flex items-center gap-2">
           <i :class="category.icon" />
@@ -33,7 +33,7 @@
           >
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-border flex items-center justify-center">
-                <i :class="node.icon" class="text-lg text-primary" />
+                <TaqIcon :icon="node.icon" class="text-lg text-primary" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="font-medium text-color">{{ node.label }}</div>
@@ -54,9 +54,13 @@
 </template>
 
 <script setup>
+import { normalizeIcon } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
+import { DEFAULT_ICONS } from '@cortezaproject/corteza-js-next/src/automation/types/icon'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import TaqIcon from '../common/TaqIcon.vue'
 import { useAutomationStore } from '../../stores/automation'
+import { DEFAULT_ACTION_ICON, DEFAULT_TRIGGER_ICON, TRIGGER_META } from '../../utils/flow-constants'
 
 const { t } = useI18n()
 const store = useAutomationStore()
@@ -72,66 +76,69 @@ const emit = defineEmits(['select', 'close'])
 
 const searchQuery = ref('')
 
-// Trigger config: maps eventType to translation key and icon
-const triggerConfig = {
-  onManual: { key: 'manual', icon: 'pi pi-play' },
-  onInterval: { key: 'interval', icon: 'pi pi-clock' },
-  onTimestamp: { key: 'timestamp', icon: 'pi pi-calendar' },
-  afterCreate: { key: 'recordCreate', icon: 'pi pi-plus-circle' },
-  beforeCreate: { key: 'recordCreate', icon: 'pi pi-plus-circle' },
-  afterUpdate: { key: 'recordUpdate', icon: 'pi pi-pencil' },
-  beforeUpdate: { key: 'recordUpdate', icon: 'pi pi-pencil' },
-  afterDelete: { key: 'recordDelete', icon: 'pi pi-trash' },
-  beforeDelete: { key: 'recordDelete', icon: 'pi pi-trash' },
-  onHTTPRequest: { key: 'httpRequest', icon: 'pi pi-globe' },
+// Helper to map a trigger to a node format with icons and i18n
+function mapTriggerNode(trigger) {
+  const meta = TRIGGER_META[trigger.eventType]
+  const icon = normalizeIcon(trigger.meta?.icon) || meta?.icon || DEFAULT_TRIGGER_ICON
+  const i18nPrefix = meta ? `builder.nodePicker.nodes.triggers.${meta.i18nKey}` : ''
+  return {
+    id: `${trigger.resourceType}:${trigger.eventType}`,
+    type: 'trigger',
+    label: trigger.meta?.short || (i18nPrefix ? t(`${i18nPrefix}.label`) : trigger.eventType),
+    icon,
+    description: trigger.meta?.description || (i18nPrefix ? t(`${i18nPrefix}.description`) : ''),
+    eventType: trigger.eventType,
+    resourceType: trigger.resourceType,
+  }
 }
 
-// Function config: maps ref to translation key and icon
-const functionConfig = {
-  usersLookup: { key: 'usersLookup', icon: 'pi pi-user' },
-}
-
-// Node categories - triggers and functions from API, logic nodes defined here
+// Node categories - triggers grouped by resourceType, functions from API, logic nodes defined here
 const nodeCategories = computed(() => {
-  // Map API triggers to node format
-  const triggerNodes = store.triggers.map(trigger => {
-    const config = triggerConfig[trigger.eventType]
-    const key = config?.key || trigger.eventType
-    return {
-      id: `${trigger.resourceType}:${trigger.eventType}`,
-      type: 'trigger',
-      label: t(`builder.nodePicker.nodes.triggers.${key}.label`, trigger.eventType),
-      icon: config?.icon || 'pi pi-bolt',
-      description: t(`builder.nodePicker.nodes.triggers.${key}.description`, ''),
-      eventType: trigger.eventType,
-      resourceType: trigger.resourceType,
-    }
-  })
+  // Split triggers into General (non-record) and Record groups
+  const generalTriggers = store.triggers
+    .filter(t => t.resourceType !== 'compose:record')
+    .map(mapTriggerNode)
+  const recordTriggers = store.triggers
+    .filter(t => t.resourceType === 'compose:record')
+    .map(mapTriggerNode)
 
-  // Map API functions to node format (exclude gateway/branch - handled as logic)
+  // Map API functions to node format (labels/descriptions from backend, exclude gateway - handled as logic)
   const actionNodes = store.functions
     .filter(fn => fn.kind !== 'gateway')
     .map(fn => {
-      const config = functionConfig[fn.ref]
-      const key = config?.key || fn.ref
+      const icon = normalizeIcon(fn.meta?.icon) || DEFAULT_ACTION_ICON
       return {
         id: fn.ref,
         type: 'action',
-        label: t(`builder.nodePicker.nodes.actions.${key}.label`, fn.meta?.short || fn.ref),
-        icon: config?.icon || 'pi pi-cog',
-        description: t(`builder.nodePicker.nodes.actions.${key}.description`, fn.meta?.description || ''),
+        label: fn.meta?.short || fn.ref,
+        icon,
+        description: fn.meta?.description || '',
         ref: fn.ref,
         kind: fn.kind,
       }
     })
 
-  return [
-    {
-      id: 'triggers',
-      label: t('builder.nodePicker.categories.triggers'),
+  const categories = []
+
+  if (generalTriggers.length > 0) {
+    categories.push({
+      id: 'triggers-general',
+      label: t('builder.nodePicker.categories.triggersGeneral'),
       icon: 'pi pi-bolt',
-      nodes: triggerNodes,
-    },
+      nodes: generalTriggers,
+    })
+  }
+
+  if (recordTriggers.length > 0) {
+    categories.push({
+      id: 'triggers-record',
+      label: t('builder.nodePicker.categories.triggersRecord'),
+      icon: 'pi pi-database',
+      nodes: recordTriggers,
+    })
+  }
+
+  categories.push(
     {
       id: 'logic',
       label: t('builder.nodePicker.categories.logic'),
@@ -141,7 +148,7 @@ const nodeCategories = computed(() => {
           id: 'branch',
           type: 'condition',
           label: t('builder.nodePicker.nodes.logic.branch.label'),
-          icon: 'pi pi-sitemap',
+          icon: DEFAULT_ICONS.BRANCH,
           description: t('builder.nodePicker.nodes.logic.branch.description'),
           ref: 'gateway',
         },
@@ -153,17 +160,19 @@ const nodeCategories = computed(() => {
       icon: 'pi pi-cog',
       nodes: actionNodes,
     },
-  ]
+  )
+
+  return categories
 })
 
 const filteredCategories = computed(() => {
   let categories = nodeCategories.value
 
-  // Filter by category: 'trigger' shows only triggers, otherwise exclude triggers
+  // Filter by category: 'trigger' shows only trigger groups, otherwise exclude them
   if (props.filterCategory === 'trigger') {
-    categories = categories.filter(c => c.id === 'triggers')
+    categories = categories.filter(c => c.id.startsWith('triggers-'))
   } else {
-    categories = categories.filter(c => c.id !== 'triggers')
+    categories = categories.filter(c => !c.id.startsWith('triggers-'))
   }
 
   // Apply search filter

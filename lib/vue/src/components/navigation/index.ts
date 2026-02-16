@@ -1,3 +1,5 @@
 export { default as CSidebar } from './CSidebar.vue'
+export { default as CSidebarNav } from './CSidebarNav.vue'
 export { default as CToolbar } from './CToolbar.vue'
 export { default as CTopbar } from './CTopbar.vue'
+export { default as CRouterLinkButton } from './CRouterLinkButton.vue'

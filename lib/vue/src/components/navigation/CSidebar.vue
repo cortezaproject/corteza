@@ -3,12 +3,15 @@
     v-model:visible="expanded"
     :modal="isMobile"
     :dismissable="isMobile"
-    :pt="{ header: 'p-3 pr-2 gap-2', content: 'p-3' }"
+    :pt="{
+      header: { class: 'px-2 py-1', header: { class: 'max-h-15' } },
+      content: 'p-3',
+    }"
     :style="{ width: 'var(--sidebar-width)' }"
   >
     <template #header>
       <div class="grow">
-        <img :src="logo" class="w-auto h-full object-contain p-2" />
+        <img :src="logo" class="w-auto h-full max-h-16 object-contain" />
       </div>
     </template>
 

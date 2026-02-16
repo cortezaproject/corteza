@@ -2,7 +2,7 @@
   <Card
     :pt="{
       header: {
-        class: 'flex flex-wrap items-center justify-between gap-3 p-3 w-full',
+        class: 'flex flex-wrap items-center justify-between gap-3 p-3 w-full border-b',
       },
       body: {
         class: 'p-0 overflow-auto h-full',
@@ -11,7 +11,7 @@
         class: 'overflow-auto h-full',
       },
     }"
-    class="overflow-hidden"
+    class="overflow-hidden h-full"
   >
     <template v-if="$slots.header || !hideSearch" #header>
       <div class="flex-1">
@@ -21,10 +21,9 @@
         v-if="!hideSearch"
         :model-value="filter[queryField]"
         :placeholder="translations.searchPlaceholder || 'Search applications...'"
-        submittable
+        size="small"
         class="flex-1 max-w-xl"
         @update:model-value="$emit('update:filter', { ...filter, [queryField]: $event })"
-        @search="emit('search', $event)"
       />
     </template>
 
@@ -38,19 +37,22 @@
         :sortField="sorting.sortBy"
         scrollable
         scrollHeight="flex"
-        :paginator="!hidePagination && items.length > 0"
         row-hover
         lazy
         resizableColumns
-        columnResizeMode="fit"
-        showGridlines
+        columnResizeMode="expand"
         tableStyle="min-width: 50rem"
         :row-class="rowClass"
-        :rows="pagination.limit"
-        :rowsPerPageOptions="[5, 10, 20, 50]"
+        :pt="{ emptyMessageCell: { class: 'h-full' }, footer: { class: 'p-0 border-0' } }"
         @sort="$emit('sort', $event)"
         @row-click="$emit('row-click', $event)"
       >
+        <template #empty>
+          <div class="flex items-center justify-center p-4 text-muted">
+            {{ translations.noItems || t('general.resourceList.noItems') }}
+          </div>
+        </template>
+
         <Column v-if="selectable" selectionMode="multiple" headerStyle="width: 3rem" />
         <Column
           v-for="field in fields"
@@ -71,28 +73,59 @@
           </template>
         </Column>
 
-        <!-- Empty template disabled for now
-        <template #empty>
-          <template v-if="!loading">
-            <div class="p-4 text-center text-muted-color">
-              {{ translations.emptyMessage || 'No records found' }}
-            </div>
-          </template>
-        </template>
-        -->
+        <template #footer>
+          <div class="flex items-center flex-wrap gap-2 w-full p-3">
+            <div class="flex items-center text-sm">
+              <span v-if="!hideTotal" class="whitespace-nowrap">
+                {{ getPagination }}
+              </span>
 
-        <!-- Custom paginator template (uncomment when ready to implement)
-        <template #paginatorcontainer="{ first, last, page, pageCount, prevPageCallback, nextPageCallback, totalRecords }">
-          <div class="flex items-center flex-wrap gap-4">
-            <Button icon="pi pi-chevron-left" rounded text @click="prevPageCallback" :disabled="page === 0" />
-            <div class="text-color font-medium">
-              <span class="hidden sm:block">Showing {{ first }} to {{ last }} of {{ totalRecords }}</span>
-              <span class="block sm:hidden">Page {{ page + 1 }} of {{ pageCount }}</span>
+              <Divider layout="vertical" />
+
+              <div v-if="!hidePerPageOption" class="flex items-center gap-2 whitespace-nowrap">
+                <span>
+                  {{ translations.recordsPerPage || 'Per Page' }}
+                </span>
+                <Select
+                  :model-value="pagination.limit"
+                  :options="perPageOptions"
+                  class="w-30"
+                  @update:model-value="handlePerPageChange"
+                />
+              </div>
             </div>
-            <Button icon="pi pi-chevron-right" rounded text @click="nextPageCallback" :disabled="page === pageCount - 1" />
+
+            <div class="flex items-center ml-auto gap-1">
+              <Button
+                icon="pi pi-angle-double-left"
+                text
+                severity="secondary"
+                size="small"
+                :disabled="!hasPrevPage"
+                @click="goToPage()"
+              />
+              <Button
+                icon="pi pi-angle-left"
+                :label="translations.prevPagination || 'Previous'"
+                text
+                severity="secondary"
+                size="small"
+                :disabled="!hasPrevPage"
+                @click="goToPage('prevPage')"
+              />
+              <Button
+                :label="translations.nextPagination || 'Next'"
+                icon="pi pi-angle-right"
+                iconPos="right"
+                text
+                severity="secondary"
+                size="small"
+                :disabled="!hasNextPage"
+                @click="goToPage('nextPage')"
+              />
+            </div>
           </div>
         </template>
-        -->
       </DataTable>
     </template>
   </Card>
@@ -102,10 +135,11 @@
 import Card from 'primevue/card'
 import Column from 'primevue/column'
 import DataTable from 'primevue/datatable'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CInputSearch from '../input/CInputSearch.vue'
 
-const emit = defineEmits(['search', 'sort', 'row-click', 'update:filter'])
+const emit = defineEmits(['search', 'sort', 'row-click', 'update:filter', 'page-change'])
 
 const props = defineProps({
   primaryKey: {
@@ -156,14 +190,63 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-
+  hideTotal: {
+    type: Boolean,
+    default: false,
+  },
+  hidePerPageOption: {
+    type: Boolean,
+    default: false,
+  },
+  perPageOptions: {
+    type: Array,
+    default: () => [10, 20, 50, 100],
+  },
   translations: {
     type: Object,
     default: () => ({}),
   },
 })
 
+const { t } = useI18n()
 const selected = ref([])
+
+const hasPrevPage = computed(() => !!props.pagination.prevPage)
+const hasNextPage = computed(() => !!props.pagination.nextPage)
+
+const getPagination = computed(() => {
+  let { total = 0, limit = 10, page = 1 } = props.pagination
+  total = isNaN(total) ? 0 : total
+
+  const from = (page - 1) * limit + 1
+  const to = limit > 0 ? Math.min(page * limit, total) : total
+  const data = total === 1 ? props.translations.resourceSingle : props.translations.resourcePlural
+
+  if (total > limit && props.translations.showingPagination) {
+    return t(props.translations.showingPagination, { from, to, count: total, data })
+  }
+
+  if (total <= limit && props.translations.singlePluralPagination) {
+    return t(props.translations.singlePluralPagination, { count: total, data }, total)
+  }
+
+  return `${from} - ${to} of ${total}`
+})
+
+const goToPage = direction => {
+  if (!direction) {
+    // First page
+    emit('page-change', { pageCursor: '', page: 1 })
+  } else if (direction === 'prevPage') {
+    emit('page-change', { pageCursor: props.pagination.prevPage, page: props.pagination.page - 1 })
+  } else if (direction === 'nextPage') {
+    emit('page-change', { pageCursor: props.pagination.nextPage, page: props.pagination.page + 1 })
+  }
+}
+
+const handlePerPageChange = value => {
+  emit('page-change', { pageCursor: '', page: 1, limit: value })
+}
 
 const rowClass = () => {
   return {
@@ -171,3 +254,38 @@ const rowClass = () => {
   }
 }
 </script>
+
+<style scoped>
+:deep(.p-datatable-gridlines .p-datatable-paginator-bottom) {
+  border-width: 0;
+}
+
+:deep(.p-datatable-gridlines :is(.p-datatable-thead, .p-datatable-tbody) tr > :first-child) {
+  border-left: 0;
+}
+
+:deep(.p-datatable-gridlines :is(.p-datatable-thead, .p-datatable-tbody) tr > :last-child) {
+  border-right: 0;
+}
+
+:deep(.p-datatable-gridlines .p-datatable-thead > tr > th) {
+  border-top: 0;
+}
+
+:deep(.p-datatable-mask) {
+  background: color-mix(in srgb, var(--p-content-background) 80%, transparent) !important;
+}
+
+:deep(.p-datatable-mask .p-icon-spin) {
+  color: var(--p-primary-color);
+}
+
+:deep(.row-action-btn) {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+:deep(.p-datatable-tbody > tr:hover .row-action-btn) {
+  opacity: 1;
+}
+</style>

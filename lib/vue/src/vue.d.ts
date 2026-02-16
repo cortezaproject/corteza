@@ -87,6 +87,7 @@ declare module 'vue' {
     InputIcon: (typeof import('primevue/inputicon'))['default']
     Avatar: (typeof import('primevue/avatar'))['default']
     Toast: (typeof import('primevue/toast'))['default']
+    Tree: (typeof import('primevue/tree'))['default']
   }
 }
 

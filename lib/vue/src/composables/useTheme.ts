@@ -151,6 +151,15 @@ export function getTheme(theme: Theme) {
       .bg-surface {
         background-color: var(--p-content-background);
       }
+
+      .p-datatable-column-resizer {
+        width: 1rem !important;
+        right: -0.5rem !important;
+      }
+
+      .p-datatable-column-resizer:hover {
+        background-color: var(--p-highlight-focus-background) !important;
+      }
     `,
   })
 }

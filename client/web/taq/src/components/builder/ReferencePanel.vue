@@ -1,0 +1,286 @@
+<template>
+  <div class="flex flex-col h-full">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-3 py-2 border-b border-surface">
+      <h4 class="text-sm font-semibold text-color">{{ $t('builder.referencePanel.title') }}</h4>
+      <Button icon="pi pi-times" text rounded size="small" @click="emit('close')" />
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-auto">
+      <div v-if="filteredResults.length === 0" class="text-sm text-muted-color text-center py-8">
+        {{ $t('builder.referencePanel.noResults') }}
+      </div>
+
+      <Accordion v-else :value="expandedPanels" multiple>
+        <AccordionPanel v-for="step in filteredResults" :key="step.handle" :value="step.handle">
+          <AccordionHeader>
+            <div class="flex items-center gap-2">
+              <i v-if="step.icon?.iconClass" :class="step.icon.iconClass" class="text-sm" />
+              <span class="text-sm font-medium">{{ step.label }}</span>
+            </div>
+          </AccordionHeader>
+          <AccordionContent>
+            <div class="flex flex-col gap-1">
+              <template v-for="result in step.results" :key="result.sourceName">
+                <!-- Expandable result (e.g. ComposeRecord) — nested accordion -->
+                <div v-if="result.expandable" class="mt-1">
+                  <Accordion
+                    :value="expandedSubPanels[step.handle + ':' + result.sourceName] || []"
+                    multiple
+                  >
+                    <AccordionPanel :value="result.sourceName">
+                      <AccordionHeader>
+                        <div class="flex items-center justify-between w-full gap-2">
+                          <div class="flex items-center gap-2">
+                            <i class="pi pi-database text-xs text-[--p-text-muted-color]" />
+                            <span class="text-sm text-color">{{ result.name }}</span>
+                          </div>
+                        </div>
+                      </AccordionHeader>
+                      <AccordionContent>
+                        <!-- Top-level: select the whole record -->
+                        <button
+                          class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full mb-1"
+                          :class="
+                            isActive(step.handle, result.sourceName)
+                              ? 'bg-highlight !text-primary'
+                              : ''
+                          "
+                          @click="emit('select', { scope: step.handle, source: result.sourceName })"
+                        >
+                          <span
+                            class="text-sm italic"
+                            :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
+                          >
+                            {{ result.name }} (whole)
+                          </span>
+                        </button>
+
+                        <!-- Loading state -->
+                        <div
+                          v-if="loadingFields[fieldKey(step, result)]"
+                          class="flex items-center gap-2 px-3 py-4 justify-center"
+                        >
+                          <i class="pi pi-spin pi-spinner text-[--p-text-muted-color]" />
+                          <span class="text-xs text-[--p-text-muted-color]">Loading fields...</span>
+                        </div>
+
+                        <!-- Sub-fields -->
+                        <template v-else-if="recordFields[fieldKey(step, result)]?.length">
+                          <button
+                            v-for="field in recordFields[fieldKey(step, result)]"
+                            :key="field.name"
+                            class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors w-full"
+                            :class="
+                              isActive(step.handle, result.sourceName + '.values.' + field.name)
+                                ? 'bg-highlight !text-primary'
+                                : ''
+                            "
+                            @click="
+                              emit('select', {
+                                scope: step.handle,
+                                source: result.sourceName + '.values.' + field.name,
+                              })
+                            "
+                          >
+                            <span
+                              class="text-sm"
+                              :class="
+                                isActive(step.handle, result.sourceName + '.values.' + field.name)
+                                  ? ''
+                                  : 'text-color'
+                              "
+                            >
+                              {{ field.label || field.name }}
+                            </span>
+                          </button>
+                        </template>
+
+                        <!-- No module configured -->
+                        <div
+                          v-else-if="!result.moduleID"
+                          class="text-xs text-[--p-text-muted-color] px-2 py-1.5"
+                        >
+                          No module configured on trigger
+                        </div>
+
+                        <!-- No fields found -->
+                        <div v-else class="text-xs text-[--p-text-muted-color] px-1.5 py-1">
+                          No fields found
+                        </div>
+                      </AccordionContent>
+                    </AccordionPanel>
+                  </Accordion>
+                </div>
+
+                <!-- Simple result — clickable button -->
+                <button
+                  v-else
+                  class="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-emphasis cursor-pointer text-left transition-colors"
+                  :class="
+                    isActive(step.handle, result.sourceName) ? 'bg-highlight !text-primary' : ''
+                  "
+                  @click="emit('select', { scope: step.handle, source: result.sourceName })"
+                >
+                  <span
+                    class="text-sm"
+                    :class="isActive(step.handle, result.sourceName) ? '' : 'text-color'"
+                  >
+                    {{ result.name }}
+                  </span>
+                </button>
+              </template>
+            </div>
+          </AccordionContent>
+        </AccordionPanel>
+      </Accordion>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed, reactive, watch } from 'vue'
+import { useComposeResourceStore } from '@cortezaproject/corteza-vue-next'
+
+const props = defineProps({
+  upstreamResults: {
+    type: Array,
+    default: () => [],
+  },
+  activeArgument: {
+    type: Object,
+    default: null,
+  },
+  currentReference: {
+    type: Object,
+    default: null,
+  },
+})
+
+const emit = defineEmits(['select', 'close'])
+
+const store = useComposeResourceStore()
+
+// Check if a reference item matches the currently active reference
+function isActive(scope, source) {
+  if (!props.currentReference) return false
+  return props.currentReference.scope === scope && props.currentReference.source === source
+}
+
+// Expand all top-level panels by default
+const expandedPanels = computed(() => filteredResults.value.map(s => s.handle))
+
+// Type compatibility check
+function typesOverlap(acceptedTypes, resultTypes) {
+  if (!acceptedTypes?.length || acceptedTypes.includes('Any')) return true
+  if (!resultTypes?.length) return true
+  return acceptedTypes.some(t => resultTypes.includes(t))
+}
+
+// Filtered results based on active argument's accepted types
+const filteredResults = computed(() => {
+  const accepted = props.activeArgument?.types
+
+  // No active argument (browse mode) → show everything
+  if (!accepted?.length) return props.upstreamResults
+
+  const isAny = accepted.includes('Any')
+  if (isAny) return props.upstreamResults
+
+  return props.upstreamResults
+    .map(step => {
+      const results = step.results.filter(result => {
+        if (result.expandable) {
+          // Show expandable if param accepts the parent type (e.g. ComposeRecord)
+          if (typesOverlap(accepted, result.types)) return true
+
+          // Or if any sub-field kind matches the accepted types
+          const fields = recordFields[fieldKey(step, result)] || []
+          return fields.some(f => accepted.includes(f.kind))
+        }
+
+        // Flat result: check type overlap
+        return typesOverlap(accepted, result.types)
+      })
+
+      if (results.length === 0) return null
+      return { ...step, results }
+    })
+    .filter(Boolean)
+})
+
+// Track expanded sub-panels
+const expandedSubPanels = reactive({})
+
+// Cache fetched module fields per step+result key
+const recordFields = reactive({})
+const loadingFields = reactive({})
+
+function fieldKey(step, result) {
+  return `${step.handle}:${result.sourceName}`
+}
+
+// Fetch module fields for expandable results
+async function fetchFields(step, result) {
+  const key = fieldKey(step, result)
+  if (recordFields[key] || loadingFields[key]) return
+  if (!result.namespaceID || !result.moduleID) return
+
+  loadingFields[key] = true
+  try {
+    const mod = await store.resolveModule(result.namespaceID, result.moduleID)
+    if (mod?.fields) {
+      recordFields[key] = mod.fields
+        .filter(f => !f.isSystem)
+        .map(f => ({
+          name: f.name,
+          label: f.label || f.name,
+          kind: f.kind,
+        }))
+    } else {
+      recordFields[key] = []
+    }
+  } catch {
+    recordFields[key] = []
+  } finally {
+    loadingFields[key] = false
+  }
+}
+
+// Auto-fetch fields for all expandable results when upstream data changes
+watch(
+  () => props.upstreamResults,
+  results => {
+    for (const step of results) {
+      for (const result of step.results) {
+        if (result.expandable && result.namespaceID && result.moduleID) {
+          // Auto-expand sub-panels
+          const subKey = step.handle + ':' + result.sourceName
+          if (!expandedSubPanels[subKey]) {
+            expandedSubPanels[subKey] = [result.sourceName]
+          }
+          fetchFields(step, result)
+        }
+      }
+    }
+  },
+  { immediate: true },
+)
+</script>
+
+<style scoped>
+:deep(.p-accordionheader) {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+}
+:deep(.p-accordioncontent-content) {
+  padding: 0.25rem 0.25rem 0.25rem 0.5rem;
+}
+:deep(.p-accordion) {
+  gap: 0;
+}
+:deep(.p-accordionpanel) {
+  border: none;
+}
+</style>

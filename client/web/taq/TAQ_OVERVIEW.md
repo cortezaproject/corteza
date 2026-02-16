@@ -13,28 +13,52 @@ client/web/taq/
 ├── src/
 │   ├── views/
 │   │   ├── Dashboard.vue          # Automation list & management
-│   │   └── Builder.vue            # Visual flow editor canvas (~438 lines)
+│   │   └── Builder.vue            # Visual flow editor canvas
 │   ├── components/
 │   │   ├── builder/
-│   │   │   ├── NodePicker.vue     # Node selection dialog (~197 lines)
-│   │   │   └── ConfigSidebar.vue  # Node configuration panel (~145 lines)
+│   │   │   ├── NodePicker.vue     # Node selection dialog
+│   │   │   ├── ConfigSidebar.vue  # Node configuration panel
+│   │   │   └── form/
+│   │   │       ├── DynamicForm.vue   # Renders inputs from function segments
+│   │   │       ├── DynamicInput.vue  # Resolves input type to component
+│   │   │       └── inputs/
+│   │   │           ├── registry.ts          # Maps input type strings to Vue components
+│   │   │           └── CInputFieldValueMap.vue  # Field-value table for aggregate record values
 │   │   └── flow/
 │   │       ├── TriggerNode.vue    # Trigger node component
 │   │       ├── StepNode.vue       # Step node component
 │   │       ├── BranchNode.vue     # Conditional branching node
 │   │       ├── EndNode.vue        # Visual terminal node
-│   │       └── AddableEdge.vue    # Custom edge with + button (~169 lines)
+│   │       └── AddableEdge.vue    # Custom edge with + button
 │   ├── composables/
-│   │   └── useFlowEditor.ts       # Builder-specific state & logic (~716 lines)
+│   │   └── useFlowEditor.ts       # Builder-specific state & logic
 │   ├── stores/
-│   │   └── automation.ts          # Pinia store for shared state (~181 lines)
+│   │   └── automation.ts          # Pinia store for shared state & catalog
 │   ├── utils/
-│   │   ├── taq-parser.ts          # API <-> VueFlow conversion (~474 lines)
-│   │   └── flow-constants.ts      # Layout & dimension constants
+│   │   ├── taq-parser.ts          # API -> VueFlow conversion & dagre layout
+│   │   └── flow-constants.ts      # Layout dimensions, trigger metadata, icon defaults
 │   ├── router/
 │   │   └── index.js               # Route definitions
 │   └── plugins/                   # Auth, API, i18n setup
 ```
+
+### Routes
+
+| Path | Name | View | Purpose |
+|------|------|------|---------|
+| `/` | `dashboard` | `Dashboard.vue` | Automation list & management |
+| `/builder` | `builder` | `Builder.vue` | Create new automation |
+| `/builder/:id` | `builder-edit` | `Builder.vue` | Edit existing automation |
+| `/*` | — | — | Catch-all redirect to `/` |
+
+Also depends on shared input components from `lib/vue/src/components/input/`:
+- `CInputNamespace.vue` — Namespace selector with search
+- `CInputModule.vue` — Module selector (depends on namespaceID)
+- `CInputUser.vue` — User selector with search
+- `CInputRecord.vue` — Record selector with search
+- `CInputSelect.vue` — Base searchable select
+
+The local input registry (`inputs/registry.ts`) maps backend input type strings to these components (plus PrimeVue's `InputText` as the default fallback).
 
 ### Technology Stack
 
@@ -51,7 +75,7 @@ client/web/taq/
 
 ### Data Model Conversion
 
-The application maintains **dual representations** of automation data:
+The application maintains **dual representations** of automation data. Conversion from API to VueFlow uses `automationToVueFlow()` in `taq-parser.ts`. The reverse conversion (VueFlow to API) is done inline in `useFlowEditor.save()` — note that `taq-parser.ts` also exports a `vueFlowToAutomation()` function, but it is currently **unused dead code**.
 
 1. **Backend (API) Format** - `NgAutomation`:
    ```typescript
@@ -68,6 +92,33 @@ The application maintains **dual representations** of automation data:
    {
      nodes: Node<FlowNodeData>[],  // Visual nodes with position
      edges: Edge[]                 // Connections (order matters for branches)
+   }
+   ```
+
+3. **FlowNodeData** (per-node data):
+   ```typescript
+   interface FlowNodeData {
+     label: string
+     description?: string
+     icon?: string               // PrimeIcon class (e.g. "pi pi-database")
+     nodeType: string            // Function ref or trigger eventType
+     config: Record<string, unknown>  // Triggers only (maps to trigger.input)
+     arguments: Expr[]           // Steps only (maps to step.arguments)
+     ref: string                 // Handle reference
+     stepID?: string
+     triggerID?: string
+   }
+   ```
+
+4. **Expr** (argument format, source of truth for step configuration):
+   ```typescript
+   interface Expr {
+     argumentName?: string  // Which parameter (e.g. "namespace", "module")
+     target?: string        // For aggregate params (e.g. field name)
+     type: string           // From function definition types[0] (e.g. "ID")
+     value?: any            // Literal value
+     expr?: string          // Expression (future use)
+     scope?: string         // Scope (future use)
    }
    ```
 
@@ -168,24 +219,40 @@ Labels positioned near top of vertical segment, "+" button centered on vertical 
 ### NodePicker.vue
 
 **Categories:**
-- Triggers - loaded from API catalog (`store.triggers`)
-- Logic - frontend-defined (Branch/Gateway)
-- Actions - loaded from API catalog (`store.functions`, excluding gateway kind)
+- Triggers - loaded from API catalog (`store.triggers`), labels/descriptions/icons from backend `meta`
+- Logic - frontend-defined (Branch/Gateway), uses i18n translations
+- Actions - loaded from API catalog (`store.functions`, excluding gateway kind), labels/descriptions/icons from backend `meta`
 
 **Filtering:**
 - When adding first node: shows only triggers
 - When inserting on edge: shows logic + actions (no triggers)
 
+**Icons:** Stored on backend `meta.icon` without prefix (e.g. `"database"`), frontend prepends `"pi pi-"`. Falls back to `"bolt"` for triggers, `"cog"` for actions.
+
 ### ConfigSidebar.vue
 
 **Features:**
 - Shows node label and description
+- **DynamicForm** for step configuration (rendered from backend function segments)
 - For branch nodes:
   - Lists branch outputs in reorderable DataTable
   - Displays "If", "Else If", "Else" tags
   - Drag-to-reorder support
   - "Add Else If Branch" button
 - Delete button at bottom
+
+### DynamicForm System
+
+Step configuration is driven by **backend-defined segments**:
+
+1. Each function defines `segments > sections > elements` in Go
+2. Each element has `input.type` (e.g. `"NamespaceSelector"`), `input.argument`, and optional `input.context.dependsOn` (context comes from backend JSON; not fully typed in `SegmentInput` interface)
+3. **DynamicForm** reads `Expr[]` from node data to populate inputs via `getArgValue()` / `getAggregateValue()`
+4. **DynamicInput** resolves `input.type` to a Vue component via the input registry
+5. `dependsOn` creates data dependencies (e.g. module selector needs namespace value as `namespaceID` prop)
+6. Inputs are auto-disabled when dependencies are unresolved, with contextual placeholder text
+7. On change, `updateArgument()` creates proper `Expr` objects with types from function definition and cascade-clears dependent inputs
+8. Aggregate parameters (e.g. `FieldValueMap`) produce multiple `Expr` entries sharing the same `argumentName` with different `target` values
 
 ### AddableEdge.vue
 
@@ -208,8 +275,8 @@ Manages **shared state** used across the app:
 ```typescript
 // State
 list: NgAutomationInstance[]     // Automation list (Dashboard)
-functions: AutomationFunction[]  // Function catalog
-eventTypes: AutomationEventType[] // Event type catalog
+functions: AutomationFunction[]  // Function catalog (with segments, parameters, meta)
+triggers: AutomationTrigger[]    // Trigger catalog (with meta for labels/icons)
 loading: boolean
 error: string | null
 
@@ -217,7 +284,10 @@ error: string | null
 fetchList(api, filter)   // Load automation list
 create(api, data)        // Create new automation
 remove(api, automationID) // Delete automation
-loadCatalog(api)         // Load functions + event types
+loadCatalog(api)         // Load functions + triggers (parallel)
+loadFunctions(api)       // Load function catalog only
+loadTriggers(api)        // Load trigger catalog only
+reset()                  // Clear store state
 ```
 
 ### Flow Editor Composable (`composables/useFlowEditor.ts`)
@@ -231,6 +301,7 @@ nodes: Node<FlowNodeData>[]     // VueFlow nodes
 edges: Edge[]                   // VueFlow edges
 loading: boolean
 saving: boolean
+running: boolean                // Execution in progress
 
 // History
 history: string[]               // JSON snapshots for undo/redo
@@ -243,15 +314,21 @@ automationId: string            // Current automation ID
 isEmpty: boolean                // True if no nodes
 
 // Actions
-load(id)                        // Load automation from API
+load(id)                        // Load automation from API (resolves icons from catalog)
 save()                          // Save to API (create or update)
+exec()                          // Execute automation via API
 reset()                         // Clear to empty state
 addNode(nodeType, insertionPoint) // Add node to flow
 deleteNode(node)                // Remove node from flow
 addBranchOutput(branchNode)     // Add Else If branch
 reorderBranchEdges(branchNodeId, newEdgeOrder) // Reorder branches
+updateNodeData(nodeId, data)    // Update node data (arguments, config)
 undo() / redo()                 // History navigation
-cleanupOrphanedNodes()          // Remove disconnected nodes
+saveToHistory()                 // Save current state to undo history
+
+// Internal (not exported)
+// cleanupOrphanedNodes()       // Remove disconnected nodes (called by deleteNode)
+// relayout()                   // Re-apply dagre layout (called by deleteNode)
 ```
 
 ### Why This Approach?
@@ -259,10 +336,11 @@ cleanupOrphanedNodes()          // Remove disconnected nodes
 | Concern | Location | Reason |
 |---------|----------|--------|
 | Automation list | Store | Shared between Dashboard views |
-| Function catalog | Store | Loaded once, used by NodePicker |
+| Function/trigger catalog | Store | Loaded once, used by NodePicker + icon resolution |
 | Current automation | Composable | Only needed in Builder |
 | VueFlow nodes/edges | Composable | Transient visual state |
 | Undo/redo history | Composable | Builder-specific feature |
+| Step arguments (Expr[]) | Node data | Source of truth, read directly on save |
 
 ---
 
@@ -298,170 +376,74 @@ Highlighted edges receive `data.highlighted = true` and are styled with primary 
 
 ---
 
-## Remaining Inconsistencies
-
-### 1. **Missing Validation**
-
-**Issue:** The `save()` function has minimal validation:
-
-```javascript
-async function save() {
-  // No validation that automation has at least one trigger
-  // No validation of step configurations
-  // No validation of path integrity
-}
-```
-
-**Impact:** Users can save invalid automations that may fail at runtime.
-
-### 3. **Missing i18n for Node Labels**
-
-**Issue:** Node labels in `NodePicker.vue` and `ConfigSidebar.vue` are hardcoded English strings:
-
-```javascript
-{ label: 'Manual', description: 'Trigger manually' }
-{ label: 'Record Create', description: 'After record is created' }
-"Add Else If Branch"
-"Branches"
-```
-
-**Impact:** Breaks i18n compliance, not localizable.
-
----
-
 ## Improvement Recommendations
 
 ### Completed
 
-- [x] **Consolidate State Management** - Implemented hybrid approach with Pinia store for shared state and `useFlowEditor` composable for builder-specific state
-- [x] **Fix API Injection Consistency** - Store methods consistently accept API as parameter, composable injects API internally
+- [x] **Consolidate State Management** - Hybrid approach: Pinia store for shared state, `useFlowEditor` composable for builder state
+- [x] **Fix API Injection Consistency** - Store methods accept API as parameter, composable injects API internally
 - [x] **Extract Flow Logic to Composable** - Created `useFlowEditor.ts` with all builder logic
-- [x] **End Nodes Persisted** - End nodes saved as termination steps (`kind: 'termination'`)
-- [x] **Single ID Counter** - Unified ID counter prevents collisions between triggers and steps
-- [x] **Orphan Node Cleanup** - Automatic cleanup of disconnected nodes on deletion
-- [x] **Edge Highlighting** - Visual feedback showing path to selected node
-- [x] **Multi-Output Branches** - Support for If/Else If/Else with dynamic edge ordering
-- [x] **Branch Reordering** - Drag-and-drop reordering in ConfigSidebar
+- [x] **End Nodes Persisted** - Saved as termination steps (`kind: 'termination'`)
+- [x] **Single ID Counter** - Prevents path collisions between triggers and steps
+- [x] **Orphan Node Cleanup** - Automatic removal of disconnected nodes on deletion
+- [x] **Edge Highlighting** - Visual path highlighting when selecting a node
+- [x] **Multi-Output Branches** - If/Else If/Else with dynamic edge ordering
+- [x] **Branch Reordering** - Drag-to-reorder in ConfigSidebar
 - [x] **Centralized Layout Constants** - Moved to `flow-constants.ts`
-- [x] **Dynamic Catalog Usage** - NodePicker now uses triggers and functions from API instead of hardcoded values
+- [x] **Dynamic Catalog Usage** - NodePicker uses triggers and functions from API
+- [x] **Expr[] as source of truth** - Step arguments stored directly as `Expr[]`, no lossy config conversion
+- [x] **Backend-driven labels/icons** - Function and trigger labels, descriptions, icons from backend `meta`; only logic nodes use frontend i18n
+- [x] **DynamicForm system** - Backend-defined segments drive step configuration UI
+- [x] **Input component registry** - Extensible mapping of input types to Vue components
+- [x] **Catalog-before-load** - `catalogReady` ref gates route watcher to prevent race conditions
+- [x] **Execution support** - Run button calls `ngAutomationExec` API
+- [x] **Placeholder system** - DynamicForm computes disabled/enabled placeholders from `dependsOn` context
 
 ### Medium Priority
 
-#### 2. **Add Validation Layer**
+#### 1. **Add Validation Layer**
 
-Create validation utilities:
+Create validation utilities for pre-save checks (at least one trigger, required arguments filled, path integrity).
 
-```typescript
-// utils/validation.ts
-export function validateAutomation(automation: NgAutomation): ValidationResult {
-  const errors: string[] = []
+#### 2. **Add Unit Tests**
 
-  if (!automation.triggers?.length) {
-    errors.push('Automation must have at least one trigger')
-  }
-
-  // Validate paths form connected graph
-  // Validate required step arguments
-  // etc.
-
-  return { valid: errors.length === 0, errors }
-}
-```
-
-#### 3. **Internationalize Node Labels**
-
-Move labels to locale files:
-
-```yaml
-# locale/en/corteza-webapp-taq/builder.yaml
-nodePicker:
-  triggers:
-    manual:
-      label: Manual
-      description: Trigger manually
-configSidebar:
-  branches: Branches
-  addElseIf: Add Else If Branch
-```
+Priority test areas:
+- `taq-parser.ts` conversion functions (round-trip fidelity)
+- `useFlowEditor.ts` composable methods
+- DynamicForm argument handling (aggregate, cascade clearing)
+- Branch edge ordering logic
 
 ### Low Priority
 
-#### 4. **Add Unit Tests**
+#### 3. **Improve Error Handling**
 
-Priority test areas:
-- `taq-parser.ts` conversion functions
-- `useFlowEditor.ts` composable methods
-- Branch edge ordering logic
-- Orphan cleanup logic
-- Undo/redo functionality
-
-```typescript
-// __tests__/taq-parser.test.ts
-describe('automationToVueFlow', () => {
-  it('converts triggers to trigger nodes with prefixed IDs', () => {...})
-  it('generates end nodes for leaf nodes', () => {...})
-  it('handles branch nodes with multiple outputs', () => {...})
-})
-```
-
-#### 5. **Improve Error Handling**
-
-Add proper error boundaries and user feedback:
-
-```javascript
-async function save() {
-  const validation = validateAutomation(automation.value)
-  if (!validation.valid) {
-    $toast.toastWarning(validation.errors.join('\n'), t('builder.validation.title'))
-    return
-  }
-
-  try {
-    // ... save logic
-  } catch (e) {
-    if (e.response?.status === 409) {
-      $toast.toastWarning(t('builder.errors.conflict'))
-    } else {
-      $toast.toastDanger(t('builder.errors.saveFailed'))
-    }
-  }
-}
-```
+Add proper error boundaries and user feedback for save conflicts, network errors, etc.
 
 ---
 
 ## Summary
 
-The TAQ application has a solid foundation with Vue Flow integration and clean visual design.
+The TAQ application provides a visual flow builder for creating automations with a backend-driven configuration system.
 
-### Recent Improvements
+### Key Design Decisions
 
-- **State management refactored** - Clear separation between shared state (Pinia store) and builder-specific state (`useFlowEditor` composable)
-- **Builder.vue simplified** - Reduced from ~760 lines to ~438 lines by extracting logic to composable
-- **End nodes persisted** - End nodes are now saved as termination steps (`kind: 'termination'`) in the backend
-- **Multi-output branches** - Branch nodes now support If/Else If/Else with multiple outputs
-- **Branch management** - Drag-to-reorder branches in ConfigSidebar, "Add Else If" button
-- **Edge highlighting** - Visual path highlighting when selecting a node
-- **Single ID counter** - Prevents path collisions between triggers and steps
-- **Orphan cleanup** - Automatic removal of disconnected nodes
-- **Centralized constants** - Layout dimensions moved to `flow-constants.ts`
+- **Expr[] is the source of truth** for step arguments — no intermediate config object, no lossy conversion
+- **Backend drives UI** — function labels, descriptions, icons, and form segments come from the construct library API
+- **Frontend only handles logic nodes** — Branch/Gateway labels use i18n; everything else comes from backend
+- **Catalog loads before automation** — prevents race conditions with icon/metadata resolution
+- **Input registry is extensible** — adding a new input type = one component + one registry entry. Current mappings:
+  - `UserSelector` / `User` → `CInputUser`
+  - `NamespaceSelector` / `Namespace` → `CInputNamespace`
+  - `ModuleSelector` / `Module` → `CInputModule`
+  - `RecordSelector` / `Record` → `CInputRecord`
+  - `Text` / `String` / `Number` → PrimeVue `InputText`
+  - `Select` / `Dropdown` → `CInputSelect`
+  - `FieldValueMap` → `CInputFieldValueMap` (local to taq)
 
 ### Remaining Work
 
 1. **Validation** - Add proper pre-save validation
-2. **i18n compliance** - Move all strings to locale files
-3. **Unit tests** - Add tests for parser and composable
-
-### Code Metrics
-
-| File | Lines | Purpose |
-|------|-------|---------|
-| useFlowEditor.ts | ~716 | Builder state & operations |
-| taq-parser.ts | ~474 | API ↔ VueFlow conversion |
-| Builder.vue | ~438 | Main editor UI |
-| NodePicker.vue | ~197 | Node selection dialog |
-| AddableEdge.vue | ~169 | Custom edge component |
-| ConfigSidebar.vue | ~145 | Node configuration panel |
-| automation.ts | ~181 | Pinia store |
-
-Total estimated LOC: ~2,500 lines
+2. **Unit tests** - Add tests for parser, composable, and DynamicForm
+3. **More input types** - Expression editor, code editor, etc. (User/Record selectors already added)
+4. **Trigger configuration** - Triggers currently use `config` (flat object), segments not yet defined for triggers
+5. **Dead code cleanup** - Remove unused `vueFlowToAutomation()` from `taq-parser.ts` (save logic is inline in `useFlowEditor`)
