@@ -34,6 +34,10 @@ func Agent() *agent {
 	}
 }
 
+func (svc *agent) Get(ctx context.Context, ID uint64) (*types.Agent, error) {
+	return svc.FindByID(ctx, ID)
+}
+
 func (svc *agent) FindByID(ctx context.Context, ID uint64) (a *types.Agent, err error) {
 	err = func() error {
 		if a, err = loadAgent(ctx, svc.store, ID); err != nil {

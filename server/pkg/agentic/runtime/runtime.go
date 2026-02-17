@@ -41,7 +41,15 @@ type (
 		Output         string         `json:"output"`
 		ConversationID uint64         `json:"conversationID,string"`
 		ToolCalls      []ToolCallInfo `json:"toolCalls"`
+		Decisions      []DecisionInfo `json:"decisions"`
 		Usage          Usage          `json:"usage"`
+	}
+
+	DecisionInfo struct {
+		Iteration int      `json:"iteration"`
+		Decision  string   `json:"decision"`
+		Tools     []string `json:"tools,omitempty"`
+		Reasoning string   `json:"reasoning,omitempty"`
 	}
 
 	// ToolCallInfo describes a tool call that was executed.
@@ -68,6 +76,7 @@ type (
 	}
 
 	LLMConfig struct {
+		ProviderID  uint64
 		Model       string
 		Temperature float64
 		MaxTokens   int
