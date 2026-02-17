@@ -505,6 +505,23 @@ type (
 		Value      labelsType.LabelValue `db:"value"`
 	}
 
+	// auxLlmProvider is an auxiliary structure used for transporting to/from RDBMS store
+	auxLlmProvider struct {
+		ID           uint64                       `db:"id"`
+		Handle       string                       `db:"handle"`
+		Status       string                       `db:"status"`
+		Provider     string                       `db:"provider"`
+		CredentialID uint64                       `db:"credential_id"`
+		Meta         systemType.LLMProviderMeta   `db:"meta"`
+		Config       systemType.LLMProviderConfig `db:"config"`
+		CreatedAt    time.Time                    `db:"created_at"`
+		UpdatedAt    *time.Time                   `db:"updated_at"`
+		DeletedAt    *time.Time                   `db:"deleted_at"`
+		CreatedBy    uint64                       `db:"created_by"`
+		UpdatedBy    uint64                       `db:"updated_by"`
+		DeletedBy    uint64                       `db:"deleted_by"`
+	}
+
 	// auxNotification is an auxiliary structure used for transporting to/from RDBMS store
 	auxNotification struct {
 		ID        uint64                        `db:"id"`
@@ -2480,6 +2497,68 @@ func (aux *auxLabel) scan(row scanner) error {
 		&aux.ResourceID,
 		&aux.Name,
 		&aux.Value,
+	)
+}
+
+// encodes LlmProvider to auxLlmProvider
+//
+// This function is auto-generated
+func (aux *auxLlmProvider) encode(res *systemType.LlmProvider) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Status = res.Status
+	aux.Provider = res.Provider
+	aux.CredentialID = res.CredentialID
+	aux.Meta = res.Meta
+	aux.Config = res.Config
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes LlmProvider from auxLlmProvider
+//
+// This function is auto-generated
+func (aux auxLlmProvider) decode() (res *systemType.LlmProvider, _ error) {
+	res = new(systemType.LlmProvider)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Status = aux.Status
+	res.Provider = aux.Provider
+	res.CredentialID = aux.CredentialID
+	res.Meta = aux.Meta
+	res.Config = aux.Config
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxLlmProvider fields
+//
+// This function is auto-generated
+func (aux *auxLlmProvider) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Status,
+		&aux.Provider,
+		&aux.CredentialID,
+		&aux.Meta,
+		&aux.Config,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

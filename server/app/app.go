@@ -8,6 +8,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/logger"
 	"github.com/cortezaproject/corteza/server/pkg/options"
 	"github.com/cortezaproject/corteza/server/store"
+	"github.com/cortezaproject/corteza/server/system/llm"
 	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/go-chi/chi/v5"
@@ -72,6 +73,7 @@ type (
 		WsServer   wsServer
 		McpServer  *mcpkg.MCPServer
 
+		LlmService   *llm.Service
 		AuthService  authServicer
 		ApigwService apigwServicer
 

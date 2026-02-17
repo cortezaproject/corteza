@@ -3610,6 +3610,126 @@ var (
 		}
 	}
 
+	// llmProviderTable represents llmProviders store table
+	//
+	// This value is auto-generated
+	llmProviderTable = goqu.T("llm_providers")
+
+	// llmProviderSelectQuery assembles select query for fetching llmProviders
+	//
+	// This function is auto-generated
+	llmProviderSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"status",
+			"provider",
+			"rel_credential",
+			"meta",
+			"config",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(llmProviderTable)
+	}
+
+	// llmProviderInsertQuery assembles query inserting llmProviders
+	//
+	// This function is auto-generated
+	llmProviderInsertQuery = func(d goqu.DialectWrapper, res *systemType.LlmProvider) *goqu.InsertDataset {
+		return d.Insert(llmProviderTable).
+			Rows(goqu.Record{
+				"id":             res.ID,
+				"handle":         res.Handle,
+				"status":         res.Status,
+				"provider":       res.Provider,
+				"rel_credential": res.CredentialID,
+				"meta":           res.Meta,
+				"config":         res.Config,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+				"created_by":     res.CreatedBy,
+				"updated_by":     res.UpdatedBy,
+				"deleted_by":     res.DeletedBy,
+			})
+	}
+
+	// llmProviderUpsertQuery assembles (insert+on-conflict) query for replacing llmProviders
+	//
+	// This function is auto-generated
+	llmProviderUpsertQuery = func(d goqu.DialectWrapper, res *systemType.LlmProvider) *goqu.InsertDataset {
+		var target = `,id`
+
+		return llmProviderInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":         res.Handle,
+						"status":         res.Status,
+						"provider":       res.Provider,
+						"rel_credential": res.CredentialID,
+						"meta":           res.Meta,
+						"config":         res.Config,
+						"created_at":     res.CreatedAt,
+						"updated_at":     res.UpdatedAt,
+						"deleted_at":     res.DeletedAt,
+						"created_by":     res.CreatedBy,
+						"updated_by":     res.UpdatedBy,
+						"deleted_by":     res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// llmProviderUpdateQuery assembles query for updating llmProviders
+	//
+	// This function is auto-generated
+	llmProviderUpdateQuery = func(d goqu.DialectWrapper, res *systemType.LlmProvider) *goqu.UpdateDataset {
+		return d.Update(llmProviderTable).
+			Set(goqu.Record{
+				"handle":         res.Handle,
+				"status":         res.Status,
+				"provider":       res.Provider,
+				"rel_credential": res.CredentialID,
+				"meta":           res.Meta,
+				"config":         res.Config,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+				"created_by":     res.CreatedBy,
+				"updated_by":     res.UpdatedBy,
+				"deleted_by":     res.DeletedBy,
+			}).
+			Where(llmProviderPrimaryKeys(res))
+	}
+
+	// llmProviderDeleteQuery assembles delete query for removing llmProviders
+	//
+	// This function is auto-generated
+	llmProviderDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(llmProviderTable).Where(ee...)
+	}
+
+	// llmProviderDeleteQuery assembles delete query for removing llmProviders
+	//
+	// This function is auto-generated
+	llmProviderTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(llmProviderTable)
+	}
+
+	// llmProviderPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	llmProviderPrimaryKeys = func(res *systemType.LlmProvider) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// notificationTable represents notifications store table
 	//
 	// This value is auto-generated

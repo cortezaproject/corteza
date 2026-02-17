@@ -90,6 +90,11 @@ type (
 	// This type is auto-generated.
 	DataPrivacyRequestCommentSet []*DataPrivacyRequestComment
 
+	// LlmProviderSet slice of LlmProvider
+	//
+	// This type is auto-generated.
+	LlmProviderSet []*LlmProvider
+
 	// NotificationSet slice of Notification
 	//
 	// This type is auto-generated.
@@ -939,6 +944,62 @@ func (set DataPrivacyRequestCommentSet) FindByID(ID uint64) *DataPrivacyRequestC
 //
 // This function is auto-generated.
 func (set DataPrivacyRequestCommentSet) IDs() (IDs []uint64) {
+	IDs = make([]uint64, len(set))
+
+	for i := range set {
+		IDs[i] = set[i].ID
+	}
+
+	return
+}
+
+// Walk iterates through every slice item and calls w(LlmProvider) err
+//
+// This function is auto-generated.
+func (set LlmProviderSet) Walk(w func(*LlmProvider) error) (err error) {
+	for i := range set {
+		if err = w(set[i]); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// Filter iterates through every slice item, calls f(LlmProvider) (bool, err) and return filtered slice
+//
+// This function is auto-generated.
+func (set LlmProviderSet) Filter(f func(*LlmProvider) (bool, error)) (out LlmProviderSet, err error) {
+	var ok bool
+	out = LlmProviderSet{}
+	for i := range set {
+		if ok, err = f(set[i]); err != nil {
+			return
+		} else if ok {
+			out = append(out, set[i])
+		}
+	}
+
+	return
+}
+
+// FindByID finds items from slice by its ID property
+//
+// This function is auto-generated.
+func (set LlmProviderSet) FindByID(ID uint64) *LlmProvider {
+	for i := range set {
+		if set[i].ID == ID {
+			return set[i]
+		}
+	}
+
+	return nil
+}
+
+// IDs returns a slice of uint64s from all items in the set
+//
+// This function is auto-generated.
+func (set LlmProviderSet) IDs() (IDs []uint64) {
 	IDs = make([]uint64, len(set))
 
 	for i := range set {

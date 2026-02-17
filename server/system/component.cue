@@ -34,6 +34,7 @@ component: schema.#component & {
     "dal-connection":        				dal_connection
     "dal-sensitivity-level": 				dal_sensitivity_level
     "dal-schema-alteration": 				dal_schema_alteration
+    "llm-provider":          				llm_provider
 	}
 
 	rbac: operations: {

@@ -76,6 +76,7 @@ type (
 		FederationSharedModules
 		Flags
 		Labels
+		LlmProviders
 		Notifications
 		Queues
 		QueueMessages
@@ -504,6 +505,19 @@ type (
 		TruncateLabels(ctx context.Context) error
 		LookupLabelByKindResourceIDName(ctx context.Context, kind string, resourceID uint64, name string) (*labelsType.Label, error)
 		DeleteExtraLabels(ctx context.Context, kind string, resourceId uint64, name ...string) error
+	}
+
+	LlmProviders interface {
+		SearchLlmProviders(ctx context.Context, f systemType.LlmProviderFilter) (systemType.LlmProviderSet, systemType.LlmProviderFilter, error)
+		CreateLlmProvider(ctx context.Context, rr ...*systemType.LlmProvider) error
+		UpdateLlmProvider(ctx context.Context, rr ...*systemType.LlmProvider) error
+		UpsertLlmProvider(ctx context.Context, rr ...*systemType.LlmProvider) error
+		DeleteLlmProvider(ctx context.Context, rr ...*systemType.LlmProvider) error
+
+		DeleteLlmProviderByID(ctx context.Context, id uint64) error
+		TruncateLlmProviders(ctx context.Context) error
+		LookupLlmProviderByID(ctx context.Context, id uint64) (*systemType.LlmProvider, error)
+		LookupLlmProviderByHandle(ctx context.Context, handle string) (*systemType.LlmProvider, error)
 	}
 
 	Notifications interface {
@@ -2739,6 +2753,73 @@ func LookupLabelByKindResourceIDName(ctx context.Context, s Labels, kind string,
 // This function is auto-generated
 func DeleteExtraLabels(ctx context.Context, s Labels, kind string, resourceId uint64, name ...string) error {
 	return s.DeleteExtraLabels(ctx, kind, resourceId, name...)
+}
+
+// SearchLlmProviders returns all matching LlmProviders from store
+//
+// This function is auto-generated
+func SearchLlmProviders(ctx context.Context, s LlmProviders, f systemType.LlmProviderFilter) (systemType.LlmProviderSet, systemType.LlmProviderFilter, error) {
+	return s.SearchLlmProviders(ctx, f)
+}
+
+// CreateLlmProvider creates one or more LlmProviders in store
+//
+// This function is auto-generated
+func CreateLlmProvider(ctx context.Context, s LlmProviders, rr ...*systemType.LlmProvider) error {
+	return s.CreateLlmProvider(ctx, rr...)
+}
+
+// UpdateLlmProvider updates one or more (existing) LlmProviders in store
+//
+// This function is auto-generated
+func UpdateLlmProvider(ctx context.Context, s LlmProviders, rr ...*systemType.LlmProvider) error {
+	return s.UpdateLlmProvider(ctx, rr...)
+}
+
+// UpsertLlmProvider creates new or updates existing one or more LlmProviders in store
+//
+// This function is auto-generated
+func UpsertLlmProvider(ctx context.Context, s LlmProviders, rr ...*systemType.LlmProvider) error {
+	return s.UpsertLlmProvider(ctx, rr...)
+}
+
+// DeleteLlmProvider deletes one or more LlmProviders from store
+//
+// This function is auto-generated
+func DeleteLlmProvider(ctx context.Context, s LlmProviders, rr ...*systemType.LlmProvider) error {
+	return s.DeleteLlmProvider(ctx, rr...)
+}
+
+// DeleteLlmProviderByID deletes one or more LlmProviders from store
+//
+// This function is auto-generated
+func DeleteLlmProviderByID(ctx context.Context, s LlmProviders, id uint64) error {
+	return s.DeleteLlmProviderByID(ctx, id)
+}
+
+// TruncateLlmProviders Deletes all LlmProviders from store
+//
+// This function is auto-generated
+func TruncateLlmProviders(ctx context.Context, s LlmProviders) error {
+	return s.TruncateLlmProviders(ctx)
+}
+
+// LookupLlmProviderByID searches for LLM provider by ID
+//
+// It returns LLM provider even if deleted
+//
+// This function is auto-generated
+func LookupLlmProviderByID(ctx context.Context, s LlmProviders, id uint64) (*systemType.LlmProvider, error) {
+	return s.LookupLlmProviderByID(ctx, id)
+}
+
+// LookupLlmProviderByHandle searches for LLM provider by handle
+//
+// It returns only valid LLM provider (not deleted)
+//
+// This function is auto-generated
+func LookupLlmProviderByHandle(ctx context.Context, s LlmProviders, handle string) (*systemType.LlmProvider, error) {
+	return s.LookupLlmProviderByHandle(ctx, handle)
 }
 
 // SearchNotifications returns all matching Notifications from store

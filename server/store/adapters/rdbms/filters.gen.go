@@ -126,6 +126,9 @@ type (
 		// optional label filter function called after the generated function
 		Label func(*Store, labelsType.LabelFilter) ([]goqu.Expression, labelsType.LabelFilter, error)
 
+		// optional llmProvider filter function called after the generated function
+		LlmProvider func(*Store, systemType.LlmProviderFilter) ([]goqu.Expression, systemType.LlmProviderFilter, error)
+
 		// optional notification filter function called after the generated function
 		Notification func(*Store, systemType.NotificationFilter) ([]goqu.Expression, systemType.NotificationFilter, error)
 
@@ -1090,6 +1093,38 @@ func LabelFilter(d drivers.Dialect, f labelsType.LabelFilter) (ee []goqu.Express
 
 	if len(f.ResourceID) > 0 {
 		ee = append(ee, goqu.C("rel_resource").In(f.ResourceID))
+	}
+
+	return ee, f, err
+}
+
+// LlmProviderFilter returns logical expressions
+//
+// This function is called from Store.QueryLlmProviders() and can be extended
+// by setting Store.Filters.LlmProvider. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func LlmProviderFilter(d drivers.Dialect, f systemType.LlmProviderFilter) (ee []goqu.Expression, _ systemType.LlmProviderFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if len(f.LlmProviderID) > 0 {
+		ee = append(ee, goqu.C("id").In(f.LlmProviderID))
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if val := strings.TrimSpace(f.Status); len(val) > 0 {
+		ee = append(ee, goqu.C("status").Eq(f.Status))
+	}
+
+	if val := strings.TrimSpace(f.Provider); len(val) > 0 {
+		ee = append(ee, goqu.C("provider").Eq(f.Provider))
 	}
 
 	return ee, f, err

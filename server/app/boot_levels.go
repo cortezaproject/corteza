@@ -45,6 +45,7 @@ import (
 	sysService "github.com/cortezaproject/corteza/server/system/service"
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/system/llm"
 	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
@@ -393,6 +394,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		reg:=           mcpkg.NewRegistry()
 		mcpkg.RecordHandler(reg)
 		app.McpServer = mcpkg.NewMCPServer(reg)
+	}
+
+	app.LlmService, err = llm.New(app.Store)
+	if err != nil {
+		return fmt.Errorf("could not initialize LLM service: %w", err)
 	}
 
 	if app.Opt.Messagebus.Enabled {
