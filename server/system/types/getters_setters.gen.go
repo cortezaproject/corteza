@@ -1092,6 +1092,74 @@ func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err er
 	return nil
 }
 
+func (r LlmProvider) GetID() uint64 { return r.ID }
+
+func (r *LlmProvider) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "credentialID", "CredentialID":
+		return r.CredentialID, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "handle", "Handle":
+		return r.Handle, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "provider", "Provider":
+		return r.Provider, nil
+	case "status", "Status":
+		return r.Status, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *LlmProvider) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &LlmProvider{}
+	}
+
+	switch name {
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "credentialID", "CredentialID":
+		return cast2.Uint64(value, &r.CredentialID)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "handle", "Handle":
+		return cast2.String(value, &r.Handle)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "provider", "Provider":
+		return cast2.String(value, &r.Provider)
+	case "status", "Status":
+		return cast2.String(value, &r.Status)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}
+
 func (r Agent) GetID() uint64 { return r.ID }
 
 func (r *Agent) GetValue(name string, pos uint) (any, error) {
