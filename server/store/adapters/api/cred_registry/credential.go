@@ -1,6 +1,9 @@
 package cred_registry
 
 import (
+	"context"
+	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -10,48 +13,50 @@ const (
 )
 
 type (
-	Credential struct {
+	// Credential defines the interface for all credential types.
+	// Each auth method implements its own refresh and state management.
+	Credential interface {
+		ConnectionID() uint64
+		AuthType() string
+		GetAccessToken() string
+		NeedsRefresh() bool
+		Refresh(ctx context.Context, client *http.Client) error
+		MarshalState() map[string]any
+	}
+
+	// CredentialConfig holds the parameters needed to construct a Credential.
+	CredentialConfig struct {
 		ConnectionID uint64
-
-		// AuthType: bearer, apikey, oauth2_client_credentials
-		AuthType string
-
-		// Static credentials
-		Token  string // For bearer tokens
-		APIKey string // For API key auth
-
-		// OAuth2 client credentials
+		AuthType     string
+		Token        string
+		APIKey       string
 		ClientID     string
 		ClientSecret string
 		TokenURL     string
 
-		// Dynamic OAuth2 state
-		AccessToken string
-		ExpiresAt   time.Time
+		// JWT bearer fields
+		Issuer        string
+		Subject       string
+		Audience      string
+		Scopes        []string
+		PrivateKey    string
+		TokenLifetime time.Duration
 	}
 )
 
-func (c *Credential) GetAccessToken() string {
-	switch c.AuthType {
+// NewCredential constructs the appropriate Credential implementation
+// based on the auth type specified in the config.
+func NewCredential(cfg CredentialConfig) (Credential, error) {
+	switch cfg.AuthType {
 	case "bearer":
-		return c.Token
+		return NewBearerCredential(cfg.ConnectionID, cfg.Token), nil
 	case "apikey":
-		return c.APIKey
+		return NewAPIKeyCredential(cfg.ConnectionID, cfg.APIKey, "", ""), nil
 	case "oauth2_client_credentials":
-		return c.AccessToken
+		return NewOAuth2ClientCredsCredential(cfg.ConnectionID, cfg.ClientID, cfg.ClientSecret, cfg.TokenURL), nil
+	case "jwt_bearer":
+		return NewJWTBearerCredential(cfg.ConnectionID, cfg.Issuer, cfg.Subject, cfg.Audience, cfg.TokenURL, cfg.PrivateKey, cfg.Scopes, cfg.TokenLifetime), nil
 	default:
-		return ""
+		return nil, fmt.Errorf("unsupported auth type: %s", cfg.AuthType)
 	}
-}
-
-func (c *Credential) UpdateToken(token string, expiresAt time.Time) {
-	c.AccessToken = token
-	c.ExpiresAt = expiresAt
-}
-
-func (c *Credential) NeedsRefresh() bool {
-	if c.AuthType != "oauth2_client_credentials" {
-		return false
-	}
-	return time.Now().Add(OAuth2TokenRefreshBuffer).After(c.ExpiresAt)
 }

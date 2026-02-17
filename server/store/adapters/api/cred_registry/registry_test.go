@@ -37,23 +37,19 @@ func TestRegistry_StoreAndGet(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, reg)
 
-	cred := &Credential{
-		ConnectionID: 1,
-		AuthType:     "bearer",
-		Token:        "test-token",
-	}
+	cred := NewBearerCredential(1, "test-token")
 
 	err = reg.Store(cred)
 	require.NoError(t, err)
 
 	retrieved, err := reg.Get(1)
 	require.NoError(t, err)
-	require.Equal(t, "test-token", retrieved.Token)
+	require.Equal(t, "test-token", retrieved.GetAccessToken())
 }
 
 func TestCredential_NeedsRefresh(t *testing.T) {
-	cred := &Credential{
-		AuthType:  "oauth2_client_credentials",
+	cred := &OAuth2ClientCredsCredential{
+		connID:    1,
 		ExpiresAt: time.Now().Add(3 * time.Minute), // Expires in 3 minutes
 	}
 

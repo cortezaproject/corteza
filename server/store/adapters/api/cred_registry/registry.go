@@ -20,7 +20,7 @@ type (
 
 	registry struct {
 		mux         sync.RWMutex
-		credentials map[uint64]*Credential
+		credentials map[uint64]Credential
 		httpClient  *http.Client
 		refresher   *refresher
 		store       dalConnectionStore
@@ -34,7 +34,7 @@ var (
 
 func New(store dalConnectionStore, logger *zap.Logger) (*registry, error) {
 	reg := &registry{
-		credentials: make(map[uint64]*Credential),
+		credentials: make(map[uint64]Credential),
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -68,18 +68,18 @@ func (r *registry) Close() error {
 	return nil
 }
 
-func (r *registry) Store(cred *Credential) error {
-	if cred.ConnectionID == 0 {
+func (r *registry) Store(cred Credential) error {
+	if cred.ConnectionID() == 0 {
 		return fmt.Errorf("connection ID is required")
 	}
 
 	r.mux.Lock()
 	defer r.mux.Unlock()
-	r.credentials[cred.ConnectionID] = cred
+	r.credentials[cred.ConnectionID()] = cred
 	return nil
 }
 
-func (r *registry) Get(connectionID uint64) (*Credential, error) {
+func (r *registry) Get(connectionID uint64) (Credential, error) {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
@@ -104,35 +104,47 @@ func (r *registry) GetAccessToken(ctx context.Context, connectionID uint64) (str
 		return "", err
 	}
 
-	// If OAuth2 and needs refresh, do it now
-	if cred.AuthType == "oauth2_client_credentials" && cred.NeedsRefresh() {
-		if err := r.refreshToken(ctx, cred); err != nil {
+	if cred.NeedsRefresh() {
+		if err := cred.Refresh(ctx, r.httpClient); err != nil {
 			return "", fmt.Errorf("failed to refresh token: %w", err)
+		}
+
+		// Persist updated state
+		if err := r.persistState(ctx, cred); err != nil {
+			r.logger.Warn("failed to persist token update",
+				zap.Uint64("connectionID", cred.ConnectionID()),
+				zap.Error(err),
+			)
 		}
 	}
 
 	return cred.GetAccessToken(), nil
 }
 
-func (r *registry) GetAllCredentials() []*Credential {
+func (r *registry) GetAllCredentials() []Credential {
 	r.mux.RLock()
 	defer r.mux.RUnlock()
 
-	creds := make([]*Credential, 0, len(r.credentials))
+	creds := make([]Credential, 0, len(r.credentials))
 	for _, cred := range r.credentials {
 		creds = append(creds, cred)
 	}
 	return creds
 }
 
-// persistTokenUpdate saves the updated OAuth2 token back to the database
-func (r *registry) persistTokenUpdate(ctx context.Context, cred *Credential) error {
+// persistState saves the credential's mutable state back to the database
+func (r *registry) persistState(ctx context.Context, cred Credential) error {
+	state := cred.MarshalState()
+	if state == nil {
+		return nil
+	}
+
 	if r.store == nil {
 		r.logger.Warn("store not configured, skipping token persistence")
 		return nil
 	}
 
-	conn, err := r.store.LookupDalConnectionByID(ctx, cred.ConnectionID)
+	conn, err := r.store.LookupDalConnectionByID(ctx, cred.ConnectionID())
 	if err != nil {
 		return fmt.Errorf("failed to load connection: %w", err)
 	}
@@ -141,11 +153,11 @@ func (r *registry) persistTokenUpdate(ctx context.Context, cred *Credential) err
 		return fmt.Errorf("connection has no DAL config")
 	}
 
-	// Update the auth params with new token
 	if auth, ok := conn.Config.DAL.Params["auth"].(map[string]any); ok {
 		if params, ok := auth["params"].(map[string]any); ok {
-			params["accessToken"] = cred.AccessToken
-			params["expiresAt"] = cred.ExpiresAt.Format(time.RFC3339)
+			for k, v := range state {
+				params[k] = v
+			}
 		}
 	}
 

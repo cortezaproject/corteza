@@ -58,23 +58,32 @@ func (rf *refresher) refreshAll() {
 	creds := rf.registry.GetAllCredentials()
 
 	for _, cred := range creds {
-		if cred.AuthType == "oauth2_client_credentials" && cred.NeedsRefresh() {
-			rf.logger.Info("refreshing token",
-				zap.Uint64("connectionID", cred.ConnectionID),
-				zap.Time("expiresAt", cred.ExpiresAt),
-			)
+		if !cred.NeedsRefresh() {
+			continue
+		}
 
-			if err := rf.registry.refreshToken(ctx, cred); err != nil {
-				rf.logger.Error("failed to refresh token",
-					zap.Uint64("connectionID", cred.ConnectionID),
-					zap.Error(err),
-				)
-			} else {
-				rf.logger.Info("token refreshed successfully",
-					zap.Uint64("connectionID", cred.ConnectionID),
-					zap.Time("newExpiresAt", cred.ExpiresAt),
-				)
-			}
+		rf.logger.Info("refreshing token",
+			zap.Uint64("connectionID", cred.ConnectionID()),
+			zap.String("authType", cred.AuthType()),
+		)
+
+		if err := cred.Refresh(ctx, rf.registry.httpClient); err != nil {
+			rf.logger.Error("failed to refresh token",
+				zap.Uint64("connectionID", cred.ConnectionID()),
+				zap.Error(err),
+			)
+			continue
+		}
+
+		rf.logger.Info("token refreshed successfully",
+			zap.Uint64("connectionID", cred.ConnectionID()),
+		)
+
+		if err := rf.registry.persistState(ctx, cred); err != nil {
+			rf.logger.Warn("failed to persist refreshed state",
+				zap.Uint64("connectionID", cred.ConnectionID()),
+				zap.Error(err),
+			)
 		}
 	}
 }
