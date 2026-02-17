@@ -731,6 +731,9 @@ func (svc role) MemberAdd(ctx context.Context, roleID, memberID uint64) (err err
 			return
 		}
 
+		// Invalidate tokens so user gets new tokens with updated role set
+		_ = store.DeleteAuthOA2TokenByUserID(ctx, svc.store, memberID)
+
 		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterAdd(m, r))
 		return nil
 	}()
@@ -838,15 +841,8 @@ func (svc role) MemberRemove(ctx context.Context, roleID, memberID uint64) (err 
 			return
 		}
 
-		// @todo skipping this for now,
-		//			AS per now PUT `/role/{roleID}` endpoint updates role and it's member with it but
-		//			only if one or more members are included in request otherwise we ignore it,
-		//			which causes issue in admin when we remove all the members from role.
-		//			we have to rework the role membership management logic in admin,
-		//			and use the dedicated endpoints for POST, DELETE role member.
-		// if err = svc.auth.RemoveAccessTokens(ctx, m); err != nil {
-		//	 return
-		// }
+		// Invalidate tokens so user gets new tokens with updated role set
+		_ = store.DeleteAuthOA2TokenByUserID(ctx, svc.store, memberID)
 
 		_ = svc.eventbus.WaitFor(ctx, event.RoleMemberAfterRemove(m, r))
 		return nil

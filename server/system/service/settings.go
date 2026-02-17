@@ -207,6 +207,7 @@ func (svc *settings) Set(ctx context.Context, v *types.SettingValue) (err error)
 	}
 
 	svc.logChange(ctx, v)
+	svc.invalidateProviderTokens(ctx, types.SettingValueSet{v})
 	return svc.updateCurrent(ctx, types.SettingValueSet{v})
 }
 
@@ -262,7 +263,66 @@ func (svc *settings) BulkSet(ctx context.Context, vv types.SettingValueSet) (err
 		svc.logChange(ctx, v)
 	}
 
+	svc.invalidateProviderTokens(ctx, vv)
 	return svc.updateCurrent(ctx, vv)
+}
+
+// invalidateProviderTokens checks if any of the changed settings are external auth provider
+// security settings, and if so, invalidates OAuth tokens for all users of that provider.
+// This ensures that when permitted/prohibited/forced roles change, existing sessions
+// are re-evaluated on next login.
+func (svc *settings) invalidateProviderTokens(ctx context.Context, vv types.SettingValueSet) {
+	const providersPrefix = "auth.external.providers."
+	const samlSecuritySetting = "auth.external.saml.security"
+
+	const securitySuffix = ".security"
+
+	for _, v := range vv {
+		var handle string
+
+		if strings.HasPrefix(v.Name, providersPrefix) && strings.HasSuffix(v.Name, securitySuffix) {
+			// Extract handle between prefix and suffix
+			// e.g. "auth.external.providers.openid-connect.bar.security" -> "openid-connect.bar"
+			handle = v.Name[len(providersPrefix) : len(v.Name)-len(securitySuffix)]
+			if handle == "" {
+				continue
+			}
+		} else if v.Name == samlSecuritySetting {
+			handle = "saml"
+		} else {
+			continue
+		}
+
+		cc, _, err := store.SearchCredentials(ctx, DefaultStore, types.CredentialFilter{Kind: handle})
+		if err != nil {
+			svc.logger.Warn("failed to search credentials for provider during security update",
+				zap.String("provider", handle),
+				zap.Error(err))
+			continue
+		}
+
+		if len(cc) == 0 {
+			continue
+		}
+
+		var affectedUsers int
+		for _, c := range cc {
+			if err = store.DeleteAuthOA2TokenByUserID(ctx, DefaultStore, c.OwnerID); err != nil {
+				svc.logger.Error("failed to invalidate tokens after provider security change",
+					zap.String("provider", handle),
+					zap.Uint64("userID", c.OwnerID),
+					zap.Error(err))
+			} else {
+				affectedUsers++
+			}
+		}
+
+		if affectedUsers > 0 {
+			svc.logger.Info("invalidated tokens due to provider security change",
+				zap.String("provider", handle),
+				zap.Int("affectedUsers", affectedUsers))
+		}
+	}
 }
 
 func (svc *settings) logChange(ctx context.Context, v *types.SettingValue) {

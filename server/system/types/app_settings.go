@@ -644,6 +644,8 @@ func (eap ExternalAuthProvider) EncodeKV() (vv SettingValueSet, err error) {
 			"issuer":   eap.IssuerUrl,
 			"redirect": eap.RedirectUrl,
 			"weight":   eap.Weight,
+			"usage":    eap.Usage,
+			"security": eap.Security,
 		}
 	)
 

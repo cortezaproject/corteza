@@ -565,7 +565,6 @@ func (svc *auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c
 
 		default:
 			eap := CurrentSettings.Auth.External.Providers.FindByHandle(p.Provider)
-
 			if eap != nil {
 				eapSec = &eap.Security
 			}
@@ -576,12 +575,19 @@ func (svc *auth) procLogin(ctx context.Context, s store.Storer, u *types.User, c
 			// if authenticated with external auth provider
 			// there might be additional roles that need to be
 			// set to this security session
-			u.SetRoles(internalAuth.ApplyRoleSecurity(
+			newRoles := internalAuth.ApplyRoleSecurity(
 				payload.ParseUint64s(eapSec.PermittedRoles),
 				payload.ParseUint64s(eapSec.ProhibitedRoles),
 				payload.ParseUint64s(eapSec.ForcedRoles),
 				u.Roles()...,
-			)...)
+			)
+
+			// If user has no roles after applying security and there are prohibited roles, reject login
+			if len(newRoles) == 0 && len(eapSec.ProhibitedRoles) > 0 {
+				return AuthErrCredentialsLinkedToInvalidUser()
+			}
+
+			u.SetRoles(newRoles...)
 		}
 	}
 
