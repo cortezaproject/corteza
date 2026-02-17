@@ -45,6 +45,8 @@ type (
 
 		Healthcheck(context.Context) error
 		Actionlogs
+		Agents
+		AiConversations
 		ApigwFilters
 		ApigwRoutes
 		Applications
@@ -103,6 +105,31 @@ type (
 		DeleteActionlogByID(ctx context.Context, id uint64) error
 		TruncateActionlogs(ctx context.Context) error
 		LookupActionlogByID(ctx context.Context, id uint64) (*actionlogType.Action, error)
+	}
+
+	Agents interface {
+		SearchAgents(ctx context.Context, f systemType.AgentFilter) (systemType.AgentSet, systemType.AgentFilter, error)
+		CreateAgent(ctx context.Context, rr ...*systemType.Agent) error
+		UpdateAgent(ctx context.Context, rr ...*systemType.Agent) error
+		UpsertAgent(ctx context.Context, rr ...*systemType.Agent) error
+		DeleteAgent(ctx context.Context, rr ...*systemType.Agent) error
+
+		DeleteAgentByID(ctx context.Context, id uint64) error
+		TruncateAgents(ctx context.Context) error
+		LookupAgentByID(ctx context.Context, id uint64) (*systemType.Agent, error)
+		LookupAgentByHandle(ctx context.Context, handle string) (*systemType.Agent, error)
+	}
+
+	AiConversations interface {
+		SearchAiConversations(ctx context.Context, f systemType.AiConversationFilter) (systemType.AiConversationSet, systemType.AiConversationFilter, error)
+		CreateAiConversation(ctx context.Context, rr ...*systemType.AiConversation) error
+		UpdateAiConversation(ctx context.Context, rr ...*systemType.AiConversation) error
+		UpsertAiConversation(ctx context.Context, rr ...*systemType.AiConversation) error
+		DeleteAiConversation(ctx context.Context, rr ...*systemType.AiConversation) error
+
+		DeleteAiConversationByID(ctx context.Context, id uint64) error
+		TruncateAiConversations(ctx context.Context) error
+		LookupAiConversationByID(ctx context.Context, id uint64) (*systemType.AiConversation, error)
 	}
 
 	ApigwFilters interface {
@@ -754,6 +781,131 @@ func TruncateActionlogs(ctx context.Context, s Actionlogs) error {
 // This function is auto-generated
 func LookupActionlogByID(ctx context.Context, s Actionlogs, id uint64) (*actionlogType.Action, error) {
 	return s.LookupActionlogByID(ctx, id)
+}
+
+// SearchAgents returns all matching Agents from store
+//
+// This function is auto-generated
+func SearchAgents(ctx context.Context, s Agents, f systemType.AgentFilter) (systemType.AgentSet, systemType.AgentFilter, error) {
+	return s.SearchAgents(ctx, f)
+}
+
+// CreateAgent creates one or more Agents in store
+//
+// This function is auto-generated
+func CreateAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.CreateAgent(ctx, rr...)
+}
+
+// UpdateAgent updates one or more (existing) Agents in store
+//
+// This function is auto-generated
+func UpdateAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.UpdateAgent(ctx, rr...)
+}
+
+// UpsertAgent creates new or updates existing one or more Agents in store
+//
+// This function is auto-generated
+func UpsertAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.UpsertAgent(ctx, rr...)
+}
+
+// DeleteAgent deletes one or more Agents from store
+//
+// This function is auto-generated
+func DeleteAgent(ctx context.Context, s Agents, rr ...*systemType.Agent) error {
+	return s.DeleteAgent(ctx, rr...)
+}
+
+// DeleteAgentByID deletes one or more Agents from store
+//
+// This function is auto-generated
+func DeleteAgentByID(ctx context.Context, s Agents, id uint64) error {
+	return s.DeleteAgentByID(ctx, id)
+}
+
+// TruncateAgents Deletes all Agents from store
+//
+// This function is auto-generated
+func TruncateAgents(ctx context.Context, s Agents) error {
+	return s.TruncateAgents(ctx)
+}
+
+// LookupAgentByID searches for agent by ID
+//
+// It also returns deleted agents.
+//
+// This function is auto-generated
+func LookupAgentByID(ctx context.Context, s Agents, id uint64) (*systemType.Agent, error) {
+	return s.LookupAgentByID(ctx, id)
+}
+
+// LookupAgentByHandle searches for agent by handle
+//
+// It returns only valid agents (not deleted)
+//
+// This function is auto-generated
+func LookupAgentByHandle(ctx context.Context, s Agents, handle string) (*systemType.Agent, error) {
+	return s.LookupAgentByHandle(ctx, handle)
+}
+
+// SearchAiConversations returns all matching AiConversations from store
+//
+// This function is auto-generated
+func SearchAiConversations(ctx context.Context, s AiConversations, f systemType.AiConversationFilter) (systemType.AiConversationSet, systemType.AiConversationFilter, error) {
+	return s.SearchAiConversations(ctx, f)
+}
+
+// CreateAiConversation creates one or more AiConversations in store
+//
+// This function is auto-generated
+func CreateAiConversation(ctx context.Context, s AiConversations, rr ...*systemType.AiConversation) error {
+	return s.CreateAiConversation(ctx, rr...)
+}
+
+// UpdateAiConversation updates one or more (existing) AiConversations in store
+//
+// This function is auto-generated
+func UpdateAiConversation(ctx context.Context, s AiConversations, rr ...*systemType.AiConversation) error {
+	return s.UpdateAiConversation(ctx, rr...)
+}
+
+// UpsertAiConversation creates new or updates existing one or more AiConversations in store
+//
+// This function is auto-generated
+func UpsertAiConversation(ctx context.Context, s AiConversations, rr ...*systemType.AiConversation) error {
+	return s.UpsertAiConversation(ctx, rr...)
+}
+
+// DeleteAiConversation deletes one or more AiConversations from store
+//
+// This function is auto-generated
+func DeleteAiConversation(ctx context.Context, s AiConversations, rr ...*systemType.AiConversation) error {
+	return s.DeleteAiConversation(ctx, rr...)
+}
+
+// DeleteAiConversationByID deletes one or more AiConversations from store
+//
+// This function is auto-generated
+func DeleteAiConversationByID(ctx context.Context, s AiConversations, id uint64) error {
+	return s.DeleteAiConversationByID(ctx, id)
+}
+
+// TruncateAiConversations Deletes all AiConversations from store
+//
+// This function is auto-generated
+func TruncateAiConversations(ctx context.Context, s AiConversations) error {
+	return s.TruncateAiConversations(ctx)
+}
+
+// LookupAiConversationByID searches for AI conversation by ID
+//
+// It also returns deleted conversations.
+//
+// This function is auto-generated
+func LookupAiConversationByID(ctx context.Context, s AiConversations, id uint64) (*systemType.AiConversation, error) {
+	return s.LookupAiConversationByID(ctx, id)
 }
 
 // SearchApigwFilters returns all matching ApigwFilters from store

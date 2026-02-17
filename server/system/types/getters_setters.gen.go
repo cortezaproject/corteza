@@ -1092,9 +1092,9 @@ func (r *DalSchemaAlteration) SetValue(name string, pos uint, value any) (err er
 	return nil
 }
 
-func (r LlmProvider) GetID() uint64 { return r.ID }
+func (r Agent) GetID() uint64 { return r.ID }
 
-func (r *LlmProvider) GetValue(name string, pos uint) (any, error) {
+func (r *Agent) GetValue(name string, pos uint) (any, error) {
 	if r == nil {
 		return nil, nil
 	}
@@ -1104,8 +1104,6 @@ func (r *LlmProvider) GetValue(name string, pos uint) (any, error) {
 		return r.CreatedAt, nil
 	case "createdBy", "CreatedBy":
 		return r.CreatedBy, nil
-	case "credentialID", "CredentialID":
-		return r.CredentialID, nil
 	case "deletedAt", "DeletedAt":
 		return r.DeletedAt, nil
 	case "deletedBy", "DeletedBy":
@@ -1114,8 +1112,8 @@ func (r *LlmProvider) GetValue(name string, pos uint) (any, error) {
 		return r.Handle, nil
 	case "id", "ID":
 		return r.ID, nil
-	case "provider", "Provider":
-		return r.Provider, nil
+	case "revision", "Revision":
+		return r.Revision, nil
 	case "status", "Status":
 		return r.Status, nil
 	case "updatedAt", "UpdatedAt":
@@ -1127,9 +1125,9 @@ func (r *LlmProvider) GetValue(name string, pos uint) (any, error) {
 	return nil, nil
 }
 
-func (r *LlmProvider) SetValue(name string, pos uint, value any) (err error) {
+func (r *Agent) SetValue(name string, pos uint, value any) (err error) {
 	if r == nil {
-		r = &LlmProvider{}
+		r = &Agent{}
 	}
 
 	switch name {
@@ -1137,8 +1135,6 @@ func (r *LlmProvider) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.Time(value, &r.CreatedAt)
 	case "createdBy", "CreatedBy":
 		return cast2.Uint64(value, &r.CreatedBy)
-	case "credentialID", "CredentialID":
-		return cast2.Uint64(value, &r.CredentialID)
 	case "deletedAt", "DeletedAt":
 		return cast2.TimePtr(value, &r.DeletedAt)
 	case "deletedBy", "DeletedBy":
@@ -1147,10 +1143,70 @@ func (r *LlmProvider) SetValue(name string, pos uint, value any) (err error) {
 		return cast2.String(value, &r.Handle)
 	case "id", "ID":
 		return cast2.Uint64(value, &r.ID)
-	case "provider", "Provider":
-		return cast2.String(value, &r.Provider)
+	case "revision", "Revision":
+		return cast2.Int(value, &r.Revision)
 	case "status", "Status":
 		return cast2.String(value, &r.Status)
+	case "updatedAt", "UpdatedAt":
+		return cast2.TimePtr(value, &r.UpdatedAt)
+	case "updatedBy", "UpdatedBy":
+		return cast2.Uint64(value, &r.UpdatedBy)
+
+	}
+	return nil
+}
+
+func (r AiConversation) GetID() uint64 { return r.ID }
+
+func (r *AiConversation) GetValue(name string, pos uint) (any, error) {
+	if r == nil {
+		return nil, nil
+	}
+
+	switch name {
+	case "agentID", "AgentID":
+		return r.AgentID, nil
+	case "createdAt", "CreatedAt":
+		return r.CreatedAt, nil
+	case "createdBy", "CreatedBy":
+		return r.CreatedBy, nil
+	case "deletedAt", "DeletedAt":
+		return r.DeletedAt, nil
+	case "deletedBy", "DeletedBy":
+		return r.DeletedBy, nil
+	case "id", "ID":
+		return r.ID, nil
+	case "tokenCount", "TokenCount":
+		return r.TokenCount, nil
+	case "updatedAt", "UpdatedAt":
+		return r.UpdatedAt, nil
+	case "updatedBy", "UpdatedBy":
+		return r.UpdatedBy, nil
+
+	}
+	return nil, nil
+}
+
+func (r *AiConversation) SetValue(name string, pos uint, value any) (err error) {
+	if r == nil {
+		r = &AiConversation{}
+	}
+
+	switch name {
+	case "agentID", "AgentID":
+		return cast2.Uint64(value, &r.AgentID)
+	case "createdAt", "CreatedAt":
+		return cast2.Time(value, &r.CreatedAt)
+	case "createdBy", "CreatedBy":
+		return cast2.Uint64(value, &r.CreatedBy)
+	case "deletedAt", "DeletedAt":
+		return cast2.TimePtr(value, &r.DeletedAt)
+	case "deletedBy", "DeletedBy":
+		return cast2.Uint64(value, &r.DeletedBy)
+	case "id", "ID":
+		return cast2.Uint64(value, &r.ID)
+	case "tokenCount", "TokenCount":
+		return cast2.Int(value, &r.TokenCount)
 	case "updatedAt", "UpdatedAt":
 		return cast2.TimePtr(value, &r.UpdatedAt)
 	case "updatedBy", "UpdatedBy":

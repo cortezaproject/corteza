@@ -10,6 +10,8 @@ import (
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	agenticRegistry "github.com/cortezaproject/corteza/server/pkg/agentic/registry"
+	agenticRuntime "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 	"github.com/cortezaproject/corteza/server/pkg/healthcheck"
@@ -48,6 +50,11 @@ type (
 	eventDispatcher interface {
 		WaitFor(ctx context.Context, ev eventbus.Event) (err error)
 		Dispatch(ctx context.Context, ev eventbus.Event)
+	}
+
+	// AgenticRunner abstracts the agentic runtime execution.
+	AgenticRunner interface {
+		Run(ctx context.Context, req *agenticRuntime.AgentRequest) (*agenticRuntime.AgentResponse, error)
 	}
 )
 
@@ -94,6 +101,9 @@ var (
 	DefaultRenderer            TemplateService
 	DefaultResourceTranslation ResourceTranslationService
 	DefaultQueue               *queue
+	DefaultAgent               *agent
+	DefaultAiConversation      *aiConversation
+	DefaultAgenticRuntime      AgenticRunner
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
@@ -227,6 +237,14 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultSink = Sink()
 	DefaultStatistics = Statistics()
 	DefaultQueue = Queue()
+	DefaultAgent = Agent()
+	DefaultAiConversation = AiConversation()
+	DefaultAgenticRuntime = agenticRuntime.Runtime(
+		agenticRegistry.Registry(),
+		agenticRuntime.MockLLM(),
+		agenticRuntime.MockMCP(),
+		DefaultAiConversation,
+	)
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()
@@ -323,7 +341,6 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 
 func Watchers(ctx context.Context) {
 	DefaultReminder.Watch(ctx)
-	return
 }
 
 func Activate(ctx context.Context) (err error) {
