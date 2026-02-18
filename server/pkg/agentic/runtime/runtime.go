@@ -68,6 +68,7 @@ type (
 	}
 
 	LLMConfig struct {
+		ProviderID  uint64
 		Model       string
 		Temperature float64
 		MaxTokens   int

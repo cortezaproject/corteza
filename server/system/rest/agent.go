@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/cortezaproject/corteza/server/pkg/api"
+	"github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/filter"
 	"github.com/cortezaproject/corteza/server/system/rest/request"
 	"github.com/cortezaproject/corteza/server/system/service"
@@ -128,6 +129,14 @@ func (ctrl *Agent) Delete(ctx context.Context, r *request.AgentDelete) (interfac
 
 func (ctrl *Agent) Undelete(ctx context.Context, r *request.AgentUndelete) (interface{}, error) {
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.AgentID)
+}
+
+func (ctrl *Agent) Exec(ctx context.Context, r *request.AgentExec) (interface{}, error) {
+	return service.DefaultAgenticRuntime.Run(ctx, &runtime.AgentRequest{
+		AgentID:        r.AgentID,
+		Input:          r.Input,
+		ConversationID: r.ConversationID,
+	})
 }
 
 func (ctrl *Agent) makePayload(ctx context.Context, a *types.Agent, err error) (*agentPayload, error) {

@@ -181,6 +181,23 @@ type (
 		// Agent ID
 		AgentID uint64 `json:",string"`
 	}
+
+	AgentExec struct {
+		// AgentID PATH parameter
+		//
+		// Agent ID
+		AgentID uint64 `json:",string"`
+
+		// Input POST parameter
+		//
+		// User input message
+		Input string
+
+		// ConversationID POST parameter
+		//
+		// Conversation ID for multi-turn
+		ConversationID uint64 `json:",string"`
+	}
 )
 
 // NewAgentList request
@@ -899,6 +916,109 @@ func (r AgentUndelete) GetAgentID() uint64 {
 
 // Fill processes request and fills internal variables
 func (r *AgentUndelete) Fill(req *http.Request) (err error) {
+
+	{
+		var val string
+		// path params
+
+		val = chi.URLParam(req, "agentID")
+		r.AgentID, err = payload.ParseUint64(val), nil
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return err
+}
+
+// NewAgentExec request
+func NewAgentExec() *AgentExec {
+	return &AgentExec{}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentExec) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"agentID":        r.AgentID,
+		"input":          r.Input,
+		"conversationID": r.ConversationID,
+	}
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentExec) GetAgentID() uint64 {
+	return r.AgentID
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentExec) GetInput() string {
+	return r.Input
+}
+
+// Auditable returns all auditable/loggable parameters
+func (r AgentExec) GetConversationID() uint64 {
+	return r.ConversationID
+}
+
+// Fill processes request and fills internal variables
+func (r *AgentExec) Fill(req *http.Request) (err error) {
+
+	if strings.HasPrefix(strings.ToLower(req.Header.Get("content-type")), "application/json") {
+		err = json.NewDecoder(req.Body).Decode(r)
+
+		switch {
+		case err == io.EOF:
+			err = nil
+		case err != nil:
+			return fmt.Errorf("error parsing http request body: %w", err)
+		}
+	}
+
+	{
+		// Caching 32MB to memory, the rest to disk
+		if err = req.ParseMultipartForm(32 << 20); err != nil && err != http.ErrNotMultipart {
+			return err
+		} else if err == nil {
+			// Multipart params
+
+			if val, ok := req.MultipartForm.Value["input"]; ok && len(val) > 0 {
+				r.Input, err = val[0], nil
+				if err != nil {
+					return err
+				}
+			}
+
+			if val, ok := req.MultipartForm.Value["conversationID"]; ok && len(val) > 0 {
+				r.ConversationID, err = payload.ParseUint64(val[0]), nil
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	{
+		if err = req.ParseForm(); err != nil {
+			return err
+		}
+
+		// POST params
+
+		if val, ok := req.Form["input"]; ok && len(val) > 0 {
+			r.Input, err = val[0], nil
+			if err != nil {
+				return err
+			}
+		}
+
+		if val, ok := req.Form["conversationID"]; ok && len(val) > 0 {
+			r.ConversationID, err = payload.ParseUint64(val[0]), nil
+			if err != nil {
+				return err
+			}
+		}
+	}
 
 	{
 		var val string

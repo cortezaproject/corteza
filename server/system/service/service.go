@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/bep/godartsass/v2"
@@ -10,7 +11,6 @@ import (
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
-	agenticRegistry "github.com/cortezaproject/corteza/server/pkg/agentic/registry"
 	agenticRuntime "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
@@ -25,6 +25,7 @@ import (
 	"github.com/cortezaproject/corteza/server/pkg/valuestore"
 	"github.com/cortezaproject/corteza/server/store"
 	"github.com/cortezaproject/corteza/server/system/automation"
+	"github.com/cortezaproject/corteza/server/system/llm"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"go.uber.org/zap"
 )
@@ -45,6 +46,7 @@ type (
 		Limit      options.LimitOpt
 		Attachment options.AttachmentOpt
 		Webapps    options.WebappOpt
+		MCPClient  agenticRuntime.MCPClient
 	}
 
 	eventDispatcher interface {
@@ -104,6 +106,7 @@ var (
 	DefaultAgent               *agent
 	DefaultAiConversation      *aiConversation
 	DefaultAgenticRuntime      AgenticRunner
+	DefaultLlmService          *llm.Service
 	DefaultApigwRoute          *apigwRoute
 	DefaultApigwFilter         *apigwFilter
 	DefaultApigwProfiler       *apigwProfiler
@@ -239,12 +242,19 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultQueue = Queue()
 	DefaultAgent = Agent()
 	DefaultAiConversation = AiConversation()
+
+	DefaultLlmService, err = llm.New(s)
+	if err != nil {
+		return fmt.Errorf("could not initialize LLM service: %w", err)
+	}
+
 	DefaultAgenticRuntime = agenticRuntime.Runtime(
-		agenticRegistry.Registry(),
-		agenticRuntime.MockLLM(),
-		agenticRuntime.MockMCP(),
+		DefaultAgent,
+		DefaultLlmService,
+		c.MCPClient,
 		DefaultAiConversation,
 	)
+
 	DefaultApigwRoute = Route()
 	DefaultApigwProfiler = Profiler()
 	DefaultApigwFilter = Filter()

@@ -25,6 +25,7 @@ type (
 		Update(context.Context, *request.AgentUpdate) (interface{}, error)
 		Delete(context.Context, *request.AgentDelete) (interface{}, error)
 		Undelete(context.Context, *request.AgentUndelete) (interface{}, error)
+		Exec(context.Context, *request.AgentExec) (interface{}, error)
 	}
 
 	// HTTP API interface
@@ -35,6 +36,7 @@ type (
 		Update   func(http.ResponseWriter, *http.Request)
 		Delete   func(http.ResponseWriter, *http.Request)
 		Undelete func(http.ResponseWriter, *http.Request)
+		Exec     func(http.ResponseWriter, *http.Request)
 	}
 )
 
@@ -136,6 +138,22 @@ func NewAgent(h AgentAPI) *Agent {
 
 			api.Send(w, r, value)
 		},
+		Exec: func(w http.ResponseWriter, r *http.Request) {
+			defer r.Body.Close()
+			params := request.NewAgentExec()
+			if err := params.Fill(r); err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			value, err := h.Exec(r.Context(), params)
+			if err != nil {
+				api.Send(w, r, err)
+				return
+			}
+
+			api.Send(w, r, value)
+		},
 	}
 }
 
@@ -148,5 +166,6 @@ func (h Agent) MountRoutes(r chi.Router, middlewares ...func(http.Handler) http.
 		r.Put("/agents/{agentID}", h.Update)
 		r.Delete("/agents/{agentID}", h.Delete)
 		r.Post("/agents/{agentID}/undelete", h.Undelete)
+		r.Post("/agents/{agentID}/exec", h.Exec)
 	})
 }

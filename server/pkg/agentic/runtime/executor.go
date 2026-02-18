@@ -59,6 +59,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 
 	for i := 0; i < maxIterations; i++ {
 		config := LLMConfig{
+			ProviderID:  agent.Execution.Model.LLMProviderID,
 			Model:       agent.Execution.Model.Model,
 			Temperature: agent.Execution.Model.Temperature,
 			MaxTokens:   agent.Execution.Model.MaxTokens,

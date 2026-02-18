@@ -2846,6 +2846,16 @@ endpoints:
     parameters:
       path:
       - { type: uint64, name: agentID, required: true, title: Agent ID }
+  - name: exec
+    method: POST
+    title: Execute agent
+    path: "/{agentID}/exec"
+    parameters:
+      path:
+      - { type: uint64, name: agentID, required: true, title: Agent ID }
+      post:
+      - { type: string, name: input,          required: true,  title: User input message }
+      - { type: uint64, name: conversationID, required: false, title: Conversation ID for multi-turn }
 
 - title: AI Conversations
   path: "/ai-conversations"

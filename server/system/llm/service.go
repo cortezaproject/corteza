@@ -2,9 +2,11 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	rt "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/store"
 	sysTypes "github.com/cortezaproject/corteza/server/system/types"
@@ -130,4 +132,69 @@ func (svc *Service) callProvider(ctx context.Context, provider *sysTypes.LlmProv
 	default:
 		return nil, fmt.Errorf("unsupported LLM provider type: %s", provider.Provider)
 	}
+}
+
+func (svc *Service) Chat(ctx context.Context, prompt string, history []sysTypes.AiConversationMessage, tools []rt.Tool, config rt.LLMConfig) (*rt.LLMResponse, error) {
+	messages := []Message{{Role: "system", Content: prompt}}
+	for _, m := range history {
+		messages = append(messages, fromConversationMessage(m))
+	}
+
+	llmTools := make([]Tool, len(tools))
+	for i, t := range tools {
+		llmTools[i] = Tool{
+			Type: "function",
+			Function: ToolFunction{
+				Name:        t.Name,
+				Description: t.Description,
+				Parameters:  t.InputSchema,
+			},
+		}
+	}
+
+	resp, err := svc.Prompt(ctx, config.ProviderID, messages, llmTools)
+	if err != nil {
+		return nil, err
+	}
+
+	var toolCalls []rt.ToolCall
+	for _, tc := range resp.Message.ToolCalls {
+		toolCalls = append(toolCalls, rt.ToolCall{
+			ID:   tc.ID,
+			Name: tc.Name,
+			Args: tc.Arguments,
+		})
+	}
+
+	return &rt.LLMResponse{
+		Text:      resp.Message.Content,
+		ToolCalls: toolCalls,
+		Usage: rt.Usage{
+			InputTokens:  resp.Usage.PromptTokens,
+			OutputTokens: resp.Usage.CompletionTokens,
+			TotalTokens:  resp.Usage.TotalTokens,
+		},
+	}, nil
+}
+
+func fromConversationMessage(m sysTypes.AiConversationMessage) Message {
+	msg := Message{Role: m.Role, Content: m.Content}
+
+	for _, tc := range m.ToolCalls {
+		var args map[string]any
+		_ = json.Unmarshal([]byte(tc.Data), &args)
+		msg.ToolCalls = append(msg.ToolCalls, ToolCall{
+			ID:        tc.CallID,
+			Name:      tc.Name,
+			Arguments: args,
+		})
+	}
+
+	if len(m.ToolResults) > 0 {
+		msg.Role = "tool"
+		msg.ToolCallID = m.ToolResults[0].CallID
+		msg.Content = m.ToolResults[0].Data
+	}
+
+	return msg
 }
