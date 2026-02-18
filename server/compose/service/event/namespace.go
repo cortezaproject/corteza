@@ -1,6 +1,8 @@
 package event
 
 import (
+	"strconv"
+
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 )
@@ -13,6 +15,8 @@ func (res namespaceBase) Match(c eventbus.ConstraintMatcher) bool {
 // Handles namespace matchers
 func namespaceMatch(r *types.Namespace, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
+	case "id", "namespace.id", "namespaceID":
+		return c.Match(strconv.FormatUint(r.ID, 10))
 	case "namespace", "namespace.slug", "namespace.handle":
 		return c.Match(r.Slug)
 	case "namespace.name":

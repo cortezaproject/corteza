@@ -1,6 +1,8 @@
 package event
 
 import (
+	"strconv"
+
 	"github.com/cortezaproject/corteza/server/compose/types"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
 )
@@ -16,6 +18,8 @@ func (res moduleBase) Match(c eventbus.ConstraintMatcher) bool {
 // Handles module matchers
 func moduleMatch(r *types.Module, c eventbus.ConstraintMatcher) bool {
 	switch c.Name() {
+	case "id", "module.id", "moduleID":
+		return c.Match(strconv.FormatUint(r.ID, 10))
 	case "module", "module.handle":
 		return c.Match(r.Handle)
 	case "module.name":
