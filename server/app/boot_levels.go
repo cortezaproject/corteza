@@ -46,6 +46,8 @@ import (
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
 	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
@@ -380,6 +382,17 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	app.McpServer = mcpkg.NewMCPServer(reg)
 
 	obs := observability.NewBus(observability.NewLogDispatcher())
+
+	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
+		exporter, err := otlptracehttp.New(ctx)
+		if err != nil {
+			app.Log.Warn("failed to initialize OTel exporter", zap.Error(err))
+		} else {
+			tp := sdktrace.NewTracerProvider(sdktrace.WithBatcher(exporter))
+			obs.Register(observability.NewOtelDispatcher(tp))
+			app.Log.Info("OTel dispatcher registered", zap.String("endpoint", endpoint))
+		}
+	}
 
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog:  app.Opt.ActionLog,
