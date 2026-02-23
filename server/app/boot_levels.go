@@ -383,6 +383,11 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 
 	obs := observability.NewBus(observability.NewLogDispatcher())
 
+	if host, pk, sk := os.Getenv("LANGFUSE_HOST"), os.Getenv("LANGFUSE_PUBLIC_KEY"), os.Getenv("LANGFUSE_SECRET_KEY"); host != "" && pk != "" && sk != "" {
+		obs.Register(observability.NewLangfuseDispatcher(host, pk, sk))
+		app.Log.Info("Langfuse dispatcher registered", zap.String("host", host))
+	}
+
 	if endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT"); endpoint != "" {
 		exporter, err := otlptracehttp.New(ctx)
 		if err != nil {
