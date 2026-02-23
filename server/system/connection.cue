@@ -4,24 +4,47 @@ import (
 	"github.com/cortezaproject/corteza/server/codegen/schema"
 )
 
-dal_connection: {
+connection: {
 	model: {
 		attributes: {
-			id:     schema.IdField
-			handle: schema.HandleField
-			type: {
+			id:       schema.IdField
+			handle:   schema.HandleField
+			revision: {
 				sortable: true
-				dal: {}
+				goType:   "int"
+				dal: { type: "Number", meta: { "rdbms:type": "integer" } }
+			}
+			status: {
+				sortable: true
+				dal: { type: "Text", length: 32 }
 			}
 
-			config: {
-				goType: "types.DalConnectionConfig"
+			meta: {
+				goType: "types.ConnectionMeta"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
 			}
-			meta: {
-				goType: "types.DalConnectionMeta"
+			service: {
+				goType: "types.ConnectionService"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+			}
+			resources: {
+				goType: "types.ConnectionResources"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+			}
+			standard_operations: {
+				goType: "types.ConnectionStandardOps"
+				dal: { type: "JSON", defaultEmptyObject: true }
+				omitSetter: true
+				omitGetter: true
+			}
+			operations: {
+				goType: "types.ConnectionOperations"
 				dal: { type: "JSON", defaultEmptyObject: true }
 				omitSetter: true
 				omitGetter: true
@@ -42,38 +65,28 @@ dal_connection: {
 
 	filter: {
 		struct: {
-			dal_connection_id: {goType: "[]uint64", ident: "dalConnectionID", storeIdent: "id"}
 			handle: {goType: "string"}
-			type: {goType: "string"}
-
+			status: {goType: "[]string"}
+			query:  {goType: "string"}
 			deleted: {goType: "filter.State", storeIdent: "deleted_at"}
 		}
-
-		byValue: ["dal_connection_id", "handle", "type"]
+		byValue: ["handle", "status"]
 		byNilState: ["deleted"]
 	}
 
 	features: {
-		labels: false
+		labels: true
 	}
 
 	envoy: {
-		yaml: {
-			supportMappedInput: true
-			mappedField: "Handle"
-			identKeyAlias: ["connection", "connections"]
-		}
-		store: {
-			extendedRefDecoder: true
-		}
+		omit: true
 	}
 
 	rbac: {
 		operations: {
-			"read": description:         "Read connection"
-			"update": description:       "Update connection"
-			"delete": description:       "Delete connection"
-			"dal-config.manage": description: "Manage DAL configuration"
+			"read": description:   "Read connection"
+			"update": description: "Update connection"
+			"delete": description: "Delete connection"
 		}
 	}
 
@@ -85,7 +98,7 @@ dal_connection: {
 					description: """
 						searches for connection by ID
 
-						It returns connection even if deleted or suspended
+						It returns connection even if deleted
 						"""
 				}, {
 					fields: ["handle"]

@@ -2339,6 +2339,250 @@ var (
 		}
 	}
 
+	// configuredConnectionTable represents configuredConnections store table
+	//
+	// This value is auto-generated
+	configuredConnectionTable = goqu.T("configured_connections")
+
+	// configuredConnectionSelectQuery assembles select query for fetching configuredConnections
+	//
+	// This function is auto-generated
+	configuredConnectionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"rel_connection",
+			"name",
+			"status",
+			"connection",
+			"config",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(configuredConnectionTable)
+	}
+
+	// configuredConnectionInsertQuery assembles query inserting configuredConnections
+	//
+	// This function is auto-generated
+	configuredConnectionInsertQuery = func(d goqu.DialectWrapper, res *systemType.ConfiguredConnection) *goqu.InsertDataset {
+		return d.Insert(configuredConnectionTable).
+			Rows(goqu.Record{
+				"id":             res.ID,
+				"rel_connection": res.ConnectionID,
+				"name":           res.Name,
+				"status":         res.Status,
+				"connection":     res.Connection,
+				"config":         res.Config,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+				"created_by":     res.CreatedBy,
+				"updated_by":     res.UpdatedBy,
+				"deleted_by":     res.DeletedBy,
+			})
+	}
+
+	// configuredConnectionUpsertQuery assembles (insert+on-conflict) query for replacing configuredConnections
+	//
+	// This function is auto-generated
+	configuredConnectionUpsertQuery = func(d goqu.DialectWrapper, res *systemType.ConfiguredConnection) *goqu.InsertDataset {
+		var target = `,id`
+
+		return configuredConnectionInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"rel_connection": res.ConnectionID,
+						"name":           res.Name,
+						"status":         res.Status,
+						"connection":     res.Connection,
+						"config":         res.Config,
+						"created_at":     res.CreatedAt,
+						"updated_at":     res.UpdatedAt,
+						"deleted_at":     res.DeletedAt,
+						"created_by":     res.CreatedBy,
+						"updated_by":     res.UpdatedBy,
+						"deleted_by":     res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// configuredConnectionUpdateQuery assembles query for updating configuredConnections
+	//
+	// This function is auto-generated
+	configuredConnectionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.ConfiguredConnection) *goqu.UpdateDataset {
+		return d.Update(configuredConnectionTable).
+			Set(goqu.Record{
+				"rel_connection": res.ConnectionID,
+				"name":           res.Name,
+				"status":         res.Status,
+				"connection":     res.Connection,
+				"config":         res.Config,
+				"created_at":     res.CreatedAt,
+				"updated_at":     res.UpdatedAt,
+				"deleted_at":     res.DeletedAt,
+				"created_by":     res.CreatedBy,
+				"updated_by":     res.UpdatedBy,
+				"deleted_by":     res.DeletedBy,
+			}).
+			Where(configuredConnectionPrimaryKeys(res))
+	}
+
+	// configuredConnectionDeleteQuery assembles delete query for removing configuredConnections
+	//
+	// This function is auto-generated
+	configuredConnectionDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(configuredConnectionTable).Where(ee...)
+	}
+
+	// configuredConnectionDeleteQuery assembles delete query for removing configuredConnections
+	//
+	// This function is auto-generated
+	configuredConnectionTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(configuredConnectionTable)
+	}
+
+	// configuredConnectionPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	configuredConnectionPrimaryKeys = func(res *systemType.ConfiguredConnection) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
+	// connectionTable represents connections store table
+	//
+	// This value is auto-generated
+	connectionTable = goqu.T("connections")
+
+	// connectionSelectQuery assembles select query for fetching connections
+	//
+	// This function is auto-generated
+	connectionSelectQuery = func(d goqu.DialectWrapper) *goqu.SelectDataset {
+		return d.Select(
+			"id",
+			"handle",
+			"revision",
+			"status",
+			"meta",
+			"service",
+			"resources",
+			"standard_operations",
+			"operations",
+			"created_at",
+			"updated_at",
+			"deleted_at",
+			"created_by",
+			"updated_by",
+			"deleted_by",
+		).From(connectionTable)
+	}
+
+	// connectionInsertQuery assembles query inserting connections
+	//
+	// This function is auto-generated
+	connectionInsertQuery = func(d goqu.DialectWrapper, res *systemType.Connection) *goqu.InsertDataset {
+		return d.Insert(connectionTable).
+			Rows(goqu.Record{
+				"id":                  res.ID,
+				"handle":              res.Handle,
+				"revision":            res.Revision,
+				"status":              res.Status,
+				"meta":                res.Meta,
+				"service":             res.Service,
+				"resources":           res.Resources,
+				"standard_operations": res.StandardOperations,
+				"operations":          res.Operations,
+				"created_at":          res.CreatedAt,
+				"updated_at":          res.UpdatedAt,
+				"deleted_at":          res.DeletedAt,
+				"created_by":          res.CreatedBy,
+				"updated_by":          res.UpdatedBy,
+				"deleted_by":          res.DeletedBy,
+			})
+	}
+
+	// connectionUpsertQuery assembles (insert+on-conflict) query for replacing connections
+	//
+	// This function is auto-generated
+	connectionUpsertQuery = func(d goqu.DialectWrapper, res *systemType.Connection) *goqu.InsertDataset {
+		var target = `,id`
+
+		return connectionInsertQuery(d, res).
+			OnConflict(
+				goqu.DoUpdate(target[1:],
+					goqu.Record{
+						"handle":              res.Handle,
+						"revision":            res.Revision,
+						"status":              res.Status,
+						"meta":                res.Meta,
+						"service":             res.Service,
+						"resources":           res.Resources,
+						"standard_operations": res.StandardOperations,
+						"operations":          res.Operations,
+						"created_at":          res.CreatedAt,
+						"updated_at":          res.UpdatedAt,
+						"deleted_at":          res.DeletedAt,
+						"created_by":          res.CreatedBy,
+						"updated_by":          res.UpdatedBy,
+						"deleted_by":          res.DeletedBy,
+					},
+				),
+			)
+	}
+
+	// connectionUpdateQuery assembles query for updating connections
+	//
+	// This function is auto-generated
+	connectionUpdateQuery = func(d goqu.DialectWrapper, res *systemType.Connection) *goqu.UpdateDataset {
+		return d.Update(connectionTable).
+			Set(goqu.Record{
+				"handle":              res.Handle,
+				"revision":            res.Revision,
+				"status":              res.Status,
+				"meta":                res.Meta,
+				"service":             res.Service,
+				"resources":           res.Resources,
+				"standard_operations": res.StandardOperations,
+				"operations":          res.Operations,
+				"created_at":          res.CreatedAt,
+				"updated_at":          res.UpdatedAt,
+				"deleted_at":          res.DeletedAt,
+				"created_by":          res.CreatedBy,
+				"updated_by":          res.UpdatedBy,
+				"deleted_by":          res.DeletedBy,
+			}).
+			Where(connectionPrimaryKeys(res))
+	}
+
+	// connectionDeleteQuery assembles delete query for removing connections
+	//
+	// This function is auto-generated
+	connectionDeleteQuery = func(d goqu.DialectWrapper, ee ...goqu.Expression) *goqu.DeleteDataset {
+		return d.Delete(connectionTable).Where(ee...)
+	}
+
+	// connectionDeleteQuery assembles delete query for removing connections
+	//
+	// This function is auto-generated
+	connectionTruncateQuery = func(d goqu.DialectWrapper) *goqu.TruncateDataset {
+		return d.Truncate(connectionTable)
+	}
+
+	// connectionPrimaryKeys assembles set of conditions for all primary keys
+	//
+	// This function is auto-generated
+	connectionPrimaryKeys = func(res *systemType.Connection) goqu.Ex {
+		return goqu.Ex{
+			"id": res.ID,
+		}
+	}
+
 	// credentialTable represents credentials store table
 	//
 	// This value is auto-generated

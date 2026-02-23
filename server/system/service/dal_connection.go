@@ -20,12 +20,12 @@ type (
 	dalConnection struct {
 		actionlog actionlog.Recorder
 		store     store.Storer
-		ac        connectionAccessController
+		ac        dalConnectionAccessController
 		dal       dalConnManager
 		dbConf    options.DBOpt
 	}
 
-	connectionAccessController interface {
+	dalConnectionAccessController interface {
 		CanGrant(context.Context) bool
 		CanSearchDalConnections(ctx context.Context) bool
 
@@ -44,7 +44,7 @@ type (
 	}
 )
 
-func Connection(ctx context.Context, dal dalConnManager, dbConf options.DBOpt) *dalConnection {
+func DalConnection(ctx context.Context, dal dalConnManager, dbConf options.DBOpt) *dalConnection {
 	return &dalConnection{
 		ac:        DefaultAccessControl,
 		actionlog: DefaultActionlog,
@@ -291,7 +291,7 @@ func (svc *dalConnection) proc(ctx context.Context, connections ...*types.DalCon
 func (svc *dalConnection) procPrimaryConnection(c *types.DalConnection) {
 	if c.Type == types.DalPrimaryConnectionResourceType {
 		if c.Config.DAL == nil {
-			c.Config.DAL = &types.ConnectionConfigDAL{}
+			c.Config.DAL = &types.DalConnectionConfigDAL{}
 		}
 
 		return

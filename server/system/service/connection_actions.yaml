@@ -1,0 +1,102 @@
+# List of loggable service actions
+
+resource: system:connection
+service: connection
+
+# Default sensitivity for actions
+defaultActionSeverity: notice
+
+# default severity for errors
+defaultErrorSeverity: alert
+
+import:
+  - github.com/cortezaproject/corteza/server/system/types
+
+props:
+  - name: connection
+    type: "*types.Connection"
+    fields: [ handle, ID ]
+  - name: new
+    type: "*types.Connection"
+    fields: [ handle, ID ]
+  - name: update
+    type: "*types.Connection"
+    fields: [ handle, ID ]
+  - name: filter
+    type: "*types.ConnectionFilter"
+    fields: [ handle, query, status ]
+
+actions:
+  - action: search
+    log: "searched for matching connections"
+    severity: info
+
+  - action: lookup
+    log: "looked-up for a {{connection}}"
+    severity: info
+
+  - action: create
+    log: "created {{connection}}"
+
+  - action: update
+    log: "updated {{connection}}"
+
+  - action: delete
+    log: "deleted {{connection}}"
+
+  - action: undelete
+    log: "undeleted {{connection}}"
+
+errors:
+  - error: notFound
+    message: "connection not found"
+    severity: warning
+
+  - error: invalidID
+    message: "invalid ID"
+    severity: warning
+
+  - error: handleNotUnique
+    message: "connection handle not unique"
+    log: "used duplicate handle ({{connection.handle}}) for connection"
+    severity: warning
+
+  - error: missingShortName
+    message: "meta.short is required"
+    severity: warning
+
+  - error: missingBaseURL
+    message: "service.baseURL is required"
+    severity: warning
+
+  - error: missingAuthMethod
+    message: "service.auth.method is required"
+    severity: warning
+
+  - error: hasActiveConnections
+    message: "cannot delete connection with active connections"
+    severity: warning
+
+  - error: notAllowedToRead
+    message: "not allowed to read this connection"
+    log: "failed to read {{connection.handle}}; insufficient permissions"
+
+  - error: notAllowedToSearch
+    message: "not allowed to search connections"
+    log: "failed to search for connections; insufficient permissions"
+
+  - error: notAllowedToCreate
+    message: "not allowed to create connections"
+    log: "failed to create connections; insufficient permissions"
+
+  - error: notAllowedToUpdate
+    message: "not allowed to update this connection"
+    log: "failed to update {{connection.handle}}; insufficient permissions"
+
+  - error: notAllowedToDelete
+    message: "not allowed to delete this connection"
+    log: "failed to delete {{connection.handle}}; insufficient permissions"
+
+  - error: notAllowedToUndelete
+    message: "not allowed to undelete this connection"
+    log: "failed to undelete {{connection.handle}}; insufficient permissions"

@@ -74,6 +74,12 @@ func testAllGenerated(t *testing.T, s store.Storer) {
 	t.Run("composePageLayout", func(t *testing.T) {
 		testComposePageLayouts(t, s)
 	})
+	t.Run("configuredConnection", func(t *testing.T) {
+		testConfiguredConnections(t, s)
+	})
+	t.Run("connection", func(t *testing.T) {
+		testConnections(t, s)
+	})
 	t.Run("credential", func(t *testing.T) {
 		testCredentials(t, s)
 	})

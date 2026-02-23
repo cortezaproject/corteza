@@ -39,6 +39,10 @@ types:
   Queue: {}
   QueueMessage:
     noIdField: true
+  Connection:
+    labelResourceType: connection
+  ConfiguredConnection:
+    labelResourceType: configuredConnection
   DataPrivacyRequest: {}
   DataPrivacyRequestComment: {}
   PrivacyDalConnection:

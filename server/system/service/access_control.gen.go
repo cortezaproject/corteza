@@ -147,6 +147,8 @@ func (svc accessControl) Resources() []rbac.Resource {
 		rbac.NewResource(types.TemplateRbacResource(0)),
 		rbac.NewResource(types.UserRbacResource(0)),
 		rbac.NewResource(types.DalConnectionRbacResource(0)),
+		rbac.NewResource(types.ConnectionRbacResource(0)),
+		rbac.NewResource(types.ConfiguredConnectionRbacResource(0)),
 		rbac.NewResource(types.ComponentRbacResource()),
 	}
 }
@@ -387,6 +389,31 @@ func (svc accessControl) List() (out []map[string]string) {
 			"op":   "dal-config.manage",
 		},
 		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "update",
+		},
+		{
+			"type": types.ConnectionResourceType,
+			"any":  types.ConnectionRbacResource(0),
+			"op":   "delete",
+		},
+		{
+			"type": types.ConfiguredConnectionResourceType,
+			"any":  types.ConfiguredConnectionRbacResource(0),
+			"op":   "read",
+		},
+		{
+			"type": types.ConfiguredConnectionResourceType,
+			"any":  types.ConfiguredConnectionRbacResource(0),
+			"op":   "delete",
+		},
+		{
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "grant",
@@ -535,6 +562,26 @@ func (svc accessControl) List() (out []map[string]string) {
 			"type": types.ComponentResourceType,
 			"any":  types.ComponentRbacResource(),
 			"op":   "dal-schema-alterations.manage",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "connection.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "connections.search",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "configured-connection.create",
+		},
+		{
+			"type": types.ComponentResourceType,
+			"any":  types.ComponentRbacResource(),
+			"op":   "configured-connections.search",
 		},
 		{
 			"type": types.ComponentResourceType,
@@ -965,6 +1012,41 @@ func (svc accessControl) CanManageDalConfigOnDalConnection(ctx context.Context, 
 	return svc.can(ctx, "dal-config.manage", r)
 }
 
+// CanReadConnection checks if current user can read connection
+//
+// This function is auto-generated
+func (svc accessControl) CanReadConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanUpdateConnection checks if current user can update connection
+//
+// This function is auto-generated
+func (svc accessControl) CanUpdateConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "update", r)
+}
+
+// CanDeleteConnection checks if current user can delete connection
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteConnection(ctx context.Context, r *types.Connection) bool {
+	return svc.can(ctx, "delete", r)
+}
+
+// CanReadConfiguredConnection checks if current user can read connection
+//
+// This function is auto-generated
+func (svc accessControl) CanReadConfiguredConnection(ctx context.Context, r *types.ConfiguredConnection) bool {
+	return svc.can(ctx, "read", r)
+}
+
+// CanDeleteConfiguredConnection checks if current user can delete connection
+//
+// This function is auto-generated
+func (svc accessControl) CanDeleteConfiguredConnection(ctx context.Context, r *types.ConfiguredConnection) bool {
+	return svc.can(ctx, "delete", r)
+}
+
 // CanGrant checks if current user can manage system permissions
 //
 // This function is auto-generated
@@ -1205,6 +1287,38 @@ func (svc accessControl) CanManageDalSchemaAlterations(ctx context.Context) bool
 	return svc.can(ctx, "dal-schema-alterations.manage", r)
 }
 
+// CanCreateConnection checks if current user can create connections
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateConnection(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "connection.create", r)
+}
+
+// CanSearchConnections checks if current user can list, search or filter connections
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchConnections(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "connections.search", r)
+}
+
+// CanCreateConfiguredConnection checks if current user can install connection connections
+//
+// This function is auto-generated
+func (svc accessControl) CanCreateConfiguredConnection(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "configured-connection.create", r)
+}
+
+// CanSearchConfiguredConnections checks if current user can list, search or filter connection connections
+//
+// This function is auto-generated
+func (svc accessControl) CanSearchConfiguredConnections(ctx context.Context) bool {
+	r := &types.Component{}
+	return svc.can(ctx, "configured-connections.search", r)
+}
+
 // CanCreateDataPrivacyRequest checks if current user can create data privacy requests
 //
 // This function is auto-generated
@@ -1256,6 +1370,10 @@ func rbacResourceValidator(r string, oo ...string) error {
 		return rbacUserResourceValidator(r, oo...)
 	case types.DalConnectionResourceType:
 		return rbacDalConnectionResourceValidator(r, oo...)
+	case types.ConnectionResourceType:
+		return rbacConnectionResourceValidator(r, oo...)
+	case types.ConfiguredConnectionResourceType:
+		return rbacConfiguredConnectionResourceValidator(r, oo...)
 	case types.ComponentResourceType:
 		return rbacComponentResourceValidator(r, oo...)
 	}
@@ -1349,6 +1467,18 @@ func (svc accessControl) resourceLoader(ctx context.Context, resource string) (r
 		}
 
 		return loadDalConnection(ctx, svc.store, ids[0])
+	case types.ConnectionResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ConnectionRbacResource(ids[0])), nil
+		}
+
+		return loadConnection(ctx, svc.store, ids[0])
+	case types.ConfiguredConnectionResourceType:
+		if hasWildcard {
+			return rbac.NewResource(types.ConfiguredConnectionRbacResource(ids[0])), nil
+		}
+
+		return loadConfiguredConnection(ctx, svc.store, ids[0])
 	case types.ComponentResourceType:
 		return &types.Component{}, nil
 	}
@@ -1441,6 +1571,17 @@ func rbacResourceOperations(r string) map[string]bool {
 			"delete":            true,
 			"dal-config.manage": true,
 		}
+	case types.ConnectionResourceType:
+		return map[string]bool{
+			"read":   true,
+			"update": true,
+			"delete": true,
+		}
+	case types.ConfiguredConnectionResourceType:
+		return map[string]bool{
+			"read":   true,
+			"delete": true,
+		}
 	case types.ComponentResourceType:
 		return map[string]bool{
 			"grant":                         true,
@@ -1473,6 +1614,10 @@ func rbacResourceOperations(r string) map[string]bool {
 			"apigw-routes.search":           true,
 			"resource-translations.manage":  true,
 			"dal-schema-alterations.manage": true,
+			"connection.create":             true,
+			"connections.search":            true,
+			"configured-connection.create":  true,
+			"configured-connections.search": true,
 			"data-privacy-request.create":   true,
 			"data-privacy-requests.search":  true,
 			"notification.assign":           true,
@@ -1967,6 +2112,96 @@ func rbacDalConnectionResourceValidator(r string, oo ...string) error {
 		if pp[i] != "*" {
 			if i > 0 && pp[i-1] == "*" {
 				return fmt.Errorf("invalid path wildcard level (%d) for dalConnection resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacConnectionResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacConnectionResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ConnectionResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for connection resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ConnectionResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for connection resource", i)
+			}
+
+			if _, err := cast.ToUint64E(pp[i]); err != nil {
+				return fmt.Errorf("invalid reference for %s: '%s'", prc[i], pp[i])
+			}
+		}
+	}
+	return nil
+}
+
+// rbacConfiguredConnectionResourceValidator checks validity of RBAC resource and operations
+//
+// # Notes
+// Can be called without operations to check for validity of resource string only
+//
+// This function is auto-generated
+func rbacConfiguredConnectionResourceValidator(r string, oo ...string) error {
+	if !strings.HasPrefix(r, types.ConfiguredConnectionResourceType) {
+		// expecting resource to always include path
+		return fmt.Errorf("invalid resource type")
+	}
+
+	defOps := rbacResourceOperations(r)
+	for _, o := range oo {
+		if !defOps[o] {
+			return fmt.Errorf("invalid operation '%s' for configuredConnection resource", o)
+		}
+	}
+
+	const sep = "/"
+	var (
+		pp  = strings.Split(strings.Trim(r[len(types.ConfiguredConnectionResourceType):], sep), sep)
+		prc = []string{
+			"ID",
+		}
+	)
+
+	if len(pp) != len(prc) {
+		return fmt.Errorf("invalid resource path structure")
+	}
+
+	for i := 0; i < len(pp); i++ {
+		if pp[i] != "*" {
+			if i > 0 && pp[i-1] == "*" {
+				return fmt.Errorf("invalid path wildcard level (%d) for configuredConnection resource", i)
 			}
 
 			if _, err := cast.ToUint64E(pp[i]); err != nil {

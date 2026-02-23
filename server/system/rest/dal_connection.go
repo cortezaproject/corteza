@@ -20,13 +20,13 @@ import (
 
 type (
 	DalConnection struct {
-		svc           connectionService
+		svc           dalConnectionService
 		federationSvc federationNodeService
 
-		connectionAc connectionAccessController
+		connectionAc dalConnectionAccessController
 	}
 
-	connectionPayload struct {
+	dalConnectionPayload struct {
 		*types.DalConnection
 
 		CanGrant            bool `json:"canGrant"`
@@ -35,12 +35,12 @@ type (
 		CanManageDalConfig  bool `json:"canManageDalConfig"`
 	}
 
-	connectionSetPayload struct {
+	dalConnectionSetPayload struct {
 		Filter types.DalConnectionFilter `json:"filter"`
-		Set    []*connectionPayload      `json:"set"`
+		Set    []*dalConnectionPayload   `json:"set"`
 	}
 
-	connectionAccessController interface {
+	dalConnectionAccessController interface {
 		CanGrant(context.Context) bool
 		CanCreateDalConnection(context.Context) bool
 		CanUpdateDalConnection(context.Context, *types.DalConnection) bool
@@ -48,7 +48,7 @@ type (
 		CanManageDalConfigOnDalConnection(context.Context, *types.DalConnection) bool
 	}
 
-	connectionService interface {
+	dalConnectionService interface {
 		FindByID(ctx context.Context, ID uint64) (*types.DalConnection, error)
 		Create(ctx context.Context, new *types.DalConnection) (*types.DalConnection, error)
 		Update(ctx context.Context, upd *types.DalConnection) (*types.DalConnection, error)
@@ -150,10 +150,10 @@ func (ctrl DalConnection) Undelete(ctx context.Context, r *request.DalConnection
 	return api.OK(), ctrl.svc.UndeleteByID(ctx, r.ConnectionID)
 }
 
-func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter) (out *connectionSetPayload, err error) {
-	out = &connectionSetPayload{
+func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections types.DalConnectionSet, f types.DalConnectionFilter) (out *dalConnectionSetPayload, err error) {
+	out = &dalConnectionSetPayload{
 		Filter: f,
-		Set:    make([]*connectionPayload, 0, len(connections)),
+		Set:    make([]*dalConnectionPayload, 0, len(connections)),
 	}
 
 	for _, c := range connections {
@@ -168,8 +168,8 @@ func (ctrl DalConnection) makeFilterPayload(ctx context.Context, connections typ
 // # Payload is without connection params on the config prop
 //
 // An explicit call to /params
-func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection) *connectionPayload {
-	return &connectionPayload{
+func (ctrl DalConnection) makePayload(ctx context.Context, c *types.DalConnection) *dalConnectionPayload {
+	return &dalConnectionPayload{
 		DalConnection: c,
 
 		CanGrant:            ctrl.connectionAc.CanGrant(ctx),
@@ -185,7 +185,7 @@ func (ctrl DalConnection) federatedNodeToConnection(f *federationTypes.Node) *ty
 	return &types.DalConnection{
 		ID: f.ID,
 
-		Meta: types.ConnectionMeta{
+		Meta: types.DalConnectionMeta{
 			Name:      f.Name,
 			Ownership: f.Contact,
 		},

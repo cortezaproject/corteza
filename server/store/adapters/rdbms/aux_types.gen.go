@@ -342,6 +342,41 @@ type (
 		DeletedAt   *time.Time                   `db:"deleted_at"`
 	}
 
+	// auxConfiguredConnection is an auxiliary structure used for transporting to/from RDBMS store
+	auxConfiguredConnection struct {
+		ID           uint64                                `db:"id"`
+		ConnectionID uint64                                `db:"connection_id"`
+		Name         string                                `db:"name"`
+		Status       string                                `db:"status"`
+		Connection   systemType.Connection                 `db:"connection"`
+		Config       systemType.ConfiguredConnectionConfig `db:"config"`
+		CreatedAt    time.Time                             `db:"created_at"`
+		UpdatedAt    *time.Time                            `db:"updated_at"`
+		DeletedAt    *time.Time                            `db:"deleted_at"`
+		CreatedBy    uint64                                `db:"created_by"`
+		UpdatedBy    uint64                                `db:"updated_by"`
+		DeletedBy    uint64                                `db:"deleted_by"`
+	}
+
+	// auxConnection is an auxiliary structure used for transporting to/from RDBMS store
+	auxConnection struct {
+		ID                 uint64                           `db:"id"`
+		Handle             string                           `db:"handle"`
+		Revision           int                              `db:"revision"`
+		Status             string                           `db:"status"`
+		Meta               systemType.ConnectionMeta        `db:"meta"`
+		Service            systemType.ConnectionService     `db:"service"`
+		Resources          systemType.ConnectionResources   `db:"resources"`
+		StandardOperations systemType.ConnectionStandardOps `db:"standard_operations"`
+		Operations         systemType.ConnectionOperations  `db:"operations"`
+		CreatedAt          time.Time                        `db:"created_at"`
+		UpdatedAt          *time.Time                       `db:"updated_at"`
+		DeletedAt          *time.Time                       `db:"deleted_at"`
+		CreatedBy          uint64                           `db:"created_by"`
+		UpdatedBy          uint64                           `db:"updated_by"`
+		DeletedBy          uint64                           `db:"deleted_by"`
+	}
+
 	// auxCredential is an auxiliary structure used for transporting to/from RDBMS store
 	auxCredential struct {
 		ID          uint64     `db:"id"`
@@ -359,17 +394,17 @@ type (
 
 	// auxDalConnection is an auxiliary structure used for transporting to/from RDBMS store
 	auxDalConnection struct {
-		ID        uint64                      `db:"id"`
-		Handle    string                      `db:"handle"`
-		Type      string                      `db:"type"`
-		Config    systemType.ConnectionConfig `db:"config"`
-		Meta      systemType.ConnectionMeta   `db:"meta"`
-		CreatedAt time.Time                   `db:"created_at"`
-		UpdatedAt *time.Time                  `db:"updated_at"`
-		DeletedAt *time.Time                  `db:"deleted_at"`
-		CreatedBy uint64                      `db:"created_by"`
-		UpdatedBy uint64                      `db:"updated_by"`
-		DeletedBy uint64                      `db:"deleted_by"`
+		ID        uint64                         `db:"id"`
+		Handle    string                         `db:"handle"`
+		Type      string                         `db:"type"`
+		Config    systemType.DalConnectionConfig `db:"config"`
+		Meta      systemType.DalConnectionMeta   `db:"meta"`
+		CreatedAt time.Time                      `db:"created_at"`
+		UpdatedAt *time.Time                     `db:"updated_at"`
+		DeletedAt *time.Time                     `db:"deleted_at"`
+		CreatedBy uint64                         `db:"created_by"`
+		UpdatedBy uint64                         `db:"updated_by"`
+		DeletedBy uint64                         `db:"deleted_by"`
 	}
 
 	// auxDalSchemaAlteration is an auxiliary structure used for transporting to/from RDBMS store
@@ -1880,6 +1915,133 @@ func (aux *auxComposePageLayout) scan(row scanner) error {
 		&aux.CreatedAt,
 		&aux.UpdatedAt,
 		&aux.DeletedAt,
+	)
+}
+
+// encodes ConfiguredConnection to auxConfiguredConnection
+//
+// This function is auto-generated
+func (aux *auxConfiguredConnection) encode(res *systemType.ConfiguredConnection) (_ error) {
+	aux.ID = res.ID
+	aux.ConnectionID = res.ConnectionID
+	aux.Name = res.Name
+	aux.Status = res.Status
+	aux.Connection = res.Connection
+	aux.Config = res.Config
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes ConfiguredConnection from auxConfiguredConnection
+//
+// This function is auto-generated
+func (aux auxConfiguredConnection) decode() (res *systemType.ConfiguredConnection, _ error) {
+	res = new(systemType.ConfiguredConnection)
+	res.ID = aux.ID
+	res.ConnectionID = aux.ConnectionID
+	res.Name = aux.Name
+	res.Status = aux.Status
+	res.Connection = aux.Connection
+	res.Config = aux.Config
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxConfiguredConnection fields
+//
+// This function is auto-generated
+func (aux *auxConfiguredConnection) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.ConnectionID,
+		&aux.Name,
+		&aux.Status,
+		&aux.Connection,
+		&aux.Config,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
+	)
+}
+
+// encodes Connection to auxConnection
+//
+// This function is auto-generated
+func (aux *auxConnection) encode(res *systemType.Connection) (_ error) {
+	aux.ID = res.ID
+	aux.Handle = res.Handle
+	aux.Revision = res.Revision
+	aux.Status = res.Status
+	aux.Meta = res.Meta
+	aux.Service = res.Service
+	aux.Resources = res.Resources
+	aux.StandardOperations = res.StandardOperations
+	aux.Operations = res.Operations
+	aux.CreatedAt = res.CreatedAt
+	aux.UpdatedAt = res.UpdatedAt
+	aux.DeletedAt = res.DeletedAt
+	aux.CreatedBy = res.CreatedBy
+	aux.UpdatedBy = res.UpdatedBy
+	aux.DeletedBy = res.DeletedBy
+	return
+}
+
+// decodes Connection from auxConnection
+//
+// This function is auto-generated
+func (aux auxConnection) decode() (res *systemType.Connection, _ error) {
+	res = new(systemType.Connection)
+	res.ID = aux.ID
+	res.Handle = aux.Handle
+	res.Revision = aux.Revision
+	res.Status = aux.Status
+	res.Meta = aux.Meta
+	res.Service = aux.Service
+	res.Resources = aux.Resources
+	res.StandardOperations = aux.StandardOperations
+	res.Operations = aux.Operations
+	res.CreatedAt = aux.CreatedAt
+	res.UpdatedAt = aux.UpdatedAt
+	res.DeletedAt = aux.DeletedAt
+	res.CreatedBy = aux.CreatedBy
+	res.UpdatedBy = aux.UpdatedBy
+	res.DeletedBy = aux.DeletedBy
+	return
+}
+
+// scans row and fills auxConnection fields
+//
+// This function is auto-generated
+func (aux *auxConnection) scan(row scanner) error {
+	return row.Scan(
+		&aux.ID,
+		&aux.Handle,
+		&aux.Revision,
+		&aux.Status,
+		&aux.Meta,
+		&aux.Service,
+		&aux.Resources,
+		&aux.StandardOperations,
+		&aux.Operations,
+		&aux.CreatedAt,
+		&aux.UpdatedAt,
+		&aux.DeletedAt,
+		&aux.CreatedBy,
+		&aux.UpdatedBy,
+		&aux.DeletedBy,
 	)
 }
 

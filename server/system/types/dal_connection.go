@@ -19,11 +19,11 @@ type (
 		Type   string `json:"type"`
 
 		// descriptions, notes, and other user-provided meta-data
-		Meta ConnectionMeta `json:"meta"`
+		Meta DalConnectionMeta `json:"meta"`
 
 		// collection of configurations for various subsystems that
 		// use this connection and how it affects their behaviour
-		Config ConnectionConfig `json:"config"`
+		Config DalConnectionConfig `json:"config"`
 
 		Issues []dal.Issue `json:"issues,omitempty"`
 
@@ -39,37 +39,37 @@ type (
 
 	// Meta ...................................................................
 
-	ConnectionMeta struct {
-		Name       string                   `json:"name"`
-		Ownership  string                   `json:"ownership"`
-		Location   geolocation.Full         `json:"location"`
-		Properties ConnectionMetaProperties `json:"properties"`
+	DalConnectionMeta struct {
+		Name       string                      `json:"name"`
+		Ownership  string                      `json:"ownership"`
+		Location   geolocation.Full            `json:"location"`
+		Properties DalConnectionMetaProperties `json:"properties"`
 	}
 
-	ConnectionMetaProperties struct {
-		DataAtRestEncryption    ConnectionMetaProperty `json:"dataAtRestEncryption"`
-		DataAtRestProtection    ConnectionMetaProperty `json:"dataAtRestProtection"`
-		DataAtTransitEncryption ConnectionMetaProperty `json:"dataAtTransitEncryption"`
-		DataRestoration         ConnectionMetaProperty `json:"dataRestoration"`
+	DalConnectionMetaProperties struct {
+		DataAtRestEncryption    DalConnectionMetaProperty `json:"dataAtRestEncryption"`
+		DataAtRestProtection    DalConnectionMetaProperty `json:"dataAtRestProtection"`
+		DataAtTransitEncryption DalConnectionMetaProperty `json:"dataAtTransitEncryption"`
+		DataRestoration         DalConnectionMetaProperty `json:"dataRestoration"`
 	}
 
-	ConnectionMetaProperty struct {
+	DalConnectionMetaProperty struct {
 		Enabled bool   `json:"enabled"`
 		Notes   string `json:"notes"`
 	}
 
 	// Config .................................................................
 
-	ConnectionConfig struct {
+	DalConnectionConfig struct {
 		// DAL configuration
 		// using ptr to allow nil values (when dealing with access-controlled data)
-		DAL *ConnectionConfigDAL `json:"dal,omitempty"`
+		DAL *DalConnectionConfigDAL `json:"dal,omitempty"`
 
 		// Privacy configuration
-		Privacy ConnectionConfigPrivacy `json:"privacy"`
+		Privacy DalConnectionConfigPrivacy `json:"privacy"`
 	}
 
-	ConnectionConfigPrivacy struct {
+	DalConnectionConfigPrivacy struct {
 		// Sets max-allowed data-sensitivity level for this connection
 		//
 		// Fields of the modules using this connection should have equal or
@@ -77,9 +77,9 @@ type (
 		SensitivityLevelID uint64 `json:"sensitivityLevelID,string,omitempty"`
 	}
 
-	// ConnectionConfigDAL a set of connection parameters
+	// DalConnectionConfigDAL a set of connection parameters
 	// and model configuration
-	ConnectionConfigDAL struct {
+	DalConnectionConfigDAL struct {
 		// type of connection
 		Type string `json:"type"`
 
@@ -126,7 +126,7 @@ func (c DalConnection) HasIssues() bool {
 	return len(c.Issues) > 0
 }
 
-func ParseConnectionConfig(ss []string) (m ConnectionConfig, err error) {
+func ParseDalConnectionConfig(ss []string) (m DalConnectionConfig, err error) {
 	if len(ss) == 0 {
 		return
 	}
@@ -135,7 +135,7 @@ func ParseConnectionConfig(ss []string) (m ConnectionConfig, err error) {
 	return
 }
 
-func ParseConnectionMeta(ss []string) (m ConnectionMeta, err error) {
+func ParseDalConnectionMeta(ss []string) (m DalConnectionMeta, err error) {
 	if len(ss) == 0 {
 		return
 	}
@@ -144,8 +144,8 @@ func ParseConnectionMeta(ss []string) (m ConnectionMeta, err error) {
 	return
 }
 
-func (nm *ConnectionConfig) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm ConnectionConfig) Value() (driver.Value, error) { return json.Marshal(nm) }
+func (nm *DalConnectionConfig) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm DalConnectionConfig) Value() (driver.Value, error) { return json.Marshal(nm) }
 
-func (nm *ConnectionMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
-func (nm ConnectionMeta) Value() (driver.Value, error) { return json.Marshal(nm) }
+func (nm *DalConnectionMeta) Scan(src any) error          { return sql.ParseJSON(src, nm) }
+func (nm DalConnectionMeta) Value() (driver.Value, error) { return json.Marshal(nm) }

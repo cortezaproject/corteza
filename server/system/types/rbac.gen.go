@@ -353,6 +353,66 @@ func DalConnectionRbacResourceTpl() string {
 	return "%s/%s"
 }
 
+// RbacResource returns string representation of RBAC resource for Connection by calling ConnectionRbacResource fn
+//
+// RBAC resource is in the corteza::system:connection/... format
+//
+// This function is auto-generated
+func (r Connection) RbacResource() string {
+	return ConnectionRbacResource(r.ID)
+}
+
+// ConnectionRbacResource returns string representation of RBAC resource for Connection
+//
+// RBAC resource is in the corteza::system:connection/... format
+//
+// This function is auto-generated
+func ConnectionRbacResource(id uint64) string {
+	cpts := []interface{}{ConnectionResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ConnectionRbacResourceTpl(), cpts...)
+
+}
+
+func ConnectionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
+// RbacResource returns string representation of RBAC resource for ConfiguredConnection by calling ConfiguredConnectionRbacResource fn
+//
+// RBAC resource is in the corteza::system:configured-connection/... format
+//
+// This function is auto-generated
+func (r ConfiguredConnection) RbacResource() string {
+	return ConfiguredConnectionRbacResource(r.ID)
+}
+
+// ConfiguredConnectionRbacResource returns string representation of RBAC resource for ConfiguredConnection
+//
+// RBAC resource is in the corteza::system:configured-connection/... format
+//
+// This function is auto-generated
+func ConfiguredConnectionRbacResource(id uint64) string {
+	cpts := []interface{}{ConfiguredConnectionResourceType}
+	if id != 0 {
+		cpts = append(cpts, strconv.FormatUint(id, 10))
+	} else {
+		cpts = append(cpts, "*")
+	}
+
+	return fmt.Sprintf(ConfiguredConnectionRbacResourceTpl(), cpts...)
+
+}
+
+func ConfiguredConnectionRbacResourceTpl() string {
+	return "%s/%s"
+}
+
 // RbacResource returns string representation of RBAC resource for Component by calling ComponentRbacResource fn
 //
 // RBAC resource is in the corteza::system/... format

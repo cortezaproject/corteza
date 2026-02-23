@@ -68,12 +68,12 @@ func provisionPrimaryDalConnection(ctx context.Context, s store.DalConnections) 
 		Handle: types.DalPrimaryConnectionHandle,
 		Type:   types.DalPrimaryConnectionResourceType,
 
-		Meta: types.ConnectionMeta{
+		Meta: types.DalConnectionMeta{
 			Name: "Primary Database",
 		},
 
-		Config: types.ConnectionConfig{
-			DAL: &types.ConnectionConfigDAL{
+		Config: types.DalConnectionConfig{
+			DAL: &types.DalConnectionConfigDAL{
 				ModelIdent: "compose_record",
 			},
 		},

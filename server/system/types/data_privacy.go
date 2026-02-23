@@ -128,7 +128,7 @@ type (
 	}
 
 	PrivacyDalConnectionConfig struct {
-		Privacy ConnectionConfigPrivacy `json:"privacy"`
+		Privacy DalConnectionConfigPrivacy `json:"privacy"`
 	}
 
 	RequestStatus string

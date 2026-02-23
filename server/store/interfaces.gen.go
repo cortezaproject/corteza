@@ -64,6 +64,8 @@ type (
 		ComposeNamespaces
 		ComposePages
 		ComposePageLayouts
+		ConfiguredConnections
+		Connections
 		Credentials
 		DalConnections
 		DalSchemaAlterations
@@ -359,6 +361,31 @@ type (
 		LookupComposePageLayoutByNamespaceIDPageIDHandle(ctx context.Context, namespaceID uint64, pageID uint64, handle string) (*composeType.PageLayout, error)
 		LookupComposePageLayoutByID(ctx context.Context, id uint64) (*composeType.PageLayout, error)
 		ReorderComposePageLayouts(ctx context.Context, namespace_id uint64, page_id uint64, page_layout_ids []uint64) error
+	}
+
+	ConfiguredConnections interface {
+		SearchConfiguredConnections(ctx context.Context, f systemType.ConfiguredConnectionFilter) (systemType.ConfiguredConnectionSet, systemType.ConfiguredConnectionFilter, error)
+		CreateConfiguredConnection(ctx context.Context, rr ...*systemType.ConfiguredConnection) error
+		UpdateConfiguredConnection(ctx context.Context, rr ...*systemType.ConfiguredConnection) error
+		UpsertConfiguredConnection(ctx context.Context, rr ...*systemType.ConfiguredConnection) error
+		DeleteConfiguredConnection(ctx context.Context, rr ...*systemType.ConfiguredConnection) error
+
+		DeleteConfiguredConnectionByID(ctx context.Context, id uint64) error
+		TruncateConfiguredConnections(ctx context.Context) error
+		LookupConfiguredConnectionByID(ctx context.Context, id uint64) (*systemType.ConfiguredConnection, error)
+	}
+
+	Connections interface {
+		SearchConnections(ctx context.Context, f systemType.ConnectionFilter) (systemType.ConnectionSet, systemType.ConnectionFilter, error)
+		CreateConnection(ctx context.Context, rr ...*systemType.Connection) error
+		UpdateConnection(ctx context.Context, rr ...*systemType.Connection) error
+		UpsertConnection(ctx context.Context, rr ...*systemType.Connection) error
+		DeleteConnection(ctx context.Context, rr ...*systemType.Connection) error
+
+		DeleteConnectionByID(ctx context.Context, id uint64) error
+		TruncateConnections(ctx context.Context) error
+		LookupConnectionByID(ctx context.Context, id uint64) (*systemType.Connection, error)
+		LookupConnectionByHandle(ctx context.Context, handle string) (*systemType.Connection, error)
 	}
 
 	Credentials interface {
@@ -2046,6 +2073,131 @@ func LookupComposePageLayoutByID(ctx context.Context, s ComposePageLayouts, id u
 // This function is auto-generated
 func ReorderComposePageLayouts(ctx context.Context, s ComposePageLayouts, namespace_id uint64, page_id uint64, page_layout_ids []uint64) error {
 	return s.ReorderComposePageLayouts(ctx, namespace_id, page_id, page_layout_ids)
+}
+
+// SearchConfiguredConnections returns all matching ConfiguredConnections from store
+//
+// This function is auto-generated
+func SearchConfiguredConnections(ctx context.Context, s ConfiguredConnections, f systemType.ConfiguredConnectionFilter) (systemType.ConfiguredConnectionSet, systemType.ConfiguredConnectionFilter, error) {
+	return s.SearchConfiguredConnections(ctx, f)
+}
+
+// CreateConfiguredConnection creates one or more ConfiguredConnections in store
+//
+// This function is auto-generated
+func CreateConfiguredConnection(ctx context.Context, s ConfiguredConnections, rr ...*systemType.ConfiguredConnection) error {
+	return s.CreateConfiguredConnection(ctx, rr...)
+}
+
+// UpdateConfiguredConnection updates one or more (existing) ConfiguredConnections in store
+//
+// This function is auto-generated
+func UpdateConfiguredConnection(ctx context.Context, s ConfiguredConnections, rr ...*systemType.ConfiguredConnection) error {
+	return s.UpdateConfiguredConnection(ctx, rr...)
+}
+
+// UpsertConfiguredConnection creates new or updates existing one or more ConfiguredConnections in store
+//
+// This function is auto-generated
+func UpsertConfiguredConnection(ctx context.Context, s ConfiguredConnections, rr ...*systemType.ConfiguredConnection) error {
+	return s.UpsertConfiguredConnection(ctx, rr...)
+}
+
+// DeleteConfiguredConnection deletes one or more ConfiguredConnections from store
+//
+// This function is auto-generated
+func DeleteConfiguredConnection(ctx context.Context, s ConfiguredConnections, rr ...*systemType.ConfiguredConnection) error {
+	return s.DeleteConfiguredConnection(ctx, rr...)
+}
+
+// DeleteConfiguredConnectionByID deletes one or more ConfiguredConnections from store
+//
+// This function is auto-generated
+func DeleteConfiguredConnectionByID(ctx context.Context, s ConfiguredConnections, id uint64) error {
+	return s.DeleteConfiguredConnectionByID(ctx, id)
+}
+
+// TruncateConfiguredConnections Deletes all ConfiguredConnections from store
+//
+// This function is auto-generated
+func TruncateConfiguredConnections(ctx context.Context, s ConfiguredConnections) error {
+	return s.TruncateConfiguredConnections(ctx)
+}
+
+// LookupConfiguredConnectionByID searches for connection connection by ID
+//
+// It returns connection connection even if deleted
+//
+// This function is auto-generated
+func LookupConfiguredConnectionByID(ctx context.Context, s ConfiguredConnections, id uint64) (*systemType.ConfiguredConnection, error) {
+	return s.LookupConfiguredConnectionByID(ctx, id)
+}
+
+// SearchConnections returns all matching Connections from store
+//
+// This function is auto-generated
+func SearchConnections(ctx context.Context, s Connections, f systemType.ConnectionFilter) (systemType.ConnectionSet, systemType.ConnectionFilter, error) {
+	return s.SearchConnections(ctx, f)
+}
+
+// CreateConnection creates one or more Connections in store
+//
+// This function is auto-generated
+func CreateConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.CreateConnection(ctx, rr...)
+}
+
+// UpdateConnection updates one or more (existing) Connections in store
+//
+// This function is auto-generated
+func UpdateConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.UpdateConnection(ctx, rr...)
+}
+
+// UpsertConnection creates new or updates existing one or more Connections in store
+//
+// This function is auto-generated
+func UpsertConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.UpsertConnection(ctx, rr...)
+}
+
+// DeleteConnection deletes one or more Connections from store
+//
+// This function is auto-generated
+func DeleteConnection(ctx context.Context, s Connections, rr ...*systemType.Connection) error {
+	return s.DeleteConnection(ctx, rr...)
+}
+
+// DeleteConnectionByID deletes one or more Connections from store
+//
+// This function is auto-generated
+func DeleteConnectionByID(ctx context.Context, s Connections, id uint64) error {
+	return s.DeleteConnectionByID(ctx, id)
+}
+
+// TruncateConnections Deletes all Connections from store
+//
+// This function is auto-generated
+func TruncateConnections(ctx context.Context, s Connections) error {
+	return s.TruncateConnections(ctx)
+}
+
+// LookupConnectionByID searches for connection by ID
+//
+// It returns connection even if deleted
+//
+// This function is auto-generated
+func LookupConnectionByID(ctx context.Context, s Connections, id uint64) (*systemType.Connection, error) {
+	return s.LookupConnectionByID(ctx, id)
+}
+
+// LookupConnectionByHandle searches for connection by handle
+//
+// It returns only valid connection (not deleted)
+//
+// This function is auto-generated
+func LookupConnectionByHandle(ctx context.Context, s Connections, handle string) (*systemType.Connection, error) {
+	return s.LookupConnectionByHandle(ctx, handle)
 }
 
 // SearchCredentials returns all matching Credentials from store

@@ -1188,8 +1188,8 @@ endpoints:
       post:
       - { name: handle, type: "string",                 }
       - { name: type,   type: "string",                 required: true }
-      - { name: meta,   type: "types.ConnectionMeta",   required: true, parser: "types.ParseConnectionMeta" }
-      - { name: config, type: "types.ConnectionConfig", required: true, parser: "types.ParseConnectionConfig" }
+      - { name: meta,   type: "types.DalConnectionMeta",   required: true, parser: "types.ParseDalConnectionMeta" }
+      - { name: config, type: "types.DalConnectionConfig", required: true, parser: "types.ParseDalConnectionConfig" }
 
   - name: update
     method: PUT
@@ -1200,8 +1200,8 @@ endpoints:
       post:
       - { name: handle, type: "string",                 }
       - { name: type,   type: "string",                 required: true }
-      - { name: meta,   type: "types.ConnectionMeta",   required: true, parser: "types.ParseConnectionMeta" }
-      - { name: config, type: "types.ConnectionConfig", required: true, parser: "types.ParseConnectionConfig" }
+      - { name: meta,   type: "types.DalConnectionMeta",   required: true, parser: "types.ParseDalConnectionMeta" }
+      - { name: config, type: "types.DalConnectionConfig", required: true, parser: "types.ParseDalConnectionConfig" }
       - { type: "*time.Time", name: updatedAt, required: false, title: Last update (or creation) date }
 
   - name: read
@@ -2773,3 +2773,139 @@ endpoints:
           - { name: password,       type: string,       title: SMTP server authentication password }
           - { name: tlsInsecure,    type: bool,         title: TLS mode }
           - { name: tlsServerName,  type: string,       title: TLS server name }
+
+- title: Connections
+  path: "/connections"
+  entrypoint: connection
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - encoding/json
+    - time
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+  apis:
+  - name: list
+    method: GET
+    title: List connections
+    path: "/"
+    parameters:
+      get:
+      - { type: "string",   name: "handle",     title: "Filter by handle" }
+      - { type: "[]string", name: "status",     title: "Filter by status" }
+      - { type: "string",   name: "query",      title: "Search query" }
+      - { type: "[]string", name: "tags",       title: "Filter by tags" }
+      - { type: "uint",     name: "deleted",    title: "Exclude (0, default), include (1) or return only (2) deleted connections" }
+      - { type: "map[string]labelTypes.LabelValue", name: "labels", title: "Labels", parser: "label.ParseStrings" }
+      - { type: "uint",     name: "limit",      title: "Limit" }
+      - { type: "bool",     name: "incTotal",   title: "Include total counter" }
+      - { type: "string",   name: "pageCursor", title: "Page cursor" }
+      - { type: "string",   name: "sort",       title: "Sort items" }
+  - name: create
+    method: POST
+    title: Create connection
+    path: "/"
+    parameters:
+      post:
+      - { type: "string",                  name: "handle",             title: "Connection handle",    required: true }
+      - { type: "types.ConnectionMeta",     name: "meta",              title: "Meta",                parser: "types.ParseConnectionMeta" }
+      - { type: "types.ConnectionService",  name: "service",           title: "Service config",      parser: "types.ParseConnectionService" }
+      - { type: "json.RawMessage",         name: "resources",         title: "Resources" }
+      - { type: "json.RawMessage",         name: "standardOperations", title: "Standard operations" }
+      - { type: "json.RawMessage",         name: "operations",        title: "Operations" }
+      - { type: "map[string]labelTypes.LabelValue", name: "labels",   title: "Labels", parser: "label.ParseStrings" }
+  - name: update
+    method: PUT
+    title: Update connection
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - { type: "uint64",  name: "connectionID", required: true, title: "Connection ID" }
+      post:
+      - { type: "string",                  name: "handle",             title: "Connection handle" }
+      - { type: "types.ConnectionMeta",     name: "meta",              title: "Meta",                parser: "types.ParseConnectionMeta" }
+      - { type: "types.ConnectionService",  name: "service",           title: "Service config",      parser: "types.ParseConnectionService" }
+      - { type: "json.RawMessage",         name: "resources",         title: "Resources" }
+      - { type: "json.RawMessage",         name: "standardOperations", title: "Standard operations" }
+      - { type: "json.RawMessage",         name: "operations",        title: "Operations" }
+      - { type: "map[string]labelTypes.LabelValue", name: "labels",   title: "Labels", parser: "label.ParseStrings" }
+      - { type: "*time.Time",              name: "updatedAt",         title: "Last update (or creation) date" }
+  - name: read
+    method: GET
+    title: Read connection
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - { type: "uint64",  name: "connectionID", required: true, title: "Connection ID" }
+  - name: delete
+    method: DELETE
+    title: Delete connection
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - { type: "uint64",  name: "connectionID", required: true, title: "Connection ID" }
+  - name: undelete
+    method: POST
+    title: Undelete connection
+    path: "/{connectionID}/undelete"
+    parameters:
+      path:
+      - { type: "uint64",  name: "connectionID", required: true, title: "Connection ID" }
+  - name: generate
+    method: POST
+    title: Generate connection via builder agent
+    path: "/generate"
+    parameters:
+      post:
+      - { type: "string",  name: "prompt",  required: true, title: "Description or API docs" }
+      - { type: "string",  name: "context",                 title: "Optional additional context" }
+
+- title: Configured Connections
+  path: "/configured-connections"
+  entrypoint: configuredConnection
+  authentication: []
+  imports:
+    - github.com/cortezaproject/corteza/server/pkg/label
+    - github.com/cortezaproject/corteza/server/system/types
+    - encoding/json
+    - labelTypes github.com/cortezaproject/corteza/server/pkg/label/types
+  apis:
+  - name: list
+    method: GET
+    title: List configured connections
+    path: "/"
+    parameters:
+      get:
+      - { type: "uint64",   name: "connectionID", title: "Filter by connection ID" }
+      - { type: "[]string", name: "status",      title: "Filter by status" }
+      - { type: "string",   name: "query",       title: "Search query" }
+      - { type: "uint",     name: "deleted",     title: "Exclude (0, default), include (1) or return only (2) deleted connections" }
+      - { type: "map[string]labelTypes.LabelValue", name: "labels", title: "Labels", parser: "label.ParseStrings" }
+      - { type: "uint",     name: "limit",       title: "Limit" }
+      - { type: "bool",     name: "incTotal",    title: "Include total counter" }
+      - { type: "string",   name: "pageCursor",  title: "Page cursor" }
+      - { type: "string",   name: "sort",        title: "Sort items" }
+  - name: install
+    method: POST
+    title: Install a connection (create configured connection)
+    path: "/"
+    parameters:
+      post:
+      - { type: "uint64",                             name: "connectionID",   required: true, title: "Connection ID" }
+      - { type: "string",                             name: "name",          required: true, title: "Connection name" }
+      - { type: "types.ConfiguredConnectionConfig",    name: "config",        title: "Connection config", parser: "types.ParseConfiguredConnectionConfig" }
+      - { type: "map[string]labelTypes.LabelValue",   name: "labels",        title: "Labels", parser: "label.ParseStrings" }
+  - name: read
+    method: GET
+    title: Read configured connection
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - { type: "uint64",  name: "connectionID", required: true, title: "Connection ID" }
+  - name: delete
+    method: DELETE
+    title: Delete configured connection
+    path: "/{connectionID}"
+    parameters:
+      path:
+      - { type: "uint64",  name: "connectionID", required: true, title: "Connection ID" }

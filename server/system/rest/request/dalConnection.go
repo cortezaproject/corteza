@@ -76,12 +76,12 @@ type (
 		// Meta POST parameter
 		//
 		//
-		Meta types.ConnectionMeta
+		Meta types.DalConnectionMeta
 
 		// Config POST parameter
 		//
 		//
-		Config types.ConnectionConfig
+		Config types.DalConnectionConfig
 	}
 
 	DalConnectionUpdate struct {
@@ -103,12 +103,12 @@ type (
 		// Meta POST parameter
 		//
 		//
-		Meta types.ConnectionMeta
+		Meta types.DalConnectionMeta
 
 		// Config POST parameter
 		//
 		//
-		Config types.ConnectionConfig
+		Config types.DalConnectionConfig
 
 		// UpdatedAt POST parameter
 		//
@@ -252,12 +252,12 @@ func (r DalConnectionCreate) GetType() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetMeta() types.ConnectionMeta {
+func (r DalConnectionCreate) GetMeta() types.DalConnectionMeta {
 	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionCreate) GetConfig() types.ConnectionConfig {
+func (r DalConnectionCreate) GetConfig() types.DalConnectionConfig {
 	return r.Config
 }
 
@@ -297,24 +297,24 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 			}
 
 			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
-				r.Meta, err = types.ParseConnectionMeta(val)
+				r.Meta, err = types.ParseDalConnectionMeta(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["meta"]; ok {
-				r.Meta, err = types.ParseConnectionMeta(val)
+				r.Meta, err = types.ParseDalConnectionMeta(val)
 				if err != nil {
 					return err
 				}
 			}
 
 			if val, ok := req.MultipartForm.Value["config[]"]; ok {
-				r.Config, err = types.ParseConnectionConfig(val)
+				r.Config, err = types.ParseDalConnectionConfig(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["config"]; ok {
-				r.Config, err = types.ParseConnectionConfig(val)
+				r.Config, err = types.ParseDalConnectionConfig(val)
 				if err != nil {
 					return err
 				}
@@ -344,24 +344,24 @@ func (r *DalConnectionCreate) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["meta[]"]; ok {
-			r.Meta, err = types.ParseConnectionMeta(val)
+			r.Meta, err = types.ParseDalConnectionMeta(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["meta"]; ok {
-			r.Meta, err = types.ParseConnectionMeta(val)
+			r.Meta, err = types.ParseDalConnectionMeta(val)
 			if err != nil {
 				return err
 			}
 		}
 
 		if val, ok := req.Form["config[]"]; ok {
-			r.Config, err = types.ParseConnectionConfig(val)
+			r.Config, err = types.ParseDalConnectionConfig(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["config"]; ok {
-			r.Config, err = types.ParseConnectionConfig(val)
+			r.Config, err = types.ParseDalConnectionConfig(val)
 			if err != nil {
 				return err
 			}
@@ -404,12 +404,12 @@ func (r DalConnectionUpdate) GetType() string {
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetMeta() types.ConnectionMeta {
+func (r DalConnectionUpdate) GetMeta() types.DalConnectionMeta {
 	return r.Meta
 }
 
 // Auditable returns all auditable/loggable parameters
-func (r DalConnectionUpdate) GetConfig() types.ConnectionConfig {
+func (r DalConnectionUpdate) GetConfig() types.DalConnectionConfig {
 	return r.Config
 }
 
@@ -454,24 +454,24 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 			}
 
 			if val, ok := req.MultipartForm.Value["meta[]"]; ok {
-				r.Meta, err = types.ParseConnectionMeta(val)
+				r.Meta, err = types.ParseDalConnectionMeta(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["meta"]; ok {
-				r.Meta, err = types.ParseConnectionMeta(val)
+				r.Meta, err = types.ParseDalConnectionMeta(val)
 				if err != nil {
 					return err
 				}
 			}
 
 			if val, ok := req.MultipartForm.Value["config[]"]; ok {
-				r.Config, err = types.ParseConnectionConfig(val)
+				r.Config, err = types.ParseDalConnectionConfig(val)
 				if err != nil {
 					return err
 				}
 			} else if val, ok := req.MultipartForm.Value["config"]; ok {
-				r.Config, err = types.ParseConnectionConfig(val)
+				r.Config, err = types.ParseDalConnectionConfig(val)
 				if err != nil {
 					return err
 				}
@@ -508,24 +508,24 @@ func (r *DalConnectionUpdate) Fill(req *http.Request) (err error) {
 		}
 
 		if val, ok := req.Form["meta[]"]; ok {
-			r.Meta, err = types.ParseConnectionMeta(val)
+			r.Meta, err = types.ParseDalConnectionMeta(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["meta"]; ok {
-			r.Meta, err = types.ParseConnectionMeta(val)
+			r.Meta, err = types.ParseDalConnectionMeta(val)
 			if err != nil {
 				return err
 			}
 		}
 
 		if val, ok := req.Form["config[]"]; ok {
-			r.Config, err = types.ParseConnectionConfig(val)
+			r.Config, err = types.ParseDalConnectionConfig(val)
 			if err != nil {
 				return err
 			}
 		} else if val, ok := req.Form["config"]; ok {
-			r.Config, err = types.ParseConnectionConfig(val)
+			r.Config, err = types.ParseDalConnectionConfig(val)
 			if err != nil {
 				return err
 			}

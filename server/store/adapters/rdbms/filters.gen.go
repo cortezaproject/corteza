@@ -90,6 +90,12 @@ type (
 		// optional composePageLayout filter function called after the generated function
 		ComposePageLayout func(*Store, composeType.PageLayoutFilter) ([]goqu.Expression, composeType.PageLayoutFilter, error)
 
+		// optional configuredConnection filter function called after the generated function
+		ConfiguredConnection func(*Store, systemType.ConfiguredConnectionFilter) ([]goqu.Expression, systemType.ConfiguredConnectionFilter, error)
+
+		// optional connection filter function called after the generated function
+		Connection func(*Store, systemType.ConnectionFilter) ([]goqu.Expression, systemType.ConnectionFilter, error)
+
 		// optional credential filter function called after the generated function
 		Credential func(*Store, systemType.CredentialFilter) ([]goqu.Expression, systemType.CredentialFilter, error)
 
@@ -780,6 +786,62 @@ func ComposePageLayoutFilter(d drivers.Dialect, f composeType.PageLayoutFilter) 
 		ee = append(ee, goqu.Or(
 			goqu.C("handle").ILike("%"+f.Query+"%"),
 		))
+	}
+
+	return ee, f, err
+}
+
+// ConfiguredConnectionFilter returns logical expressions
+//
+// This function is called from Store.QueryConfiguredConnections() and can be extended
+// by setting Store.Filters.ConfiguredConnection. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ConfiguredConnectionFilter(d drivers.Dialect, f systemType.ConfiguredConnectionFilter) (ee []goqu.Expression, _ systemType.ConfiguredConnectionFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if f.ConnectionID > 0 {
+		ee = append(ee, goqu.C("rel_connection").Eq(f.ConnectionID))
+	}
+
+	if ss := trimStringSlice(f.Status); len(ss) > 0 {
+		ee = append(ee, goqu.C("status").In(ss))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
+	}
+
+	return ee, f, err
+}
+
+// ConnectionFilter returns logical expressions
+//
+// This function is called from Store.QueryConnections() and can be extended
+// by setting Store.Filters.Connection. Extension is called after all expressions
+// are generated and can choose to ignore or alter them.
+//
+// This function is auto-generated
+func ConnectionFilter(d drivers.Dialect, f systemType.ConnectionFilter) (ee []goqu.Expression, _ systemType.ConnectionFilter, err error) {
+
+	if expr := stateNilComparison(d, "deleted_at", f.Deleted); expr != nil {
+		ee = append(ee, expr)
+	}
+
+	if val := strings.TrimSpace(f.Handle); len(val) > 0 {
+		ee = append(ee, goqu.C("handle").Eq(f.Handle))
+	}
+
+	if ss := trimStringSlice(f.Status); len(ss) > 0 {
+		ee = append(ee, goqu.C("status").In(ss))
+	}
+
+	if len(f.LabeledIDs) > 0 {
+		ee = append(ee, goqu.I("id").In(f.LabeledIDs))
 	}
 
 	return ee, f, err

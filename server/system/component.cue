@@ -34,6 +34,8 @@ component: schema.#component & {
     "dal-connection":        				dal_connection
     "dal-sensitivity-level": 				dal_sensitivity_level
     "dal-schema-alteration": 				dal_schema_alteration
+    "connection":             				connection
+    "configured-connection":  				configured_connection
 	}
 
 	rbac: operations: {
@@ -80,6 +82,11 @@ component: schema.#component & {
 		"resource-translations.manage": description: "List, search, create, or update resource translations"
 
 		"dal-schema-alterations.manage": description: "List, search, apply, or dismiss DAL alterations"
+
+		"connection.create": description:            "Create connections"
+		"connections.search": description:           "List, search or filter connections"
+		"configured-connection.create": description:  "Install connection connections"
+		"configured-connections.search": description: "List, search or filter connection connections"
 
 		"data-privacy-request.create": description:  "Create data privacy requests"
 		"data-privacy-requests.search": description: "List, search or filter data privacy requests"

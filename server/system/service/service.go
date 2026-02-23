@@ -80,29 +80,31 @@ var (
 
 	DefaultSink *sink
 
-	DefaultAuth                *auth
-	DefaultAuthClient          *authClient
-	DefaultUser                *user
-	DefaultCredentials         *credentials
-	DefaultDalConnection       *dalConnection
-	DefaultDalSensitivityLevel *dalSensitivityLevel
-	DefaultDalSchemaAlteration *dalSchemaAlteration
-	DefaultRole                *role
-	DefaultUserGroup           *userGroup
-	DefaultApplication         *application
-	DefaultReminder            ReminderService
-	DefaultNotification        NotificationService
-	DefaultAttachment          AttachmentService
-	DefaultRenderer            TemplateService
-	DefaultResourceTranslation ResourceTranslationService
-	DefaultQueue               *queue
-	DefaultApigwRoute          *apigwRoute
-	DefaultApigwFilter         *apigwFilter
-	DefaultApigwProfiler       *apigwProfiler
-	DefaultReport              *report
-	DefaultDataPrivacy         *dataPrivacy
-	DefaultSMTPChecker         *smtpConfigurationChecker
-	DefaultExpression          *expression
+	DefaultAuth                 *auth
+	DefaultAuthClient           *authClient
+	DefaultUser                 *user
+	DefaultCredentials          *credentials
+	DefaultDalConnection        *dalConnection
+	DefaultDalSensitivityLevel  *dalSensitivityLevel
+	DefaultDalSchemaAlteration  *dalSchemaAlteration
+	DefaultRole                 *role
+	DefaultUserGroup            *userGroup
+	DefaultApplication          *application
+	DefaultReminder             ReminderService
+	DefaultNotification         NotificationService
+	DefaultAttachment           AttachmentService
+	DefaultRenderer             TemplateService
+	DefaultResourceTranslation  ResourceTranslationService
+	DefaultQueue                *queue
+	DefaultApigwRoute           *apigwRoute
+	DefaultApigwFilter          *apigwFilter
+	DefaultApigwProfiler        *apigwProfiler
+	DefaultReport               *report
+	DefaultDataPrivacy          *dataPrivacy
+	DefaultSMTPChecker          *smtpConfigurationChecker
+	DefaultExpression           *expression
+	DefaultConnection           *connection
+	DefaultConfiguredConnection *configuredConnection
 
 	DefaultStatistics *statistics
 
@@ -172,7 +174,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		return fmt.Errorf("failed to initialize credential registry: %w", err)
 	}
 
-	DefaultDalConnection = Connection(ctx, dal.Service(), c.DB)
+	DefaultDalConnection = DalConnection(ctx, dal.Service(), c.DB)
 
 	DefaultDalSensitivityLevel = SensitivityLevel(ctx, dal.Service())
 
@@ -240,6 +242,8 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 	DefaultDataPrivacy = DataPrivacy(DefaultStore, DefaultAccessControl, DefaultActionlog, eventbus.Service())
 	DefaultSMTPChecker = SmtpConfigurationChecker(CurrentSettings, DefaultRenderer, DefaultAccessControl, c.Auth)
 	DefaultExpression = Expression()
+	DefaultConnection = Connection()
+	DefaultConfiguredConnection = ConfiguredConnectionSvc()
 
 	if err = initRoles(ctx, log.Named("rbac.roles"), c.RBAC, eventbus.Service(), rbac.Global()); err != nil {
 		return err
