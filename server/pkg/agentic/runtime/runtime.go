@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 
+	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -13,6 +14,7 @@ type (
 		llm               LLMClient
 		mcp               MCPClient
 		conversationStore ConversationStore
+		obs               *observability.Bus
 	}
 
 	// Registry interface for fetching agent definitions
@@ -110,11 +112,12 @@ type (
 )
 
 // Runtime creates a new Agent Runtime.
-func Runtime(reg Registry, llm LLMClient, mcp MCPClient, store ConversationStore) *runtime {
+func Runtime(reg Registry, llm LLMClient, mcp MCPClient, store ConversationStore, obs *observability.Bus) *runtime {
 	return &runtime{
 		registry:          reg,
 		llm:               llm,
 		mcp:               mcp,
 		conversationStore: store,
+		obs:               obs,
 	}
 }

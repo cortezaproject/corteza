@@ -4,10 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
 
+	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
+	"github.com/cortezaproject/corteza/server/pkg/auth"
+	"github.com/cortezaproject/corteza/server/pkg/id"
 	"github.com/cortezaproject/corteza/server/system/types"
 )
 
@@ -46,7 +50,44 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 		})
 	}
 
-	// 4. Execution Loop
+	// Observability setup
+	traceID := sid()
+	agentIDStr := strconv.FormatUint(agent.ID, 10)
+	convIDStr := strconv.FormatUint(conversation.ID, 10)
+	userIDStr := strconv.FormatUint(auth.GetIdentityFromContext(ctx).Identity(), 10)
+	rootSpanID := sid()
+	rootStartedAt := time.Now()
+
+	r.emitEvent(observability.AgentEvent{
+		ID:             sid(),
+		TraceID:        traceID,
+		SpanID:         rootSpanID,
+		Timestamp:      time.Now(),
+		Event:          "agent.invoked",
+		AgentID:        agentIDStr,
+		UserID:         userIDStr,
+		ConversationID: convIDStr,
+		Details:        map[string]any{"input": req.Input},
+	})
+
+	// 4. prompt.build span — system prompt preparation
+	promptBuildStart := time.Now()
+	systemPrompt := agent.Behavior.SystemPrompt
+	r.emitSpan(observability.AgentSpan{
+		ID:             sid(),
+		ParentID:       rootSpanID,
+		TraceID:        traceID,
+		Name:           "prompt.build",
+		AgentID:        agentIDStr,
+		UserID:         userIDStr,
+		ConversationID: convIDStr,
+		StartedAt:      promptBuildStart,
+		EndedAt:        time.Now(),
+		Status:         observability.StatusOK,
+		Attributes:     map[string]any{"promptLength": len(systemPrompt)},
+	})
+
+	// 5. Execution Loop
 	limits := agent.Execution.Limits
 	maxIterations := limits.MaxIterations
 	if maxIterations == 0 {
@@ -57,6 +98,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 	var usage Usage
 	var executedTools []ToolCallInfo
 	var decisions []DecisionInfo
+	var runErr error
 
 	for i := 0; i < maxIterations; i++ {
 		config := LLMConfig{
@@ -66,15 +108,41 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			MaxTokens:   agent.Execution.Model.MaxTokens,
 		}
 
-		llmResp, err := r.llm.Chat(ctx, agent.Behavior.SystemPrompt, conversation.Messages, tools, config)
-		if err != nil {
-			return nil, fmt.Errorf("llm chat failed: %w", err)
+		llmSpanID := sid()
+		llmStart := time.Now()
+
+		llmResp, llmErr := r.llm.Chat(ctx, systemPrompt, conversation.Messages, tools, config)
+
+		llmSpan := observability.AgentSpan{
+			ID:             llmSpanID,
+			ParentID:       rootSpanID,
+			TraceID:        traceID,
+			Name:           "llm.chat",
+			AgentID:        agentIDStr,
+			UserID:         userIDStr,
+			ConversationID: convIDStr,
+			StartedAt:      llmStart,
+			EndedAt:        time.Now(),
 		}
+		if llmErr != nil {
+			llmSpan.Status = observability.StatusError
+			llmSpan.Error = llmErr
+			r.emitSpan(llmSpan)
+			runErr = fmt.Errorf("llm chat failed: %w", llmErr)
+			break
+		}
+		llmSpan.Status = observability.StatusOK
+		llmSpan.Attributes = map[string]any{
+			"inputTokens":  llmResp.Usage.InputTokens,
+			"outputTokens": llmResp.Usage.OutputTokens,
+		}
+		r.emitSpan(llmSpan)
 
 		usage.accumulate(llmResp.Usage)
 
 		if limits.MaxTokens > 0 && usage.TotalTokens > limits.MaxTokens {
-			return nil, fmt.Errorf("limit_exceeded: token limit reached")
+			runErr = fmt.Errorf("limit_exceeded: token limit reached")
+			break
 		}
 
 		// Process response
@@ -98,7 +166,7 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 			})
 
 			// Execute tools and append results to conversation
-			results, infos := r.executeTools(ctx, llmResp.ToolCalls)
+			results, infos := r.executeTools(ctx, llmResp.ToolCalls, traceID, rootSpanID, agentIDStr, userIDStr, convIDStr)
 			conversation.Messages = append(conversation.Messages, results...)
 			executedTools = append(executedTools, infos...)
 		} else {
@@ -107,14 +175,65 @@ func (r *runtime) Run(ctx context.Context, req *AgentRequest) (*AgentResponse, e
 				Decision:  "respond",
 			})
 
-			// Text response — done
+			// agent.respond span — final response assembly
+			respondStart := time.Now()
 			finalResponse = llmResp.Text
 			conversation.Messages = append(conversation.Messages, types.AiConversationMessage{
 				Role:    "assistant",
 				Content: finalResponse,
 			})
+			r.emitSpan(observability.AgentSpan{
+				ID:             sid(),
+				ParentID:       rootSpanID,
+				TraceID:        traceID,
+				Name:           "agent.respond",
+				AgentID:        agentIDStr,
+				UserID:         userIDStr,
+				ConversationID: convIDStr,
+				StartedAt:      respondStart,
+				EndedAt:        time.Now(),
+				Status:         observability.StatusOK,
+				Attributes:     map[string]any{"responseLength": len(finalResponse)},
+			})
 			break
 		}
+	}
+
+	// End root span
+	rootStatus := observability.StatusOK
+	if runErr != nil {
+		rootStatus = observability.StatusError
+	}
+	r.emitSpan(observability.AgentSpan{
+		ID:             rootSpanID,
+		TraceID:        traceID,
+		Name:           "agent.run",
+		AgentID:        agentIDStr,
+		UserID:         userIDStr,
+		ConversationID: convIDStr,
+		StartedAt:      rootStartedAt,
+		EndedAt:        time.Now(),
+		Status:         rootStatus,
+		Error:          runErr,
+	})
+
+	r.emitEvent(observability.AgentEvent{
+		ID:             sid(),
+		TraceID:        traceID,
+		SpanID:         rootSpanID,
+		Timestamp:      time.Now(),
+		Event:          "agent.completed",
+		AgentID:        agentIDStr,
+		UserID:         userIDStr,
+		ConversationID: convIDStr,
+		Details: map[string]any{
+			"totalTokens": usage.TotalTokens,
+			"toolCalls":   len(executedTools),
+		},
+	})
+
+	if runErr != nil {
+		return nil, runErr
 	}
 
 	// Save conversation
@@ -167,7 +286,7 @@ func (u *Usage) accumulate(other Usage) {
 }
 
 // executeTools runs each tool call and returns conversation messages + telemetry info.
-func (r *runtime) executeTools(ctx context.Context, calls []ToolCall) ([]types.AiConversationMessage, []ToolCallInfo) {
+func (r *runtime) executeTools(ctx context.Context, calls []ToolCall, traceID, parentSpanID, agentID, userID, convID string) ([]types.AiConversationMessage, []ToolCallInfo) {
 	var (
 		messages []types.AiConversationMessage
 		infos    []ToolCallInfo
@@ -178,8 +297,52 @@ func (r *runtime) executeTools(ctx context.Context, calls []ToolCall) ([]types.A
 
 		// TODO: Policy check (allow/deny)
 
+		r.emitEvent(observability.AgentEvent{
+			ID:             sid(),
+			TraceID:        traceID,
+			SpanID:         parentSpanID,
+			Timestamp:      time.Now(),
+			Event:          "tool.called",
+			AgentID:        agentID,
+			UserID:         userID,
+			ConversationID: convID,
+			Details:        map[string]any{"tool": tc.Name, "args": tc.Args},
+		})
+
 		result, execErr := r.mcp.ExecuteTool(ctx, tc.Name, tc.Args)
 		duration := int(time.Since(start).Milliseconds())
+
+		toolSpan := observability.AgentSpan{
+			ID:             sid(),
+			ParentID:       parentSpanID,
+			TraceID:        traceID,
+			Name:           "tool.execute",
+			AgentID:        agentID,
+			UserID:         userID,
+			ConversationID: convID,
+			StartedAt:      start,
+			EndedAt:        time.Now(),
+			Attributes:     map[string]any{"tool": tc.Name},
+		}
+		if execErr != nil {
+			toolSpan.Status = observability.StatusError
+			toolSpan.Error = execErr
+		} else {
+			toolSpan.Status = observability.StatusOK
+		}
+		r.emitSpan(toolSpan)
+
+		r.emitEvent(observability.AgentEvent{
+			ID:             sid(),
+			TraceID:        traceID,
+			SpanID:         parentSpanID,
+			Timestamp:      time.Now(),
+			Event:          "tool.completed",
+			AgentID:        agentID,
+			UserID:         userID,
+			ConversationID: convID,
+			Details:        map[string]any{"tool": tc.Name, "durationMs": duration},
+		})
 
 		resultData, _ := json.Marshal(result)
 
@@ -224,4 +387,20 @@ func toAiToolCalls(tcs []ToolCall) []types.AiConversationToolCall {
 		}
 	}
 	return out
+}
+
+func (r *runtime) emitSpan(span observability.AgentSpan) {
+	if r.obs != nil {
+		r.obs.EmitSpan(span)
+	}
+}
+
+func (r *runtime) emitEvent(event observability.AgentEvent) {
+	if r.obs != nil {
+		r.obs.EmitEvent(event)
+	}
+}
+
+func sid() string {
+	return strconv.FormatUint(id.Next(), 10)
 }

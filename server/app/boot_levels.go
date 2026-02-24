@@ -45,6 +45,7 @@ import (
 	sysService "github.com/cortezaproject/corteza/server/system/service"
 	sysEvent "github.com/cortezaproject/corteza/server/system/service/event"
 	"github.com/cortezaproject/corteza/server/system/types"
+	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
 	mcpkg "github.com/cortezaproject/corteza/server/system/mcp"
 	"github.com/lestrrat-go/jwx/jwt"
 	"go.uber.org/zap"
@@ -378,6 +379,8 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 	mcpkg.RecordHandler(reg)
 	app.McpServer = mcpkg.NewMCPServer(reg)
 
+	obs := observability.NewBus(observability.NewLogDispatcher())
+
 	err = sysService.Initialize(ctx, app.Log, app.Store, app.WsServer, sysService.Config{
 		ActionLog:  app.Opt.ActionLog,
 		Discovery:  app.Opt.Discovery,
@@ -390,6 +393,7 @@ func (app *CortezaApp) InitServices(ctx context.Context) (err error) {
 		Attachment: app.Opt.Attachment,
 		Webapps:    app.Opt.Webapp,
 		MCPClient:  reg,
+		ObsBus:     obs,
 	})
 	if err != nil {
 		return
