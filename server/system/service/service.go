@@ -11,6 +11,7 @@ import (
 	automationService "github.com/cortezaproject/corteza/server/automation/service"
 	discoveryService "github.com/cortezaproject/corteza/server/discovery/service"
 	"github.com/cortezaproject/corteza/server/pkg/actionlog"
+	"github.com/cortezaproject/corteza/server/pkg/agentic/observability"
 	agenticRuntime "github.com/cortezaproject/corteza/server/pkg/agentic/runtime"
 	"github.com/cortezaproject/corteza/server/pkg/dal"
 	"github.com/cortezaproject/corteza/server/pkg/eventbus"
@@ -48,6 +49,7 @@ type (
 		Attachment options.AttachmentOpt
 		Webapps    options.WebappOpt
 		MCPClient  agenticRuntime.MCPClient
+		ObsBus     *observability.Bus
 	}
 
 	eventDispatcher interface {
@@ -261,6 +263,7 @@ func Initialize(ctx context.Context, log *zap.Logger, s store.Storer, ws websock
 		DefaultLlmService,
 		c.MCPClient,
 		DefaultAiConversation,
+		c.ObsBus,
 	)
 
 	DefaultApigwRoute = Route()
